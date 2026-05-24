@@ -1475,61 +1475,62 @@ const APP_INFO = {
  *
  * @global
  */
-if (globalThis.window !== undefined) {
-    // Expose map utilities globally for chart and map components
-    /** @type {any} */ (globalThis).createExportGPXButton =
-        createExportGPXButton;
+// Expose map utilities globally for chart and map components
+Reflect.set(globalThis, "createExportGPXButton", createExportGPXButton);
 
-    // Expose application information
-    /** @type {any} */ (globalThis).APP_INFO = APP_INFO;
+// Expose application information
+Reflect.set(globalThis, "APP_INFO", APP_INFO);
 
-    // Expose core utilities for debugging and legacy support
-    if (isDevelopmentMode()) {
-        /** @type {any} */ (globalThis).__renderer_debug = {
-            handleOpenFile: async (...args) => {
-                try {
-                    const { handleOpenFile } = await ensureCoreModules();
-                    return handleOpenFile(...args);
-                } catch {
-                    /* Ignore errors */
-                }
-            },
-            PerformanceMonitor,
-            setupTheme: async (...args) => {
-                try {
-                    const { setupTheme } = await ensureCoreModules();
-                    return setupTheme(...args);
-                } catch {
-                    /* Ignore errors */
-                }
-            },
-            showAboutModal: async (...args) => {
-                try {
-                    const { showAboutModal } = await ensureCoreModules();
-                    return showAboutModal(...args);
-                } catch {
-                    /* Ignore errors */
-                }
-            },
-            showNotification: async (...args) => {
-                try {
-                    const { showNotification } = await ensureCoreModules();
-                    return showNotification(...args);
-                } catch {
-                    /* Ignore errors */
-                }
-            },
-            showUpdateNotification: async (...args) => {
-                try {
-                    const { showUpdateNotification } =
-                        await ensureCoreModules();
-                    return showUpdateNotification(...args);
-                } catch {
-                    /* Ignore errors */
-                }
-            },
-        };
-    }
+// Expose core utilities for debugging and legacy support
+if (isDevelopmentMode()) {
+    /**
+     * @param {keyof RendererCoreModules} exportName
+     * @param {unknown[]} args
+     *
+     * @returns {Promise<unknown>}
+     */
+    const callDebugCoreFunction = async (exportName, args) => {
+        try {
+            const coreModules = await ensureCoreModules();
+            const debugFunction = coreModules[exportName];
+            if (typeof debugFunction === "function") {
+                return debugFunction(...args);
+            }
+        } catch {
+            /* Ignore errors */
+        }
+
+        return undefined;
+    };
+
+    /** @type {(...args: unknown[]) => Promise<unknown>} */
+    const handleOpenFileDebug = async (...args) =>
+        callDebugCoreFunction("handleOpenFile", args);
+
+    /** @type {(...args: unknown[]) => Promise<unknown>} */
+    const setupThemeDebug = async (...args) =>
+        callDebugCoreFunction("setupTheme", args);
+
+    /** @type {(...args: unknown[]) => Promise<unknown>} */
+    const showAboutModalDebug = async (...args) =>
+        callDebugCoreFunction("showAboutModal", args);
+
+    /** @type {(...args: unknown[]) => Promise<unknown>} */
+    const showNotificationDebug = async (...args) =>
+        callDebugCoreFunction("showNotification", args);
+
+    /** @type {(...args: unknown[]) => Promise<unknown>} */
+    const showUpdateNotificationDebug = async (...args) =>
+        callDebugCoreFunction("showUpdateNotification", args);
+
+    Reflect.set(globalThis, "__renderer_debug", {
+        handleOpenFile: handleOpenFileDebug,
+        PerformanceMonitor,
+        setupTheme: setupThemeDebug,
+        showAboutModal: showAboutModalDebug,
+        showNotification: showNotificationDebug,
+        showUpdateNotification: showUpdateNotificationDebug,
+    });
 }
 
 /**
@@ -1537,16 +1538,17 @@ if (globalThis.window !== undefined) {
  *
  * @private
  */
-function __resetRendererStateInitializationForTests() {
+function resetRendererStateInitializationForTests() {
     stateInitTracker.initialized = false;
     stateInitTracker.promise = null;
     isOpeningFileRef.value = false;
 }
 
-if (typeof globalThis !== "undefined") {
-    /** @type {any} */ (globalThis).__resetRendererStateInitializationForTests =
-        __resetRendererStateInitializationForTests;
-}
+Reflect.set(
+    globalThis,
+    "__resetRendererStateInitializationForTests",
+    resetRendererStateInitializationForTests
+);
 
 // Log application startup information
 logRenderer("group", "[Renderer] Application Startup");
