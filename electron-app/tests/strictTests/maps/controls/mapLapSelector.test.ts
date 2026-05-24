@@ -6,7 +6,9 @@ async function loadModule() {
 
 describe("mapLapSelector", () => {
     beforeEach(() => {
-        document.body.innerHTML = '<div id="container"></div>';
+        const container = document.createElement("div");
+        container.id = "container";
+        document.body.replaceChildren(container);
         (window as any).globalData = {
             lapMesgs: [
                 {},
@@ -29,7 +31,8 @@ describe("mapLapSelector", () => {
         const toggle = container.querySelector(
             "#multi-lap-toggle"
         ) as HTMLButtonElement;
-        expect(select).toBeTruthy();
+        expect(select).toBeInstanceOf(HTMLSelectElement);
+        expect(toggle).toBeInstanceOf(HTMLButtonElement);
 
         // Single-select: choose Lap 2
         // Explicitly control option selections to avoid jsdom quirks
@@ -56,5 +59,20 @@ describe("mapLapSelector", () => {
         select.options[3].selected = true; // Lap 3
         select.dispatchEvent(new Event("change"));
         expect(Array.isArray(draws.at(-1))).toBe(true);
+    });
+
+    it("does not add control when lap data is missing", async () => {
+        const { addLapSelector } = await loadModule();
+        const container = document.getElementById("container")!;
+        const drawFn = vi.fn();
+
+        delete (window as any).globalData;
+
+        addLapSelector(null as any, container, drawFn);
+
+        expect(
+            container.querySelector(".custom-lap-control-container")
+        ).not.toBeInstanceOf(HTMLElement);
+        expect(drawFn).not.toHaveBeenCalled();
     });
 });
