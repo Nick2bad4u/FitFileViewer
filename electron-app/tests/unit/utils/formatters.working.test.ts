@@ -29,6 +29,7 @@ describe("Working Formatter Utilities", () => {
             it("should format distance with both km and miles correctly", () => {
                 const result = formatDistance(1000);
                 expect(result).toBe("1.00 km / 0.62 mi");
+                expect(result).not.toBe("");
             });
 
             it("should format small distances correctly", () => {
@@ -83,6 +84,7 @@ describe("Working Formatter Utilities", () => {
             it("should handle zero distance correctly", () => {
                 const result = formatDistance(0);
                 expect(result).toBe(""); // Function validates and rejects 0
+                expect(result).not.toContain("km");
             });
 
             it("should handle very small positive distances", () => {
@@ -102,6 +104,7 @@ describe("Working Formatter Utilities", () => {
             it("should format time in MM:SS format for values under an hour", () => {
                 const result = formatTime(125, false);
                 expect(result).toBe("2:05");
+                expect(result).not.toBe("0:00");
             });
 
             it("should format time in HH:MM:SS format for values over an hour", () => {
@@ -138,6 +141,7 @@ describe("Working Formatter Utilities", () => {
 
                 const result = formatTime(3600, true);
                 expect(result).toContain("h"); // Should contain hours unit
+                expect(result).not.toBe("1:00:00");
             });
 
             it("should fallback to MM:SS when user units not available", () => {
@@ -184,6 +188,7 @@ describe("Working Formatter Utilities", () => {
             it("should handle zero time correctly", () => {
                 const result = formatTime(0);
                 expect(result).toBe("0:00");
+                expect(result).not.toBe("");
             });
 
             it("should handle decimal seconds correctly", () => {
@@ -203,6 +208,7 @@ describe("Working Formatter Utilities", () => {
             it("should format weight with kg and pounds correctly", () => {
                 const result = formatWeight(70);
                 expect(result).toBe("70 kg (154 lbs)");
+                expect(result).not.toBe("");
             });
 
             it("should handle decimal weights correctly", () => {
@@ -246,6 +252,7 @@ describe("Working Formatter Utilities", () => {
             it("should handle zero weight correctly", () => {
                 const result = formatWeight(0);
                 expect(result).toBe("0 kg (0 lbs)");
+                expect(result).not.toBe("");
             });
 
             it("should handle very small positive weights", () => {
@@ -265,6 +272,7 @@ describe("Working Formatter Utilities", () => {
             it("should format height in meters and feet correctly", () => {
                 const result = formatHeight(1.75);
                 expect(result).toBe("1.75 m (5'9\")");
+                expect(result).not.toBe("");
             });
 
             it("should handle tall heights correctly", () => {
@@ -343,6 +351,7 @@ describe("Working Formatter Utilities", () => {
             expect(time).toBe("30:00");
             expect(weight).toBe("75 kg (165 lbs)");
             expect(height).toBe("1.80 m (5'11\")");
+            expect(distance).not.toBe("");
         });
 
         it("should handle all formatters with null inputs gracefully", () => {
