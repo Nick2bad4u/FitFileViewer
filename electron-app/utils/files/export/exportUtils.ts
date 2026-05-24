@@ -15,6 +15,7 @@ import {
 } from "../../storage/storageUtils.js";
 import { showChartSelectionModal } from "../../ui/components/createSettingsHeader.js";
 import { showNotification as __realShowNotification } from "../../ui/notifications/showNotification.js";
+import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
 type LooseRecord = unknown;
 type ManualMockModule = Record<string, LooseRecord>;
@@ -42,21 +43,16 @@ type ExportZipLike = {
     generateAsync: (options: { type: "blob" }) => Promise<Blob>;
 };
 type ExportZipConstructor = new () => ExportZipLike;
-type GyazoServerStartResult = {
-    message?: string;
-    port: number;
-    success: boolean;
-};
-type ElectronApiLike = {
-    onIpc?: (
-        channel: "gyazo-oauth-callback",
-        callback: (_event: unknown, data: unknown) => void | Promise<void>
-    ) => () => void;
-    startGyazoServer?: (port: number) => Promise<GyazoServerStartResult>;
-    stopGyazoServer?: () => Promise<void>;
-    writeClipboardPngDataUrl?: (pngDataUrl: string) => Promise<boolean>;
-    writeClipboardText?: (text: string) => Promise<boolean>;
-};
+type ElectronApiLike = Partial<
+    Pick<
+        ElectronAPI,
+        | "onIpc"
+        | "startGyazoServer"
+        | "stopGyazoServer"
+        | "writeClipboardPngDataUrl"
+        | "writeClipboardText"
+    >
+>;
 type ExportRuntimeGlobal = typeof globalThis & {
     electronAPI?: ElectronApiLike;
     JSZip?: ExportZipConstructor;
@@ -716,7 +712,9 @@ export const exportUtils = {
             }
 
             return new Promise((resolve, reject) => {
-                const unsubscribeRef: { current?: () => void } = {};
+                const unsubscribeRef: {
+                    current?: (() => void) | undefined;
+                } = {};
 
                 /*
                  * Cleanup function used by both success and cancellation/error
