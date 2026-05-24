@@ -1,5 +1,26 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+type IpcCallback = (...args: unknown[]) => void;
+
+type DroppedFitFile = {
+    name: string;
+    path?: string;
+};
+
+type DragDropHandlerUnderTest = {
+    processDroppedFile: (file: DroppedFitFile) => Promise<void>;
+    readFileAsArrayBuffer: (
+        file: DroppedFitFile
+    ) => Promise<ArrayBuffer | null>;
+    showDropOverlay: () => void;
+};
+
+declare global {
+    interface Window {
+        sendFitFileToAltFitReader: (buffer: ArrayBuffer) => Promise<void>;
+    }
+}
+
 // Hoisted module mocks for all imports used by main-ui.js
 const applyTheme = vi.fn();
 let listenCb: ((t: string) => void) | null = null;
@@ -44,7 +65,7 @@ vi.mock("../../../utils/charts/core/renderChartJS.js", () => ({
 }));
 
 const DEFAULT_TITLE = "Fit File Viewer";
-const mockState: Record<string, any> = {
+const mockState: Record<string, unknown> = {
     globalData: undefined,
     "ui.dragCounter": 0,
     "ui.dropOverlay.visible": false,
@@ -53,7 +74,7 @@ const mockState: Record<string, any> = {
     "ui.unloadButtonVisible": false,
 };
 const getState = vi.fn((key: string) => mockState[key]);
-const setState = vi.fn((key: string, value: any) => {
+const setState = vi.fn((key: string, value: unknown) => {
     mockState[key] = value;
     if (key === "ui.dropOverlay.visible") {
         const isVisible = Boolean(value);
@@ -76,7 +97,10 @@ const setState = vi.fn((key: string, value: any) => {
             zwift.style.pointerEvents = isVisible ? "none" : "";
         }
     } else if (key === "ui.fileInfo") {
-        const info = value || {};
+        const info =
+            typeof value === "object" && value !== null
+                ? (value as Record<string, unknown>)
+                : {};
         const hasFile = Boolean(info.hasFile);
         const displayName =
             typeof info.displayName === "string" ? info.displayName : "";
@@ -95,10 +119,16 @@ const setState = vi.fn((key: string, value: any) => {
         const fileSpan = document.getElementById("activeFileName");
         if (fileSpan) {
             if (hasFile && displayName) {
-                fileSpan.innerHTML = `<span class="active-label">Active:</span> ${displayName}`;
+                const activeLabel = document.createElement("span");
+                activeLabel.className = "active-label";
+                activeLabel.textContent = "Active:";
+                fileSpan.replaceChildren(
+                    activeLabel,
+                    document.createTextNode(` ${displayName}`)
+                );
                 fileSpan.setAttribute("title", displayName);
             } else {
-                fileSpan.textContent = "";
+                fileSpan.replaceChildren();
                 fileSpan.removeAttribute("title");
             }
         }
@@ -110,7 +140,10 @@ const setState = vi.fn((key: string, value: any) => {
             unloadBtn.style.display = value ? "" : "none";
         }
     } else if (key === "ui.loadingIndicator") {
-        const indicator = value || {};
+        const indicator =
+            typeof value === "object" && value !== null
+                ? (value as Record<string, unknown>)
+                : {};
         const progressElement = document.getElementById(
             "file-loading-progress"
         );
@@ -169,40 +202,63 @@ vi.mock("../../../utils/ui/notifications/showNotification.js", () => ({
     showNotification,
 }));
 
-const chartTabIntegration = { getStatus: vi.fn(() => "ok") } as any;
+const chartTabIntegration = {
+    destroy: vi.fn(),
+    getStatus: vi.fn(() => "ok"),
+};
 vi.mock("../../../utils/charts/core/chartTabIntegration.js", () => ({
     chartTabIntegration,
 }));
 
 // Helpers
+function appendElement<K extends keyof HTMLElementTagNameMap>(
+    tagName: K,
+    attributes: Record<string, string> = {}
+) {
+    const element = document.createElement(tagName);
+    for (const [name, value] of Object.entries(attributes)) {
+        element.setAttribute(name, value);
+    }
+    document.body.append(element);
+    return element;
+}
+
 function installBaseDOM() {
     document.title = "FitFileViewer Tests";
-    document.body.innerHTML = `
-    <div id="${"activeFileName"}"></div>
-    <div id="${"activeFileNameContainer"}"></div>
-    <button id="${"unloadFileBtn"}"></button>
-    <div id="${"loading-indicator"}"></div>
-    <div id="${"file-loading-progress"}"></div>
-    <div id="${"tab-chart"}"></div>
-    <button id="${"tab-summary"}"></button>
-    <button id="${"tab-map"}"></button>
-    <div id="${"content-map"}"></div>
-    <div id="${"content-data"}"></div>
-    <div id="${"content-chart"}"></div>
-    <div id="${"content-summary"}"></div>
-    <div id="${"drop_overlay"}" style="display:none"></div>
-    <iframe id="${"altfit-iframe"}"></iframe>
-    <iframe id="${"zwift-iframe"}"></iframe>
-    <button class="summary-gear-btn"></button>
-    <a id="ext" data-external-link="true" href="https://example.com/" target="_blank">ext</a>
-  `;
+    document.body.replaceChildren();
+    appendElement("div", { id: "activeFileName" });
+    appendElement("div", { id: "activeFileNameContainer" });
+    appendElement("button", { id: "unloadFileBtn" });
+    appendElement("div", { id: "loading-indicator" });
+    appendElement("div", { id: "file-loading-progress" });
+    appendElement("div", { id: "tab-chart" });
+    appendElement("button", { id: "tab-summary" });
+    appendElement("button", { id: "tab-map" });
+    appendElement("div", { id: "content-map" });
+    appendElement("div", { id: "content-data" });
+    appendElement("div", { id: "content-chart" });
+    appendElement("div", { id: "content-summary" });
+    appendElement("div", { id: "drop_overlay", style: "display:none" });
+    appendElement("iframe", { id: "altfit-iframe" });
+    appendElement("iframe", { id: "zwift-iframe" });
+    appendElement("button", { class: "summary-gear-btn" });
+    const externalLink = appendElement("a", {
+        "data-external-link": "true",
+        href: "https://example.com/",
+        id: "ext",
+        target: "_blank",
+    });
+    externalLink.textContent = "ext";
 }
 
 function installElectronAPI() {
-    const ipc = new Map<string, Function>();
-    const electronAPI: any = {
-        onIpc: (channel: string, cb: Function) => ipc.set(channel, cb),
-        emit: (channel: string, ...args: any[]) => ipc.get(channel)?.(...args),
+    const ipc = new Map<string, IpcCallback>();
+    const electronAPI = {
+        onIpc: vi.fn((channel: string, cb: IpcCallback) => {
+            ipc.set(channel, cb);
+        }),
+        emit: (channel: string, ...args: unknown[]) =>
+            ipc.get(channel)?.(...args),
         send: vi.fn(),
         openExternal: vi.fn(() => Promise.reject(new Error("fail"))),
         injectMenu: vi.fn(),
@@ -211,8 +267,56 @@ function installElectronAPI() {
         onOpenSummaryColumnSelector: undefined,
         decodeFitFile: vi.fn(),
     };
-    (window as any).electronAPI = electronAPI;
+    Reflect.set(window, "electronAPI", electronAPI);
+    Reflect.set(globalThis, "electronAPI", electronAPI);
     return electronAPI;
+}
+
+function getRequiredElement<T extends Element>(
+    id: string,
+    constructor: new (...args: never[]) => T
+) {
+    const element = document.getElementById(id);
+    expect(element).toBeInstanceOf(constructor);
+    return element as T;
+}
+
+function getRequiredSelector<T extends Element>(
+    selector: string,
+    constructor: new (...args: never[]) => T
+) {
+    const element = document.querySelector(selector);
+    expect(element).toBeInstanceOf(constructor);
+    return element as T;
+}
+
+function getCurrentElectronAPI(): ReturnType<typeof installElectronAPI> {
+    const api = Reflect.get(window, "electronAPI");
+    expect(api).toMatchObject({
+        decodeFitFile: expect.any(Function),
+        emit: expect.any(Function),
+        openExternal: expect.any(Function),
+        send: expect.any(Function),
+    });
+    return api as ReturnType<typeof installElectronAPI>;
+}
+
+function getDragDropHandler() {
+    const handler = Reflect.get(window, "dragDropHandler");
+    expect(handler).toMatchObject({
+        processDroppedFile: expect.any(Function),
+        readFileAsArrayBuffer: expect.any(Function),
+        showDropOverlay: expect.any(Function),
+    });
+    return handler as DragDropHandlerUnderTest;
+}
+
+function getWindowFunction<T extends (...args: never[]) => unknown>(
+    name: string
+) {
+    const fn = Reflect.get(window, name);
+    expect(fn).toEqual(expect.any(Function));
+    return fn as T;
 }
 
 // Basic globals
@@ -233,7 +337,8 @@ describe("main-ui.js core flows", () => {
         mockState["ui.dragCounter"] = 0;
         mockState["ui.dropOverlay.visible"] = false;
         installBaseDOM();
-        (window as any).enableDragAndDrop = true;
+        Reflect.set(window, "enableDragAndDrop", true);
+        Reflect.set(globalThis, "enableDragAndDrop", true);
         installElectronAPI();
         // Simulate DOMContentLoaded so external link handlers attach
         Object.defineProperty(document, "readyState", {
@@ -244,60 +349,77 @@ describe("main-ui.js core flows", () => {
 
     afterEach(() => {
         vi.useRealTimers();
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
     });
 
     // Theme change wiring is exercised implicitly by module import; skip strict assertions due to path resolution nuances.
 
     it("unloads file via button and emits IPC", async () => {
-        const api: any = installElectronAPI();
+        const api = installElectronAPI();
         await importMainUI();
 
-        // Click unload button
-        const btn = document.getElementById(
-            "unloadFileBtn"
-        ) as HTMLButtonElement;
-        expect(btn).toBeTruthy();
+        const btn = getRequiredElement("unloadFileBtn", HTMLButtonElement);
         btn.click();
-        // IPC effect to main process
         expect(api.send).toHaveBeenCalledWith("fit-file-loaded", null);
         expect(AppActions.clearData).toHaveBeenCalledTimes(1);
         expect(fitFileStateManager.clearFileState).toHaveBeenCalledTimes(1);
         expect(fitFileStateManager.handleFileLoaded).not.toHaveBeenCalled();
+        expect(btn.style.display).toBe("none");
+        expect(document.title).toBe(DEFAULT_TITLE);
 
-        // From IPC
-        (window as any).electronAPI.emit("unload-fit-file");
-        expect(api.send).toHaveBeenCalledWith("fit-file-loaded", null);
+        api.emit("unload-fit-file");
+        expect(api.send).toHaveBeenCalledTimes(2);
     });
 
     it("opens summary column selector from IPC and clicks gear after delay", async () => {
         await importMainUI();
-        const summaryTab = document.getElementById(
-            "tab-summary"
-        ) as HTMLButtonElement;
-        const gear = document.querySelector(
-            ".summary-gear-btn"
-        ) as HTMLButtonElement;
+        const summaryTab = getRequiredElement("tab-summary", HTMLButtonElement);
+        const gear = getRequiredSelector(
+            ".summary-gear-btn",
+            HTMLButtonElement
+        );
+        const listenerController = new AbortController();
+        summaryTab.addEventListener(
+            "click",
+            () => {
+                if (summaryTab.classList.contains("active")) {
+                    summaryTab.dataset.clickedWhileActive = "true";
+                }
+                summaryTab.classList.add("active");
+            },
+            { signal: listenerController.signal }
+        );
+        gear.addEventListener(
+            "click",
+            () => {
+                const currentCount = Number(
+                    gear.dataset.selectorOpenCount ?? 0
+                );
+                gear.dataset.selectorOpenCount = String(currentCount + 1);
+            },
+            { signal: listenerController.signal }
+        );
         const gearSpy = vi.spyOn(gear, "click");
+        const tabSpy = vi.spyOn(summaryTab, "click");
 
-        // Emit the event
-        (window as any).electronAPI.emit("open-summary-column-selector");
+        getCurrentElectronAPI().emit("open-summary-column-selector");
 
-        // Fast-forward timers to after delay
         vi.advanceTimersByTime(150);
         expect(gearSpy).toHaveBeenCalled();
-        // Summary tab should have been clicked if not active; simulate via click spy
-        const tabSpy = vi.spyOn(summaryTab, "click");
-        (window as any).electronAPI.emit("open-summary-column-selector");
+        expect(tabSpy).toHaveBeenCalledTimes(1);
+        expect(gear.dataset.selectorOpenCount).toBe("1");
+        expect(summaryTab.classList.contains("active")).toBe(true);
+
+        getCurrentElectronAPI().emit("open-summary-column-selector");
         vi.advanceTimersByTime(150);
-        expect(tabSpy).toHaveBeenCalled();
+        expect(summaryTab.dataset.clickedWhileActive).toBeUndefined();
+        expect(gear.dataset.selectorOpenCount).toBe("2");
+        listenerController.abort();
     });
 
     it("sends fit file to Alt FIT iframe with proper base64", async () => {
         await importMainUI();
-        const iframe = document.getElementById(
-            "altfit-iframe"
-        ) as HTMLIFrameElement;
+        const iframe = getRequiredElement("altfit-iframe", HTMLIFrameElement);
         const postMessage = vi.fn();
         Object.defineProperty(iframe, "contentWindow", {
             value: { postMessage },
@@ -305,16 +427,12 @@ describe("main-ui.js core flows", () => {
         });
 
         const buf = new ArrayBuffer(8);
-        // Call exposed function on window (installed by module)
-        const fn = (window as any).sendFitFileToAltFitReader as (
-            ab: ArrayBuffer
-        ) => Promise<void>;
+        const fn = getWindowFunction<(ab: ArrayBuffer) => Promise<void>>(
+            "sendFitFileToAltFitReader"
+        );
         await fn(buf);
-        // First call sets src and waits for onload; simulate load event
         expect(iframe.src).toContain("ffv/index.html");
-        // Dispatch load event to trigger the addEventListener callback
         iframe.dispatchEvent(new Event("load"));
-        // Accept actual converter output under instrumentation
         expect(postMessage).toHaveBeenCalledWith(
             { type: "fit-file", base64: expect.any(String) },
             window.location.origin
@@ -324,27 +442,25 @@ describe("main-ui.js core flows", () => {
     it("drag and drop overlay shows/hides", async () => {
         await importMainUI();
 
-        const overlay = document.getElementById("drop_overlay") as HTMLElement;
-        const alt = document.getElementById("altfit-iframe") as HTMLElement;
-        const zwift = document.getElementById("zwift-iframe") as HTMLElement;
+        const overlay = getRequiredElement("drop_overlay", HTMLElement);
+        const alt = getRequiredElement("altfit-iframe", HTMLElement);
+        const zwift = getRequiredElement("zwift-iframe", HTMLElement);
 
-        // directly show overlay via handler
-        const handler = (window as any).dragDropHandler as any;
+        const handler = getDragDropHandler();
         handler.showDropOverlay();
         expect(overlay.style.display).toBe("flex");
         expect(alt.style.pointerEvents).toBe("none");
         expect(zwift.style.pointerEvents).toBe("none");
 
-        // dragover ensures overlay remains
         const over = new Event("dragover");
+        const dataTransfer = { dropEffect: "none" };
         Object.defineProperty(over, "dataTransfer", {
-            value: { dropEffect: "none" },
+            value: dataTransfer,
             configurable: true,
         });
         window.dispatchEvent(over);
-        expect(overlay.style.display).toBe("flex");
+        expect(dataTransfer.dropEffect).toBe("copy");
 
-        // hide overlay
         const drop = new Event("drop");
         Object.defineProperty(drop, "dataTransfer", {
             value: { files: [] },
@@ -356,28 +472,34 @@ describe("main-ui.js core flows", () => {
 
     it("processDroppedFile handles valid and invalid files and toggles loading", async () => {
         await importMainUI();
-        const handler = (window as any).dragDropHandler as any;
+        const handler = getDragDropHandler();
 
-        // Invalid extension path should early-return harmlessly
-        await handler.processDroppedFile({ name: "notes.txt" });
+        await expect(
+            handler.processDroppedFile({ name: "notes.txt" })
+        ).resolves.toBeUndefined();
+        expect(showNotification).toHaveBeenCalledWith(
+            "Only .fit files are supported. Please drop a valid .fit file.",
+            "warning"
+        );
 
-        // Valid .fit success path
         const readSpy = vi
             .spyOn(handler, "readFileAsArrayBuffer")
             .mockResolvedValue(new ArrayBuffer(4));
-        const api = (window as any).electronAPI;
+        const api = getCurrentElectronAPI();
         api.decodeFitFile.mockResolvedValue({
             recordMesgs: [{ positionLat: 1, positionLong: 2 }],
         });
         const sendAltSpy = vi
-            .spyOn(window as any, "sendFitFileToAltFitReader")
+            .spyOn(window, "sendFitFileToAltFitReader")
             .mockResolvedValue(undefined);
 
         const absoluteFile = {
             name: "activity.fit",
             path: "C:/rides/activity.fit",
         };
-        await handler.processDroppedFile(absoluteFile);
+        await expect(
+            handler.processDroppedFile(absoluteFile)
+        ).resolves.toBeUndefined();
         expect(api.decodeFitFile).toHaveBeenCalled();
         expect(sendAltSpy).toHaveBeenCalled();
         expect(fitFileStateManager.startFileLoading).toHaveBeenLastCalledWith(
@@ -387,49 +509,66 @@ describe("main-ui.js core flows", () => {
             expect.anything(),
             "C:/rides/activity.fit"
         );
+        expect(AppActions.setFileOpening).toHaveBeenLastCalledWith(false);
+        expect(showNotification).toHaveBeenCalledWith(
+            'File "activity.fit" loaded successfully',
+            "success"
+        );
 
-        // Error path
         api.decodeFitFile.mockResolvedValue({ error: "bad file" });
-        await handler.processDroppedFile({
-            name: "bad.fit",
-            path: "C:/rides/bad.fit",
-        });
-        // error path should be handled gracefully
+        await expect(
+            handler.processDroppedFile({
+                name: "bad.fit",
+                path: "C:/rides/bad.fit",
+            })
+        ).resolves.toBeUndefined();
+        expect(showNotification).toHaveBeenCalledWith(
+            "Failed to load FIT file",
+            "error"
+        );
 
-        // Exception path
         const err = new Error("boom");
         api.decodeFitFile.mockRejectedValue(err);
-        await handler.processDroppedFile({
-            name: "oops.fit",
-            path: "C:/rides/oops.fit",
-        });
-        // exception path should be handled gracefully
-
-        // No throws
+        await expect(
+            handler.processDroppedFile({
+                name: "oops.fit",
+                path: "C:/rides/oops.fit",
+            })
+        ).resolves.toBeUndefined();
+        expect(fitFileStateManager.handleFileLoadingError).toHaveBeenCalledWith(
+            err
+        );
 
         readSpy.mockRestore();
     });
 
     it("external link handlers call electronAPI.openExternal", async () => {
         await importMainUI();
-        // Attach handlers by simulating DOMContentLoaded
         document.dispatchEvent(new Event("DOMContentLoaded"));
-        const link = document.getElementById("ext") as HTMLAnchorElement;
-        link.click();
-        expect((window as any).electronAPI.openExternal).toHaveBeenCalled();
-        // Keyboard Enter
-        const evt = new KeyboardEvent("keydown", {
-            key: "Enter",
+        const link = getRequiredElement("ext", HTMLAnchorElement);
+
+        const clickEvent = new MouseEvent("click", {
             bubbles: true,
+            cancelable: true,
         });
-        link.dispatchEvent(evt);
-        expect((window as any).electronAPI.openExternal).toHaveBeenCalledTimes(
-            2
+        expect(link.dispatchEvent(clickEvent)).toBe(false);
+        expect(clickEvent.defaultPrevented).toBe(true);
+        expect(getCurrentElectronAPI().openExternal).toHaveBeenCalledWith(
+            "https://example.com/"
         );
+
+        const evt = new KeyboardEvent("keydown", {
+            bubbles: true,
+            cancelable: true,
+            key: "Enter",
+        });
+        expect(link.dispatchEvent(evt)).toBe(false);
+        expect(evt.defaultPrevented).toBe(true);
+        expect(getCurrentElectronAPI().openExternal).toHaveBeenCalledTimes(2);
     });
 
     it("does not fall back to window.open when openExternal fails", async () => {
-        const api: any = installElectronAPI();
+        const api = installElectronAPI();
         api.openExternal.mockRejectedValueOnce(new Error("blocked"));
 
         const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
@@ -437,10 +576,14 @@ describe("main-ui.js core flows", () => {
         await importMainUI();
         document.dispatchEvent(new Event("DOMContentLoaded"));
 
-        const link = document.getElementById("ext") as HTMLAnchorElement;
-        link.click();
+        const link = getRequiredElement("ext", HTMLAnchorElement);
+        const clickEvent = new MouseEvent("click", {
+            bubbles: true,
+            cancelable: true,
+        });
+        expect(link.dispatchEvent(clickEvent)).toBe(false);
+        expect(clickEvent.defaultPrevented).toBe(true);
 
-        // Allow the rejection handler to run.
         await Promise.resolve();
 
         expect(api.openExternal).toHaveBeenCalled();
@@ -452,11 +595,20 @@ describe("main-ui.js core flows", () => {
     });
 
     it("dev helpers injectMenu and devCleanup work", async () => {
-        const api: any = installElectronAPI();
+        const api = installElectronAPI();
         await importMainUI();
-        (window as any).injectMenu("dark", "path.fit");
+        const injectMenu =
+            getWindowFunction<(theme: string, fitFilePath: string) => void>(
+                "injectMenu"
+            );
+        injectMenu("dark", "path.fit");
         expect(api.injectMenu).toHaveBeenCalledWith("dark", "path.fit");
 
-        expect(() => (window as any).devCleanup()).not.toThrow();
+        mockState["charts.isRendered"] = true;
+        mockState["ui.dragCounter"] = 3;
+        const devCleanup = getWindowFunction<() => void>("devCleanup");
+        expect(() => devCleanup()).not.toThrow();
+        expect(mockState["charts.isRendered"]).toBe(false);
+        expect(mockState["ui.dragCounter"]).toBe(0);
     });
 });
