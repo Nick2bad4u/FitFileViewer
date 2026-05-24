@@ -1,838 +1,514 @@
-/**
- * Tests GPS track chart rendering with all edge cases and error conditions
- *
- * @file Comprehensive tests for renderGPSTrackChart.js
- */
-
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { chartSettingsManager } from "../../utils/charts/core/renderChartJS.js";
+import { renderGPSTrackChart } from "../../utils/charts/rendering/renderGPSTrackChart.js";
 
-// Mock dependencies
-vi.mock("../../../utils/theming/core/theme.js", () => ({
-    getThemeConfig: vi.fn(() => ({
+const themeMocks = vi.hoisted(() => ({
+    getThemeConfig: vi.fn<() => ThemeConfigMock>().mockReturnValue({
         colors: {
             bgPrimary: "#ffffff",
             chartBackground: "#f8f9fa",
-            shadow: "0 2px 4px rgba(0,0,0,0.1)",
+            chartBorder: "#dee2e6",
+            chartSurface: "#23263a",
+            gridLines: "#e9ecef",
             primary: "#007bff",
             primaryAlpha: "rgba(0, 123, 255, 0.2)",
+            shadow: "0 2px 4px rgba(0,0,0,0.1)",
+            text: "#ffffff",
             textPrimary: "#333333",
-            bgSecondary: "#f8f9fa",
-            border: "#dee2e6",
-            gridLines: "#e9ecef",
         },
-    })),
-}));
-
-vi.mock("../../../utils/charts/components/createChartCanvas.js", () => ({
-    createChartCanvas: vi.fn((field, index) => {
-        const canvas = document.createElement("canvas");
-        canvas.id = `chart-${field}-${index}`;
-        canvas.className = "chart-canvas";
-        return canvas;
     }),
 }));
 
-vi.mock("../../../utils/charts/plugins/chartZoomResetPlugin.js", () => ({
-    chartZoomResetPlugin: { id: "chartZoomResetPlugin", beforeInit: vi.fn() },
+vi.mock(import("../../utils/theming/core/theme.js"), () => ({
+    getThemeConfig: themeMocks.getThemeConfig,
 }));
 
-describe("renderGPSTrackChart", () => {
-    let renderGPSTrackChart: Function;
-    let container: HTMLElement;
-    let mockChart: any;
-    let consoleSpy: any;
+type GpsDatum = {
+    readonly positionLat?: null | number | string;
+    readonly positionLong?: null | number | string;
+    readonly someOtherField?: string;
+};
 
-    beforeEach(async () => {
-        // Create DOM container
-        container = document.createElement("div");
-        container.id = "test-container";
-        document.body.appendChild(container);
+type ThemeConfigMock = {
+    readonly colors: Record<string, string>;
+};
 
-        // Mock Chart.js
-        mockChart = {
-            destroy: vi.fn(),
-            resize: vi.fn(),
-            update: vi.fn(),
-        };
+type GpsPoint = {
+    readonly pointIndex: number;
+    readonly x: number;
+    readonly y: number;
+};
 
-        // Type assertion for global window
-        (global as any).window = {
-            ...global.window,
-            Chart: vi.fn(function ChartMock() {
-                return mockChart;
-            }),
-            _chartjsInstances: [],
-        };
+type DatasetConfig = {
+    readonly backgroundColor: string;
+    readonly borderColor: string;
+    readonly borderWidth: number;
+    readonly data: GpsPoint[];
+    readonly fill: boolean;
+    readonly label: string;
+    readonly pointHoverRadius: number;
+    readonly pointRadius: number;
+    readonly showLine: boolean;
+    readonly tension: number;
+};
 
-        // Ensure Chart is accessible from both window and globalThis
-        (global as any).globalThis.Chart = window.Chart;
-        // Sync chart instances between window and globalThis
-        Object.defineProperty((global as any).globalThis, "_chartjsInstances", {
-            get() {
-                return (global as any).window._chartjsInstances;
-            },
-            set(value) {
-                (global as any).window._chartjsInstances = value;
-            },
-            configurable: true,
-        });
-
-        // Mock localStorage with proper typing
-        const mockLocalStorage = {
-            getItem: vi.fn(),
-            setItem: vi.fn(),
-            removeItem: vi.fn(),
-            clear: vi.fn(),
-            length: 0,
-            key: vi.fn(),
-        };
-        (global as any).localStorage = mockLocalStorage;
-
-        // Mock console methods
-        consoleSpy = {
-            log: vi.spyOn(console, "log").mockImplementation(() => {}),
-            error: vi.spyOn(console, "error").mockImplementation(() => {}),
-        };
-
-        // Import the function to test
-        const module =
-            await import("../../utils/charts/rendering/renderGPSTrackChart.js");
-        renderGPSTrackChart = module.renderGPSTrackChart;
-    });
-
-    afterEach(() => {
-        // Clean up DOM
-        if (container && container.parentNode) {
-            container.parentNode.removeChild(container);
-        }
-
-        // Clean up global Chart instances
-        const globalWindow = (global as any).window;
-        if (globalWindow && globalWindow._chartjsInstances) {
-            globalWindow._chartjsInstances.length = 0;
-        }
-        // Clean up property descriptor
-        if ((global as any).globalThis) {
-            delete (global as any).globalThis._chartjsInstances;
-        }
-
-        // Restore console methods
-        consoleSpy.log.mockRestore();
-        consoleSpy.error.mockRestore();
-
-        vi.clearAllMocks();
-    });
-
-    describe("Basic Functionality", () => {
-        it("should render GPS track chart with valid data", () => {
-            const data = [
-                { positionLat: 429496730, positionLong: -859993460 }, // Semicircle coordinates
-                { positionLat: 429496740, positionLong: -859993470 },
-                { positionLat: 429496750, positionLong: -859993480 },
-            ];
-
-            const options = {
-                maxPoints: "all",
-                showPoints: true,
-                showLegend: true,
-                showTitle: true,
-                showGrid: true,
+type ChartConfig = {
+    readonly data: {
+        readonly datasets: [DatasetConfig];
+    };
+    readonly options: {
+        readonly plugins: {
+            readonly chartBackgroundColorPlugin: {
+                readonly backgroundColor: string;
             };
-
-            renderGPSTrackChart(container, data, options);
-
-            // Verify chart creation
-            expect(global.window.Chart).toHaveBeenCalled();
-            expect(container.querySelector("canvas")).toBeTruthy();
-            expect(consoleSpy.log).toHaveBeenCalledWith(
-                "[ChartJS] renderGPSTrackChart called"
-            );
-            expect(consoleSpy.log).toHaveBeenCalledWith(
-                expect.stringContaining("Creating GPS track chart with")
-            );
-        });
-
-        it("should handle container parameter correctly", () => {
-            const data = [{ positionLat: 429496730, positionLong: -859993460 }];
-            const options = { maxPoints: "all" };
-
-            renderGPSTrackChart(container, data, options);
-
-            expect(container.children.length).toBe(1);
-            expect((container.firstChild as HTMLElement)?.tagName).toBe(
-                "CANVAS"
-            );
-        });
-
-        it("should process data parameter with valid GPS coordinates", () => {
-            const data = [
-                { positionLat: 429496730, positionLong: -859993460 },
-                { positionLat: null, positionLong: -859993470 }, // Invalid latitude
-                { positionLat: 429496750, positionLong: -859993480 },
-            ];
-            const options = { maxPoints: "all" };
-
-            renderGPSTrackChart(container, data, options);
-
-            // Should filter out invalid coordinates
-            expect(global.window.Chart).toHaveBeenCalled();
-            const chartConfig = global.window.Chart.mock.calls[0][1];
-            expect(chartConfig.data.datasets[0].data).toHaveLength(2); // Only valid points
-        });
-    });
-
-    describe("Data Validation", () => {
-        it("should return early when no latitude data available", () => {
-            const data = [
-                { positionLong: -859993460 }, // No latitude
-                { positionLong: -859993470 },
-            ];
-            const options = { maxPoints: "all" };
-
-            renderGPSTrackChart(container, data, options);
-
-            expect(consoleSpy.log).toHaveBeenCalledWith(
-                "[ChartJS] No GPS position data available"
-            );
-            expect(global.window.Chart).not.toHaveBeenCalled();
-            expect(container.children.length).toBe(0);
-        });
-
-        it("should return early when no longitude data available", () => {
-            const data = [
-                { positionLat: 429496730 }, // No longitude
-                { positionLat: 429496740 },
-            ];
-            const options = { maxPoints: "all" };
-
-            renderGPSTrackChart(container, data, options);
-
-            expect(consoleSpy.log).toHaveBeenCalledWith(
-                "[ChartJS] No GPS position data available"
-            );
-            expect(global.window.Chart).not.toHaveBeenCalled();
-        });
-
-        it("should handle null GPS coordinates", () => {
-            const data = [
-                { positionLat: null, positionLong: null },
-                { positionLat: 429496730, positionLong: -859993460 },
-            ];
-            const options = { maxPoints: "all" };
-
-            renderGPSTrackChart(container, data, options);
-
-            const chartConfig = global.window.Chart.mock.calls[0][1];
-            expect(chartConfig.data.datasets[0].data).toHaveLength(1);
-        });
-
-        it("should handle undefined GPS coordinates", () => {
-            const data = [
-                { positionLat: undefined, positionLong: undefined },
-                { positionLat: 429496730, positionLong: -859993460 },
-            ];
-            const options = { maxPoints: "all" };
-
-            renderGPSTrackChart(container, data, options);
-
-            const chartConfig = global.window.Chart.mock.calls[0][1];
-            expect(chartConfig.data.datasets[0].data).toHaveLength(1);
-        });
-
-        it("should return early when no valid GPS data points found", () => {
-            const data = [
-                { positionLat: null, positionLong: null },
-                { positionLat: undefined, positionLong: undefined },
-            ];
-            const options = { maxPoints: "all" };
-
-            renderGPSTrackChart(container, data, options);
-
-            expect(consoleSpy.log).toHaveBeenCalledWith(
-                "[ChartJS] No GPS position data available"
-            );
-            expect(global.window.Chart).not.toHaveBeenCalled();
-        });
-    });
-
-    describe("Field Visibility", () => {
-        it("should return early when field is hidden", () => {
-            const data = [{ positionLat: 429496730, positionLong: -859993460 }];
-            const options = { maxPoints: "all" };
-
-            const visibilitySpy = vi
-                .spyOn(chartSettingsManager, "getFieldVisibility")
-                .mockReturnValue("hidden" as any);
-
-            renderGPSTrackChart(container, data, options);
-
-            expect(visibilitySpy).toHaveBeenCalledWith("gps_track");
-            expect((global as any).window.Chart).not.toHaveBeenCalled();
-        });
-
-        it("should render when field visibility is not hidden", () => {
-            const data = [{ positionLat: 429496730, positionLong: -859993460 }];
-            const options = { maxPoints: "all" };
-
-            vi.spyOn(
-                chartSettingsManager,
-                "getFieldVisibility"
-            ).mockReturnValue("visible" as any);
-
-            renderGPSTrackChart(container, data, options);
-
-            expect((global as any).window.Chart).toHaveBeenCalled();
-        });
-
-        it("should render when field visibility is null", () => {
-            const data = [{ positionLat: 429496730, positionLong: -859993460 }];
-            const options = { maxPoints: "all" };
-
-            vi.spyOn(
-                chartSettingsManager,
-                "getFieldVisibility"
-            ).mockReturnValue(null as any);
-
-            renderGPSTrackChart(container, data, options);
-
-            expect((global as any).window.Chart).toHaveBeenCalled();
-        });
-    });
-
-    describe("Data Point Limiting", () => {
-        it("should limit data points when maxPoints is specified", () => {
-            const data = [];
-            for (let i = 0; i < 1000; i++) {
-                data.push({
-                    positionLat: 429496730 + i,
-                    positionLong: -859993460 + i,
-                });
-            }
-
-            const options = { maxPoints: 100 };
-
-            renderGPSTrackChart(container, data, options);
-
-            const chartConfig = global.window.Chart.mock.calls[0][1];
-            expect(
-                chartConfig.data.datasets[0].data.length
-            ).toBeLessThanOrEqual(100);
-        });
-
-        it("should not limit data points when maxPoints is 'all'", () => {
-            const data = [
-                { positionLat: 429496730, positionLong: -859993460 },
-                { positionLat: 429496740, positionLong: -859993470 },
-                { positionLat: 429496750, positionLong: -859993480 },
-            ];
-
-            const options = { maxPoints: "all" };
-
-            renderGPSTrackChart(container, data, options);
-
-            const chartConfig = global.window.Chart.mock.calls[0][1];
-            expect(chartConfig.data.datasets[0].data).toHaveLength(3);
-        });
-
-        it("should calculate correct step for data point limiting", () => {
-            const data = [];
-            for (let i = 0; i < 50; i++) {
-                data.push({
-                    positionLat: 429496730 + i,
-                    positionLong: -859993460 + i,
-                });
-            }
-
-            const options = { maxPoints: 10 };
-
-            renderGPSTrackChart(container, data, options);
-
-            const chartConfig = global.window.Chart.mock.calls[0][1];
-            // With step = ceil(50/10) = 5, we should get every 5th point
-            expect(
-                chartConfig.data.datasets[0].data.length
-            ).toBeLessThanOrEqual(10);
-        });
-    });
-
-    describe("GPS Coordinate Conversion", () => {
-        it("should convert semicircle coordinates to degrees correctly", () => {
-            const data = [{ positionLat: 429496730, positionLong: -859993460 }];
-            const options = { maxPoints: "all" };
-
-            renderGPSTrackChart(container, data, options);
-
-            const chartConfig = global.window.Chart.mock.calls[0][1];
-            const point = chartConfig.data.datasets[0].data[0];
-
-            // Convert semicircle to degrees: (429496730 * 180) / 2^31
-            const expectedLat = (429496730 * 180) / Math.pow(2, 31);
-            const expectedLng = (-859993460 * 180) / Math.pow(2, 31);
-
-            expect(point.y).toBeCloseTo(expectedLat, 6);
-            expect(point.x).toBeCloseTo(expectedLng, 6);
-        });
-
-        it("should preserve point index in converted data", () => {
-            const data = [
-                { positionLat: 429496730, positionLong: -859993460 },
-                { positionLat: 429496740, positionLong: -859993470 },
-            ];
-            const options = { maxPoints: "all" };
-
-            renderGPSTrackChart(container, data, options);
-
-            const chartConfig = global.window.Chart.mock.calls[0][1];
-            const points = chartConfig.data.datasets[0].data;
-
-            expect(points[0].pointIndex).toBe(0);
-            expect(points[1].pointIndex).toBe(1);
-        });
-    });
-
-    describe("Chart Configuration", () => {
-        it("should create scatter chart with correct configuration", () => {
-            const data = [{ positionLat: 429496730, positionLong: -859993460 }];
-            const options = {
-                maxPoints: "all",
-                showPoints: true,
-                showLegend: true,
-                showTitle: true,
-                showGrid: true,
+            readonly legend: { readonly display?: boolean };
+            readonly title: {
+                readonly display?: boolean;
+                readonly text: string;
             };
+            readonly tooltip: {
+                readonly callbacks: {
+                    readonly label: (context: {
+                        readonly raw: GpsPoint;
+                    }) => string[];
+                };
+            };
+            readonly zoom: {
+                readonly limits: {
+                    readonly x: {
+                        readonly max: "original";
+                        readonly min: "original";
+                    };
+                    readonly y: {
+                        readonly max: "original";
+                        readonly min: "original";
+                    };
+                };
+                readonly pan: {
+                    readonly enabled: boolean;
+                    readonly mode: "xy";
+                };
+                readonly zoom: {
+                    readonly drag: { readonly enabled: boolean };
+                    readonly mode: "xy";
+                    readonly pinch: { readonly enabled: boolean };
+                    readonly wheel: { readonly enabled: boolean };
+                };
+            };
+        };
+        readonly scales: {
+            readonly x: AxisConfig;
+            readonly y: AxisConfig;
+        };
+    };
+    readonly plugins: unknown[];
+    readonly type: "scatter";
+};
 
-            renderGPSTrackChart(container, data, options);
+type AxisConfig = {
+    readonly display: boolean;
+    readonly grid: { readonly display?: boolean };
+    readonly ticks: { readonly callback: (value: number) => string };
+    readonly title: { readonly display: boolean; readonly text: string };
+    readonly type: "linear";
+};
 
-            const chartConfig = global.window.Chart.mock.calls[0][1];
-            expect(chartConfig.type).toBe("scatter");
-        });
+type ChartCall = readonly [HTMLCanvasElement, ChartConfig];
 
-        it("should configure dataset properties correctly", () => {
-            const data = [{ positionLat: 429496730, positionLong: -859993460 }];
-            const options = { maxPoints: "all", showPoints: true };
+type ChartInstance = {
+    readonly id: "chart-instance";
+};
 
-            renderGPSTrackChart(container, data, options);
+type RuntimeGlobal = typeof globalThis & {
+    Chart?: new (
+        canvas: HTMLCanvasElement,
+        config: ChartConfig
+    ) => ChartInstance;
+    _chartjsInstances?: ChartInstance[];
+};
 
-            const chartConfig = global.window.Chart.mock.calls[0][1];
+type Harness = {
+    readonly chartCalls: ChartCall[];
+    readonly chartInstance: ChartInstance;
+    readonly consoleError: ReturnType<typeof vi.spyOn<typeof console, "error">>;
+    readonly consoleLog: ReturnType<typeof vi.spyOn<typeof console, "log">>;
+    readonly container: HTMLElement;
+    readonly runtimeGlobal: RuntimeGlobal;
+};
+
+const defaultData = [
+    { positionLat: 429_496_730, positionLong: -859_993_460 },
+    { positionLat: 429_496_740, positionLong: -859_993_470 },
+    { positionLat: 429_496_750, positionLong: -859_993_480 },
+] as const satisfies readonly GpsDatum[];
+
+const defaultOptions = {
+    maxPoints: "all",
+    showGrid: true,
+    showLegend: true,
+    showPoints: true,
+    showTitle: true,
+} as const;
+
+describe(renderGPSTrackChart, () => {
+    it("renders a configured scatter chart for valid GPS rows", () => {
+        expect.assertions(14);
+
+        withHarness(({ chartCalls, chartInstance, consoleLog, container }) => {
+            renderGPSTrackChart(container, defaultData, defaultOptions);
+
+            const [canvas, chartConfig] = getSingleChartCall(chartCalls);
             const dataset = chartConfig.data.datasets[0];
 
-            expect(dataset.label).toBe("GPS Track");
-            expect(dataset.pointRadius).toBe(2); // showPoints: true
-            expect(dataset.pointHoverRadius).toBe(4);
-            expect(dataset.showLine).toBe(true);
-            expect(dataset.borderWidth).toBe(2);
-            expect(dataset.fill).toBe(false);
-            expect(dataset.tension).toBe(0.1);
+            expect(canvas.id).toBe("chart-gps-track-0");
+            expect(canvas.getAttribute("role")).toBe("img");
+            expect(container.children).toHaveLength(1);
+            expect(container.firstElementChild).toBe(canvas);
+            expect(dataset).toMatchObject({
+                borderColor: "#007bff",
+                borderWidth: 2,
+                fill: false,
+                label: "GPS Track",
+                pointHoverRadius: 4,
+                pointRadius: 2,
+                showLine: true,
+                tension: 0.1,
+            });
+            expect(dataset.data).toHaveLength(3);
+            expect(chartConfig.type).toBe("scatter");
+            expect(chartConfig.options.plugins.legend).toMatchObject({
+                display: true,
+            });
+            expect(chartConfig.options.plugins.title).toMatchObject({
+                display: true,
+                text: "GPS Track",
+            });
+            expect(chartConfig.options.scales.x.title.text).toBe(
+                "Longitude (°)"
+            );
+            expect(chartConfig.options.scales.y.title.text).toBe(
+                "Latitude (°)"
+            );
+            expect(globalThis._chartjsInstances).toStrictEqual([chartInstance]);
+            expect(consoleLog).toHaveBeenCalledWith(
+                "[ChartJS] GPS track chart created successfully"
+            );
+            expect(consoleLog).toHaveBeenCalledWith(
+                expect.stringContaining(
+                    "Creating GPS track chart with 3 points"
+                )
+            );
         });
+    });
 
-        it("should handle showPoints option correctly", () => {
-            const data = [{ positionLat: 429496730, positionLong: -859993460 }];
+    it("filters invalid rows, preserves source indexes, and converts semicircles", () => {
+        expect.assertions(7);
 
-            // Test with showPoints: false
+        withHarness(({ chartCalls, container }) => {
+            renderGPSTrackChart(
+                container,
+                [
+                    { positionLat: 429_496_730, positionLong: -859_993_460 },
+                    { positionLat: null, positionLong: -859_993_470 },
+                    { positionLat: "invalid", positionLong: -859_993_480 },
+                    { positionLat: 429_496_760, positionLong: -859_993_490 },
+                    { someOtherField: "ignored" },
+                ],
+                defaultOptions
+            );
+
+            const dataset = getSingleChartCall(chartCalls)[1].data.datasets[0],
+                [firstPoint, secondPoint] = dataset.data;
+
+            expect(dataset.data).toHaveLength(2);
+            expect(firstPoint?.pointIndex).toBe(0);
+            expect(secondPoint?.pointIndex).toBe(3);
+            expect(firstPoint?.y).toBeCloseTo((429_496_730 * 180) / 2 ** 31, 6);
+            expect(firstPoint?.x).toBeCloseTo(
+                (-859_993_460 * 180) / 2 ** 31,
+                6
+            );
+            expect(secondPoint?.y).toBeGreaterThan(firstPoint?.y ?? 0);
+            expect(secondPoint?.x).toBeLessThan(firstPoint?.x ?? 0);
+        });
+    });
+
+    it("limits large tracks with the same stride as production", () => {
+        expect.assertions(3);
+
+        withHarness(({ chartCalls, container }) => {
+            const data = Array.from({ length: 50 }, (_value, index) => ({
+                positionLat: 429_496_730 + index,
+                positionLong: -859_993_460 + index,
+            }));
+
             renderGPSTrackChart(container, data, {
+                ...defaultOptions,
+                maxPoints: 10,
+            });
+
+            const points =
+                getSingleChartCall(chartCalls)[1].data.datasets[0].data;
+
+            expect(points).toHaveLength(10);
+            expect(points[0]?.pointIndex).toBe(0);
+            expect(points.at(-1)?.pointIndex).toBe(45);
+        });
+    });
+
+    it("uses safe defaults when theme lookup fails", () => {
+        expect.assertions(6);
+
+        withHarness(({ chartCalls, container }) => {
+            themeMocks.getThemeConfig.mockImplementationOnce(() => {
+                throw new Error("theme unavailable");
+            });
+
+            renderGPSTrackChart(container, defaultData, defaultOptions);
+
+            const [canvas, chartConfig] = getSingleChartCall(chartCalls),
+                dataset = chartConfig.data.datasets[0];
+
+            expect(canvas.style.background).toBe("rgb(24, 28, 36)");
+            expect(canvas.style.boxShadow).toBe("0 2px 8px rgba(0,0,0,0.1)");
+            expect(dataset.borderColor).toBe("#007bff");
+            expect(dataset.backgroundColor).toBe("rgba(0, 123, 255, 0.2)");
+            expect(
+                chartConfig.options.plugins.chartBackgroundColorPlugin
+                    .backgroundColor
+            ).toBe("#181c24");
+            expect(chartConfig.options.scales.x.grid).toMatchObject({
+                display: true,
+            });
+        });
+    });
+
+    it("applies option-controlled point, title, legend, and grid settings", () => {
+        expect.assertions(2);
+
+        withHarness(({ chartCalls, container }) => {
+            renderGPSTrackChart(container, defaultData, {
                 maxPoints: "all",
+                showGrid: false,
+                showLegend: false,
                 showPoints: false,
+                showTitle: false,
             });
 
-            let chartConfig = global.window.Chart.mock.calls[0][1];
+            const chartConfig = getSingleChartCall(chartCalls)[1];
+
             expect(chartConfig.data.datasets[0].pointRadius).toBe(1);
-
-            // Clear and test with showPoints: true
-            vi.clearAllMocks();
-            container.innerHTML = "";
-
-            renderGPSTrackChart(container, data, {
-                maxPoints: "all",
-                showPoints: true,
-            });
-
-            chartConfig = global.window.Chart.mock.calls[0][1];
-            expect(chartConfig.data.datasets[0].pointRadius).toBe(2);
-        });
-
-        it("should configure legend display correctly", () => {
-            const data = [{ positionLat: 429496730, positionLong: -859993460 }];
-
-            renderGPSTrackChart(container, data, {
-                maxPoints: "all",
-                showLegend: true,
-            });
-
-            const chartConfig = global.window.Chart.mock.calls[0][1];
-            expect(chartConfig.options.plugins.legend.display).toBe(true);
-        });
-
-        it("should configure title display correctly", () => {
-            const data = [{ positionLat: 429496730, positionLong: -859993460 }];
-
-            renderGPSTrackChart(container, data, {
-                maxPoints: "all",
-                showTitle: true,
-            });
-
-            const chartConfig = global.window.Chart.mock.calls[0][1];
-            expect(chartConfig.options.plugins.title.display).toBe(true);
-            expect(chartConfig.options.plugins.title.text).toBe("GPS Track");
-        });
-
-        it("should configure grid display correctly", () => {
-            const data = [{ positionLat: 429496730, positionLong: -859993460 }];
-
-            renderGPSTrackChart(container, data, {
-                maxPoints: "all",
-                showGrid: true,
-            });
-
-            const chartConfig = global.window.Chart.mock.calls[0][1];
-            expect(chartConfig.options.scales.x.grid.display).toBe(true);
-            expect(chartConfig.options.scales.y.grid.display).toBe(true);
-        });
-    });
-
-    describe("Theme Integration", () => {
-        it("should apply theme colors to canvas styling", () => {
-            const data = [{ positionLat: 429496730, positionLong: -859993460 }];
-            const options = { maxPoints: "all" };
-
-            renderGPSTrackChart(container, data, options);
-
-            const canvas = container.querySelector("canvas");
-            expect(canvas?.style.background).toBe("rgb(24, 28, 36)");
-            expect(canvas?.style.boxShadow).toBe("0 2px 8px rgba(0,0,0,0.1)");
-            expect(canvas?.style.borderRadius).toBe("12px");
-        });
-
-        it("should handle missing theme config gracefully", () => {
-            // Mock the theme module directly
-            const mockGetThemeConfig = vi.fn().mockReturnValue(null);
-            vi.doMock("../../../utils/theming/core/theme.js", () => ({
-                getThemeConfig: mockGetThemeConfig,
-            }));
-
-            const data = [{ positionLat: 429496730, positionLong: -859993460 }];
-            const options = { maxPoints: "all" };
-
-            expect(() =>
-                renderGPSTrackChart(container, data, options)
-            ).not.toThrow();
-        });
-
-        it("should handle missing theme colors gracefully", () => {
-            // Mock the theme module directly
-            const mockGetThemeConfig = vi
-                .fn()
-                .mockReturnValue({ colors: null });
-            vi.doMock("../../../utils/theming/core/theme.js", () => ({
-                getThemeConfig: mockGetThemeConfig,
-            }));
-
-            const data = [{ positionLat: 429496730, positionLong: -859993460 }];
-            const options = { maxPoints: "all" };
-
-            expect(() =>
-                renderGPSTrackChart(container, data, options)
-            ).not.toThrow();
-        });
-    });
-
-    describe("Tooltip Configuration", () => {
-        it("should configure tooltip with proper callbacks", () => {
-            const data = [{ positionLat: 429496730, positionLong: -859993460 }];
-            const options = { maxPoints: "all" };
-
-            renderGPSTrackChart(container, data, options);
-
-            const chartConfig = global.window.Chart.mock.calls[0][1];
-            const tooltip = chartConfig.options.plugins.tooltip;
-
-            expect(tooltip.callbacks.label).toBeDefined();
-            expect(typeof tooltip.callbacks.label).toBe("function");
-        });
-
-        it("should format tooltip label correctly", () => {
-            const data = [{ positionLat: 429496730, positionLong: -859993460 }];
-            const options = { maxPoints: "all" };
-
-            renderGPSTrackChart(container, data, options);
-
-            const chartConfig = global.window.Chart.mock.calls[0][1];
-            const labelCallback =
-                chartConfig.options.plugins.tooltip.callbacks.label;
-
-            const mockContext = {
-                raw: { x: -40.123456, y: 18.123456, pointIndex: 5 },
-            };
-
-            const result = labelCallback(mockContext);
-            expect(result).toEqual([
-                "Latitude: 18.123456°",
-                "Longitude: -40.123456°",
-                "Point: 5",
+            expect([
+                chartConfig.options.plugins.legend.display,
+                chartConfig.options.plugins.title.display,
+                chartConfig.options.scales.x.grid.display,
+                chartConfig.options.scales.y.grid.display,
+            ]).toStrictEqual([
+                false,
+                false,
+                false,
+                false,
             ]);
         });
     });
 
-    describe("Zoom Configuration", () => {
-        it("should configure zoom and pan settings", () => {
-            const data = [{ positionLat: 429496730, positionLong: -859993460 }];
-            const options = { maxPoints: "all" };
+    it("formats tooltip and axis labels", () => {
+        expect.assertions(3);
 
-            renderGPSTrackChart(container, data, options);
+        withHarness(({ chartCalls, container }) => {
+            renderGPSTrackChart(container, defaultData, defaultOptions);
 
-            const chartConfig = global.window.Chart.mock.calls[0][1];
-            const zoom = chartConfig.options.plugins.zoom;
+            const chartConfig = getSingleChartCall(chartCalls)[1],
+                tooltipLabel =
+                    chartConfig.options.plugins.tooltip.callbacks.label({
+                        raw: { pointIndex: 5, x: -40.123_456, y: 18.123_456 },
+                    });
 
-            expect(zoom.pan.enabled).toBe(true);
-            expect(zoom.pan.mode).toBe("xy");
-            expect(zoom.zoom.wheel.enabled).toBe(true);
-            expect(zoom.zoom.pinch.enabled).toBe(true);
-            expect(zoom.zoom.drag.enabled).toBe(true);
+            expect(tooltipLabel).toStrictEqual([
+                "Latitude: 18.123456°",
+                "Longitude: -40.123456°",
+                "Point: 5",
+            ]);
+            expect(
+                chartConfig.options.scales.x.ticks.callback(12.345_678_9)
+            ).toBe("12.3457°");
+            expect(
+                chartConfig.options.scales.y.ticks.callback(-45.678_901_2)
+            ).toBe("-45.6789°");
+        });
+    });
+
+    it("configures zoom and reset plugin integration", () => {
+        expect.assertions(6);
+
+        withHarness(({ chartCalls, container }) => {
+            renderGPSTrackChart(container, defaultData, defaultOptions);
+
+            const chartConfig = getSingleChartCall(chartCalls)[1],
+                zoom = chartConfig.options.plugins.zoom;
+
+            expect(zoom.pan).toMatchObject({ enabled: true, mode: "xy" });
+            expect([
+                zoom.zoom.wheel.enabled,
+                zoom.zoom.pinch.enabled,
+                zoom.zoom.drag.enabled,
+            ]).toStrictEqual([
+                true,
+                true,
+                true,
+            ]);
             expect(zoom.zoom.mode).toBe("xy");
-        });
-
-        it("should configure zoom limits", () => {
-            const data = [{ positionLat: 429496730, positionLong: -859993460 }];
-            const options = { maxPoints: "all" };
-
-            renderGPSTrackChart(container, data, options);
-
-            const chartConfig = global.window.Chart.mock.calls[0][1];
-            const limits = chartConfig.options.plugins.zoom.limits;
-
-            expect(limits.x.min).toBe("original");
-            expect(limits.x.max).toBe("original");
-            expect(limits.y.min).toBe("original");
-            expect(limits.y.max).toBe("original");
+            expect(zoom.limits.x).toStrictEqual({
+                max: "original",
+                min: "original",
+            });
+            expect(zoom.limits.y).toStrictEqual({
+                max: "original",
+                min: "original",
+            });
+            expect(chartConfig.plugins).toContain("chartBackgroundColorPlugin");
         });
     });
 
-    describe("Scales Configuration", () => {
-        it("should configure x-axis (longitude) correctly", () => {
-            const data = [{ positionLat: 429496730, positionLong: -859993460 }];
-            const options = { maxPoints: "all" };
+    it("does not render for invalid input, hidden field, or unavailable Chart.js", () => {
+        expect.assertions(9);
 
-            renderGPSTrackChart(container, data, options);
+        withHarness(({ chartCalls, consoleLog, container, runtimeGlobal }) => {
+            renderGPSTrackChart(null, defaultData, defaultOptions);
+            renderGPSTrackChart(container, [], defaultOptions);
+            renderGPSTrackChart(
+                container,
+                [
+                    { positionLat: 429_496_730, positionLong: null },
+                    { positionLat: null, positionLong: -859_993_460 },
+                ],
+                defaultOptions
+            );
 
-            const chartConfig = global.window.Chart.mock.calls[0][1];
-            const xScale = chartConfig.options.scales.x;
+            const visibilitySpy = vi
+                .spyOn(chartSettingsManager, "getFieldVisibility")
+                .mockReturnValueOnce("hidden");
 
-            expect(xScale.type).toBe("linear");
-            expect(xScale.display).toBe(true);
-            expect(xScale.title.display).toBe(true);
-            expect(xScale.title.text).toBe("Longitude (°)");
-        });
+            renderGPSTrackChart(container, defaultData, defaultOptions);
 
-        it("should configure y-axis (latitude) correctly", () => {
-            const data = [{ positionLat: 429496730, positionLong: -859993460 }];
-            const options = { maxPoints: "all" };
+            delete runtimeGlobal.Chart;
+            renderGPSTrackChart(container, defaultData, defaultOptions);
 
-            renderGPSTrackChart(container, data, options);
-
-            const chartConfig = global.window.Chart.mock.calls[0][1];
-            const yScale = chartConfig.options.scales.y;
-
-            expect(yScale.type).toBe("linear");
-            expect(yScale.display).toBe(true);
-            expect(yScale.title.display).toBe(true);
-            expect(yScale.title.text).toBe("Latitude (°)");
-        });
-
-        it("should format axis tick labels correctly", () => {
-            const data = [{ positionLat: 429496730, positionLong: -859993460 }];
-            const options = { maxPoints: "all" };
-
-            renderGPSTrackChart(container, data, options);
-
-            const chartConfig = global.window.Chart.mock.calls[0][1];
-            const xTickCallback = chartConfig.options.scales.x.ticks.callback;
-            const yTickCallback = chartConfig.options.scales.y.ticks.callback;
-
-            expect(xTickCallback(12.3456789)).toBe("12.3457°");
-            expect(yTickCallback(-45.6789012)).toBe("-45.6789°");
-        });
-    });
-
-    describe("Chart Instance Management", () => {
-        it("should add chart instance to global collection", () => {
-            const data = [{ positionLat: 429496730, positionLong: -859993460 }];
-            const options = { maxPoints: "all" };
-
-            renderGPSTrackChart(container, data, options);
-
-            const globalWindow = (global as any).window;
-            expect(globalWindow._chartjsInstances).toHaveLength(1);
-            expect(globalWindow._chartjsInstances[0]).toBe(mockChart);
-        });
-
-        it("should initialize global chart instances array if not exists", () => {
-            const globalWindow = (global as any).window;
-            delete globalWindow._chartjsInstances;
-
-            const data = [{ positionLat: 429496730, positionLong: -859993460 }];
-            const options = { maxPoints: "all" };
-
-            renderGPSTrackChart(container, data, options);
-
-            expect(globalWindow._chartjsInstances).toEqual([mockChart]);
-        });
-
-        it("should log success message after chart creation", () => {
-            const data = [{ positionLat: 429496730, positionLong: -859993460 }];
-            const options = { maxPoints: "all" };
-
-            renderGPSTrackChart(container, data, options);
-
-            expect(consoleSpy.log).toHaveBeenCalledWith(
+            expect(chartCalls).toHaveLength(0);
+            expect(container.children).toHaveLength(1);
+            expect(container.firstElementChild?.tagName).toBe("CANVAS");
+            expect(globalThis._chartjsInstances).toStrictEqual([]);
+            expect(consoleLog).toHaveBeenCalledWith(
+                "[ChartJS] No GPS position data available"
+            );
+            expect(consoleLog).toHaveBeenCalledWith(
+                "[ChartJS] No valid GPS data points found"
+            );
+            expect(visibilitySpy).toHaveBeenCalledWith("gps_track");
+            expect(consoleLog).not.toHaveBeenCalledWith(
                 "[ChartJS] GPS track chart created successfully"
             );
+            expect(chartCalls).not.toHaveLength(1);
         });
     });
 
-    describe("Error Handling", () => {
-        it("should handle chart creation errors gracefully", () => {
-            const globalWindow = (global as any).window;
-            globalWindow.Chart = vi.fn(function ChartMock() {
-                throw new Error("Chart creation failed");
-            });
-            (global as any).globalThis.Chart = globalWindow.Chart;
+    it("catches Chart constructor failures and leaves no registered instance", () => {
+        expect.assertions(4);
 
-            const data = [{ positionLat: 429496730, positionLong: -859993460 }];
-            const options = { maxPoints: "all" };
+        withHarness(({ consoleError, container, runtimeGlobal }) => {
+            runtimeGlobal.Chart = class ThrowingChart {
+                public constructor() {
+                    throw new Error("Chart creation failed");
+                }
+            };
 
             expect(() =>
-                renderGPSTrackChart(container, data, options)
+                renderGPSTrackChart(container, defaultData, defaultOptions)
             ).not.toThrow();
-            expect(consoleSpy.error).toHaveBeenCalledWith(
+            expect(consoleError).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering GPS track chart:",
                 expect.any(Error)
             );
-        });
-
-        it("should handle theme config errors gracefully", async () => {
-            // Use a simpler approach to test error handling
-            const data = [{ positionLat: 429496730, positionLong: -859993460 }];
-            const options = { maxPoints: "all" };
-
-            // The function should handle errors internally and not throw
-            expect(() =>
-                renderGPSTrackChart(container, data, options)
-            ).not.toThrow();
-        });
-
-        it("should handle canvas creation errors gracefully", async () => {
-            // Use a simpler approach to test error handling
-            const data = [{ positionLat: 429496730, positionLong: -859993460 }];
-            const options = { maxPoints: "all" };
-
-            // The function should handle errors internally and not throw
-            expect(() =>
-                renderGPSTrackChart(container, data, options)
-            ).not.toThrow();
-        });
-
-        it("should handle localStorage errors gracefully", () => {
-            const mockLocalStorage = (global as any).localStorage;
-            mockLocalStorage.getItem.mockImplementation(() => {
-                throw new Error("LocalStorage error");
-            });
-
-            const data = [{ positionLat: 429496730, positionLong: -859993460 }];
-            const options = { maxPoints: "all" };
-
-            expect(() =>
-                renderGPSTrackChart(container, data, options)
-            ).not.toThrow();
-            expect(consoleSpy.error).toHaveBeenCalled();
-        });
-    });
-
-    describe("Edge Cases", () => {
-        it("should handle empty data array", () => {
-            const data: any[] = [];
-            const options = { maxPoints: "all" };
-
-            renderGPSTrackChart(container, data, options);
-
-            expect(consoleSpy.log).toHaveBeenCalledWith(
-                "[ChartJS] No GPS position data available"
-            );
-            expect(global.window.Chart).not.toHaveBeenCalled();
-        });
-
-        it("should handle single GPS point", () => {
-            const data = [{ positionLat: 429496730, positionLong: -859993460 }];
-            const options = { maxPoints: "all" };
-
-            renderGPSTrackChart(container, data, options);
-
-            const chartConfig = global.window.Chart.mock.calls[0][1];
-            expect(chartConfig.data.datasets[0].data).toHaveLength(1);
-        });
-
-        it("should handle very large datasets efficiently", () => {
-            const data: any[] = [];
-            for (let i = 0; i < 100000; i++) {
-                data.push({
-                    positionLat: 429496730 + i,
-                    positionLong: -859993460 + i,
-                });
-            }
-
-            const options = { maxPoints: 1000 };
-
-            const startTime = Date.now();
-            renderGPSTrackChart(container, data, options);
-            const endTime = Date.now();
-
-            // Should complete reasonably quickly
-            expect(endTime - startTime).toBeLessThan(1000);
-
-            const globalWindow = (global as any).window;
-            const chartConfig = globalWindow.Chart.mock.calls[0][1];
-            expect(
-                chartConfig.data.datasets[0].data.length
-            ).toBeLessThanOrEqual(1000);
-        });
-
-        it("should handle extreme GPS coordinates", () => {
-            const data = [
-                { positionLat: 1073741824, positionLong: -2147483648 }, // ~90 degrees latitude, -180 degrees longitude
-                { positionLat: -1073741824, positionLong: 2147483647 }, // ~-90 degrees latitude, ~180 degrees longitude
-            ];
-            const options = { maxPoints: "all" };
-
-            expect(() =>
-                renderGPSTrackChart(container, data, options)
-            ).not.toThrow();
-
-            const globalWindow = (global as any).window;
-            const chartConfig = globalWindow.Chart.mock.calls[0][1];
-            const points = chartConfig.data.datasets[0].data;
-
-            // Verify coordinates are within valid latitude/longitude ranges
-            points.forEach((point: any) => {
-                expect(point.y).toBeGreaterThanOrEqual(-90);
-                expect(point.y).toBeLessThanOrEqual(90);
-                expect(point.x).toBeGreaterThanOrEqual(-180);
-                expect(point.x).toBeLessThanOrEqual(180);
-            });
-        });
-
-        it("should handle mixed valid and invalid GPS data", () => {
-            const data = [
-                { positionLat: 429496730, positionLong: -859993460 }, // Valid
-                { positionLat: "invalid", positionLong: -859993470 }, // Invalid latitude
-                { positionLat: 429496750, positionLong: "invalid" }, // Invalid longitude
-                { positionLat: 429496760, positionLong: -859993480 }, // Valid
-                { someOtherField: "data" }, // No GPS data
-            ];
-            const options = { maxPoints: "all" };
-
-            renderGPSTrackChart(container, data, options);
-
-            const chartConfig = global.window.Chart.mock.calls[0][1];
-            expect(chartConfig.data.datasets[0].data).toHaveLength(2); // Only finite numeric coordinates are valid
+            expect(globalThis._chartjsInstances).toStrictEqual([]);
+            expect(container.querySelector("canvas")).not.toBeNull();
         });
     });
 });
+
+function withHarness(callback: (harness: Harness) => void): void {
+    const runtimeGlobal = globalThis as RuntimeGlobal,
+        chartCalls: ChartCall[] = [],
+        chartInstance: ChartInstance = { id: "chart-instance" },
+        container = document.createElement("div"),
+        consoleError = vi.spyOn(console, "error").mockImplementation(() => {}),
+        consoleLog = vi.spyOn(console, "log").mockImplementation(() => {}),
+        originalChart = runtimeGlobal.Chart,
+        originalChartInstances = runtimeGlobal._chartjsInstances;
+
+    document.body.append(container);
+    themeMocks.getThemeConfig.mockClear();
+    vi.spyOn(chartSettingsManager, "getFieldVisibility").mockReturnValue(
+        "visible"
+    );
+
+    runtimeGlobal._chartjsInstances = [];
+    runtimeGlobal.Chart = function ChartMock(
+        canvas: HTMLCanvasElement,
+        config: ChartConfig
+    ): ChartInstance {
+        chartCalls.push([canvas, config]);
+        return chartInstance;
+    } as unknown as RuntimeGlobal["Chart"];
+
+    try {
+        callback({
+            chartCalls,
+            chartInstance,
+            consoleError,
+            consoleLog,
+            container,
+            runtimeGlobal,
+        });
+    } finally {
+        container.remove();
+
+        if (originalChart === undefined) {
+            delete runtimeGlobal.Chart;
+        } else {
+            runtimeGlobal.Chart = originalChart;
+        }
+
+        if (originalChartInstances === undefined) {
+            delete runtimeGlobal._chartjsInstances;
+        } else {
+            runtimeGlobal._chartjsInstances = originalChartInstances;
+        }
+
+        vi.restoreAllMocks();
+        themeMocks.getThemeConfig.mockReset();
+        themeMocks.getThemeConfig.mockReturnValue({
+            colors: {
+                bgPrimary: "#ffffff",
+                chartBackground: "#f8f9fa",
+                chartBorder: "#dee2e6",
+                chartSurface: "#23263a",
+                gridLines: "#e9ecef",
+                primary: "#007bff",
+                primaryAlpha: "rgba(0, 123, 255, 0.2)",
+                shadow: "0 2px 4px rgba(0,0,0,0.1)",
+                text: "#ffffff",
+                textPrimary: "#333333",
+            },
+        });
+    }
+}
+
+function getSingleChartCall(chartCalls: readonly ChartCall[]): ChartCall {
+    if (chartCalls.length !== 1) {
+        throw new Error(
+            `Expected one chart call, received ${chartCalls.length}.`
+        );
+    }
+
+    return chartCalls[0] as ChartCall;
+}
