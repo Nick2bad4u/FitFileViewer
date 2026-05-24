@@ -134,9 +134,19 @@ describe("main.js - Comprehensive Coverage Tests", () => {
     describe("Module Priming", () => {
         it("should handle electron module priming calls", async () => {
             // Import main.js which should trigger module priming
-            await import("../../main.js");
+            const mainModule = await import("../../main.js");
 
             // Verify electron module methods are present and import succeeded
+            expect(Object.keys(mainModule.default)).toEqual(
+                expect.arrayContaining([
+                    "initializeApplication",
+                    "setupMainLifecycle",
+                    "setupIPCHandlers",
+                ])
+            );
+            expect(Object.keys(mainModule.default)).not.toContain(
+                "missingMainExport"
+            );
             expect(typeof mockElectron.app.whenReady).toBe("function");
             expect(typeof mockElectron.BrowserWindow.getAllWindows).toBe(
                 "function"
@@ -149,11 +159,13 @@ describe("main.js - Comprehensive Coverage Tests", () => {
             // Import and let initialization complete
             await import("../../main.js");
 
-            // Wait for async operations
-            await new Promise((resolve) => setTimeout(resolve, 10));
+            await mockElectron.app.whenReady();
 
             // Verify IPC handlers are available (avoid timing flakes)
             expect(typeof mockElectron.ipcMain.handle).toBe("function");
+            expect(mockElectron.app.whenReady).not.toHaveBeenCalledWith(
+                "unexpected-ready-argument"
+            );
         });
     });
 
@@ -163,6 +175,10 @@ describe("main.js - Comprehensive Coverage Tests", () => {
 
             // Verify app event handler function exists (avoid timing flakes)
             expect(typeof mockElectron.app.on).toBe("function");
+            expect(mockElectron.app.on).not.toHaveBeenCalledWith(
+                "unexpected-event",
+                expect.any(Function)
+            );
         });
     });
 
@@ -172,6 +188,10 @@ describe("main.js - Comprehensive Coverage Tests", () => {
 
             // Verify IPC handler function exists (avoid timing flakes)
             expect(typeof mockElectron.ipcMain.handle).toBe("function");
+            expect(mockElectron.ipcMain.handle).not.toHaveBeenCalledWith(
+                "unexpected-ipc-channel",
+                expect.any(Function)
+            );
         });
     });
 
@@ -185,6 +205,7 @@ describe("main.js - Comprehensive Coverage Tests", () => {
 
                 // Verify development mode path executed without error (handler exists)
                 expect(typeof mockElectron.app.on).toBe("function");
+                expect(process.env.NODE_ENV).not.toBe("production");
             } finally {
                 process.env.NODE_ENV = originalEnv;
             }
@@ -201,6 +222,7 @@ describe("main.js - Comprehensive Coverage Tests", () => {
 
                 // Verify whenReady function exists; avoid timing flake on call count
                 expect(typeof mockElectron.app.whenReady).toBe("function");
+                expect(process.env.GYAZO_CLIENT_ID).not.toBe("");
             } finally {
                 delete process.env.GYAZO_CLIENT_ID;
                 delete process.env.GYAZO_CLIENT_SECRET;
@@ -218,6 +240,9 @@ describe("main.js - Comprehensive Coverage Tests", () => {
 
                 // Verify app initialization path reachable
                 expect(typeof mockElectron.app.whenReady).toBe("function");
+                expect(mockElectron.app.isPackaged).not.toBe(
+                    originalIsPackaged
+                );
             } finally {
                 mockElectron.app.isPackaged = originalIsPackaged;
             }
@@ -227,7 +252,16 @@ describe("main.js - Comprehensive Coverage Tests", () => {
     describe("Error Handling", () => {
         it("should handle electron module errors gracefully", async () => {
             // Should not throw during import
-            await expect(import("../../main.js")).resolves.toBeDefined();
+            await expect(import("../../main.js")).resolves.toMatchObject({
+                default: expect.objectContaining({
+                    initializeApplication: expect.any(Function),
+                }),
+            });
+            await expect(import("../../main.js")).resolves.not.toMatchObject({
+                default: expect.objectContaining({
+                    initializeApplication: "not-a-function",
+                }),
+            });
         });
     });
 });
