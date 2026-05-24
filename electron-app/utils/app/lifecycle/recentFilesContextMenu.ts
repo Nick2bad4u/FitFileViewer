@@ -9,14 +9,14 @@ import {
 } from "../../files/import/fitParsePayload.js";
 import type { FitParsePayload } from "../../files/import/fitParsePayload.js";
 import type { FitMessages } from "../../../shared/fit";
+import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
-type RecentFilesElectronApi = {
-    addRecentFile: (file: string) => Promise<unknown>;
-    approveRecentFile?: (file: string) => Promise<boolean>;
-    parseFitFile: (data: ArrayBuffer) => Promise<FitParsePayload>;
-    readFile: (file: string) => Promise<ArrayBuffer>;
-    recentFiles: () => Promise<string[]>;
-};
+type RecentFilesElectronApi = Pick<ElectronAPI, "readFile" | "recentFiles"> &
+    Partial<Pick<ElectronAPI, "addRecentFile" | "approveRecentFile">> & {
+        parseFitFile: (
+            data: Parameters<ElectronAPI["parseFitFile"]>[0]
+        ) => Promise<FitParsePayload>;
+    };
 
 type RecentFilesGlobal = typeof globalThis & {
     electronAPI?: RecentFilesElectronApi;
@@ -274,7 +274,7 @@ export function attachRecentFilesContextMenu({
                         if (appGlobal.sendFitFileToAltFitReader) {
                             appGlobal.sendFitFileToAltFitReader(arrayBuffer);
                         }
-                        await activeElectronAPI.addRecentFile(file);
+                        await activeElectronAPI.addRecentFile?.(file);
                     } catch (error) {
                         showNotification(
                             `Error opening recent file: ${error}`,

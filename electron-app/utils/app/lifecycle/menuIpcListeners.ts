@@ -1,23 +1,31 @@
 import { openFileSelector } from "../../files/import/openFileSelector.js";
+import type {
+    GenericSendChannel,
+    RendererIpcEventChannel,
+} from "../../../shared/ipc.js";
+import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
-type MenuSendChannel = "menu-export" | "menu-save-as";
-type MenuIpcChannel =
+type MenuSendChannel = Extract<
+    GenericSendChannel,
+    "menu-export" | "menu-save-as"
+>;
+type MenuIpcChannel = Extract<
+    RendererIpcEventChannel,
     | MenuSendChannel
     | "menu-about"
     | "menu-keyboard-shortcuts"
     | "menu-open-overlay"
     | "menu-restart-update"
-    | "open-accent-color-picker";
+    | "open-accent-color-picker"
+>;
 
 type Unsubscribe = () => void;
 
-type MenuElectronAPI = {
-    installUpdate?: () => void;
+type MenuElectronAPI = Partial<Pick<ElectronAPI, "installUpdate" | "send">> & {
     onIpc: (
         channel: MenuIpcChannel,
         callback: (...args: unknown[]) => unknown
     ) => Unsubscribe | undefined;
-    send?: (channel: MenuSendChannel) => void;
 };
 
 type MenuIpcGlobal = typeof globalThis & {
