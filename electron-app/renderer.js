@@ -65,6 +65,14 @@
  * @property {() => unknown[]} getHistory - Get state history
  */
 
+/**
+ * @typedef {Object} LegacyRendererAppState
+ *
+ * @property {boolean} isInitialized - Legacy initialization flag bridge
+ * @property {boolean} isOpeningFile - Legacy file-opening flag bridge
+ * @property {number | undefined} startTime - Legacy start-time bridge
+ */
+
 // In electron-app/renderer.js
 
 // ==========================================
@@ -163,6 +171,21 @@ import { setupCreditsMarquee } from "./utils/ui/layout/enhanceCreditsSection.js"
 // Avoid static import of uiStateManager for the same reason as AppActions in tests
 
 const rendererConsole = globalThis.console;
+
+/**
+ * @param {Record<string, unknown>} appActions
+ * @param {"setFileOpening" | "setInitialized"} actionName
+ * @param {boolean} value
+ *
+ * @returns {void}
+ */
+function callBooleanAppAction(appActions, actionName, value) {
+    const action = appActions[actionName];
+    if (typeof action === "function") {
+        const actionFn = /** @type {(value: boolean) => unknown} */ (action);
+        actionFn(value);
+    }
+}
 
 /**
  * @param {"error" | "group" | "groupEnd" | "log" | "warn"} level
@@ -335,6 +358,25 @@ function getGlobalBooleanFlag(flagName) {
 }
 
 /**
+ * @param {unknown} masterStateManager
+ * @param {string} key
+ *
+ * @returns {boolean}
+ */
+function getMasterAppFlag(masterStateManager, key) {
+    const getStateMember = toModuleRecord(masterStateManager).getState;
+    if (typeof getStateMember !== "function") {
+        return false;
+    }
+
+    const getStateFn = /** @type {() => unknown} */ (getStateMember);
+    const state = toModuleRecord(getStateFn());
+    const app = toModuleRecord(state.app);
+
+    return app[key] === true;
+}
+
+/**
  * @param {Record<string, unknown>} record
  * @param {string} key
  *
@@ -379,6 +421,14 @@ function getRendererLocationParts() {
         protocol: getStringProperty(locationRecord, "protocol"),
         search: getStringProperty(locationRecord, "search"),
     };
+}
+
+/**
+ * @returns {number | undefined}
+ */
+function getStateStartTime() {
+    const startTime = getState("app.startTime");
+    return typeof startTime === "number" ? startTime : undefined;
 }
 
 /**
@@ -757,16 +807,12 @@ function toModuleRecord(value) {
 /**
  * Legacy state reference for backward compatibility
  *
- * @deprecated Use masterStateManager instead
- *
- * @type {any}
+ * @type {LegacyRendererAppState | null}
  */
-let appState = /** @type {any} */ (null);
+let appState = null;
 
 /**
  * Reference object for tracking file opening state (legacy compatibility)
- *
- * @deprecated Use state manager instead
  *
  * @type {{ value: boolean }}
  */
@@ -970,7 +1016,6 @@ async function initializeApplication() {
         const dependencies = /** @type {RendererDependencies} */ ({
             applyTheme,
             handleOpenFile,
-            // eslint-disable-next-line @typescript-eslint/no-deprecated -- RendererDependencies still accepts this legacy bridge during migration.
             isOpeningFileRef,
             listenForThemeChange,
             openFileBtn,
@@ -1213,39 +1258,49 @@ async function initializeStateManager() {
                 "[Renderer] Initializing state management system..."
             );
             // Resolve via ensureCoreModules so Vitest manual mocks are honored
-            const { AppActions: AA, masterStateManager: msm } =
+            const { AppActions, masterStateManager } =
                 await ensureCoreModules();
+            const appActions = toModuleRecord(AppActions);
+            const masterStateManagerRecord = toModuleRecord(masterStateManager);
+            const initialize = masterStateManagerRecord.initialize;
+            if (typeof initialize !== "function") {
+                throw new TypeError("masterStateManager.initialize missing");
+            }
+
             // Initialize the master state manager (ensure spy in tests is triggered)
-            await msm.initialize();
+            const initializeFn =
+                /** @type {(this: unknown) => Promise<unknown> | unknown} */ (
+                    initialize
+                );
+            await initializeFn.call(masterStateManager);
 
             // Create legacy compatibility object
             appState = {
                 get isInitialized() {
-                    return /** @type {any} */ (msm).getState().app.initialized;
+                    return getMasterAppFlag(masterStateManager, "initialized");
                 },
                 set isInitialized(value) {
-                    AA.setInitialized(value);
+                    callBooleanAppAction(appActions, "setInitialized", value);
                 },
                 get isOpeningFile() {
-                    return /** @type {any} */ (msm).getState().app
-                        .isOpeningFile;
+                    return getMasterAppFlag(
+                        masterStateManager,
+                        "isOpeningFile"
+                    );
                 },
                 set isOpeningFile(value) {
-                    AA.setFileOpening(value);
+                    callBooleanAppAction(appActions, "setFileOpening", value);
                     isOpeningFileRef.value = value;
                 },
                 get startTime() {
-                    return getState("app.startTime");
+                    return getStateStartTime();
                 },
             };
 
             // Subscribe to state changes to update legacy reference
-            subscribe(
-                "app.isOpeningFile",
-                /** @param {any} isOpening */ (isOpening) => {
-                    isOpeningFileRef.value = isOpening;
-                }
-            );
+            subscribe("app.isOpeningFile", (isOpening) => {
+                isOpeningFileRef.value = isOpening === true;
+            });
 
             stateInitTracker.initialized = true;
 
@@ -1511,6 +1566,42 @@ function cleanup() {
     try {
         logRenderer("log", "[Renderer] Performing cleanup...");
 
+        const resetLegacyOpeningState = () => {
+            if (appState !== null) {
+                appState.isInitialized = false;
+                appState.isOpeningFile = false;
+            }
+            isOpeningFileRef.value = false;
+        };
+
+        const cleanupStateManagerState = async () => {
+            try {
+                const { AppActions, masterStateManager } =
+                    await ensureCoreModules();
+                const masterStateManagerRecord =
+                    toModuleRecord(masterStateManager);
+                if (masterStateManagerRecord.isInitialized === true) {
+                    const appActions = toModuleRecord(AppActions);
+                    callBooleanAppAction(appActions, "setInitialized", false);
+                    callBooleanAppAction(appActions, "setFileOpening", false);
+
+                    const cleanupStateManager =
+                        masterStateManagerRecord.cleanup;
+                    if (typeof cleanupStateManager === "function") {
+                        const cleanupStateManagerFn =
+                            /** @type {(this: unknown) => unknown} */ (
+                                cleanupStateManager
+                            );
+                        cleanupStateManagerFn.call(masterStateManager);
+                    }
+                } else {
+                    resetLegacyOpeningState();
+                }
+            } catch {
+                resetLegacyOpeningState();
+            }
+        };
+
         // Remove global event listeners
         globalThis.removeEventListener(
             "unhandledrejection",
@@ -1519,31 +1610,7 @@ function cleanup() {
         globalThis.removeEventListener("error", onUncaughtErrorEvent);
 
         // Reset application state using state manager
-        (async () => {
-            try {
-                const { AppActions, masterStateManager } =
-                    await ensureCoreModules();
-                if (masterStateManager && masterStateManager.isInitialized) {
-                    AppActions.setInitialized(false);
-                    AppActions.setFileOpening(false);
-                    masterStateManager.cleanup();
-                } else {
-                    // Fallback to legacy state reset
-                    if (appState) {
-                        appState.isInitialized = false;
-                        appState.isOpeningFile = false;
-                    }
-                    isOpeningFileRef.value = false;
-                }
-            } catch {
-                // Fallback to legacy state reset
-                if (appState) {
-                    appState.isInitialized = false;
-                    appState.isOpeningFile = false;
-                }
-                isOpeningFileRef.value = false;
-            }
-        })();
+        void cleanupStateManagerState();
 
         logRenderer("log", "[Renderer] Cleanup completed");
     } catch (error) {
