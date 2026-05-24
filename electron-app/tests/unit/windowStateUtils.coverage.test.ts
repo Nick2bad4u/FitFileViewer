@@ -1,7 +1,17 @@
 /**
  * @vitest-environment node
  */
+import { existsSync, unlinkSync } from "node:fs";
+import { join } from "node:path";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
+const fallbackSettingsPath = join(process.cwd(), "window-state.json");
+
+function removeFallbackWindowState() {
+    if (existsSync(fallbackSettingsPath)) {
+        unlinkSync(fallbackSettingsPath);
+    }
+}
 
 describe("windowStateUtils.js - coverage uplift", () => {
     const defaultState = {
@@ -17,6 +27,7 @@ describe("windowStateUtils.js - coverage uplift", () => {
 
     beforeEach(() => {
         vi.resetModules();
+        removeFallbackWindowState();
         // Mock fs behaviors
         let fileExists = false;
         let fileContent = "";
@@ -63,8 +74,8 @@ describe("windowStateUtils.js - coverage uplift", () => {
         // @ts-ignore
         mockBrowserWindow = BrowserWindow;
 
-        vi.mock("fs", () => mockFs);
-        vi.mock("electron", () => ({
+        vi.doMock("node:fs", () => mockFs);
+        vi.doMock("electron", () => ({
             app: mockApp,
             BrowserWindow: mockBrowserWindow,
         }));
@@ -79,6 +90,7 @@ describe("windowStateUtils.js - coverage uplift", () => {
     afterEach(() => {
         vi.restoreAllMocks();
         vi.resetModules();
+        removeFallbackWindowState();
     });
 
     it("getWindowState returns defaults when file missing", async () => {
@@ -109,12 +121,12 @@ describe("windowStateUtils.js - coverage uplift", () => {
             mkdirSync: vi.fn(),
             unlinkSync: vi.fn(),
         };
-        vi.mock("fs", () => fs2 as any);
+        vi.doMock("node:fs", () => fs2 as any);
         const electron2 = {
             app: { getPath: vi.fn().mockReturnValue("/tmp/fitfileviewer") },
             BrowserWindow: vi.fn(),
         };
-        vi.mock("electron", () => electron2);
+        vi.doMock("electron", () => electron2);
 
         const mod = await import("../../windowStateUtils.js");
         const state = mod.getWindowState();
@@ -139,21 +151,39 @@ describe("windowStateUtils.js - coverage uplift", () => {
 
     it("createWindow attempts BrowserWindow construction (may throw in tests)", async () => {
         const mod = await import("../../windowStateUtils.js");
-        expect(() => mod.createWindow()).toThrow();
+        expect(() => mod.createWindow()).toThrow(
+            "BrowserWindow is not a constructor"
+        );
     });
 
     it("devHelpers are exposed only in development", async () => {
         process.env.NODE_ENV = "development";
-        const mod = await import("../../windowStateUtils.js");
-        if (mod.devHelpers) {
+        try {
+            const mod = await import("../../windowStateUtils.js");
+
+            expect(mod.devHelpers).toEqual({
+                getConfig: expect.any(Function),
+                resetState: expect.any(Function),
+                validateSettings: expect.any(Function),
+            });
+
             const info = mod.devHelpers.getConfig();
-            expect(info.constants).toBeDefined();
-            expect(typeof info.settingsPath).toBe("string");
-            const reset = mod.devHelpers.resetState();
-            expect(typeof reset).toBe("boolean");
-            const validate = mod.devHelpers.validateSettings();
-            expect(typeof validate.isValid).toBe("boolean");
+            expect(info.constants.DEFAULTS.WINDOW).toEqual(defaultState);
+            expect(info.settingsPath).toBe(mod.settingsPath);
+            expect(info.settingsPath).toMatch(/[\\/]window-state\.json$/);
+            expect(info.currentState).toEqual(defaultState);
+
+            expect(mod.devHelpers.resetState()).toBe(false);
+            expect(mockFs.unlinkSync).not.toHaveBeenCalled();
+
+            expect(mod.devHelpers.validateSettings()).toEqual({
+                exists: false,
+                isValid: true,
+                path: mod.settingsPath,
+                state: defaultState,
+            });
+        } finally {
+            process.env.NODE_ENV = "test";
         }
-        process.env.NODE_ENV = "test";
     });
 });
