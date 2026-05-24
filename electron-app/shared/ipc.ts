@@ -570,6 +570,8 @@ export type RendererIpcEventChannel =
     | "gyazo-oauth-callback"
     | "menu-about"
     | "menu-keyboard-shortcuts"
+    | "menu-open-file"
+    | "menu-open-overlay"
     | "menu-print"
     | "menu-restart-update"
     | "open-accent-color-picker"

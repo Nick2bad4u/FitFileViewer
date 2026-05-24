@@ -3,54 +3,23 @@
  * contextBridge. Incremental typing is applied using JSDoc so strict TypeScript
  * checking over allowJs passes.
  */
+const {
+    PRELOAD_CHANNELS,
+    PRELOAD_EVENTS,
+    isAllowedGenericInvokeChannel,
+    isAllowedGenericSendChannel,
+    isAllowedRendererIpcEventChannel,
+    isAllowedUpdateEventName,
+} = require("./preload/ipcBridgeCatalog.js");
+
 const // Constants for better maintainability
     CONSTANTS = {
-        CHANNELS: {
-            APP_VERSION: "getAppVersion",
-            CHROME_VERSION: "getChromeVersion",
-            DEVTOOLS_INJECT_MENU: "devtools-inject-menu",
-            DIALOG_OPEN_FILE: "dialog:openFile",
-            DIALOG_OPEN_FOLDER: "dialog:openFolder",
-            DIALOG_OPEN_OVERLAY_FILES: "dialog:openOverlayFiles",
-            ELECTRON_VERSION: "getElectronVersion",
-            FIT_BROWSER_GET_FOLDER: "browser:getFolder",
-            FIT_BROWSER_IS_ENABLED: "browser:isEnabled",
-            FIT_BROWSER_LIST_FOLDER: "browser:listFolder",
-            FIT_BROWSER_SET_ENABLED: "browser:setEnabled",
-            FIT_BROWSER_SET_FOLDER: "browser:setFolder",
-            FILE_READ: "file:read",
-            FIT_DECODE: "fit:decode",
-            FIT_PARSE: "fit:parse",
-            CLIPBOARD_WRITE_TEXT: "clipboard:writeText",
-            CLIPBOARD_WRITE_PNG_DATA_URL: "clipboard:writePngDataUrl",
-            // Gyazo OAuth server channels
-            GYAZO_SERVER_START: "gyazo:server:start",
-            GYAZO_SERVER_STOP: "gyazo:server:stop",
-            LICENSE_INFO: "getLicenseInfo",
-            NODE_VERSION: "getNodeVersion",
-            PLATFORM_INFO: "getPlatformInfo",
-            RECENT_FILES_ADD: "recentFiles:add",
-            RECENT_FILES_APPROVE: "recentFiles:approve",
-            RECENT_FILES_GET: "recentFiles:get",
-            SHELL_OPEN_EXTERNAL: "shell:openExternal",
-            THEME_GET: "theme:get",
-        },
+        CHANNELS: PRELOAD_CHANNELS,
         DEFAULT_VALUES: {
             FIT_FILE_PATH: null,
             THEME: null,
         },
-        EVENTS: {
-            FIT_FILE_LOADED: "fit-file-loaded",
-            INSTALL_UPDATE: "install-update",
-            MENU_CHECK_FOR_UPDATES: "menu-check-for-updates",
-            MENU_OPEN_FILE: "menu-open-file",
-            MENU_OPEN_OVERLAY: "menu-open-overlay",
-            OPEN_RECENT_FILE: "open-recent-file",
-            OPEN_SUMMARY_COLUMN_SELECTOR: "open-summary-column-selector",
-            SET_FULLSCREEN: "set-fullscreen",
-            SET_THEME: "set-theme",
-            THEME_CHANGED: "theme-changed",
-        },
+        EVENTS: PRELOAD_EVENTS,
     },
     /**
      * @typedef {Object} GyazoServerStartResult
@@ -524,99 +493,6 @@ const SHOULD_ENFORCE_GENERIC_IPC_ALLOWLIST =
             .FFV_ALLOW_GENERIC_IPC === "true"
     );
 
-/**
- * Limit generic invoke/send helpers to a conservative allowlist. Prefer the
- * explicit methods (readFile/openFile/parseFitFile/etc.) over the generic
- * helpers.
- */
-const ALLOWED_GENERIC_INVOKE_CHANNELS = new Set([
-    "main-state:errors",
-    "main-state:get",
-    "main-state:listen",
-    "main-state:metrics",
-    "main-state:operation",
-    "main-state:operations",
-    "main-state:set",
-    "main-state:unlisten",
-    ...Object.values(CONSTANTS.CHANNELS),
-]);
-
-/**
- * Restrict renderer->main IPC send() usage to a conservative set.
- *
- * Note: we intentionally do NOT allow arbitrary "menu-*" here. Only the
- * channels that are known to be handled by main via registerIpcListener should
- * be sendable from the renderer.
- */
-const ALLOWED_GENERIC_SEND_CHANNELS = new Set([
-    CONSTANTS.EVENTS.FIT_FILE_LOADED,
-    CONSTANTS.EVENTS.INSTALL_UPDATE,
-    CONSTANTS.EVENTS.MENU_CHECK_FOR_UPDATES,
-    CONSTANTS.EVENTS.SET_FULLSCREEN,
-    CONSTANTS.EVENTS.THEME_CHANGED,
-    // Legacy menu forwarders (renderer receives menu event then forwards back to main)
-    "menu-export",
-    "menu-save-as",
-]);
-
-/**
- * Restrict renderer subscriptions to IPC channels to an explicit allowlist.
- * This prevents a compromised renderer from attaching listeners to arbitrary
- * main-process channels that were never meant to be exposed.
- */
-const EXTRA_RENDERER_ON_IPC_CHANNELS =
-    "decoder-options-changed|export-file|fit-browser-enabled-changed|gyazo-oauth-callback|menu-about|menu-export|menu-keyboard-shortcuts|menu-print|menu-restart-update|menu-save-as|open-accent-color-picker|set-font-size|set-high-contrast|show-notification|unload-fit-file".split(
-        "|"
-    );
-
-const ALLOWED_GENERIC_ON_IPC_CHANNELS = new Set([
-    ...EXTRA_RENDERER_ON_IPC_CHANNELS,
-    ...Object.values(CONSTANTS.EVENTS),
-]);
-
-/**
- * Restrict update-event subscriptions to the concrete set emitted by
- * main/updater/setupAutoUpdater.
- *
- * Why:
- *
- * - A compromised renderer should not be able to subscribe to arbitrary
- *   main-process channels.
- * - Update events are a known, finite surface; we can cheaply defend-in-depth
- *   here.
- */
-const ALLOWED_UPDATE_EVENT_NAMES = new Set([
-    "update-available",
-    "update-checking",
-    "update-download-progress",
-    "update-downloaded",
-    "update-error",
-    "update-not-available",
-]);
-
-/**
- * @param {string} channel
- */
-function isAllowedGenericInvokeChannel(channel) {
-    return ALLOWED_GENERIC_INVOKE_CHANNELS.has(channel);
-}
-
-/**
- * @param {string} channel
- */
-function isAllowedGenericSendChannel(channel) {
-    return ALLOWED_GENERIC_SEND_CHANNELS.has(channel);
-}
-
-/**
- * @param {string} eventName
- *
- * @returns {boolean}
- */
-function isAllowedUpdateEventName(eventName) {
-    return ALLOWED_UPDATE_EVENT_NAMES.has(eventName);
-}
-
 // Main API object
 /** @type {ElectronAPI} */
 const electronAPI = {
@@ -927,7 +803,7 @@ const electronAPI = {
 
         if (
             SHOULD_ENFORCE_GENERIC_IPC_ALLOWLIST &&
-            !ALLOWED_GENERIC_ON_IPC_CHANNELS.has(channel)
+            !isAllowedRendererIpcEventChannel(channel)
         ) {
             console.warn(
                 `[preload.js] Blocked onIpc() subscription to non-allowlisted channel: ${channel}`

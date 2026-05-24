@@ -4,6 +4,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { readFileSync } from "fs";
 import { join } from "path";
+import { resolvePreloadScriptRequire } from "../helpers/preloadModuleMocks";
 
 /**
  * Simplified interface for ElectronAPI with only the methods we test
@@ -71,15 +72,12 @@ describe("Simple Electron Mock Test", () => {
         };
 
         // Create a virtual environment with our mocks
-        const mockRequire = vi.fn((moduleName: string) => {
-            if (moduleName === "electron") {
-                return {
-                    ipcRenderer: mockIpcRenderer,
-                    contextBridge: mockContextBridge,
-                };
-            }
-            throw new Error(`Module not mocked: ${moduleName}`);
-        });
+        const mockRequire = vi.fn((moduleName: string) =>
+            resolvePreloadScriptRequire(moduleName, {
+                ipcRenderer: mockIpcRenderer,
+                contextBridge: mockContextBridge,
+            })
+        );
 
         const mockProcess = {
             env,

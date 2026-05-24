@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import fs from "fs";
 import path from "path";
+import { resolvePreloadScriptRequire } from "../helpers/preloadModuleMocks";
 
 describe("preload.js - Additional edge coverage", () => {
     let preloadCode: string;
@@ -28,13 +29,9 @@ describe("preload.js - Additional edge coverage", () => {
             .spyOn(console, "log")
             .mockImplementation(() => {});
 
-        const mockRequire = vi.fn((mod: string) => {
-            if (mod === "electron") {
-                // Purposely omit contextBridge to force validateAPI() to return false
-                return { ipcRenderer } as any;
-            }
-            throw new Error(`Unknown module: ${mod}`);
-        });
+        const mockRequire = vi.fn((mod: string) =>
+            resolvePreloadScriptRequire(mod, { ipcRenderer } as any)
+        );
 
         const mockProcess = { env: { NODE_ENV: "development" }, once: vi.fn() };
 
@@ -87,11 +84,9 @@ describe("preload.js - Additional edge coverage", () => {
             .spyOn(console, "error")
             .mockImplementation(() => {});
 
-        const mockRequire = vi.fn((mod: string) => {
-            if (mod === "electron")
-                return { ipcRenderer, contextBridge } as any;
-            throw new Error(`Unknown module: ${mod}`);
-        });
+        const mockRequire = vi.fn((mod: string) =>
+            resolvePreloadScriptRequire(mod, { ipcRenderer, contextBridge })
+        );
         const mockProcess = { env: { NODE_ENV: "test" }, once: vi.fn() };
 
         const runner = new Function(
@@ -150,10 +145,9 @@ describe("preload.js - Additional edge coverage", () => {
             .spyOn(console, "error")
             .mockImplementation(() => {});
 
-        const mockRequire = vi.fn((mod: string) => ({
-            ipcRenderer,
-            contextBridge,
-        }));
+        const mockRequire = vi.fn((mod: string) =>
+            resolvePreloadScriptRequire(mod, { ipcRenderer, contextBridge })
+        );
         const mockProcess = { env: { NODE_ENV: "test" }, once: vi.fn() };
 
         const runner = new Function(
@@ -185,10 +179,9 @@ describe("preload.js - Additional edge coverage", () => {
                 }),
         };
 
-        const mockRequire = vi.fn((mod: string) => ({
-            ipcRenderer,
-            contextBridge,
-        }));
+        const mockRequire = vi.fn((mod: string) =>
+            resolvePreloadScriptRequire(mod, { ipcRenderer, contextBridge })
+        );
         const mockProcess = { env: { NODE_ENV: "test" }, once: vi.fn() };
         const runner = new Function(
             "require",

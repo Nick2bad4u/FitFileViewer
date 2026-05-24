@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import fs from "fs";
 import path from "path";
+import { resolvePreloadScriptRequire } from "../helpers/preloadModuleMocks";
 
 describe("preload.js - Comprehensive API Testing", () => {
     let electronMock: any;
@@ -117,10 +118,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         const preloadCode = fs.readFileSync(preloadPath, "utf-8");
 
         const mockRequire = vi.fn().mockImplementation((module: string) => {
-            if (module === "electron") {
-                return electronMock;
-            }
-            throw new Error(`Unknown module: ${module}`);
+            return resolvePreloadScriptRequire(module, electronMock);
         });
 
         // Execute the preload script

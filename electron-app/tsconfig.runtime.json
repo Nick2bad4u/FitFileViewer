@@ -48,6 +48,7 @@
         "main/app/setupApplicationEventHandlers.ts",
         "main/constants.ts",
         "main/dev/exposeDevHelpers.ts",
+        "preload/ipcBridgeCatalog.ts",
         "main/ipc/fileReadPayload.ts",
         "main/ipc/ipcRegistry.ts",
         "main/ipc/fitIpcPayload.ts",

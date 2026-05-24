@@ -4,6 +4,7 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 import { readFileSync } from "fs";
 import { join } from "path";
+import { resolvePreloadScriptRequire } from "../helpers/preloadModuleMocks";
 
 describe("preload.js - Advanced Test Coverage", () => {
     let mockIpcRenderer: any;
@@ -49,15 +50,12 @@ describe("preload.js - Advanced Test Coverage", () => {
         };
 
         // Create a virtual environment with our mocks
-        const mockRequire = vi.fn((moduleName: string) => {
-            if (moduleName === "electron") {
-                return {
-                    ipcRenderer: mockIpcRenderer,
-                    contextBridge: mockContextBridge,
-                };
-            }
-            throw new Error(`Module not mocked: ${moduleName}`);
-        });
+        const mockRequire = vi.fn((moduleName: string) =>
+            resolvePreloadScriptRequire(moduleName, {
+                ipcRenderer: mockIpcRenderer,
+                contextBridge: mockContextBridge,
+            })
+        );
 
         const mockProcess = {
             env,
@@ -651,19 +649,16 @@ describe("preload.js - Advanced Test Coverage", () => {
         test("should handle contextBridge exposure failures", () => {
             // Create a new environment where contextBridge throws on exposure
             const env = { NODE_ENV: "test" };
-            const mockRequire = vi.fn((moduleName: string) => {
-                if (moduleName === "electron") {
-                    return {
-                        ipcRenderer: mockIpcRenderer,
-                        contextBridge: {
-                            exposeInMainWorld: vi.fn(() => {
-                                throw new Error("Exposure failed");
-                            }),
-                        },
-                    };
-                }
-                throw new Error(`Module not mocked: ${moduleName}`);
-            });
+            const mockRequire = vi.fn((moduleName: string) =>
+                resolvePreloadScriptRequire(moduleName, {
+                    ipcRenderer: mockIpcRenderer,
+                    contextBridge: {
+                        exposeInMainWorld: vi.fn(() => {
+                            throw new Error("Exposure failed");
+                        }),
+                    },
+                })
+            );
 
             const mockProcess = { env, once: vi.fn() };
             const consoleSpy = vi

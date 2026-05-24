@@ -4,6 +4,7 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 import { readFileSync } from "fs";
 import { join } from "path";
+import { resolvePreloadScriptRequire } from "../helpers/preloadModuleMocks";
 
 /**
  * Comprehensive test suite for preload.js Targeting significant coverage
@@ -70,15 +71,12 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
             ...envOptions,
         };
 
-        const mockRequire = vi.fn((moduleName: string) => {
-            if (moduleName === "electron") {
-                return {
-                    ipcRenderer: mockIpcRenderer,
-                    contextBridge: mockContextBridge,
-                };
-            }
-            throw new Error(`Module not mocked: ${moduleName}`);
-        });
+        const mockRequire = vi.fn((moduleName: string) =>
+            resolvePreloadScriptRequire(moduleName, {
+                ipcRenderer: mockIpcRenderer,
+                contextBridge: mockContextBridge,
+            })
+        );
 
         const mockProcess = {
             env,
@@ -135,15 +133,12 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
             // Mock contextBridge to be undefined to trigger validation failure
             mockContextBridge = undefined;
 
-            const mockRequire = vi.fn((moduleName: string) => {
-                if (moduleName === "electron") {
-                    return {
-                        ipcRenderer: mockIpcRenderer,
-                        contextBridge: mockContextBridge,
-                    };
-                }
-                throw new Error(`Module not mocked: ${moduleName}`);
-            });
+            const mockRequire = vi.fn((moduleName: string) =>
+                resolvePreloadScriptRequire(moduleName, {
+                    ipcRenderer: mockIpcRenderer,
+                    contextBridge: mockContextBridge,
+                })
+            );
 
             const func = new Function(
                 "require",
@@ -814,15 +809,12 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
                 once: vi.fn(),
             };
 
-            const mockRequire = vi.fn((moduleName: string) => {
-                if (moduleName === "electron") {
-                    return {
-                        ipcRenderer: mockIpcRenderer,
-                        contextBridge: mockContextBridge,
-                    };
-                }
-                throw new Error(`Module not mocked: ${moduleName}`);
-            });
+            const mockRequire = vi.fn((moduleName: string) =>
+                resolvePreloadScriptRequire(moduleName, {
+                    ipcRenderer: mockIpcRenderer,
+                    contextBridge: mockContextBridge,
+                })
+            );
 
             const func = new Function(
                 "require",

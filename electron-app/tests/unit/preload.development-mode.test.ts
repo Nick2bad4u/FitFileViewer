@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import fs from "fs";
 import path from "path";
+import { resolvePreloadScriptRequire } from "../helpers/preloadModuleMocks";
 
 describe("preload.js - Development mode coverage", () => {
     let preloadCode: string;
@@ -63,11 +64,9 @@ describe("preload.js - Development mode coverage", () => {
             }),
         } as any;
 
-        const mockRequire = vi.fn((mod: string) => {
-            if (mod === "electron")
-                return { ipcRenderer, contextBridge } as any;
-            throw new Error(`Unknown module: ${mod}`);
-        });
+        const mockRequire = vi.fn((mod: string) =>
+            resolvePreloadScriptRequire(mod, { ipcRenderer, contextBridge })
+        );
 
         const runner = new Function(
             "require",

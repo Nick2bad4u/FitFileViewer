@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import fs from "fs";
 import path from "path";
+import { resolvePreloadScriptRequire } from "../helpers/preloadModuleMocks";
 
 describe("preload.js - Script Evaluation Test", () => {
     let electronMock: any;
@@ -52,9 +53,8 @@ describe("preload.js - Script Evaluation Test", () => {
                 console.log("[TEST] require() called for:", module);
                 if (module === "electron") {
                     console.log("[TEST] Returning mocked electron");
-                    return electronMock;
                 }
-                throw new Error(`Unknown module: ${module}`);
+                return resolvePreloadScriptRequire(module, electronMock);
             });
 
             // Execute the preload script with our mocked require
