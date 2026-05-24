@@ -13,5 +13,7 @@ describe("State Manager Import Test", () => {
         expect(typeof getState).toBe("function");
         expect(typeof setState).toBe("function");
         expect(typeof subscribe).toBe("function");
+        expect(new Set([getState, setState, subscribe]).size).toBe(3);
+        expect([getState, setState, subscribe]).not.toContain(null);
     });
 });
