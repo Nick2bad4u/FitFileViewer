@@ -13,6 +13,7 @@ import { applyEstimatedPowerToRecords } from "../../data/processing/estimateCycl
 import { getPowerEstimationSettings } from "../../data/processing/powerEstimationSettings.js";
 import { createRendererLogger } from "../../logging/rendererLogger.js";
 import { setState } from "../../state/core/stateManager.js";
+import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
 // Constants for better maintainability
 const DISPLAY_CONSTANTS = {
@@ -31,7 +32,7 @@ const DISPLAY_CONSTANTS = {
         UNLOAD_BUTTON: "unload_file_btn",
     },
     TITLE_PREFIX: "Fit File Viewer",
-};
+} as const;
 
 const log = createRendererLogger(DISPLAY_CONSTANTS.LOG_PREFIX);
 
@@ -50,10 +51,9 @@ export type ShowFitDataOptions = {
     updateUI?: boolean;
 };
 
-type ElectronApiLike = {
-    notifyFitFileLoaded?: (filePath: string) => void;
-    send?: (channel: string, ...args: unknown[]) => void;
-};
+type ElectronApiLike = Partial<
+    Pick<ElectronAPI, "notifyFitFileLoaded" | "send">
+>;
 
 type FitFileStateManagerLike = {
     handleFileLoaded: (
