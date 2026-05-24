@@ -12,7 +12,13 @@ describe("dataAntProductIds.js - ANT+ Product ID Data", () => {
     describe("Data Structure Validation", () => {
         it("should export dataAntProductIds as an object", () => {
             expect(localDataAntProductIds).toBeTypeOf("object");
-            expect(localDataAntProductIds).not.toBeNull();
+            expect(localDataAntProductIds).toEqual(
+                expect.objectContaining({
+                    1: expect.any(Object),
+                    32: expect.any(Object),
+                })
+            );
+            expect(localDataAntProductIds).not.toHaveProperty("99999");
         });
 
         it("should not be an array", () => {
@@ -29,8 +35,9 @@ describe("dataAntProductIds.js - ANT+ Product ID Data", () => {
                 expect(Number(key)).toBeGreaterThan(0);
 
                 // Product mappings should be objects
-                expect(typeof value).toBe("object");
-                expect(value).not.toBeNull();
+                expect(Object.prototype.toString.call(value)).toBe(
+                    "[object Object]"
+                );
                 expect(Array.isArray(value)).toBe(false);
             }
         });
@@ -67,8 +74,13 @@ describe("dataAntProductIds.js - ANT+ Product ID Data", () => {
     describe("Known Manufacturer and Product Mappings", () => {
         describe("Garmin Products (Manufacturer ID: 1)", () => {
             it("should include Garmin manufacturer mapping", () => {
-                expect(localDataAntProductIds[1]).toBeDefined();
-                expect(typeof localDataAntProductIds[1]).toBe("object");
+                expect(localDataAntProductIds[1]).toEqual(
+                    expect.objectContaining({
+                        1036: "edge500",
+                        1169: "edge800",
+                    })
+                );
+                expect(localDataAntProductIds[1]).not.toHaveProperty("99999");
             });
 
             it("should include known Garmin devices", () => {
@@ -106,8 +118,13 @@ describe("dataAntProductIds.js - ANT+ Product ID Data", () => {
 
         describe("Wahoo Fitness Products (Manufacturer ID: 32)", () => {
             it("should include Wahoo manufacturer mapping", () => {
-                expect(localDataAntProductIds[32]).toBeDefined();
-                expect(typeof localDataAntProductIds[32]).toBe("object");
+                expect(localDataAntProductIds[32]).toEqual(
+                    expect.objectContaining({
+                        1: "kickr_v1",
+                        3: "kickr_core",
+                    })
+                );
+                expect(localDataAntProductIds[32]).not.toHaveProperty("99999");
             });
 
             it("should include known Wahoo devices", () => {
@@ -140,8 +157,13 @@ describe("dataAntProductIds.js - ANT+ Product ID Data", () => {
 
         describe("Favero Electronics Products (Manufacturer ID: 263)", () => {
             it("should include Favero manufacturer mapping", () => {
-                expect(localDataAntProductIds[263]).toBeDefined();
-                expect(typeof localDataAntProductIds[263]).toBe("object");
+                expect(localDataAntProductIds[263]).toEqual(
+                    expect.objectContaining({
+                        12: "assioma_duo",
+                        13: "assioma_uno",
+                    })
+                );
+                expect(localDataAntProductIds[263]).not.toHaveProperty("99999");
             });
 
             it("should include Assioma power meters", () => {
@@ -154,8 +176,13 @@ describe("dataAntProductIds.js - ANT+ Product ID Data", () => {
 
         describe("Stages Cycling Products (Manufacturer ID: 68)", () => {
             it("should include Stages manufacturer mapping", () => {
-                expect(localDataAntProductIds[68]).toBeDefined();
-                expect(typeof localDataAntProductIds[68]).toBe("object");
+                expect(localDataAntProductIds[68]).toEqual(
+                    expect.objectContaining({
+                        1: "power_meter_gen1",
+                        4: "power_meter_lr",
+                    })
+                );
+                expect(localDataAntProductIds[68]).not.toHaveProperty("99999");
             });
 
             it("should include Stages power meters", () => {
@@ -170,8 +197,13 @@ describe("dataAntProductIds.js - ANT+ Product ID Data", () => {
 
         describe("SRAM Products (Manufacturer ID: 280)", () => {
             it("should include SRAM manufacturer mapping", () => {
-                expect(localDataAntProductIds[280]).toBeDefined();
-                expect(typeof localDataAntProductIds[280]).toBe("object");
+                expect(localDataAntProductIds[280]).toEqual(
+                    expect.objectContaining({
+                        1: "quarq_dzero",
+                        5: "rival_etap_axs",
+                    })
+                );
+                expect(localDataAntProductIds[280]).not.toHaveProperty("99999");
             });
 
             it("should include SRAM/Quarq power meters", () => {
@@ -205,6 +237,7 @@ describe("dataAntProductIds.js - ANT+ Product ID Data", () => {
                 const lowercasePercentage =
                     (lowercaseNames.length / allProductNames.length) * 100;
                 expect(lowercasePercentage).toBeGreaterThan(85); // More flexible for product names
+                expect(lowercaseNames).not.toHaveLength(0);
             });
 
             it("should use underscores instead of spaces in most names", () => {
@@ -282,6 +315,7 @@ describe("dataAntProductIds.js - ANT+ Product ID Data", () => {
 
                 expect(minManufacturerId).toBeGreaterThanOrEqual(1);
                 expect(maxManufacturerId).toBeLessThan(10000); // Reasonable upper bound
+                expect(manufacturerIds).not.toContain(0);
             });
 
             it("should have product IDs within reasonable range for each manufacturer", () => {
@@ -424,6 +458,7 @@ describe("dataAntProductIds.js - ANT+ Product ID Data", () => {
                 expect(localDataAntProductIds[1]?.[3121]).toBe("edge_530");
                 expect(localDataAntProductIds[1]?.[3122]).toBe("edge_830");
                 expect(localDataAntProductIds[1]?.[4440]).toBe("edge_1050");
+                expect(localDataAntProductIds[1]?.[99999]).not.toBe("edge500");
             });
 
             it("should handle trainer product scenarios", () => {
@@ -460,7 +495,10 @@ describe("dataAntProductIds.js - ANT+ Product ID Data", () => {
                                 expect(typeof manufacturerId).toBe("string");
                                 expect(typeof productId).toBe("string");
                                 expect(typeof productName).toBe("string");
-                                expect(productName).toBeTruthy();
+                                expect(
+                                    (productName as string).length
+                                ).toBeGreaterThan(0);
+                                expect(productName).not.toBe("");
                             }
                         );
                     }
@@ -500,6 +538,8 @@ describe("dataAntProductIds.js - ANT+ Product ID Data", () => {
                     manufacturerId: 32,
                     productId: 3,
                 }); // kickr_core is product ID 3
+
+                expect(findManufacturerByProduct("missing_product")).toBeNull();
             });
         });
 
@@ -590,6 +630,7 @@ describe("dataAntProductIds.js - ANT+ Product ID Data", () => {
                 const secondAccess = localDataAntProductIds[1]?.[1036];
                 expect(firstAccess).toBe(secondAccess);
                 expect(firstAccess).toBe("edge500");
+                expect(firstAccess).not.toBe("edge800");
             });
 
             it("should not be accidentally modifiable", () => {
@@ -610,6 +651,9 @@ describe("dataAntProductIds.js - ANT+ Product ID Data", () => {
                 );
                 expect(localDataAntProductIds[1]?.[1036]).toBe(
                     localDataAntProductIds["1"]?.["1036"]
+                );
+                expect(localDataAntProductIds[1]?.[1036]).not.toBe(
+                    localDataAntProductIds["1"]?.["1169"]
                 );
             });
 
