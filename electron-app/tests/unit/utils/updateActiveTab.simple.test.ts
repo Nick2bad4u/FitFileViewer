@@ -59,15 +59,39 @@ describe("updateActiveTab.js - Basic Tests", () => {
 
     it("should call setState when updateActiveTab is called", () => {
         // Create a tab element in the DOM
+        const previousButton = document.createElement("button");
+        previousButton.id = "tab_chart";
+        previousButton.className = "tab-button active";
+        document.body.appendChild(previousButton);
+
         const button = document.createElement("button");
         button.id = "tab_summary";
         button.className = "tab-button";
         document.body.appendChild(button);
 
-        updateActiveTab("tab_summary");
+        const updated = updateActiveTab("tab_summary");
+
+        expect(updated).toBe(true);
+        expect(button.classList.contains("active")).toBe(true);
+        expect(previousButton.classList.contains("active")).toBe(false);
         expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "summary", {
             source: "updateActiveTab",
         });
+    });
+
+    it("should reject invalid tab IDs without updating state", () => {
+        const warnSpy = vi
+            .spyOn(console, "warn")
+            .mockImplementation(() => undefined);
+
+        const updated = updateActiveTab("");
+
+        expect(updated).toBe(false);
+        expect(mockSetState).not.toHaveBeenCalled();
+        expect(warnSpy).toHaveBeenCalledWith(
+            "[updateActiveTab] Invalid tabId:",
+            ""
+        );
     });
 
     it("should call getState when getActiveTab is called", () => {
