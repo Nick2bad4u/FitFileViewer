@@ -134,7 +134,7 @@ function logRenderer(level, ...args) {
  *
  * @type {{ promise: Promise<void> | null; initialized: boolean }}
  */
-const __stateInitTracker = {
+const stateInitTracker = {
     initialized: false,
     promise: null,
 };
@@ -1034,15 +1034,15 @@ async function initializeComponents(dependencies) {
  * @returns {Promise<void>}
  */
 async function initializeStateManager() {
-    if (__stateInitTracker.initialized) {
-        return __stateInitTracker.promise ?? Promise.resolve();
+    if (stateInitTracker.initialized) {
+        return stateInitTracker.promise ?? Promise.resolve();
     }
 
-    if (__stateInitTracker.promise) {
-        return __stateInitTracker.promise;
+    if (stateInitTracker.promise) {
+        return stateInitTracker.promise;
     }
 
-    __stateInitTracker.promise = (async () => {
+    stateInitTracker.promise = (async () => {
         try {
             logRenderer(
                 "log",
@@ -1083,7 +1083,7 @@ async function initializeStateManager() {
                 }
             );
 
-            __stateInitTracker.initialized = true;
+            stateInitTracker.initialized = true;
 
             logRenderer(
                 "log",
@@ -1101,13 +1101,13 @@ async function initializeStateManager() {
                 isOpeningFile: false,
                 startTime: performance.now(),
             };
-            __stateInitTracker.initialized = false;
-            __stateInitTracker.promise = null;
+            stateInitTracker.initialized = false;
+            stateInitTracker.promise = null;
             throw error;
         }
     })();
 
-    return __stateInitTracker.promise;
+    return stateInitTracker.promise;
 }
 
 /**
@@ -1297,8 +1297,8 @@ if (globalThis.window !== undefined) {
  * @private
  */
 function __resetRendererStateInitializationForTests() {
-    __stateInitTracker.initialized = false;
-    __stateInitTracker.promise = null;
+    stateInitTracker.initialized = false;
+    stateInitTracker.promise = null;
     isOpeningFileRef.value = false;
 }
 
