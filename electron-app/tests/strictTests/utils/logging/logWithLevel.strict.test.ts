@@ -1,13 +1,18 @@
-import { describe, it, expect, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-const MOD = "../../../../utils/logging/index.js";
-async function fresh() {
+type LoggingIndexModule = typeof import("../../../../utils/logging/index.js");
+
+async function fresh(): Promise<LoggingIndexModule> {
     vi.resetModules();
-    const url = new URL(MOD, import.meta.url).href;
-    return await import(url);
+    return import("../../../../utils/logging/index.js");
 }
 
 describe("logWithLevel.strict", () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        Reflect.deleteProperty(globalThis, "__vitest_object_keys_allow_throw");
+    });
+
     it("logs at all levels with and without payload", async () => {
         const { logWithLevel } = await fresh();
         const clog = vi.spyOn(console, "log").mockImplementation(() => {});
@@ -15,7 +20,8 @@ describe("logWithLevel.strict", () => {
         const cwarn = vi.spyOn(console, "warn").mockImplementation(() => {});
         const cerr = vi.spyOn(console, "error").mockImplementation(() => {});
 
-        logWithLevel("log", "hello");
+        const logResult = logWithLevel("log", "hello");
+        expect(logResult).toBeUndefined();
         expect(clog).toHaveBeenCalledWith(
             expect.stringContaining("[FFV] hello")
         );
@@ -31,6 +37,7 @@ describe("logWithLevel.strict", () => {
 
         logWithLevel("error", "e", [1, 2] as any); // array -> not treated as object
         expect(cerr).toHaveBeenCalledWith(expect.stringContaining("[FFV] e"));
+        expect(globalThis.__vitest_object_keys_allow_throw).toBe(false);
     });
 
     it("falls back to minimal line when Object.keys throws", async () => {
@@ -46,10 +53,12 @@ describe("logWithLevel.strict", () => {
             return originalKeys(obj as any) as any;
         }) as any);
 
-        logWithLevel("info", "boom", ctx);
+        const result = logWithLevel("info", "boom", ctx);
+        expect(result).toBeUndefined();
         expect(baseLog).toHaveBeenCalledWith(
             "[FFV][logWithLevel] Logging failure"
         );
+        expect(globalThis.__vitest_object_keys_allow_throw).toBe(false);
 
         keysSpy.mockRestore();
     });
