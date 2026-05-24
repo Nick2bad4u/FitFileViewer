@@ -35,8 +35,7 @@ vi.mock("../../../../utils/maps/layers/mapBaseLayers.js", async (orig) => {
             maplibreGL: vi.fn(() => ({})),
         };
     }
-    const actual = await (orig as any)();
-    return actual;
+    return (await (orig as any)());
 });
 vi.mock("../../../../utils/ui/controls/createMarkerCountSelector.js", () => ({
     createMarkerCountSelector: vi.fn((_cb?: Function) => {
@@ -102,8 +101,7 @@ vi.mock("../../../../utils/maps/controls/mapFullscreenControl.js", () => ({
 
 // Helper to import subject under test after environment prepared
 const importSUT = async () => {
-    const mod = await import("../../../../utils/maps/core/renderMap.js");
-    return mod;
+    return (await import("../../../../utils/maps/core/renderMap.js"));
 };
 
 function makeLeafletStub() {
@@ -181,14 +179,17 @@ describe("renderMap core", () => {
         // DOM pieces created
         const mapDiv = document.getElementById("leaflet-map");
         const controlsDiv = document.getElementById("map-controls");
-        expect(mapDiv).toBeTruthy();
-        expect(controlsDiv).toBeTruthy();
+        expect(mapDiv).toBeInstanceOf(HTMLDivElement);
+        expect(controlsDiv).toBeInstanceOf(HTMLDivElement);
 
         // Custom map type button exists and expands layer control on click
-        const btn = document.querySelector(
+        const btn = document.querySelector<HTMLDivElement>(
             ".custom-maptype-btn"
-        ) as HTMLDivElement;
-        expect(btn).toBeTruthy();
+        );
+        expect(btn).toBeInstanceOf(HTMLDivElement);
+        if (!btn) {
+            throw new Error("Custom map type button was not rendered");
+        }
 
         // Fake a layers control DOM to check expansion then collapse behavior
         const layersPanel = document.createElement("div");
@@ -207,14 +208,17 @@ describe("renderMap core", () => {
         ).toBe(false);
 
         // Zoom slider exists and reflects current zoom
-        const slider = document.querySelector(
+        const slider = document.querySelector<HTMLInputElement>(
             "#zoom-slider-input"
-        ) as HTMLInputElement;
-        const label = document.querySelector(
+        );
+        const label = document.querySelector<HTMLElement>(
             "#zoom-slider-current"
-        ) as HTMLElement;
-        expect(slider).toBeTruthy();
-        expect(label).toBeTruthy();
+        );
+        expect(slider).toBeInstanceOf(HTMLInputElement);
+        expect(label).toBeInstanceOf(HTMLElement);
+        if (!slider || !label) {
+            throw new Error("Zoom slider controls were not rendered");
+        }
         expect(Number(slider.value)).toBe(
             Math.round(
                 ((map.getZoom() - map.getMinZoom()) /
@@ -243,7 +247,7 @@ describe("renderMap core", () => {
     });
 
     it("removes previous map instance and children to avoid stale state", async () => {
-        const { L } = makeLeafletStub();
+        const { L, map } = makeLeafletStub();
         (globalThis as any).L = L;
         const elevMod =
             await import("../../../../utils/ui/controls/createElevationProfileButton.js");
@@ -262,12 +266,14 @@ describe("renderMap core", () => {
         container.appendChild(child);
 
         // Seed previous map instance
-        (window as any)._leafletMapInstance = { remove: vi.fn() };
+        const previousMap = { remove: vi.fn() };
+        (window as any)._leafletMapInstance = previousMap;
 
         renderMap();
 
         // Previous instance removed and container cleared then repopulated
-        expect((window as any)._leafletMapInstance).not.toBeNull();
+        expect(previousMap.remove).toHaveBeenCalledTimes(1);
+        expect((window as any)._leafletMapInstance).toBe(map);
         expect((container.firstChild as HTMLElement).id).toBe("leaflet-map");
     });
 });
