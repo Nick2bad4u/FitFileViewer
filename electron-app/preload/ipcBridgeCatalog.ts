@@ -137,48 +137,51 @@
         "update-not-available",
     ] as const satisfies readonly UpdateEventName[];
 
-    const ALLOWED_GENERIC_INVOKE_CHANNELS = new Set<GenericInvokeChannel>([
+    const ALLOWED_GENERIC_INVOKE_CHANNELS: ReadonlySet<string> = new Set([
         ...ADDITIONAL_GENERIC_INVOKE_CHANNELS,
         ...Object.values(PRELOAD_CHANNELS),
     ]);
-    const ALLOWED_GENERIC_SEND_CHANNELS = new Set<GenericSendChannel>(
+    const ALLOWED_GENERIC_SEND_CHANNELS: ReadonlySet<string> = new Set(
         GENERIC_SEND_CHANNELS
     );
-    const ALLOWED_GENERIC_ON_IPC_CHANNELS = new Set<RendererIpcEventChannel>([
+    const ALLOWED_GENERIC_ON_IPC_CHANNELS: ReadonlySet<string> = new Set([
         ...EXTRA_RENDERER_ON_IPC_CHANNELS,
         ...Object.values(PRELOAD_EVENTS),
         ...UPDATE_EVENT_NAMES,
     ]);
-    const ALLOWED_UPDATE_EVENT_NAMES = new Set<UpdateEventName>(
+    const ALLOWED_UPDATE_EVENT_NAMES: ReadonlySet<string> = new Set(
         UPDATE_EVENT_NAMES
     );
 
+    function isStringSetMember(
+        allowedValues: ReadonlySet<string>,
+        value: unknown
+    ): value is string {
+        return typeof value === "string" && allowedValues.has(value);
+    }
+
     function isAllowedGenericInvokeChannel(
-        channel: string
+        channel: unknown
     ): channel is GenericInvokeChannel {
-        return ALLOWED_GENERIC_INVOKE_CHANNELS.has(
-            channel as GenericInvokeChannel
-        );
+        return isStringSetMember(ALLOWED_GENERIC_INVOKE_CHANNELS, channel);
     }
 
     function isAllowedGenericSendChannel(
-        channel: string
+        channel: unknown
     ): channel is GenericSendChannel {
-        return ALLOWED_GENERIC_SEND_CHANNELS.has(channel as GenericSendChannel);
+        return isStringSetMember(ALLOWED_GENERIC_SEND_CHANNELS, channel);
     }
 
     function isAllowedRendererIpcEventChannel(
-        channel: string
+        channel: unknown
     ): channel is RendererIpcEventChannel {
-        return ALLOWED_GENERIC_ON_IPC_CHANNELS.has(
-            channel as RendererIpcEventChannel
-        );
+        return isStringSetMember(ALLOWED_GENERIC_ON_IPC_CHANNELS, channel);
     }
 
     function isAllowedUpdateEventName(
-        eventName: string
+        eventName: unknown
     ): eventName is UpdateEventName {
-        return ALLOWED_UPDATE_EVENT_NAMES.has(eventName as UpdateEventName);
+        return isStringSetMember(ALLOWED_UPDATE_EVENT_NAMES, eventName);
     }
 
     module.exports = {

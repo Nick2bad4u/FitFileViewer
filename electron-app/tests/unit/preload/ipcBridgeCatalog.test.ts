@@ -7,10 +7,10 @@ const ipcBridgeCatalog = requireFromTest(
 ) as {
     PRELOAD_CHANNELS: Record<string, string>;
     PRELOAD_EVENTS: Record<string, string>;
-    isAllowedGenericInvokeChannel: (channel: string) => boolean;
-    isAllowedGenericSendChannel: (channel: string) => boolean;
-    isAllowedRendererIpcEventChannel: (channel: string) => boolean;
-    isAllowedUpdateEventName: (eventName: string) => boolean;
+    isAllowedGenericInvokeChannel: (channel: unknown) => boolean;
+    isAllowedGenericSendChannel: (channel: unknown) => boolean;
+    isAllowedRendererIpcEventChannel: (channel: unknown) => boolean;
+    isAllowedUpdateEventName: (eventName: unknown) => boolean;
 };
 
 describe("preload ipcBridgeCatalog", () => {
@@ -70,5 +70,23 @@ describe("preload ipcBridgeCatalog", () => {
             false,
         ]);
         expect(updateEventResults).toStrictEqual([true, false]);
+    });
+
+    it("rejects non-string channel values before consulting allowlists", () => {
+        expect.hasAssertions();
+
+        const nonStringResults = [
+            ipcBridgeCatalog.isAllowedGenericInvokeChannel(undefined),
+            ipcBridgeCatalog.isAllowedGenericSendChannel(42),
+            ipcBridgeCatalog.isAllowedRendererIpcEventChannel({}),
+            ipcBridgeCatalog.isAllowedUpdateEventName(null),
+        ];
+
+        expect(nonStringResults).toStrictEqual([
+            false,
+            false,
+            false,
+            false,
+        ]);
     });
 });

@@ -96,17 +96,20 @@
         ...UPDATE_EVENT_NAMES,
     ]);
     const ALLOWED_UPDATE_EVENT_NAMES = new Set(UPDATE_EVENT_NAMES);
+    function isStringSetMember(allowedValues, value) {
+        return typeof value === "string" && allowedValues.has(value);
+    }
     function isAllowedGenericInvokeChannel(channel) {
-        return ALLOWED_GENERIC_INVOKE_CHANNELS.has(channel);
+        return isStringSetMember(ALLOWED_GENERIC_INVOKE_CHANNELS, channel);
     }
     function isAllowedGenericSendChannel(channel) {
-        return ALLOWED_GENERIC_SEND_CHANNELS.has(channel);
+        return isStringSetMember(ALLOWED_GENERIC_SEND_CHANNELS, channel);
     }
     function isAllowedRendererIpcEventChannel(channel) {
-        return ALLOWED_GENERIC_ON_IPC_CHANNELS.has(channel);
+        return isStringSetMember(ALLOWED_GENERIC_ON_IPC_CHANNELS, channel);
     }
     function isAllowedUpdateEventName(eventName) {
-        return ALLOWED_UPDATE_EVENT_NAMES.has(eventName);
+        return isStringSetMember(ALLOWED_UPDATE_EVENT_NAMES, eventName);
     }
     module.exports = {
         PRELOAD_CHANNELS,
