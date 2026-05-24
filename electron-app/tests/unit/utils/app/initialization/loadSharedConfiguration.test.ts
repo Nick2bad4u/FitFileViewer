@@ -120,7 +120,8 @@ describe("loadSharedConfiguration.js", () => {
             await import("../../../../../utils/app/initialization/loadSharedConfiguration.js");
 
         // Call the function
-        loadSharedConfiguration();
+        const result = loadSharedConfiguration();
+        expect(result).toBeUndefined();
 
         expect(mockSetChartFieldVisibility).toHaveBeenCalledWith(
             "heart_rate",
@@ -179,7 +180,8 @@ describe("loadSharedConfiguration.js", () => {
         const { loadSharedConfiguration } =
             await import("../../../../../utils/app/initialization/loadSharedConfiguration.js");
 
-        loadSharedConfiguration();
+        const result = loadSharedConfiguration();
+        expect(result).toBeUndefined();
         // Advance timers to trigger fallback render
         vi.advanceTimersByTime(120);
         expect(mockRenderChartJS).toHaveBeenCalled();
@@ -215,7 +217,8 @@ describe("loadSharedConfiguration.js", () => {
             await import("../../../../../utils/app/initialization/loadSharedConfiguration.js");
 
         // Call the function
-        loadSharedConfiguration();
+        const result = loadSharedConfiguration();
+        expect(result).toBeUndefined();
 
         expect(mockSetChartSetting).toHaveBeenCalledWith("smoothing", 10);
     });
@@ -234,7 +237,8 @@ describe("loadSharedConfiguration.js", () => {
             await import("../../../../../utils/app/initialization/loadSharedConfiguration.js");
 
         // Call the function
-        loadSharedConfiguration();
+        const result = loadSharedConfiguration();
+        expect(result).toBeUndefined();
 
         expect(mockSetChartSetting).not.toHaveBeenCalled();
         expect(mockSetChartFieldVisibility).not.toHaveBeenCalled();
@@ -263,7 +267,8 @@ describe("loadSharedConfiguration.js", () => {
             await import("../../../../../utils/app/initialization/loadSharedConfiguration.js");
 
         // Call the function
-        loadSharedConfiguration();
+        const result = loadSharedConfiguration();
+        expect(result).toBeUndefined();
 
         // Error should be logged
         expect(console.error).toHaveBeenCalled();
@@ -288,7 +293,8 @@ describe("loadSharedConfiguration.js", () => {
             await import("../../../../../utils/app/initialization/loadSharedConfiguration.js");
 
         // Call the function
-        loadSharedConfiguration();
+        const result = loadSharedConfiguration();
+        expect(result).toBeUndefined();
 
         // Error should be logged
         expect(console.error).toHaveBeenCalled();
