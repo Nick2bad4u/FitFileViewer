@@ -15,6 +15,7 @@ import {
 import { getFitFileBufferValidationError } from "./fitFileValidation.js";
 import type { FitParsePayload } from "./fitParsePayload.js";
 import type { FitMessages } from "../../../shared/fit";
+import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
 const __TEST_ONLY_exposedStateManager = stateManager;
 
@@ -45,10 +46,15 @@ type HandleOpenFileOptions = {
 
 type FileParseResult = FitParsePayload;
 
-type FileOpenElectronAPI = {
-    openFile: () => Promise<null | string | string[]>;
-    parseFitFile: (arrayBuffer: ArrayBuffer) => Promise<FileParseResult>;
-    readFile: (filePath: string) => Promise<ArrayBuffer>;
+type FileOpenDialogResult =
+    | Awaited<ReturnType<ElectronAPI["openFile"]>>
+    | string[];
+
+type FileOpenElectronAPI = Pick<ElectronAPI, "readFile"> & {
+    openFile: () => Promise<FileOpenDialogResult>;
+    parseFitFile: (
+        arrayBuffer: Parameters<ElectronAPI["parseFitFile"]>[0]
+    ) => Promise<FileParseResult>;
 };
 
 type FileOpenRendererGlobal = typeof globalThis & {

@@ -2,11 +2,11 @@ import { LoadingOverlay } from "../../ui/components/LoadingOverlay.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { loadOverlayFiles } from "./loadOverlayFiles.js";
 import type { OverlayInputFile } from "./loadOverlayFiles.js";
+import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
-type FileSelectorElectronAPI = {
-    openOverlayDialog?: () => Promise<string[]>;
-    readFile?: (filePath: string) => Promise<ArrayBuffer>;
-};
+type FileSelectorElectronAPI = Partial<
+    Pick<ElectronAPI, "openOverlayDialog" | "readFile">
+>;
 
 type NativeFileFacade = OverlayInputFile & {
     arrayBuffer: () => Promise<ArrayBuffer>;
