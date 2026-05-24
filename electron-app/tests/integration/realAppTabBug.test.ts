@@ -22,6 +22,36 @@ let globalState = {
     globalData: null,
 };
 
+const TAB_FIXTURES = [
+    { active: true, id: "tab-summary", label: "Summary", tabIndex: "0" },
+    { active: false, id: "tab-chart", label: "Chart", tabIndex: "-1" },
+    { active: false, id: "tab-map", label: "Map", tabIndex: "-1" },
+    { active: false, id: "tab-table", label: "Data", tabIndex: "-1" },
+] as const;
+
+function createRealAppTabsDom(): void {
+    const container = document.createElement("div");
+    container.className = "tabs-container";
+
+    for (const tab of TAB_FIXTURES) {
+        const button = document.createElement("button");
+        button.className = tab.active ? "tab-button active" : "tab-button";
+        button.id = tab.id;
+        button.role = "tab";
+        button.setAttribute("aria-selected", String(tab.active));
+        button.tabIndex = Number(tab.tabIndex);
+        button.textContent = tab.label;
+        container.appendChild(button);
+    }
+
+    document.body.replaceChildren(container);
+}
+
+async function flushMutationObservers(): Promise<void> {
+    await Promise.resolve();
+    await Promise.resolve();
+}
+
 // Mock implementation
 mockStateManager.getState.mockImplementation((key) => globalState[key]);
 mockStateManager.setState.mockImplementation((key, value) => {
@@ -57,43 +87,11 @@ describe("Real App Integration: Tab Button Bug", () => {
         vi.clearAllMocks();
 
         // Create real DOM like the actual app
-        document.body.innerHTML = `
-            <div class="tabs-container">
-                <button class="tab-button active" id="tab-summary" role="tab" aria-selected="true" tabindex="0">
-                    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M9 11H5a2 2 0 0 0-2 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2z"></path>
-                        <path d="M19 4H15a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path>
-                    </svg>
-                    Summary
-                </button>
-                <button class="tab-button" id="tab-chart" role="tab" aria-selected="false" tabindex="-1">
-                    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M3 3v18h18"></path>
-                        <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"></path>
-                    </svg>
-                    Chart
-                </button>
-                <button class="tab-button" id="tab-map" role="tab" aria-selected="false" tabindex="-1">
-                    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                        <circle cx="12" cy="10" r="3"></circle>
-                    </svg>
-                    Map
-                </button>
-                <button class="tab-button" id="tab-table" role="tab" aria-selected="false" tabindex="-1">
-                    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
-                        <path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"></path>
-                        <path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"></path>
-                    </svg>
-                    Data
-                </button>
-            </div>
-        `;
+        createRealAppTabsDom();
     });
 
     afterEach(() => {
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         vi.clearAllMocks();
     });
 
@@ -132,8 +130,7 @@ describe("Real App Integration: Tab Button Bug", () => {
         globalState.globalData = { records: [{ type: "activity" }] };
         mockStateManager.setState("globalData", globalState.globalData);
 
-        // Wait for any async operations
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        await flushMutationObservers();
 
         // Also call setTabButtonsEnabled directly (like showFitData.js does)
         if (typeof window !== "undefined") {
@@ -141,8 +138,7 @@ describe("Real App Integration: Tab Button Bug", () => {
         }
         setTabButtonsEnabled(true);
 
-        // Wait for any additional async operations
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        await flushMutationObservers();
 
         // Step 4: Check final state - this is where the bug occurs
         console.log("Step 4: Check final state");
@@ -155,6 +151,7 @@ describe("Real App Integration: Tab Button Bug", () => {
             // These should all be false, but in the real app, hasAttribute('disabled') remains true
             expect(btn.disabled).toBe(false);
             expect(btn.hasAttribute("disabled")).toBe(false); // This is the failing assertion in real app
+            expect(btn.hasAttribute("disabled")).not.toBe(true);
             expect(btn.style.pointerEvents).toBe("auto");
         });
     }, 15000);
@@ -200,19 +197,19 @@ describe("Real App Integration: Tab Button Bug", () => {
         initializeTabButtonState(); // Disables tabs
         initializeActiveTabState(); // Adds click handlers
 
-        await new Promise((resolve) => setTimeout(resolve, 10));
+        await flushMutationObservers();
 
         // Simulate file loading
         globalState.globalData = { records: [] };
         mockStateManager.setState("globalData", globalState.globalData);
         setTabButtonsEnabled(true);
 
-        await new Promise((resolve) => setTimeout(resolve, 10));
+        await flushMutationObservers();
 
         // Check if something is re-adding disabled attributes
         setTabButtonsEnabled(true); // Call again (like showFitData.js might)
 
-        await new Promise((resolve) => setTimeout(resolve, 50));
+        await flushMutationObservers();
 
         observer.disconnect();
 
@@ -223,9 +220,36 @@ describe("Real App Integration: Tab Button Bug", () => {
             (change) => change.newValue === "" && change.oldValue === null
         );
 
+        const buttonStates = [...buttons].map((button) => ({
+            disabled: (button as HTMLButtonElement).disabled,
+            hasDisabledAttribute: button.hasAttribute("disabled"),
+            id: button.id,
+        }));
+
         // Assert that no unexpected disables occurred
-        expect(Array.isArray(changes)).toBe(true);
-        expect(unexpectedDisables.length).toBeGreaterThanOrEqual(0);
+        expect(unexpectedDisables).toStrictEqual([]);
+        expect(buttonStates).toStrictEqual([
+            {
+                disabled: false,
+                hasDisabledAttribute: false,
+                id: "tab-summary",
+            },
+            {
+                disabled: false,
+                hasDisabledAttribute: false,
+                id: "tab-chart",
+            },
+            {
+                disabled: false,
+                hasDisabledAttribute: false,
+                id: "tab-map",
+            },
+            {
+                disabled: false,
+                hasDisabledAttribute: false,
+                id: "tab-table",
+            },
+        ]);
     }, 15000);
 
     it("should test timing-sensitive scenarios", async () => {
@@ -241,16 +265,16 @@ describe("Real App Integration: Tab Button Bug", () => {
 
         // Rapidly toggle state (like might happen during initialization)
         setTabButtonsEnabled(false);
-        await new Promise((resolve) => setTimeout(resolve, 1));
+        await flushMutationObservers();
 
         setTabButtonsEnabled(true);
-        await new Promise((resolve) => setTimeout(resolve, 1));
+        await flushMutationObservers();
 
         setTabButtonsEnabled(false);
-        await new Promise((resolve) => setTimeout(resolve, 1));
+        await flushMutationObservers();
 
         setTabButtonsEnabled(true);
-        await new Promise((resolve) => setTimeout(resolve, 1));
+        await flushMutationObservers();
 
         // Final check
         const buttons = document.querySelectorAll(".tab-button");
