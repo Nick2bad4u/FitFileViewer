@@ -32,7 +32,9 @@ describe("chartBackgroundColorPlugin.beforeDraw", () => {
         const canvas = document.createElement("canvas");
         const chart: any = { canvas };
         // @ts-expect-no-error
-        chartBackgroundColorPlugin.beforeDraw(chart, {} as any);
+        const result = chartBackgroundColorPlugin.beforeDraw(chart, {} as any);
+        expect(result).toBeUndefined();
+        expect("ctx" in chart).toBe(false);
         expect(warn).toHaveBeenCalled();
     });
 
