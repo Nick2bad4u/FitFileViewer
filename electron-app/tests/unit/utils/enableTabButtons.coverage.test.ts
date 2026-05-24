@@ -3,19 +3,28 @@ import { JSDOM } from "jsdom";
 
 // Test for uncovered lines in enableTabButtons.js
 describe("enableTabButtons.js - Coverage Completion", () => {
+    /** @type {JSDOM | undefined} */
+    let dom;
     let mockWindow;
     let mockDocument;
 
     beforeEach(() => {
-        const dom = new JSDOM("<!DOCTYPE html><html><body></body></html>");
+        dom = new JSDOM("<!DOCTYPE html><html><body></body></html>");
         mockWindow = dom.window;
         mockDocument = dom.window.document;
 
         global.window = /** @type {any} */ mockWindow;
         global.document = /** @type {any} */ mockDocument;
+        global.MutationObserver = /** @type {any} */ mockWindow.MutationObserver;
+        vi.resetModules();
+        vi.useFakeTimers();
     });
 
     afterEach(() => {
+        vi.runOnlyPendingTimers();
+        vi.useRealTimers();
+        dom?.window.close();
+        dom = undefined;
         vi.clearAllMocks();
     });
 
@@ -44,11 +53,9 @@ describe("enableTabButtons.js - Coverage Completion", () => {
             // Call the function that triggers debug logging
             setTabButtonsEnabled(false);
 
-            // Wait for the setTimeout in the debug function (50ms)
-            await new Promise((resolve) => setTimeout(resolve, 60));
+            await vi.advanceTimersByTimeAsync(50);
 
             // Verify debug logging occurred - should skip openFileBtn but log tab-summary
-            expect(consoleSpy).toHaveBeenCalled();
             const logCalls = consoleSpy.mock.calls;
             const debugLogCall = logCalls.find(
                 (call) =>
@@ -56,13 +63,15 @@ describe("enableTabButtons.js - Coverage Completion", () => {
                     call[0]?.includes("disabled=") &&
                     call[0]?.includes("tab-summary")
             );
-            expect(debugLogCall).toBeTruthy();
+            expect(debugLogCall).toEqual([
+                "[TabButtons] tab-summary: disabled=true, hasDisabledAttr=true, pointerEvents=none",
+            ]);
 
             // Should also skip openFileBtn
             const openFileBtnCall = logCalls.find((call) =>
                 call[0]?.includes("openFileBtn")
             );
-            expect(openFileBtnCall).toBeFalsy();
+            expect(openFileBtnCall).toBeUndefined();
 
             consoleSpy.mockRestore();
         });
@@ -91,14 +100,10 @@ describe("enableTabButtons.js - Coverage Completion", () => {
             // Set the global flag that tabs are enabled
             mockWindow.tabButtonsCurrentlyEnabled = true;
 
-            // Wait a bit for the MutationObserver to be set up
-            await new Promise((resolve) => setTimeout(resolve, 10));
-
             // Manually add disabled attribute (simulating unauthorized disable)
             button.setAttribute("disabled", "");
 
-            // Wait for MutationObserver to detect the change
-            await new Promise((resolve) => setTimeout(resolve, 10));
+            await Promise.resolve();
 
             // Verify warning was logged
             expect(warnSpy).toHaveBeenCalledWith(
@@ -139,6 +144,7 @@ describe("enableTabButtons.js - Coverage Completion", () => {
 
             // Simulate the test handler being added (this is development code)
             const testHandler = (event) => {
+                button.dataset.clicked = "true";
                 console.log(
                     `[TabButtons] TEST CLICK DETECTED on ${button.id}!`,
                     event
@@ -146,7 +152,10 @@ describe("enableTabButtons.js - Coverage Completion", () => {
                 mockWindow.alert(`Clicked on ${button.id}!`);
             };
 
-            button.addEventListener("click", testHandler);
+            const listenerController = new mockWindow.AbortController();
+            button.addEventListener("click", testHandler, {
+                signal: listenerController.signal,
+            });
             console.log(`[TabButtons] Added test handler to: ${button.id}`);
 
             // Trigger the click event
@@ -168,7 +177,9 @@ describe("enableTabButtons.js - Coverage Completion", () => {
                 )
             );
             expect(alertSpy).toHaveBeenCalledWith("Clicked on tab-test!");
+            expect(button.dataset.clicked).toBe("true");
 
+            listenerController.abort();
             alertSpy.mockRestore();
             consoleSpy.mockRestore();
         });
