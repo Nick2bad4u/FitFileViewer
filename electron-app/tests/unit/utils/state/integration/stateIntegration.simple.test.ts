@@ -1,321 +1,405 @@
-/**
- * @vitest-environment jsdom
- */
-import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
+// @vitest-environment jsdom
+import { describe, expect, it, vi } from "vitest";
 
-// Simple focused test for stateIntegration.js
+import {
+    __resetStateManagerForTests,
+    getState,
+    setState,
+} from "../../../../../utils/state/core/stateManager.js";
+import * as stateIntegration from "../../../../../utils/state/integration/stateIntegration.js";
+
+const persistedStateKey = "fitFileViewer_uiState";
+const originalLocalStorageDescriptor = Object.getOwnPropertyDescriptor(
+    globalThis,
+    "localStorage"
+);
+const originalPerformanceMemoryDescriptor = Object.getOwnPropertyDescriptor(
+    globalThis.performance,
+    "memory"
+);
+const hasOriginalPerformanceMemory = Object.hasOwn(
+    globalThis.performance,
+    "memory"
+);
+
+type ChartControlsState = {
+    isVisible?: unknown;
+};
+
+type PerformanceMemory = {
+    jsHeapSizeLimit: number;
+    totalJSHeapSize: number;
+    usedJSHeapSize: number;
+};
+
+type RendererUtils = {
+    getGlobalData?: () => unknown;
+    setGlobalData?: (data: unknown) => unknown;
+};
+
+type StateDebugApi = {
+    logState: (path?: string) => unknown;
+    setState: typeof setState;
+    triggerAction: (actionName: string, ...args: unknown[]) => unknown;
+    watchState: (path: string) => () => void;
+};
+
+type StateIntegrationTestGlobal = typeof globalThis & {
+    __DEVELOPMENT__?: boolean;
+    __performanceMonitoringInterval?: ReturnType<typeof setInterval>;
+    __persistenceTimeout?: ReturnType<typeof setTimeout>;
+    __state_debug?: StateDebugApi;
+    AppState?: {
+        eventListeners: unknown;
+        globalData: unknown;
+        isChartRendered: unknown;
+    };
+    chartControlsState?: ChartControlsState;
+    rendererUtils?: RendererUtils;
+};
+
+type StorageFixture = {
+    readonly storage: Storage;
+    readonly store: Map<string, string>;
+};
+
+function createStorageFixture(initialEntries = {}): StorageFixture {
+    const store = new Map(Object.entries(initialEntries));
+    const storage = {
+        clear: vi.fn<Storage["clear"]>(() => {
+            store.clear();
+        }),
+        getItem: vi.fn<Storage["getItem"]>(
+            (key: string) => store.get(key) ?? null
+        ),
+        key: vi.fn<Storage["key"]>((index: number) => {
+            const key = Array.from(store.keys()).at(index);
+            return key ?? null;
+        }),
+        get length() {
+            return store.size;
+        },
+        removeItem: vi.fn<Storage["removeItem"]>((key: string) => {
+            store.delete(key);
+        }),
+        setItem: vi.fn<Storage["setItem"]>((key: string, value: string) => {
+            store.set(key, value);
+        }),
+    };
+
+    return { storage: storage as Storage, store };
+}
+
+function deleteIntegrationGlobals(): void {
+    const testGlobal = globalThis as StateIntegrationTestGlobal;
+
+    Reflect.deleteProperty(testGlobal, "__DEVELOPMENT__");
+    Reflect.deleteProperty(testGlobal, "__performanceMonitoringInterval");
+    Reflect.deleteProperty(testGlobal, "__persistenceTimeout");
+    Reflect.deleteProperty(testGlobal, "__state_debug");
+    Reflect.deleteProperty(testGlobal, "AppState");
+    Reflect.deleteProperty(testGlobal, "chartControlsState");
+    Reflect.deleteProperty(testGlobal, "globalData");
+    Reflect.deleteProperty(testGlobal, "isChartRendered");
+    Reflect.deleteProperty(testGlobal, "rendererUtils");
+}
+
+function installLocalStorage(storage: Storage): void {
+    Object.defineProperty(globalThis, "localStorage", {
+        configurable: true,
+        value: storage,
+    });
+}
+
+function installPerformanceMemory(memory: PerformanceMemory): void {
+    Object.defineProperty(globalThis.performance, "memory", {
+        configurable: true,
+        value: memory,
+    });
+}
+
+function resetTestEnvironment(): void {
+    const testGlobal = globalThis as StateIntegrationTestGlobal;
+
+    if (
+        testGlobal.__performanceMonitoringInterval !== undefined &&
+        typeof globalThis.clearInterval === "function"
+    ) {
+        globalThis.clearInterval(testGlobal.__performanceMonitoringInterval);
+    }
+
+    if (
+        testGlobal.__persistenceTimeout !== undefined &&
+        typeof globalThis.clearTimeout === "function"
+    ) {
+        globalThis.clearTimeout(testGlobal.__persistenceTimeout);
+    }
+
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+    vi.clearAllMocks();
+    __resetStateManagerForTests();
+    deleteIntegrationGlobals();
+    restoreGlobalProperty("localStorage", originalLocalStorageDescriptor);
+    restorePerformanceMemory();
+}
+
+function restoreGlobalProperty(
+    propertyName: "localStorage",
+    descriptor: PropertyDescriptor | undefined
+): void {
+    if (descriptor) {
+        Object.defineProperty(globalThis, propertyName, descriptor);
+        return;
+    }
+
+    Reflect.deleteProperty(globalThis, propertyName);
+}
+
+function restorePerformanceMemory(): void {
+    if (hasOriginalPerformanceMemory && originalPerformanceMemoryDescriptor) {
+        Object.defineProperty(
+            globalThis.performance,
+            "memory",
+            originalPerformanceMemoryDescriptor
+        );
+        return;
+    }
+
+    Reflect.deleteProperty(globalThis.performance, "memory");
+}
+
 describe("stateIntegration.js - Essential Coverage", () => {
-    let originalLocalStorage: any;
-    let originalPerformance: any;
+    it("exports the state integration public API", () => {
+        resetTestEnvironment();
+        expect.assertions(7);
 
-    beforeEach(() => {
-        // Save and mock globals
-        originalLocalStorage = globalThis.localStorage;
-        originalPerformance = globalThis.performance;
+        expect(stateIntegration.StateMigrationHelper).toBeTypeOf("function");
+        expect(stateIntegration.initializeAppState).toBeTypeOf("function");
+        expect(stateIntegration.initializeCompleteStateSystem).toBeTypeOf(
+            "function"
+        );
+        expect(stateIntegration.integrateWithRendererUtils).toBeTypeOf(
+            "function"
+        );
+        expect(stateIntegration.migrateChartControlsState).toBeTypeOf(
+            "function"
+        );
+        expect(stateIntegration.setupStatePerformanceMonitoring).toBeTypeOf(
+            "function"
+        );
+        expect(stateIntegration.setupStatePersistence).toBeTypeOf("function");
 
-        globalThis.localStorage = {
-            getItem: vi.fn(),
-            setItem: vi.fn(),
-            removeItem: vi.fn(),
-            clear: vi.fn(),
-        } as any;
+        resetTestEnvironment();
+    });
 
-        (globalThis as any).performance = {
-            memory: {
-                jsHeapSizeLimit: 1024 * 1024 * 1024,
-                totalJSHeapSize: 512 * 1024 * 1024,
-                usedJSHeapSize: 256 * 1024 * 1024,
-            },
-            now: vi.fn(() => Date.now()),
+    it("runs every migration and logs failures without aborting later migrations", async () => {
+        resetTestEnvironment();
+        expect.assertions(6);
+
+        const firstMigration = vi.fn<() => void>();
+        const failedMigration = vi.fn<() => void>(() => {
+            throw new Error("migration failed");
+        });
+        const finalMigration = vi.fn<() => Promise<void>>(() =>
+            Promise.resolve()
+        );
+        const consoleError = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => undefined);
+        const helper = new stateIntegration.StateMigrationHelper();
+
+        helper.addMigration(firstMigration);
+        helper.addMigration(failedMigration);
+        helper.addMigration(finalMigration);
+
+        await expect(helper.runMigrations()).resolves.toBeUndefined();
+
+        expect(firstMigration).toHaveBeenCalledOnce();
+        expect(failedMigration).toHaveBeenCalledOnce();
+        expect(finalMigration).toHaveBeenCalledOnce();
+        expect(consoleError).toHaveBeenCalledWith(
+            "[StateMigration] Migration failed:",
+            expect.any(Error)
+        );
+        expect(firstMigration).toHaveBeenCalledBefore(finalMigration);
+
+        resetTestEnvironment();
+    });
+
+    it("migrates legacy chart controls to reactive state accessors", () => {
+        resetTestEnvironment();
+        expect.assertions(4);
+
+        const testGlobal = globalThis as StateIntegrationTestGlobal;
+        testGlobal.chartControlsState = { isVisible: true };
+
+        stateIntegration.migrateChartControlsState();
+
+        expect(getState("charts.controlsVisible")).toBe(true);
+        expect(testGlobal.chartControlsState?.isVisible).toBe(true);
+
+        testGlobal.chartControlsState = testGlobal.chartControlsState ?? {};
+        testGlobal.chartControlsState.isVisible = false;
+        expect(getState("charts.controlsVisible")).toBe(false);
+
+        setState("charts.controlsVisible", true);
+        expect(testGlobal.chartControlsState.isVisible).toBe(true);
+
+        resetTestEnvironment();
+    });
+
+    it("wraps rendererUtils global-data access through the state manager", () => {
+        resetTestEnvironment();
+        expect.assertions(4);
+
+        const originalSetGlobalData = vi.fn<(data: unknown) => string>(
+            () => "stored"
+        );
+        const testGlobal = globalThis as StateIntegrationTestGlobal;
+        testGlobal.rendererUtils = {
+            getGlobalData: vi.fn<() => unknown>(() => ({ stale: true })),
+            setGlobalData: originalSetGlobalData,
         };
 
-        // Clean up globals
-        delete (globalThis as any).globalData;
-        delete (globalThis as any).isChartRendered;
-        delete (globalThis as any).AppState;
-        delete (globalThis as any).chartControlsState;
-        delete (globalThis as any).rendererUtils;
-        delete (globalThis as any).__state_debug;
-        delete (globalThis as any).__persistenceTimeout;
-        delete (globalThis as any).__DEVELOPMENT__;
+        stateIntegration.integrateWithRendererUtils();
+
+        const firstData = { activityId: "activity-1" };
+        expect(testGlobal.rendererUtils.setGlobalData?.(firstData)).toBe(
+            "stored"
+        );
+        expect(originalSetGlobalData).toHaveBeenCalledWith(firstData);
+        expect(getState("globalData")).toEqual(firstData);
+
+        const secondData = { activityId: "activity-2" };
+        setState("globalData", secondData);
+        expect(testGlobal.rendererUtils.getGlobalData?.()).toEqual(secondData);
+
+        resetTestEnvironment();
     });
 
-    afterEach(() => {
-        // Restore globals
-        globalThis.localStorage = originalLocalStorage;
-        (globalThis as any).performance = originalPerformance;
+    it("loads persisted UI state from localStorage", () => {
+        resetTestEnvironment();
+        expect.assertions(4);
 
-        // Clear globals
-        delete (globalThis as any).globalData;
-        delete (globalThis as any).isChartRendered;
-        delete (globalThis as any).AppState;
-        delete (globalThis as any).chartControlsState;
-        delete (globalThis as any).rendererUtils;
-        delete (globalThis as any).__state_debug;
-        delete (globalThis as any).__persistenceTimeout;
-        delete (globalThis as any).__DEVELOPMENT__;
+        const storageFixture = createStorageFixture({
+            [persistedStateKey]: JSON.stringify({
+                charts: { controlsVisible: false, selectedChart: "pace" },
+                ui: { sidebarCollapsed: true, theme: "dark" },
+            }),
+        });
+        installLocalStorage(storageFixture.storage);
 
-        vi.clearAllTimers();
-        vi.useRealTimers();
+        stateIntegration.setupStatePersistence();
+
+        expect(storageFixture.storage.getItem).toHaveBeenCalledWith(
+            persistedStateKey
+        );
+        expect(getState("ui.theme")).toBe("dark");
+        expect(getState("ui.sidebarCollapsed")).toBe(true);
+        expect(getState("charts.selectedChart")).toBe("pace");
+
+        resetTestEnvironment();
     });
 
-    it("should load the stateIntegration module successfully", async () => {
-        try {
-            const module =
-                await import("../../../../../utils/state/integration/stateIntegration.js");
-            expect(module).toBeDefined();
-            expect(typeof module).toBe("object");
-        } catch (error) {
-            // If import fails, we'll test by checking the file exists
-            expect(true).toBe(true); // This ensures test passes for coverage
-        }
+    it("persists subscribed UI state changes after the debounce delay", () => {
+        resetTestEnvironment();
+        expect.assertions(4);
+
+        vi.useFakeTimers();
+        const storageFixture = createStorageFixture();
+        installLocalStorage(storageFixture.storage);
+
+        stateIntegration.setupStatePersistence();
+        setState("ui.theme", "dark");
+        vi.advanceTimersByTime(500);
+
+        const savedState = storageFixture.store.get(persistedStateKey);
+        expect(storageFixture.storage.setItem).toHaveBeenCalledWith(
+            persistedStateKey,
+            expect.any(String)
+        );
+        expect(savedState).toBeTypeOf("string");
+
+        const parsedState = JSON.parse(savedState ?? "{}") as {
+            ui?: { theme?: string };
+        };
+        expect(parsedState.ui?.theme).toBe("dark");
+        expect(parsedState.ui?.theme).not.toBe("light");
+
+        resetTestEnvironment();
     });
 
-    it("should handle StateMigrationHelper instantiation", async () => {
-        try {
-            const { StateMigrationHelper } =
-                await import("../../../../../utils/state/integration/stateIntegration.js");
-            if (StateMigrationHelper) {
-                const helper = new StateMigrationHelper();
-                expect(helper).toBeDefined();
+    it("publishes memory usage while performance monitoring is enabled", () => {
+        resetTestEnvironment();
+        expect.assertions(2);
 
-                // Test methods exist
-                if (helper.runMigrations) {
-                    expect(typeof helper.runMigrations).toBe("function");
-                }
-                if (helper.addMigration) {
-                    expect(typeof helper.addMigration).toBe("function");
-                }
-            }
-        } catch (error) {
-            // Basic coverage for error paths
-            expect(error).toBeDefined();
-        }
+        vi.useFakeTimers();
+        installPerformanceMemory({
+            jsHeapSizeLimit: 1024 * 1024 * 1024,
+            totalJSHeapSize: 512 * 1024 * 1024,
+            usedJSHeapSize: 256 * 1024 * 1024,
+        });
+
+        stateIntegration.setupStatePerformanceMonitoring();
+        vi.advanceTimersByTime(30_000);
+
+        expect(getState("performance.memoryUsage")).toEqual({
+            limit: 1024,
+            total: 512,
+            used: 256,
+        });
+        expect(getState("performance.memoryUsage")).not.toEqual({
+            limit: 0,
+            total: 0,
+            used: 0,
+        });
+
+        resetTestEnvironment();
     });
 
-    it("should handle initialization functions", async () => {
-        try {
-            const module =
-                await import("../../../../../utils/state/integration/stateIntegration.js");
+    it("initializes compatibility globals and development debug utilities", () => {
+        resetTestEnvironment();
+        expect.assertions(8);
 
-            // Test various initialization functions if they exist
-            if (module.initializeAppState) {
-                expect(typeof module.initializeAppState).toBe("function");
-                // Try calling with basic setup
-                try {
-                    module.initializeAppState();
-                } catch (e) {
-                    // Error is expected without proper setup
-                    expect(e).toBeDefined();
-                }
-            }
+        const testGlobal = globalThis as StateIntegrationTestGlobal;
+        testGlobal.__DEVELOPMENT__ = true;
 
-            if (module.initializeCompleteStateSystem) {
-                expect(typeof module.initializeCompleteStateSystem).toBe(
-                    "function"
-                );
-            }
+        stateIntegration.initializeAppState();
 
-            if (module.integrateWithRendererUtils) {
-                expect(typeof module.integrateWithRendererUtils).toBe(
-                    "function"
-                );
-            }
+        testGlobal.globalData = { loaded: true };
+        testGlobal.isChartRendered = true;
 
-            if (module.migrateChartControlsState) {
-                expect(typeof module.migrateChartControlsState).toBe(
-                    "function"
-                );
-            }
+        expect(getState("globalData")).toEqual({ loaded: true });
+        expect(getState("charts.isRendered")).toBe(true);
+        expect(testGlobal.AppState?.globalData).toEqual({ loaded: true });
+        expect(testGlobal.AppState?.isChartRendered).toBe(true);
+        expect(testGlobal.__state_debug?.logState).toBeTypeOf("function");
+        expect(testGlobal.__state_debug?.setState).toBe(setState);
+        expect(testGlobal.__state_debug?.triggerAction("missingAction")).toBe(
+            undefined
+        );
+        expect(testGlobal.__state_debug?.watchState("ui.theme")).toBeTypeOf(
+            "function"
+        );
 
-            if (module.setupStatePerformanceMonitoring) {
-                expect(typeof module.setupStatePerformanceMonitoring).toBe(
-                    "function"
-                );
-            }
-
-            if (module.setupStatePersistence) {
-                expect(typeof module.setupStatePersistence).toBe("function");
-            }
-        } catch (error) {
-            // Basic coverage for error paths
-            expect(error).toBeDefined();
-        }
+        resetTestEnvironment();
     });
 
-    it("should handle performance monitoring scenarios", async () => {
-        expect.hasAssertions();
-        try {
-            const module =
-                await import("../../../../../utils/state/integration/stateIntegration.js");
+    it("returns without side effects when optional integration globals are missing", () => {
+        resetTestEnvironment();
+        expect.assertions(3);
 
-            if (module.setupStatePerformanceMonitoring) {
-                // Test with performance.memory available
-                try {
-                    module.setupStatePerformanceMonitoring();
-                    expect(true).toBe(true); // Function called without error
-                } catch (e) {
-                    expect(e).toBeDefined();
-                }
+        expect(() =>
+            stateIntegration.integrateWithRendererUtils()
+        ).not.toThrow();
+        expect(() =>
+            stateIntegration.migrateChartControlsState()
+        ).not.toThrow();
+        expect((globalThis as StateIntegrationTestGlobal).rendererUtils).toBe(
+            undefined
+        );
 
-                // Test without performance.memory
-                delete (globalThis.performance as any).memory;
-                try {
-                    module.setupStatePerformanceMonitoring();
-                    expect(true).toBe(true); // Function handled missing memory
-                } catch (e) {
-                    expect(e).toBeDefined();
-                }
-            } else {
-                expect(true).toBe(true); // Module loaded but function not available
-            }
-        } catch (error) {
-            expect(error).toBeDefined();
-        }
-    });
-
-    it("should handle state persistence scenarios", async () => {
-        expect.hasAssertions();
-        try {
-            const module =
-                await import("../../../../../utils/state/integration/stateIntegration.js");
-
-            if (module.setupStatePersistence) {
-                // Test localStorage persistence
-                try {
-                    module.setupStatePersistence();
-                    expect(true).toBe(true); // Function called without error
-                } catch (e) {
-                    expect(e).toBeDefined();
-                }
-
-                // Test with localStorage disabled
-                (globalThis as any).localStorage = null;
-                try {
-                    module.setupStatePersistence();
-                    expect(true).toBe(true); // Function handled missing localStorage
-                } catch (e) {
-                    expect(e).toBeDefined();
-                }
-            } else {
-                expect(true).toBe(true); // Module loaded but function not available
-            }
-        } catch (error) {
-            expect(error).toBeDefined();
-        }
-    });
-
-    it("should handle debug utilities", async () => {
-        expect.hasAssertions();
-        try {
-            const module =
-                await import("../../../../../utils/state/integration/stateIntegration.js");
-
-            // Test debug mode scenarios
-            (globalThis as any).__DEVELOPMENT__ = true;
-            (globalThis as any).__state_debug = {};
-
-            // Try to trigger debug paths
-            if (module.initializeAppState) {
-                try {
-                    module.initializeAppState();
-                    expect(true).toBe(true); // Function called in debug mode
-                } catch (e) {
-                    expect(e).toBeDefined();
-                }
-            }
-
-            // Test production mode
-            delete (globalThis as any).__DEVELOPMENT__;
-            delete (globalThis as any).__state_debug;
-
-            if (module.initializeAppState) {
-                try {
-                    module.initializeAppState();
-                    expect(true).toBe(true); // Function called in production mode
-                } catch (e) {
-                    expect(e).toBeDefined();
-                }
-            }
-
-            expect(true).toBe(true); // Test completed
-        } catch (error) {
-            expect(error).toBeDefined();
-        }
-    });
-
-    it("should handle backward compatibility scenarios", async () => {
-        expect.hasAssertions();
-        try {
-            const module =
-                await import("../../../../../utils/state/integration/stateIntegration.js");
-
-            // Set up legacy state structure
-            (globalThis as any).globalData = { legacy: true };
-            (globalThis as any).chartControlsState = { oldChart: true };
-
-            if (module.migrateChartControlsState) {
-                try {
-                    module.migrateChartControlsState();
-                    expect(true).toBe(true); // Migration function called
-                } catch (e) {
-                    expect(e).toBeDefined();
-                }
-            }
-
-            if (module.integrateWithRendererUtils) {
-                try {
-                    module.integrateWithRendererUtils();
-                    expect(true).toBe(true); // Integration function called
-                } catch (e) {
-                    expect(e).toBeDefined();
-                }
-            }
-
-            expect(true).toBe(true); // Test completed
-        } catch (error) {
-            expect(error).toBeDefined();
-        }
-    });
-
-    it("should handle renderer integration scenarios", async () => {
-        expect.hasAssertions();
-        try {
-            const module =
-                await import("../../../../../utils/state/integration/stateIntegration.js");
-
-            // Mock renderer utils
-            (globalThis as any).rendererUtils = {
-                updateUI: vi.fn(),
-                notify: vi.fn(),
-            };
-
-            (globalThis as any).isChartRendered = false;
-
-            if (module.integrateWithRendererUtils) {
-                try {
-                    module.integrateWithRendererUtils();
-                    expect(true).toBe(true); // Integration function called
-                } catch (e) {
-                    expect(e).toBeDefined();
-                }
-            }
-
-            // Test with chart rendered
-            (globalThis as any).isChartRendered = true;
-
-            if (module.integrateWithRendererUtils) {
-                try {
-                    module.integrateWithRendererUtils();
-                    expect(true).toBe(true); // Integration function called with chart rendered
-                } catch (e) {
-                    expect(e).toBeDefined();
-                }
-            }
-
-            expect(true).toBe(true); // Test completed
-        } catch (error) {
-            expect(error).toBeDefined();
-        }
+        resetTestEnvironment();
     });
 });
