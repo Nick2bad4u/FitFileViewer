@@ -95,6 +95,7 @@ describe("formatWeight.js - Weight Formatter Utility", () => {
         it("should handle zero weight correctly", () => {
             const result = formatWeight(0);
             expect(result).toBe("0 kg (0 lbs)");
+            expect(result).not.toBe("");
         });
 
         it("should format single digit kilograms correctly", () => {
@@ -139,6 +140,7 @@ describe("formatWeight.js - Weight Formatter Utility", () => {
             // Test cases where rounding matters
             expect(formatWeight(1.13)).toBe("1.13 kg (2 lbs)"); // 1.13 * 2.20462 = 2.49... → rounds to 2
             expect(formatWeight(1.14)).toBe("1.14 kg (3 lbs)"); // 1.14 * 2.20462 = 2.51... → rounds to 3
+            expect(formatWeight(1.14)).not.toBe("1.14 kg (2 lbs)");
         });
 
         it("should handle rounding edge cases precisely", () => {
@@ -175,6 +177,7 @@ describe("formatWeight.js - Weight Formatter Utility", () => {
         it("should handle very small positive weights", () => {
             const result = formatWeight(0.001);
             expect(result).toBe("0.001 kg (0 lbs)");
+            expect(result).not.toBe("");
         });
 
         it("should handle weights close to zero", () => {
@@ -216,6 +219,7 @@ describe("formatWeight.js - Weight Formatter Utility", () => {
             const result = formatWeight(70);
             expect(result).toContain(" kg ");
             expect(result).toContain(" lbs)");
+            expect(result).not.toContain("lb)");
             expect(result.startsWith("70")).toBe(true);
             expect(result.endsWith("lbs)")).toBe(true);
         });
@@ -242,6 +246,7 @@ describe("formatWeight.js - Weight Formatter Utility", () => {
             expect(formatWeight(70)).toBe("70 kg (154 lbs)");
             expect(formatWeight(80)).toBe("80 kg (176 lbs)");
             expect(formatWeight(90)).toBe("90 kg (198 lbs)");
+            expect(formatWeight(70)).not.toBe("70 kg (70 lbs)");
         });
 
         it("should format athlete weights correctly", () => {
@@ -303,6 +308,7 @@ describe("formatWeight.js - Weight Formatter Utility", () => {
 
             const result = formatWeight(problematicNumber as any);
             expect(result).toBe("");
+            expect(consoleSpy.error).not.toHaveBeenCalled();
         });
 
         it("should handle conversion factor errors gracefully", () => {
@@ -328,6 +334,7 @@ describe("formatWeight.js - Weight Formatter Utility", () => {
             const results = weights.map((w) => formatWeight(w));
 
             expect(results).toHaveLength(6);
+            expect(results[0]).not.toBe("");
             expect(results[0]).toBe("45 kg (99 lbs)");
             expect(results[5]).toBe("95 kg (209 lbs)");
         });
@@ -369,6 +376,7 @@ describe("formatWeight.js - Weight Formatter Utility", () => {
 
             // 5 kg should convert to approximately 11.0231 lbs (rounded to 11)
             expect(formatWeight(5)).toBe("5 kg (11 lbs)");
+            expect(formatWeight(5)).not.toBe("5 kg (5 lbs)");
         });
 
         it("should produce standard metric/imperial conversions", () => {
