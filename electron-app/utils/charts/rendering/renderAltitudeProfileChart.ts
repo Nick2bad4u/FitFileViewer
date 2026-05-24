@@ -87,7 +87,7 @@ const DEFAULT_DARK_BACKGROUND = "#181c24",
 export function renderAltitudeProfileChart(
     container: HTMLElement,
     data: readonly AltitudeProfileDatum[],
-    labels: readonly number[],
+    labels: readonly (number | string)[],
     options: AltitudeProfileOptions
 ): void {
     try {
@@ -342,7 +342,7 @@ function createAltitudeProfileConfig({
 
 function createAltitudeProfilePoints(
     data: readonly AltitudeProfileDatum[],
-    labels: readonly number[],
+    labels: readonly (number | string)[],
     distanceUnits: string
 ): AltitudeProfilePoint[] {
     const points: AltitudeProfilePoint[] = [];

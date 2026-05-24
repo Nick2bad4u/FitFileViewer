@@ -55,12 +55,7 @@ export function renderPerformanceAnalysisCharts(
         renderPowerVsHeartRateChart(container, data, options);
 
         // Render altitude profile with gradient chart
-        renderAltitudeProfileChart(
-            container,
-            data,
-            labels as number[],
-            options
-        );
+        renderAltitudeProfileChart(container, data, labels, options);
     } catch (error) {
         console.error(
             "[ChartJS] Error rendering performance analysis charts:",
