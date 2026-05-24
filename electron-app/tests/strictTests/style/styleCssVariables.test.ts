@@ -51,17 +51,16 @@ describe("style.css theme variables", () => {
 
     it("defines base body styles and font size helpers", () => {
         const styleText = loadStyleSheet();
-        const bodyMatch = styleText.match(/(^|\n)body\s*\{/);
+        const bodyIndex = styleText.search(/(^|\n)body\s*\{/);
         const beforeIndex = styleText.indexOf("body::before");
 
-        expect(bodyMatch).not.toBeNull();
-        const bodyIndex = bodyMatch?.index ?? -1;
-        expect(bodyIndex).toBeGreaterThan(-1);
+        expect(bodyIndex).toBeGreaterThanOrEqual(0);
         expect(beforeIndex).toBeGreaterThan(bodyIndex);
 
         const baseBodySegment = styleText.slice(bodyIndex, beforeIndex);
         expect(baseBodySegment).toContain("font-family: var(--font-sans)");
         expect(baseBodySegment).toContain("background: var(--color-bg)");
+        expect(baseBodySegment).not.toContain("body::before");
 
         expect(styleText).toContain(".font-small");
         expect(styleText).toContain(".font-xsmall");
