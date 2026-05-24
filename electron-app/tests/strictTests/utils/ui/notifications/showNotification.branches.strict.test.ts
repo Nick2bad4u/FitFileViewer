@@ -23,8 +23,11 @@ describe("showNotification.js - branches (strict)", () => {
             // jsdom doesn't care about the return value; 0 is fine
             return 0 as unknown as number;
         };
-        document.body.innerHTML =
-            '<div id="notification" class="notification" style="display:none"></div>';
+        const notificationElement = document.createElement("div");
+        notificationElement.id = "notification";
+        notificationElement.className = "notification";
+        notificationElement.style.display = "none";
+        document.body.replaceChildren(notificationElement);
         __testResetNotifications();
     });
 
@@ -38,7 +41,7 @@ describe("showNotification.js - branches (strict)", () => {
         console.warn = originalWarn;
         console.error = originalError;
         window.requestAnimationFrame = originalRAF;
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         clearAllNotifications();
         __testResetNotifications();
     });
@@ -98,7 +101,10 @@ describe("showNotification.js - branches (strict)", () => {
         const closeBtn = el.querySelector(
             ".notification-close"
         ) as HTMLButtonElement;
-        expect(closeBtn).toBeTruthy();
+        expect(closeBtn).toBeInstanceOf(HTMLButtonElement);
+        expect(closeBtn.getAttribute("aria-label")).toBe(
+            "Close notification"
+        );
         closeBtn.click();
         vi.advanceTimersByTime(300);
         expect(el.style.display).toBe("none");
@@ -122,9 +128,7 @@ describe("showNotification.js - branches (strict)", () => {
         const el = document.getElementById("notification")! as any;
         const spyClear = vi.spyOn(window, "clearTimeout");
         // Pre-set a timeout to ensure hideNotification clears it on click
-        el.hideTimeout = setTimeout(() => {
-            /* no-op */
-        }, 999_999);
+        el.hideTimeout = 123 as unknown as ReturnType<typeof setTimeout>;
         const btn = el.querySelector(
             ".notification-actions button"
         ) as HTMLButtonElement;
@@ -142,8 +146,9 @@ describe("showNotification.js - branches (strict)", () => {
     it("processNotificationQueue handles empty queue without side effects", async () => {
         __testResetNotifications();
         await processNotificationQueue();
-        // Nothing to assert besides no throw; cover the empty-queue branch
-        expect(true).toBe(true);
+        const { isShowingNotification, notificationQueue } = notifMod as any;
+        expect(isShowingNotification).toBe(false);
+        expect(notificationQueue).toHaveLength(0);
     });
 
     it("uses the default type duration when none is provided (error => 6000ms)", async () => {
@@ -152,18 +157,25 @@ describe("showNotification.js - branches (strict)", () => {
         const el = document.getElementById("notification")! as any;
         // Should be visible initially
         expect(el.style.display).toBe("flex");
+        expect(el.classList.contains("show")).toBe(true);
+        const initialHideTimeout = el.hideTimeout;
+        expect(Object.prototype.toString.call(initialHideTimeout)).toBe(
+            "[object Object]"
+        );
+        expect(Number(initialHideTimeout)).toBeGreaterThan(0);
 
         // Advance just before the default duration; still visible
         vi.advanceTimersByTime(5999);
-        expect(el.style.display).toBe("flex");
+        expect(el.className).toBe("notification error show");
 
         // Advance to the duration boundary; hideNotification schedules a 300ms transition
         vi.advanceTimersByTime(1);
-        expect(el.style.display).toBe("flex");
+        expect(el.classList.contains("show")).toBe(false);
+        expect(el.hideTimeout).toBeUndefined();
 
         // Advance almost all transition time; still visible
         vi.advanceTimersByTime(299);
-        expect(el.style.display).toBe("flex");
+        expect(el.style.display).not.toBe("none");
 
         // Final 1ms triggers the hide after transition
         vi.advanceTimersByTime(1);
@@ -184,6 +196,8 @@ describe("showNotification.js - branches (strict)", () => {
         btn.click();
         // onClick is guarded by target.closest('.notification-actions'); ensure it didn't fire
         expect(onContainerClick).not.toHaveBeenCalled();
+        vi.advanceTimersByTime(300);
+        expect(el.style.display).toBe("none");
     });
 
     // Note: Back-to-back invocation behavior is covered by explicit queue + flag checks
@@ -234,6 +248,17 @@ describe("showNotification.js - branches (strict)", () => {
                 String(args[0]).includes("Error displaying notification")
             )
         ).toBe(true);
+        expect(errorCalls).toEqual(
+            expect.arrayContaining([
+                [
+                    "Error displaying notification:",
+                    expect.objectContaining({ message: "createElement fail" }),
+                ],
+                ["Error displaying notification: createElement fail"],
+            ])
+        );
+        expect((notifMod as any).isShowingNotification).toBe(false);
+        expect((notifMod as any).notificationQueue).toHaveLength(0);
 
         // Restore explicitly to avoid cross-test effects
         spy.mockRestore();
