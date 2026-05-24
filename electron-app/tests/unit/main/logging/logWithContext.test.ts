@@ -71,5 +71,8 @@ describe("logWithContext", () => {
         logWithContext("not-a-level", "msg", { key: "value" });
 
         expect(spy).toHaveBeenCalledTimes(1);
+        const [msg, ctx] = spy.mock.calls[0];
+        expect(String(msg)).toBe("[2020-01-01T00:00:00.000Z] [main.js] msg");
+        expect(ctx).toBe('{"key":"value"}');
     });
 });
