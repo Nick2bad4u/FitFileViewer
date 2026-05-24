@@ -1,14 +1,32 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { showNotification } from "../../../../utils/ui/notifications/showNotification.js";
 
 vi.mock("../../../../utils/ui/notifications/showNotification.js", () => ({
     showNotification: vi.fn(),
 }));
 
-const modPath = "../../../../utils/maps/controls/mapActionButtons.js";
+const showNotificationMock = vi.mocked(showNotification);
+
+function getActiveFileName(): HTMLElement {
+    const activeFileName = document.getElementById("activeFileName");
+
+    expect(activeFileName).toBeInstanceOf(HTMLElement);
+
+    return activeFileName as HTMLElement;
+}
 
 describe("mapActionButtons", () => {
     beforeEach(() => {
-        document.body.innerHTML = `<div id="activeFileName">main.fit</div><button data-tab="map"></button>`;
+        const activeFileName = document.createElement("div");
+        activeFileName.id = "activeFileName";
+        activeFileName.textContent = "main.fit";
+
+        const mapButton = document.createElement("button");
+        mapButton.id = "tab_map";
+        mapButton.type = "button";
+
+        document.body.replaceChildren(activeFileName, mapButton);
         Object.assign(window, {
             _overlayPolylines: [],
             _leafletMapInstance: null,
@@ -17,18 +35,30 @@ describe("mapActionButtons", () => {
         });
         (window as any).L = undefined;
         vi.resetModules();
+        showNotificationMock.mockClear();
+        vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+        vi.runOnlyPendingTimers();
+        vi.useRealTimers();
+        document.body.replaceChildren();
     });
 
     it("attaches click listener and shows notification when map not ready", async () => {
-        await import(modPath); // IIFE attaches observers and handlers
-        const name = document.getElementById("activeFileName")!;
-        const { showNotification } =
-            await import("../../../../utils/ui/notifications/showNotification.js");
+        await import("../../../../utils/maps/controls/mapActionButtons.js");
+        const name = getActiveFileName();
+
+        expect(name.title).toBe("Click to center map on main file");
+
         name.dispatchEvent(new Event("click"));
-        // Click handler defers center operation via setTimeout; advance timers
-        await new Promise((r) => setTimeout(r, 600));
-        // No map instance or main polyline, should notify (either missing track or map not ready)
-        expect((showNotification as any).mock.calls.length).toBeGreaterThan(0);
+        await vi.advanceTimersByTimeAsync(100);
+
+        expect(showNotificationMock).toHaveBeenCalledWith(
+            "Map not ready for centering",
+            "warning"
+        );
+        expect(name.classList.contains("highlighted")).toBe(false);
     });
 
     it("centers map when main polyline and bounds exist", async () => {
@@ -37,17 +67,27 @@ describe("mapActionButtons", () => {
         const getCenter = vi.fn(() => ({ lat: 1, lng: 2 }));
         const getZoom = vi.fn(() => 10);
         (window as any)._leafletMapInstance = { fitBounds, getCenter, getZoom };
-        (window as any)._mainPolylineOriginalBounds = { isValid: () => true };
+        const bounds = { isValid: () => true };
+        (window as any)._mainPolylineOriginalBounds = bounds;
+        const polylineElement = document.createElement("div");
         const poly = {
             options: { color: "#1976d2" },
-            getElement: () => ({ style: {} as any }),
+            getElement: () => polylineElement,
         } as any;
         (window as any)._overlayPolylines = [poly];
-        await import(modPath);
-        const name = document.getElementById("activeFileName")!;
+        await import("../../../../utils/maps/controls/mapActionButtons.js");
+        const name = getActiveFileName();
+
+        expect(name.style.cursor).toBe("pointer");
+
         name.dispatchEvent(new Event("click"));
-        // After a small timeout used in module, advance timers
-        await new Promise((r) => setTimeout(r, 150));
-        expect(fitBounds).toHaveBeenCalled();
+        await vi.advanceTimersByTimeAsync(100);
+
+        expect(fitBounds).toHaveBeenCalledWith(bounds, { padding: [20, 20] });
+        expect(polylineElement.style.filter).toContain("#1976d2");
+        expect(showNotificationMock).not.toHaveBeenCalledWith(
+            "Could not determine track bounds",
+            "warning"
+        );
     });
 });
