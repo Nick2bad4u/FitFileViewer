@@ -28,6 +28,7 @@ describe("preload.js electronAPI exposure and behavior", () => {
 
     afterEach(() => {
         vi.restoreAllMocks();
+        Reflect.deleteProperty(globalThis, "__electronHoistedMock");
         process.env.NODE_ENV = originalEnv;
     });
 
@@ -45,7 +46,7 @@ describe("preload.js electronAPI exposure and behavior", () => {
             }),
         } as any;
         const exposed: Record<string, any> = {};
-        vi.doMock("electron", () => ({
+        Reflect.set(globalThis, "__electronHoistedMock", {
             contextBridge: {
                 exposeInMainWorld: vi.fn((name: string, api: any) => {
                     exposed[name] = api;
@@ -54,20 +55,19 @@ describe("preload.js electronAPI exposure and behavior", () => {
                 }),
             },
             ipcRenderer,
-        }));
+        });
 
         await importPreloadFresh();
         const apiFromWindow = (window as any).electronAPI;
         const api = exposed.electronAPI || apiFromWindow;
-        if (!api) {
-            // In some runners the alias/mock may not attach; ensure validation failure was logged and skip deeper assertions
-            expect(errors.join("\n")).toMatch(/API validation failed/);
-            return;
-        }
 
         // Basic API methods should exist
-        expect(typeof api.getChannelInfo).toBe("function");
-        expect(typeof api.validateAPI).toBe("function");
+        expect(api).toEqual(
+            expect.objectContaining({
+                getChannelInfo: expect.any(Function),
+                validateAPI: expect.any(Function),
+            })
+        );
 
         // getChannelInfo returns counts > 0
         const info = api.getChannelInfo();
@@ -79,7 +79,7 @@ describe("preload.js electronAPI exposure and behavior", () => {
         api.onOpenRecentFile(recentCb);
         // Simulate event
         const recHandlers = listeners.get("open-recent-file");
-        expect(recHandlers && recHandlers.length).toBeGreaterThan(0);
+        expect(recHandlers).toHaveLength(1);
         recHandlers![0]({}, "C:/file.fit");
         expect(recentCb).toHaveBeenCalledWith("C:/file.fit");
 
@@ -144,9 +144,9 @@ describe("preload.js electronAPI exposure and behavior", () => {
     it("does not expose when validateAPI fails (else branch)", async () => {
         process.env.NODE_ENV = "test";
         vi.resetModules();
-        vi.doMock("electron", () => ({
+        Reflect.set(globalThis, "__electronHoistedMock", {
             // no contextBridge/ipcRenderer provided
-        }));
+        });
         await importPreloadFresh();
         // @ts-ignore
         expect((window as any).electronAPI).toBeUndefined();
@@ -163,20 +163,17 @@ describe("preload.js electronAPI exposure and behavior", () => {
             send: vi.fn(),
             on: vi.fn(),
         } as any;
-        vi.doMock("electron", () => ({
+        Reflect.set(globalThis, "__electronHoistedMock", {
             contextBridge: {
                 exposeInMainWorld: vi.fn(() => {
                     throw new Error("expose failed");
                 }),
             },
             ipcRenderer,
-        }));
+        });
         await importPreloadFresh();
-        // Depending on which electron mock is active, either the validation else-branch or the catch branch may log.
         const errStr = errors.join("\n");
-        expect(errStr).toMatch(
-            /(Failed to expose electronAPI|API validation failed - not exposing)/
-        );
+        expect(errStr).toMatch(/Failed to expose electronAPI/);
     });
 
     it("exposes devTools in development and supports helpers", async () => {
@@ -193,7 +190,7 @@ describe("preload.js electronAPI exposure and behavior", () => {
             }),
         } as any;
         const exposed: Record<string, any> = {};
-        vi.doMock("electron", () => ({
+        Reflect.set(globalThis, "__electronHoistedMock", {
             contextBridge: {
                 exposeInMainWorld: vi.fn((name: string, api: any) => {
                     exposed[name] = api;
@@ -202,7 +199,7 @@ describe("preload.js electronAPI exposure and behavior", () => {
                 }),
             },
             ipcRenderer,
-        }));
+        });
 
         // Intercept process.once to capture cleanup callback
         let beforeExitCb: (() => void) | null = null;
@@ -215,24 +212,33 @@ describe("preload.js electronAPI exposure and behavior", () => {
 
         await importPreloadFresh();
         const dev = exposed.devTools || (window as any).devTools;
-        if (!dev) {
-            // If devTools wasn't exposed via contextBridge, still ensure the module imported and proceed to cleanup checks
-            expect(true).toBe(true);
-        } else {
-            expect(dev).toBeTruthy();
-            const info = dev.getPreloadInfo();
-            expect(info).toHaveProperty("version");
-            expect(Array.isArray(info.apiMethods)).toBe(true);
+        expect(dev).toEqual(
+            expect.objectContaining({
+                getPreloadInfo: expect.any(Function),
+                logAPIState: expect.any(Function),
+                testIPC: expect.any(Function),
+            })
+        );
+        const info = dev.getPreloadInfo();
+        expect(info).toEqual(
+            expect.objectContaining({
+                apiMethods: expect.arrayContaining(["getAppVersion"]),
+                constants: expect.any(Object),
+                timestamp: expect.stringMatching(
+                    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/
+                ),
+                version: "1.0.0",
+            })
+        );
 
-            await expect(dev.testIPC()).resolves.toBe(true);
-            dev.logAPIState();
-            expect(logs.join("\n")).toMatch(/Current API State/);
-        }
+        await expect(dev.testIPC()).resolves.toBe(true);
+        dev.logAPIState();
+        expect(logs.join("\n")).toMatch(/Current API State/);
 
         // Trigger beforeExit cleanup handler
         expect(onceSpy).toHaveBeenCalled();
         expect(typeof beforeExitCb).toBe("function");
-        if (beforeExitCb) (beforeExitCb as unknown as () => void)();
+        (beforeExitCb as unknown as () => void)();
         expect(logs.join("\n")).toMatch(/Process exiting, performing cleanup/);
     });
 });
