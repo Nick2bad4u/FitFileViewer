@@ -11,9 +11,7 @@ function clearMainRequireCache() {
     const setupHandlersPath = requireCjs.resolve(
         "../../../../main/app/setupApplicationEventHandlers"
     );
-    // eslint-disable-next-line security/detect-object-injection
     delete requireCjs.cache[electronAccessPath];
-    // eslint-disable-next-line security/detect-object-injection
     delete requireCjs.cache[setupHandlersPath];
 }
 
@@ -96,6 +94,11 @@ describe("setupApplicationEventHandlers permission hardening", () => {
         const callback = vi.fn();
         requestHandler({}, "geolocation", callback);
         expect(callback).toHaveBeenCalledWith(true);
+
+        const deniedCallback = vi.fn();
+        requestHandler({}, "camera", deniedCallback);
+        expect(deniedCallback).toHaveBeenCalledWith(false);
+        expect(deniedCallback).not.toHaveBeenCalledWith(true);
 
         const checkHandler =
             mockSession.setPermissionCheckHandler.mock.calls[0]?.[0];
