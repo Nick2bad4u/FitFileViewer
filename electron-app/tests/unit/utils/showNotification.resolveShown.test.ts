@@ -19,8 +19,11 @@ describe("showNotification.js - resolveShown error handling", () => {
             cb(0);
             return 0;
         };
-        document.body.innerHTML =
-            '<div id="notification" class="notification" style="display:none"></div>';
+        const notificationElement = document.createElement("div");
+        notificationElement.id = "notification";
+        notificationElement.className = "notification";
+        notificationElement.style.display = "none";
+        document.body.replaceChildren(notificationElement);
     });
 
     afterEach(() => {
@@ -29,7 +32,7 @@ describe("showNotification.js - resolveShown error handling", () => {
         console.warn = originalWarn;
         console.error = originalError;
         window.requestAnimationFrame = originalRAF;
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         clearAllNotifications();
     });
 
