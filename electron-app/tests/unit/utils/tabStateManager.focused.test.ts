@@ -38,27 +38,72 @@ const mockSetState = vi.mocked(setState);
 const mockSubscribe = vi.mocked(subscribe);
 const mockShowNotification = vi.mocked(showNotification);
 
+const tabDomFixtures = [
+    ["summary", "Summary"],
+    ["map", "Map"],
+    ["browser", "Browser"],
+    ["chartjs", "ChartJS"],
+    ["chart", "Chart"],
+    ["data", "Data"],
+    ["altfit", "AltFit"],
+    ["zwift", "Zwift"],
+];
+
+const createElement = (tagName, attributes = {}, textContent = "") => {
+    const element = document.createElement(tagName);
+
+    Object.entries(attributes).forEach(([key, value]) => {
+        element.setAttribute(key, value);
+    });
+
+    element.textContent = textContent;
+
+    return element;
+};
+
+const setupTabDom = () => {
+    const fragment = document.createDocumentFragment();
+
+    tabDomFixtures.forEach(([tabName, label]) => {
+        fragment.append(
+            createElement(
+                "button",
+                {
+                    class: "tab-button",
+                    id: `tab-${tabName}`,
+                },
+                label
+            )
+        );
+    });
+
+    tabDomFixtures.forEach(([tabName, label]) => {
+        fragment.append(
+            createElement("div", { id: `content-${tabName}` }, label)
+        );
+    });
+
+    document.body.replaceChildren(fragment);
+};
+
+const setupContentMoveDom = () => {
+    const bgContainer = createElement("div", {
+        id: "background-data-container",
+    });
+    bgContainer.append(
+        createElement("div", { class: "content-item" }, "Item 1"),
+        createElement("div", { class: "content-item" }, "Item 2")
+    );
+
+    const visibleContainer = createElement("div", { id: "content-data" });
+
+    document.body.replaceChildren(bgContainer, visibleContainer);
+};
+
 describe("tabStateManager - Critical Bug Detection", () => {
     beforeEach(() => {
         // Set up complete DOM structure matching TAB_CONFIG
-        document.body.innerHTML = `
-            <button id="tab-summary" class="tab-button">Summary</button>
-            <button id="tab-map" class="tab-button">Map</button>
-            <button id="tab-browser" class="tab-button">Browser</button>
-            <button id="tab-chartjs" class="tab-button">ChartJS</button>
-            <button id="tab-chart" class="tab-button">Chart</button>
-            <button id="tab-data" class="tab-button">Data</button>
-            <button id="tab-altfit" class="tab-button">AltFit</button>
-            <button id="tab-zwift" class="tab-button">Zwift</button>
-            <div id="content-summary">Summary</div>
-            <div id="content-map">Map</div>
-            <div id="content-browser">Browser</div>
-            <div id="content-chartjs">ChartJS</div>
-            <div id="content-chart">Chart</div>
-            <div id="content-data">Data</div>
-            <div id="content-altfit">AltFit</div>
-            <div id="content-zwift">Zwift</div>
-        `;
+        setupTabDom();
 
         // Reset mocks but preserve subscribe calls from module initialization
         mockGetState.mockClear();
@@ -78,7 +123,7 @@ describe("tabStateManager - Critical Bug Detection", () => {
     });
 
     afterEach(() => {
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         // Reset mocks but preserve the calls from module initialization
         mockGetState.mockClear();
         mockSetState.mockClear();
@@ -89,8 +134,11 @@ describe("tabStateManager - Critical Bug Detection", () => {
     describe("Memory Leak Detection", () => {
         it("BUG CRITICAL: should expose memory leak from no unsubscribe mechanism", () => {
             // Test that the module exists and has a cleanup method
-            expect(tabStateManager).toBeDefined();
-            expect(typeof tabStateManager.cleanup).toBe("function");
+            expect(tabStateManager).toEqual(
+                expect.objectContaining({
+                    cleanup: expect.any(Function),
+                })
+            );
 
             // Check that cleanup doesn't actually unsubscribe (critical bug)
             const consoleSpy = vi
@@ -101,6 +149,9 @@ describe("tabStateManager - Critical Bug Detection", () => {
             // Verify cleanup was called but no actual unsubscribe happened
             expect(consoleSpy).toHaveBeenCalledWith(
                 "[TabStateManager] cleanup invoked"
+            );
+            expect(consoleSpy).not.toHaveBeenCalledWith(
+                "[TabStateManager] cleanup failed"
             );
 
             // The critical bug: cleanup exists but doesn't store/call unsubscribe functions
@@ -115,8 +166,10 @@ describe("tabStateManager - Critical Bug Detection", () => {
                 .mockImplementation(() => {});
 
             // Multiple cleanup calls should not cause issues
-            tabStateManager.cleanup();
-            tabStateManager.cleanup();
+            expect(() => {
+                tabStateManager.cleanup();
+                tabStateManager.cleanup();
+            }).not.toThrow();
 
             // The bug is that cleanup doesn't actually store unsubscribe handles
             expect(consoleSpy).toHaveBeenCalledWith(
@@ -190,29 +243,32 @@ describe("tabStateManager - Critical Bug Detection", () => {
                 undefined,
             ];
 
-            testCases.forEach((testData, index) => {
+            const results = testCases.map((testData) => {
                 mockGetState.mockReturnValue(testData);
 
                 // Test data validation logic
                 const hasValidData = () => {
                     const globalData = mockGetState("globalData");
-                    return (
+                    return Boolean(
                         globalData &&
                         Array.isArray(globalData.recordMesgs) &&
                         globalData.recordMesgs.length > 0
                     );
                 };
 
-                const result = hasValidData();
-
-                if (index < 3) {
-                    // null, undefined, empty array
-                    expect(result).toBe(false);
-                } else if (index === 3) {
-                    // string instead of array
-                    expect(result).toBe(false);
-                }
+                return hasValidData();
             });
+
+            expect(results).toEqual([
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+            ]);
+            expect(results).not.toContain(true);
         });
 
         it("BUG HIGH: should expose tab configuration validation gaps", () => {
@@ -225,22 +281,27 @@ describe("tabStateManager - Critical Bug Detection", () => {
                 123,
             ];
 
-            invalidTabs.forEach((tabName) => {
-                if (tabName === null || tabName === undefined) return;
+            const configs = invalidTabs.map((tabName) => TAB_CONFIG[tabName]);
 
-                const config = TAB_CONFIG[tabName];
-
-                if (tabName === "nonexistent" || tabName === 123) {
-                    expect(config).toBeUndefined();
-                }
-            });
+            expect(configs).toEqual([
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+            ]);
+            expect(configs).not.toContainEqual(expect.any(Object));
         });
     });
 
     describe("DOM Manipulation Security Issues", () => {
         it("BUG HIGH: should expose unsafe iframe manipulation", () => {
-            document.body.innerHTML +=
-                '<iframe id="altfit-iframe" src="about:blank"></iframe>';
+            document.body.append(
+                createElement("iframe", {
+                    id: "altfit-iframe",
+                    src: "about:blank",
+                })
+            );
 
             const iframe = document.getElementById("altfit-iframe");
 
@@ -257,16 +318,11 @@ describe("tabStateManager - Critical Bug Detection", () => {
             expect(iframe.src).toBe("about:blank");
             handleIframe();
             expect(iframe.src).toContain("ffv/index.html");
+            expect(iframe.src).not.toBe("about:blank");
         });
 
         it("BUG MEDIUM: should expose content moving race conditions", () => {
-            document.body.innerHTML = `
-                <div id="background-data-container">
-                    <div class="content-item">Item 1</div>
-                    <div class="content-item">Item 2</div>
-                </div>
-                <div id="content-data"></div>
-            `;
+            setupContentMoveDom();
 
             const bgContainer = document.getElementById(
                 "background-data-container"
@@ -363,8 +419,10 @@ describe("tabStateManager - Critical Bug Detection", () => {
                 const button = document.getElementById(config.id);
                 const content = document.getElementById(config.contentId);
 
-                expect(button).toBeTruthy();
-                expect(content).toBeTruthy();
+                expect(button).toBeInstanceOf(HTMLElement);
+                expect(button?.id).toBe(config.id);
+                expect(content).toBeInstanceOf(HTMLElement);
+                expect(content?.id).toBe(config.contentId);
             });
         });
 
@@ -407,6 +465,7 @@ describe("tabStateManager - Critical Bug Detection", () => {
 
             // Test that subscription doesn't cause infinite loops
             expect(recursionCount).toBeLessThanOrEqual(maxRecursion);
+            expect(recursionCount).not.toBeGreaterThan(maxRecursion);
         });
 
         it("BUG HIGH: should expose state consistency validation gaps", () => {
