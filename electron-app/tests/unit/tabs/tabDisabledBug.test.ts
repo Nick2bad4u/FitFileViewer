@@ -4,26 +4,127 @@
  */
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 
+function createTabButton({
+    active = false,
+    ariaSelected,
+    id,
+    label,
+    tabIndex,
+}: {
+    active?: boolean;
+    ariaSelected: "false" | "true";
+    id: string;
+    label: string;
+    tabIndex: "-1" | "0";
+}): HTMLButtonElement {
+    const button = document.createElement("button");
+
+    button.className = active ? "tab-button active" : "tab-button";
+    button.id = id;
+    button.role = "tab";
+    button.setAttribute("aria-selected", ariaSelected);
+    button.tabIndex = Number.parseInt(tabIndex, 10);
+    button.textContent = label;
+
+    return button;
+}
+
+function createTabContainer(): HTMLDivElement {
+    const container = document.createElement("div");
+
+    container.className = "tab-container";
+    container.replaceChildren(
+        createTabButton({
+            active: true,
+            ariaSelected: "true",
+            id: "tab-summary",
+            label: "Summary",
+            tabIndex: "0",
+        }),
+        createTabButton({
+            ariaSelected: "false",
+            id: "tab-chart",
+            label: "Chart",
+            tabIndex: "-1",
+        }),
+        createTabButton({
+            ariaSelected: "false",
+            id: "tab-map",
+            label: "Map",
+            tabIndex: "-1",
+        }),
+        createTabButton({
+            ariaSelected: "false",
+            id: "tab-table",
+            label: "Data",
+            tabIndex: "-1",
+        })
+    );
+
+    return container;
+}
+
+function createAltFitButton(): HTMLButtonElement {
+    const button = createTabButton({
+        active: true,
+        ariaSelected: "true",
+        id: "tab-altfit",
+        label: "Data",
+        tabIndex: "0",
+    });
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    const ellipse = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "ellipse"
+    );
+    const firstPath = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "path"
+    );
+    const secondPath = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "path"
+    );
+
+    button.setAttribute("aria-disabled", "false");
+    button.style.pointerEvents = "auto";
+    button.style.cursor = "pointer";
+    button.style.filter = "none";
+    button.style.opacity = "1";
+    button.setAttribute("disabled", "");
+
+    svg.classList.add("tab-icon");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("fill", "none");
+    svg.setAttribute("stroke", "currentColor");
+    svg.setAttribute("stroke-width", "2");
+    ellipse.setAttribute("cx", "12");
+    ellipse.setAttribute("cy", "5");
+    ellipse.setAttribute("rx", "9");
+    ellipse.setAttribute("ry", "3");
+    firstPath.setAttribute("d", "M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5");
+    secondPath.setAttribute(
+        "d",
+        "M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"
+    );
+    svg.replaceChildren(ellipse, firstPath, secondPath);
+    button.prepend(svg);
+
+    return button;
+}
+
 describe("Tab Disabled Attribute Bug Investigation", () => {
-    /** @type {HTMLButtonElement[]} */
-    let mockButtons = [];
+    let mockButtons: HTMLButtonElement[] = [];
 
     beforeEach(() => {
         // Create DOM exactly like the real app
-        document.body.innerHTML = `
-            <div class="tab-container">
-                <button class="tab-button active" id="tab-summary" role="tab" aria-selected="true" tabindex="0">Summary</button>
-                <button class="tab-button" id="tab-chart" role="tab" aria-selected="false" tabindex="-1">Chart</button>
-                <button class="tab-button" id="tab-map" role="tab" aria-selected="false" tabindex="-1">Map</button>
-                <button class="tab-button" id="tab-table" role="tab" aria-selected="false" tabindex="-1">Data</button>
-            </div>
-        `;
+        document.body.replaceChildren(createTabContainer());
 
         mockButtons = Array.from(document.querySelectorAll(".tab-button"));
     });
 
     afterEach(() => {
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         mockButtons = [];
     });
 
@@ -53,19 +154,16 @@ describe("Tab Disabled Attribute Bug Investigation", () => {
         });
     });
 
-    it("should detect if multiple systems are setting disabled attributes", async () => {
-        /**
-         * @type {{
-         *     target: string;
-         *     oldValue: string | null;
-         *     newValue: string | null;
-         *     timestamp: number;
-         * }[]}
-         */
-        const attributeChanges = [];
+    it("should detect if multiple systems are setting disabled attributes", () => {
+        const attributeChanges: {
+            target: string;
+            oldValue: string | null;
+            newValue: string | null;
+            timestamp: number;
+        }[] = [];
 
         // Set up a MutationObserver to track attribute changes
-        const observer = new MutationObserver((mutations) => {
+        const recordAttributeChanges = (mutations: MutationRecord[]): void => {
             mutations.forEach((mutation) => {
                 if (
                     mutation.type === "attributes" &&
@@ -80,7 +178,8 @@ describe("Tab Disabled Attribute Bug Investigation", () => {
                     });
                 }
             });
-        });
+        };
+        const observer = new MutationObserver(recordAttributeChanges);
 
         mockButtons.forEach((button) => {
             observer.observe(button, {
@@ -103,8 +202,7 @@ describe("Tab Disabled Attribute Bug Investigation", () => {
             button.removeAttribute("disabled");
         });
 
-        // Wait a bit for any async operations
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        recordAttributeChanges(observer.takeRecords());
 
         observer.disconnect();
 
@@ -126,25 +224,16 @@ describe("Tab Disabled Attribute Bug Investigation", () => {
 
     it("should test with the exact same DOM structure as real app", () => {
         // Create button with exact same attributes as the bug report
-        document.body.innerHTML = `
-            <button class="tab-button active" id="tab-altfit" role="tab" aria-selected="true" tabindex="0" aria-disabled="false" style="pointer-events: auto; cursor: pointer; filter: none; opacity: 1;" disabled="">
-                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
-                    <path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"></path>
-                    <path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"></path>
-                </svg>
-                Data
-            </button>
-        `;
+        document.body.replaceChildren(createAltFitButton());
 
         const button =
-            /** @type {HTMLButtonElement | null} */ document.getElementById(
-                "tab-altfit"
-            );
+            document.querySelector<HTMLButtonElement>("#tab-altfit");
 
         // Verify button exists
-        expect(button).not.toBeNull();
-        if (!button) return; // TypeScript guard
+        expect(button).toBeInstanceOf(HTMLButtonElement);
+        if (!(button instanceof HTMLButtonElement)) {
+            throw new TypeError("Expected tab-altfit to be a button");
+        }
 
         // Verify initial problematic state
         expect(button.hasAttribute("disabled")).toBe(true);
@@ -161,8 +250,9 @@ describe("Tab Disabled Attribute Bug Investigation", () => {
         // Verify fix works
         expect(button.disabled).toBe(false);
         expect(button.hasAttribute("disabled")).toBe(false);
-        expect(button.getAttribute("aria-disabled")).toBe("false");
-        expect(button.style.pointerEvents).toBe("auto");
+        expect(button.getAttribute("disabled")).not.toBe("");
+        expect(button.matches('[aria-disabled="false"]')).toBe(true);
+        expect(button.style.cssText).toContain("pointer-events: auto");
     });
 
     it("should simulate the real app enabling process with timing", async () => {
@@ -176,7 +266,7 @@ describe("Tab Disabled Attribute Bug Investigation", () => {
         });
 
         // Simulate async file loading process
-        await new Promise((resolve) => setTimeout(resolve, 10));
+        await Promise.resolve();
 
         // Enable buttons (simulate setTabButtonsEnabled(true))
         mockButtons.forEach((button) => {
