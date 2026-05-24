@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-
-const HELPERS =
-    "../../../../../utils/rendering/helpers/renderSummaryHelpers.js";
+import { renderTable } from "../../../../../utils/rendering/helpers/renderSummaryHelpers.js";
 
 describe("renderTable behavior", () => {
     beforeEach(() => {
-        document.body.innerHTML = '<div id="host"></div>';
+        const host = document.createElement("div");
+        host.id = "host";
+        document.body.replaceChildren(host);
         vi.resetModules();
         vi.restoreAllMocks();
         // Provide aq minimal API for getSummaryRows(recordMesgs path)
@@ -27,7 +27,6 @@ describe("renderTable behavior", () => {
     });
 
     it("renders headers, summary row from sessionMesgs, and lap rows with timestamp/startTime override", async () => {
-        const { renderTable, LABEL_COL } = await import(HELPERS);
         const container = document.querySelector("#host") as HTMLElement;
         const gearBtn = document.createElement("button");
         const data = {
@@ -78,12 +77,14 @@ describe("renderTable behavior", () => {
         const section = container.querySelector(
             ".summary-section"
         ) as HTMLElement;
-        expect(section).toBeTruthy();
+        expect(section).toBeInstanceOf(HTMLElement);
         // Header should include Type + visible columns
-        const headers = Array.from(section.querySelectorAll("thead th")).map(
+        const headers = Array.from(
+            section.querySelectorAll("thead th"),
             (th) => th.textContent
         );
         expect(headers).toEqual(["Type", ...visibleColumns]);
+        expect(headers).not.toContain("hidden_field");
 
         // Summary row exists and has "Summary" as first cell label
         const firstRow = section.querySelector("tbody tr");
@@ -93,7 +94,8 @@ describe("renderTable behavior", () => {
         const rows = section.querySelectorAll("tbody tr");
         expect(rows.length).toBeGreaterThanOrEqual(1 + data.lapMesgs.length);
         const lap1 = rows[1];
-        const lap1Cells = Array.from(lap1.querySelectorAll("td")).map(
+        const lap1Cells = Array.from(
+            lap1.querySelectorAll("td"),
             (td) => td.textContent
         );
         expect(lap1Cells[0]).toBe("Lap 1");
@@ -104,7 +106,6 @@ describe("renderTable behavior", () => {
     });
 
     it("filter selection persists on container and wheel changes selection triggering re-render", async () => {
-        const { renderTable } = await import(HELPERS);
         const container = document.querySelector("#host") as any;
         const gearBtn = document.createElement("button");
         const data = {
@@ -139,13 +140,11 @@ describe("renderTable behavior", () => {
         const newSelect = container.querySelector(
             ".summary-filter-bar select"
         ) as HTMLSelectElement;
-        expect(container._summaryFilterValue).toBeDefined();
         expect(newSelect.value).toBe(container._summaryFilterValue);
-        expect(newSelect.value).not.toBe("All"); // should have advanced
+        expect(newSelect.value).toMatch(/^(Summary|Lap [1-3])$/);
     });
 
     it("Copy as CSV writes expected header and at least one row", async () => {
-        const { renderTable, LABEL_COL } = await import(HELPERS);
         const container = document.querySelector("#host") as HTMLElement;
         const gearBtn = document.createElement("button");
         const data = {
@@ -170,7 +169,8 @@ describe("renderTable behavior", () => {
         const copyBtn = container.querySelector(
             ".copy-btn"
         ) as HTMLButtonElement;
-        expect(copyBtn).toBeTruthy();
+        expect(copyBtn).toBeInstanceOf(HTMLButtonElement);
+        expect(copyBtn.textContent).toBe("Copy as CSV");
         copyBtn.click();
         const written = vi.mocked((navigator as any).clipboard.writeText);
         expect(written).toHaveBeenCalled();
