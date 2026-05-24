@@ -1,167 +1,262 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-const MODAL = "../../../../../utils/rendering/helpers/summaryColModal.js";
-const HELPERS =
-    "../../../../../utils/rendering/helpers/renderSummaryHelpers.js";
+import { showColModal } from "../../../../../utils/rendering/helpers/summaryColModal.js";
+import {
+    getStorageKey,
+    loadColPrefs,
+} from "../../../../../utils/rendering/helpers/renderSummaryHelpers.js";
+
+type Cleanup = () => void;
+
+type WindowWithGlobalData = Window & {
+    globalData?: { cachedFilePath: string };
+};
+
+function setupDomTest(): Cleanup {
+    const windowWithGlobalData = globalThis.window as WindowWithGlobalData;
+    const hadGlobalData = Object.hasOwn(windowWithGlobalData, "globalData");
+    const originalGlobalData = windowWithGlobalData.globalData;
+    const originalClipboard = globalThis.navigator.clipboard;
+    const writeText = vi
+        .fn<(text: string) => Promise<void>>()
+        .mockResolvedValue(undefined);
+
+    document.body.replaceChildren();
+    localStorage.clear();
+    Object.defineProperty(windowWithGlobalData, "globalData", {
+        configurable: true,
+        value: { cachedFilePath: "/tmp/file.fit" },
+        writable: true,
+    });
+    Object.defineProperty(globalThis.navigator, "clipboard", {
+        configurable: true,
+        value: { writeText },
+    });
+
+    return () => {
+        document.body.replaceChildren();
+        localStorage.clear();
+        if (hadGlobalData) {
+            Object.defineProperty(windowWithGlobalData, "globalData", {
+                configurable: true,
+                value: originalGlobalData,
+                writable: true,
+            });
+        } else {
+            Reflect.deleteProperty(windowWithGlobalData, "globalData");
+        }
+        Object.defineProperty(globalThis.navigator, "clipboard", {
+            configurable: true,
+            value: originalClipboard,
+        });
+    };
+}
+
+function getModalOverlay(): HTMLElement {
+    const overlay = document.querySelector(".summary-col-modal-overlay");
+    if (!(overlay instanceof HTMLElement)) {
+        throw new TypeError("Expected the summary column modal overlay.");
+    }
+    return overlay;
+}
+
+function getInputByLabel(
+    container: HTMLElement,
+    labelText: string
+): HTMLInputElement {
+    const label = Array.from(container.querySelectorAll("label")).find(
+        (element) => element.textContent?.trim() === labelText
+    );
+    if (!(label instanceof HTMLLabelElement)) {
+        throw new TypeError(`Expected a label named "${labelText}".`);
+    }
+    const input = label.querySelector("input");
+    if (!(input instanceof HTMLInputElement)) {
+        throw new TypeError(`Expected "${labelText}" to label an input.`);
+    }
+    return input;
+}
+
+function getButtonByText(
+    container: HTMLElement,
+    buttonText: string
+): HTMLButtonElement {
+    const button = Array.from(container.querySelectorAll("button")).find(
+        (element) => element.textContent?.trim() === buttonText
+    );
+    if (!(button instanceof HTMLButtonElement)) {
+        throw new TypeError(`Expected a button named "${buttonText}".`);
+    }
+    return button;
+}
+
+function getCheckedColumnLabels(overlay: HTMLElement): string[] {
+    return Array.from(
+        overlay.querySelectorAll<HTMLLabelElement>(".col-list label")
+    )
+        .filter((label) => {
+            const input = label.querySelector("input");
+            return (
+                input instanceof HTMLInputElement &&
+                !input.disabled &&
+                input.checked
+            );
+        })
+        .map((label) => label.textContent?.trim() ?? "");
+}
 
 describe("showColModal interactions", () => {
-    const origClipboard: any = (global.navigator as any)?.clipboard;
+    it("toggles Select All / Deselect All and persists immediately (auto-save)", () => {
+        expect.hasAssertions();
 
-    beforeEach(() => {
-        document.body.innerHTML = "";
-        vi.resetModules();
-        vi.restoreAllMocks();
-        // Ensure globalData exists for storage key building
-        (global.window as any).globalData = { cachedFilePath: "/tmp/file.fit" };
-        // Clean localStorage
-        localStorage.clear();
-        // Mock clipboard to avoid errors if used elsewhere
-        (global.navigator as any).clipboard = { writeText: vi.fn() };
+        const cleanup = setupDomTest();
+        try {
+            const allKeys = ["Speed", "Distance", "HeartRate"];
+            let visible: string[] = ["Speed"];
+            const setVisibleColumns = vi.fn<(cols: string[]) => void>(
+                (cols) => {
+                    visible = [...cols];
+                }
+            );
+            const reRender = vi.fn<() => void>();
+
+            showColModal({
+                allKeys,
+                renderTable: reRender,
+                setVisibleColumns,
+                visibleColumns: visible,
+            });
+
+            const overlay = getModalOverlay();
+
+            expect([...overlay.classList]).toContain(
+                "summary-col-modal-overlay"
+            );
+
+            const selectAllButton = getButtonByText(overlay, "Select All");
+
+            expect(selectAllButton.textContent).toBe("Select All");
+
+            expect(getCheckedColumnLabels(overlay)).toStrictEqual(["Speed"]);
+
+            selectAllButton.click();
+
+            expect(selectAllButton.textContent).toBe("Deselect All");
+
+            expect(setVisibleColumns).toHaveBeenLastCalledWith(allKeys);
+
+            expect(visible).toStrictEqual(allKeys);
+
+            expect(reRender).toHaveBeenCalledOnce();
+
+            expect(getCheckedColumnLabels(overlay)).toStrictEqual(allKeys);
+
+            const key = getStorageKey(
+                { cachedFilePath: "/tmp/file.fit" },
+                allKeys
+            );
+            const storedAfterSelectAll = loadColPrefs(key, allKeys);
+
+            expect(storedAfterSelectAll).toBeNull();
+
+            const distanceInput = getInputByLabel(overlay, "Distance");
+
+            expect(distanceInput).toMatchObject({ checked: true });
+
+            distanceInput.click();
+
+            expect(selectAllButton.textContent?.trim()).toBe("Select All");
+
+            expect(visible).toStrictEqual(["Speed", "HeartRate"]);
+
+            expect(reRender).toHaveBeenCalledTimes(2);
+
+            expect(getCheckedColumnLabels(overlay)).toStrictEqual([
+                "Speed",
+                "HeartRate",
+            ]);
+
+            const storedAfterUncheck = loadColPrefs(key, allKeys);
+
+            expect(storedAfterUncheck).toStrictEqual(["Speed", "HeartRate"]);
+
+            const closeButton = getButtonByText(overlay, "Close");
+            closeButton.click();
+
+            expect(
+                document.querySelector(".summary-col-modal-overlay")
+            ).toBeNull();
+        } finally {
+            cleanup();
+        }
     });
 
-    afterEach(() => {
-        (global.navigator as any).clipboard = origClipboard;
-    });
+    it("shift-click selects a range and persists immediately via saveColPrefs in handlers", () => {
+        expect.hasAssertions();
 
-    it("toggles Select All / Deselect All and persists immediately (auto-save)", async () => {
-        const { showColModal } = await import(MODAL);
-        const { getStorageKey, loadColPrefs } = await import(HELPERS);
+        const cleanup = setupDomTest();
+        try {
+            const allKeys = ["A", "B", "C", "D", "E"];
+            let visible: string[] = [];
+            const setVisibleColumns = vi.fn<(cols: string[]) => void>(
+                (cols) => {
+                    visible = [...cols];
+                }
+            );
+            const reRender = vi.fn<() => void>();
 
-        const allKeys = [
-            "Speed",
-            "Distance",
-            "HeartRate",
-        ];
-        let visible: string[] = ["Speed"]; // start with 1 selected
-        const setVisibleColumns = vi.fn((cols: string[]) => {
-            visible = [...cols];
-        });
-        const reRender = vi.fn();
+            showColModal({
+                allKeys,
+                renderTable: reRender,
+                setVisibleColumns,
+                visibleColumns: visible,
+            });
 
-        showColModal({
-            allKeys,
-            visibleColumns: visible,
-            setVisibleColumns,
-            renderTable: reRender,
-        });
+            const overlay = getModalOverlay();
+            const columnC = getInputByLabel(overlay, "C");
+            columnC.click();
 
-        // There should be an overlay in the DOM
-        const overlay = document.querySelector(
-            ".summary-col-modal-overlay"
-        ) as HTMLElement;
-        expect(overlay).toBeTruthy();
+            expect(setVisibleColumns).toHaveBeenLastCalledWith(["C"]);
 
-        // The button text should be "Select All" initially (not all selected)
-        const selectAllBtn = overlay.querySelector(
-            ".summary-col-selectall-btn"
-        ) as HTMLButtonElement;
-        expect(selectAllBtn).toBeTruthy();
-        expect(selectAllBtn.textContent).toMatch(/Select All/i);
+            expect(visible).toStrictEqual(["C"]);
 
-        // Click Select All -> becomes Deselect All and setVisibleColumns called with all keys
-        selectAllBtn.click();
-        expect(selectAllBtn.textContent).toMatch(/Deselect All/i);
-        expect(setVisibleColumns).toHaveBeenCalled();
-        expect(visible).toEqual(allKeys);
-        expect(reRender).toHaveBeenCalledTimes(1);
+            expect(reRender).toHaveBeenCalledOnce();
 
-        // Selecting all columns matches the baseline (built-in default), so the per-file key is cleared.
-        const key = getStorageKey((global as any).window.globalData, allKeys);
-        const storedAfterSelectAll = loadColPrefs(key, allKeys);
-        expect(storedAfterSelectAll).toBeNull();
+            expect(getCheckedColumnLabels(overlay)).toStrictEqual(["C"]);
 
-        // Uncheck one column to create a non-baseline override that *should* persist.
-        const labels = Array.from(
-            overlay.querySelectorAll<HTMLLabelElement>(".col-list label")
-        );
-        const distanceLabel = labels.find(
-            (l) => (l.textContent || "").trim() === "Distance"
-        );
-        expect(distanceLabel).toBeTruthy();
-        const distanceInput = distanceLabel?.querySelector(
-            "input"
-        ) as HTMLInputElement;
-        expect(distanceInput).toBeTruthy();
-        distanceInput.click();
+            const columnE = getInputByLabel(overlay, "E");
+            const shiftMouseDown = new MouseEvent("mousedown", {
+                bubbles: true,
+                cancelable: true,
+                shiftKey: true,
+            });
+            columnE.dispatchEvent(shiftMouseDown);
 
-        expect(selectAllBtn.textContent).toMatch(/Select All/i);
-        expect(visible).toEqual(["Speed", "HeartRate"]);
-        expect(reRender).toHaveBeenCalledTimes(2);
+            expect(setVisibleColumns).toHaveBeenLastCalledWith([
+                "C",
+                "D",
+                "E",
+            ]);
 
-        const storedAfterUncheck = loadColPrefs(key, allKeys);
-        expect(storedAfterUncheck).toEqual(["Speed", "HeartRate"]);
+            expect(visible).toStrictEqual(["C", "D", "E"]);
 
-        // Close modal
-        const closeBtn = Array.from(
-            overlay.querySelectorAll<HTMLButtonElement>("button")
-        ).find((b) => (b.textContent || "").trim().toLowerCase() === "close");
-        expect(closeBtn).toBeTruthy();
-        closeBtn?.click();
-        // Overlay removed
-        expect(document.querySelector(".summary-col-modal-overlay")).toBeNull();
-    });
+            expect(reRender).toHaveBeenCalledTimes(2);
 
-    it("shift-click selects a range and persists immediately via saveColPrefs in handlers", async () => {
-        const { showColModal } = await import(MODAL);
-        const { getStorageKey, loadColPrefs } = await import(HELPERS);
+            expect(getCheckedColumnLabels(overlay)).toStrictEqual([
+                "C",
+                "D",
+                "E",
+            ]);
 
-        const allKeys = [
-            "A",
-            "B",
-            "C",
-            "D",
-            "E",
-        ];
-        let visible: string[] = [];
-        const setVisibleColumns = vi.fn((cols: string[]) => {
-            visible = [...cols];
-        });
-        const reRender = vi.fn();
+            const key = getStorageKey(
+                { cachedFilePath: "/tmp/file.fit" },
+                allKeys
+            );
+            const stored = loadColPrefs(key, allKeys);
 
-        showColModal({
-            allKeys,
-            visibleColumns: visible,
-            setVisibleColumns,
-            renderTable: reRender,
-        });
-
-        const overlay = document.querySelector(
-            ".summary-col-modal-overlay"
-        ) as HTMLElement;
-        const checkboxes = Array.from(
-            overlay.querySelectorAll<HTMLLabelElement>(".col-list label")
-        );
-        // First label is the disabled "Type" checkbox, skip it; actual keys begin at index 1
-        const keyCheckbox = (idx: number) =>
-            checkboxes[idx].querySelector("input") as HTMLInputElement;
-
-        // Click index 2 ("C") to set lastCheckedIndex
-        keyCheckbox(3).click(); // labels: 0 Type, 1 A, 2 B, 3 C, 4 D, 5 E
-        expect(visible).toEqual(["C"]);
-
-        // Now shift-mousedown on index 5 ("E") to select range C..E
-        const e = new MouseEvent("mousedown", {
-            bubbles: true,
-            cancelable: true,
-            shiftKey: true,
-        });
-        keyCheckbox(5).dispatchEvent(e);
-        // After range select, visible should be [C, D, E] sorted by allKeys order
-        expect(visible).toEqual([
-            "C",
-            "D",
-            "E",
-        ]);
-        // Re-render called from handler
-        expect(reRender).toHaveBeenCalled();
-
-        // storage updated by handler side-effect
-        const key = getStorageKey((global as any).window.globalData, allKeys);
-        const stored = loadColPrefs(key, allKeys);
-        expect(stored).toEqual([
-            "C",
-            "D",
-            "E",
-        ]);
+            expect(stored).toStrictEqual(["C", "D", "E"]);
+        } finally {
+            cleanup();
+        }
     });
 });
