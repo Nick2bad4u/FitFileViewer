@@ -220,6 +220,7 @@
         "start": "electron . --inspect=9229 --remote-debugging-port=9222",
         "prestart-prod": "npm run build:runtime-ts",
         "start-prod": "cross-env ELECTRON_IS_DEV=0 electron .",
+        "pretest": "npm run build:runtime-ts",
         "test": "node --max-old-space-size=8192 ./node_modules/vitest/vitest.mjs --run --reporter=dot --silent --maxWorkers 1",
         "test:changed": "node --max-old-space-size=8192 ./node_modules/vitest/vitest.mjs --changed --run --reporter=dot --silent --maxWorkers 1",
         "test:ci": "node --max-old-space-size=8192 ./node_modules/vitest/vitest.mjs --run --coverage --reporter=dot --silent --maxWorkers 1",
