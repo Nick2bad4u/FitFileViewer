@@ -63,8 +63,9 @@ describe("setupWindow", () => {
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         const { cleanup } = await loadModule();
 
-        cleanup();
+        const result = cleanup();
 
+        expect(result).toBeUndefined();
         expect(chartStateManagerMock.cleanup).toHaveBeenCalledTimes(1);
         expect(tabStateManagerMock.cleanup).toHaveBeenCalledTimes(1);
         expect(chartTabIntegrationMock.cleanup).toHaveBeenCalledTimes(1);
@@ -83,8 +84,9 @@ describe("setupWindow", () => {
             .mockImplementation(() => {});
         const { cleanup } = await loadModule();
 
-        cleanup();
+        const result = cleanup();
 
+        expect(result).toBeUndefined();
         expect(errorSpy).toHaveBeenCalledWith(
             "[setupWindow] Cleanup failed:",
             error
