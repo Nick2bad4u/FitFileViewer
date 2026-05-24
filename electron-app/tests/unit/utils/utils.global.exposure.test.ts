@@ -1,13 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// Utilities
-const utilsModulePath = "../../../utils.js";
-
 // Helper to import fresh module instance each time
 async function importFresh() {
     // Reset module cache to ensure fresh evaluation (module has top-level side-effects)
     vi.resetModules();
-    return await import(utilsModulePath);
+    return import("../../../utils.js");
 }
 
 // Small helper to wait for next macrotask so setTimeout(..., 0) fires
@@ -54,8 +51,15 @@ describe("utils.js – global exposure and helpers", () => {
         // The global namespace should be attached synchronously
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const w: any = window as any;
-        expect(w.FitFileViewerUtils).toBeDefined();
-        expect(typeof w.FitFileViewerUtils.getAvailableUtils).toBe("function");
+        expect(w.FitFileViewerUtils).toMatchObject({
+            cleanup: expect.any(Function),
+            getAvailableUtils: expect.any(Function),
+            getUtil: expect.any(Function),
+            isUtilAvailable: expect.any(Function),
+            namespace: "FitFileViewer",
+            safeExecute: expect.any(Function),
+            validateAllUtils: expect.any(Function),
+        });
 
         // setTimeout callback should have attached the individual utilities on window
         const available = w.FitFileViewerUtils.getAvailableUtils();
@@ -95,8 +99,16 @@ describe("utils.js – global exposure and helpers", () => {
         await nextTick();
 
         // UTILS_CONSTANTS.VERSION and FitFileViewerUtils.version should reflect the mocked version
-        expect(mod.UTILS_CONSTANTS).toBeDefined();
-        expect(mod.UTILS_CONSTANTS).toHaveProperty("VERSION");
+        expect(mod.UTILS_CONSTANTS).toMatchObject({
+            ERRORS: {
+                FUNCTION_NOT_AVAILABLE: "Function is not available",
+                INVALID_FUNCTION: "Invalid function provided",
+                NAMESPACE_COLLISION: "Namespace collision detected",
+            },
+            LOG_PREFIX: "[utils.js]",
+            NAMESPACE: "FitFileViewer",
+            VERSION: "9.9.9",
+        });
         expect(mod.UTILS_CONSTANTS.VERSION).toBe("9.9.9");
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -118,7 +130,7 @@ describe("utils.js – global exposure and helpers", () => {
         // Unknown util should throw
         expect(() =>
             w.FitFileViewerUtils.safeExecute("__does_not_exist__")
-        ).toThrow();
+        ).toThrow("Function is not available: __does_not_exist__");
 
         // Known util should execute without throwing; we don't assert exact return shape to avoid coupling
         expect(() =>
@@ -141,12 +153,21 @@ describe("utils.js – global exposure and helpers", () => {
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const w: any = window as any;
-        expect(w.devUtilsHelpers).toBeDefined();
-        expect(typeof w.devUtilsHelpers.getAttachmentResults).toBe("function");
+        expect(w.devUtilsHelpers).toEqual({
+            cleanup: expect.any(Function),
+            getAttachmentResults: expect.any(Function),
+            logLevel: "debug",
+            reattachUtils: expect.any(Function),
+            validateUtils: expect.any(Function),
+        });
 
         const results = w.devUtilsHelpers.getAttachmentResults();
-        expect(results).toBeDefined();
-        expect(Array.isArray(results.collisions)).toBe(true);
+        expect(results).toMatchObject({
+            collisions: expect.any(Array),
+            failed: expect.any(Array),
+            successful: expect.any(Array),
+            total: expect.any(Number),
+        });
 
         const hasFormatDistanceCollision = results.collisions.some(
             (c: { name: string }) => c.name === "formatDistance"
