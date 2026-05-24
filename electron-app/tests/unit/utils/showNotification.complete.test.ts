@@ -1,122 +1,95 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-    showNotification,
-    notify,
     clearAllNotifications,
+    isShowingNotification,
+    notificationQueue,
+    showNotification,
 } from "../../../utils/ui/notifications/showNotification.js";
 
-// We need to mock the module before importing to handle the resolveShown error
-vi.mock(
-    "../../../utils/ui/notifications/showNotification.js",
-    async (importOriginal) => {
-        // Get the original module
-        const originalModule = await importOriginal();
-
-        // Return a modified module with our testing hook
-        return {
-            ...originalModule,
-            // Add a hook for testing error case
-            __injectResolveShownError: (shouldThrow = true) => {
-                originalModule.__testResolveShownShouldThrow = shouldThrow;
-            },
-            // Export everything else as-is
-            showNotification: originalModule.showNotification,
-            notify: originalModule.notify,
-            clearAllNotifications: originalModule.clearAllNotifications,
-        };
-    }
-);
-
-// Import with special testing hook
-const mockModule =
-    await import("../../../utils/ui/notifications/showNotification.js");
-
-describe("showNotification.js - resolveShown error handling", () => {
-    const originalWarn = console.warn;
+describe("showNotification.js - error handling", () => {
     const originalError = console.error;
-    const originalRAF = window.requestAnimationFrame;
+    const originalWarn = console.warn;
 
     beforeEach(() => {
         vi.useFakeTimers();
         vi.restoreAllMocks();
-        console.warn = vi.fn();
         console.error = vi.fn();
-        // Mock requestAnimationFrame to execute immediately
-        window.requestAnimationFrame = (cb) => {
-            cb(0);
-            return 0;
-        };
-        document.body.innerHTML =
-            '<div id="notification" class="notification" style="display:none"></div>';
+        console.warn = vi.fn();
+
+        const notificationElement = document.createElement("div");
+        notificationElement.id = "notification";
+        notificationElement.className = "notification";
+        notificationElement.style.display = "none";
+        document.body.replaceChildren(notificationElement);
     });
 
     afterEach(() => {
+        clearAllNotifications();
         vi.runOnlyPendingTimers();
         vi.useRealTimers();
-        console.warn = originalWarn;
         console.error = originalError;
-        window.requestAnimationFrame = originalRAF;
-        document.body.innerHTML = "";
-        clearAllNotifications();
-
-        // Reset any testing flags
-        mockModule.__injectResolveShownError(false);
+        console.warn = originalWarn;
+        document.body.replaceChildren();
     });
 
-    it("handles resolveShown errors gracefully with try-finally block", async () => {
-        // Prepare to test the resolveShown error handling
-        // Mock console.error to verify it gets called
-        console.error = vi.fn();
+    it("resolves the caller promise and clears queue state when display fails", async () => {
+        const notificationElement = document.querySelector<HTMLElement>(
+            "#notification"
+        );
+        expect(notificationElement!.id).toBe("notification");
 
-        // Create a spy to detect when notification appears
-        const displayNotificationSpy = vi.fn();
-        document.getElementById = vi.fn().mockImplementation((id) => {
-            if (id === "notification") {
-                const el = document.createElement("div");
-                el.id = "notification";
-                el.className = "notification";
-                el.style.display = "none";
-
-                // Create a spy that is triggered when the element is shown
-                Object.defineProperty(el.style, "display", {
-                    set(value) {
-                        this._display = value;
-                        if (value === "flex") {
-                            displayNotificationSpy(value);
-                        }
-                    },
-                    get() {
-                        return this._display;
-                    },
-                });
-
-                return el;
-            }
-            return null;
+        const displayError = new Error("Display unavailable");
+        let displayValue = notificationElement!.style.display;
+        Object.defineProperty(notificationElement!.style, "display", {
+            configurable: true,
+            get: () => displayValue,
+            set: (value: string) => {
+                displayValue = value;
+                if (value === "flex") {
+                    throw displayError;
+                }
+            },
         });
 
-        // Run our test for try-finally block by having resolveShown throw
-        let resolvePromise;
-        const resolvePromiseReady = new Promise((resolve) => {
-            resolvePromise = resolve;
-        });
+        const shown = showNotification("Display failure", "info", 1000);
 
-        // When the notification is shown, simulate an error in resolveShown
-        displayNotificationSpy.mockImplementation(() => {
-            console.error("Error in resolveShown:", new Error("Test error"));
-            resolvePromise();
-        });
+        await expect(shown).resolves.toBeUndefined();
+        expect(console.error).toHaveBeenCalledWith(
+            "Error displaying notification:",
+            displayError
+        );
+        expect(console.error).toHaveBeenCalledWith(
+            "Error displaying notification: Display unavailable"
+        );
+        expect(
+            notificationElement!.querySelector(".notification-message")
+                ?.textContent
+        ).toBe("Display failure");
+        expect(notificationElement!.getAttribute("aria-label")).toBe(
+            "Information: Display failure"
+        );
+        expect(notificationElement!.classList.contains("show")).toBe(false);
+        expect(notificationQueue).toHaveLength(0);
+        expect(isShowingNotification).toBe(false);
+    });
 
-        // Show a notification which should trigger our mocked code
-        const p = showNotification("Test notification", "info", 1000);
+    it("rejects invalid messages without rendering notification content", async () => {
+        const notificationElement = document.querySelector<HTMLElement>(
+            "#notification"
+        );
+        expect(notificationElement!.id).toBe("notification");
 
-        // Wait until our spy indicates the display was set, then check results
-        await resolvePromiseReady;
+        const result = await showNotification("", "info", 1000);
 
-        // The error should be logged
-        expect(console.error).toHaveBeenCalled();
-
-        // Clean up
-        vi.restoreAllMocks();
+        expect(result).toBeUndefined();
+        expect(console.warn).toHaveBeenCalledWith(
+            "showNotification: Invalid message provided"
+        );
+        expect(console.error).not.toHaveBeenCalled();
+        expect(notificationElement!.children).toHaveLength(0);
+        expect(notificationElement!.className).toBe("notification");
+        expect(notificationElement!.style.display).toBe("none");
+        expect(notificationQueue).toHaveLength(0);
+        expect(isShowingNotification).toBe(false);
     });
 });
