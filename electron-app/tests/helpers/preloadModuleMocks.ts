@@ -5,6 +5,9 @@ const requireFromTest = createRequire(import.meta.url);
 const preloadIpcBridgeCatalog = requireFromTest(
     "../../preload/ipcBridgeCatalog.js"
 );
+const preloadBeforeExitHandler = requireFromTest(
+    "../../preload/beforeExitHandler.js"
+);
 
 export function resolvePreloadScriptRequire(
     moduleName: string,
@@ -16,6 +19,10 @@ export function resolvePreloadScriptRequire(
 
     if (moduleName === "./preload/ipcBridgeCatalog.js") {
         return preloadIpcBridgeCatalog;
+    }
+
+    if (moduleName === "./preload/beforeExitHandler.js") {
+        return preloadBeforeExitHandler;
     }
 
     throw new Error(`Module not mocked: ${moduleName}`);

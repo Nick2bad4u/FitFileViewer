@@ -51,6 +51,7 @@
         "main/app/setupApplicationEventHandlers.ts",
         "main/constants.ts",
         "main/dev/exposeDevHelpers.ts",
+        "preload/beforeExitHandler.ts",
         "preload/ipcBridgeCatalog.ts",
         "shared/fitUnknownMessageLabels.ts",
         "main/ipc/fileReadPayload.ts",
