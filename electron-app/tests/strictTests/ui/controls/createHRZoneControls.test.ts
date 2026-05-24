@@ -6,7 +6,9 @@ async function loadModule() {
 
 describe("createHRZoneControls", () => {
     beforeEach(() => {
-        document.body.innerHTML = '<div id="root"></div>';
+        const root = document.createElement("div");
+        root.id = "root";
+        document.body.replaceChildren(root);
         localStorage.clear();
     });
 
@@ -18,16 +20,26 @@ describe("createHRZoneControls", () => {
         const btn = section.querySelector(
             ".hr-zone-collapse-btn"
         ) as HTMLButtonElement;
-        expect(btn).toBeTruthy();
+        expect(btn).toBeInstanceOf(HTMLButtonElement);
+        expect(btn.getAttribute("aria-expanded")).toBe("true");
+        expect(btn.textContent).toBe("▼");
 
         // Default expanded -> collapse, then expand
         btn.click();
         const content = section.querySelector(
             "#hr-zone-content"
         ) as HTMLElement;
+        expect(content).toBeInstanceOf(HTMLElement);
         expect(content.style.maxHeight).toBe("0px");
+        expect(btn.getAttribute("aria-expanded")).toBe("false");
+        expect(localStorage.getItem("hr-zone-controls-collapsed")).toBe(
+            "true"
+        );
         btn.click();
         expect(content.style.maxHeight).toBe("500px");
+        expect(localStorage.getItem("hr-zone-controls-collapsed")).toBe(
+            "false"
+        );
     });
 
     it("updateHRZoneControlsVisibility toggles display", async () => {
@@ -42,5 +54,12 @@ describe("createHRZoneControls", () => {
         expect(controls.style.display).toBe("none");
         updateHRZoneControlsVisibility(true);
         expect(controls.style.display).toBe("block");
+    });
+
+    it("updateHRZoneControlsVisibility does not create controls when missing", async () => {
+        const { updateHRZoneControlsVisibility } = await loadModule();
+
+        expect(() => updateHRZoneControlsVisibility(true)).not.toThrow();
+        expect(document.getElementById("hr-zone-controls")).toBeNull();
     });
 });
