@@ -1,15 +1,24 @@
 {
+    type RendererIpcEventChannel =
+        import("../../shared/ipc").RendererIpcEventChannel;
+
     interface RendererWindowCandidate {
         isDestroyed?: () => boolean;
         webContents?: {
             isDestroyed?: () => boolean;
-            send?: (channel: string, ...args: unknown[]) => void;
+            send?: (
+                channel: RendererIpcEventChannel,
+                ...args: unknown[]
+            ) => void;
         };
     }
 
     type RendererSendWindow = RendererWindowCandidate & {
         webContents: {
-            send: (channel: string, ...args: unknown[]) => void;
+            send: (
+                channel: RendererIpcEventChannel,
+                ...args: unknown[]
+            ) => void;
         };
     };
 
@@ -32,7 +41,7 @@
      */
     function sendToRenderer(
         win: null | RendererWindowCandidate | undefined,
-        channel: string,
+        channel: RendererIpcEventChannel,
         ...args: unknown[]
     ): void {
         if (

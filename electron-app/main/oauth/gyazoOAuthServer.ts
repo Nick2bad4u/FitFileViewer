@@ -6,6 +6,8 @@
         import("../../shared/ipc").GyazoServerStopResult;
     type OAuthServer = import("node:http").Server;
     type ServerResponse = import("node:http").ServerResponse;
+    type RendererIpcEventChannel =
+        import("../../shared/ipc").RendererIpcEventChannel;
 
     interface OAuthWindowLike {
         isDestroyed?: () => boolean;
@@ -29,11 +31,12 @@
         getAppState: (key: string) => unknown;
         setAppState: (key: string, value: unknown) => void;
     };
-    const { validateWindow } = require("../window/windowValidation") as {
-        validateWindow: (
-            win?: null | OAuthWindowLike,
-            context?: string
-        ) => boolean;
+    const { sendToRenderer } = require("../ipc/sendToRenderer") as {
+        sendToRenderer: (
+            win: OAuthWindowLike | null | undefined,
+            channel: RendererIpcEventChannel,
+            ...args: unknown[]
+        ) => void;
     };
 
     function getErrorMessage(error: unknown): string {
@@ -92,15 +95,7 @@
 
     function sendOAuthCallbackToRenderer(code: string, state: string): void {
         const mainWindow = asOAuthWindow(getAppState("mainWindow"));
-        if (
-            validateWindow(mainWindow, "gyazo-oauth-callback") &&
-            typeof mainWindow?.webContents?.send === "function"
-        ) {
-            mainWindow.webContents.send("gyazo-oauth-callback", {
-                code,
-                state,
-            });
-        }
+        sendToRenderer(mainWindow, "gyazo-oauth-callback", { code, state });
     }
 
     function writeOAuthErrorPage(res: ServerResponse, error: string): void {

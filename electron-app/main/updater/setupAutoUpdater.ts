@@ -1,4 +1,8 @@
 {
+    type RendererIpcEventChannel =
+        import("../../shared/ipc").RendererIpcEventChannel;
+    type UpdateEventName = import("../../shared/ipc").UpdateEventName;
+
     interface AutoUpdaterLike {
         autoDownload?: boolean;
         checkForUpdatesAndNotify?: () => Promise<unknown> | unknown;
@@ -37,12 +41,12 @@
             INFO: string;
         };
         UPDATE_EVENTS: {
-            AVAILABLE: string;
-            CHECKING: string;
-            DOWNLOAD_PROGRESS: string;
-            DOWNLOADED: string;
-            ERROR: string;
-            NOT_AVAILABLE: string;
+            AVAILABLE: UpdateEventName;
+            CHECKING: UpdateEventName;
+            DOWNLOAD_PROGRESS: UpdateEventName;
+            DOWNLOADED: UpdateEventName;
+            ERROR: UpdateEventName;
+            NOT_AVAILABLE: UpdateEventName;
         };
     }
 
@@ -70,7 +74,7 @@
     const { sendToRenderer } = require("../ipc/sendToRenderer") as {
         sendToRenderer: (
             win: MainWindowLike | null | undefined,
-            channel: string,
+            channel: RendererIpcEventChannel,
             ...args: unknown[]
         ) => void;
     };

@@ -1,5 +1,7 @@
 {
     type BrowserWindow = import("electron").BrowserWindow;
+    type RendererIpcEventChannel =
+        import("../../shared/ipc").RendererIpcEventChannel;
 
     interface BootstrapMainWindowDependencies {
         browserWindowRef: () => unknown;
@@ -17,7 +19,11 @@
             theme: string,
             loadedFitFilePath?: string | null
         ) => void;
-        sendToRenderer: (channel: string, payload?: unknown) => void;
+        sendToRenderer: (
+            win: BrowserWindow,
+            channel: RendererIpcEventChannel,
+            ...args: unknown[]
+        ) => void;
         setAppState: (key: string, value: unknown) => void;
         setupAutoUpdater: (options: Record<string, unknown>) => unknown;
     }
@@ -26,7 +32,7 @@
         CONSTANTS: Record<string, unknown>;
     };
     const { sendToRenderer } = require("../ipc/sendToRenderer") as {
-        sendToRenderer: (channel: string, payload?: unknown) => void;
+        sendToRenderer: BootstrapMainWindowDependencies["sendToRenderer"];
     };
     const { logWithContext } = require("../logging/logWithContext") as {
         logWithContext: BootstrapMainWindowDependencies["logWithContext"];

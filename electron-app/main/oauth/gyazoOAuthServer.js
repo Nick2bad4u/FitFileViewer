@@ -3,7 +3,7 @@
     const { logWithContext } = require("../logging/logWithContext");
     const { httpRef } = require("../runtime/nodeModules");
     const { getAppState, setAppState } = require("../state/appState");
-    const { validateWindow } = require("../window/windowValidation");
+    const { sendToRenderer } = require("../ipc/sendToRenderer");
     function getErrorMessage(error) {
         return error instanceof Error ? error.message : String(error);
     }
@@ -53,15 +53,7 @@
     }
     function sendOAuthCallbackToRenderer(code, state) {
         const mainWindow = asOAuthWindow(getAppState("mainWindow"));
-        if (
-            validateWindow(mainWindow, "gyazo-oauth-callback") &&
-            typeof mainWindow?.webContents?.send === "function"
-        ) {
-            mainWindow.webContents.send("gyazo-oauth-callback", {
-                code,
-                state,
-            });
-        }
+        sendToRenderer(mainWindow, "gyazo-oauth-callback", { code, state });
     }
     function writeOAuthErrorPage(res, error) {
         res.writeHead(200, { "Content-Type": "text/html" });

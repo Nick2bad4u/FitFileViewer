@@ -1,4 +1,7 @@
 {
+    type RendererIpcEventChannel =
+        import("../../shared/ipc").RendererIpcEventChannel;
+
     interface WebContentsLike {
         executeJavaScript?: (script: string) => Promise<unknown>;
         isDestroyed?: () => boolean;
@@ -6,7 +9,7 @@
             event: "did-finish-load",
             listener: () => Promise<void> | void
         ) => void;
-        send?: (channel: string, ...args: unknown[]) => void;
+        send?: (channel: RendererIpcEventChannel, ...args: unknown[]) => void;
     }
 
     interface MainWindowLike {
@@ -53,7 +56,7 @@
         ) => void;
         sendToRenderer: (
             win: MainWindowLike,
-            channel: string,
+            channel: RendererIpcEventChannel,
             ...args: unknown[]
         ) => void;
         setAppState: (key: string, value: AppStateValue) => void;

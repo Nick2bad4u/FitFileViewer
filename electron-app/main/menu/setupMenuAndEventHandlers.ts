@@ -9,6 +9,8 @@
     type DevtoolsInvokeChannel =
         import("../../shared/ipc").DevtoolsInvokeChannel;
     type FileFilter = import("electron").FileFilter;
+    type RendererIpcEventChannel =
+        import("../../shared/ipc").RendererIpcEventChannel;
     type SaveDialogOptions = import("electron").SaveDialogOptions;
 
     interface IpcEventLike {
@@ -83,7 +85,7 @@
     const { sendToRenderer } = require("../ipc/sendToRenderer") as {
         sendToRenderer: (
             win: BrowserWindow | null | undefined,
-            channel: string,
+            channel: RendererIpcEventChannel,
             ...args: unknown[]
         ) => void;
     };
