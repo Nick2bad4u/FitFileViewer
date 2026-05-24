@@ -10,7 +10,10 @@ import {
 describe("FitFileStateManager - domain logic and selectors", () => {
     beforeEach(() => {
         // Reset DOM for progress updates
-        document.body.innerHTML = '<div id="file-loading-progress"></div>';
+        document.body.replaceChildren();
+        const progressElement = document.createElement("div");
+        progressElement.id = "file-loading-progress";
+        document.body.append(progressElement);
         // Reset state manager between tests to avoid leaked listeners/state
         stateManager.__resetStateManagerForTests();
         vi.restoreAllMocks();
@@ -179,6 +182,13 @@ describe("FitFileStateManager - domain logic and selectors", () => {
             0,
             expect.any(Object)
         );
+        expect(stateManager.getState("fitFile.isLoading")).toBe(true);
+        expect(stateManager.getState("isLoading")).toBe(true);
+        expect(stateManager.getState("fitFile.currentFile")).toBe(
+            "C:/file.fit"
+        );
+        expect(stateManager.getState("fitFile.loadingProgress")).toBe(0);
+        expect(stateManager.getState("fitFile.loadingError")).toBeNull();
     });
 
     it("handleFileLoaded updates domain + legacy slices and notifies", () => {
@@ -200,6 +210,7 @@ describe("FitFileStateManager - domain logic and selectors", () => {
         mgr.handleFileLoaded(/** @type any */ data, {
             filePath: "C:/demo.fit",
         });
+        gs.mockRestore();
 
         expect(ss).toHaveBeenCalledWith(
             "fitFile.isLoading",
@@ -258,7 +269,18 @@ describe("FitFileStateManager - domain logic and selectors", () => {
             "success",
             3000
         );
-        gs.mockRestore();
+        expect(stateManager.getState("fitFile.isLoading")).toBe(false);
+        expect(stateManager.getState("fitFile.loadingProgress")).toBe(100);
+        expect(stateManager.getState("fitFile.loadingError")).toBeNull();
+        expect(stateManager.getState("fitFile.rawData")).toBe(data);
+        expect(stateManager.getState("globalData")).toBe(data);
+        expect(stateManager.getState("currentFile")).toBe("C:/demo.fit");
+        expect(stateManager.getState("fitFile.currentFile")).toBe(
+            "C:/demo.fit"
+        );
+        expect(stateManager.getState("charts.isRendered")).toBe(false);
+        expect(stateManager.getState("map.isRendered")).toBe(false);
+        expect(stateManager.getState("tables.isRendered")).toBe(false);
     });
 
     it("handleFileLoadingError records error once and notifies", () => {
@@ -300,6 +322,7 @@ describe("FitFileStateManager - domain logic and selectors", () => {
         expect(ss).not.toHaveBeenCalled();
         expect(notif).not.toHaveBeenCalled();
         expect(consoleSpy).not.toHaveBeenCalled();
+        expect(stateManager.getState("fitFile.loadingError")).toBeUndefined();
 
         // Seed state with an existing normalized message and ensure duplicate notifications are skipped.
         stateManager.setState("fitFile.loadingError", "dupe", {
@@ -311,24 +334,39 @@ describe("FitFileStateManager - domain logic and selectors", () => {
 
         mgr.handleFileLoadingError("dupe");
 
-        expect(ss).not.toHaveBeenCalled();
-        expect(notif).not.toHaveBeenCalled();
-        expect(consoleSpy).not.toHaveBeenCalled();
+        expect({
+            consoleCalls: consoleSpy.mock.calls.length,
+            notificationCalls: notif.mock.calls.length,
+            setStateCalls: ss.mock.calls.length,
+        }).toEqual({
+            consoleCalls: 0,
+            notificationCalls: 0,
+            setStateCalls: 0,
+        });
+        expect(stateManager.getState("fitFile.loadingError")).toBe("dupe");
 
         consoleSpy.mockRestore();
     });
 
     it("processFileData sets processedData; error path sets processingError", () => {
         const mgr = new FitFileStateManager();
-        const ss = vi.spyOn(stateManager, "setState");
         mgr.processFileData({ recordMesgs: [{ heart_rate: 100 }] });
-        const processedCall = ss.mock.calls.find(
-            (c) => c[0] === "fitFile.processedData"
+        const payload = stateManager.getState("fitFile.processedData");
+        expect(payload).toEqual(
+            expect.objectContaining({
+                activityInfo: null,
+                deviceInfo: null,
+                recordCount: 1,
+                sessionInfo: null,
+            })
         );
-        expect(processedCall).toBeTruthy();
-        const payload = processedCall?.[1];
-        expect(payload.recordCount).toBe(1);
-        expect(payload.dataQuality).toBeTruthy();
+        expect(payload.dataQuality).toEqual(
+            expect.objectContaining({
+                completeness: 100,
+                hasGPS: false,
+                hasHeartRate: true,
+            })
+        );
 
         // Force error path
         const errMgr = new FitFileStateManager();
@@ -415,6 +453,14 @@ describe("FitFileStateManager - domain logic and selectors", () => {
             }),
             expect.any(Object)
         );
+        expect(stateManager.getState("fitFile.metrics")).toEqual(
+            expect.objectContaining({
+                dataQualityScore: 70,
+                hasDevice: false,
+                hasSession: false,
+                recordCount: 10,
+            })
+        );
     });
 
     it("updateLoadingProgress updates ui.loadingIndicator state", () => {
@@ -428,6 +474,10 @@ describe("FitFileStateManager - domain logic and selectors", () => {
                 source: "FitFileStateManager.updateLoadingProgress",
             })
         );
+        expect(stateManager.getState("ui.loadingIndicator")).toEqual({
+            active: true,
+            progress: 30,
+        });
     });
 
     it("validateFileData sets validation, shows error/warning/happy notifications", () => {
@@ -444,7 +494,16 @@ describe("FitFileStateManager - domain logic and selectors", () => {
             expect.objectContaining({ isValid: false }),
             expect.any(Object)
         );
-        expect(notif).toHaveBeenCalled();
+        expect(stateManager.getState("fitFile.validation")).toEqual(
+            expect.objectContaining({
+                errors: ["No data provided"],
+                isValid: false,
+            })
+        );
+        expect(notif).toHaveBeenCalledWith(
+            "File validation failed: No data provided",
+            "error"
+        );
 
         // Missing pieces -> warnings
         ss.mockClear();
@@ -460,7 +519,19 @@ describe("FitFileStateManager - domain logic and selectors", () => {
                 ]),
             })
         );
-        expect(notif).toHaveBeenCalled();
+        expect(stateManager.getState("fitFile.validation")).toEqual(
+            expect.objectContaining({
+                isValid: true,
+                warnings: expect.arrayContaining([
+                    "No session data found",
+                    "No file ID information",
+                ]),
+            })
+        );
+        expect(notif).toHaveBeenCalledWith(
+            "File loaded with warnings: No session data found, No file ID information",
+            "warning"
+        );
     });
 
     it("FitFileSelectors read values from state", () => {
