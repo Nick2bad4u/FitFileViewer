@@ -1,15 +1,20 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 describe("preload.js - Basic API Validation", () => {
     let electronMock: any;
+    let exposedGlobals: Map<string, unknown>;
     let consoleLogSpy: any;
     let consoleErrorSpy: any;
+    let beforeExitListeners: Function[];
 
     beforeEach(async () => {
         // Reset everything completely
         vi.resetAllMocks();
         vi.resetModules();
         vi.clearAllMocks();
+
+        exposedGlobals = new Map<string, unknown>();
+        beforeExitListeners = [];
 
         // Create electron mock
         electronMock = {
@@ -20,7 +25,9 @@ describe("preload.js - Basic API Validation", () => {
                 removeAllListeners: vi.fn(),
             },
             contextBridge: {
-                exposeInMainWorld: vi.fn(),
+                exposeInMainWorld: vi.fn((name: string, api: unknown) => {
+                    exposedGlobals.set(name, api);
+                }),
             },
         };
 
@@ -31,20 +38,34 @@ describe("preload.js - Basic API Validation", () => {
             .mockImplementation(() => {});
 
         // Mock process object
-        const mockProcess = {
+        const mockProcess: any = {
             env: { NODE_ENV: "development" },
-            once: vi.fn(),
+            listeners: vi.fn((eventName: string) =>
+                eventName === "beforeExit" ? beforeExitListeners : []
+            ),
+            once: vi.fn((eventName: string, listener: Function) => {
+                if (eventName === "beforeExit") {
+                    beforeExitListeners.push(listener);
+                }
+                return mockProcess;
+            }),
+            removeListener: vi.fn((eventName: string, listener: Function) => {
+                if (eventName === "beforeExit") {
+                    beforeExitListeners = beforeExitListeners.filter(
+                        (currentListener) => currentListener !== listener
+                    );
+                }
+                return mockProcess;
+            }),
         };
         vi.stubGlobal("process", mockProcess);
 
-        // Use vi.doMock instead of stubGlobal for require
+        vi.stubGlobal("__electronHoistedMock", electronMock);
         vi.doMock("electron", () => electronMock);
 
         console.log("[TEST] About to import preload script...");
 
-        // Import preload script - use dynamic import with cache busting
-        const moduleUrl = `../../preload.js?t=${Date.now()}`;
-        await import(moduleUrl);
+        await import("../../preload.js");
 
         console.log("[TEST] Preload script imported successfully");
         console.log(
@@ -58,77 +79,61 @@ describe("preload.js - Basic API Validation", () => {
         vi.restoreAllMocks();
     });
 
-    it("should attempt to validate electron APIs", () => {
-        // Temporarily restore console.log to see what's happening
-        consoleLogSpy.mockRestore();
+    it("should expose a validated electron API", () => {
+        const electronAPI = exposedGlobals.get("electronAPI") as Record<
+            string,
+            unknown
+        >;
 
-        console.log(
-            "[TEST] Total console.log calls that were captured:",
-            consoleLogSpy.mock?.calls?.length || 0
-        );
-        console.log(
-            "[TEST] contextBridge calls:",
-            electronMock.contextBridge.exposeInMainWorld.mock.calls.length
-        );
-
-        // Re-mock console.log for remaining tests
-        consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-
-        expect(true).toBe(true); // Always pass for now while debugging
+        expect(exposedGlobals.has("electronAPI")).toBe(true);
+        expect(typeof electronAPI.validateAPI).toBe("function");
+        expect(typeof electronAPI.getChannelInfo).toBe("function");
+        expect(typeof electronAPI.openFile).toBe("function");
+        expect(typeof electronAPI.readFile).toBe("function");
+        expect((electronAPI.validateAPI as () => boolean)()).toBe(true);
+        expect((electronAPI.validateAPI as () => boolean)()).not.toBe(false);
     });
 
-    it("should expose APIs if validation passes", () => {
-        // Check if contextBridge.exposeInMainWorld was called
-        const exposeCalls =
-            electronMock.contextBridge.exposeInMainWorld.mock.calls;
+    it("should expose development tools API when validation passes", () => {
+        const developmentToolsGlobalName = "devTools",
+            devTools = exposedGlobals.get(developmentToolsGlobalName) as Record<
+                string,
+                unknown
+            >,
+            preloadInfo = (
+                devTools.getPreloadInfo as () => {
+                    apiMethods: string[];
+                    version: string;
+                }
+            )();
 
-        if (exposeCalls.length > 0) {
-            // APIs were exposed successfully
-            const electronAPICall = exposeCalls.find(
-                (call: any) => call[0] === "electronAPI"
-            );
-            const devToolsCall = exposeCalls.find(
-                (call: any) => call[0] === "devTools"
-            );
-
-            expect(electronAPICall).toBeDefined();
-            expect(devToolsCall).toBeDefined();
-
-            if (electronAPICall) {
-                const electronAPI = electronAPICall[1];
-                expect(electronAPI).toHaveProperty("validateAPI");
-                expect(electronAPI).toHaveProperty("getChannelInfo");
-                expect(electronAPI).toHaveProperty("openFile");
-                expect(electronAPI).toHaveProperty("readFile");
-            }
-        } else {
-            // APIs were not exposed - validation failed
-            console.log("APIs were not exposed - validation likely failed");
-
-            // Check for validation failure in logs
-            const validationCall = consoleLogSpy.mock.calls.find(
-                (call: any) =>
-                    call[0] && call[0].includes("[preload.js] API Validation:")
-            );
-
-            if (validationCall && validationCall[1]) {
-                const validationInfo = validationCall[1];
-                console.log("Validation info:", validationInfo);
-
-                // The test passes if we can see why validation failed
-                expect(validationInfo).toHaveProperty("hasContextBridge");
-                expect(validationInfo).toHaveProperty("hasIpcRenderer");
-            }
-        }
+        expect([...exposedGlobals.keys()]).toEqual([
+            "electronAPI",
+            developmentToolsGlobalName,
+        ]);
+        expect(typeof devTools.getPreloadInfo).toBe("function");
+        expect(preloadInfo.version).toBe("1.0.0");
+        expect(preloadInfo.apiMethods).toEqual(
+            expect.arrayContaining([
+                "validateAPI",
+                "getChannelInfo",
+                "openFile",
+                "readFile",
+            ])
+        );
+        expect(preloadInfo.apiMethods).not.toHaveLength(0);
     });
 
     it("should register beforeExit handler", () => {
         // Check if process.once was called with beforeExit
         const mockProcess = globalThis.process as any;
+
         expect(mockProcess.once).toHaveBeenCalledWith(
             "beforeExit",
             expect.any(Function)
         );
+        expect(beforeExitListeners).toHaveLength(1);
+        expect(beforeExitListeners[0]).toBeTypeOf("function");
     });
 
     it("should log initialization message", () => {
@@ -141,5 +146,6 @@ describe("preload.js - Basic API Validation", () => {
         );
 
         expect(hasInitLog).toBe(true);
+        expect(hasInitLog).not.toBe(false);
     });
 });
