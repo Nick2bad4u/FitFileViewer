@@ -116,6 +116,7 @@ describe("convertArrayBufferToBase64.js - ArrayBuffer to Base64 Converter Utilit
 
             const result = convertArrayBufferToBase64(buffer);
             expect(result).toBe("SGVsbA=="); // Base64 for 'Hell'
+            expect(result).not.toBe("Hell");
         });
 
         it("should convert single byte ArrayBuffer", () => {
@@ -161,6 +162,7 @@ describe("convertArrayBufferToBase64.js - ArrayBuffer to Base64 Converter Utilit
             // Uint8Array initializes to zeros by default
             const result = convertArrayBufferToBase64(buffer);
             expect(result).toBe("AAAAAA==");
+            expect(result).not.toBe("");
         });
 
         it("should handle ArrayBuffer with all 255s", () => {
@@ -307,6 +309,7 @@ describe("convertArrayBufferToBase64.js - ArrayBuffer to Base64 Converter Utilit
             const end = Date.now();
             expect(end - start).toBeLessThan(10); // Should be very fast
             expect(typeof result).toBe("string");
+            expect(result).not.toBe("");
         });
 
         it("should handle medium buffers in reasonable time", () => {
@@ -377,12 +380,13 @@ describe("convertArrayBufferToBase64.js - ArrayBuffer to Base64 Converter Utilit
             view[4] = 90; // Cadence
             // Continue with more sensor data...
             for (let i = 5; i < 20; i++) {
-                view[i] = Math.floor(Math.random() * 256);
+                view[i] = (i * 17 + 31) % 256;
             }
 
             const result = convertArrayBufferToBase64(buffer);
             expect(typeof result).toBe("string");
             expect(result.length).toBeGreaterThan(0);
+            expect(result).not.toBe("");
         });
 
         it("should handle empty FIT record", () => {
@@ -426,24 +430,25 @@ describe("convertArrayBufferToBase64.js - ArrayBuffer to Base64 Converter Utilit
 
             // Valid Base64 pattern: A-Z, a-z, 0-9, +, /, = (padding)
             expect(result).toMatch(/^[A-Za-z0-9+/]*={0,2}$/);
+            expect(result).not.toContain("-");
         });
 
         it("should have correct padding for different input lengths", () => {
             // Test different lengths that require different padding
-            const testLengths = [
-                1,
-                2,
-                3,
-                4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10,
+            const testCases = [
+                { length: 1, padding: 2 },
+                { length: 2, padding: 1 },
+                { length: 3, padding: 0 },
+                { length: 4, padding: 2 },
+                { length: 5, padding: 1 },
+                { length: 6, padding: 0 },
+                { length: 7, padding: 2 },
+                { length: 8, padding: 1 },
+                { length: 9, padding: 0 },
+                { length: 10, padding: 2 },
             ];
 
-            testLengths.forEach((length) => {
+            testCases.forEach(({ length, padding }) => {
                 const buffer = new ArrayBuffer(length);
                 const view = new Uint8Array(buffer);
                 view.fill(65); // Fill with 'A'
@@ -453,24 +458,8 @@ describe("convertArrayBufferToBase64.js - ArrayBuffer to Base64 Converter Utilit
                 // Length should be multiple of 4 (with padding)
                 expect(result.length % 4).toBe(0);
 
-                // Check correct padding based on input length
-                const remainder = length % 3;
-                let expectedPadding;
-                if (remainder === 1) {
-                    expectedPadding = 2; // 1 byte → 2 padding chars
-                } else if (remainder === 2) {
-                    expectedPadding = 1; // 2 bytes → 1 padding char
-                } else {
-                    expectedPadding = 0; // 3 bytes → 0 padding chars
-                }
-
-                if (expectedPadding > 0) {
-                    expect(result.endsWith("=".repeat(expectedPadding))).toBe(
-                        true
-                    );
-                } else {
-                    expect(result.endsWith("=")).toBe(false);
-                }
+                const paddingMatch = result.match(/=*$/);
+                expect(paddingMatch?.[0].length).toBe(padding);
             });
         });
 
