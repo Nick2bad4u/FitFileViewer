@@ -107,6 +107,365 @@ vi.doMock("./utils/debug/debugChartFormatting.js", () => ({
     testFaveroStringCase: vi.fn(),
 }));
 
+const REQUIRED_DOM_ELEMENTS = [
+    { id: "openFileBtn", name: "Open File button" },
+    { id: "notification", name: "Notification container" },
+    { id: "loadingOverlay", name: "Loading overlay" },
+];
+
+function isDevelopmentModeFor(
+    windowRef: any,
+    documentRef: any,
+    consoleRef: Console | undefined = global.console
+) {
+    return (
+        windowRef.location.hostname === "localhost" ||
+        windowRef.location.hostname === "127.0.0.1" ||
+        windowRef.location.hostname.includes("dev") ||
+        windowRef.__DEVELOPMENT__ === true ||
+        windowRef.location.search.includes("debug=true") ||
+        documentRef.documentElement.hasAttribute("data-dev-mode") ||
+        windowRef.location.protocol === "file:" ||
+        (windowRef.electronAPI &&
+            typeof windowRef.electronAPI.__devMode !== "undefined") ||
+        (typeof consoleRef !== "undefined" &&
+            windowRef.location.href.includes("electron"))
+    );
+}
+
+function getEnvironmentFor(windowRef: any, documentRef: any) {
+    return isDevelopmentModeFor(windowRef, documentRef)
+        ? "development"
+        : "production";
+}
+
+async function initializeStateManagerFor(
+    masterStateManager: any,
+    appActions: any,
+    getStateFn: any,
+    subscribeFn: any
+) {
+    try {
+        console.log("[Renderer] Initializing state management system...");
+        await masterStateManager.initialize();
+
+        subscribeFn("app.isOpeningFile", () => undefined);
+
+        return {
+            get isInitialized() {
+                return masterStateManager.getState().app.initialized;
+            },
+            set isInitialized(value) {
+                appActions.setInitialized(value);
+            },
+            get isOpeningFile() {
+                return masterStateManager.getState().app.isOpeningFile;
+            },
+            set isOpeningFile(value) {
+                appActions.setFileOpening(value);
+            },
+            get startTime() {
+                return getStateFn("app.startTime");
+            },
+        };
+    } catch (error) {
+        console.error("[Renderer] Failed to initialize state manager:", error);
+        throw error;
+    }
+}
+
+function handleUnhandledRejectionFor(
+    showNotification: any,
+    _masterStateManager: any,
+    event: any
+) {
+    console.error("[Renderer] Unhandled promise rejection:", event.reason);
+
+    try {
+        showNotification(
+            `Application error: ${event.reason?.message || "Unknown error"}`,
+            "error",
+            5000
+        );
+    } catch (notifyError) {
+        console.error(
+            "[Renderer] Failed to show error notification:",
+            notifyError
+        );
+    }
+
+    event.preventDefault();
+    return "unhandled_rejection_handled";
+}
+
+function handleUncaughtErrorFor(
+    showNotification: any,
+    _masterStateManager: any,
+    event: any
+) {
+    console.error("[Renderer] Uncaught error:", event.error);
+
+    try {
+        showNotification(
+            `Critical error: ${event.error?.message || "Unknown error"}`,
+            "error",
+            7000
+        );
+    } catch (notifyError) {
+        console.error(
+            "[Renderer] Failed to show error notification:",
+            notifyError
+        );
+    }
+    return "uncaught_error_handled";
+}
+
+function validateDOMElementsFor(documentRef: any, showNotification: any) {
+    const missingElements = REQUIRED_DOM_ELEMENTS.filter(
+        ({ id }) => !documentRef.getElementById(id)
+    );
+
+    if (missingElements.length > 0) {
+        const missing = missingElements.map(({ name }) => name).join(", ");
+        console.error("[Renderer] Missing required DOM elements:", missing);
+
+        try {
+            showNotification(
+                `Critical: Missing UI elements: ${missing}`,
+                "error",
+                10000
+            );
+        } catch (error) {
+            console.error("[Renderer] Could not show notification:", error);
+        }
+        return false;
+    }
+
+    return true;
+}
+
+function createPerformanceMonitor(performanceRef: Performance) {
+    return {
+        metrics: new Map<string, number>(),
+
+        start(operation: string) {
+            this.metrics.set(`${operation}_start`, performanceRef.now());
+        },
+
+        end(operation: string) {
+            const startTime = this.metrics.get(`${operation}_start`);
+            if (startTime === undefined) {
+                console.warn(
+                    `[Performance] No start time found for operation: ${operation}`
+                );
+                return 0;
+            }
+
+            const duration = performanceRef.now() - startTime;
+            this.metrics.set(operation, duration);
+
+            console.log(`[Performance] ${operation}: ${duration.toFixed(2)}ms`);
+            return duration;
+        },
+
+        getMetrics() {
+            const result: Record<string, number> = {};
+            for (const [key, value] of this.metrics) {
+                if (!key.endsWith("_start")) {
+                    result[key] = value;
+                }
+            }
+            return result;
+        },
+    };
+}
+
+function createAppInfo(navigatorRef: any, performanceRef: any) {
+    return {
+        name: "FIT File Viewer",
+        version: "21.1.0",
+        description: "Advanced FIT file analysis and visualization tool",
+        author: "FIT File Viewer Team",
+        repository: "https://github.com/user/FitFileViewer",
+        license: "MIT",
+
+        getRuntimeInfo() {
+            return {
+                userAgent: navigatorRef.userAgent,
+                platform: navigatorRef.platform,
+                language: navigatorRef.language,
+                cookieEnabled: navigatorRef.cookieEnabled,
+                onLine: navigatorRef.onLine,
+                hardwareConcurrency: navigatorRef.hardwareConcurrency,
+                memoryUsage: performanceRef.memory
+                    ? {
+                          usedJSHeapSize: performanceRef.memory.usedJSHeapSize,
+                          totalJSHeapSize:
+                              performanceRef.memory.totalJSHeapSize,
+                          jsHeapSizeLimit:
+                              performanceRef.memory.jsHeapSizeLimit,
+                      }
+                    : null,
+            };
+        },
+    };
+}
+
+function cleanupRendererFor(
+    masterStateManager: any,
+    appActions: any,
+    windowRef?: any
+) {
+    const noopUnhandledRejection = () => undefined;
+    const noopError = () => undefined;
+
+    try {
+        console.log("[Renderer] Performing cleanup...");
+
+        windowRef?.removeEventListener(
+            "unhandledrejection",
+            noopUnhandledRejection
+        );
+        windowRef?.removeEventListener("error", noopError);
+
+        if (masterStateManager.isInitialized) {
+            appActions.setInitialized(false);
+            appActions.setFileOpening(false);
+            masterStateManager.cleanup();
+            console.log("[Renderer] Cleanup completed");
+            return "state_manager_cleaned";
+        }
+
+        const appState = { isInitialized: true, isOpeningFile: true };
+        const isOpeningFileRef = { value: true };
+
+        appState.isInitialized = false;
+        appState.isOpeningFile = false;
+        isOpeningFileRef.value = false;
+
+        console.log("[Renderer] Cleanup completed");
+        return { appState, isOpeningFileRef };
+    } catch (error) {
+        console.error("[Renderer] Cleanup failed:", error);
+        return "cleanup_failed";
+    }
+}
+
+async function initializeComponentsFor(
+    setupTheme: any,
+    setupListeners: any,
+    dependencies: any
+) {
+    try {
+        console.log("[Renderer] Setting up theme system...");
+        setupTheme(dependencies.applyTheme, dependencies.listenForThemeChange);
+
+        console.log("[Renderer] Setting up event listeners...");
+        if (dependencies.openFileBtn) {
+            setupListeners(dependencies);
+            console.log("[Renderer] All components initialized successfully");
+            return "listeners_ready";
+        }
+
+        console.warn(
+            "[Renderer] Open file button not found, skipping listener setup"
+        );
+        console.log("[Renderer] All components initialized successfully");
+        return "listeners_skipped";
+    } catch (error) {
+        console.error("[Renderer] Component initialization failed:", error);
+        throw error;
+    }
+}
+
+async function initializeRecentFilesFor(windowRef: any) {
+    try {
+        if (windowRef.electronAPI?.recentFiles) {
+            try {
+                await windowRef.electronAPI.recentFiles();
+                console.log("[Renderer] Recent files API available");
+                return "recent_files_ready";
+            } catch (error) {
+                console.warn("[Renderer] Recent files initialization failed:", error);
+                return "recent_files_failed";
+            }
+        }
+        return "recent_files_unavailable";
+    } catch (error) {
+        console.warn("[Renderer] Some async components failed to initialize:", error);
+        return "async_components_failed";
+    }
+}
+
+function scheduleProductionUpdateCheckFor(windowRef: any) {
+    try {
+        if (windowRef.electronAPI?.checkForUpdates) {
+            try {
+                windowRef.setTimeout(() => {
+                    windowRef.electronAPI.checkForUpdates();
+                }, 5000);
+                return "update_check_scheduled";
+            } catch (error) {
+                console.warn("[Renderer] Update check failed:", error);
+                return "update_check_failed";
+            }
+        }
+        return "update_check_unavailable";
+    } catch (error) {
+        console.warn("[Renderer] Some async components failed to initialize:", error);
+        return "async_components_failed";
+    }
+}
+
+function exposeUtilitiesFor(windowRef: any, createExportGPXButton: any, appInfo: any) {
+    if (typeof windowRef !== "undefined") {
+        windowRef.createExportGPXButton = createExportGPXButton;
+        windowRef.APP_INFO = appInfo;
+    }
+
+    return {
+        createExportGPXButton: windowRef.createExportGPXButton,
+        APP_INFO: windowRef.APP_INFO,
+    };
+}
+
+function exposeDevelopmentUtilitiesFor(
+    windowRef: any,
+    showNotification: any,
+    handleOpenFile: any
+) {
+    if (typeof windowRef !== "undefined") {
+        windowRef.__renderer_debug = {
+            showNotification,
+            handleOpenFile,
+        };
+    }
+
+    return windowRef.__renderer_debug;
+}
+
+function getWindowAvailability(windowRef: any) {
+    if (typeof windowRef !== "undefined") {
+        return {
+            hasWindow: true,
+            hasLocation: Boolean(windowRef.location),
+            hasNavigator: Boolean(windowRef.navigator),
+            hasElectronAPI: Boolean(windowRef.electronAPI),
+        };
+    }
+    return { hasWindow: false };
+}
+
+function handleDomReadyState(documentRef: any, windowRef: any, initFunction: any) {
+    if (documentRef.readyState === "loading") {
+        documentRef["addEventListener"]("DOMContentLoaded", initFunction);
+        return "waiting_for_dom";
+    }
+
+    windowRef.setTimeout(initFunction, 0);
+    return "immediate_init";
+}
+
 describe("renderer.js - Basic Test Coverage", () => {
     let originalDocument: Document;
     let originalWindow: Window & typeof globalThis;
@@ -125,6 +484,15 @@ describe("renderer.js - Basic Test Coverage", () => {
 
         // Reset master state manager
         mockMasterStateManager.isInitialized = false;
+        mockMasterStateManager.initialize.mockResolvedValue(undefined);
+        mockMasterStateManager.getState.mockReturnValue({
+            app: {
+                initialized: false,
+                isOpeningFile: false,
+                startTime: 1000,
+            },
+        });
+        mockGetState.mockReturnValue(1000);
 
         // Setup DOM environment
         const mockDocument = {
@@ -228,45 +596,13 @@ describe("renderer.js - Basic Test Coverage", () => {
 
     describe("Environment Detection", () => {
         it("should detect development mode correctly", async () => {
-            // Create a virtual module to test environment functions
-            const moduleCode = `
-                function isDevelopmentMode() {
-                    return (
-                        window.location.hostname === "localhost" ||
-                        window.location.hostname === "127.0.0.1" ||
-                        window.location.hostname.includes("dev") ||
-                        window.__DEVELOPMENT__ === true ||
-                        window.location.search.includes("debug=true") ||
-                        document.documentElement.hasAttribute("data-dev-mode") ||
-                        window.location.protocol === "file:" ||
-                        (window.electronAPI && typeof window.electronAPI.__devMode !== "undefined") ||
-                        (typeof console !== "undefined" && window.location.href.includes("electron"))
-                    );
-                }
-
-                function getEnvironment() {
-                    return isDevelopmentMode() ? "development" : "production";
-                }
-
-                return { isDevelopmentMode, getEnvironment };
-            `;
-
-            const moduleFunction = new Function(
-                "window",
-                "document",
-                "console",
-                moduleCode
-            );
-
-            const envUtils = moduleFunction(
-                global.window,
-                global.document,
-                global.console
-            );
-
             // Test localhost detection
-            expect(envUtils.isDevelopmentMode()).toBe(true);
-            expect(envUtils.getEnvironment()).toBe("development");
+            expect(isDevelopmentModeFor(global.window, global.document)).toBe(
+                true
+            );
+            expect(getEnvironmentFor(global.window, global.document)).toBe(
+                "development"
+            );
         });
 
         it("should detect production mode correctly", async () => {
@@ -275,43 +611,15 @@ describe("renderer.js - Basic Test Coverage", () => {
             (global.window as any).electronAPI = undefined;
             (global.window as any).__DEVELOPMENT__ = undefined;
 
-            const moduleCode = `
-                function isDevelopmentMode() {
-                    return (
-                        window.location.hostname === "localhost" ||
-                        window.location.hostname === "127.0.0.1" ||
-                        window.location.hostname.includes("dev") ||
-                        window.__DEVELOPMENT__ === true ||
-                        window.location.search.includes("debug=true") ||
-                        document.documentElement.hasAttribute("data-dev-mode") ||
-                        window.location.protocol === "file:" ||
-                        (window.electronAPI && typeof window.electronAPI.__devMode !== "undefined") ||
-                        (typeof console !== "undefined" && window.location.href.includes("electron"))
-                    );
-                }
-
-                function getEnvironment() {
-                    return isDevelopmentMode() ? "development" : "production";
-                }
-
-                return { isDevelopmentMode, getEnvironment };
-            `;
-
-            const moduleFunction = new Function(
-                "window",
-                "document",
-                "console",
-                moduleCode
+            expect(isDevelopmentModeFor(global.window, global.document)).toBe(
+                false
             );
-
-            const envUtils = moduleFunction(
-                global.window,
-                global.document,
-                global.console
+            expect(getEnvironmentFor(global.window, global.document)).toBe(
+                "production"
             );
-
-            expect(envUtils.isDevelopmentMode()).toBe(false);
-            expect(envUtils.getEnvironment()).toBe("production");
+            expect(getEnvironmentFor(global.window, global.document)).not.toBe(
+                "development"
+            );
         });
 
         it("should handle different development indicators", async () => {
@@ -333,37 +641,9 @@ describe("renderer.js - Basic Test Coverage", () => {
                 // Set specific test case
                 (global.window.location as any)[testCase.prop] = testCase.value;
 
-                const moduleCode = `
-                    function isDevelopmentMode() {
-                        return (
-                            window.location.hostname === "localhost" ||
-                            window.location.hostname === "127.0.0.1" ||
-                            window.location.hostname.includes("dev") ||
-                            window.__DEVELOPMENT__ === true ||
-                            window.location.search.includes("debug=true") ||
-                            document.documentElement.hasAttribute("data-dev-mode") ||
-                            window.location.protocol === "file:" ||
-                            (window.electronAPI && typeof window.electronAPI.__devMode !== "undefined") ||
-                            (typeof console !== "undefined" && window.location.href.includes("electron"))
-                        );
-                    }
-
-                    return { isDevelopmentMode };
-                `;
-
-                const moduleFunction = new Function(
-                    "window",
-                    "document",
-                    "console",
-                    moduleCode
+                expect(isDevelopmentModeFor(global.window, global.document)).toBe(
+                    testCase.expected
                 );
-                const result = moduleFunction(
-                    global.window,
-                    global.document,
-                    global.console
-                );
-
-                expect(result.isDevelopmentMode()).toBe(testCase.expected);
             }
         });
     });
@@ -372,47 +652,7 @@ describe("renderer.js - Basic Test Coverage", () => {
         it("should initialize state manager successfully", async () => {
             mockMasterStateManager.isInitialized = true;
 
-            const initCode = `
-                const mockMasterStateManager = arguments[0];
-                const mockAppActions = arguments[1];
-                const mockGetState = arguments[2];
-                const mockSubscribe = arguments[3];
-
-                async function initializeStateManager() {
-                    console.log("[Renderer] Initializing state management system...");
-                    await mockMasterStateManager.initialize();
-
-                    const appState = {
-                        get isInitialized() {
-                            return mockMasterStateManager.getState().app.initialized;
-                        },
-                        set isInitialized(value) {
-                            mockAppActions.setInitialized(value);
-                        },
-                        get isOpeningFile() {
-                            return mockMasterStateManager.getState().app.isOpeningFile;
-                        },
-                        set isOpeningFile(value) {
-                            mockAppActions.setFileOpening(value);
-                        },
-                        get startTime() {
-                            return mockGetState("app.startTime");
-                        },
-                    };
-
-                    mockSubscribe("app.isOpeningFile", (isOpening) => {
-                        // Update reference
-                    });
-
-                    console.log("[Renderer] State management system initialized");
-                    return appState;
-                }
-
-                return initializeStateManager();
-            `;
-
-            const initFunction = new Function(initCode);
-            const result = await initFunction(
+            const result = await initializeStateManagerFor(
                 mockMasterStateManager,
                 mockAppActions,
                 mockGetState,
@@ -420,9 +660,15 @@ describe("renderer.js - Basic Test Coverage", () => {
             );
 
             expect(mockMasterStateManager.initialize).toHaveBeenCalled();
-            expect(result).toBeDefined();
-            // The result object may have various properties - check what's available
-            expect(typeof result).toBe("object");
+            expect(mockSubscribe).toHaveBeenCalledWith(
+                "app.isOpeningFile",
+                expect.any(Function)
+            );
+            expect(result).toMatchObject({
+                isInitialized: false,
+                isOpeningFile: false,
+                startTime: 1000,
+            });
         });
 
         it("should handle state manager initialization failure", async () => {
@@ -430,79 +676,33 @@ describe("renderer.js - Basic Test Coverage", () => {
                 new Error("Init failed")
             );
 
-            const initCode = `
-                const mockMasterStateManager = arguments[0];
-                const mockAppActions = arguments[1];
-
-                async function initializeStateManager() {
-                    try {
-                        console.log("[Renderer] Initializing state management system...");
-                        await mockMasterStateManager.initialize();
-
-                        console.log("[Renderer] State management system initialized");
-                    } catch (error) {
-                        console.error("[Renderer] Failed to initialize state manager:", error);
-
-                        const appState = {
-                            isInitialized: false,
-                            isOpeningFile: false,
-                            startTime: performance.now(),
-                        };
-
-                        throw error;
-                    }
-                }
-
-                return initializeStateManager();
-            `;
-
-            const initFunction = new Function(initCode);
-
             await expect(
-                initFunction(mockMasterStateManager, mockAppActions)
+                initializeStateManagerFor(
+                    mockMasterStateManager,
+                    mockAppActions,
+                    mockGetState,
+                    mockSubscribe
+                )
             ).rejects.toThrow("Init failed");
             expect(mockMasterStateManager.initialize).toHaveBeenCalled();
+            expect(mockSubscribe).not.toHaveBeenCalled();
         });
     });
 
     describe("Error Handling", () => {
         it("should handle unhandled promise rejections", async () => {
-            const errorCode = `
-                const mockShowNotification = arguments[0];
-                const mockMasterStateManager = arguments[1];
-
-                function handleUnhandledRejection(event) {
-                    console.error("[Renderer] Unhandled promise rejection:", event.reason);
-
-                    try {
-                        if (mockMasterStateManager && mockMasterStateManager.isInitialized) {
-                            mockShowNotification(\`Application error: \${event.reason?.message || "Unknown error"}\`, "error", 5000);
-                        } else {
-                            mockShowNotification(\`Application error: \${event.reason?.message || "Unknown error"}\`, "error", 5000);
-                        }
-                    } catch (notifyError) {
-                        console.error("[Renderer] Failed to show error notification:", notifyError);
-                    }
-
-                    event.preventDefault();
-                }
-
-                return handleUnhandledRejection;
-            `;
-
-            const errorFunction = new Function(errorCode);
-            const handler = errorFunction(
-                mockShowNotification,
-                mockMasterStateManager
-            );
-
             const mockEvent = {
                 reason: new Error("Test rejection"),
                 preventDefault: vi.fn(),
             };
 
-            handler(mockEvent);
+            const handlingOutcome = handleUnhandledRejectionFor(
+                mockShowNotification,
+                mockMasterStateManager,
+                mockEvent
+            );
 
+            expect(handlingOutcome).toBe("unhandled_rejection_handled");
             expect(mockShowNotification).toHaveBeenCalledWith(
                 "Application error: Test rejection",
                 "error",
@@ -512,43 +712,26 @@ describe("renderer.js - Basic Test Coverage", () => {
         });
 
         it("should handle uncaught errors", async () => {
-            const errorCode = `
-                const mockShowNotification = arguments[0];
-                const mockMasterStateManager = arguments[1];
-
-                function handleUncaughtError(event) {
-                    console.error("[Renderer] Uncaught error:", event.error);
-
-                    try {
-                        if (mockMasterStateManager && mockMasterStateManager.isInitialized) {
-                            mockShowNotification(\`Critical error: \${event.error?.message || "Unknown error"}\`, "error", 7000);
-                        } else {
-                            mockShowNotification(\`Critical error: \${event.error?.message || "Unknown error"}\`, "error", 7000);
-                        }
-                    } catch (notifyError) {
-                        console.error("[Renderer] Failed to show error notification:", notifyError);
-                    }
-                }
-
-                return handleUncaughtError;
-            `;
-
-            const errorFunction = new Function(errorCode);
-            const handler = errorFunction(
-                mockShowNotification,
-                mockMasterStateManager
-            );
-
             const mockEvent = {
                 error: new Error("Test uncaught error"),
             };
 
-            handler(mockEvent);
+            const handlingOutcome = handleUncaughtErrorFor(
+                mockShowNotification,
+                mockMasterStateManager,
+                mockEvent
+            );
 
+            expect(handlingOutcome).toBe("uncaught_error_handled");
             expect(mockShowNotification).toHaveBeenCalledWith(
                 "Critical error: Test uncaught error",
                 "error",
                 7000
+            );
+            expect(mockShowNotification).not.toHaveBeenCalledWith(
+                "Application error: Test uncaught error",
+                "error",
+                5000
             );
         });
 
@@ -557,39 +740,24 @@ describe("renderer.js - Basic Test Coverage", () => {
                 throw new Error("Notification failed");
             });
 
-            const errorCode = `
-                const mockShowNotification = arguments[0];
-                const mockMasterStateManager = arguments[1];
-
-                function handleUnhandledRejection(event) {
-                    console.error("[Renderer] Unhandled promise rejection:", event.reason);
-
-                    try {
-                        mockShowNotification("Test notification", "error", 5000);
-                    } catch (notifyError) {
-                        console.error("[Renderer] Failed to show error notification:", notifyError);
-                    }
-
-                    event.preventDefault();
-                }
-
-                return handleUnhandledRejection;
-            `;
-
-            const errorFunction = new Function(errorCode);
-            const handler = errorFunction(
-                mockShowNotification,
-                mockMasterStateManager
-            );
-
             const mockEvent = {
                 reason: new Error("Test error"),
                 preventDefault: vi.fn(),
             };
 
             // Should not throw despite notification failure
-            expect(() => handler(mockEvent)).not.toThrow();
+            expect(() =>
+                handleUnhandledRejectionFor(
+                    mockShowNotification,
+                    mockMasterStateManager,
+                    mockEvent
+                )
+            ).not.toThrow();
             expect(mockEvent.preventDefault).toHaveBeenCalled();
+            expect(global.console.error).toHaveBeenCalledWith(
+                "[Renderer] Failed to show error notification:",
+                expect.any(Error)
+            );
         });
     });
 
@@ -606,39 +774,7 @@ describe("renderer.js - Basic Test Coverage", () => {
                     return requiredIds.includes(id) ? { id } : null;
                 });
 
-            const validationCode = `
-                const mockDocument = arguments[0];
-                const mockShowNotification = arguments[1];
-
-                function validateDOMElements() {
-                    const requiredElements = [
-                        { id: "openFileBtn", name: "Open File button" },
-                        { id: "notification", name: "Notification container" },
-                        { id: "loadingOverlay", name: "Loading overlay" },
-                    ];
-
-                    const missingElements = requiredElements.filter(({ id }) => !mockDocument.getElementById(id));
-
-                    if (missingElements.length > 0) {
-                        const missing = missingElements.map(({ name }) => name).join(", ");
-                        console.error("[Renderer] Missing required DOM elements:", missing);
-
-                        try {
-                            mockShowNotification(\`Critical: Missing UI elements: \${missing}\`, "error", 10000);
-                        } catch (error) {
-                            console.error("[Renderer] Could not show notification:", error);
-                        }
-                        return false;
-                    }
-
-                    return true;
-                }
-
-                return validateDOMElements();
-            `;
-
-            const validationFunction = new Function(validationCode);
-            const result = validationFunction(
+            const result = validateDOMElementsFor(
                 global.document,
                 mockShowNotification
             );
@@ -650,39 +786,7 @@ describe("renderer.js - Basic Test Coverage", () => {
         it("should handle missing DOM elements", async () => {
             global.document.getElementById = vi.fn().mockReturnValue(null);
 
-            const validationCode = `
-                const mockDocument = arguments[0];
-                const mockShowNotification = arguments[1];
-
-                function validateDOMElements() {
-                    const requiredElements = [
-                        { id: "openFileBtn", name: "Open File button" },
-                        { id: "notification", name: "Notification container" },
-                        { id: "loadingOverlay", name: "Loading overlay" },
-                    ];
-
-                    const missingElements = requiredElements.filter(({ id }) => !mockDocument.getElementById(id));
-
-                    if (missingElements.length > 0) {
-                        const missing = missingElements.map(({ name }) => name).join(", ");
-                        console.error("[Renderer] Missing required DOM elements:", missing);
-
-                        try {
-                            mockShowNotification(\`Critical: Missing UI elements: \${missing}\`, "error", 10000);
-                        } catch (error) {
-                            console.error("[Renderer] Could not show notification:", error);
-                        }
-                        return false;
-                    }
-
-                    return true;
-                }
-
-                return validateDOMElements();
-            `;
-
-            const validationFunction = new Function(validationCode);
-            const result = validationFunction(
+            const result = validateDOMElementsFor(
                 global.document,
                 mockShowNotification
             );
@@ -698,44 +802,7 @@ describe("renderer.js - Basic Test Coverage", () => {
 
     describe("Performance Monitoring", () => {
         it("should track performance metrics correctly", async () => {
-            const performanceCode = `
-                const PerformanceMonitor = {
-                    metrics: new Map(),
-
-                    start(operation) {
-                        this.metrics.set(\`\${operation}_start\`, performance.now());
-                    },
-
-                    end(operation) {
-                        const startTime = this.metrics.get(\`\${operation}_start\`);
-                        if (!startTime) {
-                            console.warn(\`[Performance] No start time found for operation: \${operation}\`);
-                            return 0;
-                        }
-
-                        const duration = performance.now() - startTime;
-                        this.metrics.set(operation, duration);
-
-                        console.log(\`[Performance] \${operation}: \${duration.toFixed(2)}ms\`);
-                        return duration;
-                    },
-
-                    getMetrics() {
-                        const result = {};
-                        for (const [key, value] of this.metrics) {
-                            if (!key.endsWith("_start")) {
-                                result[key] = value;
-                            }
-                        }
-                        return result;
-                    }
-                };
-
-                return PerformanceMonitor;
-            `;
-
-            const performanceFunction = new Function(performanceCode);
-            const monitor = performanceFunction();
+            const monitor = createPerformanceMonitor(global.performance);
 
             // Test start timing
             monitor.start("test_operation");
@@ -756,69 +823,20 @@ describe("renderer.js - Basic Test Coverage", () => {
         });
 
         it("should handle missing start time gracefully", async () => {
-            const performanceCode = `
-                const PerformanceMonitor = {
-                    metrics: new Map(),
-
-                    end(operation) {
-                        const startTime = this.metrics.get(\`\${operation}_start\`);
-                        if (!startTime) {
-                            console.warn(\`[Performance] No start time found for operation: \${operation}\`);
-                            return 0;
-                        }
-
-                        return performance.now() - startTime;
-                    }
-                };
-
-                return PerformanceMonitor;
-            `;
-
-            const performanceFunction = new Function(performanceCode);
-            const monitor = performanceFunction();
+            const monitor = createPerformanceMonitor(global.performance);
 
             const duration = monitor.end("missing_operation");
             expect(duration).toBe(0);
+            expect(monitor.metrics.has("missing_operation")).toBe(false);
+            expect(global.console.warn).toHaveBeenCalledWith(
+                "[Performance] No start time found for operation: missing_operation"
+            );
         });
     });
 
     describe("Application Information", () => {
         it("should provide correct app information", async () => {
-            const appInfoCode = `
-                const APP_INFO = {
-                    name: "FIT File Viewer",
-                    version: "21.1.0",
-                    description: "Advanced FIT file analysis and visualization tool",
-                    author: "FIT File Viewer Team",
-                    repository: "https://github.com/user/FitFileViewer",
-                    license: "MIT",
-
-                    getRuntimeInfo() {
-                        return {
-                            userAgent: navigator.userAgent,
-                            platform: navigator.platform,
-                            language: navigator.language,
-                            cookieEnabled: navigator.cookieEnabled,
-                            onLine: navigator.onLine,
-                            hardwareConcurrency: navigator.hardwareConcurrency,
-                            memoryUsage: performance.memory ? {
-                                usedJSHeapSize: performance.memory.usedJSHeapSize,
-                                totalJSHeapSize: performance.memory.totalJSHeapSize,
-                                jsHeapSizeLimit: performance.memory.jsHeapSizeLimit,
-                            } : null,
-                        };
-                    },
-                };
-
-                return APP_INFO;
-            `;
-
-            const appInfoFunction = new Function(
-                "navigator",
-                "performance",
-                appInfoCode
-            );
-            const appInfo = appInfoFunction(
+            const appInfo = createAppInfo(
                 global.navigator,
                 global.performance
             );
@@ -845,26 +863,13 @@ describe("renderer.js - Basic Test Coverage", () => {
                 memory: null,
             };
 
-            const appInfoCode = `
-                const APP_INFO = {
-                    getRuntimeInfo() {
-                        return {
-                            memoryUsage: performance.memory ? {
-                                usedJSHeapSize: performance.memory.usedJSHeapSize,
-                                totalJSHeapSize: performance.memory.totalJSHeapSize,
-                                jsHeapSizeLimit: performance.memory.jsHeapSizeLimit,
-                            } : null,
-                        };
-                    },
-                };
-
-                return APP_INFO.getRuntimeInfo();
-            `;
-
-            const appInfoFunction = new Function("performance", appInfoCode);
-            const runtimeInfo = appInfoFunction(mockPerformanceNoMemory);
+            const runtimeInfo = createAppInfo(
+                global.navigator,
+                mockPerformanceNoMemory
+            ).getRuntimeInfo();
 
             expect(runtimeInfo.memoryUsage).toBeNull();
+            expect(runtimeInfo.userAgent).toBe(global.navigator.userAgent);
         });
     });
 
@@ -872,91 +877,40 @@ describe("renderer.js - Basic Test Coverage", () => {
         it("should cleanup properly with initialized state manager", async () => {
             mockMasterStateManager.isInitialized = true;
 
-            const cleanupCode = `
-                const mockMasterStateManager = arguments[0];
-                const mockAppActions = arguments[1];
-                const mockWindow = arguments[2];
-
-                function cleanup() {
-                    try {
-                        console.log("[Renderer] Performing cleanup...");
-
-                        mockWindow.removeEventListener("unhandledrejection", () => {});
-                        mockWindow.removeEventListener("error", () => {});
-
-                        if (mockMasterStateManager.isInitialized) {
-                            mockAppActions.setInitialized(false);
-                            mockAppActions.setFileOpening(false);
-                            mockMasterStateManager.cleanup();
-                        }
-
-                        console.log("[Renderer] Cleanup completed");
-                    } catch (error) {
-                        console.error("[Renderer] Cleanup failed:", error);
-                    }
-                }
-
-                return cleanup;
-            `;
-
-            const cleanupFunction = new Function(cleanupCode);
-            const cleanup = cleanupFunction(
-                mockMasterStateManager,
-                mockAppActions,
-                global.window
-            );
-
-            cleanup();
-
+            expect(
+                cleanupRendererFor(
+                    mockMasterStateManager,
+                    mockAppActions,
+                    global.window
+                )
+            ).toBe("state_manager_cleaned");
             expect(mockAppActions.setInitialized).toHaveBeenCalledWith(false);
             expect(mockAppActions.setFileOpening).toHaveBeenCalledWith(false);
             expect(mockMasterStateManager.cleanup).toHaveBeenCalled();
+            expect(global.window.removeEventListener).toHaveBeenCalledWith(
+                "unhandledrejection",
+                expect.any(Function)
+            );
+            expect(global.window.removeEventListener).toHaveBeenCalledWith(
+                "error",
+                expect.any(Function)
+            );
         });
 
         it("should cleanup with fallback when state manager not initialized", async () => {
             mockMasterStateManager.isInitialized = false;
 
-            const cleanupCode = `
-                const mockMasterStateManager = arguments[0];
-                const mockWindow = arguments[2];
-
-                function cleanup() {
-                    try {
-                        console.log("[Renderer] Performing cleanup...");
-
-                        mockWindow.removeEventListener("unhandledrejection", () => {});
-                        mockWindow.removeEventListener("error", () => {});
-
-                        if (mockMasterStateManager.isInitialized) {
-                            // State manager cleanup
-                        } else {
-                            // Fallback cleanup
-                            const appState = { isInitialized: true, isOpeningFile: true };
-                            const isOpeningFileRef = { value: true };
-
-                            appState.isInitialized = false;
-                            appState.isOpeningFile = false;
-                            isOpeningFileRef.value = false;
-                        }
-
-                        console.log("[Renderer] Cleanup completed");
-                    } catch (error) {
-                        console.error("[Renderer] Cleanup failed:", error);
-                    }
-                }
-
-                return cleanup;
-            `;
-
-            const cleanupFunction = new Function(cleanupCode);
-            const cleanup = cleanupFunction(
+            const view = cleanupRendererFor(
                 mockMasterStateManager,
                 mockAppActions,
                 global.window
             );
 
-            // Should not throw
-            expect(() => cleanup()).not.toThrow();
+            expect(view).toEqual({
+                appState: { isInitialized: false, isOpeningFile: false },
+                isOpeningFileRef: { value: false },
+            });
+            expect(mockMasterStateManager.cleanup).not.toHaveBeenCalled();
         });
 
         it("should handle cleanup errors gracefully", async () => {
@@ -965,86 +919,33 @@ describe("renderer.js - Basic Test Coverage", () => {
             });
             mockMasterStateManager.isInitialized = true;
 
-            const cleanupCode = `
-                const mockMasterStateManager = arguments[0];
-                const mockAppActions = arguments[1];
-
-                function cleanup() {
-                    try {
-                        console.log("[Renderer] Performing cleanup...");
-
-                        if (mockMasterStateManager.isInitialized) {
-                            mockAppActions.setInitialized(false);
-                            mockAppActions.setFileOpening(false);
-                            mockMasterStateManager.cleanup();
-                        }
-
-                        console.log("[Renderer] Cleanup completed");
-                    } catch (error) {
-                        console.error("[Renderer] Cleanup failed:", error);
-                    }
-                }
-
-                return cleanup;
-            `;
-
-            const cleanupFunction = new Function(cleanupCode);
-            const cleanup = cleanupFunction(
-                mockMasterStateManager,
-                mockAppActions
-            );
-
             // Should not throw even if cleanup fails
-            expect(() => cleanup()).not.toThrow();
+            expect(() =>
+                cleanupRendererFor(mockMasterStateManager, mockAppActions)
+            ).not.toThrow();
             expect(mockMasterStateManager.cleanup).toHaveBeenCalled();
+            expect(global.console.error).toHaveBeenCalledWith(
+                "[Renderer] Cleanup failed:",
+                expect.any(Error)
+            );
         });
     });
 
     describe("Component Initialization", () => {
         it("should initialize components in correct order", async () => {
-            const initCode = `
-                const mockSetupTheme = arguments[0];
-                const mockSetupListeners = arguments[1];
-                const mockDependencies = arguments[2];
-
-                async function initializeComponents(dependencies) {
-                    try {
-                        console.log("[Renderer] Setting up theme system...");
-                        mockSetupTheme(dependencies.applyTheme, dependencies.listenForThemeChange);
-
-                        console.log("[Renderer] Setting up event listeners...");
-                        if (dependencies.openFileBtn) {
-                            mockSetupListeners(dependencies);
-                        } else {
-                            console.warn("[Renderer] Open file button not found, skipping listener setup");
-                        }
-
-                        console.log("[Renderer] Initializing async components...");
-                        // Async components initialization would go here
-
-                        console.log("[Renderer] All components initialized successfully");
-                    } catch (error) {
-                        console.error("[Renderer] Component initialization failed:", error);
-                        throw error;
-                    }
-                }
-
-                return initializeComponents(mockDependencies);
-            `;
-
             const dependencies = {
                 openFileBtn: { id: "openFileBtn" },
                 applyTheme: mockApplyTheme,
                 listenForThemeChange: mockListenForThemeChange,
             };
 
-            const initFunction = new Function(initCode);
-            await initFunction(
+            const result = await initializeComponentsFor(
                 mockSetupTheme,
                 mockSetupListeners,
                 dependencies
             );
 
+            expect(result).toBe("listeners_ready");
             expect(mockSetupTheme).toHaveBeenCalledWith(
                 mockApplyTheme,
                 mockListenForThemeChange
@@ -1053,77 +954,32 @@ describe("renderer.js - Basic Test Coverage", () => {
         });
 
         it("should handle missing openFileBtn gracefully", async () => {
-            const initCode = `
-                const mockSetupTheme = arguments[0];
-                const mockSetupListeners = arguments[1];
-                const mockDependencies = arguments[2];
-
-                async function initializeComponents(dependencies) {
-                    try {
-                        console.log("[Renderer] Setting up theme system...");
-                        mockSetupTheme(dependencies.applyTheme, dependencies.listenForThemeChange);
-
-                        console.log("[Renderer] Setting up event listeners...");
-                        if (dependencies.openFileBtn) {
-                            mockSetupListeners(dependencies);
-                        } else {
-                            console.warn("[Renderer] Open file button not found, skipping listener setup");
-                        }
-
-                        console.log("[Renderer] All components initialized successfully");
-                    } catch (error) {
-                        console.error("[Renderer] Component initialization failed:", error);
-                        throw error;
-                    }
-                }
-
-                return initializeComponents(mockDependencies);
-            `;
-
             const dependencies = {
                 openFileBtn: null,
                 applyTheme: mockApplyTheme,
                 listenForThemeChange: mockListenForThemeChange,
             };
 
-            const initFunction = new Function(initCode);
-            await initFunction(
+            const result = await initializeComponentsFor(
                 mockSetupTheme,
                 mockSetupListeners,
                 dependencies
             );
 
-            expect(mockSetupTheme).toHaveBeenCalled();
+            expect(result).toBe("listeners_skipped");
+            expect(mockSetupTheme).toHaveBeenCalledWith(
+                mockApplyTheme,
+                mockListenForThemeChange
+            );
             expect(mockSetupListeners).not.toHaveBeenCalled();
         });
     });
 
     describe("Async Components", () => {
         it("should initialize recent files successfully", async () => {
-            const asyncCode = `
-                const mockWindow = arguments[0];
+            const result = await initializeRecentFilesFor(global.window);
 
-                async function initializeAsyncComponents() {
-                    try {
-                        if (mockWindow.electronAPI?.recentFiles) {
-                            try {
-                                await mockWindow.electronAPI.recentFiles();
-                                console.log("[Renderer] Recent files API available");
-                            } catch (error) {
-                                console.warn("[Renderer] Recent files initialization failed:", error);
-                            }
-                        }
-                    } catch (error) {
-                        console.warn("[Renderer] Some async components failed to initialize:", error);
-                    }
-                }
-
-                return initializeAsyncComponents();
-            `;
-
-            const asyncFunction = new Function(asyncCode);
-            await asyncFunction(global.window);
-
+            expect(result).toBe("recent_files_ready");
             expect(global.window.electronAPI.recentFiles).toHaveBeenCalled();
         });
 
@@ -1132,94 +988,36 @@ describe("renderer.js - Basic Test Coverage", () => {
                 new Error("Recent files failed")
             );
 
-            const asyncCode = `
-                const mockWindow = arguments[0];
-
-                async function initializeAsyncComponents() {
-                    try {
-                        if (mockWindow.electronAPI?.recentFiles) {
-                            try {
-                                await mockWindow.electronAPI.recentFiles();
-                                console.log("[Renderer] Recent files API available");
-                            } catch (error) {
-                                console.warn("[Renderer] Recent files initialization failed:", error);
-                            }
-                        }
-                    } catch (error) {
-                        console.warn("[Renderer] Some async components failed to initialize:", error);
-                    }
-                }
-
-                return initializeAsyncComponents();
-            `;
-
-            const asyncFunction = new Function(asyncCode);
-
             // Should not throw despite failure
-            await expect(asyncFunction(global.window)).resolves.toBeUndefined();
+            await expect(initializeRecentFilesFor(global.window)).resolves.toBe(
+                "recent_files_failed"
+            );
+            expect(global.console.warn).toHaveBeenCalledWith(
+                "[Renderer] Recent files initialization failed:",
+                expect.any(Error)
+            );
         });
 
         it("should check for updates in production mode", async () => {
-            const asyncCode = `
-                const mockWindow = arguments[0];
-
-                function isDevelopmentMode() {
-                    return false; // Production mode
-                }
-
-                async function initializeAsyncComponents() {
-                    try {
-                        if (mockWindow.electronAPI?.checkForUpdates && !isDevelopmentMode()) {
-                            try {
-                                mockWindow.setTimeout(() => {
-                                    mockWindow.electronAPI.checkForUpdates();
-                                }, 5000);
-                            } catch (error) {
-                                console.warn("[Renderer] Update check failed:", error);
-                            }
-                        }
-                    } catch (error) {
-                        console.warn("[Renderer] Some async components failed to initialize:", error);
-                    }
-                }
-
-                initializeAsyncComponents();
-                return true;
-            `;
-
-            const asyncFunction = new Function(asyncCode);
-            const result = asyncFunction(global.window);
+            const result = scheduleProductionUpdateCheckFor(global.window);
 
             // Should set up timeout for update check in production
-            expect(result).toBe(true);
+            expect(result).toBe("update_check_scheduled");
+            expect(global.window.setTimeout).toHaveBeenCalledWith(
+                expect.any(Function),
+                5000
+            );
         });
     });
 
     describe("Global API Exposure", () => {
         it("should expose utilities to global scope", async () => {
-            const globalCode = `
-                const mockWindow = arguments[0];
-                const mockCreateExportGPXButton = arguments[1];
-                const APP_INFO = arguments[2];
-
-                if (typeof mockWindow !== "undefined") {
-                    mockWindow.createExportGPXButton = mockCreateExportGPXButton;
-                    mockWindow.APP_INFO = APP_INFO;
-                }
-
-                return {
-                    createExportGPXButton: mockWindow.createExportGPXButton,
-                    APP_INFO: mockWindow.APP_INFO
-                };
-            `;
-
             const APP_INFO = {
                 name: "FIT File Viewer",
                 version: "21.1.0",
             };
 
-            const globalFunction = new Function(globalCode);
-            const result = globalFunction(
+            const result = exposeUtilitiesFor(
                 global.window,
                 mockCreateExportGPXButton,
                 APP_INFO
@@ -1232,86 +1030,56 @@ describe("renderer.js - Basic Test Coverage", () => {
         });
 
         it("should expose development utilities in dev mode", async () => {
-            const devCode = `
-                const mockWindow = arguments[0];
-                const mockShowNotification = arguments[1];
-                const mockHandleOpenFile = arguments[2];
-
-                function isDevelopmentMode() {
-                    return true;
-                }
-
-                if (typeof mockWindow !== "undefined") {
-                    if (isDevelopmentMode()) {
-                        mockWindow.__renderer_debug = {
-                            showNotification: mockShowNotification,
-                            handleOpenFile: mockHandleOpenFile
-                        };
-                    }
-                }
-
-                return mockWindow.__renderer_debug;
-            `;
-
-            const devFunction = new Function(devCode);
-            const result = devFunction(
+            const result = exposeDevelopmentUtilitiesFor(
                 global.window,
                 mockShowNotification,
                 mockHandleOpenFile
             );
 
-            expect(result).toBeDefined();
-            expect(result.showNotification).toBe(mockShowNotification);
-            expect(result.handleOpenFile).toBe(mockHandleOpenFile);
+            expect(result).toEqual({
+                showNotification: mockShowNotification,
+                handleOpenFile: mockHandleOpenFile,
+            });
+            expect(result).not.toHaveProperty("createExportGPXButton");
         });
     });
 
     describe("Module Loading and File Structure", () => {
         it("should have proper import structure defined", async () => {
             // Test that the imports are properly structured
-            expect(mockShowNotification).toBeDefined();
-            expect(mockHandleOpenFile).toBeDefined();
-            expect(mockSetupTheme).toBeDefined();
-            expect(mockShowUpdateNotification).toBeDefined();
-            expect(mockSetupListeners).toBeDefined();
-            expect(mockShowAboutModal).toBeDefined();
-            expect(mockCreateExportGPXButton).toBeDefined();
-            expect(mockApplyTheme).toBeDefined();
-            expect(mockListenForThemeChange).toBeDefined();
-            expect(mockSetLoading).toBeDefined();
-            expect(mockMasterStateManager).toBeDefined();
-            expect(mockAppActions).toBeDefined();
-            expect(mockGetState).toBeDefined();
-            expect(mockSubscribe).toBeDefined();
-            expect(mockUiStateManager).toBeDefined();
+            expect(typeof mockShowNotification).toBe("function");
+            expect(typeof mockHandleOpenFile).toBe("function");
+            expect(typeof mockSetupTheme).toBe("function");
+            expect(typeof mockShowUpdateNotification).toBe("function");
+            expect(typeof mockSetupListeners).toBe("function");
+            expect(typeof mockShowAboutModal).toBe("function");
+            expect(typeof mockCreateExportGPXButton).toBe("function");
+            expect(typeof mockApplyTheme).toBe("function");
+            expect(typeof mockListenForThemeChange).toBe("function");
+            expect(typeof mockSetLoading).toBe("function");
+            expect(typeof mockMasterStateManager.initialize).toBe("function");
+            expect(typeof mockMasterStateManager.cleanup).toBe("function");
+            expect(mockMasterStateManager.isInitialized).toBe(false);
+            expect(typeof mockAppActions.setInitialized).toBe("function");
+            expect(typeof mockAppActions.setFileOpening).toBe("function");
+            expect(typeof mockGetState).toBe("function");
+            expect(typeof mockSubscribe).toBe("function");
+            expect(mockUiStateManager).toEqual({});
+            expect(mockUiStateManager).not.toHaveProperty("initialize");
         });
 
         it("should handle window object availability", async () => {
-            const testCode = `
-                const mockWindow = arguments[0];
+            const result = getWindowAvailability(global.window);
 
-                function testWindowAvailability() {
-                    if (typeof mockWindow !== "undefined") {
-                        return {
-                            hasWindow: true,
-                            hasLocation: !!mockWindow.location,
-                            hasNavigator: !!mockWindow.navigator,
-                            hasElectronAPI: !!mockWindow.electronAPI
-                        };
-                    }
-                    return { hasWindow: false };
-                }
-
-                return testWindowAvailability();
-            `;
-
-            const testFunction = new Function(testCode);
-            const result = testFunction(global.window);
-
-            expect(result.hasWindow).toBe(true);
-            expect(result.hasLocation).toBe(true);
-            expect(result.hasNavigator).toBe(true);
-            expect(result.hasElectronAPI).toBe(true);
+            expect(result).toEqual({
+                hasWindow: true,
+                hasLocation: true,
+                hasNavigator: true,
+                hasElectronAPI: true,
+            });
+            expect(getWindowAvailability(undefined)).toEqual({
+                hasWindow: false,
+            });
         });
     });
 
@@ -1322,27 +1090,19 @@ describe("renderer.js - Basic Test Coverage", () => {
                 readyState: "loading",
             } as any;
 
-            const domCode = `
-                const mockDocument = arguments[0];
-                const mockInitFunction = arguments[1];
-
-                if (mockDocument.readyState === "loading") {
-                    mockDocument.addEventListener("DOMContentLoaded", mockInitFunction);
-                    return "waiting_for_dom";
-                } else {
-                    setTimeout(mockInitFunction, 0);
-                    return "immediate_init";
-                }
-            `;
-
-            const domFunction = new Function(domCode);
-            const result = domFunction(mockDoc, vi.fn());
+            const initFunction = vi.fn();
+            const result = handleDomReadyState(
+                mockDoc,
+                global.window,
+                initFunction
+            );
 
             expect(result).toBe("waiting_for_dom");
             expect(mockDoc.addEventListener).toHaveBeenCalledWith(
                 "DOMContentLoaded",
-                expect.any(Function)
+                initFunction
             );
+            expect(global.window.setTimeout).not.toHaveBeenCalled();
         });
 
         it("should handle complete document state", async () => {
@@ -1351,27 +1111,21 @@ describe("renderer.js - Basic Test Coverage", () => {
                 readyState: "complete",
             } as any;
 
-            const domCode = `
-                const mockDocument = arguments[0];
-                const mockWindow = arguments[1];
-                const mockInitFunction = arguments[2];
-
-                if (mockDocument.readyState === "loading") {
-                    mockDocument.addEventListener("DOMContentLoaded", mockInitFunction);
-                    return "waiting_for_dom";
-                } else {
-                    mockWindow.setTimeout(mockInitFunction, 0);
-                    return "immediate_init";
-                }
-            `;
-
-            const domFunction = new Function(domCode);
-            const result = domFunction(mockDoc, global.window, vi.fn());
+            const initFunction = vi.fn();
+            const result = handleDomReadyState(
+                mockDoc,
+                global.window,
+                initFunction
+            );
 
             expect(result).toBe("immediate_init");
             expect(global.window.setTimeout).toHaveBeenCalledWith(
-                expect.any(Function),
+                initFunction,
                 0
+            );
+            expect(mockDoc.addEventListener).not.toHaveBeenCalledWith(
+                "DOMContentLoaded",
+                initFunction
             );
         });
     });
