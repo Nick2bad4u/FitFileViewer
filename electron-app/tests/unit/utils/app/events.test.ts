@@ -27,6 +27,28 @@ type TestGlobals = typeof globalThis & {
 
 const globalAny = globalThis as TestGlobals;
 
+function requireElement<T extends Element>(
+    element: T | null,
+    label: string
+): T {
+    if (element === null) {
+        throw new Error(`${label} was not rendered`);
+    }
+
+    return element;
+}
+
+function requireHandler<T extends (...args: any[]) => unknown>(
+    handler: T | null | undefined,
+    channel: string
+): T {
+    if (typeof handler !== "function") {
+        throw new TypeError(`${channel} handler was not registered`);
+    }
+
+    return handler;
+}
+
 describe("setupListeners", () => {
     let openButton: HTMLButtonElement;
     let isOpeningFileRef: { current: boolean };
@@ -43,8 +65,12 @@ describe("setupListeners", () => {
 
     beforeEach(() => {
         vi.useRealTimers();
-        document.body.innerHTML =
-            '<button id="open">Open</button><div id="content-summary"></div>';
+        const open = document.createElement("button");
+        open.id = "open";
+        open.textContent = "Open";
+        const contentSummary = document.createElement("div");
+        contentSummary.id = "content-summary";
+        document.body.replaceChildren(open, contentSummary);
         openButton = document.getElementById("open") as HTMLButtonElement;
         isOpeningFileRef = { current: false };
         setLoading = vi.fn();
@@ -107,7 +133,7 @@ describe("setupListeners", () => {
     afterEach(() => {
         vi.restoreAllMocks();
         vi.useRealTimers();
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         globalAny.electronAPI = undefined;
         delete globalAny.showFitData;
         delete globalAny.sendFitFileToAltFitReader;
@@ -119,8 +145,16 @@ describe("setupListeners", () => {
     });
 
     it("delegates open file clicks to the provided handler", () => {
-        openButton.click();
-        expect(handleOpenFile).toHaveBeenCalledTimes(1);
+        handleOpenFile.mockImplementationOnce(({ openFileBtn }) => {
+            openFileBtn.dataset.openHandled = "true";
+        });
+        const clickEvent = new MouseEvent("click", { cancelable: true });
+
+        const dispatchResult = openButton.dispatchEvent(clickEvent);
+
+        expect(dispatchResult).toBe(true);
+        expect(openButton.dataset.openHandled).toBe("true");
+        expect(handleOpenFile).toHaveBeenCalledOnce();
         expect(handleOpenFile).toHaveBeenCalledWith(
             expect.objectContaining({
                 isOpeningFileRef,
@@ -137,6 +171,10 @@ describe("setupListeners", () => {
         });
         await openButton.dispatchEvent(event);
         await Promise.resolve();
+        expect(event.defaultPrevented).toBe(true);
+        expect(
+            document.body.querySelectorAll("#recent-files-menu")
+        ).toHaveLength(0);
         expect(showNotification).toHaveBeenCalledWith(
             "No recent files found.",
             "info",
@@ -160,11 +198,19 @@ describe("setupListeners", () => {
         await openButton.dispatchEvent(event);
         await Promise.resolve();
 
-        const menu = document.getElementById("recent-files-menu");
-        expect(menu).toBeTruthy();
-        const item = menu?.querySelector<HTMLDivElement>("div");
-        expect(item).toBeTruthy();
-        const menuItem = item as HTMLDivElement;
+        const menu = requireElement(
+            document.getElementById("recent-files-menu"),
+            "Recent files menu"
+        );
+        expect(menu.getAttribute("role")).toBe("menu");
+        expect(menu.getAttribute("aria-label")).toBe("Recent files");
+        const menuItem = requireElement(
+            menu.querySelector<HTMLDivElement>("div"),
+            "Recent file menu item"
+        );
+        expect(menuItem.textContent).toBe("rides\\demo.fit");
+        expect(menuItem.title).toBe("C:/rides/demo.fit");
+        expect(menuItem.getAttribute("role")).toBe("menuitem");
 
         // Canonical recent-file menu items are wired via addEventListener("click", async ...)
         // rather than assigning onclick.
@@ -177,6 +223,7 @@ describe("setupListeners", () => {
 
         expect(setLoading).toHaveBeenCalledWith(true);
         expect(setLoading).toHaveBeenCalledWith(false);
+        expect(openButton.disabled).toBe(false);
         expect(globalAny.showFitData).toHaveBeenCalledWith(
             expect.anything(),
             "C:/rides/demo.fit"
@@ -201,9 +248,12 @@ describe("setupListeners", () => {
         await Promise.resolve();
         vi.runAllTimers();
 
-        const menu = document.getElementById("recent-files-menu");
-        expect(menu).toBeTruthy();
-        const items = Array.from(menu!.querySelectorAll<HTMLDivElement>("div"));
+        const menu = requireElement(
+            document.getElementById("recent-files-menu"),
+            "Recent files menu"
+        );
+        expect(menu.id).toBe("recent-files-menu");
+        const items = Array.from(menu.querySelectorAll<HTMLDivElement>("div"));
         expect(items).toHaveLength(2);
         const firstItem = items[0];
         const secondItem = items[1];
@@ -214,66 +264,88 @@ describe("setupListeners", () => {
             .spyOn(secondItem, "click")
             .mockImplementation(() => {});
 
-        menu!.dispatchEvent(
+        menu.dispatchEvent(
             new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true })
         );
         expect(secondItem.style.background).toBe("var(--color-glass-border)");
-        menu!.dispatchEvent(
+        expect(document.activeElement).toBe(secondItem);
+        menu.dispatchEvent(
             new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true })
         );
         expect(secondItem.style.background).toBe("transparent");
-        menu!.dispatchEvent(
+        expect(document.activeElement).toBe(firstItem);
+        menu.dispatchEvent(
             new KeyboardEvent("keydown", { key: "Enter", bubbles: true })
         );
-        expect(firstClick).toHaveBeenCalled();
+        expect(firstClick).toHaveBeenCalledOnce();
 
-        menu!.dispatchEvent(
+        menu.dispatchEvent(
             new KeyboardEvent("keydown", { key: "Escape", bubbles: true })
         );
-        expect(document.getElementById("recent-files-menu")).toBeNull();
+        expect(
+            document.body.querySelectorAll("#recent-files-menu")
+        ).toHaveLength(0);
 
         electronAPI.recentFiles.mockResolvedValueOnce(["C:/rides/a.fit"]);
         await openButton.dispatchEvent(event);
         await Promise.resolve();
         vi.runAllTimers();
-        expect(document.getElementById("recent-files-menu")).not.toBeNull();
+        const reopenedMenu = requireElement(
+            document.getElementById("recent-files-menu"),
+            "Reopened recent files menu"
+        );
+        expect(reopenedMenu.textContent).toBe("rides\\a.fit");
         document.body.dispatchEvent(
             new MouseEvent("mousedown", { bubbles: true })
         );
-        expect(document.getElementById("recent-files-menu")).toBeNull();
+        expect(document.body.contains(reopenedMenu)).toBe(false);
         vi.useRealTimers();
 
         // prevent unused variable warning for secondClick mock
-        expect(secondClick).not.toBeCalled();
+        expect(secondClick).not.toHaveBeenCalled();
     });
 
     it("handles menu forwarders by relaying to send", () => {
-        const saveAsHandler = ipcHandlers.get("menu-save-as");
-        expect(saveAsHandler).toBeTruthy();
-        saveAsHandler?.({}, undefined);
+        const saveAsHandler = requireHandler(
+            ipcHandlers.get("menu-save-as"),
+            "menu-save-as"
+        );
+        expect(ipcHandlers.has("menu-save-as")).toBe(true);
+        saveAsHandler({}, undefined);
         expect(electronAPI.send).toHaveBeenCalledWith("menu-save-as");
 
-        const exportHandler = ipcHandlers.get("menu-export");
-        expect(exportHandler).toBeTruthy();
-        exportHandler?.({}, undefined);
+        const exportHandler = requireHandler(
+            ipcHandlers.get("menu-export"),
+            "menu-export"
+        );
+        expect(ipcHandlers.has("menu-export")).toBe(true);
+        exportHandler({}, undefined);
         expect(electronAPI.send).toHaveBeenCalledWith("menu-export");
     });
 
     it("responds to menu open recent file requests", async () => {
-        expect(recentOpenHandler).toBeTruthy();
+        const handler = requireHandler(recentOpenHandler, "open recent file");
         electronAPI.readFile.mockResolvedValueOnce(new ArrayBuffer(8));
         electronAPI.parseFitFile.mockResolvedValueOnce({ recordMesgs: [] });
-        await recentOpenHandler?.("C:/rides/other.fit");
+        await handler("C:/rides/other.fit");
         expect(setLoading).toHaveBeenNthCalledWith(1, true);
         expect(setLoading).toHaveBeenLastCalledWith(false);
+        expect(openButton.disabled).toBe(false);
+        expect(globalAny.showFitData).toHaveBeenCalledWith(
+            { recordMesgs: [] },
+            "C:/rides/other.fit"
+        );
     });
 
     it("exports CSV files using copyTableAsCSV", async () => {
         vi.useFakeTimers();
         const csv = "header\nvalue";
         globalAny.copyTableAsCSV = vi.fn(() => csv);
-        const summaryContainer = document.getElementById("content-summary");
-        expect(summaryContainer).toBeTruthy();
+        const summaryContainer = requireElement(
+            document.getElementById("content-summary"),
+            "Content summary"
+        );
+        expect(summaryContainer.id).toBe("content-summary");
         electronAPI.recentFiles.mockResolvedValue([]);
 
         const createObjectURLSpy = vi
@@ -281,31 +353,55 @@ describe("setupListeners", () => {
             .mockReturnValue("blob:ffv");
         const revokeSpy = vi.spyOn(URL, "revokeObjectURL");
 
-        const exportHandler = ipcHandlers.get("export-file");
-        expect(exportHandler).toBeTruthy();
-        await exportHandler?.(undefined, "export.csv");
+        const exportHandler = requireHandler(
+            ipcHandlers.get("export-file"),
+            "export-file"
+        );
+        await exportHandler(undefined, "export.csv");
 
-        expect(globalAny.copyTableAsCSV).toHaveBeenCalled();
-        expect(createObjectURLSpy).toHaveBeenCalled();
+        expect(globalAny.copyTableAsCSV).toHaveBeenCalledWith({
+            container: summaryContainer,
+            data: globalAny.globalData,
+        });
+        expect(createObjectURLSpy).toHaveBeenCalledWith(expect.any(Blob));
+        const anchor = requireElement(
+            document.body.querySelector<HTMLAnchorElement>(
+                'a[download="export.csv"]'
+            ),
+            "CSV download anchor"
+        );
+        expect(anchor.href).toBe("blob:ffv");
         vi.runAllTimers();
         expect(revokeSpy).toHaveBeenCalledWith("blob:ffv");
+        expect(
+            document.body.querySelectorAll('a[download="export.csv"]')
+        ).toHaveLength(0);
         vi.useRealTimers();
     });
 
     it("warns when GPX export has no data", async () => {
-        const exportHandler = ipcHandlers.get("export-file");
+        const exportHandler = requireHandler(
+            ipcHandlers.get("export-file"),
+            "export-file"
+        );
         globalAny.globalData = { recordMesgs: [] };
-        await exportHandler?.(undefined, "activity.gpx");
+        await exportHandler(undefined, "activity.gpx");
         expect(showNotification).toHaveBeenCalledWith(
             "No data available for GPX export.",
             "info",
             3000
         );
+        expect(
+            document.body.querySelectorAll('a[download$=".gpx"]')
+        ).toHaveLength(0);
     });
 
     it("builds GPX export when records exist", async () => {
         vi.useFakeTimers();
-        const exportHandler = ipcHandlers.get("export-file");
+        const exportHandler = requireHandler(
+            ipcHandlers.get("export-file"),
+            "export-file"
+        );
         globalAny.globalData = {
             recordMesgs: [
                 {
@@ -323,13 +419,20 @@ describe("setupListeners", () => {
             .mockReturnValue("blob:gpx");
         const revokeSpy = vi.spyOn(URL, "revokeObjectURL");
 
-        await exportHandler?.(undefined, "activity.gpx");
-        expect(createObjectURLSpy).toHaveBeenCalled();
-        const anchor =
-            document.body.querySelector<HTMLAnchorElement>("a[download]");
+        await exportHandler(undefined, "activity.gpx");
+        expect(createObjectURLSpy).toHaveBeenCalledWith(expect.any(Blob));
+        const anchor = requireElement(
+            document.body.querySelector<HTMLAnchorElement>("a[download]"),
+            "GPX download anchor"
+        );
         expect(anchor?.download.endsWith(".gpx")).toBe(true);
+        expect(anchor.download).toBe("activity.gpx");
+        expect(anchor.href).toBe("blob:gpx");
         vi.runAllTimers();
         expect(revokeSpy).toHaveBeenCalledWith("blob:gpx");
+        expect(
+            document.body.querySelectorAll('a[download="activity.gpx"]')
+        ).toHaveLength(0);
         vi.useRealTimers();
     });
 
@@ -343,9 +446,9 @@ describe("setupListeners", () => {
             "update-downloaded",
         ];
         for (const event of events) {
-            const handler = updateHandlers.get(event);
-            expect(handler).toBeTruthy();
-            handler?.(
+            const handler = requireHandler(updateHandlers.get(event), event);
+            expect(updateHandlers.has(event)).toBe(true);
+            handler(
                 event === "update-download-progress" ? { percent: 42.2 } : "err"
             );
         }
@@ -382,8 +485,12 @@ describe("setupListeners", () => {
     });
 
     it("reports updater progress when percent data is missing", () => {
-        const handler = updateHandlers.get("update-download-progress");
-        handler?.(null);
+        const handler = requireHandler(
+            updateHandlers.get("update-download-progress"),
+            "update-download-progress"
+        );
+        expect(updateHandlers.has("update-download-progress")).toBe(true);
+        handler(null);
         expect(showUpdateNotification).toHaveBeenCalledWith(
             "Downloading update: progress information unavailable.",
             "info",
@@ -415,20 +522,29 @@ describe("setupListeners", () => {
         printHandler?.();
         expect(printSpy).toHaveBeenCalled();
 
-        const checkUpdatesHandler = ipcHandlers.get("menu-check-for-updates");
-        expect(checkUpdatesHandler).toBeTruthy();
-        checkUpdatesHandler?.();
+        const checkUpdatesHandler = requireHandler(
+            ipcHandlers.get("menu-check-for-updates"),
+            "menu-check-for-updates"
+        );
+        expect(ipcHandlers.has("menu-check-for-updates")).toBe(true);
+        checkUpdatesHandler();
         expect(electronAPI.send).toHaveBeenCalledWith("menu-check-for-updates");
     });
 
     it("routes show-notification IPC messages through the notifier", () => {
-        const handler = ipcHandlers.get("show-notification");
-        handler?.(undefined, "Hello from IPC");
+        const handler = requireHandler(
+            ipcHandlers.get("show-notification"),
+            "show-notification"
+        );
+        expect(ipcHandlers.has("show-notification")).toBe(true);
+        handler(undefined, "Hello from IPC");
+        handler(undefined, " ");
         expect(showNotification).toHaveBeenCalledWith(
             "Hello from IPC",
             "info",
             3000
         );
+        expect(showNotification).toHaveBeenCalledTimes(1);
     });
 
     it("loads keyboard shortcuts module and invokes the modal presenter when available", async () => {
@@ -447,8 +563,11 @@ describe("setupListeners", () => {
 
     it("does not use script tag injection for keyboard shortcuts", async () => {
         delete globalAny.showKeyboardShortcutsModal;
-        const shortcutsHandler = ipcHandlers.get("menu-keyboard-shortcuts");
-        expect(shortcutsHandler).toBeTruthy();
+        const shortcutsHandler = requireHandler(
+            ipcHandlers.get("menu-keyboard-shortcuts"),
+            "menu-keyboard-shortcuts"
+        );
+        expect(ipcHandlers.has("menu-keyboard-shortcuts")).toBe(true);
 
         const createdScripts: HTMLScriptElement[] = [];
         const originalCreateElement = document.createElement.bind(document);
@@ -466,16 +585,22 @@ describe("setupListeners", () => {
             return element;
         }) as typeof document.createElement);
 
-        await shortcutsHandler?.();
+        await shortcutsHandler();
 
         expect(createdScripts).toHaveLength(0);
         expect(showAboutModal).not.toHaveBeenCalled();
     });
 
     it("invokes showKeyboardShortcutsModal when script already present", () => {
-        globalAny.showKeyboardShortcutsModal = vi.fn();
-        const handler = ipcHandlers.get("menu-keyboard-shortcuts");
-        handler?.();
-        expect(globalAny.showKeyboardShortcutsModal).toHaveBeenCalled();
+        globalAny.showKeyboardShortcutsModal = vi.fn(() => {
+            document.body.dataset.shortcutsModal = "opened";
+        });
+        const handler = requireHandler(
+            ipcHandlers.get("menu-keyboard-shortcuts"),
+            "menu-keyboard-shortcuts"
+        );
+        handler();
+        expect(document.body.dataset.shortcutsModal).toBe("opened");
+        expect(globalAny.showKeyboardShortcutsModal).toHaveBeenCalledOnce();
     });
 });
