@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 
 // Minimal Arquero-like API used by the module
 (window as any).aq = {
@@ -26,7 +26,12 @@ describe("copyTableAsCSV", () => {
 
     it("copies using modern Clipboard API and stringifies nested objects", async () => {
         const nav = globalThis.navigator as any;
-        nav.clipboard = { writeText: vi.fn(async () => {}) };
+        let copiedText = "";
+        nav.clipboard = {
+            writeText: async (text: string) => {
+                copiedText = text;
+            },
+        };
         const { copyTableAsCSV } =
             await import("../../../../utils/files/export/copyTableAsCSV.js");
 
@@ -38,26 +43,39 @@ describe("copyTableAsCSV", () => {
             ],
         };
         await copyTableAsCSV(table as any);
-        expect(nav.clipboard.writeText).toHaveBeenCalled();
+        expect(copiedText).toBe(
+            'a,b,d\r\n1,"{""c"":2}","{""z"":3}"\r\n4,"{""e"":5}","{""z"":3}"'
+        );
+        expect(document.querySelector("textarea")).toBeNull();
     });
 
     it("falls back when Clipboard API not available", async () => {
         // Remove clipboard to force fallback
         const nav = globalThis.navigator as any;
         delete nav.clipboard;
-        if (!(document as any).execCommand)
-            (document as any).execCommand = () => true;
-        const exec = vi.spyOn(document, "execCommand");
+        let copiedCommand = "";
+        let copiedText = "";
+        (document as any).execCommand = (command: string) => {
+            copiedCommand = command;
+            copiedText =
+                document.querySelector<HTMLTextAreaElement>("textarea")
+                    ?.value ?? "";
+            return true;
+        };
         const { copyTableAsCSV } =
             await import("../../../../utils/files/export/copyTableAsCSV.js");
         const table = { objects: () => [{ x: 1 }] };
         await copyTableAsCSV(table as any);
-        expect(exec).toHaveBeenCalledWith("copy");
+        expect(copiedCommand).toBe("copy");
+        expect(copiedText).toBe("x\n1");
+        expect(document.querySelector("textarea")).toBeNull();
     });
 
     it("throws on invalid table input", async () => {
         const { copyTableAsCSV } =
             await import("../../../../utils/files/export/copyTableAsCSV.js");
-        await expect(copyTableAsCSV(null as any)).rejects.toThrowError();
+        await expect(copyTableAsCSV(null as any)).rejects.toThrowError(
+            "Invalid table object: missing objects method"
+        );
     });
 });
