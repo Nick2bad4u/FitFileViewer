@@ -54,6 +54,7 @@ describe("formatAntNames.js - Manufacturer and Product Name Formatting", () => {
         describe("Basic Functionality", () => {
             it("should return manufacturer name for valid numeric ID", () => {
                 expect(getManufacturerName(1)).toBe("garmin");
+                expect(getManufacturerName(1)).not.toBe("wahoo");
                 expect(getManufacturerName(2)).toBe("wahoo");
                 expect(getManufacturerName(3)).toBe("polar");
             });
@@ -110,6 +111,7 @@ describe("formatAntNames.js - Manufacturer and Product Name Formatting", () => {
                 expect(getManufacturerName("1")).toBe("garmin");
                 expect(getManufacturerName("089")).toBe("favero_electronics"); // leading zero
                 expect(getManufacturerName("001")).toBe("garmin"); // leading zeros
+                expect(getManufacturerName("001")).not.toBe("001");
             });
 
             it("should handle numeric strings with different formats", () => {
@@ -123,6 +125,7 @@ describe("formatAntNames.js - Manufacturer and Product Name Formatting", () => {
         describe("Basic Functionality", () => {
             it("should return product name for valid manufacturer and product IDs", () => {
                 expect(getProductName(1, 1)).toBe("Edge 500");
+                expect(getProductName(1, 1)).not.toBe("KICKR");
                 expect(getProductName(1, 2)).toBe("Edge 800");
                 expect(getProductName(2, 1)).toBe("KICKR");
                 expect(getProductName(89, 2)).toBe("Assioma");
@@ -185,6 +188,7 @@ describe("formatAntNames.js - Manufacturer and Product Name Formatting", () => {
             it("should convert string numbers to integers for lookup", () => {
                 expect(getProductName("1", "1")).toBe("Edge 500");
                 expect(getProductName("01", "001")).toBe("Edge 500"); // leading zeros
+                expect(getProductName("01", "001")).not.toBe("001");
             });
 
             it("should handle numeric strings with different formats", () => {
@@ -200,6 +204,10 @@ describe("formatAntNames.js - Manufacturer and Product Name Formatting", () => {
                 expect(result).toEqual({
                     manufacturerName: "garmin",
                     productName: "Edge 500",
+                });
+                expect(result).not.toStrictEqual({
+                    manufacturerName: "wahoo",
+                    productName: "KICKR",
                 });
             });
 
@@ -286,6 +294,7 @@ describe("formatAntNames.js - Manufacturer and Product Name Formatting", () => {
         describe("Basic Functionality", () => {
             it("should return manufacturer ID for exact name match", () => {
                 expect(getManufacturerIdFromName("garmin")).toBe(1);
+                expect(getManufacturerIdFromName("garmin")).not.toBe(2);
                 expect(getManufacturerIdFromName("wahoo")).toBe(2);
                 expect(getManufacturerIdFromName("polar")).toBe(3);
             });
@@ -339,6 +348,7 @@ describe("formatAntNames.js - Manufacturer and Product Name Formatting", () => {
                 expect(getManufacturerIdFromName("Garmin")).toBe(1);
                 expect(getManufacturerIdFromName("GARMIN")).toBe(1);
                 expect(getManufacturerIdFromName("gArMiN")).toBe(1);
+                expect(getManufacturerIdFromName("gArMiN")).not.toBe(2);
             });
 
             it("should handle underscore to non-underscore variations", () => {
@@ -362,6 +372,7 @@ describe("formatAntNames.js - Manufacturer and Product Name Formatting", () => {
         describe("Unknown Names", () => {
             it("should return null for unknown manufacturer names", () => {
                 expect(getManufacturerIdFromName("unknown")).toBe(null);
+                expect(getManufacturerIdFromName("unknown")).not.toBe(1);
                 expect(getManufacturerIdFromName("nonexistent")).toBe(null);
                 expect(getManufacturerIdFromName("fake_manufacturer")).toBe(
                     null
@@ -385,6 +396,7 @@ describe("formatAntNames.js - Manufacturer and Product Name Formatting", () => {
             it("should handle very long strings", () => {
                 const longString = "a".repeat(1000);
                 expect(getManufacturerIdFromName(longString)).toBe(null);
+                expect(getManufacturerIdFromName(longString)).not.toBe(1);
             });
 
             it("should handle strings with special characters", () => {
@@ -416,6 +428,7 @@ describe("formatAntNames.js - Manufacturer and Product Name Formatting", () => {
                 expect(result1).toBe(result2);
                 expect(result2).toBe(result3);
                 expect(result1).toBe(1);
+                expect(result1).not.toBe(2);
             });
 
             it("should handle rapid successive calls efficiently", () => {
@@ -450,6 +463,7 @@ describe("formatAntNames.js - Manufacturer and Product Name Formatting", () => {
         it("should handle typical FIT file manufacturer/product combinations", () => {
             // Garmin Edge device
             expect(getManufacturerName(1)).toBe("garmin");
+            expect(getManufacturerName(1)).not.toBe("wahoo");
             expect(getProductName(1, 717)).toBe("Edge 130");
 
             const garminEdge = getManufacturerAndProduct(1, 717);
