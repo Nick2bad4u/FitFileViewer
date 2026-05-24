@@ -335,6 +335,39 @@ function getGlobalBooleanFlag(flagName) {
 }
 
 /**
+ * @param {Record<string, unknown>} record
+ * @param {string} key
+ *
+ * @returns {boolean | undefined}
+ */
+function getRecordBoolean(record, key) {
+    const value = record[key];
+    return typeof value === "boolean" ? value : undefined;
+}
+
+/**
+ * @param {Record<string, unknown>} record
+ * @param {string} key
+ *
+ * @returns {number | undefined}
+ */
+function getRecordNumber(record, key) {
+    const value = record[key];
+    return typeof value === "number" ? value : undefined;
+}
+
+/**
+ * @param {Record<string, unknown>} record
+ * @param {string} key
+ *
+ * @returns {string | undefined}
+ */
+function getRecordString(record, key) {
+    const value = record[key];
+    return typeof value === "string" ? value : undefined;
+}
+
+/**
  * @returns {Record<string, string>}
  */
 function getRendererLocationParts() {
@@ -1133,7 +1166,7 @@ async function initializeComponents(dependencies) {
                 logRenderer(
                     "warn",
                     "[Renderer] Listener setup skipped or failed:",
-                    /** @type {any} */ (error)?.message || error
+                    getErrorMessage(error)
                 );
             }
         }
@@ -1270,7 +1303,9 @@ function validateDOMElements() {
 
     const missingGroups = [];
     for (const group of alternatives) {
-        const found = group.some(({ id }) => document.getElementById(id));
+        const found = group.some(
+            ({ id }) => document.querySelector(`#${id}`) !== null
+        );
         if (!found) {
             missingGroups.push(group.map((g) => g.name)[0]);
         }
@@ -1313,40 +1348,60 @@ const APP_INFO = {
     getRuntimeInfo() {
         let cookieAvailability = false;
         try {
-            const loc =
-                typeof globalThis !== "undefined" && globalThis.location
-                    ? globalThis.location
-                    : null;
-            const protocol =
-                loc && typeof loc.protocol === "string" ? loc.protocol : "";
+            const locationRecord = toModuleRecord(
+                Reflect.get(globalThis, "location")
+            );
+            const protocol = getRecordString(locationRecord, "protocol") ?? "";
+            const navigatorRecord = toModuleRecord(
+                Reflect.get(globalThis, "navigator")
+            );
+            const cookieEnabled = getRecordBoolean(
+                navigatorRecord,
+                "cookieEnabled"
+            );
+
             if (protocol === "http:" || protocol === "https:") {
-                cookieAvailability = Boolean(
-                    typeof navigator.cookieEnabled === "boolean"
-                        ? navigator.cookieEnabled
-                        : false
-                );
+                cookieAvailability = cookieEnabled ?? false;
             }
         } catch {
             cookieAvailability = false;
         }
 
+        const navigatorRecord = toModuleRecord(
+            Reflect.get(globalThis, "navigator")
+        );
+        const memoryRecord = toModuleRecord(
+            toModuleRecord(Reflect.get(globalThis, "performance")).memory
+        );
+        const memoryUsage =
+            Object.keys(memoryRecord).length > 0
+                ? {
+                      jsHeapSizeLimit: getRecordNumber(
+                          memoryRecord,
+                          "jsHeapSizeLimit"
+                      ),
+                      totalJSHeapSize: getRecordNumber(
+                          memoryRecord,
+                          "totalJSHeapSize"
+                      ),
+                      usedJSHeapSize: getRecordNumber(
+                          memoryRecord,
+                          "usedJSHeapSize"
+                      ),
+                  }
+                : null;
+
         return {
             cookieEnabled: cookieAvailability,
-            hardwareConcurrency: navigator.hardwareConcurrency,
-            language: navigator.language,
-            memoryUsage: /** @type {any} */ (performance).memory
-                ? {
-                      jsHeapSizeLimit: /** @type {any} */ (performance).memory
-                          .jsHeapSizeLimit,
-                      totalJSHeapSize: /** @type {any} */ (performance).memory
-                          .totalJSHeapSize,
-                      usedJSHeapSize: /** @type {any} */ (performance).memory
-                          .usedJSHeapSize,
-                  }
-                : null,
-            onLine: navigator.onLine,
-            platform: navigator.platform,
-            userAgent: navigator.userAgent,
+            hardwareConcurrency: getRecordNumber(
+                navigatorRecord,
+                "hardwareConcurrency"
+            ),
+            language: getRecordString(navigatorRecord, "language"),
+            memoryUsage,
+            onLine: getRecordBoolean(navigatorRecord, "onLine"),
+            platform: getRecordString(navigatorRecord, "platform"),
+            userAgent: getRecordString(navigatorRecord, "userAgent"),
         };
     },
     license: "MIT",
