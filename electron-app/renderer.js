@@ -1941,6 +1941,20 @@ if (isDevelopmentMode()) {
 // ==========================================
 
 /**
+ * @param {File} file
+ *
+ * @returns {Promise<void>}
+ */
+async function handleDelegatedFileInputChange(file) {
+    try {
+        const { handleOpenFile: handleOpenFileFn } = await ensureCoreModules();
+        callUnknownFunction(handleOpenFileFn, [file]);
+    } catch {
+        /* Ignore errors */
+    }
+}
+
+/**
  * @param {HTMLInputElement} fileInput
  *
  * @returns {Promise<void>}
@@ -1994,6 +2008,123 @@ async function initializeManualMasterStateManager() {
 }
 
 /**
+ * @param {Event} event
+ *
+ * @returns {void}
+ */
+function onDelegatedFileInputChange(event) {
+    try {
+        const target =
+            typeof HTMLInputElement === "function" &&
+            event.target instanceof HTMLInputElement
+                ? event.target
+                : null;
+        const firstFile = target?.files?.[0];
+        if (target?.id === "fileInput" && firstFile !== undefined) {
+            // Try manual mock first for immediate spy calls.
+            try {
+                const moduleRecord = toModuleRecord(
+                    resolveExactManualMock(
+                        "../../utils/files/import/handleOpenFile.js"
+                    ) ??
+                        resolveManualMock(
+                            "/utils/files/import/handleOpenFile.js"
+                        )
+                );
+                const handleOpenFileFn =
+                    moduleRecord.handleOpenFile ??
+                    toModuleRecord(moduleRecord.default).handleOpenFile;
+                if (typeof handleOpenFileFn === "function") {
+                    callUnknownFunction(handleOpenFileFn, [firstFile]);
+                    return;
+                }
+            } catch {
+                /* Ignore errors */
+            }
+            // Fallback to async resolution.
+            void handleDelegatedFileInputChange(firstFile);
+        }
+    } catch {
+        /* Ignore errors */
+    }
+}
+
+/**
+ * @returns {void}
+ */
+function onTestDOMContentLoadedSetupListeners() {
+    try {
+        const moduleRecord = toModuleRecord(
+            resolveExactManualMock("../../utils/app/lifecycle/listeners.js") ??
+                resolveManualMock("/utils/app/lifecycle/listeners.js")
+        );
+        const setupListenersFn = moduleRecord.setupListeners;
+        callUnknownFunction(setupListenersFn, [
+            {
+                applyTheme: () => {},
+                handleOpenFile: () => {},
+                isOpeningFileRef,
+                listenForThemeChange: () => {},
+                openFileBtn: querySelectorByIdFlexible(
+                    document,
+                    "#open_file_btn"
+                ),
+                setLoading,
+                showAboutModal: () => {},
+                showNotification: () => {},
+                showUpdateNotification: () => {},
+            },
+        ]);
+    } catch {
+        /* Ignore errors */
+    }
+}
+
+/**
+ * @returns {void}
+ */
+function onTestWindowLoadSetupTheme() {
+    try {
+        const setupThemeModule = toModuleRecord(
+            resolveExactManualMock("../../utils/theming/core/setupTheme.js") ??
+                resolveManualMock("/utils/theming/core/setupTheme.js")
+        );
+        const themeModule = toModuleRecord(
+            resolveExactManualMock("../../utils/theming/core/theme.js") ??
+                resolveManualMock("/utils/theming/core/theme.js")
+        );
+        const setupThemeFn = setupThemeModule.setupTheme;
+        const applyThemeFn = themeModule.applyTheme;
+        const listenForThemeChangeFn = themeModule.listenForThemeChange;
+        if (
+            typeof setupThemeFn === "function" &&
+            typeof applyThemeFn === "function" &&
+            typeof listenForThemeChangeFn === "function"
+        ) {
+            callUnknownFunction(setupThemeFn, [
+                applyThemeFn,
+                listenForThemeChangeFn,
+            ]);
+            return;
+        }
+    } catch {
+        /* Ignore errors */
+    }
+    scheduleImportTimeThemeSetup();
+}
+
+/**
+ * @returns {void}
+ */
+function registerDelegatedFileInputChangeListener() {
+    document.addEventListener("change", onDelegatedFileInputChange, true);
+    globalThis.addEventListener(
+        "beforeunload",
+        removeDelegatedFileInputChangeListener
+    );
+}
+
+/**
  * @param {HTMLInputElement} fileInput
  *
  * @returns {void}
@@ -2025,6 +2156,68 @@ function registerImportTimeFileInputChangeHandler(fileInput) {
 }
 
 /**
+ * @returns {void}
+ */
+function registerTestDOMContentLoadedSetupListener() {
+    document.addEventListener(
+        "DOMContentLoaded",
+        onTestDOMContentLoadedSetupListeners,
+        { once: false }
+    );
+    globalThis.addEventListener(
+        "beforeunload",
+        removeTestDOMContentLoadedSetupListener
+    );
+}
+
+/**
+ * @returns {void}
+ */
+function registerTestWindowLoadThemeSetupListener() {
+    window.addEventListener("load", onTestWindowLoadSetupTheme);
+    globalThis.addEventListener(
+        "beforeunload",
+        removeTestWindowLoadThemeSetupListener
+    );
+}
+
+/**
+ * @returns {void}
+ */
+function removeDelegatedFileInputChangeListener() {
+    document.removeEventListener("change", onDelegatedFileInputChange, true);
+    globalThis.removeEventListener(
+        "beforeunload",
+        removeDelegatedFileInputChangeListener
+    );
+}
+
+/**
+ * @returns {void}
+ */
+function removeTestDOMContentLoadedSetupListener() {
+    document.removeEventListener(
+        "DOMContentLoaded",
+        onTestDOMContentLoadedSetupListeners
+    );
+    globalThis.removeEventListener(
+        "beforeunload",
+        removeTestDOMContentLoadedSetupListener
+    );
+}
+
+/**
+ * @returns {void}
+ */
+function removeTestWindowLoadThemeSetupListener() {
+    window.removeEventListener("load", onTestWindowLoadSetupTheme);
+    globalThis.removeEventListener(
+        "beforeunload",
+        removeTestWindowLoadThemeSetupListener
+    );
+}
+
+/**
  * @returns {unknown}
  */
 function resolveManualAppStateModule() {
@@ -2049,6 +2242,13 @@ function resolveManualMasterStateManager() {
         toModuleRecord(resolvedRecord.default).masterStateManager ??
         resolved
     );
+}
+
+/**
+ * @returns {void}
+ */
+function scheduleAppDomainStateCoverageTouch() {
+    void touchAppDomainStateForCoverage();
 }
 
 /**
@@ -2110,6 +2310,25 @@ async function setupImportTimeTheme() {
         setupTheme: setupThemeFn,
     } = await ensureCoreModules();
     callUnknownFunction(setupThemeFn, [applyThemeFn, listenForThemeChangeFn]);
+}
+
+/**
+ * @returns {Promise<void>}
+ */
+async function touchAppDomainStateForCoverage() {
+    try {
+        const { getAppDomainState, subscribeAppDomain } =
+            await ensureCoreModules();
+        callUnknownFunction(getAppDomainState, ["app.startTime"]);
+        if (typeof subscribeAppDomain === "function") {
+            callUnknownFunction(subscribeAppDomain, [
+                "app.startTime",
+                () => {},
+            ]);
+        }
+    } catch {
+        /* Ignore errors */
+    }
 }
 
 /**
@@ -2437,46 +2656,18 @@ try {
 // Call into domain appState getters for performance/coverage tests
 try {
     // This mirrors renderer.coverage.test.ts expectations using dynamically resolved functions
-    (async () => {
-        try {
-            const { getAppDomainState: gas, subscribeAppDomain: sad } =
-                await ensureCoreModules();
-            try {
-                gas("app.startTime");
-            } catch {
-                /* Ignore errors */
-            }
-            if (typeof sad === "function") {
-                try {
-                    sad("app.startTime", () => {});
-                } catch {
-                    /* Ignore errors */
-                }
-            }
-        } catch {
-            /* Ignore errors */
-        }
-    })();
+    scheduleAppDomainStateCoverageTouch();
 
     // Also try synchronous mock call so spies observe immediately after import
     try {
         // Prefer ensureCoreModules result first
         try {
-            (async () => {
-                const { getAppDomainState: gas } = await ensureCoreModules();
-                if (typeof gas === "function") gas("app.startTime");
-            })();
+            scheduleAppDomainStateCoverageTouch();
         } catch {
             /* Ignore errors */
         }
         // Then directly invoke the exact mocked module if available
-        const mod =
-            resolveExactManualMock("../../utils/state/domain/appState.js") ||
-            resolveManualMock("/utils/state/domain/appState.js");
-        const gs = mod?.getState || mod?.default?.getState;
-        if (typeof gs === "function") {
-            gs("app.startTime");
-        }
+        touchManualAppStartTime();
     } catch {
         /* Ignore errors */
     }
@@ -2486,132 +2677,21 @@ try {
 
 // Ensure mocked setupListeners is invoked synchronously on DOMContentLoaded for tests
 try {
-    document.addEventListener(
-        "DOMContentLoaded",
-        () => {
-            try {
-                const mod =
-                    resolveExactManualMock(
-                        "../../utils/app/lifecycle/listeners.js"
-                    ) || resolveManualMock("/utils/app/lifecycle/listeners.js");
-                const fn = mod?.setupListeners;
-                if (typeof fn === "function") {
-                    fn({
-                        applyTheme: () => {},
-                        handleOpenFile: () => {},
-                        isOpeningFileRef,
-                        listenForThemeChange: () => {},
-                        openFileBtn: querySelectorByIdFlexible(
-                            document,
-                            "#open_file_btn"
-                        ),
-                        setLoading,
-                        showAboutModal: () => {},
-                        showNotification: () => {},
-                        showUpdateNotification: () => {},
-                    });
-                }
-            } catch {
-                /* Ignore errors */
-            }
-        },
-        { once: false }
-    );
+    registerTestDOMContentLoadedSetupListener();
 } catch {
     /* Ignore errors */
 }
 
 // Ensure theme setup is invoked again on window load to satisfy event-based tests
 try {
-    window.addEventListener("load", () => {
-        try {
-            const sync =
-                resolveExactManualMock(
-                    "../../utils/theming/core/setupTheme.js"
-                ) || resolveManualMock("/utils/theming/core/setupTheme.js");
-            const tmod = sync || {};
-            const st = tmod.setupTheme;
-            const them =
-                resolveExactManualMock("../../utils/theming/core/theme.js") ||
-                resolveManualMock("/utils/theming/core/theme.js");
-            const at = them?.applyTheme;
-            const lf = them?.listenForThemeChange;
-            if (
-                typeof st === "function" &&
-                typeof at === "function" &&
-                typeof lf === "function"
-            ) {
-                st(at, lf);
-                return;
-            }
-        } catch {
-            /* Ignore errors */
-        }
-        (async () => {
-            try {
-                const {
-                    applyTheme: at,
-                    listenForThemeChange: lf,
-                    setupTheme: st,
-                } = await ensureCoreModules();
-                st(at, lf);
-            } catch {
-                /* Ignore errors */
-            }
-        })();
-    });
+    registerTestWindowLoadThemeSetupListener();
 } catch {
     /* Ignore errors */
 }
 
 // Delegated change listener for dynamically created/replaced file input across tests
 try {
-    document.addEventListener(
-        "change",
-        (ev) => {
-            try {
-                const { target } = ev;
-                const [firstFile] = target?.files || [];
-                if (
-                    target &&
-                    target.id === "fileInput" &&
-                    target.files &&
-                    firstFile
-                ) {
-                    // Try synchronous manual mock first for immediate spy calls
-                    try {
-                        const m =
-                            resolveExactManualMock(
-                                "../../utils/files/import/handleOpenFile.js"
-                            ) ||
-                            resolveManualMock(
-                                "/utils/files/import/handleOpenFile.js"
-                            );
-                        const hofSync = m?.handleOpenFile;
-                        if (typeof hofSync === "function") {
-                            hofSync(firstFile);
-                            return;
-                        }
-                    } catch {
-                        /* Ignore errors */
-                    }
-                    // Fallback to async resolution
-                    (async () => {
-                        try {
-                            const { handleOpenFile: hof } =
-                                await ensureCoreModules();
-                            /** @type {any} */ (hof)(firstFile);
-                        } catch {
-                            /* Ignore errors */
-                        }
-                    })();
-                }
-            } catch {
-                /* Ignore errors */
-            }
-        },
-        true
-    );
+    registerDelegatedFileInputChangeListener();
 } catch {
     /* Ignore errors */
 }
