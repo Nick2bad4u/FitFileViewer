@@ -11,6 +11,9 @@
  */
 
 const { Buffer } = require("node:buffer");
+const {
+    applyUnknownMessageLabels,
+} = require("./shared/fitUnknownMessageLabels");
 /**
  * # ============================= Typedef Section =============================
  *
@@ -172,19 +175,6 @@ function formatFitFieldValue(value) {
 }
 
 /**
- * Node 16.0 compatibility wrapper for own-property checks.
- *
- * @param {Record<string, unknown>} record Object to inspect.
- * @param {string} key Property key to test.
- *
- * @returns {boolean}
- */
-function hasOwnKey(record, key) {
-    // eslint-disable-next-line prefer-object-has-own -- Object.hasOwn requires Node 16.9; package.json still supports Node 16.0.
-    return Object.prototype.hasOwnProperty.call(record, key);
-}
-
-/**
  * Initialize state management integration for the FIT parser This should be
  * called during application startup to connect the parser to the state system
  *
@@ -312,26 +302,6 @@ function observeAsyncDecoderOptionsUpdate(updateResult) {
     Promise.resolve(updateResult).catch(
         reportAsyncDecoderOptionsUpdateRejection
     );
-}
-
-/**
- * Returns a shallow copy without one dynamic key. This avoids dynamic delete
- * while preserving the legacy object-map behavior.
- *
- * @param {FitMessages} messages Message map to copy.
- * @param {string} omittedKey Key to omit.
- *
- * @returns {FitMessages}
- */
-function omitMessageKey(messages, omittedKey) {
-    /** @type {FitMessages} */
-    const nextMessages = {};
-    for (const [key, rows] of Object.entries(messages)) {
-        if (key !== omittedKey) {
-            nextMessages[key] = rows;
-        }
-    }
-    return nextMessages;
 }
 
 /**
@@ -466,74 +436,6 @@ function validateDecoderOptions(options) {
     }
 
     return { errors, isValid: errors.length === 0, validatedOptions };
-}
-
-// Mapping of unknown FIT message numbers to human-readable names and field labels
-/** @type {UnknownMessageMappings} */
-const unknownMessageMappings = {
-    104: {
-        fields: [
-            "timestamp",
-            "battery_voltage",
-            "battery_level",
-            "temperature",
-            "field_4",
-        ],
-        name: "Device Status",
-    },
-    // Add more mappings as needed
-};
-
-/**
- * Applies human-readable names and field labels to unknown messages.
- *
- * @param {FitMessages} messages
- *
- * @returns {FitMessages}
- */
-function applyUnknownMessageLabels(messages) {
-    /** @type {FitMessages} */
-    let updated = { ...messages };
-    for (const msgNum of Object.keys(unknownMessageMappings)) {
-        const mapping = unknownMessageMappings[msgNum];
-        const possibleKeys = [`unknown_${msgNum}`, msgNum];
-        for (const key of possibleKeys) {
-            if (hasOwnKey(updated, key)) {
-                const rows = updated[key];
-                if (Array.isArray(rows)) {
-                    updated[mapping.name] =
-                        msgNum === "104"
-                            ? rows.map((row) => ({
-                                  battery_level: row[2],
-                                  battery_voltage: row[0],
-                                  field_4: row[4],
-                                  temperature: row[3],
-                                  timestamp: row[253],
-                              }))
-                            : rows.map((row) => {
-                                  /** @type {Record<string, FitFieldValue>} */
-                                  const labeled = {};
-                                  for (const [
-                                      idx,
-                                      field,
-                                  ] of mapping.fields.entries()) {
-                                      labeled[field] = row[idx];
-                                  }
-                                  return labeled;
-                              });
-                    updated = omitMessageKey(updated, key);
-                }
-            }
-        }
-    }
-    for (const msgNum of Object.keys(unknownMessageMappings)) {
-        const mapping = unknownMessageMappings[msgNum];
-        const key = msgNum;
-        if (hasOwnKey(updated, key) && hasOwnKey(updated, mapping.name)) {
-            updated = omitMessageKey(updated, key);
-        }
-    }
-    return updated;
 }
 
 /**

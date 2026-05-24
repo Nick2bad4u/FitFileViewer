@@ -49,6 +49,7 @@
         "main/constants.ts",
         "main/dev/exposeDevHelpers.ts",
         "preload/ipcBridgeCatalog.ts",
+        "shared/fitUnknownMessageLabels.ts",
         "main/ipc/fileReadPayload.ts",
         "main/ipc/ipcRegistry.ts",
         "main/ipc/fitIpcPayload.ts",
