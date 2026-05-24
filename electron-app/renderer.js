@@ -211,6 +211,39 @@ const stateInitTracker = {
 };
 
 /**
+ * @param {unknown} target
+ * @param {string} methodName
+ * @param {unknown[]} [args]
+ *
+ * @returns {unknown}
+ */
+function callRecordMethod(target, methodName, args = []) {
+    const method = toModuleRecord(target)[methodName];
+    if (typeof method !== "function") {
+        return undefined;
+    }
+
+    const methodFn =
+        /** @type {(this: unknown, ...args: unknown[]) => unknown} */ (method);
+    return methodFn.apply(target, args);
+}
+
+/**
+ * @param {unknown} candidate
+ * @param {unknown[]} [args]
+ *
+ * @returns {unknown}
+ */
+function callUnknownFunction(candidate, args = []) {
+    if (typeof candidate !== "function") {
+        return undefined;
+    }
+
+    const callable = /** @type {(...args: unknown[]) => unknown} */ (candidate);
+    return callable(...args);
+}
+
+/**
  * Dynamically resolves core modules so Vitest doMock hooks (using ../../ paths)
  * are respected.
  *
@@ -1627,19 +1660,204 @@ function cleanup() {
 // Setup page lifecycle events
 window.addEventListener("beforeunload", cleanup);
 
+/**
+ * Starts the application from event APIs that require void-returning callbacks.
+ *
+ * @returns {void}
+ */
+function onApplicationReady() {
+    void initializeApplication();
+}
+
 // Start application when DOM is ready
 // Always listen for DOMContentLoaded (even if it already fired in a previous test run)
-document.addEventListener("DOMContentLoaded", initializeApplication);
+document.addEventListener("DOMContentLoaded", onApplicationReady);
 if (document.readyState === "loading") {
     // Will run when DOM becomes ready
 } else {
     // DOM already loaded
-    setTimeout(initializeApplication, 0);
+    setTimeout(onApplicationReady, 0);
 }
 
 // ==========================================
 // Development Utilities
 // ==========================================
+
+/**
+ * @returns {Promise<unknown>}
+ */
+async function getRendererStateManagerForDev() {
+    try {
+        const coreModules = await ensureCoreModules();
+        return coreModules.masterStateManager;
+    } catch {
+        /* Ignore state manager access errors */
+    }
+
+    return undefined;
+}
+
+/**
+ * @param {Record<string, unknown>} rendererDevTools
+ *
+ * @returns {Promise<void>}
+ */
+async function loadDevelopmentDebugUtilities(rendererDevTools) {
+    try {
+        // Resolve and attach optional dev helpers that depend on mocked modules
+        try {
+            const { AppActions, uiStateManager } = await ensureCoreModules();
+            if (AppActions !== undefined) {
+                rendererDevTools.AppActions = AppActions;
+            }
+            if (uiStateManager !== undefined) {
+                rendererDevTools.uiStateManager = uiStateManager;
+            }
+        } catch {
+            /* Ignore errors */
+        }
+
+        const {
+                checkDataAvailability,
+                debugSensorInfo,
+                showDataKeys,
+                showSensorNames,
+                testManufacturerId,
+                testProductId,
+            } = await import("./utils/debug/debugSensorInfo.js"),
+            { testFaveroCase, testFaveroStringCase, testNewFormatting } =
+                await import("./utils/debug/debugChartFormatting.js");
+
+        // Expose sensor debug utilities globally
+        Reflect.set(globalThis, "__sensorDebug", {
+            checkDataAvailability,
+            debugSensorInfo,
+            showDataKeys,
+            showSensorNames,
+            testManufacturerId,
+            testProductId,
+        });
+
+        // Expose formatting test utilities globally
+        Reflect.set(globalThis, "__debugChartFormatting", {
+            testFaveroCase,
+            testFaveroStringCase,
+            testNewFormatting,
+        });
+
+        logRenderer("log", "🛠️  Debug utilities loaded!");
+        logRenderer("log", "📊 Sensor Debug Commands:");
+        logRenderer(
+            "log",
+            "  __sensorDebug.checkDataAvailability()     - Check if FIT data is loaded"
+        );
+        logRenderer(
+            "log",
+            "  __sensorDebug.debugSensorInfo()           - Full sensor analysis"
+        );
+        logRenderer(
+            "log",
+            "  __sensorDebug.debugSensorInfo(true)       - Verbose sensor analysis"
+        );
+        logRenderer(
+            "log",
+            "  __sensorDebug.showSensorNames()           - Quick sensor name list"
+        );
+        logRenderer(
+            "log",
+            "  __sensorDebug.testManufacturerId(269)     - Test manufacturer ID (e.g., Favero)"
+        );
+        logRenderer(
+            "log",
+            "  __sensorDebug.testProductId(269, 12)      - Test product ID (e.g., Favero assioma_duo)"
+        );
+        logRenderer(
+            "log",
+            "  __sensorDebug.showDataKeys()              - Show all available data keys"
+        );
+        logRenderer("log", "");
+        logRenderer("log", "🧪 Format Testing Commands:");
+        logRenderer(
+            "log",
+            "  __debugChartFormatting.testNewFormatting()      - Test all formatting scenarios"
+        );
+        logRenderer(
+            "log",
+            "  __debugChartFormatting.testFaveroCase()         - Test the specific Favero case"
+        );
+        logRenderer(
+            "log",
+            "  __debugChartFormatting.testFaveroStringCase()   - Test Favero with string manufacturer name"
+        );
+        logRenderer("log", "");
+        logRenderer("log", "🏗️  State Management Debug Commands:");
+        logRenderer(
+            "log",
+            "  __renderer_dev.debugState()               - Show current state and history"
+        );
+        logRenderer(
+            "log",
+            "  __renderer_dev.getState()                 - Get current application state"
+        );
+        logRenderer(
+            "log",
+            "  __renderer_dev.getStateHistory()          - Get state change history"
+        );
+        logRenderer(
+            "log",
+            "  __renderer_dev.stateManager               - Access state manager directly"
+        );
+        logRenderer(
+            "log",
+            "  __renderer_dev.AppActions                 - Access app actions"
+        );
+        logRenderer(
+            "log",
+            "  __renderer_dev.uiStateManager             - Access UI state manager"
+        );
+    } catch (error) {
+        logRenderer(
+            "warn",
+            "[Renderer] Debug utilities failed to load:",
+            getErrorMessage(error)
+        );
+    }
+}
+
+/**
+ * @returns {Promise<void>}
+ */
+async function logRendererDebugState() {
+    try {
+        const { masterStateManager } = await ensureCoreModules();
+        logRenderer(
+            "log",
+            "Current State:",
+            callRecordMethod(masterStateManager, "getState")
+        );
+        logRenderer(
+            "log",
+            "State History:",
+            callRecordMethod(masterStateManager, "getHistory")
+        );
+        logRenderer(
+            "log",
+            "Active Subscriptions:",
+            callRecordMethod(masterStateManager, "getSubscriptions")
+        );
+    } catch {
+        /* Ignore errors */
+    }
+}
+
+/**
+ * @param {Record<string, unknown>} rendererDevTools
+ *
+ * @returns {void}
+ */
+function scheduleDevelopmentDebugUtilities(rendererDevTools) {
+    void loadDevelopmentDebugUtilities(rendererDevTools);
+}
 
 if (isDevelopmentMode()) {
     /**
@@ -1647,7 +1865,7 @@ if (isDevelopmentMode()) {
      *
      * @global
      */
-    /** @type {any} */ (globalThis).__renderer_dev = {
+    const rendererDevTools = /** @type {Record<string, unknown>} */ ({
         APP_INFO,
         // Legacy state for compatibility
         appState,
@@ -1655,37 +1873,17 @@ if (isDevelopmentMode()) {
         cleanup,
 
         debugState: () => {
-            (async () => {
-                try {
-                    const { masterStateManager } = await ensureCoreModules();
-                    logRenderer(
-                        "log",
-                        "Current State:",
-                        /** @type {any} */ (masterStateManager).getState()
-                    );
-                    logRenderer(
-                        "log",
-                        "State History:",
-                        /** @type {any} */ (masterStateManager).getHistory()
-                    );
-                    logRenderer(
-                        "log",
-                        "Active Subscriptions:",
-                        /** @type {any} */ (
-                            masterStateManager
-                        ).getSubscriptions()
-                    );
-                } catch {
-                    /* Ignore errors */
-                }
-            })();
+            void logRendererDebugState();
         },
         getPerformanceMetrics: () => PerformanceMonitor.getMetrics(),
         // State debugging helpers
         getState: async () => {
             try {
                 const coreModules = await ensureCoreModules();
-                return coreModules.masterStateManager.getState();
+                return callRecordMethod(
+                    coreModules.masterStateManager,
+                    "getState"
+                );
             } catch {
                 /* Ignore state access errors */
             }
@@ -1693,7 +1891,10 @@ if (isDevelopmentMode()) {
         getStateHistory: async () => {
             try {
                 const coreModules = await ensureCoreModules();
-                return coreModules.masterStateManager.getHistory();
+                return callRecordMethod(
+                    coreModules.masterStateManager,
+                    "getHistory"
+                );
             } catch {
                 /* Ignore state history access errors */
             }
@@ -1705,142 +1906,15 @@ if (isDevelopmentMode()) {
         reinitialize: initializeApplication,
         // New state management system
         get stateManager() {
-            return (async () => {
-                try {
-                    const coreModules = await ensureCoreModules();
-                    return coreModules.masterStateManager;
-                } catch {
-                    /* Ignore state manager access errors */
-                }
-            })();
+            return getRendererStateManagerForDev();
         },
         validateDOM: validateDOMElements,
-    };
+    });
+
+    Reflect.set(globalThis, "__renderer_dev", rendererDevTools);
 
     // Load debug utilities asynchronously
-    (async () => {
-        try {
-            // Resolve and attach optional dev helpers that depend on mocked modules
-            try {
-                const { AppActions, uiStateManager } =
-                    await ensureCoreModules();
-                if (AppActions)
-                    /** @type {any} */ (globalThis).__renderer_dev.AppActions =
-                        AppActions;
-                if (uiStateManager)
-                    /** @type {any} */ (
-                        globalThis
-                    ).__renderer_dev.uiStateManager = uiStateManager;
-            } catch {
-                /* Ignore errors */
-            }
-
-            const {
-                    checkDataAvailability,
-                    debugSensorInfo,
-                    showDataKeys,
-                    showSensorNames,
-                    testManufacturerId,
-                    testProductId,
-                } = await import("./utils/debug/debugSensorInfo.js"),
-                { testFaveroCase, testFaveroStringCase, testNewFormatting } =
-                    await import("./utils/debug/debugChartFormatting.js");
-
-            // Expose sensor debug utilities globally
-            /** @type {any} */ (globalThis).__sensorDebug = {
-                checkDataAvailability,
-                debugSensorInfo,
-                showDataKeys,
-                showSensorNames,
-                testManufacturerId,
-                testProductId,
-            };
-
-            // Expose formatting test utilities globally
-            /** @type {any} */ (globalThis).__debugChartFormatting = {
-                testFaveroCase,
-                testFaveroStringCase,
-                testNewFormatting,
-            };
-
-            logRenderer("log", "🛠️  Debug utilities loaded!");
-            logRenderer("log", "📊 Sensor Debug Commands:");
-            logRenderer(
-                "log",
-                "  __sensorDebug.checkDataAvailability()     - Check if FIT data is loaded"
-            );
-            logRenderer(
-                "log",
-                "  __sensorDebug.debugSensorInfo()           - Full sensor analysis"
-            );
-            logRenderer(
-                "log",
-                "  __sensorDebug.debugSensorInfo(true)       - Verbose sensor analysis"
-            );
-            logRenderer(
-                "log",
-                "  __sensorDebug.showSensorNames()           - Quick sensor name list"
-            );
-            logRenderer(
-                "log",
-                "  __sensorDebug.testManufacturerId(269)     - Test manufacturer ID (e.g., Favero)"
-            );
-            logRenderer(
-                "log",
-                "  __sensorDebug.testProductId(269, 12)      - Test product ID (e.g., Favero assioma_duo)"
-            );
-            logRenderer(
-                "log",
-                "  __sensorDebug.showDataKeys()              - Show all available data keys"
-            );
-            logRenderer("log", "");
-            logRenderer("log", "🧪 Format Testing Commands:");
-            logRenderer(
-                "log",
-                "  __debugChartFormatting.testNewFormatting()      - Test all formatting scenarios"
-            );
-            logRenderer(
-                "log",
-                "  __debugChartFormatting.testFaveroCase()         - Test the specific Favero case"
-            );
-            logRenderer(
-                "log",
-                "  __debugChartFormatting.testFaveroStringCase()   - Test Favero with string manufacturer name"
-            );
-            logRenderer("log", "");
-            logRenderer("log", "🏗️  State Management Debug Commands:");
-            logRenderer(
-                "log",
-                "  __renderer_dev.debugState()               - Show current state and history"
-            );
-            logRenderer(
-                "log",
-                "  __renderer_dev.getState()                 - Get current application state"
-            );
-            logRenderer(
-                "log",
-                "  __renderer_dev.getStateHistory()          - Get state change history"
-            );
-            logRenderer(
-                "log",
-                "  __renderer_dev.stateManager               - Access state manager directly"
-            );
-            logRenderer(
-                "log",
-                "  __renderer_dev.AppActions                 - Access app actions"
-            );
-            logRenderer(
-                "log",
-                "  __renderer_dev.uiStateManager             - Access UI state manager"
-            );
-        } catch (error) {
-            logRenderer(
-                "warn",
-                "[Renderer] Debug utilities failed to load:",
-                /** @type {Error} */ (error).message
-            );
-        }
-    })();
+    scheduleDevelopmentDebugUtilities(rendererDevTools);
 
     logRenderer(
         "log",
@@ -1857,17 +1931,193 @@ if (isDevelopmentMode()) {
 // Immediate wiring for tests and basic environments
 // ==========================================
 
+/**
+ * @param {HTMLInputElement} fileInput
+ *
+ * @returns {Promise<void>}
+ */
+async function handleImportTimeFileInputChange(fileInput) {
+    try {
+        const file = fileInput.files?.[0];
+        if (file !== undefined) {
+            // Use dynamically resolved handleOpenFile so test spies observe
+            try {
+                const { handleOpenFile: handleOpenFileFn } =
+                    await ensureCoreModules();
+                callUnknownFunction(handleOpenFileFn, [file]);
+            } catch (error) {
+                logRenderer(
+                    "warn",
+                    "[Renderer] Failed to handle file open:",
+                    error
+                );
+            }
+        }
+    } catch (error) {
+        logRenderer(
+            "warn",
+            "[Renderer] File input change handling failed:",
+            error
+        );
+    }
+}
+
+/**
+ * @returns {Promise<void>}
+ */
+async function initializeImportTimeStateManager() {
+    await initializeStateManager();
+    try {
+        const { getAppDomainState } = await ensureCoreModules();
+        callUnknownFunction(getAppDomainState, ["app.startTime"]);
+    } catch {
+        /* Ignore errors */
+    }
+    await initializeManualMasterStateManager();
+    touchManualAppStartTime();
+}
+
+/**
+ * @returns {Promise<void>}
+ */
+async function initializeManualMasterStateManager() {
+    await callRecordMethod(resolveManualMasterStateManager(), "initialize");
+}
+
+/**
+ * @param {HTMLInputElement} fileInput
+ *
+ * @returns {void}
+ */
+function registerImportTimeFileInputChangeHandler(fileInput) {
+    /**
+     * @returns {void}
+     */
+    function onImportTimeFileInputChange() {
+        void handleImportTimeFileInputChange(fileInput);
+    }
+
+    /**
+     * @returns {void}
+     */
+    function removeImportTimeFileInputChangeHandler() {
+        fileInput.removeEventListener("change", onImportTimeFileInputChange);
+        window.removeEventListener(
+            "beforeunload",
+            removeImportTimeFileInputChangeHandler
+        );
+    }
+
+    fileInput.addEventListener("change", onImportTimeFileInputChange);
+    window.addEventListener(
+        "beforeunload",
+        removeImportTimeFileInputChangeHandler
+    );
+}
+
+/**
+ * @returns {unknown}
+ */
+function resolveManualAppStateModule() {
+    return (
+        resolveExactManualMock("../../utils/state/domain/appState.js") ??
+        resolveManualMock("/utils/state/domain/appState.js")
+    );
+}
+
+/**
+ * @returns {unknown}
+ */
+function resolveManualMasterStateManager() {
+    const resolved =
+        resolveExactManualMock(
+            "../../utils/state/core/masterStateManager.js"
+        ) ?? resolveManualMock("/utils/state/core/masterStateManager.js");
+    const resolvedRecord = toModuleRecord(resolved);
+
+    return (
+        resolvedRecord.masterStateManager ??
+        toModuleRecord(resolvedRecord.default).masterStateManager ??
+        resolved
+    );
+}
+
+/**
+ * @returns {void}
+ */
+function scheduleImportTimeListenersSetup() {
+    void setupImportTimeListeners();
+}
+
+/**
+ * @returns {void}
+ */
+function scheduleImportTimeStateInitialization() {
+    void initializeImportTimeStateManager();
+}
+
+/**
+ * @returns {void}
+ */
+function scheduleImportTimeThemeSetup() {
+    void setupImportTimeTheme();
+}
+
+/**
+ * @returns {Promise<void>}
+ */
+async function setupImportTimeListeners() {
+    const {
+        applyTheme: applyThemeFn,
+        handleOpenFile: handleOpenFileFn,
+        listenForThemeChange: listenForThemeChangeFn,
+        setupListeners: setupListenersFn,
+        showAboutModal: showAboutModalFn,
+        showNotification: showNotificationFn,
+        showUpdateNotification: showUpdateNotificationFn,
+    } = await ensureCoreModules();
+    const deps = {
+        applyTheme: applyThemeFn,
+        handleOpenFile: handleOpenFileFn,
+        isOpeningFileRef,
+        listenForThemeChange: listenForThemeChangeFn,
+        openFileBtn: querySelectorByIdFlexible(document, "#open_file_btn"),
+        setLoading,
+        showAboutModal: showAboutModalFn,
+        showNotification: showNotificationFn,
+        showUpdateNotification: showUpdateNotificationFn,
+    };
+
+    callUnknownFunction(setupListenersFn, [deps]);
+}
+
+/**
+ * @returns {Promise<void>}
+ */
+async function setupImportTimeTheme() {
+    const {
+        applyTheme: applyThemeFn,
+        listenForThemeChange: listenForThemeChangeFn,
+        setupTheme: setupThemeFn,
+    } = await ensureCoreModules();
+    callUnknownFunction(setupThemeFn, [applyThemeFn, listenForThemeChangeFn]);
+}
+
+/**
+ * @returns {void}
+ */
+function touchManualAppStartTime() {
+    const domainModule = toModuleRecord(resolveManualAppStateModule());
+    const getStateFn =
+        domainModule.getState ?? toModuleRecord(domainModule.default).getState;
+
+    callUnknownFunction(getStateFn, ["app.startTime"]);
+}
+
 try {
     // Always attempt to setup theme for coverage tests using dynamically resolved (mockable) modules
     try {
-        (async () => {
-            const {
-                applyTheme: at,
-                listenForThemeChange: lf,
-                setupTheme: st,
-            } = await ensureCoreModules();
-            st(at, lf);
-        })();
+        scheduleImportTimeThemeSetup();
     } catch {
         /* Ignore errors */
     }
@@ -1877,27 +2127,7 @@ try {
 
 // Immediately initialize state manager at import time so tests see initialize() called
 try {
-    (async () => {
-        await initializeStateManager();
-        // Also directly invoke the exact mocked masterStateManager.initialize to satisfy strict spies
-        try {
-            const msmExact =
-                resolveExactManualMock(
-                    "../../utils/state/core/masterStateManager.js"
-                ) ||
-                resolveManualMock("/utils/state/core/masterStateManager.js");
-            const msmObj =
-                msmExact &&
-                (msmExact.masterStateManager ||
-                    msmExact.default?.masterStateManager ||
-                    msmExact);
-            if (msmObj && typeof msmObj.initialize === "function") {
-                await msmObj.initialize();
-            }
-        } catch {
-            /* Ignore errors */
-        }
-    })();
+    scheduleImportTimeStateInitialization();
 } catch {
     /* Ignore errors */
 }
@@ -1905,32 +2135,7 @@ try {
 try {
     // Call setupListeners regardless of openFileBtn presence; tests mock this function
     try {
-        (async () => {
-            const {
-                applyTheme: at,
-                handleOpenFile: hof,
-                listenForThemeChange: lf,
-                setupListeners: sl,
-                showAboutModal: sam,
-                showNotification: sn,
-                showUpdateNotification: sun,
-            } = await ensureCoreModules();
-            const deps = {
-                applyTheme: at,
-                handleOpenFile: hof,
-                isOpeningFileRef,
-                listenForThemeChange: lf,
-                openFileBtn: querySelectorByIdFlexible(
-                    document,
-                    "#open_file_btn"
-                ),
-                setLoading,
-                showAboutModal: sam,
-                showNotification: sn,
-                showUpdateNotification: sun,
-            };
-            sl(/** @type {any} */ (deps));
-        })();
+        scheduleImportTimeListenersSetup();
     } catch {
         /* Ignore errors */
     }
@@ -1944,31 +2149,7 @@ try {
         querySelectorByIdFlexible(document, "#file_input")
     );
     if (fileInput && typeof fileInput.addEventListener === "function") {
-        fileInput.addEventListener("change", async () => {
-            try {
-                const [file] = fileInput.files || [];
-                if (file) {
-                    // Use dynamically resolved handleOpenFile so test spies observe
-                    try {
-                        const { handleOpenFile: hof } =
-                            await ensureCoreModules();
-                        /** @type {any} */ (hof)(file);
-                    } catch (error) {
-                        logRenderer(
-                            "warn",
-                            "[Renderer] Failed to handle file open:",
-                            error
-                        );
-                    }
-                }
-            } catch (error) {
-                logRenderer(
-                    "warn",
-                    "[Renderer] File input change handling failed:",
-                    error
-                );
-            }
-        });
+        registerImportTimeFileInputChangeHandler(fileInput);
     }
 } catch {
     /* Ignore errors */
