@@ -90,7 +90,7 @@ function loadRecentFiles(): string[] {
         }
 
         const data = fs.readFileSync(RECENT_FILES_PATH, "utf8");
-        const parsed = JSON.parse(data) as unknown;
+        const parsed: unknown = JSON.parse(data);
         if (!Array.isArray(parsed)) {
             console.warn(
                 "Invalid recent files list, resetting to an empty array."

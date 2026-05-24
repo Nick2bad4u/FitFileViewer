@@ -309,7 +309,7 @@ export function setupStatePersistence(): void {
             return;
         }
 
-        const parsedState = JSON.parse(savedState) as unknown;
+        const parsedState: unknown = JSON.parse(savedState);
 
         for (const path of PERSISTED_PATHS) {
             const value = getNestedValue(parsedState, path);

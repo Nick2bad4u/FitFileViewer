@@ -73,7 +73,7 @@ function loadRecentModule(): RecentFilesModule | null {
     try {
         // Only attempt to require in environments where require exists (Node/Electron main/tests)
         if (typeof require === "function") {
-            const requiredModule = require("./recentFiles.js") as unknown;
+            const requiredModule: unknown = require("./recentFiles.js");
             if (isRecentFilesModule(requiredModule)) {
                 recentModule = requiredModule;
                 return recentModule;

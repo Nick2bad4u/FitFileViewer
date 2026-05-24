@@ -283,7 +283,7 @@ export function loadPersistedState(
             return;
         }
 
-        const parsedState = JSON.parse(savedState) as unknown;
+        const parsedState: unknown = JSON.parse(savedState);
 
         for (const path of paths) {
             const value = getNestedValue(parsedState, path);
@@ -311,7 +311,7 @@ export function persistState(
     try {
         const existingRaw = localStorage.getItem("fitFileViewer_state");
         if (existingRaw !== null && existingRaw !== "") {
-            const parsed = JSON.parse(existingRaw) as unknown;
+            const parsed: unknown = JSON.parse(existingRaw);
             if (isRecord(parsed)) {
                 stateToSave = parsed;
             }
