@@ -248,7 +248,8 @@ function seedGlobalData() {
 }
 
 function seedCharts(count = 2) {
-    (window as any)._chartjsInstances = Array.from({ length: count }).map(
+    (window as any)._chartjsInstances = Array.from(
+        { length: count },
         (_, i) => ({
             data: {
                 datasets: [
@@ -304,18 +305,26 @@ describe("ensureChartSettingsDropdowns integration", () => {
 
         // Toggle button exists and points to wrapper
         const toggleBtn = document.getElementById("chart-controls-toggle");
-        expect(toggleBtn).toBeTruthy();
+        expect(toggleBtn).toBeInstanceOf(HTMLButtonElement);
         expect(toggleBtn?.getAttribute("aria-controls")).toBe(
             "chartjs-settings-wrapper"
         );
 
         // Wrapper and sections exist
         const wrapper = document.getElementById("chartjs-settings-wrapper");
-        expect(wrapper).toBeTruthy();
-        expect(wrapper?.querySelector(".settings-header")).toBeTruthy();
-        expect(wrapper?.querySelector(".controls-section")).toBeTruthy();
-        expect(wrapper?.querySelector(".export-section")).toBeTruthy();
-        expect(wrapper?.querySelector(".fields-section")).toBeTruthy();
+        expect(wrapper).toBeInstanceOf(HTMLDivElement);
+        expect(wrapper?.querySelector(".settings-header")).toBeInstanceOf(
+            HTMLElement
+        );
+        expect(wrapper?.querySelector(".controls-section")).toBeInstanceOf(
+            HTMLElement
+        );
+        expect(wrapper?.querySelector(".export-section")).toBeInstanceOf(
+            HTMLElement
+        );
+        expect(wrapper?.querySelector(".fields-section")).toBeInstanceOf(
+            HTMLElement
+        );
 
         // Setup hooks called
         expect(spies.createPowerZoneControls).toHaveBeenCalled();
@@ -342,7 +351,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
         const alphaSlider = wrapper.querySelector(
             "#chartjs-alpha-slider"
         ) as HTMLInputElement;
-        expect(alphaSlider).toBeTruthy();
+        expect(alphaSlider).toBeInstanceOf(HTMLInputElement);
         alphaSlider.value = "25";
         alphaSlider.dispatchEvent(new Event("input", { bubbles: true }));
         expect(chartSettings.alpha).toBe(25);
@@ -361,7 +370,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
         const toggleSwitch = wrapper.querySelector(
             ".toggle-switch"
         ) as HTMLElement;
-        expect(toggleSwitch).toBeTruthy();
+        expect(toggleSwitch).toBeInstanceOf(HTMLElement);
         toggleSwitch.click();
         expect(chartSettings.smoothing).toBe(false); // default true -> toggled to false
         expect(spies.reRenderChartsAfterSettingChange).toHaveBeenCalledWith(
@@ -373,7 +382,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
         const maxpoints = wrapper.querySelector(
             "#chartjs-maxpoints-dropdown"
         ) as HTMLSelectElement;
-        expect(maxpoints).toBeTruthy();
+        expect(maxpoints).toBeInstanceOf(HTMLSelectElement);
         maxpoints.value = "100";
         maxpoints.dispatchEvent(new Event("change", { bubbles: true }));
         expect(chartSettings.maxpoints).toBe(100);
@@ -394,11 +403,11 @@ describe("ensureChartSettingsDropdowns integration", () => {
         const speedCheckbox = wrapper.querySelector(
             "#field-toggle-speed"
         ) as HTMLInputElement;
-        expect(speedCheckbox).toBeTruthy();
+        expect(speedCheckbox).toBeInstanceOf(HTMLInputElement);
         const speedColor = speedCheckbox.parentElement?.querySelector(
             'input[type="color"]'
         ) as HTMLInputElement;
-        expect(speedColor).toBeTruthy();
+        expect(speedColor).toBeInstanceOf(HTMLInputElement);
 
         // Toggle off
         speedCheckbox.checked = false;
@@ -421,7 +430,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
         const hrZone = wrapper.querySelector(
             "#field-toggle-hr_zone_doughnut"
         ) as HTMLInputElement;
-        expect(hrZone).toBeTruthy();
+        expect(hrZone).toBeInstanceOf(HTMLInputElement);
         const hasPicker = hrZone.parentElement?.querySelector(
             'input[type="color"]'
         );
@@ -443,8 +452,8 @@ describe("ensureChartSettingsDropdowns integration", () => {
             (b) => b.textContent?.includes("Disable All")
         ) as HTMLButtonElement;
 
-        expect(enableAll).toBeTruthy();
-        expect(disableAll).toBeTruthy();
+        expect(enableAll).toBeInstanceOf(HTMLButtonElement);
+        expect(disableAll).toBeInstanceOf(HTMLButtonElement);
 
         enableAll.click();
         expect(spies.showNotification).toHaveBeenCalledWith(
@@ -482,7 +491,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
         ).find((b) =>
             b.textContent?.includes("Export ZIP")
         ) as HTMLButtonElement;
-        expect(exportZipBtn).toBeTruthy();
+        expect(exportZipBtn).toBeInstanceOf(HTMLButtonElement);
         exportZipBtn.click();
         expect(spies.showNotification).toHaveBeenCalledWith(
             "No charts available to export",
@@ -496,7 +505,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
         const savePngBtn = Array.from(wrapper.querySelectorAll("button")).find(
             (b) => b.textContent?.includes("Save PNG")
         ) as HTMLButtonElement;
-        expect(savePngBtn).toBeTruthy();
+        expect(savePngBtn).toBeInstanceOf(HTMLButtonElement);
 
         savePngBtn.click();
 
@@ -504,7 +513,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
         const overlay = document.querySelector(
             '[data-ffv-modal="chart-selection"]'
         );
-        expect(overlay).toBeTruthy();
+        expect(overlay).toBeInstanceOf(HTMLElement);
         const chartButtons = Array.from(
             overlay!.querySelectorAll("button")
         ).filter((b) => b.textContent?.startsWith("📊"));
@@ -521,7 +530,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
         ).find((b) =>
             b.textContent?.startsWith("🔗 All Charts Combined")
         ) as HTMLButtonElement;
-        expect(combinedBtn).toBeTruthy();
+        expect(combinedBtn).toBeInstanceOf(HTMLButtonElement);
         combinedBtn.click();
         expect(exportUtils.createCombinedChartsImage).toHaveBeenCalled();
     });
@@ -535,7 +544,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
         const resetBtn = Array.from(header.querySelectorAll("button")).find(
             (b) => b.textContent?.includes("Reset")
         ) as HTMLButtonElement;
-        expect(resetBtn).toBeTruthy();
+        expect(resetBtn).toBeInstanceOf(HTMLButtonElement);
 
         resetBtn.click();
         expect(spies.resetAllSettings).toHaveBeenCalled();
