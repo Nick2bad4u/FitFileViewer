@@ -1,13 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { loadSingleOverlayFile } from "../../../../../utils/files/import/loadSingleOverlayFile.js";
-import type { OverlayFitData } from "../../../../../utils/files/import/loadSingleOverlayFile.js";
+import type { FitDecodeResult } from "../../../../../shared/fit.js";
 
 type OverlayTestGlobal = typeof globalThis & {
     electronAPI?: {
         decodeFitFile?: (
             arrayBuffer: ArrayBuffer
-        ) => Promise<OverlayFitData | undefined>;
+        ) => Promise<FitDecodeResult | undefined>;
     };
 };
 
@@ -26,7 +26,7 @@ function makeFitFile(
 function setDecodeFitFile(
     decodeFitFile: (
         arrayBuffer: ArrayBuffer
-    ) => Promise<OverlayFitData | undefined>
+    ) => Promise<FitDecodeResult | undefined>
 ): void {
     (globalThis as OverlayTestGlobal).electronAPI = { decodeFitFile };
 }
@@ -43,7 +43,7 @@ describe(loadSingleOverlayFile, () => {
             vi.fn<
                 (
                     arrayBuffer: ArrayBuffer
-                ) => Promise<OverlayFitData | undefined>
+                ) => Promise<FitDecodeResult | undefined>
             >();
         setDecodeFitFile(decodeFitFile);
 
@@ -158,23 +158,16 @@ describe(loadSingleOverlayFile, () => {
     it("returns decoded FIT data when validation succeeds", async () => {
         expect.hasAssertions();
 
-        const decodedData = {
-            cachedFilePath: "C:/rides/overlay.fit",
+        const decodedData: FitDecodeResult = {
             recordMesgs: [{ positionLat: 1, positionLong: 2 }],
         };
-        setDecodeFitFile(async (arrayBuffer) => ({
-            ...decodedData,
-            byteLength: arrayBuffer.byteLength,
-        }));
+        setDecodeFitFile(async () => decodedData);
 
         try {
             const result = await loadSingleOverlayFile(makeFitFile());
 
             expect(result).toStrictEqual({
-                data: {
-                    ...decodedData,
-                    byteLength: 3,
-                },
+                data: decodedData,
                 success: true,
             });
         } finally {
