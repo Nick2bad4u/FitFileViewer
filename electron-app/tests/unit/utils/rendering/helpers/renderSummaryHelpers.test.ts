@@ -1,122 +1,255 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-// From tests/unit/utils/rendering/helpers -> utils/... requires going up 5 levels
-const SUT = "../../../../../utils/rendering/helpers/renderSummaryHelpers.js";
+import {
+    getRowLabel,
+    getStorageKey,
+    loadColPrefs,
+    saveColPrefs,
+} from "../../../../../utils/rendering/helpers/renderSummaryHelpers.js";
+
+type SummaryWindow = Window &
+    typeof globalThis & {
+        activeFitFileName?: string;
+        globalData?: {
+            cachedFilePath?: string;
+        };
+    };
+
+function getSummaryWindow(): SummaryWindow {
+    return window as SummaryWindow;
+}
+
+function resetSummaryFixture(): void {
+    localStorage.clear();
+    delete getSummaryWindow().activeFitFileName;
+    delete getSummaryWindow().globalData;
+}
 
 describe("renderSummaryHelpers core functions", () => {
-    /** Save originals to restore after tests */
-    const origWindow: any = global.window;
-    const origLocalStorage: any = global.localStorage;
+    it("getRowLabel returns Summary for non-lap rows and one-based labels for lap rows", () => {
+        expect.assertions(3);
 
-    beforeEach(() => {
-        // Ensure jsdom window/localStorage exist
-        expect(global.window).toBeDefined();
-        expect(global.localStorage).toBeDefined();
-        // Clean localStorage and reset modules/mocks
-        global.localStorage.clear();
-        vi.resetModules();
-        vi.restoreAllMocks();
-        // Clean any globals we may set
-        (global.window as any).globalData = undefined;
-        (global.window as any).activeFitFileName = undefined;
-    });
-
-    afterEach(() => {
-        // Restore globals as safety (jsdom resets between tests, but keep explicit)
-        global.window = origWindow;
-        global.localStorage = origLocalStorage;
-    });
-
-    it("getRowLabel returns Summary or Lap N", async () => {
-        const { getRowLabel } = await import(SUT);
         expect(getRowLabel(0, false)).toBe("Summary");
         expect(getRowLabel(0, true)).toBe("Lap 1");
         expect(getRowLabel(2, true)).toBe("Lap 3");
     });
 
-    it("getStorageKey prefers window.globalData.cachedFilePath and encodes it", async () => {
-        const { getStorageKey } = await import(SUT);
-        (global.window as any).globalData = {
-            cachedFilePath: "C:/Users/Me/My Activity.fit",
-        };
-        const key = getStorageKey({}, [] as any);
-        expect(key.startsWith("summaryColSel_")).toBe(true);
-        expect(key).toContain(
-            encodeURIComponent("C:/Users/Me/My Activity.fit")
-        );
+    it("getStorageKey prefers window.globalData.cachedFilePath and ignores lower-priority names", () => {
+        expect.assertions(3);
+
+        resetSummaryFixture();
+
+        try {
+            const preferredFilePath = "C:/Users/Me/My Activity.fit";
+            getSummaryWindow().activeFitFileName = "IgnoredName.fit";
+            getSummaryWindow().globalData = {
+                cachedFilePath: preferredFilePath,
+            };
+
+            const key = getStorageKey(
+                { cachedFilePath: "/tmp/ignored.fit" },
+                []
+            );
+
+            expect(key).toBe(
+                `summaryColSel_${encodeURIComponent(preferredFilePath)}`
+            );
+            expect(key).not.toContain(encodeURIComponent("/tmp/ignored.fit"));
+            expect(key).not.toContain(encodeURIComponent("IgnoredName.fit"));
+        } finally {
+            resetSummaryFixture();
+        }
     });
 
-    it("getStorageKey falls back to data.cachedFilePath when window.globalData missing", async () => {
-        const { getStorageKey } = await import(SUT);
-        // ensure no globalData
-        (global.window as any).globalData = undefined;
-        const data: any = { cachedFilePath: "/tmp/äctivity file.fit" };
-        const key = getStorageKey(data, undefined as any);
-        expect(key).toBe(
-            "summaryColSel_" + encodeURIComponent("/tmp/äctivity file.fit")
-        );
+    it("getStorageKey falls back to data.cachedFilePath when window.globalData has no cached file path", () => {
+        expect.assertions(2);
+
+        resetSummaryFixture();
+
+        try {
+            const dataFilePath = "/tmp/äctivity file.fit";
+            getSummaryWindow().activeFitFileName = "IgnoredName.fit";
+            getSummaryWindow().globalData = {};
+
+            const key = getStorageKey({ cachedFilePath: dataFilePath });
+
+            expect(key).toBe(
+                `summaryColSel_${encodeURIComponent(dataFilePath)}`
+            );
+            expect(key).not.toContain(encodeURIComponent("IgnoredName.fit"));
+        } finally {
+            resetSummaryFixture();
+        }
     });
 
-    it("getStorageKey falls back to window.activeFitFileName and defaults otherwise", async () => {
-        const { getStorageKey } = await import(SUT);
-        // Remove others
-        (global.window as any).globalData = undefined;
-        const keyDefault = getStorageKey(undefined as any, undefined as any);
-        expect(keyDefault).toBe("summaryColSel_default");
-        // Now set activeFitFileName
-        (global.window as any).activeFitFileName = "JustAName.fit";
-        const keyActive = getStorageKey(undefined as any, undefined as any);
-        expect(keyActive).toBe(
-            "summaryColSel_" + encodeURIComponent("JustAName.fit")
-        );
+    it("getStorageKey falls back to window.activeFitFileName when no cached path exists", () => {
+        expect.assertions(2);
+
+        resetSummaryFixture();
+
+        try {
+            const activeFileName = "JustAName.fit";
+            getSummaryWindow().activeFitFileName = activeFileName;
+
+            expect(getStorageKey()).toBe(
+                `summaryColSel_${encodeURIComponent(activeFileName)}`
+            );
+            expect(getStorageKey({ other: "value" })).toBe(
+                `summaryColSel_${encodeURIComponent(activeFileName)}`
+            );
+        } finally {
+            resetSummaryFixture();
+        }
     });
 
-    it("loadColPrefs returns array of strings from localStorage and handles bad values", async () => {
-        const { loadColPrefs } = await import(SUT);
-        const key = "summaryColSel_test";
-        // Valid array
-        localStorage.setItem(
-            key,
-            JSON.stringify([
-                "a",
-                "b",
-                "c",
-            ])
-        );
-        expect(loadColPrefs(key, undefined as any)).toEqual([
-            "a",
-            "b",
-            "c",
-        ]);
-        // Not an array -> null
-        localStorage.setItem(key, JSON.stringify({ a: 1 }));
-        expect(loadColPrefs(key, undefined as any)).toBeNull();
-        // Invalid JSON -> null
-        localStorage.setItem(key, "not-json");
-        expect(loadColPrefs(key, undefined as any)).toBeNull();
-        // getItem throwing -> null (caught)
-        const origGet = localStorage.getItem;
-        (localStorage as any).getItem = vi.fn(() => {
-            throw new Error("boom");
-        });
-        expect(loadColPrefs(key, undefined as any)).toBeNull();
-        // restore
-        (localStorage as any).getItem = origGet;
+    it("getStorageKey returns the default key when no file identity is available", () => {
+        expect.assertions(1);
+
+        resetSummaryFixture();
+
+        try {
+            expect(getStorageKey()).toBe("summaryColSel_default");
+        } finally {
+            resetSummaryFixture();
+        }
     });
 
-    it("saveColPrefs stores JSON and swallows errors", async () => {
-        const { saveColPrefs } = await import(SUT);
-        const key = "summaryColSel_store";
-        const cols = ["Speed", "Distance"];
-        saveColPrefs(key, cols, undefined as any);
-        expect(JSON.parse(localStorage.getItem(key) || "[]")).toEqual(cols);
-        // setItem throwing should not propagate
-        const origSet = localStorage.setItem;
-        (localStorage as any).setItem = vi.fn(() => {
-            throw new Error("nope");
-        });
-        expect(() => saveColPrefs(key, ["X"], undefined as any)).not.toThrow();
-        // restore
-        (localStorage as any).setItem = origSet;
+    it("loadColPrefs returns a stored array when every value is a string", () => {
+        expect.assertions(2);
+
+        resetSummaryFixture();
+
+        try {
+            const key = "summaryColSel_valid";
+            const storedColumns = ["speed", "distance", "timestamp"];
+
+            localStorage.setItem(key, JSON.stringify(storedColumns));
+
+            expect(loadColPrefs(key)).toStrictEqual(storedColumns);
+            expect(loadColPrefs("summaryColSel_missing")).toBeNull();
+        } finally {
+            resetSummaryFixture();
+        }
+    });
+
+    it("loadColPrefs rejects non-array JSON values", () => {
+        expect.assertions(2);
+
+        resetSummaryFixture();
+
+        try {
+            const key = "summaryColSel_object";
+
+            localStorage.setItem(key, JSON.stringify({ speed: true }));
+
+            expect(loadColPrefs(key)).toBeNull();
+            expect(localStorage.getItem(key)).toBe('{"speed":true}');
+        } finally {
+            resetSummaryFixture();
+        }
+    });
+
+    it("loadColPrefs rejects arrays containing non-string values", () => {
+        expect.assertions(2);
+
+        resetSummaryFixture();
+
+        try {
+            const key = "summaryColSel_mixed";
+
+            localStorage.setItem(key, JSON.stringify(["speed", 42]));
+
+            expect(loadColPrefs(key)).toBeNull();
+            expect(localStorage.getItem(key)).toBe('["speed",42]');
+        } finally {
+            resetSummaryFixture();
+        }
+    });
+
+    it("loadColPrefs rejects invalid JSON without deleting the stored value", () => {
+        expect.assertions(2);
+
+        resetSummaryFixture();
+
+        try {
+            const key = "summaryColSel_invalid_json";
+
+            localStorage.setItem(key, "not-json");
+
+            expect(loadColPrefs(key)).toBeNull();
+            expect(localStorage.getItem(key)).toBe("not-json");
+        } finally {
+            resetSummaryFixture();
+        }
+    });
+
+    it("loadColPrefs returns null when localStorage.getItem throws after requesting the key", () => {
+        expect.assertions(2);
+
+        resetSummaryFixture();
+
+        const key = "summaryColSel_throwing_get";
+        const getItemSpy = vi
+            .spyOn(localStorage, "getItem")
+            .mockImplementation((): string | null => {
+                throw new Error("boom");
+            });
+
+        try {
+            expect(loadColPrefs(key)).toBeNull();
+            expect(getItemSpy).toHaveBeenCalledWith(key);
+        } finally {
+            getItemSpy.mockRestore();
+            resetSummaryFixture();
+        }
+    });
+
+    it("saveColPrefs stores visible columns as JSON", () => {
+        expect.assertions(2);
+
+        resetSummaryFixture();
+
+        try {
+            const key = "summaryColSel_store";
+            const columns = ["Speed", "Distance"];
+
+            saveColPrefs(key, columns);
+
+            expect(localStorage.getItem(key)).toBe(JSON.stringify(columns));
+            expect(loadColPrefs(key)).toStrictEqual(columns);
+        } finally {
+            resetSummaryFixture();
+        }
+    });
+
+    it("saveColPrefs leaves existing preferences unchanged when localStorage.setItem throws", () => {
+        expect.assertions(2);
+
+        resetSummaryFixture();
+
+        const key = "summaryColSel_throwing_set";
+        const originalColumns = ["Speed"];
+        const replacementColumns = ["Distance"];
+
+        localStorage.setItem(key, JSON.stringify(originalColumns));
+
+        const setItemSpy = vi
+            .spyOn(localStorage, "setItem")
+            .mockImplementation((): void => {
+                throw new Error("nope");
+            });
+
+        try {
+            saveColPrefs(key, replacementColumns);
+
+            expect(setItemSpy).toHaveBeenCalledExactlyOnceWith(
+                key,
+                JSON.stringify(replacementColumns)
+            );
+            expect(loadColPrefs(key)).toStrictEqual(originalColumns);
+        } finally {
+            setItemSpy.mockRestore();
+            resetSummaryFixture();
+        }
     });
 });
