@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../../../../utils/charts/core/chartNotificationState.js", () => ({
     previousChartState: {
@@ -10,8 +10,14 @@ vi.mock("../../../../utils/charts/core/chartNotificationState.js", () => ({
 }));
 
 describe("showRenderNotification logic", () => {
-    beforeEach(() => {
+    beforeEach(async () => {
         vi.setSystemTime(0);
+        const rc =
+            await import("../../../../utils/charts/core/chartNotificationState.js");
+        (rc.previousChartState.chartCount as any) = 0;
+        (rc.previousChartState.fieldsRendered as any) = [];
+        (rc.previousChartState.lastRenderTimestamp as any) = 0;
+        vi.mocked(rc.updatePreviousChartState).mockClear();
     });
 
     it("shows when >10s since last render", async () => {
@@ -35,7 +41,7 @@ describe("showRenderNotification logic", () => {
         expect(mod.showRenderNotification(1, 1)).toBe(true);
     });
 
-    it("suppresses for minor changes", async () => {
+    it("does not show for threshold-boundary changes", async () => {
         const rc =
             await import("../../../../utils/charts/core/chartNotificationState.js");
         (rc.previousChartState.chartCount as any) = 3;
@@ -47,7 +53,8 @@ describe("showRenderNotification logic", () => {
         (rc.previousChartState.lastRenderTimestamp as any) = Date.now();
         const mod =
             await import("../../../../utils/ui/notifications/showRenderNotification.js");
-        expect(mod.showRenderNotification(4, 4)).toBe(false);
+        expect(mod.showRenderNotification(5, 5)).not.toBe(true);
+        expect(rc.updatePreviousChartState).toHaveBeenCalledWith(5, 5, 0);
     });
 
     it("shows when visible fields change significantly", async () => {
