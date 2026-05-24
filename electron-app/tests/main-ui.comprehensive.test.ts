@@ -8,7 +8,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 vi.mock("../utils/theming/core/theme.js", () => ({
     applyTheme: vi.fn(),
     listenForThemeChange: vi.fn(),
-    loadTheme: vi.fn(),
+    loadTheme: vi.fn(() => "dark"),
 }));
 
 vi.mock("../utils/rendering/core/showFitData.js", () => ({
@@ -26,6 +26,14 @@ vi.mock("../utils/ui/controls/addFullScreenButton.js", () => ({
 
 vi.mock("../utils/app/initialization/setupWindow.js", () => ({
     setupWindow: vi.fn(),
+}));
+
+vi.mock("../utils/app/lifecycle/resourceManager.js", () => ({
+    resourceManager: {
+        addShutdownHook: vi.fn(),
+        cleanupAll: vi.fn(),
+        registerTimer: vi.fn(),
+    },
 }));
 
 vi.mock("../utils/charts/core/renderChartJS.js", () => ({
@@ -75,50 +83,205 @@ vi.mock("../utils/ui/notifications/showNotification.js", () => ({
 
 vi.mock("../utils/charts/core/chartTabIntegration.js", () => ({
     chartTabIntegration: {
+        destroy: vi.fn(),
+        getStatus: vi.fn(() => ({ initialized: true })),
         initialize: vi.fn(),
         updateCharts: vi.fn(),
     },
 }));
 
+vi.mock("../utils/ui/dragDropHandler.js", () => ({
+    DragDropHandler: vi.fn(function MockDragDropHandler() {
+        return { dispose: vi.fn() };
+    }),
+}));
+
+vi.mock("../utils/ui/setupExternalLinkHandlers.js", () => ({
+    setupExternalLinkHandlers: vi.fn(),
+}));
+
+function createElement<K extends keyof HTMLElementTagNameMap>(
+    tagName: K,
+    {
+        className,
+        id,
+        text,
+    }: { className?: string; id?: string; text?: string } = {}
+): HTMLElementTagNameMap[K] {
+    const element = document.createElement(tagName);
+    if (id) {
+        element.id = id;
+    }
+    if (className) {
+        element.className = className;
+    }
+    if (text) {
+        element.textContent = text;
+    }
+    return element;
+}
+
+function setupMainUiDom(): void {
+    const tabButtons = createElement("div", { id: "tab-buttons" });
+    tabButtons.replaceChildren(
+        createElement("button", {
+            className: "tab-button",
+            id: "tab_summary",
+            text: "Summary",
+        }),
+        createElement("button", {
+            className: "tab-button",
+            id: "tab_chart",
+            text: "Charts",
+        }),
+        createElement("button", {
+            className: "tab-button",
+            id: "tab_map",
+            text: "Map",
+        })
+    );
+
+    const contentTabs = createElement("div", { id: "content-tabs" });
+    contentTabs.replaceChildren(
+        createElement("div", {
+            className: "content-tab",
+            id: "content_summary",
+        }),
+        createElement("div", {
+            className: "content-tab",
+            id: "content_data",
+        }),
+        createElement("div", {
+            className: "content-tab",
+            id: "content_chart",
+        }),
+        createElement("div", {
+            className: "content-tab",
+            id: "content_map",
+        })
+    );
+
+    document.body.replaceChildren(
+        tabButtons,
+        contentTabs,
+        createElement("button", {
+            id: "unload_file_btn",
+            text: "Unload",
+        }),
+        createElement("div", { id: "loading-overlay" })
+    );
+}
+
 describe("main-ui.js - UI Controller and State Management", () => {
     beforeEach(() => {
-        // Reset DOM
-        document.body.innerHTML = `
-      <div id="tab-buttons">
-        <button id="summary-tab-button" class="tab-button">Summary</button>
-        <button id="raw-tab-button" class="tab-button">Raw Data</button>
-        <button id="chart-tab-button" class="tab-button">Charts</button>
-        <button id="map-tab-button" class="tab-button">Map</button>
-        <button id="tools-tab-button" class="tab-button">Tools</button>
-        <button id="debug-tab-button" class="tab-button">Debug</button>
-      </div>
-      <div id="content-tabs">
-        <div id="summary-tab" class="content-tab"></div>
-        <div id="raw-tab" class="content-tab"></div>
-        <div id="chart-tab" class="content-tab"></div>
-        <div id="map-tab" class="content-tab"></div>
-        <div id="tools-tab" class="content-tab"></div>
-        <div id="debug-tab" class="content-tab"></div>
-      </div>
-      <div id="loading-overlay"></div>
-    `;
-
-        // Reset all mocks
+        setupMainUiDom();
         vi.clearAllMocks();
-
-        // Reset module cache for main-ui.js
-        delete require.cache[require.resolve("../main-ui.js")];
+        vi.resetModules();
+        Reflect.deleteProperty(globalThis, "dragDropHandler");
+        Reflect.deleteProperty(globalThis, "electronAPI");
+        Reflect.deleteProperty(globalThis, "showFitData");
+        Reflect.deleteProperty(globalThis, "renderChartJS");
+        Reflect.deleteProperty(globalThis, "cleanupEventListeners");
     });
 
-    it("should export functions and modules", () => {
-        // This is a placeholder test to ensure the test suite exists
-        // Actual implementation would test the exported functions from main-ui.js
-        expect(true).toBe(true);
+    it("registers legacy globals and rejects invalid legacy FIT data", async () => {
+        await import("../main-ui.js");
+        const { renderChartJS } = await import(
+            "../utils/charts/core/renderChartJS.js"
+        );
+        const { showFitData } = await import(
+            "../utils/rendering/core/showFitData.js"
+        );
+        const renderChartJSMock = vi.mocked(renderChartJS);
+        const showFitDataMock = vi.mocked(showFitData);
+
+        expect(globalThis.showFitData).toBeInstanceOf(Function);
+        expect(globalThis.renderChartJS).toBeInstanceOf(Function);
+        expect(globalThis.cleanupEventListeners).toBeInstanceOf(Function);
+        expect(document.querySelectorAll(".tab-button")).toHaveLength(3);
+
+        (globalThis.showFitData as (fitData: unknown) => void)(null);
+        expect(showFitDataMock).not.toHaveBeenCalled();
+
+        const fitData = { records: [] };
+        (globalThis.showFitData as (fitData: unknown, filePath: string) => void)(
+            fitData,
+            "activity.fit"
+        );
+        expect(showFitDataMock).toHaveBeenCalledWith(fitData, "activity.fit");
+
+        const targetContainer = createElement("div", { id: "chart-target" });
+        (globalThis.renderChartJS as (target: HTMLElement) => void)(
+            targetContainer
+        );
+        expect(renderChartJSMock).toHaveBeenCalledWith(targetContainer);
     });
 
-    it("should initialize UI components when loaded", () => {
-        // This is a placeholder test
-        // Actual implementation would test the initialization behavior of main-ui.js
-        expect(true).toBe(true);
+    it("initializes UI side effects when loaded", async () => {
+        const onIpc = vi.fn();
+        const onSetTheme = vi.fn();
+        const sendThemeChanged = vi.fn();
+        (globalThis as any).electronAPI = {
+            onIpc,
+            onSetTheme,
+            sendThemeChanged,
+        };
+
+        await import("../main-ui.js");
+        const { setupWindow } = await import(
+            "../utils/app/initialization/setupWindow.js"
+        );
+        const { resourceManager } = await import(
+            "../utils/app/lifecycle/resourceManager.js"
+        );
+        const { chartTabIntegration } = await import(
+            "../utils/charts/core/chartTabIntegration.js"
+        );
+        const {
+            applyTheme,
+            listenForThemeChange,
+            loadTheme,
+        } = await import("../utils/theming/core/theme.js");
+        const { setupFullscreenListeners } = await import(
+            "../utils/ui/controls/addFullScreenButton.js"
+        );
+        const { DragDropHandler } = await import(
+            "../utils/ui/dragDropHandler.js"
+        );
+        const { setupExternalLinkHandlers } = await import(
+            "../utils/ui/setupExternalLinkHandlers.js"
+        );
+        const applyThemeMock = vi.mocked(applyTheme);
+        const dragDropHandlerMock = vi.mocked(DragDropHandler);
+        const listenForThemeChangeMock = vi.mocked(listenForThemeChange);
+        const loadThemeMock = vi.mocked(loadTheme);
+        const resourceManagerMock = vi.mocked(resourceManager);
+        const setupExternalLinkHandlersMock = vi.mocked(
+            setupExternalLinkHandlers
+        );
+        const setupFullscreenListenersMock = vi.mocked(
+            setupFullscreenListeners
+        );
+        const setupWindowMock = vi.mocked(setupWindow);
+
+        expect(loadThemeMock).toHaveBeenCalledOnce();
+        expect(applyThemeMock).toHaveBeenCalledWith("dark");
+        expect(listenForThemeChangeMock).toHaveBeenCalledOnce();
+        expect(setupFullscreenListenersMock).toHaveBeenCalledOnce();
+        expect(setupWindowMock).toHaveBeenCalledOnce();
+        expect(setupExternalLinkHandlersMock).toHaveBeenCalledWith({
+            cleanupExternalLinkHandlers: null,
+            setCleanup: expect.any(Function),
+        });
+        expect(resourceManagerMock.addShutdownHook).toHaveBeenCalledWith(
+            expect.any(Function)
+        );
+        expect(dragDropHandlerMock).toHaveBeenCalledOnce();
+        expect(globalThis.dragDropHandler).toEqual({ dispose: expect.any(Function) });
+        expect(onIpc).toHaveBeenCalledWith(
+            "unload-fit-file",
+            expect.any(Function)
+        );
+        expect(chartTabIntegration.getStatus).toHaveBeenCalledOnce();
     });
 });
