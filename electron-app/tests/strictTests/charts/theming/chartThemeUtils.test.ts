@@ -1,7 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
-const modPath = "../../../../utils/charts/theming/chartThemeUtils.js";
 const themeModulePath = "../../../../utils/theming/core/theme.js";
+
+async function importChartThemeUtils() {
+    return import("../../../../utils/charts/theming/chartThemeUtils.js");
+}
 
 function setMatchMedia(dark: boolean | null) {
     if (dark === null) {
@@ -33,19 +36,19 @@ describe("detectCurrentTheme", () => {
 
     it("returns dark when body has theme-dark class", async () => {
         document.body.classList.add("theme-dark");
-        const { detectCurrentTheme } = await import(modPath);
+        const { detectCurrentTheme } = await importChartThemeUtils();
         expect(detectCurrentTheme()).toBe("dark");
     });
 
     it("returns light when body has theme-light class", async () => {
         document.body.classList.add("theme-light");
-        const { detectCurrentTheme } = await import(modPath);
+        const { detectCurrentTheme } = await importChartThemeUtils();
         expect(detectCurrentTheme()).toBe("light");
     });
 
     it("uses getEffectiveTheme when available", async () => {
         vi.doMock(themeModulePath, () => ({ getEffectiveTheme: () => "dark" }));
-        const { detectCurrentTheme } = await import(modPath);
+        const { detectCurrentTheme } = await importChartThemeUtils();
         expect(detectCurrentTheme()).toBe("dark");
     });
 
@@ -56,7 +59,7 @@ describe("detectCurrentTheme", () => {
             },
         }));
         localStorage.setItem("ffv-theme", "light");
-        const { detectCurrentTheme } = await import(modPath);
+        const { detectCurrentTheme } = await importChartThemeUtils();
         expect(detectCurrentTheme()).toBe("light");
     });
 
@@ -64,7 +67,7 @@ describe("detectCurrentTheme", () => {
         vi.doMock(themeModulePath, () => ({ getEffectiveTheme: () => null }));
         localStorage.setItem("ffv-theme", "auto");
         setMatchMedia(true);
-        const { detectCurrentTheme } = await import(modPath);
+        const { detectCurrentTheme } = await importChartThemeUtils();
         expect(detectCurrentTheme()).toBe("dark");
     });
 
@@ -72,7 +75,7 @@ describe("detectCurrentTheme", () => {
         vi.doMock(themeModulePath, () => ({ getEffectiveTheme: () => null }));
         localStorage.setItem("ffv-theme", "auto");
         setMatchMedia(false);
-        const { detectCurrentTheme } = await import(modPath);
+        const { detectCurrentTheme } = await importChartThemeUtils();
         expect(detectCurrentTheme()).toBe("light");
     });
 
@@ -81,7 +84,7 @@ describe("detectCurrentTheme", () => {
             getEffectiveTheme: () => undefined,
         }));
         setMatchMedia(true);
-        const { detectCurrentTheme } = await import(modPath);
+        const { detectCurrentTheme } = await importChartThemeUtils();
         expect(detectCurrentTheme()).toBe("dark");
     });
 
@@ -96,7 +99,7 @@ describe("detectCurrentTheme", () => {
             getEffectiveTheme: () => undefined,
         }));
         setMatchMedia(null);
-        const { detectCurrentTheme } = await import(modPath);
+        const { detectCurrentTheme } = await importChartThemeUtils();
         expect(detectCurrentTheme()).toBe("light");
         getItemSpy.mockRestore();
     });
