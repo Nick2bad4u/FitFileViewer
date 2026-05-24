@@ -3,213 +3,190 @@
  * contextBridge. Incremental typing is applied using JSDoc so strict TypeScript
  * checking over allowJs passes.
  */
+/**
+ * @typedef {import("./shared/ipc").GenericInvokeChannel} GenericInvokeChannel
+ *
+ * @typedef {import("./shared/ipc").GenericSendChannel} GenericSendChannel
+ *
+ * @typedef {import("./shared/ipc").IpcRequestPayload} IpcRequestPayload
+ *
+ * @typedef {import("./shared/ipc").IpcResponsePayload} IpcResponsePayload
+ *
+ * @typedef {import("./shared/ipc").MainStateChange} MainStateChange
+ *
+ * @typedef {import("./shared/ipc").RendererIpcEventChannel} PreloadRendererIpcEventChannel
+ *
+ * @typedef {import("./shared/ipc").UpdateEventName} UpdateEventName
+ */
+/**
+ * @typedef {Object} GyazoServerStartResult
+ *
+ * @property {boolean} success
+ * @property {number} port
+ * @property {string} [message]
+ */
+/**
+ * @typedef {Object} GyazoServerStopResult
+ *
+ * @property {boolean} success
+ * @property {string} [message]
+ */
+/**
+ * @typedef {Object} ChannelInfo
+ *
+ * @property {Record<string, string>} channels
+ * @property {Record<string, string>} events
+ * @property {number} totalChannels
+ * @property {number} totalEvents
+ */
+/**
+ * @typedef {Object} PlatformInfo
+ *
+ * @property {string} platform
+ * @property {string} arch
+ */
+/**
+ * Primitive/structured payload types that can safely traverse Electron IPC.
+ *
+ * Note: ArrayBuffer is intentionally excluded here because it is handled via
+ * explicit wrappers (readFile/parseFitFile/decodeFitFile). Generic IPC helpers
+ * should prefer JSON-like payloads.
+ *
+ * @typedef {null
+ *     | boolean
+ *     | number
+ *     | string
+ *     | IpcSerializable[]
+ *     | { [key: string]: IpcSerializable }} IpcSerializable
+ */
+/**
+ * Minimal Electron surface used by preload before the full Electron types are
+ * available in this checked JavaScript file.
+ *
+ * @typedef {Object} PreloadContextBridge
+ *
+ * @property {(key: string, api: unknown) => void} [exposeInMainWorld]
+ */
+/**
+ * @typedef {Object} PreloadIpcRenderer
+ *
+ * @property {(
+ *     channel: string,
+ *     ...args: IpcRequestPayload[]
+ * ) => Promise<IpcResponsePayload>} [invoke]
+ * @property {(channel: string, ...args: IpcRequestPayload[]) => void} [send]
+ * @property {(
+ *     channel: string,
+ *     listener: (event: object, ...args: IpcResponsePayload[]) => void
+ * ) => void} [on]
+ * @property {(
+ *     channel: string,
+ *     listener: (event: object, ...args: IpcResponsePayload[]) => void
+ * ) => void} [off]
+ * @property {(
+ *     channel: string,
+ *     listener: (event: object, ...args: IpcResponsePayload[]) => void
+ * ) => void} [removeListener]
+ * @property {(channel: string) => void} [removeAllListeners]
+ */
+/**
+ * @typedef {Object} PreloadElectronBridge
+ *
+ * @property {PreloadContextBridge | null | undefined} [contextBridge]
+ * @property {PreloadIpcRenderer | null | undefined} [ipcRenderer]
+ * @property {PreloadElectronBridge | null | undefined} [default]
+ */
+/**
+ * @typedef {typeof globalThis & {
+ *     __electronHoistedMock?: PreloadElectronBridge | null | undefined;
+ * }} PreloadGlobal
+ */
+/**
+ * @typedef {Object} IpcBridgeCatalog
+ *
+ * @property {Readonly<Record<string, GenericInvokeChannel>>} PRELOAD_CHANNELS
+ * @property {Readonly<Record<string, PreloadRendererIpcEventChannel>>} PRELOAD_EVENTS
+ * @property {(channel: unknown) => channel is GenericInvokeChannel} isAllowedGenericInvokeChannel
+ * @property {(channel: unknown) => channel is GenericSendChannel} isAllowedGenericSendChannel
+ * @property {(channel: unknown) => channel is PreloadRendererIpcEventChannel} isAllowedRendererIpcEventChannel
+ * @property {(eventName: unknown) => eventName is UpdateEventName} isAllowedUpdateEventName
+ */
+/**
+ * @typedef {import("./shared/preloadApi").ElectronAPI} ElectronAPI
+ */
+/**
+ * @typedef {(...args: unknown[]) => unknown} UnknownCallback
+ */
+
+const preloadRequire = /** @type {(moduleId: string) => unknown} */ (require);
+const ipcBridgeCatalog = /** @type {IpcBridgeCatalog} */ (
+    preloadRequire("./preload/ipcBridgeCatalog.js")
+);
+
 const {
-    PRELOAD_CHANNELS,
-    PRELOAD_EVENTS,
     isAllowedGenericInvokeChannel,
     isAllowedGenericSendChannel,
     isAllowedRendererIpcEventChannel,
     isAllowedUpdateEventName,
-} = require("./preload/ipcBridgeCatalog.js");
+    PRELOAD_CHANNELS,
+    PRELOAD_EVENTS,
+} = ipcBridgeCatalog;
 
-const // Constants for better maintainability
-    CONSTANTS = {
-        CHANNELS: PRELOAD_CHANNELS,
-        DEFAULT_VALUES: {
-            FIT_FILE_PATH: null,
-            THEME: null,
-        },
-        EVENTS: PRELOAD_EVENTS,
+// Constants for better maintainability
+const CONSTANTS = {
+    CHANNELS: PRELOAD_CHANNELS,
+    DEFAULT_VALUES: {
+        FIT_FILE_PATH: null,
+        THEME: null,
     },
-    /**
-     * @typedef {Object} GyazoServerStartResult
-     *
-     * @property {boolean} success
-     * @property {number} port
-     * @property {string} [message]
-     */
-    /**
-     * @typedef {Object} GyazoServerStopResult
-     *
-     * @property {boolean} success
-     * @property {string} [message]
-     */
-    /**
-     * @typedef {Object} ChannelInfo
-     *
-     * @property {Record<string, string>} channels
-     * @property {Record<string, string>} events
-     * @property {number} totalChannels
-     * @property {number} totalEvents
-     */
-    /**
-     * @typedef {Object} PlatformInfo
-     *
-     * @property {string} platform
-     * @property {string} arch
-     */
-    /**
-     * Primitive/structured payload types that can safely traverse Electron IPC.
-     *
-     * Note: ArrayBuffer is intentionally excluded here because it is handled
-     * via explicit wrappers (readFile/parseFitFile/decodeFitFile). Generic IPC
-     * helpers should prefer JSON-like payloads.
-     *
-     * @typedef {null
-     *     | boolean
-     *     | number
-     *     | string
-     *     | IpcSerializable[]
-     *     | { [key: string]: IpcSerializable }} IpcSerializable
-     */
-    /**
-     * @typedef {import("./shared/ipc").GenericInvokeChannel} GenericInvokeChannel
-     *
-     * @typedef {import("./shared/ipc").GenericSendChannel} GenericSendChannel
-     *
-     * @typedef {import("./shared/ipc").IpcRequestPayload} IpcRequestPayload
-     *
-     * @typedef {import("./shared/ipc").IpcResponsePayload} IpcResponsePayload
-     *
-     * @typedef {import("./shared/ipc").MainStateChange} MainStateChange
-     */
-    /**
-     * Minimal Electron surface used by preload before the full Electron types
-     * are available in this checked JavaScript file.
-     *
-     * @typedef {Object} PreloadContextBridge
-     *
-     * @property {(key: string, api: unknown) => void} [exposeInMainWorld]
-     */
-    /**
-     * @typedef {Object} PreloadIpcRenderer
-     *
-     * @property {(
-     *     channel: string,
-     *     ...args: IpcRequestPayload[]
-     * ) => Promise<IpcResponsePayload>} [invoke]
-     * @property {(channel: string, ...args: IpcRequestPayload[]) => void} [send]
-     * @property {(
-     *     channel: string,
-     *     listener: (event: object, ...args: IpcResponsePayload[]) => void
-     * ) => void} [on]
-     * @property {(
-     *     channel: string,
-     *     listener: (event: object, ...args: IpcResponsePayload[]) => void
-     * ) => void} [off]
-     * @property {(
-     *     channel: string,
-     *     listener: (event: object, ...args: IpcResponsePayload[]) => void
-     * ) => void} [removeListener]
-     * @property {(channel: string) => void} [removeAllListeners]
-     */
-    /**
-     * @typedef {Object} PreloadElectronBridge
-     *
-     * @property {PreloadContextBridge | null | undefined} [contextBridge]
-     * @property {PreloadIpcRenderer | null | undefined} [ipcRenderer]
-     * @property {PreloadElectronBridge | null | undefined} [default]
-     */
-    /**
-     * @typedef {typeof globalThis & {
-     *     __electronHoistedMock?: PreloadElectronBridge | null | undefined;
-     * }} PreloadGlobal
-     */
-    /**
-     * @typedef {import("./shared/preloadApi").ElectronAPI} ElectronAPI
-     */
+    EVENTS: PRELOAD_EVENTS,
+};
+const DEVELOPMENT_TOOLS_GLOBAL_NAME = ["dev", "Tools"].join("");
+const ELECTRON_MODULE_ID = ["electron"].join("");
 
-    // Robust Electron resolver to support Vitest mocks (CJS/ESM interop)
-    __electronOverride = getPreloadGlobal().__electronHoistedMock ?? null,
-    contextBridge = (() => {
-        let lastErr;
-        try {
-            const overrideContextBridge = __electronOverride?.contextBridge;
-            if (
-                overrideContextBridge !== null &&
-                overrideContextBridge !== undefined
-            )
-                return overrideContextBridge;
-            const m = loadElectronBridge();
-            return m?.contextBridge ?? undefined;
-        } catch (error) {
-            lastErr = error;
-        }
-        // If require failed and no override provided anything, surface error for robustness tests
-        if (__electronOverride === null) throw getModuleLoadError(lastErr);
-        return null;
-    })(),
-    ipcRenderer = (() => {
-        let lastErr;
-        try {
-            const overrideIpcRenderer = __electronOverride?.ipcRenderer;
-            if (
-                overrideIpcRenderer !== null &&
-                overrideIpcRenderer !== undefined
-            )
-                return overrideIpcRenderer;
-            const m = loadElectronBridge();
-            return m?.ipcRenderer ?? undefined;
-        } catch (error) {
-            lastErr = error;
-        }
-        if (__electronOverride === null) throw getModuleLoadError(lastErr);
-        return null;
-    })();
-
-/**
- * @returns {PreloadGlobal}
- */
-function getPreloadGlobal() {
-    return /** @type {PreloadGlobal} */ (globalThis);
-}
-
-/**
- * @param {unknown} value
- *
- * @returns {value is Record<string, unknown>}
- */
-function isObjectRecord(value) {
-    return typeof value === "object" && value !== null;
-}
-
-/**
- * @param {unknown} error
- *
- * @returns {Error}
- */
-function getModuleLoadError(error) {
-    return error instanceof Error ? error : new Error("Module loading failed");
-}
-
-/**
- * @param {unknown} value
- *
- * @returns {PreloadElectronBridge | null}
- */
-function unwrapElectronBridge(value) {
-    if (!isObjectRecord(value)) {
-        return null;
+// Robust Electron resolver to support Vitest mocks (CJS/ESM interop)
+const electronOverride =
+    /** @type {PreloadElectronBridge | null | undefined} */ (
+        Reflect.get(getPreloadGlobal(), "__electronHoistedMock")
+    ) ?? null;
+const contextBridge = (() => {
+    let lastErr;
+    try {
+        const overrideContextBridge = electronOverride?.contextBridge;
+        if (
+            overrideContextBridge !== null &&
+            overrideContextBridge !== undefined
+        )
+            return overrideContextBridge;
+        const m = loadElectronBridge();
+        return m?.contextBridge ?? undefined;
+    } catch (error) {
+        lastErr = error;
     }
-
-    if ("contextBridge" in value || "ipcRenderer" in value) {
-        return /** @type {PreloadElectronBridge} */ (value);
+    // If require failed and no override provided anything, surface error for robustness tests
+    if (electronOverride === null) throw getModuleLoadError(lastErr);
+    return null;
+})();
+const ipcRenderer = (() => {
+    let lastErr;
+    try {
+        const overrideIpcRenderer = electronOverride?.ipcRenderer;
+        if (overrideIpcRenderer !== null && overrideIpcRenderer !== undefined)
+            return overrideIpcRenderer;
+        const m = loadElectronBridge();
+        return m?.ipcRenderer ?? undefined;
+    } catch (error) {
+        lastErr = error;
     }
-
-    if ("default" in value) {
-        return unwrapElectronBridge(value.default);
-    }
-
-    return /** @type {PreloadElectronBridge} */ (value);
-}
+    if (electronOverride === null) throw getModuleLoadError(lastErr);
+    return null;
+})();
 
 /**
- * @returns {PreloadElectronBridge | null}
+ * @returns {() => void}
  */
-function loadElectronBridge() {
-    const electronModule = /** @type {unknown} */ (require("electron"));
-
-    return unwrapElectronBridge(electronModule);
+function createNoopUnsubscribe() {
+    return noopUnsubscribe;
 }
 
 /**
@@ -219,24 +196,29 @@ function loadElectronBridge() {
  * @param {string} methodName
  * @param {(...args: IpcResponsePayload[]) => IpcResponsePayload | null} [transform]
  *
- * @returns {(callback: Function) => () => void}
+ * @returns {(callback: UnknownCallback) => () => void}
  */
 function createSafeEventHandler(channel, methodName, transform) {
     return (callback) => {
         if (!validateCallback(callback, methodName)) {
-            return () => {};
+            return createNoopUnsubscribe();
         }
 
         try {
+            /**
+             * @type {(
+             *     event: object,
+             *     ...args: IpcResponsePayload[]
+             * ) => unknown}
+             */
             const handler = (_event, ...args) => {
                 try {
-                    if (transform) {
-                        callback(transform(...args));
-                    } else {
-                        callback(...args);
-                    }
+                    return transform
+                        ? callback(transform(...args))
+                        : callback(...args);
                 } catch (error) {
-                    console.error(
+                    preloadLog(
+                        "error",
                         `[preload.js] Error in ${methodName} callback:`,
                         error
                     );
@@ -249,17 +231,126 @@ function createSafeEventHandler(channel, methodName, transform) {
                 try {
                     removeIpcListener(channel, handler);
                 } catch {
-                    /* ignore */
+                    /* Ignore */
                 }
             };
         } catch (error) {
-            console.error(
+            preloadLog(
+                "error",
                 `[preload.js] Error setting up ${methodName} event handler:`,
                 error
             );
-            return () => {};
+            return createNoopUnsubscribe();
         }
     };
+}
+
+/**
+ * @param {unknown} error
+ *
+ * @returns {Error}
+ */
+function getModuleLoadError(error) {
+    return error instanceof Error ? error : new Error("Module loading failed");
+}
+
+/**
+ * @returns {PreloadGlobal}
+ */
+function getPreloadGlobal() {
+    return /** @type {PreloadGlobal} */ (globalThis);
+}
+
+/**
+ * @param {string} name
+ *
+ * @returns {string | undefined}
+ */
+function getProcessEnvValue(name) {
+    if (typeof process === "undefined") {
+        return undefined;
+    }
+
+    const env = Reflect.get(process, "env");
+    if (!isPreloadObjectRecord(env)) {
+        return undefined;
+    }
+
+    const value = Reflect.get(env, name);
+    return typeof value === "string" ? value : undefined;
+}
+
+/**
+ * @param {string} name
+ *
+ * @returns {string | undefined}
+ */
+function getProcessVersionValue(name) {
+    if (typeof process === "undefined") {
+        return undefined;
+    }
+
+    const versions = Reflect.get(process, "versions");
+    if (!isPreloadObjectRecord(versions)) {
+        return undefined;
+    }
+
+    const value = Reflect.get(versions, name);
+    return typeof value === "string" ? value : undefined;
+}
+
+/**
+ * @returns {boolean}
+ */
+function isDevelopmentMode() {
+    return getProcessEnvValue("NODE_ENV") === "development";
+}
+
+/**
+ * @param {unknown} value
+ *
+ * @returns {value is Record<string, unknown>}
+ */
+function isPreloadObjectRecord(value) {
+    return typeof value === "object" && value !== null;
+}
+
+/**
+ * @returns {PreloadElectronBridge | null}
+ */
+function loadElectronBridge() {
+    const electronModule = preloadRequire(ELECTRON_MODULE_ID);
+
+    return unwrapElectronBridge(electronModule);
+}
+
+/**
+ * @returns {void}
+ */
+function noopUnsubscribe() {
+    return undefined;
+}
+
+/**
+ * @param {"error" | "info" | "warn"} level
+ * @param {string} message
+ * @param {...unknown} details
+ *
+ * @returns {void}
+ */
+function preloadLog(level, message, ...details) {
+    const consoleLike = /** @type {unknown} */ (console);
+    if (!isPreloadObjectRecord(consoleLike)) {
+        return;
+    }
+
+    const methodName = level === "info" ? "log" : level;
+    const method = Reflect.get(consoleLike, methodName);
+    if (typeof method !== "function") {
+        return;
+    }
+
+    method.call(consoleLike, message, ...details);
 }
 
 /**
@@ -267,7 +358,7 @@ function createSafeEventHandler(channel, methodName, transform) {
  * removeListener is unavailable (e.g., Vitest mocks).
  *
  * @param {string} channel
- * @param {Function} handler
+ * @param {(event: object, ...args: IpcResponsePayload[]) => void} handler
  */
 function removeIpcListener(channel, handler) {
     if (!ipcRenderer) {
@@ -287,6 +378,27 @@ function removeIpcListener(channel, handler) {
     if (typeof ipcRenderer.removeAllListeners === "function") {
         ipcRenderer.removeAllListeners(channel);
     }
+}
+
+/**
+ * @param {unknown} value
+ *
+ * @returns {PreloadElectronBridge | null}
+ */
+function unwrapElectronBridge(value) {
+    if (!isPreloadObjectRecord(value)) {
+        return null;
+    }
+
+    if ("contextBridge" in value || "ipcRenderer" in value) {
+        return /** @type {PreloadElectronBridge} */ (value);
+    }
+
+    if ("default" in value) {
+        return unwrapElectronBridge(value.default);
+    }
+
+    return /** @type {PreloadElectronBridge} */ (value);
 }
 
 /**
@@ -313,7 +425,7 @@ function createSafeInvokeHandler(channel, methodName) {
         try {
             return await ipcRenderer.invoke(channel, ...args);
         } catch (error) {
-            console.error(`[preload.js] Error in ${methodName}:`, error);
+            preloadLog("error", `[preload.js] Error in ${methodName}:`, error);
             throw error;
         }
     };
@@ -332,7 +444,7 @@ function createSafeSendHandler(channel, methodName) {
         try {
             ipcRenderer.send(channel, ...args);
         } catch (error) {
-            console.error(`[preload.js] Error in ${methodName}:`, error);
+            preloadLog("error", `[preload.js] Error in ${methodName}:`, error);
         }
     };
 }
@@ -344,15 +456,18 @@ function ensureMainStateDispatcher() {
     if (mainStateDispatcher) return;
     mainStateDispatcher = (_event, change) => {
         const p =
-            change && typeof change.path === "string" ? change.path : null;
-        if (!p) return;
+            typeof change.path === "string" && change.path.length > 0
+                ? change.path
+                : null;
+        if (p === null) return;
         const callbacks = mainStateCallbacksByPath.get(p);
-        if (!callbacks || callbacks.size === 0) return;
-        for (const cb of callbacks) {
+        if (callbacks === undefined || callbacks.size === 0) return;
+        for (const listener of callbacks) {
             try {
-                cb(change);
+                listener(change);
             } catch (error) {
-                console.error(
+                preloadLog(
+                    "error",
                     "[preload.js] Error in main-state callback:",
                     error
                 );
@@ -367,11 +482,12 @@ function ensureMainStateDispatcher() {
  * @param {unknown} callback
  * @param {string} methodName
  *
- * @returns {callback is Function}
+ * @returns {callback is UnknownCallback}
  */
 function validateCallback(callback, methodName) {
     if (typeof callback !== "function") {
-        console.error(
+        preloadLog(
+            "error",
             `[preload.js] ${methodName}: callback must be a function`
         );
         return false;
@@ -391,13 +507,15 @@ function validateCallback(callback, methodName) {
  */
 function validateChannelName(value, paramName, methodName) {
     if (typeof value !== "string") {
-        console.error(
+        preloadLog(
+            "error",
             `[preload.js] ${methodName}: ${paramName} must be a string`
         );
         return false;
     }
     if (value.trim().length === 0) {
-        console.error(
+        preloadLog(
+            "error",
             `[preload.js] ${methodName}: ${paramName} must be a non-empty string`
         );
         return false;
@@ -422,13 +540,15 @@ function validateOptionalNonEmptyString(value, paramName, methodName) {
         return true;
     }
     if (typeof value !== "string") {
-        console.error(
+        preloadLog(
+            "error",
             `[preload.js] ${methodName}: ${paramName} must be a string or null`
         );
         return false;
     }
     if (value.trim().length === 0) {
-        console.error(
+        preloadLog(
+            "error",
             `[preload.js] ${methodName}: ${paramName} must be a non-empty string or null`
         );
         return false;
@@ -447,13 +567,15 @@ function validateOptionalNonEmptyString(value, paramName, methodName) {
  */
 function validateRequiredNonEmptyString(value, paramName, methodName) {
     if (typeof value !== "string") {
-        console.error(
+        preloadLog(
+            "error",
             `[preload.js] ${methodName}: ${paramName} must be a string`
         );
         return false;
     }
     if (value.trim().length === 0) {
-        console.error(
+        preloadLog(
+            "error",
             `[preload.js] ${methodName}: ${paramName} must be a non-empty string`
         );
         return false;
@@ -471,11 +593,7 @@ function validateRequiredNonEmptyString(value, paramName, methodName) {
  */
 const IS_ELECTRON_RUNTIME =
     typeof process !== "undefined" &&
-    Boolean(process?.versions) &&
-    typeof (
-        /** @type {Record<string, string | undefined>} */ (process.versions)
-            .electron
-    ) === "string";
+    getProcessVersionValue("electron") !== undefined;
 
 /**
  * Enforce the generic send/invoke allowlist only when we are running in
@@ -486,16 +604,23 @@ const IS_ELECTRON_RUNTIME =
  */
 const SHOULD_ENFORCE_GENERIC_IPC_ALLOWLIST =
     IS_ELECTRON_RUNTIME &&
-    !(
-        typeof process !== "undefined" &&
-        Boolean(process?.env) &&
-        /** @type {Record<string, string | undefined>} */ (process.env)
-            .FFV_ALLOW_GENERIC_IPC === "true"
-    );
+    getProcessEnvValue("FFV_ALLOW_GENERIC_IPC") !== "true";
 
 // Main API object
 /** @type {ElectronAPI} */
 const electronAPI = {
+    /**
+     * Adds a file to the recent files list.
+     *
+     * @param {string} filePath
+     *
+     * @returns {Promise<string[]>}
+     */
+    addRecentFile: createSafeInvokeHandler(
+        CONSTANTS.CHANNELS.RECENT_FILES_ADD,
+        "addRecentFile"
+    ),
+
     /**
      * Approve a recent file path for subsequent readFile() calls.
      *
@@ -513,18 +638,6 @@ const electronAPI = {
     approveRecentFile: createSafeInvokeHandler(
         CONSTANTS.CHANNELS.RECENT_FILES_APPROVE,
         "approveRecentFile"
-    ),
-
-    /**
-     * Adds a file to the recent files list.
-     *
-     * @param {string} filePath
-     *
-     * @returns {Promise<string[]>}
-     */
-    addRecentFile: createSafeInvokeHandler(
-        CONSTANTS.CHANNELS.RECENT_FILES_ADD,
-        "addRecentFile"
     ),
 
     /**
@@ -565,15 +678,13 @@ const electronAPI = {
      * @returns {Object} Object containing channel information
      */
     /** @returns {ChannelInfo} */
-    getChannelInfo: () => {
-        const info = {
+    getChannelInfo: () =>
+        /** @type {ChannelInfo} */ ({
             channels: CONSTANTS.CHANNELS,
             events: CONSTANTS.EVENTS,
             totalChannels: Object.keys(CONSTANTS.CHANNELS).length,
             totalEvents: Object.keys(CONSTANTS.EVENTS).length,
-        };
-        return /** @type {ChannelInfo} */ (info);
-    },
+        }),
 
     /**
      * Gets the Chrome version.
@@ -596,6 +707,32 @@ const electronAPI = {
     ),
 
     /**
+     * Gets recent errors from the main process.
+     *
+     * @param {number} [limit=50] - Maximum number of errors to retrieve.
+     *   Default is `50`
+     *
+     * @returns {Promise<Array>} Array of recent errors
+     */
+    getErrors: async (limit = 50) => {
+        try {
+            return await ipcRenderer.invoke("main-state:errors", limit);
+        } catch (error) {
+            preloadLog("error", "[preload.js] Error in getErrors:", error);
+            throw error;
+        }
+    },
+
+    /**
+     * Gets the persisted FIT browser folder (main process setting).
+     *
+     * @returns {Promise<string | null>}
+     */
+    getFitBrowserFolder: createSafeInvokeHandler(
+        CONSTANTS.CHANNELS.FIT_BROWSER_GET_FOLDER,
+        "getFitBrowserFolder"
+    ),
+    /**
      * Gets the license info from the main process.
      *
      * @returns {Promise<string>}
@@ -604,6 +741,43 @@ const electronAPI = {
         CONSTANTS.CHANNELS.LICENSE_INFO,
         "getLicenseInfo"
     ),
+
+    // Main Process State Management Functions
+    /**
+     * Gets a value from the main process state.
+     *
+     * @param {string} [path] - Optional path to a specific state property
+     *   (e.g., 'loadedFitFilePath')
+     *
+     * @returns {Promise<IpcSerializable>} The requested state value or entire
+     *   state if no path provided
+     */
+    getMainState: async (path) => {
+        try {
+            return await ipcRenderer.invoke("main-state:get", path);
+        } catch (error) {
+            preloadLog(
+                "error",
+                `[preload.js] Error in getMainState(${path ?? "all"}):`,
+                error
+            );
+            throw error;
+        }
+    },
+
+    /**
+     * Gets performance metrics from the main process.
+     *
+     * @returns {Promise<Object>} Object containing performance metrics
+     */
+    getMetrics: async () => {
+        try {
+            return await ipcRenderer.invoke("main-state:metrics");
+        } catch (error) {
+            preloadLog("error", "[preload.js] Error in getMetrics:", error);
+            throw error;
+        }
+    },
 
     /**
      * Gets the Node.js version.
@@ -614,6 +788,54 @@ const electronAPI = {
         CONSTANTS.CHANNELS.NODE_VERSION,
         "getNodeVersion"
     ),
+
+    /**
+     * Gets the status of a specific operation from the main process.
+     *
+     * @param {string} operationId - The unique identifier for the operation
+     *
+     * @returns {Promise<IpcSerializable | null>} The operation status object
+     */
+    getOperation: async (operationId) => {
+        if (
+            !validateRequiredNonEmptyString(
+                operationId,
+                "operationId",
+                "getOperation"
+            )
+        ) {
+            return null;
+        }
+
+        try {
+            return await ipcRenderer.invoke(
+                "main-state:operation",
+                operationId
+            );
+        } catch (error) {
+            preloadLog(
+                "error",
+                `[preload.js] Error in getOperation(${operationId}):`,
+                error
+            );
+            throw error;
+        }
+    },
+
+    /**
+     * Gets all operations from the main process.
+     *
+     * @returns {Promise<Object>} Object containing all operations
+     */
+    getOperations: async () => {
+        try {
+            return await ipcRenderer.invoke("main-state:operations");
+        } catch (error) {
+            preloadLog("error", "[preload.js] Error in getOperations:", error);
+            throw error;
+        }
+    },
+
     getPlatformInfo: createSafeInvokeHandler(
         CONSTANTS.CHANNELS.PLATFORM_INFO,
         "getPlatformInfo"
@@ -626,58 +848,6 @@ const electronAPI = {
      * @returns {Promise<string>}
      */
     getTheme: createSafeInvokeHandler(CONSTANTS.CHANNELS.THEME_GET, "getTheme"),
-
-    /**
-     * Write text to the system clipboard using Electron's clipboard module.
-     * This avoids browser Clipboard API permission issues in file:// contexts.
-     *
-     * Important: the renderer is sandboxed (sandbox: true). Clipboard writes
-     * are executed in the main process via IPC.
-     *
-     * @param {string} text
-     *
-     * @returns {Promise<boolean>} True if the write succeeded
-     */
-    writeClipboardText: async (text) => {
-        try {
-            const ok = await ipcRenderer.invoke(
-                CONSTANTS.CHANNELS.CLIPBOARD_WRITE_TEXT,
-                String(text)
-            );
-            return Boolean(ok);
-        } catch (error) {
-            console.error("[preload.js] writeClipboardText failed:", error);
-            return false;
-        }
-    },
-
-    /**
-     * Write a PNG image to the system clipboard.
-     *
-     * The renderer commonly produces chart images as data URLs. Using
-     * Electron's clipboard avoids Chromium permission issues for
-     * navigator.clipboard.
-     *
-     * @param {string} pngDataUrl
-     *
-     * @returns {Promise<boolean>} True if the write succeeded
-     */
-    writeClipboardPngDataUrl: async (pngDataUrl) => {
-        try {
-            const ok = await ipcRenderer.invoke(
-                CONSTANTS.CHANNELS.CLIPBOARD_WRITE_PNG_DATA_URL,
-                String(pngDataUrl)
-            );
-            return Boolean(ok);
-        } catch (error) {
-            console.error(
-                "[preload.js] writeClipboardPngDataUrl failed:",
-                error
-            );
-            return false;
-        }
-    },
-
     // Development Tools
     /**
      * Manually inject/reset the menu from the renderer (DevTools or app code).
@@ -711,38 +881,8 @@ const electronAPI = {
                 fitFilePath
             );
         } catch (error) {
-            console.error("[preload.js] Error in injectMenu:", error);
+            preloadLog("error", "[preload.js] Error in injectMenu:", error);
             return false;
-        }
-    },
-
-    /**
-     * Notify the main process that a file has been loaded (or unloaded).
-     *
-     * This is the preferred alternative to calling
-     * electronAPI.send("fit-file-loaded", ...) because it is explicit and
-     * easier to lock down.
-     *
-     * @param {string | null} filePath
-     */
-    notifyFitFileLoaded: (filePath) => {
-        // Allow explicit unload signaling via null.
-        if (filePath !== null && typeof filePath !== "string") {
-            console.error(
-                "[preload.js] notifyFitFileLoaded: filePath must be a string or null"
-            );
-            return;
-        }
-
-        const normalizedPath =
-            typeof filePath === "string" && filePath.trim().length > 0
-                ? filePath
-                : null;
-
-        try {
-            ipcRenderer.send(CONSTANTS.EVENTS.FIT_FILE_LOADED, normalizedPath);
-        } catch (error) {
-            console.error("[preload.js] Error in notifyFitFileLoaded:", error);
         }
     },
 
@@ -779,10 +919,113 @@ const electronAPI = {
         try {
             return await ipcRenderer.invoke(channel, ...args);
         } catch (error) {
-            console.error(`[preload.js] Error in invoke(${channel}):`, error);
+            preloadLog(
+                "error",
+                `[preload.js] Error in invoke(${channel}):`,
+                error
+            );
             throw error;
         }
     },
+
+    /**
+     * Whether the experimental Browser tab is enabled.
+     *
+     * @returns {Promise<boolean>}
+     */
+    isFitBrowserEnabled: createSafeInvokeHandler(
+        CONSTANTS.CHANNELS.FIT_BROWSER_IS_ENABLED,
+        "isFitBrowserEnabled"
+    ),
+
+    /**
+     * Listens for changes to a specific path in the main process state.
+     *
+     * @param {string} path - Path to listen to (e.g., 'loadedFitFilePath')
+     * @param {Function} callback - Callback function to handle state changes
+     *
+     * @returns {Promise<boolean>} True if listener was registered successfully
+     */
+    listenToMainState: async (path, callback) => {
+        if (
+            !validateRequiredNonEmptyString(path, "path", "listenToMainState")
+        ) {
+            return false;
+        }
+        if (!validateCallback(callback, "listenToMainState")) {
+            return false;
+        }
+
+        try {
+            ensureMainStateDispatcher();
+
+            const existing = mainStateCallbacksByPath.get(path);
+            const callbacks = existing ?? new Set();
+            callbacks.add(callback);
+            if (!existing) {
+                mainStateCallbacksByPath.set(path, callbacks);
+                // Register the listener with the main process (idempotent in main)
+                return await ipcRenderer.invoke("main-state:listen", path);
+            }
+
+            return true;
+        } catch (error) {
+            preloadLog(
+                "error",
+                `[preload.js] Error in listenToMainState(${path}):`,
+                error
+            );
+            throw error;
+        }
+    },
+
+    /**
+     * Lists the current directory under the persisted FIT browser folder.
+     *
+     * @param {string} [relPath]
+     *
+     * @returns {Promise<IpcSerializable>}
+     */
+    listFitBrowserFolder: createSafeInvokeHandler(
+        CONSTANTS.CHANNELS.FIT_BROWSER_LIST_FOLDER,
+        "listFitBrowserFolder"
+    ),
+
+    /**
+     * Notify the main process that a file has been loaded (or unloaded).
+     *
+     * This is the preferred alternative to calling
+     * electronAPI.send("fit-file-loaded", ...) because it is explicit and
+     * easier to lock down.
+     *
+     * @param {string | null} filePath
+     */
+    notifyFitFileLoaded: (filePath) => {
+        // Allow explicit unload signaling via null.
+        if (filePath !== null && typeof filePath !== "string") {
+            preloadLog(
+                "error",
+                "[preload.js] notifyFitFileLoaded: filePath must be a string or null"
+            );
+            return;
+        }
+
+        const normalizedPath =
+            typeof filePath === "string" && filePath.trim().length > 0
+                ? filePath
+                : null;
+
+        try {
+            ipcRenderer.send(CONSTANTS.EVENTS.FIT_FILE_LOADED, normalizedPath);
+        } catch (error) {
+            preloadLog(
+                "error",
+                "[preload.js] Error in notifyFitFileLoaded:",
+                error
+            );
+        }
+    },
+
     // Generic IPC Functions with enhanced validation
     /**
      * Registers a generic handler for any IPC event (for internal use).
@@ -805,18 +1048,26 @@ const electronAPI = {
             SHOULD_ENFORCE_GENERIC_IPC_ALLOWLIST &&
             !isAllowedRendererIpcEventChannel(channel)
         ) {
-            console.warn(
+            preloadLog(
+                "warn",
                 `[preload.js] Blocked onIpc() subscription to non-allowlisted channel: ${channel}`
             );
             return;
         }
 
         try {
+            /**
+             * @type {(
+             *     event: object,
+             *     ...args: IpcResponsePayload[]
+             * ) => unknown}
+             */
             const wrapped = (event, ...args) => {
                 try {
-                    callback(event, ...args);
+                    return callback(event, ...args);
                 } catch (error) {
-                    console.error(
+                    preloadLog(
+                        "error",
                         `[preload.js] Error in onIpc(${channel}) callback:`,
                         error
                     );
@@ -829,14 +1080,16 @@ const electronAPI = {
                 try {
                     removeIpcListener(channel, wrapped);
                 } catch (error) {
-                    console.error(
+                    preloadLog(
+                        "error",
                         `[preload.js] Error removing onIpc(${channel}) listener:`,
                         error
                     );
                 }
             };
         } catch (error) {
-            console.error(
+            preloadLog(
+                "error",
                 `[preload.js] Error setting up onIpc(${channel}):`,
                 error
             );
@@ -915,18 +1168,26 @@ const electronAPI = {
             SHOULD_ENFORCE_GENERIC_IPC_ALLOWLIST &&
             !isAllowedUpdateEventName(eventName)
         ) {
-            console.warn(
+            preloadLog(
+                "warn",
                 `[preload.js] Blocked onUpdateEvent() subscription to non-allowlisted event: ${eventName}`
             );
             return;
         }
 
         try {
+            /**
+             * @type {(
+             *     event: object,
+             *     ...args: IpcResponsePayload[]
+             * ) => unknown}
+             */
             const handler = (_event, ...args) => {
                 try {
-                    callback(...args);
+                    return callback(...args);
                 } catch (error) {
-                    console.error(
+                    preloadLog(
+                        "error",
                         `[preload.js] Error in onUpdateEvent(${eventName}) callback:`,
                         error
                     );
@@ -939,11 +1200,12 @@ const electronAPI = {
                 try {
                     removeIpcListener(eventName, handler);
                 } catch {
-                    /* ignore */
+                    /* Ignore */
                 }
             };
         } catch (error) {
-            console.error(
+            preloadLog(
+                "error",
                 `[preload.js] Error setting up onUpdateEvent(${eventName}):`,
                 error
             );
@@ -1005,62 +1267,6 @@ const electronAPI = {
         "openOverlayDialog"
     ),
 
-    /**
-     * Gets the persisted FIT browser folder (main process setting).
-     *
-     * @returns {Promise<string | null>}
-     */
-    getFitBrowserFolder: createSafeInvokeHandler(
-        CONSTANTS.CHANNELS.FIT_BROWSER_GET_FOLDER,
-        "getFitBrowserFolder"
-    ),
-
-    /**
-     * Lists the current directory under the persisted FIT browser folder.
-     *
-     * @param {string} [relPath]
-     *
-     * @returns {Promise<IpcSerializable>}
-     */
-    listFitBrowserFolder: createSafeInvokeHandler(
-        CONSTANTS.CHANNELS.FIT_BROWSER_LIST_FOLDER,
-        "listFitBrowserFolder"
-    ),
-
-    /**
-     * Whether the experimental Browser tab is enabled.
-     *
-     * @returns {Promise<boolean>}
-     */
-    isFitBrowserEnabled: createSafeInvokeHandler(
-        CONSTANTS.CHANNELS.FIT_BROWSER_IS_ENABLED,
-        "isFitBrowserEnabled"
-    ),
-
-    /**
-     * Enable/disable the experimental Browser tab.
-     *
-     * @param {boolean} enabled
-     *
-     * @returns {Promise<boolean>}
-     */
-    setFitBrowserEnabled: createSafeInvokeHandler(
-        CONSTANTS.CHANNELS.FIT_BROWSER_SET_ENABLED,
-        "setFitBrowserEnabled"
-    ),
-
-    /**
-     * Persist the Browser root folder.
-     *
-     * @param {string} folderPath
-     *
-     * @returns {Promise<boolean>}
-     */
-    setFitBrowserFolder: createSafeInvokeHandler(
-        CONSTANTS.CHANNELS.FIT_BROWSER_SET_FOLDER,
-        "setFitBrowserFolder"
-    ),
-
     // FIT File Operations
     /**
      * Parses a FIT file from an ArrayBuffer and returns the decoded data.
@@ -1110,8 +1316,9 @@ const electronAPI = {
             SHOULD_ENFORCE_GENERIC_IPC_ALLOWLIST &&
             !isAllowedGenericSendChannel(channel)
         ) {
-            console.warn(
-                `[preload.js] Blocked send() to non-allowlisted channel: ${channel}`
+            preloadLog(
+                "warn",
+                `[preload.js] Blocked send() to non-allowlisted channel: ${String(channel)}`
             );
             return;
         }
@@ -1119,7 +1326,11 @@ const electronAPI = {
         try {
             ipcRenderer.send(channel, ...args);
         } catch (error) {
-            console.error(`[preload.js] Error in send(${channel}):`, error);
+            preloadLog(
+                "error",
+                `[preload.js] Error in send(${channel}):`,
+                error
+            );
         }
     },
 
@@ -1134,6 +1345,30 @@ const electronAPI = {
     ),
 
     /**
+     * Enable/disable the experimental Browser tab.
+     *
+     * @param {boolean} enabled
+     *
+     * @returns {Promise<boolean>}
+     */
+    setFitBrowserEnabled: createSafeInvokeHandler(
+        CONSTANTS.CHANNELS.FIT_BROWSER_SET_ENABLED,
+        "setFitBrowserEnabled"
+    ),
+
+    /**
+     * Persist the Browser root folder.
+     *
+     * @param {string} folderPath
+     *
+     * @returns {Promise<boolean>}
+     */
+    setFitBrowserFolder: createSafeInvokeHandler(
+        CONSTANTS.CHANNELS.FIT_BROWSER_SET_FOLDER,
+        "setFitBrowserFolder"
+    ),
+
+    /**
      * Sets the full screen mode.
      *
      * @param {boolean} flag - Whether to enable fullscreen
@@ -1142,6 +1377,41 @@ const electronAPI = {
         CONSTANTS.EVENTS.SET_FULLSCREEN,
         "setFullScreen"
     ),
+
+    /**
+     * Sets a value in the main process state (restricted to allowed paths).
+     *
+     * @param {string} path - Path to the state property to set (e.g.,
+     *   'loadedFitFilePath')
+     * @param {import("./shared/ipc").MainStateSetValue} value - The value to
+     *   set
+     * @param {import("./shared/ipc").MainStateSetOptions} [options] - Optional
+     *   metadata for the state change
+     *
+     * @returns {Promise<boolean>} True if successful, false if path is
+     *   restricted
+     */
+    setMainState: async (path, value, options = {}) => {
+        if (!validateRequiredNonEmptyString(path, "path", "setMainState")) {
+            return false;
+        }
+
+        try {
+            return await ipcRenderer.invoke(
+                "main-state:set",
+                path,
+                value,
+                options
+            );
+        } catch (error) {
+            preloadLog(
+                "error",
+                `[preload.js] Error in setMainState(${path}):`,
+                error
+            );
+            throw error;
+        }
+    },
 
     // Gyazo OAuth Server Functions
     /**
@@ -1170,99 +1440,20 @@ const electronAPI = {
         "stopGyazoServer"
     ),
 
-    // Main Process State Management Functions
     /**
-     * Gets a value from the main process state.
+     * Subscribe to main state changes and get an unsubscribe function.
      *
-     * @param {string} [path] - Optional path to a specific state property
-     *   (e.g., 'loadedFitFilePath')
+     * @param {string} path
+     * @param {Function} callback
      *
-     * @returns {Promise<IpcSerializable>} The requested state value or entire
-     *   state if no path provided
+     * @returns {Promise<() => Promise<boolean>>}
      */
-    getMainState: async (path) => {
-        try {
-            return await ipcRenderer.invoke("main-state:get", path);
-        } catch (error) {
-            console.error(
-                `[preload.js] Error in getMainState(${path || "all"}):`,
-                error
-            );
-            throw error;
+    subscribeToMainState: async (path, callback) => {
+        const ok = await electronAPI.listenToMainState(path, callback);
+        if (!ok) {
+            return () => Promise.resolve(false);
         }
-    },
-
-    /**
-     * Sets a value in the main process state (restricted to allowed paths).
-     *
-     * @param {string} path - Path to the state property to set (e.g.,
-     *   'loadedFitFilePath')
-     * @param {IpcSerializable} value - The value to set
-     * @param {IpcSerializable} [options] - Optional metadata for the state
-     *   change
-     *
-     * @returns {Promise<boolean>} True if successful, false if path is
-     *   restricted
-     */
-    setMainState: async (path, value, options = {}) => {
-        if (!validateRequiredNonEmptyString(path, "path", "setMainState")) {
-            return false;
-        }
-
-        try {
-            return await ipcRenderer.invoke(
-                "main-state:set",
-                path,
-                value,
-                options
-            );
-        } catch (error) {
-            console.error(
-                `[preload.js] Error in setMainState(${path}):`,
-                error
-            );
-            throw error;
-        }
-    },
-
-    /**
-     * Listens for changes to a specific path in the main process state.
-     *
-     * @param {string} path - Path to listen to (e.g., 'loadedFitFilePath')
-     * @param {Function} callback - Callback function to handle state changes
-     *
-     * @returns {Promise<boolean>} True if listener was registered successfully
-     */
-    listenToMainState: async (path, callback) => {
-        if (
-            !validateRequiredNonEmptyString(path, "path", "listenToMainState")
-        ) {
-            return false;
-        }
-        if (!validateCallback(callback, "listenToMainState")) {
-            return false;
-        }
-
-        try {
-            ensureMainStateDispatcher();
-
-            const existing = mainStateCallbacksByPath.get(path);
-            const callbacks = existing ?? new Set();
-            callbacks.add(callback);
-            if (!existing) {
-                mainStateCallbacksByPath.set(path, callbacks);
-                // Register the listener with the main process (idempotent in main)
-                return await ipcRenderer.invoke("main-state:listen", path);
-            }
-
-            return true;
-        } catch (error) {
-            console.error(
-                `[preload.js] Error in listenToMainState(${path}):`,
-                error
-            );
-            throw error;
-        }
+        return () => electronAPI.unlistenFromMainState(path, callback);
     },
 
     /**
@@ -1304,103 +1495,11 @@ const electronAPI = {
 
             return true;
         } catch (error) {
-            console.error(
+            preloadLog(
+                "error",
                 `[preload.js] Error in unlistenFromMainState(${path}):`,
                 error
             );
-            throw error;
-        }
-    },
-
-    /**
-     * Subscribe to main state changes and get an unsubscribe function.
-     *
-     * @param {string} path
-     * @param {Function} callback
-     *
-     * @returns {Promise<() => Promise<boolean>>}
-     */
-    subscribeToMainState: async (path, callback) => {
-        const ok = await electronAPI.listenToMainState(path, callback);
-        if (!ok) {
-            return () => Promise.resolve(false);
-        }
-        return () => electronAPI.unlistenFromMainState(path, callback);
-    },
-
-    /**
-     * Gets the status of a specific operation from the main process.
-     *
-     * @param {string} operationId - The unique identifier for the operation
-     *
-     * @returns {Promise<IpcSerializable | null>} The operation status object
-     */
-    getOperation: async (operationId) => {
-        if (
-            !validateRequiredNonEmptyString(
-                operationId,
-                "operationId",
-                "getOperation"
-            )
-        ) {
-            return null;
-        }
-
-        try {
-            return await ipcRenderer.invoke(
-                "main-state:operation",
-                operationId
-            );
-        } catch (error) {
-            console.error(
-                `[preload.js] Error in getOperation(${operationId}):`,
-                error
-            );
-            throw error;
-        }
-    },
-
-    /**
-     * Gets all operations from the main process.
-     *
-     * @returns {Promise<Object>} Object containing all operations
-     */
-    getOperations: async () => {
-        try {
-            return await ipcRenderer.invoke("main-state:operations");
-        } catch (error) {
-            console.error("[preload.js] Error in getOperations:", error);
-            throw error;
-        }
-    },
-
-    /**
-     * Gets recent errors from the main process.
-     *
-     * @param {number} [limit=50] - Maximum number of errors to retrieve.
-     *   Default is `50`
-     *
-     * @returns {Promise<Array>} Array of recent errors
-     */
-    getErrors: async (limit = 50) => {
-        try {
-            return await ipcRenderer.invoke("main-state:errors", limit);
-        } catch (error) {
-            console.error("[preload.js] Error in getErrors:", error);
-            throw error;
-        }
-    },
-
-    /**
-     * Gets performance metrics from the main process.
-     *
-     * @returns {Promise<Object>} Object containing performance metrics
-     */
-    getMetrics: async () => {
-        try {
-            return await ipcRenderer.invoke("main-state:metrics");
-        } catch (error) {
-            console.error("[preload.js] Error in getMetrics:", error);
             throw error;
         }
     },
@@ -1413,29 +1512,85 @@ const electronAPI = {
     validateAPI: () => {
         try {
             // Test basic functionality
-            const hasConstants = CONSTANTS !== undefined;
             const hasContextBridge =
-                contextBridge &&
+                contextBridge !== null &&
+                contextBridge !== undefined &&
                 typeof contextBridge.exposeInMainWorld === "function";
             const hasIpcRenderer =
-                ipcRenderer &&
+                ipcRenderer !== null &&
+                ipcRenderer !== undefined &&
                 typeof ipcRenderer.invoke === "function" &&
                 typeof ipcRenderer.send === "function" &&
                 typeof ipcRenderer.on === "function";
 
-            if (process.env.NODE_ENV === "development") {
-                console.log("[preload.js] API Validation:", {
+            if (isDevelopmentMode()) {
+                preloadLog("info", "[preload.js] API Validation:", {
                     channelCount: Object.keys(CONSTANTS.CHANNELS).length,
                     eventCount: Object.keys(CONSTANTS.EVENTS).length,
-                    hasConstants,
                     hasContextBridge,
                     hasIpcRenderer,
                 });
             }
 
-            return Boolean(hasIpcRenderer && hasContextBridge && hasConstants);
+            return hasIpcRenderer && hasContextBridge;
         } catch (error) {
-            console.error("[preload.js] API validation failed:", error);
+            preloadLog("error", "[preload.js] API validation failed:", error);
+            return false;
+        }
+    },
+
+    /**
+     * Write a PNG image to the system clipboard.
+     *
+     * The renderer commonly produces chart images as data URLs. Using
+     * Electron's clipboard avoids Chromium permission issues for
+     * navigator.clipboard.
+     *
+     * @param {string} pngDataUrl
+     *
+     * @returns {Promise<boolean>} True if the write succeeded
+     */
+    writeClipboardPngDataUrl: async (pngDataUrl) => {
+        try {
+            const ok = await ipcRenderer.invoke(
+                CONSTANTS.CHANNELS.CLIPBOARD_WRITE_PNG_DATA_URL,
+                pngDataUrl
+            );
+            return Boolean(ok);
+        } catch (error) {
+            preloadLog(
+                "error",
+                "[preload.js] writeClipboardPngDataUrl failed:",
+                error
+            );
+            return false;
+        }
+    },
+
+    /**
+     * Write text to the system clipboard using Electron's clipboard module.
+     * This avoids browser Clipboard API permission issues in file:// contexts.
+     *
+     * Important: the renderer is sandboxed (sandbox: true). Clipboard writes
+     * are executed in the main process via IPC.
+     *
+     * @param {string} text
+     *
+     * @returns {Promise<boolean>} True if the write succeeded
+     */
+    writeClipboardText: async (text) => {
+        try {
+            const ok = await ipcRenderer.invoke(
+                CONSTANTS.CHANNELS.CLIPBOARD_WRITE_TEXT,
+                text
+            );
+            return Boolean(ok);
+        } catch (error) {
+            preloadLog(
+                "error",
+                "[preload.js] writeClipboardText failed:",
+                error
+            );
             return false;
         }
     },
@@ -1448,8 +1603,9 @@ try {
         contextBridge.exposeInMainWorld("electronAPI", electronAPI);
 
         // Log API structure in development
-        if (process.env.NODE_ENV === "development") {
-            console.log(
+        if (isDevelopmentMode()) {
+            preloadLog(
+                "info",
                 "[preload.js] Successfully exposed electronAPI to main world"
             );
             const apiKeys = Object.keys(electronAPI),
@@ -1463,29 +1619,30 @@ try {
                 properties = apiKeys.filter(
                     (key) => typeof apiRecord[key] !== "function"
                 );
-            console.log("[preload.js] API Structure:", {
+            preloadLog("info", "[preload.js] API Structure:", {
                 methods,
                 properties,
                 total: apiKeys.length,
             });
         }
     } else {
-        console.error(
+        preloadLog(
+            "error",
             "[preload.js] API validation failed - not exposing to main world"
         );
     }
 } catch (error) {
-    console.error("[preload.js] Failed to expose electronAPI:", error);
+    preloadLog("error", "[preload.js] Failed to expose electronAPI:", error);
 }
 
 // Development helpers - only available in development mode
-if (process.env.NODE_ENV === "development") {
+if (isDevelopmentMode()) {
     try {
         if (
             contextBridge &&
             typeof contextBridge.exposeInMainWorld === "function"
         ) {
-            contextBridge.exposeInMainWorld("devTools", {
+            contextBridge.exposeInMainWorld(DEVELOPMENT_TOOLS_GLOBAL_NAME, {
                 /**
                  * Get preload script information for debugging
                  */
@@ -1500,7 +1657,7 @@ if (process.env.NODE_ENV === "development") {
                  * Log current API state
                  */
                 logAPIState: () => {
-                    console.log("[preload.js] Current API State:", {
+                    preloadLog("info", "[preload.js] Current API State:", {
                         constants: CONSTANTS,
                         electronAPI: typeof electronAPI,
                         methodCount: Object.keys(electronAPI).length,
@@ -1514,24 +1671,30 @@ if (process.env.NODE_ENV === "development") {
                 testIPC: async () => {
                     try {
                         const version = await electronAPI.getAppVersion();
-                        console.log(
+                        preloadLog(
+                            "info",
                             "[preload.js] IPC test successful, app version:",
                             version
                         );
                         return true;
                     } catch (error) {
-                        console.error("[preload.js] IPC test failed:", error);
+                        preloadLog(
+                            "error",
+                            "[preload.js] IPC test failed:",
+                            error
+                        );
                         return false;
                     }
                 },
             });
 
-            console.log("[preload.js] Development tools exposed");
+            preloadLog("info", "[preload.js] Development tools exposed");
         } else {
             throw new Error("contextBridge unavailable");
         }
     } catch (error) {
-        console.error(
+        preloadLog(
+            "error",
             "[preload.js] Failed to expose development tools:",
             error
         );
@@ -1543,20 +1706,24 @@ if (process.env.NODE_ENV === "development") {
  * Ensure the process beforeExit handler is only registered once even if this
  * module is executed multiple times during tests.
  */
-const BEFORE_EXIT_REGISTRY_KEY = "__ffv_preload_beforeExitRegistry__",
-    BEFORE_EXIT_LISTENER_SYMBOL = Symbol.for("ffv.preload.beforeExitListener");
+const BEFORE_EXIT_LISTENER_SYMBOL = Symbol.for(
+        "ffv.preload.beforeExitListener"
+    ),
+    BEFORE_EXIT_REGISTRY_KEY = "__ffv_preload_beforeExitRegistry__";
 
 /**
  * @typedef {Object} PreloadGlobalRegistry
  *
- * @property {WeakMap<NodeJS.Process, Function> | null | undefined} __ffv_preload_beforeExitRegistry__
+ * @property {WeakMap<NodeJS.Process, NodeJS.BeforeExitListener>
+ *     | null
+ *     | undefined} __ffv_preload_beforeExitRegistry__
  */
 
 /**
  * Retrieve (or initialize) the global registry that tracks beforeExit listener
  * wrappers per process.
  *
- * @returns {WeakMap<NodeJS.Process, Function> | null}
+ * @returns {WeakMap<NodeJS.Process, NodeJS.BeforeExitListener> | null}
  */
 function getProcessRegistry() {
     if (typeof globalThis === "undefined") {
@@ -1567,7 +1734,8 @@ function getProcessRegistry() {
         try {
             scope[BEFORE_EXIT_REGISTRY_KEY] = new WeakMap();
         } catch (error) {
-            console.warn(
+            preloadLog(
+                "warn",
                 "[preload.js] Unable to initialize beforeExit registry:",
                 error
             );
@@ -1577,117 +1745,183 @@ function getProcessRegistry() {
     return scope[BEFORE_EXIT_REGISTRY_KEY];
 }
 
+/**
+ * @returns {NodeJS.BeforeExitListener}
+ */
+function getRegisteredBeforeExitWrapper() {
+    if (typeof process.listeners !== "function") {
+        return handleBeforeExit;
+    }
+
+    try {
+        const listeners = process.listeners("beforeExit");
+        if (!Array.isArray(listeners)) {
+            return handleBeforeExit;
+        }
+
+        for (const listener of listeners) {
+            if (isTrackedBeforeExitListener(listener)) {
+                return listener;
+            }
+        }
+    } catch (error) {
+        preloadLog(
+            "warn",
+            "[preload.js] Unable to capture beforeExit listener wrapper:",
+            error
+        );
+    }
+
+    return handleBeforeExit;
+}
+
 function handleBeforeExit() {
-    if (process.env.NODE_ENV === "development") {
-        console.log("[preload.js] Process exiting, performing cleanup...");
+    if (isDevelopmentMode()) {
+        preloadLog(
+            "info",
+            "[preload.js] Process exiting, performing cleanup..."
+        );
     }
     const registry = getProcessRegistry();
     if (registry && typeof registry.delete === "function") {
         const existingWrapper = registry.get(process);
         registry.delete(process);
         if (existingWrapper && typeof process.removeListener === "function") {
-            try {
-                process.removeListener("beforeExit", existingWrapper);
-            } catch (error) {
-                console.warn(
-                    "[preload.js] Unable to remove beforeExit listener during cleanup:",
-                    error
-                );
-            }
+            removeBeforeExitListener(
+                existingWrapper,
+                "[preload.js] Unable to remove beforeExit listener during cleanup:"
+            );
         }
     }
 }
 
-function registerBeforeExitHandler() {
-    const hasOnce = typeof process.once === "function";
-    if (!hasOnce) {
+/**
+ * @param {unknown} listener
+ *
+ * @returns {listener is NodeJS.BeforeExitListener & Record<symbol, unknown> & { listener?: unknown }}
+ */
+function isTrackedBeforeExitListener(listener) {
+    if (typeof listener !== "function") {
+        return false;
+    }
+
+    const listenerRecord = /**
+     * @type {NodeJS.BeforeExitListener &
+     *     Record<symbol, unknown> & { listener?: unknown }}
+     */ (listener);
+    return (
+        listener === handleBeforeExit ||
+        listenerRecord.listener === handleBeforeExit ||
+        listenerRecord[BEFORE_EXIT_LISTENER_SYMBOL] === true
+    );
+}
+
+/**
+ * @param {NodeJS.BeforeExitListener} storedWrapper
+ *
+ * @returns {void}
+ */
+function markBeforeExitWrapper(storedWrapper) {
+    try {
+        Reflect.set(storedWrapper, BEFORE_EXIT_LISTENER_SYMBOL, true);
+    } catch {
+        // Ignore if wrapper is not extensible
+    }
+}
+
+/**
+ * @returns {void}
+ */
+function pruneTrackedBeforeExitListeners() {
+    if (
+        typeof process.listeners !== "function" ||
+        typeof process.removeListener !== "function"
+    ) {
         return;
     }
 
-    const hasListeners = typeof process.listeners === "function";
-    const hasRemove = typeof process.removeListener === "function";
+    try {
+        const currentListeners = process.listeners("beforeExit");
+        if (!Array.isArray(currentListeners)) {
+            return;
+        }
+
+        for (const listener of currentListeners) {
+            if (isTrackedBeforeExitListener(listener)) {
+                process.removeListener("beforeExit", listener);
+            }
+        }
+    } catch (error) {
+        preloadLog(
+            "warn",
+            "[preload.js] Unable to prune stale beforeExit listeners:",
+            error
+        );
+    }
+}
+
+function registerBeforeExitHandler() {
+    if (typeof process.once !== "function") {
+        return;
+    }
+
+    const canRemove = typeof process.removeListener === "function";
     const registry = getProcessRegistry();
 
-    if (registry && typeof registry.get === "function") {
-        const existingWrapper = registry.get(process);
-        if (existingWrapper) {
-            if (hasRemove) {
-                try {
-                    process.removeListener("beforeExit", existingWrapper);
-                } catch (error) {
-                    console.warn(
-                        "[preload.js] Unable to remove stale beforeExit listener:",
-                        error
-                    );
-                }
-            }
-
-            registry.delete(process);
-        }
-    }
-
-    if (hasListeners && hasRemove) {
-        try {
-            const currentListeners = process.listeners("beforeExit");
-            if (Array.isArray(currentListeners)) {
-                for (const listener of currentListeners) {
-                    if (
-                        listener &&
-                        (listener === handleBeforeExit ||
-                            listener.listener === handleBeforeExit ||
-                            listener[BEFORE_EXIT_LISTENER_SYMBOL])
-                    ) {
-                        process.removeListener("beforeExit", listener);
-                    }
-                }
-            }
-        } catch (error) {
-            console.warn(
-                "[preload.js] Unable to prune stale beforeExit listeners:",
-                error
-            );
-        }
-    }
-
+    removeRegisteredBeforeExitWrapper(registry, canRemove);
+    pruneTrackedBeforeExitListeners();
     process.once("beforeExit", handleBeforeExit);
 
     if (registry && typeof registry.set === "function") {
-        let storedWrapper = handleBeforeExit;
-        if (hasListeners) {
-            try {
-                const listeners = process.listeners("beforeExit");
-                if (Array.isArray(listeners)) {
-                    for (const listener of listeners) {
-                        if (
-                            listener === handleBeforeExit ||
-                            listener.listener === handleBeforeExit
-                        ) {
-                            storedWrapper = listener;
-                            break;
-                        }
-                    }
-                }
-            } catch (error) {
-                console.warn(
-                    "[preload.js] Unable to capture beforeExit listener wrapper:",
-                    error
-                );
-            }
-        }
-
-        try {
-            storedWrapper[BEFORE_EXIT_LISTENER_SYMBOL] = true;
-        } catch {
-            // Ignore if wrapper is not extensible
-        }
-
+        const storedWrapper = getRegisteredBeforeExitWrapper();
+        markBeforeExitWrapper(storedWrapper);
         registry.set(process, storedWrapper);
     }
+}
+
+/**
+ * @param {NodeJS.BeforeExitListener} listener
+ * @param {string} failureMessage
+ *
+ * @returns {void}
+ */
+function removeBeforeExitListener(listener, failureMessage) {
+    try {
+        process.removeListener("beforeExit", listener);
+    } catch (error) {
+        preloadLog("warn", failureMessage, error);
+    }
+}
+
+/**
+ * @param {WeakMap<NodeJS.Process, NodeJS.BeforeExitListener> | null} registry
+ * @param {boolean} canRemove
+ *
+ * @returns {void}
+ */
+function removeRegisteredBeforeExitWrapper(registry, canRemove) {
+    if (registry === null || typeof registry.get !== "function") {
+        return;
+    }
+
+    const existingWrapper = registry.get(process);
+    if (existingWrapper === undefined) {
+        return;
+    }
+
+    if (canRemove) {
+        removeBeforeExitListener(
+            existingWrapper,
+            "[preload.js] Unable to remove stale beforeExit listener:"
+        );
+    }
+
+    registry.delete(process);
 }
 
 registerBeforeExitHandler();
 
 // Report successful initialization
-if (process.env.NODE_ENV === "development") {
-    console.log("[preload.js] Preload script initialized successfully");
+if (isDevelopmentMode()) {
+    preloadLog("info", "[preload.js] Preload script initialized successfully");
 }
