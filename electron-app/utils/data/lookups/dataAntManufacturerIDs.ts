@@ -1,7 +1,7 @@
 /**
  * ANT manufacturer ID to canonical manufacturer key mapping.
  */
-export const dataAntManufacturerIDs = {
+export const dataAntManufacturerIDs = Object.freeze({
     1: "garmin",
     2: "garmin_fr405_antfs",
     3: "zephyr",
@@ -234,4 +234,4 @@ export const dataAntManufacturerIDs = {
     334: "darad_innovation_corporation",
     335: "cycloptim",
     5759: "actigraphcorp",
-};
+} as const);
