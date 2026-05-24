@@ -121,7 +121,7 @@ describe("preload.js - Comprehensive API Testing", () => {
             return resolvePreloadScriptRequire(module, electronMock);
         });
 
-        // Execute the preload script
+        // eslint-disable-next-line no-new-func -- preload.js is a CommonJS side-effect script executed with controlled test doubles.
         const scriptFunc = new Function(
             "require",
             "console",
@@ -142,18 +142,27 @@ describe("preload.js - Comprehensive API Testing", () => {
             expect(
                 electronMock.contextBridge.exposeInMainWorld
             ).toHaveBeenCalledWith("electronAPI", expect.any(Object));
+            expect((globalThis as any).electronAPI.validateAPI()).toBe(true);
         });
 
         it("should expose devTools to main world", () => {
             expect(
                 electronMock.contextBridge.exposeInMainWorld
             ).toHaveBeenCalledWith("devTools", expect.any(Object));
+            expect((globalThis as any).devTools).toMatchObject({
+                getPreloadInfo: expect.any(Function),
+                logAPIState: expect.any(Function),
+                testIPC: expect.any(Function),
+            });
         });
 
         it("should expose exactly 2 APIs", () => {
             expect(
                 electronMock.contextBridge.exposeInMainWorld
             ).toHaveBeenCalledTimes(2);
+            expect(Object.keys(globalThis as any)).toEqual(
+                expect.arrayContaining(["electronAPI", "devTools"])
+            );
         });
 
         it("should expose electronAPI with all expected methods", () => {
@@ -162,9 +171,13 @@ describe("preload.js - Comprehensive API Testing", () => {
                     (call: any) => call[0] === "electronAPI"
                 );
 
-            expect(electronAPICall).toBeDefined();
+            expect(electronAPICall?.[1]).toMatchObject({
+                getAppVersion: expect.any(Function),
+                getChannelInfo: expect.any(Function),
+                validateAPI: expect.any(Function),
+            });
 
-            const electronAPI = electronAPICall[1];
+            const electronAPI = electronAPICall![1];
 
             // Test core methods
             expect(electronAPI).toHaveProperty("getAppVersion");
@@ -290,18 +303,20 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should handle addRecentFile correctly", async () => {
-            await electronAPI.addRecentFile("/path/to/file.fit");
+            const result = await electronAPI.addRecentFile("/path/to/file.fit");
             expect(electronMock.ipcRenderer.invoke).toHaveBeenCalledWith(
                 "recentFiles:add",
                 "/path/to/file.fit"
             );
+            expect(result).toBeUndefined();
         });
 
         it("should handle openFileDialog correctly", async () => {
-            electronAPI.openFileDialog();
+            const result = await electronAPI.openFileDialog();
             expect(electronMock.ipcRenderer.invoke).toHaveBeenCalledWith(
                 "dialog:openFile"
             );
+            expect(result).toEqual(["file1.fit"]);
         });
 
         it("should handle readFile correctly", async () => {
@@ -333,66 +348,90 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should handle send correctly", () => {
-            electronAPI.send("test-channel", { data: "test" });
+            const result = electronAPI.send("test-channel", { data: "test" });
             expect(electronMock.ipcRenderer.send).toHaveBeenCalledWith(
                 "test-channel",
                 { data: "test" }
             );
+            expect(result).toBeUndefined();
         });
 
         it("should handle invoke correctly", async () => {
-            await electronAPI.invoke("test-channel", "arg1", "arg2");
+            const result = await electronAPI.invoke(
+                "test-channel",
+                "arg1",
+                "arg2"
+            );
             expect(electronMock.ipcRenderer.invoke).toHaveBeenCalledWith(
                 "test-channel",
                 "arg1",
                 "arg2"
             );
+            expect(result).toBe("default-mock");
         });
 
         it("should handle onIpc correctly", () => {
             const callback = vi.fn();
-            electronAPI.onIpc("test-channel", callback);
+            const unsubscribe = electronAPI.onIpc("test-channel", callback);
             expect(electronMock.ipcRenderer.on).toHaveBeenCalledWith(
                 "test-channel",
                 expect.any(Function)
             );
+            expect(typeof unsubscribe).toBe("function");
         });
 
         it("should handle checkForUpdates correctly", () => {
-            electronAPI.checkForUpdates();
+            const result = electronAPI.checkForUpdates();
             expect(electronMock.ipcRenderer.send).toHaveBeenCalledWith(
                 "menu-check-for-updates"
             );
+            expect(result).toBeUndefined();
         });
 
         it("should handle installUpdate correctly", () => {
-            electronAPI.installUpdate();
+            const result = electronAPI.installUpdate();
             expect(electronMock.ipcRenderer.send).toHaveBeenCalledWith(
                 "install-update"
             );
+            expect(result).toBeUndefined();
         });
 
         it("should handle setFullScreen correctly", () => {
-            electronAPI.setFullScreen(true);
+            const result = electronAPI.setFullScreen(true);
             expect(electronMock.ipcRenderer.send).toHaveBeenCalledWith(
                 "set-fullscreen",
                 true
             );
+            expect(result).toBeUndefined();
         });
 
         it("should handle openExternal correctly", async () => {
-            await electronAPI.openExternal("https://example.com");
+            const result = await electronAPI.openExternal(
+                "https://example.com"
+            );
             expect(electronMock.ipcRenderer.invoke).toHaveBeenCalledWith(
                 "shell:openExternal",
                 "https://example.com"
             );
+            expect(result).toBeUndefined();
         });
 
         it("should handle sendThemeChanged correctly", () => {
-            electronAPI.sendThemeChanged("dark");
+            const result = electronAPI.sendThemeChanged("dark");
             expect(electronMock.ipcRenderer.send).toHaveBeenCalledWith(
                 "theme-changed",
                 "dark"
+            );
+            expect(result).toBeUndefined();
+        });
+
+        it("should reject invalid invoke channels", async () => {
+            await expect(electronAPI.invoke(123, "arg")).rejects.toThrow(
+                "Invalid channel for invoke"
+            );
+            expect(electronMock.ipcRenderer.invoke).not.toHaveBeenCalledWith(
+                123,
+                "arg"
             );
         });
     });
@@ -410,56 +449,76 @@ describe("preload.js - Comprehensive API Testing", () => {
 
         it("should register onMenuOpenFile handler", () => {
             const callback = vi.fn();
-            electronAPI.onMenuOpenFile(callback);
+            const unsubscribe = electronAPI.onMenuOpenFile(callback);
             expect(electronMock.ipcRenderer.on).toHaveBeenCalledWith(
                 "menu-open-file",
                 expect.any(Function)
             );
+            expect(typeof unsubscribe).toBe("function");
         });
 
         it("should register onMenuOpenOverlay handler", () => {
             const callback = vi.fn();
-            electronAPI.onMenuOpenOverlay(callback);
+            const unsubscribe = electronAPI.onMenuOpenOverlay(callback);
             expect(electronMock.ipcRenderer.on).toHaveBeenCalledWith(
                 "menu-open-overlay",
                 expect.any(Function)
             );
+            expect(typeof unsubscribe).toBe("function");
         });
 
         it("should register onOpenRecentFile handler", () => {
             const callback = vi.fn();
-            electronAPI.onOpenRecentFile(callback);
+            const unsubscribe = electronAPI.onOpenRecentFile(callback);
             expect(electronMock.ipcRenderer.on).toHaveBeenCalledWith(
                 "open-recent-file",
                 expect.any(Function)
             );
+            expect(typeof unsubscribe).toBe("function");
         });
 
         it("should register onSetTheme handler", () => {
             const callback = vi.fn();
-            electronAPI.onSetTheme(callback);
+            const unsubscribe = electronAPI.onSetTheme(callback);
             expect(electronMock.ipcRenderer.on).toHaveBeenCalledWith(
                 "set-theme",
                 expect.any(Function)
             );
+            expect(typeof unsubscribe).toBe("function");
         });
 
         it("should register onUpdateEvent handler", () => {
             const callback = vi.fn();
-            electronAPI.onUpdateEvent("update-event", callback);
+            const unsubscribe = electronAPI.onUpdateEvent(
+                "update-event",
+                callback
+            );
             expect(electronMock.ipcRenderer.on).toHaveBeenCalledWith(
                 "update-event",
                 expect.any(Function)
             );
+            expect(typeof unsubscribe).toBe("function");
         });
 
         it("should register onOpenSummaryColumnSelector handler", () => {
             const callback = vi.fn();
-            electronAPI.onOpenSummaryColumnSelector(callback);
+            const unsubscribe =
+                electronAPI.onOpenSummaryColumnSelector(callback);
             expect(electronMock.ipcRenderer.on).toHaveBeenCalledWith(
                 "open-summary-column-selector",
                 expect.any(Function)
             );
+            expect(typeof unsubscribe).toBe("function");
+        });
+
+        it("should reject invalid event callbacks", () => {
+            const unsubscribe = electronAPI.onIpc(
+                "test-channel",
+                "not-a-function"
+            );
+
+            expect(unsubscribe).toBeUndefined();
+            expect(electronMock.ipcRenderer.on).not.toHaveBeenCalled();
         });
     });
 
@@ -515,8 +574,12 @@ describe("preload.js - Comprehensive API Testing", () => {
                     (call: any) => call[0] === "devTools"
                 );
 
-            expect(devToolsCall).toBeDefined();
-            expect(devToolsCall[1]).toHaveProperty("getPreloadInfo");
+            expect(devToolsCall?.[1]).toMatchObject({
+                getPreloadInfo: expect.any(Function),
+                logAPIState: expect.any(Function),
+                testIPC: expect.any(Function),
+            });
+            expect(devToolsCall![1]).toHaveProperty("getPreloadInfo");
             expect(devToolsCall[1]).toHaveProperty("logAPIState");
             expect(devToolsCall[1]).toHaveProperty("testIPC");
             expect(typeof devToolsCall[1].getPreloadInfo).toBe("function");
@@ -531,6 +594,11 @@ describe("preload.js - Comprehensive API Testing", () => {
                 "beforeExit",
                 expect.any(Function)
             );
+            expect(mockProcess.once).not.toHaveBeenCalledWith(
+                "exit",
+                expect.any(Function)
+            );
+            expect((globalThis as any).electronAPI.validateAPI()).toBe(true);
         });
 
         it("should log cleanup message on beforeExit", () => {
@@ -538,9 +606,9 @@ describe("preload.js - Comprehensive API Testing", () => {
             const beforeExitCall = mockProcess.once.mock.calls.find(
                 (call: any) => call[0] === "beforeExit"
             );
-            expect(beforeExitCall).toBeDefined();
+            expect(typeof beforeExitCall?.[1]).toBe("function");
 
-            const beforeExitCallback = beforeExitCall[1];
+            const beforeExitCallback = beforeExitCall![1];
 
             // Execute the callback
             beforeExitCallback();
@@ -555,6 +623,9 @@ describe("preload.js - Comprehensive API Testing", () => {
             );
 
             expect(cleanupLogs.length).toBeGreaterThan(0);
+            expect(cleanupLogs[0][0]).toContain(
+                "[preload.js] Process exiting, performing cleanup..."
+            );
         });
     });
 
@@ -566,6 +637,10 @@ describe("preload.js - Comprehensive API Testing", () => {
             );
 
             expect(validationLogs.length).toBeGreaterThan(0);
+            expect(validationLogs[0][0]).toContain(
+                "[preload.js] API Validation:"
+            );
+            expect(validationLogs[0][0]).not.toContain("failed");
         });
 
         it("should log successful API exposure", () => {
@@ -576,6 +651,9 @@ describe("preload.js - Comprehensive API Testing", () => {
             );
 
             expect(exposureLogs.length).toBeGreaterThan(0);
+            expect(exposureLogs[0][0]).toContain(
+                "[preload.js] Successfully exposed"
+            );
         });
 
         it("should log initialization completion", () => {
@@ -586,6 +664,9 @@ describe("preload.js - Comprehensive API Testing", () => {
             );
 
             expect(initLogs.length).toBeGreaterThan(0);
+            expect(initLogs[0][0]).toContain(
+                "[preload.js] Preload script initialized"
+            );
         });
 
         it("should validate API structure", () => {
@@ -595,6 +676,9 @@ describe("preload.js - Comprehensive API Testing", () => {
             );
 
             expect(structureLogs.length).toBeGreaterThan(0);
+            expect(structureLogs[0][0]).toContain(
+                "[preload.js] API Structure:"
+            );
         });
     });
 
@@ -603,7 +687,9 @@ describe("preload.js - Comprehensive API Testing", () => {
         it("should test validateCallback with invalid inputs", () => {
             // Access validation functions through existing API
             const api = (global as any).electronAPI;
-            expect(api).toBeDefined();
+            expect(api).toMatchObject({
+                onIpc: expect.any(Function),
+            });
 
             // Test validateCallback function coverage by accessing internal functions
             // These tests will trigger the uncovered validation code paths
@@ -621,11 +707,17 @@ describe("preload.js - Comprehensive API Testing", () => {
                     api.onIpc("test-channel", testCase);
                 }).not.toThrow(); // Should handle invalid callbacks gracefully
             });
+            expect(electronMock.ipcRenderer.on).not.toHaveBeenCalledWith(
+                "test-channel",
+                null
+            );
         });
 
         it("should test validateString with invalid inputs", () => {
             const api = (global as any).electronAPI;
-            expect(api).toBeDefined();
+            expect(api).toMatchObject({
+                send: expect.any(Function),
+            });
 
             // Test validateString function coverage
             const testCases = [
@@ -642,13 +734,19 @@ describe("preload.js - Comprehensive API Testing", () => {
                     api.send(testCase, "data");
                 }).not.toThrow(); // Should handle invalid strings gracefully
             });
+            expect(electronMock.ipcRenderer.send).not.toHaveBeenCalledWith(
+                null,
+                "data"
+            );
         });
     });
 
     describe("Error Handling in Safe Handlers", () => {
         it("should handle errors in safe invoke handler", async () => {
             const api = (global as any).electronAPI;
-            expect(api).toBeDefined();
+            expect(api).toMatchObject({
+                invoke: expect.any(Function),
+            });
 
             // Mock ipcRenderer to throw errors for this test
             const originalInvoke = electronMock.ipcRenderer.invoke;
@@ -656,11 +754,9 @@ describe("preload.js - Comprehensive API Testing", () => {
                 new Error("Test invoke error")
             );
 
-            try {
-                await api.invoke("test-channel", "test-data");
-            } catch (error: any) {
-                expect(error.message).toContain("Test invoke error");
-            }
+            await expect(
+                api.invoke("test-channel", "test-data")
+            ).rejects.toThrow("Test invoke error");
 
             // Restore original
             electronMock.ipcRenderer.invoke = originalInvoke;
@@ -668,7 +764,9 @@ describe("preload.js - Comprehensive API Testing", () => {
 
         it("should handle errors in safe send handler", () => {
             const api = (global as any).electronAPI;
-            expect(api).toBeDefined();
+            expect(api).toMatchObject({
+                send: expect.any(Function),
+            });
 
             // Mock ipcRenderer to throw errors for this test
             const originalSend = electronMock.ipcRenderer.send;
@@ -676,9 +774,13 @@ describe("preload.js - Comprehensive API Testing", () => {
                 throw new Error("Test send error");
             });
 
-            expect(() => {
-                api.send("test-channel", "test-data");
-            }).not.toThrow(); // Should be caught by safe handler
+            const result = api.send("test-channel", "test-data");
+
+            expect(result).toBeUndefined();
+            expect(consoleErrorSpy).toHaveBeenCalledWith(
+                "[preload.js] Error in send(test-channel):",
+                expect.any(Error)
+            );
 
             // Restore original
             electronMock.ipcRenderer.send = originalSend;
@@ -686,34 +788,41 @@ describe("preload.js - Comprehensive API Testing", () => {
 
         it("should handle errors in safe event handler", () => {
             const api = (global as any).electronAPI;
-            expect(api).toBeDefined();
+            expect(api).toMatchObject({
+                onIpc: expect.any(Function),
+            });
 
             const errorCallback = () => {
                 throw new Error("Test event error");
             };
 
-            expect(() => {
-                api.onIpc("test-channel", errorCallback);
-            }).not.toThrow(); // Should be caught by safe handler
+            const unsubscribe = api.onIpc("test-channel", errorCallback);
+
+            expect(typeof unsubscribe).toBe("function");
         });
     });
 
     describe("API Method Implementation Tests", () => {
         it("should test send method implementation", () => {
             const api = (global as any).electronAPI;
-            expect(api).toBeDefined();
+            expect(api).toMatchObject({
+                send: expect.any(Function),
+            });
             expect(typeof api.send).toBe("function");
 
-            api.send("test-channel", "test-data");
+            const result = api.send("test-channel", "test-data");
             expect(electronMock.ipcRenderer.send).toHaveBeenCalledWith(
                 "test-channel",
                 "test-data"
             );
+            expect(result).toBeUndefined();
         });
 
         it("should test invoke method implementation", async () => {
             const api = (global as any).electronAPI;
-            expect(api).toBeDefined();
+            expect(api).toMatchObject({
+                invoke: expect.any(Function),
+            });
             expect(typeof api.invoke).toBe("function");
 
             electronMock.ipcRenderer.invoke.mockResolvedValue("test-response");
@@ -728,147 +837,153 @@ describe("preload.js - Comprehensive API Testing", () => {
 
         it("should test onIpc method implementation", () => {
             const api = (global as any).electronAPI;
-            expect(api).toBeDefined();
+            expect(api).toMatchObject({
+                onIpc: expect.any(Function),
+            });
             expect(typeof api.onIpc).toBe("function");
 
             const callback = vi.fn();
-            api.onIpc("test-channel", callback);
+            const unsubscribe = api.onIpc("test-channel", callback);
             expect(electronMock.ipcRenderer.on).toHaveBeenCalledWith(
                 "test-channel",
                 expect.any(Function)
             );
+            expect(typeof unsubscribe).toBe("function");
         });
 
         it("should test onUpdateEvent method implementation", () => {
             const api = (global as any).electronAPI;
-            expect(api).toBeDefined();
+            expect(api).toMatchObject({
+                onUpdateEvent: expect.any(Function),
+            });
             expect(typeof api.onUpdateEvent).toBe("function");
 
             const callback = vi.fn();
             const eventName = "test-event";
-            api.onUpdateEvent(eventName, callback);
+            const unsubscribe = api.onUpdateEvent(eventName, callback);
             expect(electronMock.ipcRenderer.on).toHaveBeenCalledWith(
                 eventName,
                 expect.any(Function)
             );
+            expect(typeof unsubscribe).toBe("function");
         });
 
         it("should test injectMenu method implementation", async () => {
             const api = (global as any).electronAPI;
-            expect(api).toBeDefined();
+            expect(api).toMatchObject({
+                injectMenu: expect.any(Function),
+            });
             expect(typeof api.injectMenu).toBe("function");
 
             const theme = "dark";
             const fitFilePath = "/path/to/file.fit";
-            await api.injectMenu(theme, fitFilePath);
+            const result = await api.injectMenu(theme, fitFilePath);
             expect(electronMock.ipcRenderer.invoke).toHaveBeenCalledWith(
                 "devtools-inject-menu",
                 theme,
                 fitFilePath
             );
+            expect(result).toBe(true);
         });
     });
 
     describe("Utility Function Tests", () => {
         it("should test getChannelInfo method", () => {
             const api = (global as any).electronAPI;
-            expect(api).toBeDefined();
+            expect(api).toMatchObject({
+                getChannelInfo: expect.any(Function),
+            });
             expect(typeof api.getChannelInfo).toBe("function");
 
             const channelInfo = api.getChannelInfo();
-            expect(channelInfo).toBeDefined();
+            expect(channelInfo).toMatchObject({
+                channels: expect.any(Object),
+                events: expect.any(Object),
+            });
             expect(typeof channelInfo).toBe("object");
+            expect(channelInfo.channels).not.toHaveProperty("UNKNOWN_CHANNEL");
         });
     });
 
     describe("Development Tools Tests", () => {
         it("should test getPreloadInfo function in development", () => {
             const devTools = (global as any).devTools;
-            if (devTools && devTools.getPreloadInfo) {
-                const info = devTools.getPreloadInfo();
-                expect(info).toBeDefined();
-                expect(typeof info).toBe("object");
-                expect(info).toHaveProperty("apiMethods");
-                expect(info).toHaveProperty("constants");
-                expect(info).toHaveProperty("timestamp");
-                expect(info).toHaveProperty("version");
-                expect(Array.isArray(info.apiMethods)).toBe(true);
-                expect(typeof info.constants).toBe("object");
-                expect(typeof info.timestamp).toBe("string");
-                expect(typeof info.version).toBe("string");
-                expect(info.apiMethods.length).toBeGreaterThan(0);
-            } else {
-                // If not in development mode, just verify it's not exposed
-                expect(devTools?.getPreloadInfo).toBeUndefined();
-            }
+            expect(devTools).toMatchObject({
+                getPreloadInfo: expect.any(Function),
+            });
+
+            const info = devTools.getPreloadInfo();
+            expect(info).toMatchObject({
+                apiMethods: expect.any(Array),
+                constants: expect.any(Object),
+                timestamp: expect.any(String),
+                version: expect.any(String),
+            });
+            expect(typeof info).toBe("object");
+            expect(Array.isArray(info.apiMethods)).toBe(true);
+            expect(typeof info.constants).toBe("object");
+            expect(typeof info.timestamp).toBe("string");
+            expect(typeof info.version).toBe("string");
+            expect(info.apiMethods.length).toBeGreaterThan(0);
         });
 
-        it("should test testIPC function in development", () => {
+        it("should test testIPC function in development", async () => {
             const devTools = (global as any).devTools;
-            if (devTools && devTools.testIPC) {
-                expect(() => {
-                    devTools.testIPC();
-                }).not.toThrow();
+            expect(devTools).toMatchObject({
+                testIPC: expect.any(Function),
+            });
 
-                // Verify that testIPC makes IPC calls
-                const initialInvokeCount =
-                    electronMock.ipcRenderer.invoke.mock.calls.length;
-                devTools.testIPC();
-                expect(
-                    electronMock.ipcRenderer.invoke.mock.calls.length
-                ).toBeGreaterThanOrEqual(initialInvokeCount);
-            } else {
-                // If not in development mode, just verify it's not exposed
-                expect(devTools?.testIPC).toBeUndefined();
-            }
+            const initialInvokeCount =
+                electronMock.ipcRenderer.invoke.mock.calls.length;
+            const result = await devTools.testIPC();
+
+            expect(result).toBe(true);
+            expect(
+                electronMock.ipcRenderer.invoke.mock.calls.length
+            ).toBeGreaterThan(initialInvokeCount);
         });
 
         it("should test logAPIState function in development", () => {
             const devTools = (global as any).devTools;
-            if (devTools && devTools.logAPIState) {
-                const initialLogCount = consoleLogSpy.mock.calls.length;
-                expect(() => {
-                    devTools.logAPIState();
-                }).not.toThrow();
+            expect(devTools).toMatchObject({
+                logAPIState: expect.any(Function),
+            });
 
-                // Verify that logAPIState produces console output
-                expect(consoleLogSpy.mock.calls.length).toBeGreaterThan(
-                    initialLogCount
-                );
+            const initialLogCount = consoleLogSpy.mock.calls.length;
+            const result = devTools.logAPIState();
 
-                // Check that it logs meaningful information
-                const logCalls =
-                    consoleLogSpy.mock.calls.slice(initialLogCount);
-                const hasAPIStateLog = logCalls.some(
-                    (call: any) =>
-                        call[0] &&
-                        call[0].includes &&
-                        call[0].includes("API State")
-                );
-                expect(hasAPIStateLog).toBe(true);
-            } else {
-                // If not in development mode, just verify it's not exposed
-                expect(devTools?.logAPIState).toBeUndefined();
-            }
+            expect(result).toBeUndefined();
+            expect(consoleLogSpy.mock.calls.length).toBeGreaterThan(
+                initialLogCount
+            );
+
+            const logCalls = consoleLogSpy.mock.calls.slice(initialLogCount);
+            const hasAPIStateLog = logCalls.some(
+                (call: any) =>
+                    call[0] && call[0].includes && call[0].includes("API State")
+            );
+            expect(hasAPIStateLog).toBe(true);
         });
 
         it("should expose all development tools in development mode", () => {
             const devTools = (global as any).devTools;
-            if (devTools) {
-                expect(devTools).toHaveProperty("getPreloadInfo");
-                expect(devTools).toHaveProperty("logAPIState");
-                expect(devTools).toHaveProperty("testIPC");
-                expect(typeof devTools.getPreloadInfo).toBe("function");
-                expect(typeof devTools.logAPIState).toBe("function");
-                expect(typeof devTools.testIPC).toBe("function");
-            }
+            expect(devTools).toMatchObject({
+                getPreloadInfo: expect.any(Function),
+                logAPIState: expect.any(Function),
+                testIPC: expect.any(Function),
+            });
+            expect(typeof devTools.getPreloadInfo).toBe("function");
+            expect(typeof devTools.logAPIState).toBe("function");
+            expect(typeof devTools.testIPC).toBe("function");
         });
 
         it("should handle development mode environment variable correctly", () => {
             // Test that development tools are available when NODE_ENV is development
             expect(mockProcess.env.NODE_ENV).toBe("development");
             const devTools = (global as any).devTools;
-            expect(devTools).toBeDefined();
+            expect(devTools).toMatchObject({
+                getPreloadInfo: expect.any(Function),
+            });
         });
     });
 
@@ -893,6 +1008,9 @@ describe("preload.js - Comprehensive API Testing", () => {
                 "test-channel",
                 expect.any(Function)
             );
+            expect(
+                typeof electronAPI.onIpc("test-channel-2", validCallback)
+            ).toBe("function");
 
             // Test invalid callbacks to trigger validateCallback
             expect(() => electronAPI.onIpc("test-channel", null)).not.toThrow();
@@ -904,6 +1022,10 @@ describe("preload.js - Comprehensive API Testing", () => {
             ).not.toThrow();
             expect(() => electronAPI.onIpc("test-channel", 123)).not.toThrow();
             expect(() => electronAPI.onIpc("test-channel", {})).not.toThrow();
+            expect(electronMock.ipcRenderer.on).not.toHaveBeenCalledWith(
+                "test-channel",
+                null
+            );
         });
 
         it("should test validateString through send method", () => {
@@ -915,6 +1037,7 @@ describe("preload.js - Comprehensive API Testing", () => {
                 "valid-channel",
                 "data"
             );
+            expect(electronAPI.send("valid-channel-2", "data")).toBeUndefined();
 
             // Test invalid channels to trigger validateString
             expect(() => electronAPI.send(null, "data")).not.toThrow();
@@ -922,11 +1045,15 @@ describe("preload.js - Comprehensive API Testing", () => {
             expect(() => electronAPI.send(123, "data")).not.toThrow();
             expect(() => electronAPI.send({}, "data")).not.toThrow();
             expect(() => electronAPI.send([], "data")).not.toThrow();
+            expect(electronMock.ipcRenderer.send).not.toHaveBeenCalledWith(
+                null,
+                "data"
+            );
         });
 
-        it("should test invoke method with various parameters", () => {
+        it("should test invoke method with various parameters", async () => {
             // Test valid invoke
-            electronAPI.invoke("test-channel", "arg1", "arg2");
+            await electronAPI.invoke("test-channel", "arg1", "arg2");
             expect(electronMock.ipcRenderer.invoke).toHaveBeenCalledWith(
                 "test-channel",
                 "arg1",
@@ -934,13 +1061,19 @@ describe("preload.js - Comprehensive API Testing", () => {
             );
 
             // Test with no arguments
-            electronAPI.invoke("test-channel");
+            await electronAPI.invoke("test-channel");
             expect(electronMock.ipcRenderer.invoke).toHaveBeenCalledWith(
                 "test-channel"
             );
 
             // Test with multiple arguments
-            electronAPI.invoke("test-channel", 1, 2, 3, "test");
+            const result = await electronAPI.invoke(
+                "test-channel",
+                1,
+                2,
+                3,
+                "test"
+            );
             expect(electronMock.ipcRenderer.invoke).toHaveBeenCalledWith(
                 "test-channel",
                 1,
@@ -948,30 +1081,41 @@ describe("preload.js - Comprehensive API Testing", () => {
                 3,
                 "test"
             );
+            expect(result).toBe("default-mock");
         });
 
         it("should test send method functionality", () => {
             // Test send with data
-            electronAPI.send("test-channel", { test: "data" });
+            const firstResult = electronAPI.send("test-channel", {
+                test: "data",
+            });
             expect(electronMock.ipcRenderer.send).toHaveBeenCalledWith(
                 "test-channel",
                 { test: "data" }
             );
+            expect(firstResult).toBeUndefined();
 
             // Test send without data
-            electronAPI.send("test-channel");
+            const secondResult = electronAPI.send("test-channel");
             expect(electronMock.ipcRenderer.send).toHaveBeenCalledWith(
                 "test-channel"
             );
+            expect(secondResult).toBeUndefined();
 
             // Test send with multiple arguments
-            electronAPI.send("test-channel", "arg1", "arg2", "arg3");
+            const thirdResult = electronAPI.send(
+                "test-channel",
+                "arg1",
+                "arg2",
+                "arg3"
+            );
             expect(electronMock.ipcRenderer.send).toHaveBeenCalledWith(
                 "test-channel",
                 "arg1",
                 "arg2",
                 "arg3"
             );
+            expect(thirdResult).toBeUndefined();
         });
     });
 
@@ -989,7 +1133,12 @@ describe("preload.js - Comprehensive API Testing", () => {
         it("should test getChannelInfo method", () => {
             const channelInfo = electronAPI.getChannelInfo();
 
-            expect(channelInfo).toBeDefined();
+            expect(channelInfo).toMatchObject({
+                channels: expect.any(Object),
+                events: expect.any(Object),
+                totalChannels: expect.any(Number),
+                totalEvents: expect.any(Number),
+            });
             expect(channelInfo).toHaveProperty("channels");
             expect(channelInfo).toHaveProperty("events");
             expect(channelInfo).toHaveProperty("totalChannels");
@@ -1024,23 +1173,29 @@ describe("preload.js - Comprehensive API Testing", () => {
         it("should test onUpdateEvent method", () => {
             const callback = vi.fn();
 
-            electronAPI.onUpdateEvent("update-available", callback);
-            expect(electronMock.ipcRenderer.on).toHaveBeenCalledWith(
+            const availableUnsubscribe = electronAPI.onUpdateEvent(
                 "update-available",
-                expect.any(Function)
+                callback
             );
-
-            electronAPI.onUpdateEvent("update-downloaded", callback);
-            expect(electronMock.ipcRenderer.on).toHaveBeenCalledWith(
+            const downloadedUnsubscribe = electronAPI.onUpdateEvent(
                 "update-downloaded",
-                expect.any(Function)
+                callback
+            );
+            const errorUnsubscribe = electronAPI.onUpdateEvent(
+                "update-error",
+                callback
             );
 
-            electronAPI.onUpdateEvent("update-error", callback);
-            expect(electronMock.ipcRenderer.on).toHaveBeenCalledWith(
-                "update-error",
-                expect.any(Function)
+            expect(electronMock.ipcRenderer.on.mock.calls).toEqual(
+                expect.arrayContaining([
+                    ["update-available", expect.any(Function)],
+                    ["update-downloaded", expect.any(Function)],
+                    ["update-error", expect.any(Function)],
+                ])
             );
+            expect(typeof availableUnsubscribe).toBe("function");
+            expect(typeof downloadedUnsubscribe).toBe("function");
+            expect(typeof errorUnsubscribe).toBe("function");
         });
     });
 
@@ -1056,7 +1211,11 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should handle null and undefined parameters", async () => {
-            expect(electronAPI).toBeDefined();
+            expect(electronAPI).toMatchObject({
+                invoke: expect.any(Function),
+                onIpc: expect.any(Function),
+                send: expect.any(Function),
+            });
 
             // Test all methods with null/undefined parameters
             expect(() => electronAPI.send(null, null)).not.toThrow();
@@ -1075,7 +1234,11 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should handle invalid parameter types", async () => {
-            expect(electronAPI).toBeDefined();
+            expect(electronAPI).toMatchObject({
+                invoke: expect.any(Function),
+                onIpc: expect.any(Function),
+                send: expect.any(Function),
+            });
 
             // Test with various invalid parameter types
             const invalidTypes = [
@@ -1099,16 +1262,25 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should handle empty and special string values", async () => {
-            expect(() => electronAPI.send("", "data")).not.toThrow();
-            expect(() => electronAPI.send("   ", "data")).not.toThrow();
-            expect(() => electronAPI.onIpc("", vi.fn())).not.toThrow();
+            const emptySendResult = electronAPI.send("", "data");
+            const whitespaceSendResult = electronAPI.send("   ", "data");
+            const emptyListenerResult = electronAPI.onIpc("", vi.fn());
+
+            expect(emptySendResult).toBeUndefined();
+            expect(whitespaceSendResult).toBeUndefined();
+            expect(emptyListenerResult).toBeUndefined();
+            expect(electronMock.ipcRenderer.send).not.toHaveBeenCalledWith(
+                "",
+                "data"
+            );
             // invoke now requires a non-empty channel name
             await expect(electronAPI.invoke("", "data")).rejects.toThrow(
                 "Invalid channel for invoke"
             );
-            await expect(electronAPI.invoke("   ", "data")).rejects.toThrow(
-                "Invalid channel for invoke"
-            );
+            const whitespaceError = await electronAPI
+                .invoke("   ", "data")
+                .catch((error: Error) => error);
+            expect(whitespaceError.message).toBe("Invalid channel for invoke");
         });
 
         it("should handle process beforeExit event", () => {
@@ -1118,15 +1290,11 @@ describe("preload.js - Comprehensive API Testing", () => {
                 (call: any) => call[0] === "beforeExit"
             );
 
-            if (beforeExitCalls && beforeExitCalls.length > 0) {
-                expect(beforeExitCalls.length).toBeGreaterThan(0);
-            } else {
-                // Fallback test - just ensure the API is available
-                expect(electronAPI).toBeDefined();
-            }
+            expect(beforeExitCalls).toHaveLength(1);
+            expect(typeof beforeExitCalls[0][1]).toBe("function");
         });
 
-        it("should handle complex data structures in send and invoke", () => {
+        it("should handle complex data structures in send and invoke", async () => {
             const complexData = {
                 nested: {
                     array: [
@@ -1142,12 +1310,12 @@ describe("preload.js - Comprehensive API Testing", () => {
                 date: new Date(),
             };
 
-            expect(() =>
+            expect(
                 electronAPI.send("test-channel", complexData)
-            ).not.toThrow();
-            expect(() =>
+            ).toBeUndefined();
+            await expect(
                 electronAPI.invoke("test-channel", complexData)
-            ).not.toThrow();
+            ).resolves.toBe("default-mock");
         });
     });
 });
