@@ -8,6 +8,8 @@ const config = [
             ".cache/**",
             "coverage/**",
             "dist/**",
+            "**/main.js",
+            "**/tests/jsdomSetup.js",
             "**/*.css",
             "ffv/**",
             "fitParser.js",
@@ -32,7 +34,6 @@ const config = [
         files: [
             "fitParser.ts",
             "jest.config.cjs",
-            "main.js",
             "main.ts",
             "preload.ts",
         ],

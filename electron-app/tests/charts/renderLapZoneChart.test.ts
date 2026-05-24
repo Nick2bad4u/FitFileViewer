@@ -99,9 +99,9 @@ describe("renderLapZoneChart", () => {
     it("should return null when Chart.js is missing", () => {
         delete (window as any).Chart;
 
-        const result = renderLapZoneChart(mockCanvas, []);
+        const view = renderLapZoneChart(mockCanvas, []);
 
-        expect(result).toBeNull();
+        expect(view).toBeNull();
         expect((window as any).showNotification).toHaveBeenCalledWith(
             "Failed to render lap zone chart",
             "error"
@@ -110,9 +110,9 @@ describe("renderLapZoneChart", () => {
 
     it("should return null when canvas is missing", () => {
         // @ts-ignore - Intentionally passing null to test error handling
-        const result = renderLapZoneChart(null, []);
+        const view = renderLapZoneChart(null, []);
 
-        expect(result).toBeNull();
+        expect(view).toBeNull();
         expect((window as any).showNotification).toHaveBeenCalledWith(
             "Failed to render lap zone chart",
             "error"
@@ -121,9 +121,9 @@ describe("renderLapZoneChart", () => {
 
     it("should return null when lapZoneData is not an array", () => {
         // @ts-ignore - Intentionally passing null to test error handling
-        const result = renderLapZoneChart(mockCanvas, null);
+        const view = renderLapZoneChart(mockCanvas, null);
 
-        expect(result).toBeNull();
+        expect(view).toBeNull();
         expect((window as any).showNotification).toHaveBeenCalledWith(
             "Failed to render lap zone chart",
             "error"
@@ -170,9 +170,9 @@ describe("renderLapZoneChart", () => {
 
         const options = { title: "Heart Rate Zones by Lap" };
 
-        const result = renderLapZoneChart(mockCanvas, lapZoneData, options);
+        const view = renderLapZoneChart(mockCanvas, lapZoneData, options);
 
-        expect(result).toBe(mockChart);
+        expect(view).toBe(mockChart);
         expect((window as any).Chart).toHaveBeenCalledTimes(1);
 
         // Check that Chart was called with the correct parameters
@@ -196,9 +196,9 @@ describe("renderLapZoneChart", () => {
     });
 
     it("should handle empty lap zone data", () => {
-        const result = renderLapZoneChart(mockCanvas, [], {});
+        const view = renderLapZoneChart(mockCanvas, [], {});
 
-        expect(result).toBe(mockChart);
+        expect(view).toBe(mockChart);
         expect((window as any).Chart).toHaveBeenCalledTimes(1);
 
         const chartCall = (window as any).Chart.mock.calls[0];
@@ -222,8 +222,15 @@ describe("renderLapZoneChart", () => {
 
         renderLapZoneChart(mockCanvas, lapZoneData, options);
 
+        const chartConfig = (window as any).Chart.mock.calls[0][1];
+
         expect(getZoneColor).toHaveBeenCalledWith("power", 0);
         expect(getZoneColor).toHaveBeenCalledWith("power", 1);
+        expect(
+            chartConfig.data.datasets.map(
+                (dataset: any) => dataset.backgroundColor
+            )
+        ).toEqual(["#ff00ff", "#aa00ff"]);
     });
 
     it("should use HR zone colors by default", () => {
@@ -239,8 +246,15 @@ describe("renderLapZoneChart", () => {
 
         renderLapZoneChart(mockCanvas, lapZoneData, {});
 
+        const chartConfig = (window as any).Chart.mock.calls[0][1];
+
         expect(getZoneColor).toHaveBeenCalledWith("hr", 0);
         expect(getZoneColor).toHaveBeenCalledWith("hr", 1);
+        expect(
+            chartConfig.data.datasets.map(
+                (dataset: any) => dataset.backgroundColor
+            )
+        ).toEqual(["#ff0000", "#ff5500"]);
     });
 
     it("should sort zones by their numeric index", () => {

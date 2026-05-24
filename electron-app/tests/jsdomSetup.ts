@@ -134,13 +134,12 @@ export function setupJSDOMEnvironment() {
         window.getComputedStyle =
             window.getComputedStyle ||
             function (_element) {
-                const style = {
+                return {
                     getPropertyValue: (_prop) => "",
                     pointerEvents: "auto",
                     cursor: "pointer",
                     opacity: "1",
                 };
-                return style;
             };
 
         // Create mock implementations for methods used in tests
@@ -189,9 +188,11 @@ export function setupJSDOMEnvironment() {
         }
 
         // Mock alert, confirm and prompt
-        window.alert = window.alert || vi.fn();
-        window.confirm = window.confirm || vi.fn().mockReturnValue(true);
-        window.prompt = window.prompt || vi.fn().mockReturnValue("");
+        window.alert = window.alert || vi.fn<typeof window.alert>();
+        window.confirm =
+            window.confirm || vi.fn<typeof window.confirm>().mockReturnValue(true);
+        window.prompt =
+            window.prompt || vi.fn<typeof window.prompt>().mockReturnValue("");
     }
 
     // Return patched objects
@@ -201,10 +202,10 @@ export function setupJSDOMEnvironment() {
 /**
  * Creates a mock HTMLElement with configurable attributes and properties
  *
- * @param {string} tagName - The HTML tag name (div, span, etc)
- * @param {object} props - Properties to set on the element
+ * @param tagName - The HTML tag name (div, span, etc)
+ * @param props - Properties to set on the element
  *
- * @returns {HTMLElement} The configured element
+ * @returns The configured element
  */
 export function createMockElement(tagName, props = {}) {
     const element = document.createElement(tagName);
@@ -213,7 +214,9 @@ export function createMockElement(tagName, props = {}) {
         if (key === "id" || key === "className") {
             element[key] = value;
         } else if (key === "classList" && Array.isArray(value)) {
-            value.forEach((cls) => element.classList.add(cls));
+            value.forEach((cls) => {
+                element.classList.add(cls);
+            });
         } else if (key === "attributes") {
             Object.entries(value).forEach(([attrName, attrValue]) => {
                 element.setAttribute(attrName, String(attrValue));
@@ -227,7 +230,9 @@ export function createMockElement(tagName, props = {}) {
                 element.dataset[dataKey] = String(dataValue);
             });
         } else if (key === "children" && Array.isArray(value)) {
-            value.forEach((child) => element.appendChild(child));
+            value.forEach((child) => {
+                element.appendChild(child);
+            });
         } else {
             element[key] = value;
         }
