@@ -25,7 +25,49 @@ import {
 } from "../../../utils/dom/index.js";
 
 describe("domHelpers.js - Comprehensive Tests", () => {
-    let testContainer;
+    let testContainer: HTMLDivElement;
+
+    function appendElement<K extends keyof HTMLElementTagNameMap>(
+        tagName: K,
+        options: {
+            className?: string;
+            id?: string;
+            name?: string;
+            parent?: HTMLElement;
+            textContent?: string;
+            type?: string;
+        } = {}
+    ): HTMLElementTagNameMap[K] {
+        const element = document.createElement(tagName);
+        const { className, id, name, parent, textContent, type } = options;
+
+        if (className) {
+            element.className = className;
+        }
+        if (id) {
+            element.id = id;
+        }
+        if (name && "name" in element) {
+            element.name = name;
+        }
+        if (textContent) {
+            element.textContent = textContent;
+        }
+        if (type && element instanceof HTMLInputElement) {
+            element.type = type;
+        }
+
+        (parent ?? testContainer).appendChild(element);
+
+        return element;
+    }
+
+    function appendTextNode(text: string, parent: HTMLElement): Text {
+        const textNode = document.createTextNode(text);
+        parent.appendChild(textNode);
+
+        return textNode;
+    }
 
     beforeEach(() => {
         // Create a test container for each test
@@ -39,7 +81,7 @@ describe("domHelpers.js - Comprehensive Tests", () => {
         if (testContainer && testContainer.parentNode) {
             testContainer.parentNode.removeChild(testContainer);
         }
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
     });
 
     describe("isHTMLElement", () => {
@@ -51,6 +93,7 @@ describe("domHelpers.js - Comprehensive Tests", () => {
             expect(isHTMLElement(div)).toBe(true);
             expect(isHTMLElement(span)).toBe(true);
             expect(isHTMLElement(input)).toBe(true);
+            expect(isHTMLElement(null)).not.toBe(true);
         });
 
         it("should return false for non-HTML elements", () => {
@@ -74,11 +117,19 @@ describe("domHelpers.js - Comprehensive Tests", () => {
 
     describe("query", () => {
         beforeEach(() => {
-            testContainer.innerHTML = `
-                <div class="test-class" id="test-id">Test Div</div>
-                <span class="test-class">Test Span</span>
-                <input type="text" name="test-input" />
-            `;
+            appendElement("div", {
+                className: "test-class",
+                id: "test-id",
+                textContent: "Test Div",
+            });
+            appendElement("span", {
+                className: "test-class",
+                textContent: "Test Span",
+            });
+            appendElement("input", {
+                name: "test-input",
+                type: "text",
+            });
         });
 
         it("should find elements by various selectors", () => {
@@ -99,14 +150,20 @@ describe("domHelpers.js - Comprehensive Tests", () => {
         });
 
         it("should throw for invalid selectors", () => {
-            expect(() => query("")).toThrow();
+            expect(() => query("")).toThrow(
+                'Failed to execute "querySelector" on "Document": The provided selector is empty.'
+            );
             // Valid string selectors should not throw
             expect(query("#non-existing")).toBe(null);
         });
 
         it("should work with custom parent element", () => {
             const customParent = document.createElement("div");
-            customParent.innerHTML = '<p class="custom">Custom Content</p>';
+            appendElement("p", {
+                className: "custom",
+                parent: customParent,
+                textContent: "Custom Content",
+            });
             testContainer.appendChild(customParent);
 
             expect(query(".custom", customParent)).toBe(
@@ -120,12 +177,22 @@ describe("domHelpers.js - Comprehensive Tests", () => {
 
     describe("queryAll", () => {
         beforeEach(() => {
-            testContainer.innerHTML = `
-                <div class="test-class">Div 1</div>
-                <div class="test-class">Div 2</div>
-                <span class="test-class">Span 1</span>
-                <p class="different">Paragraph</p>
-            `;
+            appendElement("div", {
+                className: "test-class",
+                textContent: "Div 1",
+            });
+            appendElement("div", {
+                className: "test-class",
+                textContent: "Div 2",
+            });
+            appendElement("span", {
+                className: "test-class",
+                textContent: "Span 1",
+            });
+            appendElement("p", {
+                className: "different",
+                textContent: "Paragraph",
+            });
         });
 
         it("should find all matching elements", () => {
@@ -141,15 +208,25 @@ describe("domHelpers.js - Comprehensive Tests", () => {
         });
 
         it("should throw for invalid selectors", () => {
-            expect(() => queryAll("")).toThrow();
+            expect(() => queryAll("")).toThrow(
+                'Failed to execute "querySelectorAll" on "Document": The provided selector is empty.'
+            );
             // Valid string selectors should not throw
             expect(queryAll(".non-existing")).toEqual([]);
         });
 
         it("should work with custom parent element", () => {
             const customParent = document.createElement("div");
-            customParent.innerHTML =
-                '<span class="custom">Custom 1</span><span class="custom">Custom 2</span>';
+            appendElement("span", {
+                className: "custom",
+                parent: customParent,
+                textContent: "Custom 1",
+            });
+            appendElement("span", {
+                className: "custom",
+                parent: customParent,
+                textContent: "Custom 2",
+            });
             testContainer.appendChild(customParent);
 
             const elements = queryAll(".custom", customParent);
@@ -180,7 +257,9 @@ describe("domHelpers.js - Comprehensive Tests", () => {
         });
 
         it("should throw error for invalid selectors", () => {
-            expect(() => requireElement("")).toThrow();
+            expect(() => requireElement("")).toThrow(
+                'Failed to execute "querySelector" on "Document": The provided selector is empty.'
+            );
             expect(() => requireElement("#non-existing")).toThrow(
                 "Required element not found: #non-existing"
             );
@@ -188,7 +267,11 @@ describe("domHelpers.js - Comprehensive Tests", () => {
 
         it("should work with custom parent and provide proper error message", () => {
             const customParent = document.createElement("div");
-            customParent.innerHTML = '<p class="custom">Custom</p>';
+            appendElement("p", {
+                className: "custom",
+                parent: customParent,
+                textContent: "Custom",
+            });
 
             expect(requireElement(".custom", customParent)).toBe(
                 customParent.querySelector(".custom")
@@ -223,8 +306,9 @@ describe("domHelpers.js - Comprehensive Tests", () => {
             setText(testElement, null);
             expect(testElement.textContent).toBe("Original Text");
 
+            testElement.textContent = "Reset Text";
             setText(testElement, undefined);
-            expect(testElement.textContent).toBe("Original Text");
+            expect(testElement.textContent).toBe("Reset Text");
         });
 
         it("should do nothing for invalid elements", () => {
@@ -275,7 +359,9 @@ describe("domHelpers.js - Comprehensive Tests", () => {
 
         it("should throw for empty class names", () => {
             const originalClasses = testElement.className;
-            expect(() => addClass(testElement, "")).toThrow();
+            expect(() => addClass(testElement, "")).toThrow(
+                "Failed to execute 'add' on 'DOMTokenList': The token provided must not be empty."
+            );
             // Element should remain unchanged since error was thrown
             expect(testElement.className).toBe(originalClasses);
         });
@@ -326,7 +412,9 @@ describe("domHelpers.js - Comprehensive Tests", () => {
 
         it("should throw for empty class names", () => {
             const originalClasses = testElement.className;
-            expect(() => removeClass(testElement, "")).toThrow();
+            expect(() => removeClass(testElement, "")).toThrow(
+                "Failed to execute 'remove' on 'DOMTokenList': The token provided must not be empty."
+            );
             // Element should remain unchanged since error was thrown
             expect(testElement.className).toBe(originalClasses);
         });
@@ -386,17 +474,26 @@ describe("domHelpers.js - Comprehensive Tests", () => {
         });
 
         it("should handle truthy/falsy values", () => {
+            const states: boolean[] = [];
+
             setDisabled(inputElement, 1);
-            expect(inputElement.disabled).toBe(true);
+            states.push(inputElement.disabled);
 
             setDisabled(inputElement, 0);
-            expect(inputElement.disabled).toBe(false);
+            states.push(inputElement.disabled);
 
             setDisabled(inputElement, "true");
-            expect(inputElement.disabled).toBe(true);
+            states.push(inputElement.disabled);
 
             setDisabled(inputElement, "");
-            expect(inputElement.disabled).toBe(false);
+            states.push(inputElement.disabled);
+
+            expect(states).toStrictEqual([
+                true,
+                false,
+                true,
+                false,
+            ]);
         });
     });
 
@@ -504,8 +601,9 @@ describe("domHelpers.js - Comprehensive Tests", () => {
             setValue(inputElement, null);
             expect(inputElement.value).toBe("original");
 
+            inputElement.value = "after-null";
             setValue(inputElement, undefined);
-            expect(inputElement.value).toBe("original");
+            expect(inputElement.value).toBe("after-null");
         });
     });
 
@@ -559,17 +657,26 @@ describe("domHelpers.js - Comprehensive Tests", () => {
         });
 
         it("should handle truthy/falsy values", () => {
+            const states: boolean[] = [];
+
             setChecked(checkboxElement, 1);
-            expect(checkboxElement.checked).toBe(true);
+            states.push(checkboxElement.checked);
 
             setChecked(checkboxElement, 0);
-            expect(checkboxElement.checked).toBe(false);
+            states.push(checkboxElement.checked);
 
             setChecked(checkboxElement, "true");
-            expect(checkboxElement.checked).toBe(true);
+            states.push(checkboxElement.checked);
 
             setChecked(checkboxElement, "");
-            expect(checkboxElement.checked).toBe(false);
+            states.push(checkboxElement.checked);
+
+            expect(states).toStrictEqual([
+                true,
+                false,
+                true,
+                false,
+            ]);
         });
     });
 
@@ -661,8 +768,18 @@ describe("domHelpers.js - Comprehensive Tests", () => {
 
         beforeEach(() => {
             testElement = document.createElement("div");
-            testElement.innerHTML =
-                "<p>Child 1</p><span>Child 2</span><div>Child 3</div>";
+            appendElement("p", {
+                parent: testElement,
+                textContent: "Child 1",
+            });
+            appendElement("span", {
+                parent: testElement,
+                textContent: "Child 2",
+            });
+            appendElement("div", {
+                parent: testElement,
+                textContent: "Child 3",
+            });
             testContainer.appendChild(testElement);
         });
 
@@ -690,8 +807,16 @@ describe("domHelpers.js - Comprehensive Tests", () => {
         });
 
         it("should clear both elements and text nodes", () => {
-            testElement.innerHTML =
-                "<p>Element</p>Text Node<span>Another Element</span>";
+            testElement.replaceChildren();
+            appendElement("p", {
+                parent: testElement,
+                textContent: "Element",
+            });
+            appendTextNode("Text Node", testElement);
+            appendElement("span", {
+                parent: testElement,
+                textContent: "Another Element",
+            });
             clearElement(testElement);
             expect(testElement.innerHTML).toBe("");
         });
@@ -707,22 +832,33 @@ describe("domHelpers.js - Comprehensive Tests", () => {
         });
 
         it("should attach event listeners to valid elements", () => {
-            on(testElement, "click", mockHandler);
+            const cleanup = on(testElement, "click", mockHandler);
 
             testElement.click();
+            expect(cleanup).toBeTypeOf("function");
             expect(mockHandler).toHaveBeenCalledTimes(1);
+
+            const callCountAfterCleanup = mockHandler.mock.calls.length;
+            cleanup?.();
+            testElement.click();
+            expect(mockHandler.mock.calls).toHaveLength(callCountAfterCleanup);
         });
 
         it("should handle multiple event types", () => {
             const mockMouseOver = vi.fn();
             const mockMouseOut = vi.fn();
 
-            on(testElement, "mouseover", mockMouseOver);
-            on(testElement, "mouseout", mockMouseOut);
+            const cleanupMouseOver = on(
+                testElement,
+                "mouseover",
+                mockMouseOver
+            );
+            const cleanupMouseOut = on(testElement, "mouseout", mockMouseOut);
 
             testElement.dispatchEvent(new Event("mouseover"));
             testElement.dispatchEvent(new Event("mouseout"));
 
+            expect([cleanupMouseOver, cleanupMouseOut]).toHaveLength(2);
             expect(mockMouseOver).toHaveBeenCalledTimes(1);
             expect(mockMouseOut).toHaveBeenCalledTimes(1);
         });
@@ -743,6 +879,7 @@ describe("domHelpers.js - Comprehensive Tests", () => {
             });
             testElement.dispatchEvent(customEvent);
 
+            expect(customEvent.detail).toStrictEqual({ data: "test" });
             expect(mockHandler).toHaveBeenCalledTimes(1);
             expect(mockHandler).toHaveBeenCalledWith(customEvent);
         });
@@ -755,12 +892,15 @@ describe("domHelpers.js - Comprehensive Tests", () => {
         });
 
         it("should pass event object to handler", () => {
-            on(testElement, "click", mockHandler);
+            let capturedEvent: Event | undefined;
+            on(testElement, "click", (event) => {
+                capturedEvent = event;
+            });
 
             const clickEvent = new MouseEvent("click", { bubbles: true });
             testElement.dispatchEvent(clickEvent);
 
-            expect(mockHandler).toHaveBeenCalledWith(clickEvent);
+            expect(capturedEvent).toBe(clickEvent);
         });
     });
 
@@ -869,11 +1009,9 @@ describe("domHelpers.js - Comprehensive Tests", () => {
         });
 
         it("should focus valid focusable elements", () => {
-            const mockFocus = vi.fn();
-            focusableElement.focus = mockFocus;
-
             focus(focusableElement);
-            expect(mockFocus).toHaveBeenCalledTimes(1);
+
+            expect(document.activeElement).toBe(focusableElement);
         });
 
         it("should do nothing for invalid elements", () => {
@@ -905,21 +1043,19 @@ describe("domHelpers.js - Comprehensive Tests", () => {
             const select = document.createElement("select");
             const textarea = document.createElement("textarea");
 
-            const mockButtonFocus = vi.fn();
-            const mockSelectFocus = vi.fn();
-            const mockTextareaFocus = vi.fn();
-
-            button.focus = mockButtonFocus;
-            select.focus = mockSelectFocus;
-            textarea.focus = mockTextareaFocus;
+            testContainer.appendChild(button);
+            testContainer.appendChild(select);
+            testContainer.appendChild(textarea);
 
             focus(button);
+            expect(document.activeElement).toBe(button);
+
             focus(select);
+            expect(document.activeElement).toBe(select);
+
             focus(textarea);
 
-            expect(mockButtonFocus).toHaveBeenCalledTimes(1);
-            expect(mockSelectFocus).toHaveBeenCalledTimes(1);
-            expect(mockTextareaFocus).toHaveBeenCalledTimes(1);
+            expect(document.activeElement).toBe(textarea);
         });
     });
 
@@ -947,7 +1083,7 @@ describe("domHelpers.js - Comprehensive Tests", () => {
             setStyle(element, "background-color", "blue");
 
             expect(element.textContent).toBe("Updated Text");
-            expect(element.classList.contains("test-class")).toBe(true);
+            expect(element.className).toBe("test-class");
             expect(element.classList.contains("active")).toBe(false);
             expect(element.style.backgroundColor).toBe("blue");
         });
@@ -1041,6 +1177,7 @@ describe("domHelpers.js - Comprehensive Tests", () => {
 
             // Should complete in reasonable time (less than 1 second)
             expect(duration).toBeLessThan(1000);
+            expect(testContainer.childElementCount).not.toBe(0);
 
             // Verify operations worked
             expect(elements[0].textContent).toBe("Text 0");
