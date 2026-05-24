@@ -180,6 +180,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             expect(Chart).toHaveBeenCalled();
             expect(Chart.mock.calls[0][0]).toBe(canvas);
             expect(Chart.mock.calls[0][1].type).toBe("line");
+            expect(Chart.mock.calls[0][1].type).not.toBe("bar");
         });
 
         it("should create a bar chart when chartType is bar", () => {
@@ -298,6 +299,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             expect(dataset.borderColor).toBe("#00ff00");
             expect(dataset.pointBackgroundColor).toBe("#00ff00");
             expect(dataset.pointBorderColor).toBe("#00ff00");
+            expect(dataset.borderColor).not.toBe("#ff0000");
         });
 
         it("should configure dataset with field labels", () => {
@@ -657,6 +659,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             const result = labelCallback(mockContext);
             expect(result).toBe("Distance: 5000.00 distance"); // Converted back to meters
+            expect(result).not.toBe("Distance: 5.00 distance");
         });
 
         it("should format tooltip for temperature fields with fahrenheit conversion", () => {
@@ -909,6 +912,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             const config = Chart.mock.calls[0][1];
             expect(config.options.scales.x.grid.display).toBe(false);
             expect(config.options.scales.y.grid.display).toBe(false);
+            expect(config.options.scales.x.grid.display).not.toBe(true);
         });
     });
 
@@ -1072,8 +1076,11 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 theme: "light",
             };
 
-            createEnhancedChart(canvas, options);
+            const result = createEnhancedChart(canvas, options);
 
+            expect(result).toBe(chartInstanceMock);
+            const config = Chart.mock.calls[0][1];
+            expect(config.options.animation.duration).toBe(0);
             expect(updateChartAnimations).not.toHaveBeenCalled();
         });
     });
@@ -1103,6 +1110,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             const config = Chart.mock.calls[0][1];
             expect(config.options.plugins.legend.display).toBe(false);
+            expect(config.options.plugins.title.display).not.toBe(false);
         });
 
         it("should hide title when showTitle is false", () => {
@@ -1183,6 +1191,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             createEnhancedChart(canvas, options);
 
             expect(canvas.style.borderRadius).toBe("12px");
+            expect(canvas.style.borderRadius).not.toBe("");
             expect(canvas.style.boxShadow).toBe(
                 "0 2px 16px 0 rgba(0,0,0,0.18)"
             );
@@ -1282,6 +1291,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             expect(result).toBe(chartInstanceMock);
             const dataset = Chart.mock.calls[0][1].data.datasets[0];
             expect(dataset.data).toEqual([]);
+            expect(dataset.data).not.toContainEqual({ x: 0, y: 10 });
         });
 
         it("should handle maximum smoothing value", () => {
