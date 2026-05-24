@@ -1,403 +1,664 @@
-/**
- * Comprehensive tests covering all state management functionality
- *
- * @file Tests for State Manager Core Module
- */
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
+    __resetStateManagerForTests,
+    clearStateHistory,
     getState,
+    getStateHistory,
+    getSubscriptions,
+    resetState,
     setState,
     subscribe,
     updateState,
-    resetState,
+    type StateListener,
 } from "../../../utils/state/core/stateManager.js";
+import type { AppStateShape } from "../../../utils/state/core/stateManagerDefaults.js";
 
-describe("State Manager Core", () => {
-    beforeEach(() => {
-        vi.clearAllMocks();
+type TestObjectState = {
+    readonly a: number;
+    readonly b: number;
+    readonly c?: number;
+};
+
+type CircularState = {
+    readonly prop: string;
+    self?: CircularState;
+};
+
+function resetStateManager(): void {
+    __resetStateManagerForTests();
+}
+
+function createStateListener(): ReturnType<typeof vi.fn<StateListener>> {
+    return vi.fn<StateListener>();
+}
+
+function getRootState(): AppStateShape {
+    return getState<AppStateShape>("") as AppStateShape;
+}
+
+describe("state manager core", () => {
+    it("sets and gets simple state values", () => {
+        expect.assertions(1);
+
+        resetStateManager();
+
+        setState("test.value", "hello");
+
+        expect(getState("test.value")).toBe("hello");
     });
 
-    describe("Basic State Operations", () => {
-        it("should set and get simple state values", () => {
-            setState("test.value", "hello");
-            expect(getState("test.value")).toBe("hello");
-        });
+    it("sets and gets nested state values", () => {
+        expect.assertions(1);
 
-        it("should set and get nested state values", () => {
-            setState("nested.deep.value", 42);
-            expect(getState("nested.deep.value")).toBe(42);
-        });
+        resetStateManager();
 
-        it("should return undefined for non-existent state paths", () => {
-            expect(getState("nonexistent.path")).toBeUndefined();
-        });
+        setState("nested.deep.value", 42);
 
-        it("should handle null and undefined values", () => {
-            setState("test.null", null);
-            setState("test.undefined", undefined);
+        expect(getState("nested.deep.value")).toBe(42);
+    });
 
-            expect(getState("test.null")).toBeNull();
-            expect(getState("test.undefined")).toBeUndefined();
-        });
+    it("returns undefined for non-existent state paths", () => {
+        expect.assertions(1);
 
-        it("should handle complex objects", () => {
-            const complexObj = {
-                array: [
-                    1,
-                    2,
-                    3,
-                ],
-                nested: { prop: "value" },
-                func: () => {},
-            };
+        resetStateManager();
 
-            setState("complex", complexObj);
-            const result = getState("complex");
+        expect(getState("nonexistent.path")).toBeUndefined();
+    });
 
-            expect(result.array).toEqual([
+    it("handles null and undefined values", () => {
+        expect.assertions(2);
+
+        resetStateManager();
+
+        setState("test.null", null);
+        setState("test.undefined", undefined);
+
+        expect(getState("test.null")).toBeNull();
+        expect(getState("test.undefined")).toBeUndefined();
+    });
+
+    it("stores complex objects by reference", () => {
+        expect.assertions(4);
+
+        resetStateManager();
+
+        const complexObject = {
+            array: [
                 1,
                 2,
                 3,
-            ]);
-            expect(result.nested.prop).toBe("value");
-            expect(typeof result.func).toBe("function");
-        });
+            ],
+            func: () => "result",
+            nested: { prop: "value" },
+        };
 
-        it("should overwrite existing state values", () => {
-            setState("test.overwrite", "original");
-            setState("test.overwrite", "updated");
+        setState("complex", complexObject);
+        const result = getState<typeof complexObject>("complex");
 
-            expect(getState("test.overwrite")).toBe("updated");
-        });
+        expect(result).toBe(complexObject);
+        expect(result?.array).toStrictEqual([
+            1,
+            2,
+            3,
+        ]);
+        expect(result?.nested.prop).toBe("value");
+        expect(result?.func).toBeTypeOf("function");
     });
 
-    describe("State Options and Configuration", () => {
-        it("should handle silent option correctly", () => {
-            const mockSubscriber = vi.fn();
-            subscribe("test.silent", mockSubscriber);
+    it("overwrites existing state values", () => {
+        expect.assertions(1);
 
-            setState("test.silent", "value", { silent: true });
+        resetStateManager();
 
-            expect(mockSubscriber).not.toHaveBeenCalled();
-        });
+        setState("test.overwrite", "original");
+        setState("test.overwrite", "updated");
 
-        it("should include source information in state changes", () => {
-            const mockSubscriber = vi.fn();
-            subscribe("test.source", mockSubscriber);
-
-            setState("test.source", "value", { source: "test-suite" });
-
-            expect(mockSubscriber).toHaveBeenCalledWith(
-                "value",
-                undefined,
-                "test.source"
-            );
-        });
+        expect(getState("test.overwrite")).toBe("updated");
     });
 
-    describe("Subscription System", () => {
-        it("should subscribe to state changes", () => {
-            const mockSubscriber = vi.fn();
-            subscribe("test.subscription", mockSubscriber);
+    it("keeps silent updates out of subscriber callbacks while mutating state", () => {
+        expect.assertions(3);
 
-            setState("test.subscription", "new value");
+        resetStateManager();
 
-            expect(mockSubscriber).toHaveBeenCalledWith(
-                "new value",
-                undefined,
-                "test.subscription"
-            );
+        const mockSubscriber = createStateListener();
+        const unsubscribe = subscribe("test.silent", mockSubscriber);
+
+        setState("test.silent", "value", { silent: true });
+
+        expect(getState("test.silent")).toBe("value");
+        expect(
+            getSubscriptions().subscriptionDetails["test.silent"]
+        ).toStrictEqual({
+            hasListeners: true,
+            listenerCount: 1,
+        });
+        expect(mockSubscriber).not.toHaveBeenCalled();
+
+        unsubscribe();
+    });
+
+    it("passes source-tagged changes through the subscriber contract", () => {
+        expect.assertions(3);
+
+        resetStateManager();
+
+        const mockSubscriber = createStateListener();
+        subscribe("test.source", mockSubscriber);
+
+        setState("test.source", "value", { source: "test-suite" });
+
+        expect(getState("test.source")).toBe("value");
+        expect(getStateHistory().at(-1)).toMatchObject({
+            path: "test.source",
+            source: "test-suite",
+        });
+        expect(mockSubscriber).toHaveBeenCalledWith(
+            "value",
+            undefined,
+            "test.source"
+        );
+    });
+
+    it("notifies subscribers with the new value and path", () => {
+        expect.assertions(2);
+
+        resetStateManager();
+
+        const mockSubscriber = createStateListener();
+        subscribe("test.subscription", mockSubscriber);
+
+        setState("test.subscription", "new value");
+
+        expect(getState("test.subscription")).toBe("new value");
+        expect(mockSubscriber).toHaveBeenCalledWith(
+            "new value",
+            undefined,
+            "test.subscription"
+        );
+    });
+
+    it("provides old values in subscription callbacks", () => {
+        expect.assertions(3);
+
+        resetStateManager();
+
+        const mockSubscriber = createStateListener();
+        setState("test.old-value", "initial");
+        subscribe("test.old-value", mockSubscriber);
+
+        setState("test.old-value", "updated");
+
+        expect(getState("test.old-value")).toBe("updated");
+        expect(getStateHistory().at(-1)).toMatchObject({
+            oldValue: "initial",
+            path: "test.old-value",
+        });
+        expect(mockSubscriber).toHaveBeenCalledWith(
+            "updated",
+            "initial",
+            "test.old-value"
+        );
+    });
+
+    it("supports multiple subscribers for the same path", () => {
+        expect.assertions(4);
+
+        resetStateManager();
+
+        const subscriber1 = createStateListener();
+        const subscriber2 = createStateListener();
+
+        subscribe("test.multiple", subscriber1);
+        subscribe("test.multiple", subscriber2);
+
+        setState("test.multiple", "value");
+
+        expect(getState("test.multiple")).toBe("value");
+        expect(
+            getSubscriptions().subscriptionDetails["test.multiple"]
+        ).toStrictEqual({
+            hasListeners: true,
+            listenerCount: 2,
+        });
+        expect(subscriber1).toHaveBeenCalledWith(
+            "value",
+            undefined,
+            "test.multiple"
+        );
+        expect(subscriber2).toHaveBeenCalledWith(
+            "value",
+            undefined,
+            "test.multiple"
+        );
+    });
+
+    it("removes subscribers through the unsubscribe callback", () => {
+        expect.assertions(4);
+
+        resetStateManager();
+
+        const mockSubscriber = createStateListener();
+        const unsubscribe = subscribe("test.unsubscribe", mockSubscriber);
+
+        setState("test.unsubscribe", "value");
+
+        expect(mockSubscriber).toHaveBeenCalledOnce();
+        expect(getSubscriptions().paths).toContain("test.unsubscribe");
+
+        unsubscribe();
+        setState("test.unsubscribe", "value2");
+
+        expect(getState("test.unsubscribe")).toBe("value2");
+        expect(getSubscriptions().paths).not.toContain("test.unsubscribe");
+    });
+
+    it("notifies parent path listeners when child state changes", () => {
+        expect.assertions(4);
+
+        resetStateManager();
+
+        const parentCallback = createStateListener();
+        const childCallback = createStateListener();
+
+        subscribe("parent", parentCallback);
+        subscribe("parent.child", childCallback);
+
+        setState("parent.child", "value");
+
+        expect(getState("parent")).toStrictEqual({ child: "value" });
+        expect(getSubscriptions().paths).toStrictEqual([
+            "parent",
+            "parent.child",
+        ]);
+        expect(childCallback).toHaveBeenCalledWith(
+            "value",
+            undefined,
+            "parent.child"
+        );
+        expect(parentCallback).toHaveBeenCalledWith(
+            { child: "value" },
+            { child: "value" },
+            "parent"
+        );
+    });
+
+    it("handles errors in subscription callbacks without skipping other subscribers", () => {
+        expect.assertions(4);
+
+        resetStateManager();
+
+        const errorCallback = vi.fn<StateListener>(() => {
+            throw new Error("Test error");
+        });
+        const normalCallback = createStateListener();
+        const consoleSpy = vi
+            .spyOn(console, "error")
+            .mockReturnValue(undefined);
+
+        subscribe("error.test", errorCallback);
+        subscribe("error.test", normalCallback);
+
+        setState("error.test", "value");
+
+        expect(getState("error.test")).toBe("value");
+        expect(errorCallback).toHaveBeenCalledOnce();
+        expect(normalCallback).toHaveBeenCalledWith(
+            "value",
+            undefined,
+            "error.test"
+        );
+        expect(consoleSpy).toHaveBeenCalledOnce();
+
+        consoleSpy.mockRestore();
+    });
+
+    it("handles errors in parent path callbacks after updating child state", () => {
+        expect.assertions(3);
+
+        resetStateManager();
+
+        const errorCallback = vi.fn<StateListener>(() => {
+            throw new Error("Parent error");
+        });
+        const consoleSpy = vi
+            .spyOn(console, "error")
+            .mockReturnValue(undefined);
+
+        subscribe("parent", errorCallback);
+        setState("parent.child", "value");
+
+        expect(getState("parent")).toStrictEqual({ child: "value" });
+        expect(errorCallback).toHaveBeenCalledWith(
+            { child: "value" },
+            { child: "value" },
+            "parent"
+        );
+        expect(consoleSpy).toHaveBeenCalledOnce();
+
+        consoleSpy.mockRestore();
+    });
+
+    it("handles empty string paths without throwing", () => {
+        expect.assertions(2);
+
+        resetStateManager();
+
+        expect(() => setState("", "value")).not.toThrow();
+        expect(getRootState().ui.activeTab).toBe("summary");
+    });
+
+    it("handles circular references in objects", () => {
+        expect.assertions(4);
+
+        resetStateManager();
+
+        const circular: CircularState = { prop: "value" };
+        circular.self = circular;
+
+        expect(() => setState("circular", circular)).not.toThrow();
+
+        const result = getState<CircularState>("circular");
+
+        expect(result).toBe(circular);
+        expect(result?.prop).toBe("value");
+        expect(result?.self).toBe(result);
+    });
+
+    it("handles very deep nesting levels", () => {
+        expect.assertions(1);
+
+        resetStateManager();
+
+        const deepPath = "a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z";
+
+        setState(deepPath, "deep value");
+
+        expect(getState(deepPath)).toBe("deep value");
+    });
+
+    it("handles rapid state changes efficiently", () => {
+        expect.assertions(2);
+
+        resetStateManager();
+
+        const start = performance.now();
+
+        for (let i = 0; i < 100; i += 1) {
+            setState(`performance.test.${i}`, i);
+        }
+
+        const duration = performance.now() - start;
+
+        expect(getState("performance.test.99")).toBe(99);
+        expect(duration).toBeLessThan(1000);
+    });
+
+    it("cleans up subscription registrations", () => {
+        expect.assertions(3);
+
+        resetStateManager();
+
+        const subscribers = Array.from({ length: 10 }, () =>
+            subscribe("cleanup.test", createStateListener())
+        );
+
+        setState("cleanup.test", "value");
+
+        expect(
+            getSubscriptions().subscriptionDetails["cleanup.test"]
+        ).toStrictEqual({
+            hasListeners: true,
+            listenerCount: 10,
         });
 
-        it("should provide old value in subscription callbacks", () => {
-            const mockSubscriber = vi.fn();
-            setState("test.old-value", "initial");
-            subscribe("test.old-value", mockSubscriber);
-
-            setState("test.old-value", "updated");
-
-            expect(mockSubscriber).toHaveBeenCalledWith(
-                "updated",
-                "initial",
-                "test.old-value"
-            );
-        });
-
-        it("should support multiple subscribers for the same path", () => {
-            const subscriber1 = vi.fn();
-            const subscriber2 = vi.fn();
-
-            subscribe("test.multiple", subscriber1);
-            subscribe("test.multiple", subscriber2);
-
-            setState("test.multiple", "value");
-
-            expect(subscriber1).toHaveBeenCalledWith(
-                "value",
-                undefined,
-                "test.multiple"
-            );
-            expect(subscriber2).toHaveBeenCalledWith(
-                "value",
-                undefined,
-                "test.multiple"
-            );
-        });
-
-        it("should unsubscribe successfully", () => {
-            const mockSubscriber = vi.fn();
-            const unsubscribe = subscribe("test.unsubscribe", mockSubscriber);
-
-            setState("test.unsubscribe", "value");
-            expect(mockSubscriber).toHaveBeenCalledTimes(1);
-
+        subscribers.forEach((unsubscribe) => {
             unsubscribe();
-            setState("test.unsubscribe", "value2");
+        });
 
-            expect(mockSubscriber).toHaveBeenCalledTimes(1);
+        expect(() => setState("cleanup.test", "value2")).not.toThrow();
+        expect(getSubscriptions().paths).not.toContain("cleanup.test");
+    });
+
+    it("updates object state through merge semantics", () => {
+        expect.assertions(2);
+
+        resetStateManager();
+
+        setState("merge.test", { a: 1, b: 2 });
+        updateState("merge.test", { b: 3, c: 4 });
+
+        const result = getState<TestObjectState>("merge.test");
+
+        expect(result).toStrictEqual({ a: 1, b: 3, c: 4 });
+        expect(getStateHistory().at(-1)).toMatchObject({
+            newValue: { b: 3, c: 4 },
+            path: "merge.test",
         });
     });
 
-    describe("Error Handling and Edge Cases", () => {
-        it("should handle empty string paths gracefully", () => {
-            expect(() => setState("", "value")).not.toThrow();
-            expect(getState("")).toBeDefined();
-        });
+    it("records chronological state history entries", () => {
+        expect.assertions(3);
 
-        it("should handle circular references in objects", () => {
-            const circular = { prop: "value" };
-            // @ts-ignore - Intentionally creating circular reference for testing
-            circular.self = circular;
+        resetStateManager();
+        clearStateHistory();
 
-            expect(() => setState("circular", circular)).not.toThrow();
-            const result = getState("circular");
-            expect(result.prop).toBe("value");
-            expect(result.self).toBe(result);
-        });
+        setState("history.test", "value1");
+        setState("history.test", "value2");
+        setState("history.test", "value3");
 
-        it("should handle very deep nesting levels", () => {
-            const deepPath =
-                "a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z";
+        const history = getStateHistory();
 
-            setState(deepPath, "deep value");
-            expect(getState(deepPath)).toBe("deep value");
+        expect(history).toHaveLength(3);
+        expect(history.map((entry) => entry.newValue)).toStrictEqual([
+            "value1",
+            "value2",
+            "value3",
+        ]);
+        expect(history.at(-1)).toMatchObject({
+            oldValue: "value2",
+            path: "history.test",
         });
     });
 
-    describe("Performance and Memory", () => {
-        it("should handle rapid state changes efficiently", () => {
-            const start = performance.now();
+    it("resets specific state paths", () => {
+        expect.assertions(2);
 
-            for (let i = 0; i < 100; i++) {
-                setState(`performance.test.${i}`, i);
-            }
+        resetStateManager();
 
-            const end = performance.now();
-            const duration = end - start;
+        setState("reset.test.nested", "value");
 
-            expect(duration).toBeLessThan(1000);
-        });
+        expect(getState("reset.test.nested")).toBe("value");
 
-        it("should clean up subscriptions properly", () => {
-            const subscribers = [];
+        resetState("reset.test.nested");
 
-            for (let i = 0; i < 10; i++) {
-                const unsubscribe = subscribe("cleanup.test", vi.fn());
-                subscribers.push(unsubscribe);
-            }
+        expect(getState("reset.test.nested")).toBeUndefined();
+    });
 
-            setState("cleanup.test", "value");
+    it("resets the full state to defaults", () => {
+        expect.assertions(3);
 
-            subscribers.forEach((unsub) => unsub());
+        resetStateManager();
 
-            expect(() => setState("cleanup.test", "value2")).not.toThrow();
+        setState("reset.global", "value");
+
+        expect(getState("reset.global")).toBe("value");
+
+        resetState();
+
+        expect(getState("reset.global")).toBeUndefined();
+        expect(getRootState().ui.activeTab).toBe("summary");
+    });
+
+    it("returns the root state for empty getState paths", () => {
+        expect.assertions(3);
+
+        resetStateManager();
+
+        const fullState = getRootState();
+
+        expect(fullState.ui.activeTab).toBe("summary");
+        expect(fullState.charts.selectedChart).toBe("elevation");
+        expect(fullState.map.baseLayer).toBe("openstreetmap");
+    });
+
+    it("warns and skips invalid final keys", () => {
+        expect.assertions(3);
+
+        resetStateManager();
+
+        const consoleSpy = vi.spyOn(console, "warn").mockReturnValue(undefined);
+
+        setState("test.", "value");
+        setState("test..invalid", "value");
+
+        expect(getState("test.")).toBeUndefined();
+        expect(getState("test..invalid")).toBeUndefined();
+        expect(consoleSpy).toHaveBeenCalledWith(
+            "[StateManager] Invalid final key for path",
+            "test."
+        );
+
+        consoleSpy.mockRestore();
+    });
+
+    it("replaces primitives when merge is requested for non-objects", () => {
+        expect.assertions(1);
+
+        resetStateManager();
+
+        setState("merge.primitive", "initial");
+        setState("merge.primitive", "updated", { merge: true });
+
+        expect(getState("merge.primitive")).toBe("updated");
+    });
+
+    it("replaces arrays when merge is requested", () => {
+        expect.assertions(1);
+
+        resetStateManager();
+
+        setState("merge.array", [1, 2]);
+        setState("merge.array", [3, 4], { merge: true });
+
+        expect(getState("merge.array")).toStrictEqual([3, 4]);
+    });
+
+    it("creates nested object containers while setting deep paths", () => {
+        expect.assertions(2);
+
+        resetStateManager();
+
+        setState("deep.nested.very.deeply.nested", "value");
+
+        expect(getState("deep.nested.very.deeply.nested")).toBe("value");
+        expect(getState("deep.nested.very.deeply")).toStrictEqual({
+            nested: "value",
         });
     });
 
-    describe("Advanced State Operations", () => {
-        it("should handle updateState with merge functionality", () => {
-            setState("merge.test", { a: 1, b: 2 });
-            updateState("merge.test", { b: 3, c: 4 });
+    it("keeps history bounded while recording the latest changes", () => {
+        expect.assertions(3);
 
-            const result = getState("merge.test");
-            expect(result).toEqual({ a: 1, b: 3, c: 4 });
+        resetStateManager();
+        clearStateHistory();
+
+        for (let i = 0; i < 60; i += 1) {
+            setState(`history.stress.${i}`, `value${i}`);
+        }
+
+        const history = getStateHistory();
+
+        expect(history).toHaveLength(50);
+        expect(history[0]).toMatchObject({ path: "history.stress.10" });
+        expect(history.at(-1)).toMatchObject({
+            newValue: "value59",
+            path: "history.stress.59",
         });
+    });
 
-        it("should handle resetState for specific paths", () => {
-            setState("reset.test.nested", "value");
-            expect(getState("reset.test.nested")).toBe("value");
+    it("returns undefined when traversal hits null or undefined branches", () => {
+        expect.assertions(2);
 
-            resetState("reset.test.nested");
-            expect(getState("reset.test.nested")).toBeUndefined();
+        resetStateManager();
+
+        setState("nullpath", null);
+        setState("undefpath", undefined);
+
+        expect(getState("nullpath.subpath")).toBeUndefined();
+        expect(getState("undefpath.subpath")).toBeUndefined();
+    });
+
+    it("handles defensive key checks for empty segments", () => {
+        expect.assertions(2);
+
+        resetStateManager();
+
+        setState("test..empty", "value");
+
+        expect(() => getState("test..empty")).not.toThrow();
+        expect(getState("test.empty")).toBe("value");
+    });
+
+    it("ignores reset requests for non-existent paths", () => {
+        expect.assertions(3);
+
+        resetStateManager();
+
+        expect(() => resetState("nonexistent.path")).not.toThrow();
+        expect(() => resetState("also.nonexistent")).not.toThrow();
+        expect(getRootState().ui.activeTab).toBe("summary");
+    });
+
+    it("handles reset requests when a traversal target is null", () => {
+        expect.assertions(2);
+
+        resetStateManager();
+
+        setState("nulltest", null);
+
+        expect(() => resetState("nulltest.subpath")).not.toThrow();
+        expect(getState("nulltest")).toBeNull();
+    });
+
+    it("allows unsubscribe after the callback path is removed", () => {
+        expect.assertions(2);
+
+        resetStateManager();
+
+        const callback = createStateListener();
+        const unsubscribe = subscribe("temp.path", callback);
+
+        resetState("temp.path");
+
+        expect(() => unsubscribe()).not.toThrow();
+        expect(getSubscriptions().paths).not.toContain("temp.path");
+    });
+
+    it("logs state changes with the update source", () => {
+        expect.assertions(3);
+
+        resetStateManager();
+
+        const consoleSpy = vi.spyOn(console, "log").mockReturnValue(undefined);
+
+        setState("log.test", "value", { source: "test-source" });
+
+        expect(getState("log.test")).toBe("value");
+        expect(getStateHistory().at(-1)).toMatchObject({
+            path: "log.test",
+            source: "test-source",
         });
+        expect(consoleSpy).toHaveBeenCalledWith(
+            expect.stringContaining(
+                "[StateManager] log.test updated by test-source:"
+            ),
+            expect.objectContaining({
+                newValue: "value",
+                oldValue: undefined,
+            })
+        );
 
-        it("should handle resetState for entire state", () => {
-            setState("reset.global", "value");
-            expect(getState("reset.global")).toBe("value");
-
-            resetState();
-            expect(getState("reset.global")).toBeUndefined();
-            expect(getState("ui.activeTab")).toBe("summary"); // Should restore initial state
-        });
-
-        it("should handle getState with empty path", () => {
-            const fullState = getState("");
-            expect(fullState).toBeDefined();
-            expect(fullState.ui).toBeDefined();
-        });
-
-        it("should handle setState with invalid final key", () => {
-            const consoleSpy = vi
-                .spyOn(console, "warn")
-                .mockImplementation(() => {});
-
-            setState("test.", "value");
-            setState("test..invalid", "value");
-
-            expect(consoleSpy).toHaveBeenCalled();
-            consoleSpy.mockRestore();
-        });
-
-        it("should handle merge option with non-objects", () => {
-            setState("merge.primitive", "initial");
-            setState("merge.primitive", "updated", { merge: true });
-
-            expect(getState("merge.primitive")).toBe("updated");
-        });
-
-        it("should handle merge option with arrays", () => {
-            setState("merge.array", [1, 2]);
-            setState("merge.array", [3, 4], { merge: true });
-
-            expect(getState("merge.array")).toEqual([3, 4]); // Should not merge arrays
-        });
-
-        it("should handle nested object creation", () => {
-            setState("deep.nested.very.deeply.nested", "value");
-            expect(getState("deep.nested.very.deeply.nested")).toBe("value");
-        });
-
-        it("should handle parent path listeners", () => {
-            const parentCallback = vi.fn();
-            const childCallback = vi.fn();
-
-            subscribe("parent", parentCallback);
-            subscribe("parent.child", childCallback);
-
-            setState("parent.child", "value");
-
-            expect(childCallback).toHaveBeenCalledWith(
-                "value",
-                undefined,
-                "parent.child"
-            );
-            expect(parentCallback).toHaveBeenCalled();
-        });
-
-        it("should handle errors in subscription callbacks", () => {
-            const errorCallback = vi.fn(() => {
-                throw new Error("Test error");
-            });
-            const normalCallback = vi.fn();
-            const consoleSpy = vi
-                .spyOn(console, "error")
-                .mockImplementation(() => {});
-
-            subscribe("error.test", errorCallback);
-            subscribe("error.test", normalCallback);
-
-            setState("error.test", "value");
-
-            expect(errorCallback).toHaveBeenCalled();
-            expect(normalCallback).toHaveBeenCalled();
-            expect(consoleSpy).toHaveBeenCalled();
-
-            consoleSpy.mockRestore();
-        });
-
-        it("should handle errors in parent path callbacks", () => {
-            const errorCallback = vi.fn(() => {
-                throw new Error("Parent error");
-            });
-            const consoleSpy = vi
-                .spyOn(console, "error")
-                .mockImplementation(() => {});
-
-            subscribe("parent", errorCallback);
-            setState("parent.child", "value");
-
-            expect(errorCallback).toHaveBeenCalled();
-            expect(consoleSpy).toHaveBeenCalled();
-
-            consoleSpy.mockRestore();
-        });
-
-        it("should maintain state history", () => {
-            setState("history.test", "value1");
-            setState("history.test", "value2");
-            setState("history.test", "value3");
-
-            // History should be maintained (exact implementation details may vary)
-            expect(() => setState("history.test", "value4")).not.toThrow();
-        });
-
-        it("should handle maximum history size", () => {
-            // Create more than MAX_HISTORY_SIZE entries
-            for (let i = 0; i < 60; i++) {
-                setState(`history.stress.${i}`, `value${i}`);
-            }
-
-            expect(() => setState("history.final", "final")).not.toThrow();
-        });
-
-        it("should handle null and undefined in state traversal", () => {
-            setState("nullpath", null);
-            expect(getState("nullpath.subpath")).toBeUndefined();
-
-            setState("undefpath", undefined);
-            expect(getState("undefpath.subpath")).toBeUndefined();
-        });
-
-        it("should handle defensive key checks", () => {
-            // Test with empty key segments
-            setState("test..empty", "value");
-            expect(() => getState("test..empty")).not.toThrow();
-        });
-
-        it("should handle resetState with non-existent paths", () => {
-            expect(() => resetState("nonexistent.path")).not.toThrow();
-            expect(() => resetState("also.nonexistent")).not.toThrow();
-        });
-
-        it("should handle resetState with null target", () => {
-            setState("nulltest", null);
-            expect(() => resetState("nulltest.subpath")).not.toThrow();
-        });
-
-        it("should handle unsubscribe with non-existent path", () => {
-            const callback = vi.fn();
-            const unsubscribe = subscribe("temp.path", callback);
-
-            // Test unsubscribe function when path might be removed
-            // Should not throw when unsubscribing
-            expect(() => unsubscribe()).not.toThrow();
-        });
-
-        it("should log state changes", () => {
-            const consoleSpy = vi
-                .spyOn(console, "log")
-                .mockImplementation(() => {});
-
-            setState("log.test", "value", { source: "test-source" });
-
-            expect(consoleSpy).toHaveBeenCalledWith(
-                expect.stringContaining(
-                    "[StateManager] log.test updated by test-source:"
-                ),
-                expect.any(Object)
-            );
-
-            consoleSpy.mockRestore();
-        });
+        consoleSpy.mockRestore();
     });
 });
