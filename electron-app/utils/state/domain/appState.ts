@@ -357,7 +357,7 @@ class AppStateManager {
 
     /** Gets a JSON-compatible snapshot of the current state. */
     public getSnapshot(): unknown {
-        return JSON.parse(JSON.stringify(this.state)) as unknown;
+        return JSON.parse(JSON.stringify(this.state));
     }
 
     /** Loads persisted state paths from localStorage when available. */
@@ -374,7 +374,7 @@ class AppStateManager {
 
                 if (stored !== null) {
                     try {
-                        const value = JSON.parse(stored) as unknown;
+                        const value: unknown = JSON.parse(stored);
                         this.set(path, value);
                         console.log(
                             `[AppState] Loaded persisted state for ${path}:`,

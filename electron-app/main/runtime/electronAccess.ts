@@ -57,7 +57,7 @@
                 return electronOverride;
             }
 
-            const mod = require("electron") as unknown;
+            const mod: unknown = require("electron");
             if (hasElectronApis(mod)) {
                 return mod;
             }
