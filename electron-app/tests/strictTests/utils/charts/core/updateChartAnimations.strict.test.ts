@@ -29,19 +29,41 @@ describe("updateChartAnimations", () => {
         const chart: any = { options: {}, config: { type: "line" } };
         const res = updateChartAnimations(chart, "Line Chart");
         expect(res).toBe(chart);
-        expect(chart.options.animation.duration).toBeGreaterThan(0);
-        expect(chart.options.animations.tension).toBeDefined();
+        expect(chart.options.animation).toEqual(
+            expect.objectContaining({
+                duration: 1200,
+                easing: "easeInOutQuart",
+                onComplete: expect.any(Function),
+                onProgress: expect.any(Function),
+            })
+        );
+        expect(chart.options.animations.tension).toEqual({
+            duration: 1500,
+            easing: "easeOutQuart",
+            from: 0,
+            to: 0.4,
+        });
         expect(consoleLog).toHaveBeenCalled();
     });
 
     it("configures bar chart color animations", () => {
+        const consoleLog = vi
+            .spyOn(console, "log")
+            .mockImplementation(() => {});
         const chart: any = { options: {}, config: { type: "bar" } };
         const res = updateChartAnimations(chart, "Bar Chart");
         expect(res).toBe(chart);
-        expect(chart.options.animations.colors).toBeDefined();
+        expect(chart.options.animations.colors).toEqual({
+            duration: 1000,
+            easing: "easeOutQuart",
+        });
+        expect(consoleLog).toHaveBeenCalledWith(
+            "[ChartAnimations] Animation configuration updated for Bar Chart chart"
+        );
     });
 
     it("configures doughnut chart rotate/scale animations", () => {
+        vi.spyOn(console, "log").mockImplementation(() => {});
         const chart: any = { options: {}, config: { type: "doughnut" } };
         const res = updateChartAnimations(chart, "Doughnut Chart");
         expect(res).toBe(chart);
@@ -50,10 +72,18 @@ describe("updateChartAnimations", () => {
     });
 
     it("warns when chart type missing but still sets base animation", () => {
+        vi.spyOn(console, "log").mockImplementation(() => {});
         const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
         const chart: any = { options: {}, config: {} };
         updateChartAnimations(chart, "Unknown");
-        expect(chart.options.animation).toBeDefined();
+        expect(chart.options.animation).toEqual(
+            expect.objectContaining({
+                duration: 1200,
+                easing: "easeInOutQuart",
+                onComplete: expect.any(Function),
+                onProgress: expect.any(Function),
+            })
+        );
         expect(warn).toHaveBeenCalled();
     });
 
