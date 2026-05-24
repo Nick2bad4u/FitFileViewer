@@ -11,25 +11,36 @@
 
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 
-// Mock dependencies first
-vi.mock("../../../../utils/state/core/stateManager.js", () => ({
+const mockModules = vi.hoisted(() => ({
     getState: vi.fn(),
+    invalidateChartRenderCache: vi.fn(),
+    renderChartJS: vi.fn(),
     setState: vi.fn(),
+    showNotification: vi.fn(),
     subscribe: vi.fn(() => () => {}),
+    subscribeToChartSettings: vi.fn(() => () => {}),
     updateState: vi.fn(),
 }));
 
+// Mock dependencies first
+vi.mock("../../../../utils/state/core/stateManager.js", () => ({
+    getState: mockModules.getState,
+    setState: mockModules.setState,
+    subscribe: mockModules.subscribe,
+    updateState: mockModules.updateState,
+}));
+
 vi.mock("../../../../utils/ui/notifications/showNotification.js", () => ({
-    showNotification: vi.fn(),
+    showNotification: mockModules.showNotification,
 }));
 
 vi.mock("../../../../utils/charts/core/renderChartJS.js", () => ({
-    renderChartJS: vi.fn(),
-    invalidateChartRenderCache: vi.fn(),
+    invalidateChartRenderCache: mockModules.invalidateChartRenderCache,
+    renderChartJS: mockModules.renderChartJS,
 }));
 
 vi.mock("../../../../utils/state/domain/settingsStateManager.js", () => ({
-    subscribeToChartSettings: vi.fn(() => () => {}),
+    subscribeToChartSettings: mockModules.subscribeToChartSettings,
 }));
 
 // Import mocked functions for spying
@@ -51,7 +62,15 @@ import chartStateManager from "../../../../utils/charts/core/chartStateManager.j
 describe("ChartStateManager", () => {
     beforeEach(() => {
         // Reset all mocks
-        vi.clearAllMocks();
+        vi.mocked(getState).mockReset();
+        vi.mocked(setState).mockReset();
+        vi.mocked(subscribe)
+            .mockReset()
+            .mockReturnValue(() => {});
+        vi.mocked(updateState).mockReset();
+        vi.mocked(showNotification).mockReset();
+        vi.mocked(invalidateChartRenderCache).mockReset();
+        vi.mocked(renderChartJS).mockReset();
 
         // Clear timers
         vi.clearAllTimers();
@@ -62,6 +81,9 @@ describe("ChartStateManager", () => {
         // Reset global state
         (global as any).chartStateManager = undefined;
         (global as any)._chartjsInstances = [];
+        chartStateManager.isRendering = false;
+        chartStateManager.pendingRenderReason = null;
+        chartStateManager.renderTimeout = null;
 
         // Mock DOM elements
         const mockContainer = document.createElement("div");
@@ -81,9 +103,10 @@ describe("ChartStateManager", () => {
 
     describe("Constructor and Initialization", () => {
         it("should create a ChartStateManager instance", () => {
-            expect(chartStateManager).toBeDefined();
+            expect(chartStateManager).toBeInstanceOf(Object);
             expect(chartStateManager.isInitialized).toBe(true);
             expect(chartStateManager.renderDebounceTime).toBe(250);
+            expect(chartStateManager.renderDebounceTime).not.toBe(0);
         });
 
         it("should have required methods", () => {
@@ -101,14 +124,11 @@ describe("ChartStateManager", () => {
             // jsdom environment has window, but the global assignment happens during module load
             // Since we're importing in test context, the global assignment might not persist
             // between module imports. Just verify the logic would work.
-            if (globalThis.window !== undefined) {
-                // In jsdom environment, verify instance exists and has correct methods
-                expect(chartStateManager).toBeDefined();
-                expect(chartStateManager.debouncedRender).toBeDefined();
-                expect(chartStateManager.isChartTabActive).toBeDefined();
-            } else {
-                expect((globalThis as any).chartStateManager).toBeUndefined();
-            }
+            expect(globalThis.window.document).toBe(document);
+            expect(chartStateManager).toBeInstanceOf(Object);
+            expect(typeof chartStateManager.debouncedRender).toBe("function");
+            expect(typeof chartStateManager.isChartTabActive).toBe("function");
+            expect(typeof globalThis.window).toBe("object");
         });
     });
 
@@ -123,6 +143,7 @@ describe("ChartStateManager", () => {
             chartStateManager.debouncedRender("reason3");
 
             // Should not have called render yet
+            expect(chartStateManager.renderTimeout !== null).toBe(true);
             expect(performRenderSpy).not.toHaveBeenCalled();
 
             // Advance timers
@@ -140,6 +161,7 @@ describe("ChartStateManager", () => {
             chartStateManager.debouncedRender("reason1");
             chartStateManager.debouncedRender("reason2");
 
+            expect(chartStateManager.renderTimeout !== null).toBe(true);
             expect(clearTimeoutSpy).toHaveBeenCalled();
             clearTimeoutSpy.mockRestore();
         });
@@ -151,8 +173,9 @@ describe("ChartStateManager", () => {
                 .spyOn(chartStateManager, "performChartRender")
                 .mockImplementation(() => Promise.resolve());
 
-            chartStateManager.forceRender("Manual trigger");
-
+            expect(
+                chartStateManager.forceRender("Manual trigger")
+            ).toBeUndefined();
             expect(performRenderSpy).toHaveBeenCalledWith("Manual trigger");
             performRenderSpy.mockRestore();
         });
@@ -163,6 +186,7 @@ describe("ChartStateManager", () => {
             chartStateManager.debouncedRender("reason");
             chartStateManager.forceRender("force");
 
+            expect(chartStateManager.pendingRenderReason).toBeNull();
             expect(clearTimeoutSpy).toHaveBeenCalled();
             clearTimeoutSpy.mockRestore();
         });
@@ -182,6 +206,7 @@ describe("ChartStateManager", () => {
                 selectedChart: "elevation",
                 tabActive: false,
             });
+            expect(info.selectedChart).not.toBe("");
         });
 
         it("should get chart info with actual values", () => {
@@ -208,6 +233,7 @@ describe("ChartStateManager", () => {
                 selectedChart: "power",
                 tabActive: true,
             });
+            expect(info.instanceCount).not.toBe(0);
         });
     });
 
@@ -218,6 +244,7 @@ describe("ChartStateManager", () => {
             const isActive = chartStateManager.isChartTabActive();
 
             expect(isActive).toBe(true);
+            expect(isActive).not.toBe(false);
             expect(getState).toHaveBeenCalledWith("ui.activeTab");
         });
 
@@ -251,8 +278,9 @@ describe("ChartStateManager", () => {
                 .mockImplementation(() => {});
 
             const newData = { recordMesgs: [{ type: "record" }] };
-            chartStateManager.handleDataChange(newData);
+            const result = chartStateManager.handleDataChange(newData);
 
+            expect(result).toBeUndefined();
             expect(clearChartStateSpy).toHaveBeenCalled();
             expect(isChartTabActiveSpy).toHaveBeenCalled();
             expect(debouncedRenderSpy).toHaveBeenCalledWith("New data loaded");
@@ -270,8 +298,9 @@ describe("ChartStateManager", () => {
                 .spyOn(chartStateManager, "clearChartState")
                 .mockImplementation(() => {});
 
-            chartStateManager.handleDataChange(null);
+            const result = chartStateManager.handleDataChange(null);
 
+            expect(result).toBeUndefined();
             expect(clearChartStateSpy).toHaveBeenCalled();
             expect(debouncedRenderSpy).not.toHaveBeenCalled();
 
@@ -288,8 +317,10 @@ describe("ChartStateManager", () => {
                 .mockReturnValue(false);
 
             const newData = { recordMesgs: [{ type: "record" }] };
-            chartStateManager.handleDataChange(newData);
+            const result = chartStateManager.handleDataChange(newData);
 
+            expect(result).toBeUndefined();
+            expect(isChartTabActiveSpy).toHaveBeenCalled();
             expect(debouncedRenderSpy).not.toHaveBeenCalled();
 
             debouncedRenderSpy.mockRestore();
@@ -306,8 +337,9 @@ describe("ChartStateManager", () => {
                 .mockReturnValueOnce({ isRendered: false })
                 .mockReturnValueOnce({ recordMesgs: [{ timestamp: 1 }] });
 
-            chartStateManager.handleTabActivation();
+            const result = chartStateManager.handleTabActivation();
 
+            expect(result).toBeUndefined();
             expect(setState).toHaveBeenCalledWith("charts.tabActive", true, {
                 source: "ChartStateManager.handleTabActivation",
             });
@@ -331,13 +363,14 @@ describe("ChartStateManager", () => {
             const container = document.getElementById(
                 "chartjs-chart-container"
             ) as HTMLElement;
-            expect(container).toBeTruthy();
+            expect(container).toBeInstanceOf(HTMLDivElement);
             const canvas = document.createElement("canvas");
             container.appendChild(canvas);
             (globalThis as any)._chartjsInstances = [{ destroy: vi.fn() }];
 
-            chartStateManager.handleTabActivation();
+            const result = chartStateManager.handleTabActivation();
 
+            expect(result).toBeUndefined();
             expect(setState).toHaveBeenCalledWith("charts.tabActive", true, {
                 source: "ChartStateManager.handleTabActivation",
             });
@@ -360,8 +393,10 @@ describe("ChartStateManager", () => {
                 .mockReturnValue(true);
             vi.mocked(getState).mockReturnValue({ isRendered: true });
 
-            chartStateManager.handleThemeChange("dark");
+            const result = chartStateManager.handleThemeChange("dark");
 
+            expect(result).toBeUndefined();
+            expect(isChartTabActiveSpy).toHaveBeenCalled();
             expect(debouncedRenderSpy).toHaveBeenCalledWith(
                 "Theme change to dark"
             );
@@ -379,8 +414,10 @@ describe("ChartStateManager", () => {
                 .mockReturnValue(true);
             vi.mocked(getState).mockReturnValue({ isRendered: true });
 
-            chartStateManager.handleThemeChange();
+            const result = chartStateManager.handleThemeChange();
 
+            expect(result).toBeUndefined();
+            expect(isChartTabActiveSpy).toHaveBeenCalled();
             expect(debouncedRenderSpy).toHaveBeenCalledWith("Theme change");
 
             debouncedRenderSpy.mockRestore();
@@ -393,8 +430,9 @@ describe("ChartStateManager", () => {
                 .mockImplementation(() => {});
             vi.mocked(getState).mockReturnValue({ isRendered: false });
 
-            chartStateManager.handleThemeChange("dark");
+            const result = chartStateManager.handleThemeChange("dark");
 
+            expect(result).toBeUndefined();
             expect(debouncedRenderSpy).not.toHaveBeenCalled();
 
             debouncedRenderSpy.mockRestore();
@@ -407,8 +445,9 @@ describe("ChartStateManager", () => {
                 .spyOn(chartStateManager, "destroyExistingCharts")
                 .mockImplementation(() => {});
 
-            chartStateManager.clearChartState();
+            const clearResult = chartStateManager.clearChartState();
 
+            expect(clearResult).toBeUndefined();
             expect(invalidateChartRenderCache).toHaveBeenCalledWith(
                 "ChartStateManager.clearChartState"
             );
@@ -434,12 +473,14 @@ describe("ChartStateManager", () => {
             ];
             (globalThis as any)._chartjsInstances = mockCharts;
 
-            chartStateManager.destroyExistingCharts();
+            const destroyResult = chartStateManager.destroyExistingCharts();
 
+            expect(destroyResult).toBeUndefined();
             mockCharts.forEach((chart) => {
                 expect(chart.destroy).toHaveBeenCalled();
             });
             expect((globalThis as any)._chartjsInstances).toEqual([]);
+            expect((globalThis as any)._chartjsInstances).not.toHaveLength(3);
         });
 
         it("should handle chart destruction errors", () => {
@@ -457,8 +498,9 @@ describe("ChartStateManager", () => {
             ];
             (globalThis as any)._chartjsInstances = mockCharts;
 
-            chartStateManager.destroyExistingCharts();
+            const destroyResult = chartStateManager.destroyExistingCharts();
 
+            expect(destroyResult).toBeUndefined();
             expect(consoleWarnSpy).toHaveBeenCalledWith(
                 "[ChartStateManager] Error destroying chart 1:",
                 expect.any(Error)
@@ -476,8 +518,9 @@ describe("ChartStateManager", () => {
                 .spyOn(chartStateManager, "destroyExistingCharts")
                 .mockImplementation(() => {});
 
-            await chartStateManager.performChartRender("Test reason");
-
+            await expect(
+                chartStateManager.performChartRender("Test reason")
+            ).resolves.toBeUndefined();
             expect(setState).toHaveBeenCalledWith("charts.isRendering", true, {
                 source: "ChartStateManager.performChartRender",
             });
@@ -493,6 +536,7 @@ describe("ChartStateManager", () => {
             expect(setState).toHaveBeenCalledWith("charts.isRendering", false, {
                 source: "ChartStateManager.performChartRender",
             });
+            expect(chartStateManager.isRendering).toBe(false);
 
             destroyExistingChartsSpy.mockRestore();
         });
@@ -513,14 +557,16 @@ describe("ChartStateManager", () => {
                 return undefined;
             });
 
-            await chartStateManager.performChartRender("Test reason");
-
+            await expect(
+                chartStateManager.performChartRender("Test reason")
+            ).resolves.toBeUndefined();
             expect(consoleWarnSpy).toHaveBeenCalledWith(
                 "[ChartStateManager] Chart rendering failed: Test reason"
             );
             expect(setState).toHaveBeenCalledWith("charts.isRendering", false, {
                 source: "ChartStateManager.performChartRender",
             });
+            expect(chartStateManager.isRendering).toBe(false);
 
             consoleWarnSpy.mockRestore();
             isActiveSpy.mockRestore();
@@ -546,8 +592,9 @@ describe("ChartStateManager", () => {
                 return undefined;
             });
 
-            await chartStateManager.performChartRender("Integration refresh");
-
+            await expect(
+                chartStateManager.performChartRender("Integration refresh")
+            ).resolves.toBeUndefined();
             expect(consoleInfoSpy).toHaveBeenCalledWith(
                 "[ChartStateManager] Skipped chart render (Integration refresh): chart tab inactive, no chartable data"
             );
@@ -555,6 +602,7 @@ describe("ChartStateManager", () => {
             expect(setState).toHaveBeenCalledWith("charts.isRendering", false, {
                 source: "ChartStateManager.performChartRender",
             });
+            expect(chartStateManager.isRendering).toBe(false);
 
             consoleInfoSpy.mockRestore();
             consoleWarnSpy.mockRestore();
@@ -570,8 +618,9 @@ describe("ChartStateManager", () => {
                 .spyOn(console, "error")
                 .mockImplementation(() => {});
 
-            await chartStateManager.performChartRender("Test reason");
-
+            await expect(
+                chartStateManager.performChartRender("Test reason")
+            ).resolves.toBeUndefined();
             expect(consoleErrorSpy).toHaveBeenCalledWith(
                 "[ChartStateManager] Error during chart rendering:",
                 expect.any(Error)
@@ -583,6 +632,7 @@ describe("ChartStateManager", () => {
             expect(setState).toHaveBeenCalledWith("charts.isRendering", false, {
                 source: "ChartStateManager.performChartRender",
             });
+            expect(chartStateManager.isRendering).toBe(false);
 
             consoleErrorSpy.mockRestore();
         });
@@ -593,14 +643,16 @@ describe("ChartStateManager", () => {
                 .spyOn(console, "warn")
                 .mockImplementation(() => {});
 
-            await chartStateManager.performChartRender("Test reason");
-
+            await expect(
+                chartStateManager.performChartRender("Test reason")
+            ).resolves.toBeUndefined();
             expect(consoleWarnSpy).toHaveBeenCalledWith(
                 "[ChartStateManager] Chart container not found"
             );
             expect(setState).toHaveBeenCalledWith("charts.isRendering", false, {
                 source: "ChartStateManager.performChartRender",
             });
+            expect(chartStateManager.isRendering).toBe(false);
 
             consoleWarnSpy.mockRestore();
         });
@@ -642,8 +694,9 @@ describe("ChartStateManager", () => {
                 .spyOn(chartStateManager, "destroy")
                 .mockImplementation(() => {});
 
-            chartStateManager.cleanup();
+            const result = chartStateManager.cleanup();
 
+            expect(result).toBeUndefined();
             expect(destroySpy).toHaveBeenCalled();
             destroySpy.mockRestore();
         });
@@ -656,10 +709,11 @@ describe("ChartStateManager", () => {
 
             (chartStateManager as any).renderTimeout = setTimeout(
                 () => {},
-                1000
+                chartStateManager.renderDebounceTime
             );
-            chartStateManager.destroy();
+            const result = chartStateManager.destroy();
 
+            expect(result).toBeUndefined();
             expect(clearTimeoutSpy).toHaveBeenCalled();
             expect(clearChartStateSpy).toHaveBeenCalled();
 
@@ -670,20 +724,21 @@ describe("ChartStateManager", () => {
 
     describe("Module Exports", () => {
         it("should export ChartStateManager as default", () => {
-            expect(chartStateManager).toBeDefined();
+            expect(chartStateManager).toBeInstanceOf(Object);
             expect(chartStateManager.constructor.name).toBe(
                 "ChartStateManager"
             );
+            expect(chartStateManager.constructor.name).not.toBe("");
         });
 
         it("should be an instance of ChartStateManager", () => {
             expect(chartStateManager).toBeInstanceOf(Object);
-            expect(chartStateManager.isInitialized).toBeDefined();
+            expect(chartStateManager.isInitialized).toBe(true);
         });
 
         it("should create singleton behavior through global exposure when window is available", () => {
             // In test environment, verify singleton behavior exists
-            expect(chartStateManager).toBeDefined();
+            expect(chartStateManager).toBeInstanceOf(Object);
             expect(typeof chartStateManager.debouncedRender).toBe("function");
             expect(typeof chartStateManager.isChartTabActive).toBe("function");
             expect(typeof chartStateManager.getChartInfo).toBe("function");
