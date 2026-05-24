@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
-const modPath = "../../../../../utils/files/export/exportUtils.js";
+async function loadExportUtils() {
+    return await import("../../../../../utils/files/export/exportUtils.js");
+}
 
 function installBaseMocks() {
     // Minimal manual mock registry so exportUtils resolves showNotification/detectCurrentTheme
@@ -62,13 +64,13 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
     });
 
     it("Imgur account manager: save, setup guide, clear, close, ESC and click-outside", async () => {
-        const { exportUtils } = await import(modPath);
+        const { exportUtils } = await loadExportUtils();
 
         // Open settings modal
         exportUtils.showImgurAccountManager();
         const overlay1 = document.querySelector(".imgur-account-manager-modal")
             ?.parentElement as HTMLElement;
-        expect(overlay1).toBeTruthy();
+        expect(overlay1.tagName).toBe("DIV");
 
         const reg = (globalThis as any).__vitest_manual_mocks__ as Map<
             string,
@@ -103,7 +105,10 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
             document.querySelector(".imgur-account-manager-modal")
         ).toBeNull();
         // Guide should exist
-        expect(document.querySelector("#imgur-guide-close")).toBeTruthy();
+        expect(
+            (document.querySelector("#imgur-guide-close") as HTMLElement)
+                .tagName
+        ).toBe("BUTTON");
 
         // Back to settings then clear
         (
@@ -111,7 +116,7 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         ).click();
         const overlay2 = document.querySelector(".imgur-account-manager-modal")
             ?.parentElement as HTMLElement;
-        expect(overlay2).toBeTruthy();
+        expect(overlay2.tagName).toBe("DIV");
 
         (
             overlay2.querySelector("#clear-imgur-config") as HTMLButtonElement
@@ -132,27 +137,22 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
 
         // Close button removes overlay
         (overlay2.querySelector("#imgur-close") as HTMLButtonElement).click();
-        expect(
-            document.querySelector(".imgur-account-manager-modal")
-        ).toBeNull();
+        expect(overlay2.isConnected).toBe(false);
 
         // Reopen and test ESC
         exportUtils.showImgurAccountManager();
         const overlay3 = document.querySelector(".imgur-account-manager-modal")
             ?.parentElement as HTMLElement;
+        expect(overlay3.contains(document.activeElement)).toBe(false);
         document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
-        expect(
-            document.querySelector(".imgur-account-manager-modal")
-        ).toBeNull();
+        expect(overlay3.isConnected).toBe(false);
 
         // Reopen and test click outside
         exportUtils.showImgurAccountManager();
         const overlay4 = document.querySelector(".imgur-account-manager-modal")
             ?.parentElement as HTMLElement;
         overlay4.click(); // event target is overlay
-        expect(
-            document.querySelector(".imgur-account-manager-modal")
-        ).toBeNull();
+        expect(overlay4.isConnected).toBe(false);
     });
 
     it("Imgur account manager: does not inject stored clientId as HTML", async () => {
@@ -162,17 +162,17 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
             '"/><img src=x onerror=alert(1)>'
         );
 
-        const { exportUtils } = await import(modPath);
+        const { exportUtils } = await loadExportUtils();
         exportUtils.showImgurAccountManager();
 
         const overlay = document.querySelector(".imgur-account-manager-modal")
             ?.parentElement as HTMLElement;
-        expect(overlay).toBeTruthy();
+        expect(overlay.tagName).toBe("DIV");
 
         const input = overlay.querySelector(
             "#imgur-client-id"
         ) as HTMLInputElement;
-        expect(input).toBeTruthy();
+        expect(input.type).toBe("text");
         expect(input.value).toBe('"/><img src=x onerror=alert(1)>');
 
         // Ensure no DOM element was injected.
@@ -181,12 +181,12 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
     });
 
     it("Imgur update status toggles UI", async () => {
-        const { exportUtils } = await import(modPath);
+        const { exportUtils } = await loadExportUtils();
         exportUtils.showImgurAccountManager();
         const modal = document.querySelector(
             ".imgur-account-manager-modal"
         ) as HTMLElement;
-        expect(modal).toBeTruthy();
+        expect(modal.className).toBe("imgur-account-manager-modal");
 
         // With default client id -> considered configured in current logic
         exportUtils.updateImgurStatus(modal);
@@ -204,15 +204,17 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         // Custom client id -> configured
         exportUtils.setImgurConfig("abc");
         exportUtils.updateImgurStatus(modal);
+        expect(exportUtils.getImgurConfig().clientId).toBe("abc");
         expect(
-            (modal.querySelector("#imgur-status") as HTMLElement).textContent
-        ).toMatch(/Configured/);
+            (modal.querySelector("#imgur-status") as HTMLElement).style
+                .background
+        ).toBe("var(--color-success)");
         // cleanup
         modal.parentElement?.remove();
     });
 
     it("Gyazo account manager: save creds, connect, disconnect, clear all, close, ESC and click-outside", async () => {
-        const { exportUtils } = await import(modPath);
+        const { exportUtils } = await loadExportUtils();
         const reg = (globalThis as any).__vitest_manual_mocks__ as Map<
             string,
             any
@@ -227,7 +229,7 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         exportUtils.showGyazoAccountManager();
         const overlay1 = document.querySelector(".gyazo-account-manager-modal")
             ?.parentElement as HTMLElement;
-        expect(overlay1).toBeTruthy();
+        expect(overlay1.tagName).toBe("DIV");
 
         // Save credentials
         (overlay1.querySelector("#gyazo-client-id") as HTMLInputElement).value =
@@ -282,9 +284,7 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         (
             overlay1.querySelector("#clear-all-data") as HTMLButtonElement
         ).click();
-        expect(
-            document.querySelector(".gyazo-account-manager-modal")
-        ).toBeNull();
+        expect(overlay1.isConnected).toBe(false);
         (globalThis as any).confirm = oldConfirm;
 
         // Reopen then close button
@@ -292,25 +292,21 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         const overlay2 = document.querySelector(".gyazo-account-manager-modal")
             ?.parentElement as HTMLElement;
         (overlay2.querySelector("#gyazo-close") as HTMLButtonElement).click();
-        expect(
-            document.querySelector(".gyazo-account-manager-modal")
-        ).toBeNull();
+        expect(overlay2.isConnected).toBe(false);
 
         // ESC
         exportUtils.showGyazoAccountManager();
+        const overlay3 = document.querySelector(".gyazo-account-manager-modal")
+            ?.parentElement as HTMLElement;
         document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
-        expect(
-            document.querySelector(".gyazo-account-manager-modal")
-        ).toBeNull();
+        expect(overlay3.isConnected).toBe(false);
 
         // Click outside
         exportUtils.showGyazoAccountManager();
-        const overlay3 = document.querySelector(".gyazo-account-manager-modal")
+        const overlay4 = document.querySelector(".gyazo-account-manager-modal")
             ?.parentElement as HTMLElement;
-        overlay3.click();
-        expect(
-            document.querySelector(".gyazo-account-manager-modal")
-        ).toBeNull();
+        overlay4.click();
+        expect(overlay4.isConnected).toBe(false);
     });
 
     it("Gyazo account manager: does not inject stored credentials as HTML", async () => {
@@ -323,12 +319,12 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
             '"/><img src=y onerror=alert(2)>'
         );
 
-        const { exportUtils } = await import(modPath);
+        const { exportUtils } = await loadExportUtils();
         exportUtils.showGyazoAccountManager();
 
         const overlay = document.querySelector(".gyazo-account-manager-modal")
             ?.parentElement as HTMLElement;
-        expect(overlay).toBeTruthy();
+        expect(overlay.tagName).toBe("DIV");
 
         const idInput = overlay.querySelector(
             "#gyazo-client-id"
@@ -344,7 +340,7 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
     });
 
     it("createGyazoAuthModal: manual mode completes with code and can cancel/esc/click-outside", async () => {
-        const { exportUtils } = await import(modPath);
+        const { exportUtils } = await loadExportUtils();
         const reg = (globalThis as any).__vitest_manual_mocks__ as Map<
             string,
             any
@@ -361,7 +357,7 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
             .mockResolvedValue({ access_token: "tok" } as any);
 
         const overlay = exportUtils.createGyazoAuthModal(
-            "http://auth",
+            "https://auth",
             "state",
             resolveSpy,
             rejectSpy,
@@ -391,7 +387,7 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         const resolve2 = vi.fn();
         const reject2 = vi.fn();
         const overlay2 = exportUtils.createGyazoAuthModal(
-            "http://auth",
+            "https://auth",
             "state",
             resolve2,
             reject2,
@@ -407,7 +403,7 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         const resolve3 = vi.fn();
         const reject3 = vi.fn();
         const overlay3 = exportUtils.createGyazoAuthModal(
-            "http://auth",
+            "https://auth",
             "state",
             resolve3,
             reject3,
@@ -421,7 +417,7 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         const resolve4 = vi.fn();
         const reject4 = vi.fn();
         const overlay4 = exportUtils.createGyazoAuthModal(
-            "http://auth",
+            "https://auth",
             "state",
             resolve4,
             reject4,
@@ -433,13 +429,13 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
     });
 
     it("createGyazoAuthModal: server mode stops server on cancel/esc/click-outside", async () => {
-        const { exportUtils } = await import(modPath);
+        const { exportUtils } = await loadExportUtils();
         (globalThis as any).electronAPI = {
             stopGyazoServer: vi.fn().mockResolvedValue(undefined),
         };
 
         const overlay = exportUtils.createGyazoAuthModal(
-            "http://auth",
+            "https://auth",
             "state",
             vi.fn(),
             vi.fn(),
@@ -455,7 +451,7 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
 
         // ESC
         const overlay2 = exportUtils.createGyazoAuthModal(
-            "http://auth",
+            "https://auth",
             "state",
             vi.fn(),
             vi.fn(),
@@ -474,7 +470,7 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
 
         // Click outside
         const overlay3 = exportUtils.createGyazoAuthModal(
-            "http://auth",
+            "https://auth",
             "state",
             vi.fn(),
             vi.fn(),
