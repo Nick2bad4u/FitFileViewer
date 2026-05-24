@@ -26,7 +26,14 @@ describe("renderTimeInZoneCharts.js - Time in Zone Composite Renderer", () => {
             warn: vi.fn(),
         };
 
-        renderZoneChartMock = vi.fn();
+        renderZoneChartMock = vi.fn(
+            (container: HTMLElement, title: string, _zones, chartId: string) => {
+                const chartMarker = document.createElement("section");
+                chartMarker.dataset.chartId = chartId;
+                chartMarker.textContent = title;
+                container.append(chartMarker);
+            }
+        );
         getHRZoneVisibilitySettingsMock = vi.fn(() => ({
             doughnutVisible: true,
         }));
@@ -62,6 +69,7 @@ describe("renderTimeInZoneCharts.js - Time in Zone Composite Renderer", () => {
     it("should return immediately when container is not provided", () => {
         renderTimeInZoneCharts(null as any, {});
         expect(renderZoneChartMock).not.toHaveBeenCalled();
+        expect(document.body.childElementCount).toBe(0);
     });
 
     it("should render both HR and power zone charts when visible and data is present", () => {
@@ -77,6 +85,21 @@ describe("renderTimeInZoneCharts.js - Time in Zone Composite Renderer", () => {
         const options = { chartType: "doughnut" };
         renderTimeInZoneCharts(container, options);
 
+        expect(
+            [...container.querySelectorAll("section")].map((chart) => ({
+                chartId: chart.dataset.chartId,
+                title: chart.textContent,
+            }))
+        ).toEqual([
+            {
+                chartId: "heart-rate-zones",
+                title: "HR Zone Distribution (Doughnut)",
+            },
+            {
+                chartId: "power-zones",
+                title: "Power Zone Distribution (Doughnut)",
+            },
+        ]);
         expect(renderZoneChartMock).toHaveBeenCalledTimes(2);
         expect(renderZoneChartMock).toHaveBeenNthCalledWith(
             1,
@@ -110,5 +133,6 @@ describe("renderTimeInZoneCharts.js - Time in Zone Composite Renderer", () => {
         renderTimeInZoneCharts(container, {});
 
         expect(renderZoneChartMock).not.toHaveBeenCalled();
+        expect(container.childElementCount).toBe(0);
     });
 });
