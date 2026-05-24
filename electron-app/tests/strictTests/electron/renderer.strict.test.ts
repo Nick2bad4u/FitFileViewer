@@ -10,12 +10,26 @@ const importRendererFresh = async () => {
     // @ts-ignore
     delete (window as any).__renderer_dev;
     // Fresh DOM skeleton
-    document.body.innerHTML = `
-    <button id="openFileBtn">Open</button>
-    <input id="fileInput" type="file" />
-    <div id="notification"></div>
-    <div id="loadingOverlay"></div>
-  `;
+    const openFileBtn = document.createElement("button");
+    openFileBtn.id = "openFileBtn";
+    openFileBtn.textContent = "Open";
+
+    const fileInputElement = document.createElement("input");
+    fileInputElement.id = "fileInput";
+    fileInputElement.type = "file";
+
+    const notification = document.createElement("div");
+    notification.id = "notification";
+
+    const loadingOverlay = document.createElement("div");
+    loadingOverlay.id = "loadingOverlay";
+
+    document.body.replaceChildren(
+        openFileBtn,
+        fileInputElement,
+        notification,
+        loadingOverlay
+    );
     // Ensure input.files is controllable in jsdom
     const fileInput = document.getElementById("fileInput") as HTMLInputElement;
     const testFile = new File(["fit-bytes"], "test.fit", {
@@ -156,8 +170,10 @@ describe("renderer.js strict behavior", () => {
         vi.useFakeTimers();
     });
 
-    afterEach(() => {
-        vi.runOnlyPendingTimers();
+    afterEach(async () => {
+        await vi.dynamicImportSettled();
+        await vi.runOnlyPendingTimersAsync();
+        await vi.dynamicImportSettled();
         vi.useRealTimers();
         vi.restoreAllMocks();
     });
@@ -174,12 +190,28 @@ describe("renderer.js strict behavior", () => {
         // that the mocked msm.initialize was called. The real implementation will run.
         // We verify the setup worked by checking that the API and DOM elements exist.
 
-        // Verify that electronAPI is available
-        expect((window as any).electronAPI).toBeDefined();
+        // Verify that electronAPI is wired to the stub used by the renderer.
+        expect((window as any).electronAPI).toBe(api);
 
-        // Verify that file input exists
-        const fileInput = document.getElementById("fileInput");
-        expect(fileInput).toBeTruthy();
+        // Verify the file input is the expected controllable test fixture.
+        const fileInput = document.getElementById(
+            "fileInput"
+        ) as HTMLInputElement | null;
+        expect(fileInput).toBeInstanceOf(HTMLInputElement);
+        expect(fileInput?.id).toBe("fileInput");
+        expect(fileInput?.type).toBe("file");
+        expect(fileInput?.files).toHaveLength(1);
+        expect(fileInput?.files?.[0]?.name).toBe("test.fit");
+        expect(fileInput?.files?.[0]?.type).toBe("application/octet-stream");
+        expect(document.getElementById("openFileBtn")?.textContent).toBe(
+            "Open"
+        );
+        expect(document.getElementById("notification")).toBeInstanceOf(
+            HTMLDivElement
+        );
+        expect(document.getElementById("loadingOverlay")).toBeInstanceOf(
+            HTMLDivElement
+        );
 
         // Note: We cannot test file input change events, theme handlers, menu handlers, etc.
         // because the mocked modules (setupListeners, setupTheme, etc.) are not actually
@@ -224,8 +256,29 @@ describe("renderer.js strict behavior", () => {
         await importRendererFresh();
         // @ts-ignore
         const dev = (window as any).__renderer_dev;
-        expect(dev).toBeTruthy();
+        expect(dev).toMatchObject({
+            APP_INFO: expect.any(Object),
+            PerformanceMonitor: expect.any(Object),
+            appState: expect.any(Object),
+            cleanup: expect.any(Function),
+            debugState: expect.any(Function),
+            getPerformanceMetrics: expect.any(Function),
+            getState: expect.any(Function),
+            getStateHistory: expect.any(Function),
+            reinitialize: expect.any(Function),
+            validateDOM: expect.any(Function),
+        });
+        dev.PerformanceMonitor.start("strict_test_operation");
+        const duration = dev.PerformanceMonitor.end("strict_test_operation");
         const metrics = dev.getPerformanceMetrics();
-        expect(typeof metrics).toBe("object");
+        expect(duration).toBeGreaterThanOrEqual(0);
+        expect(metrics).toEqual(
+            expect.objectContaining({
+                strict_test_operation: expect.any(Number),
+            })
+        );
+        expect(Object.keys(metrics).every((key) => !key.endsWith("_start"))).toBe(
+            true
+        );
     });
 });
