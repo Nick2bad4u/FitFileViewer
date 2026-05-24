@@ -13,9 +13,9 @@ describe("getErrorInfo.js - Error Information Extraction Utility", () => {
             const result = getErrorInfo(error);
 
             expect(result.message).toBe("Test error message");
-            expect(result.stack).toBeDefined();
-            expect(typeof result.stack).toBe("string");
-            expect(result.stack).toContain("Test error message");
+            expect(result.stack).toEqual(
+                expect.stringContaining("Error: Test error message")
+            );
         });
 
         it("should extract message and stack from TypeError", () => {
@@ -23,8 +23,9 @@ describe("getErrorInfo.js - Error Information Extraction Utility", () => {
             const result = getErrorInfo(error);
 
             expect(result.message).toBe("Type error message");
-            expect(result.stack).toBeDefined();
-            expect(typeof result.stack).toBe("string");
+            expect(result.stack).toEqual(
+                expect.stringContaining("TypeError: Type error message")
+            );
         });
 
         it("should extract message and stack from ReferenceError", () => {
@@ -32,8 +33,11 @@ describe("getErrorInfo.js - Error Information Extraction Utility", () => {
             const result = getErrorInfo(error);
 
             expect(result.message).toBe("Reference error message");
-            expect(result.stack).toBeDefined();
-            expect(typeof result.stack).toBe("string");
+            expect(result.stack).toEqual(
+                expect.stringContaining(
+                    "ReferenceError: Reference error message"
+                )
+            );
         });
 
         it("should extract message and stack from SyntaxError", () => {
@@ -41,8 +45,9 @@ describe("getErrorInfo.js - Error Information Extraction Utility", () => {
             const result = getErrorInfo(error);
 
             expect(result.message).toBe("Syntax error message");
-            expect(result.stack).toBeDefined();
-            expect(typeof result.stack).toBe("string");
+            expect(result.stack).toEqual(
+                expect.stringContaining("SyntaxError: Syntax error message")
+            );
         });
     });
 
@@ -412,19 +417,14 @@ describe("getErrorInfo.js - Error Information Extraction Utility", () => {
         });
 
         it("should have stack property as string or undefined", () => {
-            const testCases = [
-                new Error("test"),
-                { message: "test", stack: "stack" },
-                "string error",
-                null,
-            ];
-
-            testCases.forEach((testCase) => {
-                const result = getErrorInfo(testCase);
-                if (result.stack !== undefined) {
-                    expect(typeof result.stack).toBe("string");
-                }
-            });
+            expect(getErrorInfo(new Error("test")).stack).toEqual(
+                expect.stringContaining("Error: test")
+            );
+            expect(getErrorInfo({ message: "test", stack: "stack" }).stack).toBe(
+                "stack"
+            );
+            expect(getErrorInfo("string error").stack).toBeUndefined();
+            expect(getErrorInfo(null).stack).toBeUndefined();
         });
 
         it("should not have additional properties", () => {
