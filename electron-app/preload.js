@@ -146,6 +146,10 @@ const { createPreloadIpcHelpers } =
     /** @type {{ createPreloadIpcHelpers: (options: { ipcRenderer: PreloadIpcRenderer; preloadLog: (level: "error" | "info" | "warn", message: string, ...details: unknown[]) => void; validateCallback: (callback: unknown, methodName: string) => callback is UnknownCallback }) => { createNoopUnsubscribe: () => () => void; createSafeEventHandler: (channel: string, methodName: string, transform?: (...args: IpcResponsePayload[]) => IpcResponsePayload | null) => (callback: UnknownCallback) => () => void; createSafeInvokeHandler: (channel: string, methodName: string) => (...args: IpcRequestPayload[]) => Promise<IpcResponsePayload>; createSafeSendHandler: (channel: string, methodName: string) => (...args: IpcRequestPayload[]) => void; removeIpcListener: (channel: string, handler: (event: object, ...args: IpcResponsePayload[]) => void) => void } }} */ (
         preloadRequire("./preload/ipcHelpers.js")
     );
+const { createPreloadLogger } =
+    /** @type {{ createPreloadLogger: (consoleRef?: Console) => (level: "error" | "info" | "warn", message: string, ...details: unknown[]) => void }} */ (
+        preloadRequire("./preload/logger.js")
+    );
 const ipcBridgeCatalog = /** @type {IpcBridgeCatalog} */ (
     preloadRequire("./preload/ipcBridgeCatalog.js")
 );
@@ -174,6 +178,7 @@ const { contextBridge, ipcRenderer } = resolvePreloadElectronBridge({
     globalScope: getPreloadGlobal(),
     requireModule: preloadRequire,
 });
+const preloadLog = createPreloadLogger(console);
 
 const {
     validateCallback,
@@ -194,37 +199,6 @@ function getPreloadGlobal() {
  */
 function isDevelopmentMode() {
     return isPreloadDevelopmentMode(process);
-}
-
-/**
- * @param {unknown} value
- *
- * @returns {value is Record<string, unknown>}
- */
-function isPreloadObjectRecord(value) {
-    return typeof value === "object" && value !== null;
-}
-
-/**
- * @param {"error" | "info" | "warn"} level
- * @param {string} message
- * @param {...unknown} details
- *
- * @returns {void}
- */
-function preloadLog(level, message, ...details) {
-    const consoleLike = /** @type {unknown} */ (console);
-    if (!isPreloadObjectRecord(consoleLike)) {
-        return;
-    }
-
-    const methodName = level === "info" ? "log" : level;
-    const method = Reflect.get(consoleLike, methodName);
-    if (typeof method !== "function") {
-        return;
-    }
-
-    method.call(consoleLike, message, ...details);
 }
 
 const {

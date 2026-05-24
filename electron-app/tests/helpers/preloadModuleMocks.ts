@@ -11,6 +11,7 @@ const preloadBeforeExitHandler = requireFromTest(
 const preloadElectronBridge = requireFromTest("../../preload/electronBridge.js");
 const preloadEnvironment = requireFromTest("../../preload/environment.js");
 const preloadIpcHelpers = requireFromTest("../../preload/ipcHelpers.js");
+const preloadLogger = requireFromTest("../../preload/logger.js");
 const preloadMainStateBridge = requireFromTest(
     "../../preload/mainStateBridge.js"
 );
@@ -42,6 +43,10 @@ export function resolvePreloadScriptRequire(
 
     if (moduleName === "./preload/ipcHelpers.js") {
         return preloadIpcHelpers;
+    }
+
+    if (moduleName === "./preload/logger.js") {
+        return preloadLogger;
     }
 
     if (moduleName === "./preload/mainStateBridge.js") {
