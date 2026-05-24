@@ -30,6 +30,8 @@ describe("formatSpeedTooltip.js - Speed Tooltip Formatter", () => {
         it("should format zero speed correctly", () => {
             const result = formatSpeedTooltip(0);
             expect(result).toBe("0.00 m/s (0.00 km/h, 0.00 mph)");
+            expect(consoleWarnSpy).not.toHaveBeenCalled();
+            expect(consoleErrorSpy).not.toHaveBeenCalled();
         });
 
         it("should format typical running speed (5 m/s)", () => {
@@ -187,6 +189,8 @@ describe("formatSpeedTooltip.js - Speed Tooltip Formatter", () => {
         it("should handle very small positive numbers", () => {
             const result = formatSpeedTooltip(0.001);
             expect(result).toBe("0.00 m/s (0.00 km/h, 0.00 mph)");
+            expect(consoleWarnSpy).not.toHaveBeenCalled();
+            expect(consoleErrorSpy).not.toHaveBeenCalled();
         });
 
         it("should handle number close to zero", () => {
@@ -238,6 +242,8 @@ describe("formatSpeedTooltip.js - Speed Tooltip Formatter", () => {
         it("should format walking speed (1.4 m/s)", () => {
             const result = formatSpeedTooltip(1.4);
             expect(result).toBe("1.40 m/s (5.04 km/h, 3.13 mph)");
+            expect(consoleWarnSpy).not.toHaveBeenCalled();
+            expect(consoleErrorSpy).not.toHaveBeenCalled();
         });
 
         it("should format jogging speed (3 m/s)", () => {
@@ -290,6 +296,8 @@ describe("formatSpeedTooltip.js - Speed Tooltip Formatter", () => {
                 const result = formatSpeedTooltip(input);
                 expect(result).toContain(`${expected} m/s`);
             });
+            expect(consoleWarnSpy).not.toHaveBeenCalled();
+            expect(consoleErrorSpy).not.toHaveBeenCalled();
         });
 
         it("should maintain consistent decimal places across all units", () => {
@@ -324,6 +332,8 @@ describe("formatSpeedTooltip.js - Speed Tooltip Formatter", () => {
             expect(result).toMatch(
                 /^\d+\.\d{2} m\/s \(\d+\.\d{2} km\/h, \d+\.\d{2} mph\)$/
             );
+            expect(consoleWarnSpy).not.toHaveBeenCalled();
+            expect(consoleErrorSpy).not.toHaveBeenCalled();
         });
 
         it("should include all three units in correct order", () => {
@@ -370,6 +380,8 @@ describe("formatSpeedTooltip.js - Speed Tooltip Formatter", () => {
             results.forEach((result) => {
                 expect(result).toBe(firstResult);
             });
+            expect(consoleWarnSpy).not.toHaveBeenCalled();
+            expect(consoleErrorSpy).not.toHaveBeenCalled();
         });
 
         it("should not modify global state", () => {
@@ -410,6 +422,8 @@ describe("formatSpeedTooltip.js - Speed Tooltip Formatter", () => {
                     /^\d+\.\d{2} m\/s \(\d+\.\d{2} km\/h, \d+\.\d{2} mph\)$/
                 );
             });
+            expect(consoleWarnSpy).not.toHaveBeenCalled();
+            expect(consoleErrorSpy).not.toHaveBeenCalled();
         });
     });
 
