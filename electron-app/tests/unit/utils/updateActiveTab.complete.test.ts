@@ -29,11 +29,49 @@ const mockSetState = vi.mocked(setState);
 const mockSubscribe = vi.mocked(subscribe);
 
 describe("updateActiveTab.js - Complete Test Suite", () => {
-    let testContainer;
+    let testContainer: HTMLDivElement;
+
+    function createTabButton({
+        active = false,
+        disabled = false,
+        id,
+        label = id,
+    }: {
+        active?: boolean;
+        disabled?: boolean;
+        id: string;
+        label?: string;
+    }): HTMLButtonElement {
+        const button = document.createElement("button");
+        button.className = active ? "tab-button active" : "tab-button";
+        button.disabled = disabled;
+        button.id = id;
+        button.textContent = label;
+
+        return button;
+    }
+
+    function appendTabButton(
+        options: Parameters<typeof createTabButton>[0],
+        parent: HTMLElement = testContainer
+    ): HTMLButtonElement {
+        const button = createTabButton(options);
+        parent.appendChild(button);
+
+        return button;
+    }
+
+    function appendTabs(
+        tabs: Parameters<typeof createTabButton>[0][],
+        parent: HTMLElement = testContainer
+    ): HTMLButtonElement[] {
+        return tabs.map((tab) => appendTabButton(tab, parent));
+    }
 
     beforeEach(() => {
         // Reset all mocks
         vi.clearAllMocks();
+        mockSubscribe.mockImplementation(() => () => {});
 
         // Mock console methods to prevent errors
         vi.spyOn(console, "log").mockImplementation(() => {});
@@ -59,18 +97,19 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
 
     describe("updateActiveTab function", () => {
         it("should activate the correct tab and deactivate others", () => {
-            testContainer.innerHTML = `
-                <button id="tab-summary" class="tab-button active">Summary</button>
-                <button id="tab-chart" class="tab-button">Chart</button>
-                <button id="tab-map" class="tab-button">Map</button>
-            `;
+            appendTabs([
+                { active: true, id: "tab-summary", label: "Summary" },
+                { id: "tab-chart", label: "Chart" },
+                { id: "tab-map", label: "Map" },
+            ]);
 
-            updateActiveTab("tab-chart");
+            const result = updateActiveTab("tab-chart");
 
             const summaryTab = document.getElementById("tab-summary");
             const chartTab = document.getElementById("tab-chart");
             const mapTab = document.getElementById("tab-map");
 
+            expect(result).toBe(true);
             expect(summaryTab?.classList.contains("active")).toBe(false);
             expect(chartTab?.classList.contains("active")).toBe(true);
             expect(mapTab?.classList.contains("active")).toBe(false);
@@ -88,11 +127,13 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
             ];
 
             patterns.forEach(({ id, expected }) => {
-                testContainer.innerHTML = `<button id="${id}" class="tab-button">Test</button>`;
+                testContainer.replaceChildren();
+                appendTabButton({ id, label: "Test" });
 
-                updateActiveTab(id);
+                const result = updateActiveTab(id);
 
                 const element = document.getElementById(id);
+                expect(result).toBe(true);
                 expect(element?.classList.contains("active")).toBe(true);
                 expect(mockSetState).toHaveBeenCalledWith(
                     "ui.activeTab",
@@ -105,44 +146,65 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
         });
 
         it("should handle invalid input gracefully", () => {
-            testContainer.innerHTML = `<button id="tab-test" class="tab-button">Test</button>`;
+            const existingButton = appendTabButton({
+                active: true,
+                id: "tab-test",
+                label: "Test",
+            });
 
             // Test null/undefined/empty inputs
-            const invalidInputs = [
-                null,
-                undefined,
-                "",
-                "   ",
+            const invalidInputs: {
+                input: null | string | undefined;
+                keepsActive: boolean;
+            }[] = [
+                { input: null, keepsActive: true },
+                { input: undefined, keepsActive: true },
+                { input: "", keepsActive: true },
+                { input: "   ", keepsActive: false },
             ];
 
-            invalidInputs.forEach((input) => {
+            invalidInputs.forEach(({ input, keepsActive }) => {
                 // @ts-ignore - Testing invalid inputs intentionally
-                updateActiveTab(input);
+                const result = updateActiveTab(input);
+                expect(result).toBe(false);
+                expect(existingButton.classList.contains("active")).toBe(
+                    keepsActive
+                );
                 expect(mockSetState).not.toHaveBeenCalled();
             });
         });
 
         it("should handle non-existent elements gracefully", () => {
-            testContainer.innerHTML = `<button id="tab-exists" class="tab-button">Exists</button>`;
+            const existingButton = appendTabButton({
+                id: "tab-exists",
+                label: "Exists",
+            });
 
             // Should not throw when element doesn't exist
-            expect(() => updateActiveTab("tab-nonexistent")).not.toThrow();
+            expect(updateActiveTab("tab-nonexistent")).toBe(false);
+            expect(existingButton.classList.contains("active")).toBe(false);
             expect(mockSetState).not.toHaveBeenCalled();
         });
 
         it("should handle no tab buttons present", () => {
-            testContainer.innerHTML = "<div>No tab buttons here</div>";
+            const message = document.createElement("div");
+            message.textContent = "No tab buttons here";
+            testContainer.appendChild(message);
 
-            expect(() => updateActiveTab("tab-test")).not.toThrow();
+            expect(updateActiveTab("tab-test")).toBe(false);
+            expect(testContainer.querySelectorAll(".tab-button")).toHaveLength(
+                0
+            );
             expect(mockSetState).not.toHaveBeenCalled();
         });
 
         it("should fallback to using ID as tab name when no pattern matches", () => {
-            testContainer.innerHTML = `<button id="customTabId" class="tab-button">Custom</button>`;
+            appendTabButton({ id: "customTabId", label: "Custom" });
 
-            updateActiveTab("customTabId");
+            const result = updateActiveTab("customTabId");
 
             const element = document.getElementById("customTabId");
+            expect(result).toBe(true);
             expect(element?.classList.contains("active")).toBe(true);
             expect(mockSetState).toHaveBeenCalledWith(
                 "ui.activeTab",
@@ -153,11 +215,12 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
 
         it("should handle edge case where pattern matches but capture group is empty", () => {
             // Create a tab ID that would match a pattern but have empty capture group
-            testContainer.innerHTML = `<button id="tab-" class="tab-button">Empty</button>`;
+            appendTabButton({ id: "tab-", label: "Empty" });
 
-            updateActiveTab("tab-");
+            const result = updateActiveTab("tab-");
 
             const element = document.getElementById("tab-");
+            expect(result).toBe(true);
             expect(element?.classList.contains("active")).toBe(true);
             // Should fall back to using the full ID when capture group is empty
             expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "tab-", {
@@ -167,11 +230,12 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
 
         it("should handle special characters in tab IDs", () => {
             const specialId = "test-tab_123";
-            testContainer.innerHTML = `<button id="tab-${specialId}" class="tab-button">Special</button>`;
+            appendTabButton({ id: `tab-${specialId}`, label: "Special" });
 
-            updateActiveTab(`tab-${specialId}`);
+            const result = updateActiveTab(`tab-${specialId}`);
 
             const element = document.getElementById(`tab-${specialId}`);
+            expect(result).toBe(true);
             expect(element?.classList.contains("active")).toBe(true);
             expect(mockSetState).toHaveBeenCalledWith(
                 "ui.activeTab",
@@ -197,6 +261,7 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
             const result = getActiveTab();
 
             expect(result).toBe("summary");
+            expect(result).not.toBe("chart");
         });
 
         it('should return default "summary" when state is undefined', () => {
@@ -218,62 +283,93 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
 
     describe("initializeActiveTabState function", () => {
         it("should set up state subscription", () => {
+            const chartButton = appendTabButton({
+                id: "tab-chart",
+                label: "Chart",
+            });
+
             initializeActiveTabState();
 
+            const subscriptionCallback = mockSubscribe.mock.calls?.[0]?.[1];
+            if (subscriptionCallback) {
+                subscriptionCallback("chart");
+            }
+
+            expect(chartButton.classList.contains("active")).toBe(true);
+            expect(chartButton.getAttribute("aria-selected")).toBe("true");
             expect(mockSubscribe).toHaveBeenCalledWith(
                 "ui.activeTab",
                 expect.any(Function)
+            );
+            expect(console.log).toHaveBeenCalledWith(
+                "[ActiveTab] State management initialized"
             );
         });
 
         it("should set up click listeners on tab buttons", () => {
-            testContainer.innerHTML = `
-                <button id="tab-summary" class="tab-button">Summary</button>
-                <button id="tab-chart" class="tab-button">Chart</button>
-            `;
+            const [, chartButton] = appendTabs([
+                { id: "tab-summary", label: "Summary" },
+                { id: "tab-chart", label: "Chart" },
+            ]);
 
             // Call initializeActiveTabState which should set up listeners
             initializeActiveTabState();
 
-            // Verify that the subscription was set up
+            chartButton.dispatchEvent(
+                new MouseEvent("click", { bubbles: true })
+            );
+
+            expect(chartButton.classList.contains("active")).toBe(false);
             expect(mockSubscribe).toHaveBeenCalledWith(
                 "ui.activeTab",
                 expect.any(Function)
             );
+            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "chart", {
+                source: "tabButtonClick",
+            });
         });
 
         it("should handle disabled buttons correctly", () => {
-            testContainer.innerHTML = `
-                <button id="tab-summary" class="tab-button" disabled>Summary</button>
-            `;
+            const summaryButton = appendTabButton({
+                disabled: true,
+                id: "tab-summary",
+                label: "Summary",
+            });
 
             initializeActiveTabState();
 
             // Simulate click on disabled button
-            const summaryButton = document.getElementById("tab-summary");
-            const clickEvent = new MouseEvent("click", { bubbles: true });
+            const clickEvent = new MouseEvent("click", {
+                bubbles: true,
+                cancelable: true,
+            });
 
             // The click should be handled but not call setState due to disabled state
-            if (summaryButton) {
-                summaryButton.dispatchEvent(clickEvent);
-            }
+            summaryButton.dispatchEvent(clickEvent);
 
             // Since the button is disabled, setState should not be called
+            expect(clickEvent.defaultPrevented).toBe(true);
             expect(mockSetState).not.toHaveBeenCalled();
         });
 
         it("should handle buttons without IDs gracefully", () => {
-            testContainer.innerHTML = `
-                <button class="tab-button">No ID</button>
-            `;
+            const button = document.createElement("button");
+            button.className = "tab-button";
+            button.textContent = "No ID";
+            testContainer.appendChild(button);
 
             expect(() => initializeActiveTabState()).not.toThrow();
+            button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+            expect(mockSetState).not.toHaveBeenCalled();
         });
 
         it("should work with no tab buttons present", () => {
-            testContainer.innerHTML = "<div>No buttons here</div>";
+            const message = document.createElement("div");
+            message.textContent = "No buttons here";
+            testContainer.appendChild(message);
 
             expect(() => initializeActiveTabState()).not.toThrow();
+            expect(testContainer.querySelector(".tab-button")).toBeNull();
             expect(mockSubscribe).toHaveBeenCalledWith(
                 "ui.activeTab",
                 expect.any(Function)
@@ -283,11 +379,11 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
 
     describe("State integration tests", () => {
         it("should handle state subscription callback", () => {
-            testContainer.innerHTML = `
-                <button id="tab-summary" class="tab-button active">Summary</button>
-                <button id="tab-chart" class="tab-button">Chart</button>
-                <button id="tab-map" class="tab-button">Map</button>
-            `;
+            appendTabs([
+                { active: true, id: "tab-summary", label: "Summary" },
+                { id: "tab-chart", label: "Chart" },
+                { id: "tab-map", label: "Map" },
+            ]);
 
             initializeActiveTabState();
 
@@ -305,6 +401,7 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
             const mapTab = document.getElementById("tab-map");
 
             expect(summaryTab?.classList.contains("active")).toBe(true);
+            expect(summaryTab?.classList.contains("active")).not.toBe(false);
             expect(summaryTab?.getAttribute("aria-selected")).toBe("true");
             expect(chartTab?.classList.contains("active")).toBe(false);
             expect(chartTab?.getAttribute("aria-selected")).toBe("false");
@@ -313,20 +410,19 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
         });
 
         it("should handle realistic user interaction flow", () => {
-            testContainer.innerHTML = `
-                <button id="tab-summary" class="tab-button active">Summary</button>
-                <button id="tab-chart" class="tab-button">Chart</button>
-            `;
+            const [summaryButton, chartButton] = appendTabs([
+                { active: true, id: "tab-summary", label: "Summary" },
+                { id: "tab-chart", label: "Chart" },
+            ]);
 
             initializeActiveTabState();
 
             // Simulate user clicking on chart tab
-            const chartButton = document.getElementById("tab-chart");
             const clickEvent = new MouseEvent("click", { bubbles: true });
-            if (chartButton) {
-                chartButton.dispatchEvent(clickEvent);
-            }
+            chartButton.dispatchEvent(clickEvent);
 
+            expect(summaryButton.classList.contains("active")).toBe(true);
+            expect(chartButton.classList.contains("active")).toBe(false);
             expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "chart", {
                 source: "tabButtonClick",
             });
@@ -335,10 +431,10 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
 
     describe("Edge cases and error conditions", () => {
         it("should handle rapid successive calls", () => {
-            testContainer.innerHTML = `
-                <button id="tab-summary" class="tab-button">Summary</button>
-                <button id="tab-chart" class="tab-button">Chart</button>
-            `;
+            const [summaryButton, chartButton] = appendTabs([
+                { id: "tab-summary", label: "Summary" },
+                { id: "tab-chart", label: "Chart" },
+            ]);
 
             const startTime = performance.now();
 
@@ -350,22 +446,32 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
             const endTime = performance.now();
 
             expect(endTime - startTime).toBeLessThan(100); // Should be fast
+            expect(summaryButton.classList.contains("active")).toBe(false);
+            expect(chartButton.classList.contains("active")).toBe(true);
             expect(mockSetState).toHaveBeenCalledTimes(100);
         });
 
-        it("should handle malformed HTML gracefully", () => {
-            testContainer.innerHTML =
-                '<button id="tab-test" class="tab-button">Malformed';
-            // Note: missing closing tag
+        it("should handle tab text that looks like malformed HTML safely", () => {
+            const button = appendTabButton({
+                id: "tab-test",
+                label: '<button id="tab-test" class="tab-button">Malformed',
+            });
 
-            expect(() => updateActiveTab("tab-test")).not.toThrow();
+            expect(updateActiveTab("tab-test")).toBe(true);
+            expect(button.classList.contains("active")).toBe(true);
+            expect(button.textContent).toBe(
+                '<button id="tab-test" class="tab-button">Malformed'
+            );
         });
 
         it("should handle document.querySelectorAll returning empty array", () => {
             // Create a scenario where no .tab-button elements exist
-            testContainer.innerHTML = "<div>No tab buttons</div>";
+            const message = document.createElement("div");
+            message.textContent = "No tab buttons";
+            testContainer.appendChild(message);
 
-            expect(() => updateActiveTab("tab-nonexistent")).not.toThrow();
+            expect(updateActiveTab("tab-nonexistent")).toBe(false);
+            expect(testContainer.querySelector(".tab-button")).toBeNull();
             expect(mockSetState).not.toHaveBeenCalled();
         });
 
@@ -428,6 +534,7 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
 
             const activeElement = document.getElementById("tab-item50");
             expect(activeElement?.classList.contains("active")).toBe(true);
+            expect(activeElement?.classList.contains("active")).not.toBe(false);
             expect(mockSetState).toHaveBeenCalledWith(
                 "ui.activeTab",
                 "item50",
@@ -437,7 +544,7 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
 
         it("should handle memory cleanup properly", () => {
             // Ensure a clean DOM to avoid scanning large trees from previous tests
-            document.body.innerHTML = "";
+            testContainer.replaceChildren();
 
             // This test ensures no memory leaks with repeated operations
             for (let i = 0; i < 1000; i++) {
@@ -454,6 +561,7 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
                 document.body.removeChild(button);
             }
 
+            expect(testContainer.querySelector(".tab-button")).toBeNull();
             expect(mockSetState).toHaveBeenCalledTimes(1000);
         });
     });
