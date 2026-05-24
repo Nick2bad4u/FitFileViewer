@@ -1,3 +1,4 @@
+/* eslint-disable import-x/max-dependencies -- main-ui is the legacy renderer composition root; migration keeps dependency cleanup scoped to extracted modules. */
 /**
  * Handles UI interactions, file operations, and state management for the
  * FitFileViewer application
@@ -26,13 +27,11 @@ import {
     listenForThemeChange,
     loadTheme,
 } from "./utils/theming/core/theme.js";
-import {
-    setupDOMContentLoaded,
-    setupFullscreenListeners,
-} from "./utils/ui/controls/addFullScreenButton.js";
+import { setupFullscreenListeners } from "./utils/ui/controls/addFullScreenButton.js";
 import { getElementByIdFlexible } from "./utils/ui/dom/elementIdUtils.js";
 import { DragDropHandler } from "./utils/ui/dragDropHandler.js";
 import {
+    addEventListenerWithCleanup,
     cleanupEventListeners,
     validateElement,
 } from "./utils/ui/mainUiDomUtils.js";
@@ -42,7 +41,11 @@ import {
 } from "./utils/ui/mainUiGlobals.js";
 import { showNotification } from "./utils/ui/notifications/showNotification.js";
 import { setupExternalLinkHandlers } from "./utils/ui/setupExternalLinkHandlers.js";
+/* eslint-enable import-x/max-dependencies -- Keep the exception limited to the legacy composition imports above. */
 
+/**
+ * @typedef {import("./shared/preloadApi.js").ElectronAPIWithDevFlags} ElectronAPIWithDevFlags
+ */
 /**
  * @typedef {Object} StateChangeOptions
  *
@@ -61,12 +64,31 @@ import { setupExternalLinkHandlers } from "./utils/ui/setupExternalLinkHandlers.
  *     chartTabIntegration?: { destroy?: () => void };
  *     devCleanup?: () => void;
  *     dragDropHandler?: unknown;
+ *     electronAPI?: ElectronAPIWithDevFlags;
  *     injectMenu?: (
  *         theme?: string | null,
  *         fitFilePath?: string | null
  *     ) => void;
  * }} MainUiGlobal
  */
+/**
+ * @typedef {(
+ *     channel: "open-summary-column-selector" | "unload-fit-file",
+ *     callback: (...args: unknown[]) => void
+ * ) => (() => void) | undefined} MainUiIpcListener
+ */
+
+const mainUiConsole = globalThis.console;
+
+/**
+ * @returns {ElectronAPIWithDevFlags | undefined}
+ */
+function getElectronAPI() {
+    const api = /** @type {unknown} */ (Reflect.get(globalThis, "electronAPI"));
+    return typeof api === "object" && api !== null
+        ? /** @type {ElectronAPIWithDevFlags} */ (api)
+        : undefined;
+}
 
 /**
  * @returns {MainUiGlobal}
@@ -84,6 +106,20 @@ function isPerformanceMonitorEnabled(monitor) {
     return typeof monitor.isEnabled === "function"
         ? monitor.isEnabled()
         : Boolean(monitor.isEnabled);
+}
+
+/**
+ * @param {"error" | "info" | "warn"} level
+ * @param {string} message
+ * @param {...unknown} args
+ *
+ * @returns {void}
+ */
+function logMainUi(level, message, ...args) {
+    const log = mainUiConsole[level];
+    if (typeof log === "function") {
+        log.call(mainUiConsole, message, ...args);
+    }
 }
 
 // Constants (add missing CONTENT_CHART used by clearContentAreas)
@@ -111,26 +147,6 @@ const CONSTANTS = {
     SUMMARY_COLUMN_SELECTOR_DELAY: 100,
 };
 
-/**
- * @type {{
- *     element: EventTarget;
- *     type: string;
- *     handler: EventListenerOrEventListenerObject;
- *     options?: AddEventListenerOptions | boolean;
- * }[]}
- */
-
-/**
- * Register an event listener and track it for cleanup.
- *
- * @param {EventTarget} element
- * @param {string} type
- * @param {EventListenerOrEventListenerObject} handler
- * @param {AddEventListenerOptions | boolean} [options]
- *
- * @returns {void}
- */
-
 // Make globalData available on window for backwards compatibility
 defineGlobalDataProperty();
 
@@ -151,17 +167,18 @@ function clearContentAreas() {
 }
 
 function clearFitFileDomainState() {
-    if (
-        !fitFileStateManager ||
-        typeof fitFileStateManager.clearFileState !== "function"
-    ) {
+    if (typeof fitFileStateManager.clearFileState !== "function") {
         return;
     }
 
     try {
         fitFileStateManager.clearFileState();
     } catch (error) {
-        console.warn("[main-ui] Failed to clear fit file domain state", error);
+        logMainUi(
+            "warn",
+            "[main-ui] Failed to clear fit file domain state",
+            error
+        );
     }
 }
 
@@ -172,17 +189,19 @@ function unloadFitFile() {
     // Start performance monitoring (tolerate differing impl shapes)
     {
         const pm = /** @type {PerformanceMonitorLike} */ (performanceMonitor);
-        if (isPerformanceMonitorEnabled(pm) && pm.startTimer) {
-            pm.startTimer(operationId);
+        const startTimer = pm.startTimer;
+        if (
+            isPerformanceMonitorEnabled(pm) &&
+            typeof startTimer === "function"
+        ) {
+            startTimer.call(pm, operationId);
         }
     }
 
     try {
         // Clear global data using state management
         // Prefer clearData for backward compatibility if clearGlobalData absent
-        if (AppActions.clearData) {
-            AppActions.clearData();
-        }
+        AppActions.clearData();
 
         // Ensure domain-level fit state is cleared as well
         clearFitFileDomainState();
@@ -212,48 +231,53 @@ function unloadFitFile() {
         UIActions.showTab("tab_map");
 
         // Notify main process to update menu
-        if (globalThis.electronAPI?.notifyFitFileLoaded) {
-            globalThis.electronAPI.notifyFitFileLoaded(null);
-        } else if (globalThis.electronAPI?.send) {
-            globalThis.electronAPI.send("fit-file-loaded", null);
+        const electronAPI = getElectronAPI();
+        if (typeof electronAPI?.notifyFitFileLoaded === "function") {
+            electronAPI.notifyFitFileLoaded(null);
+        } else if (typeof electronAPI?.send === "function") {
+            electronAPI.send("fit-file-loaded", null);
         }
 
         // Tab buttons will be disabled automatically by state management when globalData is cleared
 
         // Show success notification
-        showNotification("File unloaded successfully", "info");
+        void showNotification("File unloaded successfully", "info");
 
-        console.log("[main-ui] File unloaded successfully");
+        logMainUi("info", "[main-ui] File unloaded successfully");
     } catch (error) {
-        console.error("[main-ui] Error unloading file:", error);
-        showNotification("Error unloading file", "error");
+        logMainUi("error", "[main-ui] Error unloading file:", error);
+        void showNotification("Error unloading file", "error");
     } finally {
         // End performance monitoring
-        {
-            const pm2 = /** @type {PerformanceMonitorLike} */ (
-                performanceMonitor
-            );
-            if (isPerformanceMonitorEnabled(pm2) && pm2.endTimer) {
-                pm2.endTimer(operationId);
-            }
+        const pm2 = /** @type {PerformanceMonitorLike} */ (performanceMonitor);
+        const endTimer = pm2.endTimer;
+        if (
+            isPerformanceMonitorEnabled(pm2) &&
+            typeof endTimer === "function"
+        ) {
+            endTimer.call(pm2, operationId);
         }
     }
 }
 
 // Register legacy globals for backwards compatibility
 registerLegacyGlobals({
-    showFitData,
-    renderChartJS,
     cleanupEventListeners,
-    validateElement,
     constants: CONSTANTS,
+    renderChartJS: (data, filePath, options) => {
+        void renderChartJS(data, filePath, options);
+    },
+    showFitData: (fitData, filePath) => {
+        showFitData(fitData, filePath);
+    },
+    validateElement,
 });
 
 // Enhanced theme change handling with state management integration
+const electronAPI = getElectronAPI();
 if (
-    globalThis.electronAPI &&
-    typeof globalThis.electronAPI.onSetTheme === "function" &&
-    typeof globalThis.electronAPI.sendThemeChanged === "function"
+    typeof electronAPI?.onSetTheme === "function" &&
+    typeof electronAPI.sendThemeChanged === "function"
 ) {
     // Clean theme change handling through state management
     listenForThemeChange((theme) => {
@@ -262,38 +286,17 @@ if (
         // Update theme in state management - this will trigger reactive chart updates
         UIActions.setTheme(theme);
 
-        console.log(`[main-ui] Theme changed to: ${theme}`);
+        logMainUi("info", `[main-ui] Theme changed to: ${theme}`);
     });
 }
 
 // On load, apply theme
 applyTheme(loadTheme());
 
-// Enhanced menu event handling with better error checking
-if (
-    globalThis.electronAPI &&
-    globalThis.electronAPI.onOpenSummaryColumnSelector === undefined
-) {
-    globalThis.electronAPI.onOpenSummaryColumnSelector = (callback) => {
-        const electronAPI = /**
-         * @type {{
-         *     _summaryColListenerAdded?: boolean;
-         *     onIpc: (
-         *         channel: string,
-         *         callback: (...args: unknown[]) => void
-         *     ) => void;
-         * }}
-         */ (globalThis.electronAPI);
-        if (electronAPI["_summaryColListenerAdded"] !== true) {
-            electronAPI["_summaryColListenerAdded"] = true;
-            electronAPI.onIpc("open-summary-column-selector", callback);
-        }
-    };
-}
-
 // Register handler to show summary column selector from menu
-if (globalThis.electronAPI && globalThis.electronAPI.onIpc) {
-    globalThis.electronAPI.onIpc("open-summary-column-selector", () => {
+if (typeof electronAPI?.onIpc === "function") {
+    const onIpc = /** @type {MainUiIpcListener} */ (electronAPI.onIpc);
+    onIpc("open-summary-column-selector", () => {
         try {
             // Switch to summary tab if not already active
             const tabSummary = validateElement(CONSTANTS.DOM_IDS.TAB_SUMMARY);
@@ -309,24 +312,29 @@ if (globalThis.electronAPI && globalThis.electronAPI.onIpc) {
                 if (gearBtn instanceof HTMLElement) {
                     gearBtn.click();
                 } else {
-                    console.warn("Summary gear button not found");
+                    logMainUi("warn", "Summary gear button not found");
                 }
             }, CONSTANTS.SUMMARY_COLUMN_SELECTOR_DELAY);
         } catch (error) {
-            console.error("Error handling summary column selector:", error);
+            logMainUi(
+                "error",
+                "Error handling summary column selector:",
+                error
+            );
         }
     });
 }
 
 // Listen for unload-fit-file event from main process
-if (globalThis.electronAPI && globalThis.electronAPI.onIpc) {
-    globalThis.electronAPI.onIpc("unload-fit-file", unloadFitFile);
+if (typeof electronAPI?.onIpc === "function") {
+    const onIpc = /** @type {MainUiIpcListener} */ (electronAPI.onIpc);
+    onIpc("unload-fit-file", unloadFitFile);
 }
 
 // Unload file when the red X is clicked
 const unloadBtn = validateElement(CONSTANTS.DOM_IDS.UNLOAD_FILE_BTN);
 if (unloadBtn) {
-    unloadBtn.addEventListener("click", unloadFitFile);
+    addEventListenerWithCleanup(unloadBtn, "click", unloadFitFile);
 }
 
 // Tab button state is now managed automatically by the state management system
@@ -342,31 +350,26 @@ getMainUiGlobal().dragDropHandler = dragDropHandler;
 // Sets up event listeners to handle fullscreen mode toggling for the application.
 setupFullscreenListeners();
 
-// Sets up event listeners to handle DOMContentLoaded events for initializing UI components.
-setupDOMContentLoaded();
-
 // Initialize the application window with modern state management
-setupWindow();
+void setupWindow();
 
 // Register cleanup hooks with resource manager
 /** @type {null | (() => void)} */
 let cleanupExternalLinkHandlers = null;
 
 resourceManager.addShutdownHook(() => {
-    console.log("[ResourceManager] Executing main-ui cleanup...");
+    logMainUi("info", "[ResourceManager] Executing main-ui cleanup...");
     try {
         if (typeof cleanupExternalLinkHandlers === "function") {
             cleanupExternalLinkHandlers();
         }
     } catch {
-        /* ignore */
+        /* Ignore cleanup errors during shutdown. */
     } finally {
         cleanupExternalLinkHandlers = null;
     }
     cleanupEventListeners();
-    if (AppActions.clearData) {
-        AppActions.clearData();
-    }
+    AppActions.clearData();
 });
 
 // External link handler for opening links in default browser
@@ -381,46 +384,49 @@ const initializeExternalLinkHandlers = () => {
 
 // Initialize external link handlers after DOM is loaded
 if (document.readyState === "loading") {
-    document.addEventListener(
+    addEventListenerWithCleanup(
+        document,
         "DOMContentLoaded",
-        initializeExternalLinkHandlers
+        initializeExternalLinkHandlers,
+        { once: true }
     );
 } else {
     initializeExternalLinkHandlers();
 }
 
 // Enhanced development helper function with better error handling
-getMainUiGlobal().injectMenu = function (theme = null, fitFilePath = null) {
+getMainUiGlobal().injectMenu = function injectMenu(
+    theme = null,
+    fitFilePath = null
+) {
     try {
-        if (
-            globalThis.electronAPI &&
-            typeof globalThis.electronAPI.injectMenu === "function"
-        ) {
-            globalThis.electronAPI.injectMenu(theme, fitFilePath);
-            console.log(
+        const api = getElectronAPI();
+        if (typeof api?.injectMenu === "function") {
+            void api.injectMenu(theme, fitFilePath);
+            logMainUi(
+                "info",
                 "[injectMenu] Requested menu injection with theme:",
                 theme,
                 "fitFilePath:",
                 fitFilePath
             );
         } else {
-            console.warn(
+            logMainUi(
+                "warn",
                 "[injectMenu] electronAPI.injectMenu is not available."
             );
         }
     } catch (error) {
-        console.error("[injectMenu] Error during menu injection:", error);
+        logMainUi("error", "[injectMenu] Error during menu injection:", error);
     }
 };
 
 // Add cleanup function to development helpers with state management integration
-getMainUiGlobal().devCleanup = function () {
+getMainUiGlobal().devCleanup = function devCleanup() {
     cleanupEventListeners();
 
     // Clear state using the new system
-    if (AppActions.clearData) {
-        AppActions.clearData();
-    }
+    AppActions.clearData();
     setState("charts.isRendered", false, {
         silent: false,
         source: "devCleanup",
@@ -435,28 +441,35 @@ getMainUiGlobal().devCleanup = function () {
     // Cleanup all resources via resource manager
     resourceManager.cleanupAll();
 
-    console.log(
+    logMainUi(
+        "info",
         "[devCleanup] Application state and event listeners cleaned up"
     );
 };
 
-console.log("[DEV] Development helpers available:");
-console.log(
+logMainUi("info", "[DEV] Development helpers available:");
+logMainUi(
+    "info",
     "- window.injectMenu(theme, fitFilePath) - Inject menu with specified theme and file path"
 );
-console.log(
+logMainUi(
+    "info",
     "- window.devCleanup() - Clean up application state and event listeners"
 );
-console.log("- window.cleanupEventListeners() - Clean up all event listeners");
+logMainUi(
+    "info",
+    "- window.cleanupEventListeners() - Clean up all event listeners"
+);
 
 // Initialize state managers
-console.log("[main-ui] Initializing state managers...");
+logMainUi("info", "[main-ui] Initializing state managers...");
 
 // The imports automatically initialize the state managers
 // ChartTabIntegration is a singleton that self-initializes and brings in the other managers
-console.log(
+logMainUi(
+    "info",
     "[main-ui] Chart tab integration:",
-    chartTabIntegration?.getStatus?.() || "Not available"
+    chartTabIntegration.getStatus()
 );
 
-console.log("[main-ui] State managers initialized successfully");
+logMainUi("info", "[main-ui] State managers initialized successfully");
