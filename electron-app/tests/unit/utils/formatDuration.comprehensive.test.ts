@@ -91,6 +91,7 @@ describe("formatDuration.js - Duration Formatting Utility", () => {
         it("should convert valid numeric string to number", () => {
             const result = formatDuration("30");
             expect(result).toBe("30 sec");
+            expect(result).not.toBe("30");
         });
 
         it("should convert valid decimal string to rounded number", () => {
@@ -118,6 +119,7 @@ describe("formatDuration.js - Duration Formatting Utility", () => {
         it("should round decimal seconds down to integer", () => {
             const result = formatDuration(30.4);
             expect(result).toBe("30 sec");
+            expect(result).not.toBe("30.4 sec");
         });
 
         it("should round decimal seconds up to integer", () => {
@@ -145,6 +147,7 @@ describe("formatDuration.js - Duration Formatting Utility", () => {
         it("should format zero seconds", () => {
             const result = formatDuration(0);
             expect(result).toBe("0 sec");
+            expect(result).not.toBe("0 min 0 sec");
         });
 
         it("should format single second", () => {
@@ -274,6 +277,7 @@ describe("formatDuration.js - Duration Formatting Utility", () => {
             // Test exactly at 60 seconds threshold
             expect(formatDuration(59)).toBe("59 sec");
             expect(formatDuration(60)).toBe("1 min 0 sec");
+            expect(formatDuration(59)).not.toBe("0 min 59 sec");
 
             // Test exactly at 3600 seconds (1 hour) threshold
             expect(formatDuration(3599)).toBe("59 min 59 sec");
@@ -288,6 +292,7 @@ describe("formatDuration.js - Duration Formatting Utility", () => {
             const result2 = formatDuration(input);
             expect(result1).toBe(result2);
             expect(result1).toBe("20 min 34 sec");
+            expect(result1).not.toBe("1234 sec");
         });
 
         it("should handle repeated calls efficiently", () => {
@@ -320,6 +325,7 @@ describe("formatDuration.js - Duration Formatting Utility", () => {
     describe("Real-world Use Cases", () => {
         it("should format typical workout durations", () => {
             expect(formatDuration(1800)).toBe("30 min 0 sec"); // 30 minute workout
+            expect(formatDuration(1800)).not.toBe("1800 sec");
             expect(formatDuration(2700)).toBe("45 min 0 sec"); // 45 minute workout
             expect(formatDuration(5400)).toBe("1 hr 30 min"); // 90 minute workout
         });
