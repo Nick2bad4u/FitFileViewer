@@ -1,17 +1,54 @@
-"use strict";
 {
-    const { Buffer } = require("node:buffer");
-    const {
-        applyUnknownMessageLabels,
-    } = require("./shared/fitUnknownMessageLabels");
+    type DecoderOptions = import("./shared/fit").DecoderOptions;
+    type DecoderOptionsValidationResult =
+        import("./shared/fit").DecoderOptionsValidationResult;
+    type FitDecodeMetadata = import("./shared/fit").FitDecodeMetadata;
+    type FitDecodeResult = import("./shared/fit").FitDecodeResult;
+    type FitFieldValue = import("./shared/fit").FitFieldValue;
+    type FitMessages = import("./shared/fit").FitMessages;
+    type FitSdkDecoder = import("./shared/fitSdk").FitSdkDecoder;
+    type FitSdkModule = import("./shared/fitSdk").FitSdkModule;
+    type FitSdkReadOptions = import("./shared/fitSdk").FitSdkReadOptions;
+    type DecoderOptionSchemaEntry =
+        import("./shared/fitParser").DecoderOptionSchemaEntry;
+    type DecoderOptionsUpdateResult =
+        import("./shared/fitParser").DecoderOptionsUpdateResult;
+    type FitFileStateManager = import("./shared/fitParser").FitFileStateManager;
+    type FitParserModule = import("./shared/fitParser").FitParserModule;
+    type FitParserStateManagers =
+        import("./shared/fitParser").FitParserStateManagers;
+    type PerformanceMonitor = import("./shared/fitParser").PerformanceMonitor;
+    type SettingsStateManager =
+        import("./shared/fitParser").SettingsStateManager;
+    type SerializedFitDecodeError =
+        import("./shared/fitParser").SerializedFitDecodeError;
+
+    type FitParserReadOptions = FitSdkReadOptions & {
+        filePath?: unknown;
+    };
+
+    const { Buffer } = require("node:buffer") as typeof import("node:buffer");
+    const { applyUnknownMessageLabels } =
+        require("./shared/fitUnknownMessageLabels") as {
+            applyUnknownMessageLabels: (
+                messages: FitMessages | null | undefined
+            ) => FitMessages;
+        };
+
     // State management integration
-    let fitFileStateManager = null;
-    let performanceMonitor = null;
-    let settingsStateManager = null;
+    let fitFileStateManager: FitFileStateManager | null = null;
+    let performanceMonitor: null | PerformanceMonitor = null;
+    let settingsStateManager: null | SettingsStateManager = null;
+
     class FitDecodeError extends Error {
-        details;
-        metadata;
-        constructor(message, details, metadata = {}) {
+        details: FitFieldValue;
+        metadata: FitDecodeMetadata & { category: string; timestamp: string };
+
+        constructor(
+            message: string,
+            details: FitFieldValue,
+            metadata: FitDecodeMetadata = {}
+        ) {
             super(message);
             this.name = "FitDecodeError";
             this.details = details;
@@ -21,8 +58,9 @@
                 ...metadata,
             };
         }
-        toJSON() {
-            const serialized = {
+
+        toJSON(): SerializedFitDecodeError {
+            const serialized: SerializedFitDecodeError = {
                 details: this.details,
                 message: this.message,
                 metadata: this.metadata,
@@ -34,15 +72,21 @@
             return serialized;
         }
     }
-    function assertFitSdkModule(value) {
+
+    function assertFitSdkModule(value: unknown): FitSdkModule {
         if (isFitSdkModule(value)) {
             return value;
         }
+
         throw new TypeError(
             "Garmin FIT SDK module is missing Decoder or Stream.fromBuffer"
         );
     }
-    function describeError(error) {
+
+    function describeError(error: unknown): {
+        message: string;
+        stack: null | string;
+    } {
         if (error instanceof Error) {
             const message =
                 error.message.length > 0
@@ -55,19 +99,26 @@
         }
         return { message: "Failed to decode file", stack: null };
     }
-    function formatFitFieldValue(value) {
+
+    function formatFitFieldValue(value: FitFieldValue): string {
         if (value instanceof Date) {
             return value.toISOString();
         }
+
         if (value === null || typeof value !== "object") {
             return String(value);
         }
+
         return JSON.stringify(value);
     }
-    function initializeStateManagement(stateManagers = {}) {
+
+    function initializeStateManagement(
+        stateManagers: FitParserStateManagers = {}
+    ): void {
         settingsStateManager = stateManagers.settingsStateManager ?? null;
         fitFileStateManager = stateManagers.fitFileStateManager ?? null;
         performanceMonitor = stateManagers.performanceMonitor ?? null;
+
         writeParserDiagnostic(
             "log",
             "[FitParser] State management initialized",
@@ -78,35 +129,50 @@
             }
         );
     }
-    function isFitSdkModule(value) {
+
+    function isFitSdkModule(value: unknown): value is FitSdkModule {
         if (value === null || typeof value !== "object") {
             return false;
         }
-        const candidate = value;
+
+        const candidate = value as { Decoder?: unknown; Stream?: unknown };
         if (typeof candidate.Decoder !== "function") {
             return false;
         }
+
         const { Stream } = candidate;
         if (Stream === null || typeof Stream !== "object") {
             return false;
         }
-        return typeof Stream.fromBuffer === "function";
+
+        return (
+            typeof (Stream as { fromBuffer?: unknown }).fromBuffer ===
+            "function"
+        );
     }
-    function isThenable(value) {
+
+    function isThenable(value: unknown): value is PromiseLike<unknown> {
         return (
             (typeof value === "object" || typeof value === "function") &&
             value !== null &&
-            typeof value.then === "function"
+            typeof (value as { then?: unknown }).then === "function"
         );
     }
-    async function loadFitSdk(fitsdk) {
+
+    async function loadFitSdk(
+        fitsdk: FitSdkModule | null
+    ): Promise<FitSdkModule> {
         if (fitsdk) {
             return fitsdk;
         }
+
         const fitSdkModuleId = "@garmin/fitsdk";
         return assertFitSdkModule(await import(fitSdkModuleId));
     }
-    function normalizeDecoderReadOptions(options) {
+
+    function normalizeDecoderReadOptions(
+        options: unknown
+    ): FitParserReadOptions {
         if (
             options === null ||
             options === undefined ||
@@ -114,9 +180,11 @@
         ) {
             return {};
         }
+
         return Object.fromEntries(Object.entries(options));
     }
-    function normalizeError(error) {
+
+    function normalizeError(error: unknown): Error {
         if (error instanceof Error) {
             return error;
         }
@@ -125,24 +193,36 @@
         }
         return new Error("Unknown FIT parser error");
     }
-    function observeAsyncDecoderOptionsUpdate(updateResult) {
+
+    function observeAsyncDecoderOptionsUpdate(
+        updateResult: PromiseLike<unknown>
+    ): void {
         // eslint-disable-next-line promise/prefer-await-to-then -- updateDecoderOptions is intentionally synchronous; this observes an invalid async adapter without changing the public API.
         Promise.resolve(updateResult).catch(
             reportAsyncDecoderOptionsUpdateRejection
         );
     }
-    function reportAsyncDecoderOptionsUpdateRejection(error) {
+
+    function reportAsyncDecoderOptionsUpdateRejection(error: unknown): void {
         writeParserDiagnostic(
             "warn",
             "[FitParser] Async decoder options update rejected after synchronous boundary:",
             error
         );
     }
-    function writeParserDiagnostic(method, ...values) {
+
+    function writeParserDiagnostic(
+        method: "error" | "log" | "warn",
+        ...values: unknown[]
+    ): void {
         // eslint-disable-next-line no-console -- Existing parser diagnostics are part of the tested behavior; keep the console boundary in one place.
         console[method](...values);
     }
-    const DECODER_OPTIONS_SCHEMA = {
+
+    const DECODER_OPTIONS_SCHEMA: Record<
+        keyof DecoderOptions,
+        DecoderOptionSchemaEntry
+    > = {
         applyScaleAndOffset: {
             default: true,
             description: "Apply scale and offset transformations",
@@ -179,7 +259,8 @@
             type: "boolean",
         },
     };
-    const DECODER_OPTION_KEYS = [
+
+    const DECODER_OPTION_KEYS: (keyof DecoderOptions)[] = [
         "applyScaleAndOffset",
         "convertDateTimesToDates",
         "convertTypesToStrings",
@@ -188,7 +269,8 @@
         "includeUnknownData",
         "mergeHeartRates",
     ];
-    function getDefaultDecoderOptions() {
+
+    function getDefaultDecoderOptions(): DecoderOptions {
         return {
             applyScaleAndOffset:
                 DECODER_OPTIONS_SCHEMA.applyScaleAndOffset.default,
@@ -203,19 +285,25 @@
             mergeHeartRates: DECODER_OPTIONS_SCHEMA.mergeHeartRates.default,
         };
     }
-    function validateDecoderOptions(options) {
-        const errors = [],
-            validatedOptions = {
+
+    function validateDecoderOptions(
+        options: null | Partial<DecoderOptions> | undefined
+    ): DecoderOptionsValidationResult {
+        const errors: string[] = [],
+            validatedOptions: DecoderOptions = {
                 ...getDefaultDecoderOptions(),
             };
+
         if (options && typeof options === "object") {
-            const candidateOptions = options;
+            const candidateOptions: Partial<
+                Record<keyof DecoderOptions, unknown>
+            > = options;
             for (const key of DECODER_OPTION_KEYS) {
                 const schema = DECODER_OPTIONS_SCHEMA[key],
                     value = candidateOptions[key];
                 if (value !== undefined) {
                     if (typeof value === schema.type) {
-                        validatedOptions[key] = value;
+                        validatedOptions[key] = value as boolean;
                     } else {
                         errors.push(
                             `${key} must be of type ${schema.type}, got ${typeof value}`
@@ -224,78 +312,109 @@
                 }
             }
         }
+
         return { errors, isValid: errors.length === 0, validatedOptions };
     }
-    async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
+
+    async function decodeFitFile(
+        fileBuffer: unknown,
+        options: unknown = {},
+        fitsdk: FitSdkModule | null = null
+    ): Promise<FitDecodeResult> {
         const operationId = `fitFile_decode_${Date.now()}`;
+
         // Start performance monitoring if available
         if (performanceMonitor) {
             performanceMonitor.startTimer(operationId);
         }
+
         // Update FIT file state to indicate decoding started
         reportLoadingProgress(10);
+
         // Input validation
         const buffer = normalizeDecodeBuffer(fileBuffer);
+
         try {
             const sdk = await loadFitSdk(fitsdk),
                 { Decoder, Stream } = sdk,
                 stream = Stream.fromBuffer(buffer),
                 decoder = new Decoder(stream);
+
             // Update progress - SDK loaded
             reportLoadingProgress(30);
+
             if (!decoder.checkIntegrity()) {
                 const integrityErrors = getDecoderIntegrityDetails(decoder),
                     msg = `FIT file integrity check failed. Details: ${formatFitFieldValue(integrityErrors)}`;
                 writeParserDiagnostic("error", msg);
+
                 const error = new FitDecodeError(msg, integrityErrors);
                 reportLoadingError(error);
+
                 throw error;
             }
+
             // Update progress - Integrity check passed
             reportLoadingProgress(50);
+
             // Default decoder options from persistent store
             const optionOverrides = normalizeDecoderReadOptions(options),
                 persistedOptions = normalizeDecoderReadOptions(
                     getPersistedDecoderOptions()
                 ),
                 readOptions = { ...persistedOptions, ...optionOverrides };
+
             // Update progress - Starting decode
             reportLoadingProgress(70);
+
             const { errors, messages } = decoder.read(readOptions);
+
             if (Array.isArray(errors) && errors.length > 0) {
                 const msg = "Decoding errors occurred";
                 writeParserDiagnostic("error", msg, errors);
+
                 const error = new FitDecodeError(msg, errors);
                 reportLoadingError(error);
+
                 throw error;
             }
+
             if (!messages || Object.keys(messages).length === 0) {
                 const msg =
                     "No valid messages decoded, FIT file might be corrupted.";
                 writeParserDiagnostic("error", msg);
+
                 const error = new FitDecodeError(msg, null);
                 reportLoadingError(error);
+
                 throw error;
             }
+
             // Update progress - Applying labels
             reportLoadingProgress(90);
+
             const processedMessages = applyUnknownMessageLabels(messages);
+
             // Update progress - Complete
             reportFileLoaded(processedMessages, readOptions, operationId);
+
             writeParserDiagnostic(
                 "log",
                 "[FitParser] FIT file decoded successfully."
             );
+
             // End performance monitoring
             if (performanceMonitor) {
                 performanceMonitor.endTimer(operationId);
             }
+
             return processedMessages;
         } catch (error) {
             // End performance monitoring on error
             if (performanceMonitor) {
                 performanceMonitor.endTimer(operationId);
             }
+
             if (error instanceof FitDecodeError) {
                 return { details: error.details, error: error.message };
             }
@@ -304,8 +423,10 @@
                 "[FitParser] Failed to decode file",
                 error
             );
+
             // Update state with generic error
             reportLoadingError(normalizeError(error));
+
             const errorDescription = describeError(error);
             return {
                 details: errorDescription.stack,
@@ -313,16 +434,20 @@
             };
         }
     }
-    function getCurrentDecoderOptions() {
+
+    function getCurrentDecoderOptions(): DecoderOptions {
         return getPersistedDecoderOptions();
     }
-    function getDecoderIntegrityDetails(decoder) {
+
+    function getDecoderIntegrityDetails(decoder: FitSdkDecoder): FitFieldValue {
         return typeof decoder.getIntegrityErrors === "function"
             ? decoder.getIntegrityErrors()
             : "No additional details available";
     }
-    function getPersistedDecoderOptions() {
+
+    function getPersistedDecoderOptions(): DecoderOptions {
         const defaults = getDefaultDecoderOptions();
+
         // Try to get from new state management system first
         if (settingsStateManager) {
             try {
@@ -341,33 +466,46 @@
                 );
             }
         }
+
         return defaults;
     }
-    function getReadOptionsFilePath(readOptions) {
+
+    function getReadOptionsFilePath(
+        readOptions: FitParserReadOptions
+    ): null | string {
         const { filePath } = readOptions;
         return typeof filePath === "string" && filePath.length > 0
             ? filePath
             : null;
     }
-    function normalizeDecodeBuffer(fileBuffer) {
+
+    function normalizeDecodeBuffer(fileBuffer: unknown): Buffer {
         if (
             !(fileBuffer instanceof Buffer) &&
             !(fileBuffer instanceof Uint8Array)
         ) {
             const msg = `Input is not a valid Buffer or Uint8Array. Received type: ${typeof fileBuffer}.`;
             writeParserDiagnostic("error", msg);
+
             const error = new FitDecodeError(msg, null);
             reportLoadingError(error);
             throw error;
         }
+
         return Buffer.isBuffer(fileBuffer)
             ? fileBuffer
             : Buffer.from(fileBuffer);
     }
-    function reportFileLoaded(processedMessages, readOptions, operationId) {
+
+    function reportFileLoaded(
+        processedMessages: FitMessages,
+        readOptions: FitParserReadOptions,
+        operationId: string
+    ): void {
         if (!fitFileStateManager) {
             return;
         }
+
         try {
             fitFileStateManager.updateLoadingProgress(100);
             fitFileStateManager.handleFileLoaded(
@@ -397,10 +535,12 @@
             );
         }
     }
-    function reportLoadingError(error) {
+
+    function reportLoadingError(error: Error): void {
         if (!fitFileStateManager) {
             return;
         }
+
         try {
             fitFileStateManager.handleFileLoadingError(error);
         } catch (stateError) {
@@ -411,10 +551,12 @@
             );
         }
     }
-    function reportLoadingProgress(progress) {
+
+    function reportLoadingProgress(progress: number): void {
         if (!fitFileStateManager) {
             return;
         }
+
         try {
             fitFileStateManager.updateLoadingProgress(progress);
         } catch (error) {
@@ -425,11 +567,15 @@
             );
         }
     }
-    function resetDecoderOptions() {
+
+    function resetDecoderOptions(): DecoderOptionsUpdateResult {
         const defaults = getDefaultDecoderOptions();
         return updateDecoderOptions(defaults);
     }
-    function updateDecoderOptions(newOptions) {
+
+    function updateDecoderOptions(
+        newOptions: Partial<DecoderOptions>
+    ): DecoderOptionsUpdateResult {
         // Validate options first
         const validation = validateDecoderOptions(newOptions);
         if (!validation.isValid) {
@@ -440,6 +586,7 @@
             );
             return { errors: validation.errors, success: false };
         }
+
         if (settingsStateManager) {
             try {
                 const updateCategory = settingsStateManager.updateCategory;
@@ -475,18 +622,22 @@
                 };
             }
         }
+
         return {
             errors: ["No settings state manager configured"],
             success: false,
         };
     }
-    const fitParserModule = {
+
+    const fitParserModule: FitParserModule = {
         applyUnknownMessageLabels,
         // Core functionality
         decodeFitFile,
         // Schema and constants
         DECODER_OPTIONS_SCHEMA,
+
         FitDecodeError,
+
         getCurrentDecoderOptions,
         getDefaultDecoderOptions,
         getPersistedDecoderOptions,
@@ -495,7 +646,9 @@
         resetDecoderOptions,
         // Decoder options management
         updateDecoderOptions,
+
         validateDecoderOptions,
     };
+
     module.exports = fitParserModule;
 }

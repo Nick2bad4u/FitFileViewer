@@ -18,7 +18,7 @@ export interface SettingsStateManager {
         category: string,
         value: Partial<DecoderOptions>,
         opts?: { silent?: boolean; source?: string }
-    ) => void;
+    ) => unknown;
 }
 
 /** FIT file state adapter surface consumed by the FIT parser. */

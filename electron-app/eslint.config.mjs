@@ -10,6 +10,7 @@ const config = [
             "dist/**",
             "**/*.css",
             "ffv/**",
+            "fitParser.js",
             "**/*.html",
             "html/**",
             "main-ui.js",
@@ -28,7 +29,7 @@ const config = [
     ...nick2bad4u.configs.all,
     {
         files: [
-            "fitParser.js",
+            "fitParser.ts",
             "jest.config.cjs",
             "main.js",
             "main.ts",
@@ -52,6 +53,16 @@ const config = [
         rules: {
             "@typescript-eslint/no-unsafe-type-assertion": "off",
             "@typescript-eslint/prefer-readonly-parameter-types": "off",
+        },
+    },
+    {
+        files: ["fitParser.ts"],
+        rules: {
+            "@typescript-eslint/consistent-type-imports": "off",
+            "@typescript-eslint/no-unsafe-type-assertion": "off",
+            "@typescript-eslint/prefer-readonly-parameter-types": "off",
+            "n/global-require": "off",
+            "no-unsanitized/method": "off",
         },
     },
     {

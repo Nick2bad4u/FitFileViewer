@@ -17,8 +17,10 @@ export type FitMessages = Record<string, FitMessageRow[]>;
 
 /** Metadata collected while loading or decoding a FIT file. */
 export interface FitDecodeMetadata {
+    decodingOptions?: PartialDecoderOptions & { filePath?: unknown };
     duration?: number;
     filePath?: string;
+    processingTime?: null | number;
     recordCount?: number;
     source?: string;
     timestamp?: string;
