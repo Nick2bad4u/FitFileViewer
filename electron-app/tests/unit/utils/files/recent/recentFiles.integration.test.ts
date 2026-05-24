@@ -78,11 +78,7 @@ describe("recentFiles integration coverage", () => {
     }
 
     it("derives the storage path from electron userData", () => {
-        const userDataPath = path.join(
-            os.tmpdir(),
-            `ffv-user-${Date.now()}-${Math.random().toString(36).slice(2)}`
-        );
-        fs.mkdirSync(userDataPath, { recursive: true });
+        const userDataPath = fs.mkdtempSync(path.join(os.tmpdir(), "ffv-user-"));
         registerDir(userDataPath);
         setElectronMock({
             app: {
@@ -90,13 +86,13 @@ describe("recentFiles integration coverage", () => {
             },
         });
         const recent = importRecentFiles();
-        const writeSpy = vi.spyOn(fs, "writeFileSync");
+        const expectedPath = path.join(userDataPath, "recent-files.json");
+        registerFile(expectedPath);
         recent.saveRecentFiles(["a.fit"]);
-        expect(writeSpy).toHaveBeenCalledWith(
-            path.join(userDataPath, "recent-files.json"),
-            JSON.stringify(["a.fit"]),
-            "utf8"
-        );
+        expect(JSON.parse(fs.readFileSync(expectedPath, "utf8"))).toEqual([
+            "a.fit",
+        ]);
+        expect(recent.loadRecentFiles()).toEqual(["a.fit"]);
     });
 
     it("creates a temp-backed recent file when electron app is unavailable", () => {
@@ -132,21 +128,14 @@ describe("recentFiles integration coverage", () => {
         expect(writeSpy).toHaveBeenCalled();
         const targetPath = path.normalize(String(writeSpy.mock.calls[0][0]));
         expect(targetPath).toMatch(/fit-file-viewer-tests[\\/]+recent-files-/);
+        expect(JSON.parse(fs.readFileSync(targetPath, "utf8"))).toEqual([
+            "temp.fit",
+        ]);
+        expect(recent.loadRecentFiles()).toEqual(["temp.fit"]);
         expect(exitHandlers).toHaveLength(1);
-        const originalExists = fs.existsSync;
-        const existsSpy = vi
-            .spyOn(fs, "existsSync")
-            .mockImplementation((candidate: fs.PathLike) => {
-                if (path.normalize(String(candidate)) === targetPath) {
-                    return true;
-                }
-                return originalExists(candidate);
-            });
-        const unlinkSpy = vi.spyOn(fs, "unlinkSync");
         exitHandlers[0]!();
-        expect(unlinkSpy).toHaveBeenCalledWith(targetPath);
+        expect(fs.existsSync(targetPath)).toBe(false);
         processOn.mockRestore();
-        existsSpy.mockRestore();
         writeSpy.mockRestore();
     });
 
@@ -189,11 +178,13 @@ describe("recentFiles integration coverage", () => {
         const errorSpy = vi
             .spyOn(console, "error")
             .mockImplementation(() => {});
-        importRecentFiles();
+        const recent = importRecentFiles();
         expect(errorSpy).toHaveBeenCalledWith(
             "Failed to create temp directory for tests:",
             expect.any(Error)
         );
+        expect(recent.loadRecentFiles()).toEqual([]);
+        expect(() => recent.saveRecentFiles(["unwritten.fit"])).not.toThrow();
         mkdirSpy.mockRestore();
         errorSpy.mockRestore();
         existsSpy.mockRestore();
