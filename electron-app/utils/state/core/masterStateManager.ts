@@ -1241,7 +1241,7 @@ function getStateManagerAPI(): StateManagerApi {
                 for (const cand of candidates) {
                     try {
                         if (!cand) continue;
-                        const mod = req(cand) as unknown;
+                        const mod: unknown = req(cand);
                         if (isStateManagerApi(mod)) {
                             return mod;
                         }
