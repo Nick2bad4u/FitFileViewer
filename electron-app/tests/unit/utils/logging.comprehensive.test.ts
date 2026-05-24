@@ -40,7 +40,6 @@ describe("Logging Utilities", () => {
                 const result = getErrorInfo(error);
 
                 expect(result.message).toBe("Test error message");
-                expect(result.stack).toBeDefined();
                 expect(typeof result.stack).toBe("string");
                 expect(result.stack).toContain("Test error message");
             });
@@ -50,8 +49,8 @@ describe("Logging Utilities", () => {
                 const result = getErrorInfo(error);
 
                 expect(result.message).toBe("Invalid type");
-                expect(result.stack).toBeDefined();
                 expect(typeof result.stack).toBe("string");
+                expect(result.stack).toContain("TypeError: Invalid type");
             });
 
             it("should extract message and stack from ReferenceError", () => {
@@ -59,8 +58,10 @@ describe("Logging Utilities", () => {
                 const result = getErrorInfo(error);
 
                 expect(result.message).toBe("Variable not defined");
-                expect(result.stack).toBeDefined();
                 expect(typeof result.stack).toBe("string");
+                expect(result.stack).toContain(
+                    "ReferenceError: Variable not defined"
+                );
             });
 
             it("should extract message and stack from custom Error subclass", () => {
@@ -74,8 +75,10 @@ describe("Logging Utilities", () => {
                 const result = getErrorInfo(error);
 
                 expect(result.message).toBe("Custom error message");
-                expect(result.stack).toBeDefined();
                 expect(typeof result.stack).toBe("string");
+                expect(result.stack).toContain(
+                    "CustomError: Custom error message"
+                );
             });
         });
 
@@ -252,8 +255,9 @@ describe("Logging Utilities", () => {
 
         describe("Log Levels", () => {
             it("should log with info level", () => {
-                logWithLevel("info", "Test info message");
+                const result = logWithLevel("info", "Test info message");
 
+                expect(result).toBeUndefined();
                 expect(mockConsole.info).toHaveBeenCalledTimes(1);
                 expect(mockConsole.info).toHaveBeenCalledWith(
                     "2023-01-01T12:00:00.000Z [FFV] Test info message"
@@ -265,8 +269,9 @@ describe("Logging Utilities", () => {
             });
 
             it("should log with warn level", () => {
-                logWithLevel("warn", "Test warning message");
+                const result = logWithLevel("warn", "Test warning message");
 
+                expect(result).toBeUndefined();
                 expect(mockConsole.warn).toHaveBeenCalledTimes(1);
                 expect(mockConsole.warn).toHaveBeenCalledWith(
                     "2023-01-01T12:00:00.000Z [FFV] Test warning message"
@@ -278,8 +283,9 @@ describe("Logging Utilities", () => {
             });
 
             it("should log with error level", () => {
-                logWithLevel("error", "Test error message");
+                const result = logWithLevel("error", "Test error message");
 
+                expect(result).toBeUndefined();
                 expect(mockConsole.error).toHaveBeenCalledTimes(1);
                 expect(mockConsole.error).toHaveBeenCalledWith(
                     "2023-01-01T12:00:00.000Z [FFV] Test error message"
@@ -291,8 +297,9 @@ describe("Logging Utilities", () => {
             });
 
             it("should log with log level (default)", () => {
-                logWithLevel("log", "Test log message");
+                const result = logWithLevel("log", "Test log message");
 
+                expect(result).toBeUndefined();
                 expect(mockConsole.log).toHaveBeenCalledTimes(1);
                 expect(mockConsole.log).toHaveBeenCalledWith(
                     "2023-01-01T12:00:00.000Z [FFV] Test log message"
@@ -304,8 +311,12 @@ describe("Logging Utilities", () => {
             });
 
             it("should fallback to log for unknown level", () => {
-                logWithLevel("debug" as any, "Test debug message");
+                const result = logWithLevel(
+                    "debug" as any,
+                    "Test debug message"
+                );
 
+                expect(result).toBeUndefined();
                 expect(mockConsole.log).toHaveBeenCalledTimes(1);
                 expect(mockConsole.log).toHaveBeenCalledWith(
                     "2023-01-01T12:00:00.000Z [FFV] Test debug message"
@@ -320,8 +331,9 @@ describe("Logging Utilities", () => {
         describe("Context Handling", () => {
             it("should log with context object", () => {
                 const context = { userId: 123, action: "login" };
-                logWithLevel("info", "User action", context);
+                const result = logWithLevel("info", "User action", context);
 
+                expect(result).toBeUndefined();
                 expect(mockConsole.info).toHaveBeenCalledWith(
                     "2023-01-01T12:00:00.000Z [FFV] User action",
                     context
@@ -329,28 +341,35 @@ describe("Logging Utilities", () => {
             });
 
             it("should log without context when not provided", () => {
-                logWithLevel("info", "Simple message");
+                const result = logWithLevel("info", "Simple message");
 
+                expect(result).toBeUndefined();
                 expect(mockConsole.info).toHaveBeenCalledWith(
                     "2023-01-01T12:00:00.000Z [FFV] Simple message"
                 );
             });
 
             it("should log without context when undefined", () => {
-                logWithLevel(
+                const result = logWithLevel(
                     "info",
                     "Message with undefined context",
                     undefined
                 );
 
+                expect(result).toBeUndefined();
                 expect(mockConsole.info).toHaveBeenCalledWith(
                     "2023-01-01T12:00:00.000Z [FFV] Message with undefined context"
                 );
             });
 
             it("should log without context when empty object", () => {
-                logWithLevel("info", "Message with empty context", {});
+                const result = logWithLevel(
+                    "info",
+                    "Message with empty context",
+                    {}
+                );
 
+                expect(result).toBeUndefined();
                 expect(mockConsole.info).toHaveBeenCalledWith(
                     "2023-01-01T12:00:00.000Z [FFV] Message with empty context"
                 );
@@ -358,8 +377,9 @@ describe("Logging Utilities", () => {
 
             it("should log with context when non-empty object", () => {
                 const context = { error: "Something went wrong" };
-                logWithLevel("error", "Error occurred", context);
+                const result = logWithLevel("error", "Error occurred", context);
 
+                expect(result).toBeUndefined();
                 expect(mockConsole.error).toHaveBeenCalledWith(
                     "2023-01-01T12:00:00.000Z [FFV] Error occurred",
                     context
@@ -373,8 +393,9 @@ describe("Logging Utilities", () => {
                     timestamp: new Date(),
                     nested: { deep: { value: "test" } },
                 };
-                logWithLevel("warn", "Complex context", context);
+                const result = logWithLevel("warn", "Complex context", context);
 
+                expect(result).toBeUndefined();
                 expect(mockConsole.warn).toHaveBeenCalledWith(
                     "2023-01-01T12:00:00.000Z [FFV] Complex context",
                     context
@@ -384,8 +405,9 @@ describe("Logging Utilities", () => {
 
         describe("Message Formatting", () => {
             it("should include timestamp in ISO format", () => {
-                logWithLevel("info", "Test message");
+                const result = logWithLevel("info", "Test message");
 
+                expect(result).toBeUndefined();
                 const expectedPrefix = "2023-01-01T12:00:00.000Z [FFV]";
                 expect(mockConsole.info).toHaveBeenCalledWith(
                     expect.stringContaining(expectedPrefix)
@@ -393,16 +415,18 @@ describe("Logging Utilities", () => {
             });
 
             it("should include FFV prefix", () => {
-                logWithLevel("error", "Test error");
+                const result = logWithLevel("error", "Test error");
 
+                expect(result).toBeUndefined();
                 expect(mockConsole.error).toHaveBeenCalledWith(
                     expect.stringContaining("[FFV]")
                 );
             });
 
             it("should handle empty message", () => {
-                logWithLevel("info", "");
+                const result = logWithLevel("info", "");
 
+                expect(result).toBeUndefined();
                 expect(mockConsole.info).toHaveBeenCalledWith(
                     "2023-01-01T12:00:00.000Z [FFV] "
                 );
@@ -410,8 +434,9 @@ describe("Logging Utilities", () => {
 
             it("should handle very long messages", () => {
                 const longMessage = "a".repeat(1000);
-                logWithLevel("warn", longMessage);
+                const result = logWithLevel("warn", longMessage);
 
+                expect(result).toBeUndefined();
                 expect(mockConsole.warn).toHaveBeenCalledWith(
                     `2023-01-01T12:00:00.000Z [FFV] ${longMessage}`
                 );
@@ -420,8 +445,9 @@ describe("Logging Utilities", () => {
             it("should handle messages with special characters", () => {
                 const specialMessage =
                     "Message with 🚀 emojis and éspecial châràcters";
-                logWithLevel("info", specialMessage);
+                const result = logWithLevel("info", specialMessage);
 
+                expect(result).toBeUndefined();
                 expect(mockConsole.info).toHaveBeenCalledWith(
                     `2023-01-01T12:00:00.000Z [FFV] ${specialMessage}`
                 );
@@ -478,10 +504,25 @@ describe("Logging Utilities", () => {
 
         describe("Integration Tests", () => {
             it("should log different levels with different contexts", () => {
-                logWithLevel("info", "Info message", { type: "info" });
-                logWithLevel("warn", "Warning message", { type: "warning" });
-                logWithLevel("error", "Error message", { type: "error" });
+                const infoResult = logWithLevel("info", "Info message", {
+                    type: "info",
+                });
+                const warnResult = logWithLevel("warn", "Warning message", {
+                    type: "warning",
+                });
+                const errorResult = logWithLevel("error", "Error message", {
+                    type: "error",
+                });
 
+                expect([
+                    infoResult,
+                    warnResult,
+                    errorResult,
+                ]).toStrictEqual([
+                    undefined,
+                    undefined,
+                    undefined,
+                ]);
                 expect(mockConsole.info).toHaveBeenCalledTimes(1);
                 expect(mockConsole.warn).toHaveBeenCalledTimes(1);
                 expect(mockConsole.error).toHaveBeenCalledTimes(1);
@@ -500,6 +541,18 @@ describe("Logging Utilities", () => {
                 expect(warnCall).toMatch(
                     /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z \[FFV\] Second message$/
                 );
+            });
+
+            it("should route invalid levels to the default logger only", () => {
+                const result = logWithLevel("trace" as any, "Fallback message");
+
+                expect(result).toBeUndefined();
+                expect(mockConsole.log).toHaveBeenCalledWith(
+                    "2023-01-01T12:00:00.000Z [FFV] Fallback message"
+                );
+                expect(mockConsole.info).not.toHaveBeenCalled();
+                expect(mockConsole.warn).not.toHaveBeenCalled();
+                expect(mockConsole.error).not.toHaveBeenCalled();
             });
         });
     });
