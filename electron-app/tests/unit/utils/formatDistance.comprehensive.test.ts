@@ -69,6 +69,7 @@ describe("formatDistance.js - Distance Formatter Utility", () => {
         it("should format 1000 meters correctly", () => {
             const result = formatDistance(1000);
             expect(result).toBe("1.00 km / 0.62 mi");
+            expect(result).not.toBe("1.00 mi / 0.62 km");
         });
 
         it("should format 5000 meters correctly", () => {
@@ -107,6 +108,7 @@ describe("formatDistance.js - Distance Formatter Utility", () => {
         it("should format to exactly 2 decimal places", () => {
             const result = formatDistance(1234.567);
             expect(result).toMatch(/^\d+\.\d{2} km \/ \d+\.\d{2} mi$/);
+            expect(result).not.toMatch(/\d+\.\d{3}/);
         });
 
         it("should round to 2 decimal places correctly", () => {
@@ -134,6 +136,7 @@ describe("formatDistance.js - Distance Formatter Utility", () => {
         it("should handle very small positive values", () => {
             const result = formatDistance(0.1);
             expect(result).toBe("0.00 km / 0.00 mi");
+            expect(result).not.toBe("");
         });
 
         it("should handle 1 meter", () => {
@@ -168,6 +171,7 @@ describe("formatDistance.js - Distance Formatter Utility", () => {
             const expectedKm = meters / 1000;
             const result = formatDistance(meters);
             expect(result).toContain(`${expectedKm.toFixed(2)} km`);
+            expect(result).not.toContain(`${meters.toFixed(2)} km`);
         });
 
         it("should maintain conversion accuracy for miles", () => {
@@ -212,6 +216,7 @@ describe("formatDistance.js - Distance Formatter Utility", () => {
             expect(results).toHaveLength(5);
             results.forEach((result) => {
                 expect(result).toMatch(/^\d+\.\d{2} km \/ \d+\.\d{2} mi$/);
+                expect(result).not.toBe("");
             });
         });
 
@@ -246,6 +251,7 @@ describe("formatDistance.js - Distance Formatter Utility", () => {
             expect(fiveK).toBe("5.00 km / 3.11 mi");
             expect(tenK).toBe("10.00 km / 6.21 mi");
             expect(halfMarathon).toBe("21.10 km / 13.11 mi");
+            expect(halfMarathon).not.toBe("13.11 km / 21.10 mi");
         });
 
         it("should format cycling distances correctly", () => {
