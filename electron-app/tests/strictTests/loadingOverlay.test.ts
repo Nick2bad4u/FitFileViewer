@@ -27,7 +27,8 @@ describe("LoadingOverlay strict", () => {
         LoadingOverlay.show("Loading 1 / 10 files...", "example.fit");
 
         const overlay = document.getElementById("fitfile-loading-overlay");
-        expect(overlay).not.toBeNull();
+        expect(overlay?.id).toBe("fitfile-loading-overlay");
+        expect(overlay?.style.position).toBe("fixed");
 
         const text = document.getElementById("fitfile-loading-text");
         expect(text?.textContent).toBe("Loading 1 / 10 files...");
@@ -42,7 +43,10 @@ describe("LoadingOverlay strict", () => {
 
         LoadingOverlay.show("Step 1", "first.fit");
         const first = document.getElementById("fitfile-loading-overlay");
-        expect(first).not.toBeNull();
+        expect(first?.id).toBe("fitfile-loading-overlay");
+        expect(
+            document.querySelectorAll("#fitfile-loading-overlay")
+        ).toHaveLength(1);
 
         LoadingOverlay.show("Step 2");
         const second = document.getElementById("fitfile-loading-overlay");
@@ -53,6 +57,7 @@ describe("LoadingOverlay strict", () => {
 
         const file = document.getElementById("fitfile-loading-filename");
         // When no filename provided, it should clear the filename text
+        expect(file?.textContent).not.toBe("File: first.fit");
         expect(file?.textContent).toBe("");
     });
 
@@ -62,10 +67,12 @@ describe("LoadingOverlay strict", () => {
 
         LoadingOverlay.show("Working...");
         expect(
-            document.getElementById("fitfile-loading-overlay")
-        ).not.toBeNull();
+            document.querySelectorAll("#fitfile-loading-overlay")
+        ).toHaveLength(1);
 
         LoadingOverlay.hide();
-        expect(document.getElementById("fitfile-loading-overlay")).toBeNull();
+        expect(
+            document.querySelectorAll("#fitfile-loading-overlay")
+        ).toHaveLength(0);
     });
 });
