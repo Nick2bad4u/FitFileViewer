@@ -158,6 +158,10 @@
 // Utility Imports & Fallbacks
 // ==========================================
 
+import {
+    getEnvironment,
+    isDevelopmentMode,
+} from "./utils/app/initialization/rendererEnvironment.js";
 import { setLoading } from "./utils/app/initialization/rendererUtils.js";
 // Avoid static imports for modules that tests mock; resolve dynamically via ensureCoreModules()
 import { createExportGPXButton } from "./utils/files/export/createExportGPXButton.js";
@@ -369,15 +373,6 @@ function getElectronApiStartupHooks() {
 }
 
 /**
- * Gets the current environment name
- *
- * @returns {string} Environment name
- */
-function getEnvironment() {
-    return isDevelopmentMode() ? "development" : "production";
-}
-
-/**
  * @param {unknown} errorLike
  *
  * @returns {string}
@@ -388,15 +383,6 @@ function getErrorMessage(errorLike) {
     return typeof message === "string" && message.length > 0
         ? message
         : "Unknown error";
-}
-
-/**
- * @param {string} flagName
- *
- * @returns {unknown}
- */
-function getGlobalBooleanFlag(flagName) {
-    return Reflect.get(globalThis, flagName);
 }
 
 /**
@@ -452,37 +438,11 @@ function getRecordString(record, key) {
 }
 
 /**
- * @returns {Record<string, string>}
- */
-function getRendererLocationParts() {
-    const locationRecord = toModuleRecord(Reflect.get(globalThis, "location"));
-
-    return {
-        hostname: getStringProperty(locationRecord, "hostname"),
-        href: getStringProperty(locationRecord, "href"),
-        protocol: getStringProperty(locationRecord, "protocol"),
-        search: getStringProperty(locationRecord, "search"),
-    };
-}
-
-/**
  * @returns {number | undefined}
  */
 function getStateStartTime() {
     const startTime = getState("app.startTime");
     return typeof startTime === "number" ? startTime : undefined;
-}
-
-/**
- * @param {Record<string, unknown>} record
- * @param {string} propertyName
- *
- * @returns {string}
- */
-function getStringProperty(record, propertyName) {
-    const value = record[propertyName];
-
-    return typeof value === "string" ? value : "";
 }
 
 /**
@@ -494,27 +454,6 @@ function getVitestManualMockRegistry() {
     );
 
     return registry instanceof Map ? registry : null;
-}
-
-/**
- * @returns {boolean}
- */
-function hasDocumentDevModeFlag() {
-    const documentRecord = toModuleRecord(Reflect.get(globalThis, "document"));
-    const documentElement = toModuleRecord(documentRecord.documentElement);
-    const dataset = toModuleRecord(documentElement.dataset);
-
-    // eslint-disable-next-line n/no-unsupported-features/es-builtins, n/no-unsupported-features/es-syntax -- prefer-object-has-own requires Object.hasOwn here.
-    return Object.hasOwn(dataset, "devMode");
-}
-
-/**
- * @returns {boolean}
- */
-function hasElectronDevModeFlag() {
-    const electronApi = toModuleRecord(Reflect.get(globalThis, "electronAPI"));
-
-    return Reflect.get(electronApi, "__devMode") !== undefined;
 }
 
 /**
@@ -583,56 +522,6 @@ async function importRendererModule(realPath) {
             throw new Error(`Unsupported renderer module import: ${realPath}`);
         }
     }
-}
-
-/**
- * @param {Record<string, string>} locationParts
- *
- * @returns {boolean}
- */
-function isDebugRendererLocation(locationParts) {
-    return (
-        locationParts.search.includes("debug=true") ||
-        locationParts.protocol === "file:" ||
-        locationParts.href.includes("electron")
-    );
-}
-
-/**
- * Detects if the application is running in development mode Since process is
- * not available in renderer, we use alternative methods
- *
- * @returns {boolean} True if in development mode
- */
-function isDevelopmentMode() {
-    // Check for development indicators (guard window.location access for jsdom/mocks)
-    try {
-        const locationParts = getRendererLocationParts();
-
-        return (
-            isLocalDevelopmentHost(locationParts.hostname) ||
-            isDebugRendererLocation(locationParts) ||
-            getGlobalBooleanFlag("__DEVELOPMENT__") === true ||
-            hasDocumentDevModeFlag() ||
-            hasElectronDevModeFlag()
-        );
-    } catch {
-        // On any unexpected error, default to non-dev
-        return false;
-    }
-}
-
-/**
- * @param {string} hostname
- *
- * @returns {boolean}
- */
-function isLocalDevelopmentHost(hostname) {
-    return (
-        hostname === "localhost" ||
-        hostname === "127.0.0.1" ||
-        hostname.includes("dev")
-    );
 }
 
 /**

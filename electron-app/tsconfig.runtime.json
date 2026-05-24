@@ -204,6 +204,7 @@
         "utils/app/initialization/getCurrentSettingsParsing.ts",
         "utils/app/initialization/getCurrentSettings.ts",
         "utils/app/initialization/loadSharedConfiguration.ts",
+        "utils/app/initialization/rendererEnvironment.ts",
         "utils/app/initialization/loadVersionInfo.ts",
         "utils/app/initialization/rendererUtils.ts",
         "utils/app/initialization/setupWindow.ts",
