@@ -1,6 +1,160 @@
-// This file intentionally relies on the JavaScript suite for coverage.
-// Keeping the stub avoids touching the Vitest glob configuration which
-// still enumerates *.test.ts files under this directory.
-import "./stateHelpers.test.js";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-export {};
+import {
+    clampPercent,
+    clampRangeValue,
+    computeRangeState,
+    formatMetricValue,
+    formatPercent,
+    resolveInitialConfig,
+    toSliderString,
+    updateGlobalFilter,
+} from "../../../../../../utils/ui/controls/dataPointFilterControl/stateHelpers.js";
+
+type DataPointFilterConfig = {
+    enabled: boolean;
+    maxValue?: number;
+    metric: string;
+    minValue?: number;
+    mode: "topPercent" | "valueRange";
+    percent: number;
+};
+
+type MetricStats = {
+    decimals?: number;
+    max: number;
+    min: number;
+};
+
+type StateHelpersTestGlobal = typeof globalThis & {
+    globalData?: {
+        recordMesgs: Array<Record<string, number>>;
+    };
+    mapDataPointFilter?: DataPointFilterConfig;
+};
+
+const originalConsoleError = console.error;
+const testGlobal = globalThis as StateHelpersTestGlobal;
+
+describe("stateHelpers", () => {
+    beforeEach(() => {
+        vi.restoreAllMocks();
+        console.error = originalConsoleError;
+        Reflect.deleteProperty(testGlobal, "mapDataPointFilter");
+        testGlobal.globalData = { recordMesgs: [] };
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+        console.error = originalConsoleError;
+        Reflect.deleteProperty(testGlobal, "globalData");
+        Reflect.deleteProperty(testGlobal, "mapDataPointFilter");
+    });
+
+    it("clampPercent restricts values to 1-100 and truncates decimals", () => {
+        expect(clampPercent(-5)).toBe(1);
+        expect(clampPercent(0)).toBe(1);
+        expect(clampPercent(150)).toBe(100);
+        expect(clampPercent(42.9)).toBe(42);
+    });
+
+    it("resolveInitialConfig derives defaults when no persisted state exists", () => {
+        const config = resolveInitialConfig("speed", "25");
+        expect(config.metric).toBe("speed");
+        expect(config.mode).toBe("topPercent");
+        expect(config.percent).toBe(25);
+        expect(config.enabled).toBe(false);
+    });
+
+    it("resolveInitialConfig honors persisted window configuration", () => {
+        testGlobal.mapDataPointFilter = {
+            enabled: true,
+            maxValue: 750,
+            metric: "power",
+            minValue: 200,
+            mode: "valueRange",
+            percent: 5,
+        };
+        const config = resolveInitialConfig("speed", "10");
+        expect(config).toEqual({
+            enabled: true,
+            maxValue: 750,
+            metric: "power",
+            minValue: 200,
+            mode: "valueRange",
+            percent: 5,
+        });
+    });
+
+    it("computeRangeState returns normalized stats and slider strings for available data", () => {
+        testGlobal.globalData = {
+            recordMesgs: [{ speed: 10 }, { speed: 30.25 }, { speed: 25.5 }],
+        };
+
+        const { stats, rangeValues, sliderValues } = computeRangeState(
+            "speed",
+            null
+        );
+        expect(stats).toEqual(
+            expect.objectContaining({
+                decimals: 2,
+                max: 30.25,
+                metric: "speed",
+                min: 10,
+            })
+        );
+        expect(rangeValues).toEqual({ min: 10, max: 30.25 });
+        expect(sliderValues).toEqual({
+            max: toSliderString(30.25, 2),
+            min: toSliderString(10, 2),
+        });
+    });
+
+    it("computeRangeState handles empty datasets gracefully", () => {
+        const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+        const result = computeRangeState("speed", null);
+        expect(result).toEqual({
+            stats: null,
+            rangeValues: null,
+            sliderValues: null,
+        });
+        expect(spy).not.toHaveBeenCalled();
+    });
+
+    it("clampRangeValue respects min/max bounds", () => {
+        const stats: MetricStats = { min: 100, max: 400 };
+        expect(clampRangeValue(50, stats)).toBe(100);
+        expect(clampRangeValue(1000, stats)).toBe(400);
+        expect(clampRangeValue(250, stats)).toBe(250);
+    });
+
+    it("formatMetricValue uses locale-aware formatting", () => {
+        const stats: Pick<MetricStats, "decimals"> = { decimals: 2 };
+        const formatter = new Intl.NumberFormat(undefined, {
+            maximumFractionDigits: 2,
+            minimumFractionDigits: 2,
+        });
+        expect(formatMetricValue(123.456, stats)).toBe(
+            formatter.format(123.456)
+        );
+    });
+
+    it("formatPercent outputs a single decimal by default", () => {
+        const formatter = new Intl.NumberFormat(undefined, {
+            maximumFractionDigits: 1,
+            minimumFractionDigits: 0,
+        });
+        expect(formatPercent(12.345)).toBe(formatter.format(12.345));
+    });
+
+    it("updateGlobalFilter persists state on the window", () => {
+        const config: DataPointFilterConfig = {
+            enabled: true,
+            metric: "speed",
+            mode: "topPercent",
+            percent: 10,
+        };
+        updateGlobalFilter(config);
+        expect(testGlobal.mapDataPointFilter).toEqual(config);
+    });
+});
