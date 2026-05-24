@@ -348,6 +348,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             const chartConfig = (window.Chart as any).mock.calls[0][1];
 
             expect(chartConfig.type).toBe("scatter");
+            expect(chartConfig.type).not.toBe("line");
             expect(chartConfig.data.datasets).toHaveLength(1);
             expect(chartConfig.data.datasets[0].label).toBe("Events");
         });
@@ -453,6 +454,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             renderEventMessagesChart(container, {}, new Date());
 
             const canvas = container.querySelector("canvas");
+            expect(canvas).toBeInstanceOf(HTMLCanvasElement);
             expect(canvas?.id).toBe("chart-events-0");
             expect(canvas?.style.borderRadius).toBe("12px");
             expect(canvas?.style.boxShadow).toBe("0 2px 4px #00000020");
@@ -464,6 +466,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             renderEventMessagesChart(container, {}, new Date());
 
             expect(container.children.length).toBe(1);
+            expect(container.children.length).not.toBe(0);
             expect(container.children[0].tagName).toBe("CANVAS");
         });
 
@@ -494,8 +497,8 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
             renderEventMessagesChart(container, {}, new Date());
 
-            expect(window._chartjsInstances).toBeDefined();
-            expect(window._chartjsInstances).toHaveLength(1);
+            expect(window._chartjsInstances).toEqual([mockChart]);
+            expect(window._chartjsInstances).not.toHaveLength(0);
         });
 
         test("should call updateChartAnimations with correct parameters", async () => {
@@ -509,6 +512,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
                 mockChart,
                 "Event Messages"
             );
+            expect(window._chartjsInstances?.[0]).toBe(mockChart);
         });
     });
 
@@ -543,6 +547,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
             const result = tooltipCallback(mockContext);
             expect(result).toBe("Test Event");
+            expect(result).not.toBe("Event");
         });
 
         test("should handle missing event in tooltip", () => {
@@ -560,6 +565,20 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
             const result = tooltipCallback(mockContext);
             expect(result).toBe("Event");
+            expect(result).not.toBe("Test Event");
+        });
+
+        test("should handle invalid-input tooltip context", () => {
+            const container = document.createElement("div");
+
+            renderEventMessagesChart(container, {}, new Date());
+
+            const chartConfig = (window.Chart as any).mock.calls[0][1];
+            const tooltipCallback =
+                chartConfig.options.plugins.tooltip.callbacks.label;
+
+            expect(tooltipCallback({ raw: null })).toBe("Event");
+            expect(tooltipCallback({ raw: null })).not.toBe("Test Event");
         });
     });
 
@@ -572,6 +591,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             const chartConfig = (window.Chart as any).mock.calls[0][1];
 
             expect(chartConfig.plugins).toContain("chartBackgroundColorPlugin");
+            expect(chartConfig.plugins).not.toHaveLength(0);
             expect(chartConfig.plugins[0]).toEqual({
                 id: "chartZoomResetPlugin",
             });
@@ -604,6 +624,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             const result = xAxisCallback(300);
             expect(formatTime).toHaveBeenCalledWith(300, true);
             expect(result).toBe("300s");
+            expect(result).not.toBe("");
         });
 
         test("should configure x-axis ticks with theme colors", () => {
