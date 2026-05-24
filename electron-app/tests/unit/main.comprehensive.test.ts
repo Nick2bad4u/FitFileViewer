@@ -237,7 +237,7 @@ describe("main.js - Comprehensive Coverage", () => {
                 THEME_STORAGE_KEY: "ffv-theme",
             };
 
-            async function getThemeFromRenderer(win: any) {
+            async function readThemeFromWindow(win: any) {
                 if (
                     !win ||
                     win.isDestroyed() ||
@@ -269,8 +269,8 @@ describe("main.js - Comprehensive Coverage", () => {
                 },
             };
 
-            const theme = await getThemeFromRenderer(mockWindow);
-            expect(theme).toBe("light");
+            const themeName = await readThemeFromWindow(mockWindow);
+            expect(themeName).toBe("light");
             expect(
                 mockWindow.webContents.executeJavaScript
             ).toHaveBeenCalledWith('localStorage.getItem("ffv-theme")');
@@ -279,8 +279,8 @@ describe("main.js - Comprehensive Coverage", () => {
             mockWindow.webContents.executeJavaScript.mockRejectedValue(
                 new Error("JS execution failed")
             );
-            const fallbackTheme = await getThemeFromRenderer(mockWindow);
-            expect(fallbackTheme).toBe(CONSTANTS.DEFAULT_THEME);
+            const fallbackThemeName = await readThemeFromWindow(mockWindow);
+            expect(fallbackThemeName).toBe(CONSTANTS.DEFAULT_THEME);
         });
 
         it("should handle IPC communication patterns", () => {
@@ -333,16 +333,21 @@ describe("main.js - Comprehensive Coverage", () => {
                     Object.keys(context).length > 0
                         ? JSON.stringify(context)
                         : "";
-                (console as any)[level](
-                    `[${timestamp}] [main.js] ${message}`,
-                    contextStr
-                );
+                const logEntry = `[${timestamp}] [main.js] ${message}`;
+                (console as any)[level](logEntry, contextStr);
+                return { contextStr, logEntry };
             }
 
-            logWithContext("log", "Test message", { key: "value" });
+            const infoLog = logWithContext("log", "Test message", {
+                key: "value",
+            });
+            expect(infoLog.contextStr).toBe('{"key":"value"}');
+            expect(infoLog.logEntry).toContain("[main.js] Test message");
             expect(console.log).toHaveBeenCalled();
 
-            logWithContext("error", "Error message", {});
+            const errorLog = logWithContext("error", "Error message", {});
+            expect(errorLog.contextStr).toBe("");
+            expect(errorLog.logEntry).toContain("[main.js] Error message");
             expect(console.error).toHaveBeenCalled();
         });
 
@@ -397,6 +402,7 @@ describe("main.js - Comprehensive Coverage", () => {
 
             expect(result.filePaths).toEqual(["/path/to/test.fit"]);
             expect(result.canceled).toBe(false);
+            expect(result.canceled).not.toBe(true);
         });
 
         it("should handle file reading operations", async () => {
@@ -416,13 +422,17 @@ describe("main.js - Comprehensive Coverage", () => {
                 "/path/to/recent1.fit",
                 "/path/to/recent2.fit",
             ]);
-            const addRecentFile = vi.fn();
+            const trackedRecentFiles = [...loadRecentFiles()];
+            const addRecentFile = vi.fn((filePath: string) => {
+                trackedRecentFiles.unshift(filePath);
+            });
 
             const recentFiles = loadRecentFiles();
             expect(Array.isArray(recentFiles)).toBe(true);
             expect(recentFiles.length).toBeGreaterThan(0);
 
             addRecentFile("/path/to/new.fit");
+            expect(trackedRecentFiles[0]).toBe("/path/to/new.fit");
             expect(addRecentFile).toHaveBeenCalledWith("/path/to/new.fit");
         });
     });
@@ -430,16 +440,20 @@ describe("main.js - Comprehensive Coverage", () => {
     describe("App Lifecycle Events", () => {
         it("should handle app ready event", () => {
             // Simulate app ready handling
-            const readyHandler = vi.fn();
+            const readyHandler = vi.fn(() => "ready");
             mockElectronApp.whenReady.mockImplementation(readyHandler);
 
-            mockElectronApp.whenReady();
+            const readyState = mockElectronApp.whenReady();
+            expect(readyState).toBe("ready");
             expect(readyHandler).toHaveBeenCalled();
         });
 
         it("should handle app activation", () => {
             // Simulate macOS app activation behavior
-            const mockActivationHandler = vi.fn();
+            let activationCount = 0;
+            const mockActivationHandler = vi.fn(() => {
+                activationCount += 1;
+            });
 
             // Register the handler
             mockElectronApp.on("activate", mockActivationHandler);
@@ -449,12 +463,16 @@ describe("main.js - Comprehensive Coverage", () => {
                 "activate",
                 mockActivationHandler
             );
+            mockActivationHandler();
+            expect(activationCount).toBe(1);
         });
 
         it("should handle window-all-closed event", () => {
             // Simulate window-all-closed handling
+            let quitRequested = false;
             const windowsClosedHandler = vi.fn(() => {
                 if (process.platform !== "darwin") {
+                    quitRequested = true;
                     mockElectronApp.quit();
                 }
             });
@@ -466,10 +484,12 @@ describe("main.js - Comprehensive Coverage", () => {
             });
 
             windowsClosedHandler();
+            expect(quitRequested).toBe(true);
             expect(mockElectronApp.quit).toHaveBeenCalled();
 
             // Reset
             vi.clearAllMocks();
+            quitRequested = false;
 
             // Mock macOS platform
             Object.defineProperty(process, "platform", {
@@ -478,19 +498,25 @@ describe("main.js - Comprehensive Coverage", () => {
             });
 
             windowsClosedHandler();
+            expect(quitRequested).toBe(false);
             expect(mockElectronApp.quit).not.toHaveBeenCalled();
         });
 
         it("should handle before-quit event", () => {
             // Simulate before-quit handling
+            let isQuitting = false;
             const beforeQuitHandler = vi.fn((event) => {
                 // Set quitting state
+                isQuitting = true;
                 console.log("App is quitting");
+                return event;
             });
 
             const mockEvent = { preventDefault: vi.fn() };
-            beforeQuitHandler(mockEvent);
+            const handledEvent = beforeQuitHandler(mockEvent);
 
+            expect(isQuitting).toBe(true);
+            expect(handledEvent).toBe(mockEvent);
             expect(console.log).toHaveBeenCalledWith("App is quitting");
         });
     });
@@ -506,10 +532,18 @@ describe("main.js - Comprehensive Coverage", () => {
                 "error",
             ];
 
+            const registeredEvents: string[] = [];
+            mockAutoUpdater.on.mockImplementation((event: string) => {
+                registeredEvents.push(event);
+                return mockAutoUpdater;
+            });
+
             updateEvents.forEach((event) => {
                 mockAutoUpdater.on(event, vi.fn());
             });
 
+            expect(registeredEvents).toEqual(updateEvents);
+            expect(registeredEvents).not.toContain("download-progress");
             expect(mockAutoUpdater.on).toHaveBeenCalledTimes(
                 updateEvents.length
             );
@@ -518,12 +552,18 @@ describe("main.js - Comprehensive Coverage", () => {
         it("should handle update events", () => {
             // Simulate update event handling
             const updateInfo = { version: "1.1.0" };
+            let latestUpdateVersion = "";
+            let latestUpdateError = "";
             const eventHandlers = {
                 "checking-for-update": vi.fn(),
-                "update-available": vi.fn(),
+                "update-available": vi.fn((info) => {
+                    latestUpdateVersion = info.version;
+                }),
                 "update-not-available": vi.fn(),
                 "update-downloaded": vi.fn(),
-                error: vi.fn(),
+                error: vi.fn((error: Error) => {
+                    latestUpdateError = error.message;
+                }),
             };
 
             // Simulate registering handlers
@@ -533,12 +573,14 @@ describe("main.js - Comprehensive Coverage", () => {
 
             // Simulate triggering events
             eventHandlers["update-available"](updateInfo);
+            expect(latestUpdateVersion).toBe("1.1.0");
             expect(eventHandlers["update-available"]).toHaveBeenCalledWith(
                 updateInfo
             );
 
             const testError = new Error("Update failed");
             eventHandlers["error"](testError);
+            expect(latestUpdateError).toBe("Update failed");
             expect(eventHandlers["error"]).toHaveBeenCalledWith(testError);
         });
     });
@@ -550,6 +592,7 @@ describe("main.js - Comprehensive Coverage", () => {
             const server = http.createServer();
 
             expect(http.createServer).toHaveBeenCalled();
+            expect(server).toHaveProperty("listen");
 
             // Simulate server operations
             const port = 3000;
@@ -569,6 +612,7 @@ describe("main.js - Comprehensive Coverage", () => {
                 port: 3000,
                 message: "Server started on port 3000",
             });
+            expect(result).not.toEqual({ success: false });
 
             // Simulate server stop
             const stopPromise = new Promise((resolve) => {
@@ -588,9 +632,21 @@ describe("main.js - Comprehensive Coverage", () => {
     describe("Security Features", () => {
         it("should handle web content security", () => {
             // Simulate web contents security setup
+            let capturedWindowOpenHandler: ((details: any) => {
+                action: string;
+            }) | null = null;
+            let capturedNewWindowHandler:
+                | ((event: any, navigationUrl: string) => void)
+                | null = null;
             const mockWebContents = {
-                setWindowOpenHandler: vi.fn(),
-                on: vi.fn(),
+                setWindowOpenHandler: vi.fn((handler) => {
+                    capturedWindowOpenHandler = handler;
+                }),
+                on: vi.fn((event, handler) => {
+                    if (event === "new-window") {
+                        capturedNewWindowHandler = handler;
+                    }
+                }),
             };
 
             // Simulate security handler setup
@@ -608,13 +664,17 @@ describe("main.js - Comprehensive Coverage", () => {
 
             expect(mockWebContents.setWindowOpenHandler).toHaveBeenCalled();
             expect(mockWebContents.on).toHaveBeenCalled();
+            const blockedWindowAction = capturedWindowOpenHandler?.({
+                url: "https://external-site.com",
+            });
+            expect(blockedWindowAction).toEqual({ action: "deny" });
+            expect(blockedWindowAction).not.toEqual({ action: "allow" });
 
             // Simulate external navigation
             const mockEvent = { preventDefault: vi.fn() };
             const testUrl = "https://external-site.com";
 
-            mockEvent.preventDefault();
-            mockShell.openExternal(testUrl);
+            capturedNewWindowHandler?.(mockEvent, testUrl);
 
             expect(mockEvent.preventDefault).toHaveBeenCalled();
             expect(mockShell.openExternal).toHaveBeenCalledWith(testUrl);
@@ -696,11 +756,14 @@ describe("main.js - Comprehensive Coverage", () => {
     describe("State Management Integration", () => {
         it("should handle app state operations", () => {
             // Mock state management functions without requiring actual module
+            const stateStore = new Map([["test.path", "test-value"]]);
             const mainProcessState = {
-                get: vi.fn().mockReturnValue("test-value"),
-                set: vi.fn(),
-                has: vi.fn().mockReturnValue(true),
-                delete: vi.fn(),
+                get: vi.fn((key: string) => stateStore.get(key)),
+                set: vi.fn((key: string, value: string) => {
+                    stateStore.set(key, value);
+                }),
+                has: vi.fn((key: string) => stateStore.has(key)),
+                delete: vi.fn((key: string) => stateStore.delete(key)),
             };
 
             // Test state getter
@@ -710,10 +773,12 @@ describe("main.js - Comprehensive Coverage", () => {
 
             // Test state setter
             mainProcessState.set("test.path", "new-value");
+            expect(mainProcessState.get("test.path")).toBe("new-value");
             expect(mainProcessState.set).toHaveBeenCalledWith(
                 "test.path",
                 "new-value"
             );
+            expect(mainProcessState.has("missing.path")).not.toBe(true);
         });
 
         it("should handle state persistence", () => {
@@ -733,6 +798,7 @@ describe("main.js - Comprehensive Coverage", () => {
 
             const result = persistAppState("theme", "dark");
             expect(result.success).toBe(true);
+            expect(result).not.toHaveProperty("error");
             expect(console.log).toHaveBeenCalledWith(
                 'Persisting state: theme = "dark"'
             );
@@ -742,9 +808,12 @@ describe("main.js - Comprehensive Coverage", () => {
     describe("Menu Integration", () => {
         it("should create application menu", () => {
             // Mock menu creation without requiring actual module
-            const createAppMenu = vi.fn();
+            const createAppMenu = vi.fn(() => ({
+                items: ["File", "View", "Help"],
+            }));
 
-            createAppMenu();
+            const appMenu = createAppMenu();
+            expect(appMenu.items).toEqual(["File", "View", "Help"]);
             expect(createAppMenu).toHaveBeenCalled();
         });
 
@@ -764,13 +833,24 @@ describe("main.js - Comprehensive Coverage", () => {
                 }
             }
 
-            handleMenuAction("open-file");
+            mockDialog.showOpenDialog.mockReturnValue({
+                canceled: false,
+                filePaths: ["/path/to/test.fit"],
+            });
+            const openFileResult = handleMenuAction("open-file");
+            expect(openFileResult).toEqual({
+                canceled: false,
+                filePaths: ["/path/to/test.fit"],
+            });
             expect(console.log).toHaveBeenCalledWith("Opening file dialog");
             expect(mockDialog.showOpenDialog).toHaveBeenCalled();
 
-            handleMenuAction("quit-app");
+            const quitResult = handleMenuAction("quit-app");
+            expect(quitResult).toBeUndefined();
             expect(console.log).toHaveBeenCalledWith("Quitting application");
             expect(mockElectronApp.quit).toHaveBeenCalled();
+
+            expect(handleMenuAction("unknown-action")).toBeNull();
         });
     });
 });
