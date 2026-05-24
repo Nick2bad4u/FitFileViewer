@@ -6,11 +6,7 @@ import { describe, test, expect, vi, beforeEach } from "vitest";
 
 // Mock dependencies
 vi.mock("../../../../utils/charts/theming/chartOverlayColorPalette.js", () => ({
-    chartOverlayColorPalette: {
-        overlay1: "#ff0000",
-        overlay2: "#00ff00",
-        overlay3: "#0000ff",
-    },
+    chartOverlayColorPalette: ["#ff0000", "#00ff00", "#0000ff"],
 }));
 
 vi.mock("../../../../utils/files/import/getOverlayFileName.js", () => ({
@@ -88,6 +84,7 @@ describe("mapDrawLaps", () => {
             clone: vi.fn().mockReturnThis(),
             isValid: vi.fn().mockReturnValue(true),
         };
+        mockPolyline.getBounds.mockReturnValue(mockLatLngBounds);
 
         mockMarkerClusterGroup = {
             addLayer: vi.fn(),
@@ -216,7 +213,7 @@ describe("mapDrawLaps", () => {
                 lapMesgs: [],
             };
 
-            drawOverlayForFitFile({
+            const result = drawOverlayForFitFile({
                 map: mockMap,
                 fitData: mockFitData,
                 overlayIdx: 2,
@@ -228,10 +225,18 @@ describe("mapDrawLaps", () => {
                 getLapNumForIdx: vi.fn(),
             });
 
+            expect(result).toBe(mockLatLngBounds);
+            expect((globalThis as any).window._overlayPolylines).toStrictEqual({
+                "2": mockPolyline,
+            });
+            expect(
+                (globalThis as any).window._overlayPolylines
+            ).not.toHaveProperty("0");
             expect(mockLeaflet.polyline).toHaveBeenCalledWith(
                 expect.any(Array),
                 expect.objectContaining({
-                    color: expect.any(String),
+                    color: "#0000ff",
+                    weight: 4,
                 })
             );
         });
@@ -295,13 +300,15 @@ describe("mapDrawLaps", () => {
         });
 
         test("should not remove non-activity layers from map", () => {
+            const mapContainer = document.createElement("div");
+
             mapDrawLaps(0, {
                 map: mockMap,
                 baseLayers: {},
                 markerClusterGroup: mockMarkerClusterGroup,
                 startIcon: mockMarker,
                 endIcon: mockMarker,
-                mapContainer: document.createElement("div"),
+                mapContainer,
                 getLapColor: vi.fn(),
                 formatTooltipData: vi.fn(),
                 getLapNumForIdx: vi.fn(),
@@ -309,22 +316,29 @@ describe("mapDrawLaps", () => {
 
             // We no longer bulk-remove layers via map.eachLayer/removeLayer.
             expect(mockMap.removeLayer).not.toHaveBeenCalled();
+            expect(mapContainer.textContent).toContain(
+                "No location data available to display map."
+            );
         });
 
         test("should handle missing fitFile gracefully", () => {
+            const mapContainer = document.createElement("div");
+
             mapDrawLaps(0, {
                 map: mockMap,
                 baseLayers: {},
                 markerClusterGroup: mockMarkerClusterGroup,
                 startIcon: mockMarker,
                 endIcon: mockMarker,
-                mapContainer: document.createElement("div"),
+                mapContainer,
                 getLapColor: vi.fn(),
                 formatTooltipData: vi.fn(),
                 getLapNumForIdx: vi.fn(),
             });
 
             expect(mockLeaflet.polyline).not.toHaveBeenCalled();
+            expect(mapContainer.textContent).toContain("recordMesgs: 0");
+            expect(mapContainer.textContent).toContain("lapMesgs: 0");
         });
 
         test("should use active file from loadedFitFiles when idx differs", () => {
@@ -457,7 +471,9 @@ describe("mapDrawLaps", () => {
             expect(mockLeaflet.polyline).toHaveBeenCalled();
             const activityGroup =
                 mockLeaflet.featureGroup.mock.results[0]?.value;
-            expect(activityGroup).toBeTruthy();
+            expect(activityGroup).toBe(
+                (globalThis as any).window._ffvActivityLayerGroup
+            );
             expect(mockPolyline.addTo).toHaveBeenCalledWith(activityGroup);
 
             // Verify bounds handling
@@ -539,7 +555,9 @@ describe("mapDrawLaps", () => {
             {
                 const activityGroup =
                     mockLeaflet.featureGroup.mock.results[0]?.value;
-                expect(activityGroup).toBeTruthy();
+                expect(activityGroup).toBe(
+                    (globalThis as any).window._ffvActivityLayerGroup
+                );
                 expect(mockPolyline.addTo).toHaveBeenCalledWith(activityGroup);
             }
         });
@@ -621,7 +639,9 @@ describe("mapDrawLaps", () => {
             {
                 const activityGroup =
                     mockLeaflet.featureGroup.mock.results[0]?.value;
-                expect(activityGroup).toBeTruthy();
+                expect(activityGroup).toBe(
+                    (globalThis as any).window._ffvActivityLayerGroup
+                );
                 expect(mockPolyline.addTo).toHaveBeenCalledWith(activityGroup);
             }
         });
@@ -660,6 +680,17 @@ describe("mapDrawLaps", () => {
 
             // Should behave same as "all" - creating a polyline
             expect(mockLeaflet.polyline).toHaveBeenCalled();
+            expect((globalThis as any).window._mainPolyline).toBe(mockPolyline);
+            expect(
+                (globalThis as any).window._mainPolylineOriginalBounds
+            ).toBe(mockLatLngBounds);
+            expect(mockLeaflet.polyline).toHaveBeenCalledWith(
+                expect.any(Array),
+                expect.objectContaining({
+                    dashArray: "6, 8",
+                    weight: 4,
+                })
+            );
         });
 
         test("should handle overlay files with multiple loaded files", () => {
@@ -718,6 +749,13 @@ describe("mapDrawLaps", () => {
 
             // Verify overlay processing
             expect(mockLeaflet.polyline).toHaveBeenCalled();
+            expect(mockLeaflet.polyline).toHaveBeenCalledTimes(2);
+            expect((globalThis as any).window._overlayPolylines).toStrictEqual({
+                "1": mockPolyline,
+            });
+            expect(mockMap.fitBounds).toHaveBeenCalledWith(mockLatLngBounds, {
+                padding: [20, 20],
+            });
         });
 
         test("should handle invalid lap index gracefully", () => {
@@ -752,6 +790,10 @@ describe("mapDrawLaps", () => {
 
             // Should fall back to default behavior
             expect(mockLeaflet.polyline).toHaveBeenCalled();
+            expect((globalThis as any).window._mainPolyline).toBe(mockPolyline);
+            expect(mapContainer.textContent).not.toContain(
+                "Lap index out of bounds or invalid."
+            );
         });
 
         test("should handle missing position data in records", () => {
@@ -792,6 +834,19 @@ describe("mapDrawLaps", () => {
 
             // Should filter out invalid records and still create polyline
             expect(mockLeaflet.polyline).toHaveBeenCalled();
+            expect(mockLeaflet.polyline).toHaveBeenCalledWith(
+                [
+                    [
+                        Number((429496729 / 2 ** 31) * 180),
+                        Number((858993459 / 2 ** 31) * 180),
+                    ],
+                ],
+                expect.objectContaining({
+                    color: "#1976d2",
+                    weight: 4,
+                })
+            );
+            expect(mapContainer.textContent).toBe("");
         });
     });
 });
