@@ -29,7 +29,7 @@ describe("estimateCyclingPower.js - High Altitude", () => {
             { timestamp: 1002, speed: 10.0, altitude: 0, distance: 20 },
         ];
 
-        applyEstimatedPowerToRecords({
+        const seaLevelResult = applyEstimatedPowerToRecords({
             recordMesgs: seaLevelRecords,
             sessionMesgs: [{ sport: "cycling" }],
             settings: commonSettings,
@@ -42,7 +42,7 @@ describe("estimateCyclingPower.js - High Altitude", () => {
             { timestamp: 1002, speed: 10.0, altitude: 3000, distance: 20 },
         ];
 
-        applyEstimatedPowerToRecords({
+        const highAltitudeResult = applyEstimatedPowerToRecords({
             recordMesgs: highAltitudeRecords,
             sessionMesgs: [{ sport: "cycling" }],
             settings: commonSettings,
@@ -50,6 +50,12 @@ describe("estimateCyclingPower.js - High Altitude", () => {
 
         const seaLevelPower = seaLevelRecords[1].estimatedPower as number;
         const highAltPower = highAltitudeRecords[1].estimatedPower as number;
+
+        expect(seaLevelResult.applied).toBe(true);
+        expect(highAltitudeResult.applied).toBe(true);
+        expect(Number.isFinite(seaLevelPower)).toBe(true);
+        expect(Number.isFinite(highAltPower)).toBe(true);
+        expect(highAltPower).not.toBe(seaLevelPower);
 
         // At 3000m, air density is lower, so aero drag is lower, so power required should be LOWER.
         expect(highAltPower).toBeLessThan(seaLevelPower);
@@ -60,7 +66,7 @@ describe("estimateCyclingPower.js - High Altitude", () => {
             { timestamp: 1002, speed: 10.0, altitude: 5000, distance: 20 },
         ];
 
-        applyEstimatedPowerToRecords({
+        const extremeAltitudeResult = applyEstimatedPowerToRecords({
             recordMesgs: extremeAltitudeRecords,
             sessionMesgs: [{ sport: "cycling" }],
             settings: commonSettings,
@@ -68,6 +74,9 @@ describe("estimateCyclingPower.js - High Altitude", () => {
 
         const extremeAltPower = extremeAltitudeRecords[1]
             .estimatedPower as number;
+
+        expect(extremeAltitudeResult.applied).toBe(true);
+        expect(Number.isFinite(extremeAltPower)).toBe(true);
 
         // Ensure no clamping at 0.9 prevents extreme altitude differentiation
         expect(extremeAltPower).toBeLessThan(highAltPower);
