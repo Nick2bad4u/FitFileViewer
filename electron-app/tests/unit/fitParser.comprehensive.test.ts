@@ -123,17 +123,30 @@ describe("fitParser.js - Comprehensive Coverage", () => {
 
     describe("Module Exports", () => {
         it("should export all required functions and constants", () => {
-            expect(fitParser.decodeFitFile).toBeDefined();
-            expect(fitParser.FitDecodeError).toBeDefined();
-            expect(fitParser.applyUnknownMessageLabels).toBeDefined();
-            expect(fitParser.initializeStateManagement).toBeDefined();
-            expect(fitParser.updateDecoderOptions).toBeDefined();
-            expect(fitParser.getCurrentDecoderOptions).toBeDefined();
-            expect(fitParser.resetDecoderOptions).toBeDefined();
-            expect(fitParser.getPersistedDecoderOptions).toBeDefined();
-            expect(fitParser.getDefaultDecoderOptions).toBeDefined();
-            expect(fitParser.validateDecoderOptions).toBeDefined();
-            expect(fitParser.DECODER_OPTIONS_SCHEMA).toBeDefined();
+            expect(typeof fitParser.decodeFitFile).toBe("function");
+            expect(typeof fitParser.FitDecodeError).toBe("function");
+            expect(typeof fitParser.applyUnknownMessageLabels).toBe("function");
+            expect(typeof fitParser.initializeStateManagement).toBe("function");
+            expect(typeof fitParser.updateDecoderOptions).toBe("function");
+            expect(typeof fitParser.getCurrentDecoderOptions).toBe("function");
+            expect(typeof fitParser.resetDecoderOptions).toBe("function");
+            expect(typeof fitParser.getPersistedDecoderOptions).toBe(
+                "function"
+            );
+            expect(typeof fitParser.getDefaultDecoderOptions).toBe("function");
+            expect(typeof fitParser.validateDecoderOptions).toBe("function");
+            expect(
+                Object.keys(fitParser.DECODER_OPTIONS_SCHEMA).sort()
+            ).toEqual([
+                "applyScaleAndOffset",
+                "convertDateTimesToDates",
+                "convertTypesToStrings",
+                "expandComponents",
+                "expandSubFields",
+                "includeUnknownData",
+                "mergeHeartRates",
+            ]);
+            expect(fitParser.DECODER_OPTIONS_SCHEMA).not.toStrictEqual({});
         });
     });
 
@@ -150,7 +163,7 @@ describe("fitParser.js - Comprehensive Coverage", () => {
             expect(error.details).toEqual({ code: "TEST" });
             expect(error.metadata.category).toBe("fit_parsing");
             expect(error.metadata.source).toBe("test");
-            expect(error.metadata.timestamp).toBeDefined();
+            expect(typeof error.metadata.timestamp).toBe("string");
         });
 
         it("should serialize to JSON correctly", () => {
@@ -162,8 +175,11 @@ describe("fitParser.js - Comprehensive Coverage", () => {
             expect(json.name).toBe("FitDecodeError");
             expect(json.message).toBe("Test error");
             expect(json.details).toEqual({ code: "TEST" });
-            expect(json.metadata).toBeDefined();
-            expect(json.stack).toBeDefined();
+            expect(json.metadata).toMatchObject({
+                category: "fit_parsing",
+                timestamp: expect.any(String),
+            });
+            expect(typeof json.stack).toBe("string");
         });
     });
 
@@ -183,6 +199,9 @@ describe("fitParser.js - Comprehensive Coverage", () => {
                     hasPerformanceMonitor: true,
                 }
             );
+            expect(fitParser.getPersistedDecoderOptions()).toMatchObject(
+                fitParser.getDefaultDecoderOptions()
+            );
         });
 
         it("should initialize state management with no managers", () => {
@@ -196,9 +215,16 @@ describe("fitParser.js - Comprehensive Coverage", () => {
                     hasPerformanceMonitor: false,
                 }
             );
+            expect(fitParser.getPersistedDecoderOptions()).toStrictEqual(
+                fitParser.getDefaultDecoderOptions()
+            );
         });
 
         it("should initialize state management with partial managers", () => {
+            mockSettingsStateManager.getCategory.mockReturnValue({
+                mergeHeartRates: false,
+            });
+
             fitParser.initializeStateManagement({
                 settingsStateManager: mockSettingsStateManager,
             });
@@ -211,6 +237,9 @@ describe("fitParser.js - Comprehensive Coverage", () => {
                     hasPerformanceMonitor: false,
                 }
             );
+            expect(fitParser.getPersistedDecoderOptions()).toMatchObject({
+                mergeHeartRates: false,
+            });
         });
     });
 
@@ -254,7 +283,9 @@ describe("fitParser.js - Comprehensive Coverage", () => {
 
             expect(result.isValid).toBe(false);
             expect(result.errors.length).toBeGreaterThan(0);
-            expect(result.validatedOptions).toBeDefined();
+            expect(result.validatedOptions).toMatchObject(
+                fitParser.getDefaultDecoderOptions()
+            );
         });
 
         it("should handle null decoder options", () => {
@@ -396,14 +427,16 @@ describe("fitParser.js - Comprehensive Coverage", () => {
             const result = fitParser.updateDecoderOptions(invalidOptions);
 
             expect(result.success).toBe(false);
-            expect(result.errors).toBeDefined();
-            expect(result.errors.length).toBeGreaterThan(0);
+            expect(result.errors).toEqual(
+                expect.arrayContaining([
+                    expect.stringContaining("applyScaleAndOffset"),
+                ])
+            );
         });
 
         it("should get current decoder options", () => {
             const options = fitParser.getCurrentDecoderOptions();
-            expect(options).toBeDefined();
-            expect(typeof options).toBe("object");
+            expect(options).toMatchObject(fitParser.getDefaultDecoderOptions());
         });
 
         it("should reset decoder options to defaults", () => {
@@ -445,8 +478,15 @@ describe("fitParser.js - Comprehensive Coverage", () => {
                 mockFitFileStateManager.updateLoadingProgress
             ).toHaveBeenCalledWith(100);
             expect(mockFitFileStateManager.handleFileLoaded).toHaveBeenCalled();
-            expect(result).toBeDefined();
-            expect(result.activity).toBeDefined();
+            expect(result).toMatchObject({
+                activity: [{ sport: "cycling" }],
+                record: [
+                    expect.objectContaining({
+                        heart_rate: 150,
+                        timestamp: expect.any(Date),
+                    }),
+                ],
+            });
         });
 
         it("should handle Uint8Array input", async () => {
@@ -462,7 +502,7 @@ describe("fitParser.js - Comprehensive Coverage", () => {
             expect(mockFitSDK.Stream.fromBuffer).toHaveBeenCalledWith(
                 Buffer.from(uint8Array)
             );
-            expect(result).toBeDefined();
+            expect(result.activity).toEqual([{ sport: "cycling" }]);
         });
 
         it("should track progress during decoding", async () => {
@@ -473,7 +513,7 @@ describe("fitParser.js - Comprehensive Coverage", () => {
                 0x08,
             ]);
 
-            await fitParser.decodeFitFile(buffer);
+            const result = await fitParser.decodeFitFile(buffer);
 
             expect(
                 mockFitFileStateManager.updateLoadingProgress
@@ -493,6 +533,7 @@ describe("fitParser.js - Comprehensive Coverage", () => {
             expect(
                 mockFitFileStateManager.updateLoadingProgress
             ).toHaveBeenCalledWith(100); // Complete
+            expect(result.record).toHaveLength(1);
         });
 
         it("should track performance timing", async () => {
@@ -503,7 +544,7 @@ describe("fitParser.js - Comprehensive Coverage", () => {
                 0x08,
             ]);
 
-            await fitParser.decodeFitFile(buffer);
+            const result = await fitParser.decodeFitFile(buffer);
 
             expect(mockPerformanceMonitor.startTimer).toHaveBeenCalledWith(
                 expect.stringMatching(/fitFile_decode_/)
@@ -511,6 +552,7 @@ describe("fitParser.js - Comprehensive Coverage", () => {
             expect(mockPerformanceMonitor.endTimer).toHaveBeenCalledWith(
                 expect.stringMatching(/fitFile_decode_/)
             );
+            expect(result.activity).toEqual([{ sport: "cycling" }]);
         });
 
         it("should use custom decoder options", async () => {
@@ -522,11 +564,12 @@ describe("fitParser.js - Comprehensive Coverage", () => {
             ]);
             const customOptions = { applyScaleAndOffset: false };
 
-            await fitParser.decodeFitFile(buffer, customOptions);
+            const result = await fitParser.decodeFitFile(buffer, customOptions);
 
             expect(mockDecoder.read).toHaveBeenCalledWith(
                 expect.objectContaining({ applyScaleAndOffset: false })
             );
+            expect(result.record).toHaveLength(1);
         });
 
         it("should handle invalid input buffer", async () => {
@@ -550,7 +593,6 @@ describe("fitParser.js - Comprehensive Coverage", () => {
 
             const result = await fitParser.decodeFitFile(buffer);
 
-            expect(result.error).toBeDefined();
             expect(result.error).toContain("FIT file integrity check failed");
             expect(
                 mockFitFileStateManager.handleFileLoadingError
@@ -571,7 +613,6 @@ describe("fitParser.js - Comprehensive Coverage", () => {
 
             const result = await fitParser.decodeFitFile(buffer);
 
-            expect(result.error).toBeDefined();
             expect(result.error).toContain("Decoding errors occurred");
             expect(
                 mockFitFileStateManager.handleFileLoadingError
@@ -592,7 +633,6 @@ describe("fitParser.js - Comprehensive Coverage", () => {
 
             const result = await fitParser.decodeFitFile(buffer);
 
-            expect(result.error).toBeDefined();
             expect(result.error).toContain("No valid messages decoded");
             expect(
                 mockFitFileStateManager.handleFileLoadingError
@@ -621,7 +661,7 @@ describe("fitParser.js - Comprehensive Coverage", () => {
                 failingSDK
             );
 
-            expect(result.error).toBeDefined();
+            expect(result.error).toBe("SDK initialization failed");
             expect(
                 mockFitFileStateManager.handleFileLoadingError
             ).toHaveBeenCalled();
@@ -642,8 +682,7 @@ describe("fitParser.js - Comprehensive Coverage", () => {
 
             const result = await fitParser.decodeFitFile(buffer);
 
-            expect(result).toBeDefined();
-            expect(result.activity).toBeDefined(); // Should still succeed
+            expect(result.activity).toEqual([{ sport: "cycling" }]);
             expect(console.warn).toHaveBeenCalledWith(
                 expect.stringContaining("Failed to update loading progress"),
                 expect.any(Error)
@@ -666,7 +705,7 @@ describe("fitParser.js - Comprehensive Coverage", () => {
 
             const result = await fitParser.decodeFitFile(buffer);
 
-            expect(result.error).toBeDefined();
+            expect(result.error).toContain("FIT file integrity check failed");
             expect(console.warn).toHaveBeenCalledWith(
                 expect.stringContaining("Failed to update error state"),
                 expect.any(Error)
@@ -686,8 +725,10 @@ describe("fitParser.js - Comprehensive Coverage", () => {
 
             const result = await fitParser.decodeFitFile(buffer);
 
-            expect(result.error).toBeDefined();
-            expect(result.details).toBeDefined();
+            expect(result.error).toBe("Unexpected error");
+            expect(result.details).toEqual(
+                expect.stringContaining("Error: Unexpected error")
+            );
             expect(console.error).toHaveBeenCalledWith(
                 "[FitParser] Failed to decode file",
                 expect.any(Error)
@@ -739,7 +780,7 @@ describe("fitParser.js - Comprehensive Coverage", () => {
                 "[FitParser] Failed to update loading progress:",
                 progressError
             );
-            expect(result).toBeDefined(); // Should still process successfully
+            expect(result.activity).toEqual([{ sport: "cycling" }]);
 
             consoleWarnSpy.mockRestore();
         });
@@ -828,8 +869,7 @@ describe("fitParser.js - Comprehensive Coverage", () => {
 
             const result = fitParser.applyUnknownMessageLabels(messages);
 
-            expect(result).toBeDefined();
-            expect(result.activity).toBeDefined();
+            expect(result.activity).toEqual([{ sport: "cycling" }]);
             // Unknown messages should be processed
             expect(Object.keys(result)).toContain("unknown_123");
         });
@@ -866,18 +906,50 @@ describe("fitParser.js - Comprehensive Coverage", () => {
         it("should have valid decoder options schema", () => {
             const schema = fitParser.DECODER_OPTIONS_SCHEMA;
 
-            expect(schema).toBeDefined();
+            expect(Object.keys(schema).sort()).toEqual([
+                "applyScaleAndOffset",
+                "convertDateTimesToDates",
+                "convertTypesToStrings",
+                "expandComponents",
+                "expandSubFields",
+                "includeUnknownData",
+                "mergeHeartRates",
+            ]);
             expect(schema.applyScaleAndOffset).toMatchObject({
                 type: "boolean",
                 default: true,
                 description: expect.any(String),
             });
-            expect(schema.expandSubFields).toBeDefined();
-            expect(schema.expandComponents).toBeDefined();
-            expect(schema.convertTypesToStrings).toBeDefined();
-            expect(schema.convertDateTimesToDates).toBeDefined();
-            expect(schema.includeUnknownData).toBeDefined();
-            expect(schema.mergeHeartRates).toBeDefined();
+            expect(schema.expandSubFields).toMatchObject({
+                type: "boolean",
+                default: true,
+                description: expect.any(String),
+            });
+            expect(schema.expandComponents).toMatchObject({
+                type: "boolean",
+                default: true,
+                description: expect.any(String),
+            });
+            expect(schema.convertTypesToStrings).toMatchObject({
+                type: "boolean",
+                default: true,
+                description: expect.any(String),
+            });
+            expect(schema.convertDateTimesToDates).toMatchObject({
+                type: "boolean",
+                default: true,
+                description: expect.any(String),
+            });
+            expect(schema.includeUnknownData).toMatchObject({
+                type: "boolean",
+                default: true,
+                description: expect.any(String),
+            });
+            expect(schema.mergeHeartRates).toMatchObject({
+                type: "boolean",
+                default: true,
+                description: expect.any(String),
+            });
         });
     });
 
@@ -908,7 +980,7 @@ describe("fitParser.js - Comprehensive Coverage", () => {
 
             const result = await fitParser.decodeFitFile(buffer);
 
-            expect(result.error).toBeDefined();
+            expect(result.error).toBe("decoder.read is not a function");
         });
 
         it("should handle performance monitor timing failures", async () => {
