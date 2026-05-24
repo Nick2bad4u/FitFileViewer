@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 
-const modPath = "../../../../../utils/files/export/exportUtils.js";
+function loadExportUtils() {
+    return import("../../../../../utils/files/export/exportUtils.js");
+}
 
 // Minimal DOM and API shims for canvas, URL, and clipboard
 function installCanvasMocks() {
@@ -147,7 +149,7 @@ describe("exportUtils core flows", () => {
     });
 
     it("isValidChart validates presence of canvas and dimensions", async () => {
-        const { exportUtils } = await import(modPath);
+        const { exportUtils } = await loadExportUtils();
         expect(exportUtils.isValidChart(null as any)).toBe(false);
 
         const noCanvas: any = {};
@@ -161,30 +163,44 @@ describe("exportUtils core flows", () => {
     });
 
     it("getExportThemeBackground honors explicit theme and auto fallback", async () => {
-        const { exportUtils, __setTestDeps } = await import(modPath);
+        const { exportUtils, __setTestDeps } = await loadExportUtils();
         // Explicit
         localStorage.setItem("chartjs_exportTheme", "dark");
-        expect(exportUtils.getExportThemeBackground()).toBe("#1a1a1a");
+        const explicitDark = exportUtils.getExportThemeBackground();
 
         localStorage.setItem("chartjs_exportTheme", "light");
-        expect(exportUtils.getExportThemeBackground()).toBe("#ffffff");
+        const explicitLight = exportUtils.getExportThemeBackground();
 
         localStorage.setItem("chartjs_exportTheme", "transparent");
-        expect(exportUtils.getExportThemeBackground()).toBe("transparent");
+        const explicitTransparent = exportUtils.getExportThemeBackground();
 
         // Auto uses detectCurrentTheme
         localStorage.setItem("chartjs_exportTheme", "auto");
         __setTestDeps({ detectCurrentTheme: () => "dark" } as any);
-        expect(exportUtils.getExportThemeBackground()).toBe("#1a1a1a");
+        const autoDark = exportUtils.getExportThemeBackground();
 
         // No setting falls back to detectCurrentTheme or light
         localStorage.removeItem("chartjs_exportTheme");
         __setTestDeps({ detectCurrentTheme: () => "light" } as any);
-        expect(exportUtils.getExportThemeBackground()).toBe("#ffffff");
+        const fallbackLight = exportUtils.getExportThemeBackground();
+
+        expect({
+            autoDark,
+            explicitDark,
+            explicitLight,
+            explicitTransparent,
+            fallbackLight,
+        }).toEqual({
+            autoDark: "#1a1a1a",
+            explicitDark: "#1a1a1a",
+            explicitLight: "#ffffff",
+            explicitTransparent: "transparent",
+            fallbackLight: "#ffffff",
+        });
     });
 
     it("downloadChartAsPNG triggers link click and notification", async () => {
-        const { exportUtils, __setTestDeps } = await import(modPath);
+        const { exportUtils, __setTestDeps } = await loadExportUtils();
         const note = vi.fn();
         __setTestDeps({ showNotification: note } as any);
 
@@ -209,7 +225,7 @@ describe("exportUtils core flows", () => {
     });
 
     it("copyChartToClipboard writes PNG blob and notifies", async () => {
-        const { exportUtils, __setTestDeps } = await import(modPath);
+        const { exportUtils, __setTestDeps } = await loadExportUtils();
         const note = vi.fn();
         __setTestDeps({ showNotification: note } as any);
 
@@ -218,16 +234,17 @@ describe("exportUtils core flows", () => {
             toBase64Image: vi.fn(() => "data:image/png;base64,AAA"),
         };
 
-        await exportUtils.copyChartToClipboard(chart);
+        const result = await exportUtils.copyChartToClipboard(chart);
         // the toBlob callback is async; wait until clipboard.write is observed
         await vi.waitFor(() => {
             expect((navigator.clipboard as any).write).toHaveBeenCalledTimes(1);
         });
+        expect(result).toBeUndefined();
         expect(note).toHaveBeenCalled();
     });
 
     it("exportChartDataAsCSV creates a blob link and notifies", async () => {
-        const { exportUtils } = await import(modPath);
+        const { exportUtils } = await loadExportUtils();
 
         const data = [
             { x: 1, y: 10 },
@@ -255,7 +272,7 @@ describe("exportUtils core flows", () => {
     });
 
     it("exportChartDataAsJSON creates a blob link and notifies", async () => {
-        const { exportUtils } = await import(modPath);
+        const { exportUtils } = await loadExportUtils();
 
         const data = [
             { x: 1, y: 10 },
@@ -282,7 +299,7 @@ describe("exportUtils core flows", () => {
     });
 
     it("exportCombinedChartsDataAsCSV merges timestamps across charts", async () => {
-        const { exportUtils } = await import(modPath);
+        const { exportUtils } = await loadExportUtils();
 
         const chartA: any = {
             data: {
@@ -334,14 +351,14 @@ describe("exportUtils core flows", () => {
     it("uploadToImgur throws when client id is not configured", async () => {
         // Set to the unconfigured value that should trigger the error
         localStorage.setItem("imgur_client_id", "YOUR_IMGUR_CLIENT_ID");
-        const { exportUtils } = await import(modPath);
+        const { exportUtils } = await loadExportUtils();
         await expect(
             exportUtils.uploadToImgur("data:image/png;base64,AAA")
         ).rejects.toThrow(/Imgur client ID not configured/i);
     });
 
     it("createCombinedChartsImage stitches canvases and notifies", async () => {
-        const { exportUtils, __setTestDeps } = await import(modPath);
+        const { exportUtils, __setTestDeps } = await loadExportUtils();
         const note = vi.fn();
         __setTestDeps({ showNotification: note } as any);
 
@@ -364,17 +381,21 @@ describe("exportUtils core flows", () => {
     });
 
     it("copyCombinedChartsToClipboard writes blob and notifies", async () => {
-        const { exportUtils, __setTestDeps } = await import(modPath);
+        const { exportUtils, __setTestDeps } = await loadExportUtils();
         const note = vi.fn();
         __setTestDeps({ showNotification: note } as any);
 
         const chartA: any = { canvas: { width: 400, height: 200 } };
         const chartB: any = { canvas: { width: 400, height: 200 } };
 
-        await exportUtils.copyCombinedChartsToClipboard([chartA, chartB]);
+        const result = await exportUtils.copyCombinedChartsToClipboard([
+            chartA,
+            chartB,
+        ]);
         await vi.waitFor(() => {
             expect((navigator.clipboard as any).write).toHaveBeenCalledTimes(1);
         });
+        expect(result).toBeUndefined();
         expect(note).toHaveBeenCalledWith(
             "Combined charts copied to clipboard",
             "success"
@@ -382,7 +403,7 @@ describe("exportUtils core flows", () => {
     });
 
     it("addCombinedCSVToZip creates combined-data.csv with union timestamps", async () => {
-        const { exportUtils } = await import(modPath);
+        const { exportUtils } = await loadExportUtils();
         const zip: any = {
             entries: {} as Record<string, string>,
             file(name: string, data: string) {
@@ -424,7 +445,7 @@ describe("exportUtils core flows", () => {
     });
 
     it("exportAllAsZip writes images and data then notifies", async () => {
-        const { exportUtils } = await import(modPath);
+        const { exportUtils } = await loadExportUtils();
         const reg = (globalThis as any).__vitest_manual_mocks__ as Map<
             string,
             any
@@ -443,13 +464,16 @@ describe("exportUtils core flows", () => {
             config: { type: "line" },
         };
 
-        await exportUtils.exportAllAsZip([chartA, chartB]);
+        const result = await exportUtils.exportAllAsZip([chartA, chartB]);
+        const link = document.querySelector("a[download^='fitfile-charts-']");
         // assert notification fired
+        expect(result).toBeUndefined();
+        expect(link).toBeNull();
         expect(notify).toHaveBeenCalled();
     });
 
     it("printChart opens window and notifies", async () => {
-        const { exportUtils } = await import(modPath);
+        const { exportUtils } = await loadExportUtils();
         const reg = (globalThis as any).__vitest_manual_mocks__ as Map<
             string,
             any
@@ -461,13 +485,18 @@ describe("exportUtils core flows", () => {
         const openSpy = vi.spyOn(window, "open").mockReturnValue(fakeWin);
 
         const chart: any = { canvas: { width: 300, height: 150 } };
-        await exportUtils.printChart(chart);
+        const result = await exportUtils.printChart(chart);
+        const printImage = fakeWin.document.querySelector("#ffv-print-img");
+        expect(result).toBeUndefined();
+        expect(printImage?.getAttribute("src")).toBe(
+            "data:image/png;base64,AAA"
+        );
         expect(openSpy).toHaveBeenCalled();
         expect(notify).toHaveBeenCalledWith("Chart sent to printer", "success");
     });
 
     it("printCombinedCharts opens window and notifies", async () => {
-        const { exportUtils } = await import(modPath);
+        const { exportUtils } = await loadExportUtils();
         const reg = (globalThis as any).__vitest_manual_mocks__ as Map<
             string,
             any
@@ -486,7 +515,9 @@ describe("exportUtils core flows", () => {
             canvas: { width: 300, height: 150 },
             data: { datasets: [{ label: "B" }] },
         };
-        await exportUtils.printCombinedCharts([chartA, chartB]);
+        const result = await exportUtils.printCombinedCharts([chartA, chartB]);
+        expect(result).toBeUndefined();
+        expect(fakeWin.document.querySelectorAll(".chart")).toHaveLength(2);
         expect(notify).toHaveBeenCalledWith(
             "Charts sent to printer",
             "success"
@@ -500,7 +531,7 @@ describe("exportUtils core flows", () => {
         });
 
         it("getImgurConfig retrieves stored Imgur configuration", async () => {
-            const { exportUtils } = await import(modPath);
+            const { exportUtils } = await loadExportUtils();
 
             // No config stored - returns default config
             expect(exportUtils.getImgurConfig()).toEqual({
@@ -517,7 +548,7 @@ describe("exportUtils core flows", () => {
         });
 
         it("setImgurConfig stores Imgur client ID", async () => {
-            const { exportUtils } = await import(modPath);
+            const { exportUtils } = await loadExportUtils();
 
             exportUtils.setImgurConfig("new-client-456");
             expect(localStorage.getItem("imgur_client_id")).toBe(
@@ -526,7 +557,7 @@ describe("exportUtils core flows", () => {
         });
 
         it("clearImgurConfig removes stored configuration", async () => {
-            const { exportUtils } = await import(modPath);
+            const { exportUtils } = await loadExportUtils();
 
             localStorage.setItem("imgur_client_id", "test-client");
             exportUtils.clearImgurConfig();
@@ -534,21 +565,31 @@ describe("exportUtils core flows", () => {
         });
 
         it("isImgurConfigured checks if client ID is set", async () => {
-            const { exportUtils } = await import(modPath);
+            const { exportUtils } = await loadExportUtils();
 
             // With default client ID, it's considered configured
-            expect(exportUtils.isImgurConfigured()).toBe(true);
+            const defaultConfigured = exportUtils.isImgurConfigured();
 
             localStorage.setItem("imgur_client_id", "test-client");
-            expect(exportUtils.isImgurConfigured()).toBe(true);
+            const customConfigured = exportUtils.isImgurConfigured();
 
             // Only "YOUR_IMGUR_CLIENT_ID" is considered unconfigured
             localStorage.setItem("imgur_client_id", "YOUR_IMGUR_CLIENT_ID");
-            expect(exportUtils.isImgurConfigured()).toBe(false);
+            const placeholderConfigured = exportUtils.isImgurConfigured();
+
+            expect({
+                customConfigured,
+                defaultConfigured,
+                placeholderConfigured,
+            }).toEqual({
+                customConfigured: true,
+                defaultConfigured: true,
+                placeholderConfigured: false,
+            });
         });
 
         it("uploadToImgur throws error when not configured", async () => {
-            const { exportUtils } = await import(modPath);
+            const { exportUtils } = await loadExportUtils();
 
             // Set to the only unconfigured value
             localStorage.setItem("imgur_client_id", "YOUR_IMGUR_CLIENT_ID");
@@ -559,7 +600,7 @@ describe("exportUtils core flows", () => {
         });
 
         it("uploadToImgur makes API call when configured", async () => {
-            const { exportUtils } = await import(modPath);
+            const { exportUtils } = await loadExportUtils();
 
             localStorage.setItem("imgur_client_id", "test-client-id");
 
@@ -603,7 +644,7 @@ describe("exportUtils core flows", () => {
         });
 
         it("uploadToImgur handles API errors", async () => {
-            const { exportUtils } = await import(modPath);
+            const { exportUtils } = await loadExportUtils();
 
             localStorage.setItem("imgur_client_id", "test-client-id");
 
@@ -625,7 +666,7 @@ describe("exportUtils core flows", () => {
         });
 
         it("uploadToImgur handles network errors", async () => {
-            const { exportUtils } = await import(modPath);
+            const { exportUtils } = await loadExportUtils();
 
             localStorage.setItem("imgur_client_id", "test-client-id");
 
@@ -646,7 +687,7 @@ describe("exportUtils core flows", () => {
         });
 
         it("getGyazoConfig retrieves stored configuration", async () => {
-            const { exportUtils } = await import(modPath);
+            const { exportUtils } = await loadExportUtils();
 
             // No config - returns default config with obfuscated credentials
             const defaultConfig = exportUtils.getGyazoConfig();
@@ -673,7 +714,7 @@ describe("exportUtils core flows", () => {
         });
 
         it("setGyazoConfig stores credentials", async () => {
-            const { exportUtils } = await import(modPath);
+            const { exportUtils } = await loadExportUtils();
 
             exportUtils.setGyazoConfig("client-123", "secret-456");
             expect(localStorage.getItem("gyazo_client_id")).toBe("client-123");
@@ -683,7 +724,7 @@ describe("exportUtils core flows", () => {
         });
 
         it("clearGyazoConfig removes all stored data", async () => {
-            const { exportUtils } = await import(modPath);
+            const { exportUtils } = await loadExportUtils();
 
             localStorage.setItem("gyazo_client_id", "test");
             localStorage.setItem("gyazo_client_secret", "test");
@@ -697,7 +738,7 @@ describe("exportUtils core flows", () => {
         });
 
         it("getGyazoAccessToken retrieves stored token", async () => {
-            const { exportUtils } = await import(modPath);
+            const { exportUtils } = await loadExportUtils();
 
             expect(exportUtils.getGyazoAccessToken()).toBeNull();
 
@@ -706,7 +747,7 @@ describe("exportUtils core flows", () => {
         });
 
         it("setGyazoAccessToken stores token", async () => {
-            const { exportUtils } = await import(modPath);
+            const { exportUtils } = await loadExportUtils();
 
             exportUtils.setGyazoAccessToken("new-token");
             expect(localStorage.getItem("gyazo_access_token")).toBe(
@@ -715,7 +756,7 @@ describe("exportUtils core flows", () => {
         });
 
         it("clearGyazoAccessToken removes token", async () => {
-            const { exportUtils } = await import(modPath);
+            const { exportUtils } = await loadExportUtils();
 
             localStorage.setItem("gyazo_access_token", "test-token");
             exportUtils.clearGyazoAccessToken();
@@ -723,7 +764,7 @@ describe("exportUtils core flows", () => {
         });
 
         it("isGyazoAuthenticated checks token presence", async () => {
-            const { exportUtils } = await import(modPath);
+            const { exportUtils } = await loadExportUtils();
 
             expect(exportUtils.isGyazoAuthenticated()).toBe(false);
 
@@ -732,7 +773,7 @@ describe("exportUtils core flows", () => {
         });
 
         it("uploadToGyazo makes authenticated API call", async () => {
-            const { exportUtils } = await import(modPath);
+            const { exportUtils } = await loadExportUtils();
 
             localStorage.setItem("gyazo_access_token", "test-token");
 
@@ -766,7 +807,7 @@ describe("exportUtils core flows", () => {
         });
 
         it("uploadToGyazo throws when not authenticated", async () => {
-            const { exportUtils } = await import(modPath);
+            const { exportUtils } = await loadExportUtils();
 
             // Provide credentials so uploadToGyazo attempts OAuth flow.
             // In tests / non-Electron environments electronAPI is absent, so authentication should fail cleanly.
@@ -781,7 +822,7 @@ describe("exportUtils core flows", () => {
         });
 
         it("exchangeGyazoCodeForToken makes token exchange request", async () => {
-            const { exportUtils } = await import(modPath);
+            const { exportUtils } = await loadExportUtils();
 
             localStorage.setItem("gyazo_client_id", "test-client");
             localStorage.setItem("gyazo_client_secret", "test-secret");
