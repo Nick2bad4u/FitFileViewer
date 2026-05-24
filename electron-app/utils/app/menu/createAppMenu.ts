@@ -1,9 +1,12 @@
 // Lazily resolve Electron at call-time so Vitest's vi.mock('electron') can hook properly
+type RendererIpcEventChannel =
+    import("../../../shared/ipc").RendererIpcEventChannel;
+
 type BrowserWindowLike = {
     close?: () => void;
     isDestroyed?: () => boolean;
     webContents?: {
-        send: (channel: string, ...args: unknown[]) => void;
+        send: (channel: RendererIpcEventChannel, ...args: unknown[]) => void;
     };
 };
 
@@ -82,6 +85,33 @@ function getMenuGlobal(): FitFileViewerGlobal {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function isUsableWindow(
+    candidate: BrowserWindowLike | null | undefined
+): candidate is BrowserWindowLike {
+    if (!candidate) {
+        return false;
+    }
+    if (
+        typeof candidate.isDestroyed === "function" &&
+        candidate.isDestroyed()
+    ) {
+        return false;
+    }
+    return true;
+}
+
+function sendToWindow(
+    win: BrowserWindowLike | null | undefined,
+    channel: RendererIpcEventChannel,
+    ...args: unknown[]
+): boolean {
+    if (isUsableWindow(win) && win.webContents) {
+        win.webContents.send(channel, ...args);
+        return true;
+    }
+    return false;
 }
 
 const { getElectron: getRuntimeElectron } =
@@ -238,20 +268,6 @@ function createAppMenu(
         /* Ignore errors */
     }
     const { app, BrowserWindow, Menu, shell, clipboard } = el;
-    const isUsableWindow = (
-        candidate: BrowserWindowLike | null | undefined
-    ): candidate is BrowserWindowLike => {
-        if (!candidate) {
-            return false;
-        }
-        if (
-            typeof candidate.isDestroyed === "function" &&
-            candidate.isDestroyed()
-        ) {
-            return false;
-        }
-        return true;
-    };
     const resolveTargetWindow = (): BrowserWindowLike | null => {
         if (isUsableWindow(mainWindow)) {
             return mainWindow;
@@ -270,14 +286,10 @@ function createAppMenu(
         }
         return null;
     };
-    const sendToRenderer = (channel: string, ...args: unknown[]): boolean => {
-        const win = resolveTargetWindow();
-        if (win && win.webContents) {
-            win.webContents.send(channel, ...args);
-            return true;
-        }
-        return false;
-    };
+    const sendToRenderer = (
+        channel: RendererIpcEventChannel,
+        ...args: unknown[]
+    ): boolean => sendToWindow(resolveTargetWindow(), channel, ...args);
     const usingPassedTheme = typeof currentTheme === "string";
     const theme = usingPassedTheme ? currentTheme : getTheme();
     // Allow tests to inject recent files deterministically via a global hook
@@ -377,14 +389,13 @@ function createAppMenu(
                     error
                 );
             }
-            if (win && win.webContents) {
-                win.webContents.send(
-                    "show-notification",
-                    "Recent files cleared.",
-                    "info"
-                );
-                win.webContents.send("unload-fit-file");
-            }
+            sendToWindow(
+                win,
+                "show-notification",
+                "Recent files cleared.",
+                "info"
+            );
+            sendToWindow(win, "unload-fit-file");
             createAppMenu(win, getTheme());
         },
         enabled: recentFiles.length > 0,
@@ -419,9 +430,7 @@ function createAppMenu(
                         typeof BrowserWindow.getFocusedWindow === "function"
                             ? BrowserWindow.getFocusedWindow()
                             : null);
-                if (win && win.webContents) {
-                    win.webContents.send("decoder-options-changed", newOptions);
-                }
+                sendToWindow(win, "decoder-options-changed", newOptions);
             },
             label: `${_decoderOptionEmojis[key] || ""} ${key}`.trim(),
             type: "checkbox",
@@ -638,12 +647,11 @@ function createAppMenu(
                                                 "function"
                                                 ? BrowserWindow.getFocusedWindow()
                                                 : null);
-                                        if (win && win.webContents) {
-                                            win.webContents.send(
-                                                "set-font-size",
-                                                "xsmall"
-                                            );
-                                        }
+                                        sendToWindow(
+                                            win,
+                                            "set-font-size",
+                                            "xsmall"
+                                        );
                                     },
                                     label: "🅰️ Extra Small",
                                     type: "radio",
@@ -661,12 +669,11 @@ function createAppMenu(
                                                 "function"
                                                 ? BrowserWindow.getFocusedWindow()
                                                 : null);
-                                        if (win && win.webContents) {
-                                            win.webContents.send(
-                                                "set-font-size",
-                                                "small"
-                                            );
-                                        }
+                                        sendToWindow(
+                                            win,
+                                            "set-font-size",
+                                            "small"
+                                        );
                                     },
                                     label: "🔠 Small",
                                     type: "radio",
@@ -684,12 +691,11 @@ function createAppMenu(
                                                 "function"
                                                 ? BrowserWindow.getFocusedWindow()
                                                 : null);
-                                        if (win && win.webContents) {
-                                            win.webContents.send(
-                                                "set-font-size",
-                                                "medium"
-                                            );
-                                        }
+                                        sendToWindow(
+                                            win,
+                                            "set-font-size",
+                                            "medium"
+                                        );
                                     },
                                     label: "🔤 Medium",
                                     type: "radio",
@@ -707,12 +713,11 @@ function createAppMenu(
                                                 "function"
                                                 ? BrowserWindow.getFocusedWindow()
                                                 : null);
-                                        if (win && win.webContents) {
-                                            win.webContents.send(
-                                                "set-font-size",
-                                                "large"
-                                            );
-                                        }
+                                        sendToWindow(
+                                            win,
+                                            "set-font-size",
+                                            "large"
+                                        );
                                     },
                                     label: "🔡 Large",
                                     type: "radio",
@@ -730,12 +735,11 @@ function createAppMenu(
                                                 "function"
                                                 ? BrowserWindow.getFocusedWindow()
                                                 : null);
-                                        if (win && win.webContents) {
-                                            win.webContents.send(
-                                                "set-font-size",
-                                                "xlarge"
-                                            );
-                                        }
+                                        sendToWindow(
+                                            win,
+                                            "set-font-size",
+                                            "xlarge"
+                                        );
                                     },
                                     label: "🅰️ Extra Large",
                                     type: "radio",
@@ -760,12 +764,11 @@ function createAppMenu(
                                                 "function"
                                                 ? BrowserWindow.getFocusedWindow()
                                                 : null);
-                                        if (win && win.webContents) {
-                                            win.webContents.send(
-                                                "set-high-contrast",
-                                                "black"
-                                            );
-                                        }
+                                        sendToWindow(
+                                            win,
+                                            "set-high-contrast",
+                                            "black"
+                                        );
                                     },
                                     label: "⬛ Black (Default)",
                                     type: "radio",
@@ -786,12 +789,11 @@ function createAppMenu(
                                                 "function"
                                                 ? BW.getFocusedWindow()
                                                 : null) || mainWindow;
-                                        if (win && win.webContents) {
-                                            win.webContents.send(
-                                                "set-high-contrast",
-                                                "white"
-                                            );
-                                        }
+                                        sendToWindow(
+                                            win,
+                                            "set-high-contrast",
+                                            "white"
+                                        );
                                     },
                                     label: "⬜ White",
                                     type: "radio",
@@ -812,12 +814,11 @@ function createAppMenu(
                                                 "function"
                                                 ? BW.getFocusedWindow()
                                                 : null) || mainWindow;
-                                        if (win && win.webContents) {
-                                            win.webContents.send(
-                                                "set-high-contrast",
-                                                "yellow"
-                                            );
-                                        }
+                                        sendToWindow(
+                                            win,
+                                            "set-high-contrast",
+                                            "yellow"
+                                        );
                                     },
                                     label: "🟨 Yellow",
                                     type: "radio",
@@ -836,12 +837,11 @@ function createAppMenu(
                                                 "function"
                                                 ? BW.getFocusedWindow()
                                                 : null) || mainWindow;
-                                        if (win && win.webContents) {
-                                            win.webContents.send(
-                                                "set-high-contrast",
-                                                "off"
-                                            );
-                                        }
+                                        sendToWindow(
+                                            win,
+                                            "set-high-contrast",
+                                            "off"
+                                        );
                                     },
                                     label: "🚫 Off",
                                     type: "radio",
@@ -870,9 +870,7 @@ function createAppMenu(
                                         "function"
                                         ? BrowserWindow.getFocusedWindow()
                                         : null);
-                                if (win && win.webContents) {
-                                    win.webContents.send("set-theme", "dark");
-                                }
+                                sendToWindow(win, "set-theme", "dark");
                             },
                             label: "🌑 Dark",
                             type: "radio",
@@ -890,9 +888,7 @@ function createAppMenu(
                                         "function"
                                         ? BrowserWindow.getFocusedWindow()
                                         : null);
-                                if (win && win.webContents) {
-                                    win.webContents.send("set-theme", "light");
-                                }
+                                sendToWindow(win, "set-theme", "light");
                             },
                             label: "🌕 Light",
                             type: "radio",
@@ -907,9 +903,7 @@ function createAppMenu(
                             typeof BrowserWindow.getFocusedWindow === "function"
                                 ? BrowserWindow.getFocusedWindow()
                                 : null);
-                        if (win && win.webContents) {
-                            win.webContents.send("open-accent-color-picker");
-                        }
+                        sendToWindow(win, "open-accent-color-picker");
                     },
                     label: "🎨 Accent Color...",
                 },
@@ -921,11 +915,7 @@ function createAppMenu(
                             typeof BrowserWindow.getFocusedWindow === "function"
                                 ? BrowserWindow.getFocusedWindow()
                                 : null);
-                        if (win && win.webContents) {
-                            win.webContents.send(
-                                "open-summary-column-selector"
-                            );
-                        }
+                        sendToWindow(win, "open-summary-column-selector");
                     },
                     enabled: Boolean(loadedFitFilePath),
                     label: "📊 Summary Columns...",
@@ -941,19 +931,19 @@ function createAppMenu(
                         getConf().set(FIT_BROWSER_ENABLED_KEY, nextEnabled);
 
                         const win = resolveTargetWindow() || mainWindow;
-                        if (win && win.webContents) {
-                            win.webContents.send(
-                                "fit-browser-enabled-changed",
-                                nextEnabled
-                            );
-                            win.webContents.send(
-                                "show-notification",
-                                nextEnabled
-                                    ? "Browser tab enabled (experimental)."
-                                    : "Browser tab disabled (experimental).",
-                                "info"
-                            );
-                        }
+                        sendToWindow(
+                            win,
+                            "fit-browser-enabled-changed",
+                            nextEnabled
+                        );
+                        sendToWindow(
+                            win,
+                            "show-notification",
+                            nextEnabled
+                                ? "Browser tab enabled (experimental)."
+                                : "Browser tab disabled (experimental).",
+                            "info"
+                        );
 
                         // Refresh the menu so the checked state is consistent everywhere.
                         createAppMenu(win, getTheme(), loadedFitFilePath);
@@ -970,9 +960,7 @@ function createAppMenu(
                             typeof BrowserWindow.getFocusedWindow === "function"
                                 ? BrowserWindow.getFocusedWindow()
                                 : null);
-                        if (win && win.webContents) {
-                            win.webContents.send("menu-check-for-updates");
-                        }
+                        sendToWindow(win, "menu-check-for-updates");
                     },
                     label: "🔄 Check for Updates...",
                 },
@@ -988,9 +976,7 @@ function createAppMenu(
                             (BW && typeof BW.getFocusedWindow === "function"
                                 ? BW.getFocusedWindow()
                                 : null) || mainWindow;
-                        if (win && win.webContents) {
-                            win.webContents.send("menu-about");
-                        }
+                        sendToWindow(win, "menu-about");
                     },
                     label: "ℹ️ About",
                 },
@@ -1027,9 +1013,7 @@ function createAppMenu(
                             (BW && typeof BW.getFocusedWindow === "function"
                                 ? BW.getFocusedWindow()
                                 : null) || mainWindow;
-                        if (win && win.webContents) {
-                            win.webContents.send("menu-keyboard-shortcuts");
-                        }
+                        sendToWindow(win, "menu-keyboard-shortcuts");
                     },
                     label: "⌨️ Keyboard Shortcuts",
                 },
@@ -1040,9 +1024,7 @@ function createAppMenu(
                             (BW && typeof BW.getFocusedWindow === "function"
                                 ? BW.getFocusedWindow()
                                 : null) || mainWindow;
-                        if (win && win.webContents) {
-                            win.webContents.send("menu-restart-update");
-                        }
+                        sendToWindow(win, "menu-restart-update");
                     },
                     enabled: false, // Will be enabled via IPC when update is downloaded
                     id: "restart-update",
@@ -1130,29 +1112,10 @@ function getPlatformAppMenu(
                                     "function"
                                     ? BrowserWindow.getFocusedWindow()
                                     : null);
-                            if (win && win.webContents) {
-                                win.webContents.send("menu-about");
-                            }
+                            sendToWindow(win, "menu-about");
                         },
                         label: "About",
                         role: "about",
-                    },
-                    { type: "separator" },
-                    {
-                        accelerator: "CmdOrCtrl+,",
-                        click: () => {
-                            const win =
-                                mainWindow ||
-                                (BrowserWindow &&
-                                typeof BrowserWindow.getFocusedWindow ===
-                                    "function"
-                                    ? BrowserWindow.getFocusedWindow()
-                                    : null);
-                            if (win && win.webContents) {
-                                win.webContents.send("menu-preferences");
-                            }
-                        },
-                        label: "Preferences...",
                     },
                     { type: "separator" },
                     { role: "services", submenu: [] },

@@ -1141,15 +1141,14 @@ describe("createAppMenu - additional robust branches", () => {
         const appMenu = (tpl || [])[0];
         expect(appMenu.label).toBe("FitFileViewer");
         const about = appMenu.submenu.find((i: any) => i.label === "About");
-        const prefs = appMenu.submenu.find(
-            (i: any) => i.label === "Preferences..."
-        );
         about.click();
-        prefs.click();
         const ipcCalls: any[][] = (globalThis as any).__ipcCalls || [];
-        expect(ipcCalls).toEqual(
-            expect.arrayContaining([["menu-about"], ["menu-preferences"]])
+        expect(ipcCalls).toStrictEqual(
+            expect.arrayContaining([["menu-about"]])
         );
+        expect(
+            appMenu.submenu.some((i: any) => i.label === "Preferences...")
+        ).toBeFalsy();
         // restore
         if (desc) Object.defineProperty(process, "platform", desc);
         (globalThis as any).__electronHoistedMock = original;
@@ -1173,15 +1172,14 @@ describe("createAppMenu - additional robust branches", () => {
         expect(appMenu.label).toBe("App");
         // Ensure items are still functional
         const about = appMenu.submenu.find((i: any) => i.label === "About");
-        const prefs = appMenu.submenu.find(
-            (i: any) => i.label === "Preferences..."
-        );
         about.click();
-        prefs.click();
         const ipcCalls: any[][] = (globalThis as any).__ipcCalls || [];
-        expect(ipcCalls).toEqual(
-            expect.arrayContaining([["menu-about"], ["menu-preferences"]])
+        expect(ipcCalls).toStrictEqual(
+            expect.arrayContaining([["menu-about"]])
         );
+        expect(
+            appMenu.submenu.some((i: any) => i.label === "Preferences...")
+        ).toBeFalsy();
         if (desc) Object.defineProperty(process, "platform", desc);
         (globalThis as any).__electronHoistedMock = original;
     });
