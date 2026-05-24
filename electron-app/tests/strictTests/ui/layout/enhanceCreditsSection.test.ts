@@ -10,8 +10,21 @@ describe("enhanceCreditsSection", () => {
     const originalRequestAnimationFrame = global.requestAnimationFrame;
     const originalCancelAnimationFrame = global.cancelAnimationFrame;
 
+    function renderCreditsFixture(text: string, width: string) {
+        const section = document.createElement("div");
+        section.className = "credits-section";
+        section.style.width = width;
+
+        const footer = document.createElement("footer");
+        footer.textContent = text;
+        section.append(footer);
+        document.body.replaceChildren(section);
+
+        return { footer, section };
+    }
+
     beforeEach(() => {
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
             cb(performance.now());
             return 1;
@@ -32,7 +45,7 @@ describe("enhanceCreditsSection", () => {
 
     afterEach(() => {
         teardownCreditsMarquee();
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         if (originalResizeObserver) {
             vi.stubGlobal("ResizeObserver", originalResizeObserver);
         } else {
@@ -64,16 +77,10 @@ describe("enhanceCreditsSection", () => {
     });
 
     it("applies marquee class and custom properties when content overflows", () => {
-        document.body.innerHTML = `
-            <div class="credits-section" style="width: 200px;">
-                <footer>Some lengthy credits text that should overflow the container width significantly.</footer>
-            </div>
-        `;
-
-        const section = document.querySelector(
-            ".credits-section"
-        ) as HTMLElement;
-        const footer = section.querySelector("footer") as HTMLElement;
+        const { footer, section } = renderCreditsFixture(
+            "Some lengthy credits text that should overflow the container width significantly.",
+            "200px"
+        );
 
         Object.defineProperty(section, "clientWidth", {
             configurable: true,
@@ -99,16 +106,10 @@ describe("enhanceCreditsSection", () => {
     });
 
     it("does not apply marquee styling when content fits the container", () => {
-        document.body.innerHTML = `
-            <div class="credits-section" style="width: 500px;">
-                <footer>Short text</footer>
-            </div>
-        `;
-
-        const section = document.querySelector(
-            ".credits-section"
-        ) as HTMLElement;
-        const footer = section.querySelector("footer") as HTMLElement;
+        const { footer, section } = renderCreditsFixture(
+            "Short text",
+            "500px"
+        );
 
         Object.defineProperty(section, "clientWidth", {
             configurable: true,
