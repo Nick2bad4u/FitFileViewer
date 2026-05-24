@@ -209,6 +209,9 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             expect(
                 chartConfig.data.datasets[0].data.length
             ).toBeLessThanOrEqual(100);
+            expect(chartConfig.data.datasets[0].data.length).not.toBe(
+                data.length
+            );
         });
 
         it("should not limit data when maxPoints is 'all'", () => {
@@ -261,6 +264,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             const canvas = container.children[0] as HTMLCanvasElement;
             expect(canvas.tagName).toBe("CANVAS");
             expect(canvas.id).toBe("chart-power-vs-hr-0");
+            expect(canvas.id).not.toBe("chart-speed-vs-distance-0");
             expect(canvas.style.borderRadius).toBe("12px");
         });
 
@@ -299,6 +303,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             const chartConfig = Chart.mock.calls[0][1];
 
             expect(chartConfig.type).toBe("scatter");
+            expect(chartConfig.type).not.toBe("line");
             expect(chartConfig.data.datasets).toHaveLength(1);
             expect(chartConfig.data.datasets[0].label).toBe(
                 "Power vs Heart Rate"
@@ -426,6 +431,9 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             expect(chartConfig.options.scales.x.title.text).toBe(
                 "Heart Rate (bpm)"
             );
+            expect(chartConfig.options.scales.x.title.text).not.toBe(
+                "Power (W)"
+            );
         });
 
         it("should configure y-axis for power", () => {
@@ -463,6 +471,8 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             expect(zoomConfig.pan.modifierKey).toBe(null);
 
             expect(zoomConfig.zoom.wheel.enabled).toBe(true);
+            expect(zoomConfig.zoom.wheel.modifierKey).toBe("ctrl");
+            expect(zoomConfig.zoom.wheel.modifierKey).not.toBe("shift");
             expect(zoomConfig.zoom.wheel.speed).toBe(0.1);
             expect(zoomConfig.zoom.pinch.enabled).toBe(true);
             expect(zoomConfig.zoom.drag.enabled).toBe(true);
@@ -498,6 +508,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             };
             const result = tooltipConfig.callbacks.label(mockContext);
             expect(result).toEqual(["Heart Rate: 140 bpm", "Power: 280 W"]);
+            expect(result).not.toContain("Speed: 140 mph");
         });
     });
 
@@ -513,6 +524,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
 
             const chartConfig = Chart.mock.calls[0][1];
             expect(chartConfig.plugins).toHaveLength(2);
+            expect(chartConfig.plugins).not.toHaveLength(0);
             // Note: Actual plugin instances are imported and would be present
         });
 
@@ -528,7 +540,9 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             const chartConfig = Chart.mock.calls[0][1];
             expect(
                 chartConfig.options.plugins.chartBackgroundColorPlugin
-            ).toBeDefined();
+            ).toStrictEqual({
+                backgroundColor: expect.any(String),
+            });
         });
     });
 
@@ -545,6 +559,9 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             expect(
                 global.window && (global.window as any)._chartjsInstances
             ).toHaveLength(1);
+            expect((global.window as any)._chartjsInstances).not.toHaveLength(
+                0
+            );
             expect((global.window as any)._chartjsInstances?.[0]).toBe(
                 chartInstanceMock
             );
@@ -560,8 +577,9 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
 
             renderPowerVsHeartRateChart(container, data, options);
 
-            expect(global.window._chartjsInstances).toBeDefined();
-            expect(global.window._chartjsInstances).toHaveLength(1);
+            expect(global.window._chartjsInstances).toStrictEqual([
+                chartInstanceMock,
+            ]);
         });
 
         it("should log success message when chart is created", () => {
@@ -576,6 +594,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             expect(console.log).toHaveBeenCalledWith(
                 "[ChartJS] Power vs Heart Rate chart created successfully"
             );
+            expect(container.children).toHaveLength(1);
         });
     });
 
@@ -596,6 +615,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
                 "[ChartJS] Error rendering power vs heart rate chart:",
                 expect.any(Error)
             );
+            expect(global.window._chartjsInstances).toHaveLength(0);
         });
     });
 
@@ -730,6 +750,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             renderPowerVsHeartRateChart(container, data, options);
 
             expect(data).toEqual(originalData);
+            expect(data).not.toBe(originalData);
         });
     });
 
@@ -794,6 +815,9 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             expect(chartConfig.data.datasets[0].data).toHaveLength(6);
             expect(chartConfig.data.datasets[0].label).toBe(
                 "Power vs Heart Rate"
+            );
+            expect(chartConfig.data.datasets[0].label).not.toBe(
+                "Speed vs Distance"
             );
         });
 
