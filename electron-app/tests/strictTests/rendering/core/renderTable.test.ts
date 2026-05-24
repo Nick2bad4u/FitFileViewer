@@ -7,8 +7,7 @@ vi.mock("../../../../utils/files/export/copyTableAsCSV.js", () => ({
 
 // Helper to import fresh module per test
 async function loadModule() {
-    const mod = await import("../../../../utils/rendering/core/renderTable.js");
-    return mod;
+    return import("../../../../utils/rendering/core/renderTable.js");
 }
 
 function createTableLike() {
@@ -30,7 +29,9 @@ function createMaliciousTableLike() {
 
 describe("renderTable", () => {
     beforeEach(() => {
-        document.body.innerHTML = '<div id="root"></div>';
+        const root = document.createElement("div");
+        root.id = "root";
+        document.body.replaceChildren(root);
         vi.useFakeTimers();
     });
     afterEach(() => {
@@ -47,10 +48,13 @@ describe("renderTable", () => {
         await renderTable(root, "My Title", tableLike, 1);
 
         const section = root.querySelector(".table-section") as HTMLElement;
-        expect(section).toBeTruthy();
+        expect(section).toBeInstanceOf(HTMLElement);
         const header = section.querySelector(".table-header") as HTMLElement;
         const icon = header.querySelector("span:last-child") as HTMLSpanElement;
         const content = section.querySelector(".table-content") as HTMLElement;
+        expect(header).toBeInstanceOf(HTMLElement);
+        expect(icon).toBeInstanceOf(HTMLSpanElement);
+        expect(content).toBeInstanceOf(HTMLElement);
         expect(content.style.display).toBe("none");
 
         // Toggle open
@@ -60,7 +64,7 @@ describe("renderTable", () => {
 
         // Copy button
         const copyBtn = header.querySelector(".copy-btn") as HTMLButtonElement;
-        expect(copyBtn).toBeTruthy();
+        expect(copyBtn).toBeInstanceOf(HTMLButtonElement);
         copyBtn.click();
         const { copyTableAsCSV } =
             await import("../../../../utils/files/export/copyTableAsCSV.js");
@@ -75,7 +79,7 @@ describe("renderTable", () => {
         const table = root.querySelector(
             "table#datatable_2"
         ) as HTMLTableElement;
-        expect(table).toBeTruthy();
+        expect(table).toBeInstanceOf(HTMLTableElement);
 
         // Expand to render fallback body
         (root.querySelector(".table-header") as HTMLElement).click();
@@ -97,7 +101,7 @@ describe("renderTable", () => {
         const table = root.querySelector(
             "table#datatable_9"
         ) as HTMLTableElement;
-        expect(table).toBeTruthy();
+        expect(table).toBeInstanceOf(HTMLTableElement);
 
         // Ensure potentially executable elements are not present (we only set textContent).
         expect(table.querySelector("img")).toBeNull();
