@@ -1,21 +1,30 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import fs from "fs";
-import path from "path";
-import { resolvePreloadScriptRequire } from "../helpers/preloadModuleMocks";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 describe("preload.js - Additional edge coverage", () => {
-    let preloadCode: string;
+    const originalNodeEnv = process.env.NODE_ENV;
+
+    async function importPreloadWithMock(electronBridge: unknown) {
+        Reflect.set(globalThis, "__electronHoistedMock", electronBridge);
+        await import("../../preload.js");
+    }
 
     beforeEach(() => {
         vi.clearAllMocks();
         vi.resetModules();
-        preloadCode = fs.readFileSync(
-            path.resolve(__dirname, "../../preload.js"),
-            "utf-8"
-        );
     });
 
-    it("does not expose when validateAPI fails and logs errors", () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        Reflect.deleteProperty(globalThis, "__electronHoistedMock");
+        Reflect.deleteProperty(globalThis, "electronAPI");
+        Reflect.deleteProperty(globalThis, "devTools");
+        process.env.NODE_ENV = originalNodeEnv;
+        vi.resetModules();
+    });
+
+    it("does not expose when validateAPI fails and logs errors", async () => {
+        process.env.NODE_ENV = "development";
+
         const ipcRenderer = {
             invoke: vi.fn(),
             send: vi.fn(),
@@ -29,20 +38,7 @@ describe("preload.js - Additional edge coverage", () => {
             .spyOn(console, "log")
             .mockImplementation(() => {});
 
-        const mockRequire = vi.fn((mod: string) =>
-            resolvePreloadScriptRequire(mod, { ipcRenderer } as any)
-        );
-
-        const mockProcess = { env: { NODE_ENV: "development" }, once: vi.fn() };
-
-        // Execute preload in this constrained environment
-        const runner = new Function(
-            "require",
-            "console",
-            "process",
-            preloadCode
-        );
-        runner(mockRequire as any, console, mockProcess as any);
+        await importPreloadWithMock({ ipcRenderer });
 
         // Should have logged validation failure (no electronAPI exposure)
         const validationErrors = consoleErrorSpy.mock.calls.filter(
@@ -84,21 +80,10 @@ describe("preload.js - Additional edge coverage", () => {
             .spyOn(console, "error")
             .mockImplementation(() => {});
 
-        const mockRequire = vi.fn((mod: string) =>
-            resolvePreloadScriptRequire(mod, { ipcRenderer, contextBridge })
-        );
-        const mockProcess = { env: { NODE_ENV: "test" }, once: vi.fn() };
-
-        const runner = new Function(
-            "require",
-            "console",
-            "process",
-            preloadCode
-        );
-        runner(mockRequire as any, console, mockProcess as any);
+        await importPreloadWithMock({ ipcRenderer, contextBridge });
 
         const api = (globalThis as any).electronAPI;
-        expect(api).toBeDefined();
+        expect(typeof api.onOpenRecentFile).toBe("function");
 
         // Register onOpenRecentFile and capture wrapper
         const cb = vi.fn();
@@ -106,7 +91,8 @@ describe("preload.js - Additional edge coverage", () => {
         const call = ipcRenderer.on.mock.calls.find(
             (c: any[]) => c[0] === "open-recent-file"
         );
-        expect(call).toBeDefined();
+        expect(call?.[0]).toBe("open-recent-file");
+        expect(typeof call?.[1]).toBe("function");
         const wrapper = (call as any)[1];
         // Simulate event dispatch
         wrapper({}, "C:/test.fit");
@@ -120,7 +106,8 @@ describe("preload.js - Additional edge coverage", () => {
         const call2 = ipcRenderer.on.mock.calls.find(
             (c: any[]) => c[0] === "open-recent-file" && c[1] !== wrapper
         );
-        expect(call2).toBeDefined();
+        expect(call2?.[0]).toBe("open-recent-file");
+        expect(typeof call2?.[1]).toBe("function");
         const wrapper2 = (call2 as any)[1];
         wrapper2({}, "C:/test2.fit");
         expect(consoleErrorSpy).toHaveBeenCalled();
@@ -145,21 +132,10 @@ describe("preload.js - Additional edge coverage", () => {
             .spyOn(console, "error")
             .mockImplementation(() => {});
 
-        const mockRequire = vi.fn((mod: string) =>
-            resolvePreloadScriptRequire(mod, { ipcRenderer, contextBridge })
-        );
-        const mockProcess = { env: { NODE_ENV: "test" }, once: vi.fn() };
-
-        const runner = new Function(
-            "require",
-            "console",
-            "process",
-            preloadCode
-        );
-        runner(mockRequire as any, console, mockProcess as any);
+        await importPreloadWithMock({ ipcRenderer, contextBridge });
 
         const api = (globalThis as any).electronAPI;
-        expect(api).toBeDefined();
+        expect(typeof api.injectMenu).toBe("function");
 
         // theme undefined (invalid) and fitFilePath number (invalid) should both be rejected by validation and return false
         const res = await api.injectMenu(undefined, 123 as any);
@@ -169,7 +145,7 @@ describe("preload.js - Additional edge coverage", () => {
         consoleErrorSpy.mockRestore();
     });
 
-    it("onUpdateEvent registers only when eventName and callback are valid", () => {
+    it("onUpdateEvent registers only when eventName and callback are valid", async () => {
         const ipcRenderer = { invoke: vi.fn(), send: vi.fn(), on: vi.fn() };
         const contextBridge = {
             exposeInMainWorld: vi
@@ -179,17 +155,7 @@ describe("preload.js - Additional edge coverage", () => {
                 }),
         };
 
-        const mockRequire = vi.fn((mod: string) =>
-            resolvePreloadScriptRequire(mod, { ipcRenderer, contextBridge })
-        );
-        const mockProcess = { env: { NODE_ENV: "test" }, once: vi.fn() };
-        const runner = new Function(
-            "require",
-            "console",
-            "process",
-            preloadCode
-        );
-        runner(mockRequire as any, console, mockProcess as any);
+        await importPreloadWithMock({ ipcRenderer, contextBridge });
 
         const api = (globalThis as any).electronAPI;
         const before = ipcRenderer.on.mock.calls.length;
