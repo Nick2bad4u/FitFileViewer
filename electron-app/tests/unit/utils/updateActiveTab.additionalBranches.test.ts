@@ -17,6 +17,26 @@ const setupStateMocks = () => {
     return { setState, getState, subscribe };
 };
 
+function appendTabButton({
+    className,
+    disabled = false,
+    id,
+    label,
+}: {
+    className: string;
+    disabled?: boolean;
+    id: string;
+    label: string;
+}): HTMLButtonElement {
+    const button = document.createElement("button");
+    button.id = id;
+    button.className = className;
+    button.disabled = disabled;
+    button.textContent = label;
+    document.body.append(button);
+    return button;
+}
+
 describe("updateActiveTab.js - additional branches", () => {
     let consoleErrorSpy: any;
     let consoleWarnSpy: any;
@@ -24,7 +44,7 @@ describe("updateActiveTab.js - additional branches", () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         consoleErrorSpy = vi
             .spyOn(console, "error")
             .mockImplementation(() => {});
@@ -33,7 +53,7 @@ describe("updateActiveTab.js - additional branches", () => {
     });
 
     afterEach(async () => {
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         consoleErrorSpy.mockRestore();
         consoleWarnSpy.mockRestore();
         consoleLogSpy.mockRestore();
@@ -43,10 +63,16 @@ describe("updateActiveTab.js - additional branches", () => {
 
     it("fast path: when requested tab is already active, only updates state", async () => {
         const { setState } = setupStateMocks();
-        document.body.innerHTML = `
-      <button id="tab-fast" class="tab-button active">Fast</button>
-      <button id="tab-other" class="tab-button">Other</button>
-    `;
+        appendTabButton({
+            className: "tab-button active",
+            id: "tab-fast",
+            label: "Fast",
+        });
+        appendTabButton({
+            className: "tab-button",
+            id: "tab-other",
+            label: "Other",
+        });
 
         const { updateActiveTab } =
             await import("../../../utils/ui/tabs/updateActiveTab.js");
@@ -92,30 +118,39 @@ describe("updateActiveTab.js - additional branches", () => {
 
     it("ignores click when button.disabled === true", async () => {
         const { setState } = setupStateMocks();
-        document.body.innerHTML = `
-      <button id="tab-disabled-prop" class="tab-button" disabled>Disabled</button>
-    `;
+        const disabledButton = appendTabButton({
+            className: "tab-button",
+            disabled: true,
+            id: "tab-disabled-prop",
+            label: "Disabled",
+        });
 
         const { initializeActiveTabState } =
             await import("../../../utils/ui/tabs/updateActiveTab.js");
         initializeActiveTabState();
 
         // Dispatch a real click event; handler should prevent state update
-        document.getElementById("tab-disabled-prop")!.click();
+        disabledButton.click();
         expect(setState).not.toHaveBeenCalled();
+        expect(disabledButton.classList.contains("active")).toBe(false);
+        expect(disabledButton.getAttribute("aria-selected")).toBeNull();
     });
 
     it("ignores click when element has 'tab-disabled' class", async () => {
         const { setState } = setupStateMocks();
-        document.body.innerHTML = `
-      <button id="tab-disabled-class" class="tab-button tab-disabled">Disabled</button>
-    `;
+        const disabledButton = appendTabButton({
+            className: "tab-button tab-disabled",
+            id: "tab-disabled-class",
+            label: "Disabled",
+        });
 
         const { initializeActiveTabState } =
             await import("../../../utils/ui/tabs/updateActiveTab.js");
         initializeActiveTabState();
 
-        document.getElementById("tab-disabled-class")!.click();
+        disabledButton.click();
         expect(setState).not.toHaveBeenCalled();
+        expect(disabledButton.className).toBe("tab-button tab-disabled");
+        expect(disabledButton.getAttribute("aria-selected")).toBeNull();
     });
 });
