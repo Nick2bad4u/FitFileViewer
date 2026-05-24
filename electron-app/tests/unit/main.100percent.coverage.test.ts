@@ -181,10 +181,16 @@ function createNodeMocks() {
             const server = new EventEmitter();
             Object.assign(server, {
                 listen: vi.fn((port: number, host: string, callback: any) => {
-                    setTimeout(callback, 0);
+                    if (typeof callback === "function") {
+                        queueMicrotask(callback);
+                    }
+                    return server;
                 }),
                 close: vi.fn((callback: any) => {
-                    setTimeout(callback, 0);
+                    if (typeof callback === "function") {
+                        queueMicrotask(callback);
+                    }
+                    return server;
                 }),
                 on: vi.fn(),
             });
@@ -262,6 +268,12 @@ function createStateMocks() {
 
 // Global mocks setup
 let globalMocks: any;
+
+async function flushMainProcessWork() {
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+}
 
 beforeAll(() => {
     // Create all mocks
@@ -407,19 +419,19 @@ describe("main.js - Comprehensive Coverage Tests", () => {
         console.log("[TEST] Starting comprehensive main.js coverage test");
 
         // Verify hoisted mock is available
-        expect((globalThis as any).__electronHoistedMock).toBeTruthy();
-        expect((globalThis as any).__electronHoistedMock.app).toBeTruthy();
-        expect(
-            (globalThis as any).__electronHoistedMock.BrowserWindow
-        ).toBeTruthy();
+        const electronHoistedMock = (globalThis as any).__electronHoistedMock;
+        expect(electronHoistedMock).toBe(globalMocks.mockElectron);
+        expect(electronHoistedMock.app).toBe(globalMocks.mockApp);
+        expect(electronHoistedMock.BrowserWindow).toBe(
+            globalMocks.mockBrowserWindow
+        );
 
         // Clear module cache and require main.js to trigger all initialization code
         const mainPath = require.resolve("../../main.js");
         delete require.cache[mainPath];
         require("../../main.js");
 
-        // Give time for async initialization
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        await flushMainProcessWork();
 
         expect(globalMocks.mockApp.whenReady).toHaveBeenCalled();
         expect(typeof globalMocks.mockBrowserWindow.getAllWindows).toBe(
@@ -440,8 +452,7 @@ describe("main.js - Comprehensive Coverage Tests", () => {
         console.log("[TEST] main.js required successfully");
         console.log("[TEST] mainModule keys:", Object.keys(mainModule || {}));
 
-        // Give time for any async initialization
-        await new Promise((resolve) => setTimeout(resolve, 200));
+        await flushMainProcessWork();
 
         // Safely report set() calls on the first instantiated state manager
         const stateMockResults =
@@ -480,8 +491,7 @@ describe("main.js - Comprehensive Coverage Tests", () => {
                     await (global as any).initializeApplication();
                 }
 
-                // Wait a bit more
-                await new Promise((resolve) => setTimeout(resolve, 100));
+                await flushMainProcessWork();
 
                 const afterResults =
                     (globalMocks as any).MockMainProcessState?.mock?.results ||
@@ -507,8 +517,7 @@ describe("main.js - Comprehensive Coverage Tests", () => {
         delete require.cache[mainPath];
         require("../../main.js");
 
-        // Wait for initialization
-        await new Promise((resolve) => setTimeout(resolve, 50));
+        await flushMainProcessWork();
 
         // Test app focus without triggering activate event errors
         const mockEvent = {};
@@ -518,10 +527,11 @@ describe("main.js - Comprehensive Coverage Tests", () => {
             globalMocks.mockWindow
         );
 
-        await new Promise((resolve) => setTimeout(resolve, 50));
+        await flushMainProcessWork();
 
-        // Verify handlers were called
-        expect(globalMocks.mockApp.on).toHaveBeenCalled();
+        expect(globalMocks.mockApp.eventNames()).toContain(
+            "browser-window-focus"
+        );
     });
 
     test("should exercise IPC handler registration during initialization", async () => {
@@ -530,8 +540,7 @@ describe("main.js - Comprehensive Coverage Tests", () => {
         delete require.cache[mainPath];
         require("../../main.js");
 
-        // Wait for all initialization to complete
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        await flushMainProcessWork();
 
         // Verify IPC handler registration capability exists (avoid timing brittleness)
         expect(typeof globalMocks.mockIpcMain.handle).toBe("function");
@@ -553,7 +562,7 @@ describe("main.js - Comprehensive Coverage Tests", () => {
         globalMocks.mockAutoUpdater.emit("update-available", { test: true });
         globalMocks.mockAutoUpdater.emit("update-downloaded", { test: true });
 
-        await new Promise((resolve) => setTimeout(resolve, 50));
+        await flushMainProcessWork();
 
         // Verify auto-updater was configured
         expect(globalMocks.mockAutoUpdater.autoDownload).toBe(true);
@@ -566,9 +575,14 @@ describe("main.js - Comprehensive Coverage Tests", () => {
         require("../../main.js");
 
         const mockWebContents = new EventEmitter();
+        let windowOpenHandler:
+            | ((details: { url: string }) => { action: string })
+            | undefined;
         const mockWebContentsWithMethods = Object.assign(mockWebContents, {
             on: vi.fn(),
-            setWindowOpenHandler: vi.fn(),
+            setWindowOpenHandler: vi.fn((handler) => {
+                windowOpenHandler = handler;
+            }),
         });
 
         globalMocks.mockApp.emit(
@@ -577,11 +591,14 @@ describe("main.js - Comprehensive Coverage Tests", () => {
             mockWebContentsWithMethods
         );
 
-        await new Promise((resolve) => setTimeout(resolve, 50));
+        await flushMainProcessWork();
 
         expect(
             mockWebContentsWithMethods.setWindowOpenHandler
         ).toHaveBeenCalled();
+        expect(
+            windowOpenHandler?.({ url: "https://example.invalid/" })
+        ).toEqual({ action: "deny" });
     });
 
     test("should exercise development vs production mode paths", async () => {
@@ -593,7 +610,7 @@ describe("main.js - Comprehensive Coverage Tests", () => {
         delete require.cache[mainPath];
         require("../../main.js");
 
-        await new Promise((resolve) => setTimeout(resolve, 50));
+        await flushMainProcessWork();
 
         expect(process.env.NODE_ENV).toBe("development");
     });
@@ -611,7 +628,7 @@ describe("main.js - Comprehensive Coverage Tests", () => {
         process.env.NODE_ENV = "test";
         require("../../main.js");
 
-        await new Promise((resolve) => setTimeout(resolve, 50));
+        await flushMainProcessWork();
 
         // Verify file operations hook exists (the probe may be swallowed by try/catch)
         expect(typeof globalMocks.mockFs.readFileSync).toBe("function");
@@ -621,16 +638,19 @@ describe("main.js - Comprehensive Coverage Tests", () => {
         // Clear module cache and require main.js
         const mainPath = require.resolve("../../main.js");
         delete require.cache[mainPath];
-        require("../../main.js");
+        const mainModule = require("../../main.js");
 
         // Test theme retrieval
         globalMocks.mockWebContents.emit("did-finish-load");
 
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        await flushMainProcessWork();
 
+        await expect(
+            mainModule.getThemeFromRenderer(globalMocks.mockWindow)
+        ).resolves.toBe("dark");
         expect(
             globalMocks.mockWindow.webContents.executeJavaScript
-        ).toHaveBeenCalled();
+        ).toHaveBeenCalledWith(expect.stringContaining("localStorage.getItem"));
     });
 
     test("should exercise comprehensive coverage through integration patterns", async () => {
@@ -643,16 +663,16 @@ describe("main.js - Comprehensive Coverage Tests", () => {
         require("../../main.js");
 
         // Exercise dialog functionality
-        expect(globalMocks.mockDialog.showOpenDialog).toBeDefined();
-        expect(globalMocks.mockDialog.showSaveDialog).toBeDefined();
+        expect(typeof globalMocks.mockDialog.showOpenDialog).toBe("function");
+        expect(typeof globalMocks.mockDialog.showSaveDialog).toBe("function");
 
         // Exercise menu functionality
-        expect(globalMocks.mockMenu.setApplicationMenu).toBeDefined();
+        expect(typeof globalMocks.mockMenu.setApplicationMenu).toBe("function");
 
         // Exercise shell functionality
-        expect(globalMocks.mockShell.openExternal).toBeDefined();
+        expect(typeof globalMocks.mockShell.openExternal).toBe("function");
 
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        await flushMainProcessWork();
 
         // Verify core systems were initialized
         expect(globalMocks.mockApp.whenReady).toHaveBeenCalled();
