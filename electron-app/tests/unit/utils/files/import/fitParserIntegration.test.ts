@@ -1,90 +1,91 @@
-import { beforeEach, afterEach, describe, it, expect, vi } from "vitest";
-import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { describe, expect, it } from "vitest";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const MODULE_PATH = path.resolve(
-    __dirname,
-    "../../../../../utils/files/import/fitParserIntegration.js"
-);
-const MODULE_URL = pathToFileURL(MODULE_PATH).href;
+type FitParserIntegrationModule = {
+    FIT_PARSER_OPERATION_ID: "fitFile:decode";
+    createFitParserStateAdapters: () => {
+        fitFileStateManager: {
+            getRecordCount: (messages: unknown) => number;
+        };
+        performanceMonitor: {
+            endTimer: (operationId: string) => null | number;
+            getOperationTime: (operationId: string) => null | number;
+            isEnabled: boolean;
+            startTimer: (operationId: string) => void;
+        };
+        settingsStateManager: {
+            getCategory: (category: string) => unknown;
+            updateCategory: (
+                category: string,
+                value: Record<string, unknown>,
+                options?: Record<string, unknown>
+            ) => void;
+        };
+    };
+    ensureFitParserStateIntegration: () => Promise<void>;
+};
 
-describe("fitParserIntegration IPC wiring", () => {
-    beforeEach(() => {
-        vi.resetModules();
-        vi.clearAllMocks();
+async function importIntegrationModule(): Promise<FitParserIntegrationModule> {
+    return (await import(
+        "../../../../../main/runtime/fitParserIntegration.js"
+    )) as unknown as FitParserIntegrationModule;
+}
+
+describe("fitParserIntegration runtime state adapters", () => {
+    it("exports the current main-process integration contract", async () => {
+        expect.assertions(3);
+
+        const module = await importIntegrationModule();
+
+        expect(module.FIT_PARSER_OPERATION_ID).toBe("fitFile:decode");
+        expect(module.createFitParserStateAdapters).toBeTypeOf("function");
+        expect(module.ensureFitParserStateIntegration).toBeTypeOf("function");
     });
 
-    afterEach(() => {
-        vi.restoreAllMocks();
+    it("counts records from known FIT message container shapes", async () => {
+        expect.assertions(3);
+
+        const { createFitParserStateAdapters } = await importIntegrationModule();
+        const { fitFileStateManager } = createFitParserStateAdapters();
+
+        expect(
+            fitFileStateManager.getRecordCount({
+                recordMesgs: [{ timestamp: 1 }, { timestamp: 2 }],
+            })
+        ).toBe(2);
+        expect(
+            fitFileStateManager.getRecordCount({
+                records: { length: 3 },
+            })
+        ).toBe(3);
+        expect(fitFileStateManager.getRecordCount(null)).toBe(0);
     });
 
-    it("registers IPC handlers and delegates to helper functions", async () => {
-        const module = await import(MODULE_URL);
-        const ipcMain = { handle: vi.fn() };
+    it("tracks parser operation timing through the performance adapter", async () => {
+        expect.assertions(5);
 
-        module.setupFitParserIPC(ipcMain as any);
+        const { createFitParserStateAdapters } = await importIntegrationModule();
+        const { performanceMonitor } = createFitParserStateAdapters();
 
-        expect(ipcMain.handle).toHaveBeenCalledTimes(4);
-        const handlers = Object.fromEntries(
-            ipcMain.handle.mock.calls.map(([channel, handler]) => [
-                channel,
-                handler,
-            ])
-        );
-
-        const arrayBuffer = new ArrayBuffer(8);
-        await expect(
-            handlers["fit:decode"]({}, arrayBuffer, { flag: true })
-        ).resolves.toBeDefined();
-
-        const updateResult = await handlers["update-decoder-options"](
-            {},
-            { foo: 1 }
-        );
-        expect(updateResult).toMatchObject({ success: expect.any(Boolean) });
-
-        const optionsResult = await handlers["get-decoder-options"]({});
-        expect(optionsResult).not.toBeNull();
-
-        const resetResult = await handlers["reset-decoder-options"]({});
-        expect(resetResult).toMatchObject({ success: expect.any(Boolean) });
-    });
-
-    it("exposes preload APIs with proper normalization", async () => {
-        const module = await import(MODULE_URL);
-        const exposeSpy = vi.fn();
-        const invokeSpy = vi.fn();
-        vi.spyOn(console, "log").mockImplementation(() => {});
-
-        module.setupFitParserPreload(
-            { exposeInMainWorld: exposeSpy } as any,
-            { invoke: invokeSpy } as any
-        );
-
-        expect(exposeSpy).toHaveBeenCalledTimes(1);
-        const [key, api] = exposeSpy.mock.calls[0];
-        expect(key).toBe("fitParser");
-
-        const arrayBuffer = new ArrayBuffer(4);
-        await api.decodeFitFile(arrayBuffer, { test: true });
-        expect(invokeSpy).toHaveBeenNthCalledWith(
-            1,
-            "fit:decode",
-            expect.any(Uint8Array),
-            { test: true }
-        );
-
-        await api.getDecoderOptions();
-        expect(invokeSpy).toHaveBeenNthCalledWith(2, "get-decoder-options");
-
-        await api.resetDecoderOptions();
-        expect(invokeSpy).toHaveBeenNthCalledWith(3, "reset-decoder-options");
-
-        await api.updateDecoderOptions({ max: 5 });
-        expect(invokeSpy).toHaveBeenNthCalledWith(4, "update-decoder-options", {
-            max: 5,
+        expect({ isEnabled: performanceMonitor.isEnabled }).toStrictEqual({
+            isEnabled: true,
         });
+        expect(performanceMonitor.getOperationTime("decode")).toBeNull();
+
+        performanceMonitor.startTimer("decode");
+
+        expect(performanceMonitor.getOperationTime("decode")).toBeTypeOf(
+            "number"
+        );
+        expect(performanceMonitor.endTimer("decode")).toBeTypeOf("number");
+        expect(performanceMonitor.endTimer("missing")).toBeNull();
+    });
+
+    it("resolves state integration without rethrowing optional runtime dependency failures", async () => {
+        expect.assertions(1);
+
+        const { ensureFitParserStateIntegration } =
+            await importIntegrationModule();
+
+        await expect(ensureFitParserStateIntegration()).resolves.toBeUndefined();
     });
 });
