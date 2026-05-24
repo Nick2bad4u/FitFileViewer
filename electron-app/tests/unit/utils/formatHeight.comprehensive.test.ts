@@ -90,6 +90,7 @@ describe("formatHeight.js - Height Formatter Utility", () => {
         it("should format 1.75 meters correctly", () => {
             const result = formatHeight(1.75);
             expect(result).toBe("1.75 m (5'9\")");
+            expect(result).not.toBe("1.75 m");
         });
 
         it("should format 1.83 meters correctly", () => {
@@ -137,8 +138,12 @@ describe("formatHeight.js - Height Formatter Utility", () => {
         });
 
         it("should round meters to 2 decimal places", () => {
-            expect(formatHeight(1.755)).toBe("1.75 m (5'9\")"); // toFixed uses banker's rounding
-            expect(formatHeight(1.756)).toBe("1.76 m (5'9\")");
+            const roundedDown = formatHeight(1.755);
+            const roundedUp = formatHeight(1.756);
+
+            expect(roundedDown).toBe("1.75 m (5'9\")"); // toFixed uses banker's rounding
+            expect(roundedUp).toBe("1.76 m (5'9\")");
+            expect(roundedDown).not.toBe(roundedUp);
         });
 
         it("should handle float precision issues", () => {
@@ -178,10 +183,12 @@ describe("formatHeight.js - Height Formatter Utility", () => {
             const result = formatHeight(testHeight);
             const feetMatch = result.match(/(\d+)'/);
             const inchesMatch = result.match(/'(\d+)"/);
+            const [, feet] = feetMatch ?? [];
+            const [, inches] = inchesMatch ?? [];
 
-            expect(feetMatch).toBeTruthy();
-            expect(inchesMatch).toBeTruthy();
-            expect(Number(inchesMatch![1])).toBeLessThan(12);
+            expect(feet).toBe("6");
+            expect(inches).toBe("0");
+            expect(Number(inches)).toBeLessThan(12);
         });
     });
 
@@ -233,6 +240,7 @@ describe("formatHeight.js - Height Formatter Utility", () => {
         it("should handle very small positive values", () => {
             const result = formatHeight(0.01);
             expect(result).toBe("0.01 m (0'0\")");
+            expect(result).not.toBe("");
         });
 
         it("should handle minimum practical height", () => {
@@ -280,7 +288,10 @@ describe("formatHeight.js - Height Formatter Utility", () => {
             ];
 
             commonHeights.forEach(({ meters, expected }) => {
-                expect(formatHeight(meters)).toBe(expected);
+                const result = formatHeight(meters);
+
+                expect(result).toBe(expected);
+                expect(result).not.toBe("");
             });
         });
 
@@ -410,6 +421,7 @@ describe("formatHeight.js - Height Formatter Utility", () => {
 
             expect(result1).toBe(result2);
             expect(result2).toBe(result3);
+            expect(result1).not.toBe("");
         });
 
         it("should handle batch processing efficiently", () => {
