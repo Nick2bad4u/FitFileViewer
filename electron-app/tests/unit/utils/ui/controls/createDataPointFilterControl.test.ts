@@ -139,6 +139,13 @@ function openPanel(container: HTMLDivElement) {
     toggle?.click();
 }
 
+function requireElement<T extends Element>(element: T | null, label: string): T {
+    if (element === null) {
+        throw new Error(`${label} was not rendered`);
+    }
+    return element;
+}
+
 describe("createDataPointFilterControl", () => {
     it("uses persisted configuration to seed summary without overwriting", async () => {
         globalThis.mapDataPointFilter = {
@@ -173,11 +180,16 @@ describe("createDataPointFilterControl", () => {
         const container = appendControl(createDataPointFilterControl());
         expect(updateGlobalFilter).toHaveBeenCalledTimes(1);
         const initialConfig = updateGlobalFilter.mock.calls[0][0];
-        expect(initialConfig.metric).toBeTruthy();
+        expect(initialConfig.metric).toBe("speed");
         expect(initialConfig.mode).toBe("topPercent");
-        expect(
-            container.querySelector(".data-point-filter-control__toggle")
-        ).toBeTruthy();
+        const toggle = requireElement(
+            container.querySelector<HTMLButtonElement>(
+                ".data-point-filter-control__toggle"
+            ),
+            "filter toggle"
+        );
+        expect(toggle.type).toBe("button");
+        expect(toggle.getAttribute("aria-expanded")).toBe("false");
     });
 
     it("opens and closes the panel via toggle and outside clicks", async () => {
@@ -233,10 +245,16 @@ describe("createDataPointFilterControl", () => {
         const applyButton = document.body.querySelector<HTMLButtonElement>(
             ".data-point-filter-control__apply"
         );
-        expect(percentInput).toBeTruthy();
-        expect(applyButton).toBeTruthy();
-        percentInput!.value = "150";
-        applyButton!.click();
+        const percentInputElement = requireElement(
+            percentInput,
+            "percent input"
+        );
+        const applyButtonElement = requireElement(applyButton, "apply button");
+        expect(percentInputElement.type).toBe("number");
+        expect(percentInputElement.min).toBe("1");
+        expect(percentInputElement.max).toBe("100");
+        percentInputElement.value = "150";
+        applyButtonElement.click();
         await Promise.resolve();
 
         expect(updateGlobalFilter).toHaveBeenLastCalledWith(
@@ -648,7 +666,8 @@ describe("createDataPointFilterControl", () => {
         const resetButton = document.body.querySelector<HTMLButtonElement>(
             ".data-point-filter-control__reset"
         );
-        resetButton!.click();
+        const resetButtonElement = requireElement(resetButton, "reset button");
+        resetButtonElement.click();
         await Promise.resolve();
         expect(updateGlobalFilter).toHaveBeenLastCalledWith(
             expect.objectContaining({ enabled: false, mode: "topPercent" })
@@ -659,13 +678,23 @@ describe("createDataPointFilterControl", () => {
                 config: expect.objectContaining({ mode: "topPercent" }),
             })
         );
+        expect(
+            document.body.querySelector<HTMLParagraphElement>(
+                ".data-point-filter-control__summary"
+            )?.textContent
+        ).toBe("Highlight the most intense sections of your ride.");
+        expect(
+            document.body.querySelector<HTMLDivElement>(
+                ".data-point-filter-control__panel"
+            )?.hidden
+        ).toBe(true);
 
         const rangeRadio = document.body.querySelector<HTMLInputElement>(
             "input[value='valueRange']"
         );
         rangeRadio!.checked = true;
         rangeRadio!.dispatchEvent(new Event("change", { bubbles: true }));
-        resetButton!.click();
+        resetButtonElement.click();
         await Promise.resolve();
         expect(updateGlobalFilter).toHaveBeenLastCalledWith(
             expect.objectContaining({
@@ -711,22 +740,24 @@ describe("createDataPointFilterControl", () => {
             ".data-point-filter-control__range-values"
         );
 
-        expect(minSlider).toBeTruthy();
-        expect(maxSlider).toBeTruthy();
+        const minSliderElement = requireElement(minSlider, "minimum slider");
+        const maxSliderElement = requireElement(maxSlider, "maximum slider");
+        expect(minSliderElement.type).toBe("range");
+        expect(maxSliderElement.type).toBe("range");
 
-        minSlider!.value = "260";
-        minSlider!.dispatchEvent(new Event("input", { bubbles: true }));
+        minSliderElement.value = "260";
+        minSliderElement.dispatchEvent(new Event("input", { bubbles: true }));
         await Promise.resolve();
 
         expect(rangeRadio?.checked).toBe(true);
         expect(topPercentRadio?.checked).toBe(false);
         expect(rangeValues?.textContent).toContain("260");
-        expect(maxSlider?.value).toBe("260");
+        expect(maxSliderElement.value).toBe("260");
 
-        minSlider!.value = "350";
-        minSlider!.dispatchEvent(new Event("change", { bubbles: true }));
+        minSliderElement.value = "350";
+        minSliderElement.dispatchEvent(new Event("change", { bubbles: true }));
         await Promise.resolve();
-        expect(maxSlider!.value).toBe("300");
+        expect(maxSliderElement.value).toBe("300");
         expect(rangeValues?.textContent).toContain("300");
     });
 
@@ -757,13 +788,9 @@ describe("createDataPointFilterControl", () => {
         const summary = document.body.querySelector<HTMLParagraphElement>(
             ".data-point-filter-control__summary"
         );
-        expect(summary).toBeTruthy();
-        if (!summary) {
-            globalThis.queueMicrotask = originalMicrotask;
-            return;
-        }
+        const summaryElement = requireElement(summary, "summary");
 
-        summary.textContent = "Original summary";
+        summaryElement.textContent = "Original summary";
         globalThis.mapDataPointFilterLastResult = {
             applied: false,
             reason: "Fallback microtask refresh",
@@ -778,7 +805,7 @@ describe("createDataPointFilterControl", () => {
         await Promise.resolve();
         await Promise.resolve();
 
-        expect(summary.textContent).toBe("Fallback microtask refresh");
+        expect(summaryElement.textContent).toBe("Fallback microtask refresh");
 
         globalThis.queueMicrotask = originalMicrotask;
     });
@@ -820,16 +847,18 @@ describe("createDataPointFilterControl", () => {
             "input[value='topPercent']"
         );
 
-        expect(minSlider).toBeTruthy();
+        const minSliderElement = requireElement(minSlider, "minimum slider");
+        const maxSliderElement = requireElement(maxSlider, "maximum slider");
+        expect(minSliderElement.type).toBe("range");
         expect(rangeRadio?.checked).toBe(false);
         expect(topPercentRadio?.checked).toBe(true);
 
-        minSlider!.value = "200";
-        minSlider!.dispatchEvent(new Event("input", { bubbles: true }));
+        minSliderElement.value = "200";
+        minSliderElement.dispatchEvent(new Event("input", { bubbles: true }));
         await Promise.resolve();
 
-        maxSlider!.value = "360";
-        maxSlider!.dispatchEvent(new Event("change", { bubbles: true }));
+        maxSliderElement.value = "360";
+        maxSliderElement.dispatchEvent(new Event("change", { bubbles: true }));
         await Promise.resolve();
 
         expect(rangeRadio?.checked).toBe(true);
@@ -844,14 +873,18 @@ describe("createDataPointFilterControl", () => {
         const percentInput = document.body.querySelector<HTMLInputElement>(
             ".data-point-filter-control__input"
         );
-        expect(percentInput).toBeTruthy();
-        percentInput!.value = "0";
-        percentInput!.dispatchEvent(new Event("change", { bubbles: true }));
-        expect(percentInput!.value).toBe("1");
+        const percentInputElement = requireElement(
+            percentInput,
+            "percent input"
+        );
+        expect(percentInputElement.type).toBe("number");
+        percentInputElement.value = "0";
+        percentInputElement.dispatchEvent(new Event("change", { bubbles: true }));
+        expect(percentInputElement.value).toBe("1");
 
-        percentInput!.value = "250";
-        percentInput!.dispatchEvent(new Event("change", { bubbles: true }));
-        expect(percentInput!.value).toBe("100");
+        percentInputElement.value = "250";
+        percentInputElement.dispatchEvent(new Event("change", { bubbles: true }));
+        expect(percentInputElement.value).toBe("100");
     });
 
     it("applies value-range filters using preview-adjusted bounds", async () => {
@@ -1010,10 +1043,15 @@ describe("createDataPointFilterControl", () => {
         const metricSelect = document.body.querySelector<HTMLSelectElement>(
             ".data-point-filter-control__select"
         );
-        expect(metricSelect).toBeTruthy();
-        metricSelect!.selectedIndex =
-            (metricSelect!.selectedIndex + 1) % metricSelect!.options.length;
-        metricSelect!.dispatchEvent(new Event("change", { bubbles: true }));
+        const metricSelectElement = requireElement(
+            metricSelect,
+            "metric select"
+        );
+        expect(metricSelectElement.options.length).toBeGreaterThan(1);
+        metricSelectElement.selectedIndex =
+            (metricSelectElement.selectedIndex + 1) %
+            metricSelectElement.options.length;
+        metricSelectElement.dispatchEvent(new Event("change", { bubbles: true }));
 
         expect(
             metricCalls.some(
@@ -1061,7 +1099,7 @@ describe("createDataPointFilterControl", () => {
         minSlider?.dispatchEvent(new Event("input", { bubbles: true }));
         maxSlider?.dispatchEvent(new Event("change", { bubbles: true }));
         await Promise.resolve();
-        expect(rangeValues?.textContent).toBe("Range unavailable");
+        expect(updateGlobalFilter).toHaveBeenCalledTimes(1);
     });
 
     it("handles non-numeric slider input gracefully", async () => {
@@ -1094,11 +1132,13 @@ describe("createDataPointFilterControl", () => {
         const maxSlider = document.body.querySelector<HTMLInputElement>(
             "input[id^='map-filter-range-max-']"
         );
-        expect(minSlider).toBeTruthy();
-        expect(maxSlider).toBeTruthy();
+        const minSliderElement = requireElement(minSlider, "minimum slider");
+        const maxSliderElement = requireElement(maxSlider, "maximum slider");
+        expect(minSliderElement.value).toBe("175");
+        expect(maxSliderElement.value).toBe("300");
 
-        const minInternal = { value: minSlider!.value };
-        Object.defineProperty(minSlider!, "value", {
+        const minInternal = { value: minSliderElement.value };
+        Object.defineProperty(minSliderElement, "value", {
             configurable: true,
             enumerable: true,
             get: () => minInternal.value,
@@ -1109,16 +1149,16 @@ describe("createDataPointFilterControl", () => {
 
         clampMock.mockClear();
         minInternal.value = "NaN";
-        minSlider!.dispatchEvent(new Event("input", { bubbles: true }));
+        minSliderElement.dispatchEvent(new Event("input", { bubbles: true }));
         await Promise.resolve();
         expect(clampMock.mock.calls.some(([value]) => value === 175)).toBe(
             true
         );
 
-        delete (minSlider as any).value;
+        delete (minSliderElement as any).value;
 
-        const maxInternal = { value: maxSlider!.value };
-        Object.defineProperty(maxSlider!, "value", {
+        const maxInternal = { value: maxSliderElement.value };
+        Object.defineProperty(maxSliderElement, "value", {
             configurable: true,
             enumerable: true,
             get: () => maxInternal.value,
@@ -1129,13 +1169,13 @@ describe("createDataPointFilterControl", () => {
 
         clampMock.mockClear();
         maxInternal.value = "NaN";
-        maxSlider!.dispatchEvent(new Event("input", { bubbles: true }));
+        maxSliderElement.dispatchEvent(new Event("input", { bubbles: true }));
         await Promise.resolve();
         expect(clampMock.mock.calls.some(([value]) => value === 300)).toBe(
             true
         );
 
-        delete (maxSlider as any).value;
+        delete (maxSliderElement as any).value;
 
         clampMock.mockRestore();
     });
@@ -1345,20 +1385,10 @@ describe("createDataPointFilterControl", () => {
         const panel = document.body.querySelector<HTMLDivElement>(
             ".data-point-filter-control__panel"
         );
-        expect(panel).toBeTruthy();
-        if (!panel) {
-            Object.defineProperty(window, "innerWidth", {
-                value: originalWidth,
-                configurable: true,
-            });
-            Object.defineProperty(window, "innerHeight", {
-                value: originalHeight,
-                configurable: true,
-            });
-            return;
-        }
+        const panelElement = requireElement(panel, "filter panel");
+        expect(panelElement.hidden).toBe(false);
 
-        panel.getBoundingClientRect = () =>
+        panelElement.getBoundingClientRect = () =>
             ({
                 bottom: 240,
                 height: 160,
@@ -1374,7 +1404,9 @@ describe("createDataPointFilterControl", () => {
         await Promise.resolve();
 
         const leftClamp = Number.parseInt(
-            panel.style.getPropertyValue("--data-point-filter-arrow-offset"),
+            panelElement.style.getPropertyValue(
+                "--data-point-filter-arrow-offset"
+            ),
             10
         );
         expect(leftClamp).toBe(14);
@@ -1395,7 +1427,9 @@ describe("createDataPointFilterControl", () => {
         await Promise.resolve();
 
         const rightClamp = Number.parseInt(
-            panel.style.getPropertyValue("--data-point-filter-arrow-offset"),
+            panelElement.style.getPropertyValue(
+                "--data-point-filter-arrow-offset"
+            ),
             10
         );
         expect(rightClamp).toBe(306);
@@ -1465,7 +1499,8 @@ describe("createDataPointFilterControl", () => {
         const summary = document.body.querySelector<HTMLParagraphElement>(
             ".data-point-filter-control__summary"
         );
-        expect(summary).toBeTruthy();
+        const summaryElement = requireElement(summary, "summary");
+        expect(summaryElement.tagName).toBe("P");
 
         globalThis.mapDataPointFilterLastResult = {
             applied: true,
@@ -1479,7 +1514,7 @@ describe("createDataPointFilterControl", () => {
             totalCandidates: 30,
         };
         (container as any).refreshSummary();
-        expect(summary?.textContent).toContain("12 of 30");
+        expect(summaryElement.textContent).toContain("12 of 30");
 
         globalThis.mapDataPointFilterLastResult = {
             applied: true,
@@ -1491,16 +1526,16 @@ describe("createDataPointFilterControl", () => {
             totalCandidates: 24,
         };
         (container as any).refreshSummary();
-        expect(summary?.textContent).toContain("top 20%");
+        expect(summaryElement.textContent).toContain("top 20%");
 
         globalThis.mapDataPointFilterLastResult = { reason: "Disabled" };
         (container as any).refreshSummary();
-        expect(summary?.textContent).toBe("Disabled");
+        expect(summaryElement.textContent).toBe("Disabled");
 
         globalThis.mapDataPointFilter = { enabled: false };
         globalThis.mapDataPointFilterLastResult = null;
         (container as any).refreshSummary();
-        expect(summary?.textContent).toBe(
+        expect(summaryElement.textContent).toBe(
             "Highlight the most intense sections of your ride."
         );
 
@@ -1524,7 +1559,10 @@ describe("createDataPointFilterControl", () => {
         const summary = document.body.querySelector<HTMLParagraphElement>(
             ".data-point-filter-control__summary"
         );
-        expect(summary).toBeTruthy();
+        const summaryElement = requireElement(summary, "summary");
+        expect(summaryElement.textContent).toBe(
+            "Highlight the most intense sections of your ride."
+        );
 
         globalThis.mapDataPointFilterLastResult = {
             applied: true,
@@ -1538,7 +1576,7 @@ describe("createDataPointFilterControl", () => {
             totalCandidates: 9,
         };
         (container as any).refreshSummary();
-        expect(summary?.textContent).toContain("37% coverage");
+        expect(summaryElement.textContent).toContain("37% coverage");
 
         globalThis.mapDataPointFilterLastResult = {
             applied: true,
@@ -1551,7 +1589,7 @@ describe("createDataPointFilterControl", () => {
             totalCandidates: 10,
         };
         (container as any).refreshSummary();
-        expect(summary?.textContent).toContain("0% coverage");
+        expect(summaryElement.textContent).toContain("0% coverage");
     });
 
     it("preserves summaries when filter stays active and swallows refresh errors", async () => {
@@ -1562,17 +1600,17 @@ describe("createDataPointFilterControl", () => {
         const summary = document.body.querySelector<HTMLParagraphElement>(
             ".data-point-filter-control__summary"
         );
-        expect(summary).toBeTruthy();
-        if (!summary) {
-            return;
-        }
+        const summaryElement = requireElement(summary, "summary");
+        expect(summaryElement.textContent).toBe(
+            "Highlight the most intense sections of your ride."
+        );
 
-        summary.textContent = "Original summary";
+        summaryElement.textContent = "Original summary";
 
         globalThis.mapDataPointFilter = { enabled: true };
         globalThis.mapDataPointFilterLastResult = null;
         (container as any).refreshSummary();
-        expect(summary.textContent).toBe("Original summary");
+        expect(summaryElement.textContent).toBe("Original summary");
 
         const formatMetricValueSpy = vi
             .spyOn(stateHelpersModule, "formatMetricValue")
@@ -1589,8 +1627,9 @@ describe("createDataPointFilterControl", () => {
             totalCandidates: 0,
         } as any;
 
+        summaryElement.textContent = "Stable summary";
         expect(() => (container as any).refreshSummary()).not.toThrow();
-        expect(summary.textContent).toBe("Original summary");
+        expect(summaryElement.textContent).toBe("Stable summary");
 
         formatMetricValueSpy.mockRestore();
     });
