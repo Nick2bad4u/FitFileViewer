@@ -42,22 +42,62 @@ const mockGetState = vi.mocked(getState);
 const mockSetState = vi.mocked(setState);
 const mockSubscribe = vi.mocked(subscribe);
 
+const TAB_CONTENT_FIXTURES = [
+    { id: "content_data", text: "Data Content" },
+    { id: "content_chartjs", text: "Chart Content" },
+    { id: "content_browser", text: "Browser Content" },
+    { id: "content_map", text: "Map Content" },
+    { id: "content_summary", text: "Summary Content" },
+    { id: "content_altfit", text: "AltFit Content" },
+    { id: "content_zwift", text: "Zwift Content" },
+];
+
+function createTabContentFixture() {
+    const container = document.createElement("div");
+
+    for (const { id, text } of TAB_CONTENT_FIXTURES) {
+        const element = document.createElement("div");
+        element.id = id;
+        element.style.display = "none";
+        element.textContent = text;
+        container.appendChild(element);
+    }
+
+    return container;
+}
+
+function getTabElement(id) {
+    const element = document.getElementById(id);
+
+    if (!(element instanceof HTMLElement)) {
+        throw new Error(`Expected tab element ${id} to exist`);
+    }
+
+    return element;
+}
+
+function getSubscriptionCallback(key) {
+    const call = mockSubscribe.mock.calls.find(([subscriptionKey]) => {
+        return subscriptionKey === key;
+    });
+    const callback = call?.[1];
+
+    if (typeof callback !== "function") {
+        throw new Error(
+            `Expected ${key} subscription callback to be registered`
+        );
+    }
+
+    return callback;
+}
+
 describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
     let testContainer;
     let consoleSpy;
 
     beforeEach(() => {
         // Create test container with all expected tab content elements
-        testContainer = document.createElement("div");
-        testContainer.innerHTML = `
-            <div id="content_data" style="display: none;">Data Content</div>
-            <div id="content_chartjs" style="display: none;">Chart Content</div>
-            <div id="content_browser" style="display: none;">Browser Content</div>
-            <div id="content_map" style="display: none;">Map Content</div>
-            <div id="content_summary" style="display: none;">Summary Content</div>
-            <div id="content_altfit" style="display: none;">AltFit Content</div>
-            <div id="content_zwift" style="display: none;">Zwift Content</div>
-        `;
+        testContainer = createTabContentFixture();
         document.body.appendChild(testContainer);
 
         // Mock console.warn to track warnings
@@ -124,6 +164,8 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
                     "updateTabVisibility: Missing element in the DOM: content_summary"
                 )
             );
+            expect(document.getElementById("content_summary")).toBeNull();
+            expect(getTabElement("content_map").style.display).toBe("none");
         });
 
         it("BUG TEST: should handle invalid visibleTabId gracefully", () => {
@@ -168,17 +210,15 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
             updateTabVisibility("content_summary");
 
             // Simulate concurrent modification
-            setTimeout(() => {
-                const element = document.getElementById("content_summary");
-                if (element) {
-                    element.style.display = "none"; // Conflicting change
-                }
-            }, 0);
+            const element = getTabElement("content_summary");
+            element.style.display = "none"; // Conflicting change
 
             // Function should complete without error
             expect(() => {
                 updateTabVisibility("content_map");
             }).not.toThrow();
+            expect(getTabElement("content_map").style.display).toBe("flex");
+            expect(element.getAttribute("aria-hidden")).toBe("true");
         });
 
         it("BUG TEST: should handle state update errors gracefully", () => {
@@ -217,6 +257,8 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
                 "map",
                 expect.any(Object)
             );
+            expect(getTabElement("content_map").style.display).toBe("flex");
+            expect(getTabElement("content_summary").style.display).toBe("none");
         });
 
         it("BUG TEST: should handle edge cases in content ID patterns", () => {
@@ -245,6 +287,8 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
                 "chart",
                 expect.objectContaining({ source: "updateTabVisibility" })
             );
+            expect(getTabElement("content_chartjs").style.display).toBe("flex");
+            expect(getTabElement("content_summary").style.display).toBe("none");
         });
     });
 
@@ -262,6 +306,11 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
                 "globalData",
                 expect.any(Function)
             );
+            expect(
+                mockSubscribe.mock.calls.map(
+                    ([subscriptionKey]) => subscriptionKey
+                )
+            ).toEqual(["ui.activeTab", "globalData"]);
         });
 
         it("BUG TEST: should expose memory leak from multiple initializations", () => {
@@ -272,64 +321,58 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
 
             // Each call adds new subscriptions (potential memory leak)
             expect(mockSubscribe).toHaveBeenCalledTimes(6); // 2 subscriptions × 3 calls
+            expect(
+                mockSubscribe.mock.calls.filter(
+                    ([key]) => key === "ui.activeTab"
+                )
+            ).toHaveLength(3);
         });
 
         it("BUG TEST: should test subscription callback error handling", () => {
-            let subscribedCallbacks = [];
-
-            // Capture subscription callbacks
-            mockSubscribe.mockImplementation((key, callback) => {
-                subscribedCallbacks.push({ key, callback });
-            });
-
             initializeTabVisibilityState();
 
             // Test activeTab subscription with invalid data
-            const activeTabCallback = subscribedCallbacks.find(
-                (s) => s.key === "ui.activeTab"
-            )?.callback;
+            const activeTabCallback = getSubscriptionCallback("ui.activeTab");
 
-            if (activeTabCallback) {
-                expect(() => {
-                    activeTabCallback(null);
-                    activeTabCallback(undefined);
-                    activeTabCallback(123);
-                    activeTabCallback("invalid-tab");
-                }).not.toThrow();
-            }
+            expect(() => {
+                activeTabCallback(null);
+                activeTabCallback(undefined);
+                activeTabCallback(123);
+                activeTabCallback("invalid-tab");
+            }).not.toThrow();
+            expect(mockSetState).toHaveBeenCalledWith(
+                "ui.activeTabContent",
+                "invalid-tab",
+                expect.objectContaining({ source: "updateTabVisibility" })
+            );
         });
 
         it("BUG TEST: should test globalData subscription edge cases", () => {
-            let subscribedCallbacks = [];
-
-            mockSubscribe.mockImplementation((key, callback) => {
-                subscribedCallbacks.push({ key, callback });
-            });
-
             initializeTabVisibilityState();
 
-            const globalDataCallback = subscribedCallbacks.find(
-                (s) => s.key === "globalData"
-            )?.callback;
+            const globalDataCallback = getSubscriptionCallback("globalData");
 
-            if (globalDataCallback) {
-                // Test with various data states
-                const testCases = [
-                    null,
-                    undefined,
-                    {},
-                    [],
-                    "invalid",
-                    0,
-                    false,
-                ];
+            // Test with various data states
+            const testCases = [
+                null,
+                undefined,
+                {},
+                [],
+                "invalid",
+                0,
+                false,
+            ];
 
-                testCases.forEach((testData) => {
-                    expect(() => {
-                        globalDataCallback(testData);
-                    }).not.toThrow();
-                });
-            }
+            testCases.forEach((testData) => {
+                expect(() => {
+                    globalDataCallback(testData);
+                }).not.toThrow();
+            });
+            expect(mockSetState).not.toHaveBeenCalledWith(
+                "ui.activeTabContent",
+                expect.anything(),
+                expect.anything()
+            );
         });
     });
 
@@ -417,10 +460,22 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
                 "unknown-tab",
                 expect.any(Object)
             );
+            expect(getTabElement("content_summary").style.display).toBe("none");
         });
     });
 
     describe("Integration and State Consistency", () => {
+        it("should leave visible content unset for missing integration targets", () => {
+            updateTabVisibility("content_missing");
+
+            expect(mockSetState).not.toHaveBeenCalledWith(
+                "ui.activeTabContent",
+                "summary",
+                expect.any(Object)
+            );
+            expect(getTabElement("content_summary").style.display).toBe("none");
+        });
+
         it("should maintain state consistency between functions", () => {
             // Test sequence of operations
             showTabContent("summary");
@@ -439,6 +494,8 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
                 "map",
                 expect.any(Object)
             );
+            expect(getTabElement("content_map").style.display).toBe("flex");
+            expect(getTabElement("content_summary").style.display).toBe("none");
         });
 
         it("BUG TEST: should expose race conditions in state updates", () => {
@@ -449,6 +506,8 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
 
             // All should complete without error
             expect(mockSetState).toHaveBeenCalledTimes(3);
+            expect(getTabElement("content_chartjs").style.display).toBe("flex");
+            expect(getTabElement("content_map").style.display).toBe("none");
         });
 
         it("BUG TEST: should validate aria-hidden accessibility attributes", () => {
@@ -464,8 +523,10 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
             hideAllTabContent();
 
             // All should be hidden for accessibility
-            expect(summaryElement.getAttribute("aria-hidden")).toBe("true");
-            expect(mapElement.getAttribute("aria-hidden")).toBe("true");
+            expect([
+                summaryElement.getAttribute("aria-hidden"),
+                mapElement.getAttribute("aria-hidden"),
+            ]).toEqual(["true", "true"]);
         });
 
         it("BUG TEST: should handle DOM mutations during execution", () => {
@@ -483,6 +544,8 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
                 "summary",
                 expect.any(Object)
             );
+            expect(summaryElement.style.display).toBe("none");
+            expect(summaryElement.getAttribute("aria-hidden")).toBe("true");
         });
     });
 });
