@@ -92,13 +92,25 @@ describe("tabStateManager.fallback", () => {
         );
 
         // Also exercise switchToTab via fallback
-        instance.switchToTab("map");
+        const switchedToMap = instance.switchToTab("map");
+        expect(switchedToMap).toBe(true);
         expect(eff.setState).toHaveBeenCalledWith(
             "ui.activeTab",
             "map",
             expect.objectContaining({
                 source: expect.stringContaining("TabStateManager.switchToTab"),
             })
+        );
+
+        const switchedToMissingTab = instance.switchToTab("missing-tab");
+        expect(switchedToMissingTab).toBe(false);
+        expect(eff.setState).not.toHaveBeenCalledWith(
+            "ui.activeTab",
+            "missing-tab",
+            expect.anything()
+        );
+        expect(console.warn).toHaveBeenCalledWith(
+            "[TabStateManager] Unknown tab: missing-tab"
         );
     });
 });
