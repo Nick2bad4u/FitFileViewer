@@ -1,9 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
-const MODAL = "../../../../../utils/rendering/helpers/summaryColModal.js";
-const HELPERS =
-    "../../../../../utils/rendering/helpers/renderSummaryHelpers.js";
-
 describe("summaryColModal - file override persistence", () => {
     beforeEach(() => {
         document.body.innerHTML = "";
@@ -29,8 +25,12 @@ describe("summaryColModal - file override persistence", () => {
             saveColPrefs,
             loadColPrefs,
             orderSummaryColumnsNamedFirst,
-        } = await import(HELPERS);
-        const { showColModal } = await import(MODAL);
+        } = await import(
+            "../../../../../utils/rendering/helpers/renderSummaryHelpers.js"
+        );
+        const { showColModal } = await import(
+            "../../../../../utils/rendering/helpers/summaryColModal.js"
+        );
 
         const allKeys = [
             "Speed",
@@ -72,25 +72,48 @@ describe("summaryColModal - file override persistence", () => {
 
         const overlay = document.querySelector(
             ".summary-col-modal-overlay"
-        ) as HTMLElement;
-        expect(overlay).toBeTruthy();
+        );
+        expect(overlay).toBeInstanceOf(HTMLElement);
+        if (!(overlay instanceof HTMLElement)) {
+            throw new Error("Expected summary column modal overlay to render");
+        }
+
+        const buttons = Array.from(
+            overlay.querySelectorAll<HTMLButtonElement>("button")
+        );
+        expect(buttons.map((b) => (b.textContent || "").trim())).toEqual([
+            "×",
+            "Global default",
+            "This file override",
+            "Reset to Default",
+            "Make Global Default",
+            "Clear Global Default",
+            "Select All",
+            "Close",
+        ]);
 
         // Turn off file override by resetting this file back to the baseline (global default when set).
-        const resetBtn = Array.from(
-            overlay.querySelectorAll<HTMLButtonElement>("button")
-        ).find((b) => (b.textContent || "").trim() === "Reset to Default");
-        expect(resetBtn).toBeTruthy();
-        resetBtn?.click();
+        const resetBtn = buttons.find(
+            (b) => (b.textContent || "").trim() === "Reset to Default"
+        );
+        expect(resetBtn).toBeInstanceOf(HTMLButtonElement);
+        if (!(resetBtn instanceof HTMLButtonElement)) {
+            throw new Error("Expected reset button to render");
+        }
+        resetBtn.click();
 
         // Sanity: selection now matches global default.
         expect(visible).toEqual(globalDefault);
 
         // Close modal.
-        const closeBtn = Array.from(
-            overlay.querySelectorAll<HTMLButtonElement>("button")
-        ).find((b) => (b.textContent || "").trim() === "Close");
-        expect(closeBtn).toBeTruthy();
-        closeBtn?.click();
+        const closeBtn = buttons.find(
+            (b) => (b.textContent || "").trim() === "Close"
+        );
+        expect(closeBtn).toBeInstanceOf(HTMLButtonElement);
+        if (!(closeBtn instanceof HTMLButtonElement)) {
+            throw new Error("Expected close button to render");
+        }
+        closeBtn.click();
 
         // File key should stay cleared, not recreated.
         expect(localStorage.getItem(fileKey)).toBeNull();
