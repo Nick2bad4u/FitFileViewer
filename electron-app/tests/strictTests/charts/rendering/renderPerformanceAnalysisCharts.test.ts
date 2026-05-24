@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock(
     "../../../../utils/charts/rendering/renderSpeedVsDistanceChart.js",
@@ -20,7 +20,11 @@ vi.mock(
 );
 
 describe("renderPerformanceAnalysisCharts", () => {
-    it("invokes all sub renderers and handles errors gracefully", async () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    it("invokes all sub renderers", async () => {
         const spd =
             await import("../../../../utils/charts/rendering/renderSpeedVsDistanceChart.js");
         const pvh =
@@ -31,34 +35,55 @@ describe("renderPerformanceAnalysisCharts", () => {
             await import("../../../../utils/charts/rendering/renderPerformanceAnalysisCharts.js");
 
         const container = document.createElement("div");
-        renderPerformanceAnalysisCharts(
-            container,
-            { points: [] },
-            [
-                1,
-                2,
-                3,
-            ],
-            {}
-        );
+        expect(() => {
+            renderPerformanceAnalysisCharts(
+                container,
+                { points: [] },
+                [
+                    1,
+                    2,
+                    3,
+                ],
+                {}
+            );
+        }).not.toThrow();
+
         expect(spd.renderSpeedVsDistanceChart).toHaveBeenCalled();
         expect(pvh.renderPowerVsHeartRateChart).toHaveBeenCalled();
         expect(alt.renderAltitudeProfileChart).toHaveBeenCalled();
+    });
 
-        // Error path: make one renderer throw
+    it("handles renderer errors gracefully", async () => {
+        const spd =
+            await import("../../../../utils/charts/rendering/renderSpeedVsDistanceChart.js");
+        const { renderPerformanceAnalysisCharts } =
+            await import("../../../../utils/charts/rendering/renderPerformanceAnalysisCharts.js");
+
+        const error = new Error("boom");
+        const consoleError = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
         (spd.renderSpeedVsDistanceChart as any).mockImplementation(() => {
-            throw new Error("boom");
+            throw error;
         });
-        // Should not throw
-        renderPerformanceAnalysisCharts(
-            container,
-            { points: [] },
-            [
-                1,
-                2,
-                3,
-            ],
-            {}
+
+        const container = document.createElement("div");
+        expect(() => {
+            renderPerformanceAnalysisCharts(
+                container,
+                { points: [] },
+                [
+                    1,
+                    2,
+                    3,
+                ],
+                {}
+            );
+        }).not.toThrow();
+
+        expect(consoleError).toHaveBeenCalledWith(
+            "[ChartJS] Error rendering performance analysis charts:",
+            error
         );
     });
 });
