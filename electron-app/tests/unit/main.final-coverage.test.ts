@@ -24,6 +24,16 @@ import { EventEmitter } from "events";
 
 // Track all mock references for cleanup
 const mockRefs = new Set<any>();
+const mockTimeoutHandles = new Set<ReturnType<typeof setTimeout>>();
+
+function scheduleMockTimeout(callback: () => void, delay: number) {
+    const handle = setTimeout(() => {
+        mockTimeoutHandles.delete(handle);
+        callback();
+    }, delay);
+    mockTimeoutHandles.add(handle);
+    return handle;
+}
 
 /**
  * Create comprehensive mock for Electron with all required functionality
@@ -222,19 +232,19 @@ function createNodeMocks() {
                         server.emit("error", { code: configuredError });
                     }
                     // Defer the callback slightly to allow tests to emit 'error' first when needed
-                    setTimeout(() => {
+                    scheduleMockTimeout(() => {
                         // Only invoke the listen callback if no error has been emitted
                         if (!server._errored && callback) callback();
                     }, 150);
                 }
             );
             server.close = vi.fn((callback: any) => {
-                setTimeout(() => callback && callback(), 0);
+                scheduleMockTimeout(() => callback && callback(), 0);
             });
             server.address = vi.fn(() => ({ port: server._port ?? 3000 }));
 
             // Automatically exercise request handler paths for coverage
-            setTimeout(() => {
+            scheduleMockTimeout(() => {
                 if (!handler) return;
                 // 1) Successful callback
                 handler(
@@ -447,6 +457,10 @@ beforeEach(() => {
 afterEach(() => {
     // Cleanup
     vi.restoreAllMocks();
+    for (const handle of mockTimeoutHandles) {
+        clearTimeout(handle);
+    }
+    mockTimeoutHandles.clear();
 });
 
 describe("main.js - Final Coverage Push to 100%", () => {
@@ -458,11 +472,13 @@ describe("main.js - Final Coverage Push to 100%", () => {
         // Import main.js to trigger initialization
         await import("../../main.js");
 
-        // Wait for all async initialization
-        await new Promise((resolve) => setTimeout(resolve, 200));
-
         // Basic initialization verification (no strict assertions to avoid failures)
-        expect(globalMocks.mockApp.whenReady).toHaveBeenCalled();
+        await vi.waitFor(() => {
+            expect(globalMocks.mockApp.whenReady).toHaveBeenCalled();
+        });
+        expect(globalMocks.mockBrowserWindow.getAllWindows()).toEqual([
+            globalMocks.mockWindow,
+        ]);
         console.log("[TEST] Basic initialization complete");
     });
 
@@ -474,13 +490,13 @@ describe("main.js - Final Coverage Push to 100%", () => {
         process.env.GYAZO_CLIENT_ID = "test_client_id";
         process.env.GYAZO_CLIENT_SECRET = "test_client_secret";
 
-        // Wait for initialization
-        await new Promise((resolve) => setTimeout(resolve, 100));
-
-        // Give a brief moment for main.js keepalive and server priming to run
-        await new Promise((resolve) => setTimeout(resolve, 150));
-        // Trigger Gyazo server startup through IPC simulation if possible
-        // The actual functions will be called during main.js execution; assert non-strictly
+        expect(Object.keys(mainModule)).toEqual(
+            expect.arrayContaining([
+                "startGyazoOAuthServer",
+                "stopGyazoOAuthServer",
+            ])
+        );
+        expect(globalMocks.mockHttp._servers).toHaveLength(0);
         expect(typeof globalMocks.mockHttp.createServer).toBe("function");
 
         console.log("[TEST] Gyazo OAuth server functions exercised");
@@ -505,12 +521,11 @@ describe("main.js - Final Coverage Push to 100%", () => {
         const servers = (globalMocks as any).mockHttp._servers as any[];
         // Helper to wait for servers length to reach N
         const waitForServers = async (n: number) => {
-            for (let i = 0; i < 50; i++) {
-                if (servers.length >= n) return;
-                await new Promise((r) => setTimeout(r, 5));
-            }
-            throw new Error(
-                `Timeout waiting for ${n} servers to be created (have ${servers.length})`
+            await vi.waitFor(
+                () => {
+                    expect(servers.length).toBeGreaterThanOrEqual(n);
+                },
+                { timeout: 1000 }
             );
         };
 
@@ -541,11 +556,9 @@ describe("main.js - Final Coverage Push to 100%", () => {
                 : Promise.reject(new Error("no handler"));
         // Wait for server creation then emit a non-EADDR error to force rejection
         const servers = (globalMocks as any).mockHttp._servers as any[];
-        for (let i = 0; i < 50 && servers.length < 1; i++) {
-            await new Promise((r) => setTimeout(r, 5));
-        }
-        if (servers.length < 1)
-            throw new Error("Server was not created in time");
+        await vi.waitFor(() => {
+            expect(servers.length).toBeGreaterThanOrEqual(1);
+        });
         servers[servers.length - 1].emit("error", { code: "ECONNRESET" });
         await expect(p).rejects.toMatchObject({ code: "ECONNRESET" });
     });
@@ -585,16 +598,27 @@ describe("main.js - Final Coverage Push to 100%", () => {
             await stopHandler({});
         }
 
-        expect(true).toBe(true);
+        expect(startHandler).toBeTypeOf("function");
+        expect(stopHandler).toBeTypeOf("function");
+        expect((globalMocks as any).mockHttp._servers.length).toBeGreaterThan(
+            0
+        );
     });
 
     test("should exercise all IPC handlers and menu setup", async () => {
         await import("../../main.js");
 
-        // Allow time for all IPC handlers to be registered
-        await new Promise((resolve) => setTimeout(resolve, 200));
-
-        // Verify IPC infrastructure availability (avoid timing flake on call count)
+        const registeredHandleChannels = globalMocks.mockIpcMain
+            .eventNames()
+            .filter((eventName: string | symbol) =>
+                String(eventName).startsWith("handle:")
+            );
+        expect(registeredHandleChannels).toEqual(
+            expect.arrayContaining([
+                "handle:gyazo:server:start",
+                "handle:gyazo:server:stop",
+            ])
+        );
         expect(typeof globalMocks.mockIpcMain.handle).toBe("function");
         expect(typeof globalMocks.mockIpcMain.on).toBe("function");
 
@@ -623,9 +647,26 @@ describe("main.js - Final Coverage Push to 100%", () => {
         });
         globalMocks.mockApp.emit("web-contents-created", {}, mockWebContents);
 
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        // Minimal assertion to satisfy assertion requirements
-        expect(globalMocks.mockApp.emit).toBeDefined();
+        expect(
+            globalMocks.mockApp.listenerCount("before-quit")
+        ).toBeGreaterThan(0);
+        expect(globalMocks.mockApp.listenerCount("activate")).toBeGreaterThan(
+            0
+        );
+        expect(
+            globalMocks.mockApp.emit(
+                "browser-window-focus",
+                {},
+                mockWebContents
+            )
+        ).toBe(true);
+        expect(mockWebContents.setWindowOpenHandler).toHaveBeenCalledWith(
+            expect.any(Function)
+        );
+        expect(mockWebContents.on).toHaveBeenCalledWith(
+            "will-navigate",
+            expect.any(Function)
+        );
         console.log(
             "[TEST] Application event handlers and lifecycle exercised"
         );
@@ -656,9 +697,12 @@ describe("main.js - Final Coverage Push to 100%", () => {
         // Test error case (listener attached above prevents unhandled rejection)
         globalMocks.mockAutoUpdater.emit("error", new Error("Test error"));
 
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        // Minimal assertion
-        expect(globalMocks.mockAutoUpdater.emit).toBeTypeOf("function");
+        expect(
+            globalMocks.mockAutoUpdater.listenerCount("error")
+        ).toBeGreaterThan(0);
+        expect(
+            globalMocks.mockAutoUpdater.emit("error", new Error("Second error"))
+        ).toBe(true);
         console.log(
             "[TEST] Auto-updater functionality and error paths exercised"
         );
@@ -683,9 +727,12 @@ describe("main.js - Final Coverage Push to 100%", () => {
         );
         globalMocks.mockWebContents.emit("did-finish-load");
 
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        // Minimal assertion
-        expect(globalMocks.mockWebContents.emit).toBeTypeOf("function");
+        await vi.waitFor(() => {
+            expect(
+                globalMocks.mockWindow.webContents.executeJavaScript
+            ).toHaveBeenCalled();
+        });
+        expect(globalMocks.mockWebContents.emit("did-finish-load")).toBe(true);
         console.log("[TEST] Theme management and WebContents events exercised");
     });
 
@@ -705,9 +752,12 @@ describe("main.js - Final Coverage Push to 100%", () => {
             }
         );
 
-        await new Promise((resolve) => setTimeout(resolve, 50));
-        // Minimal assertion
-        expect(globalMocks.mockFs.readFile).toBeTypeOf("function");
+        const readFileCallback = vi.fn();
+        globalMocks.mockFs.readFile("/test/missing.fit", readFileCallback);
+        const [[readError, readData]] = readFileCallback.mock.calls;
+        expect(readError).toBeInstanceOf(Error);
+        expect(readError.message).toBe("Async file error");
+        expect(readData).toBeNull();
         console.log("[TEST] File operations and error handling exercised");
     });
 
@@ -748,9 +798,8 @@ describe("main.js - Final Coverage Push to 100%", () => {
             writable: true,
         });
 
-        await new Promise((resolve) => setTimeout(resolve, 50));
-        // Minimal assertion
         expect(process.env.NODE_ENV).toBe("development");
+        expect(process.platform).toBe(originalPlatform);
         console.log(
             "[TEST] Development mode and platform-specific code exercised"
         );
@@ -778,13 +827,13 @@ describe("main.js - Final Coverage Push to 100%", () => {
 
         // Test navigation security
         const mockWebContents = new EventEmitter();
+        const navigationEvent = { preventDefault: vi.fn() };
         Object.assign(mockWebContents, {
             on: vi.fn((event: string, handler: any) => {
                 if (event === "will-navigate") {
                     // Simulate navigation event
-                    setTimeout(() => {
-                        const mockEvent = { preventDefault: vi.fn() };
-                        handler(mockEvent, "https://malicious.com");
+                    scheduleMockTimeout(() => {
+                        handler(navigationEvent, "https://malicious.com");
                     }, 10);
                 }
             }),
@@ -793,11 +842,11 @@ describe("main.js - Final Coverage Push to 100%", () => {
 
         globalMocks.mockApp.emit("web-contents-created", {}, mockWebContents);
 
-        await new Promise((resolve) => setTimeout(resolve, 150));
-        // Minimal assertion: verify function exists
-        expect(typeof globalMocks.mockBrowserWindow.getAllWindows).toBe(
-            "function"
-        );
+        await vi.waitFor(() => {
+            expect(navigationEvent.preventDefault).toHaveBeenCalled();
+        });
+        expect(brokenWindow.isDestroyed()).toBe(true);
+        expect(brokenWindow.webContents.isDestroyed()).toBe(true);
         console.log(
             "[TEST] Comprehensive error conditions and edge cases exercised"
         );
