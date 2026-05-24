@@ -113,7 +113,7 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
         expect(container.children.length).toBe(0);
     });
 
-    it.skip("should respect field visibility from settings manager (handled by chart state manager)", () => {
+    it("should respect field visibility from settings manager", () => {
         const container = document.createElement("div");
         const data = [
             {
@@ -130,6 +130,7 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
         renderGPSTimeChart(container, data, { maxPoints: "all" });
 
         expect(Chart).not.toHaveBeenCalled();
+        expect(container.childElementCount).toBe(0);
     });
 
     it("should convert GPS semicircles to degrees, limit points, and configure chart options", () => {
@@ -200,6 +201,8 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
         );
 
         expect(config.plugins[0]).toEqual({ id: "zoom-reset" });
-        expect(container.querySelector("canvas")).not.toBeNull();
+        const canvas = container.querySelector("canvas");
+        expect(canvas?.style.borderRadius).toBe("12px");
+        expect(canvas?.style.background).toBe("rgb(16, 16, 16)");
     });
 });
