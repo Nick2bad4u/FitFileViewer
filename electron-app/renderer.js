@@ -677,7 +677,7 @@ const PerformanceMonitor = {
      */
     end(operation) {
         const startTime = this.metrics.get(`${operation}_start`);
-        if (!startTime) {
+        if (startTime === undefined) {
             logRenderer(
                 "warn",
                 `[Performance] No start time found for operation: ${operation}`
@@ -701,11 +701,10 @@ const PerformanceMonitor = {
     /**
      * Gets all recorded metrics
      *
-     * @returns {Object} Object containing all metrics
+     * @returns {Record<string, number>} Object containing all metrics
      */
     getMetrics() {
-        /** @type {any} */
-        const result = {};
+        const result = /** @type {Record<string, number>} */ ({});
         for (const [key, value] of this.metrics) {
             if (!key.endsWith("_start")) {
                 result[key] = value;
