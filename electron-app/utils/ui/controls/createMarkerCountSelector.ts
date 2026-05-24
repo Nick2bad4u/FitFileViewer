@@ -3,7 +3,7 @@ import { showNotification } from "../notifications/showNotification.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 const DEFAULT_MARKER_COUNT = 50;
-const MARKER_COUNT_OPTIONS = [
+const NUMERIC_MARKER_COUNT_OPTIONS = [
     10,
     25,
     50,
@@ -11,8 +11,11 @@ const MARKER_COUNT_OPTIONS = [
     200,
     500,
     1000,
-    "all",
 ] as const;
+const MARKER_COUNT_OPTIONS = [...NUMERIC_MARKER_COUNT_OPTIONS, "all"] as const;
+const MARKER_COUNT_OPTION_SET: ReadonlySet<number> = new Set(
+    NUMERIC_MARKER_COUNT_OPTIONS
+);
 
 type MarkerCountOption = (typeof MARKER_COUNT_OPTIONS)[number];
 type NumericMarkerCountOption = Extract<MarkerCountOption, number>;
@@ -212,5 +215,5 @@ function resolveInitialMarkerCount(globalRef: MarkerCountGlobal): string {
 }
 
 function isMarkerCountOption(value: number): value is NumericMarkerCountOption {
-    return (MARKER_COUNT_OPTIONS as readonly unknown[]).includes(value);
+    return MARKER_COUNT_OPTION_SET.has(value);
 }
