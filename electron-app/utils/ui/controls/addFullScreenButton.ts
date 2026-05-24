@@ -3,10 +3,9 @@
 import { getActiveTabContent } from "../../rendering/helpers/getActiveTabContent.js";
 import { addExitFullscreenOverlay } from "./addExitFullscreenOverlay.js";
 import { removeExitFullscreenOverlay } from "./removeExitFullscreenOverlay.js";
+import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
-type ElectronFullscreenAPI = {
-    setFullScreen?: (flag: boolean) => void;
-};
+type ElectronFullscreenAPI = Partial<Pick<ElectronAPI, "setFullScreen">>;
 
 type FullscreenGlobal = typeof globalThis & {
     __ffvFullscreenKeydownHandler?: null | ((event: Event) => void);

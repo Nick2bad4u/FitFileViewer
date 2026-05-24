@@ -2,12 +2,11 @@
 
 import { createRendererLogger } from "../../logging/rendererLogger.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
+import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
 type UpdateNotificationAction = boolean | string;
 
-type ElectronUpdateAPI = {
-    installUpdate?: () => void;
-};
+type ElectronUpdateAPI = Partial<Pick<ElectronAPI, "installUpdate">>;
 
 type UpdateGlobal = typeof globalThis & {
     electronAPI?: ElectronUpdateAPI;

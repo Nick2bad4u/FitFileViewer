@@ -14,13 +14,11 @@ import {
     validateElement,
 } from "./mainUiDomUtils.js";
 import { showNotification } from "./notifications/showNotification.js";
-import type { FitDecodeResult } from "../../shared/fit";
+import type { ElectronAPI } from "../../shared/preloadApi.js";
 
 type DroppedFile = File & { path?: string };
 
-type ElectronApiLike = {
-    decodeFitFile?: (buffer: ArrayBuffer) => Promise<FitDecodeResult>;
-};
+type ElectronApiLike = Partial<Pick<ElectronAPI, "decodeFitFile">>;
 
 type DragDropGlobal = typeof globalThis & {
     electronAPI?: ElectronApiLike;

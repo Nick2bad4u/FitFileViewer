@@ -1,21 +1,20 @@
 import { getErrorInfo, logWithLevel } from "../../logging/index.js";
 import { type SystemInfoField, updateSystemInfo } from "./updateSystemInfo.js";
+import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
 type VersionSystemInfo = Record<SystemInfoField, string>;
 
-type PlatformInfo = {
-    arch: string;
-    platform: string;
-};
-
-type VersionInfoElectronAPI = {
-    getAppVersion?: () => Promise<string>;
-    getChromeVersion?: () => Promise<string>;
-    getElectronVersion?: () => Promise<string>;
-    getLicenseInfo?: () => Promise<string>;
-    getNodeVersion?: () => Promise<string>;
-    getPlatformInfo?: () => Promise<PlatformInfo>;
-};
+type VersionInfoElectronAPI = Partial<
+    Pick<
+        ElectronAPI,
+        | "getAppVersion"
+        | "getChromeVersion"
+        | "getElectronVersion"
+        | "getLicenseInfo"
+        | "getNodeVersion"
+        | "getPlatformInfo"
+    >
+>;
 
 type GlobalWithVersionInfoElectronAPI = typeof globalThis & {
     electronAPI?: VersionInfoElectronAPI;
