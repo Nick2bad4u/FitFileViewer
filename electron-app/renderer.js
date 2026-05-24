@@ -237,6 +237,41 @@ function getEnvironment() {
 }
 
 /**
+ * @param {string} flagName
+ *
+ * @returns {unknown}
+ */
+function getGlobalBooleanFlag(flagName) {
+    return Reflect.get(globalThis, flagName);
+}
+
+/**
+ * @returns {Record<string, string>}
+ */
+function getRendererLocationParts() {
+    const locationRecord = toModuleRecord(Reflect.get(globalThis, "location"));
+
+    return {
+        hostname: getStringProperty(locationRecord, "hostname"),
+        href: getStringProperty(locationRecord, "href"),
+        protocol: getStringProperty(locationRecord, "protocol"),
+        search: getStringProperty(locationRecord, "search"),
+    };
+}
+
+/**
+ * @param {Record<string, unknown>} record
+ * @param {string} propertyName
+ *
+ * @returns {string}
+ */
+function getStringProperty(record, propertyName) {
+    const value = record[propertyName];
+
+    return typeof value === "string" ? value : "";
+}
+
+/**
  * @returns {Map<string, unknown> | null}
  */
 function getVitestManualMockRegistry() {
@@ -248,27 +283,105 @@ function getVitestManualMockRegistry() {
 }
 
 /**
- * Attempt to dynamically import a module, preferring test-relative paths mocked
- * in unit tests. Falls back to the real renderer-relative path when test path
- * fails. Results are cached to avoid repeated imports.
- *
- * @param {string} testPath - Path used by tests (e.g. ../../utils/...)
+ * @returns {boolean}
+ */
+function hasDocumentDevModeFlag() {
+    const documentRecord = toModuleRecord(Reflect.get(globalThis, "document"));
+    const documentElement = toModuleRecord(documentRecord.documentElement);
+    const dataset = toModuleRecord(documentElement.dataset);
+
+    // eslint-disable-next-line n/no-unsupported-features/es-builtins, n/no-unsupported-features/es-syntax -- prefer-object-has-own requires Object.hasOwn here.
+    return Object.hasOwn(dataset, "devMode");
+}
+
+/**
+ * @returns {boolean}
+ */
+function hasElectronDevModeFlag() {
+    const electronApi = toModuleRecord(Reflect.get(globalThis, "electronAPI"));
+
+    return Reflect.get(electronApi, "__devMode") !== undefined;
+}
+
+/**
  * @param {string} realPath - Real path used by the app (e.g. ./utils/...)
  *
  * @returns {Promise<unknown>}
  */
-async function importPreferTest(testPath, realPath) {
-    if (isRendererTestEnvironment()) {
-        // Attempt test path first so vi.doMock specifiers (../../) are honored
-        try {
-            return /** @type {unknown} */ (await import(testPath));
-        } catch {
-            return /** @type {unknown} */ (await import(realPath));
+async function importRendererModule(realPath) {
+    switch (realPath) {
+        case "./utils/app/lifecycle/appActions.js": {
+            return /** @type {Promise<unknown>} */ (
+                import("./utils/app/lifecycle/appActions.js")
+            );
+        }
+        case "./utils/app/lifecycle/listeners.js": {
+            return /** @type {Promise<unknown>} */ (
+                import("./utils/app/lifecycle/listeners.js")
+            );
+        }
+        case "./utils/files/import/handleOpenFile.js": {
+            return /** @type {Promise<unknown>} */ (
+                import("./utils/files/import/handleOpenFile.js")
+            );
+        }
+        case "./utils/state/core/masterStateManager.js": {
+            return /** @type {Promise<unknown>} */ (
+                import("./utils/state/core/masterStateManager.js")
+            );
+        }
+        case "./utils/state/domain/appState.js": {
+            return /** @type {Promise<unknown>} */ (
+                import("./utils/state/domain/appState.js")
+            );
+        }
+        case "./utils/state/domain/uiStateManager.js": {
+            return /** @type {Promise<unknown>} */ (
+                import("./utils/state/domain/uiStateManager.js")
+            );
+        }
+        case "./utils/theming/core/setupTheme.js": {
+            return /** @type {Promise<unknown>} */ (
+                import("./utils/theming/core/setupTheme.js")
+            );
+        }
+        case "./utils/theming/core/theme.js": {
+            return /** @type {Promise<unknown>} */ (
+                import("./utils/theming/core/theme.js")
+            );
+        }
+        case "./utils/ui/modals/aboutModal.js": {
+            return /** @type {Promise<unknown>} */ (
+                import("./utils/ui/modals/aboutModal.js")
+            );
+        }
+        case "./utils/ui/notifications/showNotification.js": {
+            return /** @type {Promise<unknown>} */ (
+                import("./utils/ui/notifications/showNotification.js")
+            );
+        }
+        case "./utils/ui/notifications/showUpdateNotification.js": {
+            return /** @type {Promise<unknown>} */ (
+                import("./utils/ui/notifications/showUpdateNotification.js")
+            );
+        }
+        default: {
+            throw new Error(`Unsupported renderer module import: ${realPath}`);
         }
     }
+}
 
-    // Production: skip invalid testPath to avoid 404 noise.
-    return /** @type {unknown} */ (await import(realPath));
+/**
+ * @param {Record<string, string>} locationParts
+ *
+ * @returns {boolean}
+ */
+function isDebugRendererLocation(locationParts) {
+    return (
+        locationParts.search.includes("debug=true") ||
+        locationParts.protocol === "file:" ||
+        locationParts.href.includes("electron")
+    );
 }
 
 /**
@@ -280,39 +393,32 @@ async function importPreferTest(testPath, realPath) {
 function isDevelopmentMode() {
     // Check for development indicators (guard window.location access for jsdom/mocks)
     try {
-        const loc =
-            /** @type {any} */ (
-                globalThis.window === undefined
-                    ? undefined
-                    : globalThis.location
-            ) || {};
-        const hostname = typeof loc.hostname === "string" ? loc.hostname : "";
-        const search = typeof loc.search === "string" ? loc.search : "";
-        const protocol = typeof loc.protocol === "string" ? loc.protocol : "";
-        const href = typeof loc.href === "string" ? loc.href : "";
+        const locationParts = getRendererLocationParts();
 
         return (
-            hostname === "localhost" ||
-            hostname === "127.0.0.1" ||
-            (hostname && hostname.includes("dev")) ||
-            /** @type {any} */ (globalThis).__DEVELOPMENT__ === true ||
-            (search && search.includes("debug=true")) ||
-            (typeof document !== "undefined" &&
-                document.documentElement &&
-                Object.hasOwn(document.documentElement.dataset, "devMode")) ||
-            protocol === "file:" ||
-            (globalThis.window !== undefined &&
-                /** @type {any} */ (globalThis).electronAPI &&
-                /** @type {any} */ (globalThis.electronAPI).__devMode !==
-                    undefined) ||
-            (typeof console !== "undefined" &&
-                typeof href === "string" &&
-                href.includes("electron"))
+            isLocalDevelopmentHost(locationParts.hostname) ||
+            isDebugRendererLocation(locationParts) ||
+            getGlobalBooleanFlag("__DEVELOPMENT__") === true ||
+            hasDocumentDevModeFlag() ||
+            hasElectronDevModeFlag()
         );
     } catch {
         // On any unexpected error, default to non-dev
         return false;
     }
+}
+
+/**
+ * @param {string} hostname
+ *
+ * @returns {boolean}
+ */
+function isLocalDevelopmentHost(hostname) {
+    return (
+        hostname === "localhost" ||
+        hostname === "127.0.0.1" ||
+        hostname.includes("dev")
+    );
 }
 
 /**
@@ -322,24 +428,6 @@ function isDevelopmentMode() {
  */
 function isRecord(value) {
     return typeof value === "object" && value !== null;
-}
-
-/**
- * @returns {boolean}
- */
-function isRendererTestEnvironment() {
-    const processLike =
-        typeof process === "undefined"
-            ? undefined
-            : /** @type {unknown} */ (process);
-    const environment = isRecord(processLike)
-        ? toModuleRecord(processLike.env)
-        : {};
-
-    return (
-        environment.VITEST_WORKER_ID !== undefined ||
-        getVitestManualMockRegistry() !== null
-    );
 }
 
 /**
@@ -381,7 +469,7 @@ async function resolveCoreModule(testPath, realPath) {
     const resolved =
         resolveExactManualMock(testPath) ??
         resolveManualMock(manualMockPath) ??
-        (await importPreferTest(testPath, realPath));
+        (await importRendererModule(realPath));
 
     return toModuleRecord(resolved);
 }
