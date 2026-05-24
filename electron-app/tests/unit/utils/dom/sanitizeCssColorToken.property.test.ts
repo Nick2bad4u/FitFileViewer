@@ -9,6 +9,13 @@ import { sanitizeCssColorToken } from "../../../../utils/dom/index.js";
 
 describe("sanitizeCssColorToken (property)", () => {
     it("never returns an unsafe token", () => {
+        expect(
+            sanitizeCssColorToken('url("javascript:alert(1)")', "#123456")
+        ).toBe("#123456");
+        expect(
+            sanitizeCssColorToken('url("javascript:alert(1)")', "#123456")
+        ).not.toBe('url("javascript:alert(1)")');
+
         fc.assert(
             fc.property(fc.string(), (input) => {
                 const out = sanitizeCssColorToken(input, "#123456");
