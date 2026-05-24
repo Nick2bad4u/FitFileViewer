@@ -1,4 +1,7 @@
 {
+    type RendererIpcEventChannel =
+        import("../../shared/ipc").RendererIpcEventChannel;
+
     const { logWithContext } = require("../logging/logWithContext") as {
         logWithContext: (
             level: string,
@@ -12,7 +15,10 @@
         webContents: {
             executeJavaScript?: (script: string) => Promise<unknown>;
             isDestroyed?: () => boolean;
-            send?: (channel: string, ...args: readonly unknown[]) => void;
+            send?: (
+                channel: RendererIpcEventChannel,
+                ...args: readonly unknown[]
+            ) => void;
         };
     }
 

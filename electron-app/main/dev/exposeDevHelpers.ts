@@ -1,10 +1,16 @@
 {
+    type RendererIpcEventChannel =
+        import("../../shared/ipc").RendererIpcEventChannel;
+
     interface MainWindowLike {
         isDestroyed?: () => boolean;
         webContents: {
             executeJavaScript?: (script: string) => Promise<unknown>;
             isDestroyed?: () => boolean;
-            send?: (channel: string, ...args: readonly unknown[]) => void;
+            send?: (
+                channel: RendererIpcEventChannel,
+                ...args: readonly unknown[]
+            ) => void;
         };
     }
 

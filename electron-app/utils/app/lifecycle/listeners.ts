@@ -16,6 +16,11 @@ import {
     unwrapFitParseMessages,
 } from "../../files/import/fitParsePayload.js";
 import type { FitParsePayload } from "../../files/import/fitParsePayload.js";
+import type {
+    GenericSendChannel,
+    RendererIpcEventChannel,
+    UpdateEventName,
+} from "../../../shared/ipc.js";
 import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 import { registerChartResizeListener } from "./listenersResize.js";
 import { registerMenuIpcListeners } from "./menuIpcListeners.js";
@@ -71,7 +76,7 @@ type LifecycleElectronAPI = {
     addRecentFile?: (filePath: string) => Promise<void>;
     approveRecentFile?: (filePath: string) => Promise<boolean>;
     onIpc?: (
-        channel: string,
+        channel: RendererIpcEventChannel,
         callback: ElectronIpcCallback
     ) => Unsubscribe | undefined;
     onMenuOpenFile?: (callback: () => unknown) => Unsubscribe | undefined;
@@ -79,12 +84,12 @@ type LifecycleElectronAPI = {
         callback: (filePath: string | string[]) => Promise<void> | void
     ) => Unsubscribe | undefined;
     onUpdateEvent?: (
-        eventName: string,
+        eventName: UpdateEventName,
         callback: ElectronIpcCallback
     ) => Unsubscribe | undefined;
     parseFitFile?: (arrayBuffer: ArrayBuffer) => Promise<FitParseResult>;
     readFile?: (filePath: string) => Promise<ArrayBuffer>;
-    send?: (channel: string) => void;
+    send?: (channel: GenericSendChannel) => void;
 };
 
 type LifecycleGlobal = typeof globalThis & {

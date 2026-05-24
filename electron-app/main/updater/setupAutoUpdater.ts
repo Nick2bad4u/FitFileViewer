@@ -32,7 +32,10 @@
         isDestroyed?: () => boolean;
         webContents?: {
             isDestroyed?: () => boolean;
-            send?: (channel: string, ...args: unknown[]) => void;
+            send?: (
+                channel: RendererIpcEventChannel,
+                ...args: unknown[]
+            ) => void;
         };
     }
 
