@@ -75,6 +75,7 @@ describe("convertMpsToMph.js - Speed Unit Converter Utility (MPS to MPH)", () =>
     describe("Basic Conversions", () => {
         it("should convert zero meters per second correctly", () => {
             expect(convertMpsToMph(0)).toBe(0);
+            expect(convertMpsToMph(0)).not.toBe(2.236936);
         });
 
         it("should convert common walking speed (1.4 m/s)", () => {
@@ -104,6 +105,12 @@ describe("convertMpsToMph.js - Speed Unit Converter Utility (MPS to MPH)", () =>
     });
 
     describe("Edge Cases", () => {
+        it("should reject invalid-input NaN edge values", () => {
+            expect(() => convertMpsToMph(Number.NaN)).toThrow(
+                "Expected mps to be a number, received number"
+            );
+        });
+
         it("should handle very small numbers", () => {
             const result = convertMpsToMph(0.0001);
             expect(result).toBeCloseTo(0.0002236936, 10);
@@ -117,6 +124,8 @@ describe("convertMpsToMph.js - Speed Unit Converter Utility (MPS to MPH)", () =>
         it("should handle Infinity input", () => {
             const result = convertMpsToMph(Infinity);
             expect(result).toBe(Infinity);
+            expect(result).not.toBe(Number.MAX_VALUE);
+            expect(mockConsole.warn).not.toHaveBeenCalled();
         });
 
         it("should handle negative infinity", () => {
@@ -146,6 +155,7 @@ describe("convertMpsToMph.js - Speed Unit Converter Utility (MPS to MPH)", () =>
             expect(results.every((result) => result === firstResult)).toBe(
                 true
             );
+            expect(results).not.toContain(0);
         });
 
         it("should handle rapid successive conversions", () => {
@@ -184,6 +194,7 @@ describe("convertMpsToMph.js - Speed Unit Converter Utility (MPS to MPH)", () =>
             const gpsSpeed = 3.2; // m/s from GPS
             const result = convertMpsToMph(gpsSpeed);
             expect(result).toBeCloseTo(7.15819, 4);
+            expect(result).not.toBe(gpsSpeed);
         });
 
         it("should handle running pace conversions", () => {
@@ -241,6 +252,7 @@ describe("convertMpsToMph.js - Speed Unit Converter Utility (MPS to MPH)", () =>
         it("should use correct conversion factor (2.236936)", () => {
             // 1 m/s = 2.236936 mph (standard conversion factor)
             expect(convertMpsToMph(1)).toBeCloseTo(2.236936, 6);
+            expect(convertMpsToMph(1)).not.toBe(1);
         });
 
         it("should validate conversion factor precision", () => {
@@ -274,6 +286,7 @@ describe("convertMpsToMph.js - Speed Unit Converter Utility (MPS to MPH)", () =>
                 const converted = convertMpsToMph(speed);
                 const roundTrip = converted / 2.236936; // Convert back to m/s
                 expect(roundTrip).toBeCloseTo(speed, 8);
+                expect(converted).not.toBe(speed);
             });
         });
 
@@ -306,6 +319,7 @@ describe("convertMpsToMph.js - Speed Unit Converter Utility (MPS to MPH)", () =>
         it("should convert common US speed limits correctly", () => {
             // Test common US speed limits in mph
             expect(convertMpsToMph(13.41)).toBeCloseTo(30, 1); // 30 mph speed limit
+            expect(convertMpsToMph(13.41)).not.toBeCloseTo(13.41, 1);
             expect(convertMpsToMph(22.35)).toBeCloseTo(50, 1); // 50 mph speed limit
             expect(convertMpsToMph(29.06)).toBeCloseTo(65, 1); // 65 mph highway speed
         });
