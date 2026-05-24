@@ -41,9 +41,23 @@ function isLocalDevelopmentHost(hostname) {
 function toRecord(value) {
     return typeof value === "object" && value !== null ? value : {};
 }
+/**
+ * Gets the renderer environment name from the current global runtime markers.
+ *
+ * @param globalScope - Global-like object to inspect. Defaults to `globalThis`.
+ *
+ * @returns The detected renderer environment name.
+ */
 export function getEnvironment(globalScope = globalThis) {
     return isDevelopmentMode(globalScope) ? "development" : "production";
 }
+/**
+ * Detects whether the renderer is running with development-mode markers.
+ *
+ * @param globalScope - Global-like object to inspect. Defaults to `globalThis`.
+ *
+ * @returns Whether the renderer should use development-mode behavior.
+ */
 export function isDevelopmentMode(globalScope = globalThis) {
     try {
         const locationParts = getRendererLocationParts(globalScope);
