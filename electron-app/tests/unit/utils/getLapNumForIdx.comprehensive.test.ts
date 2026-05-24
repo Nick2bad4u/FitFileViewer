@@ -313,6 +313,7 @@ describe("getLapNumForIdx.js - Lap Number Lookup Utility", () => {
             ];
 
             expect(getLapNumForIdx(900, lapMesgs)).toBe(1); // 15 minutes into first lap
+            expect(getLapNumForIdx(900, lapMesgs)).not.toBe(2);
             expect(getLapNumForIdx(2700, lapMesgs)).toBe(2); // 15 minutes into second lap
             expect(getLapNumForIdx(4500, lapMesgs)).toBe(3); // 15 minutes into third lap
             expect(getLapNumForIdx(6300, lapMesgs)).toBe(4); // 15 minutes into fourth lap
@@ -389,6 +390,7 @@ describe("getLapNumForIdx.js - Lap Number Lookup Utility", () => {
                 getLapNumForIdx(500, lapMesgs)
             );
             expect(results.every((result) => result === 1)).toBe(true);
+            expect(results).not.toContain(null);
         });
 
         it("should not modify input data", () => {
@@ -471,6 +473,7 @@ describe("getLapNumForIdx.js - Lap Number Lookup Utility", () => {
                 { start_index: 100, end_index: 199 },
             ] as any;
             expect(getLapNumForIdx(150, lapMesgs)).toBe(2);
+            expect(getLapNumForIdx(150, lapMesgs)).not.toBe(1);
             expect(consoleWarnSpy).toHaveBeenCalledWith(
                 "[LapLookup] Lap at index 0 missing numeric start_index or end_index:",
                 { start_index: undefined, end_index: 99 }
