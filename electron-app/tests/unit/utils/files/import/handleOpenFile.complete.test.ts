@@ -88,29 +88,57 @@ describe("handleOpenFile Module", () => {
                 "function"
             );
             expect(typeof handleOpenFileModule.updateUIState).toBe("function");
+            expect(handleOpenFileModule).not.toHaveProperty(
+                "missingExportForTest"
+            );
         });
     });
 
     describe("logWithContext", () => {
         it("should log info messages", () => {
-            handleOpenFileModule.logWithContext("info message");
+            const result = handleOpenFileModule.logWithContext("info message");
+
+            expect(result).toBeUndefined();
             expect(console.info).toHaveBeenCalledWith(
                 expect.stringContaining("HandleOpenFile: info message")
             );
         });
 
         it("should log warning messages", () => {
-            handleOpenFileModule.logWithContext("warn message", "warn");
+            const result = handleOpenFileModule.logWithContext(
+                "warn message",
+                "warn"
+            );
+
+            expect(result).toBeUndefined();
             expect(console.warn).toHaveBeenCalledWith(
                 expect.stringContaining("HandleOpenFile: warn message")
             );
         });
 
         it("should log error messages", () => {
-            handleOpenFileModule.logWithContext("error message", "error");
+            const result = handleOpenFileModule.logWithContext(
+                "error message",
+                "error"
+            );
+
+            expect(result).toBeUndefined();
             expect(console.error).toHaveBeenCalledWith(
                 expect.stringContaining("HandleOpenFile: error message")
             );
+        });
+
+        it("normalizes an unknown log level to info", () => {
+            const result = handleOpenFileModule.logWithContext(
+                "fallback message",
+                "trace"
+            );
+
+            expect(result).toBeUndefined();
+            expect(console.info).toHaveBeenCalledWith(
+                expect.stringContaining("HandleOpenFile: fallback message")
+            );
+            expect(console.log).not.toHaveBeenCalled();
         });
 
         it("should handle exceptions when logging fails", () => {
@@ -565,9 +593,13 @@ describe("handleOpenFile Module", () => {
                 validateFileSize: false,
             };
 
-            await handleOpenFileModule.handleOpenFile(mockParams, options);
+            const result = await handleOpenFileModule.handleOpenFile(
+                mockParams,
+                options
+            );
 
             // Should pass the empty file check since validation is disabled
+            expect(result).toBe(true);
             expect(global.window.electronAPI.parseFitFile).toHaveBeenCalled();
             expect(mockParams.showNotification).not.toHaveBeenCalledWith(
                 expect.stringContaining("Selected file appears to be empty"),
