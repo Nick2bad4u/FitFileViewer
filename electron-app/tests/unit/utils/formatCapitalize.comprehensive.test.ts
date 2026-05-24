@@ -35,6 +35,7 @@ describe("formatCapitalize.js - String Capitalization Utility", () => {
         it("should capitalize the first letter of a lowercase string", () => {
             const result = formatCapitalize("hello");
             expect(result).toBe("Hello");
+            expect(result).not.toBe("hello");
         });
 
         it("should capitalize and lowercase rest by default", () => {
@@ -129,7 +130,7 @@ describe("formatCapitalize.js - String Capitalization Utility", () => {
             // The function doesn't handle null options gracefully, it throws an error
             expect(() =>
                 formatCapitalize("hello world", null as any)
-            ).toThrow();
+            ).toThrow(TypeError);
         });
 
         it("should ignore extra options properties", () => {
@@ -155,6 +156,7 @@ describe("formatCapitalize.js - String Capitalization Utility", () => {
 
         it("should return original value for non-string types", () => {
             expect(formatCapitalize(123 as any)).toBe(123);
+            expect(formatCapitalize(123 as any)).not.toBe("123");
             expect(formatCapitalize(true as any)).toBe(true);
             expect(formatCapitalize(false as any)).toBe(false);
             expect(formatCapitalize([] as any)).toEqual([]);
@@ -197,6 +199,7 @@ describe("formatCapitalize.js - String Capitalization Utility", () => {
             const longString = "a".repeat(10000);
             const result = formatCapitalize(longString);
             expect(result).toBe("A" + "a".repeat(9999));
+            expect(result).not.toBe(longString);
         });
 
         it("should handle very long strings with lowercaseRest false", () => {
@@ -251,6 +254,7 @@ describe("formatCapitalize.js - String Capitalization Utility", () => {
     describe("Real-world Usage Scenarios", () => {
         it("should format proper names", () => {
             expect(formatCapitalize("john")).toBe("John");
+            expect(formatCapitalize("john")).not.toBe("john");
             expect(formatCapitalize("SMITH")).toBe("Smith");
             expect(formatCapitalize("mcdonald")).toBe("Mcdonald");
         });
@@ -344,6 +348,7 @@ describe("formatCapitalize.js - String Capitalization Utility", () => {
                 "Test",
                 "Sample",
             ]);
+            expect(results).not.toContain("hello");
         });
 
         it("should be consistent across multiple calls", () => {
@@ -416,6 +421,7 @@ describe("formatCapitalize.js - String Capitalization Utility", () => {
         it("should handle string-like objects gracefully", () => {
             const stringObj = new String("hello");
             expect(formatCapitalize(stringObj as any)).toBe(stringObj);
+            expect(formatCapitalize(stringObj as any)).not.toBe("Hello");
         });
 
         it("should handle toString-able objects", () => {
