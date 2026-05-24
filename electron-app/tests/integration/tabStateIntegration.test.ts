@@ -150,7 +150,8 @@ describe("Tab State Management Integration", () => {
             setTabButtonsEnabled(false);
 
             // Disabled state should be applied but active state preserved
-            expect(chartTab?.classList.contains("active")).toBe(true);
+            expect(summaryTab?.classList.contains("active")).not.toBe(true);
+            expect(chartTab?.getAttribute("aria-selected")).toBe("true");
             expect(/** @type {HTMLButtonElement} */ chartTab?.disabled).toBe(
                 true
             );
@@ -282,7 +283,10 @@ describe("Tab State Management Integration", () => {
 
             // Should handle without errors
             const activeTab = document.querySelector(".tab-button.active");
-            expect(activeTab).toBeTruthy();
+            expect(activeTab).toBeInstanceOf(HTMLButtonElement);
+            expect(activeTab?.id).toBe("tab-table");
+            expect(document.querySelectorAll(".tab-button.active")).toHaveLength(1);
+            expect(activeTab?.id).not.toBe("tab-summary");
         });
     });
 });
