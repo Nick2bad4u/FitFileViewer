@@ -3,6 +3,8 @@
  *
  * @readonly
  */
+import type { ElectronAPI } from "../../../shared/preloadApi.js";
+
 const CSV_CONFIG = {
     HEADER_ENABLED: true,
     MESSAGES: {
@@ -29,9 +31,7 @@ type ObjectsTable = {
     objects: () => TableRow[];
 };
 
-type ClipboardElectronAPI = {
-    writeClipboardText?: (text: string) => boolean | Promise<boolean>;
-};
+type ClipboardElectronAPI = Partial<Pick<ElectronAPI, "writeClipboardText">>;
 
 type CopyCsvGlobal = typeof globalThis & {
     electronAPI?: ClipboardElectronAPI;
