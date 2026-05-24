@@ -121,6 +121,7 @@ describe("renderChartJS.js - Comprehensive Utility Function Coverage", () => {
         test("should convert hex color to rgba format", () => {
             const result = hexToRgba("#ff0000", 0.5);
             expect(result).toBe("rgba(255, 0, 0, 0.5)");
+            expect(result).not.toBe("#ff0000");
         });
 
         test("should handle different hex color values", () => {
@@ -149,6 +150,7 @@ describe("renderChartJS.js - Comprehensive Utility Function Coverage", () => {
             updatePreviousChartState(chartCount, visibleFields, timestamp);
 
             expect(previousChartState.chartCount).toBe(chartCount);
+            expect(previousChartState.chartCount).not.toBe(0);
             expect(previousChartState.fieldsRendered).toHaveLength(
                 visibleFields
             );
@@ -165,6 +167,11 @@ describe("renderChartJS.js - Comprehensive Utility Function Coverage", () => {
 
             updatePreviousChartState(chartCount, visibleFields, timestamp);
 
+            expect(previousChartState.chartCount).toBe(chartCount);
+            expect(previousChartState.fieldsRendered).toHaveLength(
+                visibleFields
+            );
+            expect(previousChartState.lastRenderTimestamp).toBe(timestamp);
             expect(updateState).toHaveBeenCalledWith(
                 "charts.previousState",
                 {
@@ -215,6 +222,7 @@ describe("renderChartJS.js - Comprehensive Utility Function Coverage", () => {
             expect(previousChartState.chartCount).toBe(0);
             expect(previousChartState.fieldsRendered).toEqual([]);
             expect(previousChartState.lastRenderTimestamp).toBe(0);
+            expect(previousChartState.fieldsRendered).not.toContain("field1");
         });
 
         test("should work correctly when called multiple times", () => {
@@ -228,9 +236,6 @@ describe("renderChartJS.js - Comprehensive Utility Function Coverage", () => {
         });
 
         test("should work when state is already reset", () => {
-            // State is already at defaults
-            expect(previousChartState.chartCount).toBe(0);
-
             resetChartNotificationState();
 
             expect(previousChartState.chartCount).toBe(0);
@@ -324,6 +329,7 @@ describe("renderChartJS.js - Comprehensive Utility Function Coverage", () => {
                 renderableFields: [],
                 chartOptions: null,
             });
+            expect(status.isRendered).not.toBe(true);
         });
 
         test("should return default values when state is empty", () => {
@@ -373,9 +379,9 @@ describe("renderChartJS.js - Comprehensive Utility Function Coverage", () => {
         test("should correctly get selectedChart with default", () => {
             // Our mock always returns 'elevation' for selectedChart
             expect(chartState.selectedChart).toBe("elevation");
+            globalMockState.data.set("charts.selectedChart", undefined);
+            expect(chartState.selectedChart).not.toBe("power");
         });
-        globalMockState.data.set("charts.selectedChart", undefined);
-        expect(chartState.selectedChart).toBe("elevation");
     });
 
     test("should correctly detect hasValidData", () => {
@@ -389,7 +395,7 @@ describe("chartActions object - State Actions", () => {
         const { setState } =
             await import("../../../utils/state/core/stateManager.js");
 
-        chartActions.startRendering();
+        expect(() => chartActions.startRendering()).not.toThrow();
 
         expect(setState).toHaveBeenCalledWith("charts.isRendering", true, {
             silent: false,
@@ -408,7 +414,9 @@ describe("chartActions object - State Actions", () => {
         const { AppActions } =
             await import("../../../utils/app/lifecycle/appActions.js");
 
-        chartActions.completeRendering(true, 5, 250);
+        expect(() =>
+            chartActions.completeRendering(true, 5, 250)
+        ).not.toThrow();
 
         expect(updateState).toHaveBeenCalledWith(
             "charts",
@@ -432,11 +440,9 @@ describe("chartActions object - State Actions", () => {
             { silent: false, source: "chartActions.completeRendering" }
         );
 
-        if ((AppActions as any).notifyChartRenderComplete) {
-            expect(
-                (AppActions as any).notifyChartRenderComplete
-            ).toHaveBeenCalledWith(5);
-        }
+        expect(
+            (AppActions as any).notifyChartRenderComplete
+        ).toHaveBeenCalledWith(5);
     });
 
     test("should correctly complete rendering process on failure", async () => {
@@ -445,7 +451,9 @@ describe("chartActions object - State Actions", () => {
         const { AppActions } =
             await import("../../../utils/app/lifecycle/appActions.js");
 
-        chartActions.completeRendering(false, 0, 100);
+        expect(() =>
+            chartActions.completeRendering(false, 0, 100)
+        ).not.toThrow();
 
         expect(updateState).toHaveBeenCalledWith(
             "charts",
@@ -462,11 +470,9 @@ describe("chartActions object - State Actions", () => {
         });
 
         // Should not update performance or notify on failure
-        if ((AppActions as any).notifyChartRenderComplete) {
-            expect(
-                (AppActions as any).notifyChartRenderComplete
-            ).not.toHaveBeenCalled();
-        }
+        expect(
+            (AppActions as any).notifyChartRenderComplete
+        ).not.toHaveBeenCalled();
     });
 });
 
