@@ -44,7 +44,7 @@ describe("renderSinglePowerZoneBar", () => {
 
         const { renderSinglePowerZoneBar } =
             await import("../../../../utils/data/zones/renderSinglePowerZoneBar.js");
-        const chart = renderSinglePowerZoneBar(
+        const view = renderSinglePowerZoneBar(
             canvas as HTMLCanvasElement,
             [
                 { label: "Z1", value: 10 },
@@ -53,7 +53,12 @@ describe("renderSinglePowerZoneBar", () => {
             ],
             { title: "Power Zones" }
         );
-        expect(chart).toBeTruthy();
+        expect(view).toEqual(
+            expect.objectContaining({
+                config: expect.any(Object),
+                destroy: expect.any(Function),
+            })
+        );
         expect((window as any).Chart).toHaveBeenCalled();
 
         // Exercise callbacks for coverage
@@ -72,8 +77,8 @@ describe("renderSinglePowerZoneBar", () => {
         const { renderSinglePowerZoneBar } =
             await import("../../../../utils/data/zones/renderSinglePowerZoneBar.js");
         (window as any).showNotification = vi.fn(async () => {});
-        const res = renderSinglePowerZoneBar(null as any, null as any);
-        expect(res).toBeNull();
+        const view = renderSinglePowerZoneBar(null as any, null as any);
+        expect(view).toBeNull();
         expect((window as any).showNotification).toHaveBeenCalled();
     });
 });
