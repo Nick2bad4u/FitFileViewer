@@ -17,7 +17,7 @@ async function openAccentColorPickerFromModule({
     showNotification,
 }) {
     try {
-        // eslint-disable-next-line no-unsanitized/method -- Static local module path; this modal remains JS-only during this migration slice.
+        // eslint-disable-next-line no-unsanitized/method -- Static local module path generated from the TypeScript modal source.
         const mod = await import(accentColorPickerModulePath);
         if (typeof mod.openAccentColorPicker === "function") {
             getMenuIpcGlobal().showAccentColorPicker = () => {

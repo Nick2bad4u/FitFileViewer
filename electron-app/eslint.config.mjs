@@ -17,6 +17,7 @@ const config = [
             "shared/**/*.js",
             "temp-win7/**",
             "types/**",
+            "ui/**/*.js",
             "utils/**/*.js",
             "utils.js",
             "vendor/**",

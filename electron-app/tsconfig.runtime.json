@@ -440,6 +440,7 @@
         "utils/dom/escapeHtml.ts",
         "utils/dom/index.ts",
         "utils/dom/sanitizeCssColorToken.ts",
-        "utils/dom/sanitizeHtmlAllowlist.ts"
+        "utils/dom/sanitizeHtmlAllowlist.ts",
+        "ui/modals/accentColorPicker.ts"
     ]
 }
