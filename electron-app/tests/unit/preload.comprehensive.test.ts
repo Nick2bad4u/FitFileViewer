@@ -88,12 +88,9 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
             error: consoleSpy.error,
         };
 
-        // Execute preload script
-        const func = new Function("require", "process", "console", preloadCode);
-
         try {
-            func(mockRequire, mockProcess, mockConsole);
-        } catch (error) {
+            runPreloadScript(mockRequire, mockProcess, mockConsole);
+        } catch {
             // Some errors are expected in test environment
         }
 
@@ -102,6 +99,25 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
             mockProcess,
             mockConsole,
         };
+    }
+
+    function runPreloadScript(
+        mockRequire: (moduleName: string) => unknown,
+        mockProcess: {
+            env: Record<string, unknown>;
+            once: ReturnType<typeof vi.fn>;
+        },
+        mockConsole: { error: unknown; log: unknown }
+    ) {
+        // eslint-disable-next-line no-new-func -- preload.js is a CommonJS side-effect script executed with controlled test doubles.
+        const preloadScript = new Function(
+            "require",
+            "process",
+            "console",
+            preloadCode
+        );
+
+        return preloadScript(mockRequire, mockProcess, mockConsole);
     }
 
     describe("Module Loading and Initialization", () => {
@@ -118,13 +134,16 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
                 "electronAPI",
                 expect.any(Object)
             );
-            expect(exposedAPI).toBeDefined();
+            expect(exposedAPI).toMatchObject({
+                getChannelInfo: expect.any(Function),
+                validateAPI: expect.any(Function),
+            });
+            expect(exposedAPI.validateAPI()).toBe(true);
         });
 
         test("should validate API before exposing", () => {
             executePreloadScript();
 
-            expect(exposedAPI).toBeDefined();
             expect(typeof exposedAPI.validateAPI).toBe("function");
             expect(exposedAPI.validateAPI()).toBe(true);
         });
@@ -140,15 +159,8 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
                 })
             );
 
-            const func = new Function(
-                "require",
-                "process",
-                "console",
-                preloadCode
-            );
-
             expect(() => {
-                func(
+                runPreloadScript(
                     mockRequire,
                     { env: { NODE_ENV: "test" }, once: vi.fn() },
                     console
@@ -168,7 +180,11 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
                 "devTools",
                 expect.any(Object)
             );
-            expect(exposedDevTools).toBeDefined();
+            expect(exposedDevTools).toMatchObject({
+                getPreloadInfo: expect.any(Function),
+                logAPIState: expect.any(Function),
+                testIPC: expect.any(Function),
+            });
         });
 
         test("should not expose devTools in production mode", () => {
@@ -188,10 +204,11 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
         test("devTools should provide development utilities", () => {
             executePreloadScript({ NODE_ENV: "development" });
 
-            expect(exposedDevTools).toBeDefined();
-            expect(typeof exposedDevTools.getPreloadInfo).toBe("function");
-            expect(typeof exposedDevTools.logAPIState).toBe("function");
-            expect(typeof exposedDevTools.testIPC).toBe("function");
+            expect(exposedDevTools).toMatchObject({
+                getPreloadInfo: expect.any(Function),
+                logAPIState: expect.any(Function),
+                testIPC: expect.any(Function),
+            });
         });
 
         test("devTools.getPreloadInfo should return preload information", () => {
@@ -199,10 +216,14 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
 
             const preloadInfo = exposedDevTools.getPreloadInfo();
 
-            expect(preloadInfo).toBeDefined();
+            expect(preloadInfo).toMatchObject({
+                apiMethods: expect.any(Array),
+                constants: expect.any(Object),
+                timestamp: expect.any(String),
+                version: "1.0.0",
+            });
             expect(preloadInfo.apiMethods).toBeInstanceOf(Array);
-            expect(preloadInfo.constants).toBeDefined();
-            expect(preloadInfo.timestamp).toBeDefined();
+            expect(preloadInfo.apiMethods.length).toBeGreaterThan(0);
             expect(preloadInfo.version).toBe("1.0.0");
         });
 
@@ -272,8 +293,7 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
             ];
 
             expectedMethods.forEach((method) => {
-                expect(exposedAPI[method]).toBeDefined();
-                expect(typeof exposedAPI[method]).toBe("function");
+                expect(exposedAPI[method]).toEqual(expect.any(Function));
             });
         });
 
@@ -282,9 +302,12 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
 
             const channelInfo = exposedAPI.getChannelInfo();
 
-            expect(channelInfo).toBeDefined();
-            expect(channelInfo.channels).toBeDefined();
-            expect(channelInfo.events).toBeDefined();
+            expect(channelInfo).toMatchObject({
+                channels: expect.any(Object),
+                events: expect.any(Object),
+                totalChannels: expect.any(Number),
+                totalEvents: expect.any(Number),
+            });
             expect(typeof channelInfo.totalChannels).toBe("number");
             expect(typeof channelInfo.totalEvents).toBe("number");
             expect(channelInfo.totalChannels).toBeGreaterThan(0);
@@ -298,6 +321,15 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
 
             expect(result).toBe(true);
         });
+
+        test("getChannelInfo should not include unknown channels", () => {
+            executePreloadScript();
+
+            const channelInfo = exposedAPI.getChannelInfo();
+
+            expect(channelInfo.channels).not.toHaveProperty("UNKNOWN_CHANNEL");
+            expect(channelInfo.events).not.toHaveProperty("UNKNOWN_EVENT");
+        });
     });
 
     describe("IPC Invoke Methods", () => {
@@ -307,147 +339,177 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
 
         test("addRecentFile should invoke correct channel", async () => {
             const filePath = "/path/to/file.fit";
-            await exposedAPI.addRecentFile(filePath);
+            const result = await exposedAPI.addRecentFile(filePath);
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
                 "recentFiles:add",
                 filePath
             );
+            expect(result).toBe("mock-result");
         });
 
         test("decodeFitFile should invoke correct channel", async () => {
             const arrayBuffer = new ArrayBuffer(8);
-            await exposedAPI.decodeFitFile(arrayBuffer);
+            const result = await exposedAPI.decodeFitFile(arrayBuffer);
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
                 "fit:decode",
                 arrayBuffer
             );
+            expect(result).toBe("mock-result");
         });
 
         test("getAppVersion should invoke correct channel", async () => {
-            await exposedAPI.getAppVersion();
+            const result = await exposedAPI.getAppVersion();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
                 "getAppVersion"
             );
+            expect(result).toBe("mock-result");
         });
 
         test("getChromeVersion should invoke correct channel", async () => {
-            await exposedAPI.getChromeVersion();
+            const result = await exposedAPI.getChromeVersion();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
                 "getChromeVersion"
             );
+            expect(result).toBe("mock-result");
         });
 
         test("getElectronVersion should invoke correct channel", async () => {
-            await exposedAPI.getElectronVersion();
+            const result = await exposedAPI.getElectronVersion();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
                 "getElectronVersion"
             );
+            expect(result).toBe("mock-result");
         });
 
         test("getLicenseInfo should invoke correct channel", async () => {
-            await exposedAPI.getLicenseInfo();
+            const result = await exposedAPI.getLicenseInfo();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
                 "getLicenseInfo"
             );
+            expect(result).toBe("mock-result");
         });
 
         test("getNodeVersion should invoke correct channel", async () => {
-            await exposedAPI.getNodeVersion();
+            const result = await exposedAPI.getNodeVersion();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
                 "getNodeVersion"
             );
+            expect(result).toBe("mock-result");
         });
 
         test("getPlatformInfo should invoke correct channel", async () => {
-            await exposedAPI.getPlatformInfo();
+            const result = await exposedAPI.getPlatformInfo();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
                 "getPlatformInfo"
             );
+            expect(result).toBe("mock-result");
         });
 
         test("getTheme should invoke correct channel", async () => {
-            await exposedAPI.getTheme();
+            const result = await exposedAPI.getTheme();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("theme:get");
+            expect(result).toBe("mock-result");
         });
 
         test("openExternal should invoke correct channel", async () => {
             const url = "https://example.com";
-            await exposedAPI.openExternal(url);
+            const result = await exposedAPI.openExternal(url);
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
                 "shell:openExternal",
                 url
             );
+            expect(result).toBe("mock-result");
         });
 
         test("openFile should invoke correct channel", async () => {
-            await exposedAPI.openFile();
+            const result = await exposedAPI.openFile();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
                 "dialog:openFile"
             );
+            expect(result).toBe("mock-result");
         });
 
         test("openFileDialog should invoke correct channel", async () => {
-            await exposedAPI.openFileDialog();
+            const result = await exposedAPI.openFileDialog();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
                 "dialog:openFile"
             );
+            expect(result).toBe("mock-result");
         });
 
         test("parseFitFile should invoke correct channel", async () => {
             const arrayBuffer = new ArrayBuffer(8);
-            await exposedAPI.parseFitFile(arrayBuffer);
+            const result = await exposedAPI.parseFitFile(arrayBuffer);
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
                 "fit:parse",
                 arrayBuffer
             );
+            expect(result).toBe("mock-result");
         });
 
         test("readFile should invoke correct channel", async () => {
             const filePath = "/path/to/file.fit";
-            await exposedAPI.readFile(filePath);
+            const result = await exposedAPI.readFile(filePath);
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
                 "file:read",
                 filePath
             );
+            expect(result).toBe("mock-result");
         });
 
         test("recentFiles should invoke correct channel", async () => {
-            await exposedAPI.recentFiles();
+            const result = await exposedAPI.recentFiles();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
                 "recentFiles:get"
             );
+            expect(result).toBe("mock-result");
         });
 
         test("startGyazoServer should invoke correct channel", async () => {
             const port = 3000;
-            await exposedAPI.startGyazoServer(port);
+            const result = await exposedAPI.startGyazoServer(port);
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
                 "gyazo:server:start",
                 port
             );
+            expect(result).toBe("mock-result");
         });
 
         test("stopGyazoServer should invoke correct channel", async () => {
-            await exposedAPI.stopGyazoServer();
+            const result = await exposedAPI.stopGyazoServer();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
                 "gyazo:server:stop"
+            );
+            expect(result).toBe("mock-result");
+        });
+
+        test("getTheme should surface IPC rejection", async () => {
+            const error = new Error("theme unavailable");
+            mockIpcRenderer.invoke.mockRejectedValue(error);
+
+            await expect(exposedAPI.getTheme()).rejects.toThrow(
+                "theme unavailable"
+            );
+            expect(consoleSpy.error).toHaveBeenCalledWith(
+                "[preload.js] Error in getTheme:",
+                error
             );
         });
     });
@@ -458,36 +520,55 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
         });
 
         test("checkForUpdates should send correct event", () => {
-            exposedAPI.checkForUpdates();
+            const result = exposedAPI.checkForUpdates();
 
             expect(mockIpcRenderer.send).toHaveBeenCalledWith(
                 "menu-check-for-updates"
             );
+            expect(result).toBeUndefined();
         });
 
         test("installUpdate should send correct event", () => {
-            exposedAPI.installUpdate();
+            const result = exposedAPI.installUpdate();
 
             expect(mockIpcRenderer.send).toHaveBeenCalledWith("install-update");
+            expect(result).toBeUndefined();
         });
 
         test("sendThemeChanged should send correct event", () => {
             const theme = "dark";
-            exposedAPI.sendThemeChanged(theme);
+            const result = exposedAPI.sendThemeChanged(theme);
 
             expect(mockIpcRenderer.send).toHaveBeenCalledWith(
                 "theme-changed",
                 theme
             );
+            expect(result).toBeUndefined();
         });
 
         test("setFullScreen should send correct event", () => {
             const flag = true;
-            exposedAPI.setFullScreen(flag);
+            const result = exposedAPI.setFullScreen(flag);
 
             expect(mockIpcRenderer.send).toHaveBeenCalledWith(
                 "set-fullscreen",
                 flag
+            );
+            expect(result).toBeUndefined();
+        });
+
+        test("checkForUpdates should report send failures", () => {
+            const error = new Error("update check unavailable");
+            mockIpcRenderer.send.mockImplementation(() => {
+                throw error;
+            });
+
+            const result = exposedAPI.checkForUpdates();
+
+            expect(result).toBeUndefined();
+            expect(consoleSpy.error).toHaveBeenCalledWith(
+                "[preload.js] Error in checkForUpdates:",
+                error
             );
         });
     });
@@ -499,73 +580,91 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
 
         test("onMenuOpenFile should register event handler", () => {
             const callback = vi.fn();
-            exposedAPI.onMenuOpenFile(callback);
+            const unsubscribe = exposedAPI.onMenuOpenFile(callback);
 
             expect(mockIpcRenderer.on).toHaveBeenCalledWith(
                 "menu-open-file",
                 expect.any(Function)
             );
+            expect(typeof unsubscribe).toBe("function");
         });
 
         test("onMenuOpenOverlay should register event handler", () => {
             const callback = vi.fn();
-            exposedAPI.onMenuOpenOverlay(callback);
+            const unsubscribe = exposedAPI.onMenuOpenOverlay(callback);
 
             expect(mockIpcRenderer.on).toHaveBeenCalledWith(
                 "menu-open-overlay",
                 expect.any(Function)
             );
+            expect(typeof unsubscribe).toBe("function");
         });
 
         test("onOpenRecentFile should register event handler", () => {
             const callback = vi.fn();
-            exposedAPI.onOpenRecentFile(callback);
+            const unsubscribe = exposedAPI.onOpenRecentFile(callback);
 
             expect(mockIpcRenderer.on).toHaveBeenCalledWith(
                 "open-recent-file",
                 expect.any(Function)
             );
+            expect(typeof unsubscribe).toBe("function");
         });
 
         test("onOpenSummaryColumnSelector should register event handler", () => {
             const callback = vi.fn();
-            exposedAPI.onOpenSummaryColumnSelector(callback);
+            const unsubscribe =
+                exposedAPI.onOpenSummaryColumnSelector(callback);
 
             expect(mockIpcRenderer.on).toHaveBeenCalledWith(
                 "open-summary-column-selector",
                 expect.any(Function)
             );
+            expect(typeof unsubscribe).toBe("function");
         });
 
         test("onSetTheme should register event handler", () => {
             const callback = vi.fn();
-            exposedAPI.onSetTheme(callback);
+            const unsubscribe = exposedAPI.onSetTheme(callback);
 
             expect(mockIpcRenderer.on).toHaveBeenCalledWith(
                 "set-theme",
                 expect.any(Function)
             );
+            expect(typeof unsubscribe).toBe("function");
         });
 
         test("onUpdateEvent should register event handler", () => {
             const eventName = "update-available";
             const callback = vi.fn();
-            exposedAPI.onUpdateEvent(eventName, callback);
+            const unsubscribe = exposedAPI.onUpdateEvent(eventName, callback);
 
             expect(mockIpcRenderer.on).toHaveBeenCalledWith(
                 eventName,
                 expect.any(Function)
             );
+            expect(typeof unsubscribe).toBe("function");
         });
 
         test("onIpc should register generic event handler", () => {
             const channel = "custom-channel";
             const callback = vi.fn();
-            exposedAPI.onIpc(channel, callback);
+            const unsubscribe = exposedAPI.onIpc(channel, callback);
 
             expect(mockIpcRenderer.on).toHaveBeenCalledWith(
                 channel,
                 expect.any(Function)
+            );
+            expect(typeof unsubscribe).toBe("function");
+        });
+
+        test("onMenuOpenFile should reject invalid callbacks", () => {
+            const unsubscribe = exposedAPI.onMenuOpenFile("not-a-function");
+
+            expect(typeof unsubscribe).toBe("function");
+            expect(mockIpcRenderer.on).not.toHaveBeenCalled();
+            expect(consoleSpy.error).toHaveBeenCalledWith(
+                "[preload.js] onMenuOpenFile: callback must be a function"
             );
         });
     });
@@ -578,20 +677,32 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
         test("invoke should call ipcRenderer.invoke", async () => {
             const channel = "test-channel";
             const args = ["arg1", "arg2"];
-            await exposedAPI.invoke(channel, ...args);
+            const result = await exposedAPI.invoke(channel, ...args);
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
                 channel,
                 ...args
             );
+            expect(result).toBe("mock-result");
         });
 
         test("send should call ipcRenderer.send", () => {
             const channel = "test-channel";
             const args = ["arg1", "arg2"];
-            exposedAPI.send(channel, ...args);
+            const result = exposedAPI.send(channel, ...args);
 
             expect(mockIpcRenderer.send).toHaveBeenCalledWith(channel, ...args);
+            expect(result).toBeUndefined();
+        });
+
+        test("send should reject invalid channels", () => {
+            const result = exposedAPI.send(123);
+
+            expect(result).toBeUndefined();
+            expect(mockIpcRenderer.send).not.toHaveBeenCalled();
+            expect(consoleSpy.error).toHaveBeenCalledWith(
+                "[preload.js] send: channel must be a string"
+            );
         });
     });
 
@@ -611,16 +722,18 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
                 theme,
                 fitFilePath
             );
+            expect(result).toBe("mock-result");
         });
 
         test("injectMenu should handle default parameters", async () => {
-            await exposedAPI.injectMenu();
+            const result = await exposedAPI.injectMenu();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
                 "devtools-inject-menu",
                 null,
                 null
             );
+            expect(result).toBe("mock-result");
         });
 
         test("injectMenu should validate theme parameter", async () => {
@@ -629,6 +742,7 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
             const result = await exposedAPI.injectMenu(invalidTheme);
 
             expect(result).toBe(false);
+            expect(mockIpcRenderer.invoke).not.toHaveBeenCalled();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] injectMenu: theme must be a string or null"
             );
@@ -640,6 +754,7 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
             const result = await exposedAPI.injectMenu("dark", invalidPath);
 
             expect(result).toBe(false);
+            expect(mockIpcRenderer.invoke).not.toHaveBeenCalled();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] injectMenu: fitFilePath must be a string or null"
             );
@@ -670,8 +785,9 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
                 throw error;
             });
 
-            exposedAPI.checkForUpdates();
+            const result = exposedAPI.checkForUpdates();
 
+            expect(result).toBeUndefined();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] Error in checkForUpdates:",
                 error
@@ -684,8 +800,9 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
                 throw error;
             });
 
-            exposedAPI.onMenuOpenFile(vi.fn());
+            const unsubscribe = exposedAPI.onMenuOpenFile(vi.fn());
 
+            expect(typeof unsubscribe).toBe("function");
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] Error setting up onMenuOpenFile event handler:",
                 error
@@ -693,24 +810,33 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
         });
 
         test("should validate callback in event handlers", () => {
-            exposedAPI.onMenuOpenFile("not-a-function");
+            const unsubscribe = exposedAPI.onMenuOpenFile("not-a-function");
 
+            expect(typeof unsubscribe).toBe("function");
+            expect(mockIpcRenderer.on).not.toHaveBeenCalled();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] onMenuOpenFile: callback must be a function"
             );
         });
 
         test("should validate callback in onUpdateEvent", () => {
-            exposedAPI.onUpdateEvent("test-event", "not-a-function");
+            const unsubscribe = exposedAPI.onUpdateEvent(
+                "test-event",
+                "not-a-function"
+            );
 
+            expect(unsubscribe).toBeUndefined();
+            expect(mockIpcRenderer.on).not.toHaveBeenCalled();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] onUpdateEvent: callback must be a function"
             );
         });
 
         test("should validate eventName in onUpdateEvent", () => {
-            exposedAPI.onUpdateEvent(123, vi.fn());
+            const unsubscribe = exposedAPI.onUpdateEvent(123, vi.fn());
 
+            expect(unsubscribe).toBeUndefined();
+            expect(mockIpcRenderer.on).not.toHaveBeenCalled();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] onUpdateEvent: eventName must be a string"
             );
@@ -726,24 +852,33 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
         });
 
         test("should validate channel in send method", () => {
-            exposedAPI.send(123);
+            const result = exposedAPI.send(123);
 
+            expect(result).toBeUndefined();
+            expect(mockIpcRenderer.send).not.toHaveBeenCalled();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] send: channel must be a string"
             );
         });
 
         test("should validate channel in onIpc method", () => {
-            exposedAPI.onIpc(123, vi.fn());
+            const unsubscribe = exposedAPI.onIpc(123, vi.fn());
 
+            expect(unsubscribe).toBeUndefined();
+            expect(mockIpcRenderer.on).not.toHaveBeenCalled();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] onIpc: channel must be a string"
             );
         });
 
         test("should validate callback in onIpc method", () => {
-            exposedAPI.onIpc("test-channel", "not-a-function");
+            const unsubscribe = exposedAPI.onIpc(
+                "test-channel",
+                "not-a-function"
+            );
 
+            expect(unsubscribe).toBeUndefined();
+            expect(mockIpcRenderer.on).not.toHaveBeenCalled();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] onIpc: callback must be a function"
             );
@@ -764,12 +899,14 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
 
             // Simulate event being triggered
             const registeredCallback = mockIpcRenderer.on.mock.calls[0][1];
-            registeredCallback({}, "test-data");
+            const callbackResult = registeredCallback({}, "test-data");
 
+            expect(callbackResult).toBeUndefined();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] Error in onMenuOpenFile callback:",
                 expect.any(Error)
             );
+            expect(errorCallback).toHaveBeenCalledWith("test-data");
         });
 
         test("should handle errors in transform callbacks", () => {
@@ -779,9 +916,12 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
 
             // Simulate event being triggered
             const registeredCallback = mockIpcRenderer.on.mock.calls[0][1];
-            registeredCallback({}, "test-file-path");
+            const event = {};
+            const callbackResult = registeredCallback(event, "test-file-path");
 
+            expect(callbackResult).toBeUndefined();
             expect(callback).toHaveBeenCalledWith("test-file-path");
+            expect(callback).not.toHaveBeenCalledWith(event, "test-file-path");
         });
 
         test("should handle errors in onUpdateEvent callbacks", () => {
@@ -793,12 +933,14 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
 
             // Simulate event being triggered
             const registeredCallback = mockIpcRenderer.on.mock.calls[0][1];
-            registeredCallback({}, "test-data");
+            const callbackResult = registeredCallback({}, "test-data");
 
+            expect(callbackResult).toBeUndefined();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] Error in onUpdateEvent(test-event) callback:",
                 expect.any(Error)
             );
+            expect(errorCallback).toHaveBeenCalledWith("test-data");
         });
     });
 
@@ -816,18 +958,17 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
                 })
             );
 
-            const func = new Function(
-                "require",
-                "process",
-                "console",
-                preloadCode
-            );
-            func(mockRequire, mockProcess, console);
+            const result = runPreloadScript(mockRequire, mockProcess, console);
 
             expect(mockProcess.once).toHaveBeenCalledWith(
                 "beforeExit",
                 expect.any(Function)
             );
+            expect(mockProcess.once).not.toHaveBeenCalledWith(
+                "exit",
+                expect.any(Function)
+            );
+            expect(result).toBeUndefined();
         });
     });
 
@@ -855,6 +996,8 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
             );
             expect(channelInfo.events.SET_THEME).toBe("set-theme");
             expect(channelInfo.events.THEME_CHANGED).toBe("theme-changed");
+            expect(channelInfo.channels).not.toHaveProperty("UNKNOWN_CHANNEL");
+            expect(channelInfo.events).not.toHaveProperty("UNKNOWN_EVENT");
         });
     });
 
@@ -865,6 +1008,9 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
             expect(consoleSpy.log).toHaveBeenCalledWith(
                 "[preload.js] Successfully exposed electronAPI to main world"
             );
+            expect(exposedDevTools).toMatchObject({
+                getPreloadInfo: expect.any(Function),
+            });
         });
 
         test("should not log in production mode", () => {
@@ -873,6 +1019,7 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
             expect(consoleSpy.log).not.toHaveBeenCalledWith(
                 "[preload.js] Successfully exposed electronAPI to main world"
             );
+            expect(exposedDevTools).toBeUndefined();
         });
     });
 
@@ -882,15 +1029,8 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
                 throw new Error("Module loading failed");
             });
 
-            const func = new Function(
-                "require",
-                "process",
-                "console",
-                preloadCode
-            );
-
             expect(() => {
-                func(
+                runPreloadScript(
                     mockRequire,
                     { env: { NODE_ENV: "test" }, once: vi.fn() },
                     console
@@ -909,6 +1049,7 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
                 "[preload.js] Failed to expose electronAPI:",
                 expect.any(Error)
             );
+            expect(exposedAPI).toBeUndefined();
         });
 
         test("should handle devTools exposure failures in development", () => {
@@ -926,6 +1067,7 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
                 "[preload.js] Failed to expose development tools:",
                 expect.any(Error)
             );
+            expect(exposedDevTools).toBeUndefined();
         });
     });
 });
