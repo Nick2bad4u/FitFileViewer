@@ -338,16 +338,15 @@ describe("renderChartJS.js - Basic Test Coverage", () => {
 
     describe("State Objects and Constants", () => {
         it("should expose previousChartState object with correct structure", () => {
-            expect(previousChartState).toBeDefined();
-            expect(typeof previousChartState).toBe("object");
-            expect(previousChartState).toHaveProperty("chartCount");
-            expect(previousChartState).toHaveProperty("fieldsRendered");
-            expect(previousChartState).toHaveProperty("lastRenderTimestamp");
+            expect(previousChartState).toMatchObject({
+                chartCount: expect.any(Number),
+                fieldsRendered: expect.any(Array),
+                lastRenderTimestamp: expect.any(Number),
+            });
         });
 
         it("should expose chartState object with correct structure", () => {
-            expect(chartState).toBeDefined();
-            expect(typeof chartState).toBe("object");
+            expect(chartState).toBeInstanceOf(Object);
             expect(chartState).toHaveProperty("isRendering");
             expect(chartState).toHaveProperty("isRendered");
             expect(chartState).toHaveProperty("controlsVisible");
@@ -359,8 +358,7 @@ describe("renderChartJS.js - Basic Test Coverage", () => {
         });
 
         it("should expose chartActions object with methods", () => {
-            expect(chartActions).toBeDefined();
-            expect(typeof chartActions).toBe("object");
+            expect(chartActions).toBeInstanceOf(Object);
             expect(typeof chartActions.startRendering).toBe("function");
             expect(typeof chartActions.completeRendering).toBe("function");
             expect(typeof chartActions.selectChart).toBe("function");
@@ -397,36 +395,37 @@ describe("renderChartJS.js - Basic Test Coverage", () => {
 
     describe("renderChartJS function", () => {
         it("should handle null container gracefully", async () => {
-            const result = await renderChartJS(undefined);
-            expect(result).toBeDefined();
-            expect(typeof result).toBe("boolean");
+            await expect(renderChartJS(null)).resolves.toBeTypeOf("boolean");
         });
 
         it("should handle undefined container gracefully", async () => {
-            const result = await renderChartJS(undefined);
-            expect(result).toBeDefined();
-            expect(typeof result).toBe("boolean");
+            await expect(renderChartJS(undefined)).resolves.toBeTypeOf(
+                "boolean"
+            );
         });
 
         it("should handle valid container element", async () => {
             const container = document.getElementById("chart-container");
-            if (container) {
-                const result = await renderChartJS(container);
-                expect(result).toBeDefined();
-                expect(typeof result).toBe("boolean");
-            }
+
+            expect(container).toBeInstanceOf(HTMLDivElement);
+            await expect(renderChartJS(container)).resolves.toBeTypeOf(
+                "boolean"
+            );
         });
 
         it("should handle container selector string", async () => {
-            const result = await renderChartJS("#chart-container");
-            expect(result).toBeDefined();
-            expect(typeof result).toBe("boolean");
+            await expect(renderChartJS("#chart-container")).resolves.toBeTypeOf(
+                "boolean"
+            );
         });
 
         it("should handle non-existent container selector", async () => {
-            const result = await renderChartJS("#non-existent-container");
-            expect(result).toBeDefined();
-            expect(typeof result).toBe("boolean");
+            await expect(
+                renderChartJS("#non-existent-container")
+            ).resolves.toBeTypeOf("boolean");
+            expect(
+                document.querySelector("#non-existent-container")
+            ).toBeNull();
         });
     });
 
@@ -469,7 +468,11 @@ describe("renderChartJS.js - Basic Test Coverage", () => {
             resetChartNotificationState();
 
             // Should not throw and should affect state
-            expect(previousChartState).toBeDefined();
+            expect(previousChartState).toMatchObject({
+                chartCount: expect.any(Number),
+                fieldsRendered: expect.any(Array),
+                lastRenderTimestamp: expect.any(Number),
+            });
         });
     });
 
@@ -490,8 +493,9 @@ describe("renderChartJS.js - Basic Test Coverage", () => {
     describe("getChartStatus function", () => {
         it("should return chart status object", () => {
             const status = getChartStatus();
-            expect(status).toBeDefined();
-            expect(typeof status).toBe("object");
+
+            expect(status).toBeInstanceOf(Object);
+            expect(Object.keys(status)).not.toHaveLength(0);
         });
 
         it("should include standard status properties", () => {
@@ -505,25 +509,22 @@ describe("renderChartJS.js - Basic Test Coverage", () => {
     describe("exportChartsWithState function", () => {
         it("should handle png export format", async () => {
             const result = await exportChartsWithState("png");
-            expect(result).toBeDefined();
             expect(typeof result).toBe("boolean");
         });
 
         it("should handle csv export format", async () => {
             const result = await exportChartsWithState("csv");
-            expect(result).toBeDefined();
             expect(typeof result).toBe("boolean");
         });
 
         it("should handle default format parameter", async () => {
             const result = await exportChartsWithState();
-            expect(result).toBeDefined();
+            expect(typeof result).toBe("boolean");
         });
 
         it("should handle invalid export format gracefully", async () => {
             const result = await exportChartsWithState("invalid-format");
-            expect(result).toBeDefined();
-            // Should return error or default behavior
+            expect(typeof result).toBe("boolean");
         });
     });
 
@@ -544,8 +545,8 @@ describe("renderChartJS.js - Basic Test Coverage", () => {
 
     describe("chartSettingsManager object", () => {
         it("should expose settings manager with required methods", () => {
-            expect(chartSettingsManager).toBeDefined();
-            expect(typeof chartSettingsManager).toBe("object");
+            expect(chartSettingsManager).toBeInstanceOf(Object);
+            expect(Object.keys(chartSettingsManager)).not.toHaveLength(0);
         });
 
         it("should have getSettings method", () => {
@@ -558,8 +559,8 @@ describe("renderChartJS.js - Basic Test Coverage", () => {
 
         it("should handle settings retrieval", () => {
             const settings = chartSettingsManager.getSettings();
-            expect(settings).toBeDefined();
-            expect(typeof settings).toBe("object");
+
+            expect(settings).toBeInstanceOf(Object);
         });
 
         it("should handle settings update", () => {
@@ -571,8 +572,8 @@ describe("renderChartJS.js - Basic Test Coverage", () => {
 
     describe("chartPerformanceMonitor object", () => {
         it("should expose performance monitor with required methods", () => {
-            expect(chartPerformanceMonitor).toBeDefined();
-            expect(typeof chartPerformanceMonitor).toBe("object");
+            expect(chartPerformanceMonitor).toBeInstanceOf(Object);
+            expect(Object.keys(chartPerformanceMonitor)).not.toHaveLength(0);
         });
 
         it("should have startTracking method", () => {
@@ -596,23 +597,25 @@ describe("renderChartJS.js - Basic Test Coverage", () => {
         it("should have getSummary method", () => {
             expect(typeof chartPerformanceMonitor.getSummary).toBe("function");
             const summary = chartPerformanceMonitor.getSummary();
-            expect(summary).toBeDefined();
+            expect(summary).toBeInstanceOf(Object);
         });
     });
 
     describe("Chart.js Integration", () => {
         it("should handle Chart.js library availability", () => {
-            expect(window.Chart).toBeDefined();
+            expect(window.Chart).toBeInstanceOf(Object);
             expect(typeof window.Chart.register).toBe("function");
         });
 
         it("should register Chart.js plugins", () => {
             // Should interact with Chart.js registry
-            expect(window.Chart.registry).toBeDefined();
+            expect(window.Chart.registry).toBeInstanceOf(Object);
+            expect(window.Chart.registry.plugins).toBeInstanceOf(Map);
+            expect(window.Chart.registry.plugins.size).not.toBeLessThan(0);
         });
 
         it("should handle zoom plugin integration", () => {
-            expect(window.Chart.Zoom).toBeDefined();
+            expect(window.Chart.Zoom).toBeInstanceOf(Object);
             expect(typeof window.Chart.Zoom.zoom).toBe("function");
         });
     });
@@ -630,18 +633,20 @@ describe("renderChartJS.js - Basic Test Coverage", () => {
             window.Chart = originalChart;
         });
 
-        it("should handle DOM manipulation errors", () => {
+        it("should handle DOM manipulation errors", async () => {
             // Simulate DOM errors
             const originalQuerySelector = document.querySelector;
             document.querySelector = vi.fn(() => {
                 throw new Error("DOM Error");
             });
 
-            expect(async () => {
-                await renderChartJS("#test-container");
-            }).not.toThrow();
-
-            document.querySelector = originalQuerySelector;
+            try {
+                await expect(
+                    renderChartJS("#test-container")
+                ).resolves.toBeTypeOf("boolean");
+            } finally {
+                document.querySelector = originalQuerySelector;
+            }
         });
 
         it("should handle state management errors gracefully", () => {
@@ -665,29 +670,30 @@ describe("renderChartJS.js - Basic Test Coverage", () => {
         it("should interact with state manager correctly", () => {
             // Test that getChartStatus works with mocked state
             const status = getChartStatus();
-            expect(status).toBeDefined();
-            expect(typeof status).toBe("object");
+
+            expect(status).toBeInstanceOf(Object);
+            expect(Object.keys(status)).not.toHaveLength(0);
         });
 
         it("should handle state updates during chart operations", async () => {
             // Test that renderChartJS completes without throwing
-            const result = await renderChartJS("#chart-container");
-            expect(typeof result).toBe("boolean");
+            await expect(renderChartJS("#chart-container")).resolves.toBeTypeOf(
+                "boolean"
+            );
         });
     });
 
     describe("Theme Integration", () => {
         it("should detect and apply current theme", () => {
             // Test that hexToRgba works with theme colors
-            const result = hexToRgba("#000000", 0.5);
-            expect(result).toBeDefined();
-            expect(typeof result).toBe("string");
+            expect(hexToRgba("#000000", 0.5)).toBe("rgba(0, 0, 0, 0.5)");
         });
 
         it("should handle theme configuration", () => {
             // Test that getChartStatus works with theme integration
             const status = getChartStatus();
-            expect(status).toBeDefined();
+            expect(status).toBeInstanceOf(Object);
+            expect(Object.keys(status)).not.toHaveLength(0);
         });
     });
 });
