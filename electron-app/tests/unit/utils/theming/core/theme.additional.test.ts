@@ -47,11 +47,15 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
     });
 
     test("applyTheme adds/removes classes, persists, dispatches event, updates meta", () => {
+        const listenerController = new AbortController();
         const eventSpy = vi.fn();
-        document.addEventListener("themechange", eventSpy);
+        document.addEventListener("themechange", eventSpy, {
+            signal: listenerController.signal,
+        });
 
         // withTransition=false avoids timer for first part
         theme.applyTheme("dark", false);
+        listenerController.abort();
         expect(document.body.classList.contains("theme-dark")).toBe(true);
         expect(localStorage.getItem("ffv-theme")).toBe("dark");
         expect(eventSpy.mock.calls.length).toBeGreaterThanOrEqual(1);
@@ -60,8 +64,8 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
         const meta1 = document.querySelector(
             'meta[name="theme-color"]'
         ) as HTMLMetaElement | null;
-        expect(meta1).not.toBeNull();
-        expect(meta1!.content).toBe("#181a20");
+        expect(meta1).toBeInstanceOf(HTMLMetaElement);
+        expect(meta1?.content).toBe("#181a20");
 
         // Now test transition path (adds transient class and removes it after timeout)
         vi.useFakeTimers();
@@ -79,8 +83,8 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
         const meta2 = document.querySelector(
             'meta[name="theme-color"]'
         ) as HTMLMetaElement | null;
-        expect(meta2).not.toBeNull();
-        expect(meta2!.content).toBe("#f8fafc");
+        expect(meta2).toBeInstanceOf(HTMLMetaElement);
+        expect(meta2?.content).toBe("#f8fafc");
     });
 
     test("applyTheme auto uses getSystemTheme result", () => {
@@ -103,8 +107,8 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
     test("getSystemTheme uses matchMedia and falls back when unavailable", () => {
         // with matchMedia
         (globalThis as any).matchMedia = (query: string) =>
-            ({ matches: true }) as any;
-        expect(theme.getSystemTheme()).toBe("dark");
+            ({ matches: false }) as any;
+        expect(theme.getSystemTheme()).toBe("light");
 
         // without matchMedia
         (globalThis as any).matchMedia = undefined;
@@ -125,8 +129,17 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
             }) as any;
 
         const cfg: any = theme.getThemeConfig();
-        expect(cfg).toBeDefined();
-        expect(cfg.theme === "dark" || cfg.theme === "light").toBe(true);
+        expect(cfg).toMatchObject({
+            colors: {
+                accent: "#123456",
+                bg: "#ffffff",
+                border: "#eeeeee",
+                fg: "#111111",
+            },
+            isDark: true,
+            isLight: false,
+            theme: "dark",
+        });
         expect(cfg.colors.bg).toBe("#ffffff");
         expect(cfg.colors.fg).toBe("#111111");
         // ensure some computed fallback keys exist
@@ -145,10 +158,15 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
         const sendThemeChanged = vi.fn();
         (globalThis as any).electronAPI = { onSetTheme, sendThemeChanged };
 
-        const onThemeChange = vi.fn();
+        const observedThemes: string[] = [];
+        const onThemeChange = (nextTheme: string) => {
+            observedThemes.push(nextTheme);
+            document.body.dataset["receivedTheme"] = nextTheme;
+        };
         theme.listenForThemeChange(onThemeChange);
         expect(onSetTheme).toHaveBeenCalled();
-        expect(onThemeChange).toHaveBeenCalledWith("light");
+        expect(observedThemes).toEqual(["light"]);
+        expect(document.body.dataset["receivedTheme"]).toBe("light");
         expect(sendThemeChanged).toHaveBeenCalledWith("light");
     });
 
@@ -175,11 +193,12 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
         expect(document.body.classList.contains("theme-dark")).toBe(true);
         // Style tag injected
         const styleEl = document.querySelector("#theme-transition-styles");
-        expect(styleEl).not.toBeNull();
+        expect(styleEl).toBeInstanceOf(HTMLStyleElement);
+        expect(styleEl?.textContent).toContain(".theme-transitioning");
         // Cleanup is function
         expect(typeof cleanup).toBe("function");
 
         // Call cleanup to satisfy branch
-        (cleanup as Function)();
+        (cleanup as VoidFunction)();
     });
 });
