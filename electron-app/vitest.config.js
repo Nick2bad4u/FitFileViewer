@@ -1,6 +1,3 @@
-import * as fs from "node:fs";
-import os from "node:os";
-import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
     coverageConfigDefaults,
@@ -8,13 +5,16 @@ import {
     defineConfig,
 } from "vitest/config";
 
-const configDir = path.dirname(fileURLToPath(import.meta.url));
+const coverageProjectRoot = fileURLToPath(new URL("..", import.meta.url));
+const electronStubPath = fileURLToPath(
+    new URL("tests/stubs/electron-virtual.js", import.meta.url)
+);
 
 export default defineConfig({
     cacheDir: "node_modules/.vite",
     resolve: {
         alias: {
-            electron: "./tests/stubs/electron-virtual.js",
+            electron: electronStubPath,
         },
     },
 
@@ -28,6 +28,7 @@ export default defineConfig({
             // Integration-heavy or environment-coupled modules.
             // Only collect coverage for files actually executed by tests
             // To avoid duplicate 0% entries produced by v8 remapping.
+            // eslint-disable-next-line vite/no-vitest-coverage-all-false -- Curated coverage avoids duplicate zero-percent v8 remap entries.
             all: false,
             allowExternal: false,
             clean: true, // Clean coverage directory before each run
@@ -69,7 +70,8 @@ export default defineConfig({
                 "utils/state/core/unifiedStateManager.js",
                 "utils/state/domain/appState.js",
                 "utils/state/domain/settingsStateManager.js",
-                // UI tab utilities are currently exercised mainly via integration flows; exclude until dedicated tests exist
+                // UI tab utilities are currently exercised via integration flows;
+                // exclude until dedicated tests exist.
                 "utils/ui/tabs/**",
                 // Most UI utilities are integration-heavy. We keep them out of the strict unit coverage gate
                 // by default via the curated `include` list, but we do NOT exclude `utils/ui/**` globally
@@ -106,44 +108,15 @@ export default defineConfig({
                 // Tooltip display (shows estimated power when real power missing)
                 "utils/formatting/display/formatTooltipData.js",
             ],
+            provider: "v8",
             reporter: [
                 "text",
                 "html",
                 "json",
-                ["lcov", { projectRoot: path.resolve(configDir, "..") }],
+                ["lcov", { projectRoot: coverageProjectRoot }],
             ],
             reportOnFailure: true,
-            // Work around Windows/Dropbox file locking on coverage temp folder by writing
-            // Reports to the OS temp directory when running inside a Dropbox path.
-            // This avoids EBUSY on rmdir of coverage/.tmp during cleanup.
-            reportsDirectory: (() => {
-                const cwd = process.cwd();
-                const isWin = process.platform === "win32";
-                const inDropbox =
-                    /\\dropbox\\/i.test(cwd) || /\/dropbox\//i.test(cwd);
-                if (process.env.VITEST_COVERAGE_DIR)
-                    return process.env.VITEST_COVERAGE_DIR;
-                if (isWin && inDropbox) {
-                    // When tests are run concurrently (e.g. VS Code Vitest Explorer + CLI task),
-                    // Vitest may clean the shared reportsDirectory while another run is still
-                    // writing intermediate v8 coverage into <reportsDirectory>/.tmp.
-                    // Using a per-process directory avoids cross-run deletion races.
-                    const runDir = path.join(
-                        os.tmpdir(),
-                        "ffv-vitest-coverage",
-                        `pid-${process.pid}`
-                    );
-                    try {
-                        // eslint-disable-next-line security/detect-non-literal-fs-filename -- path is derived from os.tmpdir + pid (not user input).
-                        fs.mkdirSync(runDir, { recursive: true });
-                    } catch {
-                        // Best-effort; Vitest will still attempt to create the directory.
-                    }
-                    return runDir;
-                }
-                return "./coverage";
-            })(),
-            skipFull: false, // Don't skip full coverage collection
+            reportsDirectory: "./coverage",
             thresholds: {
                 // Lock the coverage gate at 95% for the curated include set
                 autoUpdate: false,
@@ -190,6 +163,7 @@ export default defineConfig({
             "**/vitest.config.js",
             "**/vitest.config.ts",
         ],
+        // eslint-disable-next-line vite/no-vitest-globals -- Legacy tests still rely on global describe/it/expect.
         globals: true, // Enable global test functions (describe, it, expect)
         globalSetup: ["./tests/globalSetup.js"],
         hookTimeout: 30_000,
@@ -241,6 +215,7 @@ export default defineConfig({
             },
         },
         setupFiles: ["./tests/setupVitest.js"],
+        slowTestThreshold: 1000,
         teardownTimeout: 30_000,
         testTimeout: 30_000,
         // Ensure server-side transform for modules that require('electron') so SSR mocks are applied
