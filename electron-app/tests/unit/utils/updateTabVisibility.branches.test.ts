@@ -2,17 +2,35 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // We'll mock stateManager with incomplete exports to force __vitest_effective_stateManager__ fallback
 
+type StateManagerShim = {
+    getState: ReturnType<typeof vi.fn>;
+    setState: ReturnType<typeof vi.fn>;
+    subscribe: ReturnType<typeof vi.fn>;
+};
+
+type GlobalWithStateManagerShim = typeof globalThis & {
+    __vitest_effective_stateManager__?: StateManagerShim;
+};
+
 describe("updateTabVisibility - additional branches", () => {
+    const contentIds = [
+        "content_data",
+        "content_chartjs",
+        "content_browser",
+        "content_map",
+        "content_summary",
+        "content_altfit",
+        "content_zwift",
+    ] as const;
+
     const createContentDom = () => {
-        document.body.innerHTML = `
-            <div id="content_data"></div>
-            <div id="content_chartjs"></div>
-            <div id="content_browser"></div>
-            <div id="content_map"></div>
-            <div id="content_summary"></div>
-            <div id="content_altfit"></div>
-            <div id="content_zwift"></div>
-        `;
+        document.body.replaceChildren(
+            ...contentIds.map((id) => {
+                const element = document.createElement("div");
+                element.id = id;
+                return element;
+            })
+        );
     };
 
     beforeEach(() => {
@@ -22,8 +40,8 @@ describe("updateTabVisibility - additional branches", () => {
 
     afterEach(() => {
         // cleanup the global shim if set
-        // @ts-ignore
-        delete (globalThis as any).__vitest_effective_stateManager__;
+        const effectiveGlobals = globalThis as GlobalWithStateManagerShim;
+        delete effectiveGlobals.__vitest_effective_stateManager__;
         vi.restoreAllMocks();
     });
 
@@ -57,6 +75,34 @@ describe("updateTabVisibility - additional branches", () => {
         expect(data.style.display).toBe("none");
     });
 
+    it("derives active content from an unknown content id without showing tracked content", async () => {
+        const setState = vi.fn();
+        const getState = vi.fn();
+        const subscribe = vi.fn();
+        vi.doMock("../../../utils/state/core/stateManager.js", () => ({
+            setState,
+            getState,
+            subscribe,
+        }));
+
+        const { updateTabVisibility } =
+            await import("../../../utils/ui/tabs/updateTabVisibility.js");
+
+        updateTabVisibility("content_missing");
+
+        expect(document.getElementById("content_missing")).not.toBeInstanceOf(
+            HTMLElement
+        );
+        expect(setState).toHaveBeenCalledWith(
+            "ui.activeTabContent",
+            "missing",
+            expect.objectContaining({ source: "updateTabVisibility" })
+        );
+        for (const id of contentIds) {
+            expect(document.getElementById(id)?.style.display).toBe("none");
+        }
+    });
+
     it("falls back to __vitest_effective_stateManager__ when module exports are unavailable", async () => {
         // Mock module with missing methods to fail the primary branch
         vi.doMock("../../../utils/state/core/stateManager.js", () => ({}));
@@ -64,8 +110,8 @@ describe("updateTabVisibility - additional branches", () => {
         const effSet = vi.fn();
         const effGet = vi.fn();
         const effSub = vi.fn();
-        // @ts-ignore
-        (globalThis as any).__vitest_effective_stateManager__ = {
+        const effectiveGlobals = globalThis as GlobalWithStateManagerShim;
+        effectiveGlobals.__vitest_effective_stateManager__ = {
             setState: effSet,
             getState: effGet,
             subscribe: effSub,
