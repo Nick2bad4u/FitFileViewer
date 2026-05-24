@@ -9,6 +9,8 @@
     type DevtoolsInvokeChannel =
         import("../../shared/ipc").DevtoolsInvokeChannel;
     type FileFilter = import("electron").FileFilter;
+    type MainProcessIpcEventChannel =
+        import("../../shared/ipc").MainProcessIpcEventChannel;
     type RendererIpcEventChannel =
         import("../../shared/ipc").RendererIpcEventChannel;
     type SaveDialogOptions = import("electron").SaveDialogOptions;
@@ -52,6 +54,14 @@
     }
 
     type IpcCallback = (...args: unknown[]) => unknown;
+    type MenuFileEventChannel = Extract<
+        MainProcessIpcEventChannel,
+        "menu-export" | "menu-save-as"
+    >;
+    type MenuUpdateEventChannel = Extract<
+        MainProcessIpcEventChannel,
+        "install-update" | "menu-check-for-updates" | "menu-restart-update"
+    >;
     type DevtoolsIpcHandler = (
         event: unknown,
         theme?: DevtoolsInjectMenuTheme,
@@ -78,7 +88,7 @@
                 handler: DevtoolsIpcHandler
             ) => void;
             registerIpcListener: (
-                channel: string,
+                channel: MainProcessIpcEventChannel,
                 listener: IpcCallback
             ) => void;
         };
@@ -223,7 +233,7 @@
             }
         });
 
-        const updateHandlers: Record<string, () => void> = {
+        const updateHandlers: Record<MenuUpdateEventChannel, () => void> = {
             "install-update": () => {
                 try {
                     requireAutoUpdater().quitAndInstall?.();
@@ -249,11 +259,14 @@
             },
         };
 
-        for (const [event, handler] of Object.entries(updateHandlers)) {
+        for (const event of Object.keys(
+            updateHandlers
+        ) as MenuUpdateEventChannel[]) {
+            const handler = updateHandlers[event];
             registerIpcListener(event, handler);
         }
 
-        const fileMenuHandlers: Record<string, IpcCallback> = {
+        const fileMenuHandlers: Record<MenuFileEventChannel, IpcCallback> = {
             "menu-export": (event) => {
                 const ipcEvent = event as IpcEventLike;
                 return (async (): Promise<void> => {
@@ -348,7 +361,10 @@
             },
         };
 
-        for (const [event, handler] of Object.entries(fileMenuHandlers)) {
+        for (const event of Object.keys(
+            fileMenuHandlers
+        ) as MenuFileEventChannel[]) {
+            const handler = fileMenuHandlers[event];
             registerIpcListener(event, handler);
         }
 

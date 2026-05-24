@@ -1,11 +1,20 @@
 {
+    type GenericInvokeChannel = import("../../shared/ipc").GenericInvokeChannel;
+    type MainProcessIpcEventChannel =
+        import("../../shared/ipc").MainProcessIpcEventChannel;
     type IpcCallback = (...args: unknown[]) => unknown;
 
     interface IpcMainLike {
-        handle?: (channel: string, handler: IpcCallback) => void;
-        on?: (channel: string, listener: IpcCallback) => void;
-        removeHandler?: (channel: string) => void;
-        removeListener?: (channel: string, listener: IpcCallback) => void;
+        handle?: (channel: GenericInvokeChannel, handler: IpcCallback) => void;
+        on?: (
+            channel: MainProcessIpcEventChannel,
+            listener: IpcCallback
+        ) => void;
+        removeHandler?: (channel: GenericInvokeChannel) => void;
+        removeListener?: (
+            channel: MainProcessIpcEventChannel,
+            listener: IpcCallback
+        ) => void;
     }
 
     interface IpcHandleRegistryEntry {
@@ -22,9 +31,12 @@
         ipcMainRef: () => IpcMainLike | undefined;
     };
 
-    const IPC_HANDLE_REGISTRY = new Map<string, IpcHandleRegistryEntry>();
+    const IPC_HANDLE_REGISTRY = new Map<
+        GenericInvokeChannel,
+        IpcHandleRegistryEntry
+    >();
     const IPC_EVENT_LISTENER_REGISTRY = new Map<
-        string,
+        MainProcessIpcEventChannel,
         IpcListenerRegistryEntry
     >();
 
@@ -35,7 +47,7 @@
      * @throws Re-throws registration errors for new ipcMain instances.
      */
     function registerIpcHandle<T extends IpcCallback>(
-        channel: string,
+        channel: GenericInvokeChannel,
         handler: T
     ): void {
         const ipcMain = ipcMainRef();
@@ -88,7 +100,7 @@
      * @throws Re-throws listener registration errors for new ipcMain instances.
      */
     function registerIpcListener<T extends IpcCallback>(
-        channel: string,
+        channel: MainProcessIpcEventChannel,
         listener: T
     ): void {
         const ipcMain = ipcMainRef();

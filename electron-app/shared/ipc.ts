@@ -521,6 +521,11 @@ export type GenericSendChannel =
     | "set-fullscreen"
     | "theme-changed";
 
+/** Event channels the main process accepts through ipcMain.on. */
+export type MainProcessIpcEventChannel =
+    | GenericSendChannel
+    | "menu-restart-update";
+
 /** Invoke channels the renderer can call through preload. */
 export type GenericInvokeChannel =
     | "browser:getFolder"

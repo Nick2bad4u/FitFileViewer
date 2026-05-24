@@ -1,5 +1,8 @@
 {
     type BrowserWindow = import("electron").BrowserWindow;
+    type GenericInvokeChannel = import("../../shared/ipc").GenericInvokeChannel;
+    type MainProcessIpcEventChannel =
+        import("../../shared/ipc").MainProcessIpcEventChannel;
 
     interface BrowserWindowConstructorLike {
         fromWebContents: (webContents: unknown) => BrowserWindow | null;
@@ -93,11 +96,11 @@
     const { registerIpcHandle, registerIpcListener } =
         require("./ipcRegistry") as {
             registerIpcHandle: (
-                channel: string,
+                channel: GenericInvokeChannel,
                 handler: (event: unknown, ...args: unknown[]) => unknown
             ) => void;
             registerIpcListener: (
-                channel: string,
+                channel: MainProcessIpcEventChannel,
                 listener: IpcListener
             ) => void;
         };
