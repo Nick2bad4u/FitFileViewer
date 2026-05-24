@@ -346,6 +346,7 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
             const result = convertValueToUserUnits(1000, "distance");
 
             expect(result).toBe(1000); // Original value returned
+            expect(mockConsole.warn).not.toHaveBeenCalled();
             expect(mockConsole.error).toHaveBeenCalledWith(
                 "[convertValueToUserUnits] Conversion failed for field 'distance':",
                 expect.any(Error)
@@ -431,7 +432,7 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
                 convertValueToUserUnits(1000, "distance")
             );
 
-            expect(results.every((result) => result === 1)).toBe(true);
+            expect(results).toEqual(Array.from({ length: 100 }, () => 1));
         });
 
         it("should handle rapid successive conversions", () => {
@@ -533,6 +534,7 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
             expect(fitRecord.heartRate).toBe(150);
             expect(fitRecord.speed).toBeCloseTo(12.3, 1);
             expect(fitRecord.power).toBe(250);
+            expect(mockConsole.warn).not.toHaveBeenCalled();
         });
 
         it("should handle user preference changes consistently", () => {
@@ -555,12 +557,19 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
 
     describe("Integration with Storage System", () => {
         it("should use correct storage keys for different unit types", () => {
-            convertValueToUserUnits(1000, "distance");
+            const distanceResult = convertValueToUserUnits(1000, "distance");
+
+            expect(distanceResult).toBe(1);
             expect(mockGetChartSetting).toHaveBeenCalledWith("distanceUnits");
 
             vi.clearAllMocks();
 
-            convertValueToUserUnits(25, "temperature");
+            const temperatureResult = convertValueToUserUnits(
+                25,
+                "temperature"
+            );
+
+            expect(temperatureResult).toBe(25);
             expect(mockGetChartSetting).toHaveBeenCalledWith(
                 "temperatureUnits"
             );
@@ -578,11 +587,14 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
             mockGetChartSetting.mockReturnValue("kilometers");
 
             // Multiple calls for same field type
-            convertValueToUserUnits(1000, "distance");
-            convertValueToUserUnits(2000, "distance");
-            convertValueToUserUnits(3000, "altitude");
+            const results = [
+                convertValueToUserUnits(1000, "distance"),
+                convertValueToUserUnits(2000, "distance"),
+                convertValueToUserUnits(3000, "altitude"),
+            ];
 
             // Should call settings accessor for each conversion (no caching in this implementation)
+            expect(results).toEqual([1, 2, 3]);
             expect(mockGetChartSetting).toHaveBeenCalledTimes(3);
             expect(mockGetChartSetting).toHaveBeenCalledWith("distanceUnits");
         });
@@ -594,13 +606,13 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
 
             expect(
                 convertValueToUserUnits(Number.MAX_VALUE, "distance")
-            ).toBeDefined();
+            ).toBe(Number.MAX_VALUE / 1000);
             expect(
                 convertValueToUserUnits(Number.MIN_VALUE, "distance")
-            ).toBeDefined();
+            ).toBe(Number.MIN_VALUE / 1000);
             expect(
                 convertValueToUserUnits(Number.EPSILON, "distance")
-            ).toBeDefined();
+            ).toBe(Number.EPSILON / 1000);
         });
 
         it("should validate field names case-sensitively", () => {
@@ -616,8 +628,8 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
         it("should handle field names with extra whitespace", () => {
             // Fields with whitespace should not match
             expect(convertValueToUserUnits(1000, " distance ")).toBe(1000);
-            expect(convertValueToUserUnits(1000, "distance ")).toBe(1000);
-            expect(convertValueToUserUnits(1000, " distance")).toBe(1000);
+            expect(convertValueToUserUnits(2000, "distance ")).toBe(2000);
+            expect(convertValueToUserUnits(3000, " distance")).toBe(3000);
 
             expect(mockGetChartSetting).not.toHaveBeenCalled();
         });
