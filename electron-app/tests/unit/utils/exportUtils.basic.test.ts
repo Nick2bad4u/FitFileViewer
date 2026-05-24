@@ -1,293 +1,497 @@
-// Hoist mocks BEFORE any imports so Vitest applies them to static imports
-// Use global `vi` (globals enabled) to avoid needing the import first
-vi.mock("../../../utils/ui/components/createSettingsHeader.js", () => ({
-    showChartSelectionModal: vi.fn(),
-}));
-
-vi.mock("../../../utils/ui/notifications/showNotification.js", () => ({
-    showNotification: vi.fn(),
-}));
-
-vi.mock("../../../utils/charts/theming/chartThemeUtils.js", () => ({
-    detectCurrentTheme: vi.fn(() => "light"),
-}));
-
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { JSDOM } from "jsdom";
+import { describe, expect, it, vi } from "vitest";
+import {
+    __setTestDeps as setRawTestDeps,
+    exportUtils as rawExportUtils,
+} from "../../../utils/files/export/exportUtils.js";
 
-// Import modules as namespaces to allow spying regardless of mock wiring
-import * as Notifications from "../../../utils/ui/notifications/showNotification.js";
-import * as ThemeUtils from "../../../utils/charts/theming/chartThemeUtils.js";
+type NotificationType = "error" | "info" | "success";
 
-// Mock localStorage
-const localStorageMock = {
-    getItem: vi.fn(),
-    setItem: vi.fn(),
-    removeItem: vi.fn(),
-    clear: vi.fn(),
+type TestDeps = {
+    detectCurrentTheme: () => string;
+    showNotification: (
+        message: string,
+        type: NotificationType
+    ) => Promise<void> | void;
 };
 
-// Mock global objects
-Object.defineProperty(global, "localStorage", {
-    value: localStorageMock,
-    writable: true,
-});
+type ExportUtilsUnderTest = {
+    copyChartToClipboard: (chart: unknown) => Promise<void>;
+    copyCombinedChartsToClipboard: (charts: unknown) => Promise<void>;
+    createCombinedChartsImage: (
+        charts: unknown,
+        filename?: string
+    ) => Promise<void>;
+    downloadChartAsPNG: (chart: unknown, filename?: string) => Promise<void>;
+    getExportThemeBackground: () => string;
+    isValidChart: (chart: unknown) => boolean;
+};
 
-// Mock ClipboardItem for clipboard tests
-global.ClipboardItem = class MockClipboardItem {
-    constructor(
-        data: Record<string, string | Blob | PromiseLike<string | Blob>>
-    ) {
+type MockContext = {
+    drawImage: ReturnType<typeof vi.fn<(...args: unknown[]) => void>>;
+    fillRect: ReturnType<typeof vi.fn<(...args: unknown[]) => void>>;
+    fillStyle: string;
+};
+
+type CanvasFixture = {
+    canvas: HTMLCanvasElement;
+    context: MockContext;
+    getContext: ReturnType<
+        typeof vi.fn<(contextId: string) => CanvasRenderingContext2D | null>
+    >;
+    toDataURL: ReturnType<
+        typeof vi.fn<(type?: string, quality?: number) => string>
+    >;
+};
+
+type LinkFixture = {
+    click: ReturnType<typeof vi.fn<() => void>>;
+    link: HTMLAnchorElement;
+    remove: ReturnType<typeof vi.fn<() => void>>;
+};
+
+type ChartFixture = {
+    canvasFixture: CanvasFixture;
+    chart: {
+        canvas: HTMLCanvasElement;
+        data: { datasets: unknown[] };
+        destroy: ReturnType<typeof vi.fn<() => void>>;
+        options: Record<string, unknown>;
+        toBase64Image: ReturnType<
+            typeof vi.fn<
+                (type?: string, quality?: number, background?: string) => string
+            >
+        >;
+        update: ReturnType<typeof vi.fn<() => void>>;
+    };
+};
+
+type ClipboardApi = {
+    write?: ReturnType<typeof vi.fn<(items: ClipboardItem[]) => Promise<void>>>;
+};
+
+type ElectronApiMock = {
+    writeClipboardPngDataUrl: ReturnType<
+        typeof vi.fn<(dataUrl: string) => boolean | Promise<boolean>>
+    >;
+};
+
+type TestGlobal = typeof globalThis & {
+    electronAPI?: ElectronApiMock;
+};
+
+const dependencyMocks = vi.hoisted(() => ({
+    detectCurrentTheme: vi.fn<() => string>(() => "light"),
+    getChartSetting: vi.fn<(key: string) => unknown>(() => null),
+    showChartSelectionModal: vi.fn<() => void>(),
+    showNotification: vi.fn<
+        (message: string, type: NotificationType) => Promise<void>
+    >(async () => undefined),
+}));
+
+vi.mock(import("../../../utils/ui/components/createSettingsHeader.js"), () => ({
+    showChartSelectionModal: dependencyMocks.showChartSelectionModal,
+}));
+
+vi.mock(import("../../../utils/ui/notifications/showNotification.js"), () => ({
+    showNotification: dependencyMocks.showNotification,
+}));
+
+vi.mock(import("../../../utils/charts/theming/chartThemeUtils.js"), () => ({
+    detectCurrentTheme: dependencyMocks.detectCurrentTheme,
+}));
+
+vi.mock(import("../../../utils/state/domain/settingsStateManager.js"), () => ({
+    getChartSetting: dependencyMocks.getChartSetting,
+}));
+
+class MockClipboardItem {
+    readonly data: Record<string, Blob | PromiseLike<Blob> | string>;
+
+    constructor(data: Record<string, Blob | PromiseLike<Blob> | string>) {
         this.data = data;
     }
 
-    static supports(type: string): boolean {
+    static supports(): boolean {
         return true;
     }
+}
 
-    data: Record<string, string | Blob | PromiseLike<string | Blob>>;
-} as any;
+const dom = new JSDOM("<!doctype html><html><body></body></html>", {
+    pretendToBeVisual: true,
+    url: "http://localhost",
+});
 
-// Set up DOM environment
-const dom = new JSDOM(
-    "<!DOCTYPE html><html><head></head><body></body></html>",
-    {
-        url: "http://localhost",
-        pretendToBeVisual: true,
-        resources: "usable",
-    }
-);
+Object.defineProperty(globalThis, "window", {
+    configurable: true,
+    value: dom.window,
+});
 
-global.document = dom.window.document;
-global.window = dom.window as any;
-global.HTMLCanvasElement = dom.window.HTMLCanvasElement;
-global.CanvasRenderingContext2D = dom.window.CanvasRenderingContext2D;
+Object.defineProperty(globalThis, "document", {
+    configurable: true,
+    value: dom.window.document,
+});
+
+Object.defineProperty(globalThis, "HTMLCanvasElement", {
+    configurable: true,
+    value: dom.window.HTMLCanvasElement,
+});
+
+Object.defineProperty(globalThis, "CanvasRenderingContext2D", {
+    configurable: true,
+    value: dom.window.CanvasRenderingContext2D,
+});
+
+Object.defineProperty(globalThis, "ClipboardItem", {
+    configurable: true,
+    value: MockClipboardItem,
+});
+
+const createRealElement = document.createElement.bind(document);
+const exportUtils = rawExportUtils as ExportUtilsUnderTest;
+const setTestDeps = setRawTestDeps as (deps: Partial<TestDeps>) => void;
+const testGlobal = globalThis as TestGlobal;
+
+function createMockContext(): MockContext {
+    return {
+        drawImage: vi.fn<(...args: unknown[]) => void>(),
+        fillRect: vi.fn<(...args: unknown[]) => void>(),
+        fillStyle: "",
+    };
+}
+
+function createCanvasFixture(
+    width = 800,
+    height = 400,
+    dataUrl = "data:image/png;base64,bW9jaw==",
+    context: MockContext = createMockContext()
+): CanvasFixture {
+    const canvas = createRealElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+
+    const getContext = vi.fn<
+        (contextId: string) => CanvasRenderingContext2D | null
+    >((contextId) =>
+        contextId === "2d"
+            ? (context as unknown as CanvasRenderingContext2D)
+            : null
+    );
+    const toDataURL = vi.fn<(type?: string, quality?: number) => string>(
+        () => dataUrl
+    );
+
+    Object.defineProperty(canvas, "getContext", {
+        configurable: true,
+        value: getContext,
+    });
+    Object.defineProperty(canvas, "toDataURL", {
+        configurable: true,
+        value: toDataURL,
+    });
+
+    return { canvas, context, getContext, toDataURL };
+}
+
+function createLinkFixture(): LinkFixture {
+    const link = createRealElement("a");
+    const click = vi.fn<() => void>();
+    const remove = vi.fn<() => void>(() => {
+        link.parentNode?.removeChild(link);
+    });
+
+    Object.defineProperty(link, "click", {
+        configurable: true,
+        value: click,
+    });
+    Object.defineProperty(link, "remove", {
+        configurable: true,
+        value: remove,
+    });
+
+    return { click, link, remove };
+}
+
+function createChartFixture(): ChartFixture {
+    const canvasFixture = createCanvasFixture();
+
+    return {
+        canvasFixture,
+        chart: {
+            canvas: canvasFixture.canvas,
+            data: { datasets: [] },
+            destroy: vi.fn<() => void>(),
+            options: {},
+            toBase64Image: vi.fn<
+                (type?: string, quality?: number, background?: string) => string
+            >(() => "data:image/png;base64,bW9jaw=="),
+            update: vi.fn<() => void>(),
+        },
+    };
+}
+
+function installClipboard(write: ClipboardApi["write"]): void {
+    Object.defineProperty(globalThis, "navigator", {
+        configurable: true,
+        value: { clipboard: { write } },
+        writable: true,
+    });
+}
+
+function clearElectronApi(): void {
+    delete testGlobal.electronAPI;
+}
+
+function setupDomHarness(): {
+    chartFixture: ChartFixture;
+    queueCanvas: (...fixtures: CanvasFixture[]) => void;
+    queueLink: (...fixtures: LinkFixture[]) => void;
+} {
+    vi.restoreAllMocks();
+    vi.clearAllMocks();
+    clearElectronApi();
+    document.body.replaceChildren();
+
+    dependencyMocks.detectCurrentTheme.mockReturnValue("light");
+    dependencyMocks.getChartSetting.mockReturnValue(null);
+    dependencyMocks.showNotification.mockResolvedValue(undefined);
+    setTestDeps({
+        detectCurrentTheme: dependencyMocks.detectCurrentTheme,
+        showNotification: dependencyMocks.showNotification,
+    });
+
+    const chartFixture = createChartFixture();
+    const canvasQueue: CanvasFixture[] = [];
+    const linkQueue: LinkFixture[] = [];
+
+    vi.spyOn(document, "createElement").mockImplementation(
+        (tagName: string, options?: ElementCreationOptions): HTMLElement => {
+            if (tagName === "canvas") {
+                return (canvasQueue.shift() ?? chartFixture.canvasFixture)
+                    .canvas;
+            }
+
+            if (tagName === "a") {
+                return (linkQueue.shift() ?? createLinkFixture()).link;
+            }
+
+            return createRealElement(tagName, options);
+        }
+    );
+
+    return {
+        chartFixture,
+        queueCanvas: (...fixtures) => {
+            canvasQueue.push(...fixtures);
+        },
+        queueLink: (...fixtures) => {
+            linkQueue.push(...fixtures);
+        },
+    };
+}
 
 describe("exportUtils.js - Basic Test Coverage", () => {
-    let exportUtils: any;
-    let mockChart: any;
-    let mockCanvas: any;
-    let mockContext: any;
-    let notifySpy: any;
-    let detectThemeSpy: any;
-
-    beforeEach(async () => {
-        // Clear all mocks
-        vi.clearAllMocks();
-        localStorageMock.getItem.mockClear();
-
-        // Import the module after mocks are set up
-        const module =
-            await import("../../../utils/files/export/exportUtils.js");
-        exportUtils = module.exportUtils;
-        // Fresh spies each test; defaults: detectTheme -> 'light'
-        notifySpy = vi.fn(async () => undefined);
-        detectThemeSpy = vi.fn(() => "light");
-        if (typeof module.__setTestDeps === "function") {
-            module.__setTestDeps({
-                showNotification: notifySpy,
-                detectCurrentTheme: detectThemeSpy,
-            });
-        }
-
-        // Create mock chart and canvas with proper width/height tracking
-        let canvasWidth = 800;
-        let canvasHeight = 400;
-
-        mockCanvas = {
-            get width() {
-                return canvasWidth;
-            },
-            set width(value) {
-                canvasWidth = value;
-            },
-            get height() {
-                return canvasHeight;
-            },
-            set height(value) {
-                canvasHeight = value;
-            },
-            toDataURL: vi.fn(() => "data:image/png;base64,mockdata"),
-            getContext: vi.fn(() => mockContext),
-        };
-
-        mockContext = {
-            fillStyle: "",
-            fillRect: vi.fn(),
-            drawImage: vi.fn(),
-        };
-
-        mockChart = {
-            canvas: mockCanvas,
-            data: { datasets: [] },
-            options: {},
-            toBase64Image: vi.fn(() => "data:image/png;base64,mockdata"),
-            update: vi.fn(),
-            destroy: vi.fn(),
-        };
-
-        // Reset canvas mock
-        mockCanvas.getContext = vi.fn(() => mockContext);
-
-        // Mock document methods
-        document.createElement = vi.fn((tagName: string) => {
-            if (tagName === "canvas") {
-                return mockCanvas;
-            } else if (tagName === "a") {
-                return {
-                    download: "",
-                    href: "",
-                    click: vi.fn(),
-                };
-            }
-            return {};
-        }) as any;
-
-        document.body.appendChild = vi.fn();
-        document.body.removeChild = vi.fn();
-    });
-
-    afterEach(() => {
-        vi.resetAllMocks();
-        // Ensure per-test Electron API mocks never leak across cases.
-        delete (globalThis as any).electronAPI;
-    });
-
+    /* eslint-disable vitest/prefer-to-be, vitest/prefer-to-be-falsy, vitest/prefer-to-be-truthy -- test-signal requires exact boolean assertions. */
     describe("isValidChart function", () => {
-        it("should return false for null chart", () => {
-            const result = exportUtils.isValidChart(null);
-            expect(result).toBe(false);
+        it("returns false for null chart", () => {
+            expect.hasAssertions();
+
+            setupDomHarness();
+
+            expect(exportUtils.isValidChart(null)).toStrictEqual(false);
         });
 
-        it("should return false for undefined chart", () => {
-            const result = exportUtils.isValidChart(undefined);
-            expect(result).toBe(false);
+        it("returns false for undefined chart", () => {
+            expect.hasAssertions();
+
+            setupDomHarness();
+
+            expect(exportUtils.isValidChart(undefined)).toStrictEqual(false);
         });
 
-        it("should return false for chart without canvas", () => {
-            const invalidChart = { data: {}, options: {} };
-            const result = exportUtils.isValidChart(invalidChart);
-            expect(result).toBe(false);
+        it("returns false for chart without canvas", () => {
+            expect.hasAssertions();
+
+            setupDomHarness();
+
+            expect(
+                exportUtils.isValidChart({ data: {}, options: {} })
+            ).toStrictEqual(false);
         });
 
-        it("should return false for chart with canvas but no dimensions", () => {
-            const invalidChart = {
-                canvas: { width: 0, height: 0 },
-            };
-            const result = exportUtils.isValidChart(invalidChart);
-            expect(result).toBe(false);
+        it("returns false for chart with canvas but no dimensions", () => {
+            expect.hasAssertions();
+
+            setupDomHarness();
+
+            expect(
+                exportUtils.isValidChart({ canvas: { height: 0, width: 0 } })
+            ).toStrictEqual(false);
         });
 
-        it("should return true for valid chart", () => {
-            const result = exportUtils.isValidChart(mockChart);
-            expect(result).toBe(true);
+        it("returns true for valid chart", () => {
+            expect.hasAssertions();
+
+            const { chartFixture } = setupDomHarness();
+
+            expect(exportUtils.isValidChart(chartFixture.chart)).toStrictEqual(
+                true
+            );
         });
 
-        it("should return false for chart with invalid canvas width", () => {
-            const invalidChart = {
-                canvas: { width: 0, height: 400 },
-            };
-            const result = exportUtils.isValidChart(invalidChart);
-            expect(result).toBe(false);
+        it("returns false for chart with invalid canvas width", () => {
+            expect.hasAssertions();
+
+            setupDomHarness();
+
+            expect(
+                exportUtils.isValidChart({ canvas: { height: 400, width: 0 } })
+            ).toStrictEqual(false);
         });
 
-        it("should return false for chart with invalid canvas height", () => {
-            const invalidChart = {
-                canvas: { width: 800, height: 0 },
-            };
-            const result = exportUtils.isValidChart(invalidChart);
-            expect(result).toBe(false);
+        it("returns false for chart with invalid canvas height", () => {
+            expect.hasAssertions();
+
+            setupDomHarness();
+
+            expect(
+                exportUtils.isValidChart({ canvas: { height: 0, width: 800 } })
+            ).toStrictEqual(false);
         });
     });
+    /* eslint-enable vitest/prefer-to-be, vitest/prefer-to-be-falsy, vitest/prefer-to-be-truthy */
 
     describe("getExportThemeBackground function", () => {
-        it("should return light background when no theme is set", () => {
-            localStorageMock.getItem.mockReturnValue(null);
-            const result = exportUtils.getExportThemeBackground();
-            expect(result).toBe("#ffffff");
+        it("returns light background when no export theme is set", () => {
+            expect.hasAssertions();
+
+            setupDomHarness();
+            dependencyMocks.getChartSetting.mockReturnValue(null);
+            dependencyMocks.detectCurrentTheme.mockReturnValue("light");
+
+            expect(exportUtils.getExportThemeBackground()).toBe("#ffffff");
+            expect(dependencyMocks.detectCurrentTheme).toHaveBeenCalledOnce();
         });
 
-        it("should return dark background for dark theme", () => {
-            localStorageMock.getItem.mockReturnValue("dark");
-            const result = exportUtils.getExportThemeBackground();
-            expect(result).toBe("#1a1a1a");
+        it("returns dark background for dark theme", () => {
+            expect.hasAssertions();
+
+            setupDomHarness();
+            dependencyMocks.getChartSetting.mockReturnValue("dark");
+
+            expect(exportUtils.getExportThemeBackground()).toBe("#1a1a1a");
         });
 
-        it("should return light background for light theme", () => {
-            localStorageMock.getItem.mockReturnValue("light");
-            const result = exportUtils.getExportThemeBackground();
-            expect(result).toBe("#ffffff");
+        it("returns light background for light theme", () => {
+            expect.hasAssertions();
+
+            setupDomHarness();
+            dependencyMocks.getChartSetting.mockReturnValue("light");
+
+            expect(exportUtils.getExportThemeBackground()).toBe("#ffffff");
         });
 
-        it("should return transparent background for transparent theme", () => {
-            localStorageMock.getItem.mockReturnValue("transparent");
-            const result = exportUtils.getExportThemeBackground();
-            expect(result).toBe("transparent");
+        it("returns transparent background for transparent theme", () => {
+            expect.hasAssertions();
+
+            setupDomHarness();
+            dependencyMocks.getChartSetting.mockReturnValue("transparent");
+
+            expect(exportUtils.getExportThemeBackground()).toBe("transparent");
         });
 
-        it("should handle auto theme by detecting current theme", () => {
-            localStorageMock.getItem.mockReturnValue("auto");
-            detectThemeSpy.mockReturnValue("dark");
+        it("detects dark background for auto theme", () => {
+            expect.hasAssertions();
 
-            const result = exportUtils.getExportThemeBackground();
-            expect(result).toBe("#1a1a1a");
+            setupDomHarness();
+            dependencyMocks.getChartSetting.mockReturnValue("auto");
+            dependencyMocks.detectCurrentTheme.mockReturnValue("dark");
+
+            expect(exportUtils.getExportThemeBackground()).toBe("#1a1a1a");
+            expect(dependencyMocks.detectCurrentTheme).toHaveBeenCalledOnce();
         });
 
-        it("should handle auto theme correctly by using detectCurrentTheme result", () => {
-            localStorageMock.getItem.mockReturnValue("auto");
-            detectThemeSpy.mockReturnValue("light");
+        it("detects light background for auto theme", () => {
+            expect.hasAssertions();
 
-            const result = exportUtils.getExportThemeBackground();
-            expect(result).toBe("#ffffff");
+            setupDomHarness();
+            dependencyMocks.getChartSetting.mockReturnValue("auto");
+            dependencyMocks.detectCurrentTheme.mockReturnValue("light");
+
+            expect(exportUtils.getExportThemeBackground()).toBe("#ffffff");
+            expect(dependencyMocks.detectCurrentTheme).toHaveBeenCalledOnce();
         });
 
-        it("should fallback to light for unknown theme values", () => {
-            localStorageMock.getItem.mockReturnValue("unknown-theme");
-            const result = exportUtils.getExportThemeBackground();
-            expect(result).toBe("#ffffff");
+        it("falls back to light for unknown theme values", () => {
+            expect.hasAssertions();
+
+            setupDomHarness();
+            dependencyMocks.getChartSetting.mockReturnValue("unknown-theme");
+
+            expect(exportUtils.getExportThemeBackground()).toBe("#ffffff");
+            expect(dependencyMocks.detectCurrentTheme).not.toHaveBeenCalled();
         });
     });
 
     describe("downloadChartAsPNG function", () => {
-        it("should download chart with default filename", async () => {
-            const mockLink = {
-                download: "",
-                href: "",
-                click: vi.fn(),
-            };
-            document.createElement = vi.fn(() => mockLink) as any;
+        it("downloads chart with default filename", async () => {
+            expect.hasAssertions();
 
-            await exportUtils.downloadChartAsPNG(mockChart);
+            const { chartFixture, queueLink } = setupDomHarness();
+            const linkFixture = createLinkFixture();
+            queueLink(linkFixture);
 
-            expect(mockLink.download).toBe("chart.png");
-            expect(mockLink.href).toBe("data:image/png;base64,mockdata");
-            expect(mockLink.click).toHaveBeenCalled();
+            await expect(
+                exportUtils.downloadChartAsPNG(chartFixture.chart)
+            ).resolves.toBeUndefined();
+
+            expect(linkFixture.link.download).toBe("chart.png");
+            expect(linkFixture.link.href).toBe(
+                "data:image/png;base64,bW9jaw=="
+            );
+            // eslint-disable-next-line vitest/prefer-to-be, vitest/prefer-to-be-falsy -- test-signal requires exact boolean assertions.
+            expect(document.body.contains(linkFixture.link)).toStrictEqual(
+                false
+            );
+            expect(chartFixture.chart.toBase64Image).toHaveBeenCalledWith(
+                "image/png",
+                1,
+                "#ffffff"
+            );
+            expect(linkFixture.click).toHaveBeenCalledOnce();
         });
 
-        it("should download chart with custom filename", async () => {
-            const mockLink = {
-                download: "",
-                href: "",
-                click: vi.fn(),
-            };
-            document.createElement = vi.fn(() => mockLink) as any;
+        it("downloads chart with custom filename", async () => {
+            expect.hasAssertions();
 
-            await exportUtils.downloadChartAsPNG(mockChart, "custom-chart.png");
+            const { chartFixture, queueLink } = setupDomHarness();
+            const linkFixture = createLinkFixture();
+            queueLink(linkFixture);
 
-            expect(mockLink.download).toBe("custom-chart.png");
-            expect(mockLink.click).toHaveBeenCalled();
+            await expect(
+                exportUtils.downloadChartAsPNG(
+                    chartFixture.chart,
+                    "custom-chart.png"
+                )
+            ).resolves.toBeUndefined();
+
+            expect(linkFixture.link.download).toBe("custom-chart.png");
+            expect(linkFixture.click).toHaveBeenCalledOnce();
         });
 
-        it("should handle download errors gracefully", async () => {
-            const mockChart = {
-                toBase64Image: vi.fn(() => {
-                    throw new Error("Canvas error");
-                }),
-            };
+        it("notifies when chart image conversion fails", async () => {
+            expect.hasAssertions();
 
-            await exportUtils.downloadChartAsPNG(mockChart);
+            const { chartFixture } = setupDomHarness();
+            chartFixture.chart.toBase64Image.mockImplementation(() => {
+                throw new Error("Canvas error");
+            });
 
-            expect(notifySpy).toHaveBeenCalledWith(
+            await expect(
+                exportUtils.downloadChartAsPNG(chartFixture.chart)
+            ).resolves.toBeUndefined();
+
+            expect(dependencyMocks.showNotification).toHaveBeenCalledWith(
                 "Failed to export chart as PNG",
                 "error"
             );
@@ -295,134 +499,110 @@ describe("exportUtils.js - Basic Test Coverage", () => {
     });
 
     describe("createCombinedChartsImage function", () => {
-        it("should throw error for empty charts array", async () => {
-            await exportUtils.createCombinedChartsImage([]);
+        it("notifies for empty charts array", async () => {
+            expect.hasAssertions();
 
-            expect(notifySpy).toHaveBeenCalledWith(
+            setupDomHarness();
+
+            await expect(
+                exportUtils.createCombinedChartsImage([])
+            ).resolves.toBeUndefined();
+
+            expect(dependencyMocks.showNotification).toHaveBeenCalledWith(
                 "Failed to create combined image",
                 "error"
             );
         });
 
-        it("should throw error for null charts parameter", async () => {
-            await exportUtils.createCombinedChartsImage(null);
+        it("notifies for null charts parameter", async () => {
+            expect.hasAssertions();
 
-            expect(notifySpy).toHaveBeenCalledWith(
+            setupDomHarness();
+
+            await expect(
+                exportUtils.createCombinedChartsImage(null)
+            ).resolves.toBeUndefined();
+
+            expect(dependencyMocks.showNotification).toHaveBeenCalledWith(
                 "Failed to create combined image",
                 "error"
             );
         });
 
-        it("should create combined image for single chart", async () => {
-            const mockCombinedCanvas = {
-                width: 0,
-                height: 0,
-                getContext: vi.fn(() => mockContext),
-                toDataURL: vi.fn(() => "data:image/png;base64,combined"),
-            };
+        it("creates combined image for single chart", async () => {
+            expect.hasAssertions();
 
-            const mockLink = {
-                download: "",
-                href: "",
-                click: vi.fn(),
-            };
+            const { chartFixture, queueCanvas, queueLink } = setupDomHarness();
+            const combinedCanvas = createCanvasFixture(
+                0,
+                0,
+                "data:image/png;base64,Y29tYmluZWQ="
+            );
+            const linkFixture = createLinkFixture();
+            queueCanvas(combinedCanvas);
+            queueLink(linkFixture);
 
-            document.createElement = vi.fn((tagName: string) => {
-                if (tagName === "canvas") {
-                    return mockCombinedCanvas;
-                } else if (tagName === "a") {
-                    return mockLink;
-                }
-                return {};
-            }) as any;
+            await expect(
+                exportUtils.createCombinedChartsImage([chartFixture.chart])
+            ).resolves.toBeUndefined();
 
-            await exportUtils.createCombinedChartsImage([mockChart]);
-
-            expect(mockCombinedCanvas.width).toBe(800);
-            expect(mockCombinedCanvas.height).toBe(400);
-            expect(mockLink.click).toHaveBeenCalled();
+            expect(combinedCanvas.canvas.width).toBe(800);
+            expect(combinedCanvas.canvas.height).toBe(400);
+            expect(linkFixture.link.download).toBe("combined-charts.png");
+            expect(linkFixture.link.href).toBe(
+                "data:image/png;base64,Y29tYmluZWQ="
+            );
+            expect(linkFixture.click).toHaveBeenCalledOnce();
         });
 
-        it("should create combined image for multiple charts", async () => {
-            // Create a mock canvas that properly tracks width/height assignments
-            let canvasWidth = 0;
-            let canvasHeight = 0;
+        it("creates combined image for multiple charts", async () => {
+            expect.hasAssertions();
 
-            const mockCombinedCanvas = {
-                get width() {
-                    return canvasWidth;
-                },
-                set width(value) {
-                    canvasWidth = value;
-                },
-                get height() {
-                    return canvasHeight;
-                },
-                set height(value) {
-                    canvasHeight = value;
-                },
-                getContext: vi.fn(() => mockContext),
-                toDataURL: vi.fn(() => "data:image/png;base64,combined"),
-            };
+            const { chartFixture, queueCanvas, queueLink } = setupDomHarness();
+            const combinedCanvas = createCanvasFixture(
+                0,
+                0,
+                "data:image/png;base64,Y29tYmluZWQ="
+            );
+            const linkFixture = createLinkFixture();
+            queueCanvas(
+                combinedCanvas,
+                createCanvasFixture(),
+                createCanvasFixture(),
+                createCanvasFixture(),
+                createCanvasFixture()
+            );
+            queueLink(linkFixture);
 
-            const mockLink = {
-                download: "",
-                href: "",
-                click: vi.fn(),
-            };
+            await expect(
+                exportUtils.createCombinedChartsImage([
+                    chartFixture.chart,
+                    chartFixture.chart,
+                    chartFixture.chart,
+                    chartFixture.chart,
+                ])
+            ).resolves.toBeUndefined();
 
-            let canvasCallCount = 0;
-            document.createElement = vi.fn((tagName: string) => {
-                if (tagName === "canvas") {
-                    canvasCallCount++;
-                    if (canvasCallCount === 1) {
-                        // Return the combined canvas for the first call
-                        return mockCombinedCanvas;
-                    } else {
-                        // Return a separate temporary canvas for each chart
-                        return {
-                            width: 800,
-                            height: 400,
-                            getContext: vi.fn(() => mockContext),
-                            toDataURL: vi.fn(
-                                () => "data:image/png;base64,temp"
-                            ),
-                        };
-                    }
-                } else if (tagName === "a") {
-                    return mockLink;
-                }
-                return {};
-            }) as any;
-
-            const charts = [
-                mockChart,
-                mockChart,
-                mockChart,
-                mockChart,
-            ]; // 4 charts = 2x2 grid
-
-            await exportUtils.createCombinedChartsImage(charts);
-
-            // 2 cols * 800 width + 1 * 20 padding = 1620
-            expect(mockCombinedCanvas.width).toBe(1620);
-            // 2 rows * 400 height + 1 * 20 padding = 820
-            expect(mockCombinedCanvas.height).toBe(820);
+            expect(combinedCanvas.canvas.width).toBe(1620);
+            expect(combinedCanvas.canvas.height).toBe(820);
+            expect(linkFixture.link.href).toBe(
+                "data:image/png;base64,Y29tYmluZWQ="
+            );
         });
 
-        it("should handle canvas context creation failure", async () => {
-            const mockCombinedCanvas = {
-                width: 0,
-                height: 0,
-                getContext: vi.fn(() => null),
-                toDataURL: vi.fn(() => "data:image/png;base64,combined"),
-            };
+        it("notifies when combined canvas context creation fails", async () => {
+            expect.hasAssertions();
 
-            document.createElement = vi.fn(() => mockCombinedCanvas) as any;
+            const { chartFixture, queueCanvas } = setupDomHarness();
+            const combinedCanvas = createCanvasFixture();
+            combinedCanvas.getContext.mockReturnValue(null);
+            queueCanvas(combinedCanvas);
 
-            await exportUtils.createCombinedChartsImage([mockChart]);
+            await expect(
+                exportUtils.createCombinedChartsImage([chartFixture.chart])
+            ).resolves.toBeUndefined();
 
-            expect(notifySpy).toHaveBeenCalledWith(
+            expect(dependencyMocks.showNotification).toHaveBeenCalledWith(
                 "Failed to create combined image",
                 "error"
             );
@@ -430,65 +610,71 @@ describe("exportUtils.js - Basic Test Coverage", () => {
     });
 
     describe("copyChartToClipboard function", () => {
-        it("should copy valid chart to clipboard", async () => {
-            // Mock navigator.clipboard
-            const mockWriteBuffer = vi.fn().mockResolvedValue(undefined);
-            Object.defineProperty(global, "navigator", {
-                value: {
-                    clipboard: {
-                        write: mockWriteBuffer,
-                    },
-                },
-                writable: true,
-                configurable: true,
-            });
+        it("copies valid chart to browser clipboard", async () => {
+            expect.hasAssertions();
 
-            await exportUtils.copyChartToClipboard(mockChart);
+            const { chartFixture, queueCanvas } = setupDomHarness();
+            const exportCanvas = createCanvasFixture();
+            const writeClipboard = vi.fn<
+                (items: ClipboardItem[]) => Promise<void>
+            >(async () => undefined);
+            queueCanvas(exportCanvas);
+            installClipboard(writeClipboard);
 
-            expect(notifySpy).toHaveBeenCalledWith(
+            await expect(
+                exportUtils.copyChartToClipboard(chartFixture.chart)
+            ).resolves.toBeUndefined();
+
+            expect(writeClipboard).toHaveBeenCalledOnce();
+            expect(exportCanvas.toDataURL).toHaveBeenCalledWith("image/png", 1);
+            expect(dependencyMocks.showNotification).toHaveBeenCalledWith(
                 "Chart copied to clipboard",
                 "success"
             );
         });
 
-        it("should handle invalid chart gracefully", async () => {
-            await exportUtils.copyChartToClipboard(null);
+        it("notifies for invalid chart", async () => {
+            expect.hasAssertions();
 
-            expect(notifySpy).toHaveBeenCalledWith(
+            setupDomHarness();
+
+            await expect(
+                exportUtils.copyChartToClipboard(null)
+            ).resolves.toBeUndefined();
+
+            expect(dependencyMocks.showNotification).toHaveBeenCalledWith(
                 expect.stringContaining("Failed to copy chart to clipboard"),
                 "error"
             );
         });
 
-        it("should handle clipboard write failure", async () => {
-            // Prefer Electron clipboard bridge (CSP/permission-safe)
-            (globalThis as any).electronAPI = {
-                writeClipboardPngDataUrl: vi.fn(() => false),
-            };
+        it("notifies when Electron and browser clipboard writes fail", async () => {
+            expect.hasAssertions();
 
-            // Mock browser Clipboard API failure as the fallback path.
-            const mockWriteBuffer = vi
-                .fn()
-                .mockRejectedValue(new Error("Permission denied"));
-            Object.defineProperty(global, "navigator", {
-                value: {
-                    clipboard: {
-                        write: mockWriteBuffer,
-                    },
-                },
-                writable: true,
-                configurable: true,
+            const { chartFixture, queueCanvas } = setupDomHarness();
+            const exportCanvas = createCanvasFixture();
+            const writeClipboard = vi.fn<
+                (items: ClipboardItem[]) => Promise<void>
+            >(async () => {
+                throw new Error("Permission denied");
             });
+            testGlobal.electronAPI = {
+                writeClipboardPngDataUrl: vi.fn<(dataUrl: string) => boolean>(
+                    () => false
+                ),
+            };
+            queueCanvas(exportCanvas);
+            installClipboard(writeClipboard);
 
-            await exportUtils.copyChartToClipboard(mockChart);
+            await expect(
+                exportUtils.copyChartToClipboard(chartFixture.chart)
+            ).resolves.toBeUndefined();
 
-            // Electron bridge attempted first
             expect(
-                (globalThis as any).electronAPI.writeClipboardPngDataUrl
-            ).toHaveBeenCalledWith("data:image/png;base64,mockdata");
-
-            // Both Electron + browser clipboard failed => error notification
-            expect(notifySpy).toHaveBeenCalledWith(
+                testGlobal.electronAPI.writeClipboardPngDataUrl
+            ).toHaveBeenCalledWith("data:image/png;base64,bW9jaw==");
+            expect(writeClipboard).toHaveBeenCalledOnce();
+            expect(dependencyMocks.showNotification).toHaveBeenCalledWith(
                 "Failed to copy chart to clipboard",
                 "error"
             );
@@ -496,128 +682,127 @@ describe("exportUtils.js - Basic Test Coverage", () => {
     });
 
     describe("copyCombinedChartsToClipboard function", () => {
-        beforeEach(() => {
-            // Mock navigator.clipboard
-            Object.defineProperty(global, "navigator", {
-                value: {
-                    clipboard: {
-                        write: vi.fn().mockResolvedValue(undefined),
-                    },
-                },
-                writable: true,
-                configurable: true,
-            });
-        });
+        it("notifies for empty charts array", async () => {
+            expect.hasAssertions();
 
-        it("should handle empty charts array", async () => {
-            await exportUtils.copyCombinedChartsToClipboard([]);
+            setupDomHarness();
 
-            expect(notifySpy).toHaveBeenCalledWith(
+            await expect(
+                exportUtils.copyCombinedChartsToClipboard([])
+            ).resolves.toBeUndefined();
+
+            expect(dependencyMocks.showNotification).toHaveBeenCalledWith(
                 "Failed to copy combined charts to clipboard",
                 "error"
             );
         });
 
-        it("should handle null charts parameter", async () => {
-            await exportUtils.copyCombinedChartsToClipboard(null);
+        it("notifies for null charts parameter", async () => {
+            expect.hasAssertions();
 
-            expect(notifySpy).toHaveBeenCalledWith(
+            setupDomHarness();
+
+            await expect(
+                exportUtils.copyCombinedChartsToClipboard(null)
+            ).resolves.toBeUndefined();
+
+            expect(dependencyMocks.showNotification).toHaveBeenCalledWith(
                 "Failed to copy combined charts to clipboard",
                 "error"
             );
         });
 
-        it("should copy combined charts successfully", async () => {
-            (globalThis as any).electronAPI = {
-                writeClipboardPngDataUrl: vi.fn(() => true),
+        it("copies combined charts through the Electron bridge", async () => {
+            expect.hasAssertions();
+
+            const { chartFixture, queueCanvas } = setupDomHarness();
+            const combinedCanvas = createCanvasFixture(
+                0,
+                0,
+                "data:image/png;base64,Y29tYmluZWQ="
+            );
+            testGlobal.electronAPI = {
+                writeClipboardPngDataUrl: vi.fn<(dataUrl: string) => boolean>(
+                    () => true
+                ),
             };
+            queueCanvas(combinedCanvas, createCanvasFixture());
 
-            const mockCombinedCanvas = {
-                width: 0,
-                height: 0,
-                getContext: vi.fn(() => mockContext),
-                toDataURL: vi.fn(() => "data:image/png;base64,combined"),
-                toBlob: vi.fn((callback: any) => {
-                    const mockBlob = new Blob(["mock"], { type: "image/png" });
-                    callback(mockBlob);
-                }),
-            };
-
-            document.createElement = vi.fn(() => mockCombinedCanvas) as any;
-
-            await exportUtils.copyCombinedChartsToClipboard([mockChart]);
+            await expect(
+                exportUtils.copyCombinedChartsToClipboard([chartFixture.chart])
+            ).resolves.toBeUndefined();
 
             expect(
-                (globalThis as any).electronAPI.writeClipboardPngDataUrl
-            ).toHaveBeenCalledWith("data:image/png;base64,combined");
-            expect(notifySpy).toHaveBeenCalledWith(
+                testGlobal.electronAPI.writeClipboardPngDataUrl
+            ).toHaveBeenCalledWith("data:image/png;base64,Y29tYmluZWQ=");
+            expect(combinedCanvas.canvas.width).toBe(800);
+            expect(combinedCanvas.canvas.height).toBe(400);
+            expect(dependencyMocks.showNotification).toHaveBeenCalledWith(
                 "Combined charts copied to clipboard",
                 "success"
             );
         });
     });
 
-    describe("Error handling and edge cases", () => {
-        it("should handle missing canvas context in combined charts", async () => {
-            const mockCombinedCanvas = {
-                width: 0,
-                height: 0,
-                getContext: vi.fn(() => null),
-            };
+    describe("error handling and edge cases", () => {
+        it("notifies when combined chart canvas context is missing", async () => {
+            expect.hasAssertions();
 
-            document.createElement = vi.fn(() => mockCombinedCanvas) as any;
+            const { chartFixture, queueCanvas } = setupDomHarness();
+            const combinedCanvas = createCanvasFixture();
+            combinedCanvas.getContext.mockReturnValue(null);
+            queueCanvas(combinedCanvas);
 
-            await exportUtils.createCombinedChartsImage([mockChart]);
+            await expect(
+                exportUtils.createCombinedChartsImage([chartFixture.chart])
+            ).resolves.toBeUndefined();
 
-            expect(notifySpy).toHaveBeenCalledWith(
+            expect(dependencyMocks.showNotification).toHaveBeenCalledWith(
                 "Failed to create combined image",
                 "error"
             );
         });
 
-        it("should handle transparent background in combined charts", async () => {
-            localStorageMock.getItem.mockReturnValue("transparent");
+        it("skips fillRect for transparent background in combined charts", async () => {
+            expect.hasAssertions();
 
-            const mockCombinedCanvas = {
-                width: 0,
-                height: 0,
-                getContext: vi.fn(() => mockContext),
-                toDataURL: vi.fn(() => "data:image/png;base64,combined"),
-            };
+            const { chartFixture, queueCanvas, queueLink } = setupDomHarness();
+            const combinedCanvas = createCanvasFixture(
+                0,
+                0,
+                "data:image/png;base64,Y29tYmluZWQ="
+            );
+            const linkFixture = createLinkFixture();
+            dependencyMocks.getChartSetting.mockReturnValue("transparent");
+            queueCanvas(combinedCanvas, createCanvasFixture());
+            queueLink(linkFixture);
 
-            const mockLink = {
-                download: "",
-                href: "",
-                click: vi.fn(),
-            };
+            await expect(
+                exportUtils.createCombinedChartsImage([chartFixture.chart])
+            ).resolves.toBeUndefined();
 
-            document.createElement = vi.fn((tagName: string) => {
-                if (tagName === "canvas") {
-                    return mockCombinedCanvas;
-                } else if (tagName === "a") {
-                    return mockLink;
-                }
-                return {};
-            }) as any;
-
-            await exportUtils.createCombinedChartsImage([mockChart]);
-
-            // Should not call fillRect for transparent background
-            expect(mockContext.fillRect).not.toHaveBeenCalled();
-            expect(mockLink.click).toHaveBeenCalled();
+            expect(combinedCanvas.context.fillRect).not.toHaveBeenCalled();
+            expect(linkFixture.link.href).toBe(
+                "data:image/png;base64,Y29tYmluZWQ="
+            );
+            expect(linkFixture.click).toHaveBeenCalledOnce();
         });
 
-        it("should handle chart with missing toBase64Image method", async () => {
+        it("notifies when a chart is missing toBase64Image", async () => {
+            expect.hasAssertions();
+
+            const { chartFixture } = setupDomHarness();
             const invalidChart = {
-                canvas: mockCanvas,
+                canvas: chartFixture.chart.canvas,
                 data: {},
                 options: {},
-                // Missing toBase64Image method
             };
 
-            await exportUtils.downloadChartAsPNG(invalidChart);
+            await expect(
+                exportUtils.downloadChartAsPNG(invalidChart)
+            ).resolves.toBeUndefined();
 
-            expect(notifySpy).toHaveBeenCalledWith(
+            expect(dependencyMocks.showNotification).toHaveBeenCalledWith(
                 "Failed to export chart as PNG",
                 "error"
             );
