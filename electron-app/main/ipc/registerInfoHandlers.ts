@@ -52,6 +52,17 @@
         context?: Record<string, unknown>
     ) => void;
 
+    const INFO_INVOKE_CHANNELS = [
+        "getAppVersion",
+        "getChromeVersion",
+        "getElectronVersion",
+        "getLicenseInfo",
+        "getNodeVersion",
+        "getPlatformInfo",
+        "map-tab:get",
+        "theme:get",
+    ] as const satisfies readonly InfoInvokeChannel[];
+
     interface RegisterInfoHandlersOptions {
         appRef: () => AppInfoProvider | null | undefined;
         confModule?: ElectronConfModule;
@@ -152,10 +163,11 @@
                     }
                     const pkgPath = path.join(basePath, "package.json");
                     const packageJsonBuffer = fs.readFileSync(pkgPath);
-                    const packageJson = JSON.parse(
+                    const packageJson: unknown = JSON.parse(
                         packageJsonBuffer.toString("utf8")
-                    ) as PackageMetadata;
-                    return typeof packageJson.license === "string"
+                    );
+                    return isPackageMetadata(packageJson) &&
+                        typeof packageJson.license === "string"
                         ? packageJson.license
                         : "Unknown";
                 } catch (error) {
@@ -181,7 +193,7 @@
                 safeConfGet("theme", CONSTANTS.DEFAULT_THEME, normalizeTheme),
         };
 
-        for (const channel of Object.keys(handlers) as InfoInvokeChannel[]) {
+        for (const channel of INFO_INVOKE_CHANNELS) {
             const handler = handlers[channel];
             registerIpcHandle(channel, async (...args) => {
                 try {
@@ -194,6 +206,10 @@
                 }
             });
         }
+    }
+
+    function isPackageMetadata(value: unknown): value is PackageMetadata {
+        return value !== null && typeof value === "object";
     }
 
     module.exports = { registerInfoHandlers };

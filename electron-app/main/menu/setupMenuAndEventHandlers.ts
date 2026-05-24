@@ -68,6 +68,16 @@
         fitFilePath?: DevtoolsInjectMenuFitFilePath
     ) => DevtoolsInjectMenuResponse;
 
+    const MENU_FILE_EVENTS = [
+        "menu-export",
+        "menu-save-as",
+    ] as const satisfies readonly MenuFileEventChannel[];
+    const MENU_UPDATE_EVENTS = [
+        "install-update",
+        "menu-check-for-updates",
+        "menu-restart-update",
+    ] as const satisfies readonly MenuUpdateEventChannel[];
+
     const { CONSTANTS } = require("../constants") as {
         CONSTANTS: {
             DEFAULT_THEME: string;
@@ -259,9 +269,7 @@
             },
         };
 
-        for (const event of Object.keys(
-            updateHandlers
-        ) as MenuUpdateEventChannel[]) {
+        for (const event of MENU_UPDATE_EVENTS) {
             const handler = updateHandlers[event];
             registerIpcListener(event, handler);
         }
@@ -361,9 +369,7 @@
             },
         };
 
-        for (const event of Object.keys(
-            fileMenuHandlers
-        ) as MenuFileEventChannel[]) {
+        for (const event of MENU_FILE_EVENTS) {
             const handler = fileMenuHandlers[event];
             registerIpcListener(event, handler);
         }

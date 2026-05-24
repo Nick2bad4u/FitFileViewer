@@ -29,6 +29,19 @@ const isSettingsObject = (value: unknown): value is Record<string, unknown> =>
     typeof value === "object" && value !== null && !Array.isArray(value);
 
 /**
+ * Ordered settings categories used by settings iteration paths.
+ */
+export const SETTING_CATEGORIES = [
+    "chart",
+    "export",
+    "mapTheme",
+    "powerEstimation",
+    "theme",
+    "ui",
+    "units",
+] as const satisfies readonly SettingCategory[];
+
+/**
  * Settings categories and their persistence configuration.
  */
 export const SETTINGS_SCHEMA = {

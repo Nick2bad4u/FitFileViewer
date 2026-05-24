@@ -6,6 +6,7 @@
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { getState, setState, subscribe } from "../core/stateManager.js";
 import {
+    SETTING_CATEGORIES,
     SETTINGS_SCHEMA,
     type SettingCategory,
     type SettingSchema,
@@ -26,7 +27,7 @@ interface ResetSettingsOptions {
 const settingsSchema = SETTINGS_SCHEMA as SettingsSchemaMap;
 
 function getSettingsCategories(): SettingCategory[] {
-    return Object.keys(settingsSchema) as SettingCategory[];
+    return [...SETTING_CATEGORIES];
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -478,10 +479,9 @@ class SettingsStateManager {
                     existingSettings = isRecord(rootState)
                         ? rootState[category]
                         : undefined,
-                    currentSettings =
-                        isRecord(existingSettings)
-                            ? { ...existingSettings }
-                            : {};
+                    currentSettings = isRecord(existingSettings)
+                        ? { ...existingSettings }
+                        : {};
                 currentSettings[key] = value;
                 setState(`settings.${category}`, currentSettings, {
                     source: "SettingsStateManager.setSetting",
