@@ -114,6 +114,21 @@ import { setupCreditsMarquee } from "./utils/ui/layout/enhanceCreditsSection.js"
 // Note: app domain state functions are dynamically imported via ensureCoreModules()
 // Avoid static import of uiStateManager for the same reason as AppActions in tests
 
+const rendererConsole = globalThis.console;
+
+/**
+ * @param {"error" | "group" | "groupEnd" | "log" | "warn"} level
+ * @param {...unknown} args
+ *
+ * @returns {void}
+ */
+function logRenderer(level, ...args) {
+    const log = rendererConsole[level];
+    if (typeof log === "function") {
+        log.apply(rendererConsole, args);
+    }
+}
+
 // Dynamic module cache and loader to support test-time mocking via vi.doMock
 /** @type {Record<string, any>} */
 const __moduleCache = {};
@@ -452,7 +467,7 @@ const isOpeningFileRef = { value: false };
  * @param {ErrorEvent} event - The error event
  */
 async function handleUncaughtError(event) {
-    console.error("[Renderer] Uncaught error:", event.error);
+    logRenderer("error", "[Renderer] Uncaught error:", event.error);
 
     try {
         const { masterStateManager, showNotification } =
@@ -472,7 +487,8 @@ async function handleUncaughtError(event) {
             );
         }
     } catch (notifyError) {
-        console.error(
+        logRenderer(
+            "error",
             "[Renderer] Failed to show error notification:",
             notifyError
         );
@@ -489,7 +505,11 @@ async function handleUncaughtError(event) {
  * @param {PromiseRejectionEvent} event - The unhandled rejection event
  */
 async function handleUnhandledRejection(event) {
-    console.error("[Renderer] Unhandled promise rejection:", event.reason);
+    logRenderer(
+        "error",
+        "[Renderer] Unhandled promise rejection:",
+        event.reason
+    );
 
     try {
         const { masterStateManager, showNotification } =
@@ -509,7 +529,8 @@ async function handleUnhandledRejection(event) {
             );
         }
     } catch (notifyError) {
-        console.error(
+        logRenderer(
+            "error",
             "[Renderer] Failed to show error notification:",
             notifyError
         );
@@ -539,7 +560,8 @@ const PerformanceMonitor = {
     end(operation) {
         const startTime = this.metrics.get(`${operation}_start`);
         if (!startTime) {
-            console.warn(
+            logRenderer(
+                "warn",
                 `[Performance] No start time found for operation: ${operation}`
             );
             return 0;
@@ -549,7 +571,10 @@ const PerformanceMonitor = {
         this.metrics.set(operation, duration);
 
         if (isDevelopmentMode()) {
-            console.log(`[Performance] ${operation}: ${duration.toFixed(2)}ms`);
+            logRenderer(
+                "log",
+                `[Performance] ${operation}: ${duration.toFixed(2)}ms`
+            );
         }
 
         return duration;
@@ -597,7 +622,7 @@ async function initializeApplication() {
     PerformanceMonitor.start("app_initialization");
 
     try {
-        console.log("[Renderer] Starting application initialization...");
+        logRenderer("log", "[Renderer] Starting application initialization...");
 
         // Initialize state management system first
         await initializeStateManager();
@@ -729,7 +754,8 @@ async function initializeApplication() {
         AppActions.setInitialized(true);
 
         const initTime = PerformanceMonitor.end("app_initialization");
-        console.log(
+        logRenderer(
+            "log",
             `[Renderer] Application initialized successfully in ${initTime.toFixed(2)}ms`
         );
 
@@ -743,7 +769,11 @@ async function initializeApplication() {
         }
     } catch (error) {
         PerformanceMonitor.end("app_initialization");
-        console.error("[Renderer] Failed to initialize application:", error);
+        logRenderer(
+            "error",
+            "[Renderer] Failed to initialize application:",
+            error
+        );
 
         // Use state manager for error notification
         try {
@@ -775,9 +805,10 @@ async function initializeAsyncComponents() {
         if (globalThis.electronAPI?.recentFiles) {
             try {
                 await globalThis.electronAPI.recentFiles();
-                console.log("[Renderer] Recent files API available");
+                logRenderer("log", "[Renderer] Recent files API available");
             } catch (error) {
-                console.warn(
+                logRenderer(
+                    "warn",
                     "[Renderer] Recent files initialization failed:",
                     error
                 );
@@ -791,11 +822,12 @@ async function initializeAsyncComponents() {
                     globalThis.electronAPI.checkForUpdates();
                 }, 5000); // Delay to avoid blocking startup
             } catch (error) {
-                console.warn("[Renderer] Update check failed:", error);
+                logRenderer("warn", "[Renderer] Update check failed:", error);
             }
         }
     } catch (error) {
-        console.warn(
+        logRenderer(
+            "warn",
             "[Renderer] Some async components failed to initialize:",
             error
         );
@@ -814,7 +846,7 @@ async function initializeComponents(dependencies) {
     try {
         // 1. Setup theme system first (affects all UI)
         PerformanceMonitor.start("theme_setup");
-        console.log("[Renderer] Setting up theme system...");
+        logRenderer("log", "[Renderer] Setting up theme system...");
         try {
             const { setupTheme: setupThemeDyn } = await ensureCoreModules();
             setupThemeDyn(
@@ -829,7 +861,8 @@ async function initializeComponents(dependencies) {
         try {
             setupCreditsMarquee();
         } catch (error) {
-            console.warn(
+            logRenderer(
+                "warn",
                 "[Renderer] Failed to initialize credits marquee:",
                 error
             );
@@ -837,7 +870,7 @@ async function initializeComponents(dependencies) {
 
         // 2. Setup event listeners
         PerformanceMonitor.start("listeners_setup");
-        console.log("[Renderer] Setting up event listeners...");
+        logRenderer("log", "[Renderer] Setting up event listeners...");
         try {
             // Prefer dynamically resolved (mockable) setupListeners for tests
             const { setupListeners: setupListenersDyn } =
@@ -849,7 +882,8 @@ async function initializeComponents(dependencies) {
                 const { setupListeners: sl } = await ensureCoreModules();
                 sl(/** @type {any} */ (dependencies));
             } catch (error) {
-                console.warn(
+                logRenderer(
+                    "warn",
                     "[Renderer] Listener setup skipped or failed:",
                     /** @type {any} */ (error)?.message || error
                 );
@@ -859,13 +893,20 @@ async function initializeComponents(dependencies) {
 
         // 3. Initialize any async components
         PerformanceMonitor.start("async_components");
-        console.log("[Renderer] Initializing async components...");
+        logRenderer("log", "[Renderer] Initializing async components...");
         await initializeAsyncComponents();
         PerformanceMonitor.end("async_components");
 
-        console.log("[Renderer] All components initialized successfully");
+        logRenderer(
+            "log",
+            "[Renderer] All components initialized successfully"
+        );
     } catch (error) {
-        console.error("[Renderer] Component initialization failed:", error);
+        logRenderer(
+            "error",
+            "[Renderer] Component initialization failed:",
+            error
+        );
         throw error;
     }
 }
@@ -886,7 +927,10 @@ async function initializeStateManager() {
 
     __stateInitTracker.promise = (async () => {
         try {
-            console.log("[Renderer] Initializing state management system...");
+            logRenderer(
+                "log",
+                "[Renderer] Initializing state management system..."
+            );
             // Resolve via ensureCoreModules so Vitest manual mocks are honored
             const { AppActions: AA, masterStateManager: msm } =
                 await ensureCoreModules();
@@ -924,9 +968,13 @@ async function initializeStateManager() {
 
             __stateInitTracker.initialized = true;
 
-            console.log("[Renderer] State management system initialized");
+            logRenderer(
+                "log",
+                "[Renderer] State management system initialized"
+            );
         } catch (error) {
-            console.error(
+            logRenderer(
+                "error",
                 "[Renderer] Failed to initialize state manager:",
                 error
             );
@@ -982,7 +1030,8 @@ function validateDOMElements() {
 
     if (missingGroups.length > 0) {
         // Log a warning but do not fail hard to keep tests and minimal UIs working
-        console.warn(
+        logRenderer(
+            "warn",
             "[Renderer] Some UI elements were not found:",
             missingGroups.join(", ")
         );
@@ -1142,11 +1191,11 @@ if (typeof globalThis !== "undefined") {
 }
 
 // Log application startup information
-console.group("[Renderer] Application Startup");
-console.log("App:", APP_INFO.name, `v${APP_INFO.version}`);
-console.log("Environment:", getEnvironment());
-console.log("Runtime Info:", APP_INFO.getRuntimeInfo());
-console.groupEnd();
+logRenderer("group", "[Renderer] Application Startup");
+logRenderer("log", "App:", APP_INFO.name, `v${APP_INFO.version}`);
+logRenderer("log", "Environment:", getEnvironment());
+logRenderer("log", "Runtime Info:", APP_INFO.getRuntimeInfo());
+logRenderer("groupEnd");
 
 // ==========================================
 // Application Lifecycle
@@ -1157,7 +1206,7 @@ console.groupEnd();
  */
 function cleanup() {
     try {
-        console.log("[Renderer] Performing cleanup...");
+        logRenderer("log", "[Renderer] Performing cleanup...");
 
         // Remove global event listeners
         globalThis.removeEventListener(
@@ -1193,9 +1242,9 @@ function cleanup() {
             }
         })();
 
-        console.log("[Renderer] Cleanup completed");
+        logRenderer("log", "[Renderer] Cleanup completed");
     } catch (error) {
-        console.error("[Renderer] Cleanup failed:", error);
+        logRenderer("error", "[Renderer] Cleanup failed:", error);
     }
 }
 
@@ -1237,15 +1286,18 @@ if (isDevelopmentMode()) {
             (async () => {
                 try {
                     const { masterStateManager } = await ensureCoreModules();
-                    console.log(
+                    logRenderer(
+                        "log",
                         "Current State:",
                         /** @type {any} */ (masterStateManager).getState()
                     );
-                    console.log(
+                    logRenderer(
+                        "log",
                         "State History:",
                         /** @type {any} */ (masterStateManager).getHistory()
                     );
-                    console.log(
+                    logRenderer(
+                        "log",
                         "Active Subscriptions:",
                         /** @type {any} */ (
                             masterStateManager
@@ -1339,72 +1391,91 @@ if (isDevelopmentMode()) {
                 testNewFormatting,
             };
 
-            console.log("🛠️  Debug utilities loaded!");
-            console.log("📊 Sensor Debug Commands:");
-            console.log(
+            logRenderer("log", "🛠️  Debug utilities loaded!");
+            logRenderer("log", "📊 Sensor Debug Commands:");
+            logRenderer(
+                "log",
                 "  __sensorDebug.checkDataAvailability()     - Check if FIT data is loaded"
             );
-            console.log(
+            logRenderer(
+                "log",
                 "  __sensorDebug.debugSensorInfo()           - Full sensor analysis"
             );
-            console.log(
+            logRenderer(
+                "log",
                 "  __sensorDebug.debugSensorInfo(true)       - Verbose sensor analysis"
             );
-            console.log(
+            logRenderer(
+                "log",
                 "  __sensorDebug.showSensorNames()           - Quick sensor name list"
             );
-            console.log(
+            logRenderer(
+                "log",
                 "  __sensorDebug.testManufacturerId(269)     - Test manufacturer ID (e.g., Favero)"
             );
-            console.log(
+            logRenderer(
+                "log",
                 "  __sensorDebug.testProductId(269, 12)      - Test product ID (e.g., Favero assioma_duo)"
             );
-            console.log(
+            logRenderer(
+                "log",
                 "  __sensorDebug.showDataKeys()              - Show all available data keys"
             );
-            console.log("");
-            console.log("🧪 Format Testing Commands:");
-            console.log(
+            logRenderer("log", "");
+            logRenderer("log", "🧪 Format Testing Commands:");
+            logRenderer(
+                "log",
                 "  __debugChartFormatting.testNewFormatting()      - Test all formatting scenarios"
             );
-            console.log(
+            logRenderer(
+                "log",
                 "  __debugChartFormatting.testFaveroCase()         - Test the specific Favero case"
             );
-            console.log(
+            logRenderer(
+                "log",
                 "  __debugChartFormatting.testFaveroStringCase()   - Test Favero with string manufacturer name"
             );
-            console.log("");
-            console.log("🏗️  State Management Debug Commands:");
-            console.log(
+            logRenderer("log", "");
+            logRenderer("log", "🏗️  State Management Debug Commands:");
+            logRenderer(
+                "log",
                 "  __renderer_dev.debugState()               - Show current state and history"
             );
-            console.log(
+            logRenderer(
+                "log",
                 "  __renderer_dev.getState()                 - Get current application state"
             );
-            console.log(
+            logRenderer(
+                "log",
                 "  __renderer_dev.getStateHistory()          - Get state change history"
             );
-            console.log(
+            logRenderer(
+                "log",
                 "  __renderer_dev.stateManager               - Access state manager directly"
             );
-            console.log(
+            logRenderer(
+                "log",
                 "  __renderer_dev.AppActions                 - Access app actions"
             );
-            console.log(
+            logRenderer(
+                "log",
                 "  __renderer_dev.uiStateManager             - Access UI state manager"
             );
         } catch (error) {
-            console.warn(
+            logRenderer(
+                "warn",
                 "[Renderer] Debug utilities failed to load:",
                 /** @type {Error} */ (error).message
             );
         }
     })();
 
-    console.log(
+    logRenderer(
+        "log",
         "[Renderer] Development utilities available at window.__renderer_dev"
     );
-    console.log(
+    logRenderer(
+        "log",
         "[Renderer] Performance metrics:",
         PerformanceMonitor.getMetrics()
     );
@@ -1511,14 +1582,16 @@ try {
                             await ensureCoreModules();
                         /** @type {any} */ (hof)(file);
                     } catch (error) {
-                        console.warn(
+                        logRenderer(
+                            "warn",
                             "[Renderer] Failed to handle file open:",
                             error
                         );
                     }
                 }
             } catch (error) {
-                console.warn(
+                logRenderer(
+                    "warn",
                     "[Renderer] File input change handling failed:",
                     error
                 );
@@ -1551,7 +1624,8 @@ function registerElectronAPI(/** @type {any} */ api) {
                                     await ensureCoreModules();
                                 sam();
                             } catch (error) {
-                                console.warn(
+                                logRenderer(
+                                    "warn",
                                     "[Renderer] Failed to show about modal:",
                                     error
                                 );
@@ -1570,7 +1644,8 @@ function registerElectronAPI(/** @type {any} */ api) {
                         const { applyTheme: at } = await ensureCoreModules();
                         at(theme);
                     } catch (error) {
-                        console.warn(
+                        logRenderer(
+                            "warn",
                             "[Renderer] Failed to apply theme:",
                             error
                         );
