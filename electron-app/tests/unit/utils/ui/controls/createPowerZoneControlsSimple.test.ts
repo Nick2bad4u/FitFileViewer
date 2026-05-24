@@ -44,8 +44,8 @@ describe("createPowerZoneControlsSimple", () => {
         const content = controls.querySelector<HTMLElement>(
             "#power-zone-content"
         );
-        expect(collapseBtn).toBeTruthy();
-        expect(content).toBeTruthy();
+        expect(collapseBtn).toBeInstanceOf(HTMLButtonElement);
+        expect(content).toBeInstanceOf(HTMLDivElement);
         expect(collapseBtn?.getAttribute("aria-expanded")).toBe("true");
         expect(content?.style.maxHeight).toBe("500px");
 
@@ -60,8 +60,8 @@ describe("createPowerZoneControlsSimple", () => {
         expect(localStorage.getItem("power-zone-controls-collapsed")).toBe(
             "false"
         );
-        expect(collapseBtn?.getAttribute("aria-expanded")).toBe("true");
-        expect(content?.style.maxHeight).toBe("500px");
+        expect(collapseBtn?.textContent).toBe("▼");
+        expect(content?.style.opacity).toBe("1");
     });
 
     it("applies hover styles when the section is hovered", () => {
@@ -103,7 +103,7 @@ describe("createPowerZoneControlsSimple", () => {
         const content = controls.querySelector<HTMLElement>(
             "#power-zone-content"
         );
-        expect(content).toBeTruthy();
+        expect(content).toBeInstanceOf(HTMLDivElement);
 
         const existing = document.createElement("div");
         existing.textContent = "existing";
@@ -140,6 +140,7 @@ describe("createPowerZoneControlsSimple", () => {
         expect(warnSpy).toHaveBeenCalledWith(
             "[PowerZoneControls] Power zone content container not found"
         );
+        expect(document.querySelector("#power-zone-content")).toBeNull();
     });
 
     it("does not log when no power zone toggles exist", () => {
@@ -152,6 +153,9 @@ describe("createPowerZoneControlsSimple", () => {
         movePowerZoneControlsToSection();
 
         expect(logSpy).not.toHaveBeenCalled();
+        expect(
+            document.querySelectorAll("#power-zone-content > *")
+        ).toHaveLength(0);
     });
 
     it("updates controls visibility based on data availability", () => {
