@@ -51,9 +51,11 @@ const modernEnhancementsClientModule = fileURLToPath(
  * Controls the docs, blog, pages, theming, plugins, and deployment settings
  * used when building the documentation site hosted on GitHub Pages.
  */
-const config: Config = {
+// eslint-disable-next-line docusaurus-2/require-plugin-pwa-setup -- The PWA plugin is not installed for this docs site.
+const config = {
     // Set the /<baseUrl>/ pathname under which your site is served
     baseUrl,
+    baseUrlIssueBanner: true,
     clientModules: [modernEnhancementsClientModule],
 
     deploymentBranch: "gh-pages",
@@ -396,10 +398,6 @@ const config: Config = {
                 property: "og:type",
             },
             {
-                content: socialCardImage,
-                property: "og:image",
-            },
-            {
                 content: `${siteUrl}${baseUrl}`,
                 property: "og:url",
             },
@@ -513,6 +511,6 @@ const config: Config = {
 
     // Set the production url of your site here
     url: siteUrl,
-};
+} satisfies Config;
 
 export default config;

@@ -96,6 +96,9 @@ function Feature({ title, emoji, description }: FeatureItem): JSX.Element {
     );
 }
 
+/**
+ * Renders the feature grid on the documentation homepage.
+ */
 export default function HomepageFeatures(): JSX.Element {
     return (
         <section className={styles.features}>

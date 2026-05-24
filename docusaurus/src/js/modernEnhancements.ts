@@ -4,10 +4,12 @@
  * This module provides client-side enhancements for the documentation site. It
  * runs after the initial page load to add interactive features and improve UX.
  *
- * @module modernEnhancements
+ * @packageDocumentation
  */
 
 import ExecutionEnvironment from "@docusaurus/ExecutionEnvironment";
+
+const enhancementAbortController = new AbortController();
 
 /**
  * Adds smooth scrolling to anchor links
@@ -32,7 +34,8 @@ function addSmoothScrolling(): void {
                         });
                     }
                 }
-            }
+            },
+            { signal: enhancementAbortController.signal }
         );
     });
 }
@@ -201,7 +204,9 @@ function initEnhancements(): void {
 // Initialize when DOM is ready
 if (ExecutionEnvironment.canUseDOM) {
     if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", initEnhancements);
+        document.addEventListener("DOMContentLoaded", initEnhancements, {
+            signal: enhancementAbortController.signal,
+        });
     } else {
         initEnhancements();
     }

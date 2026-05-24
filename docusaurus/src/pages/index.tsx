@@ -96,7 +96,6 @@ const handleCopyCodeClick = (): void => {
  */
 const handleDemoButtonClick = (): void => {
     // Show a simple demo message
-    // eslint-disable-next-line no-alert -- Alert is acceptable for user feedback in documentation context
     alert(
         "🎯 Demo Feature!\n\nThis is just a UI demonstration. Download the app to start viewing your .fit files!"
     );
