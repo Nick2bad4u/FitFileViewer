@@ -1,9 +1,11 @@
 import { fileURLToPath } from "node:url";
+/* eslint-disable module-interop/no-require-esm -- Vitest loads this config through its ESM-aware config loader. */
 import {
     coverageConfigDefaults,
     defaultExclude,
     defineConfig,
 } from "vitest/config";
+/* eslint-enable module-interop/no-require-esm -- Re-enable after the Vitest config import. */
 
 const coverageProjectRoot = fileURLToPath(new URL("..", import.meta.url));
 const electronStubPath = fileURLToPath(
@@ -20,7 +22,6 @@ export default defineConfig({
 
     test: {
         allowOnly: false, // Fail if .only is left in the code
-        cache: true, // Enable caching for faster subsequent runs
         clearMocks: true,
         coverage: {
             // Focus coverage collection on a curated, consistently testable set
@@ -28,8 +29,6 @@ export default defineConfig({
             // Integration-heavy or environment-coupled modules.
             // Only collect coverage for files actually executed by tests
             // To avoid duplicate 0% entries produced by v8 remapping.
-            // eslint-disable-next-line vite/no-vitest-coverage-all-false -- Curated coverage avoids duplicate zero-percent v8 remap entries.
-            all: false,
             allowExternal: false,
             clean: true, // Clean coverage directory before each run
             cleanOnRerun: true, // Clean on rerun in watch mode
@@ -54,6 +53,7 @@ export default defineConfig({
                 "jest.config.cjs",
                 "vitest.config.enhanced.js",
                 "vitest.config.js",
+                "vitest.config.ts",
                 "stylelint.config.js",
                 // Dev-only and debugging utilities
                 "utils/debug/**",
@@ -83,8 +83,6 @@ export default defineConfig({
                 ...coverageConfigDefaults.exclude,
             ],
             excludeAfterRemap: true, // Exclude files after remapping for accuracy
-            experimentalAstAwareRemapping: false, // Temporarily disabled due to ast-v8-to-istanbul column parsing error
-            ignoreEmptyLines: true, // Ignore empty lines, comments, and TypeScript interfaces
             // Curated include set: target modules with stable, complete unit tests
             // so that a strict ≥95% gate is meaningful and consistently achievable.
             // Paths are relative to the electron-app directory.
@@ -218,14 +216,6 @@ export default defineConfig({
         slowTestThreshold: 1000,
         teardownTimeout: 30_000,
         testTimeout: 30_000,
-        // Ensure server-side transform for modules that require('electron') so SSR mocks are applied
-        testTransformMode: {
-            ssr: [
-                "**/main.js",
-                "**/utils/app/menu/createAppMenu.js",
-                "**/preload.js",
-            ],
-        },
         typecheck: {
             allowJs: false,
             checker: "tsc",
