@@ -89,7 +89,7 @@ describe("createGlobalChartStatusIndicator", () => {
     it("creates indicator for all-visible charts with 'Charts Ready' quick action", () => {
         mockGetChartCounts.mockReturnValue(createMockChartCounts(4, 4));
         const indicator = createGlobalChartStatusIndicator();
-        expect(indicator).toBeTruthy();
+        expect(indicator).toBeInstanceOf(HTMLElement);
 
         // Icon should be the ALL_VISIBLE emoji
         const icon =
@@ -158,7 +158,7 @@ describe("createGlobalChartStatusIndicator", () => {
         chartContainer.remove();
         document.getElementById("global-chart-status")?.remove();
         const indicator2 = createGlobalChartStatusIndicator();
-        expect(indicator2).toBeTruthy();
+        expect(indicator2).toBeInstanceOf(HTMLElement);
         expect(console.warn).toHaveBeenCalled();
     });
 });
