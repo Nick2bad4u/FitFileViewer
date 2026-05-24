@@ -125,6 +125,10 @@
  */
 
 const preloadRequire = /** @type {(moduleId: string) => unknown} */ (require);
+const { createApiDiagnostics } =
+    /** @type {{ createApiDiagnostics: (options: Record<string, unknown>) => Pick<ElectronAPI, "getChannelInfo" | "validateAPI"> }} */ (
+        preloadRequire("./preload/apiDiagnostics.js")
+    );
 const { registerPreloadBeforeExitHandler } =
     /** @type {{ registerPreloadBeforeExitHandler: (options: { globalScope?: typeof globalThis; isDevelopmentMode: () => boolean; preloadLog: (level: "error" | "info" | "warn", message: string, ...details: unknown[]) => void; processRef?: NodeJS.Process }) => void }} */ (
         preloadRequire("./preload/beforeExitHandler.js")
@@ -253,6 +257,14 @@ const clipboardBridge = createClipboardBridge({
     ipcRenderer,
     preloadLog,
 });
+const apiDiagnostics = createApiDiagnostics({
+    channels: CONSTANTS.CHANNELS,
+    contextBridge,
+    events: CONSTANTS.EVENTS,
+    ipcRenderer,
+    isDevelopmentMode,
+    preloadLog,
+});
 const genericIpcApi = createGenericIpcApi({
     fitFileLoadedChannel: /** @type {GenericSendChannel} */ (
         CONSTANTS.EVENTS.FIT_FILE_LOADED
@@ -341,13 +353,7 @@ const electronAPI = {
      * @returns {Object} Object containing channel information
      */
     /** @returns {ChannelInfo} */
-    getChannelInfo: () =>
-        /** @type {ChannelInfo} */ ({
-            channels: CONSTANTS.CHANNELS,
-            events: CONSTANTS.EVENTS,
-            totalChannels: Object.keys(CONSTANTS.CHANNELS).length,
-            totalEvents: Object.keys(CONSTANTS.EVENTS).length,
-        }),
+    getChannelInfo: apiDiagnostics.getChannelInfo,
 
     /**
      * Gets the Chrome version.
@@ -968,35 +974,7 @@ const electronAPI = {
      *
      * @returns {boolean} True if API is functional
      */
-    validateAPI: () => {
-        try {
-            // Test basic functionality
-            const hasContextBridge =
-                contextBridge !== null &&
-                contextBridge !== undefined &&
-                typeof contextBridge.exposeInMainWorld === "function";
-            const hasIpcRenderer =
-                ipcRenderer !== null &&
-                ipcRenderer !== undefined &&
-                typeof ipcRenderer.invoke === "function" &&
-                typeof ipcRenderer.send === "function" &&
-                typeof ipcRenderer.on === "function";
-
-            if (isDevelopmentMode()) {
-                preloadLog("info", "[preload.js] API Validation:", {
-                    channelCount: Object.keys(CONSTANTS.CHANNELS).length,
-                    eventCount: Object.keys(CONSTANTS.EVENTS).length,
-                    hasContextBridge,
-                    hasIpcRenderer,
-                });
-            }
-
-            return hasIpcRenderer && hasContextBridge;
-        } catch (error) {
-            preloadLog("error", "[preload.js] API validation failed:", error);
-            return false;
-        }
-    },
+    validateAPI: apiDiagnostics.validateAPI,
 
     /**
      * Write a PNG image to the system clipboard.

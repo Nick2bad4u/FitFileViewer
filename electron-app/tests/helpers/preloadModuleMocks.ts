@@ -5,6 +5,9 @@ const requireFromTest = createRequire(import.meta.url);
 const preloadIpcBridgeCatalog = requireFromTest(
     "../../preload/ipcBridgeCatalog.js"
 );
+const preloadApiDiagnostics = requireFromTest(
+    "../../preload/apiDiagnostics.js"
+);
 const preloadBeforeExitHandler = requireFromTest(
     "../../preload/beforeExitHandler.js"
 );
@@ -31,6 +34,10 @@ export function resolvePreloadScriptRequire(
 
     if (moduleName === "./preload/ipcBridgeCatalog.js") {
         return preloadIpcBridgeCatalog;
+    }
+
+    if (moduleName === "./preload/apiDiagnostics.js") {
+        return preloadApiDiagnostics;
     }
 
     if (moduleName === "./preload/beforeExitHandler.js") {
