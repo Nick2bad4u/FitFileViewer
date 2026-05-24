@@ -35,7 +35,7 @@ describe("sanitizeHtmlAllowlist", () => {
         container.append(fragment);
 
         const div = container.querySelector("div");
-        expect(div).toBeTruthy();
+        expect(div).toBeInstanceOf(HTMLDivElement);
         expect(div?.getAttribute("id")).toBe("x");
         expect(div?.getAttribute("onclick")).toBeNull();
     });
@@ -52,7 +52,7 @@ describe("sanitizeHtmlAllowlist", () => {
         container.append(fragment);
 
         const anchor = container.querySelector("a");
-        expect(anchor).toBeTruthy();
+        expect(anchor).toBeInstanceOf(HTMLAnchorElement);
         expect(anchor?.getAttribute("href")).toBeNull();
         expect(anchor?.className).toBe("c");
     });
@@ -70,7 +70,7 @@ describe("sanitizeHtmlAllowlist", () => {
         container.append(fragment);
 
         const div = container.querySelector("div");
-        expect(div).toBeTruthy();
+        expect(div).toBeInstanceOf(HTMLDivElement);
         expect(div?.hasAttribute("style")).toBe(false);
     });
 
@@ -88,7 +88,7 @@ describe("sanitizeHtmlAllowlist", () => {
         container.append(fragment);
 
         const div = container.querySelector("div");
-        expect(div).toBeTruthy();
+        expect(div).toBeInstanceOf(HTMLDivElement);
         expect(div?.hasAttribute("style")).toBe(false);
     });
 
@@ -106,7 +106,7 @@ describe("sanitizeHtmlAllowlist", () => {
         container.append(fragment);
 
         const div = container.querySelector("div");
-        expect(div).toBeTruthy();
+        expect(div).toBeInstanceOf(HTMLDivElement);
         expect(div?.hasAttribute("style")).toBe(false);
     });
 
@@ -121,7 +121,7 @@ describe("sanitizeHtmlAllowlist", () => {
         container.append(fragment);
 
         const img = container.querySelector("img");
-        expect(img).toBeTruthy();
+        expect(img).toBeInstanceOf(HTMLImageElement);
         expect(img?.getAttribute("srcset")).toBeNull();
         expect(img?.className).toBe("c");
     });
