@@ -137,6 +137,9 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 expect(computedStateManager.subscriptions).toBeInstanceOf(Map);
                 expect(computedStateManager.isComputing).toBeInstanceOf(Set);
                 expect(computedStateManager.computedValues.size).toBe(0);
+                expect(
+                    computedStateManager.computedValues.has("missingComputed")
+                ).not.toBe(true);
             });
         });
 
@@ -157,7 +160,12 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 expect(
                     computedStateManager.dependencies.get("testComputed")
                 ).toEqual(["globalData"]);
-                // Note: We can't easily test the subscribe call because of how the mock is set up
+                expect(
+                    computedStateManager.subscriptions.get("testComputed")
+                ).toHaveLength(1);
+                expect(
+                    computedStateManager.dependencies.get("missingComputed")
+                ).not.toEqual(["globalData"]);
                 expect(typeof cleanup).toBe("function");
             });
 
@@ -256,6 +264,12 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                     )
                 );
                 expect(circularFn).not.toHaveBeenCalled();
+                expect(
+                    computedStateManager.computedValues.get("circular")
+                ).toMatchObject({
+                    isValid: false,
+                    value: undefined,
+                });
             });
 
             it("should log slow computations", () => {
@@ -271,12 +285,26 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                         'Slow computation for "slowTest": 15.00ms'
                     )
                 );
+                expect(
+                    computedStateManager.computedValues.get("slowTest")
+                ).toMatchObject({
+                    error: null,
+                    isValid: true,
+                    value: "slow-result",
+                });
             });
 
             it("should skip computation for non-existent keys", () => {
-                computedStateManager.computeValue("nonExistent");
-                // Should not throw error, should return gracefully
-                expect(true).toBe(true);
+                const computedCount = computedStateManager.computedValues.size;
+
+                expect(() =>
+                    computedStateManager.computeValue("nonExistent")
+                ).not.toThrow();
+
+                expect(computedStateManager.computedValues.size).toBe(
+                    computedCount
+                );
+                expect(console.error).not.toHaveBeenCalled();
             });
         });
 
@@ -346,9 +374,16 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             });
 
             it("should handle invalidation of non-existent keys gracefully", () => {
-                computedStateManager.invalidateComputed("nonExistent");
-                // Should not throw error
-                expect(true).toBe(true);
+                const computedCount = computedStateManager.computedValues.size;
+
+                expect(() =>
+                    computedStateManager.invalidateComputed("nonExistent")
+                ).not.toThrow();
+
+                expect(computedStateManager.computedValues.size).toBe(
+                    computedCount
+                );
+                expect(console.warn).not.toHaveBeenCalled();
             });
         });
 
@@ -378,7 +413,13 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             });
 
             it("should warn when removing non-existent computed value", () => {
+                const computedCount = computedStateManager.computedValues.size;
+
                 computedStateManager.removeComputed("nonExistent");
+
+                expect(computedStateManager.computedValues.size).toBe(
+                    computedCount
+                );
                 expect(console.warn).toHaveBeenCalledWith(
                     expect.stringContaining(
                         'Computed value "nonExistent" does not exist'
@@ -407,8 +448,10 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
         describe("recomputeAll", () => {
             it("should invalidate and recompute all computed values", () => {
-                const fn1 = vi.fn(() => "value1");
-                const fn2 = vi.fn(() => "value2");
+                let firstVersion = 0;
+                let secondVersion = 0;
+                const fn1 = vi.fn(() => `value1-${++firstVersion}`);
+                const fn2 = vi.fn(() => `value2-${++secondVersion}`);
 
                 computedStateManager.addComputed("test1", fn1, []);
                 computedStateManager.addComputed("test2", fn2, []);
@@ -420,6 +463,23 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
                 expect(fn1).toHaveBeenCalled();
                 expect(fn2).toHaveBeenCalled();
+                expect(
+                    computedStateManager.computedValues.get("test1")
+                ).toMatchObject({
+                    error: null,
+                    isValid: true,
+                    value: "value1-2",
+                });
+                expect(
+                    computedStateManager.computedValues.get("test2")
+                ).toMatchObject({
+                    error: null,
+                    isValid: true,
+                    value: "value2-2",
+                });
+                expect(
+                    computedStateManager.computedValues.has("missing")
+                ).not.toBe(true);
             });
         });
 
@@ -461,6 +521,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                     graph1: ["dep1", "dep2"],
                     graph2: ["dep3"],
                 });
+                expect(graph).not.toHaveProperty("missing");
             });
         });
 
@@ -479,7 +540,9 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 expect(computedStateManager.dependencies.size).toBe(0);
                 expect(computedStateManager.subscriptions.size).toBe(0);
                 expect(computedStateManager.isComputing.size).toBe(0);
-                // Note: We can't easily test unsubscribe calls with our current mock setup
+                expect(
+                    computedStateManager.computedValues.has("cleanup1")
+                ).not.toBe(true);
             });
         });
     });
@@ -493,6 +556,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 expect(
                     computedStateManager.computedValues.has("convenience")
                 ).toBe(true);
+                expect(getComputed("missingConvenience")).toBeUndefined();
                 expect(typeof cleanup).toBe("function");
             });
         });
@@ -506,6 +570,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 );
                 const result = getComputed("getTest");
                 expect(result).toBe("get-value");
+                expect(getComputed("missingGetTest")).toBeUndefined();
             });
         });
 
@@ -519,7 +584,14 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 removeComputed("removeTest");
                 expect(
                     computedStateManager.computedValues.has("removeTest")
-                ).toBe(false);
+                ).not.toBe(true);
+
+                removeComputed("removeTest");
+                expect(console.warn).toHaveBeenCalledWith(
+                    expect.stringContaining(
+                        'Computed value "removeTest" does not exist'
+                    )
+                );
             });
         });
     });
@@ -680,6 +752,9 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
                 const finalCount = computedStateManager.computedValues.size;
                 expect(finalCount).toBeLessThan(initialCount);
+                expect(
+                    computedStateManager.computedValues.has("isFileLoaded")
+                ).not.toBe(true);
             });
         });
     });
@@ -694,12 +769,24 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             ]);
 
             expect(computeFn).toHaveBeenCalledTimes(1); // Initial computation
+            expect(getComputed("reactive")).toBe("default");
 
             // Test that the subscription was set up
             expect(mockStateManager.subscribe).toHaveBeenCalledWith(
                 "globalData.test",
                 expect.any(Function)
             );
+
+            mockStateManager.setState("globalData.test", "updated");
+            mockStateManager.triggerSubscriptions("globalData.test");
+
+            expect(
+                computedStateManager.computedValues.get("reactive").isValid
+            ).toBe(false);
+            expect(getComputed("reactive")).toBe("updated");
+            expect(
+                computedStateManager.dependencies.get("reactive")
+            ).not.toContain("globalData.missing");
         });
 
         it("should handle multiple dependencies correctly", () => {
@@ -711,6 +798,8 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 "ui.mode",
             ]);
 
+            expect(getComputed("multiDep")).toBe("undefined-undefined");
+
             expect(mockStateManager.subscribe).toHaveBeenCalledWith(
                 "app.status",
                 expect.any(Function)
@@ -719,6 +808,15 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 "ui.mode",
                 expect.any(Function)
             );
+
+            mockStateManager.setState("app.status", "ready");
+            mockStateManager.setState("ui.mode", "edit");
+            mockStateManager.triggerSubscriptions("app.status");
+
+            expect(getComputed("multiDep")).toBe("ready-edit");
+            expect(
+                computedStateManager.dependencies.get("multiDep")
+            ).not.toContain("globalData.test");
         });
     });
 
