@@ -24,6 +24,8 @@ const {
 } = await import("../../../../utils/theming/specific/updateMapTheme.js");
 
 describe("updateMapTheme - comprehensive coverage", () => {
+    const DARK_TILE_FILTER =
+        "invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1)";
     let consoleLogSpy: any;
     let consoleErrorSpy: any;
 
@@ -32,14 +34,15 @@ describe("updateMapTheme - comprehensive coverage", () => {
      * is applied to `.leaflet-tile-pane` (tiles) only.
      */
     const setupLeafletDom = () => {
-        document.body.innerHTML =
-            '<div id="leaflet-map"><div class="leaflet-tile-pane"></div></div>';
-        const mapElement = document.querySelector(
-            "#leaflet-map"
-        ) as HTMLElement;
-        const tilePane = document.querySelector(
-            "#leaflet-map .leaflet-tile-pane"
-        ) as HTMLElement;
+        const mapElement = document.createElement("div");
+        mapElement.id = "leaflet-map";
+
+        const tilePane = document.createElement("div");
+        tilePane.className = "leaflet-tile-pane";
+
+        mapElement.append(tilePane);
+        document.body.replaceChildren(mapElement);
+
         return { mapElement, tilePane };
     };
 
@@ -54,7 +57,7 @@ describe("updateMapTheme - comprehensive coverage", () => {
             .mockImplementation(() => {});
 
         // Reset DOM
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
 
         // Ensure listener state does not leak between tests
         uninstallUpdateMapThemeListeners();
@@ -77,9 +80,7 @@ describe("updateMapTheme - comprehensive coverage", () => {
             // Container must never be filtered (controls/tooltips live in the map container).
             expect(mapElement.style.filter).toBe("none");
             // Tiles are filtered to create a dark basemap.
-            expect(tilePane.style.filter).toBe(
-                "invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1)"
-            );
+            expect(tilePane.style.filter).toBe(DARK_TILE_FILTER);
             expect(consoleLogSpy).toHaveBeenCalledWith(
                 "[updateMapTheme] Map theme updated - Map dark: true"
             );
@@ -113,6 +114,7 @@ describe("updateMapTheme - comprehensive coverage", () => {
             expect(mockGetMapThemeInverted).toHaveBeenCalled();
             expect(consoleLogSpy).not.toHaveBeenCalled();
             expect(consoleErrorSpy).not.toHaveBeenCalled();
+            expect(document.querySelector("#leaflet-map")).toBeNull();
         });
 
         it("should handle errors in getMapThemeInverted", () => {
@@ -121,12 +123,18 @@ describe("updateMapTheme - comprehensive coverage", () => {
             mockGetMapThemeInverted.mockImplementation(() => {
                 throw testError;
             });
-            document.body.innerHTML = '<div id="leaflet-map"></div>';
+            const mapElement = document.createElement("div");
+            mapElement.id = "leaflet-map";
+            document.body.append(mapElement);
 
             // Execute
             updateMapTheme();
 
             // Verify error handling
+            expect(mapElement.classList.contains("ffv-map-inverted")).toBe(
+                false
+            );
+            expect(mapElement.style.filter).toBe("");
             expect(consoleErrorSpy).toHaveBeenCalledWith(
                 "[updateMapTheme] Error updating map theme:",
                 testError
@@ -143,7 +151,9 @@ describe("updateMapTheme - comprehensive coverage", () => {
 
             try {
                 // Execute
-                updateMapTheme();
+                expect(() => {
+                    updateMapTheme();
+                }).not.toThrow();
 
                 // Verify error handling
                 expect(consoleErrorSpy).toHaveBeenCalledWith(
@@ -160,7 +170,12 @@ describe("updateMapTheme - comprehensive coverage", () => {
     describe("Listener Installation", () => {
         it("should install listeners when requested", () => {
             const addSpy = vi.spyOn(document, "addEventListener");
+            mockGetMapThemeInverted.mockReturnValue(true);
+            const { tilePane } = setupLeafletDom();
 
+            document.dispatchEvent(new Event("themechange"));
+            expect(tilePane.style.filter).toBe("");
+            expect(addSpy).not.toHaveBeenCalled();
             installUpdateMapThemeListeners();
 
             expect(addSpy).toHaveBeenCalledWith(
@@ -173,6 +188,8 @@ describe("updateMapTheme - comprehensive coverage", () => {
                 expect.any(Function),
                 expect.objectContaining({ signal: expect.any(AbortSignal) })
             );
+            document.dispatchEvent(new Event("themechange"));
+            expect(tilePane.style.filter).toBe(DARK_TILE_FILTER);
         });
 
         it("should be idempotent (no duplicate installs)", () => {
@@ -201,6 +218,10 @@ describe("updateMapTheme - comprehensive coverage", () => {
             const { mapElement, tilePane } = setupLeafletDom();
             consoleLogSpy.mockClear();
 
+            document.dispatchEvent(new Event("themechange"));
+            expect(tilePane.style.filter).toBe("");
+            expect(consoleLogSpy).not.toHaveBeenCalled();
+
             installUpdateMapThemeListeners();
 
             // Execute
@@ -208,9 +229,7 @@ describe("updateMapTheme - comprehensive coverage", () => {
 
             // Verify response
             expect(mapElement.style.filter).toBe("none");
-            expect(tilePane.style.filter).toBe(
-                "invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1)"
-            );
+            expect(tilePane.style.filter).toBe(DARK_TILE_FILTER);
             expect(consoleLogSpy).toHaveBeenCalledWith(
                 "[updateMapTheme] Map theme updated - Map dark: true"
             );
@@ -269,12 +288,16 @@ describe("updateMapTheme - comprehensive coverage", () => {
 
             // Execute complete workflow
             updateMapTheme();
+            mockGetMapThemeInverted.mockReturnValue(true);
             const themeEvent = new Event("themechange");
             document.body.dispatchEvent(themeEvent);
 
             // Verify final state
             expect(mapElement.style.filter).toBe("none");
             expect(tilePane.style.filter).toBe("none");
+            expect(consoleLogSpy).not.toHaveBeenCalledWith(
+                "[updateMapTheme] Map theme updated - Map dark: true"
+            );
             expect(consoleLogSpy).toHaveBeenCalledWith(
                 "[updateMapTheme] Map theme updated - Map dark: false"
             );
@@ -283,27 +306,55 @@ describe("updateMapTheme - comprehensive coverage", () => {
         it("should maintain state consistency across multiple calls", () => {
             // Setup
             const { mapElement, tilePane } = setupLeafletDom();
+            const snapshots: Array<{
+                classApplied: boolean;
+                containerFilter: string;
+                tileFilter: string;
+            }> = [];
 
             // Execute multiple calls with different theme states
             mockGetMapThemeInverted.mockReturnValue(true);
             updateMapTheme();
-            expect(mapElement.style.filter).toBe("none");
-            expect(tilePane.style.filter).toBe(
-                "invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1)"
-            );
+            snapshots.push({
+                classApplied: mapElement.classList.contains("ffv-map-inverted"),
+                containerFilter: mapElement.style.filter,
+                tileFilter: tilePane.style.filter,
+            });
 
             mockGetMapThemeInverted.mockReturnValue(false);
             updateMapTheme();
-            expect(mapElement.style.filter).toBe("none");
-            expect(tilePane.style.filter).toBe("none");
+            snapshots.push({
+                classApplied: mapElement.classList.contains("ffv-map-inverted"),
+                containerFilter: mapElement.style.filter,
+                tileFilter: tilePane.style.filter,
+            });
 
             // Verify consistency
             mockGetMapThemeInverted.mockReturnValue(true);
             updateMapTheme();
-            expect(mapElement.style.filter).toBe("none");
-            expect(tilePane.style.filter).toBe(
-                "invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1)"
-            );
+            snapshots.push({
+                classApplied: mapElement.classList.contains("ffv-map-inverted"),
+                containerFilter: mapElement.style.filter,
+                tileFilter: tilePane.style.filter,
+            });
+
+            expect(snapshots).toEqual([
+                {
+                    classApplied: true,
+                    containerFilter: "none",
+                    tileFilter: DARK_TILE_FILTER,
+                },
+                {
+                    classApplied: false,
+                    containerFilter: "none",
+                    tileFilter: "none",
+                },
+                {
+                    classApplied: true,
+                    containerFilter: "none",
+                    tileFilter: DARK_TILE_FILTER,
+                },
+            ]);
         });
     });
 });
