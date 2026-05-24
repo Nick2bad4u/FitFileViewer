@@ -38,14 +38,26 @@ function injectCjsMock(modulePath: string, exportsObj: any) {
 
 function makeRes() {
     const headers: Record<string, string> = {};
-    return {
+    const res = {
         headers,
+        statusCode: undefined as number | undefined,
+        statusHeaders: undefined as Record<string, string> | undefined,
+        body: undefined as unknown,
         setHeader: (k: string, v: string) => {
             headers[k] = v;
         },
-        writeHead: vi.fn(),
-        end: vi.fn(),
+        writeHead: vi.fn(
+            (statusCode: number, statusHeaders: Record<string, string>) => {
+                res.statusCode = statusCode;
+                res.statusHeaders = statusHeaders;
+            }
+        ),
+        end: vi.fn((body?: unknown) => {
+            res.body = body;
+        }),
     };
+
+    return res;
 }
 
 describe("gyazoOAuthServer", () => {
@@ -122,6 +134,9 @@ describe("gyazoOAuthServer", () => {
 
         const res = makeRes();
         requestHandler!({ method: "POST", url: "/gyazo/callback" }, res);
+        expect(res.statusCode).toBe(405);
+        expect(res.statusHeaders).toEqual({ "Content-Type": "text/plain" });
+        expect(res.body).toBe("Method Not Allowed");
         expect(res.writeHead).toHaveBeenCalledWith(405, expect.any(Object));
         expect(res.end).toHaveBeenCalledWith("Method Not Allowed");
     });
@@ -162,6 +177,9 @@ describe("gyazoOAuthServer", () => {
             res
         );
 
+        expect(res.statusCode).toBe(200);
+        expect(res.statusHeaders).toEqual({ "Content-Type": "text/html" });
+        expect(String(res.body)).toContain("Authorization Successful");
         expect(send).toHaveBeenCalledWith("gyazo-oauth-callback", {
             code: "abc",
             state: "xyz",
