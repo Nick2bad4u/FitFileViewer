@@ -7,7 +7,10 @@ async function loadModule() {
 describe("renderZoneChart", () => {
     let originalChart: any;
     beforeEach(() => {
-        document.body.innerHTML = '<div id="root"></div>';
+        document.body.replaceChildren();
+        const root = document.createElement("div");
+        root.id = "root";
+        document.body.append(root);
         (window as any)._chartjsInstances = [];
         originalChart = (window as any).Chart;
         (window as any).Chart = vi
@@ -36,6 +39,9 @@ describe("renderZoneChart", () => {
     });
     afterEach(() => {
         (window as any).Chart = originalChart;
+        document.body.replaceChildren();
+        vi.doUnmock("../../../utils/data/zones/chartZoneColorUtils.js");
+        vi.restoreAllMocks();
         vi.resetModules();
     });
 
@@ -53,10 +59,28 @@ describe("renderZoneChart", () => {
             "hr_zone",
             { showLegend: true }
         );
-        expect(container.querySelector("canvas")).toBeTruthy();
+        const canvas = container.querySelector("canvas");
+        expect(canvas).toBeInstanceOf(HTMLCanvasElement);
+        expect(canvas?.id).toBe("chart-hr_zone-0");
         expect((window as any).Chart).toHaveBeenCalled();
         expect(Array.isArray((window as any)._chartjsInstances)).toBe(true);
         expect((window as any)._chartjsInstances.length).toBe(1);
+
+        const config = (window as any).Chart.mock.calls[0][1];
+        expect(config.type).toBe("doughnut");
+        expect(config.data.labels).toEqual([
+            "Z1",
+            "Z2",
+        ]);
+        expect(config.data.datasets[0].data).toEqual([
+            10,
+            20,
+        ]);
+        expect(config.data.datasets[0].backgroundColor).toEqual([
+            "#111111",
+            "#222222",
+        ]);
+        expect(config.options.plugins.legend.display).toBe(true);
     });
 
     it("renders bar config when chartType=bar and uses zoneType colors fallback", async () => {
@@ -83,14 +107,51 @@ describe("renderZoneChart", () => {
                 showLegend: false,
             }
         );
-        expect(container.querySelector("canvas")).toBeTruthy();
+        const canvas = container.querySelector("canvas");
+        expect(canvas).toBeInstanceOf(HTMLCanvasElement);
+        expect(canvas?.id).toBe("chart-power_zone-0");
         expect((window as any).Chart).toHaveBeenCalled();
+
+        const config = (window as any).Chart.mock.calls[0][1];
+        expect(config.type).toBe("bar");
+        expect(config.data.labels).toEqual([
+            "Z1",
+            "Z2",
+            "Z3",
+        ]);
+        expect(config.data.datasets[0].data).toEqual([
+            5,
+            15,
+            25,
+        ]);
+        expect(config.data.datasets[0].backgroundColor).toEqual([
+            "#000000",
+            "#001111",
+            "#002222",
+        ]);
+        expect(config.options.plugins.legend.display).toBe(false);
     });
 
     it("gracefully returns on invalid inputs", async () => {
+        const warnSpy = vi
+            .spyOn(console, "warn")
+            .mockImplementation(() => undefined);
         const { renderZoneChart } = await loadModule();
         renderZoneChart(null as any, "X", [] as any, "id");
         renderZoneChart(document.body, "X", null as any, "id");
-        expect(true).toBe(true);
+        expect(warnSpy).toHaveBeenCalledTimes(2);
+        expect(warnSpy).toHaveBeenNthCalledWith(
+            1,
+            "renderZoneChart: invalid container",
+            null
+        );
+        expect(warnSpy).toHaveBeenNthCalledWith(
+            2,
+            "renderZoneChart: zoneData not array",
+            null
+        );
+        expect(document.querySelectorAll("canvas")).toHaveLength(0);
+        expect((window as any).Chart).not.toHaveBeenCalled();
+        expect((window as any)._chartjsInstances).toHaveLength(0);
     });
 });
