@@ -1,17 +1,22 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("../../../utils/ui/controls/createPowerZoneControls.js", () => ({
+vi.mock("../../../../utils/ui/controls/createPowerZoneControls.js", () => ({
     updatePowerZoneControlsVisibility: vi.fn(),
 }));
-vi.mock("../../../utils/ui/controls/createHRZoneControls.js", () => ({
+vi.mock("../../../../utils/ui/controls/createHRZoneControls.js", () => ({
     updateHRZoneControlsVisibility: vi.fn(),
 }));
-vi.mock("../../../utils/data/zones/chartZoneColorUtils.js", () => ({
+vi.mock("../../../../utils/data/zones/chartZoneColorUtils.js", () => ({
     applyZoneColors: (zones: any[], kind: string) =>
         zones.map((z) => ({ ...z, color: kind === "hr" ? "#f00" : "#00f" })),
 }));
 
-const modPath = "../../../../utils/data/processing/setupZoneData.js";
+type SetupZoneDataModule =
+    typeof import("../../../../utils/data/processing/setupZoneData.js");
+
+async function importSetupZoneData(): Promise<SetupZoneDataModule> {
+    return import("../../../../utils/data/processing/setupZoneData.js");
+}
 
 describe("setupZoneData", () => {
     beforeEach(() => {
@@ -22,7 +27,7 @@ describe("setupZoneData", () => {
 
     it("returns existing globals when no data", async () => {
         (globalThis as any).window.heartRateZones = [{ zone: 1, time: 10 }];
-        const { setupZoneData } = await import(modPath);
+        const { setupZoneData } = await importSetupZoneData();
         const res = setupZoneData(null as any);
         expect(res.hasHRZoneData).toBe(true);
         expect(res.hasPowerZoneData).toBe(false);
@@ -30,7 +35,7 @@ describe("setupZoneData", () => {
     });
 
     it("uses timeInZoneMesgs session aggregate", async () => {
-        const { setupZoneData } = await import(modPath);
+        const { setupZoneData } = await importSetupZoneData();
         const res = setupZoneData({
             timeInZoneMesgs: [
                 {
@@ -59,7 +64,7 @@ describe("setupZoneData", () => {
     });
 
     it("falls back to sessionMesgs when no timeInZoneMesgs", async () => {
-        const { setupZoneData } = await import(modPath);
+        const { setupZoneData } = await importSetupZoneData();
         const res = setupZoneData({
             sessionMesgs: [
                 { time_in_hr_zone: [0, 2], time_in_power_zone: [0, 7] },
@@ -72,7 +77,7 @@ describe("setupZoneData", () => {
     });
 
     it("aggregates from lapMesgs as last resort", async () => {
-        const { setupZoneData } = await import(modPath);
+        const { setupZoneData } = await importSetupZoneData();
         const res = setupZoneData({
             lapMesgs: [
                 {
