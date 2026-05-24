@@ -234,6 +234,8 @@ describe("exportUtils", () => {
                 "combined-data.csv",
                 "timestamp"
             );
+            const csvContent = mockZip.file.mock.calls[0][1];
+            expect(csvContent).toBe("timestamp");
         });
 
         it("should handle charts with no data", async () => {
@@ -252,6 +254,34 @@ describe("exportUtils", () => {
                 "combined-data.csv",
                 "timestamp,Speed,Heart Rate"
             );
+            const csvContent = mockZip.file.mock.calls[0][1];
+            expect(csvContent).toBe("timestamp,Speed,Heart Rate");
+        });
+
+        it("should ignore invalid charts input without adding a file", async () => {
+            const consoleErrorSpy = vi
+                .spyOn(console, "error")
+                .mockImplementation(() => {});
+            const mockZip = {
+                file: vi.fn(),
+            };
+
+            await expect(
+                exportUtils.addCombinedCSVToZip(
+                    mockZip,
+                    null as unknown as Parameters<
+                        typeof exportUtils.addCombinedCSVToZip
+                    >[1]
+                )
+            ).resolves.toBeUndefined();
+
+            expect(mockZip.file).not.toHaveBeenCalled();
+            expect(consoleErrorSpy).toHaveBeenCalledWith(
+                "Error adding combined CSV to ZIP:",
+                expect.any(TypeError)
+            );
+
+            consoleErrorSpy.mockRestore();
         });
     });
 
@@ -302,12 +332,14 @@ describe("exportUtils", () => {
             );
             expect(global.document.createElement).toHaveBeenCalledWith("a");
             expect(mockLink.click).toHaveBeenCalled();
+            expect(mockLink.download).toBe("chart.png");
+            expect(mockLink.href).toMatch(/^data:image\/png;base64,/);
         });
 
         it("should handle chart without toBase64Image method", async () => {
             const chart = { data: { datasets: [] } }; // Chart without toBase64Image
 
-            await exportUtils.downloadChartAsPNG(chart);
+            await expect(exportUtils.downloadChartAsPNG(chart)).resolves.toBeUndefined();
 
             expect(global.document.createElement).not.toHaveBeenCalledWith("a");
             expect(mockShowNotification).toHaveBeenCalledWith(
@@ -341,6 +373,11 @@ describe("exportUtils", () => {
             expect(global.URL.createObjectURL).toHaveBeenCalled();
             expect(mockLink.click).toHaveBeenCalled();
             expect(mockLink.download).toBe("chart-data.csv");
+            const csvBlob = mockURL.createObjectURL.mock.calls.at(-1)?.[0];
+            expect(csvBlob).toBeInstanceOf(Blob);
+            await expect((csvBlob as Blob).text()).resolves.toBe(
+                "timestamp,Speed\n1000,25\n2000,30\n3000,35"
+            );
         });
 
         it("should handle empty data", async () => {
@@ -360,6 +397,33 @@ describe("exportUtils", () => {
 
             expect(global.document.createElement).toHaveBeenCalledWith("a");
             expect(mockLink.click).toHaveBeenCalled();
+            expect(mockLink.download).toBe("chart-data.csv");
+            const csvBlob = mockURL.createObjectURL.mock.calls.at(-1)?.[0];
+            expect(csvBlob).toBeInstanceOf(Blob);
+            await expect((csvBlob as Blob).text()).resolves.toBe(
+                "timestamp,Empty"
+            );
+        });
+
+        it("should leave the link inactive when CSV export cannot create an object URL", async () => {
+            const mockLink = {
+                href: "",
+                download: "",
+                click: vi.fn(),
+                remove: vi.fn(),
+            };
+            (global.document.createElement as any).mockReturnValue(mockLink);
+            mockURL.createObjectURL.mockImplementationOnce(() => {
+                throw new Error("object URL failed");
+            });
+
+            await expect(
+                exportUtils.exportChartDataAsCSV([{ x: 1000, y: 25 }], "Speed")
+            ).resolves.toBeUndefined();
+
+            expect(mockLink.href).toBe("");
+            expect(mockLink.download).toBe("");
+            expect(mockLink.click).not.toHaveBeenCalled();
         });
     });
 
@@ -386,6 +450,36 @@ describe("exportUtils", () => {
             expect(global.URL.createObjectURL).toHaveBeenCalled();
             expect(mockLink.click).toHaveBeenCalled();
             expect(mockLink.download).toBe("chart-data.json");
+            const jsonBlob = mockURL.createObjectURL.mock.calls.at(-1)?.[0];
+            expect(jsonBlob).toBeInstanceOf(Blob);
+            const json = JSON.parse(await (jsonBlob as Blob).text());
+            expect(json).toEqual({
+                data: chartData,
+                exportedAt: expect.any(String),
+                field: "Speed",
+                totalPoints: 2,
+            });
+        });
+
+        it("should leave the link inactive when JSON export cannot create an object URL", async () => {
+            const mockLink = {
+                href: "",
+                download: "",
+                click: vi.fn(),
+                remove: vi.fn(),
+            };
+            (global.document.createElement as any).mockReturnValue(mockLink);
+            mockURL.createObjectURL.mockImplementationOnce(() => {
+                throw new Error("object URL failed");
+            });
+
+            await expect(
+                exportUtils.exportChartDataAsJSON([{ x: 1000, y: 25 }], "Speed")
+            ).resolves.toBeUndefined();
+
+            expect(mockLink.href).toBe("");
+            expect(mockLink.download).toBe("");
+            expect(mockLink.click).not.toHaveBeenCalled();
         });
     });
 
