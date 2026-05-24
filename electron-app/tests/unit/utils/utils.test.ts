@@ -1,9 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-const SUT = "../../../utils.js";
+async function importUtilsModule() {
+    return import("../../../utils.js");
+}
 
 describe("utils global attachment and API", () => {
     beforeEach(() => {
+        vi.useFakeTimers();
         vi.resetModules();
         // Ensure dev helpers are exposed
         (process as any).env = Object.assign({}, process.env, {
@@ -15,16 +18,20 @@ describe("utils global attachment and API", () => {
         });
     });
 
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
     it("attaches utilities to window and exposes helpers", async () => {
         // Simulate version available before import
         (globalThis as any).window.electronAPI = {
             getAppVersion: vi.fn(async () => "9.9.9"),
         };
 
-        const mod = await import(SUT);
+        const mod = await importUtilsModule();
 
-        // Wait a tick for setTimeout(0) attachment and version promise
-        await new Promise((r) => setTimeout(r, 5));
+        // Run the setTimeout(0) global attachment and version promise.
+        await vi.runOnlyPendingTimersAsync();
 
         // Check a few utilities are attached on window
         expect(typeof (globalThis as any).window.formatDistance).toBe(
@@ -36,7 +43,14 @@ describe("utils global attachment and API", () => {
 
         // Dev helpers exposed
         const helpers = (globalThis as any).window.devUtilsHelpers;
-        expect(helpers).toBeTruthy();
+        expect(helpers).toEqual(
+            expect.objectContaining({
+                cleanup: expect.any(Function),
+                getAttachmentResults: expect.any(Function),
+                reattachUtils: expect.any(Function),
+                validateUtils: expect.any(Function),
+            })
+        );
         expect(typeof helpers.getAttachmentResults).toBe("function");
 
         // Version propagated
@@ -63,7 +77,7 @@ describe("utils global attachment and API", () => {
                 3,
             ]
         );
-        expect(result).toBeDefined();
+        expect(result).toBe("1, 2, 3");
 
         // validate utilities
         const validation = FitFileViewerUtils.validateAllUtils();
@@ -72,15 +86,15 @@ describe("utils global attachment and API", () => {
         // safeExecute should throw on unknown util
         expect(() =>
             FitFileViewerUtils.safeExecute("__missing__" as any)
-        ).toThrow();
+        ).toThrow("Function is not available: __missing__");
     });
 
     it("records collisions and cleanup removes globals", async () => {
         // Place an existing conflicting function before import
         (globalThis as any).window.formatDistance = () => "old";
 
-        await import(SUT);
-        await new Promise((r) => setTimeout(r, 5));
+        await importUtilsModule();
+        await vi.runOnlyPendingTimersAsync();
 
         const helpers = (globalThis as any).window.devUtilsHelpers;
         const results = helpers.getAttachmentResults();
@@ -95,13 +109,13 @@ describe("utils global attachment and API", () => {
     it("loads version via deferred electronAPI after import", async () => {
         // Ensure no API at import time
         delete (globalThis as any).window.electronAPI;
-        const mod = await import(SUT);
+        const mod = await importUtilsModule();
         // Now provide API which polling should pick up
         (globalThis as any).window.electronAPI = {
             getAppVersion: vi.fn(async () => "7.7.7"),
         };
-        // Wait enough for polling interval in utils.js (100ms)
-        await new Promise((r) => setTimeout(r, 150));
+        // Advance the polling interval in utils.js.
+        await vi.advanceTimersByTimeAsync(100);
         const { FitFileViewerUtils } = mod as any;
         expect(FitFileViewerUtils.version === "7.7.7").toBe(true);
     });
