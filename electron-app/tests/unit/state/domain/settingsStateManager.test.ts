@@ -73,6 +73,18 @@ Object.defineProperty(globalThis, "addEventListener", {
     writable: true,
 });
 
+function getStorageEventListener(): EventListener {
+    const listener = vi
+        .mocked(globalThis.addEventListener)
+        .mock.calls.find(([eventName]) => eventName === "storage")?.[1];
+
+    if (typeof listener !== "function") {
+        throw new Error("Expected storage event listener to be registered");
+    }
+
+    return listener;
+}
+
 describe("settingsStateManager.js - simplified coverage", () => {
     let settingsStateManagerModule: any;
     let settingsStateManager: any;
@@ -117,6 +129,9 @@ describe("settingsStateManager.js - simplified coverage", () => {
                 expect(settingsStateManager.initialized).toBe(false);
                 expect(settingsStateManager.migrationVersion).toBe("1.0.0");
                 expect(settingsStateManager.subscribers).toBeInstanceOf(Map);
+                expect(
+                    settingsStateManager.subscribers.size
+                ).not.toBeGreaterThan(0);
             });
         });
 
@@ -129,6 +144,10 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
                 expect(settingsStateManager.initialized).toBe(false);
                 expect(settingsStateManager.subscribers.size).toBe(0);
+                expect(settingsStateManager.subscribers.has("test")).toBe(
+                    false
+                );
+                expect(settingsStateManager.initialized).not.toBe(true);
             });
         });
 
@@ -345,6 +364,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
                 expect(settingsStateManager.initialized).toBe(true);
                 expect(mockSetState).toHaveBeenCalled();
+                expect(settingsStateManager.initialized).not.toBe(false);
             });
 
             it("should skip if already initialized", async () => {
@@ -352,8 +372,8 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
                 await settingsStateManager.initialize();
 
-                // Function should still work
                 expect(settingsStateManager.initialized).toBe(true);
+                expect(mockSetState).not.toHaveBeenCalled();
             });
         });
 
@@ -391,6 +411,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
                         powerEstimation: {},
                     },
                 });
+                expect(result.settings.theme).not.toBe("light");
 
                 vi.useRealTimers();
             });
@@ -437,6 +458,26 @@ describe("settingsStateManager.js - simplified coverage", () => {
                     expect.any(Function),
                     expect.objectContaining({
                         signal: expect.any(AbortSignal),
+                    })
+                );
+                expect(
+                    settingsStateManager.storageSyncController.signal.aborted
+                ).toBe(false);
+
+                const listener = getStorageEventListener();
+
+                mockSetState.mockClear();
+                listener({ key: "unrelated-storage-key" } as StorageEvent);
+                expect(mockSetState).not.toHaveBeenCalled();
+
+                mockLocalStorage.data["ffv-theme"] = "light";
+                listener({ key: "ffv-theme" } as StorageEvent);
+
+                expect(mockSetState).toHaveBeenCalledWith(
+                    "settings.theme",
+                    "light",
+                    expect.objectContaining({
+                        source: "SettingsStateManager.syncFromLocalStorage",
                     })
                 );
             });
@@ -493,6 +534,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
                 // Implementation returns raw localStorage value
                 expect(result).toBe('"light"');
+                expect(result).not.toBe('"dark"');
             });
         });
 
@@ -507,6 +549,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
                     "ffv-theme",
                     '"light"'
                 );
+                expect(mockLocalStorage.data["ffv-theme"]).not.toBe('"dark"');
             });
         });
 
@@ -518,6 +561,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
                 const result = getMapThemeSetting();
 
                 expect(result).toBe(false);
+                expect(result).not.toBe(true);
             });
         });
 
@@ -532,6 +576,9 @@ describe("settingsStateManager.js - simplified coverage", () => {
                     "ffv-map-theme-inverted",
                     "false"
                 );
+                expect(
+                    mockLocalStorage.data["ffv-map-theme-inverted"]
+                ).not.toBe("true");
             });
         });
 
@@ -559,6 +606,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
                 // The result might be false due to validation failure
                 expect(typeof result).toBe("boolean");
+                expect(typeof result).not.toBe("string");
             });
         });
 
@@ -570,6 +618,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
                 const result = resetChartSettings();
 
                 expect(typeof result).toBe("boolean");
+                expect(typeof result).not.toBe("string");
             });
         });
 
@@ -585,6 +634,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
                         settings: expect.any(Object),
                     })
                 );
+                expect(result.version).not.toBe("2.0.0");
             });
         });
 
@@ -600,6 +650,12 @@ describe("settingsStateManager.js - simplified coverage", () => {
                 const result = importAllSettings(settingsData);
 
                 expect(result).toBe(true);
+            });
+
+            it("should reject invalid all-settings payload", () => {
+                const { importAllSettings } = settingsStateManagerModule;
+
+                expect(importAllSettings(null)).toBe(false);
             });
         });
     });
