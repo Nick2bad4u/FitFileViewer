@@ -14,8 +14,11 @@ describe("showNotification.js - coverage uplift", () => {
         vi.restoreAllMocks();
         console.warn = vi.fn();
         console.error = vi.fn();
-        document.body.innerHTML =
-            '<div id="notification" class="notification" style="display:none"></div>';
+        const notificationElement = document.createElement("div");
+        notificationElement.id = "notification";
+        notificationElement.className = "notification";
+        notificationElement.style.display = "none";
+        document.body.replaceChildren(notificationElement);
     });
 
     afterEach(() => {
@@ -23,7 +26,7 @@ describe("showNotification.js - coverage uplift", () => {
         vi.useRealTimers();
         console.warn = originalWarn;
         console.error = originalError;
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         clearAllNotifications();
     });
 
@@ -50,7 +53,8 @@ describe("showNotification.js - coverage uplift", () => {
         const close = el.querySelector(
             ".notification-close"
         ) as HTMLButtonElement;
-        expect(close).toBeTruthy();
+        expect(close?.getAttribute("aria-label")).toBe("Close notification");
+        expect(close?.textContent).toBe("×");
         close.click();
         // transition 300ms
         vi.advanceTimersByTime(300);
@@ -67,7 +71,8 @@ describe("showNotification.js - coverage uplift", () => {
         const btn = el.querySelector(
             ".notification-actions button"
         ) as HTMLButtonElement;
-        expect(btn).toBeTruthy();
+        expect(btn?.textContent).toBe("Do");
+        expect(btn?.className).toBe("themed-btn");
         btn.click();
         expect(onAct).toHaveBeenCalled();
         vi.advanceTimersByTime(300);
@@ -120,65 +125,44 @@ describe("showNotification.js - coverage uplift", () => {
         await p1; // first scheduled
         let el = document.getElementById("notification")!;
         expect(el.style.display).toBe("flex");
+        expect(el.querySelector(".notification-message")?.textContent).toBe(
+            "First"
+        );
+        expect(el.className).toBe("notification success");
         // finish first
         vi.advanceTimersByTime(500 + 300);
         // allow queue processor to kick in
         vi.advanceTimersByTime(50);
         await p2;
         el = document.getElementById("notification")!;
-        expect(el.style.display).toBe("flex");
+        expect(el.querySelector(".notification-message")?.textContent).toBe(
+            "Second"
+        );
+        expect(el.className).toBe("notification error");
         // finish second
         vi.advanceTimersByTime(500 + 300);
         expect(el.style.display).toBe("none");
     });
 
-    it("handles errors when resolveShown throws", () => {
-        // This test directly tests the try/finally pattern in isolation
-        // Similar to showNotification.try-finally.test.ts but integrated here for coverage
+    it("resolves and logs when notification rendering throws", async () => {
+        const el = document.getElementById("notification")!;
+        const renderError = new Error("render failed");
+        const replaceChildrenSpy = vi
+            .spyOn(el, "replaceChildren")
+            .mockImplementation(() => {
+                throw renderError;
+            });
 
-        // Create an object with resolveShown function that throws
-        const notification = {
-            // @ts-ignore - We need to access this private property
-            resolveShown: () => {
-                throw new Error("Test error");
-            },
-        };
+        await expect(showNotification("Broken", "info")).resolves.toBeUndefined();
 
-        // Spy on console.error to verify it gets called
-        const errorSpy = vi
-            .spyOn(console, "error")
-            .mockImplementation(() => {});
-
-        // Test the pattern that's used in showNotification.js
-        let didFinallyExecute = false;
-
-        try {
-            // This should throw but be caught by our outer try/catch
-            if (typeof notification.resolveShown === "function") {
-                try {
-                    notification.resolveShown();
-                    // We should never get here
-                    expect(true).toBe(false); // This would fail if we did
-                } finally {
-                    // But we should get here
-                    didFinallyExecute = true;
-                    // @ts-ignore - Testing the exact behavior in showNotification.js
-                    notification.resolveShown = undefined;
-                }
-            }
-        } catch (error) {
-            // Log the error as would happen in the real code
-            console.error("Error in resolveShown:", error);
-        }
-
-        // Verify the finally block executed
-        expect(didFinallyExecute).toBe(true);
-        expect(notification.resolveShown).toBeUndefined();
-
-        // Verify error was logged
-        expect(errorSpy).toHaveBeenCalled();
-
-        // Clean up
-        errorSpy.mockRestore();
+        expect(replaceChildrenSpy).toHaveBeenCalledOnce();
+        expect(console.error).toHaveBeenCalledWith(
+            "Error displaying notification:",
+            renderError
+        );
+        expect(console.error).toHaveBeenCalledWith(
+            "Error displaying notification: render failed"
+        );
+        expect(el.style.display).toBe("none");
     });
 });
