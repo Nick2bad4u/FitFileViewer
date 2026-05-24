@@ -414,6 +414,7 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
             const result = formatSensorName(sensor);
 
             expect(result).toBe("Garmin Edge 520");
+            expect(result).not.toBe("edge_520_different");
         });
 
         it("should handle Wahoo KICKR sensor correctly", () => {
@@ -477,6 +478,7 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
 
             // Should use manufacturer+product strategy (highest priority)
             expect(result).toBe("Garmin Edge 520");
+            expect(result).not.toBe("Edge 520 Different");
         });
 
         it("should handle sensor with very long product names", () => {
@@ -551,9 +553,9 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
 
     describe("Performance and Efficiency", () => {
         it("should not call unnecessary functions for invalid inputs", () => {
-            formatSensorName(null as any);
-            formatSensorName(undefined as any);
-            formatSensorName("invalid" as any);
+            expect(formatSensorName(null as any)).toBe("Unknown Sensor");
+            expect(formatSensorName(undefined as any)).toBe("Unknown Sensor");
+            expect(formatSensorName("invalid" as any)).toBe("Unknown Sensor");
 
             expect(formatManufacturer).not.toHaveBeenCalled();
             expect(formatProduct).not.toHaveBeenCalled();
@@ -564,8 +566,9 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
             (formatProduct as any).mockReturnValue("Edge 520");
 
             const sensor = { manufacturer: 1, product: 1735 };
-            formatSensorName(sensor);
+            const result = formatSensorName(sensor);
 
+            expect(result).toBe("Garmin Edge 520");
             expect(formatManufacturer).toHaveBeenCalledBefore(
                 formatProduct as any
             );
@@ -579,16 +582,18 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
 
             formatSensorName(sensor);
             formatSensorName(sensor);
-            formatSensorName(sensor);
+            const result = formatSensorName(sensor);
 
+            expect(result).toBe("Garmin Edge 520");
             expect(formatManufacturer).toHaveBeenCalledTimes(3);
             expect(formatProduct).toHaveBeenCalledTimes(3);
         });
 
         it("should short-circuit when garmin product is available without manufacturer/product", () => {
             const sensor = { garminProduct: "edge_520" };
-            formatSensorName(sensor);
+            const result = formatSensorName(sensor);
 
+            expect(result).toBe("Edge 520");
             expect(formatManufacturer).not.toHaveBeenCalled();
             expect(formatProduct).not.toHaveBeenCalled();
         });
