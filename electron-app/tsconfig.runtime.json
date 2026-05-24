@@ -52,6 +52,7 @@
         "main/constants.ts",
         "main/dev/exposeDevHelpers.ts",
         "preload/beforeExitHandler.ts",
+        "preload/electronBridge.ts",
         "preload/environment.ts",
         "preload/mainStateBridge.ts",
         "preload/validators.ts",

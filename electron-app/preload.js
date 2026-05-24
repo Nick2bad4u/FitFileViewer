@@ -134,6 +134,10 @@ const {
     /** @type {{ isPreloadDevelopmentMode: (processRef?: NodeJS.Process) => boolean; shouldEnforceGenericIpcAllowlist: (processRef?: NodeJS.Process) => boolean }} */ (
         preloadRequire("./preload/environment.js")
     );
+const { resolvePreloadElectronBridge } =
+    /** @type {{ resolvePreloadElectronBridge: (options: { globalScope?: object; requireModule: (moduleId: string) => unknown }) => { contextBridge: PreloadContextBridge | null | undefined; ipcRenderer: PreloadIpcRenderer | null | undefined } }} */ (
+        preloadRequire("./preload/electronBridge.js")
+    );
 const { createMainStateBridge } =
     /** @type {{ createMainStateBridge: (options: { ipcRenderer: PreloadIpcRenderer; preloadLog: (level: "error" | "info" | "warn", message: string, ...details: unknown[]) => void; removeIpcListener: (channel: string, handler: (event: object, change: MainStateChange) => void) => void }) => { listenToMainState: (path: string, callback: (change: MainStateChange) => void) => Promise<boolean>; unlistenFromMainState: (path: string, callback: (change: MainStateChange) => void) => Promise<boolean> } }} */ (
         preloadRequire("./preload/mainStateBridge.js")
@@ -161,45 +165,11 @@ const CONSTANTS = {
     EVENTS: PRELOAD_EVENTS,
 };
 const DEVELOPMENT_TOOLS_GLOBAL_NAME = ["dev", "Tools"].join("");
-const ELECTRON_MODULE_ID = ["electron"].join("");
 
-// Robust Electron resolver to support Vitest mocks (CJS/ESM interop)
-const electronOverride =
-    /** @type {PreloadElectronBridge | null | undefined} */ (
-        Reflect.get(getPreloadGlobal(), "__electronHoistedMock")
-    ) ?? null;
-const contextBridge = (() => {
-    let lastErr;
-    try {
-        const overrideContextBridge = electronOverride?.contextBridge;
-        if (
-            overrideContextBridge !== null &&
-            overrideContextBridge !== undefined
-        )
-            return overrideContextBridge;
-        const m = loadElectronBridge();
-        return m?.contextBridge ?? undefined;
-    } catch (error) {
-        lastErr = error;
-    }
-    // If require failed and no override provided anything, surface error for robustness tests
-    if (electronOverride === null) throw getModuleLoadError(lastErr);
-    return null;
-})();
-const ipcRenderer = (() => {
-    let lastErr;
-    try {
-        const overrideIpcRenderer = electronOverride?.ipcRenderer;
-        if (overrideIpcRenderer !== null && overrideIpcRenderer !== undefined)
-            return overrideIpcRenderer;
-        const m = loadElectronBridge();
-        return m?.ipcRenderer ?? undefined;
-    } catch (error) {
-        lastErr = error;
-    }
-    if (electronOverride === null) throw getModuleLoadError(lastErr);
-    return null;
-})();
+const { contextBridge, ipcRenderer } = resolvePreloadElectronBridge({
+    globalScope: getPreloadGlobal(),
+    requireModule: preloadRequire,
+});
 
 /**
  * @returns {() => void}
@@ -272,15 +242,6 @@ function createSafeEventHandler(channel, methodName, transform) {
 }
 
 /**
- * @param {unknown} error
- *
- * @returns {Error}
- */
-function getModuleLoadError(error) {
-    return error instanceof Error ? error : new Error("Module loading failed");
-}
-
-/**
  * @returns {PreloadGlobal}
  */
 function getPreloadGlobal() {
@@ -301,15 +262,6 @@ function isDevelopmentMode() {
  */
 function isPreloadObjectRecord(value) {
     return typeof value === "object" && value !== null;
-}
-
-/**
- * @returns {PreloadElectronBridge | null}
- */
-function loadElectronBridge() {
-    const electronModule = preloadRequire(ELECTRON_MODULE_ID);
-
-    return unwrapElectronBridge(electronModule);
 }
 
 /**
@@ -411,27 +363,6 @@ function createSafeSendHandler(channel, methodName) {
             preloadLog("error", `[preload.js] Error in ${methodName}:`, error);
         }
     };
-}
-
-/**
- * @param {unknown} value
- *
- * @returns {PreloadElectronBridge | null}
- */
-function unwrapElectronBridge(value) {
-    if (!isPreloadObjectRecord(value)) {
-        return null;
-    }
-
-    if ("contextBridge" in value || "ipcRenderer" in value) {
-        return /** @type {PreloadElectronBridge} */ (value);
-    }
-
-    if ("default" in value) {
-        return unwrapElectronBridge(value.default);
-    }
-
-    return /** @type {PreloadElectronBridge} */ (value);
 }
 
 /**
