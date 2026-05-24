@@ -67,7 +67,8 @@ describe("createChartStatusIndicator", () => {
 
         // Breakdown tooltip should be appended to document.body
         const breakdown = document.querySelector(".status-breakdown");
-        expect(breakdown).toBeTruthy();
+        expect(breakdown).toBeInstanceOf(HTMLElement);
+        expect(breakdown?.id).toBe("chart-status-indicator-breakdown");
         // Should not include enable-more tip when nothing hidden
         expect(breakdown?.innerHTML).not.toContain("Enable more charts");
     });
@@ -208,6 +209,9 @@ describe("createChartStatusIndicator", () => {
     it("does not leak duplicate breakdown tooltips across re-renders", () => {
         const first = createChartStatusIndicator();
         document.body.append(first);
+        const firstBreakdown = document.querySelector(
+            "#chart-status-indicator-breakdown"
+        );
         expect(
             document.querySelectorAll("#chart-status-indicator-breakdown")
                 .length
@@ -217,9 +221,10 @@ describe("createChartStatusIndicator", () => {
         document.body.append(second);
 
         // A stable breakdown id is used to prevent orphaned tooltip buildup.
-        expect(
-            document.querySelectorAll("#chart-status-indicator-breakdown")
-                .length
-        ).toBe(1);
+        const breakdowns = document.querySelectorAll(
+            "#chart-status-indicator-breakdown"
+        );
+        expect(breakdowns.length).toBe(1);
+        expect(breakdowns[0]).not.toBe(firstBreakdown);
     });
 });
