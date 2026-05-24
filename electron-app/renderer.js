@@ -129,10 +129,6 @@ function logRenderer(level, ...args) {
     }
 }
 
-// Dynamic module cache and loader to support test-time mocking via vi.doMock
-/** @type {Record<string, any>} */
-const __moduleCache = {};
-
 /**
  * Tracks state manager initialization to prevent duplicate subscriptions
  *
@@ -165,124 +161,68 @@ const __stateInitTracker = {
  *   Resolved module functions/objects
  */
 async function ensureCoreModules() {
-    const notifMod =
-        resolveExactManualMock(
-            "../../utils/ui/notifications/showNotification.js"
-        ) ||
-        resolveManualMock("/utils/ui/notifications/showNotification.js") ||
-        (await importPreferTest(
-            "../../utils/ui/notifications/showNotification.js",
-            "./utils/ui/notifications/showNotification.js"
-        ));
-    const openFileMod =
-        resolveExactManualMock("../../utils/files/import/handleOpenFile.js") ||
-        resolveManualMock("/utils/files/import/handleOpenFile.js") ||
-        (await importPreferTest(
-            "../../utils/files/import/handleOpenFile.js",
-            "./utils/files/import/handleOpenFile.js"
-        ));
-    const setupThemeMod =
-        resolveExactManualMock("../../utils/theming/core/setupTheme.js") ||
-        resolveManualMock("/utils/theming/core/setupTheme.js") ||
-        (await importPreferTest(
-            "../../utils/theming/core/setupTheme.js",
-            "./utils/theming/core/setupTheme.js"
-        ));
-    const updateNotifMod =
-        resolveExactManualMock(
-            "../../utils/ui/notifications/showUpdateNotification.js"
-        ) ||
-        resolveManualMock(
-            "/utils/ui/notifications/showUpdateNotification.js"
-        ) ||
-        (await importPreferTest(
-            "../../utils/ui/notifications/showUpdateNotification.js",
-            "./utils/ui/notifications/showUpdateNotification.js"
-        ));
-    const listenersMod =
-        resolveExactManualMock("../../utils/app/lifecycle/listeners.js") ||
-        resolveManualMock("/utils/app/lifecycle/listeners.js") ||
-        (await importPreferTest(
-            "../../utils/app/lifecycle/listeners.js",
-            "./utils/app/lifecycle/listeners.js"
-        ));
-    const aboutMod =
-        resolveExactManualMock("../../utils/ui/modals/aboutModal.js") ||
-        resolveManualMock("/utils/ui/modals/aboutModal.js") ||
-        (await importPreferTest(
-            "../../utils/ui/modals/aboutModal.js",
-            "./utils/ui/modals/aboutModal.js"
-        ));
-    const themeMod =
-        resolveExactManualMock("../../utils/theming/core/theme.js") ||
-        resolveManualMock("/utils/theming/core/theme.js") ||
-        (await importPreferTest(
-            "../../utils/theming/core/theme.js",
-            "./utils/theming/core/theme.js"
-        ));
-    const msmMod =
-        resolveExactManualMock(
-            "../../utils/state/core/masterStateManager.js"
-        ) ||
-        resolveManualMock("/utils/state/core/masterStateManager.js") ||
-        (await importPreferTest(
-            "../../utils/state/core/masterStateManager.js",
-            "./utils/state/core/masterStateManager.js"
-        ));
-    const appActionsMod =
-        resolveExactManualMock("../../utils/app/lifecycle/appActions.js") ||
-        resolveManualMock("/utils/app/lifecycle/appActions.js") ||
-        (await importPreferTest(
-            "../../utils/app/lifecycle/appActions.js",
-            "./utils/app/lifecycle/appActions.js"
-        ));
-    const appDomainMod =
-        resolveExactManualMock("../../utils/state/domain/appState.js") ||
-        resolveManualMock("/utils/state/domain/appState.js") ||
-        (await importPreferTest(
-            "../../utils/state/domain/appState.js",
-            "./utils/state/domain/appState.js"
-        ));
-    const uiStateMod =
-        resolveExactManualMock("../../utils/state/domain/uiStateManager.js") ||
-        resolveManualMock("/utils/state/domain/uiStateManager.js") ||
-        (await importPreferTest(
-            "../../utils/state/domain/uiStateManager.js",
-            "./utils/state/domain/uiStateManager.js"
-        ));
+    const notifMod = await resolveCoreModule(
+        "../../utils/ui/notifications/showNotification.js",
+        "./utils/ui/notifications/showNotification.js"
+    );
+    const openFileMod = await resolveCoreModule(
+        "../../utils/files/import/handleOpenFile.js",
+        "./utils/files/import/handleOpenFile.js"
+    );
+    const setupThemeMod = await resolveCoreModule(
+        "../../utils/theming/core/setupTheme.js",
+        "./utils/theming/core/setupTheme.js"
+    );
+    const updateNotifMod = await resolveCoreModule(
+        "../../utils/ui/notifications/showUpdateNotification.js",
+        "./utils/ui/notifications/showUpdateNotification.js"
+    );
+    const listenersMod = await resolveCoreModule(
+        "../../utils/app/lifecycle/listeners.js",
+        "./utils/app/lifecycle/listeners.js"
+    );
+    const aboutMod = await resolveCoreModule(
+        "../../utils/ui/modals/aboutModal.js",
+        "./utils/ui/modals/aboutModal.js"
+    );
+    const themeMod = await resolveCoreModule(
+        "../../utils/theming/core/theme.js",
+        "./utils/theming/core/theme.js"
+    );
+    const msmMod = await resolveCoreModule(
+        "../../utils/state/core/masterStateManager.js",
+        "./utils/state/core/masterStateManager.js"
+    );
+    const appActionsMod = await resolveCoreModule(
+        "../../utils/app/lifecycle/appActions.js",
+        "./utils/app/lifecycle/appActions.js"
+    );
+    const appDomainMod = await resolveCoreModule(
+        "../../utils/state/domain/appState.js",
+        "./utils/state/domain/appState.js"
+    );
+    const uiStateMod = await resolveCoreModule(
+        "../../utils/state/domain/uiStateManager.js",
+        "./utils/state/domain/uiStateManager.js"
+    );
 
     return {
         // Be robust to different mock shapes: named export, default.AppActions, default object, or module as object
-        AppActions:
-            appActionsMod &&
-            (appActionsMod.AppActions ??
-                appActionsMod.default?.AppActions ??
-                (typeof appActionsMod.setInitialized === "function"
-                    ? appActionsMod
-                    : undefined) ??
-                (appActionsMod.default &&
-                typeof appActionsMod.default.setInitialized === "function"
-                    ? appActionsMod.default
-                    : undefined)),
+        AppActions: resolveAppActionsModule(appActionsMod),
         applyTheme: themeMod.applyTheme,
-        getAppDomainState:
-            appDomainMod.getState ?? appDomainMod.default?.getState,
+        getAppDomainState: resolveDefaultableExport(appDomainMod, "getState"),
         handleOpenFile: openFileMod.handleOpenFile,
         listenForThemeChange: themeMod.listenForThemeChange,
         masterStateManager:
-            msmMod.masterStateManager ??
-            msmMod.default?.masterStateManager ??
-            msmMod,
+            resolveDefaultableExport(msmMod, "masterStateManager") ?? msmMod,
         setupListeners: listenersMod.setupListeners,
         setupTheme: setupThemeMod.setupTheme,
         showAboutModal: aboutMod.showAboutModal,
         showNotification: notifMod.showNotification,
         showUpdateNotification: updateNotifMod.showUpdateNotification,
-        subscribeAppDomain:
-            appDomainMod.subscribe ?? appDomainMod.default?.subscribe,
+        subscribeAppDomain: resolveDefaultableExport(appDomainMod, "subscribe"),
         uiStateManager:
-            uiStateMod.uiStateManager ??
-            uiStateMod.default?.uiStateManager ??
+            resolveDefaultableExport(uiStateMod, "uiStateManager") ??
             uiStateMod,
     };
 }
@@ -297,6 +237,17 @@ function getEnvironment() {
 }
 
 /**
+ * @returns {Map<string, unknown> | null}
+ */
+function getVitestManualMockRegistry() {
+    const registry = /** @type {unknown} */ (
+        Reflect.get(globalThis, "__vitest_manual_mocks__")
+    );
+
+    return registry instanceof Map ? registry : null;
+}
+
+/**
  * Attempt to dynamically import a module, preferring test-relative paths mocked
  * in unit tests. Falls back to the real renderer-relative path when test path
  * fails. Results are cached to avoid repeated imports.
@@ -304,32 +255,20 @@ function getEnvironment() {
  * @param {string} testPath - Path used by tests (e.g. ../../utils/...)
  * @param {string} realPath - Real path used by the app (e.g. ./utils/...)
  *
- * @returns {Promise<any>}
+ * @returns {Promise<unknown>}
  */
 async function importPreferTest(testPath, realPath) {
-    const IN_TEST =
-        (typeof process !== "undefined" &&
-            Boolean(process.env) &&
-            process.env.VITEST_WORKER_ID !== undefined) ||
-        (typeof globalThis !== "undefined" &&
-            Boolean(globalThis.__vitest_manual_mocks__));
-    const cacheKey = `test:${testPath}::real:${realPath}`;
-    // Only use cache outside tests so test mocks/spies always see fresh imports
-    if (!IN_TEST && cacheKey in __moduleCache) return __moduleCache[cacheKey];
-    let mod;
-    if (IN_TEST) {
+    if (isRendererTestEnvironment()) {
         // Attempt test path first so vi.doMock specifiers (../../) are honored
         try {
-            mod = await import(testPath);
+            return /** @type {unknown} */ (await import(testPath));
         } catch {
-            mod = await import(realPath);
+            return /** @type {unknown} */ (await import(realPath));
         }
-    } else {
-        // Production: skip invalid testPath to avoid 404 noise
-        mod = await import(realPath);
     }
-    if (!IN_TEST) __moduleCache[cacheKey] = mod;
-    return mod;
+
+    // Production: skip invalid testPath to avoid 404 noise.
+    return /** @type {unknown} */ (await import(realPath));
 }
 
 /**
@@ -376,21 +315,90 @@ function isDevelopmentMode() {
     }
 }
 
-// ==========================================
-// Environment Detection
-// ==========================================
+/**
+ * @param {unknown} value
+ *
+ * @returns {value is Record<string, unknown>}
+ */
+function isRecord(value) {
+    return typeof value === "object" && value !== null;
+}
 
 /**
- * @returns {Map<string, any> | null}
+ * @returns {boolean}
  */
-function getVitestManualMockRegistry() {
-    const registry = /** @type {{ __vitest_manual_mocks__?: unknown }} */ (
-        globalThis
-    ).__vitest_manual_mocks__;
+function isRendererTestEnvironment() {
+    const processLike =
+        typeof process === "undefined"
+            ? undefined
+            : /** @type {unknown} */ (process);
+    const environment = isRecord(processLike)
+        ? toModuleRecord(processLike.env)
+        : {};
 
-    return registry instanceof Map
-        ? /** @type {Map<string, any>} */ (registry)
-        : null;
+    return (
+        environment.VITEST_WORKER_ID !== undefined ||
+        getVitestManualMockRegistry() !== null
+    );
+}
+
+/**
+ * @param {Record<string, unknown>} appActionsMod
+ *
+ * @returns {Record<string, unknown> | undefined}
+ */
+function resolveAppActionsModule(appActionsMod) {
+    const namedActions = appActionsMod.AppActions;
+    if (isRecord(namedActions)) {
+        return namedActions;
+    }
+
+    const defaultRecord = toModuleRecord(appActionsMod.default);
+    const defaultActions = defaultRecord.AppActions;
+    if (isRecord(defaultActions)) {
+        return defaultActions;
+    }
+
+    if (typeof appActionsMod.setInitialized === "function") {
+        return appActionsMod;
+    }
+
+    return typeof defaultRecord.setInitialized === "function"
+        ? defaultRecord
+        : undefined;
+}
+
+/**
+ * @param {string} testPath
+ * @param {string} realPath
+ *
+ * @returns {Promise<Record<string, unknown>>}
+ */
+async function resolveCoreModule(testPath, realPath) {
+    const manualMockPath = realPath.startsWith(".")
+        ? realPath.slice(1)
+        : realPath;
+    const resolved =
+        resolveExactManualMock(testPath) ??
+        resolveManualMock(manualMockPath) ??
+        (await importPreferTest(testPath, realPath));
+
+    return toModuleRecord(resolved);
+}
+
+/**
+ * @param {Record<string, unknown>} moduleRecord
+ * @param {string} exportName
+ *
+ * @returns {unknown}
+ */
+function resolveDefaultableExport(moduleRecord, exportName) {
+    const namedExport = moduleRecord[exportName];
+    if (namedExport !== undefined) {
+        return namedExport;
+    }
+
+    return toModuleRecord(moduleRecord.default)[exportName];
 }
 
 /**
@@ -399,14 +407,15 @@ function getVitestManualMockRegistry() {
  * @param {string} testId The exact id used in vi.doMock (e.g.,
  *   '../../utils/...')
  *
- * @returns {any | null}
+ * @returns {unknown | null}
  */
 function resolveExactManualMock(testId) {
     try {
         const reg = getVitestManualMockRegistry();
-        if (reg && reg.has(testId)) {
+        if (reg !== null && reg.has(testId)) {
             const mod = reg.get(testId);
-            return mod && mod.default ? mod.default : mod;
+            const modRecord = toModuleRecord(mod);
+            return "default" in modRecord ? modRecord.default : mod;
         }
     } catch {
         /* Ignore errors */
@@ -421,15 +430,16 @@ function resolveExactManualMock(testId) {
  *
  * @param {string} pathSuffix E.g. '/utils/theming/core/setupTheme.js'
  *
- * @returns {any | null}
+ * @returns {unknown | null}
  */
 function resolveManualMock(pathSuffix) {
     try {
         const reg = getVitestManualMockRegistry();
-        if (reg && typeof reg.forEach === "function") {
+        if (reg !== null) {
             for (const [id, mod] of reg.entries()) {
-                if (String(id).endsWith(pathSuffix)) {
-                    return mod && mod.default ? mod.default : mod;
+                if (id.endsWith(pathSuffix)) {
+                    const modRecord = toModuleRecord(mod);
+                    return "default" in modRecord ? modRecord.default : mod;
                 }
             }
         }
@@ -438,6 +448,19 @@ function resolveManualMock(pathSuffix) {
     }
     return null;
 }
+
+/**
+ * @param {unknown} value
+ *
+ * @returns {Record<string, unknown>}
+ */
+function toModuleRecord(value) {
+    return isRecord(value) ? value : {};
+}
+
+// ==========================================
+// Environment Detection
+// ==========================================
 
 // ==========================================
 // Application State Management
