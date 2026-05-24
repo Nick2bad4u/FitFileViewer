@@ -28,6 +28,8 @@ vi.mock("chart.js/auto", () => ({
 }));
 
 // Global mocks
+const localStorageEntries = new Map<string, string>();
+
 Object.defineProperty(globalThis, "electronAPI", {
     value: {
         showSaveDialog: vi.fn(() => Promise.resolve({ filePath: "test.png" })),
@@ -49,10 +51,16 @@ Object.defineProperty(globalThis, "electronAPI", {
 
 Object.defineProperty(globalThis, "localStorage", {
     value: {
-        getItem: vi.fn(),
-        setItem: vi.fn(),
-        removeItem: vi.fn(),
-        clear: vi.fn(),
+        clear: vi.fn(() => {
+            localStorageEntries.clear();
+        }),
+        getItem: vi.fn((key: string) => localStorageEntries.get(key) ?? null),
+        removeItem: vi.fn((key: string) => {
+            localStorageEntries.delete(key);
+        }),
+        setItem: vi.fn((key: string, value: string) => {
+            localStorageEntries.set(key, value);
+        }),
     },
     writable: true,
 });
@@ -97,6 +105,7 @@ Object.defineProperty(globalThis, "fetch", {
 });
 
 // Spy on document.createElement to inject canvas helpers
+const createdAnchors: HTMLAnchorElement[] = [];
 const originalCreateElement = document.createElement.bind(document);
 vi.spyOn(document, "createElement").mockImplementation((tagName: any): any => {
     const el: any = originalCreateElement(tagName as string);
@@ -113,11 +122,13 @@ vi.spyOn(document, "createElement").mockImplementation((tagName: any): any => {
     el.href = el.href ?? "";
     el.download = el.download ?? "";
     el.textContent = el.textContent ?? "";
-    el.innerHTML = el.innerHTML ?? "";
     el.value = el.value ?? "";
     el.type = el.type ?? "";
     el.id = el.id ?? "";
     el.className = el.className ?? "";
+    if ((tagName as string).toLowerCase() === "a") {
+        createdAnchors.push(el);
+    }
     if ((tagName as string).toLowerCase() === "canvas") {
         el.getContext =
             el.getContext ??
@@ -181,9 +192,43 @@ Object.defineProperty(globalThis, "window", {
     writable: true,
 });
 
+function getLastCreatedAnchor(): HTMLAnchorElement {
+    const anchor = createdAnchors.at(-1);
+    expect(anchor).toBeInstanceOf(HTMLAnchorElement);
+    return anchor as HTMLAnchorElement;
+}
+
+async function getLastObjectUrlBlobText(): Promise<string> {
+    const blob = vi.mocked(URL.createObjectURL).mock.calls.at(-1)?.[0];
+    expect(blob).toBeInstanceOf(Blob);
+    return await (blob as Blob).text();
+}
+
+function resetLocalStorageMock(): void {
+    vi.mocked(globalThis.localStorage.clear).mockImplementation(() => {
+        localStorageEntries.clear();
+    });
+    vi.mocked(globalThis.localStorage.getItem).mockImplementation(
+        (key: string) => localStorageEntries.get(key) ?? null
+    );
+    vi.mocked(globalThis.localStorage.removeItem).mockImplementation(
+        (key: string) => {
+            localStorageEntries.delete(key);
+        }
+    );
+    vi.mocked(globalThis.localStorage.setItem).mockImplementation(
+        (key: string, value: string) => {
+            localStorageEntries.set(key, value);
+        }
+    );
+}
+
 describe("exportUtils", () => {
     beforeEach(() => {
+        localStorageEntries.clear();
+        createdAnchors.length = 0;
         vi.clearAllMocks();
+        resetLocalStorageMock();
     });
 
     afterEach(() => {
@@ -219,6 +264,8 @@ describe("exportUtils", () => {
                 "combined-data.csv",
                 expect.stringContaining("timestamp,Chart1,Chart2")
             );
+            const csvContent = mockZip.file.mock.calls[0]?.[1];
+            expect(csvContent).toBe("timestamp,Chart1,Chart2\n1,10,\n2,,20");
         });
 
         it("should handle charts with no data", async () => {
@@ -234,12 +281,17 @@ describe("exportUtils", () => {
 
             await exportUtils.addCombinedCSVToZip(mockZip, mockCharts);
 
-            expect(mockZip.file).toHaveBeenCalled();
+            expect(mockZip.file).toHaveBeenCalledWith(
+                "combined-data.csv",
+                "timestamp,chart-0"
+            );
+            const csvContent = mockZip.file.mock.calls[0]?.[1];
+            expect(csvContent).not.toContain("10");
         });
     });
 
     describe("authenticateWithGyazo", () => {
-        it("should authenticate with Gyazo successfully", async () => {
+        it("should initialize Gyazo authentication", async () => {
             // Mock Gyazo config
             vi.mocked(globalThis.localStorage.getItem).mockImplementation(
                 (key) => {
@@ -269,6 +321,13 @@ describe("exportUtils", () => {
                 "gyazo_oauth_state",
                 expect.any(String)
             );
+            expect(localStorageEntries.get("gyazo_oauth_state")).toBeTypeOf(
+                "string"
+            );
+            expect(
+                document.querySelector(".gyazo-auth-modal-overlay")
+            ).toBeInstanceOf(HTMLElement);
+            void authPromise.catch(() => undefined);
         });
 
         it("cleans up state and subscriptions when user cancels", async () => {
@@ -308,8 +367,8 @@ describe("exportUtils", () => {
             // Cancel from modal
             const cancelBtn =
                 document.querySelector<HTMLButtonElement>("#gyazo-cancel-auth");
-            expect(cancelBtn).toBeTruthy();
-            cancelBtn!.click();
+            expect(cancelBtn).toBeInstanceOf(HTMLButtonElement);
+            cancelBtn?.click();
 
             await expect(authPromise).rejects.toThrow(
                 "User cancelled authentication"
@@ -419,16 +478,27 @@ describe("exportUtils", () => {
 
     describe("clearGyazoAccessToken", () => {
         it("should clear stored Gyazo access token", () => {
+            localStorageEntries.set("gyazo_access_token", "old-token");
+
             exportUtils.clearGyazoAccessToken();
 
             expect(globalThis.localStorage.removeItem).toHaveBeenCalledWith(
                 "gyazo_access_token"
+            );
+            expect(exportUtils.getGyazoAccessToken()).toBeNull();
+            expect(globalThis.localStorage.removeItem).not.toHaveBeenCalledWith(
+                "gyazo_client_id"
             );
         });
     });
 
     describe("clearGyazoConfig", () => {
         it("should clear stored Gyazo configuration", () => {
+            localStorageEntries.set("gyazo_client_id", "old-client");
+            localStorageEntries.set("gyazo_client_secret", "old-secret");
+            localStorageEntries.set("gyazo_access_token", "old-token");
+            localStorageEntries.set("gyazo_oauth_state", "old-state");
+
             exportUtils.clearGyazoConfig();
 
             expect(globalThis.localStorage.removeItem).toHaveBeenCalledWith(
@@ -439,6 +509,13 @@ describe("exportUtils", () => {
             );
             expect(globalThis.localStorage.removeItem).toHaveBeenCalledWith(
                 "gyazo_access_token"
+            );
+            expect(globalThis.localStorage.removeItem).toHaveBeenCalledWith(
+                "gyazo_oauth_state"
+            );
+            expect(exportUtils.isGyazoAuthenticated()).toBe(false);
+            expect(globalThis.localStorage.removeItem).not.toHaveBeenCalledWith(
+                "unrelated_key"
             );
         });
     });
@@ -453,6 +530,9 @@ describe("exportUtils", () => {
             await exportUtils.downloadChartAsPNG(mockChart, "test-chart.png");
 
             expect(mockChart.toBase64Image).toHaveBeenCalled();
+            const anchor = getLastCreatedAnchor();
+            expect(anchor.download).toBe("test-chart.png");
+            expect(anchor.href).toBe("data:image/png;base64,test");
         });
 
         it("should use default filename", async () => {
@@ -464,6 +544,19 @@ describe("exportUtils", () => {
             await exportUtils.downloadChartAsPNG(mockChart);
 
             expect(mockChart.toBase64Image).toHaveBeenCalled();
+            expect(getLastCreatedAnchor().download).toBe("chart.png");
+        });
+
+        it("should reject invalid chart objects without creating a download", async () => {
+            await exportUtils.downloadChartAsPNG(null as any);
+
+            expect(createdAnchors).toHaveLength(0);
+            const notifMod =
+                await import("../../ui/notifications/showNotification.js");
+            expect(notifMod.showNotification).toHaveBeenCalledWith(
+                "Failed to export chart as PNG",
+                "error"
+            );
         });
     });
 
@@ -486,12 +579,18 @@ describe("exportUtils", () => {
             const notifMod =
                 await import("../../ui/notifications/showNotification.js");
             expect(notifMod.showNotification).toHaveBeenCalled();
+            expect(URL.createObjectURL).toHaveBeenCalled();
+            const zipBlob = vi
+                .mocked(URL.createObjectURL)
+                .mock.calls.at(-1)?.[0];
+            expect(zipBlob).toBeInstanceOf(Blob);
         });
 
         it("should handle empty charts array", async () => {
             await exportUtils.exportAllAsZip([]);
             // Should not proceed to create a blob URL for download
             expect(URL.createObjectURL).not.toHaveBeenCalled();
+            expect(createdAnchors).toHaveLength(0);
         });
     });
 
@@ -508,6 +607,10 @@ describe("exportUtils", () => {
                 "test.csv"
             );
             expect(URL.createObjectURL).toHaveBeenCalled();
+            expect(getLastCreatedAnchor().download).toBe("test.csv");
+            await expect(getLastObjectUrlBlobText()).resolves.toBe(
+                "timestamp,test-field\n1,10\n2,20"
+            );
         });
 
         it("should use default filename", async () => {
@@ -515,6 +618,16 @@ describe("exportUtils", () => {
 
             await exportUtils.exportChartDataAsCSV(chartData, "test-field");
             expect(URL.createObjectURL).toHaveBeenCalled();
+            expect(getLastCreatedAnchor().download).toBe("chart-data.csv");
+        });
+
+        it("should export headers for empty CSV data", async () => {
+            await exportUtils.exportChartDataAsCSV([], "test-field");
+
+            await expect(getLastObjectUrlBlobText()).resolves.toBe(
+                "timestamp,test-field"
+            );
+            expect(getLastCreatedAnchor().download).not.toBe("");
         });
     });
 
@@ -531,6 +644,13 @@ describe("exportUtils", () => {
                 "test.json"
             );
             expect(URL.createObjectURL).toHaveBeenCalled();
+            const jsonText = await getLastObjectUrlBlobText();
+            expect(JSON.parse(jsonText)).toMatchObject({
+                data: chartData,
+                field: "test-field",
+                totalPoints: 2,
+            });
+            expect(getLastCreatedAnchor().download).toBe("test.json");
         });
 
         it("should use default filename", async () => {
@@ -538,6 +658,19 @@ describe("exportUtils", () => {
 
             await exportUtils.exportChartDataAsJSON(chartData, "test-field");
             expect(URL.createObjectURL).toHaveBeenCalled();
+            expect(getLastCreatedAnchor().download).toBe("chart-data.json");
+        });
+
+        it("should record zero total points for empty JSON data", async () => {
+            await exportUtils.exportChartDataAsJSON([], "test-field");
+
+            const jsonText = await getLastObjectUrlBlobText();
+            expect(JSON.parse(jsonText)).toMatchObject({
+                data: [],
+                field: "test-field",
+                totalPoints: 0,
+            });
+            expect(jsonText).not.toContain('"x"');
         });
     });
 
@@ -565,6 +698,10 @@ describe("exportUtils", () => {
                 "combined.csv"
             );
             expect(URL.createObjectURL).toHaveBeenCalled();
+            expect(getLastCreatedAnchor().download).toBe("combined.csv");
+            await expect(getLastObjectUrlBlobText()).resolves.toBe(
+                "timestamp,Chart1,Chart2\n1,10,15"
+            );
         });
 
         it("should use default filename", async () => {
@@ -580,6 +717,19 @@ describe("exportUtils", () => {
 
             await exportUtils.exportCombinedChartsDataAsCSV(mockCharts);
             expect(URL.createObjectURL).toHaveBeenCalled();
+            expect(getLastCreatedAnchor().download).toBe(
+                "combined-charts-data.csv"
+            );
+            await expect(getLastObjectUrlBlobText()).resolves.toContain(
+                "timestamp,Chart1"
+            );
+        });
+
+        it("should reject an empty chart list without creating a download", async () => {
+            await exportUtils.exportCombinedChartsDataAsCSV([]);
+
+            expect(URL.createObjectURL).not.toHaveBeenCalled();
+            expect(createdAnchors).toHaveLength(0);
         });
     });
 
@@ -587,8 +737,8 @@ describe("exportUtils", () => {
         it("should return background color for light theme", () => {
             const result = exportUtils.getExportThemeBackground();
 
-            expect(result).toBeDefined();
-            expect(typeof result).toBe("string");
+            expect(result).toBe("#ffffff");
+            expect(result).not.toBe("transparent");
         });
     });
 
@@ -651,6 +801,7 @@ describe("exportUtils", () => {
                 tokenUrl: "https://gyazo.com/oauth/token",
                 uploadUrl: "https://upload.gyazo.com/api/upload",
             });
+            expect(config.clientId).not.toBe("");
         });
     });
 
@@ -663,6 +814,7 @@ describe("exportUtils", () => {
             const result = exportUtils.isGyazoAuthenticated();
 
             expect(result).toBe(true);
+            expect(result).not.toBe(false);
         });
 
         it("should return false when no access token", () => {
@@ -707,6 +859,11 @@ describe("exportUtils", () => {
                 "gyazo_access_token",
                 "new-token"
             );
+            expect(exportUtils.getGyazoAccessToken()).toBe("new-token");
+            expect(globalThis.localStorage.setItem).not.toHaveBeenCalledWith(
+                "gyazo_client_id",
+                "new-token"
+            );
         });
     });
 
@@ -721,6 +878,14 @@ describe("exportUtils", () => {
             expect(globalThis.localStorage.setItem).toHaveBeenCalledWith(
                 "gyazo_client_secret",
                 "client-secret"
+            );
+            expect(exportUtils.getGyazoConfig()).toMatchObject({
+                clientId: "client-id",
+                clientSecret: "client-secret",
+            });
+            expect(globalThis.localStorage.setItem).not.toHaveBeenCalledWith(
+                "gyazo_access_token",
+                expect.any(String)
             );
         });
     });
@@ -917,9 +1082,11 @@ describe("exportUtils", () => {
 
         it("should reject non-https Imgur endpoints", async () => {
             const base64Image = "data:image/png;base64,abcd";
+            const uploadUrl = new URL("https://api.imgur.com/3/image");
+            uploadUrl.protocol = "http:";
             vi.spyOn(exportUtils, "getImgurConfig").mockReturnValue({
                 clientId: "client123",
-                uploadUrl: "http://api.imgur.com/3/image",
+                uploadUrl: uploadUrl.toString(),
             } as any);
 
             await expect(
