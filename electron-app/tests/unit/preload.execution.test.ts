@@ -116,6 +116,29 @@ describe("preload.js - Actual File Execution", () => {
                     "[preload.js] Successfully exposed electronAPI to main world"
                 )
             );
+
+            const electronAPICall =
+                mockContextBridge.exposeInMainWorld.mock.calls.find(
+                    (call) => call[0] === "electronAPI"
+                );
+            const devToolsCall =
+                mockContextBridge.exposeInMainWorld.mock.calls.find(
+                    (call) => call[0] === "devTools"
+                );
+            const electronAPI = electronAPICall?.[1];
+            const devTools = devToolsCall?.[1];
+
+            expect(electronAPI.validateAPI()).toBe(true);
+            expect(devTools.getPreloadInfo()).toEqual(
+                expect.objectContaining({
+                    apiMethods: expect.arrayContaining([
+                        "getAppVersion",
+                        "validateAPI",
+                    ]),
+                    constants: expect.any(Object),
+                    version: "1.0.0",
+                })
+            );
         });
 
         it("should provide working API methods when executed", async () => {
@@ -130,7 +153,13 @@ describe("preload.js - Actual File Execution", () => {
             const electronAPICall = exposeMainWorldCalls.find(
                 (call) => call[0] === "electronAPI"
             );
-            expect(electronAPICall).toBeDefined();
+            expect(electronAPICall).toEqual([
+                "electronAPI",
+                expect.objectContaining({
+                    getChannelInfo: expect.any(Function),
+                    validateAPI: expect.any(Function),
+                }),
+            ]);
 
             const electronAPI = electronAPICall![1];
 
