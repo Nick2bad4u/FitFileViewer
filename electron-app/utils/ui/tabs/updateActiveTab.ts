@@ -389,7 +389,7 @@ export function updateActiveTab(tabId: unknown): boolean {
         }
     }
 
-    const target = getElementByIdFlexible(getDoc(), tabId) as unknown;
+    const target = getElementByIdFlexible(getDoc(), tabId);
     if (isButtonLike(target)) {
         target.classList.add("active");
         const tabName = extractTabNameFromButtonId(tabId);
