@@ -1,20 +1,13 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import fs from "fs";
-import path from "path";
-import { resolvePreloadScriptRequire } from "../helpers/preloadModuleMocks";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 describe("preload.js - Development mode coverage", () => {
-    let preloadCode: string;
     let originalElectronAPI: any;
     let originalDevTools: any;
+    const originalNodeEnv = process.env.NODE_ENV;
 
     beforeEach(() => {
         vi.clearAllMocks();
         vi.resetModules();
-        preloadCode = fs.readFileSync(
-            path.resolve(__dirname, "../../preload.js"),
-            "utf-8"
-        );
         originalElectronAPI = (globalThis as any).electronAPI;
         originalDevTools = (globalThis as any).devTools;
         delete (globalThis as any).electronAPI;
@@ -22,6 +15,10 @@ describe("preload.js - Development mode coverage", () => {
     });
 
     afterEach(() => {
+        vi.restoreAllMocks();
+        vi.resetModules();
+        Reflect.deleteProperty(globalThis, "__electronHoistedMock");
+        process.env.NODE_ENV = originalNodeEnv;
         // restore globals if they existed
         if (originalElectronAPI)
             (globalThis as any).electronAPI = originalElectronAPI;
@@ -57,36 +54,40 @@ describe("preload.js - Development mode coverage", () => {
             });
 
         const onceCalls: Array<{ event: string; cb: Function }> = [];
-        const mockProcess = {
-            env: { NODE_ENV: "development" },
-            once: vi.fn((event: string, cb: Function) => {
+        const processOnceSpy = vi
+            .spyOn(process, "once")
+            .mockImplementation((event: string, cb: Function) => {
                 onceCalls.push({ event, cb });
-            }),
-        } as any;
+                return process;
+            }) as any;
 
-        const mockRequire = vi.fn((mod: string) =>
-            resolvePreloadScriptRequire(mod, { ipcRenderer, contextBridge })
-        );
-
-        const runner = new Function(
-            "require",
-            "console",
-            "process",
-            preloadCode
-        );
-        runner(mockRequire as any, console, mockProcess as any);
+        process.env.NODE_ENV = "development";
+        Reflect.set(globalThis, "__electronHoistedMock", {
+            contextBridge,
+            ipcRenderer,
+        });
+        await import("../../preload.js");
 
         // electronAPI should be exposed
         const api = (globalThis as any).electronAPI;
-        expect(api).toBeDefined();
-        expect(typeof api.getAppVersion).toBe("function");
+        expect(api).toEqual(
+            expect.objectContaining({
+                getAppVersion: expect.any(Function),
+                injectMenu: expect.any(Function),
+                invoke: expect.any(Function),
+                validateAPI: expect.any(Function),
+            })
+        );
 
         // devTools should be exposed in development
         const devTools = (globalThis as any).devTools;
-        expect(devTools).toBeDefined();
-        expect(typeof devTools.getPreloadInfo).toBe("function");
-        expect(typeof devTools.logAPIState).toBe("function");
-        expect(typeof devTools.testIPC).toBe("function");
+        expect(devTools).toEqual(
+            expect.objectContaining({
+                getPreloadInfo: expect.any(Function),
+                logAPIState: expect.any(Function),
+                testIPC: expect.any(Function),
+            })
+        );
 
         // getPreloadInfo returns structure with constants and apiMethods
         const info = devTools.getPreloadInfo();
@@ -133,7 +134,14 @@ describe("preload.js - Development mode coverage", () => {
 
         // Simulate beforeExit to hit cleanup log
         const beforeExit = onceCalls.find((c) => c.event === "beforeExit");
-        expect(beforeExit).toBeDefined();
+        expect(processOnceSpy).toHaveBeenCalledWith(
+            "beforeExit",
+            expect.any(Function)
+        );
+        expect(beforeExit).toEqual({
+            cb: expect.any(Function),
+            event: "beforeExit",
+        });
         beforeExit!.cb();
         expect(
             logs.some((args) =>
