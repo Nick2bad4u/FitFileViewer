@@ -32,7 +32,7 @@ describe("logWithLevel.js - Logging Utility", () => {
 
     describe("Basic Logging Functionality", () => {
         it("should log with info level", () => {
-            logWithLevel("info", "Test info message");
+            expect(logWithLevel("info", "Test info message")).toBeUndefined();
 
             expect(consoleSpy.info).toHaveBeenCalledTimes(1);
             expect(consoleSpy.info).toHaveBeenCalledWith(
@@ -41,7 +41,9 @@ describe("logWithLevel.js - Logging Utility", () => {
         });
 
         it("should log with warn level", () => {
-            logWithLevel("warn", "Test warning message");
+            expect(
+                logWithLevel("warn", "Test warning message")
+            ).toBeUndefined();
 
             expect(consoleSpy.warn).toHaveBeenCalledTimes(1);
             expect(consoleSpy.warn).toHaveBeenCalledWith(
@@ -50,7 +52,7 @@ describe("logWithLevel.js - Logging Utility", () => {
         });
 
         it("should log with error level", () => {
-            logWithLevel("error", "Test error message");
+            expect(logWithLevel("error", "Test error message")).toBeUndefined();
 
             expect(consoleSpy.error).toHaveBeenCalledTimes(1);
             expect(consoleSpy.error).toHaveBeenCalledWith(
@@ -59,7 +61,7 @@ describe("logWithLevel.js - Logging Utility", () => {
         });
 
         it("should log with log level (default case)", () => {
-            logWithLevel("log", "Test log message");
+            expect(logWithLevel("log", "Test log message")).toBeUndefined();
 
             expect(consoleSpy.log).toHaveBeenCalledTimes(1);
             expect(consoleSpy.log).toHaveBeenCalledWith(
@@ -68,7 +70,9 @@ describe("logWithLevel.js - Logging Utility", () => {
         });
 
         it("should default to console.log for unknown level", () => {
-            logWithLevel("unknown" as any, "Test unknown level");
+            expect(
+                logWithLevel("unknown" as any, "Test unknown level")
+            ).toBeUndefined();
 
             expect(consoleSpy.log).toHaveBeenCalledTimes(1);
             expect(consoleSpy.log).toHaveBeenCalledWith(
@@ -80,7 +84,10 @@ describe("logWithLevel.js - Logging Utility", () => {
     describe("Context Object Handling", () => {
         it("should log with context object for info level", () => {
             const context = { userId: 123, action: "login" };
-            logWithLevel("info", "User logged in", context);
+
+            expect(
+                logWithLevel("info", "User logged in", context)
+            ).toBeUndefined();
 
             expect(consoleSpy.info).toHaveBeenCalledTimes(1);
             expect(consoleSpy.info).toHaveBeenCalledWith(
@@ -91,7 +98,10 @@ describe("logWithLevel.js - Logging Utility", () => {
 
         it("should log with context object for warn level", () => {
             const context = { attemptCount: 3, maxAttempts: 5 };
-            logWithLevel("warn", "Multiple failed attempts", context);
+
+            expect(
+                logWithLevel("warn", "Multiple failed attempts", context)
+            ).toBeUndefined();
 
             expect(consoleSpy.warn).toHaveBeenCalledTimes(1);
             expect(consoleSpy.warn).toHaveBeenCalledWith(
@@ -102,7 +112,10 @@ describe("logWithLevel.js - Logging Utility", () => {
 
         it("should log with context object for error level", () => {
             const context = { errorCode: 500, stack: "Error stack trace" };
-            logWithLevel("error", "Server error occurred", context);
+
+            expect(
+                logWithLevel("error", "Server error occurred", context)
+            ).toBeUndefined();
 
             expect(consoleSpy.error).toHaveBeenCalledTimes(1);
             expect(consoleSpy.error).toHaveBeenCalledWith(
@@ -113,7 +126,10 @@ describe("logWithLevel.js - Logging Utility", () => {
 
         it("should log with context object for log level", () => {
             const context = { component: "DataProcessor", step: "validation" };
-            logWithLevel("log", "Processing data", context);
+
+            expect(
+                logWithLevel("log", "Processing data", context)
+            ).toBeUndefined();
 
             expect(consoleSpy.log).toHaveBeenCalledTimes(1);
             expect(consoleSpy.log).toHaveBeenCalledWith(
@@ -125,7 +141,9 @@ describe("logWithLevel.js - Logging Utility", () => {
 
     describe("Context Object Edge Cases", () => {
         it("should not log context for null context", () => {
-            logWithLevel("info", "Test message", null as any);
+            expect(
+                logWithLevel("info", "Test message", null as any)
+            ).toBeUndefined();
 
             expect(consoleSpy.info).toHaveBeenCalledTimes(1);
             expect(consoleSpy.info).toHaveBeenCalledWith(
@@ -134,7 +152,9 @@ describe("logWithLevel.js - Logging Utility", () => {
         });
 
         it("should not log context for undefined context", () => {
-            logWithLevel("info", "Test message", undefined);
+            expect(
+                logWithLevel("info", "Test message", undefined)
+            ).toBeUndefined();
 
             expect(consoleSpy.info).toHaveBeenCalledTimes(1);
             expect(consoleSpy.info).toHaveBeenCalledWith(
@@ -143,7 +163,7 @@ describe("logWithLevel.js - Logging Utility", () => {
         });
 
         it("should not log context for empty object", () => {
-            logWithLevel("info", "Test message", {});
+            expect(logWithLevel("info", "Test message", {})).toBeUndefined();
 
             expect(consoleSpy.info).toHaveBeenCalledTimes(1);
             expect(consoleSpy.info).toHaveBeenCalledWith(
@@ -153,7 +173,10 @@ describe("logWithLevel.js - Logging Utility", () => {
 
         it("should log context for object with properties", () => {
             const context = { key: "value" };
-            logWithLevel("info", "Test message", context);
+
+            expect(
+                logWithLevel("info", "Test message", context)
+            ).toBeUndefined();
 
             expect(consoleSpy.info).toHaveBeenCalledTimes(1);
             expect(consoleSpy.info).toHaveBeenCalledWith(
@@ -167,7 +190,10 @@ describe("logWithLevel.js - Logging Utility", () => {
                 user: { id: 123, name: "John" },
                 metadata: { timestamp: Date.now() },
             };
-            logWithLevel("info", "Complex context", context);
+
+            expect(
+                logWithLevel("info", "Complex context", context)
+            ).toBeUndefined();
 
             expect(consoleSpy.info).toHaveBeenCalledTimes(1);
             expect(consoleSpy.info).toHaveBeenCalledWith(
@@ -185,7 +211,10 @@ describe("logWithLevel.js - Logging Utility", () => {
                 ],
                 count: 3,
             };
-            logWithLevel("info", "Array context", context);
+
+            expect(
+                logWithLevel("info", "Array context", context)
+            ).toBeUndefined();
 
             expect(consoleSpy.info).toHaveBeenCalledTimes(1);
             expect(consoleSpy.info).toHaveBeenCalledWith(
@@ -197,7 +226,7 @@ describe("logWithLevel.js - Logging Utility", () => {
 
     describe("Message Formatting", () => {
         it("should handle empty message", () => {
-            logWithLevel("info", "");
+            expect(logWithLevel("info", "")).toBeUndefined();
 
             expect(consoleSpy.info).toHaveBeenCalledTimes(1);
             expect(consoleSpy.info).toHaveBeenCalledWith(
@@ -207,7 +236,8 @@ describe("logWithLevel.js - Logging Utility", () => {
 
         it("should handle multi-line message", () => {
             const multiLineMessage = "Line 1\nLine 2\nLine 3";
-            logWithLevel("info", multiLineMessage);
+
+            expect(logWithLevel("info", multiLineMessage)).toBeUndefined();
 
             expect(consoleSpy.info).toHaveBeenCalledTimes(1);
             expect(consoleSpy.info).toHaveBeenCalledWith(
@@ -218,7 +248,8 @@ describe("logWithLevel.js - Logging Utility", () => {
         it("should handle message with special characters", () => {
             const specialMessage =
                 "Special chars: !@#$%^&*()[]{}|\\:\";'<>?,./ 中文 🚀";
-            logWithLevel("info", specialMessage);
+
+            expect(logWithLevel("info", specialMessage)).toBeUndefined();
 
             expect(consoleSpy.info).toHaveBeenCalledTimes(1);
             expect(consoleSpy.info).toHaveBeenCalledWith(
@@ -228,7 +259,8 @@ describe("logWithLevel.js - Logging Utility", () => {
 
         it("should handle very long message", () => {
             const longMessage = "A".repeat(10000);
-            logWithLevel("info", longMessage);
+
+            expect(logWithLevel("info", longMessage)).toBeUndefined();
 
             expect(consoleSpy.info).toHaveBeenCalledTimes(1);
             expect(consoleSpy.info).toHaveBeenCalledWith(
@@ -239,7 +271,7 @@ describe("logWithLevel.js - Logging Utility", () => {
 
     describe("Timestamp Formatting", () => {
         it("should use ISO timestamp format", () => {
-            logWithLevel("info", "Test message");
+            expect(logWithLevel("info", "Test message")).toBeUndefined();
 
             const call = consoleSpy.info.mock.calls[0][0];
             expect(call).toMatch(
@@ -248,12 +280,12 @@ describe("logWithLevel.js - Logging Utility", () => {
         });
 
         it("should update timestamp for different calls", () => {
-            logWithLevel("info", "First message");
+            expect(logWithLevel("info", "First message")).toBeUndefined();
 
             // Advance time
             vi.setSystemTime(new Date("2023-01-01T12:01:00.000Z"));
 
-            logWithLevel("info", "Second message");
+            expect(logWithLevel("info", "Second message")).toBeUndefined();
 
             expect(consoleSpy.info.mock.calls[0][0]).toContain(
                 "2023-01-01T12:00:00.000Z"
@@ -334,15 +366,19 @@ describe("logWithLevel.js - Logging Utility", () => {
             );
 
             messages.forEach((message) => {
-                logWithLevel("info", message);
+                expect(logWithLevel("info", message)).toBeUndefined();
             });
 
+            expect(messages).toHaveLength(100);
             expect(consoleSpy.info).toHaveBeenCalledTimes(100);
         });
 
         it("should not retain references to context objects", () => {
             const context = { data: "test" };
-            logWithLevel("info", "Test message", context);
+
+            expect(
+                logWithLevel("info", "Test message", context)
+            ).toBeUndefined();
 
             // Modify original context
             context.data = "modified";
@@ -360,28 +396,38 @@ describe("logWithLevel.js - Logging Utility", () => {
     describe("Real-world Usage Scenarios", () => {
         it("should handle typical application logging patterns", () => {
             // Application startup
-            logWithLevel("info", "Application starting", { version: "1.0.0" });
+            expect(
+                logWithLevel("info", "Application starting", {
+                    version: "1.0.0",
+                })
+            ).toBeUndefined();
 
             // User action
-            logWithLevel("info", "User action performed", {
-                userId: "user123",
-                action: "fileUpload",
-                fileSize: 1024,
-            });
+            expect(
+                logWithLevel("info", "User action performed", {
+                    userId: "user123",
+                    action: "fileUpload",
+                    fileSize: 1024,
+                })
+            ).toBeUndefined();
 
             // Warning condition
-            logWithLevel("warn", "Memory usage high", {
-                memoryUsage: "85%",
-                threshold: "80%",
-            });
+            expect(
+                logWithLevel("warn", "Memory usage high", {
+                    memoryUsage: "85%",
+                    threshold: "80%",
+                })
+            ).toBeUndefined();
 
             // Error condition
-            logWithLevel("error", "Database connection failed", {
-                error: "ECONNREFUSED",
-                host: "localhost",
-                port: 5432,
-                retryCount: 3,
-            });
+            expect(
+                logWithLevel("error", "Database connection failed", {
+                    error: "ECONNREFUSED",
+                    host: "localhost",
+                    port: 5432,
+                    retryCount: 3,
+                })
+            ).toBeUndefined();
 
             expect(consoleSpy.info).toHaveBeenCalledTimes(2);
             expect(consoleSpy.warn).toHaveBeenCalledTimes(1);
@@ -397,7 +443,9 @@ describe("logWithLevel.js - Logging Utility", () => {
                 memoryAfter: 47000000,
             };
 
-            logWithLevel("log", "Debug trace", debugContext);
+            expect(
+                logWithLevel("log", "Debug trace", debugContext)
+            ).toBeUndefined();
 
             expect(consoleSpy.log).toHaveBeenCalledWith(
                 "2023-01-01T12:00:00.000Z [FFV] Debug trace",
@@ -414,7 +462,9 @@ describe("logWithLevel.js - Logging Utility", () => {
                 stackTrace: "Error: ValidationError\n    at validate()",
             };
 
-            logWithLevel("error", "Validation failed", errorContext);
+            expect(
+                logWithLevel("error", "Validation failed", errorContext)
+            ).toBeUndefined();
 
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "2023-01-01T12:00:00.000Z [FFV] Validation failed",
@@ -443,11 +493,13 @@ describe("logWithLevel.js - Logging Utility", () => {
                 },
             };
 
-            logWithLevel(
-                "info",
-                "File processing completed",
-                structuredContext
-            );
+            expect(
+                logWithLevel(
+                    "info",
+                    "File processing completed",
+                    structuredContext
+                )
+            ).toBeUndefined();
 
             expect(consoleSpy.info).toHaveBeenCalledWith(
                 "2023-01-01T12:00:00.000Z [FFV] File processing completed",
@@ -464,7 +516,9 @@ describe("logWithLevel.js - Logging Utility", () => {
                 sessionId: "session-678",
             };
 
-            logWithLevel("info", "Request processed", traceContext);
+            expect(
+                logWithLevel("info", "Request processed", traceContext)
+            ).toBeUndefined();
 
             expect(consoleSpy.info).toHaveBeenCalledWith(
                 "2023-01-01T12:00:00.000Z [FFV] Request processed",
@@ -490,7 +544,7 @@ describe("logWithLevel.js - Logging Utility", () => {
         });
 
         it("should handle various message types through string conversion", () => {
-            logWithLevel("info", "String message");
+            expect(logWithLevel("info", "String message")).toBeUndefined();
 
             // The function expects string, but testing runtime behavior if non-string passed
             expect(consoleSpy.info).toHaveBeenCalledWith(
