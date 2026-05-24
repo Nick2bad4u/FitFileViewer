@@ -320,13 +320,15 @@ describe("formatUtils.js - formatArray Comprehensive Test Suite", () => {
         });
 
         it("should use strict validation true by default", () => {
-            expect(() => formatArray(["invalid", 1.2])).toThrow();
+            expect(() => formatArray(["invalid", 1.2])).toThrow(
+                "Invalid number: invalid"
+            );
         });
 
         it("should respect explicit strict validation true", () => {
             expect(() =>
                 formatArray(["invalid", 1.2], 2, { strictValidation: true })
-            ).toThrow();
+            ).toThrow("Invalid number: invalid");
         });
 
         it("should respect strict validation false", () => {
@@ -469,6 +471,12 @@ describe("formatUtils.js - formatArray Comprehensive Test Suite", () => {
             );
             expect(result).toBe("1.2, 2.5, 3"); // parseFloat removes trailing zeros for integers
         });
+
+        it("should throw for invalid mixed types in strict mode", () => {
+            expect(() => formatArray([1.23, "bad", 3], 1)).toThrow(
+                "Invalid number: bad"
+            );
+        });
     });
 
     describe("Coverage Edge Cases", () => {
@@ -542,7 +550,7 @@ describe("formatUtils.js - formatArray Comprehensive Test Suite", () => {
                     2,
                     { strictValidation: true }
                 )
-            ).toThrow();
+            ).toThrow("Invalid number: undefined");
             expect(() =>
                 formatArray(
                     [
@@ -553,7 +561,7 @@ describe("formatUtils.js - formatArray Comprehensive Test Suite", () => {
                     2,
                     { strictValidation: true }
                 )
-            ).toThrow();
+            ).toThrow("Invalid number: NaN");
             expect(() =>
                 formatArray(
                     [
@@ -564,7 +572,7 @@ describe("formatUtils.js - formatArray Comprehensive Test Suite", () => {
                     2,
                     { strictValidation: true }
                 )
-            ).toThrow();
+            ).toThrow("Invalid number: invalid");
         });
 
         it("should handle string parsing edge cases for full branch coverage", () => {
@@ -597,7 +605,10 @@ describe("formatUtils.js - formatArray Comprehensive Test Suite", () => {
 
             try {
                 // Trigger warn path
-                formatArray([1, "invalid"], 2, { strictValidation: false });
+                const warnResult = formatArray([1, "invalid"], 2, {
+                    strictValidation: false,
+                });
+                expect(warnResult).toBe("1, invalid");
                 expect(warnSpy).toHaveBeenCalled();
 
                 // Reset mocks
@@ -606,11 +617,11 @@ describe("formatUtils.js - formatArray Comprehensive Test Suite", () => {
                 logSpy.mockClear();
 
                 // Trigger error path (via exception handling)
-                try {
-                    formatArray([1, "invalid"], 2, { strictValidation: true });
-                } catch (e) {
-                    // Expected error
-                }
+                expect(() => {
+                    formatArray([1, "invalid"], 2, {
+                        strictValidation: true,
+                    });
+                }).toThrow("Invalid number: invalid");
                 expect(errorSpy).toHaveBeenCalled();
             } finally {
                 console.warn = originalWarn;
