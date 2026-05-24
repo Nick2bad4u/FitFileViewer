@@ -710,9 +710,15 @@ describe("main.js - Targeted 100% Coverage Test", () => {
 
         // No redirect URI
         delete process.env.GYAZO_REDIRECT_URI;
-        await import("../../main.js");
+        const finalMainModule = await import("../../main.js");
 
         console.log("[TEST] Targeted 100% coverage test completed");
-        expect(true).toBe(true);
+        expect(finalMainModule.default).toEqual(
+            expect.objectContaining({
+                initializeApplication: expect.any(Function),
+                setupIPCHandlers: expect.any(Function),
+            })
+        );
+        expect(globalMocks.mockDialog.showErrorBox).not.toHaveBeenCalled();
     });
 });
