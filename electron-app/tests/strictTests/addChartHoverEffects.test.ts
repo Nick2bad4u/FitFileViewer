@@ -97,6 +97,8 @@ describe("addChartHoverEffects", () => {
             // @ts-ignore - Testing null input
             addChartHoverEffects(null, mockThemeConfig);
 
+            expect(document.querySelector(".chart-wrapper")).toBeNull();
+            expect(mockCanvas.parentElement).toBe(mockContainer);
             expect(mockConsoleWarn).toHaveBeenCalledWith(
                 "[ChartHoverEffects] Missing required parameters"
             );
@@ -107,6 +109,8 @@ describe("addChartHoverEffects", () => {
             // @ts-ignore - Testing null input
             addChartHoverEffects(mockContainer, null);
 
+            expect(mockContainer.querySelector(".chart-wrapper")).toBeNull();
+            expect(mockCanvas.parentElement).toBe(mockContainer);
             expect(mockConsoleWarn).toHaveBeenCalledWith(
                 "[ChartHoverEffects] Missing required parameters"
             );
@@ -117,6 +121,8 @@ describe("addChartHoverEffects", () => {
             // @ts-ignore - Testing null inputs
             addChartHoverEffects(null, null);
 
+            expect(document.querySelector(".chart-wrapper")).toBeNull();
+            expect(mockCanvas.parentElement).toBe(mockContainer);
             expect(mockConsoleWarn).toHaveBeenCalledWith(
                 "[ChartHoverEffects] Missing required parameters"
             );
@@ -136,6 +142,12 @@ describe("addChartHoverEffects", () => {
                 .mockImplementation(() => {});
             addChartHoverEffects(mockContainer, mockThemeConfig);
 
+            expect(
+                mockContainer.querySelectorAll(".chart-wrapper")
+            ).toHaveLength(2);
+            expect(
+                mockContainer.querySelectorAll(".chart-canvas")
+            ).toHaveLength(2);
             expect(console.log).toHaveBeenCalledWith(
                 "[ChartHoverEffects] Added hover effects to chart: Test Chart for Speed Data"
             );
@@ -155,8 +167,13 @@ describe("addChartHoverEffects", () => {
             const logSpy = vi
                 .spyOn(console, "log")
                 .mockImplementation(() => {});
-            addChartHoverEffects(mockContainer, mockThemeConfig);
+            expect(() =>
+                addChartHoverEffects(mockContainer, mockThemeConfig)
+            ).not.toThrow();
 
+            expect(
+                mockContainer.querySelectorAll(".chart-wrapper")
+            ).toHaveLength(0);
             expect(console.log).toHaveBeenCalledWith(
                 "[ChartHoverEffects] Added hover effects to 0 chart(s)"
             );
@@ -172,7 +189,6 @@ describe("addChartHoverEffects", () => {
             const wrapper = mockContainer.querySelector(
                 ".chart-wrapper"
             ) as HTMLElement;
-            expect(wrapper).toBeTruthy();
             expect(wrapper.tagName).toBe("DIV");
             expect(wrapper.className).toBe("chart-wrapper");
             expect(wrapper.contains(mockCanvas)).toBe(true);
@@ -184,7 +200,6 @@ describe("addChartHoverEffects", () => {
             const wrapper = mockContainer.querySelector(
                 ".chart-wrapper"
             ) as HTMLElement;
-            expect(wrapper).toBeTruthy();
             // Check that wrapper has the expected class and basic structure
             expect(wrapper.className).toBe("chart-wrapper");
             // Since cssText may not work in jsdom, just verify wrapper exists and has correct class
@@ -212,7 +227,7 @@ describe("addChartHoverEffects", () => {
             const glowOverlay = wrapper.querySelector(
                 ".chart-glow-overlay"
             ) as HTMLElement;
-            expect(glowOverlay).toBeTruthy();
+            expect(glowOverlay.className).toBe("chart-glow-overlay");
             expect(glowOverlay.style.opacity).toBe("0");
         });
 
@@ -225,7 +240,7 @@ describe("addChartHoverEffects", () => {
             const titleOverlay = wrapper.querySelector(
                 ".chart-title-overlay"
             ) as HTMLElement;
-            expect(titleOverlay).toBeTruthy();
+            expect(titleOverlay.className).toBe("chart-title-overlay");
             expect(titleOverlay.textContent).toBe("TEST SPEED DATA");
             expect(titleOverlay.style.opacity).toBe("0");
         });
@@ -291,16 +306,38 @@ describe("addChartHoverEffects", () => {
 
             wrapper.dispatchEvent(clickEvent);
 
-            const ripple = Array.from(wrapper.children).find((el) => {
+            const ripples = Array.from(wrapper.children).filter((el) => {
                 if (!(el instanceof HTMLElement)) {
                     return false;
                 }
                 return el.style.animation.includes("ripple-effect");
-            }) as HTMLElement | undefined;
-            expect(ripple).toBeTruthy();
-            expect(ripple?.style.cssText).toContain(
+            }) as HTMLElement[];
+            expect(ripples).toHaveLength(1);
+            expect(ripples[0]?.style.cssText).toContain(
                 "animation: ripple-effect 0.6s ease-out"
             );
+        });
+
+        it("should not create a ripple when fullscreen button is clicked", () => {
+            addChartHoverEffects(mockContainer, mockThemeConfig);
+
+            const wrapper = mockContainer.querySelector(
+                ".chart-wrapper"
+            ) as HTMLElement;
+            const fullscreenBtn = wrapper.querySelector(
+                ".chart-fullscreen-btn"
+            ) as HTMLButtonElement;
+
+            fullscreenBtn.click();
+
+            const ripples = Array.from(wrapper.children).filter((el) => {
+                return (
+                    el instanceof HTMLElement &&
+                    el.style.animation.includes("ripple-effect")
+                );
+            });
+            expect(ripples).toHaveLength(0);
+            expect(ripples).not.toHaveLength(1);
         });
 
         it("should mark canvas as having hover effects", () => {
@@ -319,7 +356,7 @@ describe("addChartHoverEffects", () => {
                 ".chart-fullscreen-btn"
             ) as HTMLButtonElement;
 
-            expect(fullscreenBtn).toBeTruthy();
+            expect(fullscreenBtn.type).toBe("button");
 
             // Force native fullscreen failure so fallback overlay mode is exercised.
             Object.defineProperty(wrapper, "requestFullscreen", {
@@ -412,14 +449,11 @@ describe("addChartHoverEffects", () => {
 
             const styleElement = document.getElementById(
                 "chart-hover-effects-styles"
+            ) as HTMLStyleElement;
+            expect(styleElement.tagName).toBe("STYLE");
+            expect(styleElement.textContent).toContain(
+                "@keyframes ripple-effect"
             );
-            expect(styleElement).toBeTruthy();
-            if (styleElement) {
-                expect(styleElement.tagName).toBe("STYLE");
-                expect(styleElement.textContent).toContain(
-                    "@keyframes ripple-effect"
-                );
-            }
         });
 
         it("should not inject CSS styles on subsequent calls", () => {
@@ -438,6 +472,7 @@ describe("addChartHoverEffects", () => {
             const secondStyleCount = document.querySelectorAll("style").length;
 
             expect(secondStyleCount).toBe(firstStyleCount);
+            expect(secondStyleCount).not.toBe(firstStyleCount + 1);
         });
     });
 
@@ -457,8 +492,8 @@ describe("addChartHoverEffects", () => {
             const wrapper = mockContainer.querySelector(
                 ".chart-wrapper"
             ) as HTMLElement;
-            expect(wrapper).toBeTruthy();
             expect(wrapper.className).toBe("chart-wrapper");
+            expect(wrapper.contains(mockCanvas)).toBe(true);
             // Theme colors are applied via cssText, just verify wrapper exists
         });
 
@@ -473,8 +508,8 @@ describe("addChartHoverEffects", () => {
                 ".chart-wrapper"
             ) as HTMLElement;
             // Should use fallback values
-            expect(wrapper).toBeTruthy();
             expect(wrapper.className).toBe("chart-wrapper");
+            expect(wrapper.contains(mockCanvas)).toBe(true);
         });
     });
 
@@ -485,6 +520,10 @@ describe("addChartHoverEffects", () => {
                 .mockImplementation(() => {});
             addChartHoverEffects(mockContainer, mockThemeConfig);
 
+            expect(
+                mockContainer.querySelectorAll(".chart-wrapper")
+            ).toHaveLength(1);
+            expect(mockConsoleWarn).not.toHaveBeenCalled();
             expect(console.log).toHaveBeenCalledWith(
                 "[ChartHoverEffects] Added hover effects to chart: Test Chart for Speed Data"
             );
@@ -517,6 +556,10 @@ describe("removeChartHoverEffects", () => {
         // @ts-ignore - Testing null input
         removeChartHoverEffects(null);
 
+        expect(mockContainer.contains(mockCanvas)).toBe(true);
+        expect(mockContainer.querySelectorAll(".chart-wrapper")).toHaveLength(
+            0
+        );
         expect(console.log).not.toHaveBeenCalled();
 
         logSpy.mockRestore();
@@ -535,14 +578,18 @@ describe("removeChartHoverEffects", () => {
 
         // Verify wrapper exists
         let wrapper = mockContainer.querySelector(".chart-wrapper");
-        expect(wrapper).toBeTruthy();
+        expect(mockContainer.querySelectorAll(".chart-wrapper")).toHaveLength(
+            1
+        );
 
         // Remove effects
         removeChartHoverEffects(mockContainer);
 
         // Verify wrapper is removed and canvas is back
         wrapper = mockContainer.querySelector(".chart-wrapper");
-        expect(wrapper).toBeFalsy();
+        expect(mockContainer.querySelectorAll(".chart-wrapper")).toHaveLength(
+            0
+        );
         expect(mockContainer.contains(mockCanvas)).toBe(true);
     });
 
@@ -561,7 +608,7 @@ describe("removeChartHoverEffects", () => {
         expect(mockCanvas.style.marginBottom).toBe("20px");
         // Box shadow should be set to theme value or fallback
         // Box shadow should be restored (may have jsdom default)
-        expect(mockCanvas.style.boxShadow).toBeTruthy();
+        expect(mockCanvas.style.boxShadow).toContain("0 2px 8px");
     });
 
     it("should remove hover effects marker", () => {
@@ -579,6 +626,9 @@ describe("removeChartHoverEffects", () => {
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         removeChartHoverEffects(mockContainer);
 
+        expect(mockContainer.querySelectorAll(".chart-wrapper")).toHaveLength(
+            0
+        );
         expect(console.log).toHaveBeenCalledWith(
             "[ChartHoverEffects] Removed hover effects from 0 chart(s)"
         );
@@ -593,6 +643,10 @@ describe("removeChartHoverEffects", () => {
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         removeChartHoverEffects(mockContainer);
 
+        expect(mockContainer.querySelectorAll(".chart-wrapper")).toHaveLength(
+            0
+        );
+        expect(mockContainer.contains(mockCanvas)).toBe(true);
         expect(console.log).toHaveBeenCalledWith(
             "[ChartHoverEffects] Removed hover effects from 1 chart(s)"
         );
@@ -612,6 +666,8 @@ describe("addHoverEffectsToExistingCharts", () => {
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         addHoverEffectsToExistingCharts();
 
+        expect(document.querySelectorAll(".chart-wrapper")).toHaveLength(0);
+        expect(mockConsoleLog).not.toHaveBeenCalled();
         expect(console.warn).toHaveBeenCalledWith(
             "[DevHelper] Chart container not found"
         );
@@ -631,7 +687,8 @@ describe("addHoverEffectsToExistingCharts", () => {
         addHoverEffectsToExistingCharts();
 
         const wrapper = container.querySelector(".chart-wrapper");
-        expect(wrapper).toBeTruthy();
+        expect(container.querySelectorAll(".chart-wrapper")).toHaveLength(1);
+        expect(wrapper?.contains(canvas)).toBe(true);
         expect(console.log).toHaveBeenCalledWith(
             "[DevHelper] Hover effects added to existing charts"
         );
@@ -642,6 +699,9 @@ describe("addHoverEffectsToExistingCharts", () => {
     it("should use global getThemeConfig when available", () => {
         const container = document.createElement("div");
         container.id = "chartjs-chart-container";
+        const canvas = document.createElement("canvas");
+        canvas.className = "chart-canvas";
+        container.appendChild(canvas);
         document.body.appendChild(container);
 
         // Mock global function
@@ -664,6 +724,9 @@ describe("addHoverEffectsToExistingCharts", () => {
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         addHoverEffectsToExistingCharts();
 
+        const wrapper = container.querySelector(".chart-wrapper");
+        expect(container.querySelectorAll(".chart-wrapper")).toHaveLength(1);
+        expect(wrapper?.contains(canvas)).toBe(true);
         expect((global as any).window.getThemeConfig).toHaveBeenCalled();
         expect(console.log).toHaveBeenCalledWith(
             "[DevHelper] Hover effects added to existing charts"
