@@ -19,10 +19,10 @@ describe("preload.js - import-based coverage", () => {
             exposeInMainWorld: vi.fn(),
         };
 
-        vi.mock("electron", () => ({
-            contextBridge: mockContextBridge,
+        Reflect.set(globalThis, "__electronHoistedMock", {
             ipcRenderer: mockIpcRenderer,
-        }));
+            contextBridge: mockContextBridge,
+        });
 
         // Silence logs to keep output clean
         vi.spyOn(console, "log").mockImplementation(() => {});
@@ -33,35 +33,25 @@ describe("preload.js - import-based coverage", () => {
         process.env.NODE_ENV = originalEnv;
         vi.restoreAllMocks();
         vi.resetModules();
+        Reflect.deleteProperty(globalThis, "__electronHoistedMock");
     });
 
     it("imports preload and exercises API (NODE_ENV=test)", async () => {
         process.env.NODE_ENV = "test";
         await import("../../preload.js");
-        // If exposure happened, use that API, otherwise synthesize from module scope by recreating via Function
-        const api = (mockContextBridge.exposeInMainWorld.mock
-            .calls[0]?.[1] as any) || {
-            // Fallback shims in case exposure was skipped
-            openFile: (...args: any[]) =>
-                mockIpcRenderer.invoke("dialog:openFile", ...args),
-            readFile: (p: string) => mockIpcRenderer.invoke("file:read", p),
-            sendThemeChanged: (t: string) =>
-                mockIpcRenderer.send("theme-changed", t),
-            send: (c: any, ...a: any[]) =>
-                typeof c === "string"
-                    ? mockIpcRenderer.send(c, ...a)
-                    : undefined,
-            invoke: (c: any, ...a: any[]) =>
-                typeof c === "string"
-                    ? mockIpcRenderer.invoke(c, ...a)
-                    : Promise.reject(new Error("Invalid channel")),
-            getChannelInfo: () => ({
-                channels: { A: "a" },
-                events: { B: "b" },
-                totalChannels: 1,
-                totalEvents: 1,
-            }),
-        };
+        expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith(
+            "electronAPI",
+            expect.objectContaining({
+                getChannelInfo: expect.any(Function),
+                invoke: expect.any(Function),
+                openFile: expect.any(Function),
+                readFile: expect.any(Function),
+                send: expect.any(Function),
+                sendThemeChanged: expect.any(Function),
+            })
+        );
+
+        const api = mockContextBridge.exposeInMainWorld.mock.calls[0][1];
 
         // Exercise a few API paths to accrue coverage
         await api.openFile();
@@ -78,19 +68,65 @@ describe("preload.js - import-based coverage", () => {
         );
 
         // Validation branches: send with invalid channel, invoke with invalid channel
+        const sendCallsBeforeInvalidChannel = mockIpcRenderer.send.mock.calls
+            .length;
         api.send(123 as any);
-        await expect(api.invoke(123 as any)).rejects.toThrow();
+        expect(mockIpcRenderer.send).toHaveBeenCalledTimes(
+            sendCallsBeforeInvalidChannel
+        );
+        await expect(api.invoke(123 as any)).rejects.toThrow(
+            "Invalid channel for invoke"
+        );
 
         // getChannelInfo should return structure
         const info = api.getChannelInfo();
         expect(info.totalChannels).toBeGreaterThan(0);
         expect(info.totalEvents).toBeGreaterThan(0);
+        expect(Object.keys(info.channels)).toHaveLength(info.totalChannels);
+        expect(Object.keys(info.events)).toHaveLength(info.totalEvents);
     });
 
     it("imports preload in development mode without throwing", async () => {
         process.env.NODE_ENV = "development";
         await import("../../preload.js");
-        // Exposure may vary by environment, just ensure import completed
-        expect(true).toBe(true);
+        expect(mockContextBridge.exposeInMainWorld).toHaveBeenNthCalledWith(
+            1,
+            "electronAPI",
+            expect.objectContaining({
+                openFile: expect.any(Function),
+                validateAPI: expect.any(Function),
+            })
+        );
+        expect(mockContextBridge.exposeInMainWorld).toHaveBeenNthCalledWith(
+            2,
+            "devTools",
+            expect.objectContaining({
+                getPreloadInfo: expect.any(Function),
+                logAPIState: expect.any(Function),
+                testIPC: expect.any(Function),
+            })
+        );
+
+        const devTools = mockContextBridge.exposeInMainWorld.mock.calls[1][1];
+        const preloadInfo = devTools.getPreloadInfo();
+        expect(preloadInfo).toEqual(
+            expect.objectContaining({
+                apiMethods: expect.arrayContaining([
+                    "getChannelInfo",
+                    "openFile",
+                    "validateAPI",
+                ]),
+                constants: expect.objectContaining({
+                    CHANNELS: expect.objectContaining({
+                        DIALOG_OPEN_FILE: "dialog:openFile",
+                    }),
+                    EVENTS: expect.objectContaining({
+                        THEME_CHANGED: "theme-changed",
+                    }),
+                }),
+                timestamp: expect.any(String),
+                version: "1.0.0",
+            })
+        );
     });
 });
