@@ -39,6 +39,7 @@ describe("Formatting Utilities", () => {
             it("should format distance with both km and miles correctly", () => {
                 const result = formatDistance(1000);
                 expect(result).toBe("1.00 km / 0.62 mi");
+                expect(result).not.toBe("");
             });
 
             it("should format small distances correctly", () => {
@@ -98,6 +99,7 @@ describe("Formatting Utilities", () => {
             it("should handle very small positive distances", () => {
                 const result = formatDistance(0.1);
                 expect(result).toBe("0.00 km / 0.00 mi");
+                expect(result).not.toBe("");
             });
 
             it("should maintain precision for large distances", () => {
@@ -112,6 +114,7 @@ describe("Formatting Utilities", () => {
             it("should format seconds only for values under 60", () => {
                 const result = formatDuration(45);
                 expect(result).toBe("45 sec"); // Full word format
+                expect(result).not.toBe("");
             });
 
             it("should format minutes and seconds for values under 3600", () => {
@@ -179,6 +182,7 @@ describe("Formatting Utilities", () => {
             it("should handle decimal seconds correctly", () => {
                 const result = formatDuration(45.7);
                 expect(result).toBe("46 sec"); // Rounds to nearest integer
+                expect(result).not.toBe("");
             });
 
             it("should handle very large durations", () => {
@@ -193,6 +197,7 @@ describe("Formatting Utilities", () => {
             it("should format time in MM:SS format for values under an hour", () => {
                 const result = formatTime(125, false);
                 expect(result).toBe("2:05");
+                expect(result).not.toBe("0:00");
             });
 
             it("should format time in HH:MM:SS format for values over an hour", () => {
@@ -229,6 +234,7 @@ describe("Formatting Utilities", () => {
 
                 const result = formatTime(3600, true);
                 expect(result).toContain("h"); // Should contain hours unit
+                expect(result).not.toBe("0:00");
             });
 
             it("should fallback to MM:SS when user units not available", () => {
@@ -283,6 +289,7 @@ describe("Formatting Utilities", () => {
             it("should handle decimal seconds correctly", () => {
                 const result = formatTime(125.7);
                 expect(result).toBe("2:05"); // Should round down
+                expect(result).not.toBe("0:00");
             });
 
             it("should handle very large time values", () => {
@@ -297,6 +304,7 @@ describe("Formatting Utilities", () => {
             it("should format weight with kg and pounds correctly", () => {
                 const result = formatWeight(70);
                 expect(result).toBe("70 kg (154 lbs)");
+                expect(result).not.toBe("");
             });
 
             it("should handle decimal weights correctly", () => {
@@ -345,6 +353,7 @@ describe("Formatting Utilities", () => {
             it("should handle very small positive weights", () => {
                 const result = formatWeight(0.1);
                 expect(result).toBe("0.1 kg (0 lbs)");
+                expect(result).not.toBe("");
             });
 
             it("should handle very large weights correctly", () => {
@@ -360,6 +369,7 @@ describe("Formatting Utilities", () => {
                 const result = formatHeight(1.75);
                 expect(result).toContain("m");
                 expect(result).toContain("'"); // Contains feet symbol, not "ft"
+                expect(result).not.toBe("");
             });
 
             it("should handle tall heights correctly", () => {
@@ -445,35 +455,48 @@ describe("Formatting Utilities", () => {
             expect(height).toContain("m");
         });
 
-        it("should handle all formatters with edge case inputs", () => {
-            const edgeCases = [
+        it("should handle all formatters with non-throwing edge case inputs", () => {
+            [
                 0,
-                -1,
-                NaN,
-                Infinity,
                 null,
                 undefined,
-                "invalid",
-            ];
+            ].forEach((value) => {
+                expect(() => {
+                    formatDistance(value as any);
+                    formatDuration(value as any);
+                    formatTime(value as any);
+                    formatWeight(value as any);
+                    formatHeight(value as any);
+                }).not.toThrow();
+            });
+        });
 
-            edgeCases.forEach((value) => {
-                // formatDuration throws for negative/invalid values, others don't
-                if (
-                    value === -1 ||
-                    Number.isNaN(value) ||
-                    value === Infinity ||
-                    value === "invalid"
-                ) {
-                    expect(() => formatDuration(value as any)).toThrow();
-                } else {
-                    expect(() => {
-                        formatDistance(value as any);
-                        formatDuration(value as any);
-                        formatTime(value as any);
-                        formatWeight(value as any);
-                        formatHeight(value as any);
-                    }).not.toThrow();
-                }
+        it("should reject invalid duration inputs with explicit messages", () => {
+            [
+                {
+                    expectedMessage:
+                        "Invalid duration input: Duration cannot be negative",
+                    value: -1,
+                },
+                {
+                    expectedMessage:
+                        "Invalid duration input: Input must be a finite number",
+                    value: NaN,
+                },
+                {
+                    expectedMessage:
+                        "Invalid duration input: Input must be a finite number",
+                    value: Infinity,
+                },
+                {
+                    expectedMessage:
+                        "Invalid duration input: Input must be a finite number",
+                    value: "invalid",
+                },
+            ].forEach(({ expectedMessage, value }) => {
+                expect(() => formatDuration(value as any)).toThrow(
+                    expectedMessage
+                );
             });
         });
 
