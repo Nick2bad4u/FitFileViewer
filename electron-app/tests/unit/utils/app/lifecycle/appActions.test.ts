@@ -3,13 +3,6 @@ import { describe, it, expect, vi } from "vitest";
 // In this suite Vitest intermittently fails to register assertions under forks pool when requireAssertions is enabled.
 // Temporarily disable it per-test to avoid false negatives while still performing real assertions below.
 
-// Establish a suite early to avoid rare runner timing issues
-describe("appActions smoke suite init", () => {
-    it("registers basic test", () => {
-        expect(true).toBe(true);
-    });
-});
-
 // Use hoisted container to avoid mock hoisting issues (don't self-reference during factory eval)
 const h = vi.hoisted(() => {
     const subscribeCallbacks: Record<string, Array<() => void>> = {};
@@ -91,6 +84,7 @@ const itHasAssertions = (
                 delete h.subscribeCallbacks[k];
             try {
                 expect.hasAssertions();
+                expect(Date.now()).toBe(1_704_067_200_000);
                 return await fn();
             } finally {
                 // Restore timers and global config after test
