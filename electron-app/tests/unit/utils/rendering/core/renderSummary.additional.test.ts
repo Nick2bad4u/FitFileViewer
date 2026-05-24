@@ -1,14 +1,24 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // From tests/unit/utils/rendering/core -> utils/... requires going up 5 levels
-const SUT = "../../../../../utils/rendering/core/renderSummary.js";
 const HELPERS =
     "../../../../../utils/rendering/helpers/renderSummaryHelpers.js";
 const MODAL = "../../../../../utils/rendering/helpers/summaryColModal.js";
 
+async function importRenderSummaryModule() {
+    return import("../../../../../utils/rendering/core/renderSummary.js");
+}
+
+function createSummaryContainer(): HTMLDivElement {
+    const container = document.createElement("div");
+    container.id = "content-summary";
+    document.body.replaceChildren(container);
+    return container;
+}
+
 describe("renderSummary - modal and renderTable wiring", () => {
     beforeEach(() => {
-        document.body.innerHTML = '<div id="content-summary"></div>';
+        createSummaryContainer();
         vi.resetModules();
     });
     afterEach(() => {
@@ -42,7 +52,7 @@ describe("renderSummary - modal and renderTable wiring", () => {
             showColModal,
         }));
 
-        const { renderSummary } = await import(SUT);
+        const { renderSummary } = await importRenderSummaryModule();
 
         const data = {
             sessionMesgs: [{ x: 1 }],
@@ -53,15 +63,49 @@ describe("renderSummary - modal and renderTable wiring", () => {
         renderSummary(data);
 
         // First renderTable call for initial render
-        expect(renderTable).toHaveBeenCalled();
+        expect(renderTable).toHaveBeenCalledTimes(1);
         // Access the gear button passed into renderTable and simulate user click
         const firstArgs = renderTable.mock.calls[0][0];
-        expect(firstArgs).toBeDefined();
+        expect(firstArgs).toEqual({
+            container: document.getElementById("content-summary"),
+            data,
+            gearBtn: expect.any(HTMLButtonElement),
+            setVisibleColumns: expect.any(Function),
+            visibleColumns: ["x", "y", "z"],
+        });
         const gear = firstArgs.gearBtn as HTMLButtonElement;
-        expect(gear).toBeTruthy();
+        expect(gear.className).toBe("summary-gear-btn");
+        expect(gear.title).toBe("Select columns");
         gear.click();
-        expect(showColModal).toHaveBeenCalled();
+        expect(showColModal).toHaveBeenCalledWith({
+            allKeys: ["x", "y", "z"],
+            data,
+            renderTable: expect.any(Function),
+            setVisibleColumns: expect.any(Function),
+            visibleColumns: ["x", "y", "z"],
+        });
         // renderTable should have been called again from inside showColModal
-        expect(renderTable.mock.calls.length).toBeGreaterThanOrEqual(2);
+        expect(renderTable).toHaveBeenCalledTimes(2);
+    });
+
+    it("returns without rendering when the summary container is missing", async () => {
+        document.body.replaceChildren();
+        const renderTable = vi.fn();
+        vi.doMock(HELPERS, () => ({
+            getGlobalStorageKey: vi.fn(),
+            getStorageKey: vi.fn(),
+            loadColPrefs: vi.fn(),
+            orderSummaryColumnsNamedFirst: vi.fn(),
+            renderTable,
+        }));
+        vi.doMock(MODAL, () => ({
+            showColModal: vi.fn(),
+        }));
+
+        const { renderSummary } = await importRenderSummaryModule();
+
+        expect(() => renderSummary({ sessionMesgs: [{ x: 1 }] })).not.toThrow();
+        expect(renderTable).not.toHaveBeenCalled();
+        expect(document.body.childElementCount).toBe(0);
     });
 });
