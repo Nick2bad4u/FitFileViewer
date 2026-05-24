@@ -85,6 +85,7 @@ describe("convertTemperatureUnits.js - Temperature Unit Converter Utility", () =
                 TEMPERATURE_UNITS.FAHRENHEIT
             );
             expect(result).toBe(32);
+            expect(result).not.toBe(0);
         });
 
         it("should convert boiling point (100°C to 212°F)", () => {
@@ -136,6 +137,9 @@ describe("convertTemperatureUnits.js - Temperature Unit Converter Utility", () =
             expect(convertTemperatureUnits(25, TEMPERATURE_UNITS.CELSIUS)).toBe(
                 25
             );
+            expect(
+                convertTemperatureUnits(25, TEMPERATURE_UNITS.CELSIUS)
+            ).not.toBe(77);
             expect(
                 convertTemperatureUnits(-10, TEMPERATURE_UNITS.CELSIUS)
             ).toBe(-10);
@@ -208,6 +212,7 @@ describe("convertTemperatureUnits.js - Temperature Unit Converter Utility", () =
         it("should warn for unknown units and default to celsius", () => {
             const result = convertTemperatureUnits(25, "kelvin" as any);
             expect(result).toBe(25); // Should default to celsius (no conversion)
+            expect(result).not.toBe(77);
             expect(mockConsole.warn).toHaveBeenCalledWith(
                 "[convertTemperatureUnits] Unknown unit 'kelvin', defaulting to celsius"
             );
@@ -249,6 +254,7 @@ describe("convertTemperatureUnits.js - Temperature Unit Converter Utility", () =
             expect(results.every((result) => result === firstResult)).toBe(
                 true
             );
+            expect(results).not.toContain(20);
             expect(firstResult).toBe(68); // 20°C = 68°F
         });
 
@@ -311,6 +317,7 @@ describe("convertTemperatureUnits.js - Temperature Unit Converter Utility", () =
                 TEMPERATURE_UNITS.FAHRENHEIT
             );
             expect(normalTemp).toBeCloseTo(98.06, 2);
+            expect(normalTemp).not.toBe(36.7);
 
             // Fever temperature
             const feverTemp = convertTemperatureUnits(
@@ -384,12 +391,16 @@ describe("convertTemperatureUnits.js - Temperature Unit Converter Utility", () =
     describe("Constants Validation", () => {
         it("should have correct TEMPERATURE_UNITS enum values", () => {
             expect(TEMPERATURE_UNITS.CELSIUS).toBe("celsius");
+            expect(TEMPERATURE_UNITS.CELSIUS).not.toBe("fahrenheit");
             expect(TEMPERATURE_UNITS.FAHRENHEIT).toBe("fahrenheit");
         });
 
         it("should export TEMPERATURE_UNITS as a constant object", () => {
             expect(typeof TEMPERATURE_UNITS).toBe("object");
-            expect(TEMPERATURE_UNITS).not.toBeNull();
+            expect(TEMPERATURE_UNITS).toEqual({
+                CELSIUS: "celsius",
+                FAHRENHEIT: "fahrenheit",
+            });
 
             // Ensure it's not an array
             expect(Array.isArray(TEMPERATURE_UNITS)).toBe(false);
@@ -433,6 +444,7 @@ describe("convertTemperatureUnits.js - Temperature Unit Converter Utility", () =
                 );
                 const backToCelsius = (fahrenheit - 32) * (5 / 9);
                 expect(backToCelsius).toBeCloseTo(temp, 10);
+                expect(fahrenheit).not.toBe(temp);
             });
         });
 
