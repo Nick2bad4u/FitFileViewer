@@ -295,8 +295,9 @@ describe("main.js strict handlers and events", () => {
         const call = mockIpcMain.handle.mock.calls.find(
             (c: any[]) => c[0] === "dialog:openFile"
         );
-        expect(call).toBeTruthy();
-        const openHandler = call[1];
+        expect(call?.[0]).toBe("dialog:openFile");
+        const openHandler = call?.[1];
+        expect(typeof openHandler).toBe("function");
 
         // Cancelled path
         mockDialog.showOpenDialog.mockResolvedValueOnce({
@@ -320,16 +321,20 @@ describe("main.js strict handlers and events", () => {
         const recentGet = mockIpcMain.handle.mock.calls.find(
             (c: any[]) => c[0] === "recentFiles:get"
         );
-        const recent = await recentGet[1]({});
-        expect(Array.isArray(recent)).toBe(true);
+        expect(recentGet?.[0]).toBe("recentFiles:get");
+        const recent = await recentGet?.[1]({});
+        expect(recent).toEqual(["C:/file.fit"]);
         // recentFiles:add
         const recentAdd = mockIpcMain.handle.mock.calls.find(
             (c: any[]) => c[0] === "recentFiles:add"
         );
+        expect(recentAdd?.[0]).toBe("recentFiles:add");
         mockMainWindow.webContents.executeJavaScript.mockResolvedValueOnce(
             "dark"
         );
-        await expect(recentAdd[1]({}, "D:/other.fit")).resolves.toBeDefined();
+        await expect(recentAdd?.[1]({}, "D:/other.fit")).resolves.toEqual([
+            "C:/file.fit",
+        ]);
         // In test mode, menu creation is a no-op; verifying no throw is sufficient
     });
 
@@ -342,9 +347,15 @@ describe("main.js strict handlers and events", () => {
         const fileRead = handleCalls.find((c: any[]) => c[0] === "file:read");
         const fitParse = handleCalls.find((c: any[]) => c[0] === "fit:parse");
         const fitDecode = handleCalls.find((c: any[]) => c[0] === "fit:decode");
+        expect(openExternal?.[0]).toBe("shell:openExternal");
+        expect(fileRead?.[0]).toBe("file:read");
+        expect(fitParse?.[0]).toBe("fit:parse");
+        expect(fitDecode?.[0]).toBe("fit:decode");
 
         // Invalid URL
-        await expect(openExternal[1]({}, "file://bad")).rejects.toBeTruthy();
+        await expect(openExternal?.[1]({}, "file://bad")).rejects.toThrow(
+            "Only HTTPS and mailto URLs are allowed"
+        );
         // Valid URL
         await expect(openExternal[1]({}, "https://example.com")).resolves.toBe(
             true
@@ -367,16 +378,21 @@ describe("main.js strict handlers and events", () => {
         (vi.spyOn(fsMod as any, "readFile") as any).mockImplementation(
             (p: string, cb: Function) => cb(null, Buffer.from("abc"))
         );
-        const buf = await fileRead[1]({}, "C:/x.fit");
-        expect(buf).toBeDefined();
+        const buf = await fileRead?.[1]({}, "C:/x.fit");
+        expect(Object.prototype.toString.call(buf)).toBe("[object ArrayBuffer]");
+        expect(new Uint8Array(buf)).toEqual(new Uint8Array([97, 98, 99]));
 
         // fit parse/decode
-        await expect(
-            fitParse[1]({}, new ArrayBuffer(4))
-        ).resolves.toBeDefined();
-        await expect(
-            fitDecode[1]({}, new ArrayBuffer(4))
-        ).resolves.toBeDefined();
+        const invalidFitResult = {
+            details: "No additional details available",
+            error: "FIT file integrity check failed. Details: No additional details available",
+        };
+        await expect(fitParse?.[1]({}, new ArrayBuffer(4))).resolves.toEqual(
+            invalidFitResult
+        );
+        await expect(fitDecode?.[1]({}, new ArrayBuffer(4))).resolves.toEqual(
+            invalidFitResult
+        );
     });
 
     it("menu events and fullscreen, security navigation guards", async () => {
@@ -387,8 +403,9 @@ describe("main.js strict handlers and events", () => {
         const updaterCheck = onCalls.find(
             (c: any[]) => c[0] === "menu-check-for-updates"
         );
+        expect(updaterCheck?.[0]).toBe("menu-check-for-updates");
         // Execute handler; don't assert internal call count to keep test robust across module interop
-        expect(() => updaterCheck[1]({})).not.toThrow();
+        expect(() => updaterCheck?.[1]({})).not.toThrow();
 
         // install-update triggers quitAndInstall; simulate linux dialog path
         const originalPlatform = process.platform;
@@ -397,7 +414,8 @@ describe("main.js strict handlers and events", () => {
             const install = onCalls.find(
                 (c: any[]) => c[0] === "install-update"
             );
-            expect(() => install[1]({})).not.toThrow();
+            expect(install?.[0]).toBe("install-update");
+            expect(() => install?.[1]({})).not.toThrow();
         } finally {
             Object.defineProperty(process, "platform", {
                 value: originalPlatform,
@@ -406,33 +424,38 @@ describe("main.js strict handlers and events", () => {
 
         // fullscreen
         const fsEvt = onCalls.find((c: any[]) => c[0] === "set-fullscreen");
-        fsEvt[1]({}, true);
+        expect(fsEvt?.[0]).toBe("set-fullscreen");
+        fsEvt?.[1]({}, true);
         expect(mockMainWindow.setFullScreen).toHaveBeenCalledWith(true);
 
         // Security handlers wired on web-contents-created
         const appOnCall = mockApp.on.mock.calls.find(
             (c: any[]) => c[0] === "web-contents-created"
         );
-        expect(appOnCall).toBeTruthy();
+        expect(appOnCall?.[0]).toBe("web-contents-created");
         const contents: any = {
-            on: vi.fn((evt: string, handler: any) => {
-                if (evt === "will-navigate") {
-                    // Disallowed URL
-                    const ev = { preventDefault: vi.fn() } as any;
-                    handler(ev, "https://malicious.example.com");
-                    expect(ev.preventDefault).toHaveBeenCalled();
-                }
-            }),
-            setWindowOpenHandler: vi.fn((fn: any) => {
-                expect(fn({ url: "https://bad.example.com" })).toEqual({
-                    action: "deny",
-                });
-                expect(fn({ url: "file://index.html" })).toEqual({
-                    action: "allow",
-                });
-            }),
+            on: vi.fn(),
+            setWindowOpenHandler: vi.fn(),
         };
-        appOnCall[1]({}, contents);
+        appOnCall?.[1]({}, contents);
+        expect(contents.on).toHaveBeenCalledWith(
+            "will-navigate",
+            expect.any(Function)
+        );
+        const willNavigateCall = contents.on.mock.calls.find(
+            (c: any[]) => c[0] === "will-navigate"
+        );
+        expect(willNavigateCall?.[0]).toBe("will-navigate");
+        const ev = { preventDefault: vi.fn() } as any;
+        willNavigateCall?.[1](ev, "https://malicious.example.com");
+        expect(ev.preventDefault).toHaveBeenCalledTimes(1);
         expect(contents.setWindowOpenHandler).toHaveBeenCalled();
+        const windowOpenHandler = contents.setWindowOpenHandler.mock.calls[0][0];
+        expect(windowOpenHandler({ url: "https://bad.example.com" })).toEqual({
+            action: "deny",
+        });
+        expect(windowOpenHandler({ url: "file://index.html" })).toEqual({
+            action: "allow",
+        });
     });
 });
