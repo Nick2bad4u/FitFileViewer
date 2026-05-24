@@ -293,14 +293,17 @@ describe("createUserDeviceInfoBox", () => {
         const infoBox = container.querySelector<HTMLDivElement>(
             ".user-device-info-box"
         );
-        expect(infoBox).toBeTruthy();
+        expect(infoBox).toBeInstanceOf(HTMLDivElement);
+        if (!(infoBox instanceof HTMLDivElement)) {
+            throw new TypeError("Expected info box to render as a div");
+        }
 
         // Simulate hover events on the infoBox to exercise event listeners
-        infoBox!.dispatchEvent(new Event("mouseenter"));
-        expect(infoBox!.style.transform).toContain("translateY(-4px)");
-        infoBox!.dispatchEvent(new Event("mouseleave"));
+        infoBox.dispatchEvent(new Event("mouseenter"));
+        expect(infoBox.style.transform).toContain("translateY(-4px)");
+        infoBox.dispatchEvent(new Event("mouseleave"));
         // After leave, transform should reset to baseline
-        expect(infoBox!.style.transform).toContain("translateY(0)");
+        expect(infoBox.style.transform).toContain("translateY(0)");
 
         // Ensure theme name is logged (accept any theme name)
         expect(logSpy).toHaveBeenCalledWith(
