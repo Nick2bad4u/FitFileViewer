@@ -76,12 +76,14 @@ describe("Converter Utilities", () => {
 
         it("should handle very large numbers", () => {
             expect(convertMpsToKmh(1000)).toBeCloseTo(3600, 1);
-            expect(convertMpsToKmh(Number.MAX_SAFE_INTEGER)).toBeDefined();
+            expect(convertMpsToKmh(Number.MAX_SAFE_INTEGER)).toBe(
+                Number.MAX_SAFE_INTEGER * 3.6
+            );
         });
 
         it("should handle very small positive numbers", () => {
             expect(convertMpsToKmh(0.001)).toBeCloseTo(0.0036, 4);
-            expect(convertMpsToKmh(Number.MIN_VALUE)).toBeDefined();
+            expect(convertMpsToKmh(Number.MIN_VALUE)).toBeGreaterThan(0);
         });
     });
 
@@ -117,12 +119,14 @@ describe("Converter Utilities", () => {
 
         it("should handle very large numbers", () => {
             expect(convertMpsToMph(1000)).toBeCloseTo(2236.936, 1);
-            expect(convertMpsToMph(Number.MAX_SAFE_INTEGER)).toBeDefined();
+            expect(convertMpsToMph(Number.MAX_SAFE_INTEGER)).toBe(
+                Number.MAX_SAFE_INTEGER * 2.236_936
+            );
         });
 
         it("should handle very small positive numbers", () => {
             expect(convertMpsToMph(0.001)).toBeCloseTo(0.002237, 5);
-            expect(convertMpsToMph(Number.MIN_VALUE)).toBeDefined();
+            expect(convertMpsToMph(Number.MIN_VALUE)).toBeGreaterThan(0);
         });
     });
 
@@ -385,9 +389,9 @@ describe("Converter Utilities", () => {
             }
 
             const result = convertArrayBufferToBase64(buffer);
-            expect(result).toBeDefined();
-            expect(result.length).toBeGreaterThan(0);
             expect(typeof result).toBe("string");
+            expect(result).toHaveLength(Math.ceil(size / 3) * 4);
+            expect(result).not.toBe("");
         });
 
         it("should throw TypeError for non-ArrayBuffer input", () => {
@@ -440,6 +444,7 @@ describe("Converter Utilities", () => {
                 );
                 const result = convertValueToUserUnits(1000, "distance");
                 expect(result).toBeCloseTo(1, 1);
+                expect(result).not.toBe(1000);
                 expect(mockLocalStorage.getItem).toHaveBeenCalledWith(
                     "chartjs_distanceUnits"
                 );
@@ -484,6 +489,7 @@ describe("Converter Utilities", () => {
                 );
                 const result = convertValueToUserUnits(25, "temperature");
                 expect(result).toBe(77);
+                expect(result).not.toBe(25);
                 expect(mockLocalStorage.getItem).toHaveBeenCalledWith(
                     "chartjs_temperatureUnits"
                 );
