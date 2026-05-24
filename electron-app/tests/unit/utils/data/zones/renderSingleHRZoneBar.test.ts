@@ -176,6 +176,23 @@ describe("renderSingleHRZoneBar", () => {
         vi.clearAllMocks();
     });
 
+    function getCapturedChartConfig(view?: any) {
+        const chartConfig =
+            (mockChartInstance as any)?.config ??
+            view?.config ??
+            (globalThis as any)?.Chart?.mock?.calls?.[0]?.[1] ??
+            (window as any)?.Chart?.mock?.calls?.[0]?.[1] ??
+            lastChartConfig ??
+            (global as any).__lastChartConfig;
+
+        expect(chartConfig).toMatchObject({
+            data: { labels: ["Time in Zone"] },
+            options: expect.any(Object),
+            type: "bar",
+        });
+        return chartConfig;
+    }
+
     it("should create a Chart.js chart with correct configuration", () => {
         // Prepare test data
         const zoneData = [
@@ -185,7 +202,7 @@ describe("renderSingleHRZoneBar", () => {
         ];
 
         // Call the function
-        const result = renderSingleHRZoneBar(canvas, zoneData);
+        const view = renderSingleHRZoneBar(canvas, zoneData);
 
         // Verify Chart.js was called with correct parameters
         expect(window.Chart).toHaveBeenCalledTimes(1);
@@ -200,7 +217,7 @@ describe("renderSingleHRZoneBar", () => {
         );
 
         // Verify the result
-        expect(result).toBe(mockChartInstance);
+        expect(view).toBe(mockChartInstance);
     });
 
     it("should handle custom options like title", () => {
@@ -208,19 +225,12 @@ describe("renderSingleHRZoneBar", () => {
         const zoneData = [{ label: "Zone 1", value: 300, color: "#ff0000" }];
 
         // Call with custom options
-        const chartInstance = renderSingleHRZoneBar(canvas, zoneData, {
+        const view = renderSingleHRZoneBar(canvas, zoneData, {
             title: "Custom HR Zones Title",
         });
         expect(window.Chart).toHaveBeenCalled();
 
-        // Prefer reading the config captured on our mock instance to avoid brittle mock.calls access
-        const chartConfig =
-            (mockChartInstance as any)?.config ??
-            (chartInstance as any)?.config ??
-            (window as any)?.Chart?.mock?.calls?.[0]?.[1] ??
-            lastChartConfig ??
-            (global as any).__lastChartConfig;
-        expect(chartConfig).toBeDefined();
+        const chartConfig = getCapturedChartConfig(view);
 
         // Verify title was set correctly
         expect(chartConfig?.options?.plugins?.title?.display).toBe(true);
@@ -254,44 +264,33 @@ describe("renderSingleHRZoneBar", () => {
         ];
 
         // Call the function
-        const chart = renderSingleHRZoneBar(canvas, zoneData);
+        const view = renderSingleHRZoneBar(canvas, zoneData);
 
         // Verify the function returned a chart
-        expect(chart).toBe(mockChartInstance);
+        expect(view).toBe(mockChartInstance);
 
         // Verify that Chart constructor was called
         expect(window.Chart).toHaveBeenCalledTimes(1);
 
         // Verify the chart was created with correct data structure
         const chartCall = (window.Chart as any).mock.calls[0];
-        expect(chartCall).toBeDefined();
+        expect(chartCall).toEqual([canvas, expect.any(Object)]);
         expect(chartCall[0]).toBe(canvas);
 
-        const chartConfig = chartCall[1];
-        expect(chartConfig).toBeDefined();
+        const chartConfig = getCapturedChartConfig(view);
         expect(chartConfig.data.datasets).toHaveLength(2);
         expect(chartConfig.data.datasets[0].label).toBe("Zone 1");
         expect(chartConfig.data.datasets[1].label).toBe("Zone 2");
 
         // Verify colors were set (mocked getChartZoneColors would provide these)
-        expect(chartConfig.data.datasets[0].backgroundColor).toBeDefined();
-        expect(chartConfig.data.datasets[1].backgroundColor).toBeDefined();
+        expect(chartConfig.data.datasets[0].backgroundColor).toBe("#ff0000");
+        expect(chartConfig.data.datasets[1].backgroundColor).toBe("#00ff00");
     });
 
     it("should wire tooltip and y-axis callbacks that format time", () => {
         const zoneData = [{ label: "Zone 1", value: 120 }];
-        const chartInstance = renderSingleHRZoneBar(canvas, zoneData);
-        // Prefer validating via the captured config rather than brittle constructor call counts
-        // Access the config stored on our mock instance with robust fallbacks
-        const cfg =
-            (mockChartInstance as any)?.config ??
-            (chartInstance as any)?.config ??
-            // Prefer globalThis.Chart mock calls since the module uses globalThis.Chart
-            (globalThis as any)?.Chart?.mock?.calls?.[0]?.[1] ??
-            (window as any)?.Chart?.mock?.calls?.[0]?.[1] ??
-            lastChartConfig ??
-            (global as any).__lastChartConfig;
-        expect(cfg).toBeDefined();
+        const view = renderSingleHRZoneBar(canvas, zoneData);
+        const cfg = getCapturedChartConfig(view);
         const yTickCb = cfg.options.scales.y.ticks.callback;
         const tooltipCb = cfg.options.plugins.tooltip.callbacks.label;
         expect(typeof yTickCb).toBe("function");
@@ -310,73 +309,61 @@ describe("renderSingleHRZoneBar", () => {
 
     it("should expose styling callbacks in configuration (smoke)", () => {
         const zoneData = [{ label: "Zone 1", value: 120 }];
-        const chartInstance = renderSingleHRZoneBar(canvas, zoneData);
-        const chartConfig =
-            (mockChartInstance as any)?.config ||
-            (chartInstance as any)?.config ||
-            (globalThis as any)?.Chart?.mock?.calls?.[0]?.[1] ||
-            (window as any)?.Chart?.mock?.calls?.[0]?.[1] ||
-            (global as any).__lastChartConfig ||
-            (lastChartConfig as any);
-        expect(chartConfig).toBeDefined();
+        const view = renderSingleHRZoneBar(canvas, zoneData);
+        const chartConfig = getCapturedChartConfig(view);
         // Verify callback presence without asserting exact styles
         expect(typeof chartConfig.options.scales.y.ticks.callback).toBe(
             "function"
         );
-        expect(
-            chartConfig.options.plugins.chartBackgroundColorPlugin
-        ).toBeDefined();
+        expect(chartConfig.options.plugins.chartBackgroundColorPlugin).toEqual(
+            expect.objectContaining({
+                backgroundColor: "#ffffff",
+                display: true,
+                text: "chart background plugin",
+            })
+        );
     });
 
     it("should handle invalid inputs gracefully", () => {
         // Test with null canvas
-        const result1 = renderSingleHRZoneBar(null as any, []);
-        expect(result1).toBeNull();
+        expect(renderSingleHRZoneBar(null as any, [])).toBeNull();
         expect(window.showNotification).toHaveBeenCalledWith(
             "Failed to render HR zone bar",
             "error"
         );
+        expect(window.Chart).not.toHaveBeenCalled();
 
         // Reset mocks
         vi.clearAllMocks();
 
         // Test with null zoneData
-        const result2 = renderSingleHRZoneBar(canvas, null as any);
-        expect(result2).toBeNull();
-        expect(window.showNotification).toHaveBeenCalledWith(
-            "Failed to render HR zone bar",
-            "error"
-        );
+        expect(renderSingleHRZoneBar(canvas, null as any)).toBeNull();
+        expect(canvas.classList.contains("chart-canvas")).toBe(false);
+        expect(window.showNotification.mock.calls).toStrictEqual([
+            ["Failed to render HR zone bar", "error"],
+        ]);
 
         // Reset mocks
         vi.clearAllMocks();
 
         // Test with missing Chart.js
         window.Chart = undefined;
-        const result3 = renderSingleHRZoneBar(canvas, [
-            { label: "Zone 1", value: 300 },
-        ]);
-        expect(result3).toBeNull();
-        expect(window.showNotification).toHaveBeenCalledWith(
-            "Failed to render HR zone bar",
-            "error"
-        );
+        expect(
+            renderSingleHRZoneBar(canvas, [{ label: "Zone 1", value: 300 }])
+        ).toBeNull();
+        expect(window.Chart).toBeUndefined();
+        expect(window.showNotification).toHaveBeenCalledTimes(1);
     });
 
     it("should include tooltip and y-axis format callbacks (smoke)", () => {
         const zoneData = [{ label: "Zone 1", value: 120 }];
-        const chartInstance = renderSingleHRZoneBar(canvas, zoneData);
-        const chartConfig =
-            (mockChartInstance as any)?.config ||
-            (chartInstance as any)?.config ||
-            (globalThis as any)?.Chart?.mock?.calls?.[0]?.[1] ||
-            (window as any)?.Chart?.mock?.calls?.[0]?.[1] ||
-            (global as any).__lastChartConfig ||
-            (lastChartConfig as any);
-        expect(chartConfig).toBeDefined();
-        expect(
-            chartConfig.options.plugins.tooltip.callbacks.label
-        ).toBeDefined();
-        expect(chartConfig.options.scales.y.ticks.callback).toBeDefined();
+        const view = renderSingleHRZoneBar(canvas, zoneData);
+        const chartConfig = getCapturedChartConfig(view);
+        expect(typeof chartConfig.options.plugins.tooltip.callbacks.label).toBe(
+            "function"
+        );
+        expect(typeof chartConfig.options.scales.y.ticks.callback).toBe(
+            "function"
+        );
     });
 });
