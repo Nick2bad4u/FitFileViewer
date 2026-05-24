@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+type MarkerCountWindow = Window & {
+    mapMarkerCount?: number;
+};
+
 vi.mock("../../../../utils/charts/theming/getThemeColors.js", () => ({
     getThemeColors: () => ({ primary: "#000", surface: "#fff" }),
 }));
@@ -10,7 +14,7 @@ vi.mock("../../../../utils/ui/notifications/showNotification.js", () => ({
 describe("createMarkerCountSelector", () => {
     beforeEach(() => {
         document.body.innerHTML = "";
-        delete (window as any).mapMarkerCount;
+        delete (window as MarkerCountWindow).mapMarkerCount;
     });
 
     it("initializes with default and invokes onChange on select change", async () => {
@@ -18,14 +22,29 @@ describe("createMarkerCountSelector", () => {
             await import("../../../../utils/ui/controls/createMarkerCountSelector.js");
         const onChange = vi.fn();
         const el = createMarkerCountSelector(onChange);
-        expect(el.querySelector("select")).toBeTruthy();
 
         const select = el.querySelector("select")! as HTMLSelectElement;
+        expect(select).toBeInstanceOf(HTMLSelectElement);
         expect(select.value).toBe("50");
         select.value = "all";
         select.dispatchEvent(new Event("change"));
-        expect((window as any).mapMarkerCount).toBe(0);
+        expect((window as MarkerCountWindow).mapMarkerCount).toBe(0);
         expect(onChange).toHaveBeenCalledWith(0);
+    });
+
+    it("falls back to the default for invalid marker count values", async () => {
+        const markerWindow = window as MarkerCountWindow;
+        markerWindow.mapMarkerCount = 999;
+
+        const { createMarkerCountSelector } =
+            await import("../../../../utils/ui/controls/createMarkerCountSelector.js");
+        const el = createMarkerCountSelector();
+        const select = el.querySelector("select")! as HTMLSelectElement;
+
+        expect(select).toBeInstanceOf(HTMLSelectElement);
+        expect(select.value).toBe("50");
+        expect(select.value).not.toBe("999");
+        expect(markerWindow.mapMarkerCount).toBe(50);
     });
 
     it("supports wheel to change selection up/down", async () => {
