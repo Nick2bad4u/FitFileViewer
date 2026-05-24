@@ -1,7 +1,7 @@
 /**
  * Minimal p-limit compatible concurrency limiter.
  *
- * The upstream `p-limit@7` requires Node >= 20. FitFileViewer still keeps
+ * The upstream `p-limit@7` requires Node 20 or newer. FitFileViewer still keeps
  * legacy Electron/Windows compatibility paths, so this module provides only the
  * subset the app uses: `pLimitCompat(concurrency)` returns a `limit(factory)`
  * function that caps concurrent executions.

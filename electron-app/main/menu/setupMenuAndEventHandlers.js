@@ -1,5 +1,11 @@
 "use strict";
 {
+    const MENU_FILE_EVENTS = ["menu-export", "menu-save-as"];
+    const MENU_UPDATE_EVENTS = [
+        "install-update",
+        "menu-check-for-updates",
+        "menu-restart-update",
+    ];
     const { CONSTANTS } = require("../constants");
     const {
         registerIpcHandle,
@@ -125,7 +131,8 @@
                 }
             },
         };
-        for (const [event, handler] of Object.entries(updateHandlers)) {
+        for (const event of MENU_UPDATE_EVENTS) {
+            const handler = updateHandlers[event];
             registerIpcListener(event, handler);
         }
         const fileMenuHandlers = {
@@ -216,7 +223,8 @@
                 })();
             },
         };
-        for (const [event, handler] of Object.entries(fileMenuHandlers)) {
+        for (const event of MENU_FILE_EVENTS) {
+            const handler = fileMenuHandlers[event];
             registerIpcListener(event, handler);
         }
         registerIpcListener("set-fullscreen", (_event, flag) => {

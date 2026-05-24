@@ -90,7 +90,13 @@ function getOpenExternalApi() {
     if (api === null || typeof api !== "object") {
         return null;
     }
-    return api;
+    return isElectronApiWithExternalOpen(api) ? api : null;
+}
+function isElectronApiWithExternalOpen(value) {
+    if (value === null || typeof value !== "object") {
+        return false;
+    }
+    return "openExternal" in value && typeof value.openExternal === "function";
 }
 function resolveExternalLinkAnchor(target) {
     if (!(target instanceof Element)) {

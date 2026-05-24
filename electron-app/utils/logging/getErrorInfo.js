@@ -1,10 +1,3 @@
-/**
- * Safely extracts a message and optional stack from an unknown thrown value.
- *
- * @param err - Unknown thrown value.
- *
- * @returns Normalized error information.
- */
 function getStringProperty(value, key) {
     if (!(key in value)) {
         return undefined;
@@ -12,6 +5,13 @@ function getStringProperty(value, key) {
     const property = value[key];
     return typeof property === "string" ? property : undefined;
 }
+/**
+ * Safely extracts a message and optional stack from an unknown thrown value.
+ *
+ * @param err - Unknown thrown value.
+ *
+ * @returns Normalized error information.
+ */
 export function getErrorInfo(err) {
     if (err && typeof err === "object") {
         const message = getStringProperty(err, "message") ?? String(err);

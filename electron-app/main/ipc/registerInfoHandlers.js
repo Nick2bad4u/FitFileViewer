@@ -1,5 +1,15 @@
 "use strict";
 {
+    const INFO_INVOKE_CHANNELS = [
+        "getAppVersion",
+        "getChromeVersion",
+        "getElectronVersion",
+        "getLicenseInfo",
+        "getNodeVersion",
+        "getPlatformInfo",
+        "map-tab:get",
+        "theme:get",
+    ];
     const getErrorMessage = (error) =>
         error instanceof Error ? error.message : String(error);
     /**
@@ -76,7 +86,8 @@
                     const packageJson = JSON.parse(
                         packageJsonBuffer.toString("utf8")
                     );
-                    return typeof packageJson.license === "string"
+                    return isPackageMetadata(packageJson) &&
+                        typeof packageJson.license === "string"
                         ? packageJson.license
                         : "Unknown";
                 } catch (error) {
@@ -100,7 +111,8 @@
             "theme:get": async () =>
                 safeConfGet("theme", CONSTANTS.DEFAULT_THEME, normalizeTheme),
         };
-        for (const [channel, handler] of Object.entries(handlers)) {
+        for (const channel of INFO_INVOKE_CHANNELS) {
+            const handler = handlers[channel];
             registerIpcHandle(channel, async (...args) => {
                 try {
                     return await handler(...args);
@@ -112,6 +124,9 @@
                 }
             });
         }
+    }
+    function isPackageMetadata(value) {
+        return value !== null && typeof value === "object";
     }
     module.exports = { registerInfoHandlers };
 }

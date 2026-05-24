@@ -207,9 +207,7 @@ export function persistState(paths = DEFAULT_PERSISTED_PATHS) {
         const existingRaw = localStorage.getItem("fitFileViewer_state");
         if (existingRaw !== null && existingRaw !== "") {
             const parsed = JSON.parse(existingRaw);
-            if (
-                isRecord(parsed)
-            ) {
+            if (isRecord(parsed)) {
                 stateToSave = parsed;
             }
         }

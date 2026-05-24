@@ -12,10 +12,8 @@ export function getFitFileBufferValidationError(value, options = {}) {
     if (!options.allowEmpty && value.byteLength === 0) {
         return "Selected file appears to be empty";
     }
-    if (
-        options.enforceMaxSize !== false &&
-        value.byteLength > MAX_FIT_FILE_BYTES
-    ) {
+    if (options.enforceMaxSize !== false &&
+        value.byteLength > MAX_FIT_FILE_BYTES) {
         return "File size exceeds 100MB limit";
     }
     return null;

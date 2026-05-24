@@ -141,13 +141,15 @@
         };
         registerIpcHandle("browser:isEnabled", async () => readEnabled());
         registerIpcHandle("browser:setEnabled", async (_event, enabled) => {
-            writeEnabled(enabled === true);
+            const requestedEnabled = enabled === true;
+            writeEnabled(requestedEnabled);
             return readEnabled();
         });
         registerIpcHandle("browser:getFolder", async () => readRootFolder());
-        registerIpcHandle("browser:setFolder", async (_event, folder) =>
-            validateAndPersistFolder(typeof folder === "string" ? folder : "")
-        );
+        registerIpcHandle("browser:setFolder", async (_event, folder) => {
+            const folderPath = typeof folder === "string" ? folder : "";
+            return validateAndPersistFolder(folderPath);
+        });
         registerIpcHandle("dialog:openFolder", async () => {
             const dialog = typeof dialogRef === "function" ? dialogRef() : null;
             if (!dialog || typeof dialog.showOpenDialog !== "function") {
@@ -182,7 +184,8 @@
                 if (!root) {
                     return { entries: [], relPath: "", root };
                 }
-                const abs = resolveWithinRoot(root, relPath, path);
+                const listRelPath = typeof relPath === "string" ? relPath : "";
+                const abs = resolveWithinRoot(root, listRelPath, path);
                 if (!abs) {
                     return { entries: [], relPath: "", root };
                 }
@@ -205,13 +208,10 @@
                     }
                     const out = [];
                     const dirents = await readdir(abs, { withFileTypes: true });
-                    const baseRel =
-                        typeof relPath === "string"
-                            ? relPath
-                                  .trim()
-                                  .replaceAll("\\", "/")
-                                  .replace(/^\/+/, "")
-                            : "";
+                    const baseRel = listRelPath
+                        .trim()
+                        .replaceAll("\\", "/")
+                        .replace(/^\/+/, "");
                     for (const d of dirents) {
                         const name =
                             d && typeof d.name === "string" ? d.name : "";

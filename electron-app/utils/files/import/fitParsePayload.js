@@ -1,10 +1,14 @@
+/** Return a named FIT message row collection using a typed indexed access. */
+export function getFitMessageRows(data, messageName) {
+    return data[messageName] ?? [];
+}
 /** Extract a parser failure from either direct or wrapped FIT parse payloads. */
 export function getFitParseErrorMessage(result) {
     const errorPayload = isFitDecodeErrorPayload(result)
         ? result
         : isFitParseEnvelope(result) && isFitDecodeErrorPayload(result.data)
-          ? result.data
-          : undefined;
+            ? result.data
+            : undefined;
     if (errorPayload) {
         return formatFitParseError(errorPayload.error, errorPayload.details);
     }
@@ -13,17 +17,9 @@ export function getFitParseErrorMessage(result) {
     }
     return null;
 }
-/** Return a named FIT message row collection using a typed indexed access. */
-export function getFitMessageRows(data, messageName) {
-    return data[messageName] ?? [];
-}
 /** Count decoded sessions defensively for debug logging. */
 export function getFitMessagesSessionCount(data) {
-    return Math.max(
-        getFitMessageRows(data, "sessionMesgs").length,
-        getFitMessageRows(data, "sessions").length,
-        getFitMessageRows(data, "session").length
-    );
+    return Math.max(getFitMessageRows(data, "sessionMesgs").length, getFitMessageRows(data, "sessions").length, getFitMessageRows(data, "session").length);
 }
 /**
  * Return decoded FIT messages or throw for parser error payloads.
@@ -58,12 +54,14 @@ function formatErrorDetails(details) {
     }
     try {
         return JSON.stringify(details);
-    } catch {
+    }
+    catch {
         return String(details);
     }
 }
 function isFitDecodeErrorPayload(value) {
-    return isPlainRecord(value) && typeof value.error === "string";
+    return (isPlainRecord(value) &&
+        typeof value.error === "string");
 }
 function isFitMessages(value) {
     return isPlainRecord(value) && Object.values(value).every(isFitMessageRows);

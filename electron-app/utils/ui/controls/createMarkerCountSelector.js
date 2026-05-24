@@ -2,7 +2,7 @@ import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { showNotification } from "../notifications/showNotification.js";
 const SVG_NS = "http://www.w3.org/2000/svg";
 const DEFAULT_MARKER_COUNT = 50;
-const MARKER_COUNT_OPTIONS = [
+const NUMERIC_MARKER_COUNT_OPTIONS = [
     10,
     25,
     50,
@@ -10,8 +10,9 @@ const MARKER_COUNT_OPTIONS = [
     200,
     500,
     1000,
-    "all",
 ];
+const MARKER_COUNT_OPTIONS = [...NUMERIC_MARKER_COUNT_OPTIONS, "all"];
+const MARKER_COUNT_OPTION_SET = new Set(NUMERIC_MARKER_COUNT_OPTIONS);
 function createMarkerCountIcon(themeColors) {
     const icon = document.createElementNS(SVG_NS, "svg");
     icon.classList.add("icon");
@@ -168,5 +169,5 @@ function resolveInitialMarkerCount(globalRef) {
     return String(DEFAULT_MARKER_COUNT);
 }
 function isMarkerCountOption(value) {
-    return MARKER_COUNT_OPTIONS.includes(value);
+    return MARKER_COUNT_OPTION_SET.has(value);
 }

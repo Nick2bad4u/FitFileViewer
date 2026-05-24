@@ -4,10 +4,10 @@
  */
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { getState, setState, subscribe } from "../core/stateManager.js";
-import { SETTINGS_SCHEMA } from "./settingsStateSchema.js";
+import { SETTING_CATEGORIES, SETTINGS_SCHEMA } from "./settingsStateSchema.js";
 const settingsSchema = SETTINGS_SCHEMA;
 function getSettingsCategories() {
-    return Object.keys(settingsSchema);
+    return [...SETTING_CATEGORIES];
 }
 function isRecord(value) {
     return Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -394,10 +394,9 @@ class SettingsStateManager {
                     existingSettings = isRecord(rootState)
                         ? rootState[category]
                         : undefined,
-                    currentSettings =
-                        isRecord(existingSettings)
-                            ? { ...existingSettings }
-                            : {};
+                    currentSettings = isRecord(existingSettings)
+                        ? { ...existingSettings }
+                        : {};
                 currentSettings[key] = value;
                 setState(`settings.${category}`, currentSettings, {
                     source: "SettingsStateManager.setSetting",

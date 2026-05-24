@@ -1,12 +1,12 @@
 "use strict";
 {
-    function getErrorMessage(error) {
-        return error instanceof Error ? error.message : String(error);
-    }
     const {
         appRef: runtimeAppRef,
         browserWindowRef: runtimeBrowserWindowRef,
     } = require("../runtime/electronAccess");
+    function getErrorMessage(error) {
+        return error instanceof Error ? error.message : String(error);
+    }
     function callElectronWhenReadyForTests() {
         if (process.env["NODE_ENV"] !== "test") {
             return;

@@ -179,7 +179,7 @@
         "build:dev:package:prod:all": "cross-env NODE_ENV=production electron-builder -l --dir",
         "build:dev:package:prod:all:zip": "cross-env NODE_ENV=production electron-builder -l --dir --win --x64 --ia32 --mac --linux --zip",
         "build:prod": "cross-env NODE_ENV=production electron-builder",
-        "build:runtime-ts": "tsc --project .\\tsconfig.runtime.json",
+        "build:runtime-ts": "tsc --project .\\tsconfig.runtime.json && node ./scripts/format-runtime-output.mjs",
         "build:win7": "node ./scripts/build-win7.mjs",
         "build-all": "electron-builder -mwl",
         "changelog": "powershell -ExecutionPolicy Bypass -File .\\Update-ChangeLogs.ps1",

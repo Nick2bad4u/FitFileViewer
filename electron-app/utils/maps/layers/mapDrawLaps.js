@@ -181,9 +181,6 @@ export function drawOverlayForFitFile({
                 // Ignore
             }
         }
-        if (!resultBounds) {
-            resultBounds = { extend: () => {} };
-        }
         return resultBounds;
     }
     return null;
@@ -1319,6 +1316,15 @@ function asRecordMesgs(value) {
 function isFitObject(value) {
     return value !== null && typeof value === "object" && !Array.isArray(value);
 }
+function isLeafletRuntimeLike(value) {
+    return (
+        isFitObject(value) &&
+        typeof value["circleMarker"] === "function" &&
+        typeof value["latLngBounds"] === "function" &&
+        typeof value["marker"] === "function" &&
+        typeof value["polyline"] === "function"
+    );
+}
 function isLapMesg(value) {
     return isFitObject(value);
 }
@@ -1347,12 +1353,12 @@ function findClosestRecordIndexByLatLon(lat, lon, records) {
 }
 function getLeaflet() {
     const w = getWin();
-    // Prefer globalThis.L if present; fall back to window.L
-    return globalThis && globalThis.L
-        ? globalThis.L
-        : w && w.L
-          ? w.L
-          : undefined;
+    const globalLeaflet = Reflect.get(globalThis, "L");
+    const candidate = isLeafletRuntimeLike(globalLeaflet) ? globalLeaflet : w.L;
+    if (isLeafletRuntimeLike(candidate)) {
+        return candidate;
+    }
+    throw new Error("Leaflet runtime is unavailable");
 }
 function getLoadedFitFiles() {
     const loadedFitFiles = getWin().loadedFitFiles;

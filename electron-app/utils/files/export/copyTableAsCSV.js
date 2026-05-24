@@ -1,8 +1,3 @@
-/**
- * CSV export constants and configuration
- *
- * @readonly
- */
 const CSV_CONFIG = {
     HEADER_ENABLED: true,
     MESSAGES: {

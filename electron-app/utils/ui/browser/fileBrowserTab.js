@@ -9,6 +9,10 @@
  *   path.
  */
 import pLimitCompat from "../../async/pLimitCompat.js";
+import {
+    getFitMessageRows,
+    unwrapFitParseMessages,
+} from "../../files/import/fitParsePayload.js";
 import { openFitFileFromPath } from "../../files/import/openFitFileFromPath.js";
 import { getState, setState } from "../../state/core/stateManager.js";
 import { getElementByIdFlexible } from "../dom/elementIdUtils.js";
@@ -268,11 +272,8 @@ async function decodeLibraryItem(api, file) {
     try {
         const buf = await api.readFile(file.fullPath);
         const decoded = await api.decodeFitFile(buf);
-        const decodedRecord = asRecord(decoded);
-        const sessionMesgs = decodedRecord?.["sessionMesgs"];
-        const session = Array.isArray(sessionMesgs)
-            ? sessionMesgs[0]
-            : null;
+        const messages = unwrapFitParseMessages(decoded);
+        const session = getFitMessageRows(messages, "sessionMesgs")[0] ?? null;
         const sessionRecord = asRecord(session);
         const startRaw =
             sessionRecord?.["start_time"] ??
@@ -397,9 +398,6 @@ function isFitBrowserListResponse(value) {
 async function listAllFitFiles(api) {
     const out = [];
     const { listFitBrowserFolder } = api;
-    if (typeof listFitBrowserFolder !== "function") {
-        return out;
-    }
     const limit = pLimitCompat(6);
     const visited = new Set();
     const walk = async (relPath) => {
@@ -1499,6 +1497,7 @@ async function scanAndRenderLibrary(root) {
     if (
         !api ||
         typeof api.listFitBrowserFolder !== "function" ||
+        typeof api.decodeFitFile !== "function" ||
         typeof api.readFile !== "function"
     ) {
         showNotification(
@@ -1507,9 +1506,14 @@ async function scanAndRenderLibrary(root) {
         );
         return;
     }
+    const libraryApi = {
+        decodeFitFile: api.decodeFitFile,
+        listFitBrowserFolder: api.listFitBrowserFolder,
+        readFile: api.readFile,
+    };
     try {
         if (statusEl) statusEl.textContent = "Listing files…";
-        const files = await listAllFitFiles(api);
+        const files = await listAllFitFiles(libraryApi);
         if (files.length === 0) {
             if (statusEl) statusEl.textContent = "No .fit files found.";
             renderLibraryResults(root, { items: [], scannedAt: Date.now() });
@@ -1529,7 +1533,7 @@ async function scanAndRenderLibrary(root) {
         const items = [];
         const tasks = files.map((file) =>
             limit(async () => {
-                const res = await decodeLibraryItem(api, file);
+                const res = await decodeLibraryItem(libraryApi, file);
                 done++;
                 if (statusEl) {
                     statusEl.textContent = `Decoding ${Math.min(done, files.length)} / ${files.length}…`;

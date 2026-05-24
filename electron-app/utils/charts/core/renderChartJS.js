@@ -29,19 +29,11 @@ import { AppActions } from "../../app/lifecycle/appActions.js";
 import { resourceManager } from "../../app/lifecycle/resourceManager.js";
 import { formatChartFields } from "../../formatting/display/formatChartFields.js";
 // State management imports
-import {
-    getState,
-    setState,
-    subscribe,
-    updateState,
-} from "../../state/core/stateManager.js";
+import { getState, setState, subscribe, updateState, } from "../../state/core/stateManager.js";
 import { middlewareManager } from "../../state/core/stateMiddleware.js";
 import { DEFAULT_MAX_POINTS } from "../plugins/chartOptionsConfig.js";
 import { getRecordValue } from "./renderChartModuleHelpers.js";
-import {
-    clearDataSettingsSignatureCache,
-    ensureDataSettingsSignature as resolveDataSettingsSignature,
-} from "./renderChartDataSettingsCache.js";
+import { clearDataSettingsSignatureCache, ensureDataSettingsSignature as resolveDataSettingsSignature, } from "./renderChartDataSettingsCache.js";
 import { createDebouncedDirectRerender } from "./renderChartDirectRerender.js";
 import { createExportChartsWithState } from "./renderChartExportState.js";
 import { clearChartLabelsCache } from "./renderChartLabelCache.js";
@@ -49,63 +41,21 @@ import { notify } from "./renderChartNotificationHelpers.js";
 import { hexToRgba as convertHexToRgba } from "./renderChartColorUtils.js";
 import { prewarmChartRenderCaches as prewarmChartRenderCachesImpl } from "./renderChartCachePrewarm.js";
 import { initializeChartRuntimeBootstrap } from "./renderChartRuntimeBootstrap.js";
-import {
-    clearPerformanceSettingsCache,
-    resolvePerformanceSettings,
-} from "./renderChartPerformanceSettings.js";
+import { clearPerformanceSettingsCache, resolvePerformanceSettings, } from "./renderChartPerformanceSettings.js";
 import { resolveChartRenderSettings } from "./renderChartRenderSettings.js";
 import { chartPerformanceMonitor as chartPerformanceMonitorImpl } from "./renderChartPerformanceMonitor.js";
-import {
-    clearChartSeriesCache,
-    getChartSeriesCacheStats as getSeriesCacheStats,
-} from "./renderChartSeriesCache.js";
-import {
-    ensureProcessNextTick,
-    getDebouncedChartStateManager,
-    getGlobalChartActions,
-    getGlobalChartInstances,
-    isChartDebugEnabled,
-    isDevelopmentEnvironment,
-    isLoadingStateSuppressed,
-    isTestEnvironment,
-    notifyChartRenderComplete,
-    setGlobalChartActions,
-} from "./renderChartRuntimeHelpers.js";
-import {
-    createDataSettingsSignature,
-    DATA_SIGNATURE_SOURCES,
-} from "./renderChartSettingsSignature.js";
+import { clearChartSeriesCache, getChartSeriesCacheStats as getSeriesCacheStats, } from "./renderChartSeriesCache.js";
+import { ensureProcessNextTick, getDebouncedChartStateManager, getGlobalChartActions, getGlobalChartInstances, isChartDebugEnabled, isDevelopmentEnvironment, isLoadingStateSuppressed, isTestEnvironment, notifyChartRenderComplete, setGlobalChartActions, } from "./renderChartRuntimeHelpers.js";
+import { createDataSettingsSignature, DATA_SIGNATURE_SOURCES, } from "./renderChartSettingsSignature.js";
 import { getThemeConfigSafe } from "./renderChartThemeHelpers.js";
 import { addHoverEffectsToExistingCharts } from "../plugins/addChartHoverEffects.js";
-import {
-    previousChartState as previousChartStateCompat,
-    resetChartNotificationState as resetChartNotificationStateCompat,
-    updatePreviousChartState as updatePreviousChartStateCompat,
-} from "./renderChartNotificationStateCompat.js";
-import {
-    addInvalidateChartRenderCacheListener as addCacheInvalidationListener,
-    notifyInvalidateChartRenderCacheListeners,
-} from "./renderChartCacheInvalidationListeners.js";
+import { previousChartState as previousChartStateCompat, resetChartNotificationState as resetChartNotificationStateCompat, updatePreviousChartState as updatePreviousChartStateCompat, } from "./renderChartNotificationStateCompat.js";
+import { addInvalidateChartRenderCacheListener as addCacheInvalidationListener, notifyInvalidateChartRenderCacheListeners, } from "./renderChartCacheInvalidationListeners.js";
 import { safeCompleteRendering } from "./renderChartCompletion.js";
 import { createChartRenderCacheApi } from "./renderChartCacheApi.js";
 import { createChartRenderCacheManager } from "./renderChartCacheManager.js";
-import {
-    getComputedStateManagerSafe,
-    getConvertersSafe,
-    getFormatChartFieldsSafe,
-    getHoverPluginsSafe,
-    getRendererModulesSafe,
-    getSettingsStateManagerSafe,
-    getSetupZoneDataSafe,
-    getShowRenderNotificationSafe,
-    getUIStateManagerMaybe,
-} from "./renderChartDependencyAccessors.js";
-import {
-    callGetState,
-    callSetState,
-    callUpdateState,
-    getStateManagerSafe,
-} from "./renderChartStateAccess.js";
+import { getComputedStateManagerSafe, getConvertersSafe, getFormatChartFieldsSafe, getHoverPluginsSafe, getRendererModulesSafe, getSettingsStateManagerSafe, getSetupZoneDataSafe, getShowRenderNotificationSafe, getUIStateManagerMaybe, } from "./renderChartDependencyAccessors.js";
+import { callGetState, callSetState, callUpdateState, getStateManagerSafe, } from "./renderChartStateAccess.js";
 import { createChartStateView } from "./renderChartStateView.js";
 import { createChartStateManagementApi } from "./renderChartStateManagementApi.js";
 import { createChartActions } from "./renderChartActions.js";
@@ -116,14 +66,8 @@ import { renderChartErrorPlaceholder } from "./renderChartPlaceholders.js";
 import { prepareChartRenderData } from "./renderChartDataReadiness.js";
 import { exposeChartDevTools } from "./renderChartDevTools.js";
 import { executePreparedChartRender } from "./renderChartPreparedExecution.js";
-import {
-    createRenderTimingGate,
-    RENDER_DEBOUNCE_MS,
-} from "./renderChartTiming.js";
-import {
-    normalizeRenderChartOptions,
-    shouldAbortInactiveChartRender,
-} from "./renderChartPreflight.js";
+import { createRenderTimingGate, RENDER_DEBOUNCE_MS, } from "./renderChartTiming.js";
+import { normalizeRenderChartOptions, shouldAbortInactiveChartRender, } from "./renderChartPreflight.js";
 import { prepareChartRenderContainer } from "./renderChartContainerSetup.js";
 import { beginChartRenderSession } from "./renderChartSessionStart.js";
 import { resolveChartFieldRenderPlan } from "./renderChartFieldPlan.js";
@@ -207,8 +151,7 @@ export function invalidateChartRenderCache(reason = "manual") {
 export async function prewarmChartRenderCaches(params) {
     return chartRenderCacheApi.prewarmChartRenderCaches(params);
 }
-const ensureDataSettingsSignature = (settings) =>
-    chartRenderCacheApi.ensureDataSettingsSignature(settings);
+const ensureDataSettingsSignature = (settings) => chartRenderCacheApi.ensureDataSettingsSignature(settings);
 /** Last chart notification state retained for compatibility callers. */
 export const previousChartState = previousChartStateCompat;
 /** Resets notification tracking for the next chart render. */
@@ -225,8 +168,7 @@ const chartGlobal = initializeChartRuntimeBootstrap({
 });
 /** Reactive view over chart state and renderable fields. */
 export const chartState = createChartStateView({
-    getFieldVisibility: (field) =>
-        chartSettingsManager.getFieldVisibility(field),
+    getFieldVisibility: (field) => chartSettingsManager.getFieldVisibility(field),
     getFormatChartFields: getFormatChartFieldsSafe,
     getState: callGetState,
 });
@@ -308,103 +250,73 @@ export function refreshChartsIfNeeded() {
  */
 export async function renderChartJS(targetContainer = undefined, options = {}) {
     console.log("[ChartJS] Starting chart rendering...");
-    const { allowInactiveTab, skipTabAbort, skipControls } =
-        normalizeRenderChartOptions(options);
-    if (
-        shouldAbortInactiveChartRender(
-            {
-                getStateManager: getStateManagerSafe,
-                isTestEnvironment,
-                log: (message) => console.log(message),
-            },
-            allowInactiveTab
-        )
-    ) {
+    const { allowInactiveTab, skipTabAbort, skipControls } = normalizeRenderChartOptions(options);
+    if (shouldAbortInactiveChartRender({
+        getStateManager: getStateManagerSafe,
+        isTestEnvironment,
+        log: (message) => console.log(message),
+    }, allowInactiveTab)) {
         return false;
     }
     try {
-        const renderSession = await beginChartRenderSession(
-            {
-                chartGlobal,
-                doc: document,
-                getGlobalChartActions,
-                isLoadingStateSuppressed,
-                notify,
-                now: () => performance.now(),
-                safeCompleteRendering,
-                setState: callSetState,
-                updateState: callUpdateState,
-                waitIfRapidRender: () => renderTimingGate.waitIfRapidRender(),
-            },
-            { targetContainer }
-        );
+        const renderSession = await beginChartRenderSession({
+            chartGlobal,
+            doc: document,
+            getGlobalChartActions,
+            isLoadingStateSuppressed,
+            notify,
+            now: () => performance.now(),
+            safeCompleteRendering,
+            setState: callSetState,
+            updateState: callUpdateState,
+            waitIfRapidRender: () => renderTimingGate.waitIfRapidRender(),
+        }, { targetContainer });
         if (!renderSession.ready) {
             return false;
         }
         const { performanceStart } = renderSession;
-        const preparedData = await prepareChartRenderData(
-            {
-                doc: document,
-                getConverters: getConvertersSafe,
-                getSetupZoneData: getSetupZoneDataSafe,
-                getState: callGetState,
-                getStateManager: getStateManagerSafe,
-                getThemeConfig: getThemeConfigSafe,
-                notify,
-                safeCompleteRendering,
-            },
-            { targetContainer }
-        );
+        const preparedData = await prepareChartRenderData({
+            doc: document,
+            getConverters: getConvertersSafe,
+            getSetupZoneData: getSetupZoneDataSafe,
+            getState: callGetState,
+            getStateManager: getStateManagerSafe,
+            getThemeConfig: getThemeConfigSafe,
+            notify,
+            safeCompleteRendering,
+        }, { targetContainer });
         if (!preparedData.ready) {
             return false;
         }
         const { activityStartTime, recordMesgs } = preparedData;
-        const { success } = await executePreparedChartRender(
-            {
-                chartGlobal,
-                createElement: (tagName) => document.createElement(tagName),
-                getGlobalChartActions,
-                getRendererModules: getRendererModulesSafe,
-                isTestEnvironment,
-                now: () => performance.now(),
-                renderChartsWithData: (
-                    target,
-                    messages,
-                    activityStart,
-                    renderOptions
-                ) =>
-                    renderChartsWithData(
-                        target,
-                        messages,
-                        activityStart,
-                        renderOptions
-                    ),
-                safeCompleteRendering,
-                warn: (message, error) => console.warn(message, error),
-            },
-            {
-                activityStartTime,
-                performanceStart,
-                recordMesgs,
-                targetContainer,
-            },
-            {
-                allowInactiveTab,
-                skipControls,
-                skipTabAbort,
-            }
-        );
+        const { success } = await executePreparedChartRender({
+            chartGlobal,
+            createElement: (tagName) => document.createElement(tagName),
+            getGlobalChartActions,
+            getRendererModules: getRendererModulesSafe,
+            isTestEnvironment,
+            now: () => performance.now(),
+            renderChartsWithData: (target, messages, activityStart, renderOptions) => renderChartsWithData(target, messages, activityStart, renderOptions),
+            safeCompleteRendering,
+            warn: (message, error) => console.warn(message, error),
+        }, {
+            activityStartTime,
+            performanceStart,
+            recordMesgs,
+            targetContainer,
+        }, {
+            allowInactiveTab,
+            skipControls,
+            skipTabAbort,
+        });
         return success;
-    } catch (error) {
+    }
+    catch (error) {
         console.error("[ChartJS] Critical error in chart rendering:", error);
         await notify("Failed to render charts due to an error", "error");
         // Handle error through state actions
         safeCompleteRendering(false);
-        await renderChartErrorPlaceholder(
-            { doc: document, getThemeConfig: getThemeConfigSafe },
-            targetContainer,
-            error
-        );
+        await renderChartErrorPlaceholder({ doc: document, getThemeConfig: getThemeConfigSafe }, targetContainer, error);
         return false;
     }
 }
@@ -418,47 +330,15 @@ export async function renderChartJS(targetContainer = undefined, options = {}) {
  *
  * @returns Success status.
  */
-async function renderChartsWithData(
-    targetContainer,
-    recordMesgs,
-    startTime,
-    options = {}
-) {
-    const {
-        isDebugLoggingEnabled,
-        isTestRuntime,
-        renderStartTime,
-        skipControls,
-        skipTabAbort,
-    } = beginChartDataRenderContext(
-        {
-            doc: document,
-            isChartDebugEnabled,
-            isDevelopmentEnvironment,
-            isTestEnvironment,
-            nowPerformance: () => performance.now(),
-        },
-        options
-    );
-    const {
-        addChartHoverEffectsSafe,
-        addHoverEffectsToExistingChartsSafe,
-        convert,
-        createChartCanvasSafe,
-        createEnhancedChartSafe,
-        gs_rcwd,
-        removeChartHoverEffectsSafe,
-        renderEventMessagesChartSafe,
-        renderGPSTimeChartSafe,
-        renderGPSTrackChartSafe,
-        renderLapZoneChartsSafe,
-        renderPerformanceAnalysisChartsSafe,
-        renderTimeInZoneChartsSafe,
-        showRenderNotificationSafe,
-        ss_rcwd,
-        themeConfig,
-        us_rcwd,
-    } = await resolveChartRuntimeDependencies({
+async function renderChartsWithData(targetContainer, recordMesgs, startTime, options = {}) {
+    const { isDebugLoggingEnabled, isTestRuntime, renderStartTime, skipControls, skipTabAbort, } = beginChartDataRenderContext({
+        doc: document,
+        isChartDebugEnabled,
+        isDevelopmentEnvironment,
+        isTestEnvironment,
+        nowPerformance: () => performance.now(),
+    }, options);
+    const { addChartHoverEffectsSafe, addHoverEffectsToExistingChartsSafe, convert, createChartCanvasSafe, createEnhancedChartSafe, gs_rcwd, removeChartHoverEffectsSafe, renderEventMessagesChartSafe, renderGPSTimeChartSafe, renderGPSTrackChartSafe, renderLapZoneChartsSafe, renderPerformanceAnalysisChartsSafe, renderTimeInZoneChartsSafe, showRenderNotificationSafe, ss_rcwd, themeConfig, us_rcwd, } = await resolveChartRuntimeDependencies({
         getConverters: getConvertersSafe,
         getHoverPlugins: getHoverPluginsSafe,
         getRendererModules: getRendererModulesSafe,
@@ -466,137 +346,96 @@ async function renderChartsWithData(
         getStateManager: getStateManagerSafe,
         getThemeConfig: getThemeConfigSafe,
     });
-    const chartContainer = prepareChartRenderContainer(
-        {
-            doc: document,
-            removeChartHoverEffects: removeChartHoverEffectsSafe,
-        },
-        { skipControls, targetContainer }
-    );
-    const {
-        animationStyle,
-        boolSettings,
-        chartType,
-        customColors,
-        dataSettingsSignature,
-        distanceUnits,
-        exportTheme,
-        interpolation,
-        normalizedMaxPoints,
-        performanceTuning,
-        smoothing,
-        temperatureUnits,
-        timeUnits,
-    } = resolveChartRenderSettings(
-        {
-            defaultMaxPoints: DEFAULT_MAX_POINTS,
-            ensureDataSettingsSignature,
-            getSettings: () => chartSettingsManager.getSettings(),
-            resolvePerformanceSettings,
-            setChartOptionsState: ss_rcwd,
-        },
-        { recordCount: recordMesgs.length }
-    );
+    const chartContainer = prepareChartRenderContainer({
+        doc: document,
+        removeChartHoverEffects: removeChartHoverEffectsSafe,
+    }, { skipControls, targetContainer });
+    const { animationStyle, boolSettings, chartType, customColors, dataSettingsSignature, distanceUnits, exportTheme, interpolation, normalizedMaxPoints, performanceTuning, smoothing, temperatureUnits, timeUnits, } = resolveChartRenderSettings({
+        defaultMaxPoints: DEFAULT_MAX_POINTS,
+        ensureDataSettingsSignature,
+        getSettings: () => chartSettingsManager.getSettings(),
+        resolvePerformanceSettings,
+        setChartOptionsState: ss_rcwd,
+    }, { recordCount: recordMesgs.length });
     const { zoomPluginConfig } = resolveChartThemeRenderPlan({
         isDebugLoggingEnabled,
         themeConfig,
     });
     // Process data using memoization helpers to avoid redundant conversions across renders
-    const { effectiveAnimationStyle, fieldsToRender, labels } =
-        resolveChartFieldRenderPlan({
-            animationStyle,
-            isDebugLoggingEnabled,
-            recordMesgs,
-            renderableFields: chartState.renderableFields,
-            startTime,
-        });
-    const chartDataRenderResult = renderChartDataCharts(
-        {
-            chartContainer,
-            chartGlobal: getChartGlobalWithInstances(),
-            createChartCanvas: createChartCanvasSafe,
-            createEnhancedChart: createEnhancedChartSafe,
-            getActiveTab: () => gs_rcwd("ui.activeTab"),
-            getFieldVisibility: (field) =>
-                chartSettingsManager.getFieldVisibility(field),
-            isDebugLoggingEnabled,
-            isTestRuntime,
-            registerChart: (chart) =>
-                resourceManager.registerChart(chart, {
-                    owner: "renderChartJS",
-                }),
-            renderers: {
-                renderEventMessagesChart: renderEventMessagesChartSafe,
-                renderGPSTimeChart: renderGPSTimeChartSafe,
-                renderGPSTrackChart: renderGPSTrackChartSafe,
-                renderLapZoneCharts: renderLapZoneChartsSafe,
-                renderPerformanceAnalysisCharts: (
-                    container,
-                    data,
-                    chartLabels,
-                    rendererOptions
-                ) =>
-                    renderPerformanceAnalysisChartsSafe(
-                        container,
-                        [...data],
-                        [...chartLabels],
-                        rendererOptions
-                    ),
-                renderTimeInZoneCharts: renderTimeInZoneChartsSafe,
-            },
-            skipTabAbort,
+    const { effectiveAnimationStyle, fieldsToRender, labels } = resolveChartFieldRenderPlan({
+        animationStyle,
+        isDebugLoggingEnabled,
+        recordMesgs,
+        renderableFields: chartState.renderableFields,
+        startTime,
+    });
+    const chartDataRenderResult = renderChartDataCharts({
+        chartContainer,
+        chartGlobal: getChartGlobalWithInstances(),
+        createChartCanvas: createChartCanvasSafe,
+        createEnhancedChart: createEnhancedChartSafe,
+        getActiveTab: () => gs_rcwd("ui.activeTab"),
+        getFieldVisibility: (field) => chartSettingsManager.getFieldVisibility(field),
+        isDebugLoggingEnabled,
+        isTestRuntime,
+        registerChart: (chart) => resourceManager.registerChart(chart, {
+            owner: "renderChartJS",
+        }),
+        renderers: {
+            renderEventMessagesChart: renderEventMessagesChartSafe,
+            renderGPSTimeChart: renderGPSTimeChartSafe,
+            renderGPSTrackChart: renderGPSTrackChartSafe,
+            renderLapZoneCharts: renderLapZoneChartsSafe,
+            renderPerformanceAnalysisCharts: (container, data, chartLabels, rendererOptions) => renderPerformanceAnalysisChartsSafe(container, [...data], [...chartLabels], rendererOptions),
+            renderTimeInZoneCharts: renderTimeInZoneChartsSafe,
         },
-        {
-            animationStyle: effectiveAnimationStyle,
-            boolSettings,
-            chartType,
-            convert,
-            customColors,
-            dataSettingsSignature,
-            distanceUnits,
-            exportTheme,
-            fieldsToRender,
-            interpolation,
-            labels,
-            normalizedMaxPoints,
-            performanceTuning,
-            recordMesgs,
-            smoothing,
-            startTime,
-            temperatureUnits,
-            timeUnits,
-            zoomPluginConfig,
-        }
-    );
+        skipTabAbort,
+    }, {
+        animationStyle: effectiveAnimationStyle,
+        boolSettings,
+        chartType,
+        convert,
+        customColors,
+        dataSettingsSignature,
+        distanceUnits,
+        exportTheme,
+        fieldsToRender,
+        interpolation,
+        labels,
+        normalizedMaxPoints,
+        performanceTuning,
+        recordMesgs,
+        smoothing,
+        startTime,
+        temperatureUnits,
+        timeUnits,
+        zoomPluginConfig,
+    });
     if (chartDataRenderResult.aborted) {
         return false;
     }
-    await completeChartDataRender(
-        {
-            addChartHoverEffects: addChartHoverEffectsSafe,
-            addHoverEffectsToExistingCharts:
-                addHoverEffectsToExistingChartsSafe,
-            chartContainer,
-            chartGlobal: getChartGlobalWithInstances(),
-            CustomEventConstructor: globalThis.CustomEvent,
-            doc: document,
-            getComputedStateManager: getComputedStateManagerSafe,
-            getState: gs_rcwd,
-            getThemeConfig: getThemeConfigSafe,
-            getUIStateManager: getUIStateManagerMaybe,
-            isTestRuntime,
-            notify,
-            now: Date.now,
-            nowPerformance: () => performance.now(),
-            showRenderNotification: showRenderNotificationSafe,
-            updatePreviousChartState,
-            updateState: us_rcwd,
-        },
-        {
-            renderStartTime,
-            visibleFieldCount: chartDataRenderResult.visibleFieldCount,
-        }
-    );
+    await completeChartDataRender({
+        addChartHoverEffects: addChartHoverEffectsSafe,
+        addHoverEffectsToExistingCharts: addHoverEffectsToExistingChartsSafe,
+        chartContainer,
+        chartGlobal: getChartGlobalWithInstances(),
+        CustomEventConstructor: globalThis.CustomEvent,
+        doc: document,
+        getComputedStateManager: getComputedStateManagerSafe,
+        getState: gs_rcwd,
+        getThemeConfig: getThemeConfigSafe,
+        getUIStateManager: getUIStateManagerMaybe,
+        isTestRuntime,
+        notify,
+        now: Date.now,
+        nowPerformance: () => performance.now(),
+        showRenderNotification: showRenderNotificationSafe,
+        updatePreviousChartState,
+        updateState: us_rcwd,
+    }, {
+        renderStartTime,
+        visibleFieldCount: chartDataRenderResult.visibleFieldCount,
+    });
     return true;
 }
 exposeChartDevTools({

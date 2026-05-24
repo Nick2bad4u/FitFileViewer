@@ -30,6 +30,9 @@ import { drawOverlayForFitFile, mapDrawLaps } from "../layers/mapDrawLaps.js";
 import { createEndIcon, createStartIcon } from "../layers/mapIcons.js";
 import { getLapColor } from "./mapColors.js";
 import { ensureMapDocumentListenersInstalled } from "./mapDocumentListeners.js";
+function isDrawnLayer(layer) {
+    return typeof layer === "object" && layer !== null;
+}
 /**
  * Render the activity map, controls, overlays, and Leaflet plugin integrations.
  */
@@ -91,7 +94,9 @@ export function renderMap() {
     let savedDrawnLayers = [];
     if (windowExt._drawnItems && windowExt._drawnItems.getLayers) {
         try {
-            const drawnLayers = windowExt._drawnItems.getLayers();
+            const drawnLayers = windowExt._drawnItems
+                .getLayers()
+                .filter(isDrawnLayer);
             savedDrawnLayers = drawnLayers
                 .map((layer) => {
                     const geoJSON =

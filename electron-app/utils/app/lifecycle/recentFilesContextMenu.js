@@ -230,7 +230,7 @@ export function attachRecentFilesContextMenu({
                         if (appGlobal.sendFitFileToAltFitReader) {
                             appGlobal.sendFitFileToAltFitReader(arrayBuffer);
                         }
-                        await activeElectronAPI.addRecentFile(file);
+                        await activeElectronAPI.addRecentFile?.(file);
                     } catch (error) {
                         showNotification(
                             `Error opening recent file: ${error}`,

@@ -14,6 +14,21 @@ function toOperationRecord(value) {
     }
     return { ...value };
 }
+function toLoadedFilePath(value) {
+    if (value === null || typeof value === "string") {
+        return value;
+    }
+    throw new TypeError("Expected loadedFitFilePath to be a string or null");
+}
+function toNullablePort(value) {
+    if (value === null) {
+        return null;
+    }
+    if (typeof value === "number" && Number.isInteger(value)) {
+        return value;
+    }
+    throw new TypeError("Expected gyazoServerPort to be an integer or null");
+}
 /**
  * Renderer-side interface to state held in the Electron main process.
  */
@@ -97,11 +112,11 @@ export class MainProcessStateClient {
             this.get("gyazoServer"),
             this.get("gyazoServerPort"),
         ]);
-        return { port: port, server };
+        return { port: toNullablePort(port), server };
     }
     /** Gets the currently loaded FIT file path. */
     async getLoadedFilePath() {
-        return this.get("loadedFitFilePath");
+        return toLoadedFilePath(await this.get("loadedFitFilePath"));
     }
     /** Gets the serialized main window reference from state. */
     async getMainWindow() {
