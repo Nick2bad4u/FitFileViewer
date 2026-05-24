@@ -58,6 +58,40 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
     /** @type {any} */
     let consoleErrorSpy;
 
+    const getRequiredElement = (id) => {
+        const element = document.getElementById(id);
+        expect(element).toBeInstanceOf(HTMLElement);
+        return element;
+    };
+
+    const appendTabButton = (id, label) => {
+        const button = document.createElement("button");
+        button.id = id;
+        button.className = "tab-button";
+        button.textContent = label;
+        testContainer.appendChild(button);
+        return button;
+    };
+
+    const appendContent = (id, text, display) => {
+        const content = document.createElement("div");
+        content.id = id;
+        content.textContent = text;
+        if (display !== undefined) {
+            content.style.display = display;
+        }
+        testContainer.appendChild(content);
+        return content;
+    };
+
+    const buildTabFixture = (tabs) => {
+        testContainer.replaceChildren();
+        tabs.forEach(({ contentId, contentText, id, label, display }) => {
+            appendTabButton(id, label);
+            appendContent(contentId, contentText, display);
+        });
+    };
+
     beforeEach(() => {
         // Set up DOM container
         testContainer = document.createElement("div");
@@ -138,7 +172,7 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
     describe("Initialization and Constructor Issues", () => {
         it("BUG TEST: should expose race condition when DOM elements missing during initialization", () => {
             // Clear any existing tab buttons to simulate DOM not ready
-            testContainer.innerHTML = "";
+            testContainer.replaceChildren();
 
             // Constructor calls setupTabButtonHandlers which queries for .tab-button elements
             // This could fail silently if DOM isn't ready
@@ -158,29 +192,28 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
         });
 
         it("DEBUG: should check mock calls", () => {
-            // Check the state of our mocks without console.log
-            expect(mockSubscribe.mock.calls.length).toBeGreaterThanOrEqual(0);
+            const observedValues = [];
+            const callback = (newValue, oldValue) => {
+                observedValues.push({ newValue, oldValue });
+            };
+            const callCountBeforeSubscribe = mockSubscribe.mock.calls.length;
 
-            // Manually trigger a subscribe call to test the mock
-            mockSubscribe("test.path", () => {});
-            expect(mockSubscribe).toHaveBeenCalled();
+            mockSubscribe("test.path", callback);
 
-            // Now check if there were calls from initialization
-            // The mock should have been called 2 times: once for ui.activeTab, once for globalData
-            // Plus our manual call = 3 total
-            // If it's only 1, then the initialization calls didn't happen
-            const totalCalls = mockSubscribe.mock.calls.length;
-            if (totalCalls === 1) {
-                // Only our manual call happened, initialization didn't call subscribe
-                console.warn(
-                    "WARNING: Subscribe was not called during module initialization"
-                );
-            } else if (totalCalls >= 3) {
-                // Good, initialization happened + our manual call
-                console.log(
-                    "SUCCESS: Subscribe was called during initialization"
-                );
-            }
+            expect(mockSubscribe.mock.calls).toHaveLength(
+                callCountBeforeSubscribe + 1
+            );
+            expect(mockSubscribe.mock.calls.at(-1)).toEqual([
+                "test.path",
+                callback,
+            ]);
+
+            const [, registeredCallback] = mockSubscribe.mock.calls.at(-1);
+            registeredCallback("next-tab", "previous-tab");
+
+            expect(observedValues).toEqual([
+                { newValue: "next-tab", oldValue: "previous-tab" },
+            ]);
         });
 
         it("BUG TEST: should expose memory leak from missing unsubscribe mechanism", () => {
@@ -201,7 +234,10 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
             // Check that no unsubscribe functions are stored
             // This is a potential memory leak - TabStateManager doesn't store unsubscribe functions
             const subscribeCall = mockSubscribe.mock.calls[0];
-            expect(subscribeCall).toBeDefined();
+            expect(subscribeCall).toEqual([
+                "ui.activeTab",
+                expect.any(Function),
+            ]);
 
             // The cleanup method should handle unsubscription but doesn't
             tabStateManager.cleanup();
@@ -226,10 +262,11 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
             }
 
             // Verify all required properties exist
-            Object.entries(TAB_CONFIG).forEach(([key, config]) => {
-                expect(config.id).toBeDefined();
-                expect(config.contentId).toBeDefined();
-                expect(config.label).toBeDefined();
+            Object.values(TAB_CONFIG).forEach((config) => {
+                expect(config.id).toMatch(/^tab-[a-z]+$/);
+                expect(config.contentId).toMatch(/^content-[a-z]+$/);
+                expect(config.label.length).toBeGreaterThan(0);
+                expect(config.label.trim()).toBe(config.label);
                 expect(typeof config.requiresData).toBe("boolean");
             });
         });
@@ -238,18 +275,33 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
     describe("Tab Button Click Handler - State Consistency Bugs", () => {
         beforeEach(() => {
             // Create tab buttons for testing
-            testContainer.innerHTML = `
-                <button id="tab-summary" class="tab-button">Summary</button>
-                <button id="tab-map" class="tab-button">Map</button>
-                <button id="tab-chart" class="tab-button">Chart</button>
-                <div id="content-summary" style="display: none;">Summary Content</div>
-                <div id="content-map" style="display: none;">Map Content</div>
-                <div id="content-chart" style="display: none;">Chart Content</div>
-            `;
+            buildTabFixture([
+                {
+                    contentId: "content-summary",
+                    contentText: "Summary Content",
+                    display: "none",
+                    id: "tab-summary",
+                    label: "Summary",
+                },
+                {
+                    contentId: "content-map",
+                    contentText: "Map Content",
+                    display: "none",
+                    id: "tab-map",
+                    label: "Map",
+                },
+                {
+                    contentId: "content-chart",
+                    contentText: "Chart Content",
+                    display: "none",
+                    id: "tab-chart",
+                    label: "Chart",
+                },
+            ]);
         });
 
         it("BUG TEST: should expose DOM/state synchronization issue", () => {
-            const summaryBtn = document.getElementById("tab-summary");
+            const summaryBtn = getRequiredElement("tab-summary");
 
             // Manually add 'active' class to simulate DOM out of sync
             summaryBtn.classList.add("active");
@@ -270,17 +322,23 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
                 mockSetState("ui.activeTab", tabName);
             };
 
-            summaryBtn.addEventListener("click", clickHandler);
+            const controller = new AbortController();
+            summaryBtn.addEventListener("click", clickHandler, {
+                signal: controller.signal,
+            });
 
             // Click should be ignored due to active class (potential bug)
             summaryBtn.click();
+            controller.abort();
 
             // setState should not be called due to DOM state check
             expect(mockSetState).not.toHaveBeenCalled();
+            expect(summaryBtn.classList.contains("active")).toBe(true);
         });
 
         it("BUG TEST: should expose data validation edge cases", () => {
-            const summaryBtn = document.getElementById("tab-summary");
+            const summaryBtn = getRequiredElement("tab-summary");
+            const validationResult = { blocked: false };
 
             // Test with malformed globalData
             mockGetState.mockImplementation((key) => {
@@ -301,14 +359,20 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
                             "Please load a FIT file first",
                             "info"
                         );
+                        validationResult.blocked = true;
                         return;
                     }
                 }
             };
 
-            summaryBtn.addEventListener("click", clickHandler);
+            const controller = new AbortController();
+            summaryBtn.addEventListener("click", clickHandler, {
+                signal: controller.signal,
+            });
             summaryBtn.click();
+            controller.abort();
 
+            expect(validationResult.blocked).toBe(true);
             expect(mockShowNotification).toHaveBeenCalledWith(
                 "Please load a FIT file first",
                 "info"
@@ -325,34 +389,48 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
                 null,
             ];
 
-            invalidButtons.forEach((buttonId) => {
-                if (buttonId === null) return;
+            const extractTabName = (id) => {
+                if (!id || typeof id !== "string") return null;
+                if (!id.startsWith("tab-")) return null;
+                return id.replace("tab-", "");
+            };
 
-                const extractTabName = (id) => {
-                    if (!id || typeof id !== "string") return null;
-                    if (!id.startsWith("tab-")) return null;
-                    return id.replace("tab-", "");
-                };
+            const results = invalidButtons.map((buttonId) => ({
+                buttonId,
+                config: TAB_CONFIG[extractTabName(buttonId)],
+                tabName: extractTabName(buttonId),
+            }));
 
-                const result = extractTabName(buttonId);
-
-                if (buttonId === "tab-nonexistent") {
-                    // Should extract name but tab doesn't exist in config
-                    expect(result).toBe("nonexistent");
-                    expect(TAB_CONFIG[result]).toBeUndefined();
-                }
-            });
+            expect(results).toEqual([
+                { buttonId: "invalid-id", config: undefined, tabName: null },
+                { buttonId: "tab-", config: undefined, tabName: "" },
+                {
+                    buttonId: "tab-nonexistent",
+                    config: undefined,
+                    tabName: "nonexistent",
+                },
+                { buttonId: "", config: undefined, tabName: null },
+                { buttonId: null, config: undefined, tabName: null },
+            ]);
         });
     });
 
     describe("Tab Change Handling - Async and Error Bugs", () => {
         beforeEach(() => {
-            testContainer.innerHTML = `
-                <button id="tab-summary" class="tab-button">Summary</button>
-                <button id="tab-map" class="tab-button">Map</button>
-                <div id="content-summary">Summary Content</div>
-                <div id="content-map">Map Content</div>
-            `;
+            buildTabFixture([
+                {
+                    contentId: "content-summary",
+                    contentText: "Summary Content",
+                    id: "tab-summary",
+                    label: "Summary",
+                },
+                {
+                    contentId: "content-map",
+                    contentText: "Map Content",
+                    id: "tab-map",
+                    label: "Map",
+                },
+            ]);
         });
 
         it("BUG TEST: should expose async handler timing issues", async () => {
@@ -386,8 +464,8 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
         });
 
         it("BUG TEST: should expose content visibility manipulation issues", () => {
-            const summaryContent = document.getElementById("content-summary");
-            const mapContent = document.getElementById("content-map");
+            const summaryContent = getRequiredElement("content-summary");
+            const mapContent = getRequiredElement("content-map");
 
             // Initial state
             summaryContent.style.display = "block";
@@ -462,15 +540,15 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
     describe("DOM Manipulation and Performance Issues", () => {
         beforeEach(() => {
             // Create comprehensive tab structure
-            let tabHTML = "";
-            let contentHTML = "";
-
-            Object.entries(TAB_CONFIG).forEach(([key, config]) => {
-                tabHTML += `<button id="${config.id}" class="tab-button">${config.label}</button>`;
-                contentHTML += `<div id="${config.contentId}" style="display: none;">${config.label} Content</div>`;
+            testContainer.replaceChildren();
+            Object.values(TAB_CONFIG).forEach((config) => {
+                appendTabButton(config.id, config.label);
+                appendContent(
+                    config.contentId,
+                    `${config.label} Content`,
+                    "none"
+                );
             });
-
-            testContainer.innerHTML = tabHTML + contentHTML;
         });
 
         it("BUG TEST: should expose performance issues with repeated DOM queries", () => {
@@ -524,7 +602,7 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
             }).not.toThrow();
 
             // Verify remaining buttons are updated
-            const mapBtn = document.getElementById("tab-map");
+            const mapBtn = getRequiredElement("tab-map");
             expect(mapBtn.getAttribute("aria-selected")).toBe("false");
         });
 
@@ -563,6 +641,9 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
 
             updateContentVisibility("summary");
 
+            expect(getRequiredElement("content-map").style.display).toBe(
+                "none"
+            );
             expect(consoleWarnSpy).toHaveBeenCalledWith(
                 "Content element not found: content-summary"
             );
@@ -571,23 +652,30 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
 
     describe("Data Tab Background Content Bug", () => {
         beforeEach(() => {
-            testContainer.innerHTML = `
-                <div id="background-data-container">
-                    <div class="bg-content">Background content 1</div>
-                    <div class="bg-content">Background content 2</div>
-                </div>
-                <div id="content-data"></div>
-            `;
+            const bgContainer = document.createElement("div");
+            bgContainer.id = "background-data-container";
+
+            const firstBackgroundContent = document.createElement("div");
+            firstBackgroundContent.className = "bg-content";
+            firstBackgroundContent.textContent = "Background content 1";
+
+            const secondBackgroundContent = document.createElement("div");
+            secondBackgroundContent.className = "bg-content";
+            secondBackgroundContent.textContent = "Background content 2";
+
+            bgContainer.append(firstBackgroundContent, secondBackgroundContent);
+
+            const visibleContainer = document.createElement("div");
+            visibleContainer.id = "content-data";
+
+            testContainer.replaceChildren(bgContainer, visibleContainer);
         });
 
         it("BUG TEST: should expose unsafe DOM manipulation in handleDataTab", () => {
-            const bgContainer = document.getElementById(
-                "background-data-container"
-            );
-            const visibleContainer = document.getElementById("content-data");
+            const bgContainer = getRequiredElement("background-data-container");
+            const visibleContainer = getRequiredElement("content-data");
 
             // Add spy to track DOM manipulation
-            const removeChildSpy = vi.spyOn(bgContainer, "removeChild");
             const appendChildSpy = vi.spyOn(visibleContainer, "appendChild");
 
             // Simulate handleDataTab logic
@@ -597,7 +685,7 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
                 bgContainer.childNodes.length > 0 &&
                 visibleContainer
             ) {
-                visibleContainer.innerHTML = "";
+                visibleContainer.replaceChildren();
 
                 // BUG: Moving nodes while iterating could cause issues
                 while (bgContainer.firstChild) {
@@ -612,43 +700,60 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
         });
 
         it("BUG TEST: should expose race condition in content moving", () => {
-            const bgContainer = document.getElementById(
-                "background-data-container"
-            );
-            const visibleContainer = document.getElementById("content-data");
+            vi.useFakeTimers();
+            const bgContainer = getRequiredElement("background-data-container");
+            const visibleContainer = getRequiredElement("content-data");
 
             // Simulate concurrent modification
             const moveContent = () => {
-                if (bgContainer && visibleContainer) {
-                    // BUG: What if bgContainer is modified during iteration?
-                    const children = Array.from(bgContainer.children);
+                // BUG: What if bgContainer is modified during iteration?
+                const children = Array.from(bgContainer.children);
 
-                    // Simulate another process modifying container
-                    setTimeout(() => {
-                        bgContainer.innerHTML = "<div>New content</div>";
-                    }, 0);
+                children.forEach((child) => {
+                    if (child.parentNode === bgContainer) {
+                        visibleContainer.appendChild(child);
+                    }
+                });
 
-                    children.forEach((child) => {
-                        if (child.parentNode === bgContainer) {
-                            visibleContainer.appendChild(child);
-                        }
-                    });
-                }
+                // Simulate another process modifying container
+                return setTimeout(() => {
+                    const newContent = document.createElement("div");
+                    newContent.textContent = "New content";
+                    bgContainer.replaceChildren(newContent);
+                }, 0);
             };
 
-            expect(() => moveContent()).not.toThrow();
+            try {
+                let mutationTimer;
+
+                expect(() => {
+                    mutationTimer = moveContent();
+                }).not.toThrow();
+                expect(visibleContainer.children).toHaveLength(2);
+                expect(bgContainer.children).toHaveLength(0);
+
+                vi.runAllTimers();
+
+                expect(bgContainer.textContent).toBe("New content");
+                clearTimeout(mutationTimer);
+            } finally {
+                vi.useRealTimers();
+            }
         });
     });
 
     describe("Iframe Security and Alternative Tab Issues", () => {
         beforeEach(() => {
-            testContainer.innerHTML = `
-                <iframe id="altfit-iframe" src="about:blank"></iframe>
-            `;
+            const iframe = document.createElement("iframe");
+            iframe.id = "altfit-iframe";
+            iframe.src = "about:blank";
+            testContainer.replaceChildren(iframe);
         });
 
         it("BUG TEST: should expose iframe manipulation security issues", () => {
-            const iframe = document.getElementById("altfit-iframe");
+            const iframe = getRequiredElement(
+                "altfit-iframe"
+            ) as HTMLIFrameElement;
 
             // Test handleAltFitTab logic
             const handleAltFitTab = () => {
@@ -663,18 +768,20 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
 
             // Initial src
             expect(iframe.src).toBe("about:blank");
+            expect(iframe.getAttribute("src")).not.toContain("ffv/index.html");
 
             handleAltFitTab();
 
             // Src should be changed
-            expect(iframe.src).toContain("ffv/index.html");
+            expect(iframe.getAttribute("src")).toBe("ffv/index.html");
 
             // Test with malicious input (if somehow injected)
             iframe.src = 'javascript:alert("xss")';
             handleAltFitTab();
 
             // Should still change to safe URL
-            expect(iframe.src).toContain("ffv/index.html");
+            expect(iframe.src.endsWith("/ffv/index.html")).toBe(true);
+            expect(iframe.src).not.toContain("javascript:");
         });
     });
 
@@ -682,8 +789,10 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
         it("BUG TEST: should expose circular dependency in state changes", () => {
             // Mock subscription callback that triggers more state changes
             let callCount = 0;
+            const stateTransitions = [];
             const recursiveCallback = vi.fn((newTab, oldTab) => {
                 callCount++;
+                stateTransitions.push({ newTab, oldTab });
                 if (callCount < 5) {
                     // Prevent infinite recursion in test
                     mockSetState("ui.activeTab", "map", {
@@ -699,7 +808,12 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
                 }
             });
 
+            mockSubscribe("ui.activeTab", recursiveCallback);
+
             // This could cause infinite loops in real code
+            expect(stateTransitions).toEqual([
+                { newTab: "summary", oldTab: "map" },
+            ]);
             expect(callCount).toBeLessThan(10);
         });
 
@@ -755,6 +869,8 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
             }
 
             // This will reveal the chart/chartjs duplication
+            expect(duplicates).toContain("renderChartJS");
+            expect(duplicates).not.toContain("renderSummary");
             expect(handlerCounts["renderChartJS"]).toBeGreaterThan(1);
         });
 
@@ -769,8 +885,7 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
                 { recordMesgs: [{}] },
             ];
 
-            testData.forEach((globalData) => {
-                // FIXED: Proper logic to check for valid data
+            const availabilityResults = testData.map((globalData) => {
                 const hasData = Boolean(
                     globalData &&
                     globalData.recordMesgs &&
@@ -778,16 +893,20 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
                     globalData.recordMesgs.length > 0
                 );
 
-                // BUG EXPOSED: The original logic would consider empty arrays as valid data
-                // This exposes the bug where empty array is truthy but should be false for tab availability
-                if (
-                    globalData &&
-                    globalData.recordMesgs !== null &&
-                    Array.isArray(globalData.recordMesgs)
-                ) {
-                    expect(hasData).toBe(globalData.recordMesgs.length > 0);
-                }
+                return { globalData, hasData };
             });
+
+            // BUG EXPOSED: The original logic would consider empty arrays as valid data
+            // This exposes the bug where empty array is truthy but should be false for tab availability
+            expect(availabilityResults.map(({ hasData }) => hasData)).toEqual([
+                false,
+                false,
+                false,
+                false,
+                false,
+                true,
+            ]);
+            expect(availabilityResults.at(-1)?.hasData).not.toBe(false);
         });
     });
 });
