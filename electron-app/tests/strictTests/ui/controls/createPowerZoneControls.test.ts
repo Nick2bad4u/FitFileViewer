@@ -6,7 +6,9 @@ async function loadModule() {
 
 describe("createPowerZoneControls", () => {
     beforeEach(() => {
-        document.body.innerHTML = '<div id="root"></div>';
+        const root = document.createElement("div");
+        root.id = "root";
+        document.body.replaceChildren(root);
         localStorage.clear();
     });
 
@@ -18,14 +20,24 @@ describe("createPowerZoneControls", () => {
         const btn = section.querySelector(
             ".power-zone-collapse-btn"
         ) as HTMLButtonElement;
-        expect(btn).toBeTruthy();
+        expect(btn).toBeInstanceOf(HTMLButtonElement);
+        expect(btn.getAttribute("aria-expanded")).toBe("true");
         const content = section.querySelector(
             "#power-zone-content"
         ) as HTMLElement;
+        expect(content).toBeInstanceOf(HTMLElement);
         btn.click();
         expect(content.style.maxHeight).toBe("0px");
+        expect(btn.getAttribute("aria-expanded")).toBe("false");
+        expect(localStorage.getItem("power-zone-controls-collapsed")).toBe(
+            "true"
+        );
         btn.click();
         expect(content.style.maxHeight).toBe("500px");
+        expect(btn.textContent).toBe("▼");
+        expect(localStorage.getItem("power-zone-controls-collapsed")).toBe(
+            "false"
+        );
     });
 
     it("updatePowerZoneControlsVisibility toggles display", async () => {
@@ -40,5 +52,12 @@ describe("createPowerZoneControls", () => {
         expect(controls.style.display).toBe("none");
         updatePowerZoneControlsVisibility(true);
         expect(controls.style.display).toBe("block");
+    });
+
+    it("updatePowerZoneControlsVisibility does not create controls when missing", async () => {
+        const { updatePowerZoneControlsVisibility } = await loadModule();
+
+        expect(() => updatePowerZoneControlsVisibility(true)).not.toThrow();
+        expect(document.getElementById("power-zone-controls")).toBeNull();
     });
 });
