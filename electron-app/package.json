@@ -132,6 +132,7 @@
             "url": "https://github.com/Nick2bad4u"
         }
     ],
+    "sideEffects": true,
     "type": "commonjs",
     "exports": {
         ".": "./main.js",
@@ -148,6 +149,25 @@
     },
     "main": "main.js",
     "module": "electron",
+    "types": "./global.d.ts",
+    "files": [
+        "assets/",
+        "elevProfile.css",
+        "fitParser.js",
+        "global.d.ts",
+        "icons/",
+        "index.html",
+        "main-ui.js",
+        "main.js",
+        "main/",
+        "package.json",
+        "preload.js",
+        "preload/",
+        "renderer.js",
+        "shared/",
+        "style.css",
+        "utils/"
+    ],
     "scripts": {
         "prebuild": "npm run build:runtime-ts",
         "build": "electron-builder",
@@ -222,7 +242,6 @@
         "update-changelog:latest": "powershell -ExecutionPolicy Bypass -File .\\Update-ChangeLogs.ps1",
         "update-deps": "npx ncu -i --install never && npm install --force && cd ../docusaurus && npx ncu -i --install never && npm install --force && cd ../electron-app"
     },
-    "config": {},
     "overrides": {
         "jsonc-eslint-parser": "$jsonc-eslint-parser"
     },
@@ -242,7 +261,6 @@
         "electron-log": "^5.4.4",
         "electron-updater": "^6.8.3",
         "hammerjs": "^2.0.8",
-        "jquery": "^4.0.0",
         "jszip": "^3.10.1",
         "leaflet": "^1.9.4",
         "leaflet-draw": "^1.0.4",
@@ -308,7 +326,6 @@
         "eslint-plugin-no-unsanitized": "^4.1.5",
         "eslint-plugin-package-json": "^1.1.0",
         "eslint-plugin-playwright": "^2.10.3",
-        "eslint-plugin-react": "^7.37.5",
         "eslint-plugin-react-hooks": "^7.1.1",
         "eslint-plugin-react-perf": "^3.3.3",
         "eslint-plugin-redos": "^4.5.0",
@@ -350,61 +367,33 @@
         "node": ">=16.0.0",
         "npm": ">=7.0.0"
     },
+    "devEngines": {
+        "packageManager": {
+            "name": "npm",
+            "version": ">=7.0.0",
+            "onFail": "warn"
+        },
+        "runtime": {
+            "name": "node",
+            "onFail": "warn",
+            "version": ">=16.0.0"
+        }
+    },
     "os": [
-        "windows",
-        "linux",
-        "mac",
-        "macOS",
-        "win64",
-        "win64-exe",
-        "win64-squirrel",
-        "win64-msi",
-        "win64-zip",
-        "win64-7z",
-        "win64-nsis",
-        "win64-nsis-web",
-        "win64-portable",
-        "win64-tar.bz2",
-        "win64-tar.gz",
-        "win64-tar.xz",
-        "win32",
-        "win32-exe",
-        "win32-squirrel",
-        "win32-msi",
-        "win32-zip",
-        "win32-7z",
-        "win32-nsis",
-        "win32-nsis-web",
-        "win32-portable",
-        "win32-tar.bz2",
-        "win32-tar.gz",
-        "win32-tar.xz",
-        "mac-x64-dmg",
-        "mac-x64-tar.xz",
-        "mac-x64-tar.gz",
-        "mac-x64-tar.bz2",
-        "mac-arm64-dmg",
-        "mac-arm64-pkg",
-        "mac-arm64-tar.xz",
-        "mac-arm64-tar.gz",
-        "mac-arm64-tar.bz2",
         "darwin",
         "freebsd",
-        "apk",
-        "pacman",
-        "deb",
-        "rpm",
-        "snap"
+        "linux",
+        "win32"
     ],
     "cpu": [
-        "x64",
+        "arm",
         "arm64",
         "ia32",
-        "armv7l"
+        "x64"
     ],
     "preferGlobal": false,
     "publishConfig": {
-        "access": "public"
+        "registry": "https://registry.npmjs.org/"
     },
     "icon": "icons/favicon.ico",
     "api": "none",

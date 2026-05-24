@@ -45,6 +45,12 @@ const config = [
             "unicorn/prefer-module": "off",
         },
     },
+    {
+        files: ["package.json"],
+        rules: {
+            "package-json/require-peerDependencies": "off",
+        },
+    },
 ];
 
 export default config;
