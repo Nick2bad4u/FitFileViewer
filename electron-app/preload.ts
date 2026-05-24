@@ -1,6 +1,341 @@
-"use strict";
-const preloadRequire = require;
-const { createApiDiagnostics } = preloadRequire("./preload/apiDiagnostics.js");
+/**
+ * Preload script exposes a typed, secure IPC API to the renderer via
+ * contextBridge. The source remains script-style TypeScript so the runtime
+ * compiler emits CommonJS-compatible preload.js for Electron.
+ */
+type ElectronAPI = import("./shared/preloadApi").ElectronAPI;
+type GenericInvokeChannel = import("./shared/ipc").GenericInvokeChannel;
+type GenericSendChannel = import("./shared/ipc").GenericSendChannel;
+type InvokeRequestArgs<Channel extends GenericInvokeChannel> =
+    import("./shared/ipc").InvokeRequestArgs<Channel>;
+type InvokeResponsePayloadForChannel<Channel extends GenericInvokeChannel> =
+    import("./shared/ipc").InvokeResponsePayloadForChannel<Channel>;
+type IpcRequestPayload = import("./shared/ipc").IpcRequestPayload;
+type IpcResponsePayload = import("./shared/ipc").IpcResponsePayload;
+type MainStateChange = import("./shared/ipc").MainStateChange;
+type PreloadRendererIpcEventChannel =
+    import("./shared/ipc").RendererIpcEventChannel;
+type UpdateEventName = import("./shared/ipc").UpdateEventName;
+
+type ClipboardBridge = Pick<
+    ElectronAPI,
+    "writeClipboardPngDataUrl" | "writeClipboardText"
+>;
+type GenericIpcApi = Pick<
+    ElectronAPI,
+    "invoke" | "notifyFitFileLoaded" | "onIpc" | "onUpdateEvent" | "send"
+>;
+type PreloadLog = (
+    level: "error" | "info" | "warn",
+    message: string,
+    ...details: unknown[]
+) => void;
+type UnknownCallback = (...args: unknown[]) => unknown;
+type IpcEventListener = (
+    event: object,
+    ...args: IpcResponsePayload[]
+) => void;
+type MainStateEventListener = (
+    event: object,
+    change: MainStateChange
+) => void;
+
+interface PreloadContextBridge {
+    exposeInMainWorld?: (key: string, api: unknown) => void;
+}
+
+interface PreloadIpcRenderer {
+    invoke?: (
+        channel: string,
+        ...args: IpcRequestPayload[]
+    ) => Promise<IpcResponsePayload>;
+    off?: (channel: string, listener: IpcEventListener) => void;
+    on?: (channel: string, listener: IpcEventListener) => void;
+    removeAllListeners?: (channel: string) => void;
+    removeListener?: (channel: string, listener: IpcEventListener) => void;
+    send?: (channel: string, ...args: IpcRequestPayload[]) => void;
+}
+
+interface PreloadElectronBridge {
+    contextBridge?: null | PreloadContextBridge;
+    default?: null | PreloadElectronBridge;
+    ipcRenderer?: null | PreloadIpcRenderer;
+}
+
+type PreloadGlobal = typeof globalThis & {
+    __electronHoistedMock?: null | PreloadElectronBridge;
+};
+
+interface PreloadChannels {
+    readonly APP_VERSION: "getAppVersion";
+    readonly CHROME_VERSION: "getChromeVersion";
+    readonly CLIPBOARD_WRITE_PNG_DATA_URL: "clipboard:writePngDataUrl";
+    readonly CLIPBOARD_WRITE_TEXT: "clipboard:writeText";
+    readonly DEVTOOLS_INJECT_MENU: "devtools-inject-menu";
+    readonly DIALOG_OPEN_FILE: "dialog:openFile";
+    readonly DIALOG_OPEN_FOLDER: "dialog:openFolder";
+    readonly DIALOG_OPEN_OVERLAY_FILES: "dialog:openOverlayFiles";
+    readonly ELECTRON_VERSION: "getElectronVersion";
+    readonly FILE_READ: "file:read";
+    readonly FIT_BROWSER_GET_FOLDER: "browser:getFolder";
+    readonly FIT_BROWSER_IS_ENABLED: "browser:isEnabled";
+    readonly FIT_BROWSER_LIST_FOLDER: "browser:listFolder";
+    readonly FIT_BROWSER_SET_ENABLED: "browser:setEnabled";
+    readonly FIT_BROWSER_SET_FOLDER: "browser:setFolder";
+    readonly FIT_DECODE: "fit:decode";
+    readonly FIT_PARSE: "fit:parse";
+    readonly GYAZO_SERVER_START: "gyazo:server:start";
+    readonly GYAZO_SERVER_STOP: "gyazo:server:stop";
+    readonly LICENSE_INFO: "getLicenseInfo";
+    readonly NODE_VERSION: "getNodeVersion";
+    readonly PLATFORM_INFO: "getPlatformInfo";
+    readonly RECENT_FILES_ADD: "recentFiles:add";
+    readonly RECENT_FILES_APPROVE: "recentFiles:approve";
+    readonly RECENT_FILES_GET: "recentFiles:get";
+    readonly SHELL_OPEN_EXTERNAL: "shell:openExternal";
+    readonly THEME_GET: "theme:get";
+}
+
+interface PreloadEvents {
+    readonly FIT_FILE_LOADED: "fit-file-loaded";
+    readonly INSTALL_UPDATE: "install-update";
+    readonly MENU_CHECK_FOR_UPDATES: "menu-check-for-updates";
+    readonly MENU_OPEN_FILE: "menu-open-file";
+    readonly MENU_OPEN_OVERLAY: "menu-open-overlay";
+    readonly OPEN_RECENT_FILE: "open-recent-file";
+    readonly OPEN_SUMMARY_COLUMN_SELECTOR: "open-summary-column-selector";
+    readonly SET_FULLSCREEN: "set-fullscreen";
+    readonly SET_THEME: "set-theme";
+    readonly THEME_CHANGED: "theme-changed";
+}
+
+interface IpcBridgeCatalog {
+    PRELOAD_CHANNELS: PreloadChannels;
+    PRELOAD_EVENTS: PreloadEvents;
+    isAllowedGenericInvokeChannel: (
+        channel: unknown
+    ) => channel is GenericInvokeChannel;
+    isAllowedGenericSendChannel: (
+        channel: unknown
+    ) => channel is GenericSendChannel;
+    isAllowedRendererIpcEventChannel: (
+        channel: unknown
+    ) => channel is PreloadRendererIpcEventChannel;
+    isAllowedUpdateEventName: (
+        eventName: unknown
+    ) => eventName is UpdateEventName;
+}
+
+interface PreloadRequire {
+    (moduleId: "./preload/apiDiagnostics.js"): {
+        createApiDiagnostics: (options: {
+            channels: PreloadChannels;
+            contextBridge: null | PreloadContextBridge | undefined;
+            events: PreloadEvents;
+            ipcRenderer: null | PreloadIpcRenderer | undefined;
+            isDevelopmentMode: () => boolean;
+            preloadLog: PreloadLog;
+        }) => Pick<ElectronAPI, "getChannelInfo" | "validateAPI">;
+    };
+    (moduleId: "./preload/beforeExitHandler.js"): {
+        registerPreloadBeforeExitHandler: (options: {
+            globalScope?: typeof globalThis;
+            isDevelopmentMode: () => boolean;
+            preloadLog: PreloadLog;
+            processRef?: NodeJS.Process;
+        }) => void;
+    };
+    (moduleId: "./preload/clipboardBridge.js"): {
+        createClipboardBridge: (options: {
+            channels: PreloadChannels;
+            ipcRenderer: null | PreloadIpcRenderer | undefined;
+            preloadLog: PreloadLog;
+        }) => ClipboardBridge;
+    };
+    (moduleId: "./preload/devtoolsMenuApi.js"): {
+        createDevtoolsMenuApi: (options: {
+            defaultFitFilePath: null | string;
+            defaultTheme: null | string;
+            devtoolsInjectMenuChannel: "devtools-inject-menu";
+            ipcRenderer: null | PreloadIpcRenderer | undefined;
+            preloadLog: PreloadLog;
+            validateOptionalNonEmptyString: (
+                value: unknown,
+                paramName: string,
+                methodName: string
+            ) => null | string | undefined;
+        }) => Pick<ElectronAPI, "injectMenu">;
+    };
+    (moduleId: "./preload/validators.js"): {
+        createPreloadValidators: (preloadLog: PreloadLog) => {
+            validateCallback: (
+                callback: unknown,
+                methodName: string
+            ) => callback is UnknownCallback;
+            validateChannelName: (
+                value: unknown,
+                paramName: string,
+                methodName: string
+            ) => value is string;
+            validateOptionalNonEmptyString: (
+                value: unknown,
+                paramName: string,
+                methodName: string
+            ) => null | string | undefined;
+            validateRequiredNonEmptyString: (
+                value: unknown,
+                paramName: string,
+                methodName: string
+            ) => value is string;
+        };
+    };
+    (moduleId: "./preload/environment.js"): {
+        isPreloadDevelopmentMode: (processRef?: NodeJS.Process) => boolean;
+        shouldEnforceGenericIpcAllowlist: (
+            processRef?: NodeJS.Process
+        ) => boolean;
+    };
+    (moduleId: "./preload/genericIpcApi.js"): {
+        createGenericIpcApi: (options: {
+            fitFileLoadedChannel: "fit-file-loaded";
+            ipcRenderer: null | PreloadIpcRenderer | undefined;
+            isAllowedGenericInvokeChannel: (
+                channel: unknown
+            ) => channel is GenericInvokeChannel;
+            isAllowedGenericSendChannel: (
+                channel: unknown
+            ) => channel is GenericSendChannel;
+            isAllowedRendererIpcEventChannel: (
+                channel: unknown
+            ) => channel is PreloadRendererIpcEventChannel;
+            isAllowedUpdateEventName: (
+                eventName: unknown
+            ) => eventName is UpdateEventName;
+            preloadLog: PreloadLog;
+            removeIpcListener: (
+                channel: string,
+                handler: IpcEventListener
+            ) => void;
+            shouldEnforceGenericIpcAllowlist: boolean;
+            validateCallback: (
+                callback: unknown,
+                methodName: string
+            ) => callback is UnknownCallback;
+            validateChannelName: (
+                value: unknown,
+                paramName: string,
+                methodName: string
+            ) => value is string;
+        }) => GenericIpcApi;
+    };
+    (moduleId: "./preload/electronBridge.js"): {
+        resolvePreloadElectronBridge: (options: {
+            globalScope?: object;
+            requireModule: (moduleId: string) => unknown;
+        }) => {
+            contextBridge: null | PreloadContextBridge | undefined;
+            ipcRenderer: null | PreloadIpcRenderer | undefined;
+        };
+    };
+    (moduleId: "./preload/mainStateBridge.js"): {
+        createMainStateBridge: (options: {
+            ipcRenderer: null | PreloadIpcRenderer | undefined;
+            preloadLog: PreloadLog;
+            removeIpcListener: (
+                channel: string,
+                handler: MainStateEventListener
+            ) => void;
+        }) => {
+            listenToMainState: (
+                path: string,
+                callback: (change: MainStateChange) => void
+            ) => Promise<boolean>;
+            unlistenFromMainState: (
+                path: string,
+                callback: (change: MainStateChange) => void
+            ) => Promise<boolean>;
+        };
+    };
+    (moduleId: "./preload/ipcHelpers.js"): {
+        createPreloadIpcHelpers: (options: {
+            ipcRenderer: null | PreloadIpcRenderer | undefined;
+            preloadLog: PreloadLog;
+            validateCallback: (
+                callback: unknown,
+                methodName: string
+            ) => callback is UnknownCallback;
+        }) => {
+            createNoopUnsubscribe: () => () => void;
+            createSafeEventHandler: <Callback>(
+                channel: string,
+                methodName: string,
+                transform?: (
+                    ...args: IpcResponsePayload[]
+                ) => IpcResponsePayload | null
+            ) => (callback: Callback) => () => void;
+            createSafeInvokeHandler: <Channel extends GenericInvokeChannel>(
+                channel: Channel,
+                methodName: string
+            ) => (
+                ...args: InvokeRequestArgs<Channel>
+            ) => Promise<InvokeResponsePayloadForChannel<Channel>>;
+            createSafeSendHandler: (
+                channel: GenericSendChannel,
+                methodName: string
+            ) => (...args: IpcRequestPayload[]) => void;
+            removeIpcListener: (
+                channel: string,
+                handler: IpcEventListener
+            ) => void;
+        };
+    };
+    (moduleId: "./preload/logger.js"): {
+        createPreloadLogger: (consoleRef?: Console) => PreloadLog;
+    };
+    (moduleId: "./preload/mainStateApi.js"): {
+        createMainStateApi: (options: {
+            ipcRenderer: null | PreloadIpcRenderer | undefined;
+            mainStateBridge: {
+                listenToMainState: (
+                    path: string,
+                    callback: (change: MainStateChange) => void
+                ) => Promise<boolean>;
+                unlistenFromMainState: (
+                    path: string,
+                    callback: (change: MainStateChange) => void
+                ) => Promise<boolean>;
+            };
+            preloadLog: PreloadLog;
+            validateCallback: (
+                callback: unknown,
+                methodName: string
+            ) => callback is UnknownCallback;
+            validateRequiredNonEmptyString: (
+                value: unknown,
+                paramName: string,
+                methodName: string
+            ) => value is string;
+        }) => Pick<
+            ElectronAPI,
+            | "getErrors"
+            | "getMainState"
+            | "getMetrics"
+            | "getOperation"
+            | "getOperations"
+            | "listenToMainState"
+            | "setMainState"
+            | "subscribeToMainState"
+            | "unlistenFromMainState"
+        >;
+    };
+    (moduleId: "./preload/ipcBridgeCatalog.js"): IpcBridgeCatalog;
+    (moduleId: string): unknown;
+}
+
+const preloadRequire = require as PreloadRequire;
+const { createApiDiagnostics } = preloadRequire(
+    "./preload/apiDiagnostics.js"
+);
 const { registerPreloadBeforeExitHandler } = preloadRequire(
     "./preload/beforeExitHandler.js"
 );
@@ -11,8 +346,10 @@ const { createDevtoolsMenuApi } = preloadRequire(
     "./preload/devtoolsMenuApi.js"
 );
 const { createPreloadValidators } = preloadRequire("./preload/validators.js");
-const { isPreloadDevelopmentMode, shouldEnforceGenericIpcAllowlist } =
-    preloadRequire("./preload/environment.js");
+const {
+    isPreloadDevelopmentMode,
+    shouldEnforceGenericIpcAllowlist,
+} = preloadRequire("./preload/environment.js");
 const { createGenericIpcApi } = preloadRequire("./preload/genericIpcApi.js");
 const { resolvePreloadElectronBridge } = preloadRequire(
     "./preload/electronBridge.js"
@@ -20,10 +357,13 @@ const { resolvePreloadElectronBridge } = preloadRequire(
 const { createMainStateBridge } = preloadRequire(
     "./preload/mainStateBridge.js"
 );
-const { createPreloadIpcHelpers } = preloadRequire("./preload/ipcHelpers.js");
+const { createPreloadIpcHelpers } = preloadRequire(
+    "./preload/ipcHelpers.js"
+);
 const { createPreloadLogger } = preloadRequire("./preload/logger.js");
 const { createMainStateApi } = preloadRequire("./preload/mainStateApi.js");
 const ipcBridgeCatalog = preloadRequire("./preload/ipcBridgeCatalog.js");
+
 const {
     isAllowedGenericInvokeChannel,
     isAllowedGenericSendChannel,
@@ -32,6 +372,7 @@ const {
     PRELOAD_CHANNELS,
     PRELOAD_EVENTS,
 } = ipcBridgeCatalog;
+
 // Constants for better maintainability
 const CONSTANTS = {
     CHANNELS: PRELOAD_CHANNELS,
@@ -42,23 +383,28 @@ const CONSTANTS = {
     EVENTS: PRELOAD_EVENTS,
 };
 const DEVELOPMENT_TOOLS_GLOBAL_NAME = ["dev", "Tools"].join("");
+
 const { contextBridge, ipcRenderer } = resolvePreloadElectronBridge({
     globalScope: getPreloadGlobal(),
     requireModule: preloadRequire,
 });
 const preloadLog = createPreloadLogger(console);
+
 const {
     validateCallback,
     validateChannelName,
     validateOptionalNonEmptyString,
     validateRequiredNonEmptyString,
 } = createPreloadValidators(preloadLog);
-function getPreloadGlobal() {
+
+function getPreloadGlobal(): PreloadGlobal {
     return globalThis;
 }
-function isDevelopmentMode() {
+
+function isDevelopmentMode(): boolean {
     return isPreloadDevelopmentMode(process);
 }
+
 const {
     createSafeEventHandler,
     createSafeInvokeHandler,
@@ -69,6 +415,7 @@ const {
     preloadLog,
     validateCallback,
 });
+
 /**
  * Enforce the generic send/invoke allowlist only when we are running in
  * Electron.
@@ -83,10 +430,14 @@ const {
  */
 const SHOULD_ENFORCE_GENERIC_IPC_ALLOWLIST =
     typeof process !== "undefined" && shouldEnforceGenericIpcAllowlist(process);
+
 const mainStateBridge = createMainStateBridge({
     ipcRenderer,
     preloadLog,
-    removeIpcListener: removeIpcListener,
+    removeIpcListener: removeIpcListener as unknown as (
+        channel: string,
+        handler: MainStateEventListener
+    ) => void,
 });
 const clipboardBridge = createClipboardBridge({
     channels: CONSTANTS.CHANNELS,
@@ -129,8 +480,9 @@ const genericIpcApi = createGenericIpcApi({
     validateCallback,
     validateChannelName,
 });
+
 // Main API object
-const electronAPI = {
+const electronAPI: ElectronAPI = {
     /**
      * Adds a file to the recent files list.
      *
@@ -142,6 +494,7 @@ const electronAPI = {
         CONSTANTS.CHANNELS.RECENT_FILES_ADD,
         "addRecentFile"
     ),
+
     /**
      * Approve a recent file path for subsequent readFile() calls.
      *
@@ -160,6 +513,7 @@ const electronAPI = {
         CONSTANTS.CHANNELS.RECENT_FILES_APPROVE,
         "approveRecentFile"
     ),
+
     /**
      * Trigger a check for updates (menu or manual).
      */
@@ -167,6 +521,7 @@ const electronAPI = {
         CONSTANTS.EVENTS.MENU_CHECK_FOR_UPDATES,
         "checkForUpdates"
     ),
+
     /**
      * Decodes a FIT file from an ArrayBuffer and returns the parsed data.
      *
@@ -178,6 +533,7 @@ const electronAPI = {
         CONSTANTS.CHANNELS.FIT_DECODE,
         "decodeFitFile"
     ),
+
     // Application Information
     /**
      * Gets the app version from the main process.
@@ -188,6 +544,7 @@ const electronAPI = {
         CONSTANTS.CHANNELS.APP_VERSION,
         "getAppVersion"
     ),
+
     // Development and Debugging Helpers
     /**
      * Get information about available IPC channels for debugging.
@@ -196,6 +553,7 @@ const electronAPI = {
      */
     /** @returns {ChannelInfo} */
     getChannelInfo: apiDiagnostics.getChannelInfo,
+
     /**
      * Gets the Chrome version.
      *
@@ -205,6 +563,7 @@ const electronAPI = {
         CONSTANTS.CHANNELS.CHROME_VERSION,
         "getChromeVersion"
     ),
+
     /**
      * Gets the Electron version.
      *
@@ -214,6 +573,7 @@ const electronAPI = {
         CONSTANTS.CHANNELS.ELECTRON_VERSION,
         "getElectronVersion"
     ),
+
     /**
      * Gets recent errors from the main process.
      *
@@ -223,6 +583,7 @@ const electronAPI = {
      * @returns {Promise<Array>} Array of recent errors
      */
     getErrors: mainStateApi.getErrors,
+
     /**
      * Gets the persisted FIT browser folder (main process setting).
      *
@@ -241,6 +602,7 @@ const electronAPI = {
         CONSTANTS.CHANNELS.LICENSE_INFO,
         "getLicenseInfo"
     ),
+
     // Main Process State Management Functions
     /**
      * Gets a value from the main process state.
@@ -252,12 +614,14 @@ const electronAPI = {
      *   state if no path provided
      */
     getMainState: mainStateApi.getMainState,
+
     /**
      * Gets performance metrics from the main process.
      *
      * @returns {Promise<Object>} Object containing performance metrics
      */
     getMetrics: mainStateApi.getMetrics,
+
     /**
      * Gets the Node.js version.
      *
@@ -267,6 +631,7 @@ const electronAPI = {
         CONSTANTS.CHANNELS.NODE_VERSION,
         "getNodeVersion"
     ),
+
     /**
      * Gets the status of a specific operation from the main process.
      *
@@ -275,16 +640,19 @@ const electronAPI = {
      * @returns {Promise<IpcSerializable | null>} The operation status object
      */
     getOperation: mainStateApi.getOperation,
+
     /**
      * Gets all operations from the main process.
      *
      * @returns {Promise<Object>} Object containing all operations
      */
     getOperations: mainStateApi.getOperations,
+
     getPlatformInfo: createSafeInvokeHandler(
         CONSTANTS.CHANNELS.PLATFORM_INFO,
         "getPlatformInfo"
     ),
+
     // Theme Management
     /**
      * Gets the current theme from the main process.
@@ -302,6 +670,7 @@ const electronAPI = {
      * @returns {Promise<boolean>}
      */
     injectMenu: devtoolsMenuApi.injectMenu,
+
     /**
      * Trigger install of a downloaded update.
      */
@@ -309,6 +678,7 @@ const electronAPI = {
         CONSTANTS.EVENTS.INSTALL_UPDATE,
         "installUpdate"
     ),
+
     /**
      * Expose ipcRenderer.invoke for direct use with error handling.
      *
@@ -318,6 +688,7 @@ const electronAPI = {
      * @returns {Promise<IpcResponsePayload>}
      */
     invoke: genericIpcApi.invoke,
+
     /**
      * Whether the experimental Browser tab is enabled.
      *
@@ -327,6 +698,7 @@ const electronAPI = {
         CONSTANTS.CHANNELS.FIT_BROWSER_IS_ENABLED,
         "isFitBrowserEnabled"
     ),
+
     /**
      * Listens for changes to a specific path in the main process state.
      *
@@ -336,6 +708,7 @@ const electronAPI = {
      * @returns {Promise<boolean>} True if listener was registered successfully
      */
     listenToMainState: mainStateApi.listenToMainState,
+
     /**
      * Lists the current directory under the persisted FIT browser folder.
      *
@@ -346,7 +719,8 @@ const electronAPI = {
     listFitBrowserFolder: createSafeInvokeHandler(
         CONSTANTS.CHANNELS.FIT_BROWSER_LIST_FOLDER,
         "listFitBrowserFolder"
-    ),
+    ) as ElectronAPI["listFitBrowserFolder"],
+
     /**
      * Notify the main process that a file has been loaded (or unloaded).
      *
@@ -357,6 +731,7 @@ const electronAPI = {
      * @param {string | null} filePath
      */
     notifyFitFileLoaded: genericIpcApi.notifyFitFileLoaded,
+
     // Generic IPC Functions with enhanced validation
     /**
      * Registers a generic handler for any IPC event (for internal use).
@@ -368,6 +743,7 @@ const electronAPI = {
      *   registration succeeds
      */
     onIpc: genericIpcApi.onIpc,
+
     // Event Handlers with enhanced error handling
     /**
      * Registers a handler for the 'menu-open-file' event.
@@ -378,6 +754,7 @@ const electronAPI = {
         CONSTANTS.EVENTS.MENU_OPEN_FILE,
         "onMenuOpenFile"
     ),
+
     /**
      * Registers a handler for the 'menu-open-overlay' event.
      *
@@ -387,6 +764,7 @@ const electronAPI = {
         CONSTANTS.EVENTS.MENU_OPEN_OVERLAY,
         "onMenuOpenOverlay"
     ),
+
     /**
      * Registers a handler for the 'open-recent-file' event.
      *
@@ -395,8 +773,9 @@ const electronAPI = {
     onOpenRecentFile: createSafeEventHandler(
         CONSTANTS.EVENTS.OPEN_RECENT_FILE,
         "onOpenRecentFile",
-        (filePath) => filePath // Transform to extract just the filePath
+        (filePath: IpcResponsePayload) => filePath // Transform to extract just the filePath
     ),
+
     /**
      * Registers a handler for the 'open-summary-column-selector' event.
      *
@@ -406,6 +785,7 @@ const electronAPI = {
         CONSTANTS.EVENTS.OPEN_SUMMARY_COLUMN_SELECTOR,
         "onOpenSummaryColumnSelector"
     ),
+
     /**
      * Registers a handler for the 'set-theme' event.
      *
@@ -414,8 +794,9 @@ const electronAPI = {
     onSetTheme: createSafeEventHandler(
         CONSTANTS.EVENTS.SET_THEME,
         "onSetTheme",
-        (theme) => theme // Transform to extract just the theme
+        (theme: IpcResponsePayload) => theme // Transform to extract just the theme
     ),
+
     // Auto-Updater Functions with enhanced error handling
     /**
      * Listen for update events from the main process (auto-updater).
@@ -424,6 +805,7 @@ const electronAPI = {
      * @param {Function} callback - Callback function to handle the event
      */
     onUpdateEvent: genericIpcApi.onUpdateEvent,
+
     /**
      * Opens a URL in the user's default external browser.
      *
@@ -435,6 +817,7 @@ const electronAPI = {
         CONSTANTS.CHANNELS.SHELL_OPEN_EXTERNAL,
         "openExternal"
     ),
+
     // File Operations
     /**
      * Opens a file dialog and returns the selected file path. Returns null when
@@ -446,6 +829,7 @@ const electronAPI = {
         CONSTANTS.CHANNELS.DIALOG_OPEN_FILE,
         "openFile"
     ),
+
     /**
      * Alias for openFile. Returns null when the user cancels.
      *
@@ -455,6 +839,7 @@ const electronAPI = {
         CONSTANTS.CHANNELS.DIALOG_OPEN_FILE,
         "openFileDialog"
     ),
+
     /**
      * Opens a folder picker dialog and returns the selected folder path.
      * Returns null when the user cancels.
@@ -465,6 +850,7 @@ const electronAPI = {
         CONSTANTS.CHANNELS.DIALOG_OPEN_FOLDER,
         "openFolderDialog"
     ),
+
     /**
      * Opens the overlay file dialog with multi-selection support.
      *
@@ -474,6 +860,7 @@ const electronAPI = {
         CONSTANTS.CHANNELS.DIALOG_OPEN_OVERLAY_FILES,
         "openOverlayDialog"
     ),
+
     // FIT File Operations
     /**
      * Parses a FIT file from an ArrayBuffer and returns the decoded data.
@@ -486,6 +873,7 @@ const electronAPI = {
         CONSTANTS.CHANNELS.FIT_PARSE,
         "parseFitFile"
     ),
+
     /**
      * Reads a file from the given file path and returns its contents as an
      * ArrayBuffer.
@@ -495,6 +883,7 @@ const electronAPI = {
      * @returns {Promise<ArrayBuffer>}
      */
     readFile: createSafeInvokeHandler(CONSTANTS.CHANNELS.FILE_READ, "readFile"),
+
     // Recent Files Management
     /**
      * Gets the list of recent files.
@@ -505,6 +894,7 @@ const electronAPI = {
         CONSTANTS.CHANNELS.RECENT_FILES_GET,
         "recentFiles"
     ),
+
     /**
      * Send an IPC message to the main process.
      *
@@ -512,6 +902,7 @@ const electronAPI = {
      * @param {...IpcRequestPayload} args - Arguments to send
      */
     send: genericIpcApi.send,
+
     /**
      * Sends a 'theme-changed' event to the main process.
      *
@@ -521,6 +912,7 @@ const electronAPI = {
         CONSTANTS.EVENTS.THEME_CHANGED,
         "sendThemeChanged"
     ),
+
     /**
      * Enable/disable the experimental Browser tab.
      *
@@ -532,6 +924,7 @@ const electronAPI = {
         CONSTANTS.CHANNELS.FIT_BROWSER_SET_ENABLED,
         "setFitBrowserEnabled"
     ),
+
     /**
      * Persist the Browser root folder.
      *
@@ -543,6 +936,7 @@ const electronAPI = {
         CONSTANTS.CHANNELS.FIT_BROWSER_SET_FOLDER,
         "setFitBrowserFolder"
     ),
+
     /**
      * Sets the full screen mode.
      *
@@ -552,6 +946,7 @@ const electronAPI = {
         CONSTANTS.EVENTS.SET_FULLSCREEN,
         "setFullScreen"
     ),
+
     /**
      * Sets a value in the main process state (restricted to allowed paths).
      *
@@ -566,6 +961,7 @@ const electronAPI = {
      *   restricted
      */
     setMainState: mainStateApi.setMainState,
+
     // Gyazo OAuth Server Functions
     /**
      * Starts a temporary local server for Gyazo OAuth callback handling.
@@ -582,6 +978,7 @@ const electronAPI = {
         CONSTANTS.CHANNELS.GYAZO_SERVER_START,
         "startGyazoServer"
     ),
+
     /**
      * Stops the temporary Gyazo OAuth callback server.
      *
@@ -591,6 +988,7 @@ const electronAPI = {
         CONSTANTS.CHANNELS.GYAZO_SERVER_STOP,
         "stopGyazoServer"
     ),
+
     /**
      * Subscribe to main state changes and get an unsubscribe function.
      *
@@ -600,6 +998,7 @@ const electronAPI = {
      * @returns {Promise<() => Promise<boolean>>}
      */
     subscribeToMainState: mainStateApi.subscribeToMainState,
+
     /**
      * Removes a previously registered main state listener.
      *
@@ -609,12 +1008,14 @@ const electronAPI = {
      * @returns {Promise<boolean>}
      */
     unlistenFromMainState: mainStateApi.unlistenFromMainState,
+
     /**
      * Validate the preload API is working correctly.
      *
      * @returns {boolean} True if API is functional
      */
     validateAPI: apiDiagnostics.validateAPI,
+
     /**
      * Write a PNG image to the system clipboard.
      *
@@ -627,6 +1028,7 @@ const electronAPI = {
      * @returns {Promise<boolean>} True if the write succeeded
      */
     writeClipboardPngDataUrl: clipboardBridge.writeClipboardPngDataUrl,
+
     /**
      * Write text to the system clipboard using Electron's clipboard module.
      * This avoids browser Clipboard API permission issues in file:// contexts.
@@ -640,6 +1042,7 @@ const electronAPI = {
      */
     writeClipboardText: clipboardBridge.writeClipboardText,
 };
+
 // Enhanced API exposure with error handling
 try {
     // Validate API before exposing
@@ -649,6 +1052,7 @@ try {
             throw new TypeError("contextBridge unavailable");
         }
         exposeInMainWorld("electronAPI", electronAPI);
+
         // Log API structure in development
         if (isDevelopmentMode()) {
             preloadLog(
@@ -656,7 +1060,7 @@ try {
                 "[preload.js] Successfully exposed electronAPI to main world"
             );
             const apiKeys = Object.keys(electronAPI),
-                apiRecord = electronAPI,
+                apiRecord = electronAPI as unknown as Record<string, unknown>,
                 /** @type {string[]} */
                 methods = apiKeys.filter(
                     (key) => typeof apiRecord[key] === "function"
@@ -680,6 +1084,7 @@ try {
 } catch (error) {
     preloadLog("error", "[preload.js] Failed to expose electronAPI:", error);
 }
+
 // Development helpers - only available in development mode
 if (isDevelopmentMode()) {
     try {
@@ -697,6 +1102,7 @@ if (isDevelopmentMode()) {
                     timestamp: new Date().toISOString(),
                     version: "1.0.0",
                 }),
+
                 /**
                  * Log current API state
                  */
@@ -708,6 +1114,7 @@ if (isDevelopmentMode()) {
                         timestamp: new Date().toISOString(),
                     });
                 },
+
                 /**
                  * Test IPC communication
                  */
@@ -730,6 +1137,7 @@ if (isDevelopmentMode()) {
                     }
                 },
             });
+
             preloadLog("info", "[preload.js] Development tools exposed");
         } else {
             throw new Error("contextBridge unavailable");
@@ -742,6 +1150,7 @@ if (isDevelopmentMode()) {
         );
     }
 }
+
 // Cleanup and final validation
 registerPreloadBeforeExitHandler({
     globalScope: globalThis,
@@ -749,6 +1158,7 @@ registerPreloadBeforeExitHandler({
     preloadLog,
     processRef: process,
 });
+
 // Report successful initialization
 if (isDevelopmentMode()) {
     preloadLog("info", "[preload.js] Preload script initialized successfully");
