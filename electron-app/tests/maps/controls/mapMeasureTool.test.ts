@@ -115,14 +115,26 @@ describe("mapMeasureTool.js", () => {
         vi.restoreAllMocks();
     });
 
+    function getMeasureButton() {
+        const button = controlsDiv.querySelector("button.map-action-btn");
+        expect(button).toBeInstanceOf(HTMLButtonElement);
+        if (!(button instanceof HTMLButtonElement)) {
+            throw new Error("Measure button was not rendered");
+        }
+        return button;
+    }
+
+    function getMeasureButtonLabel(button) {
+        return button.querySelector("span")?.textContent?.trim();
+    }
+
     it("should add measure button to controls div", () => {
         addSimpleMeasureTool(mockMap, controlsDiv);
 
         // Check if button was added
-        const button = controlsDiv.querySelector("button.map-action-btn");
-        expect(button).not.toBeNull();
-        expect(button?.textContent?.trim().includes("Measure")).toBe(true);
-        expect(/** @type {HTMLButtonElement} */ button?.title).toContain(
+        const button = getMeasureButton();
+        expect(getMeasureButtonLabel(button)).toBe("Measure");
+        expect(button.title).toContain(
             "Click, then click two points"
         );
     });
@@ -130,11 +142,7 @@ describe("mapMeasureTool.js", () => {
     it("should enable measurement mode when button is clicked", () => {
         addSimpleMeasureTool(mockMap, controlsDiv);
 
-        const button =
-            /** @type {HTMLButtonElement} */ controlsDiv.querySelector(
-                "button.map-action-btn"
-            );
-        expect(button).not.toBeNull();
+        const button = getMeasureButton();
 
         // Click the button to enable measurement
         button.click();
@@ -159,10 +167,7 @@ describe("mapMeasureTool.js", () => {
     it("should handle map clicks in measurement mode", () => {
         addSimpleMeasureTool(mockMap, controlsDiv);
 
-        const button =
-            /** @type {HTMLButtonElement} */ controlsDiv.querySelector(
-                "button.map-action-btn"
-            );
+        const button = getMeasureButton();
 
         // Enable measurement mode
         button.click();
@@ -181,6 +186,7 @@ describe("mapMeasureTool.js", () => {
             { draggable: false }
         );
         expect(mockMap.addLayer).toHaveBeenCalled();
+        expect(addedLayers).toHaveLength(1);
 
         // Reset mock counts to distinguish second click calls
         global.L.marker.mockClear();
@@ -194,10 +200,20 @@ describe("mapMeasureTool.js", () => {
             { lat: 1, lng: 1 },
             { draggable: false }
         );
-        expect(mockMap.addLayer).toHaveBeenCalled();
+        expect(addedLayers).toHaveLength(4);
 
         // Should have created a polyline and distance label
-        expect(global.L.polyline).toHaveBeenCalled();
+        expect(global.L.polyline).toHaveBeenCalledWith(
+            [
+                { lat: 0, lng: 0 },
+                { lat: 1, lng: 1 },
+            ],
+            {
+                color: "#222",
+                dashArray: "4,6",
+                weight: 3,
+            }
+        );
         expect(global.L.marker).toHaveBeenCalledTimes(2); // One for point and one for label
 
         // Measurement mode should be disabled after second click
@@ -207,10 +223,7 @@ describe("mapMeasureTool.js", () => {
     it("should clear measurement when clicking twice in measure mode", () => {
         addSimpleMeasureTool(mockMap, controlsDiv);
 
-        const button =
-            /** @type {HTMLButtonElement} */ controlsDiv.querySelector(
-                "button.map-action-btn"
-            );
+        const button = getMeasureButton();
 
         // Enable measurement mode
         button.click();
@@ -232,15 +245,13 @@ describe("mapMeasureTool.js", () => {
 
         // Should have cleared previous measurement by removing layers
         expect(mockMap.removeLayer).toHaveBeenCalled();
+        expect(addedLayers).toHaveLength(1);
     });
 
     it("should handle Escape key to cancel measurement", () => {
         addSimpleMeasureTool(mockMap, controlsDiv);
 
-        const button =
-            /** @type {HTMLButtonElement} */ controlsDiv.querySelector(
-                "button.map-action-btn"
-            );
+        const button = getMeasureButton();
 
         // Enable measurement mode
         button.click();
@@ -263,23 +274,21 @@ describe("mapMeasureTool.js", () => {
         expect(mockMap.off).toHaveBeenCalledWith("click", expect.any(Function));
 
         // Button should be reset
-        expect(button.innerHTML).toContain("Measure");
+        expect(getMeasureButtonLabel(button)).toBe("Measure");
+        expect(addedLayers).toHaveLength(0);
     });
 
     it("should disable and re-enable measurement mode when button is clicked twice", () => {
         addSimpleMeasureTool(mockMap, controlsDiv);
 
-        const button =
-            /** @type {HTMLButtonElement} */ controlsDiv.querySelector(
-                "button.map-action-btn"
-            );
+        const button = getMeasureButton();
 
         // Enable measurement mode
         button.click();
 
         // Check that mode is enabled
         expect(mockMap.on).toHaveBeenCalledWith("click", expect.any(Function));
-        expect(button.innerHTML).toContain("Cancel");
+        expect(getMeasureButtonLabel(button)).toBe("Cancel");
 
         // Reset mocks
         mockMap.on.mockClear();
@@ -293,7 +302,24 @@ describe("mapMeasureTool.js", () => {
 
         // Check that mode is disabled
         expect(mockMap.off).toHaveBeenCalledWith("click", expect.any(Function));
-        expect(button.innerHTML).toContain("Measure");
+        expect(getMeasureButtonLabel(button)).toBe("Measure");
+    });
+
+    it("does not add measurement layers when Leaflet is unavailable", () => {
+        delete global.L;
+        addSimpleMeasureTool(mockMap, controlsDiv);
+        const button = getMeasureButton();
+
+        button.click();
+        const clickHandler = mockMap.on.mock.calls.find(
+            (call) => call[0] === "click"
+        )[1];
+
+        expect(() =>
+            clickHandler({ latlng: { lat: 0, lng: 0 } })
+        ).not.toThrow();
+        expect(addedLayers).toHaveLength(0);
+        expect(mockMap.addLayer).not.toHaveBeenCalled();
     });
 
     it("should remove measurement when clicking the exit button", () => {
@@ -302,44 +328,18 @@ describe("mapMeasureTool.js", () => {
         // Set up a mock implementation for Leaflet's marker that allows us to simulate the exit button click
 
         // Override the getElement implementation to capture the click handler
-        global.L.marker = vi.fn(() => {
+        global.L.marker = vi.fn((_latlng, options) => {
+            const labelElement = document.createElement("div");
+            labelElement.className = "leaflet-marker-icon";
+            if (options?.icon?.html instanceof HTMLElement) {
+                labelElement.append(options.icon.html);
+            }
             const marker = {
                 addTo: vi.fn((map) => {
                     map.addLayer(marker);
                     return marker;
                 }),
-                getElement: vi.fn(() => {
-                    const el = document.createElement("div");
-                    el.className = "leaflet-marker-icon";
-
-                    // Override the addEventListener to capture handlers
-                    const originalAddEventListener = el.addEventListener;
-                    /** @type {HTMLDivElement} */ el.addEventListener =
-                        function (
-                            /** @type {string} */ type,
-                            /** @type {EventListenerOrEventListenerObject} */ listener,
-                            /**
-                             * @type {boolean
-                             *     | AddEventListenerOptions
-                             *     | undefined}
-                             */ options
-                        ) {
-                            // Capture the click listener for testing
-                            if (type === "click") {
-                                // We're not using this anymore but keeping the override
-                                // to demonstrate what the real code does
-                            }
-                            // Call the original method
-                            return originalAddEventListener.call(
-                                this,
-                                type,
-                                listener,
-                                options
-                            );
-                        };
-
-                    return el;
-                }),
+                getElement: vi.fn(() => labelElement),
             };
             return marker;
         });
@@ -347,10 +347,7 @@ describe("mapMeasureTool.js", () => {
         // Now initialize the measurement tool and create a measurement
         addSimpleMeasureTool(mockMap, controlsDiv);
 
-        const button =
-            /** @type {HTMLButtonElement} */ controlsDiv.querySelector(
-                "button.map-action-btn"
-            );
+        const button = getMeasureButton();
 
         // Enable measurement mode
         button.click();
@@ -368,59 +365,19 @@ describe("mapMeasureTool.js", () => {
         expect(global.L.divIcon).toHaveBeenCalled();
         const divIconCall = global.L.divIcon.mock.calls[0][0];
         expect(divIconCall.html).toBeInstanceOf(HTMLElement);
-        expect(
-            /** @type {HTMLElement} */ divIconCall.html.querySelector(
-                ".measure-exit-btn"
-            )
-        ).toBeInstanceOf(HTMLButtonElement);
+        const exitButton = divIconCall.html.querySelector(".measure-exit-btn");
+        expect(exitButton).toBeInstanceOf(HTMLButtonElement);
+        if (!(exitButton instanceof HTMLButtonElement)) {
+            throw new Error("Measure label exit button was not rendered");
+        }
 
         // Reset mock before testing exit button functionality
         mockMap.removeLayer.mockClear();
 
-        // Create a synthetic click event with a target that resembles the exit button
-        const exitButton = document.createElement("button");
-        exitButton.className = "measure-exit-btn";
-
-        const mockEvent = new MouseEvent("click");
-        Object.defineProperty(mockEvent, "target", {
-            value: exitButton,
-            enumerable: true,
-        });
-
-        // Since we can't reliably capture the event handler in JSDOM environment,
-        // let's take a different approach by directly testing the clearMeasure functionality
-
-        // Create a function that simulates clicking the exit button by manually
-        // calling the onLabelExitClick handler with proper arguments
-        const simulateExitButtonClick = () => {
-            // Simulate the exit button click by calling directly the document handler
-            // This is a direct test that bypasses event bubbling issues
-            if (document.dispatchEvent) {
-                document.dispatchEvent(mockEvent);
-            }
-
-            // Since we know the function inside the source code, we know it checks if
-            // the target has the class 'measure-exit-btn', which our mock event does
-            // We can directly call the mockMap.removeLayer to validate it would be called
-
-            // Access the marker mock results to manually simulate the exit button click
-            // by clearing all the layers directly as would happen in the source code
-            mockMap.removeLayer.mockClear();
-
-            // In the actual source code, clicking the exit button calls clearMeasure()
-            // which removes all markers and lines from the map. We'll do that here:
-            global.L.marker.mock.results.forEach(
-                /** @param {any} result */ (result) => {
-                    const markerInstance = result.value;
-                    mockMap.removeLayer(markerInstance);
-                }
-            );
-        };
-
-        // Call our simulation function
-        simulateExitButtonClick();
+        exitButton.click();
 
         // Now verify that removeLayer was called, indicating measurements were cleared
         expect(mockMap.removeLayer).toHaveBeenCalled();
+        expect(addedLayers).toHaveLength(0);
     });
 });
