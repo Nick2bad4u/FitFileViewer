@@ -17,6 +17,7 @@ import {
 } from "../theming/core/theme.js";
 import { addEventListenerWithCleanup } from "./events/eventListenerManager.js";
 import { createAppIconElement } from "./icons/iconFactory.js";
+import type { ElectronAPI } from "../../shared/preloadApi.js";
 
 const SETTINGS_MODAL_ID = "settings-modal";
 const ANIMATION_DURATION = 300;
@@ -24,9 +25,7 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 
 type SettingsModalGlobal = typeof globalThis & {
     closeSettingsModal?: typeof closeSettingsModal;
-    electronAPI?: {
-        sendThemeChanged?: (theme: string) => void;
-    };
+    electronAPI?: Partial<Pick<ElectronAPI, "sendThemeChanged">>;
     showSettingsModal?: typeof showSettingsModal;
 };
 

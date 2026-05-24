@@ -1,4 +1,5 @@
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
+import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
 type CleanupFunction = () => void;
 
@@ -7,9 +8,7 @@ type AttachExternalLinkHandlersOptions = {
     readonly root: EventTarget | null | undefined;
 };
 
-type ElectronApiWithExternalOpen = {
-    readonly openExternal?: (url: string) => Promise<unknown> | unknown;
-};
+type ElectronApiWithExternalOpen = Partial<Pick<ElectronAPI, "openExternal">>;
 
 type GlobalWithElectronApi = typeof globalThis & {
     readonly electronAPI?: unknown;
@@ -136,7 +135,17 @@ function getOpenExternalApi(): ElectronApiWithExternalOpen | null {
         return null;
     }
 
-    return api as ElectronApiWithExternalOpen;
+    return isElectronApiWithExternalOpen(api) ? api : null;
+}
+
+function isElectronApiWithExternalOpen(
+    value: unknown
+): value is ElectronApiWithExternalOpen {
+    if (value === null || typeof value !== "object") {
+        return false;
+    }
+
+    return "openExternal" in value && typeof value.openExternal === "function";
 }
 
 function resolveExternalLinkAnchor(

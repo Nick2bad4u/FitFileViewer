@@ -3,11 +3,10 @@
  */
 
 import { getElementByIdFlexible } from "./dom/elementIdUtils.js";
+import type { ElectronAPI } from "../../shared/preloadApi.js";
 
 type ElectronApiCandidate = {
-    readonly electronAPI?: {
-        readonly decodeFitFile?: unknown;
-    } | null;
+    readonly electronAPI?: Partial<Pick<ElectronAPI, "decodeFitFile">> | null;
 };
 
 type EventListenerEntry = {

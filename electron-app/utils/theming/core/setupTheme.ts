@@ -8,6 +8,7 @@ import {
     setState,
     subscribe,
 } from "../../state/core/stateManager.js";
+import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
 /** Canonical persisted theme values understood by the theme setup flow. */
 export type ThemePreference = "auto" | "dark" | "light";
@@ -26,9 +27,7 @@ type ListenForThemeChangeCallback = (
 ) => void;
 type LogLevel = "error" | "info" | "warn";
 type ThemeSetupGlobal = typeof globalThis & {
-    electronAPI?: {
-        getTheme?: () => Promise<unknown> | unknown;
-    };
+    electronAPI?: Partial<Pick<ElectronAPI, "getTheme">>;
 };
 
 // Constants for better maintainability

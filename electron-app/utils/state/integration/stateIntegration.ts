@@ -4,6 +4,7 @@
  */
 
 import { AppActions } from "../../app/lifecycle/appActions.js";
+import type { ElectronAPIWithDevFlags } from "../../../shared/preloadApi.js";
 import {
     getState,
     initializeStateManager,
@@ -57,7 +58,7 @@ type StateIntegrationGlobal = typeof globalThis & {
     __state_debug?: DebugUtilities;
     AppState?: LegacyAppState;
     chartControlsState?: ChartControlsState;
-    electronAPI?: { __devMode?: unknown };
+    electronAPI?: Partial<Pick<ElectronAPIWithDevFlags, "__devMode">>;
     rendererUtils?: RendererUtils;
 };
 
