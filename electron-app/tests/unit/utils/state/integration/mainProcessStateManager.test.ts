@@ -92,7 +92,14 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
     describe("MainProcessState Class", () => {
         describe("Constructor and Initialization", () => {
             test("should initialize with default data structure", () => {
-                expect(stateInstance.data).toBeDefined();
+                expect(stateInstance.data).toMatchObject({
+                    errors: [],
+                    gyazoServer: null,
+                    gyazoServerPort: null,
+                    loadedFitFilePath: null,
+                    mainWindow: null,
+                    operations: {},
+                });
                 expect(stateInstance.data.errors).toEqual([]);
                 expect(stateInstance.data.eventHandlers).toBeInstanceOf(Map);
                 expect(stateInstance.data.gyazoServer).toBeNull();
@@ -103,7 +110,11 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
                 expect(stateInstance.data.pendingOAuthResolvers).toBeInstanceOf(
                     Map
                 );
-                expect(stateInstance.data.metrics).toBeDefined();
+                expect(stateInstance.data.metrics).toEqual({
+                    operationTimes: expect.any(Map),
+                    startTime: expect.any(Number),
+                    startTimePerf: expect.any(Number),
+                });
                 expect(
                     stateInstance.data.metrics.operationTimes
                 ).toBeInstanceOf(Map);
@@ -144,14 +155,13 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             });
 
             test("should return null for non-existent paths", () => {
+                const queryByPath = stateInstance.getByPath.bind(stateInstance);
+
                 expect(
-                    stateInstance.getByPath(
-                        stateInstance.data,
-                        "nonexistent.path"
-                    )
+                    queryByPath(stateInstance.data, "nonexistent.path")
                 ).toBeNull();
                 expect(
-                    stateInstance.getByPath(stateInstance.data, "test.missing")
+                    queryByPath(stateInstance.data, "test.missing")
                 ).toBeNull();
             });
 
@@ -204,6 +214,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
                 stateInstance.set("testKey", "testValue");
 
                 expect(stateInstance.data.testKey).toBe("testValue");
+                expect(stateInstance.get("missingKey")).toBeNull();
                 expect(notifySpy).toHaveBeenCalledWith({
                     path: "testKey",
                     newValue: "testValue",
@@ -219,6 +230,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
                 stateInstance.set("testKey", "testValue", options);
 
+                expect(stateInstance.get("testKey")).toBe("testValue");
                 expect(notifySpy).toHaveBeenCalledWith({
                     path: "testKey",
                     newValue: "testValue",
@@ -235,6 +247,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
                 stateInstance.set("existingKey", "newValue");
 
+                expect(stateInstance.get("existingKey")).toBe("newValue");
                 expect(notifySpy).toHaveBeenCalledWith({
                     path: "existingKey",
                     newValue: "newValue",
@@ -304,7 +317,10 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
         describe("Change Notification", () => {
             test("should notify local listeners", () => {
-                const listener = vi.fn();
+                let observedChange: unknown;
+                const listener = vi.fn((change) => {
+                    observedChange = change;
+                });
                 stateInstance.listen("testPath", listener);
 
                 const change = {
@@ -315,11 +331,15 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
                 stateInstance.notifyChange(change);
 
+                expect(observedChange).toEqual(change);
                 expect(listener).toHaveBeenCalledWith(change);
             });
 
             test("should notify wildcard listeners", () => {
-                const listener = vi.fn();
+                let observedChange: unknown;
+                const listener = vi.fn((change) => {
+                    observedChange = change;
+                });
                 stateInstance.listen("*", listener);
 
                 const change = {
@@ -330,6 +350,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
                 stateInstance.notifyChange(change);
 
+                expect(observedChange).toEqual(change);
                 expect(listener).toHaveBeenCalledWith(change);
             });
 
@@ -347,6 +368,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
                 stateInstance.notifyChange(change);
 
+                expect(stateInstance.listeners.size).toBe(0);
                 expect(notifyRenderersSpy).toHaveBeenCalledWith(
                     "main-state-changed",
                     change
@@ -381,7 +403,16 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
                 const operation = stateInstance.get(
                     "operations.test-operation"
                 );
-                expect(operation).toBeDefined();
+                expect(operation).toEqual(
+                    expect.objectContaining({
+                        id: "test-operation",
+                        message: "Test operation",
+                        progress: 0,
+                        startTime: expect.any(Number),
+                        startTimePerf: expect.any(Number),
+                        status: "running",
+                    })
+                );
                 expect(operation.status).toBe("running");
                 expect(operation.message).toBe("Test operation");
                 expect(typeof operation.startTime).toBe("number");
@@ -655,6 +686,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
                 stateInstance.update(updates);
 
+                expect(stateInstance.get("missing.key")).toBeNull();
                 expect(stateInstance.get("key1")).toBe("value1");
                 expect(stateInstance.get("key2")).toBe("value2");
                 expect(stateInstance.get("nested.key")).toBe("nested value");
@@ -673,6 +705,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
                 expect(devInfo.errors).toBe(1);
                 expect(devInfo.operations).toContain("test-op");
                 expect(devInfo.listeners).toContain("test-path");
+                expect(devInfo.listeners).not.toContain("missing-path");
                 expect(typeof devInfo.uptime).toBe("number");
                 expect(devInfo.state).toBe(stateInstance.data);
             });
@@ -681,13 +714,13 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
     describe("Exported Module", () => {
         test("should export MainProcessState class", () => {
-            expect(MainProcessState).toBeDefined();
             expect(typeof MainProcessState).toBe("function");
+            expect(MainProcessState.name).toBe("MainProcessState");
         });
 
         test("should export singleton mainProcessState instance", () => {
-            expect(mainProcessState).toBeDefined();
             expect(mainProcessState).toBeInstanceOf(MainProcessState);
+            expect(mainProcessState).not.toBe(stateInstance);
         });
 
         test("should maintain singleton behavior", async () => {
@@ -722,7 +755,9 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
                     "primitive.property",
                     "value"
                 );
-            }).toThrow();
+            }).toThrow(
+                "Cannot set nested state path through non-object key: primitive"
+            );
         });
 
         test("should reject setByPath through null intermediate values", () => {
@@ -734,7 +769,9 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
                     "nullish.property",
                     "value"
                 );
-            }).toThrow();
+            }).toThrow(
+                "Cannot set nested state path through non-object key: nullish"
+            );
         });
 
         test("should handle operations with missing operations map", () => {
@@ -748,7 +785,12 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             }).not.toThrow();
 
             // Should create the operation
-            expect(stateInstance.get("operations.test")).toBeDefined();
+            expect(stateInstance.get("operations.test")).toMatchObject({
+                id: "test",
+                message: "test",
+                progress: 0,
+                status: "running",
+            });
 
             // Restore
             stateInstance.data.operations = originalOperations;
@@ -757,8 +799,25 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
     describe("IPC Handler Setup", () => {
         test("should set up IPC handlers when ipcMain is available", () => {
+            mockIpcMain.handle.mockClear();
+
             // Create new instance to trigger setupIPCHandlers
             const testInstance = new MainProcessState();
+
+            const registeredChannels = mockIpcMain.handle.mock.calls.map(
+                ([channel]) => channel
+            );
+            expect(testInstance).toBeInstanceOf(MainProcessState);
+            expect(registeredChannels).toEqual([
+                "main-state:get",
+                "main-state:set",
+                "main-state:listen",
+                "main-state:unlisten",
+                "main-state:operation",
+                "main-state:operations",
+                "main-state:errors",
+                "main-state:metrics",
+            ]);
 
             // Verify ipcMain.handle was called for each handler
             expect(mockIpcMain.handle).toHaveBeenCalledWith(
@@ -814,8 +873,18 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             };
 
             // Subscribe twice; should not create duplicate subscriptions.
-            expect(listenHandler({ sender }, "settings.charts")).toBe(true);
-            expect(listenHandler({ sender }, "settings.charts")).toBe(true);
+            const firstListenResult = listenHandler(
+                { sender },
+                "settings.charts"
+            );
+            const secondListenResult = listenHandler(
+                { sender },
+                "settings.charts"
+            );
+            expect([firstListenResult, secondListenResult]).toEqual([
+                true,
+                true,
+            ]);
             expect((stateInstance as any).ipcSubscriptions.size).toBe(1);
 
             // Trigger change notification
@@ -882,7 +951,14 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
         // Test getting all data
         const result2 = getHandler(mockEvent, "");
-        expect(result2).toBeDefined();
+        expect(result2).toMatchObject({
+            errors: [],
+            gyazoServer: null,
+            gyazoServerPort: null,
+            loadedFitFilePath: null,
+            mainWindow: null,
+            operations: {},
+        });
     });
 
     test("should handle main-state:set IPC calls with allowed paths", () => {
@@ -1020,6 +1096,10 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
         )![1];
 
         const result = metricsHandler();
-        expect(result).toBeDefined();
+        expect(result).toMatchObject({
+            operationTimes: {},
+            startTime: expect.any(Number),
+            startTimePerf: expect.any(Number),
+        });
     });
 });
