@@ -319,6 +319,7 @@ describe("rendererStateIntegration", () => {
             throw new Error("Expected globalData handler");
         }
         setStateMock.mockClear();
+        areChartsRenderedMock.mockClear();
         stateStore.set("ui.activeTab", "chart");
         globalHandler({ rows: [] });
         expect(setStateMock).toHaveBeenCalledWith(
@@ -345,11 +346,7 @@ describe("rendererStateIntegration", () => {
                 silent: true,
             })
         );
-        expect(setStateMock).toHaveBeenCalledWith(
-            "isLoading",
-            true,
-            expect.objectContaining({ source: "loadChartTab" })
-        );
+        expect(areChartsRenderedMock).toHaveBeenCalledTimes(1);
 
         const chartRenderedHandlers = getHandlers("charts.isRendered");
         expect(chartRenderedHandlers.length).toBeGreaterThan(0);
