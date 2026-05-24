@@ -91,7 +91,6 @@ describe("setupApplicationEventHandlers file:// policy", () => {
             "C:\\other\\secret.html"
         ).toString();
 
-        expect(windowOpenHandler).not.toBeNull();
         const windowOpen = windowOpenHandler as unknown as WindowOpenHandler;
         expect(windowOpen({ url: allowedFileUrl })).toEqual({
             action: "allow",
