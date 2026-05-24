@@ -1,13 +1,24 @@
 {
     "$schema": "https://www.schemastore.org/tsconfig.json",
     "compilerOptions": {
+        "allowJs": true,
+        "allowSyntheticDefaultImports": true,
+        "allowUmdGlobalAccess": false,
+        "allowUnreachableCode": false,
+        "allowUnusedLabels": false,
+        "alwaysStrict": true,
+        "checkJs": false,
+        "declaration": true,
+        "declarationDir": "./types",
+        "declarationMap": false,
+        "disableSizeLimit": true,
+        "esModuleInterop": true,
+        "exactOptionalPropertyTypes": true,
+        "forceConsistentCasingInFileNames": true,
+        "incremental": true,
+        "isolatedDeclarations": false,
+        "isolatedModules": true,
         "jsx": "react-jsx",
-        "module": "ESNext",
-        "moduleDetection": "auto",
-        "moduleResolution": "bundler",
-        "outDir": "dist",
-        "target": "ES2024",
-        "tsBuildInfoFile": "./dist/tsconfig.tsbuildinfo",
         "lib": [
             "DOM.Iterable",
             "DOM",
@@ -24,38 +35,10 @@
             "ES7",
             "ESNext"
         ],
-        "paths": {
-            "@shared/*": ["./shared/*"],
-            "@electron/*": ["./electron/*"],
-            "@app/*": ["./src/*"]
-        },
-        "plugins": [
-            {
-                "name": "@styled/typescript-styled-plugin"
-            }
-        ],
-        "types": ["electron", "node"],
-        "allowJs": true,
-        "allowSyntheticDefaultImports": true,
-        "allowUmdGlobalAccess": false,
-        "allowUnreachableCode": false,
-        "allowUnusedLabels": false,
-        "alwaysStrict": true,
-        "declaration": true,
-        "declarationDir": "./types",
-        "declarationMap": false,
-        "disableSizeLimit": true,
-        "esModuleInterop": true,
-        "exactOptionalPropertyTypes": true,
-        "forceConsistentCasingInFileNames": true,
-        "incremental": true,
-        "isolatedDeclarations": false,
-        "isolatedModules": true,
+        "module": "ESNext",
+        "moduleDetection": "auto",
+        "moduleResolution": "bundler",
         "noCheck": false,
-        // We use extensive JSDoc across many .js files; keep them in the program via allowJs
-        // but disable checkJs so the project typecheck focuses on TypeScript sources.
-        // Vitest integration and ESLint will continue to validate JS files incrementally.
-        "checkJs": false,
         "noFallthroughCasesInSwitch": true,
         "noImplicitAny": true,
         "noImplicitOverride": true,
@@ -67,6 +50,23 @@
         "noUncheckedSideEffectImports": true,
         "noUnusedLocals": true,
         "noUnusedParameters": true,
+        "outDir": "dist",
+        "paths": {
+            "@app/*": [
+                "./src/*"
+            ],
+            "@electron/*": [
+                "./electron/*"
+            ],
+            "@shared/*": [
+                "./shared/*"
+            ]
+        },
+        "plugins": [
+            {
+                "name": "@styled/typescript-styled-plugin"
+            }
+        ],
         "pretty": true,
         "resolveJsonModule": true,
         "resolvePackageJsonExports": true,
@@ -80,6 +80,12 @@
         "strictFunctionTypes": true,
         "strictNullChecks": true,
         "strictPropertyInitialization": true,
+        "target": "ES2024",
+        "tsBuildInfoFile": "./dist/tsconfig.tsbuildinfo",
+        "types": [
+            "electron",
+            "node"
+        ],
         "useDefineForClassFields": true,
         "useUnknownInCatchVariables": true
     },
@@ -109,7 +115,6 @@
         "**/html/**",
         "**/*.test.tsx",
         "**/tests/**",
-        // Exclude test mocks and debug helper from project typecheck
         "__mocks__/**",
         "debug-electron-mock.js",
         "**/assets/**"
