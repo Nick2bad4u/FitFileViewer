@@ -9,16 +9,18 @@ import { getFitFileBufferValidationError } from "./fitFileValidation.js";
 import { unwrapFitParseMessages } from "./fitParsePayload.js";
 import type { FitParsePayload } from "./fitParsePayload.js";
 import type { FitMessages } from "../../../shared/fit";
+import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
 type FitFileStateManagerLike = {
     handleFileLoadingError: (error: Error) => void;
 };
 
-type FitFileElectronAPI = {
-    notifyFitFileLoaded?: (filePath: string) => void;
-    parseFitFile: (arrayBuffer: ArrayBuffer) => Promise<FitParsePayload>;
-    readFile: (filePath: string) => Promise<ArrayBuffer>;
-};
+type FitFileElectronAPI = Pick<ElectronAPI, "readFile"> &
+    Partial<Pick<ElectronAPI, "notifyFitFileLoaded">> & {
+        parseFitFile: (
+            arrayBuffer: Parameters<ElectronAPI["parseFitFile"]>[0]
+        ) => Promise<FitParsePayload>;
+    };
 
 type OpenFitFileGlobal = typeof globalThis & {
     __FFV_fitFileStateManager?: unknown;
