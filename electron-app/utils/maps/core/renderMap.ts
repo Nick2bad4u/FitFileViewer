@@ -115,7 +115,7 @@ type DrawnLayer = Leaflet.Layer & {
 };
 
 type DrawnItemsLayerGroup = Leaflet.FeatureGroup & {
-    getLayers: () => DrawnLayer[];
+    getLayers: () => Leaflet.Layer[];
 };
 
 type LeafletGeoJsonInput = Parameters<typeof Leaflet.geoJSON>[0];
@@ -162,6 +162,10 @@ type ShownFilesListElement = Element & {
 };
 
 type BaseLayerKey = keyof typeof baseLayers;
+
+function isDrawnLayer(layer: Leaflet.Layer): layer is DrawnLayer {
+    return typeof layer === "object" && layer !== null;
+}
 
 /**
  * Render the activity map, controls, overlays, and Leaflet plugin integrations.
@@ -234,8 +238,9 @@ export function renderMap(): void {
     let savedDrawnLayers: DrawnLayerSnapshot[] = [];
     if (windowExt._drawnItems && windowExt._drawnItems.getLayers) {
         try {
-            const drawnLayers =
-                windowExt._drawnItems.getLayers() as DrawnLayer[];
+            const drawnLayers = windowExt._drawnItems
+                .getLayers()
+                .filter(isDrawnLayer);
             savedDrawnLayers = drawnLayers
                 .map(
                     (

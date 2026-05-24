@@ -14,7 +14,7 @@ type FitValue = unknown;
 
 type LatLngTuple = [number, number];
 
-type LeafletBoundsLike = {
+type LeafletBoundsLike = Leaflet.LatLngBoundsExpression & {
     clone?: () => LeafletBoundsLike;
     extend: (bounds: unknown) => unknown;
 };
@@ -38,8 +38,7 @@ type LeafletLayerLike = {
     setStyle: (options: Record<string, unknown>) => unknown;
 };
 
-type LayerTargetLike = {
-    addTo?: (target: unknown) => LayerTargetLike;
+type LayerTargetLike = Leaflet.Layer & {
     clearLayers?: () => unknown;
 };
 
@@ -380,9 +379,6 @@ export function drawOverlayForFitFile({
                 // Ignore
             }
         }
-        if (!resultBounds) {
-            resultBounds = { extend: () => {} };
-        }
         return resultBounds;
     }
     return null;
@@ -434,7 +430,7 @@ export function mapDrawLaps(
         try {
             if (typeof map.hasLayer === "function") {
                 if (
-                    !map.hasLayer(activityGroup as unknown as Leaflet.Layer) &&
+                    !map.hasLayer(activityGroup) &&
                     typeof activityGroup.addTo === "function"
                 ) {
                     activityGroup.addTo(map);
@@ -553,15 +549,12 @@ export function mapDrawLaps(
 
     function safeFitBounds(
         lmap: MapLike,
-        lBounds: unknown,
-        options: Record<string, unknown> = {}
+        lBounds: LeafletBoundsLike,
+        options: Leaflet.FitBoundsOptions = {}
     ): void {
         // Attempt immediately
         try {
-            lmap.fitBounds(
-                lBounds as Leaflet.LatLngBoundsExpression,
-                options as Leaflet.FitBoundsOptions
-            );
+            lmap.fitBounds(lBounds, options);
         } catch {
             /* Ignore first attempt */
         }
@@ -585,10 +578,7 @@ export function mapDrawLaps(
                     lmap._container.clientHeight > 0
                 ) {
                     try {
-                        lmap.fitBounds(
-                            lBounds as Leaflet.LatLngBoundsExpression,
-                            options as Leaflet.FitBoundsOptions
-                        );
+                        lmap.fitBounds(lBounds, options);
                     } catch (error) {
                         console.warn("safeFitBounds fitBounds failed", error);
                     }
@@ -704,12 +694,9 @@ export function mapDrawLaps(
             const origBounds = polyline.getBounds();
             // Immediate fit using the original bounds reference to ensure at least one call is recorded
             try {
-                map.fitBounds(
-                    origBounds as unknown as Leaflet.LatLngBoundsExpression,
-                    {
-                        padding: [20, 20],
-                    }
-                );
+                map.fitBounds(origBounds, {
+                    padding: [20, 20],
+                });
             } catch {
                 /* Ignore errors */
             }
@@ -936,10 +923,7 @@ export function mapDrawLaps(
                 const origBounds = polyline.getBounds();
                 // Immediate fit using the original bounds reference to ensure at least one call is recorded
                 try {
-                    map.fitBounds(
-                        origBounds as unknown as Leaflet.LatLngBoundsExpression,
-                        { padding: [20, 20] }
-                    );
+                    map.fitBounds(origBounds, { padding: [20, 20] });
                 } catch {
                     /* Ignore errors */
                 }
@@ -1224,7 +1208,7 @@ export function mapDrawLaps(
         }
 
         if (bounds) {
-            map.fitBounds(bounds as unknown as Leaflet.LatLngBoundsExpression, {
+            map.fitBounds(bounds, {
                 padding: [20, 20],
             });
         }
@@ -1453,10 +1437,7 @@ export function mapDrawLaps(
         map.invalidateSize();
         const originalBounds = getWin()._mainPolylineOriginalBounds;
         if (originalBounds) {
-            map.fitBounds(
-                originalBounds as unknown as Leaflet.LatLngBoundsExpression,
-                { padding: [20, 20] }
-            );
+            map.fitBounds(originalBounds, { padding: [20, 20] });
         }
 
         const end = coords.at(-1);
@@ -1606,6 +1587,16 @@ function isFitObject(value: unknown): value is Record<string, FitValue> {
     return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
+function isLeafletRuntimeLike(value: unknown): value is LeafletRuntimeLike {
+    return (
+        isFitObject(value) &&
+        typeof value["circleMarker"] === "function" &&
+        typeof value["latLngBounds"] === "function" &&
+        typeof value["marker"] === "function" &&
+        typeof value["polyline"] === "function"
+    );
+}
+
 function isLapMesg(value: unknown): value is LapMesg {
     return isFitObject(value);
 }
@@ -1641,12 +1632,13 @@ function findClosestRecordIndexByLatLon(
 
 function getLeaflet(): LeafletRuntimeLike {
     const w = getWin();
-    // Prefer globalThis.L if present; fall back to window.L
-    return (globalThis && globalThis.L
-        ? globalThis.L
-        : w && w.L
-          ? w.L
-          : undefined) as unknown as LeafletRuntimeLike;
+    const globalLeaflet: unknown = Reflect.get(globalThis, "L");
+    const candidate = isLeafletRuntimeLike(globalLeaflet) ? globalLeaflet : w.L;
+    if (isLeafletRuntimeLike(candidate)) {
+        return candidate;
+    }
+
+    throw new Error("Leaflet runtime is unavailable");
 }
 
 function getLoadedFitFiles(): LoadedFitFileLike[] {
