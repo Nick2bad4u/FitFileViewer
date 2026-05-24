@@ -12,6 +12,7 @@ declare global {
     var rendererUtils: any;
     var __state_debug: any;
     var __persistenceTimeout: any;
+    var __performanceMonitoringInterval: any;
     var __DEVELOPMENT__: any;
     var electronAPI: any;
 }
@@ -21,9 +22,7 @@ vi.mock("../../../../../utils/state/core/stateManager.js", () => ({
     getState: vi.fn(),
     setState: vi.fn(),
     subscribe: vi.fn(() => () => {}),
-    initializeStateManager: vi.fn(() =>
-        console.log("mock initializeStateManager called")
-    ),
+    initializeStateManager: vi.fn(),
 }));
 vi.mock("../../../../../utils/state/domain/uiStateManager.js", () => ({
     uiStateManager: { initialize: vi.fn() },
@@ -44,6 +43,33 @@ const mockAppActions = vi.mocked(
 ).AppActions;
 
 import { initializeAppState } from "../../../../../utils/state/integration/stateIntegration.js";
+
+const originalLocationDescriptor = Object.getOwnPropertyDescriptor(
+    globalThis,
+    "location"
+);
+
+const expectedDebugKeys = [
+    "AppActions",
+    "getState",
+    "logState",
+    "setState",
+    "triggerAction",
+    "uiStateManager",
+    "watchState",
+];
+
+function expectDebugUtilitiesConfigured(): void {
+    expect(Object.keys(globalThis.__state_debug).sort()).toEqual(
+        expectedDebugKeys
+    );
+    expect(globalThis.__state_debug).toMatchObject({
+        AppActions: mockAppActions,
+        getState: mockStateManager.getState,
+        setState: mockStateManager.setState,
+        uiStateManager: mockUIStateManager,
+    });
+}
 
 // Mock localStorage
 const mockLocalStorage = {
@@ -101,7 +127,9 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         delete globalThis.rendererUtils;
         delete globalThis.__state_debug;
         delete globalThis.__persistenceTimeout;
+        delete globalThis.__performanceMonitoringInterval;
         delete globalThis.__DEVELOPMENT__;
+        restoreLocation();
     });
 
     afterEach(() => {
@@ -117,7 +145,9 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         delete globalThis.rendererUtils;
         delete globalThis.__state_debug;
         delete globalThis.__persistenceTimeout;
+        delete globalThis.__performanceMonitoringInterval;
         delete globalThis.__DEVELOPMENT__;
+        restoreLocation();
 
         // Clear any timers
         vi.clearAllTimers();
@@ -151,19 +181,25 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
                 await import("../../../../../utils/state/integration/stateIntegration.js");
 
             const helper = new StateMigrationHelper();
-            const migration1 = vi.fn().mockResolvedValue(undefined);
-            const migration2 = vi.fn().mockResolvedValue(undefined);
+            const migrationEvents: string[] = [];
+            const migration1 = vi.fn(async () => {
+                migrationEvents.push("first");
+            });
+            const migration2 = vi.fn(async () => {
+                migrationEvents.push("second");
+            });
 
             helper.addMigration(migration1);
             helper.addMigration(migration2);
 
-            await helper.runMigrations();
+            await expect(helper.runMigrations()).resolves.toBeUndefined();
 
+            expect(migrationEvents).toEqual(["first", "second"]);
             expect(migration1).toHaveBeenCalledOnce();
             expect(migration2).toHaveBeenCalledOnce();
         });
 
-        it("should handle migration errors gracefully", async () => {
+        it("should continue after migration errors without throwing", async () => {
             const { StateMigrationHelper } =
                 await import("../../../../../utils/state/integration/stateIntegration.js");
 
@@ -172,16 +208,20 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
                 .mockImplementation(() => {});
 
             const helper = new StateMigrationHelper();
+            const migrationEvents: string[] = [];
             const failingMigration = vi
                 .fn()
                 .mockRejectedValue(new Error("Migration failed"));
-            const successMigration = vi.fn().mockResolvedValue(undefined);
+            const successMigration = vi.fn(async () => {
+                migrationEvents.push("success");
+            });
 
             helper.addMigration(failingMigration);
             helper.addMigration(successMigration);
 
-            await helper.runMigrations();
+            await expect(helper.runMigrations()).resolves.toBeUndefined();
 
+            expect(migrationEvents).toEqual(["success"]);
             expect(failingMigration).toHaveBeenCalledOnce();
             expect(successMigration).toHaveBeenCalledOnce();
             expect(consoleSpy).toHaveBeenCalledWith(
@@ -195,6 +235,14 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
 
     describe("Main initialization functions", () => {
         it("should initialize app state in production mode (smoke)", async () => {
+            setTestLocation({
+                hash: "",
+                hostname: "example.com",
+                href: "https://example.com/",
+                protocol: "https:",
+                search: "",
+            });
+
             const consoleSpy = vi
                 .spyOn(console, "log")
                 .mockImplementation(() => {});
@@ -211,6 +259,14 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
             expect(consoleSpy).toHaveBeenCalledWith(
                 "[StateIntegration] Application state management initialized"
             );
+            expect(
+                Object.getOwnPropertyDescriptor(globalThis, "globalData")
+            ).toMatchObject({
+                configurable: true,
+                get: expect.any(Function),
+                set: expect.any(Function),
+            });
+            expect(globalThis.__state_debug).toBeUndefined();
 
             consoleSpy.mockRestore();
         });
@@ -228,23 +284,15 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
 
             initializeAppState();
 
-            console.log(
-                "initializeStateManager calls:",
-                (mockStateManager.initializeStateManager as any).mock?.calls ??
-                    []
-            );
-            console.log(
-                "uiStateManager.initialize calls:",
-                (mockUIStateManager.initialize as any).mock?.calls ?? []
-            );
-
             expect(
                 mockStateManager.initializeStateManager
             ).toHaveBeenCalledOnce();
             expect(mockUIStateManager.initialize).toHaveBeenCalledOnce();
 
-            // Should set up debugging in development mode
-            expect(globalThis.__state_debug).toBeDefined();
+            expect(Object.keys(globalThis.__state_debug).sort()).toEqual(
+                expectedDebugKeys
+            );
+            expectDebugUtilitiesConfigured();
 
             consoleSpy.mockRestore();
         });
@@ -259,6 +307,17 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
 
             initializeCompleteStateSystem();
 
+            expect(
+                Object.getOwnPropertyDescriptor(globalThis, "globalData")
+            ).toMatchObject({
+                configurable: true,
+                get: expect.any(Function),
+                set: expect.any(Function),
+            });
+            expect(mockStateManager.subscribe).toHaveBeenCalledWith(
+                "",
+                expect.any(Function)
+            );
             expect(consoleSpy).toHaveBeenCalledWith(
                 "[StateIntegration] Complete state system initialized"
             );
@@ -322,11 +381,10 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
             const { integrateWithRendererUtils } =
                 await import("../../../../../utils/state/integration/stateIntegration.js");
 
-            // No rendererUtils in globalThis
-            integrateWithRendererUtils();
+            expect(() => integrateWithRendererUtils()).not.toThrow();
 
-            // Should not throw any errors
-            expect(true).toBe(true);
+            expect(globalThis.rendererUtils).toBeUndefined();
+            expect(mockStateManager.setState).not.toHaveBeenCalled();
         });
 
         it("should migrate chartControlsState when available (smoke)", async () => {
@@ -376,17 +434,17 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
             const { migrateChartControlsState } =
                 await import("../../../../../utils/state/integration/stateIntegration.js");
 
-            // No chartControlsState in globalThis
-            migrateChartControlsState();
+            expect(() => migrateChartControlsState()).not.toThrow();
 
-            // Should not throw any errors
-            expect(true).toBe(true);
+            expect(globalThis.chartControlsState).toBeUndefined();
+            expect(mockStateManager.setState).not.toHaveBeenCalled();
         });
     });
 
     describe("Performance monitoring", () => {
         it("should set up performance monitoring with memory info (smoke)", async () => {
             vi.useFakeTimers();
+            (globalThis as any).performance = mockPerformance;
 
             const { setupStatePerformanceMonitoring } =
                 await import("../../../../../utils/state/integration/stateIntegration.js");
@@ -415,12 +473,31 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
             // Force one more callback to cross the minute threshold without relying on timers
             subscribeCallback?.();
 
+            vi.advanceTimersByTime(30000);
+
+            expect(mockStateManager.setState).toHaveBeenCalledWith(
+                "performance.memoryUsage",
+                {
+                    limit: 1024,
+                    total: 512,
+                    used: 256,
+                },
+                {
+                    silent: true,
+                    source: "performanceMonitoring",
+                }
+            );
+            expect(globalThis.__performanceMonitoringInterval).toBeTypeOf(
+                "object"
+            );
+
             consoleSpy.mockRestore();
             vi.useRealTimers();
         });
 
         it("should handle missing performance.memory gracefully", async () => {
             vi.useFakeTimers();
+            (globalThis as any).performance = mockPerformance;
 
             // Remove memory from performance mock
             delete (globalThis.performance as any).memory;
@@ -428,13 +505,17 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
             const { setupStatePerformanceMonitoring } =
                 await import("../../../../../utils/state/integration/stateIntegration.js");
 
-            setupStatePerformanceMonitoring();
+            expect(() => setupStatePerformanceMonitoring()).not.toThrow();
 
             // Fast forward timers
             vi.advanceTimersByTime(60000);
 
-            // Should not crash
-            expect(true).toBe(true);
+            expect(globalThis.__performanceMonitoringInterval).toBeUndefined();
+            expect(mockStateManager.setState).not.toHaveBeenCalledWith(
+                "performance.memoryUsage",
+                expect.anything(),
+                expect.anything()
+            );
 
             vi.useRealTimers();
         });
@@ -498,6 +579,12 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
                 "fitFileViewer_uiState",
                 expect.any(String)
             );
+            expect(
+                JSON.parse(mockLocalStorage.setItem.mock.calls.at(-1)?.[1])
+            ).toEqual({
+                charts: { controlsVisible: false },
+                ui: { theme: "dark" },
+            });
             expect(consoleSpy).toHaveBeenCalledWith(
                 "[StateIntegration] UI state persisted to localStorage"
             );
@@ -518,12 +605,13 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
                 .spyOn(console, "error")
                 .mockImplementation(() => {});
 
-            setupStatePersistence();
+            expect(() => setupStatePersistence()).not.toThrow();
 
             expect(consoleSpy).toHaveBeenCalledWith(
                 "[StateIntegration] Failed to load persisted state:",
                 expect.any(Error)
             );
+            expect(globalThis.__persistenceTimeout).toBeUndefined();
 
             consoleSpy.mockRestore();
         });
@@ -538,12 +626,13 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
                 .spyOn(console, "error")
                 .mockImplementation(() => {});
 
-            setupStatePersistence();
+            expect(() => setupStatePersistence()).not.toThrow();
 
             expect(consoleSpy).toHaveBeenCalledWith(
                 "[StateIntegration] Failed to load persisted state:",
                 expect.any(Error)
             );
+            expect(globalThis.__persistenceTimeout).toBeUndefined();
 
             consoleSpy.mockRestore();
         });
@@ -551,11 +640,10 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
 
     describe("Utility functions", () => {
         it("should handle nested value operations correctly", async () => {
+            vi.useFakeTimers();
+
             const { setupStatePersistence } =
                 await import("../../../../../utils/state/integration/stateIntegration.js");
-
-            // Create a test object to test nested value operations
-            const testObj = {};
 
             // Test setting nested values (through persistence)
             mockLocalStorage.getItem.mockReturnValue(null);
@@ -567,8 +655,19 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
 
             setupStatePersistence();
 
-            // Should not throw errors
-            expect(true).toBe(true);
+            const subscribeCallback =
+                mockStateManager.subscribe.mock.calls.find(
+                    (call: any) => call[0] === "charts.controlsVisible"
+                )?.[1];
+            subscribeCallback?.();
+            vi.advanceTimersByTime(600);
+
+            expect(
+                JSON.parse(mockLocalStorage.setItem.mock.calls.at(-1)?.[1])
+            ).toEqual({
+                charts: { controlsVisible: true },
+                ui: { theme: "light" },
+            });
         });
 
         it("should detect development mode correctly - localhost", async () => {
@@ -589,8 +688,10 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
 
             initializeAppState();
 
-            // Should set up debugging
-            expect(globalThis.__state_debug).toBeDefined();
+            expect(Object.keys(globalThis.__state_debug).sort()).toEqual(
+                expectedDebugKeys
+            );
+            expectDebugUtilitiesConfigured();
         });
 
         it("should detect development mode correctly - dev flag", async () => {
@@ -601,8 +702,10 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
 
             initializeAppState();
 
-            // Should set up debugging
-            expect(globalThis.__state_debug).toBeDefined();
+            expect(Object.keys(globalThis.__state_debug).sort()).toEqual(
+                expectedDebugKeys
+            );
+            expectDebugUtilitiesConfigured();
         });
 
         it("should detect development mode correctly - debug param", async () => {
@@ -622,8 +725,10 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
 
             initializeAppState();
 
-            // Should set up debugging
-            expect(globalThis.__state_debug).toBeDefined();
+            expect(Object.keys(globalThis.__state_debug).sort()).toEqual(
+                expectedDebugKeys
+            );
+            expectDebugUtilitiesConfigured();
         });
 
         it("should handle development mode detection errors", async () => {
@@ -692,33 +797,33 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
 
             // Set mock before calling initializeAppState
             mockStateManager.getState.mockImplementation((path) => {
-                console.log(`getState called with path: ${path}`);
                 if (path === "globalData") {
-                    console.log("Returning mocked value for globalData");
                     return { test: "appstate" };
                 }
-                console.log("Returning undefined for other path");
                 return undefined;
             });
 
             initializeAppState();
 
-            expect(globalThis.AppState).toBeDefined();
+            expect(Object.keys(globalThis.AppState).sort()).toEqual([
+                "eventListeners",
+                "globalData",
+                "isChartRendered",
+            ]);
 
             // Check if globalData is a getter
             const descriptor = Object.getOwnPropertyDescriptor(
                 globalThis.AppState,
                 "globalData"
             );
-            expect(descriptor).toBeDefined();
-            expect(descriptor!.get).toBeDefined();
+            expect(descriptor).toMatchObject({
+                get: expect.any(Function),
+                set: expect.any(Function),
+            });
 
-            // Log the AppState object
-            console.log("AppState object:", globalThis.AppState);
-            console.log("globalData descriptor:", descriptor);
-
-            // Test AppState.globalData getter (skip for now due to mock issues)
-            // expect(globalThis.AppState.globalData).toEqual({ test: "appstate" });
+            expect(globalThis.AppState.globalData).toEqual({
+                test: "appstate",
+            });
 
             // Test AppState.globalData setter
             globalThis.AppState.globalData = { appstate: "test" };
@@ -761,13 +866,92 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
 
     describe("Debug utilities", () => {
         it("should set up debug utilities in development mode", async () => {
-            // Skip this test for now as setupStateDebugging is not exported
-            expect(true).toBe(true);
+            globalThis.__DEVELOPMENT__ = true;
+
+            const { initializeAppState } =
+                await import("../../../../../utils/state/integration/stateIntegration.js");
+
+            initializeAppState();
+
+            expect(Object.keys(globalThis.__state_debug).sort()).toEqual(
+                expectedDebugKeys
+            );
+            expectDebugUtilitiesConfigured();
         });
 
-        it("should test debug utility functions", async () => {
-            // Skip this test for now
-            expect(true).toBe(true);
+        it("should expose debug utility functions and reject unknown actions", async () => {
+            globalThis.__DEVELOPMENT__ = true;
+
+            const { initializeAppState } =
+                await import("../../../../../utils/state/integration/stateIntegration.js");
+
+            const logSpy = vi
+                .spyOn(console, "log")
+                .mockImplementation(() => {});
+            const warnSpy = vi
+                .spyOn(console, "warn")
+                .mockImplementation(() => {});
+            const unsubscribe = vi.fn();
+            let watchCallback: any;
+
+            mockStateManager.getState.mockReturnValue({ id: 1 });
+            mockStateManager.subscribe.mockImplementation((path, callback) => {
+                watchCallback = callback;
+                return unsubscribe;
+            });
+            mockAppActions.testAction.mockReturnValue("action-result");
+
+            initializeAppState();
+
+            expect(globalThis.__state_debug.logState("ui.theme")).toEqual({
+                id: 1,
+            });
+            expect(
+                globalThis.__state_debug.triggerAction("testAction", 42)
+            ).toBe("action-result");
+            expect(
+                globalThis.__state_debug.triggerAction("missingAction")
+            ).toBeUndefined();
+            expect(warnSpy).toHaveBeenCalledWith(
+                "[StateDebug] Unknown action: missingAction"
+            );
+
+            expect(globalThis.__state_debug.watchState("ui.theme")).toBe(
+                unsubscribe
+            );
+            watchCallback?.("dark", "light");
+            expect(logSpy).toHaveBeenCalledWith(
+                "[StateDebug] ui.theme changed:",
+                {
+                    newValue: "dark",
+                    oldValue: "light",
+                }
+            );
+
+            logSpy.mockRestore();
+            warnSpy.mockRestore();
         });
     });
 });
+
+function restoreLocation(): void {
+    if (originalLocationDescriptor) {
+        Object.defineProperty(
+            globalThis,
+            "location",
+            originalLocationDescriptor
+        );
+    }
+}
+
+function setTestLocation(location: LocationInit): void {
+    Object.defineProperty(globalThis, "location", {
+        configurable: true,
+        value: location,
+    });
+}
+
+type LocationInit = Pick<
+    Location,
+    "hash" | "hostname" | "href" | "protocol" | "search"
+>;
