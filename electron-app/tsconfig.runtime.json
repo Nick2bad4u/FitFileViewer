@@ -54,6 +54,7 @@
         "preload/beforeExitHandler.ts",
         "preload/electronBridge.ts",
         "preload/environment.ts",
+        "preload/ipcHelpers.ts",
         "preload/mainStateBridge.ts",
         "preload/validators.ts",
         "preload/ipcBridgeCatalog.ts",

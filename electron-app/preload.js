@@ -142,6 +142,10 @@ const { createMainStateBridge } =
     /** @type {{ createMainStateBridge: (options: { ipcRenderer: PreloadIpcRenderer; preloadLog: (level: "error" | "info" | "warn", message: string, ...details: unknown[]) => void; removeIpcListener: (channel: string, handler: (event: object, change: MainStateChange) => void) => void }) => { listenToMainState: (path: string, callback: (change: MainStateChange) => void) => Promise<boolean>; unlistenFromMainState: (path: string, callback: (change: MainStateChange) => void) => Promise<boolean> } }} */ (
         preloadRequire("./preload/mainStateBridge.js")
     );
+const { createPreloadIpcHelpers } =
+    /** @type {{ createPreloadIpcHelpers: (options: { ipcRenderer: PreloadIpcRenderer; preloadLog: (level: "error" | "info" | "warn", message: string, ...details: unknown[]) => void; validateCallback: (callback: unknown, methodName: string) => callback is UnknownCallback }) => { createNoopUnsubscribe: () => () => void; createSafeEventHandler: (channel: string, methodName: string, transform?: (...args: IpcResponsePayload[]) => IpcResponsePayload | null) => (callback: UnknownCallback) => () => void; createSafeInvokeHandler: (channel: string, methodName: string) => (...args: IpcRequestPayload[]) => Promise<IpcResponsePayload>; createSafeSendHandler: (channel: string, methodName: string) => (...args: IpcRequestPayload[]) => void; removeIpcListener: (channel: string, handler: (event: object, ...args: IpcResponsePayload[]) => void) => void } }} */ (
+        preloadRequire("./preload/ipcHelpers.js")
+    );
 const ipcBridgeCatalog = /** @type {IpcBridgeCatalog} */ (
     preloadRequire("./preload/ipcBridgeCatalog.js")
 );
@@ -171,75 +175,12 @@ const { contextBridge, ipcRenderer } = resolvePreloadElectronBridge({
     requireModule: preloadRequire,
 });
 
-/**
- * @returns {() => void}
- */
-function createNoopUnsubscribe() {
-    return noopUnsubscribe;
-}
-
 const {
     validateCallback,
     validateChannelName,
     validateOptionalNonEmptyString,
     validateRequiredNonEmptyString,
 } = createPreloadValidators(preloadLog);
-
-/**
- * Wrapper to create a safe event subscription handler.
- *
- * @param {string} channel
- * @param {string} methodName
- * @param {(...args: IpcResponsePayload[]) => IpcResponsePayload | null} [transform]
- *
- * @returns {(callback: UnknownCallback) => () => void}
- */
-function createSafeEventHandler(channel, methodName, transform) {
-    return (callback) => {
-        if (!validateCallback(callback, methodName)) {
-            return createNoopUnsubscribe();
-        }
-
-        try {
-            /**
-             * @type {(
-             *     event: object,
-             *     ...args: IpcResponsePayload[]
-             * ) => unknown}
-             */
-            const handler = (_event, ...args) => {
-                try {
-                    return transform
-                        ? callback(transform(...args))
-                        : callback(...args);
-                } catch (error) {
-                    preloadLog(
-                        "error",
-                        `[preload.js] Error in ${methodName} callback:`,
-                        error
-                    );
-                }
-            };
-
-            ipcRenderer.on(channel, handler);
-
-            return () => {
-                try {
-                    removeIpcListener(channel, handler);
-                } catch {
-                    /* Ignore */
-                }
-            };
-        } catch (error) {
-            preloadLog(
-                "error",
-                `[preload.js] Error setting up ${methodName} event handler:`,
-                error
-            );
-            return createNoopUnsubscribe();
-        }
-    };
-}
 
 /**
  * @returns {PreloadGlobal}
@@ -265,13 +206,6 @@ function isPreloadObjectRecord(value) {
 }
 
 /**
- * @returns {void}
- */
-function noopUnsubscribe() {
-    return undefined;
-}
-
-/**
  * @param {"error" | "info" | "warn"} level
  * @param {string} message
  * @param {...unknown} details
@@ -293,32 +227,16 @@ function preloadLog(level, message, ...details) {
     method.call(consoleLike, message, ...details);
 }
 
-/**
- * Safely remove an ipcRenderer listener, supporting alternative APIs when
- * removeListener is unavailable (e.g., Vitest mocks).
- *
- * @param {string} channel
- * @param {(event: object, ...args: IpcResponsePayload[]) => void} handler
- */
-function removeIpcListener(channel, handler) {
-    if (!ipcRenderer) {
-        return;
-    }
-
-    if (typeof ipcRenderer.removeListener === "function") {
-        ipcRenderer.removeListener(channel, handler);
-        return;
-    }
-
-    if (typeof ipcRenderer.off === "function") {
-        ipcRenderer.off(channel, handler);
-        return;
-    }
-
-    if (typeof ipcRenderer.removeAllListeners === "function") {
-        ipcRenderer.removeAllListeners(channel);
-    }
-}
+const {
+    createSafeEventHandler,
+    createSafeInvokeHandler,
+    createSafeSendHandler,
+    removeIpcListener,
+} = createPreloadIpcHelpers({
+    ipcRenderer,
+    preloadLog,
+    validateCallback,
+});
 
 const mainStateBridge = createMainStateBridge({
     ipcRenderer,
@@ -327,43 +245,6 @@ const mainStateBridge = createMainStateBridge({
         removeIpcListener
     ),
 });
-
-/**
- * Wrapper to create a safe invoke handler.
- *
- * @param {string} channel
- * @param {string} methodName
- *
- * @returns {(...args: IpcRequestPayload[]) => Promise<IpcResponsePayload>}
- */
-function createSafeInvokeHandler(channel, methodName) {
-    return async (...args) => {
-        try {
-            return await ipcRenderer.invoke(channel, ...args);
-        } catch (error) {
-            preloadLog("error", `[preload.js] Error in ${methodName}:`, error);
-            throw error;
-        }
-    };
-}
-
-/**
- * Wrapper to create a safe send handler.
- *
- * @param {string} channel
- * @param {string} methodName
- *
- * @returns {(...args: IpcRequestPayload[]) => void}
- */
-function createSafeSendHandler(channel, methodName) {
-    return (...args) => {
-        try {
-            ipcRenderer.send(channel, ...args);
-        } catch (error) {
-            preloadLog("error", `[preload.js] Error in ${methodName}:`, error);
-        }
-    };
-}
 
 /**
  * Enforce the generic send/invoke allowlist only when we are running in
