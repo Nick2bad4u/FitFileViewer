@@ -33,9 +33,41 @@ describe("shareChartsAsURL with Imgur fallback", () => {
     const mockShowNotification = vi.mocked(showNotification);
     const mockShowChartSelectionModal = vi.mocked(showChartSelectionModal);
     const mockWriteText = vi.mocked(navigator.clipboard.writeText);
+    const createPngDataUrl = (width: number, height: number) =>
+        `data:image/png;base64,${btoa(`canvas:${width}x${height}`)}`;
+    const getLastClipboardText = () => {
+        const [clipboardText] = mockWriteText.mock.lastCall ?? [];
+        if (typeof clipboardText !== "string") {
+            throw new TypeError("Expected clipboard text to be written");
+        }
+        return clipboardText;
+    };
+    const captureShareCallbacks = async () => {
+        let singleCallback: any;
+        let combinedCallback: any;
+        mockShowChartSelectionModal.mockImplementation(
+            (actionType: any, single: any, combined: any) => {
+                singleCallback = single;
+                combinedCallback = combined;
+            }
+        );
+
+        await exportUtils.shareChartsAsURL();
+
+        if (
+            typeof singleCallback !== "function" ||
+            typeof combinedCallback !== "function"
+        ) {
+            throw new TypeError("Expected chart sharing callbacks");
+        }
+        return { combinedCallback, singleCallback };
+    };
 
     beforeEach(() => {
+        vi.restoreAllMocks();
         vi.clearAllMocks();
+        document.body.replaceChildren();
+        mockWriteText.mockResolvedValue(undefined);
 
         // Mock the getImgurConfig method to return default config
         vi.spyOn(exportUtils, "getImgurConfig").mockReturnValue({
@@ -63,10 +95,11 @@ describe("shareChartsAsURL with Imgur fallback", () => {
             fill: vi.fn(),
         })) as any;
 
-        HTMLCanvasElement.prototype.toDataURL = vi.fn(
-            () =>
-                "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
-        );
+        HTMLCanvasElement.prototype.toDataURL = vi.fn(function (
+            this: HTMLCanvasElement
+        ) {
+            return createPngDataUrl(this.width, this.height);
+        });
     });
 
     it("should call showChartSelectionModal when shareChartsAsURL is invoked", async () => {
@@ -106,22 +139,15 @@ describe("shareChartsAsURL with Imgur fallback", () => {
             uploadUrl: "https://api.imgur.com/3/image",
         });
 
-        let singleCallback: any;
-        mockShowChartSelectionModal.mockImplementation(
-            (actionType: any, single: any, combined: any) => {
-                singleCallback = single;
-            }
-        );
-
         // Act
-        await exportUtils.shareChartsAsURL();
-
-        // Now test the single callback with a chart
-        if (singleCallback) {
-            await singleCallback(mockChart);
-        }
+        const { singleCallback } = await captureShareCallbacks();
+        const result = await singleCallback(mockChart);
 
         // Assert
+        expect(result).toBeUndefined();
+        expect(getLastClipboardText()).toBe(createPngDataUrl(800, 400));
+        expect(document.body.querySelector("textarea")).toBeNull();
+
         expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
             expect.stringContaining("data:image/png;base64,")
         );
@@ -145,22 +171,15 @@ describe("shareChartsAsURL with Imgur fallback", () => {
             uploadUrl: "https://api.imgur.com/3/image",
         });
 
-        let combinedCallback: any;
-        mockShowChartSelectionModal.mockImplementation(
-            (actionType: any, single: any, combined: any) => {
-                combinedCallback = combined;
-            }
-        );
-
         // Act
-        await exportUtils.shareChartsAsURL();
-
-        // Now test the combined callback with charts
-        if (combinedCallback) {
-            await combinedCallback(mockCharts);
-        }
+        const { combinedCallback } = await captureShareCallbacks();
+        const result = await combinedCallback(mockCharts);
 
         // Assert
+        expect(result).toBeUndefined();
+        expect(getLastClipboardText()).toBe(createPngDataUrl(1620, 400));
+        expect(document.body.querySelector("textarea")).toBeNull();
+
         expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
             expect.stringContaining("data:image/png;base64,")
         );
@@ -172,23 +191,14 @@ describe("shareChartsAsURL with Imgur fallback", () => {
     });
 
     it("should handle empty charts array gracefully", async () => {
-        // Arrange
-        let combinedCallback: any;
-        mockShowChartSelectionModal.mockImplementation(
-            (actionType: any, single: any, combined: any) => {
-                combinedCallback = combined;
-            }
-        );
-
         // Act
-        await exportUtils.shareChartsAsURL();
-
-        // Now test the combined callback with empty array
-        if (combinedCallback) {
-            await combinedCallback([]);
-        }
+        const { combinedCallback } = await captureShareCallbacks();
+        const result = await combinedCallback([]);
 
         // Assert
+        expect(result).toBeUndefined();
+        expect(document.body.childElementCount).toBe(0);
+
         expect(mockShowNotification).toHaveBeenCalledWith(
             "No charts available to share",
             "warning"
@@ -208,23 +218,18 @@ describe("shareChartsAsURL with Imgur fallback", () => {
 
         // Mock clipboard to reject
         mockWriteText.mockRejectedValue(new Error("Clipboard access denied"));
-
-        let singleCallback: any;
-        mockShowChartSelectionModal.mockImplementation(
-            (actionType: any, single: any, combined: any) => {
-                singleCallback = single;
-            }
+        vi.spyOn(exportUtils, "uploadToImgur").mockResolvedValue(
+            "https://i.imgur.com/chart.png"
         );
 
         // Act
-        await exportUtils.shareChartsAsURL();
-
-        // Now test the single callback
-        if (singleCallback) {
-            await singleCallback(mockChart);
-        }
+        const { singleCallback } = await captureShareCallbacks();
+        const result = await singleCallback(mockChart);
 
         // Assert
+        expect(result).toBeUndefined();
+        expect(getLastClipboardText()).toBe("https://i.imgur.com/chart.png");
+
         // Clipboard permissions are often denied in Electron/file contexts; sharing should still complete.
         expect(mockShowNotification).toHaveBeenCalledWith(
             "Chart uploaded to Imgur! (Clipboard copy blocked)",
