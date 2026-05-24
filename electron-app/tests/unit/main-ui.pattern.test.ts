@@ -60,7 +60,7 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
                 onload = null;
                 onerror = null;
                 readAsArrayBuffer = vi.fn().mockImplementation(function () {
-                    setTimeout(() => {
+                    queueMicrotask(() => {
                         if (this.onload) {
                             this.onload({
                                 target: { result: new ArrayBuffer(0) },
@@ -132,30 +132,47 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
 
         it("should setup window event listeners", () => {
             // Simulate the window event listener setup pattern
-            function setupWindowListeners() {
-                window.addEventListener("dragenter", () => {});
-                window.addEventListener("dragleave", () => {});
-                window.addEventListener("dragover", () => {});
-                window.addEventListener("drop", () => {});
+            function setupWindowListeners(signal: AbortSignal) {
+                const registeredEvents = [
+                    "dragenter",
+                    "dragleave",
+                    "dragover",
+                    "drop",
+                ];
+                for (const eventName of registeredEvents) {
+                    window.addEventListener(eventName, () => {}, { signal });
+                }
+                return registeredEvents;
             }
 
-            setupWindowListeners();
+            const controller = new AbortController();
+            const registeredEvents = setupWindowListeners(controller.signal);
 
+            expect(registeredEvents).toEqual([
+                "dragenter",
+                "dragleave",
+                "dragover",
+                "drop",
+            ]);
             expect(window.addEventListener).toHaveBeenCalledWith(
                 "dragenter",
-                expect.any(Function)
+                expect.any(Function),
+                { signal: controller.signal }
             );
             expect(window.addEventListener).toHaveBeenCalledWith(
                 "dragleave",
-                expect.any(Function)
+                expect.any(Function),
+                { signal: controller.signal }
             );
             expect(window.addEventListener).toHaveBeenCalledWith(
                 "dragover",
-                expect.any(Function)
+                expect.any(Function),
+                { signal: controller.signal }
             );
             expect(window.addEventListener).toHaveBeenCalledWith(
                 "drop",
-                expect.any(Function)
+                expect.any(Function),
+                { signal: controller.signal }
             );
         });
     });
@@ -185,6 +202,9 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
             expect(mockElement.classList.remove).toHaveBeenCalledWith(
                 "has-file"
             );
+
+            (document.getElementById as any).mockReturnValue(null);
+            expect(() => clearFileDisplay()).not.toThrow();
         });
 
         it("should clear content areas", () => {
@@ -270,6 +290,16 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
             expect(console.log).toHaveBeenCalledWith(
                 "File unloaded successfully"
             );
+
+            const domError = new Error("DOM unavailable");
+            (document.getElementById as any).mockImplementationOnce(() => {
+                throw domError;
+            });
+            expect(unloadFitFile()).toBe(false);
+            expect(console.error).toHaveBeenCalledWith(
+                "Error unloading file:",
+                domError
+            );
         });
 
         it("should handle file reading", async () => {
@@ -310,6 +340,9 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
             expect(validateFileType("test.gpx")).toBe(false);
             expect(console.warn).toHaveBeenCalledWith(
                 "Invalid file type: .gpx. Only .fit files are supported."
+            );
+            expect(console.warn).not.toHaveBeenCalledWith(
+                "Invalid file type: .fit. Only .fit files are supported."
             );
         });
     });
@@ -375,9 +408,8 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
                 }
 
                 try {
-                    const arrayBuffer = await readFileAsArrayBuffer(file);
                     console.log(`Processing file: ${file.name}`);
-                    return arrayBuffer;
+                    return readFileAsArrayBuffer(file);
                 } catch (error) {
                     console.error("Error processing file:", error);
                 }
@@ -396,9 +428,22 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
             await handleDropEvent(mockEvent);
 
             expect(mockEvent.preventDefault).toHaveBeenCalled();
+            expect(await handleDropEvent(mockEvent)).toBeInstanceOf(
+                ArrayBuffer
+            );
             expect(console.log).toHaveBeenCalledWith(
                 "Processing file: test.fit"
             );
+
+            const emptyDropEvent = {
+                preventDefault: vi.fn(),
+                dataTransfer: { files: [] },
+            } as any;
+            await expect(handleDropEvent(emptyDropEvent)).resolves.toBe(
+                undefined
+            );
+            expect(console.warn).toHaveBeenCalledWith("No files dropped");
+            expect(console.error).not.toHaveBeenCalled();
         });
     });
 
@@ -406,6 +451,10 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
         it("should handle theme changes", () => {
             // Simulate the theme management pattern from main-ui.js
             function handleThemeChange(theme: string) {
+                if (!["dark", "light"].includes(theme)) {
+                    console.warn(`Unsupported theme: ${theme}`);
+                    return false;
+                }
                 document.body.setAttribute("data-theme", theme);
 
                 // Update theme-specific elements
@@ -418,6 +467,7 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
                 });
 
                 console.log(`Theme changed to: ${theme}`);
+                return true;
             }
 
             const mockElement = {
@@ -429,7 +479,7 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
             global.document.body = { setAttribute: vi.fn() } as any;
             (document.querySelectorAll as any).mockReturnValue([mockElement]);
 
-            handleThemeChange("dark");
+            expect(handleThemeChange("dark")).toBe(true);
 
             expect(document.body.setAttribute).toHaveBeenCalledWith(
                 "data-theme",
@@ -444,6 +494,15 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
                 false
             );
             expect(console.log).toHaveBeenCalledWith("Theme changed to: dark");
+
+            expect(handleThemeChange("sepia")).toBe(false);
+            expect(console.warn).toHaveBeenCalledWith(
+                "Unsupported theme: sepia"
+            );
+            expect(document.body.setAttribute).not.toHaveBeenCalledWith(
+                "data-theme",
+                "sepia"
+            );
         });
 
         it("should initialize theme on load", () => {
@@ -476,6 +535,7 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
         it("should register menu event handlers", () => {
             // Simulate the menu event registration pattern from main-ui.js
             function registerMenuHandlers() {
+                const registeredActions = [];
                 if ((window.electronAPI as any)?.onMenuClick) {
                     (window.electronAPI as any).onMenuClick(
                         "unload-fit-file",
@@ -483,6 +543,7 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
                             console.log("Unload menu item clicked");
                         }
                     );
+                    registeredActions.push("unload-fit-file");
 
                     (window.electronAPI as any).onMenuClick(
                         "summary-column-selector",
@@ -490,11 +551,17 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
                             console.log("Summary column selector clicked");
                         }
                     );
+                    registeredActions.push("summary-column-selector");
                 }
+                return registeredActions;
             }
 
-            registerMenuHandlers();
+            const registeredActions = registerMenuHandlers();
 
+            expect(registeredActions).toEqual([
+                "unload-fit-file",
+                "summary-column-selector",
+            ]);
             expect(
                 (window.electronAPI as any).onMenuClick
             ).toHaveBeenCalledWith("unload-fit-file", expect.any(Function));
@@ -532,6 +599,9 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
             expect(console.warn).toHaveBeenCalledWith(
                 "Unknown menu action: unknown-action"
             );
+            expect(console.warn).not.toHaveBeenCalledWith(
+                "Unknown menu action: unload-fit-file"
+            );
         });
     });
 
@@ -544,7 +614,10 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
                 );
                 if (iframe && (iframe as any).contentWindow) {
                     try {
-                        (iframe as any).contentWindow.postMessage(message, "*");
+                        (iframe as any).contentWindow.postMessage(
+                            message,
+                            "https://fitfileviewer.local"
+                        );
                         console.log("Message sent to iframe");
                         return true;
                     } catch (error) {
@@ -571,8 +644,11 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
             expect(sendToIframe(message)).toBe(true);
             expect(mockIframe.contentWindow.postMessage).toHaveBeenCalledWith(
                 message,
-                "*"
+                "https://fitfileviewer.local"
             );
+            expect(
+                mockIframe.contentWindow.postMessage
+            ).not.toHaveBeenCalledWith(message, "*");
             expect(console.log).toHaveBeenCalledWith("Message sent to iframe");
 
             // Test with iframe missing
@@ -617,6 +693,14 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
             expect(window.alert).toHaveBeenCalledWith(
                 "An error occurred during file processing. Please try again."
             );
+
+            const originalAlert = window.alert;
+            delete (window as any).alert;
+            expect(handleOperationError("map rendering", testError)).toBe(
+                false
+            );
+            expect(window.alert).not.toBeDefined();
+            window.alert = originalAlert;
         });
 
         it("should log operation progress", () => {
@@ -634,14 +718,23 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
                 } else {
                     console.log(logMessage);
                 }
+                return logMessage;
             }
 
-            logOperation("file-processing", "start");
+            const startMessage = logOperation("file-processing", "start");
+            expect(startMessage).toContain("file-processing: start");
             expect(console.log).toHaveBeenCalledWith(
                 expect.stringContaining("file-processing: start")
             );
 
-            logOperation("file-processing", "complete", { fileSize: 1024 });
+            const completeMessage = logOperation(
+                "file-processing",
+                "complete",
+                {
+                    fileSize: 1024,
+                }
+            );
+            expect(completeMessage).toContain("file-processing: complete");
             expect(console.log).toHaveBeenCalledWith(
                 expect.stringContaining("file-processing: complete"),
                 {
@@ -689,6 +782,9 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
 
             (window as any).unloadFitFile();
             expect(console.log).toHaveBeenCalledWith("unloadFitFile called");
+
+            delete (window as any).renderChartJS;
+            expect((window as any).renderChartJS).not.toBeDefined();
         });
     });
 });
