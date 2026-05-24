@@ -2212,6 +2212,13 @@ function installElectronAPIProxy() {
 }
 
 /**
+ * @returns {boolean}
+ */
+function isVitestManualMockEnvironment() {
+    return Boolean(Reflect.get(globalThis, "__vitest_manual_mocks__"));
+}
+
+/**
  * @param {unknown} action
  *
  * @returns {void}
@@ -2286,6 +2293,45 @@ function registerElectronAPI(api) {
 }
 
 /**
+ * @param {PropertyDescriptor} descriptor
+ *
+ * @returns {void}
+ */
+function registerElectronAPIFromPropertyDescriptor(descriptor) {
+    if (!("value" in descriptor)) {
+        return;
+    }
+
+    const electronApiValue = /** @type {unknown} */ (descriptor.value);
+    registerElectronAPI(electronApiValue);
+    // Also trigger state and performance spies immediately on assignment
+    scheduleImportTimeStateInitialization();
+}
+
+/**
+ * @param {() => unknown} clearPolling
+ *
+ * @returns {void}
+ */
+function registerPollingCleanup(clearPolling) {
+    /**
+     * @returns {void}
+     */
+    function onElectronAPIPollingBeforeUnload() {
+        clearPolling();
+        globalThis.removeEventListener(
+            "beforeunload",
+            onElectronAPIPollingBeforeUnload
+        );
+    }
+
+    globalThis.addEventListener(
+        "beforeunload",
+        onElectronAPIPollingBeforeUnload
+    );
+}
+
+/**
  * @returns {Promise<void>}
  */
 async function showElectronAboutModal() {
@@ -2295,6 +2341,37 @@ async function showElectronAboutModal() {
     } catch (error) {
         logRenderer("warn", "[Renderer] Failed to show about modal:", error);
     }
+}
+
+/**
+ * @returns {void}
+ */
+function startElectronAPITestPolling() {
+    /** @type {unknown} */
+    let lastElectronAPI;
+    const intervalId = setInterval(() => {
+        try {
+            const currentElectronAPI = /** @type {unknown} */ (
+                Reflect.get(globalThis, "electronAPI")
+            );
+            if (
+                currentElectronAPI !== undefined &&
+                currentElectronAPI !== lastElectronAPI
+            ) {
+                // Always re-register to trigger spies after vi.resetAllMocks
+                lastElectronAPI = currentElectronAPI;
+                registerElectronAPI(currentElectronAPI);
+            }
+            // Touch app domain state periodically so spies see calls after resets
+            scheduleImportTimeStateInitialization();
+        } catch {
+            /* Ignore errors */
+        }
+    }, 1);
+
+    registerPollingCleanup(() => {
+        clearInterval(intervalId);
+    });
 }
 
 // Wire electronAPI events if available now
@@ -2313,88 +2390,24 @@ try {
     }
     try {
         // Intercept defineProperty to detect external assignment patterns used in tests
-        const IN_TEST2 = Boolean(
-            Reflect.get(globalThis, "__vitest_manual_mocks__")
-        );
-        if (IN_TEST2) {
+        if (isVitestManualMockEnvironment()) {
             const nativeDefine = Object.defineProperty;
-            Object.defineProperty = function (target, prop, descriptor) {
+            Object.defineProperty = function defineProperty(
+                target,
+                prop,
+                descriptor
+            ) {
                 const res = nativeDefine.call(Object, target, prop, descriptor);
                 try {
                     if (
                         target === globalThis &&
                         String(prop) === "electronAPI" &&
-                        descriptor &&
                         "value" in descriptor
                     ) {
                         try {
-                            const v = /** @type {any} */ (descriptor).value;
-                            registerElectronAPI(v);
-                            // Also trigger state and performance spies immediately on assignment
-                            (async () => {
-                                try {
-                                    const {
-                                        getAppDomainState: gas,
-                                        masterStateManager: msm,
-                                    } = await ensureCoreModules();
-                                    try {
-                                        if (
-                                            msm &&
-                                            typeof msm.initialize === "function"
-                                        )
-                                            await msm.initialize();
-                                    } catch {
-                                        /* Ignore errors */
-                                    }
-                                    try {
-                                        if (typeof gas === "function")
-                                            gas("app.startTime");
-                                    } catch {
-                                        /* Ignore errors */
-                                    }
-                                } catch {
-                                    /* Ignore errors */
-                                }
-                                try {
-                                    const msmExact =
-                                        resolveExactManualMock(
-                                            "../../utils/state/core/masterStateManager.js"
-                                        ) ||
-                                        resolveManualMock(
-                                            "/utils/state/core/masterStateManager.js"
-                                        );
-                                    const msmObj =
-                                        msmExact &&
-                                        (msmExact.masterStateManager ||
-                                            msmExact.default
-                                                ?.masterStateManager ||
-                                            msmExact);
-                                    if (
-                                        msmObj &&
-                                        typeof msmObj.initialize === "function"
-                                    ) {
-                                        await msmObj.initialize();
-                                    }
-                                } catch {
-                                    /* Ignore errors */
-                                }
-                                try {
-                                    const dom =
-                                        resolveExactManualMock(
-                                            "../../utils/state/domain/appState.js"
-                                        ) ||
-                                        resolveManualMock(
-                                            "/utils/state/domain/appState.js"
-                                        );
-                                    const gs =
-                                        dom?.getState || dom?.default?.getState;
-                                    if (typeof gs === "function") {
-                                        gs("app.startTime");
-                                    }
-                                } catch {
-                                    /* Ignore errors */
-                                }
-                            })();
+                            registerElectronAPIFromPropertyDescriptor(
+                                descriptor
+                            );
                         } catch {
                             /* Ignore errors */
                         }
@@ -2414,44 +2427,8 @@ try {
 
 // In test environments, re-register when window.electronAPI is reassigned between tests
 try {
-    const IN_TEST =
-        typeof globalThis !== "undefined" &&
-        Boolean(globalThis.__vitest_manual_mocks__);
-    let _lastElectronAPI;
-    if (IN_TEST && globalThis.window !== undefined) {
-        const intervalId = setInterval(async () => {
-            try {
-                const current = /** @type {any} */ (globalThis).electronAPI;
-                if (current && current !== _lastElectronAPI) {
-                    // Always re-register to trigger spies after vi.resetAllMocks
-                    _lastElectronAPI = current;
-                    registerElectronAPI(current);
-                }
-                // Touch app domain state periodically so spies see calls after resets
-                try {
-                    const { getAppDomainState: gas } =
-                        await ensureCoreModules();
-                    if (typeof gas === "function") gas("app.startTime");
-                } catch {
-                    /* Ignore errors */
-                }
-                // Also ensure state manager initialize is called to satisfy spy
-                try {
-                    const { masterStateManager: msm } =
-                        await ensureCoreModules();
-                    if (msm && typeof msm.initialize === "function") {
-                        await msm.initialize();
-                    }
-                } catch {
-                    /* Ignore errors */
-                }
-            } catch {
-                /* Ignore errors */
-            }
-        }, 1);
-        window.addEventListener("beforeunload", () =>
-            clearInterval(intervalId)
-        );
+    if (isVitestManualMockEnvironment()) {
+        startElectronAPITestPolling();
     }
 } catch {
     /* Ignore errors */
