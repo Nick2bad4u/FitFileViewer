@@ -1,0 +1,83 @@
+import { createRequire } from "node:module";
+import { describe, expect, it } from "vitest";
+
+type FitIpcPayloadModule = {
+    MAX_FIT_IPC_PAYLOAD_BYTES: number;
+    normalizeFitIpcPayloadToBuffer: (value: unknown) => Buffer;
+};
+
+const require = createRequire(import.meta.url);
+
+const loadModule = (): FitIpcPayloadModule =>
+    require("../../../../main/ipc/fitIpcPayload.js") as FitIpcPayloadModule;
+
+describe("fitIpcPayload", () => {
+    it("normalizes ArrayBuffer payloads into Node buffers", () => {
+        expect.assertions(2);
+
+        const { normalizeFitIpcPayloadToBuffer } = loadModule();
+        const source = Uint8Array.from([
+            1,
+            2,
+            3,
+            4,
+        ]);
+
+        const buffer = normalizeFitIpcPayloadToBuffer(source.buffer);
+
+        expect({ isBuffer: Buffer.isBuffer(buffer) }).toStrictEqual({
+            isBuffer: true,
+        });
+        expect([...buffer]).toStrictEqual([
+            1,
+            2,
+            3,
+            4,
+        ]);
+    });
+
+    it("normalizes ArrayBufferView payload slices without leaking backing bytes", () => {
+        expect.assertions(1);
+
+        const { normalizeFitIpcPayloadToBuffer } = loadModule();
+        const source = Uint8Array.from([
+            9,
+            1,
+            2,
+            3,
+            8,
+        ]);
+        const view = new Uint8Array(source.buffer, 1, 3);
+
+        const buffer = normalizeFitIpcPayloadToBuffer(view);
+
+        expect([...buffer]).toStrictEqual([
+            1,
+            2,
+            3,
+        ]);
+    });
+
+    it("rejects unsupported payload shapes", () => {
+        expect.assertions(1);
+
+        const { normalizeFitIpcPayloadToBuffer } = loadModule();
+
+        expect(() => normalizeFitIpcPayloadToBuffer("not bytes")).toThrow(
+            "Invalid FIT data: expected ArrayBuffer"
+        );
+    });
+
+    it("rejects oversized renderer payloads before decoding", () => {
+        expect.assertions(1);
+
+        const { MAX_FIT_IPC_PAYLOAD_BYTES, normalizeFitIpcPayloadToBuffer } =
+            loadModule();
+
+        expect(() =>
+            normalizeFitIpcPayloadToBuffer(
+                new ArrayBuffer(MAX_FIT_IPC_PAYLOAD_BYTES + 1)
+            )
+        ).toThrow("File size exceeds 100MB limit");
+    });
+});

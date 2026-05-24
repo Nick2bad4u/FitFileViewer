@@ -1,45 +1,6 @@
 "use strict";
 {
-    // Hard safety guard to prevent renderer-driven memory blowups.
-    // Keep aligned with the file read size cap enforced by the main process.
-    const MAX_FIT_FILE_BYTES = 100 * 1024 * 1024;
-    const assertWithinFitLimit = (byteLength) => {
-        if (!Number.isFinite(byteLength) || byteLength < 0) {
-            throw new TypeError(
-                "Invalid FIT data: expected a finite byte length"
-            );
-        }
-        if (byteLength > MAX_FIT_FILE_BYTES) {
-            throw new Error("File size exceeds 100MB limit");
-        }
-    };
-    /**
-     * Normalizes IPC payloads into a Node Buffer.
-     *
-     * Electron IPC commonly transports ArrayBuffer from the renderer. We
-     * defensively validate the input here so a compromised renderer cannot feed
-     * unexpected types into the FIT decoder.
-     */
-    const toBuffer = (value) => {
-        if (value instanceof ArrayBuffer) {
-            assertWithinFitLimit(value.byteLength);
-            return Buffer.from(value);
-        }
-        if (
-            value &&
-            typeof value === "object" &&
-            ArrayBuffer.isView(value) &&
-            value.buffer instanceof ArrayBuffer
-        ) {
-            assertWithinFitLimit(value.byteLength);
-            return Buffer.from(
-                value.buffer,
-                value.byteOffset,
-                value.byteLength
-            );
-        }
-        throw new TypeError("Invalid FIT data: expected ArrayBuffer");
-    };
+    const { normalizeFitIpcPayloadToBuffer } = require("./fitIpcPayload");
     /**
      * Registers IPC handlers for FIT file parsing and decoding operations.
      */
@@ -56,7 +17,7 @@
             registerIpcHandle(channel, async (_event, arrayBuffer) => {
                 try {
                     await ensureFitParserStateIntegration();
-                    const buffer = toBuffer(arrayBuffer);
+                    const buffer = normalizeFitIpcPayloadToBuffer(arrayBuffer);
                     const {
                         getFitParserModule,
                     } = require("../runtime/fitParserFacade");
