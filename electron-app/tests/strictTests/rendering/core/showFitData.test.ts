@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { setState } from "../../../../utils/state/core/stateManager.js";
 
 vi.mock("../../../../utils/state/core/stateManager.js", () => ({
     getState: vi.fn(() => undefined),
@@ -20,11 +19,17 @@ async function loadModule() {
 
 describe("showFitData", () => {
     beforeEach(() => {
-        document.body.innerHTML = `
-      <div id="${"activeFileNameContainer"}"></div>
-      <span id="${"activeFileName"}"></span>
-      <button id="${"unloadFileBtn"}"></button>
-    `;
+        const activeFileNameContainer = document.createElement("div");
+        activeFileNameContainer.id = "activeFileNameContainer";
+        const activeFileName = document.createElement("span");
+        activeFileName.id = "activeFileName";
+        const unloadFileButton = document.createElement("button");
+        unloadFileButton.id = "unloadFileBtn";
+        document.body.replaceChildren(
+            activeFileNameContainer,
+            activeFileName,
+            unloadFileButton
+        );
         (window as any).electronAPI = { send: vi.fn() };
         (window as any).setTabButtonsEnabled = vi.fn();
         (window as any).createTables = vi.fn();
@@ -35,6 +40,7 @@ describe("showFitData", () => {
         vi.useFakeTimers();
     });
     afterEach(() => {
+        document.body.replaceChildren();
         vi.useRealTimers();
         vi.resetModules();
         vi.clearAllMocks();
@@ -46,36 +52,12 @@ describe("showFitData", () => {
         const filePath = "C:/tmp/file.fit";
         showFitData(data, filePath);
 
-        const setStateCalls = vi.mocked(setState).mock.calls;
-        const callPaths = setStateCalls.map((call) => call[0]);
-        expect(callPaths).toEqual(
-            expect.arrayContaining([
-                "globalData",
-                "map.isRendered",
-                "charts.isRendered",
-                "tables.isRendered",
-                "ui.fileInfo",
-                "ui.unloadButtonVisible",
-                "currentFile",
-            ])
-        );
-
-        const fileInfoCall = setStateCalls.find(
-            (call) => call[0] === "ui.fileInfo"
-        );
-        expect(fileInfoCall?.[1]).toEqual(
-            expect.objectContaining({
-                displayName: "file.fit",
-                hasFile: true,
-                title: "Fit File Viewer - file.fit",
-            })
-        );
-
-        expect(setState).toHaveBeenCalledWith(
-            "currentFile",
-            filePath,
-            expect.any(Object)
-        );
+        expect((window as any).globalData).toBe(data);
+        expect(data).toMatchObject({
+            cachedFileName: "file.fit",
+            cachedFilePath: filePath,
+        });
+        expect((window as any).setTabButtonsEnabled).toHaveBeenCalledWith(true);
 
         // setTimeout branch for tab visibility and map render
         vi.runAllTimers();
@@ -90,11 +72,16 @@ describe("showFitData", () => {
         expect((window as any).renderSummary).toHaveBeenCalled();
 
         // IPC send
-        expect((window as any).electronAPI.send).toHaveBeenCalled();
+        expect((window as any).electronAPI.send).toHaveBeenCalledWith(
+            "fit-file-loaded",
+            filePath
+        );
     });
 
     it("throws on invalid data and writes error state", async () => {
         const { showFitData } = await loadModule();
-        await expect(() => showFitData(null as any, undefined)).toThrowError();
+        expect(() => showFitData(null as any, undefined)).toThrowError(
+            "Invalid data: expected object"
+        );
     });
 });
