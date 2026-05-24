@@ -24,10 +24,20 @@ describe("formatManufacturer.js - Manufacturer Name Formatting", () => {
     describe("Basic Manufacturer Formatting", () => {
         describe("String-based Manufacturer Names", () => {
             it("should format known manufacturer names with proper capitalization", () => {
-                expect(formatManufacturer("garmin")).toBe("Garmin");
-                expect(formatManufacturer("GARMIN")).toBe("Garmin");
-                expect(formatManufacturer("GaRmIn")).toBe("Garmin");
-                expect(formatManufacturer("  garmin  ")).toBe("Garmin");
+                expect(
+                    [
+                        "garmin",
+                        "GARMIN",
+                        "GaRmIn",
+                        "  garmin  ",
+                    ].map((manufacturer) => formatManufacturer(manufacturer))
+                ).toStrictEqual([
+                    "Garmin",
+                    "Garmin",
+                    "Garmin",
+                    "Garmin",
+                ]);
+                expect(formatManufacturer("garmin")).not.toBe("garmin");
             });
 
             it("should format all cycling manufacturers correctly", () => {
@@ -114,6 +124,9 @@ describe("formatManufacturer.js - Manufacturer Name Formatting", () => {
                 expect(formatManufacturer("faveroElectronics")).toBe(
                     "faveroElectronics"
                 );
+                expect(formatManufacturer("faveroElectronics")).not.toBe(
+                    "Favero Electronics"
+                );
                 expect(formatManufacturer("cateye")).toBe("CatEye");
             });
 
@@ -154,6 +167,7 @@ describe("formatManufacturer.js - Manufacturer Name Formatting", () => {
             it("should resolve numeric IDs using external lookup service", () => {
                 mockGetManufacturerName.mockReturnValue("Garmin");
                 expect(formatManufacturer(1)).toBe("Garmin");
+                expect(formatManufacturer(1)).not.toBe("1");
                 expect(mockGetManufacturerName).toHaveBeenCalledWith(1);
             });
 
@@ -228,6 +242,7 @@ describe("formatManufacturer.js - Manufacturer Name Formatting", () => {
                 expect(formatManufacturer(null as any)).toBe(
                     "Unknown Manufacturer"
                 );
+                expect(formatManufacturer(null as any)).not.toBe("null");
                 expect(console.warn).toHaveBeenCalledWith(
                     "[formatManufacturer] Null or undefined manufacturer provided"
                 );
@@ -247,6 +262,7 @@ describe("formatManufacturer.js - Manufacturer Name Formatting", () => {
             it("should handle boolean inputs by converting to string", () => {
                 expect(formatManufacturer(true as any)).toBe("true");
                 expect(formatManufacturer(false as any)).toBe("false");
+                expect(formatManufacturer(true as any)).not.toBe("True");
             });
 
             it("should handle array inputs by converting to string", () => {
@@ -363,14 +379,20 @@ describe("formatManufacturer.js - Manufacturer Name Formatting", () => {
 
             it("should contain proper formatting for all entries", () => {
                 const mappings = getAllManufacturerMappings();
-                Object.values(mappings).forEach((value) => {
-                    expect(typeof value).toBe("string");
-                    expect((value as string).length).toBeGreaterThan(0);
-                    // Most manufacturer names should start with capital letter (except igpsport)
-                    if ((value as string) !== "iGPSPORT") {
-                        expect((value as string)[0]).toMatch(/[A-Z]/);
-                    }
-                });
+                const values = Object.values(mappings);
+                const nonIgpsportValues = values.filter(
+                    (value) => value !== "iGPSPORT"
+                );
+
+                expect(
+                    values.every(
+                        (value) => typeof value === "string" && value.length > 0
+                    )
+                ).toBe(true);
+                expect(
+                    nonIgpsportValues.every((value) => /^[A-Z]/.test(value))
+                ).toBe(true);
+                expect(values.some((value) => value.length === 0)).toBe(false);
             });
         });
 
@@ -414,9 +436,19 @@ describe("formatManufacturer.js - Manufacturer Name Formatting", () => {
             });
 
             it("should handle empty and whitespace-only strings", () => {
-                expect(hasManufacturerMapping("")).toBe(false);
-                expect(hasManufacturerMapping("   ")).toBe(false);
-                expect(hasManufacturerMapping("\t\n")).toBe(false);
+                expect(
+                    [
+                        "",
+                        "   ",
+                        "\t\n",
+                    ].map((manufacturer) =>
+                        hasManufacturerMapping(manufacturer)
+                    )
+                ).toStrictEqual([
+                    false,
+                    false,
+                    false,
+                ]);
             });
         });
     });
@@ -425,7 +457,10 @@ describe("formatManufacturer.js - Manufacturer Name Formatting", () => {
         describe("formatAntNames Integration", () => {
             it("should properly integrate with getManufacturerName function", () => {
                 mockGetManufacturerName.mockReturnValue("Test Manufacturer");
-                formatManufacturer(42);
+                const result = formatManufacturer(42);
+
+                expect(result).toBe("42");
+                expect(result).not.toBe("Test Manufacturer");
                 expect(mockGetManufacturerName).toHaveBeenCalledWith(42);
                 expect(mockGetManufacturerName).toHaveBeenCalledTimes(1);
             });
@@ -463,9 +498,11 @@ describe("formatManufacturer.js - Manufacturer Name Formatting", () => {
                 const result1 = formatManufacturer("garmin");
                 const result2 = formatManufacturer("garmin");
                 const result3 = formatManufacturer("garmin");
+
                 expect(result1).toBe(result2);
                 expect(result2).toBe(result3);
                 expect(result1).toBe("Garmin");
+                expect(result1).not.toBe("garmin");
             });
         });
 
@@ -481,6 +518,7 @@ describe("formatManufacturer.js - Manufacturer Name Formatting", () => {
                 // Test fallback for unknown IDs
                 mockGetManufacturerName.mockReturnValue(null);
                 expect(formatManufacturer(9999)).toBe("9999");
+                expect(formatManufacturer(9999)).not.toBe("Garmin");
             });
 
             it("should handle device string identifiers", () => {
