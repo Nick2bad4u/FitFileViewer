@@ -31,6 +31,7 @@ vi.mock(
         createGlobalChartStatusIndicator: vi.fn().mockImplementation(() => {
             const element = document.createElement("div");
             element.id = "mock-global-chart-status-indicator";
+            document.body.appendChild(element);
             return element;
         }),
     })
@@ -67,6 +68,34 @@ vi.mock("../../../../../utils/charts/core/getChartCounts.js", () => ({
 vi.mock("../../../../../utils/state/domain/settingsStateManager.js", () => ({
     subscribeToChartSettings: vi.fn(() => () => {}),
 }));
+
+function getFirstElementId(parent: ParentNode): string {
+    const element = parent.firstElementChild;
+
+    if (!(element instanceof HTMLElement)) {
+        throw new Error("Expected parent to contain an HTMLElement child");
+    }
+
+    return element.id;
+}
+
+function getRegisteredEventHandler(
+    target: Pick<EventTarget, "addEventListener">,
+    eventName: string
+): EventListener {
+    const call = vi
+        .mocked(target.addEventListener)
+        .mock.calls.find(([name]) => {
+            return name === eventName;
+        });
+    const handler = call?.[1];
+
+    if (typeof handler !== "function") {
+        throw new Error(`Expected ${eventName} handler to be registered`);
+    }
+
+    return handler as EventListener;
+}
 
 describe("chartStatusIndicator.js", () => {
     // Store original properties
@@ -177,9 +206,17 @@ describe("chartStatusIndicator.js", () => {
             const updatedGlobalIndicator = document.getElementById(
                 "mock-global-chart-status-indicator-from-counts"
             );
+            const { createGlobalChartStatusIndicator } =
+                await import("../../../../../utils/charts/components/createGlobalChartStatusIndicator.js");
 
-            expect(updatedSettingsIndicator).not.toBeNull();
-            expect(updatedGlobalIndicator).not.toBeNull();
+            expect([
+                updatedSettingsIndicator?.id,
+                updatedGlobalIndicator?.id,
+            ]).toStrictEqual([
+                "mock-chart-status-indicator-from-counts",
+                "mock-global-chart-status-indicator-from-counts",
+            ]);
+            expect(createGlobalChartStatusIndicator).not.toHaveBeenCalled();
         });
 
         it("should create global indicator if it does not exist", async () => {
@@ -201,6 +238,12 @@ describe("chartStatusIndicator.js", () => {
 
             // Assert that createGlobalChartStatusIndicator was called
             expect(createGlobalChartStatusIndicator).toHaveBeenCalled();
+            expect(getFirstElementId(settingsParent)).toBe(
+                "chart-status-indicator"
+            );
+            expect(
+                document.querySelectorAll("#global-chart-status")
+            ).toHaveLength(0);
         });
 
         it("should handle errors gracefully", async () => {
@@ -223,6 +266,7 @@ describe("chartStatusIndicator.js", () => {
                 "[ChartStatus] Error updating all chart status indicators:",
                 expect.any(Error)
             );
+            expect(document.body.childElementCount).toBe(0);
         });
     });
 
@@ -248,6 +292,8 @@ describe("chartStatusIndicator.js", () => {
             expect(createChartStatusIndicator).toHaveBeenCalled();
             // We should assert that it was called, but we don't need to check the ID specifically
             // since the real implementation might not replace the ID
+            expect(getFirstElementId(parent)).toBe("custom-indicator");
+            expect(parent.childElementCount).toBe(1);
         });
 
         it("should update the default indicator when none provided", async () => {
@@ -267,7 +313,8 @@ describe("chartStatusIndicator.js", () => {
 
             // Assert that the default indicator was updated
             // Just check that it still exists - we don't need to check the specific ID
-            expect(parent.children[0]).not.toBeNull();
+            expect(getFirstElementId(parent)).toBe("chart-status-indicator");
+            expect(parent.childElementCount).toBe(1);
         });
 
         it("should do nothing if no indicator exists", async () => {
@@ -282,6 +329,7 @@ describe("chartStatusIndicator.js", () => {
 
             // Assert that createChartStatusIndicator was not called
             expect(createChartStatusIndicator).not.toHaveBeenCalled();
+            expect(document.body.childElementCount).toBe(0);
         });
 
         it("should handle errors gracefully", async () => {
@@ -308,6 +356,9 @@ describe("chartStatusIndicator.js", () => {
             expect(console.error).toHaveBeenCalledWith(
                 "[ChartStatus] Error updating chart status indicator:",
                 expect.any(Error)
+            );
+            expect(document.getElementById("chart-status-indicator")?.id).toBe(
+                "chart-status-indicator"
             );
         });
     });
@@ -343,9 +394,21 @@ describe("chartStatusIndicator.js", () => {
             ).toHaveBeenCalled();
 
             // Verify globalData property was modified
-            expect(
-                Object.getOwnPropertyDescriptor(window, "globalData")
-            ).not.toBeUndefined();
+            const descriptor = Object.getOwnPropertyDescriptor(
+                window,
+                "globalData"
+            );
+            expect({
+                configurable: descriptor?.configurable,
+                enumerable: descriptor?.enumerable,
+                hasGetter: typeof descriptor?.get,
+                hasSetter: typeof descriptor?.set,
+            }).toStrictEqual({
+                configurable: true,
+                enumerable: true,
+                hasGetter: "function",
+                hasSetter: "function",
+            });
         });
 
         it("should handle event listener callbacks correctly", async () => {
@@ -359,18 +422,14 @@ describe("chartStatusIndicator.js", () => {
             // Call the function
             setupChartStatusUpdates();
 
-            // Extract the event handlers
-            const fieldToggleHandlerCall = vi
-                .mocked(window.addEventListener)
-                .mock.calls.find((call) => call[0] === "fieldToggleChanged");
-            const chartsRenderedHandlerCall = vi
-                .mocked(document.addEventListener)
-                .mock.calls.find((call) => call[0] === "chartsRendered");
-
-            // Manually invoke the handlers to test their behavior
-            // Check that the event listeners were registered
-            expect(fieldToggleHandlerCall).toBeTruthy();
-            expect(chartsRenderedHandlerCall).toBeTruthy();
+            const fieldToggleHandler = getRegisteredEventHandler(
+                window,
+                "fieldToggleChanged"
+            );
+            const chartsRenderedHandler = getRegisteredEventHandler(
+                document,
+                "chartsRendered"
+            );
             const settingsStateManager =
                 await import("../../../../../utils/state/domain/settingsStateManager.js");
             expect(
@@ -378,23 +437,11 @@ describe("chartStatusIndicator.js", () => {
             ).toHaveBeenCalled();
 
             // Test that the event handlers can be called without errors
-            if (fieldToggleHandlerCall) {
-                const handler = fieldToggleHandlerCall[1];
-                if (typeof handler === "function") {
-                    // This should not throw an error
-                    handler({} as Event);
-                    expect(setTimeout).toHaveBeenCalled();
-                }
-            }
+            fieldToggleHandler({} as Event);
+            chartsRenderedHandler({} as Event);
 
-            if (chartsRenderedHandlerCall) {
-                const handler = chartsRenderedHandlerCall[1];
-                if (typeof handler === "function") {
-                    // This should not throw an error
-                    handler({} as Event);
-                    expect(setTimeout).toHaveBeenCalled();
-                }
-            }
+            expect(setTimeout).toHaveBeenCalledWith(expect.any(Function), 50);
+            expect(document.body.childElementCount).toBe(0);
         });
 
         it("should handle errors during setup gracefully", async () => {
@@ -418,6 +465,12 @@ describe("chartStatusIndicator.js", () => {
                 "[ChartStatus] Error setting up chart status updates:",
                 expect.any(Error)
             );
+            expect(errorMock).toHaveBeenCalledWith(
+                "fieldToggleChanged",
+                expect.any(Function),
+                expect.objectContaining({ signal: expect.any(AbortSignal) })
+            );
+            expect(document.body.childElementCount).toBe(0);
         });
 
         it("should not redefine globalData property if already configured", async () => {
@@ -446,6 +499,7 @@ describe("chartStatusIndicator.js", () => {
             );
             expect(descriptor?.configurable).toBe(false);
             expect(window.globalData).toBe("existing");
+            expect(console.error).not.toHaveBeenCalled();
         });
     });
 });
