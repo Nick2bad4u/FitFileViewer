@@ -255,22 +255,27 @@ describe("StateMiddlewareManager - comprehensive coverage", () => {
         // Spy on localStorage.setItem directly since our mock might not use Storage.prototype
         const setItemSpy = vi.spyOn(localStorage, "setItem");
 
-        await executeMiddleware(MIDDLEWARE_PHASES.AFTER_SET, {
+        const savedContext = await executeMiddleware(MIDDLEWARE_PHASES.AFTER_SET, {
             path: "settings.theme",
             value: "dark",
             options: {},
         });
+        expect(savedContext.value).toBe("dark");
+        expect(localStorage.getItem("ffv_state_settings_theme")).toBe(
+            JSON.stringify("dark")
+        );
         expect(setItemSpy).toHaveBeenCalled();
 
         // Simulate storage error
         setItemSpy.mockImplementation(() => {
             throw new Error("quota");
         });
-        await executeMiddleware(MIDDLEWARE_PHASES.AFTER_SET, {
+        const errorContext = await executeMiddleware(MIDDLEWARE_PHASES.AFTER_SET, {
             path: "settings.mapTheme",
             value: "auto",
             options: {},
         });
+        expect(errorContext.value).toBe("auto");
 
         setItemSpy.mockRestore();
     });
@@ -308,16 +313,18 @@ describe("StateMiddlewareManager - comprehensive coverage", () => {
         expect(ctx1.value).toBeUndefined();
 
         // invalid type for specific paths
-        await executeMiddleware(MIDDLEWARE_PHASES.BEFORE_SET, {
+        const invalidInitialized = await executeMiddleware(MIDDLEWARE_PHASES.BEFORE_SET, {
             path: "app.initialized",
             value: "yes",
             options: {},
         });
-        await executeMiddleware(MIDDLEWARE_PHASES.BEFORE_SET, {
+        expect(invalidInitialized.value).toBe("yes");
+        const invalidStartTime = await executeMiddleware(MIDDLEWARE_PHASES.BEFORE_SET, {
             path: "app.startTime",
             value: -1,
             options: {},
         });
+        expect(invalidStartTime.value).toBe(-1);
 
         warnSpy.mockRestore();
         errSpy.mockRestore();
@@ -328,28 +335,32 @@ describe("StateMiddlewareManager - comprehensive coverage", () => {
         registerMiddleware("logging", loggingMiddleware, 20);
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
-        await executeMiddleware(MIDDLEWARE_PHASES.BEFORE_SET, {
+        const userBefore = await executeMiddleware(MIDDLEWARE_PHASES.BEFORE_SET, {
             path: "ui.activeTab",
             value: "summary",
             options: { source: "user" },
         });
-        await executeMiddleware(MIDDLEWARE_PHASES.AFTER_SET, {
+        const userAfter = await executeMiddleware(MIDDLEWARE_PHASES.AFTER_SET, {
             path: "ui.activeTab",
             value: "summary",
             options: { source: "user" },
         });
 
-        await executeMiddleware(MIDDLEWARE_PHASES.BEFORE_SET, {
+        const internalBefore = await executeMiddleware(MIDDLEWARE_PHASES.BEFORE_SET, {
             path: "ui.activeTab",
             value: "summary",
             options: { source: "internal" },
         });
-        await executeMiddleware(MIDDLEWARE_PHASES.AFTER_SET, {
+        const internalAfter = await executeMiddleware(MIDDLEWARE_PHASES.AFTER_SET, {
             path: "ui.activeTab",
             value: "summary",
             options: { source: "internal" },
         });
 
+        expect(userBefore.path).toBe("ui.activeTab");
+        expect(userAfter.value).toBe("summary");
+        expect(internalBefore.options.source).toBe("internal");
+        expect(internalAfter.value).toBe("summary");
         // Should have logged at least for user-sourced operations
         expect(logSpy).toHaveBeenCalled();
         logSpy.mockRestore();
@@ -360,12 +371,14 @@ describe("StateMiddlewareManager - comprehensive coverage", () => {
         registerMiddleware("logging", loggingMiddleware, 20);
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
-        await executeMiddleware(MIDDLEWARE_PHASES.ON_SUBSCRIBE, {
+        const out = await executeMiddleware(MIDDLEWARE_PHASES.ON_SUBSCRIBE, {
             path: "data.some.path",
             value: undefined,
             options: {},
         } as any);
 
+        expect(out.path).toBe("data.some.path");
+        expect(out.value).toBeUndefined();
         expect(logSpy).toHaveBeenCalled();
         logSpy.mockRestore();
     });
@@ -374,25 +387,25 @@ describe("StateMiddlewareManager - comprehensive coverage", () => {
         // Register only the notification middleware and exercise its branches
         registerMiddleware("notification", notificationMiddleware, 50);
         // We won't assert DOM/UI effects here; executing code paths increases coverage safely
-        await executeMiddleware(MIDDLEWARE_PHASES.AFTER_SET, {
+        const globalDataContext = await executeMiddleware(MIDDLEWARE_PHASES.AFTER_SET, {
             path: "globalData",
             value: { any: 1 },
             options: {},
         } as any);
-        await executeMiddleware(MIDDLEWARE_PHASES.AFTER_SET, {
+        const initializedContext = await executeMiddleware(MIDDLEWARE_PHASES.AFTER_SET, {
             path: "app.initialized",
             value: true,
             options: {},
         } as any);
-        await executeMiddleware(MIDDLEWARE_PHASES.AFTER_SET, {
+        const errorContext = await executeMiddleware(MIDDLEWARE_PHASES.AFTER_SET, {
             path: "system.error",
             value: { message: "failure" },
             options: {},
         } as any);
 
-        // This test focuses on executing branches for coverage; include a minimal assertion
-        // to satisfy the suite's hasAssertions requirement.
-        expect(true).toBe(true);
+        expect(globalDataContext.value).toEqual({ any: 1 });
+        expect(initializedContext.value).toBe(true);
+        expect(errorContext.value).toEqual({ message: "failure" });
     });
 
     it("registering a duplicate middleware warns and replaces the previous one", async () => {
@@ -436,12 +449,13 @@ describe("StateMiddlewareManager - comprehensive coverage", () => {
             20
         );
 
-        await executeMiddleware(MIDDLEWARE_PHASES.BEFORE_SET, {
+        const out = await executeMiddleware(MIDDLEWARE_PHASES.BEFORE_SET, {
             path: "x.y",
             value: 0,
             options: {},
         });
 
+        expect(out.value).toBe(0);
         // Should log invocation error from onError
         expect(errorSpy).toHaveBeenCalled();
         errorSpy.mockRestore();
