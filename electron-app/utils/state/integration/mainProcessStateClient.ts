@@ -1,11 +1,10 @@
 import type {
     MainStateChange,
     MainStateIpcValue,
-    MainStateListener,
     MainStateSetOptions,
     MainStateSetValue,
-} from "../../../shared/ipc";
-import type { ElectronAPI } from "../../../shared/preloadApi";
+} from "../../../shared/ipc.js";
+import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
 type Operation = MainStateIpcValue;
 type ErrorEntry = MainStateIpcValue;
@@ -60,6 +59,26 @@ function toOperationRecord(
     }
 
     return { ...value };
+}
+
+function toLoadedFilePath(value: MainStateIpcValue): null | string {
+    if (value === null || typeof value === "string") {
+        return value;
+    }
+
+    throw new TypeError("Expected loadedFitFilePath to be a string or null");
+}
+
+function toNullablePort(value: MainStateIpcValue): null | number {
+    if (value === null) {
+        return null;
+    }
+
+    if (typeof value === "number" && Number.isInteger(value)) {
+        return value;
+    }
+
+    throw new TypeError("Expected gyazoServerPort to be an integer or null");
 }
 
 /**
@@ -150,7 +169,7 @@ export class MainProcessStateClient {
         const electronAPI = this.requireElectronAPI();
 
         try {
-            return (await electronAPI.getErrors(limit)) as ErrorEntry[];
+            return await electronAPI.getErrors(limit);
         } catch (error) {
             console.error(
                 "[MainProcessStateClient] Error getting errors:",
@@ -170,12 +189,12 @@ export class MainProcessStateClient {
             this.get("gyazoServerPort"),
         ]);
 
-        return { port: port as null | number, server };
+        return { port: toNullablePort(port), server };
     }
 
     /** Gets the currently loaded FIT file path. */
     public async getLoadedFilePath(): Promise<null | string> {
-        return this.get("loadedFitFilePath") as Promise<null | string>;
+        return toLoadedFilePath(await this.get("loadedFitFilePath"));
     }
 
     /** Gets the serialized main window reference from state. */
@@ -193,7 +212,7 @@ export class MainProcessStateClient {
         const electronAPI = this.requireElectronAPI();
 
         try {
-            return (await electronAPI.getMetrics()) as Metrics;
+            return await electronAPI.getMetrics();
         } catch (error) {
             console.error(
                 "[MainProcessStateClient] Error getting metrics:",
@@ -213,9 +232,7 @@ export class MainProcessStateClient {
         const electronAPI = this.requireElectronAPI();
 
         try {
-            return (await electronAPI.getOperation(
-                operationId
-            )) as Operation | null;
+            return await electronAPI.getOperation(operationId);
         } catch (error) {
             console.error(
                 `[MainProcessStateClient] Error getting operation "${operationId}":`,
@@ -273,10 +290,7 @@ export class MainProcessStateClient {
 
         this._listeners.get(path)?.add(callback);
 
-        await electronAPI.listenToMainState(
-            path,
-            callback as MainStateListener
-        );
+        await electronAPI.listenToMainState(path, callback);
 
         return () => {
             const listeners = this._listeners.get(path);
