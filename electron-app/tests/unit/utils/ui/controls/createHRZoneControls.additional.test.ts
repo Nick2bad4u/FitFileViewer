@@ -23,8 +23,11 @@ async function loadModule() {
 
 describe("createHRZoneControls additional coverage", () => {
     beforeEach(() => {
-        document.body.innerHTML =
-            '<div id="root"></div><div id="fields"></div>';
+        const root = document.createElement("div");
+        root.id = "root";
+        const fields = document.createElement("div");
+        fields.id = "fields";
+        document.body.replaceChildren(root, fields);
         localStorage.clear();
         vi.resetModules();
         inlineSelectorMock.createInlineZoneColorSelector.mockReset();
@@ -91,14 +94,24 @@ describe("createHRZoneControls additional coverage", () => {
 
     it("updateHRZoneControlsVisibility gracefully handles missing section", async () => {
         const { updateHRZoneControlsVisibility } = await loadModule();
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         expect(() => updateHRZoneControlsVisibility(true)).not.toThrow();
     });
 
     it("warns when hr-zone-content is missing", async () => {
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         const { moveHRZoneControlsToSection } = await loadModule();
+        const fields = document.getElementById("fields")!;
+        const wrapper = document.createElement("div");
+        const toggle = document.createElement("button");
+        toggle.id = "field-toggle-hr_zone_doughnut";
+        wrapper.append(toggle);
+        fields.append(wrapper);
         moveHRZoneControlsToSection();
+        expect(document.querySelector("#hr-zone-content")).toBeNull();
+        expect(fields.children).toHaveLength(1);
+        expect(fields.firstElementChild).toBe(wrapper);
+        expect(inlineSelectorMock.createInlineZoneColorSelector).not.toHaveBeenCalled();
         expect(warnSpy).toHaveBeenCalledWith(
             "[HRZoneControls] HR zone content container not found"
         );
@@ -134,10 +147,12 @@ describe("createHRZoneControls additional coverage", () => {
         const children = Array.from(content.children) as HTMLElement[];
         expect(children).toHaveLength(5);
         expect(children[1].style.marginTop).toBe("12px");
-        const inlineButton = content.querySelector(
-            "[data-zone-prefix='hr_zone']"
+        const inlineButton = content.querySelector<HTMLButtonElement>(
+            "button[data-zone-prefix='hr_zone']"
         );
-        expect(inlineButton).toBeTruthy();
+        expect(inlineButton).toBeInstanceOf(HTMLButtonElement);
+        expect(inlineButton?.dataset.zonePrefix).toBe("hr_zone");
+        expect(inlineButton?.parentElement).toBe(children[4]);
         expect(
             inlineSelectorMock.createInlineZoneColorSelector
         ).toHaveBeenCalledWith("hr_zone", expect.any(HTMLElement));
