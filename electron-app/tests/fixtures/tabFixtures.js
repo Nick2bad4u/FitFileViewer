@@ -3,22 +3,62 @@
  */
 import { vi } from "vitest";
 
+/**
+ * @param {string} id
+ * @param {string} label
+ * @param {boolean} isActive
+ * @returns {HTMLButtonElement}
+ */
+function createTabButton(id, label, isActive) {
+    const button = document.createElement("button");
+    button.id = id;
+    button.classList.add("tab-button");
+    if (isActive) {
+        button.classList.add("active");
+    }
+    button.setAttribute("aria-selected", String(isActive));
+    button.textContent = label;
+    return button;
+}
+
+/**
+ * @param {string} id
+ * @param {string} text
+ * @param {boolean} isActive
+ * @returns {HTMLDivElement}
+ */
+function createTabPane(id, text, isActive) {
+    const pane = document.createElement("div");
+    pane.id = id;
+    pane.classList.add("tab-pane");
+    if (isActive) {
+        pane.classList.add("active");
+    }
+    pane.textContent = text;
+    return pane;
+}
+
 export function createMockTabButtons() {
     const container = document.createElement("div");
-    container.innerHTML = `
-        <div class="tab-container">
-            <button id="tab-summary" class="tab-button active" aria-selected="true">Summary</button>
-            <button id="tab-chart" class="tab-button" aria-selected="false">Chart</button>
-            <button id="tab-map" class="tab-button" aria-selected="false">Map</button>
-            <button id="tab-table" class="tab-button" aria-selected="false">Table</button>
-        </div>
-        <div class="tab-content">
-            <div id="summary-content" class="tab-pane active">Summary content</div>
-            <div id="chart-content" class="tab-pane">Chart content</div>
-            <div id="map-content" class="tab-pane">Map content</div>
-            <div id="table-content" class="tab-pane">Table content</div>
-        </div>
-    `;
+    const tabContainer = document.createElement("div");
+    tabContainer.classList.add("tab-container");
+    tabContainer.append(
+        createTabButton("tab-summary", "Summary", true),
+        createTabButton("tab-chart", "Chart", false),
+        createTabButton("tab-map", "Map", false),
+        createTabButton("tab-table", "Table", false)
+    );
+
+    const tabContent = document.createElement("div");
+    tabContent.classList.add("tab-content");
+    tabContent.append(
+        createTabPane("summary-content", "Summary content", true),
+        createTabPane("chart-content", "Chart content", false),
+        createTabPane("map-content", "Map content", false),
+        createTabPane("table-content", "Table content", false)
+    );
+
+    container.append(tabContainer, tabContent);
 
     document.body.appendChild(container);
     return container;
@@ -49,7 +89,7 @@ export function createDisabledTabButtons() {
 }
 
 export function cleanupDOM() {
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
 }
 
 export function mockStateManager() {
