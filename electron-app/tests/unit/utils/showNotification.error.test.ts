@@ -8,6 +8,38 @@ import {
     __testResetNotifications,
 } from "../../../utils/ui/notifications/showNotification.js";
 
+function createNotificationFixture(): HTMLDivElement {
+    const notificationElement = document.createElement("div");
+    notificationElement.id = "notification";
+    notificationElement.className = "notification";
+    notificationElement.style.display = "none";
+    document.body.replaceChildren(notificationElement);
+    return notificationElement;
+}
+
+function captureWindowErrors(): {
+    errors: Error[];
+    stop: () => void;
+} {
+    const errors: Error[] = [];
+    const controller = new AbortController();
+    const listener = (event: ErrorEvent): void => {
+        event.preventDefault();
+        errors.push(
+            event.error instanceof Error
+                ? event.error
+                : new Error(event.message)
+        );
+    };
+
+    window.addEventListener("error", listener, { signal: controller.signal });
+
+    return {
+        errors,
+        stop: () => controller.abort(),
+    };
+}
+
 describe("showNotification.js - error handling coverage", () => {
     const originalWarn = console.warn;
     const originalError = console.error;
@@ -23,8 +55,8 @@ describe("showNotification.js - error handling coverage", () => {
             cb(0);
             return 0;
         };
-        document.body.innerHTML =
-            '<div id="notification" class="notification" style="display:none"></div>';
+        createNotificationFixture();
+        __testResetNotifications();
     });
 
     afterEach(() => {
@@ -33,17 +65,16 @@ describe("showNotification.js - error handling coverage", () => {
         console.warn = originalWarn;
         console.error = originalError;
         window.requestAnimationFrame = originalRAF;
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         clearAllNotifications();
     });
 
     it("handles errors when resolveShown throws", async () => {
         // Craft a queued notification with a resolveShown that throws
-        const throwingResolve = vi.fn(() => {
+        const throwingResolve = vi.fn<() => void>(() => {
             throw new Error("resolveShown failure");
         });
 
-        /** @type {any} */
         const notification = {
             message: "Throwing resolveShown",
             type: "info",
@@ -56,22 +87,25 @@ describe("showNotification.js - error handling coverage", () => {
             resolveShown: throwingResolve,
         };
 
-        // Ensure element exists so displayNotification path is taken
-        document.body.innerHTML =
-            '<div id="notification" class="notification" style="display:none"></div>';
-
         // Queue and process
         notificationQueue.push(notification);
         await processNotificationQueue();
+
+        const element = document.getElementById("notification");
+        expect(element).toBeInstanceOf(HTMLDivElement);
+        expect(element?.style.display).toBe("flex");
+        expect(element?.className).toBe("notification info show");
+        expect(
+            element?.querySelector(".notification-message")?.textContent
+        ).toBe("Throwing resolveShown");
+        expect(notificationQueue).toHaveLength(0);
+        expect(notification.resolveShown).toBeUndefined();
 
         // Error should be logged and queue processing should not crash
         expect(console.error).toHaveBeenCalledWith(
             "Error displaying notification:",
             expect.any(Error)
         );
-
-        // Reset state
-        __testResetNotifications();
     });
 
     it("handles errors during displayNotification process", async () => {
@@ -82,10 +116,13 @@ describe("showNotification.js - error handling coverage", () => {
         });
 
         // This should trigger the catch block in processNotificationQueue
-        const p = showNotification("Display error test");
+        await expect(showNotification("Display error test")).resolves.toBeUndefined();
 
-        // Run timers to process promises
-        await vi.runAllTimersAsync();
+        const element = document.getElementById("notification");
+        expect(element).toBeInstanceOf(HTMLDivElement);
+        expect(element?.style.display).toBe("none");
+        expect(element?.childElementCount).toBe(0);
+        expect(notificationQueue).toHaveLength(0);
 
         // Error should be caught and logged
         expect(console.error).toHaveBeenCalledWith(
@@ -98,67 +135,61 @@ describe("showNotification.js - error handling coverage", () => {
 
     it("handles errors in notification click handlers", async () => {
         // Create a notification with an onClick handler that throws
-        const errorHandler = vi.fn().mockImplementation(() => {
+        const errorHandler = vi.fn<() => void>().mockImplementation(() => {
             throw new Error("Error in click handler");
         });
+        const captured = captureWindowErrors();
 
-        // We need to monkey-patch the hideNotification function to prevent
-        // uncaught errors from stopping the test
-        const p = showNotification("Click error test", "info", undefined, {
+        await showNotification("Click error test", "info", undefined, {
             onClick: errorHandler,
             persistent: true,
         });
 
-        await p;
-
-        // Testing that the error handler is called
-        // Note: Since this will throw an error, we're focused on verifying the error handler
-        // is called, not necessarily that the notification hides (which is tested elsewhere)
         const el = document.getElementById("notification")!;
+        el.click();
+        captured.stop();
 
-        // We're not going to actually click, as this causes unhandled errors
-        // Instead, we'll verify that the handler exists and the element has the right cursor style
-        expect(el.style.cursor).toBe("pointer"); // This indicates a click handler was added
-        expect(errorHandler).not.toHaveBeenCalled();
-
-        // Directly invoke the hideNotification function to verify it works
-        // This also tests the code path without relying on the click event
-        el.classList.remove("show");
-        vi.advanceTimersByTime(300); // Wait for hide transition
-
-        // Verify handler was set up but not called (avoiding the error)
-        expect(errorHandler).not.toHaveBeenCalled();
+        expect(errorHandler).toHaveBeenCalledOnce();
+        expect(captured.errors).toHaveLength(1);
+        expect(captured.errors[0]?.message).toBe("Error in click handler");
+        expect(el.style.cursor).toBe("pointer");
+        expect(el.style.display).toBe("flex");
+        expect(el.classList.contains("show")).toBe(true);
+        expect(el.querySelector(".notification-close")).toBeInstanceOf(
+            HTMLButtonElement
+        );
     });
 
     it("handles errors in action button click handlers", async () => {
         // Create action with handler that throws
-        const errorActionHandler = vi.fn().mockImplementation(() => {
+        const errorActionHandler = vi.fn<() => void>().mockImplementation(() => {
             throw new Error("Error in action handler");
         });
+        const captured = captureWindowErrors();
 
-        // Mock the stopPropagation function
-        const stopPropagation = vi.fn();
-
-        const p = notify.withActions("Action error test", "info", [
+        await notify.withActions("Action error test", "info", [
             { text: "Error Button", onClick: errorActionHandler },
         ]);
 
-        await p;
         const el = document.getElementById("notification")!;
         const btn = el.querySelector(
             ".notification-actions button"
         ) as HTMLButtonElement;
 
-        // Instead of clicking, we'll verify the button exists with the right class
-        expect(btn).toBeTruthy();
-        expect(btn.className).toContain("themed-btn"); // This indicates the button was properly set up
+        expect(btn).toBeInstanceOf(HTMLButtonElement);
+        expect(btn.textContent).toBe("Error Button");
+        expect(btn.className).toBe("themed-btn");
 
-        // We can test the hideNotification function is called correctly
-        // by manually setting up the element and triggering CSS removal
-        el.classList.remove("show");
-        vi.advanceTimersByTime(300); // Wait for hide transition
+        btn.click();
+        captured.stop();
 
-        // Verify handler was properly attached (but not called)
-        expect(errorActionHandler).not.toHaveBeenCalled();
+        expect(errorActionHandler).toHaveBeenCalledOnce();
+        expect(captured.errors).toHaveLength(1);
+        expect(captured.errors[0]?.message).toBe("Error in action handler");
+        expect(el.style.display).toBe("flex");
+        expect(el.classList.contains("show")).toBe(true);
+        expect(
+            el.querySelector(".notification-message")?.textContent
+        ).toBe("Action error test");
     });
 });
