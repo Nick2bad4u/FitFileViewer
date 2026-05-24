@@ -54,6 +54,7 @@
         "preload/apiDiagnostics.ts",
         "preload/beforeExitHandler.ts",
         "preload/clipboardBridge.ts",
+        "preload/devtoolsMenuApi.ts",
         "preload/electronBridge.ts",
         "preload/environment.ts",
         "preload/genericIpcApi.ts",

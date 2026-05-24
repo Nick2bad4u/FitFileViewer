@@ -137,6 +137,10 @@ const { createClipboardBridge } =
     /** @type {{ createClipboardBridge: (options: Record<string, unknown>) => ClipboardBridge }} */ (
         preloadRequire("./preload/clipboardBridge.js")
     );
+const { createDevtoolsMenuApi } =
+    /** @type {{ createDevtoolsMenuApi: (options: Record<string, unknown>) => Pick<ElectronAPI, "injectMenu"> }} */ (
+        preloadRequire("./preload/devtoolsMenuApi.js")
+    );
 const { createPreloadValidators } =
     /** @type {{ createPreloadValidators: (preloadLog: (level: "error" | "info" | "warn", message: string, ...details: unknown[]) => void) => { validateCallback: (callback: unknown, methodName: string) => callback is UnknownCallback; validateChannelName: (value: unknown, paramName: string, methodName: string) => value is string; validateOptionalNonEmptyString: (value: unknown, paramName: string, methodName: string) => value is string | null | undefined; validateRequiredNonEmptyString: (value: unknown, paramName: string, methodName: string) => value is string } }} */ (
         preloadRequire("./preload/validators.js")
@@ -260,6 +264,14 @@ const clipboardBridge = createClipboardBridge({
     channels: CONSTANTS.CHANNELS,
     ipcRenderer,
     preloadLog,
+});
+const devtoolsMenuApi = createDevtoolsMenuApi({
+    defaultFitFilePath: CONSTANTS.DEFAULT_VALUES.FIT_FILE_PATH,
+    defaultTheme: CONSTANTS.DEFAULT_VALUES.THEME,
+    devtoolsInjectMenuChannel: CONSTANTS.CHANNELS.DEVTOOLS_INJECT_MENU,
+    ipcRenderer,
+    preloadLog,
+    validateOptionalNonEmptyString,
 });
 const apiDiagnostics = createApiDiagnostics({
     channels: CONSTANTS.CHANNELS,
@@ -481,34 +493,7 @@ const electronAPI = {
      *
      * @returns {Promise<boolean>}
      */
-    injectMenu: async (
-        theme = CONSTANTS.DEFAULT_VALUES.THEME,
-        fitFilePath = CONSTANTS.DEFAULT_VALUES.FIT_FILE_PATH
-    ) => {
-        if (!validateOptionalNonEmptyString(theme, "theme", "injectMenu")) {
-            return false;
-        }
-        if (
-            !validateOptionalNonEmptyString(
-                fitFilePath,
-                "fitFilePath",
-                "injectMenu"
-            )
-        ) {
-            return false;
-        }
-
-        try {
-            return await ipcRenderer.invoke(
-                CONSTANTS.CHANNELS.DEVTOOLS_INJECT_MENU,
-                theme,
-                fitFilePath
-            );
-        } catch (error) {
-            preloadLog("error", "[preload.js] Error in injectMenu:", error);
-            return false;
-        }
-    },
+    injectMenu: devtoolsMenuApi.injectMenu,
 
     /**
      * Trigger install of a downloaded update.
