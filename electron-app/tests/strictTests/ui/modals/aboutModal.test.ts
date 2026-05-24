@@ -68,18 +68,19 @@ describe("About Modal - UI behaviors", () => {
 
         ensureAboutModal();
         const modal = document.getElementById("about-modal");
-        expect(modal).toBeTruthy();
+        expect(modal).toBeInstanceOf(HTMLElement);
 
         // Show with custom body content
         showAboutModal('<p id="custom">Hello</p>');
         const body = document.getElementById("about-modal-body");
         expect(body?.innerHTML).toContain("Hello");
+        expect(body?.innerHTML).not.toContain("Missing");
 
         // Close via the X button
         const closeBtn = document.getElementById(
             "about-modal-close"
         ) as HTMLButtonElement;
-        expect(closeBtn).toBeTruthy();
+        expect(closeBtn).toBeInstanceOf(HTMLButtonElement);
         closeBtn.click();
 
         // Advance timers to allow animation to complete
@@ -101,11 +102,12 @@ describe("About Modal - UI behaviors", () => {
         const section = document.getElementById(
             "info-toggle-section"
         ) as HTMLElement;
-        expect(section).toBeTruthy();
+        expect(section).toBeInstanceOf(HTMLElement);
         expect(section.innerHTML).toContain("system-info-grid");
+        expect(section.innerHTML).not.toContain("missing-system-info-grid");
 
         const featuresPanel = document.querySelector(".about-panel--features");
-        expect(featuresPanel).toBeTruthy();
+        expect(featuresPanel).toBeInstanceOf(HTMLElement);
 
         // loadVersionInfo is called by ensureAboutModal and showAboutModal
         expect(loadVersionInfo).toHaveBeenCalledTimes(2);
@@ -118,7 +120,7 @@ describe("About Modal - UI behaviors", () => {
         showAboutModal();
 
         const modal = document.getElementById("about-modal");
-        expect(modal).toBeTruthy();
+        expect(modal).toBeInstanceOf(HTMLElement);
 
         // Dispatch Escape on document (listener registered in ensureAboutModal)
         const evt = new KeyboardEvent("keydown", {
@@ -140,7 +142,7 @@ describe("About Modal - UI behaviors", () => {
         const link = document.querySelector(
             '[data-external-link][href="https://electronjs.org/"]'
         ) as HTMLAnchorElement;
-        expect(link).toBeTruthy();
+        expect(link).toBeInstanceOf(HTMLAnchorElement);
 
         link.click();
         expect((window as any).electronAPI.openExternal).toHaveBeenCalledWith(
