@@ -8,11 +8,7 @@ import {
     getFitParseErrorMessage,
     unwrapFitParseMessages,
 } from "./fitParsePayload.js";
-import type {
-    FitDecodeResult,
-    FitMessageRow,
-    FitMessages,
-} from "../../../shared/fit";
+import type { FitMessageRow, FitMessages } from "../../../shared/fit";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
 /** Decoded FIT data used by map overlay loading. */
@@ -34,13 +30,7 @@ export type OverlayLoadResult =
           success: false;
       };
 
-type OverlayDecodeFitFile = (
-    arrayBuffer: Parameters<ElectronAPI["decodeFitFile"]>[0]
-) => Promise<Awaited<ReturnType<ElectronAPI["decodeFitFile"]>> | undefined>;
-
-type OverlayElectronAPI = {
-    decodeFitFile?: OverlayDecodeFitFile;
-};
+type OverlayElectronAPI = Partial<Pick<ElectronAPI, "decodeFitFile">>;
 
 type OverlayFileGlobal = typeof globalThis & {
     electronAPI?: OverlayElectronAPI;
@@ -153,11 +143,7 @@ function getOverlayFileGlobal(): OverlayFileGlobal {
 }
 
 function resolveOverlayElectronAPI():
-    | {
-          decodeFitFile: (
-              arrayBuffer: ArrayBuffer
-          ) => Promise<FitDecodeResult | undefined>;
-      }
+    | Required<Pick<OverlayElectronAPI, "decodeFitFile">>
     | undefined {
     const { electronAPI } = getOverlayFileGlobal();
     if (!electronAPI || typeof electronAPI.decodeFitFile !== "function") {

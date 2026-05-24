@@ -1,4 +1,5 @@
 import { initializeAccentColor } from "./accentColor.js";
+import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
 /**
  * Known chart/theme color values exposed by the theme core.
@@ -30,10 +31,9 @@ export interface ThemeConfig {
     theme: EffectiveTheme;
 }
 
-interface RendererThemeApi {
-    readonly onSetTheme?: (callback: (theme: string) => void) => void;
-    readonly sendThemeChanged?: (theme: string) => void;
-}
+type RendererThemeApi = Partial<
+    Pick<ElectronAPI, "onSetTheme" | "sendThemeChanged">
+>;
 
 interface ThemeChangeEventDetail {
     readonly effectiveTheme: EffectiveTheme;

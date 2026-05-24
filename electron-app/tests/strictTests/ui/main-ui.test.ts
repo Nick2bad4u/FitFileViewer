@@ -366,7 +366,9 @@ describe("main-ui.js core flows", () => {
             .spyOn(handler, "readFileAsArrayBuffer")
             .mockResolvedValue(new ArrayBuffer(4));
         const api = (window as any).electronAPI;
-        api.decodeFitFile.mockResolvedValue({ ok: true });
+        api.decodeFitFile.mockResolvedValue({
+            recordMesgs: [{ positionLat: 1, positionLong: 2 }],
+        });
         const sendAltSpy = vi
             .spyOn(window as any, "sendFitFileToAltFitReader")
             .mockResolvedValue(undefined);
