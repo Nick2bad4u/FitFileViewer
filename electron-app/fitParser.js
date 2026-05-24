@@ -35,8 +35,9 @@
         }
     }
     function assertFitSdkModule(value) {
-        if (isFitSdkModule(value)) {
-            return value;
+        const sdkModule = resolveFitSdkModule(value);
+        if (sdkModule) {
+            return sdkModule;
         }
         throw new TypeError(
             "Garmin FIT SDK module is missing Decoder or Stream.fromBuffer"
@@ -87,10 +88,23 @@
             return false;
         }
         const { Stream } = candidate;
-        if (Stream === null || typeof Stream !== "object") {
+        if (
+            Stream === null ||
+            (typeof Stream !== "object" && typeof Stream !== "function")
+        ) {
             return false;
         }
         return typeof Stream.fromBuffer === "function";
+    }
+    function resolveFitSdkModule(value) {
+        if (isFitSdkModule(value)) {
+            return value;
+        }
+        if (value === null || typeof value !== "object") {
+            return null;
+        }
+        const defaultExport = value.default;
+        return isFitSdkModule(defaultExport) ? defaultExport : null;
     }
     function isThenable(value) {
         return (

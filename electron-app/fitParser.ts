@@ -74,8 +74,9 @@
     }
 
     function assertFitSdkModule(value: unknown): FitSdkModule {
-        if (isFitSdkModule(value)) {
-            return value;
+        const sdkModule = resolveFitSdkModule(value);
+        if (sdkModule) {
+            return sdkModule;
         }
 
         throw new TypeError(
@@ -141,7 +142,10 @@
         }
 
         const { Stream } = candidate;
-        if (Stream === null || typeof Stream !== "object") {
+        if (
+            Stream === null ||
+            (typeof Stream !== "object" && typeof Stream !== "function")
+        ) {
             return false;
         }
 
@@ -149,6 +153,19 @@
             typeof (Stream as { fromBuffer?: unknown }).fromBuffer ===
             "function"
         );
+    }
+
+    function resolveFitSdkModule(value: unknown): FitSdkModule | null {
+        if (isFitSdkModule(value)) {
+            return value;
+        }
+
+        if (value === null || typeof value !== "object") {
+            return null;
+        }
+
+        const defaultExport = (value as { default?: unknown }).default;
+        return isFitSdkModule(defaultExport) ? defaultExport : null;
     }
 
     function isThenable(value: unknown): value is PromiseLike<unknown> {

@@ -26,6 +26,13 @@ describe("utils/app/lifecycle/listeners.js", () => {
             ChartUpdater: undefined,
             renderChartJS: undefined,
         });
+        Object.assign(globalThis, {
+            __ffvMenuForwardRegistry: undefined,
+            electronAPI: undefined,
+            showFitData: undefined,
+            ChartUpdater: undefined,
+            renderChartJS: undefined,
+        });
     });
 
     function mount(openRecentReturn: string[] | null = null) {
@@ -39,7 +46,7 @@ describe("utils/app/lifecycle/listeners.js", () => {
         const showUpdateNotification = vi.fn();
         const showAboutModal = vi.fn();
 
-        (window as any).electronAPI = {
+        const electronAPI = {
             recentFiles: vi.fn(async () => openRecentReturn),
             onMenuOpenFile: vi.fn(),
             onOpenRecentFile: vi.fn(),
@@ -49,6 +56,8 @@ describe("utils/app/lifecycle/listeners.js", () => {
             onIpc: vi.fn(),
             send: vi.fn(),
         } as any;
+        (window as any).electronAPI = electronAPI;
+        (globalThis as any).electronAPI = electronAPI;
         setupListeners({
             openFileBtn,
             isOpeningFileRef,

@@ -33,9 +33,21 @@ describe("updateActiveTab.js - Basic Tests", () => {
         vi.clearAllMocks();
         document.body.innerHTML = "";
         mockGetState.mockReturnValue("summary");
+        Object.assign(globalThis, {
+            __vitest_effective_document__: document,
+            __vitest_effective_stateManager__: {
+                getState: mockGetState,
+                setState: mockSetState,
+                subscribe: mockSubscribe,
+            },
+        });
     });
 
     afterEach(() => {
+        Object.assign(globalThis, {
+            __vitest_effective_document__: undefined,
+            __vitest_effective_stateManager__: undefined,
+        });
         vi.resetAllMocks();
     });
 

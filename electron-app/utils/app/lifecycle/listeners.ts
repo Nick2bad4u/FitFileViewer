@@ -223,7 +223,7 @@ export function setupListeners({
         );
 
         trackUnsubscribe(
-            electronAPI.onOpenRecentFile(async (filePath) => {
+            electronAPI.onOpenRecentFile(async (filePath: unknown) => {
                 openFileBtn.disabled = true;
                 setLoading(true);
                 try {

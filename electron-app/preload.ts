@@ -333,36 +333,46 @@ interface PreloadRequire {
 }
 
 const preloadRequire = require as PreloadRequire;
-const { createApiDiagnostics } = preloadRequire(
+const { createApiDiagnostics } = (require as PreloadRequire)(
     "./preload/apiDiagnostics.js"
 );
-const { registerPreloadBeforeExitHandler } = preloadRequire(
+const { registerPreloadBeforeExitHandler } = (require as PreloadRequire)(
     "./preload/beforeExitHandler.js"
 );
-const { createClipboardBridge } = preloadRequire(
+const { createClipboardBridge } = (require as PreloadRequire)(
     "./preload/clipboardBridge.js"
 );
-const { createDevtoolsMenuApi } = preloadRequire(
+const { createDevtoolsMenuApi } = (require as PreloadRequire)(
     "./preload/devtoolsMenuApi.js"
 );
-const { createPreloadValidators } = preloadRequire("./preload/validators.js");
+const { createPreloadValidators } = (require as PreloadRequire)(
+    "./preload/validators.js"
+);
 const {
     isPreloadDevelopmentMode,
     shouldEnforceGenericIpcAllowlist,
-} = preloadRequire("./preload/environment.js");
-const { createGenericIpcApi } = preloadRequire("./preload/genericIpcApi.js");
-const { resolvePreloadElectronBridge } = preloadRequire(
+} = (require as PreloadRequire)("./preload/environment.js");
+const { createGenericIpcApi } = (require as PreloadRequire)(
+    "./preload/genericIpcApi.js"
+);
+const { resolvePreloadElectronBridge } = (require as PreloadRequire)(
     "./preload/electronBridge.js"
 );
-const { createMainStateBridge } = preloadRequire(
+const { createMainStateBridge } = (require as PreloadRequire)(
     "./preload/mainStateBridge.js"
 );
-const { createPreloadIpcHelpers } = preloadRequire(
+const { createPreloadIpcHelpers } = (require as PreloadRequire)(
     "./preload/ipcHelpers.js"
 );
-const { createPreloadLogger } = preloadRequire("./preload/logger.js");
-const { createMainStateApi } = preloadRequire("./preload/mainStateApi.js");
-const ipcBridgeCatalog = preloadRequire("./preload/ipcBridgeCatalog.js");
+const { createPreloadLogger } = (require as PreloadRequire)(
+    "./preload/logger.js"
+);
+const { createMainStateApi } = (require as PreloadRequire)(
+    "./preload/mainStateApi.js"
+);
+const ipcBridgeCatalog = (require as PreloadRequire)(
+    "./preload/ipcBridgeCatalog.js"
+);
 
 const {
     isAllowedGenericInvokeChannel,
