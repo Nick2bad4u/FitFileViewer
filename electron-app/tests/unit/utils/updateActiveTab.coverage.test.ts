@@ -52,7 +52,10 @@ describe("updateActiveTab.js - Coverage Completion", () => {
             const subscriptionCall = mockSubscribe.mock.calls.find(
                 (call: any[]) => call[0] === "ui.activeTab"
             );
-            expect(subscriptionCall).toBeTruthy();
+            expect(subscriptionCall).toEqual([
+                "ui.activeTab",
+                expect.any(Function),
+            ]);
 
             const stateCallback = subscriptionCall[1];
 
@@ -67,6 +70,7 @@ describe("updateActiveTab.js - Coverage Completion", () => {
             expect(warnSpy).toHaveBeenCalledWith(
                 "updateTabButtonsFromState: No tab buttons found in DOM."
             );
+            expect(mockDocument.body.childElementCount).toBe(0);
 
             // Test case 2: Invalid button elements (lines 142-144)
             // Create a malformed element that will trigger the defensive check
@@ -87,6 +91,9 @@ describe("updateActiveTab.js - Coverage Completion", () => {
                 "updateTabButtonsFromState: Invalid button element found:",
                 mockButton
             );
+            expect(
+                mockDocument.querySelector(".tab-button.active")
+            ).not.toBeInstanceOf(mockWindow.HTMLElement);
 
             // Restore original querySelectorAll
             mockDocument.querySelectorAll = originalQuerySelectorAll;
@@ -127,6 +134,9 @@ describe("updateActiveTab.js - Coverage Completion", () => {
                 "updateTabButtonsFromState: Invalid button element found:",
                 undefined
             );
+            expect(
+                mockDocument.querySelector(".tab-button.active")
+            ).not.toBeInstanceOf(mockWindow.HTMLElement);
 
             // Restore original querySelectorAll
             mockDocument.querySelectorAll = originalQuerySelectorAll;
@@ -171,6 +181,9 @@ describe("updateActiveTab.js - Coverage Completion", () => {
                 "updateTabButtonsFromState: Invalid button element found:",
                 buttonWithoutClassList
             );
+            expect(
+                mockDocument.querySelector(".tab-button.active")
+            ).not.toBeInstanceOf(mockWindow.HTMLElement);
 
             // Restore original querySelectorAll
             mockDocument.querySelectorAll = originalQuerySelectorAll;
