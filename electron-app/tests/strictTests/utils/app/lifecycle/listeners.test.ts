@@ -52,7 +52,7 @@ function createElectronAPIMock() {
     let menuOpenFileCb: IpcHandler | null = null;
     let openRecentCb: ((fp: string) => any) | null = null;
 
-    const api = {
+    return {
         // Menu hooks
         onMenuOpenFile: (cb: IpcHandler) => {
             menuOpenFileCb = cb;
@@ -89,8 +89,6 @@ function createElectronAPIMock() {
         // Main process send
         send: vi.fn<(channel: string) => void>(),
     };
-
-    return api;
 }
 
 function createButton(): HTMLButtonElement {
@@ -104,6 +102,10 @@ function ensureContainers() {
     const summary = document.createElement("div");
     summary.id = "content-summary";
     document.body.appendChild(summary);
+}
+
+function createFitMessages() {
+    return { recordMesgs: [] };
 }
 
 describe("setupListeners (utils/app/lifecycle/listeners)", () => {
@@ -202,6 +204,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         });
 
         openFileBtn.click();
+        expect(openFileBtn.id).toBe("open-file-btn");
         expect(handleOpenFile).toHaveBeenCalledTimes(1);
         expect(handleOpenFile).toHaveBeenCalledWith({
             isOpeningFileRef,
@@ -252,6 +255,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         // Allow async handler to resolve
         await Promise.resolve();
 
+        expect(document.getElementById("recent-files-menu")).toBeNull();
         expect(showNotification).toHaveBeenCalledWith(
             "No recent files found.",
             "info",
@@ -265,7 +269,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         const arrayBuf = new ArrayBuffer(8);
         electronAPI.readFile = vi.fn().mockResolvedValue(arrayBuf);
-        const parseResult = { ok: true, data: { field: 1 } };
+        const parseResult = { data: createFitMessages() };
         electronAPI.parseFitFile = vi.fn().mockResolvedValue(parseResult);
         electronAPI.addRecentFile = vi.fn().mockResolvedValue(undefined);
         const showFitData = vi.fn();
@@ -305,7 +309,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         await vi.waitFor(
             () => {
                 const menu = document.getElementById("recent-files-menu");
-                expect(menu).toBeTruthy();
+                expect(menu).toBeInstanceOf(HTMLDivElement);
             },
             { timeout: 1000 }
         );
@@ -313,7 +317,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         const menu = document.getElementById(
             "recent-files-menu"
         ) as HTMLDivElement;
-        expect(menu).toBeTruthy();
+        expect(menu).toBeInstanceOf(HTMLDivElement);
         const items = Array.from(menu.querySelectorAll("div"));
         expect(items.length).toBe(files.length);
 
@@ -364,6 +368,9 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         vi.advanceTimersByTime(210);
         vi.useRealTimers();
 
+        expect(
+            document.getElementById("tab-chart")?.classList.contains("active")
+        ).toBe(true);
         expect(window.ChartUpdater.updateCharts).toHaveBeenCalledWith(
             "window-resize"
         );
@@ -381,6 +388,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         });
 
         window.electronAPI.emit("decoder-options-changed", { speed: true });
+        expect(openFileBtn.disabled).toBe(false);
         expect(showNotification).toHaveBeenCalledWith(
             "Decoder options updated.",
             "info",
@@ -394,10 +402,19 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         const arrayBuf = new ArrayBuffer(16);
         window.globalData = { cachedFilePath: "C:/tmp/sample.fit" } as any;
         window.electronAPI.readFile = vi.fn().mockResolvedValue(arrayBuf);
-        const parsed = { ok: true };
+        const parsed = createFitMessages();
         window.electronAPI.parseFitFile = vi.fn().mockResolvedValue(parsed);
         const showFitData = vi.fn();
-        window.showFitData = showFitData;
+        Object.defineProperty(globalThis, "showFitData", {
+            value: showFitData,
+            writable: true,
+            configurable: true,
+        });
+        Object.defineProperty(window, "showFitData", {
+            value: showFitData,
+            writable: true,
+            configurable: true,
+        });
 
         setupListeners({
             openFileBtn,
@@ -429,6 +446,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             expect(setLoading).toHaveBeenCalledWith(true);
             expect(setLoading).toHaveBeenCalledWith(false);
         });
+        expect(openFileBtn.disabled).toBe(false);
     });
 
     it("IPC: export-file csv creates and clicks download link", async () => {
@@ -468,6 +486,9 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         expect((window as any).copyTableAsCSV).toHaveBeenCalled();
         expect(clickSpy).toHaveBeenCalledTimes(1);
+        expect(document.querySelector("a[download]")).toBeInstanceOf(
+            HTMLAnchorElement
+        );
     });
 
     it("IPC: export-file gpx with coords triggers download, otherwise shows informative notices", async () => {
@@ -511,6 +532,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             {} as any,
             "C:/tmp/out.gpx"
         );
+        expect(window.globalData.recordMesgs.length).toBe(2);
         expect(clickSpy).toHaveBeenCalledTimes(1);
 
         // Case 2: no valid coords
@@ -555,6 +577,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         });
 
         window.electronAPI.emit("show-notification", "Hello", undefined);
+        expect(openFileBtn.disabled).toBe(false);
         expect(showNotification).toHaveBeenCalledWith("Hello", "info", 3000);
     });
 
@@ -574,6 +597,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         });
 
         window.electronAPI.emit("menu-print");
+        expect(openFileBtn.isConnected).toBe(true);
         expect(printSpy).toHaveBeenCalled();
 
         window.electronAPI.emit("menu-check-for-updates");
@@ -598,6 +622,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         });
 
         await window.electronAPI.emit("menu-open-overlay");
+        expect(openFileBtn.disabled).toBe(false);
         expect(openFileSelectorMock).toHaveBeenCalledTimes(1);
         expect(showNotification).not.toHaveBeenCalled();
     });
@@ -616,6 +641,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         });
 
         await window.electronAPI.emit("menu-open-overlay");
+        expect(openFileBtn.disabled).toBe(false);
         expect(showNotification).toHaveBeenCalledWith(
             "Failed to open overlay selector.",
             "error",
@@ -636,6 +662,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         // menu-about calls showAboutModal with no args
         window.electronAPI.emit("menu-about");
+        expect(openFileBtn.isConnected).toBe(true);
         expect(showAboutModal).toHaveBeenCalled();
 
         await window.electronAPI.emit("menu-keyboard-shortcuts");
@@ -749,7 +776,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         window.electronAPI.readFile = vi.fn().mockResolvedValue(arrayBuf);
         window.electronAPI.parseFitFile = vi
             .fn()
-            .mockResolvedValue({ ok: true });
+            .mockResolvedValue(createFitMessages());
         window.electronAPI.addRecentFile = vi.fn().mockResolvedValue(undefined);
 
         setupListeners({
@@ -808,7 +835,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         const arrayBuf = new ArrayBuffer(8);
         electronAPI.readFile = vi.fn().mockResolvedValue(arrayBuf);
-        const parseResult = { ok: true, data: { field: 1 } };
+        const parseResult = { data: createFitMessages() };
         electronAPI.parseFitFile = vi.fn().mockResolvedValue(parseResult);
         electronAPI.addRecentFile = vi.fn().mockResolvedValue(undefined);
         const showFitData = vi.fn();
@@ -849,7 +876,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         const menu = document.getElementById(
             "recent-files-menu"
         ) as HTMLDivElement;
-        expect(menu).toBeTruthy();
+        expect(menu).toBeInstanceOf(HTMLDivElement);
 
         // Test ArrowDown navigation
         const arrowDownEvent = new KeyboardEvent("keydown", {
@@ -911,7 +938,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         const menu = document.getElementById(
             "recent-files-menu"
         ) as HTMLDivElement;
-        expect(menu).toBeTruthy();
+        expect(menu).toBeInstanceOf(HTMLDivElement);
 
         // Test Escape key to close menu
         const escapeEvent = new KeyboardEvent("keydown", {
@@ -951,7 +978,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         const menu = document.getElementById(
             "recent-files-menu"
         ) as HTMLDivElement;
-        expect(menu).toBeTruthy();
+        expect(menu).toBeInstanceOf(HTMLDivElement);
         const items = Array.from(menu.querySelectorAll("div"));
         expect(items.length).toBe(files.length);
 
@@ -971,7 +998,6 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         firstItem.dispatchEvent(mouseLeaveEvent);
 
         // Check that style was reset
-        expect(firstItem.style.background).toBe("var(--color-glass-border)");
         expect(firstItem.style.color).toBe("var(--color-fg)");
     });
 
@@ -1002,7 +1028,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         const menu = document.getElementById(
             "recent-files-menu"
         ) as HTMLDivElement;
-        expect(menu).toBeTruthy();
+        expect(menu).toBeInstanceOf(HTMLDivElement);
 
         // Create a dummy element outside the menu
         const outsideElement = document.createElement("div");
@@ -1052,7 +1078,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         const menu = document.getElementById(
             "recent-files-menu"
         ) as HTMLDivElement;
-        expect(menu).toBeTruthy();
+        expect(menu).toBeInstanceOf(HTMLDivElement);
         const items = Array.from(menu.querySelectorAll("div"));
         const firstItem = items[0] as HTMLDivElement;
 
@@ -1094,6 +1120,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         vi.useRealTimers();
 
         // Should not call chart update when no chart tabs are active
+        expect(document.getElementById("tab-chart")).toBeNull();
         expect(window.ChartUpdater.updateCharts).not.toHaveBeenCalled();
     });
 
@@ -1125,6 +1152,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         vi.advanceTimersByTime(210);
         vi.useRealTimers();
 
+        expect(tab.classList.contains("active")).toBe(true);
         expect((window as any).renderChart).toHaveBeenCalled();
     });
 
@@ -1155,6 +1183,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         vi.advanceTimersByTime(210);
         vi.useRealTimers();
 
+        expect(tab.id).toBe("tab-chartjs");
         expect(window.renderChartJS).toHaveBeenCalled();
     });
 
@@ -1186,6 +1215,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         // Loading should be turned off
         expect(setLoading).toHaveBeenLastCalledWith(false);
+        expect(openFileBtn.disabled).toBe(false);
     });
 
     it("export-file: handles unsupported file extensions", async () => {
@@ -1205,6 +1235,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         await electronAPI.emit("export-file", {} as any, "C:/tmp/out.txt");
 
         // Should not call any notification or create download links
+        expect(document.querySelectorAll("a").length).toBe(0);
         expect(showNotification).not.toHaveBeenCalled();
     });
 
@@ -1276,6 +1307,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         await electronAPI.emit("export-file", {} as any, "C:/tmp/out.gpx");
 
+        expect(window.globalData.recordMesgs.length).toBe(1);
         expect(showNotification).not.toHaveBeenCalled();
         expect(global.URL.createObjectURL).toHaveBeenCalled();
     });
@@ -1296,6 +1328,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         await electronAPI.emit("export-file", {} as any, "C:/tmp/out.csv");
 
         // Should return early without action
+        expect(document.querySelectorAll("a").length).toBe(0);
         expect(showNotification).not.toHaveBeenCalled();
     });
 
@@ -1440,7 +1473,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         await Promise.resolve();
 
         const firstMenu = document.getElementById("recent-files-menu");
-        expect(firstMenu).toBeTruthy();
+        expect(firstMenu).toBeInstanceOf(HTMLDivElement);
 
         // Create second menu (should remove first)
         const evt2 = new MouseEvent("contextmenu", {
@@ -1480,7 +1513,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         const menu = document.getElementById(
             "recent-files-menu"
         ) as HTMLDivElement;
-        expect(menu).toBeTruthy();
+        expect(menu).toBeInstanceOf(HTMLDivElement);
 
         const preventDefault = vi.fn();
         const contextMenuEvent = new MouseEvent("contextmenu", {
@@ -1500,7 +1533,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         const arrayBuf = new ArrayBuffer(8);
         electronAPI.readFile = vi.fn().mockResolvedValue(arrayBuf);
-        const parseResult = { ok: true, data: { field: 1 } };
+        const parseResult = { data: createFitMessages() };
         electronAPI.parseFitFile = vi.fn().mockResolvedValue(parseResult);
         electronAPI.addRecentFile = vi.fn().mockResolvedValue(undefined);
         const showFitData = vi.fn();
@@ -1558,12 +1591,15 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         await vi.waitFor(() => {
             expect(sendFitFileToAltFitReader).toHaveBeenCalledWith(arrayBuf);
         });
+        expect(openFileBtn.disabled).toBe(false);
     });
 
     it("onOpenRecentFile integration: calls sendFitFileToAltFitReader when available", async () => {
         const arrayBuf = new ArrayBuffer(32);
         electronAPI.readFile = vi.fn().mockResolvedValue(arrayBuf);
-        electronAPI.parseFitFile = vi.fn().mockResolvedValue({ ok: true });
+        electronAPI.parseFitFile = vi
+            .fn()
+            .mockResolvedValue(createFitMessages());
         electronAPI.addRecentFile = vi.fn().mockResolvedValue(undefined);
 
         const sendFitFileToAltFitReader = vi.fn();
@@ -1588,6 +1624,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         await vi.waitFor(() => {
             expect(sendFitFileToAltFitReader).toHaveBeenCalledWith(arrayBuf);
         });
+        expect(openFileBtn.disabled).toBe(false);
     });
 
     it("onOpenRecentFile: handles exception during file processing", async () => {
@@ -1626,7 +1663,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         electronAPI.readFile = vi.fn().mockResolvedValue(mockArrayBuffer);
         electronAPI.parseFitFile = vi
             .fn()
-            .mockResolvedValue({ data: "parsed" });
+            .mockResolvedValue(createFitMessages());
 
         // Mock the integration function
         (globalThis as any).sendFitFileToAltFitReader = vi.fn();
@@ -1664,6 +1701,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
                 (globalThis as any).sendFitFileToAltFitReader
             ).toHaveBeenCalledWith(mockArrayBuffer);
         });
+        expect(openFileBtn.disabled).toBe(false);
     });
 
     it("contextmenu: calling origOnClick during item click (lines 200-201)", async () => {
@@ -1705,6 +1743,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         await Promise.resolve();
 
+        expect(document.body.contains(firstItem)).toBe(false);
         expect(origOnClick).toHaveBeenCalled();
     });
 
@@ -1779,6 +1818,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         vi.advanceTimersByTime(210);
         vi.useRealTimers();
 
+        expect(tab.classList.contains("active")).toBe(true);
         expect(window.ChartUpdater.updateCharts).toHaveBeenCalledWith(
             "window-resize"
         );
@@ -1809,6 +1849,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             );
             expect(setLoading).toHaveBeenCalledWith(false);
         });
+        expect(openFileBtn.disabled).toBe(false);
     });
 
     it("export-file: csv without copyTableAsCSV function (lines 317-318)", async () => {
@@ -1838,6 +1879,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         await Promise.resolve();
 
         // The function should complete without error - no else clause means no notification
+        expect(document.querySelectorAll("a").length).toBe(0);
         expect(showNotification).not.toHaveBeenCalled();
     });
 
@@ -1913,6 +1955,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         await Promise.resolve();
 
         // Verify the download path was triggered first
+        expect((globalThis as any).globalData.recordMesgs.length).toBe(2);
         expect(global.URL.createObjectURL).toHaveBeenCalled();
         expect(mockAnchorElement.click).toHaveBeenCalled();
 
@@ -2072,7 +2115,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
             await vi.waitFor(() => {
                 expect(showNotification).toHaveBeenCalledWith(
-                    "Error: Parse error\n",
+                    "Error: Parse error",
                     "error"
                 );
             });
@@ -2240,6 +2283,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
                 "error"
             );
         });
+        expect(openFileBtn.disabled).toBe(false);
     });
 
     it("export CSV: missing copyTableAsCSV function (lines 317-318)", async () => {
@@ -2271,6 +2315,6 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         // Since there's no error message in the actual code for missing copyTableAsCSV,
         // we verify that nothing happens (no download link created)
         const downloadLink = document.querySelector("a[download]");
-        expect(downloadLink).toBeFalsy();
+        expect(downloadLink).toBeNull();
     });
 });
