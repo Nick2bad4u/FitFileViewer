@@ -125,6 +125,7 @@ describe("openZoneColorPicker", () => {
             "No heart rate zone data available",
             "warning"
         );
+        expect(document.querySelector("#zone-color-picker-overlay")).toBeNull();
         expect(applyZoneColorsMock).not.toHaveBeenCalled();
     });
 
@@ -159,7 +160,7 @@ describe("openZoneColorPicker", () => {
         const overlay = document.querySelector<HTMLDivElement>(
             "#zone-color-picker-overlay"
         );
-        expect(overlay).toBeTruthy();
+        expect(overlay).toBeInstanceOf(HTMLDivElement);
         if (!overlay) {
             throw new Error("Zone color picker overlay not rendered");
         }
@@ -171,12 +172,16 @@ describe("openZoneColorPicker", () => {
         const colorInput = overlay.querySelector<HTMLInputElement>(
             'input[type="color"]'
         );
-        expect(colorInput).toBeTruthy();
+        expect(colorInput).toBeInstanceOf(HTMLInputElement);
         if (!colorInput) {
             throw new Error("Color input not rendered");
         }
         const colorPreview =
             colorInput.previousElementSibling as HTMLDivElement | null;
+        expect(colorPreview).toBeInstanceOf(HTMLDivElement);
+        if (!colorPreview) {
+            throw new Error("Color preview not rendered");
+        }
 
         colorInput.value = "#123456";
         colorInput.dispatchEvent(new Event("change", { bubbles: true }));
@@ -190,22 +195,25 @@ describe("openZoneColorPicker", () => {
             0,
             "#123456"
         );
-        if (colorPreview) {
-            expect(colorPreview.style.background.toLowerCase()).toBe(
-                "rgb(18, 52, 86)"
-            );
-        }
+        expect(colorPreview.style.background.toLowerCase()).toBe(
+            "rgb(18, 52, 86)"
+        );
         expect(inlineSelectorsMock).toHaveBeenCalled();
 
         const resetAllButton =
             overlay.querySelector<HTMLButtonElement>(".reset-all-btn");
-        expect(resetAllButton).toBeTruthy();
-        resetAllButton?.click();
+        expect(resetAllButton).toBeInstanceOf(HTMLButtonElement);
+        if (!resetAllButton) {
+            throw new Error("Reset all button not rendered");
+        }
+        const schemeCallCountBeforeReset =
+            setChartColorSchemeMock.mock.calls.length;
+        resetAllButton.click();
 
-        expect(setChartColorSchemeMock).toHaveBeenCalledWith(
-            "hr_zone",
-            "custom"
+        const resetSchemeCalls = setChartColorSchemeMock.mock.calls.slice(
+            schemeCallCountBeforeReset
         );
+        expect(resetSchemeCalls).toContainEqual(["hr_zone", "custom"]);
         expect(removeChartSpecificZoneColorMock).toHaveBeenCalledWith(
             "hr_zone",
             0
@@ -225,8 +233,11 @@ describe("openZoneColorPicker", () => {
             (btn) =>
                 btn.textContent && btn.textContent.includes("Apply & Close")
         );
-        expect(applyButton).toBeTruthy();
-        applyButton?.click();
+        expect(applyButton).toBeInstanceOf(HTMLButtonElement);
+        if (!applyButton) {
+            throw new Error("Apply button not rendered");
+        }
+        applyButton.click();
 
         expect(debouncedRenderMock).toHaveBeenCalledWith("Zone colors applied");
         expect(showNotificationMock).toHaveBeenCalledWith(
