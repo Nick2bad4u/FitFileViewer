@@ -325,6 +325,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             const chartData = Chart.mock.calls[0][1].data.datasets[0].data;
             expect(chartData.length).toBeLessThanOrEqual(3);
+            expect(chartData.length).not.toBe(data.length);
             // With step = Math.ceil(10/3) = 4, we get indices 0, 4, 8
             expect(chartData).toEqual([
                 { x: 0, y: 100 },
@@ -394,6 +395,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             expect(Chart).toHaveBeenCalled();
             const config = Chart.mock.calls[0][1];
             expect(config.type).toBe("line");
+            expect(config.type).not.toBe("bar");
             expect(config.options.responsive).toBe(true);
             expect(config.options.maintainAspectRatio).toBe(false);
         });
@@ -521,8 +523,9 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             renderAltitudeProfileChart(container, data, labels, options);
 
             const canvas = container.querySelector("canvas");
-            expect(canvas).toBeTruthy();
+            expect(canvas?.tagName.toLowerCase()).toBe("canvas");
             expect(canvas?.id).toBe("chart-altitude-profile-0");
+            expect(canvas?.id).not.toBe("chart-altitude-0");
             expect(canvas?.style.borderRadius).toBe("12px");
             expect(canvas?.style.background).toMatch(
                 /(#ffffff|rgb\(255,\s*255,\s*255\))/
@@ -586,6 +589,9 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             expect((global as any).window._chartjsInstances).toContain(
                 chartInstanceMock
             );
+            expect((global as any).window._chartjsInstances).not.toHaveLength(
+                0
+            );
         });
 
         it("should initialize global instances array if it doesn't exist", () => {
@@ -603,10 +609,9 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            expect((global as any).window._chartjsInstances).toBeDefined();
-            expect(
-                Array.isArray((global as any).window._chartjsInstances)
-            ).toBe(true);
+            expect((global as any).window._chartjsInstances).toEqual([
+                chartInstanceMock,
+            ]);
             expect((global as any).window._chartjsInstances).toContain(
                 chartInstanceMock
             );
@@ -625,6 +630,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
+            expect(container.children[0]?.tagName.toLowerCase()).toBe("canvas");
             expect(console.log).toHaveBeenCalledWith(
                 "[ChartJS] Altitude Profile chart created successfully"
             );
@@ -652,6 +658,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             expect(tooltip.bodyColor).toBe("#000000");
             expect(tooltip.borderColor).toBe("#cccccc");
             expect(tooltip.borderWidth).toBe(1);
+            expect(tooltip.borderWidth).not.toBe(0);
         });
 
         it("should format tooltip title correctly", () => {
@@ -718,6 +725,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
                 { id: "zoomReset" },
                 { id: "backgroundColor" },
             ]);
+            expect(config.plugins).not.toContainEqual({ id: "unknownPlugin" });
         });
 
         it("should configure chartBackgroundColorPlugin with theme colors", () => {
@@ -781,6 +789,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             const result = tickCallback(125); // 125 seconds
             expect(result).toBe("2:05"); // formatTime with short=true
+            expect(result).not.toBe("125");
         });
 
         it("should configure y-axis ticks with theme colors", () => {
