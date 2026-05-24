@@ -24,12 +24,13 @@ describe("registerFileSystemHandlers", () => {
     });
 
     it("no-ops when registerIpcHandle is not a function", () => {
-        registerFileSystemHandlers({
+        const result = registerFileSystemHandlers({
             registerIpcHandle: null,
             fs,
             logWithContext,
         });
 
+        expect(result).toBeUndefined();
         expect(registerIpcHandle).not.toHaveBeenCalled();
     });
 
