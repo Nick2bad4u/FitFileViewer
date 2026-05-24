@@ -19,14 +19,20 @@ describe("eventListenerManager.js - coverage uplift", () => {
         expect(getListenerCount()).toBe(1);
 
         // Dispatch event
-        window.dispatchEvent(new Event("click"));
+        const firstClick = new CustomEvent("click", {
+            detail: "before-cleanup",
+        });
+        window.dispatchEvent(firstClick);
         expect(handler).toHaveBeenCalledTimes(1);
 
         // Remove
         cleanup();
         expect(getListenerCount()).toBe(0);
-        window.dispatchEvent(new Event("click"));
-        expect(handler).toHaveBeenCalledTimes(1);
+        const secondClick = new CustomEvent("click", {
+            detail: "after-cleanup",
+        });
+        window.dispatchEvent(secondClick);
+        expect(handler.mock.calls).toStrictEqual([[firstClick]]);
     });
 
     it("returns no-op when given invalid element", () => {
