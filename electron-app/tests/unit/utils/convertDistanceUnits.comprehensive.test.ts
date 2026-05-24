@@ -154,6 +154,19 @@ describe("convertDistanceUnits.js - Distance Unit Converter Utility", () => {
             );
             expect(result).toBe(1.2345);
         });
+
+        it("should preserve negative kilometer conversions and warn", () => {
+            const result = convertDistanceUnits(
+                -2500,
+                DISTANCE_UNITS.KILOMETERS
+            );
+
+            expect(result).toBe(-2.5);
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                "[convertDistanceUnits] Negative distance value:",
+                -2500
+            );
+        });
     });
 
     describe("Unit Conversions - Meters to Feet", () => {
@@ -175,6 +188,16 @@ describe("convertDistanceUnits.js - Distance Unit Converter Utility", () => {
         it("should handle decimal input for feet conversion", () => {
             const result = convertDistanceUnits(2.5, DISTANCE_UNITS.FEET);
             expect(result).toBeCloseTo(8.2021, 4);
+        });
+
+        it("should preserve negative feet conversions and warn", () => {
+            const result = convertDistanceUnits(-3, DISTANCE_UNITS.FEET);
+
+            expect(result).toBeCloseTo(-9.84252, 5);
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                "[convertDistanceUnits] Negative distance value:",
+                -3
+            );
         });
     });
 
@@ -198,6 +221,19 @@ describe("convertDistanceUnits.js - Distance Unit Converter Utility", () => {
             const result = convertDistanceUnits(5000, DISTANCE_UNITS.MILES);
             expect(result).toBeCloseTo(3.106856, 6);
         });
+
+        it("should preserve negative miles conversions and warn", () => {
+            const result = convertDistanceUnits(
+                -1609.344,
+                DISTANCE_UNITS.MILES
+            );
+
+            expect(result).toBeCloseTo(-1, 10);
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                "[convertDistanceUnits] Negative distance value:",
+                -1609.344
+            );
+        });
     });
 
     describe("Unit Conversions - Meters to Meters", () => {
@@ -217,6 +253,16 @@ describe("convertDistanceUnits.js - Distance Unit Converter Utility", () => {
         it("should handle zero for meters to meters", () => {
             const result = convertDistanceUnits(0, DISTANCE_UNITS.METERS);
             expect(result).toBe(0);
+        });
+
+        it("should preserve negative meter values and warn", () => {
+            const result = convertDistanceUnits(-42, DISTANCE_UNITS.METERS);
+
+            expect(result).toBe(-42);
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                "[convertDistanceUnits] Negative distance value:",
+                -42
+            );
         });
     });
 
@@ -281,6 +327,14 @@ describe("convertDistanceUnits.js - Distance Unit Converter Utility", () => {
                 -Infinity
             );
         });
+
+        it("should not warn for zero or positive infinity edge cases", () => {
+            expect(convertDistanceUnits(0, DISTANCE_UNITS.KILOMETERS)).toBe(0);
+            expect(
+                convertDistanceUnits(Infinity, DISTANCE_UNITS.KILOMETERS)
+            ).toBe(Infinity);
+            expect(mockConsole.warn).not.toHaveBeenCalled();
+        });
     });
 
     describe("Error Handling", () => {
@@ -314,6 +368,13 @@ describe("convertDistanceUnits.js - Distance Unit Converter Utility", () => {
             expect(mockConsole.warn).toHaveBeenCalledWith(
                 "[convertDistanceUnits] Unknown unit 'undefined', defaulting to meters"
             );
+        });
+
+        it("should not warn when the unit is supported", () => {
+            const result = convertDistanceUnits(1000, DISTANCE_UNITS.METERS);
+
+            expect(result).toBe(1000);
+            expect(mockConsole.warn).not.toHaveBeenCalled();
         });
     });
 
@@ -371,6 +432,21 @@ describe("convertDistanceUnits.js - Distance Unit Converter Utility", () => {
             expect(convertDistanceUnits(42195, DISTANCE_UNITS.KILOMETERS)).toBe(
                 42.195
             );
+        });
+
+        it("should not reuse one stale conversion result across different inputs", () => {
+            const shortRun = convertDistanceUnits(
+                5000,
+                DISTANCE_UNITS.KILOMETERS
+            );
+            const longRun = convertDistanceUnits(
+                10000,
+                DISTANCE_UNITS.KILOMETERS
+            );
+
+            expect(shortRun).toBe(5);
+            expect(longRun).toBe(10);
+            expect(shortRun).not.toBe(longRun);
         });
     });
 
@@ -463,6 +539,22 @@ describe("convertDistanceUnits.js - Distance Unit Converter Utility", () => {
             expect(milesResults[2]).toBeCloseTo(13.109, 3);
             expect(milesResults[3]).toBeCloseTo(26.219, 3);
         });
+
+        it("should preserve negative corrected FIT distances instead of clamping", () => {
+            const correctedDistance = -12.5;
+
+            const kilometers = convertDistanceUnits(
+                correctedDistance,
+                DISTANCE_UNITS.KILOMETERS
+            );
+
+            expect(kilometers).toBe(-0.0125);
+            expect(kilometers).not.toBe(0);
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                "[convertDistanceUnits] Negative distance value:",
+                correctedDistance
+            );
+        });
     });
 
     describe("Constants Validation", () => {
@@ -475,18 +567,15 @@ describe("convertDistanceUnits.js - Distance Unit Converter Utility", () => {
 
         it("should export DISTANCE_UNITS as a constant object", () => {
             expect(typeof DISTANCE_UNITS).toBe("object");
-            expect(DISTANCE_UNITS).toBeDefined();
 
             // Verify all expected properties exist
-            const expectedUnits = [
-                "METERS",
-                "KILOMETERS",
-                "FEET",
-                "MILES",
-            ];
-            expectedUnits.forEach((unit) => {
-                expect(DISTANCE_UNITS).toHaveProperty(unit);
+            expect(DISTANCE_UNITS).toEqual({
+                FEET: "feet",
+                KILOMETERS: "kilometers",
+                METERS: "meters",
+                MILES: "miles",
             });
+            expect(Object.keys(DISTANCE_UNITS)).not.toContain("YARDS");
         });
 
         it("should use correct conversion factors internally", () => {
@@ -557,6 +646,27 @@ describe("convertDistanceUnits.js - Distance Unit Converter Utility", () => {
             expect(
                 convertDistanceUnits(10000, DISTANCE_UNITS.MILES)
             ).toBeCloseTo(6.213712, 6);
+        });
+
+        it("should keep negative high-precision measurements signed", () => {
+            const negativeMeasurement = -123.456789;
+
+            const kilometers = convertDistanceUnits(
+                negativeMeasurement,
+                DISTANCE_UNITS.KILOMETERS
+            );
+            const miles = convertDistanceUnits(
+                negativeMeasurement,
+                DISTANCE_UNITS.MILES
+            );
+
+            expect(kilometers).toBeCloseTo(-0.123456789, 9);
+            expect(miles).toBeCloseTo(-0.0767125, 7);
+            expect(kilometers).not.toBe(Math.abs(kilometers));
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                "[convertDistanceUnits] Negative distance value:",
+                negativeMeasurement
+            );
         });
     });
 });
