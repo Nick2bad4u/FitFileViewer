@@ -11,6 +11,31 @@ const resetAll = async () => {
     vi.resetModules();
 };
 
+function appendTabButton({
+    ariaDisabled,
+    ariaSelected,
+    id,
+    label,
+}: {
+    ariaDisabled?: string;
+    ariaSelected?: string;
+    id: string;
+    label: string;
+}): HTMLButtonElement {
+    const button = document.createElement("button");
+    button.id = id;
+    button.className = "tab-button";
+    button.textContent = label;
+    if (ariaDisabled !== undefined) {
+        button.setAttribute("aria-disabled", ariaDisabled);
+    }
+    if (ariaSelected !== undefined) {
+        button.setAttribute("aria-selected", ariaSelected);
+    }
+    document.body.append(button);
+    return button;
+}
+
 describe("updateActiveTab.js - environment fallbacks", () => {
     beforeEach(async () => {
         await resetAll();
@@ -29,9 +54,8 @@ describe("updateActiveTab.js - environment fallbacks", () => {
 
     it("uses __vitest_effective_stateManager__ when module functions are unavailable", async () => {
         // Arrange a normal JSDOM document for DOM operations
-        document.body.innerHTML = `
-      <button id="tab-summary" class="tab-button">Summary</button>
-    `;
+        document.body.replaceChildren();
+        appendTabButton({ id: "tab-summary", label: "Summary" });
 
         // Provide a global effective state manager (distinct spies)
         const effSetState = vi.fn();
@@ -137,10 +161,17 @@ describe("updateActiveTab.js - environment fallbacks", () => {
 
     it("subscribes and updates aria-selected via state callback (valid path)", async () => {
         // Standard DOM with two buttons
-        document.body.innerHTML = `
-      <button id="tab-summary" class="tab-button" aria-selected="false">Summary</button>
-      <button id="tab-data" class="tab-button" aria-selected="false">Data</button>
-    `;
+        document.body.replaceChildren();
+        appendTabButton({
+            ariaSelected: "false",
+            id: "tab-summary",
+            label: "Summary",
+        });
+        appendTabButton({
+            ariaSelected: "false",
+            id: "tab-data",
+            label: "Data",
+        });
 
         const setState = vi.fn();
         const getState = vi.fn().mockReturnValue("summary");
@@ -163,8 +194,8 @@ describe("updateActiveTab.js - environment fallbacks", () => {
         const call = subscribe.mock.calls.find(
             (c: any[]) => c[0] === "ui.activeTab"
         );
-        expect(call).toBeTruthy();
-        const cb = (call as any[])[1] as (val: string) => void;
+        expect(call).toEqual(["ui.activeTab", expect.any(Function)]);
+        const cb = call[1] as (val: string) => void;
 
         // Act: make "data" active via state
         cb("data");
@@ -187,9 +218,12 @@ describe("updateActiveTab.js - environment fallbacks", () => {
     });
 
     it('ignores clicks on aria-disabled="true" buttons (no disabled/class)', async () => {
-        document.body.innerHTML = `
-      <button id="tab-map" class="tab-button" aria-disabled="true">Map</button>
-    `;
+        document.body.replaceChildren();
+        const tabMapButton = appendTabButton({
+            ariaDisabled: "true",
+            id: "tab-map",
+            label: "Map",
+        });
 
         const setState = vi.fn();
         const getState = vi.fn().mockReturnValue("summary");
@@ -204,7 +238,9 @@ describe("updateActiveTab.js - environment fallbacks", () => {
             await import("../../../utils/ui/tabs/updateActiveTab.js");
         initializeActiveTabState();
 
-        document.getElementById("tab-map")!.click();
+        tabMapButton.click();
         expect(setState).not.toHaveBeenCalled();
+        expect(tabMapButton.classList.contains("active")).toBe(false);
+        expect(tabMapButton.getAttribute("aria-selected")).toBeNull();
     });
 });
