@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // SUT
 import { showUpdateNotification } from "../../utils/ui/notifications/showUpdateNotification.js";
@@ -18,11 +18,17 @@ describe("showUpdateNotification strict", () => {
     let clock: ReturnType<typeof vi.useFakeTimers>;
 
     beforeEach(() => {
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         // Reset window.electronAPI between tests
         // @ts-expect-error test setup
         window.electronAPI = undefined;
         clock = vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+        clock.runOnlyPendingTimers();
+        vi.useRealTimers();
+        vi.restoreAllMocks();
     });
 
     it("renders basic info notification and auto-hides", () => {
@@ -50,8 +56,9 @@ describe("showUpdateNotification strict", () => {
         showUpdateNotification("Update ready", "success", 1500, true);
 
         const btn = el.querySelector("button");
-        expect(btn).toBeTruthy();
-        expect(btn?.textContent).toContain("Restart");
+        expect(btn).toBeInstanceOf(HTMLButtonElement);
+        expect(btn?.className).toBe("themed-btn");
+        expect(btn?.textContent).toBe("Restart & Update");
 
         // Clicking should attempt to call installUpdate
         btn?.dispatchEvent(new MouseEvent("click"));
@@ -80,8 +87,13 @@ describe("showUpdateNotification strict", () => {
 
         const restart = buttons.find((b) => b.textContent?.includes("Restart"));
         const later = buttons.find((b) => b.textContent?.includes("Later"));
-        expect(restart).toBeTruthy();
-        expect(later).toBeTruthy();
+        expect(restart).toBeInstanceOf(HTMLButtonElement);
+        expect(restart?.className).toBe("themed-btn");
+        expect(restart?.textContent).toBe("Restart & Update");
+        expect(later).toBeInstanceOf(HTMLButtonElement);
+        expect(later?.className).toBe("themed-btn");
+        expect(later?.textContent).toBe("Later");
+        expect(later?.style.marginLeft).toBe("10px");
 
         // Clicking Restart triggers install
         restart?.dispatchEvent(new MouseEvent("click"));
@@ -96,15 +108,24 @@ describe("showUpdateNotification strict", () => {
     it("logs a warning and no crash when electronAPI missing", () => {
         const el = ensureNotificationDiv();
         const logSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+        const errorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => undefined);
 
         // withAction true will attempt installUpdate; missing API should warn
         showUpdateNotification("Try update", "info", 0, true);
 
         // One button exists; clicking should attempt install and emit a warn since API is missing
         const btn = el.querySelector("button");
-        expect(btn).toBeTruthy();
+        expect(btn).toBeInstanceOf(HTMLButtonElement);
+        expect(btn?.textContent).toBe("Restart & Update");
         btn?.dispatchEvent(new MouseEvent("click"));
         expect(logSpy).toHaveBeenCalled();
+        expect(errorSpy).toHaveBeenCalledWith(
+            expect.stringContaining(
+                "Cannot install update - electronAPI not available"
+            )
+        );
         // No electronAPI, so nothing to assert besides no throw; ensure code continues
         expect(el.style.display).toBe("block");
     });
