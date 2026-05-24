@@ -8,8 +8,6 @@ import { describe, expect, it, vi } from "vitest";
 
 /**
  * Load fileAccessPolicy with a controlled realpath implementation.
- *
- * @param {(p: string) => string} realpathImpl
  */
 function loadPolicyWithRealpath(realpathImpl: (p: string) => string) {
     vi.resetModules();
@@ -54,6 +52,9 @@ describe("fileAccessPolicy", () => {
         mod.__resetForTests?.();
 
         expect(() => mod.approveFilePath("\\\\?\\C:\\a.fit")).toThrow(
+            /Invalid file path/iu
+        );
+        expect(() => mod.approveFilePath("\\\\.\\C:\\a.fit")).toThrow(
             /Invalid file path/iu
         );
         expect(mod.isApprovedFilePath("\\\\.\\C:\\a.fit")).toBe(false);
