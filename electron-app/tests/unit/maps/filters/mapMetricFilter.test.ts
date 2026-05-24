@@ -40,7 +40,10 @@ describe("createMetricFilter", () => {
 
     it("supports custom value extractors for derived datasets", () => {
         const metric = getMetricDefinition("speed");
-        expect(metric).toBeTruthy();
+        expect(metric).toMatchObject({
+            key: "speed",
+            label: "Speed",
+        });
         const coords = [
             [
                 0,
@@ -109,6 +112,7 @@ describe("MAP_FILTER_METRICS", () => {
     it("exposes a speed metric by default", () => {
         const metricKeys = MAP_FILTER_METRICS.map((metric) => metric.key);
         expect(metricKeys).toContain("speed");
+        expect(metricKeys).not.toContain("__missing_metric__");
     });
 });
 
@@ -130,6 +134,7 @@ describe("createMetricFilter range mode", () => {
         expect(result.mode).toBe("valueRange");
         expect(result.selectedCount).toBe(2);
         expect([...result.allowedIndices]).toEqual([2, 1]);
+        expect([...result.allowedIndices]).not.toContain(0);
         expect(result.appliedMin).toBe(3);
         expect(result.appliedMax).toBe(6);
     });
@@ -144,6 +149,7 @@ describe("createMetricFilter range mode", () => {
             mode: "valueRange",
         });
         expect(result.isActive).toBe(false);
+        expect(result.selectedCount).toBe(0);
         expect(result.reason).toMatch(/no data points/i);
     });
 });
@@ -158,11 +164,22 @@ describe("computeMetricStatistics", () => {
             ],
             "speed"
         );
-        expect(stats).toBeTruthy();
+        expect(stats).toMatchObject({
+            count: 3,
+            decimals: 2,
+            metric: "speed",
+            metricLabel: "Speed",
+        });
         expect(stats?.min).toBeCloseTo(1.5);
         expect(stats?.max).toBeCloseTo(3.75);
         expect(stats?.average).toBeCloseTo((1.5 + 2.25 + 3.75) / 3);
         expect(stats?.count).toBe(3);
+        expect(stats?.count).not.toBe(0);
         expect(stats?.step).toBeGreaterThan(0);
+    });
+
+    it("returns null for an unknown metric", () => {
+        const stats = computeMetricStatistics([{ speed: 1.5 }], "unknown");
+        expect(stats).toEqual(null);
     });
 });
