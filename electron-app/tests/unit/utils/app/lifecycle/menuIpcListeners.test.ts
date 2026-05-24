@@ -228,10 +228,14 @@ describe(registerMenuIpcListeners, () => {
     });
 
     it("shows fallback keyboard shortcut HTML when the module has no presenter", async () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         keyboardShortcutsModalMock.moduleHasExport = false;
         const fixture = setupFixture();
+        let fallbackHtml: string | undefined;
+        fixture.showAboutModal.mockImplementation((html?: string) => {
+            fallbackHtml = html;
+        });
 
         try {
             await getRequiredHandler(
@@ -239,8 +243,11 @@ describe(registerMenuIpcListeners, () => {
                 "menu-keyboard-shortcuts"
             )();
 
+            expect(fallbackHtml).toContain("<h2>Keyboard Shortcuts</h2>");
             expect(fixture.showAboutModal).toHaveBeenCalledWith(
-                expect.stringContaining("Keyboard Shortcuts")
+                expect.stringContaining(
+                    "<li class='shortcut-list-item'><strong>Open File:</strong> <span class='shortcut-key'>Ctrl+O</span></li>"
+                )
             );
             expect(fixture.debugMenuLog).toHaveBeenCalledWith(
                 "Keyboard shortcuts modal module loaded, but showKeyboardShortcutsModal is unavailable"
