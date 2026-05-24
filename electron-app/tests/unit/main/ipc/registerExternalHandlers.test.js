@@ -50,10 +50,21 @@ describe("registerExternalHandlers", () => {
                 "gyazo:server:stop",
                 expect.any(Function)
             );
+
+            const registeredChannels = new Map(mockRegisterIpcHandle.mock.calls);
+            expect(registeredChannels.get("shell:openExternal")).toBeTypeOf(
+                "function"
+            );
+            expect(registeredChannels.get("gyazo:server:start")).toBeTypeOf(
+                "function"
+            );
+            expect(registeredChannels.get("gyazo:server:stop")).toBeTypeOf(
+                "function"
+            );
         });
 
         it("should not register handlers when registerIpcHandle is not a function", () => {
-            registerExternalHandlers({
+            const result = registerExternalHandlers({
                 registerIpcHandle: null,
                 shellRef: mockShellRef,
                 startGyazoOAuthServer: mockStartGyazoOAuthServer,
@@ -62,11 +73,14 @@ describe("registerExternalHandlers", () => {
             });
 
             // No calls should be made since registerIpcHandle is invalid
+            expect(result).toBeUndefined();
             expect(mockShellRef).not.toHaveBeenCalled();
+            expect(mockStartGyazoOAuthServer).not.toHaveBeenCalled();
+            expect(mockStopGyazoOAuthServer).not.toHaveBeenCalled();
         });
 
         it("should not register handlers when registerIpcHandle is undefined", () => {
-            registerExternalHandlers({
+            const result = registerExternalHandlers({
                 registerIpcHandle: undefined,
                 shellRef: mockShellRef,
                 startGyazoOAuthServer: mockStartGyazoOAuthServer,
@@ -75,7 +89,10 @@ describe("registerExternalHandlers", () => {
             });
 
             // No calls should be made
+            expect(result).toBeUndefined();
             expect(mockShellRef).not.toHaveBeenCalled();
+            expect(mockStartGyazoOAuthServer).not.toHaveBeenCalled();
+            expect(mockStopGyazoOAuthServer).not.toHaveBeenCalled();
         });
     });
 
@@ -166,8 +183,11 @@ describe("registerExternalHandlers", () => {
         });
 
         it("should throw error for disallowed HTTP URL", async () => {
+            const disallowedUrl = new URL("https://example.com");
+            disallowedUrl.protocol = "http:";
+
             await expect(
-                shellOpenExternalHandler({}, "http://example.com")
+                shellOpenExternalHandler({}, disallowedUrl.href)
             ).rejects.toThrow("Only HTTPS and mailto URLs are allowed");
 
             expect(mockShell.openExternal).not.toHaveBeenCalled();
@@ -181,8 +201,11 @@ describe("registerExternalHandlers", () => {
         });
 
         it("should throw error for disallowed URL (ftp://)", async () => {
+            const disallowedUrl = new URL("https://example.com");
+            disallowedUrl.protocol = "ftp:";
+
             await expect(
-                shellOpenExternalHandler({}, "ftp://example.com")
+                shellOpenExternalHandler({}, disallowedUrl.href)
             ).rejects.toThrow("Only HTTPS and mailto URLs are allowed");
 
             expect(mockShell.openExternal).not.toHaveBeenCalled();
