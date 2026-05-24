@@ -77,6 +77,7 @@
         "main/runtime/setupMainLifecycle.ts",
         "main/security/externalUrlPolicy.ts",
         "main/security/fileAccessPolicy.ts",
+        "main/security/setupBlockedRequests.ts",
         "main/state/appState.ts",
         "main/theme/getThemeFromRenderer.ts",
         "main/window/windowValidation.ts",

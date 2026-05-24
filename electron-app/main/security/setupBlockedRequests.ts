@@ -1,38 +1,69 @@
-"use strict";
 {
+    type WebRequestCallback = (response: { cancel?: boolean }) => void;
+
+    type WebRequestDetails = {
+        readonly url?: unknown;
+    };
+
+    type WebRequestLike = {
+        readonly onBeforeRequest?: (
+            listener: (
+                details: WebRequestDetails,
+                callback: WebRequestCallback
+            ) => void
+        ) => void;
+    };
+
+    type SessionLike = {
+        readonly defaultSession?: {
+            readonly webRequest?: WebRequestLike;
+        };
+    };
+
+    type ElectronAccess = {
+        readonly sessionRef: () => SessionLike | undefined;
+    };
+
     const BLOCKED_HOSTNAMES = new Set(["ua.harryonline.net"]);
-    function isWebRequestLike(value) {
+
+    function isWebRequestLike(value: unknown): value is WebRequestLike {
         if (
             value === null ||
             (typeof value !== "object" && typeof value !== "function")
         ) {
             return false;
         }
+
         return typeof Reflect.get(value, "onBeforeRequest") === "function";
     }
-    function shouldBlockRequest(details) {
+
+    function shouldBlockRequest(details: WebRequestDetails): boolean {
         const url = typeof details.url === "string" ? details.url : "";
         if (!url) {
             return false;
         }
+
         try {
             return BLOCKED_HOSTNAMES.has(new URL(url).hostname);
         } catch {
             return false;
         }
     }
+
     /**
      * Block known-unwanted network requests.
      *
      * This is defensive and safe to call when Electron session is unavailable.
      */
-    function setupBlockedRequests() {
+    function setupBlockedRequests(): void {
         try {
-            const { sessionRef } = require("../runtime/electronAccess");
+            const { sessionRef } =
+                require("../runtime/electronAccess") as ElectronAccess;
             const webRequest = sessionRef()?.defaultSession?.webRequest;
             if (!isWebRequestLike(webRequest)) {
                 return;
             }
+
             webRequest.onBeforeRequest?.((details, callback) => {
                 callback(shouldBlockRequest(details) ? { cancel: true } : {});
             });
@@ -40,5 +71,6 @@
             /* ignore */
         }
     }
+
     module.exports = { setupBlockedRequests };
 }

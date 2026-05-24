@@ -13,7 +13,6 @@ const config = [
             "**/*.html",
             "html/**",
             "main/**/*.js",
-            "!main/security/setupBlockedRequests.js",
             "preload/**/*.js",
             "shared/**/*.js",
             "temp-win7/**",
