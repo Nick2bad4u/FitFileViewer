@@ -162,13 +162,13 @@ describe(openFitFileFromPath, () => {
             expect(readFile).toHaveBeenCalledWith(filePath);
             expect(parseFitFile).not.toHaveBeenCalled();
             expect(showNotification).toHaveBeenCalledWith(
-                "Failed to open file: Invalid or unsupported file buffer",
+                "Failed to open file: Selected file appears to be empty",
                 "error",
                 8000
             );
             expect(handleFileLoadingError).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    message: "Invalid or unsupported file buffer",
+                    message: "Selected file appears to be empty",
                 })
             );
             expect({
