@@ -23,7 +23,18 @@ describe("MasterStateManager Basic Functionality", () => {
 
             // Test basic state access
             const initialState = masterStateManager.getState();
-            expect(initialState).toBeDefined();
+            expect(initialState).toEqual(
+                expect.objectContaining({
+                    charts: expect.any(Object),
+                    map: expect.any(Object),
+                    performance: expect.any(Object),
+                    tables: expect.any(Object),
+                    ui: expect.any(Object),
+                })
+            );
+            expect(
+                masterStateManager.getState("missing.branch")
+            ).toBeUndefined();
         });
 
         it("should provide getHistory method", () => {
@@ -39,8 +50,11 @@ describe("MasterStateManager Basic Functionality", () => {
 
             // Test subscriptions access
             const subscriptions = masterStateManager.getSubscriptions();
-            expect(subscriptions).toBeDefined();
-            expect(typeof subscriptions).toBe("object");
+            expect(subscriptions).toEqual({
+                paths: [],
+                subscriptionDetails: {},
+                totalListeners: 0,
+            });
         });
     });
 
@@ -52,6 +66,7 @@ describe("MasterStateManager Basic Functionality", () => {
             // Get it back through masterStateManager
             const value = masterStateManager.getState("test.value");
             expect(value).toBe("hello world");
+            expect(masterStateManager.getState("test.missing")).toBeUndefined();
         });
 
         it("should track state history through masterStateManager", () => {
@@ -81,15 +96,23 @@ describe("MasterStateManager Basic Functionality", () => {
 
             // Check subscriptions list through masterStateManager
             const subscriptions = masterStateManager.getSubscriptions();
-            expect((subscriptions as any).subscriptionDetails).toBeDefined();
             expect(
                 (subscriptions as any).subscriptionDetails?.[
                     "test.subscription"
                 ]
-            ).toBeDefined();
+            ).toEqual({
+                hasListeners: true,
+                listenerCount: 1,
+            });
+            expect((subscriptions as any).paths).toContain("test.subscription");
+            expect((subscriptions as any).totalListeners).toBe(1);
 
             // Clean up
             unsubscribe();
+            expect(
+                (masterStateManager.getSubscriptions() as any)
+                    .subscriptionDetails?.["test.subscription"]
+            ).toBeUndefined();
         });
     });
 
@@ -100,11 +123,17 @@ describe("MasterStateManager Basic Functionality", () => {
             );
 
             const status = masterStateManager.getInitializationStatus();
-            expect(status).toBeDefined();
-            expect(typeof status).toBe("object");
-            expect((status as any).isInitialized).toBeDefined();
-            expect((status as any).components).toBeDefined();
-            expect((status as any).systemState).toBeDefined();
+            expect(status).toEqual({
+                components: {},
+                isInitialized: false,
+                systemState: {
+                    initialized: undefined,
+                    mode: undefined,
+                    startupTime: undefined,
+                    version: undefined,
+                },
+            });
+            expect((status as any).systemState.missing).toBeUndefined();
         });
     });
 });
