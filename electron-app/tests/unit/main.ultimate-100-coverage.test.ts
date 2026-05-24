@@ -562,7 +562,19 @@ describe("main.js - Ultimate 100% Coverage Test", () => {
         }
 
         console.log("[ULTIMATE TEST] Complete coverage test finished");
-        expect(true).toBe(true);
+        expect(process.env.NODE_ENV).toBe("development");
+        expect(globalMocks.mockApp.emit).toHaveBeenCalledWith("ready");
+        expect(globalMocks.mockApp.emit).toHaveBeenCalledWith("activate");
+        expect(globalMocks.mockApp.emit).not.toHaveBeenCalledWith(
+            "invalid-lifecycle-event"
+        );
+        expect(globalMocks.mockAutoUpdater.emit).toHaveBeenCalledWith(
+            "error",
+            expect.any(Error)
+        );
+        expect(globalMocks.mockNativeTheme.emit).toHaveBeenCalledWith(
+            "updated"
+        );
     });
 
     test("should exercise additional coverage paths through multiple scenarios", async () => {
@@ -571,7 +583,7 @@ describe("main.js - Ultimate 100% Coverage Test", () => {
         // Scenario 1: Missing Gyazo credentials
         delete process.env.GYAZO_CLIENT_ID;
         delete process.env.GYAZO_CLIENT_SECRET;
-        await import("../../main.js");
+        const missingCredentialsModule = await import("../../main.js");
 
         // Scenario 2: Different redirect URI
         process.env.GYAZO_REDIRECT_URI = "http://localhost:3000/callback";
@@ -579,7 +591,7 @@ describe("main.js - Ultimate 100% Coverage Test", () => {
 
         // Scenario 3: No redirect URI
         delete process.env.GYAZO_REDIRECT_URI;
-        await import("../../main.js");
+        const noRedirectModule = await import("../../main.js");
 
         // Scenario 4: Error conditions
         globalMocks.mockFs.readFileSync.mockImplementationOnce(() => {
@@ -592,10 +604,15 @@ describe("main.js - Ultimate 100% Coverage Test", () => {
             Promise.reject(new Error("Dialog error"))
         );
 
-        await import("../../main.js");
+        const errorScenarioModule = await import("../../main.js");
 
         console.log("[ULTIMATE TEST] Additional scenarios completed");
-        expect(true).toBe(true);
+        expect(process.env.GYAZO_CLIENT_ID).toBeUndefined();
+        expect(process.env.GYAZO_CLIENT_SECRET).toBeUndefined();
+        expect(process.env.GYAZO_REDIRECT_URI).toBeUndefined();
+        expect(errorScenarioModule).toBe(missingCredentialsModule);
+        expect(errorScenarioModule).toBe(noRedirectModule);
+        expect(globalMocks.mockDialog.showOpenDialog).not.toHaveBeenCalled();
     });
 
     test("should maximize coverage through extensive IPC and menu simulation", async () => {
@@ -667,6 +684,22 @@ describe("main.js - Ultimate 100% Coverage Test", () => {
         }
 
         console.log("[ULTIMATE TEST] IPC and menu coverage completed");
-        expect(true).toBe(true);
+        expect(mockMenu.items.map(({ role }) => role ?? "custom")).toEqual([
+            "custom",
+            "quit",
+            "about",
+        ]);
+        expect(globalMocks.mockIpcMain.emit).toHaveBeenCalledTimes(
+            ipcChannels.length
+        );
+        expect(globalMocks.mockIpcMain.emit).toHaveBeenCalledWith(
+            "gyazo:auth-start",
+            expect.objectContaining({ reply: expect.any(Function) }),
+            {}
+        );
+        expect(globalMocks.mockMenu.setApplicationMenu).toHaveBeenCalledWith(
+            mockMenu
+        );
+        expect(mockMenu.items[0].submenu[0].click).toHaveBeenCalled();
     });
 });
