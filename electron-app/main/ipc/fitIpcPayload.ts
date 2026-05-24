@@ -28,12 +28,19 @@
         }
     }
 
+    function isArrayBuffer(value: unknown): value is ArrayBuffer {
+        return (
+            value instanceof ArrayBuffer ||
+            Object.prototype.toString.call(value) === "[object ArrayBuffer]"
+        );
+    }
+
     function isArrayBufferView(value: unknown): value is ArrayBufferView {
         return (
             typeof value === "object" &&
             value !== null &&
             ArrayBuffer.isView(value) &&
-            value.buffer instanceof ArrayBuffer
+            isArrayBuffer(value.buffer)
         );
     }
 
@@ -49,7 +56,7 @@
      * @throws Error when the payload exceeds the FIT IPC payload cap.
      */
     function normalizeFitIpcPayloadToBuffer(value: unknown): NodeBuffer {
-        if (value instanceof ArrayBuffer) {
+        if (isArrayBuffer(value)) {
             assertFitIpcPayloadSize(value.byteLength);
             return Buffer.from(value);
         }

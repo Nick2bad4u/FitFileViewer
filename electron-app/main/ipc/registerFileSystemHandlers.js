@@ -2,6 +2,10 @@
 {
     const { z } = require("zod");
     const { assertFileReadAllowed } = require("../security/fileAccessPolicy");
+    const {
+        MAX_FIT_FILE_BYTES,
+        normalizeFileReadResultToArrayBuffer,
+    } = require("./fileReadPayload");
     const getErrorMessage = (error) =>
         error instanceof Error ? error.message : String(error);
     // Keep this validation minimal; fileAccessPolicy performs the authoritative
@@ -35,8 +39,6 @@
             return "<unserializable>";
         }
     };
-    // Keep aligned with other IPC size caps (e.g., registerFitFileHandlers).
-    const MAX_FIT_FILE_BYTES = 100 * 1024 * 1024;
     /**
      * Registers IPC handlers for filesystem operations.
      */
@@ -74,31 +76,13 @@
                                 reject(err);
                                 return;
                             }
-                            // Node can return strings when an encoding is provided. We expect binary.
-                            if (
-                                !data ||
-                                typeof data !== "object" ||
-                                typeof data.byteLength !== "number"
-                            ) {
-                                reject(
-                                    new Error("Unexpected file read result")
+                            try {
+                                resolve(
+                                    normalizeFileReadResultToArrayBuffer(data)
                                 );
-                                return;
+                            } catch (readResultError) {
+                                reject(readResultError);
                             }
-                            if (data.byteLength > MAX_FIT_FILE_BYTES) {
-                                reject(
-                                    new Error("File size exceeds 100MB limit")
-                                );
-                                return;
-                            }
-                            // Buffer/Uint8Array share an ArrayBuffer. Slice to avoid returning the entire backing buffer.
-                            const sourceBuffer = data.buffer;
-                            resolve(
-                                sourceBuffer.slice(
-                                    data.byteOffset,
-                                    data.byteOffset + data.byteLength
-                                )
-                            );
                         });
                     };
                     // Best-effort preflight size check to avoid huge reads.

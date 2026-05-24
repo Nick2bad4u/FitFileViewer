@@ -20,12 +20,18 @@
             throw new Error("File size exceeds 100MB limit");
         }
     }
+    function isArrayBuffer(value) {
+        return (
+            value instanceof ArrayBuffer ||
+            Object.prototype.toString.call(value) === "[object ArrayBuffer]"
+        );
+    }
     function isArrayBufferView(value) {
         return (
             typeof value === "object" &&
             value !== null &&
             ArrayBuffer.isView(value) &&
-            value.buffer instanceof ArrayBuffer
+            isArrayBuffer(value.buffer)
         );
     }
     /**
@@ -40,7 +46,7 @@
      * @throws Error when the payload exceeds the FIT IPC payload cap.
      */
     function normalizeFitIpcPayloadToBuffer(value) {
-        if (value instanceof ArrayBuffer) {
+        if (isArrayBuffer(value)) {
             assertFitIpcPayloadSize(value.byteLength);
             return Buffer.from(value);
         }

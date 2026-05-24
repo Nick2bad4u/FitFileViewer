@@ -10,6 +10,14 @@
             assertFileReadAllowed: (filePath: string) => string;
         };
 
+    const { MAX_FIT_FILE_BYTES, normalizeFileReadResultToArrayBuffer } =
+        require("./fileReadPayload") as {
+            MAX_FIT_FILE_BYTES: number;
+            normalizeFileReadResultToArrayBuffer: (
+                value: unknown
+            ) => ArrayBuffer;
+        };
+
     type FileSystemModule = Pick<typeof import("node:fs"), "readFile" | "stat">;
 
     type RegisterFileSystemIpcHandler = (
@@ -72,9 +80,6 @@
         }
     };
 
-    // Keep aligned with other IPC size caps (e.g., registerFitFileHandlers).
-    const MAX_FIT_FILE_BYTES = 100 * 1024 * 1024;
-
     /**
      * Registers IPC handlers for filesystem operations.
      */
@@ -118,33 +123,13 @@
                                 return;
                             }
 
-                            // Node can return strings when an encoding is provided. We expect binary.
-                            if (
-                                !data ||
-                                typeof data !== "object" ||
-                                typeof data.byteLength !== "number"
-                            ) {
-                                reject(
-                                    new Error("Unexpected file read result")
+                            try {
+                                resolve(
+                                    normalizeFileReadResultToArrayBuffer(data)
                                 );
-                                return;
+                            } catch (readResultError) {
+                                reject(readResultError);
                             }
-
-                            if (data.byteLength > MAX_FIT_FILE_BYTES) {
-                                reject(
-                                    new Error("File size exceeds 100MB limit")
-                                );
-                                return;
-                            }
-
-                            // Buffer/Uint8Array share an ArrayBuffer. Slice to avoid returning the entire backing buffer.
-                            const sourceBuffer = data.buffer as ArrayBuffer;
-                            resolve(
-                                sourceBuffer.slice(
-                                    data.byteOffset,
-                                    data.byteOffset + data.byteLength
-                                )
-                            );
                         });
                     };
 

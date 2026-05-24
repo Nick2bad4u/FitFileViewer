@@ -11,6 +11,22 @@ const require = createRequire(import.meta.url);
 const loadModule = (): FitIpcPayloadModule =>
     require("../../../../main/ipc/fitIpcPayload.js") as FitIpcPayloadModule;
 
+function createForeignArrayBuffer(bytes: number[]): ArrayBuffer {
+    const frame = document.createElement("iframe");
+    document.body.append(frame);
+
+    try {
+        const foreignUint8Array = frame.contentWindow?.Uint8Array;
+        if (!foreignUint8Array) {
+            throw new Error("Unable to create foreign ArrayBuffer realm");
+        }
+
+        return foreignUint8Array.from(bytes).buffer as ArrayBuffer;
+    } finally {
+        frame.remove();
+    }
+}
+
 describe("fitIpcPayload", () => {
     it("normalizes ArrayBuffer payloads into Node buffers", () => {
         expect.assertions(2);
@@ -33,6 +49,25 @@ describe("fitIpcPayload", () => {
             2,
             3,
             4,
+        ]);
+    });
+
+    it("normalizes ArrayBuffer payloads from another JavaScript realm", () => {
+        expect.assertions(1);
+
+        const { normalizeFitIpcPayloadToBuffer } = loadModule();
+        const source = createForeignArrayBuffer([
+            4,
+            5,
+            6,
+        ]);
+
+        const buffer = normalizeFitIpcPayloadToBuffer(source);
+
+        expect([...buffer]).toStrictEqual([
+            4,
+            5,
+            6,
         ]);
     });
 
