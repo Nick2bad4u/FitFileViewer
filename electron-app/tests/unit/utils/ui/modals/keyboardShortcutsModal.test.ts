@@ -45,6 +45,21 @@ async function loadModal() {
     return resolveModalExports(module);
 }
 
+function expectHTMLElement<T extends HTMLElement>(
+    element: T | null | undefined,
+    description: string
+): T {
+    expect(element, `${description} should be an HTMLElement`).toBeInstanceOf(
+        HTMLElement
+    );
+
+    if (!(element instanceof HTMLElement)) {
+        throw new Error(`${description} not found`);
+    }
+
+    return element;
+}
+
 describe("keyboardShortcutsModal", () => {
     afterEach(() => {
         document.body.innerHTML = "";
@@ -72,14 +87,22 @@ describe("keyboardShortcutsModal", () => {
         const modal = document.querySelector<HTMLDivElement>(
             "#keyboard-shortcuts-modal"
         );
-        expect(modal).toBeTruthy();
-        expect(modal?.style.display).toBe("flex");
-        expect(modal?.classList.contains("show")).toBe(true);
+        const keyboardShortcutsModal = expectHTMLElement(
+            modal,
+            "keyboard shortcuts modal"
+        );
+        expect(keyboardShortcutsModal.id).toBe("keyboard-shortcuts-modal");
+        expect(keyboardShortcutsModal.style.display).toBe("flex");
+        expect(keyboardShortcutsModal.classList.contains("show")).toBe(true);
 
-        const closeBtn = modal?.querySelector<HTMLButtonElement>(
+        const closeBtn = keyboardShortcutsModal.querySelector<HTMLButtonElement>(
             "#shortcuts-modal-close"
         );
-        expect(closeBtn).toBeTruthy();
+        const closeButton = expectHTMLElement(closeBtn, "modal close button");
+        expect(closeButton.type).toBe("button");
+        expect(closeButton.getAttribute("aria-label")).toBe(
+            "Close Keyboard Shortcuts dialog"
+        );
         expect(document.activeElement).toBe(closeBtn);
         expect(document.body.style.overflow).toBe("hidden");
         expect(
@@ -101,19 +124,29 @@ describe("keyboardShortcutsModal", () => {
         const modal = document.querySelector<HTMLDivElement>(
             "#keyboard-shortcuts-modal"
         );
-        const closeBtn = modal?.querySelector<HTMLButtonElement>(
+        const keyboardShortcutsModal = expectHTMLElement(
+            modal,
+            "keyboard shortcuts modal"
+        );
+        const closeBtn = keyboardShortcutsModal.querySelector<HTMLButtonElement>(
             "#shortcuts-modal-close"
         );
-        expect(closeBtn).toBeTruthy();
+        expectHTMLElement(closeBtn, "modal close button");
 
         closeKeyboardShortcutsModal();
-        expect(modal?.classList.contains("show")).toBe(false);
+        expect(keyboardShortcutsModal.classList.contains("show")).toBe(false);
 
         vi.advanceTimersByTime(350);
 
-        expect(modal?.style.display).toBe("none");
+        expect(keyboardShortcutsModal.style.display).toBe("none");
         expect(document.body.style.overflow).toBe("");
         expect(document.activeElement).toBe(trigger);
+
+        cancelRafMock.mockClear();
+        closeKeyboardShortcutsModal();
+
+        expect(cancelRafMock).not.toHaveBeenCalled();
+        expect(vi.getTimerCount()).toBe(0);
     });
 
     it("closes when Escape is pressed", async () => {
@@ -128,7 +161,11 @@ describe("keyboardShortcutsModal", () => {
         const modal = document.querySelector<HTMLDivElement>(
             "#keyboard-shortcuts-modal"
         );
-        expect(modal?.style.display).toBe("flex");
+        const keyboardShortcutsModal = expectHTMLElement(
+            modal,
+            "keyboard shortcuts modal"
+        );
+        expect(keyboardShortcutsModal.style.display).toBe("flex");
 
         const event = new KeyboardEvent("keydown", {
             key: "Escape",
@@ -137,7 +174,7 @@ describe("keyboardShortcutsModal", () => {
         document.dispatchEvent(event);
         vi.advanceTimersByTime(350);
 
-        expect(modal?.style.display).toBe("none");
+        expect(keyboardShortcutsModal.style.display).toBe("none");
         expect(document.body.style.overflow).toBe("");
     });
 
@@ -149,23 +186,26 @@ describe("keyboardShortcutsModal", () => {
         const modal = document.querySelector<HTMLDivElement>(
             "#keyboard-shortcuts-modal"
         );
-        const focusable = modal?.querySelectorAll<HTMLElement>(
+        const keyboardShortcutsModal = expectHTMLElement(
+            modal,
+            "keyboard shortcuts modal"
+        );
+        const focusable = keyboardShortcutsModal.querySelectorAll<HTMLElement>(
             'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
         );
-        expect(focusable && focusable.length).toBeTruthy();
-        if (!focusable) {
-            throw new Error("Focusable elements not found");
-        }
+        expect(focusable).toHaveLength(1);
 
         const first = focusable[0];
         const last = focusable[focusable.length - 1];
+        expect(first).toBe(last);
+        expect(first.id).toBe("shortcuts-modal-close");
 
         last.focus();
         const forwardTab = new KeyboardEvent("keydown", {
             key: "Tab",
             bubbles: true,
         });
-        modal?.dispatchEvent(forwardTab);
+        keyboardShortcutsModal.dispatchEvent(forwardTab);
         expect(document.activeElement).toBe(first);
         expect(forwardTab.defaultPrevented).toBe(true);
 
@@ -175,7 +215,7 @@ describe("keyboardShortcutsModal", () => {
             shiftKey: true,
             bubbles: true,
         });
-        modal?.dispatchEvent(reverseTab);
+        keyboardShortcutsModal.dispatchEvent(reverseTab);
         expect(document.activeElement).toBe(last);
         expect(reverseTab.defaultPrevented).toBe(true);
     });
@@ -191,11 +231,15 @@ describe("keyboardShortcutsModal", () => {
         const modal = document.querySelector<HTMLDivElement>(
             "#keyboard-shortcuts-modal"
         );
+        const keyboardShortcutsModal = expectHTMLElement(
+            modal,
+            "keyboard shortcuts modal"
+        );
         const link = document.createElement("a");
         link.href = "https://example.com";
         link.dataset.externalLink = "true";
         link.textContent = "Docs";
-        modal?.append(link);
+        keyboardShortcutsModal.append(link);
 
         const clickEvent = new MouseEvent("click", {
             bubbles: true,
