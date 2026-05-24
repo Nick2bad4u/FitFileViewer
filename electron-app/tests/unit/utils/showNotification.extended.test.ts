@@ -5,6 +5,7 @@ import {
     clearAllNotifications,
     __testResetNotifications,
 } from "../../../utils/ui/notifications/showNotification.js";
+import * as notificationModule from "../../../utils/ui/notifications/showNotification.js";
 
 // Access internal variables and functions for testing
 // @ts-ignore - Accessing internals for testing
@@ -26,8 +27,11 @@ describe("showNotification.js - extended coverage", () => {
             cb(0);
             return 0;
         };
-        document.body.innerHTML =
-            '<div id="notification" class="notification" style="display:none"></div>';
+        const notificationElement = document.createElement("div");
+        notificationElement.id = "notification";
+        notificationElement.className = "notification";
+        notificationElement.style.display = "none";
+        document.body.replaceChildren(notificationElement);
         // Reset internal notification state using provided test helper
         __testResetNotifications();
     });
@@ -38,21 +42,23 @@ describe("showNotification.js - extended coverage", () => {
         console.warn = originalWarn;
         console.error = originalError;
         window.requestAnimationFrame = originalRAF;
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
     });
 
     it("handles missing notification element gracefully", async () => {
-        document.body.innerHTML = ""; // Remove notification element
+        document.body.replaceChildren(); // Remove notification element
         const p = showNotification("Test");
         await p;
         expect(console.warn).toHaveBeenCalledWith(
             "Notification element not found. Unable to display notification."
         );
+        expect(notificationQueue).toHaveLength(0);
+        expect(document.getElementById("notification")).toBeNull();
     });
 
     it("handles errors during displayNotification process", async () => {
-        // Create a spy on getElementById that throws an error
-        vi.spyOn(document, "getElementById").mockImplementation(() => {
+        // Create a notification element that throws when the display pipeline adds its class.
+        vi.spyOn(document, "querySelector").mockImplementationOnce(() => {
             const mockEl = document.createElement("div");
             // Set a property to cause an error when accessed
             Object.defineProperty(mockEl, "classList", {
@@ -64,10 +70,14 @@ describe("showNotification.js - extended coverage", () => {
         });
 
         const p = showNotification("Error test");
+        await p;
         await vi.runAllTimersAsync();
         expect(console.error).toHaveBeenCalledWith(
-            expect.stringContaining("Error displaying notification:")
+            "Error displaying notification:",
+            expect.objectContaining({ message: "Simulated error" })
         );
+        expect(notificationQueue).toHaveLength(0);
+        expect(notificationModule.isShowingNotification).toBe(false);
     });
 
     it("clears existing hideTimeout when displaying new notification", async () => {
@@ -83,6 +93,8 @@ describe("showNotification.js - extended coverage", () => {
         const p = showNotification("Testing clearTimeout");
         await p;
         expect(mockClearTimeout).toHaveBeenCalledWith(123);
+        expect(notificationEl?.style.display).toBe("flex");
+        expect((notificationEl as any).hideTimeout).not.toBe(123);
     });
 
     it("handles all notification types through the notify object", async () => {
@@ -113,7 +125,10 @@ describe("showNotification.js - extended coverage", () => {
         const closeBtn = document.querySelector(
             ".notification-close"
         ) as HTMLButtonElement;
-        expect(closeBtn).toBeTruthy();
+        expect(closeBtn).toBeInstanceOf(HTMLButtonElement);
+        expect(closeBtn.getAttribute("aria-label")).toBe(
+            "Close notification"
+        );
 
         // Simulate mouseover and mouseout
         const mouseoverEvent = new MouseEvent("mouseover");
@@ -135,7 +150,8 @@ describe("showNotification.js - extended coverage", () => {
         const btn = el.querySelector(
             ".notification-actions button"
         ) as HTMLButtonElement;
-        expect(btn).toBeTruthy();
+        expect(btn).toBeInstanceOf(HTMLButtonElement);
+        expect(btn.textContent).toBe("No handler");
 
         // Click should still hide notification even without handler
         btn.click();
@@ -161,6 +177,8 @@ describe("showNotification.js - extended coverage", () => {
 
         el.dispatchEvent(clickEvent);
         expect(onClick).not.toHaveBeenCalled();
+        expect(el.style.display).toBe("flex");
+        expect(el.style.cursor).toBe("pointer");
     });
 
     it("handles click target inside notification actions area", async () => {
@@ -195,6 +213,9 @@ describe("showNotification.js - extended coverage", () => {
 
         // Should not trigger onClick since it's inside action area
         expect(onClick).not.toHaveBeenCalled();
+        expect(document.getElementById("notification")!.style.display).toBe(
+            "flex"
+        );
 
         // Restore original
         // @ts-ignore - Restoring
@@ -221,8 +242,11 @@ describe("showNotification.js - extended coverage", () => {
         // This shouldn't throw despite the error in resolveShown
         await processNotificationQueue();
         expect(console.error).toHaveBeenCalledWith(
-            expect.stringContaining("Error displaying notification:")
+            "Error displaying notification:",
+            expect.objectContaining({ message: "resolveShown error" })
         );
+        expect(notificationQueue).toHaveLength(0);
+        expect(notificationModule.isShowingNotification).toBe(false);
     });
 
     it("processes empty queue without errors", async () => {
