@@ -11,14 +11,11 @@ import { getState, setState, subscribe } from "../core/stateManager.js";
 import { UIActions } from "../domain/uiStateManager.js";
 // At the top of renderer.js, add these imports:
 import { initializeCompleteStateSystem } from "./stateIntegration.js";
+import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
 type Unsubscribe = () => void;
 
-type RendererElectronAPI = {
-    onFileOpened?: (
-        callback: (fileData: unknown, filePath: string | null) => void
-    ) => void;
-};
+type RendererElectronAPI = Partial<Pick<ElectronAPI, "onFileOpened">>;
 
 type RendererStateIntegrationGlobal = typeof globalThis & {
     electronAPI?: RendererElectronAPI;

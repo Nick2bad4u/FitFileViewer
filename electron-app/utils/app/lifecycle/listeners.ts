@@ -16,11 +16,7 @@ import {
     unwrapFitParseMessages,
 } from "../../files/import/fitParsePayload.js";
 import type { FitParsePayload } from "../../files/import/fitParsePayload.js";
-import type {
-    GenericSendChannel,
-    RendererIpcEventChannel,
-    UpdateEventName,
-} from "../../../shared/ipc.js";
+import type { ElectronAPI } from "../../../shared/preloadApi.js";
 import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 import { registerChartResizeListener } from "./listenersResize.js";
 import { registerMenuIpcListeners } from "./menuIpcListeners.js";
@@ -69,27 +65,32 @@ type FitData = {
     [key: string]: unknown;
 };
 
-type ElectronIpcCallback = (...args: unknown[]) => unknown;
 type Unsubscribe = () => void;
 
-type LifecycleElectronAPI = {
-    addRecentFile?: (filePath: string) => Promise<void>;
-    approveRecentFile?: (filePath: string) => Promise<boolean>;
-    onIpc?: (
-        channel: RendererIpcEventChannel,
-        callback: ElectronIpcCallback
-    ) => Unsubscribe | undefined;
-    onMenuOpenFile?: (callback: () => unknown) => Unsubscribe | undefined;
+type OpenRecentFilePath = Parameters<
+    Parameters<ElectronAPI["onOpenRecentFile"]>[0]
+>[0];
+
+type LifecycleElectronAPI = Partial<
+    Pick<
+        ElectronAPI,
+        | "addRecentFile"
+        | "approveRecentFile"
+        | "onIpc"
+        | "onMenuOpenFile"
+        | "onUpdateEvent"
+        | "readFile"
+        | "send"
+    >
+> & {
     onOpenRecentFile?: (
-        callback: (filePath: string | string[]) => Promise<void> | void
+        callback: (
+            filePath: OpenRecentFilePath | OpenRecentFilePath[]
+        ) => Promise<void> | void
     ) => Unsubscribe | undefined;
-    onUpdateEvent?: (
-        eventName: UpdateEventName,
-        callback: ElectronIpcCallback
-    ) => Unsubscribe | undefined;
-    parseFitFile?: (arrayBuffer: ArrayBuffer) => Promise<FitParseResult>;
-    readFile?: (filePath: string) => Promise<ArrayBuffer>;
-    send?: (channel: GenericSendChannel) => void;
+    parseFitFile?: (
+        arrayBuffer: Parameters<ElectronAPI["parseFitFile"]>[0]
+    ) => Promise<FitParseResult>;
 };
 
 type LifecycleGlobal = typeof globalThis & {

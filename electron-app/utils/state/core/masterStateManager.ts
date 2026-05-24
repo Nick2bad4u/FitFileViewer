@@ -18,6 +18,7 @@ import { initializeControlsState } from "../../rendering/helpers/updateControlsS
 import { initializeTabButtonState } from "../../ui/controls/enableTabButtons.js";
 import { initializeActiveTabState } from "../../ui/tabs/updateActiveTab.js";
 import { initializeTabVisibilityState } from "../../ui/tabs/updateTabVisibility.js";
+import type { ElectronAPIWithDevFlags } from "../../../shared/preloadApi.js";
 import { fitFileStateManager } from "../domain/fitFileState.js";
 import { settingsStateManager } from "../domain/settingsStateManager.js";
 import { UIActions } from "../domain/uiStateManager.js";
@@ -60,12 +61,12 @@ type ComponentName =
     | "tabs"
     | "ui";
 
-type ElectronRendererAPI = {
-    __devMode?: boolean;
-    getAppVersion?: () => Promise<string> | string;
-    openFile?: () => unknown;
-    openFileDialog?: () => unknown;
-};
+type ElectronRendererAPI = Partial<
+    Pick<
+        ElectronAPIWithDevFlags,
+        "__devMode" | "getAppVersion" | "openFile" | "openFileDialog"
+    >
+>;
 
 type StateDebug = {
     setState?: (...args: unknown[]) => unknown;
