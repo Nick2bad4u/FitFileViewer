@@ -1,15 +1,13 @@
 import { getState, setState } from "../../state/core/stateManager.js";
+import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
 const BROWSER_TAB_BUTTON_ID = "tab_browser";
 const BROWSER_TAB_CONTENT_ID = "content_browser";
 
-type FitBrowserFeatureGateApi = {
-    readonly isFitBrowserEnabled: () => Promise<boolean>;
-    readonly onIpc?: (
-        channel: "fit-browser-enabled-changed",
-        callback: (eventOrEnabled: unknown, enabledMaybe?: unknown) => void
-    ) => unknown;
-};
+type FitBrowserFeatureGateApi = Required<
+    Pick<ElectronAPI, "isFitBrowserEnabled">
+> &
+    Partial<Pick<ElectronAPI, "onIpc">>;
 
 type GlobalWithElectronApi = typeof globalThis & {
     readonly electronAPI?: unknown;

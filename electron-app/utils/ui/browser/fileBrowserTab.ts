@@ -10,6 +10,7 @@
  */
 
 import type { FitBrowserListFolderResult } from "../../../shared/ipc";
+import type { ElectronAPI } from "../../../shared/preloadApi.js";
 import pLimitCompat from "../../async/pLimitCompat.js";
 import { openFitFileFromPath } from "../../files/import/openFitFileFromPath.js";
 import { getState, setState } from "../../state/core/stateManager.js";
@@ -32,13 +33,24 @@ type FitBrowserGlobal = typeof globalThis & {
     electronAPI?: FitBrowserElectronAPI;
 };
 
-type FitBrowserElectronAPI = {
-    decodeFitFile: (arrayBuffer: ArrayBuffer) => Promise<unknown>;
-    getFitBrowserFolder?: () => Promise<null | string>;
-    listFitBrowserFolder?: (relPath?: string) => Promise<unknown>;
-    openFolderDialog?: () => Promise<null | string>;
-    readFile: (filePath: string) => Promise<ArrayBuffer>;
-};
+type FitBrowserElectronAPI = Partial<
+    Pick<
+        ElectronAPI,
+        | "decodeFitFile"
+        | "getFitBrowserFolder"
+        | "listFitBrowserFolder"
+        | "openFolderDialog"
+        | "readFile"
+    >
+>;
+
+type FitBrowserDecodeApi = Required<
+    Pick<FitBrowserElectronAPI, "decodeFitFile" | "readFile">
+>;
+
+type FitBrowserListApi = Required<
+    Pick<FitBrowserElectronAPI, "listFitBrowserFolder">
+>;
 
 type FitLibraryCachePayload = {
     items: FitLibraryItem[];
@@ -393,7 +405,7 @@ function computeLibraryTotals(
 }
 
 async function decodeLibraryItem(
-    api: FitBrowserElectronAPI,
+    api: FitBrowserDecodeApi,
     file: FitLibraryFile
 ): Promise<FitLibraryItem | null> {
     try {
@@ -548,13 +560,10 @@ function isFitBrowserListResponse(
 }
 
 async function listAllFitFiles(
-    api: FitBrowserElectronAPI
+    api: FitBrowserListApi
 ): Promise<FitLibraryFile[]> {
     const out: FitLibraryFile[] = [];
     const { listFitBrowserFolder } = api;
-    if (typeof listFitBrowserFolder !== "function") {
-        return out;
-    }
 
     const limit = pLimitCompat(6);
     const visited = new Set<string>();
@@ -1894,6 +1903,7 @@ async function scanAndRenderLibrary(root: string): Promise<void> {
     if (
         !api ||
         typeof api.listFitBrowserFolder !== "function" ||
+        typeof api.decodeFitFile !== "function" ||
         typeof api.readFile !== "function"
     ) {
         showNotification(
@@ -1903,10 +1913,16 @@ async function scanAndRenderLibrary(root: string): Promise<void> {
         return;
     }
 
+    const libraryApi: FitBrowserDecodeApi & FitBrowserListApi = {
+        decodeFitFile: api.decodeFitFile,
+        listFitBrowserFolder: api.listFitBrowserFolder,
+        readFile: api.readFile,
+    };
+
     try {
         if (statusEl) statusEl.textContent = "Listing files…";
 
-        const files = await listAllFitFiles(api);
+        const files = await listAllFitFiles(libraryApi);
         if (files.length === 0) {
             if (statusEl) statusEl.textContent = "No .fit files found.";
             renderLibraryResults(root, { items: [], scannedAt: Date.now() });
@@ -1930,7 +1946,7 @@ async function scanAndRenderLibrary(root: string): Promise<void> {
 
         const tasks = files.map((file) =>
             limit(async () => {
-                const res = await decodeLibraryItem(api, file);
+                const res = await decodeLibraryItem(libraryApi, file);
                 done++;
                 if (statusEl) {
                     statusEl.textContent = `Decoding ${Math.min(done, files.length)} / ${files.length}…`;
