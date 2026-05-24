@@ -5,6 +5,41 @@ import {
     fieldColors,
 } from "../../../utils/formatting/display/formatChartFields.js";
 
+const expectedFormatChartFields = [
+    "speed",
+    "heartRate",
+    "auxHeartRate",
+    "altitude",
+    "power",
+    "estimatedPower",
+    "cadence",
+    "temperature",
+    "distance",
+    "enhancedSpeed",
+    "enhancedAltitude",
+    "resistance",
+    "flow",
+    "grit",
+    "positionLat",
+    "positionLong",
+] as const;
+
+const chartTypeFields = [
+    "gps_track",
+    "speed_vs_distance",
+    "power_vs_hr",
+    "altitude_profile",
+    "hr_zone_doughnut",
+    "power_zone_doughnut",
+    "event_messages",
+    "hr_lap_zone_stacked",
+    "hr_lap_zone_individual",
+    "power_lap_zone_stacked",
+    "power_lap_zone_individual",
+] as const;
+
+const hexColorRegex = /^#[0-9a-fA-F]{6}$/;
+
 describe("formatChartFields.js - Chart Field Configuration", () => {
     describe("formatChartFields Array", () => {
         describe("Basic Structure", () => {
@@ -14,7 +49,9 @@ describe("formatChartFields.js - Chart Field Configuration", () => {
 
             it("should contain expected number of fields", () => {
                 expect(formatChartFields.length).toBeGreaterThan(0);
-                expect(formatChartFields.length).toBe(16); // Current count
+                expect(formatChartFields).toHaveLength(
+                    expectedFormatChartFields.length
+                );
             });
 
             it("should contain only string values", () => {
@@ -27,6 +64,7 @@ describe("formatChartFields.js - Chart Field Configuration", () => {
             it("should not contain duplicate values", () => {
                 const uniqueFields = [...new Set(formatChartFields)];
                 expect(uniqueFields.length).toBe(formatChartFields.length);
+                expect(formatChartFields).not.toContain("speed ");
             });
         });
 
@@ -58,30 +96,20 @@ describe("formatChartFields.js - Chart Field Configuration", () => {
                 expect(formatChartFields).toContain("flow");
                 expect(formatChartFields).toContain("grit");
             });
+
+            it("should exclude derived chart type keys from FIT file fields", () => {
+                chartTypeFields.forEach((chartType) => {
+                    expect(formatChartFields).not.toContain(chartType);
+                });
+            });
         });
 
         describe("Field Order and Consistency", () => {
             it("should maintain consistent field ordering", () => {
-                const expectedOrder = [
-                    "speed",
-                    "heartRate",
-                    "auxHeartRate",
-                    "altitude",
-                    "power",
-                    "estimatedPower",
-                    "cadence",
-                    "temperature",
-                    "distance",
-                    "enhancedSpeed",
-                    "enhancedAltitude",
-                    "resistance",
-                    "flow",
-                    "grit",
-                    "positionLat",
-                    "positionLong",
-                ];
-
-                expect(formatChartFields).toEqual(expectedOrder);
+                expect(formatChartFields).toEqual(expectedFormatChartFields);
+                expect(formatChartFields).not.toEqual(
+                    [...expectedFormatChartFields].reverse()
+                );
             });
 
             it("should start with core measurement fields", () => {
@@ -94,6 +122,8 @@ describe("formatChartFields.js - Chart Field Configuration", () => {
                 const speedIndex = formatChartFields.indexOf("speed");
                 const enhancedSpeedIndex =
                     formatChartFields.indexOf("enhancedSpeed");
+                expect(speedIndex).not.toBe(-1);
+                expect(enhancedSpeedIndex).not.toBe(-1);
                 expect(enhancedSpeedIndex).toBeGreaterThan(speedIndex);
             });
         });
@@ -111,6 +141,7 @@ describe("formatChartFields.js - Chart Field Configuration", () => {
             it("should support standard array operations", () => {
                 expect(formatChartFields.includes("speed")).toBe(true);
                 expect(formatChartFields.includes("nonexistent")).toBe(false);
+                expect(formatChartFields).not.toContain("nonexistent");
                 expect(
                     formatChartFields.indexOf("heartRate")
                 ).toBeGreaterThanOrEqual(0);
@@ -132,8 +163,8 @@ describe("formatChartFields.js - Chart Field Configuration", () => {
         describe("Basic Structure", () => {
             it("should be an object", () => {
                 expect(typeof fieldLabels).toBe("object");
-                expect(fieldLabels).not.toBeNull();
                 expect(Array.isArray(fieldLabels)).toBe(false);
+                expect(fieldLabels).not.toEqual([]);
             });
 
             it("should contain expected number of labels", () => {
@@ -220,6 +251,7 @@ describe("formatChartFields.js - Chart Field Configuration", () => {
 
             it("should have label for event messages", () => {
                 expect(fieldLabels.event_messages).toBe("Event Messages");
+                expect(fieldLabels.event_messages).not.toBe("FIT Event");
             });
         });
 
@@ -255,8 +287,8 @@ describe("formatChartFields.js - Chart Field Configuration", () => {
         describe("Basic Structure", () => {
             it("should be an object", () => {
                 expect(typeof fieldColors).toBe("object");
-                expect(fieldColors).not.toBeNull();
                 expect(Array.isArray(fieldColors)).toBe(false);
+                expect(fieldColors).not.toEqual([]);
             });
 
             it("should contain expected number of colors", () => {
@@ -285,35 +317,34 @@ describe("formatChartFields.js - Chart Field Configuration", () => {
             });
 
             it("should have colors for basic measurement fields", () => {
-                expect(fieldColors.speed).toBeDefined();
-                expect(fieldColors.heartRate).toBeDefined();
-                expect(fieldColors.altitude).toBeDefined();
-                expect(fieldColors.power).toBeDefined();
-                expect(fieldColors.cadence).toBeDefined();
-                expect(fieldColors.temperature).toBeDefined();
-                expect(fieldColors.distance).toBeDefined();
+                expect(fieldColors.speed).toBe("#1976d2");
+                expect(fieldColors.heartRate).toBe("#e53935");
+                expect(fieldColors.altitude).toBe("#43a047");
+                expect(fieldColors.power).toBe("#ff9800");
+                expect(fieldColors.cadence).toBe("#8e24aa");
+                expect(fieldColors.temperature).toBe("#00bcd4");
+                expect(fieldColors.distance).toBe("#607d8b");
             });
 
             it("should have colors for enhanced fields", () => {
-                expect(fieldColors.enhancedSpeed).toBeDefined();
-                expect(fieldColors.enhancedAltitude).toBeDefined();
+                expect(fieldColors.enhancedSpeed).toBe("#009688");
+                expect(fieldColors.enhancedAltitude).toBe("#cddc39");
             });
 
             it("should have colors for specialized fields", () => {
-                expect(fieldColors.resistance).toBeDefined();
-                expect(fieldColors.flow).toBeDefined();
-                expect(fieldColors.grit).toBeDefined();
-                expect(fieldColors.positionLat).toBeDefined();
-                expect(fieldColors.positionLong).toBeDefined();
+                expect(fieldColors.resistance).toBe("#795548");
+                expect(fieldColors.flow).toBe("#c42196");
+                expect(fieldColors.grit).toBe("#6e1cbb");
+                expect(fieldColors.positionLat).toBe("#ff5722");
+                expect(fieldColors.positionLong).toBe("#3f51b5");
             });
         });
 
         describe("Color Format Validation", () => {
             it("should use valid hex color format", () => {
-                const hexColorRegex = /^#[0-9a-fA-F]{6}$/;
-
                 Object.entries(fieldColors).forEach(([key, color]) => {
                     expect(color).toMatch(hexColorRegex);
+                    expect(color).not.toMatch(/^#[0-9a-fA-F]{3}$/);
                 });
             });
 
@@ -405,21 +436,7 @@ describe("formatChartFields.js - Chart Field Configuration", () => {
 
         describe("Additional Chart Types", () => {
             it("should have chart type labels that are not in formatChartFields", () => {
-                const chartTypes = [
-                    "gps_track",
-                    "speed_vs_distance",
-                    "power_vs_hr",
-                    "altitude_profile",
-                    "hr_zone_doughnut",
-                    "power_zone_doughnut",
-                    "event_messages",
-                    "hr_lap_zone_stacked",
-                    "hr_lap_zone_individual",
-                    "power_lap_zone_stacked",
-                    "power_lap_zone_individual",
-                ];
-
-                chartTypes.forEach((chartType) => {
+                chartTypeFields.forEach((chartType) => {
                     expect(fieldLabels).toHaveProperty(chartType);
                     expect(fieldColors).toHaveProperty(chartType);
                     expect(formatChartFields).not.toContain(chartType);
@@ -466,8 +483,8 @@ describe("formatChartFields.js - Chart Field Configuration", () => {
                 const testField = "speed";
 
                 expect(formatChartFields.includes(testField)).toBe(true);
-                expect(fieldLabels[testField]).toBeDefined();
-                expect(fieldColors[testField]).toBeDefined();
+                expect(fieldLabels[testField]).toBe("Speed");
+                expect(fieldColors[testField]).toBe("#1976d2");
 
                 const config = {
                     field: testField,
@@ -478,6 +495,7 @@ describe("formatChartFields.js - Chart Field Configuration", () => {
                 expect(config.field).toBe("speed");
                 expect(config.label).toBe("Speed");
                 expect(config.color).toBe("#1976d2");
+                expect(config.color).not.toBe(fieldColors.heartRate);
             });
 
             it("should support iteration over all chart fields", () => {
@@ -489,9 +507,9 @@ describe("formatChartFields.js - Chart Field Configuration", () => {
 
                 expect(configs.length).toBe(formatChartFields.length);
                 configs.forEach((config) => {
-                    expect(config.field).toBeDefined();
-                    expect(config.label).toBeDefined();
-                    expect(config.color).toBeDefined();
+                    expect(formatChartFields).toContain(config.field);
+                    expect(config.label).toEqual(fieldLabels[config.field]);
+                    expect(config.color).toMatch(hexColorRegex);
                 });
             });
         });
@@ -508,6 +526,7 @@ describe("formatChartFields.js - Chart Field Configuration", () => {
 
                 const end = performance.now();
                 expect(end - start).toBeLessThan(10); // Should be very fast
+                expect(end - start).not.toBeNaN();
             });
 
             it("should maintain referential integrity", () => {
