@@ -89,7 +89,8 @@ describe("openPowerEstimationSettingsModal.js", () => {
         const applyBtn = Array.from(
             document.querySelectorAll<HTMLButtonElement>("button")
         ).find((b) => b.textContent === "Apply");
-        expect(applyBtn).toBeTruthy();
+        expect(applyBtn?.className).toBe("themed-btn");
+        expect(applyBtn?.textContent).toBe("Apply");
         applyBtn?.click();
 
         expect(mockShowNotification).toHaveBeenCalledWith(
@@ -113,7 +114,7 @@ describe("openPowerEstimationSettingsModal.js", () => {
         const checkbox = document.querySelector<HTMLInputElement>(
             "input[type='checkbox']"
         );
-        expect(checkbox).toBeTruthy();
+        expect(checkbox?.checked).toBe(true);
         checkbox!.checked = false;
 
         const inputs = Array.from(
@@ -125,7 +126,8 @@ describe("openPowerEstimationSettingsModal.js", () => {
         const applyBtn = Array.from(
             document.querySelectorAll<HTMLButtonElement>("button")
         ).find((b) => b.textContent === "Apply");
-        expect(applyBtn).toBeTruthy();
+        expect(applyBtn?.className).toBe("themed-btn");
+        expect(applyBtn?.textContent).toBe("Apply");
         applyBtn?.click();
 
         expect(mockSetSettings).toHaveBeenCalledTimes(1);
@@ -150,7 +152,8 @@ describe("openPowerEstimationSettingsModal.js", () => {
         const cancelBtn = Array.from(
             document.querySelectorAll<HTMLButtonElement>("button")
         ).find((b) => b.textContent === "Cancel");
-        expect(cancelBtn).toBeTruthy();
+        expect(cancelBtn?.className).toBe("themed-btn");
+        expect(cancelBtn?.textContent).toBe("Cancel");
         cancelBtn?.click();
 
         expect(document.body.textContent).not.toContain("Estimated Power");
@@ -172,7 +175,8 @@ describe("openPowerEstimationSettingsModal.js", () => {
         const applyBtn = Array.from(
             document.querySelectorAll<HTMLButtonElement>("button")
         ).find((b) => b.textContent === "Apply");
-        expect(applyBtn).toBeTruthy();
+        expect(applyBtn?.className).toBe("themed-btn");
+        expect(applyBtn?.textContent).toBe("Apply");
         applyBtn?.click();
 
         expect(mockShowNotification).toHaveBeenCalledWith(
@@ -193,7 +197,7 @@ describe("openPowerEstimationSettingsModal.js", () => {
             onApply: vi.fn(),
         });
         const overlay = document.body.querySelector("div");
-        expect(overlay).toBeTruthy();
+        expect(overlay).toBeInstanceOf(HTMLDivElement);
 
         overlay?.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
         expect(document.body.textContent).not.toContain("Estimated Power");
@@ -212,7 +216,8 @@ describe("openPowerEstimationSettingsModal.js", () => {
         const applyBtn = Array.from(
             document.querySelectorAll<HTMLButtonElement>("button")
         ).find((b) => b.textContent === "Apply");
-        expect(applyBtn).toBeTruthy();
+        expect(applyBtn?.className).toBe("themed-btn");
+        expect(applyBtn?.textContent).toBe("Apply");
         applyBtn?.click();
 
         expect(document.body.textContent).not.toContain("Estimated Power");
