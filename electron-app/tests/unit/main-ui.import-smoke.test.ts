@@ -83,18 +83,24 @@ vi.mock("../../utils/charts/core/chartTabIntegration.js", () => ({
 describe("main-ui.js import smoke", () => {
     beforeEach(() => {
         // Minimal DOM required by main-ui constants/selectors
-        document.body.innerHTML = `
-    <div id="${"drop_overlay"}"></div>
-      <div id="${"activeFileName"}"></div>
-      <div id="${"activeFileNameContainer"}"></div>
-      <button id="${"unloadFileBtn"}"></button>
-      <div id="${"tab-chart"}"></div>
-      <div id="${"tab-summary"}"></div>
-      <div id="${"content-map"}"></div>
-      <div id="${"content-data"}"></div>
-      <div id="${"content-chart"}"></div>
-      <div id="${"content-summary"}"></div>
-    `;
+        document.body.replaceChildren(
+            ...[
+                ["div", "drop_overlay"],
+                ["div", "activeFileName"],
+                ["div", "activeFileNameContainer"],
+                ["button", "unloadFileBtn"],
+                ["div", "tab-chart"],
+                ["div", "tab-summary"],
+                ["div", "content-map"],
+                ["div", "content-data"],
+                ["div", "content-chart"],
+                ["div", "content-summary"],
+            ].map(([tagName, id]) => {
+                const element = document.createElement(tagName);
+                element.id = id;
+                return element;
+            })
+        );
 
         // Provide a minimal electronAPI stub used by main-ui
         // @ts-ignore
@@ -109,7 +115,7 @@ describe("main-ui.js import smoke", () => {
 
     it("imports without throwing and defines legacy globals", async () => {
         const mod = await import("../../main-ui.js");
-        expect(mod).toBeDefined();
+        expect(Object.keys(mod)).toEqual([]);
         // Legacy globals exposed by main-ui
         // @ts-ignore
         expect(typeof window.showFitData).toBe("function");
