@@ -62,14 +62,17 @@ describe("registerInfoHandlers", () => {
     };
 
     it("no-ops when registerIpcHandle is missing", () => {
-        registerInfoHandlers({
-            registerIpcHandle: null,
-            appRef,
-            fs,
-            path,
-            CONSTANTS,
-            logWithContext,
-        });
+        const registerWithoutIpc = () =>
+            registerInfoHandlers({
+                registerIpcHandle: null,
+                appRef,
+                fs,
+                path,
+                CONSTANTS,
+                logWithContext,
+            });
+        expect(registerWithoutIpc).not.toThrow();
+        expect(registerWithoutIpc()).toBeUndefined();
         expect(registerIpcHandle).not.toHaveBeenCalled();
     });
 
