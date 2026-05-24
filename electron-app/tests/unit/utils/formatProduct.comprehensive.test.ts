@@ -26,6 +26,10 @@ describe("formatProduct.js - Comprehensive Test Suite", () => {
 
         // Default behaviors
         mockGetManufacturerIdFromName.mockImplementation((name) => {
+            if (typeof name !== "string") {
+                return null;
+            }
+
             const nameMap: Record<string, number> = {
                 garmin: 1,
                 wahoo: 32,
@@ -33,7 +37,7 @@ describe("formatProduct.js - Comprehensive Test Suite", () => {
                 suunto: 23,
                 stages: 69,
             };
-            return nameMap[name?.toLowerCase()] || null;
+            return nameMap[name.toLowerCase()] ?? null;
         });
 
         mockGetProductName.mockImplementation((manufacturerId, productId) => {
@@ -60,6 +64,7 @@ describe("formatProduct.js - Comprehensive Test Suite", () => {
             it("should format product with manufacturer ID and product ID", () => {
                 const result = formatProduct(1, 1735);
                 expect(result).toBe("Edge 520");
+                expect(result).not.toBe("1735");
             });
 
             it("should format product with manufacturer name and product ID", () => {
@@ -91,12 +96,13 @@ describe("formatProduct.js - Comprehensive Test Suite", () => {
 
         describe("Invalid Manufacturer Handling", () => {
             it("should handle null manufacturer", () => {
-                const result = formatProduct(null as any, 1735);
+                const result = formatProduct(null, 1735);
                 expect(result).toBe("1735");
+                expect(result).not.toBe("Unknown Product");
             });
 
             it("should handle undefined manufacturer", () => {
-                const result = formatProduct(undefined as any, 1735);
+                const result = formatProduct(undefined, 1735);
                 expect(result).toBe("1735");
             });
 
@@ -123,12 +129,13 @@ describe("formatProduct.js - Comprehensive Test Suite", () => {
 
         describe("Invalid Product ID Handling", () => {
             it("should handle null product ID", () => {
-                const result = formatProduct(1, null as any);
+                const result = formatProduct(1, null);
                 expect(result).toBe("Unknown Product");
+                expect(result).not.toBe("Null");
             });
 
             it("should handle undefined product ID", () => {
-                const result = formatProduct(1, undefined as any);
+                const result = formatProduct(1, undefined);
                 expect(result).toBe("Unknown Product");
             });
 
@@ -153,6 +160,7 @@ describe("formatProduct.js - Comprehensive Test Suite", () => {
 
                 const result = formatProduct(1, 123);
                 expect(result).toBe("Heart Rate Monitor");
+                expect(result).not.toContain("_");
             });
 
             it("should handle single word product names", () => {
@@ -181,7 +189,7 @@ describe("formatProduct.js - Comprehensive Test Suite", () => {
 
             it("should fallback to product ID when mapping returns null", () => {
                 const mockGetProductName = vi.mocked(getProductName);
-                mockGetProductName.mockReturnValue(null as any);
+                mockGetProductName.mockReturnValue(null);
 
                 const result = formatProduct(1, 999);
                 expect(result).toBe("999");
@@ -189,7 +197,7 @@ describe("formatProduct.js - Comprehensive Test Suite", () => {
 
             it("should fallback to product ID when mapping returns undefined", () => {
                 const mockGetProductName = vi.mocked(getProductName);
-                mockGetProductName.mockReturnValue(undefined as any);
+                mockGetProductName.mockReturnValue(undefined);
 
                 const result = formatProduct(1, 999);
                 expect(result).toBe("999");
@@ -198,32 +206,32 @@ describe("formatProduct.js - Comprehensive Test Suite", () => {
 
         describe("Edge Cases and Error Handling", () => {
             it("should handle boolean manufacturer input", () => {
-                const result = formatProduct(true as any, 1735);
+                const result = formatProduct(true, 1735);
                 expect(result).toBe("Edge 520"); // boolean true is truthy, gets converted to number
             });
 
             it("should handle object manufacturer input", () => {
-                const result = formatProduct({} as any, 1735);
+                const result = formatProduct({}, 1735);
                 expect(result).toBe("1735");
             });
 
             it("should handle array manufacturer input", () => {
-                const result = formatProduct([] as any, 1735);
+                const result = formatProduct([], 1735);
                 expect(result).toBe("1735");
             });
 
             it("should handle boolean product ID input", () => {
-                const result = formatProduct(1, true as any);
+                const result = formatProduct(1, true);
                 expect(result).toBe("True"); // boolean converts to "True" via toString()
             });
 
             it("should handle object product ID input", () => {
-                const result = formatProduct(1, {} as any);
+                const result = formatProduct(1, {});
                 expect(result).toBe("[object object]"); // object converts to "[object object]" via toString()
             });
 
             it("should handle array product ID input", () => {
-                const result = formatProduct(1, [] as any);
+                const result = formatProduct(1, []);
                 expect(result).toBe("Unknown Product");
             });
 
@@ -318,12 +326,12 @@ describe("formatProduct.js - Comprehensive Test Suite", () => {
             });
 
             it("should handle null fallback product gracefully", () => {
-                const result = formatProduct(1, null as any);
+                const result = formatProduct(1, null);
                 expect(result).toBe("Unknown Product");
             });
 
             it("should handle undefined fallback product gracefully", () => {
-                const result = formatProduct(1, undefined as any);
+                const result = formatProduct(1, undefined);
                 expect(result).toBe("Unknown Product");
             });
         });
@@ -345,6 +353,7 @@ describe("formatProduct.js - Comprehensive Test Suite", () => {
 
                 const result = formatProduct("  garmin  ", 1735);
                 expect(result).toBe("Edge 520");
+                expect(result).not.toBe("1735");
             });
 
             it("should handle very long product names", () => {
@@ -434,8 +443,8 @@ describe("formatProduct.js - Comprehensive Test Suite", () => {
         });
 
         it("should handle mixed valid and invalid inputs", () => {
-            const result1 = formatProduct(null as any, 1735);
-            const result2 = formatProduct(1, null as any);
+            const result1 = formatProduct(null, 1735);
+            const result2 = formatProduct(1, null);
             const result3 = formatProduct("unknown", 999);
 
             expect(result1).toBe("1735");
@@ -466,8 +475,8 @@ describe("formatProduct.js - Comprehensive Test Suite", () => {
             expect(formatProduct(1, 123)).toBe("123");
 
             // Test with null return
-            mockGetProductName.mockReturnValueOnce(null as any);
-            expect(formatProduct(1, 123)).toBe("123");
+            mockGetProductName.mockReturnValueOnce(null);
+            expect(formatProduct(1, 456)).toBe("456");
         });
     });
 
@@ -493,6 +502,7 @@ describe("formatProduct.js - Comprehensive Test Suite", () => {
 
             expect(result1).toBe("1735"); // Fallback
             expect(result2).toBe("Edge 520"); // Success
+            expect(result1).not.toBe(result2);
 
             consoleSpy.mockRestore();
         });
