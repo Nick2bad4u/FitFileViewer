@@ -19,6 +19,7 @@ describe("Enable Tab Buttons", () => {
 
     afterEach(() => {
         cleanupDOM();
+        vi.restoreAllMocks();
     });
 
     describe("setTabButtonsEnabled function", () => {
@@ -103,9 +104,11 @@ describe("Enable Tab Buttons", () => {
             expect(firstButton.classList.contains("tab-disabled")).toBe(true);
 
             setTabButtonsEnabled(true);
-            expect(firstButton.classList.contains("custom-class")).toBe(true);
-            expect(firstButton.classList.contains("another-class")).toBe(true);
+            expect([...firstButton.classList]).toEqual(
+                expect.arrayContaining(["custom-class", "another-class"])
+            );
             expect(firstButton.classList.contains("tab-disabled")).toBe(false);
+            expect(firstButton.getAttribute("aria-disabled")).toBe("false");
         });
 
         it("should log operations for debugging", () => {
@@ -115,6 +118,13 @@ describe("Enable Tab Buttons", () => {
 
             setTabButtonsEnabled(false);
             setTabButtonsEnabled(true);
+
+            const tabButtons = document.querySelectorAll(".tab-button");
+            tabButtons.forEach((button) => {
+                const htmlButton = /** @type {HTMLButtonElement} */ button;
+                expect(htmlButton.disabled).toBe(false);
+                expect(htmlButton.getAttribute("aria-disabled")).toBe("false");
+            });
 
             // Should have logged the operations - check for the actual log messages
             expect(consoleSpy).toHaveBeenCalledWith(
@@ -162,6 +172,7 @@ describe("Enable Tab Buttons", () => {
             tabButtons.forEach((button) => {
                 const htmlButton = /** @type {HTMLButtonElement} */ button;
                 expect(htmlButton.disabled).toBe(true); // Changed to true since last call was false
+                expect(htmlButton.classList).not.toContain("active-disabled");
             });
         });
     });
