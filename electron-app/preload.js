@@ -8,6 +8,8 @@
  *
  * @typedef {import("./shared/ipc").GenericSendChannel} GenericSendChannel
  *
+ * @typedef {import("./shared/ipc").IpcEventCallback} IpcEventCallback
+ *
  * @typedef {import("./shared/ipc").IpcRequestPayload} IpcRequestPayload
  *
  * @typedef {import("./shared/ipc").IpcResponsePayload} IpcResponsePayload
@@ -113,6 +115,8 @@
  */
 /**
  * @typedef {import("./shared/preloadApi").ElectronAPI} ElectronAPI
+ *
+ * @typedef {Pick<ElectronAPI, "invoke" | "notifyFitFileLoaded" | "onIpc" | "onUpdateEvent" | "send">} GenericIpcApi
  */
 /**
  * @typedef {(...args: unknown[]) => unknown} UnknownCallback
@@ -133,6 +137,10 @@ const {
 } =
     /** @type {{ isPreloadDevelopmentMode: (processRef?: NodeJS.Process) => boolean; shouldEnforceGenericIpcAllowlist: (processRef?: NodeJS.Process) => boolean }} */ (
         preloadRequire("./preload/environment.js")
+    );
+const { createGenericIpcApi } =
+    /** @type {{ createGenericIpcApi: (options: Record<string, unknown>) => GenericIpcApi }} */ (
+        preloadRequire("./preload/genericIpcApi.js")
     );
 const { resolvePreloadElectronBridge } =
     /** @type {{ resolvePreloadElectronBridge: (options: { globalScope?: object; requireModule: (moduleId: string) => unknown }) => { contextBridge: PreloadContextBridge | null | undefined; ipcRenderer: PreloadIpcRenderer | null | undefined } }} */ (
@@ -212,14 +220,6 @@ const {
     validateCallback,
 });
 
-const mainStateBridge = createMainStateBridge({
-    ipcRenderer,
-    preloadLog,
-    removeIpcListener: /** @type {(channel: string, handler: (event: object, change: MainStateChange) => void) => void} */ (
-        removeIpcListener
-    ),
-});
-
 /**
  * Enforce the generic send/invoke allowlist only when we are running in
  * Electron.
@@ -234,6 +234,29 @@ const mainStateBridge = createMainStateBridge({
  */
 const SHOULD_ENFORCE_GENERIC_IPC_ALLOWLIST =
     typeof process !== "undefined" && shouldEnforceGenericIpcAllowlist(process);
+
+const mainStateBridge = createMainStateBridge({
+    ipcRenderer,
+    preloadLog,
+    removeIpcListener: /** @type {(channel: string, handler: (event: object, change: MainStateChange) => void) => void} */ (
+        removeIpcListener
+    ),
+});
+const genericIpcApi = createGenericIpcApi({
+    fitFileLoadedChannel: /** @type {GenericSendChannel} */ (
+        CONSTANTS.EVENTS.FIT_FILE_LOADED
+    ),
+    ipcRenderer,
+    isAllowedGenericInvokeChannel,
+    isAllowedGenericSendChannel,
+    isAllowedRendererIpcEventChannel,
+    isAllowedUpdateEventName,
+    preloadLog,
+    removeIpcListener,
+    shouldEnforceGenericIpcAllowlist: SHOULD_ENFORCE_GENERIC_IPC_ALLOWLIST,
+    validateCallback,
+    validateChannelName,
+});
 
 // Main API object
 /** @type {ElectronAPI} */
@@ -531,31 +554,7 @@ const electronAPI = {
      *
      * @returns {Promise<IpcResponsePayload>}
      */
-    invoke: async (channel, ...args) => {
-        if (!validateChannelName(channel, "channel", "invoke")) {
-            throw new Error("Invalid channel for invoke");
-        }
-
-        // Do not allow arbitrary IPC access in Electron.
-        // Use the explicit wrappers above instead.
-        if (
-            SHOULD_ENFORCE_GENERIC_IPC_ALLOWLIST &&
-            !isAllowedGenericInvokeChannel(channel)
-        ) {
-            throw new Error("Channel not allowed for invoke");
-        }
-
-        try {
-            return await ipcRenderer.invoke(channel, ...args);
-        } catch (error) {
-            preloadLog(
-                "error",
-                `[preload.js] Error in invoke(${channel}):`,
-                error
-            );
-            throw error;
-        }
-    },
+    invoke: genericIpcApi.invoke,
 
     /**
      * Whether the experimental Browser tab is enabled.
@@ -621,31 +620,7 @@ const electronAPI = {
      *
      * @param {string | null} filePath
      */
-    notifyFitFileLoaded: (filePath) => {
-        // Allow explicit unload signaling via null.
-        if (filePath !== null && typeof filePath !== "string") {
-            preloadLog(
-                "error",
-                "[preload.js] notifyFitFileLoaded: filePath must be a string or null"
-            );
-            return;
-        }
-
-        const normalizedPath =
-            typeof filePath === "string" && filePath.trim().length > 0
-                ? filePath
-                : null;
-
-        try {
-            ipcRenderer.send(CONSTANTS.EVENTS.FIT_FILE_LOADED, normalizedPath);
-        } catch (error) {
-            preloadLog(
-                "error",
-                "[preload.js] Error in notifyFitFileLoaded:",
-                error
-            );
-        }
-    },
+    notifyFitFileLoaded: genericIpcApi.notifyFitFileLoaded,
 
     // Generic IPC Functions with enhanced validation
     /**
@@ -657,65 +632,7 @@ const electronAPI = {
      * @returns {(() => void) | undefined} Unsubscribe function when
      *   registration succeeds
      */
-    onIpc: (channel, callback) => {
-        if (!validateChannelName(channel, "channel", "onIpc")) {
-            return;
-        }
-        if (!validateCallback(callback, "onIpc")) {
-            return;
-        }
-
-        if (
-            SHOULD_ENFORCE_GENERIC_IPC_ALLOWLIST &&
-            !isAllowedRendererIpcEventChannel(channel)
-        ) {
-            preloadLog(
-                "warn",
-                `[preload.js] Blocked onIpc() subscription to non-allowlisted channel: ${channel}`
-            );
-            return;
-        }
-
-        try {
-            /**
-             * @type {(
-             *     event: object,
-             *     ...args: IpcResponsePayload[]
-             * ) => unknown}
-             */
-            const wrapped = (event, ...args) => {
-                try {
-                    return callback(event, ...args);
-                } catch (error) {
-                    preloadLog(
-                        "error",
-                        `[preload.js] Error in onIpc(${channel}) callback:`,
-                        error
-                    );
-                }
-            };
-
-            ipcRenderer.on(channel, wrapped);
-
-            return () => {
-                try {
-                    removeIpcListener(channel, wrapped);
-                } catch (error) {
-                    preloadLog(
-                        "error",
-                        `[preload.js] Error removing onIpc(${channel}) listener:`,
-                        error
-                    );
-                }
-            };
-        } catch (error) {
-            preloadLog(
-                "error",
-                `[preload.js] Error setting up onIpc(${channel}):`,
-                error
-            );
-        }
-    },
+    onIpc: genericIpcApi.onIpc,
 
     // Event Handlers with enhanced error handling
     /**
@@ -777,61 +694,7 @@ const electronAPI = {
      * @param {string} eventName - The update event name to listen for
      * @param {Function} callback - Callback function to handle the event
      */
-    onUpdateEvent: (eventName, callback) => {
-        if (!validateCallback(callback, "onUpdateEvent")) {
-            return;
-        }
-        if (!validateChannelName(eventName, "eventName", "onUpdateEvent")) {
-            return;
-        }
-
-        if (
-            SHOULD_ENFORCE_GENERIC_IPC_ALLOWLIST &&
-            !isAllowedUpdateEventName(eventName)
-        ) {
-            preloadLog(
-                "warn",
-                `[preload.js] Blocked onUpdateEvent() subscription to non-allowlisted event: ${eventName}`
-            );
-            return;
-        }
-
-        try {
-            /**
-             * @type {(
-             *     event: object,
-             *     ...args: IpcResponsePayload[]
-             * ) => unknown}
-             */
-            const handler = (_event, ...args) => {
-                try {
-                    return callback(...args);
-                } catch (error) {
-                    preloadLog(
-                        "error",
-                        `[preload.js] Error in onUpdateEvent(${eventName}) callback:`,
-                        error
-                    );
-                }
-            };
-
-            ipcRenderer.on(eventName, handler);
-
-            return () => {
-                try {
-                    removeIpcListener(eventName, handler);
-                } catch {
-                    /* Ignore */
-                }
-            };
-        } catch (error) {
-            preloadLog(
-                "error",
-                `[preload.js] Error setting up onUpdateEvent(${eventName}):`,
-                error
-            );
-        }
-    },
+    onUpdateEvent: genericIpcApi.onUpdateEvent,
 
     /**
      * Opens a URL in the user's default external browser.
@@ -928,32 +791,7 @@ const electronAPI = {
      * @param {GenericSendChannel} channel - The IPC channel to send on
      * @param {...IpcRequestPayload} args - Arguments to send
      */
-    send: (channel, ...args) => {
-        if (!validateChannelName(channel, "channel", "send")) {
-            return;
-        }
-
-        if (
-            SHOULD_ENFORCE_GENERIC_IPC_ALLOWLIST &&
-            !isAllowedGenericSendChannel(channel)
-        ) {
-            preloadLog(
-                "warn",
-                `[preload.js] Blocked send() to non-allowlisted channel: ${String(channel)}`
-            );
-            return;
-        }
-
-        try {
-            ipcRenderer.send(channel, ...args);
-        } catch (error) {
-            preloadLog(
-                "error",
-                `[preload.js] Error in send(${channel}):`,
-                error
-            );
-        }
-    },
+    send: genericIpcApi.send,
 
     /**
      * Sends a 'theme-changed' event to the main process.
