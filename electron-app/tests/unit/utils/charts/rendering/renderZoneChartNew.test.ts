@@ -124,6 +124,7 @@ describe("renderZoneChartNew", () => {
 
         expect(createChartCanvasMock).not.toHaveBeenCalled();
         expect(chartConstructorMock).not.toHaveBeenCalled();
+        expect(document.body.childElementCount).toBe(0);
     });
 
     it("creates a doughnut chart using provided zone colors and updates legend + tooltips", async () => {
@@ -138,7 +139,9 @@ describe("renderZoneChartNew", () => {
         renderZoneChart(container, "Heart Rate", zoneData, "hr-zone-chart");
 
         expect(createChartCanvasMock).toHaveBeenCalledWith("hr-zone-chart", 0);
-        expect(container.querySelector("canvas")).toBeTruthy();
+        const renderedCanvas = container.querySelector("canvas");
+        expect(renderedCanvas?.dataset.chartId).toBe("hr-zone-chart");
+        expect(renderedCanvas?.style.borderRadius).toBe("12px");
 
         // Debug: check if Chart was called
         console.log(
