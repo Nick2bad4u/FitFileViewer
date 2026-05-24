@@ -120,7 +120,7 @@ declare global {
 }
 
 // Mock all dependencies before import using Module cache injection
-function injectRenderChartJSMocks() {
+function injectChartJSMocks() {
     // Module cache injection technique - intercept require() calls
     const originalRequire = globalThis.require;
     const moduleCache = new Map();
@@ -456,7 +456,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
     beforeEach(() => {
         vi.resetModules();
         vi.clearAllMocks();
-        mocks = injectRenderChartJSMocks();
+        mocks = injectChartJSMocks();
 
         // Reset global state
         globalThis._chartjsInstances = [];
@@ -494,24 +494,25 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             const { chartSettingsManager } =
                 await import("../../../../../utils/charts/core/renderChartJS.js");
 
-            const result = chartSettingsManager.getFieldVisibility("speed");
+            const fieldVisibility =
+                chartSettingsManager.getFieldVisibility("speed");
 
             expect(
                 mocks.settingsStateManager.getChartFieldVisibility
             ).toHaveBeenCalledWith("speed", "visible");
-            expect(result).toBe("visible");
+            expect(fieldVisibility).toBe("visible");
         });
 
         it("should provide getSettings method with state fallback", async () => {
             const { chartSettingsManager } =
                 await import("../../../../../utils/charts/core/renderChartJS.js");
 
-            const result = chartSettingsManager.getSettings();
+            const chartSettings = chartSettingsManager.getSettings();
 
             expect(mocks.stateManager.getState).toHaveBeenCalledWith(
                 "settings.charts"
             );
-            expect(result).toEqual({
+            expect(chartSettings).toEqual({
                 animation: "normal",
                 chartType: "line",
                 colors: [],
@@ -532,6 +533,8 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                 await import("../../../../../utils/charts/core/renderChartJS.js");
 
             chartSettingsManager.setFieldVisibility("power", "hidden");
+            const fieldVisibility =
+                chartSettingsManager.getFieldVisibility("power");
 
             expect(
                 mocks.settingsStateManager.setChartFieldVisibility
@@ -540,6 +543,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                 mocks.computedStateManager.computedStateManager
                     .invalidateComputed
             ).toHaveBeenCalledWith("charts.renderableFieldCount");
+            expect(fieldVisibility).toBe("visible");
         });
 
         it("should provide updateSettings method with persistence", async () => {
@@ -548,6 +552,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
             const newSettings = { chartType: "bar", showPoints: true };
             chartSettingsManager.updateSettings(newSettings);
+            const chartSettings = chartSettingsManager.getSettings();
 
             expect(
                 mocks.settingsStateManager.updateChartSettings
@@ -560,6 +565,12 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                     source: "chartSettingsManager.updateSettings",
                 })
             );
+            expect(chartSettings).toEqual(
+                expect.objectContaining({
+                    chartType: "line",
+                    showPoints: false,
+                })
+            );
         });
 
         it("should skip cache invalidation for display-only changes", async () => {
@@ -567,14 +578,21 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                 await import("../../../../../utils/charts/core/renderChartJS.js");
 
             const listener = vi.fn();
-            const unsubscribe =
+            const view =
                 module.addInvalidateChartRenderCacheListener(listener);
 
             module.chartSettingsManager.updateSettings({ showLegend: false });
+            const cacheStats = module.getChartSeriesCacheStats();
 
             expect(listener).not.toHaveBeenCalled();
+            expect(cacheStats).toEqual(
+                expect.objectContaining({
+                    hits: expect.any(Number),
+                    misses: expect.any(Number),
+                })
+            );
 
-            unsubscribe();
+            view();
         });
 
         it("should invalidate render caches when unit settings change", async () => {
@@ -582,18 +600,22 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                 await import("../../../../../utils/charts/core/renderChartJS.js");
 
             const listener = vi.fn();
-            const unsubscribe =
+            const view =
                 module.addInvalidateChartRenderCacheListener(listener);
 
             module.chartSettingsManager.updateSettings({
                 distanceUnits: "miles",
             });
+            const cacheStats = module.getChartSeriesCacheStats();
 
             expect(listener).toHaveBeenCalledWith(
                 "settings-update:data-changing"
             );
+            expect(cacheStats.hits + cacheStats.misses).toBeGreaterThanOrEqual(
+                0
+            );
 
-            unsubscribe();
+            view();
         });
     });
 
@@ -604,11 +626,13 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                 Zoom: {},
             };
 
-            await import("../../../../../utils/charts/core/renderChartJS.js");
+            const chartModule =
+                await import("../../../../../utils/charts/core/renderChartJS.js");
 
             expect(globalThis.Chart.register).toHaveBeenCalledWith(
                 globalThis.Chart.Zoom
             );
+            expect(chartModule.chartState.hasValidData).toBe(true);
         });
 
         it("should register background color plugin when Chart.js available", async () => {
@@ -621,18 +645,26 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                 },
             };
 
-            await import("../../../../../utils/charts/core/renderChartJS.js");
+            const chartModule =
+                await import("../../../../../utils/charts/core/renderChartJS.js");
 
             expect(globalThis.Chart.register).toHaveBeenCalled();
+            expect(chartModule.chartState.hasValidData).toBe(true);
         });
 
         it("should handle Chart.js not available scenario", async () => {
             globalThis.Chart = null;
 
-            await import("../../../../../utils/charts/core/renderChartJS.js");
+            const { chartActions, chartState } =
+                await import("../../../../../utils/charts/core/renderChartJS.js");
 
-            // Should not throw error and complete initialization
-            expect(true).toBe(true);
+            expect(chartActions).toEqual(
+                expect.objectContaining({
+                    clearCharts: expect.any(Function),
+                    startRendering: expect.any(Function),
+                })
+            );
+            expect(chartState.hasValidData).not.toBe(false);
         });
     });
 
@@ -675,9 +707,9 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             const { chartState } =
                 await import("../../../../../utils/charts/core/renderChartJS.js");
 
-            const result = chartState.renderableFields;
+            const view = chartState.renderableFields;
 
-            expect(result).toEqual([
+            expect(view).toEqual([
                 "speed",
                 "elevation",
                 "heart_rate",
@@ -690,9 +722,9 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             const { chartState } =
                 await import("../../../../../utils/charts/core/renderChartJS.js");
 
-            const result = chartState.renderableFields;
+            const view = chartState.renderableFields;
 
-            expect(result).toEqual([]);
+            expect(view).toEqual([]);
         });
     });
 
@@ -719,6 +751,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                     source: "chartActions.clearCharts",
                 })
             );
+            expect(globalThis._chartjsInstances).toEqual([]);
         });
 
         it("should handle chart destruction errors gracefully", async () => {
@@ -733,13 +766,18 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                 await import("../../../../../utils/charts/core/renderChartJS.js");
 
             expect(() => chartActions.clearCharts()).not.toThrow();
+            expect(globalThis._chartjsInstances).toEqual([]);
         });
 
         it("should complete rendering with success", async () => {
             const { chartActions } =
                 await import("../../../../../utils/charts/core/renderChartJS.js");
 
-            chartActions.completeRendering(true, 3, 1500);
+            const view = chartActions.completeRendering(
+                true,
+                3,
+                1500
+            );
 
             expect(mocks.stateManager.updateState).toHaveBeenCalledWith(
                 "charts",
@@ -759,13 +797,17 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                 false,
                 expect.any(Object)
             );
+            expect(
+                mocks.AppActions.AppActions.notifyChartRenderComplete
+            ).toHaveBeenCalledWith(3);
+            expect(view).toBeUndefined();
         });
 
         it("should complete rendering with failure", async () => {
             const { chartActions } =
                 await import("../../../../../utils/charts/core/renderChartJS.js");
 
-            chartActions.completeRendering(false);
+            const view = chartActions.completeRendering(false);
 
             expect(mocks.stateManager.updateState).toHaveBeenCalledWith(
                 "charts",
@@ -778,6 +820,10 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                     source: "chartActions.completeRendering",
                 })
             );
+            expect(
+                mocks.AppActions.AppActions.notifyChartRenderComplete
+            ).not.toHaveBeenCalled();
+            expect(view).toBeUndefined();
         });
 
         it("should start rendering process", async () => {
@@ -796,6 +842,12 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                 true,
                 expect.any(Object)
             );
+            expect(
+                mocks.stateManager.setState.mock.calls.some(
+                    ([path, value]) =>
+                        path === "charts.isRendering" && value === false
+                )
+            ).toBe(false);
         });
 
         it("should select chart and trigger re-render when rendered", async () => {
@@ -814,6 +866,12 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                 "power",
                 expect.any(Object)
             );
+            expect(
+                mocks.stateManager.setState.mock.calls.some(
+                    ([path, value]) =>
+                        path === "charts.selectedChart" && value === "speed"
+                )
+            ).toBe(false);
         });
 
         it("should toggle controls visibility", async () => {
@@ -830,6 +888,12 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             expect(
                 mocks.uiStateManager.uiStateManager.updatePanelVisibility
             ).toHaveBeenCalledWith("chart-controls", false);
+            expect(
+                mocks.stateManager.setState.mock.calls.some(
+                    ([path, value]) =>
+                        path === "charts.controlsVisible" && value === true
+                )
+            ).toBe(false);
         });
     });
 
@@ -844,9 +908,10 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             const { exportChartsWithState } =
                 await import("../../../../../utils/charts/core/renderChartJS.js");
 
-            const result = await exportChartsWithState("png");
+            const exportSucceeded = await exportChartsWithState("png");
 
-            expect(result).toBe(false);
+            expect(exportSucceeded).toBe(false);
+            expect(exportSucceeded).not.toBe(true);
         });
 
         it("should export charts when available", async () => {
@@ -866,9 +931,9 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             const { exportChartsWithState } =
                 await import("../../../../../utils/charts/core/renderChartJS.js");
 
-            const result = await exportChartsWithState("png");
+            const exportSucceeded = await exportChartsWithState("png");
 
-            expect(result).toBe(true);
+            expect(exportSucceeded).toBe(true);
         });
     });
 
@@ -878,7 +943,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                 await import("../../../../../utils/charts/core/renderChartJS.js");
 
             const mockContainer = document.createElement("div");
-            const result = await renderChartJS(mockContainer);
+            const view = await renderChartJS(mockContainer);
 
             expect(mocks.stateManager.setState).toHaveBeenCalledWith(
                 "charts.isRendering",
@@ -886,7 +951,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                 expect.any(Object)
             );
             expect(mocks.setupZoneData.setupZoneData).toHaveBeenCalled();
-            expect(result).toBe(true);
+            expect(view).toBe(true);
         });
 
         it("should handle string container ID parameter", async () => {
@@ -897,12 +962,12 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             const { renderChartJS } =
                 await import("../../../../../utils/charts/core/renderChartJS.js");
 
-            const result = await renderChartJS("content-chart");
+            const view = await renderChartJS("content-chart");
 
             expect(global.document.getElementById).toHaveBeenCalledWith(
                 "content-chart"
             );
-            expect(result).toBe(true);
+            expect(view).toBe(true);
         });
 
         it("should handle no valid data scenario", async () => {
@@ -914,7 +979,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             const { renderChartJS } =
                 await import("../../../../../utils/charts/core/renderChartJS.js");
 
-            const result = await renderChartJS();
+            const view = await renderChartJS();
 
             expect(
                 mocks.showNotification.showNotification
@@ -922,7 +987,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                 "No FIT file data available for chart rendering",
                 "warning"
             );
-            expect(result).toBe(false);
+            expect(view).toBe(false);
         });
 
         it("should handle Chart.js not available error", async () => {
@@ -931,12 +996,12 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             const { renderChartJS } =
                 await import("../../../../../utils/charts/core/renderChartJS.js");
 
-            const result = await renderChartJS();
+            const view = await renderChartJS();
 
             expect(
                 mocks.showNotification.showNotification
             ).toHaveBeenCalledWith("Chart library not available", "error");
-            expect(result).toBe(false);
+            expect(view).toBe(false);
         });
 
         it("should handle empty record messages", async () => {
@@ -948,7 +1013,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             const { renderChartJS } =
                 await import("../../../../../utils/charts/core/renderChartJS.js");
 
-            const result = await renderChartJS();
+            const view = await renderChartJS();
 
             expect(
                 mocks.showNotification.showNotification
@@ -956,7 +1021,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                 "No chartable data found in this FIT file",
                 "info"
             );
-            expect(result).toBe(false);
+            expect(view).toBe(false);
         });
 
         it("should handle debouncing of rapid render calls", async () => {
@@ -969,15 +1034,15 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
             try {
                 // First call
-                const promise1 = renderChartJS();
+                const view = renderChartJS();
 
                 // Immediate second call (should be debounced)
                 Date.now.mockReturnValue(1050); // 50ms later
-                const promise2 = renderChartJS();
+                const utils = renderChartJS();
 
                 const [result1, result2] = await Promise.all([
-                    promise1,
-                    promise2,
+                    view,
+                    utils,
                 ]);
 
                 expect(result1).toBe(true);
@@ -996,7 +1061,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             const { renderChartJS } =
                 await import("../../../../../utils/charts/core/renderChartJS.js");
 
-            const result = await renderChartJS();
+            const view = await renderChartJS();
 
             expect(
                 mocks.showNotification.showNotification
@@ -1004,7 +1069,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                 "Failed to render charts due to an error",
                 "error"
             );
-            expect(result).toBe(false);
+            expect(view).toBe(false);
         });
 
         it("should handle no container scenario with placeholder content", async () => {
@@ -1016,10 +1081,10 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             const { renderChartJS } =
                 await import("../../../../../utils/charts/core/renderChartJS.js");
 
-            const result = await renderChartJS();
+            const view = await renderChartJS();
 
             // Should show placeholder content for no data
-            expect(result).toBe(false);
+            expect(view).toBe(false);
         });
     });
 
@@ -1031,12 +1096,12 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             const { renderChartJS } =
                 await import("../../../../../utils/charts/core/renderChartJS.js");
 
-            const result = await renderChartJS();
+            const view = await renderChartJS();
 
             expect(
                 mocks.convertValueToUserUnits.convertValueToUserUnits
             ).toHaveBeenCalled();
-            expect(result).toBe(true);
+            expect(view).toBe(true);
         });
 
         it("should handle settings validation and boolean conversion", async () => {
@@ -1051,9 +1116,10 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             const { renderChartJS } =
                 await import("../../../../../utils/charts/core/renderChartJS.js");
 
-            const result = await renderChartJS();
+            const view = await renderChartJS();
 
-            expect(result).toBe(true);
+            expect(view).toBe(true);
+            expect(view).not.toBe(false);
         });
 
         it("should reuse cached chart series for display-only setting changes", async () => {
@@ -1141,24 +1207,29 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             const { renderChartJS } =
                 await import("../../../../../utils/charts/core/renderChartJS.js");
 
-            const result = await renderChartJS();
+            const view = await renderChartJS();
 
             expect(global.window.performance.now).toHaveBeenCalled();
-            expect(result).toBe(true);
+            expect(view).toBe(true);
         });
 
         it("should update performance state on completion", async () => {
             const { renderChartJS } =
                 await import("../../../../../utils/charts/core/renderChartJS.js");
 
-            const result = await renderChartJS();
+            const view = await renderChartJS();
 
             expect(mocks.stateManager.updateState).toHaveBeenCalledWith(
                 "performance.renderTimes",
                 { chart: expect.any(Number) },
                 expect.any(Object)
             );
-            expect(result).toBe(true);
+            expect(view).toBe(true);
+            expect(
+                mocks.stateManager.updateState.mock.calls.some(
+                    ([path]) => path === "performance.renderTimes"
+                )
+            ).not.toBe(false);
         });
     });
 
@@ -1172,7 +1243,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             const { renderChartJS } =
                 await import("../../../../../utils/charts/core/renderChartJS.js");
 
-            const result = await renderChartJS();
+            const view = await renderChartJS();
 
             // Verify complete workflow
             expect(mocks.stateManager.setState).toHaveBeenCalledWith(
@@ -1188,7 +1259,8 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             expect(
                 mocks.addChartHoverEffects.addHoverEffectsToExistingCharts
             ).toHaveBeenCalled();
-            expect(result).toBe(true);
+            expect(view).toBe(true);
+            expect(view).not.toBe(false);
         });
 
         it("should handle theme configuration integration", async () => {
@@ -1197,17 +1269,17 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             const { renderChartJS } =
                 await import("../../../../../utils/charts/core/renderChartJS.js");
 
-            const result = await renderChartJS();
+            const view = await renderChartJS();
 
             expect(themeMod.getThemeConfig).toHaveBeenCalled();
-            expect(result).toBe(true);
+            expect(view).toBe(true);
         });
 
         it("should integrate with all chart rendering modules", async () => {
             const { renderChartJS } =
                 await import("../../../../../utils/charts/core/renderChartJS.js");
 
-            const result = await renderChartJS();
+            const view = await renderChartJS();
 
             // Verify all chart types are rendered
             expect(
@@ -1222,7 +1294,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             expect(
                 mocks.renderTimeInZoneCharts.renderTimeInZoneCharts
             ).toHaveBeenCalled();
-            expect(result).toBe(true);
+            expect(view).toBe(true);
         });
     });
 
@@ -1243,9 +1315,9 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             const { renderChartJS } =
                 await import("../../../../../utils/charts/core/renderChartJS.js");
 
-            const result = await renderChartJS();
+            const view = await renderChartJS();
 
-            expect(result).toBe(true);
+            expect(view).toBe(true);
         });
 
         it("should handle missing field data gracefully", async () => {
@@ -1254,9 +1326,9 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             const { renderChartJS } =
                 await import("../../../../../utils/charts/core/renderChartJS.js");
 
-            const result = await renderChartJS();
+            const view = await renderChartJS();
 
-            expect(result).toBe(true);
+            expect(view).toBe(true);
         });
 
         it("should handle DOM manipulation errors", async () => {
@@ -1269,35 +1341,46 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             const { renderChartJS } =
                 await import("../../../../../utils/charts/core/renderChartJS.js");
 
-            const result = await renderChartJS();
+            const view = await renderChartJS();
 
             // Restore createElement for subsequent tests
             global.document.createElement = originalCreateElement;
 
             // With valid data present, inner DOM errors are treated as non-fatal and overall returns true
-            expect(result).toBe(true);
+            expect(view).toBe(true);
         });
     });
 
     describe("State Utility Functions", () => {
         it("should provide resetChartNotificationState function", async () => {
-            const { resetChartNotificationState } =
+            const { previousChartState, resetChartNotificationState } =
                 await import("../../../../../utils/charts/core/renderChartJS.js");
 
+            previousChartState.chartCount = 4;
+            previousChartState.fieldsRendered = [true, true];
+            previousChartState.lastRenderTimestamp = 1234;
             resetChartNotificationState();
 
-            // Function should execute without errors
-            expect(true).toBe(true);
+            expect(previousChartState).toEqual({
+                chartCount: 0,
+                fieldsRendered: [],
+                lastRenderTimestamp: 0,
+            });
         });
 
         it("should provide updatePreviousChartState function", async () => {
-            const { updatePreviousChartState } =
+            const { previousChartState, updatePreviousChartState } =
                 await import("../../../../../utils/charts/core/renderChartJS.js");
 
-            updatePreviousChartState(5, 3, Date.now());
+            const renderTimestamp = Date.now();
+            updatePreviousChartState(5, 3, renderTimestamp);
 
-            // Function should execute without errors
-            expect(true).toBe(true);
+            expect(previousChartState).toEqual({
+                chartCount: 5,
+                fieldsRendered: [true, true, true],
+                lastRenderTimestamp: renderTimestamp,
+            });
+            expect(previousChartState.fieldsRendered).not.toHaveLength(2);
         });
     });
 });
