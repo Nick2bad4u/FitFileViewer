@@ -63,16 +63,21 @@ describe("mapFullscreenControl.js", () => {
 
         // Verify the control was added
         const control = document.querySelector(".custom-fullscreen-control");
-        expect(control).not.toBeNull();
-        expect(control?.className).toContain("custom-fullscreen-control");
+        expect(control).toBeInstanceOf(HTMLDivElement);
+        expect(control?.classList.contains("custom-fullscreen-control")).toBe(
+            true
+        );
+        expect(control?.classList.contains("leaflet-top")).toBe(true);
+        expect(control?.classList.contains("leaflet-left")).toBe(true);
 
         // Verify the button was created
         const button = document.querySelector("#fullscreen-btn");
-        expect(button).not.toBeNull();
-        expect(button?.tagName.toLowerCase()).toBe("button");
+        expect(button).toBeInstanceOf(HTMLButtonElement);
+        expect(button?.tagName).toBe("BUTTON");
         expect(/** @type {HTMLButtonElement} */ button?.title).toBe(
             "Toggle Fullscreen"
         );
+        expect(button?.getAttribute("aria-label")).toBe("Toggle Fullscreen");
     });
 
     it("should do nothing when map container is not found", () => {
@@ -89,8 +94,9 @@ describe("mapFullscreenControl.js", () => {
         );
 
         // Verify no controls were added
-        const control = document.querySelector(".custom-fullscreen-control");
-        expect(control).toBeNull();
+        expect(
+            document.querySelectorAll(".custom-fullscreen-control")
+        ).toHaveLength(0);
     });
 
     it("should toggle fullscreen mode when button is clicked", () => {
@@ -100,7 +106,7 @@ describe("mapFullscreenControl.js", () => {
             /** @type {HTMLButtonElement} */ document.querySelector(
                 "#fullscreen-btn"
             );
-        expect(button).not.toBeNull();
+        expect(button).toBeInstanceOf(HTMLButtonElement);
 
         // Simulate button click
         button.click();
@@ -115,9 +121,8 @@ describe("mapFullscreenControl.js", () => {
         expect(mapDiv.requestFullscreen).toHaveBeenCalled();
 
         // Verify map size was invalidated
-        setTimeout(() => {
-            expect(mockMap.invalidateSize).toHaveBeenCalled();
-        }, 300);
+        vi.advanceTimersByTime(300);
+        expect(mockMap.invalidateSize).toHaveBeenCalledTimes(1);
 
         // Simulate another click to exit fullscreen
         button.click();
@@ -140,6 +145,7 @@ describe("mapFullscreenControl.js", () => {
 
         // Get the button
         const button = document.querySelector("#fullscreen-btn");
+        expect(button).toBeInstanceOf(HTMLButtonElement);
 
         // First make the map fullscreen
         mapDiv.classList.add("fullscreen");
@@ -159,8 +165,7 @@ describe("mapFullscreenControl.js", () => {
         const event = new Event("fullscreenchange");
         document.dispatchEvent(event);
 
-        // Manually trigger what the setTimeout would do in the real code
-        mockMap.invalidateSize();
+        vi.advanceTimersByTime(300);
 
         // Verify fullscreen class was removed
         expect(mapDiv.classList.contains("fullscreen")).toBe(false);
@@ -171,16 +176,28 @@ describe("mapFullscreenControl.js", () => {
         );
 
         // Verify map size was invalidated
-        expect(mockMap.invalidateSize).toHaveBeenCalled();
+        expect(mockMap.invalidateSize).toHaveBeenCalledTimes(1);
 
         // Restore mock
         vi.restoreAllMocks();
     });
 
     it("should create new fullscreen button even when an old one exists", () => {
-        // Skip this test for now and focus on the other tests that are working
-        // This is a minor edge case that doesn't work well in JSDOM
-        expect(true).toBe(true); // Always pass
+        const mapControls = document.createElement("div");
+        mapControls.id = "map-controls";
+        const oldButton = document.createElement("button");
+        oldButton.id = "fullscreen-btn";
+        oldButton.type = "button";
+        mapControls.append(oldButton);
+        document.body.append(mapControls);
+
+        addFullscreenControl(mockMap);
+
+        expect(mapControls.querySelectorAll("#fullscreen-btn")).toHaveLength(0);
+        expect(mapDiv.querySelectorAll("#fullscreen-btn")).toHaveLength(1);
+        const newButton = mapDiv.querySelector("#fullscreen-btn");
+        expect(newButton).toBeInstanceOf(HTMLButtonElement);
+        expect(newButton).not.toBe(oldButton);
     });
 
     it("should not throw an error when calling invalidateSize on invalid map", () => {
