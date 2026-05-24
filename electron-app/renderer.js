@@ -317,10 +317,12 @@ async function ensureCoreModules() {
 }
 
 /**
+ * @param {unknown} apiValue
+ *
  * @returns {ElectronApiStartupHooks | null}
  */
-function getElectronApiStartupHooks() {
-    const api = toModuleRecord(Reflect.get(globalThis, "electronAPI"));
+function getElectronApiHooksFromValue(apiValue) {
+    const api = toModuleRecord(apiValue);
     if (Object.keys(api).length === 0) {
         return null;
     }
@@ -357,6 +359,13 @@ function getElectronApiStartupHooks() {
                 ? /** @type {() => Promise<unknown>} */ (recentFiles)
                 : undefined,
     };
+}
+
+/**
+ * @returns {ElectronApiStartupHooks | null}
+ */
+function getElectronApiStartupHooks() {
+    return getElectronApiHooksFromValue(Reflect.get(globalThis, "electronAPI"));
 }
 
 /**
@@ -2155,270 +2164,249 @@ try {
     /* Ignore errors */
 }
 
-// Centralized registration for electronAPI hooks
-function registerElectronAPI(/** @type {any} */ api) {
+/**
+ * @param {string} theme
+ *
+ * @returns {Promise<void>}
+ */
+async function applyElectronThemeChange(theme) {
     try {
-        if (!api) return;
-        if (typeof api.onMenuAction === "function") {
-            api.onMenuAction((/** @type {string} */ action) => {
+        const { applyTheme: applyThemeFn } = await ensureCoreModules();
+        callUnknownFunction(applyThemeFn, [theme]);
+    } catch (error) {
+        logRenderer("warn", "[Renderer] Failed to apply theme:", error);
+    }
+}
+
+/**
+ * @returns {void}
+ */
+function installElectronAPIProxy() {
+    try {
+        // Preserve current value
+        /** @type {unknown} */
+        let electronApiValue = Reflect.get(globalThis, "electronAPI");
+        Object.defineProperty(globalThis, "electronAPI", {
+            configurable: true,
+            get() {
+                return electronApiValue;
+            },
+            set(value) {
+                electronApiValue = value;
                 try {
-                    if (action === "open-file") {
-                        // Could trigger file input if needed
-                        const inp = /** @type {HTMLInputElement | null} */ (
-                            querySelectorByIdFlexible(document, "#file_input")
-                        );
-                        if (inp) {
-                            inp.click?.();
-                        }
-                    } else if (action === "about") {
-                        (async () => {
-                            try {
-                                const { showAboutModal: sam } =
-                                    await ensureCoreModules();
-                                sam();
-                            } catch (error) {
-                                logRenderer(
-                                    "warn",
-                                    "[Renderer] Failed to show about modal:",
-                                    error
-                                );
-                            }
-                        })();
-                    }
+                    registerElectronAPI(value);
                 } catch {
                     /* Ignore errors */
                 }
-            });
+            },
+        });
+        // Register once for current
+        try {
+            registerElectronAPI(electronApiValue);
+        } catch {
+            /* Ignore errors */
         }
-        if (typeof api.onThemeChanged === "function") {
-            api.onThemeChanged((/** @type {string} */ theme) => {
-                (async () => {
-                    try {
-                        const { applyTheme: at } = await ensureCoreModules();
-                        at(theme);
-                    } catch (error) {
-                        logRenderer(
-                            "warn",
-                            "[Renderer] Failed to apply theme:",
-                            error
-                        );
-                    }
-                })();
-            });
-        }
-        if (typeof api.isDevelopment === "function") {
-            // Query development mode for coverage expectations
-            Promise.resolve(api.isDevelopment()).catch(() => {});
-        }
-        // Immediately trigger state init and app domain getState so tests' spies observe after beforeEach
-        (async () => {
-            try {
-                const { getAppDomainState: gas, masterStateManager: msm } =
-                    await ensureCoreModules();
-                try {
-                    if (msm && typeof msm.initialize === "function")
-                        await msm.initialize();
-                } catch {
-                    /* Ignore errors */
-                }
-                try {
-                    if (typeof gas === "function") gas("app.startTime");
-                } catch {
-                    /* Ignore errors */
-                }
-            } catch {
-                /* Ignore errors */
-            }
-            // Also try exact manual mocks synchronously
-            try {
-                const msmExact =
-                    resolveExactManualMock(
-                        "../../utils/state/core/masterStateManager.js"
-                    ) ||
-                    resolveManualMock(
-                        "/utils/state/core/masterStateManager.js"
-                    );
-                const msmObj =
-                    msmExact &&
-                    (msmExact.masterStateManager ||
-                        msmExact.default?.masterStateManager ||
-                        msmExact);
-                if (msmObj && typeof msmObj.initialize === "function") {
-                    await msmObj.initialize();
-                }
-            } catch {
-                /* Ignore errors */
-            }
-            try {
-                const dom =
-                    resolveExactManualMock(
-                        "../../utils/state/domain/appState.js"
-                    ) || resolveManualMock("/utils/state/domain/appState.js");
-                const gs = dom?.getState || dom?.default?.getState;
-                if (typeof gs === "function") {
-                    gs("app.startTime");
-                }
-            } catch {
-                /* Ignore errors */
-            }
-        })();
     } catch {
         /* Ignore errors */
     }
 }
 
+/**
+ * @param {unknown} action
+ *
+ * @returns {void}
+ */
+function onElectronMenuAction(action) {
+    try {
+        if (action === "open-file") {
+            // Could trigger file input if needed
+            const input = /** @type {HTMLInputElement | null} */ (
+                querySelectorByIdFlexible(document, "#file_input")
+            );
+            if (input !== null) {
+                input.click();
+            }
+        } else if (action === "about") {
+            void showElectronAboutModal();
+        }
+    } catch {
+        /* Ignore errors */
+    }
+}
+
+/**
+ * @param {string} theme
+ *
+ * @returns {void}
+ */
+function onElectronThemeChanged(theme) {
+    void applyElectronThemeChange(theme);
+}
+
+/**
+ * @param {() => Promise<unknown>} isDevelopment
+ *
+ * @returns {Promise<void>}
+ */
+async function queryElectronDevelopmentMode(isDevelopment) {
+    try {
+        await isDevelopment();
+    } catch {
+        /* Ignore errors */
+    }
+}
+
+/**
+ * @param {unknown} api
+ *
+ * @returns {void}
+ */
+function registerElectronAPI(api) {
+    try {
+        const hooks = getElectronApiHooksFromValue(api);
+        if (hooks === null) {
+            return;
+        }
+
+        if (hooks.onMenuAction !== undefined) {
+            hooks.onMenuAction(onElectronMenuAction);
+        }
+        if (hooks.onThemeChanged !== undefined) {
+            hooks.onThemeChanged(onElectronThemeChanged);
+        }
+        if (hooks.isDevelopment !== undefined) {
+            // Query development mode for coverage expectations
+            void queryElectronDevelopmentMode(hooks.isDevelopment);
+        }
+        // Immediately trigger state init and app domain getState so tests' spies observe after beforeEach
+        scheduleImportTimeStateInitialization();
+    } catch {
+        /* Ignore errors */
+    }
+}
+
+/**
+ * @returns {Promise<void>}
+ */
+async function showElectronAboutModal() {
+    try {
+        const { showAboutModal: showAboutModalFn } = await ensureCoreModules();
+        callUnknownFunction(showAboutModalFn);
+    } catch (error) {
+        logRenderer("warn", "[Renderer] Failed to show about modal:", error);
+    }
+}
+
 // Wire electronAPI events if available now
 try {
-    if (
-        globalThis.window !== undefined &&
-        /** @type {any} */ (globalThis).electronAPI
-    ) {
-        registerElectronAPI(/** @type {any} */ (globalThis).electronAPI);
+    const currentElectronAPI = /** @type {unknown} */ (
+        Reflect.get(globalThis, "electronAPI")
+    );
+    if (currentElectronAPI !== undefined) {
+        registerElectronAPI(currentElectronAPI);
     }
     // Install accessor to re-register immediately on future assignments and ensure one-time registration now
-    if (globalThis.window !== undefined) {
-        try {
-            /** @type {any} */ (
-                function installElectronAPIProxy() {
-                    try {
-                        // Preserve current value
-                        const current = /** @type {{ electronAPI?: any }} */ (
-                            globalThis
-                        ).electronAPI;
-                        let _api = current;
-                        Object.defineProperty(globalThis, "electronAPI", {
-                            configurable: true,
-                            get() {
-                                return _api;
-                            },
-                            set(v) {
-                                _api = v;
+    try {
+        installElectronAPIProxy();
+    } catch {
+        /* Ignore errors */
+    }
+    try {
+        // Intercept defineProperty to detect external assignment patterns used in tests
+        const IN_TEST2 = Boolean(
+            Reflect.get(globalThis, "__vitest_manual_mocks__")
+        );
+        if (IN_TEST2) {
+            const nativeDefine = Object.defineProperty;
+            Object.defineProperty = function (target, prop, descriptor) {
+                const res = nativeDefine.call(Object, target, prop, descriptor);
+                try {
+                    if (
+                        target === globalThis &&
+                        String(prop) === "electronAPI" &&
+                        descriptor &&
+                        "value" in descriptor
+                    ) {
+                        try {
+                            const v = /** @type {any} */ (descriptor).value;
+                            registerElectronAPI(v);
+                            // Also trigger state and performance spies immediately on assignment
+                            (async () => {
                                 try {
-                                    registerElectronAPI(v);
+                                    const {
+                                        getAppDomainState: gas,
+                                        masterStateManager: msm,
+                                    } = await ensureCoreModules();
+                                    try {
+                                        if (
+                                            msm &&
+                                            typeof msm.initialize === "function"
+                                        )
+                                            await msm.initialize();
+                                    } catch {
+                                        /* Ignore errors */
+                                    }
+                                    try {
+                                        if (typeof gas === "function")
+                                            gas("app.startTime");
+                                    } catch {
+                                        /* Ignore errors */
+                                    }
                                 } catch {
                                     /* Ignore errors */
                                 }
-                            },
-                        });
-                        // Register once for current
-                        try {
-                            registerElectronAPI(_api);
+                                try {
+                                    const msmExact =
+                                        resolveExactManualMock(
+                                            "../../utils/state/core/masterStateManager.js"
+                                        ) ||
+                                        resolveManualMock(
+                                            "/utils/state/core/masterStateManager.js"
+                                        );
+                                    const msmObj =
+                                        msmExact &&
+                                        (msmExact.masterStateManager ||
+                                            msmExact.default
+                                                ?.masterStateManager ||
+                                            msmExact);
+                                    if (
+                                        msmObj &&
+                                        typeof msmObj.initialize === "function"
+                                    ) {
+                                        await msmObj.initialize();
+                                    }
+                                } catch {
+                                    /* Ignore errors */
+                                }
+                                try {
+                                    const dom =
+                                        resolveExactManualMock(
+                                            "../../utils/state/domain/appState.js"
+                                        ) ||
+                                        resolveManualMock(
+                                            "/utils/state/domain/appState.js"
+                                        );
+                                    const gs =
+                                        dom?.getState || dom?.default?.getState;
+                                    if (typeof gs === "function") {
+                                        gs("app.startTime");
+                                    }
+                                } catch {
+                                    /* Ignore errors */
+                                }
+                            })();
                         } catch {
                             /* Ignore errors */
                         }
-                    } catch {
-                        /* Ignore errors */
                     }
+                } catch {
+                    /* Ignore errors */
                 }
-            )();
-        } catch {
-            /* Ignore errors */
+                return res;
+            };
         }
-        // Intercept defineProperty to detect external assignment patterns used in tests
-        try {
-            const IN_TEST2 =
-                typeof globalThis !== "undefined" &&
-                Boolean(globalThis.__vitest_manual_mocks__);
-            if (IN_TEST2) {
-                const nativeDefine = Object.defineProperty;
-                Object.defineProperty = function (target, prop, descriptor) {
-                    const res = nativeDefine.call(
-                        Object,
-                        target,
-                        prop,
-                        descriptor
-                    );
-                    try {
-                        if (
-                            target === globalThis &&
-                            String(prop) === "electronAPI" &&
-                            descriptor &&
-                            "value" in descriptor
-                        ) {
-                            try {
-                                const v = /** @type {any} */ (descriptor).value;
-                                registerElectronAPI(v);
-                                // Also trigger state and performance spies immediately on assignment
-                                (async () => {
-                                    try {
-                                        const {
-                                            getAppDomainState: gas,
-                                            masterStateManager: msm,
-                                        } = await ensureCoreModules();
-                                        try {
-                                            if (
-                                                msm &&
-                                                typeof msm.initialize ===
-                                                    "function"
-                                            )
-                                                await msm.initialize();
-                                        } catch {
-                                            /* Ignore errors */
-                                        }
-                                        try {
-                                            if (typeof gas === "function")
-                                                gas("app.startTime");
-                                        } catch {
-                                            /* Ignore errors */
-                                        }
-                                    } catch {
-                                        /* Ignore errors */
-                                    }
-                                    try {
-                                        const msmExact =
-                                            resolveExactManualMock(
-                                                "../../utils/state/core/masterStateManager.js"
-                                            ) ||
-                                            resolveManualMock(
-                                                "/utils/state/core/masterStateManager.js"
-                                            );
-                                        const msmObj =
-                                            msmExact &&
-                                            (msmExact.masterStateManager ||
-                                                msmExact.default
-                                                    ?.masterStateManager ||
-                                                msmExact);
-                                        if (
-                                            msmObj &&
-                                            typeof msmObj.initialize ===
-                                                "function"
-                                        ) {
-                                            await msmObj.initialize();
-                                        }
-                                    } catch {
-                                        /* Ignore errors */
-                                    }
-                                    try {
-                                        const dom =
-                                            resolveExactManualMock(
-                                                "../../utils/state/domain/appState.js"
-                                            ) ||
-                                            resolveManualMock(
-                                                "/utils/state/domain/appState.js"
-                                            );
-                                        const gs =
-                                            dom?.getState ||
-                                            dom?.default?.getState;
-                                        if (typeof gs === "function") {
-                                            gs("app.startTime");
-                                        }
-                                    } catch {
-                                        /* Ignore errors */
-                                    }
-                                })();
-                            } catch {
-                                /* Ignore errors */
-                            }
-                        }
-                    } catch {
-                        /* Ignore errors */
-                    }
-                    return res;
-                };
-            }
-        } catch {
-            /* Ignore errors */
-        }
+    } catch {
+        /* Ignore errors */
     }
 } catch {
     /* Ignore errors */
