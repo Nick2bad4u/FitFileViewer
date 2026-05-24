@@ -276,16 +276,22 @@ function cleanupWindowGlobals(win) {
     }
     // Clear storage to avoid unit selection bleed (seconds/minutes/hours) between tests
     try {
-        win.localStorage &&
-            typeof win.localStorage.clear === "function" &&
+        if (
+            win.localStorage &&
+            typeof win.localStorage.clear === "function"
+        ) {
             win.localStorage.clear();
+        }
     } catch {
         /* Ignore errors */
     }
     try {
-        win.sessionStorage &&
-            typeof win.sessionStorage.clear === "function" &&
+        if (
+            win.sessionStorage &&
+            typeof win.sessionStorage.clear === "function"
+        ) {
             win.sessionStorage.clear();
+        }
     } catch {
         /* Ignore errors */
     }
@@ -356,16 +362,22 @@ function restoreNativeDom() {
         // Also clear any globalThis storages if distinct from window
         if (globalThis && globalThis !== curWin) {
             try {
-                globalThis.localStorage &&
-                    typeof globalThis.localStorage.clear === "function" &&
+                if (
+                    globalThis.localStorage &&
+                    typeof globalThis.localStorage.clear === "function"
+                ) {
                     globalThis.localStorage.clear();
+                }
             } catch {
                 /* Ignore errors */
             }
             try {
-                globalThis.sessionStorage &&
-                    typeof globalThis.sessionStorage.clear === "function" &&
+                if (
+                    globalThis.sessionStorage &&
+                    typeof globalThis.sessionStorage.clear === "function"
+                ) {
                     globalThis.sessionStorage.clear();
+                }
             } catch {
                 /* Ignore errors */
             }
@@ -717,8 +729,9 @@ function ensureSafeLocalStorage() {
     let needsOverride = false;
     try {
         // Accessor can throw in jsdom for opaque origins
-        // eslint-disable-next-line no-unused-expressions
-        w.localStorage && w.localStorage.length;
+        if (w.localStorage) {
+            void w.localStorage.length;
+        }
     } catch {
         needsOverride = true;
     }
@@ -785,8 +798,9 @@ function ensureSafeSessionStorage() {
     let needsOverride = false;
     try {
         // Accessor can throw in jsdom for opaque origins
-        // eslint-disable-next-line no-unused-expressions
-        w.sessionStorage && w.sessionStorage.length;
+        if (w.sessionStorage) {
+            void w.sessionStorage.length;
+        }
     } catch {
         needsOverride = true;
     }
