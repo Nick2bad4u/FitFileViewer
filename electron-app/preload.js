@@ -127,6 +127,13 @@ const { createPreloadValidators } =
     /** @type {{ createPreloadValidators: (preloadLog: (level: "error" | "info" | "warn", message: string, ...details: unknown[]) => void) => { validateCallback: (callback: unknown, methodName: string) => callback is UnknownCallback; validateChannelName: (value: unknown, paramName: string, methodName: string) => value is string; validateOptionalNonEmptyString: (value: unknown, paramName: string, methodName: string) => value is string | null | undefined; validateRequiredNonEmptyString: (value: unknown, paramName: string, methodName: string) => value is string } }} */ (
         preloadRequire("./preload/validators.js")
     );
+const {
+    isPreloadDevelopmentMode,
+    shouldEnforceGenericIpcAllowlist,
+} =
+    /** @type {{ isPreloadDevelopmentMode: (processRef?: NodeJS.Process) => boolean; shouldEnforceGenericIpcAllowlist: (processRef?: NodeJS.Process) => boolean }} */ (
+        preloadRequire("./preload/environment.js")
+    );
 const ipcBridgeCatalog = /** @type {IpcBridgeCatalog} */ (
     preloadRequire("./preload/ipcBridgeCatalog.js")
 );
@@ -277,48 +284,10 @@ function getPreloadGlobal() {
 }
 
 /**
- * @param {string} name
- *
- * @returns {string | undefined}
- */
-function getProcessEnvValue(name) {
-    if (typeof process === "undefined") {
-        return undefined;
-    }
-
-    const env = Reflect.get(process, "env");
-    if (!isPreloadObjectRecord(env)) {
-        return undefined;
-    }
-
-    const value = Reflect.get(env, name);
-    return typeof value === "string" ? value : undefined;
-}
-
-/**
- * @param {string} name
- *
- * @returns {string | undefined}
- */
-function getProcessVersionValue(name) {
-    if (typeof process === "undefined") {
-        return undefined;
-    }
-
-    const versions = Reflect.get(process, "versions");
-    if (!isPreloadObjectRecord(versions)) {
-        return undefined;
-    }
-
-    const value = Reflect.get(versions, name);
-    return typeof value === "string" ? value : undefined;
-}
-
-/**
  * @returns {boolean}
  */
 function isDevelopmentMode() {
-    return getProcessEnvValue("NODE_ENV") === "development";
+    return isPreloadDevelopmentMode(process);
 }
 
 /**
@@ -493,27 +462,19 @@ function ensureMainStateDispatcher() {
 }
 
 /**
- * True when running inside a real Electron runtime.
+ * Enforce the generic send/invoke allowlist only when we are running in
+ * Electron.
  *
  * Important: Several unit tests execute this preload file via `new
  * Function(...)` with a mocked `process` object. In that context, we should not
  * enforce production-grade IPC restrictions because those tests are not
  * modeling a real Electron renderer threat boundary.
- */
-const IS_ELECTRON_RUNTIME =
-    typeof process !== "undefined" &&
-    getProcessVersionValue("electron") !== undefined;
-
-/**
- * Enforce the generic send/invoke allowlist only when we are running in
- * Electron.
  *
  * Default: ON in Electron. Optional override for developers: set
  * FFV_ALLOW_GENERIC_IPC=true to bypass.
  */
 const SHOULD_ENFORCE_GENERIC_IPC_ALLOWLIST =
-    IS_ELECTRON_RUNTIME &&
-    getProcessEnvValue("FFV_ALLOW_GENERIC_IPC") !== "true";
+    typeof process !== "undefined" && shouldEnforceGenericIpcAllowlist(process);
 
 // Main API object
 /** @type {ElectronAPI} */

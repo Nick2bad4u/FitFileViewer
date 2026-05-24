@@ -8,6 +8,7 @@ const preloadIpcBridgeCatalog = requireFromTest(
 const preloadBeforeExitHandler = requireFromTest(
     "../../preload/beforeExitHandler.js"
 );
+const preloadEnvironment = requireFromTest("../../preload/environment.js");
 const preloadValidators = requireFromTest("../../preload/validators.js");
 
 export function resolvePreloadScriptRequire(
@@ -24,6 +25,10 @@ export function resolvePreloadScriptRequire(
 
     if (moduleName === "./preload/beforeExitHandler.js") {
         return preloadBeforeExitHandler;
+    }
+
+    if (moduleName === "./preload/environment.js") {
+        return preloadEnvironment;
     }
 
     if (moduleName === "./preload/validators.js") {
