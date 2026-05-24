@@ -58,6 +58,16 @@ describe("recentFiles utility", () => {
         writeSpyDefault?.mockRestore?.();
     });
 
+    function getLastWrittenRecentFiles(spy: ReturnType<typeof vi.spyOn>) {
+        const calls = (spy.mock as any).calls as any[][];
+        const [targetPath, payload, encoding] = calls.at(-1) ?? [];
+        return {
+            encoding,
+            entries: JSON.parse(String(payload)) as string[],
+            targetPath: String(targetPath),
+        };
+    }
+
     it("loadRecentFiles returns empty array when file doesn't exist", () => {
         // Setup
         vi.spyOn(cfs, "existsSync").mockReturnValue(false as any);
@@ -110,11 +120,11 @@ describe("recentFiles utility", () => {
         const testData = ["file1.fit", "file2.fit"];
         const spy = vi.spyOn(cfs, "writeFileSync").mockImplementation(() => {});
         recentFiles.saveRecentFiles(testData);
-        expect(spy).toHaveBeenCalledWith(
-            TEST_FILE_PATH,
-            JSON.stringify(testData),
-            "utf8"
-        );
+        expect(getLastWrittenRecentFiles(spy)).toEqual({
+            encoding: "utf8",
+            entries: testData,
+            targetPath: TEST_FILE_PATH,
+        });
     });
 
     it("saveRecentFiles caps list to 10 items", () => {
@@ -125,11 +135,11 @@ describe("recentFiles utility", () => {
         recentFiles.saveRecentFiles(testData);
 
         // Verify only first 10 saved
-        expect(spy).toHaveBeenCalledWith(
-            TEST_FILE_PATH,
-            JSON.stringify(testData.slice(0, 10)),
-            "utf8"
-        );
+        expect(getLastWrittenRecentFiles(spy)).toEqual({
+            encoding: "utf8",
+            entries: testData.slice(0, 10),
+            targetPath: TEST_FILE_PATH,
+        });
     });
 
     it("saveRecentFiles handles write errors", () => {
@@ -139,7 +149,7 @@ describe("recentFiles utility", () => {
         });
 
         // Execute
-        recentFiles.saveRecentFiles(["test.fit"]);
+        expect(() => recentFiles.saveRecentFiles(["test.fit"])).not.toThrow();
 
         // Verify error handled
         expect(console.error).toHaveBeenCalledWith(
@@ -160,15 +170,15 @@ describe("recentFiles utility", () => {
         recentFiles.addRecentFile("newfile.fit");
 
         // Verify: new file at beginning
-        expect(cfs.writeFileSync).toHaveBeenCalledWith(
-            TEST_FILE_PATH,
-            JSON.stringify([
+        expect(getLastWrittenRecentFiles(writeSpyDefault)).toEqual({
+            encoding: "utf8",
+            entries: [
                 "newfile.fit",
                 "file1.fit",
                 "file2.fit",
-            ]),
-            "utf8"
-        );
+            ],
+            targetPath: TEST_FILE_PATH,
+        });
     });
 
     it("addRecentFile moves existing file to beginning", () => {
@@ -187,15 +197,15 @@ describe("recentFiles utility", () => {
         recentFiles.addRecentFile("file2.fit");
 
         // Verify: file moved to beginning
-        expect(cfs.writeFileSync).toHaveBeenCalledWith(
-            TEST_FILE_PATH,
-            JSON.stringify([
+        expect(getLastWrittenRecentFiles(writeSpyDefault)).toEqual({
+            encoding: "utf8",
+            entries: [
                 "file2.fit",
                 "file1.fit",
                 "file3.fit",
-            ]),
-            "utf8"
-        );
+            ],
+            targetPath: TEST_FILE_PATH,
+        });
     });
 
     it("addRecentFile doesn't save if order hasn't changed", () => {
@@ -211,6 +221,7 @@ describe("recentFiles utility", () => {
 
         // Verify: no write occurred
         expect(cfs.writeFileSync).not.toHaveBeenCalled();
+        expect(recentFiles.loadRecentFiles()).toEqual(existingFiles);
     });
 
     it("addRecentFile handles non-array data", () => {
@@ -225,11 +236,11 @@ describe("recentFiles utility", () => {
         expect(console.warn).toHaveBeenCalledWith(
             "Invalid recent files list, resetting to an empty array."
         );
-        expect(cfs.writeFileSync).toHaveBeenCalledWith(
-            TEST_FILE_PATH,
-            JSON.stringify(["newfile.fit"]),
-            "utf8"
-        );
+        expect(getLastWrittenRecentFiles(writeSpyDefault)).toEqual({
+            encoding: "utf8",
+            entries: ["newfile.fit"],
+            targetPath: TEST_FILE_PATH,
+        });
     });
 
     it("getShortRecentName handles empty input", () => {
@@ -283,11 +294,15 @@ describe("recentFiles utility", () => {
         const rf = requireFresh();
         const spy = vi.spyOn(cfs, "writeFileSync").mockImplementation(() => {});
         rf.saveRecentFiles(["a"]);
-        const calledPath = String((spy.mock as any).calls[0][0]).replace(
-            /\\/g,
-            "/"
-        );
-        expect(calledPath).toBe("/mock/userdata/recent-files.json");
+        const saved = getLastWrittenRecentFiles(spy);
+        expect({
+            ...saved,
+            targetPath: saved.targetPath.replace(/\\/g, "/"),
+        }).toEqual({
+            encoding: "utf8",
+            entries: ["a"],
+            targetPath: "/mock/userdata/recent-files.json",
+        });
     });
 
     it("prefers RECENT_FILES_PATH env when set", () => {
@@ -304,7 +319,11 @@ describe("recentFiles utility", () => {
         const rf = requireFresh();
         const spy = vi.spyOn(cfs, "writeFileSync").mockImplementation(() => {});
         rf.saveRecentFiles(["x"]);
-        expect(String((spy.mock as any).calls[0][0])).toBe(TEST_FILE_PATH);
+        expect(getLastWrittenRecentFiles(spy)).toEqual({
+            encoding: "utf8",
+            entries: ["x"],
+            targetPath: TEST_FILE_PATH,
+        });
     });
 
     it("invokes cleanup handler and unlinks temp file when present", () => {
@@ -342,7 +361,8 @@ describe("recentFiles utility", () => {
             (p: any) => String(p) === savedPath
         );
         // Call captured handler
-        exitHandler?.();
+        expect(typeof exitHandler).toBe("function");
+        expect(() => (exitHandler as () => void)()).not.toThrow();
         expect(unlinkSpy).toHaveBeenCalledWith(savedPath);
         procOn.mockRestore();
     });
@@ -366,8 +386,11 @@ describe("recentFiles utility", () => {
         const rf = requireFresh();
         const spy = vi.spyOn(cfs, "writeFileSync").mockImplementation(() => {});
         rf.saveRecentFiles(["a"]);
-        const p = String((spy.mock as any).calls[0][0]).replace(/\\/g, "/");
-        expect(p).toMatch(/fit-file-viewer-tests\/recent-files-/);
+        const saved = getLastWrittenRecentFiles(spy);
+        expect(saved.entries).toEqual(["a"]);
+        expect(saved.targetPath.replace(/\\/g, "/")).toMatch(
+            /fit-file-viewer-tests\/recent-files-/
+        );
     });
 
     it("falls back to TEMP when electron app.getPath unavailable and registers cleanup", () => {
@@ -396,9 +419,14 @@ describe("recentFiles utility", () => {
         const rf = requireFresh();
         const spy = vi.spyOn(cfs, "writeFileSync").mockImplementation(() => {});
         rf.saveRecentFiles(["a"]);
-        expect(spy).toHaveBeenCalled();
+        const saved = getLastWrittenRecentFiles(spy);
+        expect(saved.entries).toEqual(["a"]);
+        expect(saved.targetPath.replace(/\\/g, "/")).toMatch(
+            /fit-file-viewer-tests\/recent-files-/
+        );
         // cleanup handler should unlink file without throwing
-        (process as any).__rf_cleanup__?.();
+        expect(typeof (process as any).__rf_cleanup__).toBe("function");
+        expect(() => (process as any).__rf_cleanup__()).not.toThrow();
         procOn.mockRestore();
     });
 
@@ -421,8 +449,14 @@ describe("recentFiles utility", () => {
         const mkdir = vi.spyOn(cfs, "mkdirSync").mockImplementation(() => {
             throw new Error("mkdir failed");
         });
-        requireFresh();
-        expect(console.error).toHaveBeenCalled();
+        const rf = requireFresh();
+        expect(rf.loadRecentFiles()).toEqual([]);
+        expect(() => rf.saveRecentFiles(["a"])).not.toThrow();
+        expect(writeSpyDefault).not.toHaveBeenCalled();
+        expect(console.error).toHaveBeenCalledWith(
+            "Failed to create temp directory for tests:",
+            expect.any(Error)
+        );
         exists.mockRestore();
         mkdir.mockRestore();
     });
