@@ -8,8 +8,12 @@ type ElevationProfileFileModel = {
     color: string;
     filePath: string;
 };
+type ChartMockImplementation = (
+    context: CanvasRenderingContext2D,
+    config: unknown
+) => void;
 type MockElevationPopupWindow = Window & {
-    Chart: ReturnType<typeof vi.fn>;
+    Chart: ReturnType<typeof vi.fn<ChartMockImplementation>>;
 };
 
 let openSpy: any;
@@ -27,7 +31,7 @@ const getPopupChartContainer = (mockWin: MockElevationPopupWindow) => {
 
 const triggerChartScriptLoad = (mockWin: MockElevationPopupWindow) => {
     const script = mockWin.document.querySelector(
-        'script[src="./node_modules/chart.js/dist/chart.umd.js"]'
+        'script[src="./vendor/chart.umd.js"]'
     );
 
     expect(script).toBeInstanceOf(HTMLScriptElement);
@@ -39,6 +43,7 @@ describe(createElevationProfileButton, () => {
     let originalWindow: any;
     let getContextSpy: ReturnType<typeof vi.spyOn>;
 
+    // eslint-disable-next-line vitest/no-hooks -- Shared DOM/window setup keeps popup state isolated across cases.
     beforeEach(() => {
         // Store original window properties
         originalWindow = { ...window };
@@ -68,13 +73,14 @@ describe(createElevationProfileButton, () => {
                 document.implementation.createHTMLDocument("");
 
             return {
-                Chart: vi.fn(function MockChart() {}),
+                Chart: vi.fn<ChartMockImplementation>(function MockChart() {}),
                 HTMLCanvasElement,
                 document: popupDocument,
             } as MockElevationPopupWindow;
         });
     });
 
+    // eslint-disable-next-line vitest/no-hooks -- Restores mocked browser globals after each popup scenario.
     afterEach(() => {
         vi.restoreAllMocks();
         // Reset window properties
@@ -86,6 +92,8 @@ describe(createElevationProfileButton, () => {
     });
 
     it("should create a button with correct properties", () => {
+        expect.hasAssertions();
+
         // Create the button
         const button = createElevationProfileButton();
 
@@ -98,6 +106,8 @@ describe(createElevationProfileButton, () => {
     });
 
     it("should open a window with no files when clicked and no fit files are loaded", () => {
+        expect.hasAssertions();
+
         // Create the button and click it
         const button = createElevationProfileButton();
         button.click();
@@ -123,6 +133,8 @@ describe(createElevationProfileButton, () => {
     });
 
     it("should handle loadedFitFiles when available", () => {
+        expect.hasAssertions();
+
         // Mock window.loadedFitFiles with test data
         (window as any).loadedFitFiles = [
             {
@@ -157,6 +169,8 @@ describe(createElevationProfileButton, () => {
     });
 
     it("should handle globalData when no loadedFitFiles available", () => {
+        expect.hasAssertions();
+
         // Mock window.globalData with test data
         (window as any).globalData = {
             cachedFilePath: "global-test.fit",
@@ -184,6 +198,8 @@ describe(createElevationProfileButton, () => {
     });
 
     it("should handle globalData without recordMesgs", () => {
+        expect.hasAssertions();
+
         // Mock window.globalData without recordMesgs array
         (window as any).globalData = {
             cachedFilePath: "incomplete-data.fit",
@@ -206,6 +222,8 @@ describe(createElevationProfileButton, () => {
     });
 
     it("should handle popup window being blocked", () => {
+        expect.hasAssertions();
+
         // Make window.open return null to simulate blocked popup
         openSpy.mockReturnValueOnce(null);
 
@@ -221,6 +239,8 @@ describe(createElevationProfileButton, () => {
     });
 
     it("should adapt to dark theme", () => {
+        expect.hasAssertions();
+
         // Set dark theme
         document.body.classList.add("theme-dark");
 
@@ -240,6 +260,8 @@ describe(createElevationProfileButton, () => {
     });
 
     it("should handle files without altitude data", () => {
+        expect.hasAssertions();
+
         // Mock window.loadedFitFiles with a file that has no altitude data
         (window as any).loadedFitFiles = [
             {
@@ -265,6 +287,8 @@ describe(createElevationProfileButton, () => {
     });
 
     it("should use chartOverlayColorPalette from window.opener when available", () => {
+        expect.hasAssertions();
+
         // Mock window.loadedFitFiles with test data
         (window as any).loadedFitFiles = [
             {
@@ -305,6 +329,8 @@ describe(createElevationProfileButton, () => {
     });
 
     it("should handle a mix of files with and without altitude data", () => {
+        expect.hasAssertions();
+
         // Mock window.loadedFitFiles with mix of files with and without altitude data
         (window as any).loadedFitFiles = [
             {
