@@ -13,6 +13,15 @@ const mockIpcMain = {
     removeHandler: vi.fn(),
 };
 
+function installElectronHoistedMock(): void {
+    Reflect.set(globalThis, "__electronHoistedMock", {
+        BrowserWindow: mockBrowserWindow,
+        ipcMain: mockIpcMain,
+    });
+}
+
+installElectronHoistedMock();
+
 // Mock electron module first - this should work for both ES6 imports and CommonJS require
 vi.mock("electron", () => ({
     ipcMain: mockIpcMain,
@@ -66,6 +75,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
         // Reset electron mocks
         mockBrowserWindow.getAllWindows.mockReturnValue([]);
         mockIpcMain.handle.mockClear();
+        installElectronHoistedMock();
 
         // Use the statically imported module
         MainProcessState = MainProcessStateManager.MainProcessState;
