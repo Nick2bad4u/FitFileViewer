@@ -13,8 +13,7 @@ export interface FormatCapitalizeOptions {
  * input is a string, matching the legacy destructuring behavior.
  *
  * @example FormatCapitalize("hello world"); // "Hello world"
- * formatCapitalize("FIT"); // "Fit" formatCapitalize("mcdonald", {
- * lowercaseRest: false }); // "Mcdonald"
+ * formatCapitalize("FIT"); // "Fit"
  *
  * @param value - Value to capitalize when it is a string.
  * @param options - Capitalization options.
