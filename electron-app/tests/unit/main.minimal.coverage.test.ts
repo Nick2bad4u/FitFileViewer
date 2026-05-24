@@ -151,6 +151,19 @@ Module.prototype.require = function (id: string) {
     return originalRequire.apply(this, arguments as any);
 };
 
+async function importMainModule() {
+    const mainModule = await import("../../main.js");
+
+    expect(mainModule.default).toMatchObject({
+        CONSTANTS: expect.any(Object),
+        initializeApplication: expect.any(Function),
+        setupIPCHandlers: expect.any(Function),
+        setupMainLifecycle: expect.any(Function),
+    });
+
+    return mainModule;
+}
+
 describe("main.js - Minimal Coverage Tests", () => {
     beforeEach(() => {
         // Clear mock call history but keep mock implementations
@@ -172,14 +185,14 @@ describe("main.js - Minimal Coverage Tests", () => {
             mockElectron.app.isPackaged = true;
 
             // Import main.js which triggers initialization
-            await import("../../main.js");
+            const mainModule = await importMainModule();
 
             // Verify basic electron module interaction occurred
             expect(mockElectron.app.whenReady).toHaveBeenCalled();
             expect(mockElectron.BrowserWindow.getAllWindows).toHaveBeenCalled();
-
-            // Test that the module loaded without errors (covers most initialization paths)
-            expect(true).toBe(true);
+            expect(mainModule.default.initializeApplication).toBe(
+                mainModule.initializeApplication
+            );
         } finally {
             // Restore original environment
             process.env.NODE_ENV = originalEnv;
@@ -203,9 +216,11 @@ describe("main.js - Minimal Coverage Tests", () => {
             process.env.NODE_ENV = "development";
 
             // Re-import shouldn't cause issues since main.js is already loaded
-            await import("../../main.js");
+            const mainModule = await importMainModule();
 
-            expect(true).toBe(true);
+            expect(mainModule.default.setupApplicationEventHandlers).toBe(
+                mainModule.setupApplicationEventHandlers
+            );
         } finally {
             process.env.NODE_ENV = originalEnv;
         }
@@ -216,9 +231,11 @@ describe("main.js - Minimal Coverage Tests", () => {
         try {
             process.env.NODE_ENV = "production";
 
-            await import("../../main.js");
+            const mainModule = await importMainModule();
 
-            expect(true).toBe(true);
+            expect(mainModule.default.setupAutoUpdater).toBe(
+                mainModule.setupAutoUpdater
+            );
         } finally {
             process.env.NODE_ENV = originalEnv;
         }
@@ -229,9 +246,11 @@ describe("main.js - Minimal Coverage Tests", () => {
         try {
             mockElectron.app.isPackaged = true;
 
-            await import("../../main.js");
+            const mainModule = await importMainModule();
 
-            expect(true).toBe(true);
+            expect(mainModule.default.validateWindow).toBe(
+                mainModule.validateWindow
+            );
         } finally {
             mockElectron.app.isPackaged = originalIsPackaged;
         }
@@ -239,6 +258,19 @@ describe("main.js - Minimal Coverage Tests", () => {
 
     it("should handle module loading without errors", async () => {
         // This test simply ensures all code paths can be loaded
-        await expect(import("../../main.js")).resolves.toBeDefined();
+        const mainModule = await importMainModule();
+
+        expect(Object.keys(mainModule.default).sort()).toEqual(
+            expect.arrayContaining([
+                "CONSTANTS",
+                "getAppState",
+                "initializeApplication",
+                "sendToRenderer",
+                "setAppState",
+                "setupIPCHandlers",
+                "setupMainLifecycle",
+                "validateWindow",
+            ])
+        );
     });
 });
