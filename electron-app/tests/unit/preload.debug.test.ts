@@ -116,5 +116,6 @@ describe("preload.js - Module Cache Injection Test", () => {
 
         // Basic assertion - expect calls to have been made
         expect(callsAfter).toBeGreaterThan(callsBefore);
+        expect(callsAfter).not.toBe(callsBefore);
     });
 });
