@@ -65,6 +65,7 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
         it("should return empty string for null field", () => {
             const result = getUnitSymbol(null as any);
             expect(result).toBe("");
+            expect(result).not.toBe("km");
             expect(mockConsole.warn).toHaveBeenCalledWith(
                 "[UnitSymbol] Invalid field parameter:",
                 null
@@ -124,6 +125,7 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
             it("should return km symbol for distance field with default settings", () => {
                 const result = getUnitSymbol("distance");
                 expect(result).toBe("km");
+                expect(result).not.toBe("m");
             });
 
             it("should return km symbol for altitude field with default settings", () => {
@@ -142,6 +144,7 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
                 mockGetChartSetting.mockReturnValue("meters");
                 const result = getUnitSymbol("distance");
                 expect(result).toBe("m");
+                expect(result).not.toBe("km");
             });
 
             it("should return feet symbol when user prefers feet", () => {
@@ -168,6 +171,7 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
                 mockGetChartSetting.mockReturnValue("lightyears");
                 const result = getUnitSymbol("distance");
                 expect(result).toBe("m"); // fallback to UNIT_SYMBOLS.DISTANCE.meters
+                expect(result).not.toBe("lightyears");
             });
 
             it("should fallback to kilometers symbol for null distance unit", () => {
@@ -183,6 +187,7 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
             it("should return celsius symbol for temperature field with default settings", () => {
                 const result = getUnitSymbol("temperature");
                 expect(result).toBe("°C");
+                expect(result).not.toBe("°F");
             });
         });
 
@@ -191,6 +196,7 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
                 mockGetChartSetting.mockReturnValue("celsius");
                 const result = getUnitSymbol("temperature");
                 expect(result).toBe("°C");
+                expect(result).not.toBe("°F");
             });
 
             it("should return fahrenheit symbol when user prefers fahrenheit", () => {
@@ -205,6 +211,7 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
                 mockGetChartSetting.mockReturnValue("kelvin");
                 const result = getUnitSymbol("temperature");
                 expect(result).toBe("°C");
+                expect(result).not.toBe("K");
             });
 
             it("should fallback to celsius symbol for null temperature unit", () => {
@@ -219,6 +226,7 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
         it("should return km/h for speed field by default", () => {
             const result = getUnitSymbol("speed");
             expect(result).toBe("km/h");
+            expect(result).not.toBe("mph");
         });
 
         it("should return km/h for enhancedSpeed field by default", () => {
@@ -238,6 +246,7 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
             it("should return seconds symbol for time unitType with default settings", () => {
                 const result = getUnitSymbol("anyField", "time");
                 expect(result).toBe("s");
+                expect(result).not.toBe("min");
             });
         });
 
@@ -246,6 +255,7 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
                 mockGetChartSetting.mockReturnValue("seconds");
                 const result = getUnitSymbol("anyField", "time");
                 expect(result).toBe("s");
+                expect(result).not.toBe("h");
             });
 
             it("should return minutes symbol when user prefers minutes", () => {
@@ -266,6 +276,7 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
                 mockGetChartSetting.mockReturnValue("days");
                 const result = getUnitSymbol("anyField", "time");
                 expect(result).toBe("s");
+                expect(result).not.toBe("days");
             });
 
             it("should fallback to seconds symbol for null time unit", () => {
@@ -286,6 +297,7 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
         it("should return bpm for heartRate field", () => {
             const result = getUnitSymbol("heartRate");
             expect(result).toBe("bpm");
+            expect(result).not.toBe("rpm");
         });
 
         it("should return W for power field", () => {
@@ -328,6 +340,7 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
         it("should return empty string for completely unknown field", () => {
             const result = getUnitSymbol("unknownField");
             expect(result).toBe("");
+            expect(result).not.toBe("km");
         });
 
         it("should return empty string for custom field", () => {
@@ -352,6 +365,7 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
         it("should handle settings errors gracefully for distance fields", () => {
             const result = getUnitSymbol("distance");
             expect(result).toBe("km"); // Should fallback to default kilometers
+            expect(result).not.toBe("m");
             expect(mockConsole.warn).toHaveBeenCalledWith(
                 '[UnitSymbol] Error reading setting "distanceUnits":',
                 expect.any(Error)
@@ -387,6 +401,7 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
 
             // Should still return a value (default) because error is in try-catch
             expect(result).toBe("km"); // Still returns default value
+            expect(result).not.toBe("m");
             expect(mockConsole.warn).toHaveBeenCalledWith(
                 '[UnitSymbol] Error reading setting "distanceUnits":',
                 expect.any(Error)
@@ -398,6 +413,7 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
         it("should handle whitespace-only field names", () => {
             const result = getUnitSymbol("   ");
             expect(result).toBe(""); // Whitespace-only field doesn't match any known fields
+            expect(result).not.toBe("km");
             // No console warning expected since it's a valid string, just doesn't match any field types
         });
 
@@ -434,6 +450,7 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
 
             const result = getUnitSymbol("distance");
             expect(result).toBe("mi"); // Should use distance preference
+            expect(result).not.toBe("ft");
         });
 
         it("should correctly handle time context with multiple preference types set", () => {
