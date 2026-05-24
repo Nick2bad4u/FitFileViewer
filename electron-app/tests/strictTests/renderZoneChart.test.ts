@@ -111,6 +111,7 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
             null
         );
         expect(Chart).not.toHaveBeenCalled();
+        expect((globalThis as any)._chartjsInstances).toEqual([]);
     });
 
     it("should warn and exit when zone data is not an array", () => {
@@ -122,6 +123,7 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
             null
         );
         expect(Chart).not.toHaveBeenCalled();
+        expect(container.childElementCount).toBe(0);
     });
 
     it("should render doughnut chart with colors provided in zone data", () => {
@@ -160,7 +162,8 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
             "Time: formatted-120",
             "Percentage: 33.3%",
         ]);
-        expect(container.querySelector("canvas")).not.toBeNull();
+        const renderedCanvas = container.querySelector("canvas");
+        expect(renderedCanvas?.style.borderRadius).toBe("12px");
     });
 
     it("should fallback to computed zone colors and render bar chart when requested", () => {
