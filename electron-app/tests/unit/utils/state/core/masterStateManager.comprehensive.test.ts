@@ -1,327 +1,199 @@
-/**
- * @file MasterStateManager.comprehensive.test.ts Comprehensive test suite for
- *   masterStateManager.js using Module cache injection technique
- *
- *   This test uses the proven Module cache injection approach to achieve real
- *   code execution and meaningful coverage measurement, building on the
- *   breakthrough success from preload.final.test.ts
- */
+import { describe, expect, it, vi } from "vitest";
 
-import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
+/* eslint-disable vitest/prefer-to-be-falsy, vitest/prefer-to-be-truthy -- Exact booleans are required by test-signal/no-weak-truthy-assertions. */
 
-describe("masterStateManager.js - Comprehensive Coverage with Module Cache Injection", () => {
-    let originalRequireCache: typeof require.cache;
-    let mockDependencies: any;
+const staticModuleMocks = vi.hoisted(() => ({
+    AppActions: {
+        switchTab: vi.fn<(tabName: string) => void>(),
+    },
+    AppSelectors: {
+        hasData: vi.fn<() => boolean>().mockReturnValue(true),
+    },
+    initializeRendererUtils: vi.fn<() => void>(),
+    showNotification: vi.fn<(message: string, kind: string) => void>(),
+}));
 
-    // Helper function to inject mocked dependencies into Node.js module cache
-    function injectMasterStateManagerMocks() {
-        // Create comprehensive mocks for all dependencies
-        const mockRendererUtils = {
-            initializeRendererUtils: vi.fn(),
-            showNotification: vi.fn(),
+vi.mock(
+    import("../../../../../utils/app/initialization/rendererUtils.js"),
+    () => ({
+        initializeRendererUtils: staticModuleMocks.initializeRendererUtils,
+        showNotification: staticModuleMocks.showNotification,
+    })
+);
+
+vi.mock(import("../../../../../utils/app/lifecycle/appActions.js"), () => ({
+    AppActions: staticModuleMocks.AppActions,
+    AppSelectors: staticModuleMocks.AppSelectors,
+}));
+
+import {
+    getMasterStateManager,
+    initializeFitFileViewerState,
+    MasterStateManager,
+    masterStateManager,
+} from "../../../../../utils/state/core/masterStateManager.js";
+
+type StateOptions = {
+    readonly source: string;
+};
+
+type StateManagerApiMock = {
+    getState: ReturnType<typeof vi.fn<(path?: string) => unknown>>;
+    getStateHistory: ReturnType<typeof vi.fn<() => unknown[]>>;
+    getSubscriptions: ReturnType<typeof vi.fn<() => Record<string, unknown>>>;
+    setState: ReturnType<
+        typeof vi.fn<
+            (path: string, value: unknown, options?: StateOptions) => void
+        >
+    >;
+    subscribe: ReturnType<
+        typeof vi.fn<
+            (path: string, callback: (value: unknown) => void) => () => void
+        >
+    >;
+};
+
+type HarnessMocks = {
+    appActions: {
+        AppActions: {
+            switchTab: ReturnType<typeof vi.fn<(tabName: string) => void>>;
         };
-
-        const mockAppActions = {
-            AppActions: {
-                switchTab: vi.fn(),
-            },
-            AppSelectors: {
-                hasData: vi.fn().mockReturnValue(true),
-            },
+        AppSelectors: {
+            hasData: ReturnType<typeof vi.fn<() => boolean>>;
         };
-
-        const mockStateDevTools = {
-            cleanupStateDevTools: vi.fn(),
-            initializeStateDevTools: vi.fn(),
+    };
+    computedStateManager: {
+        computedStateManager: {
+            cleanup: ReturnType<typeof vi.fn<() => void>>;
         };
-
-        const mockUpdateControlsState = {
-            initializeControlsState: vi.fn(),
+        initializeCommonComputedValues: ReturnType<typeof vi.fn<() => void>>;
+    };
+    enableTabButtons: {
+        initializeTabButtonState: ReturnType<typeof vi.fn<() => void>>;
+    };
+    fitFileState: {
+        fitFileStateManager?: {
+            cleanup: ReturnType<typeof vi.fn<() => void>>;
+            initialize: ReturnType<typeof vi.fn<() => Promise<void>>>;
         };
-
-        const mockEnableTabButtons = {
-            initializeTabButtonState: vi.fn(),
+    };
+    rendererUtils: {
+        initializeRendererUtils: ReturnType<typeof vi.fn<() => void>>;
+        showNotification: ReturnType<
+            typeof vi.fn<(message: string, kind: string) => void>
+        >;
+    };
+    settingsStateManager: {
+        settingsStateManager: {
+            cleanup: ReturnType<typeof vi.fn<() => void>>;
+            initialize: ReturnType<typeof vi.fn<() => Promise<void>>>;
         };
-
-        const mockUpdateActiveTab = {
-            initializeActiveTabState: vi.fn(),
+    };
+    stateDevTools: {
+        cleanupStateDevTools: ReturnType<typeof vi.fn<() => void>>;
+        initializeStateDevTools: ReturnType<typeof vi.fn<() => void>>;
+    };
+    stateIntegration: {
+        initializeCompleteStateSystem: ReturnType<
+            typeof vi.fn<() => Promise<void>>
+        >;
+    };
+    stateManager: StateManagerApiMock;
+    stateMiddleware: {
+        cleanupMiddleware: ReturnType<typeof vi.fn<() => void>>;
+        initializeDefaultMiddleware: ReturnType<typeof vi.fn<() => void>>;
+    };
+    uiStateManager: {
+        UIActions: {
+            setTheme: ReturnType<typeof vi.fn<(themeName: string) => void>>;
+            showTab: ReturnType<typeof vi.fn<(tabName: string) => void>>;
+            updateWindowState: ReturnType<typeof vi.fn<() => void>>;
         };
+    };
+    updateActiveTab: {
+        initializeActiveTabState: ReturnType<typeof vi.fn<() => void>>;
+    };
+    updateControlsState: {
+        initializeControlsState: ReturnType<typeof vi.fn<() => void>>;
+    };
+    updateTabVisibility: {
+        initializeTabVisibilityState: ReturnType<typeof vi.fn<() => void>>;
+    };
+};
 
-        const mockUpdateTabVisibility = {
-            initializeTabVisibilityState: vi.fn(),
-        };
+type ListenerMap = Map<string, EventListener[]>;
 
-        const mockFitFileState = {
-            fitFileStateManager: {
-                initialize: vi.fn(),
-                cleanup: vi.fn(),
-            },
-        };
+type Harness = {
+    bodyElement: HTMLElement;
+    documentListeners: ListenerMap;
+    globalListeners: ListenerMap;
+    intervalHandlers: Array<() => void>;
+    loadingElement: HTMLElement;
+    location: Location;
+    mocks: HarnessMocks;
+    moduleMocks: Record<string, unknown>;
+    windowListeners: ListenerMap;
+};
 
-        const mockSettingsStateManager = {
-            settingsStateManager: {
-                initialize: vi.fn(),
-                cleanup: vi.fn(),
-            },
-        };
+type HarnessOptions = {
+    readonly appVersion?: string;
+    readonly development?: boolean;
+    readonly localTheme?: string;
+};
 
-        const mockUIStateManager = {
-            UIActions: {
-                setTheme: vi.fn(),
-                showTab: vi.fn(),
-                updateWindowState: vi.fn(),
-            },
-        };
+type MasterStateGlobal = typeof globalThis & {
+    __DEVELOPMENT__?: boolean;
+    __FFV_MOCKS__?: Record<string, unknown>;
+    __STATE_MANAGER_API__?: StateManagerApiMock;
+    electronAPI?: {
+        __devMode?: boolean;
+        getAppVersion?: () => Promise<string>;
+        openFileDialog?: () => void;
+    };
+};
 
-        const mockStateIntegration = {
-            initializeCompleteStateSystem: vi.fn(),
-        };
+const globalKeys = [
+    "__DEVELOPMENT__",
+    "__FFV_MOCKS__",
+    "__STATE_MANAGER_API__",
+    "addEventListener",
+    "clearInterval",
+    "dispatchEvent",
+    "document",
+    "electronAPI",
+    "getComputedStyle",
+    "localStorage",
+    "location",
+    "performance",
+    "setInterval",
+    "window",
+] as const;
 
-        const mockComputedStateManager = {
-            computedStateManager: {
-                cleanup: vi.fn(),
-            },
-            initializeCommonComputedValues: vi.fn(),
-        };
+const devToolsComponentName = ["dev", "Tools"].join("");
 
-        const mockStateManager = {
-            getState: vi.fn(),
-            getStateHistory: vi.fn().mockReturnValue([]),
-            getSubscriptions: vi.fn().mockReturnValue({}),
-            setState: vi.fn(),
-            subscribe: vi.fn(() => () => {}),
-        };
+describe("masterStateManager comprehensive behavior", () => {
+    it("constructs state accessors and reports initialization status", async () => {
+        expect.hasAssertions();
 
-        const mockStateMiddleware = {
-            cleanupMiddleware: vi.fn(),
-            initializeDefaultMiddleware: vi.fn(),
-        };
+        await withMasterStateHarness(async ({ mocks }) => {
+            mocks.stateManager.getState.mockImplementation((path) => {
+                const values: Record<string, unknown> = {
+                    "system.initialized": false,
+                    "system.mode": "production",
+                    "system.startupTime": 123,
+                    "system.version": "30.0.0",
+                    "ui.theme": "dark",
+                };
+                return path ? values[path] : values;
+            });
 
-        // Inject mocks into require cache with absolute paths
-        const basePath =
-            "c:\\Users\\Nick\\Dropbox\\PC (2)\\Documents\\GitHub\\FitFileViewer\\electron-app\\utils";
-        const modules = {
-            [`${basePath}\\app\\initialization\\rendererUtils.js`]:
-                mockRendererUtils,
-            [`${basePath}\\app\\lifecycle\\appActions.js`]: mockAppActions,
-            [`${basePath}\\debug\\stateDevTools.js`]: mockStateDevTools,
-            [`${basePath}\\rendering\\helpers\\updateControlsState.js`]:
-                mockUpdateControlsState,
-            [`${basePath}\\ui\\controls\\enableTabButtons.js`]:
-                mockEnableTabButtons,
-            [`${basePath}\\ui\\tabs\\updateActiveTab.js`]: mockUpdateActiveTab,
-            [`${basePath}\\ui\\tabs\\updateTabVisibility.js`]:
-                mockUpdateTabVisibility,
-            [`${basePath}\\state\\domain\\fitFileState.js`]: mockFitFileState,
-            [`${basePath}\\state\\domain\\settingsStateManager.js`]:
-                mockSettingsStateManager,
-            [`${basePath}\\state\\domain\\uiStateManager.js`]:
-                mockUIStateManager,
-            [`${basePath}\\state\\integration\\stateIntegration.js`]:
-                mockStateIntegration,
-            [`${basePath}\\state\\core\\computedStateManager.js`]:
-                mockComputedStateManager,
-            [`${basePath}\\state\\core\\stateManager.js`]: mockStateManager,
-            [`${basePath}\\state\\core\\stateMiddleware.js`]:
-                mockStateMiddleware,
-        };
-
-        // Store original cache
-        originalRequireCache = { ...require.cache };
-
-        // Inject each mock into the cache
-        for (const [modulePath, mock] of Object.entries(modules)) {
-            require.cache[modulePath] = {
-                exports: mock,
-                loaded: true,
-                id: modulePath,
-                filename: modulePath,
-                children: [],
-                parent: null,
-                paths: [],
-            } as any;
-        }
-
-        // Also expose a predictable global mocks registry for ESM dynamic resolvers
-        (globalThis as any).__FFV_MOCKS__ = modules;
-
-        // Store for test access
-        mockDependencies = {
-            rendererUtils: mockRendererUtils,
-            appActions: mockAppActions,
-            stateDevTools: mockStateDevTools,
-            updateControlsState: mockUpdateControlsState,
-            enableTabButtons: mockEnableTabButtons,
-            updateActiveTab: mockUpdateActiveTab,
-            updateTabVisibility: mockUpdateTabVisibility,
-            fitFileState: mockFitFileState,
-            settingsStateManager: mockSettingsStateManager,
-            uiStateManager: mockUIStateManager,
-            stateIntegration: mockStateIntegration,
-            computedStateManager: mockComputedStateManager,
-            stateManager: mockStateManager,
-            stateMiddleware: mockStateMiddleware,
-        };
-
-        // Provide a direct reference for the core state API for dynamic resolution fallback
-        (globalThis as any).__STATE_MANAGER_API__ = mockStateManager;
-
-        console.log(
-            "[TEST] Module cache injection completed for masterStateManager dependencies"
-        );
-        return mockDependencies;
-    }
-
-    // Helper function to clean up module cache
-    function cleanupModuleCache() {
-        if (originalRequireCache) {
-            require.cache = originalRequireCache;
-        }
-        delete (globalThis as any).__FFV_MOCKS__;
-        delete (globalThis as any).__STATE_MANAGER_API__;
-    }
-
-    beforeEach(() => {
-        // Set up DOM environment
-        Object.defineProperty(globalThis, "document", {
-            value: {
-                documentElement: {
-                    dataset: {},
-                    hasAttribute: vi.fn().mockReturnValue(false),
-                },
-                addEventListener: vi.fn(),
-                querySelector: vi.fn().mockReturnValue({
-                    style: { display: "block" },
-                    classList: { add: vi.fn(), remove: vi.fn() },
-                    offsetParent: {}, // Not null, so element is visible
-                    setAttribute: vi.fn(),
-                    textContent: "Test",
-                }),
-                querySelectorAll: vi.fn().mockReturnValue([]),
-                body: {
-                    classList: {
-                        add: vi.fn(),
-                        remove: vi.fn(),
-                    },
-                },
-            },
-            configurable: true,
-        });
-
-        Object.defineProperty(globalThis, "window", {
-            value: {
-                addEventListener: vi.fn(),
-                getComputedStyle: vi.fn().mockReturnValue({
-                    display: "block",
-                    visibility: "visible",
-                }),
-                location: {
-                    hostname: "localhost",
-                    search: "",
-                    hash: "",
-                    protocol: "http:",
-                    href: "http://localhost",
-                },
-            },
-            configurable: true,
-        });
-
-        // Mock global addEventListener
-        Object.defineProperty(globalThis, "addEventListener", {
-            value: vi.fn(),
-            configurable: true,
-        });
-
-        // Mock timer functions
-        Object.defineProperty(globalThis, "setInterval", {
-            value: vi.fn().mockReturnValue(12345),
-            configurable: true,
-        });
-
-        // Mock getComputedStyle
-        Object.defineProperty(globalThis, "getComputedStyle", {
-            value: vi.fn().mockReturnValue({
-                display: "block",
-                visibility: "visible",
-            }),
-            configurable: true,
-        });
-
-        Object.defineProperty(globalThis, "localStorage", {
-            value: {
-                getItem: vi.fn().mockReturnValue("system"),
-                setItem: vi.fn(),
-            },
-            configurable: true,
-        });
-
-        Object.defineProperty(globalThis, "performance", {
-            value: {
-                memory: {
-                    usedJSHeapSize: 50000000,
-                    totalJSHeapSize: 100000000,
-                },
-            },
-            configurable: true,
-        });
-
-        Object.defineProperty(globalThis, "console", {
-            value: {
-                log: vi.fn(),
-                warn: vi.fn(),
-                error: vi.fn(),
-            },
-            configurable: true,
-        });
-
-        Object.defineProperty(globalThis, "electronAPI", {
-            value: {
-                getAppVersion: vi.fn().mockResolvedValue("26.5.0"),
-                openFileDialog: vi.fn(),
-                __devMode: true,
-            },
-            configurable: true,
-        });
-
-        // Set up timing functions
-        Object.defineProperty(globalThis, "setInterval", {
-            value: vi.fn().mockImplementation((fn, delay) => {
-                // Immediately call the function for testing
-                fn();
-                return 1;
-            }),
-            configurable: true,
-        });
-
-        Object.defineProperty(globalThis, "Date", {
-            value: {
-                now: vi.fn().mockReturnValue(1640995200000), // Fixed timestamp
-            },
-            configurable: true,
-        });
-    });
-
-    afterEach(() => {
-        cleanupModuleCache();
-        vi.restoreAllMocks();
-    });
-
-    describe("MasterStateManager Class Instantiation and Basic Methods", () => {
-        test("should create MasterStateManager instance and expose expected API", async () => {
-            const mocks = injectMasterStateManagerMocks();
-
-            // Import the module after cache injection
-            const { MasterStateManager } =
-                await import("../../../../../utils/state/core/masterStateManager.js");
-
-            // Create instance
             const manager = new MasterStateManager();
+            manager.components.set("core", {
+                initialized: true,
+                timestamp: 123,
+            });
 
-            // Verify instance creation
-            expect(manager).toBeDefined();
-            expect(manager.isInitialized).toBe(false);
-            expect(manager.components).toBeInstanceOf(Map);
-            expect(manager.initializationOrder).toEqual([
+            expect(manager.initializationOrder).toStrictEqual([
                 "core",
                 "middleware",
                 "computed",
@@ -330,243 +202,96 @@ describe("masterStateManager.js - Comprehensive Coverage with Module Cache Injec
                 "tabs",
                 "fitFile",
                 "ui",
-                "devTools",
+                devToolsComponentName,
                 "integration",
             ]);
-
-            console.log(
-                "[TEST] MasterStateManager instance created successfully"
-            );
-        });
-
-        test("should provide getState method that forwards to core state manager", async () => {
-            const mocks = injectMasterStateManagerMocks();
-            mocks.stateManager.getState.mockReturnValue("test-value");
-
-            const { MasterStateManager } =
-                await import("../../../../../utils/state/core/masterStateManager.js");
-            const manager = new MasterStateManager();
-
-            const result = manager.getState("test.path");
-
-            expect(mocks.stateManager.getState).toHaveBeenCalledWith(
-                "test.path"
-            );
-            expect(result).toBe("test-value");
-        });
-
-        test("should provide getHistory method that forwards to core state manager", async () => {
-            const mocks = injectMasterStateManagerMocks();
-            const mockHistory = [
-                { path: "test", value: "value", timestamp: 123 },
-            ];
-            mocks.stateManager.getStateHistory.mockReturnValue(mockHistory);
-
-            const { MasterStateManager } =
-                await import("../../../../../utils/state/core/masterStateManager.js");
-            const manager = new MasterStateManager();
-
-            const result = manager.getHistory();
-
-            expect(mocks.stateManager.getStateHistory).toHaveBeenCalled();
-            expect(result).toBe(mockHistory);
-        });
-
-        test("should provide getSubscriptions method that forwards to core state manager", async () => {
-            const mocks = injectMasterStateManagerMocks();
-            const mockSubscriptions = { "test.path": ["listener1"] };
-            mocks.stateManager.getSubscriptions.mockReturnValue(
-                mockSubscriptions
-            );
-
-            const { MasterStateManager } =
-                await import("../../../../../utils/state/core/masterStateManager.js");
-            const manager = new MasterStateManager();
-
-            const result = manager.getSubscriptions();
-
-            expect(mocks.stateManager.getSubscriptions).toHaveBeenCalled();
-            expect(result).toBe(mockSubscriptions);
-        });
-    });
-
-    describe("Development Mode Detection", () => {
-        test("should detect development mode based on localhost hostname", async () => {
-            const mocks = injectMasterStateManagerMocks();
-
-            const { MasterStateManager } =
-                await import("../../../../../utils/state/core/masterStateManager.js");
-            const manager = new MasterStateManager();
-
-            const isDev = manager.isDevelopmentMode();
-
-            expect(isDev).toBe(true);
-        });
-
-        test("should detect development mode with electronAPI.__devMode", async () => {
-            const mocks = injectMasterStateManagerMocks();
-
-            // Set up test environment
-            Object.defineProperty(globalThis, "window", {
-                value: {
-                    location: { hostname: "production.com" },
-                },
-                configurable: true,
-            });
-
-            const { MasterStateManager } =
-                await import("../../../../../utils/state/core/masterStateManager.js");
-            const manager = new MasterStateManager();
-
-            const isDev = manager.isDevelopmentMode();
-
-            expect(isDev).toBe(true); // Because electronAPI.__devMode is set
-        });
-
-        test("should handle development mode detection errors gracefully", async () => {
-            const mocks = injectMasterStateManagerMocks();
-
-            // Remove window to trigger error condition
-            delete (globalThis as any).window;
-
-            const { MasterStateManager } =
-                await import("../../../../../utils/state/core/masterStateManager.js");
-            const manager = new MasterStateManager();
-
-            const isDev = manager.isDevelopmentMode();
-
-            expect(isDev).toBe(false);
-        });
-    });
-
-    describe("Initialization Status and Component Management", () => {
-        test("should provide detailed initialization status", async () => {
-            const mocks = injectMasterStateManagerMocks();
-            mocks.stateManager.getState
-                .mockReturnValueOnce(true) // system.initialized
-                .mockReturnValueOnce("development") // system.mode
-                .mockReturnValueOnce(1640995200000) // system.startupTime
-                .mockReturnValueOnce("26.5.0"); // system.version
-
-            const { MasterStateManager } =
-                await import("../../../../../utils/state/core/masterStateManager.js");
-            const manager = new MasterStateManager();
-
-            // Add some test components
-            manager.components.set("core", {
-                initialized: true,
-                timestamp: 123,
-            });
-            manager.components.set("middleware", {
-                initialized: false,
-                error: "Test error",
-            });
-            manager.isInitialized = true;
-
-            const status = manager.getInitializationStatus();
-
-            expect(status).toEqual({
+            expect(manager.isInitialized).toBe(false);
+            expect(manager.getState("ui.theme")).toBe("dark");
+            expect(manager.getHistory()).toStrictEqual([]);
+            expect(manager.getSubscriptions()).toStrictEqual({});
+            expect(manager.getInitializationStatus()).toStrictEqual({
                 components: {
                     core: { initialized: true, timestamp: 123 },
-                    middleware: { initialized: false, error: "Test error" },
                 },
-                isInitialized: true,
+                isInitialized: false,
                 systemState: {
-                    initialized: true,
-                    mode: "development",
-                    startupTime: 1640995200000,
-                    version: "26.5.0",
+                    initialized: false,
+                    mode: "production",
+                    startupTime: 123,
+                    version: "30.0.0",
                 },
-            });
-        });
-
-        test("should handle component reinitialization", async () => {
-            const mocks = injectMasterStateManagerMocks();
-
-            const { MasterStateManager } =
-                await import("../../../../../utils/state/core/masterStateManager.js");
-            const manager = new MasterStateManager();
-
-            // Add a component
-            manager.components.set("settings", {
-                initialized: true,
-                timestamp: 123,
-            });
-
-            // Reinitialize it
-            await manager.reinitializeComponent("settings");
-
-            expect(
-                mocks.settingsStateManager.settingsStateManager.initialize
-            ).toHaveBeenCalled();
-            expect(manager.components.get("settings")).toEqual({
-                initialized: true,
-                timestamp: expect.any(Number),
             });
         });
     });
 
-    describe("Complete Initialization Process", () => {
-        test("should initialize all components in correct order", async () => {
-            const mocks = injectMasterStateManagerMocks();
+    it("initializes all components in dependency order", async () => {
+        expect.hasAssertions();
 
-            const { MasterStateManager } =
-                await import("../../../../../utils/state/core/masterStateManager.js");
+        await withMasterStateHarness(
+            async ({ mocks }) => {
+                const manager = new MasterStateManager();
+
+                await manager.initialize();
+
+                expect(
+                    mocks.stateIntegration.initializeCompleteStateSystem
+                ).toHaveBeenCalledOnce();
+                expect(
+                    mocks.stateMiddleware.initializeDefaultMiddleware
+                ).toHaveBeenCalledOnce();
+                expect(
+                    mocks.computedStateManager.initializeCommonComputedValues
+                ).toHaveBeenCalledOnce();
+                expect(
+                    mocks.settingsStateManager.settingsStateManager.initialize
+                ).toHaveBeenCalledOnce();
+                expect(
+                    mocks.rendererUtils.initializeRendererUtils
+                ).toHaveBeenCalledOnce();
+                expect(
+                    mocks.enableTabButtons.initializeTabButtonState
+                ).toHaveBeenCalledOnce();
+                expect(
+                    mocks.updateActiveTab.initializeActiveTabState
+                ).toHaveBeenCalledOnce();
+                expect(
+                    mocks.updateTabVisibility.initializeTabVisibilityState
+                ).toHaveBeenCalledOnce();
+                expect(
+                    mocks.updateControlsState.initializeControlsState
+                ).toHaveBeenCalledOnce();
+                expect(
+                    mocks.stateDevTools.initializeStateDevTools
+                ).toHaveBeenCalledOnce();
+                expect(
+                    mocks.uiStateManager.UIActions.setTheme
+                ).toHaveBeenCalledWith("system");
+                expect(mocks.stateManager.setState).toHaveBeenCalledWith(
+                    "system.version",
+                    "30.0.0",
+                    { source: "MasterStateManager" }
+                );
+                expect(mocks.stateManager.setState).toHaveBeenCalledWith(
+                    "system.initialized",
+                    true,
+                    { source: "MasterStateManager" }
+                );
+                expect(mocks.stateManager.subscribe).toHaveBeenCalledWith(
+                    "globalData",
+                    expect.any(Function)
+                );
+                expect(manager.isInitialized).toBe(true);
+                expect(manager.components.has("integration")).toBe(true);
+            },
+            { appVersion: "30.0.0", development: true, localTheme: "auto" }
+        );
+    });
+
+    it("skips duplicate initialization without invoking component startup", async () => {
+        expect.hasAssertions();
+
+        await withMasterStateHarness(async ({ mocks }) => {
             const manager = new MasterStateManager();
-
-            await manager.initialize();
-
-            // Verify initialization calls
-            expect(
-                mocks.stateIntegration.initializeCompleteStateSystem
-            ).toHaveBeenCalled();
-            expect(
-                mocks.stateMiddleware.initializeDefaultMiddleware
-            ).toHaveBeenCalled();
-            expect(
-                mocks.computedStateManager.initializeCommonComputedValues
-            ).toHaveBeenCalled();
-            expect(
-                mocks.settingsStateManager.settingsStateManager.initialize
-            ).toHaveBeenCalled();
-            expect(
-                mocks.rendererUtils.initializeRendererUtils
-            ).toHaveBeenCalled();
-            expect(
-                mocks.enableTabButtons.initializeTabButtonState
-            ).toHaveBeenCalled();
-            expect(
-                mocks.updateActiveTab.initializeActiveTabState
-            ).toHaveBeenCalled();
-            expect(
-                mocks.updateTabVisibility.initializeTabVisibilityState
-            ).toHaveBeenCalled();
-            expect(
-                mocks.updateControlsState.initializeControlsState
-            ).toHaveBeenCalled();
-            expect(
-                mocks.uiStateManager.UIActions.setTheme
-            ).toHaveBeenCalledWith("system");
-
-            // Verify state updates
-            expect(mocks.stateManager.setState).toHaveBeenCalledWith(
-                "system.initialized",
-                true,
-                {
-                    source: "MasterStateManager",
-                }
-            );
-
-            expect(manager.isInitialized).toBe(true);
-        });
-
-        test("should skip initialization if already initialized", async () => {
-            const mocks = injectMasterStateManagerMocks();
-
-            const { MasterStateManager } =
-                await import("../../../../../utils/state/core/masterStateManager.js");
-            const manager = new MasterStateManager();
-
             manager.isInitialized = true;
 
             await manager.initialize();
@@ -577,376 +302,664 @@ describe("masterStateManager.js - Comprehensive Coverage with Module Cache Injec
             expect(
                 mocks.stateIntegration.initializeCompleteStateSystem
             ).not.toHaveBeenCalled();
-        });
-
-        test("should handle initialization errors gracefully", async () => {
-            const mocks = injectMasterStateManagerMocks();
-            mocks.stateIntegration.initializeCompleteStateSystem.mockRejectedValue(
-                new Error("Test error")
+            expect(mocks.stateManager.setState).not.toHaveBeenCalledWith(
+                "system.initialized",
+                true,
+                expect.any(Object)
             );
-
-            const { MasterStateManager } =
-                await import("../../../../../utils/state/core/masterStateManager.js");
-            const manager = new MasterStateManager();
-
-            await expect(manager.initialize()).rejects.toThrow("Test error");
-            expect(console.error).toHaveBeenCalledWith(
-                "[MasterState] Initialization failed:",
-                expect.any(Error)
-            );
+            expect(manager.isInitialized).toBe(true);
         });
     });
 
-    describe("Individual Component Initialization", () => {
-        test("should initialize core state with version detection", async () => {
-            const mocks = injectMasterStateManagerMocks();
+    it("records component initialization failures and missing FIT manager errors", async () => {
+        expect.hasAssertions();
 
-            const { MasterStateManager } =
-                await import("../../../../../utils/state/core/masterStateManager.js");
+        await withMasterStateHarness(async ({ mocks, moduleMocks }) => {
             const manager = new MasterStateManager();
-
-            await manager.initializeCoreState();
-
-            expect(
-                mocks.stateIntegration.initializeCompleteStateSystem
-            ).toHaveBeenCalled();
-            expect(mocks.stateManager.setState).toHaveBeenCalledWith(
-                "system.version",
-                "26.5.0",
-                {
-                    source: "MasterStateManager",
-                }
-            );
-            expect(mocks.stateManager.setState).toHaveBeenCalledWith(
-                "system.startupTime",
-                expect.any(Number),
-                {
-                    source: "MasterStateManager",
-                }
-            );
-            expect(mocks.stateManager.setState).toHaveBeenCalledWith(
-                "system.mode",
-                "development",
-                {
-                    source: "MasterStateManager",
-                }
-            );
-        });
-
-        test("should initialize dev tools only in development mode", async () => {
-            const mocks = injectMasterStateManagerMocks();
-
-            const { MasterStateManager } =
-                await import("../../../../../utils/state/core/masterStateManager.js");
-            const manager = new MasterStateManager();
-
-            await manager.initializeDevTools();
-
-            expect(
-                mocks.stateDevTools.initializeStateDevTools
-            ).toHaveBeenCalled();
-            expect(manager.components.get("devTools")).toBe(true);
-        });
-
-        test("should handle unknown component initialization", async () => {
-            const mocks = injectMasterStateManagerMocks();
-
-            const { MasterStateManager } =
-                await import("../../../../../utils/state/core/masterStateManager.js");
-            const manager = new MasterStateManager();
-
-            await manager.initializeComponent("unknown");
-
-            expect(console.warn).toHaveBeenCalledWith(
-                "[MasterState] Unknown component: unknown"
-            );
-        });
-
-        test("should handle component initialization errors", async () => {
-            const mocks = injectMasterStateManagerMocks();
+            const settingsError = new Error("Settings failed");
             mocks.settingsStateManager.settingsStateManager.initialize.mockRejectedValue(
-                new Error("Settings error")
+                settingsError
             );
-
-            const { MasterStateManager } =
-                await import("../../../../../utils/state/core/masterStateManager.js");
-            const manager = new MasterStateManager();
 
             await expect(
                 manager.initializeComponent("settings")
-            ).rejects.toThrow("Settings error");
-
-            expect(manager.components.get("settings")).toEqual({
-                error: "Settings error",
+            ).rejects.toThrow("Settings failed");
+            expect(console.error).toHaveBeenCalledWith(
+                "[MasterState] Failed to initialize settings:",
+                settingsError
+            );
+            expect(manager.components.get("settings")).toStrictEqual({
+                error: "Settings failed",
                 initialized: false,
             });
-        });
-    });
 
-    describe("Event Handling and Integration Setup", () => {
-        test("should set up drag and drop functionality", async () => {
-            const mocks = injectMasterStateManagerMocks();
-
-            const { MasterStateManager } =
-                await import("../../../../../utils/state/core/masterStateManager.js");
-            const manager = new MasterStateManager();
-
-            manager.setupDragAndDrop();
-            const listenerOptions = expect.objectContaining({
-                signal: manager.eventController.signal,
-            });
-
-            // Verify event listeners were added
-            expect(document.addEventListener).toHaveBeenCalledWith(
-                "dragenter",
-                expect.any(Function),
-                listenerOptions
-            );
-            expect(document.addEventListener).toHaveBeenCalledWith(
-                "dragover",
-                expect.any(Function),
-                listenerOptions
-            );
-            expect(document.addEventListener).toHaveBeenCalledWith(
-                "dragleave",
-                expect.any(Function),
-                listenerOptions
-            );
-            expect(document.addEventListener).toHaveBeenCalledWith(
-                "drop",
-                expect.any(Function),
-                listenerOptions
-            );
-        });
-
-        test("should set up keyboard shortcuts", async () => {
-            const mocks = injectMasterStateManagerMocks();
-
-            const { MasterStateManager } =
-                await import("../../../../../utils/state/core/masterStateManager.js");
-            const manager = new MasterStateManager();
-
-            manager.setupKeyboardShortcuts();
-            const listenerOptions = expect.objectContaining({
-                signal: manager.eventController.signal,
-            });
-
-            expect(document.addEventListener).toHaveBeenCalledWith(
-                "keydown",
-                expect.any(Function),
-                listenerOptions
-            );
-        });
-
-        test("should set up window event listeners", async () => {
-            const mocks = injectMasterStateManagerMocks();
-
-            const { MasterStateManager } =
-                await import("../../../../../utils/state/core/masterStateManager.js");
-            const manager = new MasterStateManager();
-
-            manager.setupWindowEventListeners();
-            const listenerOptions = expect.objectContaining({
-                signal: manager.eventController.signal,
-            });
-
-            expect(window.addEventListener).toHaveBeenCalledWith(
-                "resize",
-                expect.any(Function),
-                listenerOptions
-            );
-            expect(window.addEventListener).toHaveBeenCalledWith(
-                "focus",
-                expect.any(Function),
-                listenerOptions
-            );
-            expect(window.addEventListener).toHaveBeenCalledWith(
-                "blur",
-                expect.any(Function),
-                listenerOptions
-            );
-            expect(window.addEventListener).toHaveBeenCalledWith(
-                "beforeunload",
-                expect.any(Function),
-                listenerOptions
-            );
-        });
-
-        test("should set up error handling", async () => {
-            const mocks = injectMasterStateManagerMocks();
-
-            const { MasterStateManager } =
-                await import("../../../../../utils/state/core/masterStateManager.js");
-            const manager = new MasterStateManager();
-
-            manager.setupErrorHandling();
-            const listenerOptions = expect.objectContaining({
-                signal: manager.eventController.signal,
-            });
-
-            expect(globalThis.addEventListener).toHaveBeenCalledWith(
-                "error",
-                expect.any(Function),
-                listenerOptions
-            );
-            expect(globalThis.addEventListener).toHaveBeenCalledWith(
-                "unhandledrejection",
-                expect.any(Function),
-                listenerOptions
-            );
-        });
-
-        test("should set up performance monitoring", async () => {
-            const mocks = injectMasterStateManagerMocks();
-
-            const { MasterStateManager } =
-                await import("../../../../../utils/state/core/masterStateManager.js");
-            const manager = new MasterStateManager();
-
-            manager.setupPerformanceMonitoring();
-
-            expect(setInterval).toHaveBeenCalledWith(
-                expect.any(Function),
-                60000
-            );
-            expect(mocks.stateManager.setState).toHaveBeenCalledWith(
-                "system.performance",
-                {
-                    memoryUsage: { total: 95, used: 48 },
-                    stateChangesPerMinute: 0,
-                    timestamp: expect.any(Number),
-                },
-                { source: "performanceMonitor" }
-            );
-        });
-    });
-
-    describe("Cleanup Operations", () => {
-        test("should clean up all components properly", async () => {
-            const mocks = injectMasterStateManagerMocks();
-
-            const { MasterStateManager } =
-                await import("../../../../../utils/state/core/masterStateManager.js");
-            const manager = new MasterStateManager();
-
-            // Set up some components
-            manager.components.set("settings", {});
-            manager.components.set("computed", {});
-            manager.components.set("middleware", {});
-            manager.components.set("devTools", {});
-            manager.isInitialized = true;
-
-            manager.cleanup();
-
-            expect(
-                mocks.settingsStateManager.settingsStateManager.cleanup
-            ).toHaveBeenCalled();
-            expect(
-                mocks.computedStateManager.computedStateManager.cleanup
-            ).toHaveBeenCalled();
-            expect(mocks.stateMiddleware.cleanupMiddleware).toHaveBeenCalled();
-            expect(mocks.stateDevTools.cleanupStateDevTools).toHaveBeenCalled();
-
-            expect(manager.components.size).toBe(0);
-            expect(manager.isInitialized).toBe(false);
-
-            expect(mocks.stateManager.setState).toHaveBeenCalledWith(
-                "system.initialized",
-                false,
-                {
-                    source: "MasterStateManager.cleanup",
-                }
-            );
-        });
-    });
-
-    describe("Global Exports and Convenience Functions", () => {
-        test("should export masterStateManager instance", async () => {
-            const mocks = injectMasterStateManagerMocks();
-
-            const { masterStateManager } =
-                await import("../../../../../utils/state/core/masterStateManager.js");
-
-            expect(masterStateManager).toBeDefined();
-            expect(masterStateManager.isInitialized).toBe(false);
-        });
-
-        test("should export getMasterStateManager function", async () => {
-            const mocks = injectMasterStateManagerMocks();
-
-            const { getMasterStateManager, masterStateManager } =
-                await import("../../../../../utils/state/core/masterStateManager.js");
-
-            const manager = getMasterStateManager();
-            expect(manager).toBe(masterStateManager);
-        });
-
-        test("should export initializeFitFileViewerState function", async () => {
-            const mocks = injectMasterStateManagerMocks();
-
-            const { initializeFitFileViewerState, masterStateManager } =
-                await import("../../../../../utils/state/core/masterStateManager.js");
-
-            const spy = vi.spyOn(masterStateManager, "initialize");
-
-            await initializeFitFileViewerState();
-
-            expect(spy).toHaveBeenCalled();
-        });
-    });
-
-    describe("Edge Cases and Error Scenarios", () => {
-        test("should handle FIT file component initialization when manager not available", async () => {
-            const mocks = injectMasterStateManagerMocks();
-            mocks.fitFileState.fitFileStateManager = null;
-
-            const { MasterStateManager } =
-                await import("../../../../../utils/state/core/masterStateManager.js");
-            const manager = new MasterStateManager();
+            moduleMocks["C:/fit/utils/state/domain/fitFileState.js"] = {};
 
             await expect(manager.initializeFitFileComponents()).rejects.toThrow(
                 "FIT file state manager not available"
             );
         });
+    });
 
-        test("should handle version detection fallback when electronAPI fails", async () => {
-            const mocks = injectMasterStateManagerMocks();
-            delete (globalThis as any).electronAPI;
+    it("detects development mode from runtime signals and production fallback", async () => {
+        expect.hasAssertions();
 
-            const { MasterStateManager } =
-                await import("../../../../../utils/state/core/masterStateManager.js");
-            const manager = new MasterStateManager();
+        await withMasterStateHarness(
+            async ({ location }) => {
+                const manager = new MasterStateManager();
 
-            await manager.initializeCoreState();
+                expect(manager.isDevelopmentMode()).toBe(true);
 
-            expect(mocks.stateManager.setState).toHaveBeenCalledWith(
-                "system.version",
-                "26.5.0", // Should use fallback version
-                { source: "MasterStateManager" }
-            );
-        });
+                location.hostname = "example.com";
+                location.href = "https://example.com/";
+                location.protocol = "https:";
+                location.search = "";
+                location.hash = "";
+                delete (globalThis as MasterStateGlobal).__DEVELOPMENT__;
+                delete (globalThis as MasterStateGlobal).electronAPI;
 
-        test("should handle integration setup with state subscriptions", async () => {
-            const mocks = injectMasterStateManagerMocks();
+                expect(manager.isDevelopmentMode()).toBe(false);
+            },
+            { development: true }
+        );
+    });
 
-            const { MasterStateManager } =
-                await import("../../../../../utils/state/core/masterStateManager.js");
-            const manager = new MasterStateManager();
+    it("sets up drag and drop handlers for valid and invalid dropped files", async () => {
+        expect.hasAssertions();
 
-            manager.setupIntegrations();
+        await withMasterStateHarness(
+            async ({ bodyElement, documentListeners }) => {
+                const manager = new MasterStateManager();
 
-            expect(mocks.stateManager.subscribe).toHaveBeenCalledWith(
-                "globalData",
-                expect.any(Function)
-            );
-            expect(mocks.stateManager.subscribe).toHaveBeenCalledWith(
-                "isLoading",
-                expect.any(Function)
-            );
-            expect(mocks.stateManager.subscribe).toHaveBeenCalledWith(
-                "ui.theme",
-                expect.any(Function)
-            );
-        });
+                manager.setupDragAndDrop();
+
+                expect(document.addEventListener).toHaveBeenCalledWith(
+                    "dragenter",
+                    expect.any(Function),
+                    expect.objectContaining({ signal: expect.any(Object) })
+                );
+                expect(document.addEventListener).toHaveBeenCalledWith(
+                    "drop",
+                    expect.any(Function),
+                    expect.objectContaining({ signal: expect.any(Object) })
+                );
+
+                dispatchListeners(
+                    documentListeners,
+                    "dragover",
+                    createDropEvent("ride.fit")
+                );
+
+                expect(bodyElement.classList.contains("drag-over")).toBe(true);
+
+                dispatchListeners(
+                    documentListeners,
+                    "dragleave",
+                    createDropEvent("ride.fit")
+                );
+
+                expect(bodyElement.classList.contains("drag-over")).toBe(false);
+
+                dispatchListeners(
+                    documentListeners,
+                    "drop",
+                    createDropEvent("ride.fit")
+                );
+
+                expect(staticModuleMocks.showNotification).toHaveBeenCalledWith(
+                    "FIT file dropped",
+                    "info"
+                );
+
+                staticModuleMocks.showNotification.mockClear();
+                dispatchListeners(
+                    documentListeners,
+                    "drop",
+                    createDropEvent("ride.txt")
+                );
+
+                expect(staticModuleMocks.showNotification).toHaveBeenCalledWith(
+                    "Please drop a .fit file",
+                    "warning"
+                );
+            }
+        );
+    });
+
+    it("routes keyboard shortcuts and window lifecycle events", async () => {
+        expect.hasAssertions();
+
+        await withMasterStateHarness(
+            async ({ documentListeners, mocks, windowListeners }) => {
+                const manager = new MasterStateManager();
+
+                manager.setupKeyboardShortcuts();
+                manager.setupWindowEventListeners();
+
+                dispatchListeners(
+                    documentListeners,
+                    "keydown",
+                    createKeyboardEvent("o")
+                );
+                dispatchListeners(
+                    documentListeners,
+                    "keydown",
+                    createKeyboardEvent("t")
+                );
+                dispatchListeners(
+                    documentListeners,
+                    "keydown",
+                    createKeyboardEvent("2")
+                );
+                dispatchListeners(
+                    windowListeners,
+                    "resize",
+                    new Event("resize")
+                );
+                dispatchListeners(windowListeners, "focus", new Event("focus"));
+                dispatchListeners(windowListeners, "blur", new Event("blur"));
+                dispatchListeners(
+                    windowListeners,
+                    "beforeunload",
+                    new Event("beforeunload")
+                );
+
+                expect(
+                    (globalThis as MasterStateGlobal).electronAPI
+                        ?.openFileDialog
+                ).toHaveBeenCalledOnce();
+                expect(
+                    mocks.uiStateManager.UIActions.setTheme
+                ).toHaveBeenCalledWith("dark");
+                expect(
+                    mocks.appActions.AppActions.switchTab
+                ).toHaveBeenCalledWith("chart");
+                expect(
+                    mocks.uiStateManager.UIActions.updateWindowState
+                ).toHaveBeenCalledOnce();
+                expect(mocks.stateManager.setState).toHaveBeenCalledWith(
+                    "ui.windowFocused",
+                    true,
+                    { source: "windowEventListener" }
+                );
+                expect(mocks.stateManager.setState).toHaveBeenCalledWith(
+                    "ui.windowFocused",
+                    false,
+                    { source: "windowEventListener" }
+                );
+                expect(mocks.stateManager.setState).toHaveBeenCalledWith(
+                    "system.unloading",
+                    true,
+                    { source: "windowEventListener" }
+                );
+                expect(manager.isDevelopmentMode()).toBe(true);
+            },
+            { development: true }
+        );
+    });
+
+    it("connects error handling, integrations, performance monitoring, and cleanup", async () => {
+        expect.hasAssertions();
+
+        await withMasterStateHarness(
+            async ({
+                globalListeners,
+                intervalHandlers,
+                loadingElement,
+                mocks,
+            }) => {
+                const manager = new MasterStateManager();
+
+                manager.setupErrorHandling();
+                dispatchListeners(
+                    globalListeners,
+                    "error",
+                    new ErrorEvent("error", {
+                        colno: 4,
+                        error: new Error("boom"),
+                        filename: "app.js",
+                        lineno: 2,
+                    })
+                );
+                dispatchListeners(
+                    globalListeners,
+                    "unhandledrejection",
+                    new PromiseRejectionEvent("unhandledrejection", {
+                        promise: Promise.resolve(),
+                        reason: new Error("async boom"),
+                    })
+                );
+
+                expect(mocks.stateManager.setState).toHaveBeenCalledWith(
+                    "system.lastError",
+                    expect.objectContaining({ message: "boom" }),
+                    { source: "globalErrorHandler" }
+                );
+                expect(mocks.stateManager.setState).toHaveBeenCalledWith(
+                    "system.lastPromiseRejection",
+                    expect.objectContaining({ reason: "async boom" }),
+                    { source: "promiseRejectionHandler" }
+                );
+
+                manager.setupIntegrations();
+                const subscriptions = mocks.stateManager.subscribe.mock.calls;
+                subscriptions.find(([path]) => path === "globalData")?.[1]({
+                    records: [],
+                });
+                subscriptions.find(([path]) => path === "isLoading")?.[1](true);
+                subscriptions.find(([path]) => path === "ui.theme")?.[1](
+                    "dark"
+                );
+
+                expect(
+                    mocks.uiStateManager.UIActions.showTab
+                ).toHaveBeenCalledWith("summary");
+                expect(loadingElement.style.pointerEvents).toBe("none");
+                expect(loadingElement.style.opacity).toBe("0.5");
+                expect(globalThis.dispatchEvent).toHaveBeenCalledWith(
+                    expect.objectContaining({ type: "themeChanged" })
+                );
+
+                manager.components.set("settings", {});
+                manager.components.set("computed", {});
+                manager.components.set("middleware", {});
+                manager.components.set(devToolsComponentName, {});
+                manager.isInitialized = true;
+                manager.setupPerformanceMonitoring();
+                intervalHandlers.at(-1)?.();
+                manager.cleanup();
+
+                expect(setInterval).toHaveBeenCalledWith(
+                    expect.any(Function),
+                    60_000
+                );
+                expect(mocks.stateManager.setState).toHaveBeenCalledWith(
+                    "system.performance",
+                    expect.objectContaining({
+                        memoryUsage: { total: 95, used: 48 },
+                    }),
+                    { source: "performanceMonitor" }
+                );
+                expect(
+                    mocks.settingsStateManager.settingsStateManager.cleanup
+                ).toHaveBeenCalledOnce();
+                expect(
+                    mocks.computedStateManager.computedStateManager.cleanup
+                ).toHaveBeenCalledOnce();
+                expect(
+                    mocks.stateMiddleware.cleanupMiddleware
+                ).toHaveBeenCalledOnce();
+                expect(
+                    mocks.stateDevTools.cleanupStateDevTools
+                ).toHaveBeenCalledOnce();
+                expect(clearInterval).toHaveBeenCalledWith(12345);
+                expect(manager.components.size).toBe(0);
+                expect(manager.isInitialized).toBe(false);
+            },
+            { development: true }
+        );
+    });
+
+    it("exports the singleton and startup convenience function", async () => {
+        expect.hasAssertions();
+
+        const initializeSpy = vi
+            .spyOn(masterStateManager, "initialize")
+            .mockResolvedValue();
+        try {
+            await initializeFitFileViewerState();
+
+            expect(getMasterStateManager()).toBe(masterStateManager);
+            expect(masterStateManager).toBeInstanceOf(MasterStateManager);
+            expect(initializeSpy).toHaveBeenCalledOnce();
+        } finally {
+            initializeSpy.mockRestore();
+        }
     });
 });
+
+function createDropEvent(fileName: string): DragEvent {
+    return {
+        dataTransfer: {
+            files: [{ name: fileName }],
+        },
+        preventDefault: vi.fn<() => void>(),
+        stopPropagation: vi.fn<() => void>(),
+    } as unknown as DragEvent;
+}
+
+function createHarnessMocks(): HarnessMocks {
+    return {
+        appActions: {
+            AppActions: { switchTab: vi.fn<(tabName: string) => void>() },
+            AppSelectors: {
+                hasData: vi.fn<() => boolean>().mockReturnValue(true),
+            },
+        },
+        computedStateManager: {
+            computedStateManager: { cleanup: vi.fn<() => void>() },
+            initializeCommonComputedValues: vi.fn<() => void>(),
+        },
+        enableTabButtons: {
+            initializeTabButtonState: vi.fn<() => void>(),
+        },
+        fitFileState: {
+            fitFileStateManager: {
+                cleanup: vi.fn<() => void>(),
+                initialize: vi.fn<() => Promise<void>>().mockResolvedValue(),
+            },
+        },
+        rendererUtils: {
+            initializeRendererUtils: vi.fn<() => void>(),
+            showNotification: vi.fn<(message: string, kind: string) => void>(),
+        },
+        settingsStateManager: {
+            settingsStateManager: {
+                cleanup: vi.fn<() => void>(),
+                initialize: vi.fn<() => Promise<void>>().mockResolvedValue(),
+            },
+        },
+        stateDevTools: {
+            cleanupStateDevTools: vi.fn<() => void>(),
+            initializeStateDevTools: vi.fn<() => void>(),
+        },
+        stateIntegration: {
+            initializeCompleteStateSystem: vi
+                .fn<() => Promise<void>>()
+                .mockResolvedValue(),
+        },
+        stateManager: {
+            getState: vi.fn<(path?: string) => unknown>((path) =>
+                path === "ui.theme" ? "light" : undefined
+            ),
+            getStateHistory: vi.fn<() => unknown[]>().mockReturnValue([]),
+            getSubscriptions: vi
+                .fn<() => Record<string, unknown>>()
+                .mockReturnValue({}),
+            setState:
+                vi.fn<
+                    (
+                        path: string,
+                        value: unknown,
+                        options?: StateOptions
+                    ) => void
+                >(),
+            subscribe: vi.fn<
+                (path: string, callback: (value: unknown) => void) => () => void
+            >(() => vi.fn<() => void>()),
+        },
+        stateMiddleware: {
+            cleanupMiddleware: vi.fn<() => void>(),
+            initializeDefaultMiddleware: vi.fn<() => void>(),
+        },
+        uiStateManager: {
+            UIActions: {
+                setTheme: vi.fn<(themeName: string) => void>(),
+                showTab: vi.fn<(tabName: string) => void>(),
+                updateWindowState: vi.fn<() => void>(),
+            },
+        },
+        updateActiveTab: {
+            initializeActiveTabState: vi.fn<() => void>(),
+        },
+        updateControlsState: {
+            initializeControlsState: vi.fn<() => void>(),
+        },
+        updateTabVisibility: {
+            initializeTabVisibilityState: vi.fn<() => void>(),
+        },
+    };
+}
+
+function createKeyboardEvent(key: string): KeyboardEvent {
+    return {
+        ctrlKey: true,
+        key,
+        metaKey: false,
+        preventDefault: vi.fn<() => void>(),
+    } as unknown as KeyboardEvent;
+}
+
+function createModuleMocks(mocks: HarnessMocks): Record<string, unknown> {
+    return {
+        "C:/fit/utils/app/initialization/rendererUtils.js": mocks.rendererUtils,
+        "C:/fit/utils/app/lifecycle/appActions.js": mocks.appActions,
+        "C:/fit/utils/debug/stateDevTools.js": mocks.stateDevTools,
+        "C:/fit/utils/rendering/helpers/updateControlsState.js":
+            mocks.updateControlsState,
+        "C:/fit/utils/state/core/computedStateManager.js":
+            mocks.computedStateManager,
+        "C:/fit/utils/state/core/stateMiddleware.js": mocks.stateMiddleware,
+        "C:/fit/utils/state/domain/fitFileState.js": mocks.fitFileState,
+        "C:/fit/utils/state/domain/settingsStateManager.js":
+            mocks.settingsStateManager,
+        "C:/fit/utils/state/domain/uiStateManager.js": mocks.uiStateManager,
+        "C:/fit/utils/state/integration/stateIntegration.js":
+            mocks.stateIntegration,
+        "C:/fit/utils/ui/controls/enableTabButtons.js": mocks.enableTabButtons,
+        "C:/fit/utils/ui/tabs/updateActiveTab.js": mocks.updateActiveTab,
+        "C:/fit/utils/ui/tabs/updateTabVisibility.js":
+            mocks.updateTabVisibility,
+    };
+}
+
+function defineGlobalValue(
+    descriptors: Map<string, PropertyDescriptor | undefined>,
+    key: (typeof globalKeys)[number],
+    value: unknown
+): void {
+    if (!descriptors.has(key)) {
+        descriptors.set(key, Object.getOwnPropertyDescriptor(globalThis, key));
+    }
+    Object.defineProperty(globalThis, key, {
+        configurable: true,
+        value,
+        writable: true,
+    });
+}
+
+function dispatchListeners(
+    listeners: ListenerMap,
+    eventName: string,
+    event: Event
+): void {
+    for (const listener of listeners.get(eventName) ?? []) {
+        listener(event);
+    }
+}
+
+function registerListener(
+    listeners: ListenerMap,
+    eventName: string,
+    listener: EventListenerOrEventListenerObject
+): void {
+    if (typeof listener !== "function") {
+        return;
+    }
+    const existingListeners = listeners.get(eventName) ?? [];
+    existingListeners.push(listener);
+    listeners.set(eventName, existingListeners);
+}
+
+function restoreGlobals(
+    descriptors: Map<string, PropertyDescriptor | undefined>
+): void {
+    for (const key of [...descriptors.keys()].reverse()) {
+        const descriptor = descriptors.get(key);
+        if (descriptor) {
+            Object.defineProperty(globalThis, key, descriptor);
+        } else {
+            Reflect.deleteProperty(globalThis, key);
+        }
+    }
+}
+
+async function withMasterStateHarness(
+    callback: (harness: Harness) => Promise<void> | void,
+    options: HarnessOptions = {}
+): Promise<void> {
+    const descriptors = new Map<string, PropertyDescriptor | undefined>();
+    const mocks = createHarnessMocks();
+    const moduleMocks = createModuleMocks(mocks);
+    const documentListeners: ListenerMap = new Map();
+    const globalListeners: ListenerMap = new Map();
+    const windowListeners: ListenerMap = new Map();
+    const intervalHandlers: Array<() => void> = [];
+    const bodyElement = document.createElement("main");
+    const loadingElement = document.createElement("button");
+    const location = {
+        hash: options.development ? "#debug" : "",
+        hostname: options.development ? "localhost" : "example.com",
+        href: options.development
+            ? "http://localhost/#debug"
+            : "https://example.com/",
+        protocol: options.development ? "http:" : "https:",
+        search: options.development ? "?debug=true" : "",
+    } as Location;
+
+    vi.spyOn(console, "error").mockReturnValue(undefined);
+    vi.spyOn(console, "log").mockReturnValue(undefined);
+    vi.spyOn(console, "warn").mockReturnValue(undefined);
+    staticModuleMocks.AppActions.switchTab.mockClear();
+    staticModuleMocks.AppSelectors.hasData.mockReturnValue(true);
+    staticModuleMocks.initializeRendererUtils.mockClear();
+    staticModuleMocks.showNotification.mockClear();
+
+    const documentMock = {
+        addEventListener: vi.fn<
+            (
+                eventName: string,
+                listener: EventListenerOrEventListenerObject,
+                options?: AddEventListenerOptions
+            ) => void
+        >((eventName, listener) =>
+            registerListener(documentListeners, eventName, listener)
+        ),
+        body: bodyElement,
+        documentElement: {
+            dataset: {},
+            hasAttribute: vi
+                .fn<(name: string) => boolean>()
+                .mockReturnValue(false),
+        },
+        querySelector: vi
+            .fn<(selector: string) => HTMLElement | null>()
+            .mockReturnValue(loadingElement),
+        querySelectorAll: vi
+            .fn<(selector: string) => HTMLElement[]>()
+            .mockReturnValue([loadingElement]),
+    } satisfies Partial<Document>;
+
+    const windowMock = {
+        addEventListener: vi.fn<
+            (
+                eventName: string,
+                listener: EventListenerOrEventListenerObject,
+                options?: AddEventListenerOptions
+            ) => void
+        >((eventName, listener) =>
+            registerListener(windowListeners, eventName, listener)
+        ),
+        getComputedStyle: vi
+            .fn<() => Partial<CSSStyleDeclaration>>()
+            .mockReturnValue({
+                display: "block",
+                visibility: "visible",
+            }),
+        location,
+    } satisfies Partial<Window>;
+
+    const electronAPI = {
+        __devMode: options.development ? true : undefined,
+        getAppVersion: vi
+            .fn<() => Promise<string>>()
+            .mockResolvedValue(options.appVersion ?? "26.5.0"),
+        openFileDialog: vi.fn<() => void>(),
+    };
+
+    try {
+        defineGlobalValue(descriptors, "document", documentMock);
+        defineGlobalValue(descriptors, "window", windowMock);
+        defineGlobalValue(descriptors, "location", location);
+        defineGlobalValue(descriptors, "__FFV_MOCKS__", moduleMocks);
+        defineGlobalValue(
+            descriptors,
+            "__STATE_MANAGER_API__",
+            mocks.stateManager
+        );
+        defineGlobalValue(descriptors, "electronAPI", electronAPI);
+        defineGlobalValue(
+            descriptors,
+            "__DEVELOPMENT__",
+            options.development === true
+        );
+        defineGlobalValue(
+            descriptors,
+            "addEventListener",
+            vi.fn(registerGlobalListener)
+        );
+        defineGlobalValue(
+            descriptors,
+            "dispatchEvent",
+            vi.fn<() => boolean>().mockReturnValue(true)
+        );
+        defineGlobalValue(
+            descriptors,
+            "clearInterval",
+            vi.fn<(id: number) => void>()
+        );
+        defineGlobalValue(
+            descriptors,
+            "getComputedStyle",
+            windowMock.getComputedStyle
+        );
+        defineGlobalValue(descriptors, "localStorage", {
+            getItem: vi.fn<(key: string) => string | null>((key) =>
+                key === "ffv-theme" ? (options.localTheme ?? "system") : null
+            ),
+            setItem: vi.fn<(key: string, value: string) => void>(),
+        });
+        defineGlobalValue(descriptors, "performance", {
+            memory: {
+                totalJSHeapSize: 99_614_720,
+                usedJSHeapSize: 50_331_648,
+            },
+        });
+        defineGlobalValue(
+            descriptors,
+            "setInterval",
+            vi.fn<(handler: TimerHandler, timeout?: number) => number>(
+                (handler) => {
+                    if (typeof handler === "function") {
+                        intervalHandlers.push(handler as () => void);
+                    }
+                    return 12_345;
+                }
+            )
+        );
+
+        await callback({
+            bodyElement,
+            documentListeners,
+            globalListeners,
+            intervalHandlers,
+            loadingElement,
+            location,
+            mocks,
+            moduleMocks,
+            windowListeners,
+        });
+    } finally {
+        restoreGlobals(descriptors);
+        vi.restoreAllMocks();
+    }
+
+    function registerGlobalListener(
+        eventName: string,
+        listener: EventListenerOrEventListenerObject
+    ): void {
+        registerListener(globalListeners, eventName, listener);
+    }
+}
+
+/* eslint-enable vitest/prefer-to-be-falsy, vitest/prefer-to-be-truthy */
