@@ -18,27 +18,31 @@ describe("externalUrlPolicy.validateExternalUrl", () => {
         ).toThrow("Only HTTPS and mailto URLs are allowed");
         expect(() =>
             validateExternalUrl("file:///C:/Windows/System32/calc.exe")
-        ).toThrow();
-        expect(() => validateExternalUrl("javascript:alert(1)")).toThrow();
+        ).toThrow("Only HTTPS and mailto URLs are allowed");
+        expect(() => validateExternalUrl("javascript:alert(1)")).toThrow(
+            "Only HTTPS and mailto URLs are allowed"
+        );
     });
 
     it("rejects credentials in URLs", () => {
         expect(() =>
             validateExternalUrl("https://user:pass@example.com")
-        ).toThrow();
+        ).toThrow("Credentials in URLs are not allowed");
     });
 
     it("rejects whitespace and control characters", () => {
         expect(() =>
             validateExternalUrl("https://example.com/has space")
-        ).toThrow();
+        ).toThrow("Invalid URL provided");
         expect(() =>
             validateExternalUrl("https://example.com/\nfoo")
-        ).toThrow();
+        ).toThrow("Invalid URL provided");
     });
 
     it("rejects extremely long URLs", () => {
         const long = `https://example.com/${"a".repeat(5000)}`;
-        expect(() => validateExternalUrl(long)).toThrow();
+        expect(() => validateExternalUrl(long)).toThrow(
+            "Invalid URL provided"
+        );
     });
 });
