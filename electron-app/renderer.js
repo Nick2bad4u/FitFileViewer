@@ -142,6 +142,8 @@
  * @property {((callback: (action: unknown) => void) => unknown) | undefined} onMenuAction
  * @property {((callback: (theme: string) => void) => unknown) | undefined} onThemeChanged
  * @property {(() => Promise<unknown>) | undefined} isDevelopment
+ * @property {(() => Promise<unknown>) | undefined} recentFiles
+ * @property {(() => unknown) | undefined} checkForUpdates
  */
 
 // ==========================================
@@ -270,8 +272,14 @@ function getElectronApiStartupHooks() {
     const isDevelopment = api.isDevelopment;
     const onMenuAction = api.onMenuAction;
     const onThemeChanged = api.onThemeChanged;
+    const recentFiles = api.recentFiles;
+    const checkForUpdates = api.checkForUpdates;
 
     return {
+        checkForUpdates:
+            typeof checkForUpdates === "function"
+                ? /** @type {() => unknown} */ (checkForUpdates)
+                : undefined,
         isDevelopment:
             typeof isDevelopment === "function"
                 ? /** @type {() => Promise<unknown>} */ (isDevelopment)
@@ -287,6 +295,10 @@ function getElectronApiStartupHooks() {
                 ? /** @type {(callback: (theme: string) => void) => unknown} */ (
                       onThemeChanged
                   )
+                : undefined,
+        recentFiles:
+            typeof recentFiles === "function"
+                ? /** @type {() => Promise<unknown>} */ (recentFiles)
                 : undefined,
     };
 }
@@ -913,6 +925,7 @@ async function initializeApplication() {
         // Create dependencies object for setup functions
         const coreModules = await ensureCoreModules();
         const {
+            AppActions,
             applyTheme,
             getAppDomainState,
             handleOpenFile,
@@ -970,9 +983,7 @@ async function initializeApplication() {
         }
 
         // Mark application as initialized using new state system
-        const appActions = toModuleRecord(
-            (await ensureCoreModules()).AppActions
-        );
+        const appActions = toModuleRecord(AppActions);
         const setInitialized = appActions.setInitialized;
         if (typeof setInitialized === "function") {
             const setInitializedFn =
@@ -1006,8 +1017,8 @@ async function initializeApplication() {
 
         // Use state manager for error notification
         try {
-            const showNotification = (await ensureCoreModules())
-                .showNotification;
+            const coreModules = await ensureCoreModules();
+            const { showNotification } = coreModules;
             if (showNotification !== undefined) {
                 showNotification(
                     `Initialization failed: ${getErrorMessage(error)}`,
@@ -1033,10 +1044,12 @@ async function initializeApplication() {
  */
 async function initializeAsyncComponents() {
     try {
+        const electronApiHooks = getElectronApiStartupHooks();
+
         // Initialize recent files if available
-        if (globalThis.electronAPI?.recentFiles) {
+        if (electronApiHooks?.recentFiles !== undefined) {
             try {
-                await globalThis.electronAPI.recentFiles();
+                await electronApiHooks.recentFiles();
                 logRenderer("log", "[Renderer] Recent files API available");
             } catch (error) {
                 logRenderer(
@@ -1048,10 +1061,13 @@ async function initializeAsyncComponents() {
         }
 
         // Check for updates if in production
-        if (globalThis.electronAPI?.checkForUpdates && !isDevelopmentMode()) {
+        if (
+            electronApiHooks?.checkForUpdates !== undefined &&
+            !isDevelopmentMode()
+        ) {
             try {
                 setTimeout(() => {
-                    globalThis.electronAPI.checkForUpdates();
+                    electronApiHooks.checkForUpdates?.();
                 }, 5000); // Delay to avoid blocking startup
             } catch (error) {
                 logRenderer("warn", "[Renderer] Update check failed:", error);
