@@ -1,500 +1,544 @@
-/**
- * Ultra-focused test for maximizing main.js coverage without assertion failures
- * This test imports main.js multiple times under different conditions to
- * trigger all possible code paths and maximize line coverage.
- */
+import { describe, expect, it, vi } from "vitest";
 
-import {
-    describe,
-    test,
-    expect,
-    vi,
-    beforeEach,
-    afterEach,
-    beforeAll,
-} from "vitest";
-import { EventEmitter } from "events";
+type Listener = (...args: unknown[]) => void;
 
-// Track all mock references for cleanup
-const mockRefs = new Set<any>();
+type EventMap = Map<string, Set<Listener>>;
 
-/**
- * Create comprehensive mock that works with main.js hoisted mock system
- */
-function createUltraComprehensiveMock() {
-    const mockWebContents = new EventEmitter();
-    Object.assign(mockWebContents, {
-        isDestroyed: vi.fn(() => false),
-        on: vi.fn((event: string, handler: any) => {
-            mockWebContents.addListener(event, handler);
-            return mockWebContents;
+type WebContentsMock = {
+    emit: (eventName: string, ...args: unknown[]) => boolean;
+    executeJavaScript: ReturnType<
+        typeof vi.fn<(script: string) => Promise<unknown>>
+    >;
+    isDestroyed: ReturnType<typeof vi.fn<() => boolean>>;
+    on: ReturnType<
+        typeof vi.fn<(eventName: string, listener: Listener) => void>
+    >;
+    removeAllListeners: ReturnType<typeof vi.fn<(eventName?: string) => void>>;
+    send: ReturnType<
+        typeof vi.fn<(channel: string, ...args: unknown[]) => void>
+    >;
+    session: {
+        setPermissionCheckHandler: ReturnType<
+            typeof vi.fn<(handler: Listener) => void>
+        >;
+        setPermissionRequestHandler: ReturnType<
+            typeof vi.fn<(handler: Listener) => void>
+        >;
+    };
+    setWindowOpenHandler: ReturnType<typeof vi.fn<(handler: Listener) => void>>;
+};
+
+type WindowMock = {
+    close: ReturnType<typeof vi.fn<() => void>>;
+    focus: ReturnType<typeof vi.fn<() => void>>;
+    hide: ReturnType<typeof vi.fn<() => void>>;
+    isDestroyed: ReturnType<typeof vi.fn<() => boolean>>;
+    loadFile: ReturnType<typeof vi.fn<(filePath: string) => Promise<void>>>;
+    on: ReturnType<
+        typeof vi.fn<(eventName: string, listener: Listener) => void>
+    >;
+    setFullScreen: ReturnType<typeof vi.fn<(isFullScreen: boolean) => void>>;
+    setMenuBarVisibility: ReturnType<
+        typeof vi.fn<(isVisible: boolean) => void>
+    >;
+    show: ReturnType<typeof vi.fn<() => void>>;
+    webContents: WebContentsMock;
+};
+
+type BrowserWindowMock = WindowMock & {
+    fromWebContents: ReturnType<
+        typeof vi.fn<(webContents: unknown) => WindowMock | null>
+    >;
+    getAllWindows: ReturnType<typeof vi.fn<() => WindowMock[]>>;
+    getFocusedWindow: ReturnType<typeof vi.fn<() => WindowMock | null>>;
+};
+
+type AppMock = {
+    emit: ReturnType<
+        typeof vi.fn<(eventName: string, ...args: unknown[]) => boolean>
+    >;
+    getAppPath: ReturnType<typeof vi.fn<() => string>>;
+    getVersion: ReturnType<typeof vi.fn<() => string>>;
+    isPackaged: boolean;
+    listenerCount: ReturnType<typeof vi.fn<(eventName: string) => number>>;
+    on: ReturnType<
+        typeof vi.fn<(eventName: string, listener: Listener) => void>
+    >;
+    quit: ReturnType<typeof vi.fn<() => void>>;
+    removeAllListeners: ReturnType<typeof vi.fn<(eventName?: string) => void>>;
+    removeListener: ReturnType<
+        typeof vi.fn<(eventName: string, listener: Listener) => void>
+    >;
+    whenReady: ReturnType<typeof vi.fn<() => Promise<void>>>;
+};
+
+type IpcMainMock = {
+    handle: ReturnType<
+        typeof vi.fn<(channel: string, handler: Listener) => void>
+    >;
+    on: ReturnType<typeof vi.fn<(channel: string, listener: Listener) => void>>;
+    removeAllListeners: ReturnType<typeof vi.fn<(eventName?: string) => void>>;
+    removeHandler: ReturnType<typeof vi.fn<(channel: string) => void>>;
+};
+
+type AutoUpdaterMock = {
+    autoDownload: boolean;
+    checkForUpdates: ReturnType<typeof vi.fn<() => Promise<void>>>;
+    checkForUpdatesAndNotify: ReturnType<typeof vi.fn<() => Promise<void>>>;
+    emit: (eventName: string, ...args: unknown[]) => boolean;
+    feedURL: undefined;
+    logger: {
+        error: ReturnType<typeof vi.fn<(message?: unknown) => void>>;
+        info: ReturnType<typeof vi.fn<(message?: unknown) => void>>;
+        transports: { file: { level: string } };
+        warn: ReturnType<typeof vi.fn<(message?: unknown) => void>>;
+    };
+    on: ReturnType<
+        typeof vi.fn<(eventName: string, listener: Listener) => void>
+    >;
+    quitAndInstall: ReturnType<typeof vi.fn<() => void>>;
+    removeAllListeners: ReturnType<typeof vi.fn<(eventName?: string) => void>>;
+};
+
+type MainExports = {
+    initializeApplication: () => Promise<unknown>;
+    setupMainLifecycle: (dependencies: Record<string, unknown>) => void;
+    validateWindow: (windowCandidate?: unknown, context?: string) => boolean;
+};
+
+type PlatformDescriptor = PropertyDescriptor | undefined;
+
+const harness = vi.hoisted(() => {
+    class MockEmitter {
+        readonly handlers: EventMap = new Map();
+
+        emit(eventName: string, ...args: unknown[]): boolean {
+            const listeners = this.handlers.get(eventName);
+            if (!listeners) {
+                return false;
+            }
+
+            for (const listener of listeners) {
+                listener(...args);
+            }
+
+            return listeners.size > 0;
+        }
+
+        listenerCount(eventName: string): number {
+            return this.handlers.get(eventName)?.size ?? 0;
+        }
+
+        on(eventName: string, listener: Listener): void {
+            const listeners = this.handlers.get(eventName) ?? new Set();
+            listeners.add(listener);
+            this.handlers.set(eventName, listeners);
+        }
+
+        removeAllListeners(eventName?: string): void {
+            if (eventName) {
+                this.handlers.delete(eventName);
+                return;
+            }
+
+            this.handlers.clear();
+        }
+
+        removeListener(eventName: string, listener: Listener): void {
+            this.handlers.get(eventName)?.delete(listener);
+        }
+    }
+
+    const appEmitter = new MockEmitter();
+    const autoUpdaterEmitter = new MockEmitter();
+    const ipcMainEmitter = new MockEmitter();
+    const windowEmitter = new MockEmitter();
+    const webContentsEmitter = new MockEmitter();
+
+    const webContents: WebContentsMock = {
+        emit: (eventName, ...args) =>
+            webContentsEmitter.emit(eventName, ...args),
+        executeJavaScript: vi
+            .fn<(script: string) => Promise<unknown>>()
+            .mockResolvedValue("dark"),
+        isDestroyed: vi.fn<() => boolean>(() => false),
+        on: vi.fn<(eventName: string, listener: Listener) => void>(
+            (eventName, listener) => {
+                webContentsEmitter.on(eventName, listener);
+            }
+        ),
+        removeAllListeners: vi.fn<(eventName?: string) => void>((eventName) => {
+            webContentsEmitter.removeAllListeners(eventName);
         }),
-        send: vi.fn(),
-        executeJavaScript: vi.fn().mockResolvedValue("dark"),
-        once: vi.fn(),
-        removeAllListeners: vi.fn(),
-        setWindowOpenHandler: vi.fn(),
-        emit: vi.fn(),
-    });
-
-    const mockWindow = {
-        isDestroyed: vi.fn(() => false),
-        setFullScreen: vi.fn(),
-        webContents: mockWebContents,
-        on: vi.fn(),
-        focus: vi.fn(),
-        show: vi.fn(),
-        hide: vi.fn(),
-        close: vi.fn(),
-        setMenuBarVisibility: vi.fn(),
-        loadFile: vi.fn(),
-        fromWebContents: vi.fn(() => mockWindow),
-        getFocusedWindow: vi.fn(() => mockWindow),
-        getAllWindows: vi.fn(() => [mockWindow]),
+        send: vi.fn<(channel: string, ...args: unknown[]) => void>(),
+        session: {
+            setPermissionCheckHandler: vi.fn<(handler: Listener) => void>(),
+            setPermissionRequestHandler: vi.fn<(handler: Listener) => void>(),
+        },
+        setWindowOpenHandler: vi.fn<(handler: Listener) => void>(),
     };
 
-    const mockApp = new EventEmitter();
-    Object.assign(mockApp, {
-        whenReady: vi.fn().mockResolvedValue(undefined),
-        getVersion: vi.fn(() => "1.0.0"),
-        getAppPath: vi.fn(() => "/test/app"),
+    const mainWindow: WindowMock = {
+        close: vi.fn<() => void>(),
+        focus: vi.fn<() => void>(),
+        hide: vi.fn<() => void>(),
+        isDestroyed: vi.fn<() => boolean>(() => false),
+        loadFile: vi
+            .fn<(filePath: string) => Promise<void>>()
+            .mockResolvedValue(undefined),
+        on: vi.fn<(eventName: string, listener: Listener) => void>(
+            (eventName, listener) => {
+                windowEmitter.on(eventName, listener);
+            }
+        ),
+        setFullScreen: vi.fn<(isFullScreen: boolean) => void>(),
+        setMenuBarVisibility: vi.fn<(isVisible: boolean) => void>(),
+        show: vi.fn<() => void>(),
+        webContents,
+    };
+
+    const browserWindow = Object.assign(mainWindow, {
+        fromWebContents: vi.fn<(candidate: unknown) => WindowMock | null>(
+            () => mainWindow
+        ),
+        getAllWindows: vi.fn<() => WindowMock[]>(() => [mainWindow]),
+        getFocusedWindow: vi.fn<() => WindowMock | null>(() => mainWindow),
+    }) as BrowserWindowMock;
+    Object.setPrototypeOf(browserWindow, Function.prototype);
+
+    const app: AppMock = {
+        emit: vi.fn<(eventName: string, ...args: unknown[]) => boolean>(
+            (eventName, ...args) => appEmitter.emit(eventName, ...args)
+        ),
+        getAppPath: vi.fn<() => string>(() => "/test/app"),
+        getVersion: vi.fn<() => string>(() => "1.0.0"),
         isPackaged: false,
-        quit: vi.fn(),
-        on: vi.fn((event: string, handler: any) => {
-            mockApp.addListener(event, handler);
-            return mockApp;
+        listenerCount: vi.fn<(eventName: string) => number>((eventName) =>
+            appEmitter.listenerCount(eventName)
+        ),
+        on: vi.fn<(eventName: string, listener: Listener) => void>(
+            (eventName, listener) => {
+                appEmitter.on(eventName, listener);
+            }
+        ),
+        quit: vi.fn<() => void>(),
+        removeAllListeners: vi.fn<(eventName?: string) => void>((eventName) => {
+            appEmitter.removeAllListeners(eventName);
         }),
-        removeListener: vi.fn(),
-        removeAllListeners: vi.fn(),
-    });
-
-    const mockBrowserWindow = {
-        ...mockWindow,
-        getAllWindows: vi.fn(() => [mockWindow]),
-        getFocusedWindow: vi.fn(() => mockWindow),
-        fromWebContents: vi.fn(() => mockWindow),
-    };
-    Object.setPrototypeOf(mockBrowserWindow, Function.prototype);
-
-    const mockIpcMain = new EventEmitter();
-    Object.assign(mockIpcMain, {
-        handle: vi.fn((channel: string, handler: any) => {
-            mockIpcMain.addListener(`handle:${channel}`, handler);
-        }),
-        on: vi.fn((channel: string, handler: any) => {
-            mockIpcMain.addListener(`on:${channel}`, handler);
-        }),
-        removeHandler: vi.fn(),
-        removeAllListeners: vi.fn(),
-    });
-
-    const mockDialog = {
-        showOpenDialog: vi.fn().mockResolvedValue({
-            canceled: false,
-            filePaths: ["/test/file.fit"],
-        }),
-        showSaveDialog: vi.fn().mockResolvedValue({
-            canceled: false,
-            filePath: "/test/export.csv",
-        }),
-        showMessageBox: vi.fn().mockResolvedValue({ response: 0 }),
+        removeListener: vi.fn<(eventName: string, listener: Listener) => void>(
+            (eventName, listener) => {
+                appEmitter.removeListener(eventName, listener);
+            }
+        ),
+        whenReady: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
     };
 
-    const mockMenu = {
-        setApplicationMenu: vi.fn(),
-        getApplicationMenu: vi.fn(() => ({
-            getMenuItemById: vi.fn(() => ({
-                enabled: true,
-            })),
-        })),
-        buildFromTemplate: vi.fn(() => ({})),
+    const ipcMain: IpcMainMock = {
+        handle: vi.fn<(channel: string, handler: Listener) => void>(
+            (channel, handler) => {
+                ipcMainEmitter.on(`handle:${channel}`, handler);
+            }
+        ),
+        on: vi.fn<(channel: string, listener: Listener) => void>(
+            (channel, listener) => {
+                ipcMainEmitter.on(`on:${channel}`, listener);
+            }
+        ),
+        removeAllListeners: vi.fn<(eventName?: string) => void>((eventName) => {
+            ipcMainEmitter.removeAllListeners(eventName);
+        }),
+        removeHandler: vi.fn<(channel: string) => void>(),
     };
 
-    const mockShell = {
-        openExternal: vi.fn().mockResolvedValue(undefined),
-    };
-
-    const mockAutoUpdater = new EventEmitter();
-    Object.assign(mockAutoUpdater, {
-        checkForUpdatesAndNotify: vi.fn().mockResolvedValue(undefined),
-        quitAndInstall: vi.fn(),
-        checkForUpdates: vi.fn(),
+    const autoUpdater: AutoUpdaterMock = {
         autoDownload: true,
-        logger: console,
+        checkForUpdates: vi
+            .fn<() => Promise<void>>()
+            .mockResolvedValue(undefined),
+        checkForUpdatesAndNotify: vi
+            .fn<() => Promise<void>>()
+            .mockResolvedValue(undefined),
+        emit: (eventName, ...args) =>
+            autoUpdaterEmitter.emit(eventName, ...args),
         feedURL: undefined,
-    });
-
-    // HTTP server mock for Gyazo OAuth
-    const mockServer = new EventEmitter();
-    Object.assign(mockServer, {
-        listen: vi.fn((port: number, host: string, callback: any) => {
-            setTimeout(() => callback && callback(), 0);
-        }),
-        close: vi.fn((callback: any) => {
-            setTimeout(() => callback && callback(), 0);
-        }),
-        on: vi.fn(),
-        address: vi.fn(() => ({ port: 3000 })),
-    });
-
-    const mockHttp = {
-        createServer: vi.fn((handler: any) => {
-            return mockServer;
+        logger: {
+            error: vi.fn<(message?: unknown) => void>(),
+            info: vi.fn<(message?: unknown) => void>(),
+            transports: { file: { level: "info" } },
+            warn: vi.fn<(message?: unknown) => void>(),
+        },
+        on: vi.fn<(eventName: string, listener: Listener) => void>(
+            (eventName, listener) => {
+                autoUpdaterEmitter.on(eventName, listener);
+            }
+        ),
+        quitAndInstall: vi.fn<() => void>(),
+        removeAllListeners: vi.fn<(eventName?: string) => void>((eventName) => {
+            autoUpdaterEmitter.removeAllListeners(eventName);
         }),
     };
 
-    const mockFs = {
-        readFile: vi.fn((path: string, callback: any) => {
-            const data = Buffer.from("test data");
-            callback(null, data);
-        }),
-        readFileSync: vi.fn(() => JSON.stringify({ license: "MIT" })),
-        copyFileSync: vi.fn(),
+    const dialog = {
+        showMessageBox: vi.fn<() => Promise<{ response: number }>>(
+            async () => ({ response: 0 })
+        ),
+        showOpenDialog: vi.fn<
+            () => Promise<{ canceled: boolean; filePaths: string[] }>
+        >(async () => ({ canceled: false, filePaths: ["/test/file.fit"] })),
+        showSaveDialog: vi.fn<
+            () => Promise<{ canceled: boolean; filePath: string }>
+        >(async () => ({ canceled: false, filePath: "/test/export.csv" })),
     };
 
-    const mockPath = {
-        join: vi.fn((...args: string[]) => args.join("/")),
+    const menu = {
+        buildFromTemplate: vi.fn<
+            (template: unknown[]) => Record<string, never>
+        >(() => ({})),
+        getApplicationMenu: vi.fn<
+            () => { getMenuItemById: (id: string) => { enabled: boolean } }
+        >(() => ({
+            getMenuItemById: () => ({ enabled: true }),
+        })),
+        setApplicationMenu: vi.fn<(menuValue: unknown) => void>(),
     };
 
-    const mockElectronLog = {
-        info: vi.fn(),
-        error: vi.fn(),
-        warn: vi.fn(),
-        transports: {
-            file: {
-                level: "info",
+    const session = {
+        defaultSession: {
+            webRequest: {
+                onBeforeRequest:
+                    vi.fn<
+                        (
+                            listener: (
+                                details: { url?: unknown },
+                                callback: (response: {
+                                    cancel?: boolean;
+                                }) => void
+                            ) => void
+                        ) => void
+                    >(),
             },
         },
     };
 
-    const mockElectronConf = vi.fn(() => ({
-        get: vi.fn((key: string, defaultValue?: any) => {
-            if (key === "theme") return "dark";
-            if (key === "selectedMapTab") return "map";
-            return defaultValue;
-        }),
-        set: vi.fn(),
-    }));
-
-    const mockFitParser = {
-        decodeFitFile: vi.fn().mockResolvedValue({ records: [] }),
+    const shell = {
+        openExternal: vi
+            .fn<(url: string) => Promise<void>>()
+            .mockResolvedValue(undefined),
     };
 
-    let mockState: { [key: string]: any } = {};
-
-    const MockMainProcessState = vi.fn(() => ({
-        get: vi.fn((path: string) => {
-            if (path === "mainWindow") return mockWindow;
-            if (path === "loadedFitFilePath") return "/test/file.fit";
-            if (path === "autoUpdaterInitialized") return false;
-            if (path === "appIsQuitting") return false;
-            if (path === "gyazoServer") return mockState.gyazoServer || null;
-            if (path === "gyazoServerPort")
-                return mockState.gyazoServerPort || null;
-            return mockState[path];
-        }),
-        set: vi.fn((path: string, value: any, options?: any) => {
-            mockState[path] = value;
-            return true;
-        }),
-        notifyChange: vi.fn(),
-        notifyRenderers: vi.fn(),
-        registerEventHandler: vi.fn(),
-        recordMetric: vi.fn(),
+    const confConstructor = vi.fn<
+        (options: { name: string }) => {
+            get: (key: string, fallback?: unknown) => unknown;
+            set: (key: string, value: unknown) => void;
+        }
+    >(() => ({
+        get: (key, fallback) => (key === "theme" ? "dark" : fallback),
+        set: () => undefined,
     }));
 
-    const mockElectron = {
-        app: mockApp,
-        BrowserWindow: mockBrowserWindow,
-        ipcMain: mockIpcMain,
-        dialog: mockDialog,
-        Menu: mockMenu,
-        shell: mockShell,
+    const electronModule = {
+        app,
+        BrowserWindow: browserWindow,
+        dialog,
+        ipcMain,
+        Menu: menu,
+        session,
+        shell,
     };
 
-    // Store references for cleanup
-    mockRefs.add(mockApp);
-    mockRefs.add(mockIpcMain);
-    mockRefs.add(mockAutoUpdater);
-    mockRefs.add(mockWebContents);
-    mockRefs.add(mockServer);
+    const reset = (): void => {
+        appEmitter.removeAllListeners();
+        autoUpdaterEmitter.removeAllListeners();
+        ipcMainEmitter.removeAllListeners();
+        webContentsEmitter.removeAllListeners();
+        windowEmitter.removeAllListeners();
+
+        app.whenReady.mockResolvedValue(undefined);
+        browserWindow.fromWebContents.mockReturnValue(mainWindow);
+        browserWindow.getAllWindows.mockReturnValue([mainWindow]);
+        browserWindow.getFocusedWindow.mockReturnValue(mainWindow);
+        mainWindow.isDestroyed.mockReturnValue(false);
+        webContents.executeJavaScript.mockResolvedValue("dark");
+        webContents.isDestroyed.mockReturnValue(false);
+    };
 
     return {
-        mockElectron,
-        mockApp,
-        mockBrowserWindow,
-        mockIpcMain,
-        mockDialog,
-        mockMenu,
-        mockShell,
-        mockWindow,
-        mockAutoUpdater,
-        mockWebContents,
-        mockHttp,
-        mockServer,
-        mockFs,
-        mockPath,
-        mockElectronLog,
-        mockElectronConf,
-        mockFitParser,
-        MockMainProcessState,
-        mockState,
+        app,
+        autoUpdater,
+        browserWindow,
+        electronModule,
+        ipcMain,
+        mainWindow,
+        menu,
+        reset,
+        session,
+        webContents,
     };
+});
+
+vi.mock(import("electron"), () => harness.electronModule);
+
+vi.mock(import("electron-updater"), () => ({
+    autoUpdater: harness.autoUpdater,
+}));
+
+vi.mock(import("electron-conf"), () => ({
+    Conf: harness.confConstructor,
+}));
+
+const originalPlatformDescriptor: PlatformDescriptor =
+    Object.getOwnPropertyDescriptor(process, "platform");
+
+function clearRuntimeTimers(): void {
+    const keepalive = Reflect.get(globalThis, "__ffvTestKeepalive");
+    if (keepalive) {
+        clearInterval(keepalive as ReturnType<typeof setInterval>);
+        Reflect.deleteProperty(globalThis, "__ffvTestKeepalive");
+    }
+
+    const retryTimers = Reflect.get(globalThis, "__ffvTestRetryTimers");
+    if (Array.isArray(retryTimers)) {
+        for (const timer of retryTimers as ReturnType<typeof setTimeout>[]) {
+            clearTimeout(timer);
+        }
+        Reflect.deleteProperty(globalThis, "__ffvTestRetryTimers");
+    }
 }
 
-// Global mocks setup
-let globalMocks: any;
-
-beforeAll(() => {
-    // Create all mocks
-    globalMocks = createUltraComprehensiveMock();
-
-    // CRITICAL: Set up hoisted mock that main.js expects
-    (globalThis as any).__electronHoistedMock = globalMocks.mockElectron;
-
-    // Setup all module mocks
-    vi.mock("electron", () => globalMocks.mockElectron);
-    vi.mock("fs", () => globalMocks.mockFs);
-    vi.mock("path", () => globalMocks.mockPath);
-    vi.mock("http", () => globalMocks.mockHttp);
-    vi.mock("electron-log", () => globalMocks.mockElectronLog);
-    vi.mock("electron-updater", () => ({
-        autoUpdater: globalMocks.mockAutoUpdater,
-    }));
-    vi.mock("electron-conf", () => ({ Conf: globalMocks.mockElectronConf }));
-
-    // Mock utility modules
-    vi.mock("../../../utils/state/integration/mainProcessStateManager", () => ({
-        MainProcessState: globalMocks.MockMainProcessState,
-    }));
-
-    vi.mock("../../fitParser", () => globalMocks.mockFitParser);
-
-    vi.mock("../../windowStateUtils", () => ({
-        createWindow: vi.fn(() => globalMocks.mockWindow),
-    }));
-
-    vi.mock("../../utils/app/menu/createAppMenu", () => ({
-        createAppMenu: vi.fn(),
-    }));
-
-    vi.mock("../../utils/files/recent/recentFiles", () => ({
-        addRecentFile: vi.fn(),
-        loadRecentFiles: vi.fn(() => [
-            "/test/recent1.fit",
-            "/test/recent2.fit",
-        ]),
-    }));
-
-    vi.mock("../../utils/gyazo/oauth", () => ({
-        startGyazoOAuthServer: vi.fn(),
-        stopGyazoOAuthServer: vi.fn(),
-    }));
-});
-
-beforeEach(() => {
-    // Reset all mocks
-    vi.clearAllMocks();
-
-    // Clear event listeners
-    mockRefs.forEach((emitter: any) => {
-        if (emitter && typeof emitter.removeAllListeners === "function") {
-            emitter.removeAllListeners();
-        }
-    });
-
-    // Ensure environment
-    process.env.NODE_ENV = "test";
-    (globalThis as any).__electronHoistedMock = globalMocks.mockElectron;
-
-    // Reset state
-    if (globalMocks.mockState) {
-        Object.keys(globalMocks.mockState).forEach((key) => {
-            delete globalMocks.mockState[key];
-        });
+function restorePlatform(): void {
+    if (originalPlatformDescriptor) {
+        Object.defineProperty(process, "platform", originalPlatformDescriptor);
     }
-});
+}
 
-afterEach(() => {
-    vi.restoreAllMocks();
-});
+function resetHarness(): void {
+    clearRuntimeTimers();
+    vi.useFakeTimers();
+    vi.clearAllMocks();
+    harness.reset();
+    process.env.NODE_ENV = "test";
+    delete process.env.GYAZO_CLIENT_ID;
+    delete process.env.GYAZO_CLIENT_SECRET;
+    restorePlatform();
+    Reflect.set(globalThis, "__electronHoistedMock", harness.electronModule);
+}
 
-describe("main.js - Ultra Coverage Maximization", () => {
-    test("should maximize coverage through comprehensive imports and events", async () => {
-        console.log("[TEST] Ultra coverage test starting");
+function cleanupHarness(): void {
+    clearRuntimeTimers();
+    vi.clearAllTimers();
+    vi.useRealTimers();
+    process.env.NODE_ENV = "test";
+    delete process.env.GYAZO_CLIENT_ID;
+    delete process.env.GYAZO_CLIENT_SECRET;
+    restorePlatform();
+}
 
-        // Step 1: Basic import with test environment
-        process.env.NODE_ENV = "test";
-        const main1 = await import("../../main.js");
-        await new Promise((resolve) => setTimeout(resolve, 100));
+async function settleStartup(): Promise<void> {
+    await vi.dynamicImportSettled();
+    await vi.runOnlyPendingTimersAsync();
+    await vi.dynamicImportSettled();
+}
 
-        // Step 2: Development mode import
-        process.env.NODE_ENV = "development";
-        const main2 = await import("../../main.js");
-        await new Promise((resolve) => setTimeout(resolve, 100));
+async function importMainWithEnvironment(
+    nodeEnvironment: "development" | "production" | "test"
+): Promise<MainExports> {
+    vi.resetModules();
+    process.env.NODE_ENV = nodeEnvironment;
+    Reflect.set(globalThis, "__electronHoistedMock", harness.electronModule);
 
-        // Step 3: Production mode import
-        process.env.NODE_ENV = "production";
-        const main3 = await import("../../main.js");
-        await new Promise((resolve) => setTimeout(resolve, 100));
+    const mainModule = (await import("../../main.js")) as MainExports;
+    await settleStartup();
 
-        // Step 4: Gyazo OAuth environment
-        process.env.GYAZO_CLIENT_ID = "test_client_id";
-        process.env.GYAZO_CLIENT_SECRET = "test_client_secret";
-        const main4 = await import("../../main.js");
-        await new Promise((resolve) => setTimeout(resolve, 100));
+    return mainModule;
+}
 
-        // Step 5: Trigger all possible events
+function setPlatform(platform: NodeJS.Platform): void {
+    Object.defineProperty(process, "platform", {
+        configurable: true,
+        value: platform,
+    });
+}
+
+describe("main.js ultra coverage", () => {
+    it("wires startup, IPC, updater, and renderer events through the real entry point", async () => {
+        expect.hasAssertions();
+
+        resetHarness();
+
         try {
-            // Auto-updater events
-            globalMocks.mockAutoUpdater.on("error", () => {}); // Prevent unhandled errors
-            globalMocks.mockAutoUpdater.emit("checking-for-update");
-            globalMocks.mockAutoUpdater.emit("update-available", {
-                test: true,
+            const mainModule = await importMainWithEnvironment("test");
+            harness.webContents.emit("did-finish-load");
+            await settleStartup();
+
+            harness.autoUpdater.emit("checking-for-update");
+            harness.autoUpdater.emit("download-progress", { percent: 50 });
+            harness.autoUpdater.emit("update-downloaded");
+            harness.app.emit("before-quit", {
+                preventDefault: vi.fn<() => void>(),
             });
-            globalMocks.mockAutoUpdater.emit("update-not-available");
-            globalMocks.mockAutoUpdater.emit("download-progress", {
-                percent: 50,
-            });
-            globalMocks.mockAutoUpdater.emit("update-downloaded");
-            globalMocks.mockAutoUpdater.emit("error", new Error("Test error"));
+            harness.app.emit("window-all-closed");
+            harness.app.emit("activate");
 
-            // App events (wrap in try-catch to prevent test failures)
-            try {
-                globalMocks.mockApp.emit("before-quit", {
-                    preventDefault: vi.fn(),
-                });
-            } catch {}
-            try {
-                globalMocks.mockApp.emit("window-all-closed");
-            } catch {}
-            try {
-                globalMocks.mockApp.emit("activate");
-            } catch {}
-            try {
-                globalMocks.mockApp.emit(
-                    "browser-window-focus",
-                    {},
-                    globalMocks.mockWindow
-                );
-            } catch {}
-
-            // Web contents events
-            const mockWebContents = new EventEmitter();
-            Object.assign(mockWebContents, {
-                on: vi.fn(),
-                setWindowOpenHandler: vi.fn(),
-            });
-            try {
-                globalMocks.mockApp.emit(
-                    "web-contents-created",
-                    {},
-                    mockWebContents
-                );
-            } catch {}
-
-            // WebContents specific events
-            try {
-                globalMocks.mockWebContents.emit("did-finish-load");
-            } catch {}
-
-            await new Promise((resolve) => setTimeout(resolve, 200));
-        } catch (error) {
-            // Ignore event errors, we just want coverage
-            console.log("[TEST] Event error ignored for coverage:", error);
-        }
-
-        // Step 6: Error conditions
-        try {
-            // File system errors
-            globalMocks.mockFs.readFileSync.mockImplementationOnce(() => {
-                throw new Error("File error");
-            });
-            globalMocks.mockFs.readFile.mockImplementationOnce(
-                (path: string, callback: any) => {
-                    callback(new Error("Async file error"), null);
-                }
+            expect(mainModule.initializeApplication).toBeTypeOf("function");
+            expect(mainModule.setupMainLifecycle).toBeTypeOf("function");
+            expect(harness.app.whenReady).toHaveBeenCalledWith();
+            expect(harness.browserWindow.getAllWindows).toHaveBeenCalledWith();
+            expect(harness.ipcMain.handle.mock.calls.length).toBeGreaterThan(0);
+            expect(harness.webContents.on).toHaveBeenCalledWith(
+                "did-finish-load",
+                expect.any(Function)
             );
-
-            // Auto-updater errors
-            globalMocks.mockAutoUpdater.emit(
-                "error",
-                new Error("Critical error")
+            expect(harness.autoUpdater.on).toHaveBeenCalledWith(
+                "checking-for-update",
+                expect.any(Function)
             );
-
-            await new Promise((resolve) => setTimeout(resolve, 100));
-        } catch (error) {
-            console.log("[TEST] Error condition ignored for coverage:", error);
+            expect(
+                harness.autoUpdater.checkForUpdatesAndNotify.mock.calls.length
+            ).toBeGreaterThan(0);
+            expect(harness.webContents.send.mock.calls.length).toBeGreaterThan(
+                0
+            );
+            expect(
+                harness.session.defaultSession.webRequest.onBeforeRequest
+            ).toHaveBeenCalledWith(expect.any(Function));
+        } finally {
+            cleanupHarness();
         }
-
-        // Basic assertion to ensure test passes
-        expect(true).toBe(true);
-        console.log("[TEST] Ultra coverage test completed");
     });
 
-    test("should exercise platform-specific and edge case paths", async () => {
-        console.log("[TEST] Platform and edge case coverage test");
+    it("covers platform startup and rejects unusable windows without throwing", async () => {
+        expect.hasAssertions();
 
-        // Test different platforms
-        const originalPlatform = process.platform;
+        resetHarness();
 
         try {
-            // Linux
-            Object.defineProperty(process, "platform", {
-                value: "linux",
-                writable: true,
-            });
-            await import("../../main.js");
-            await new Promise((resolve) => setTimeout(resolve, 50));
+            for (const platform of [
+                "linux",
+                "darwin",
+                "win32",
+            ] as const) {
+                setPlatform(platform);
+                await importMainWithEnvironment("test");
+            }
 
-            // macOS
-            Object.defineProperty(process, "platform", {
-                value: "darwin",
-                writable: true,
-            });
-            await import("../../main.js");
-            await new Promise((resolve) => setTimeout(resolve, 50));
-
-            // Windows
-            Object.defineProperty(process, "platform", {
-                value: "win32",
-                writable: true,
-            });
-            await import("../../main.js");
-            await new Promise((resolve) => setTimeout(resolve, 50));
-        } finally {
-            // Restore platform
-            Object.defineProperty(process, "platform", {
-                value: originalPlatform,
-                writable: true,
-            });
-        }
-
-        // Test with broken/missing components
-        try {
-            const brokenWindow = {
-                isDestroyed: vi.fn(() => true),
-                webContents: {
-                    isDestroyed: vi.fn(() => true),
-                },
-            };
-            globalMocks.mockBrowserWindow.getAllWindows.mockReturnValueOnce([
-                brokenWindow,
+            harness.mainWindow.isDestroyed.mockReturnValue(true);
+            harness.webContents.isDestroyed.mockReturnValue(true);
+            harness.browserWindow.getAllWindows.mockReturnValue([
+                harness.mainWindow,
             ]);
-            globalMocks.mockBrowserWindow.getFocusedWindow.mockReturnValueOnce(
-                brokenWindow
-            );
 
-            await import("../../main.js");
-            await new Promise((resolve) => setTimeout(resolve, 50));
-        } catch (error) {
-            console.log(
-                "[TEST] Broken window error ignored for coverage:",
-                error
+            const mainModule = await importMainWithEnvironment("test");
+
+            expect(harness.app.whenReady.mock.calls.length).toBeGreaterThan(0);
+            expect([
+                mainModule.validateWindow(harness.mainWindow, "broken-window"),
+            ]).toStrictEqual([false]);
+            expect(harness.mainWindow.isDestroyed).toHaveBeenCalledWith();
+            expect(harness.webContents.send).not.toHaveBeenCalledWith(
+                "unexpected-channel"
             );
+        } finally {
+            cleanupHarness();
         }
-
-        expect(true).toBe(true);
-        console.log("[TEST] Platform and edge case test completed");
     });
 });
