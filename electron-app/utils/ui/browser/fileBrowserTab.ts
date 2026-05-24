@@ -12,6 +12,10 @@
 import type { FitBrowserListFolderResult } from "../../../shared/ipc";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 import pLimitCompat from "../../async/pLimitCompat.js";
+import {
+    getFitMessageRows,
+    unwrapFitParseMessages,
+} from "../../files/import/fitParsePayload.js";
 import { openFitFileFromPath } from "../../files/import/openFitFileFromPath.js";
 import { getState, setState } from "../../state/core/stateManager.js";
 import { getElementByIdFlexible } from "../dom/elementIdUtils.js";
@@ -411,9 +415,8 @@ async function decodeLibraryItem(
     try {
         const buf = await api.readFile(file.fullPath);
         const decoded = await api.decodeFitFile(buf);
-        const decodedRecord = asRecord(decoded);
-        const sessionMesgs = decodedRecord?.["sessionMesgs"];
-        const session = Array.isArray(sessionMesgs) ? sessionMesgs[0] : null;
+        const messages = unwrapFitParseMessages(decoded);
+        const session = getFitMessageRows(messages, "sessionMesgs")[0] ?? null;
         const sessionRecord = asRecord(session);
 
         const startRaw =
