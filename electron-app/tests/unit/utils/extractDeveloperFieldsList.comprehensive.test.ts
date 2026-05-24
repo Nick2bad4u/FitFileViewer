@@ -145,6 +145,7 @@ describe("extractDeveloperFieldsList.js - Developer Fields Extraction Utility", 
 
             const result = extractDeveloperFieldsList(recordMesgs);
             expect(result).toEqual(["dev_2"]);
+            expect(result).not.toContain("dev_1_0");
             expect(result).toHaveLength(1);
         });
 
@@ -415,6 +416,7 @@ describe("extractDeveloperFieldsList.js - Developer Fields Extraction Utility", 
 
             const result = extractDeveloperFieldsList(recordMesgs);
             expect(result).toEqual(["dev_2"]); // Only numeric values should be extracted
+            expect(result).not.toContain("dev_1");
             expect(result).toHaveLength(1);
         });
 
@@ -521,6 +523,7 @@ describe("extractDeveloperFieldsList.js - Developer Fields Extraction Utility", 
                     "dev_3",
                 ])
             );
+            expect(result).not.toContain("dev_4");
             expect(result).toHaveLength(3);
         });
 
@@ -630,6 +633,7 @@ describe("extractDeveloperFieldsList.js - Developer Fields Extraction Utility", 
                     "dev_3",
                 ])
             );
+            expect(result).not.toContain("dev_4");
             expect(result).toHaveLength(3); // Properly deduplicated
         });
     });
@@ -672,6 +676,7 @@ describe("extractDeveloperFieldsList.js - Developer Fields Extraction Utility", 
 
             const result = extractDeveloperFieldsList(recordMesgs);
             expect(result).toEqual(["dev_3"]); // Only actual numeric value
+            expect(result).not.toContain("dev_1");
             expect(result).toHaveLength(1);
         });
 
