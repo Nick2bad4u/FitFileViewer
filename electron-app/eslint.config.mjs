@@ -29,6 +29,7 @@ const config = [
             "fitParser.js",
             "jest.config.cjs",
             "main.js",
+            "main.ts",
             "preload.js",
         ],
         languageOptions: {
@@ -42,6 +43,13 @@ const config = [
             "n/prefer-global/buffer": "off",
             "unicorn/filename-case": "off",
             "unicorn/prefer-module": "off",
+        },
+    },
+    {
+        files: ["main.ts"],
+        rules: {
+            "@typescript-eslint/no-unsafe-type-assertion": "off",
+            "@typescript-eslint/prefer-readonly-parameter-types": "off",
         },
     },
     {
