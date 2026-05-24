@@ -5,12 +5,9 @@ vi.mock("../../../../../utils/state/domain/settingsStateManager.js", () => ({
     getChartSetting: getChartSettingMock,
 }));
 
-// Load module fresh helper using dynamic import for ESM
-const MODULE = "../../../../../utils/formatting/formatters/formatTime.js";
 async function fresh() {
     vi.resetModules();
-    const url = new URL(MODULE, import.meta.url).href;
-    return await import(url);
+    return await import("../../../../../utils/formatting/formatters/formatTime.js");
 }
 
 describe("formatTime.strict branches", () => {
