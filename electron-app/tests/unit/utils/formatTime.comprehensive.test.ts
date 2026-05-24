@@ -187,13 +187,24 @@ describe("formatTime.js - Time Formatter Utility", () => {
     });
 
     describe("User Units Mode", () => {
+        it("should keep default formatting distinct from minute user units", () => {
+            mockGetChartSetting.mockReturnValue("minutes");
+            (convertTimeUnits as any).mockReturnValue(1.5);
+
+            const result = formatTime(90, false);
+            expect(result).toBe("1:30");
+            expect(result).not.toBe("1.5m");
+        });
+
         describe("With Seconds Units", () => {
             beforeEach(() => {
                 mockGetChartSetting.mockReturnValue("seconds");
             });
 
             it("should format time as MM:SS when user prefers seconds", () => {
-                expect(formatTime(90, true)).toBe("1:30");
+                const result = formatTime(90, true);
+                expect(result).toBe("1:30");
+                expect(result).not.toBe("0:00");
             });
 
             it("should format time as HH:MM:SS when over 1 hour and user prefers seconds", () => {
@@ -211,6 +222,7 @@ describe("formatTime.js - Time Formatter Utility", () => {
                 const result = formatTime(90, true);
                 expect(convertTimeUnits).toHaveBeenCalledWith(90, "minutes");
                 expect(result).toBe("1.5m");
+                expect(result).not.toBe("1:30");
             });
 
             it("should format to 1 decimal place for minutes", () => {
@@ -230,6 +242,7 @@ describe("formatTime.js - Time Formatter Utility", () => {
                 const result = formatTime(3672, true);
                 expect(convertTimeUnits).toHaveBeenCalledWith(3672, "hours");
                 expect(result).toBe("1.02h");
+                expect(result).not.toBe("1:01:12");
             });
 
             it("should format to 2 decimal places for hours", () => {
@@ -247,6 +260,7 @@ describe("formatTime.js - Time Formatter Utility", () => {
             it("should default to seconds mode when no stored setting", () => {
                 const result = formatTime(90, true);
                 expect(result).toBe("1:30");
+                expect(result).not.toBe("0:00");
             });
         });
 
@@ -258,6 +272,7 @@ describe("formatTime.js - Time Formatter Utility", () => {
             it("should default to MM:SS format for unknown units", () => {
                 const result = formatTime(90, true);
                 expect(result).toBe("1:30");
+                expect(result).not.toBe("invalid");
             });
         });
     });
@@ -266,6 +281,7 @@ describe("formatTime.js - Time Formatter Utility", () => {
         it("should handle very large numbers", () => {
             const result = formatTime(359999); // 99:59:59
             expect(result).toBe("99:59:59");
+            expect(result).not.toBe("0:00");
         });
 
         it("should handle very small positive numbers", () => {
@@ -293,7 +309,9 @@ describe("formatTime.js - Time Formatter Utility", () => {
 
     describe("Padding and Format Consistency", () => {
         it("should pad single digit minutes and seconds with zeros", () => {
-            expect(formatTime(65)).toBe("1:05"); // 1 minute 5 seconds
+            const result = formatTime(65);
+            expect(result).toBe("1:05"); // 1 minute 5 seconds
+            expect(result).not.toBe("1:5");
             expect(formatTime(605)).toBe("10:05"); // 10 minutes 5 seconds
         });
 
@@ -320,7 +338,9 @@ describe("formatTime.js - Time Formatter Utility", () => {
 
     describe("Real-world Time Scenarios", () => {
         it("should format common workout durations", () => {
-            expect(formatTime(300)).toBe("5:00"); // 5-minute warm-up
+            const warmup = formatTime(300);
+            expect(warmup).toBe("5:00"); // 5-minute warm-up
+            expect(warmup).not.toBe("0:00");
             expect(formatTime(1800)).toBe("30:00"); // 30-minute run
             expect(formatTime(2700)).toBe("45:00"); // 45-minute cycling
         });
@@ -353,6 +373,7 @@ describe("formatTime.js - Time Formatter Utility", () => {
 
             const result = formatTime(3661);
             expect(result).toBe("0:00");
+            expect(result).not.toBe("1:01:01");
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[formatTime] Time formatting failed:",
                 expect.any(Error)
@@ -396,6 +417,7 @@ describe("formatTime.js - Time Formatter Utility", () => {
             const results = times.map((t) => formatTime(t));
 
             expect(results).toHaveLength(5);
+            expect(results).not.toHaveLength(0);
             expect(results[0]).toBe("0:30");
             expect(results[1]).toBe("1:30");
             expect(results[2]).toBe("1:01:01");
@@ -433,7 +455,8 @@ describe("formatTime.js - Time Formatter Utility", () => {
 
     describe("Settings Integration", () => {
         it("should call getChartSetting with correct key", () => {
-            formatTime(90, true);
+            const result = formatTime(90, true);
+            expect(result).toBe("1:30");
             expect(mockGetChartSetting).toHaveBeenCalledWith("timeUnits");
         });
 
@@ -461,7 +484,8 @@ describe("formatTime.js - Time Formatter Utility", () => {
             formatTime(90, false);
             expect(mockGetChartSetting).not.toHaveBeenCalled();
 
-            formatTime(90, true);
+            const result = formatTime(90, true);
+            expect(result).toBe("1:30");
             expect(mockGetChartSetting).toHaveBeenCalled();
         });
     });
