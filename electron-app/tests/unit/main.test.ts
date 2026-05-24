@@ -40,6 +40,8 @@ const mockElectron = {
     ipcMain: {
         handle: vi.fn(),
         on: vi.fn(),
+        removeHandler: vi.fn(),
+        removeListener: vi.fn(),
     },
     Menu: {
         getApplicationMenu: vi.fn(),
@@ -47,6 +49,13 @@ const mockElectron = {
     },
     shell: {
         openExternal: vi.fn(),
+    },
+    session: {
+        defaultSession: {
+            webRequest: {
+                onBeforeRequest: vi.fn(),
+            },
+        },
     },
 };
 
@@ -61,9 +70,20 @@ const mockAutoUpdater = {
 
 // Mock server module
 const mockServer = {
-    listen: vi.fn((port: number, callback?: (error?: Error) => void) => {
-        if (callback) callback();
-    }),
+    listen: vi.fn(
+        (
+            port: number,
+            hostOrCallback?: string | ((error?: Error) => void),
+            callback?: (error?: Error) => void
+        ) => {
+            const readyCallback =
+                typeof hostOrCallback === "function"
+                    ? hostOrCallback
+                    : callback;
+            if (readyCallback) readyCallback();
+            return mockServer;
+        }
+    ),
     on: vi.fn(),
     close: vi.fn(),
 };
@@ -102,7 +122,15 @@ vi.mock("node:fs", () => ({
 }));
 
 // Mock http module
+vi.mock("http", () => ({
+    createServer: vi.fn(() => mockServer),
+    default: {
+        createServer: vi.fn(() => mockServer),
+    },
+}));
+
 vi.mock("node:http", () => ({
+    createServer: vi.fn(() => mockServer),
     default: {
         createServer: vi.fn(() => mockServer),
     },
@@ -187,12 +215,116 @@ vi.mock("../../../utils/files/recentFiles.js", () => ({
     },
 }));
 
+const expectedMainExportKeys = [
+    "CONSTANTS",
+    "default",
+    "ensureFitParserStateIntegration",
+    "exposeDevHelpers",
+    "getAppState",
+    "getThemeFromRenderer",
+    "initializeApplication",
+    "isWindowUsable",
+    "logWithContext",
+    "resolveAutoUpdaterAsync",
+    "resolveAutoUpdaterSync",
+    "sendToRenderer",
+    "setAppState",
+    "setupApplicationEventHandlers",
+    "setupAutoUpdater",
+    "setupIPCHandlers",
+    "setupMainLifecycle",
+    "setupMenuAndEventHandlers",
+    "startGyazoOAuthServer",
+    "stopGyazoOAuthServer",
+    "validateWindow",
+];
+
+async function importMainModule() {
+    const imported = (await import("../../main.js")) as any;
+    return imported.default as any;
+}
+
+function getRegisteredIpcHandler(channel: string) {
+    const registration = mockElectron.ipcMain.handle.mock.calls.find(
+        ([registeredChannel]) => registeredChannel === channel
+    );
+    return registration?.[1];
+}
+
+function resetMockImplementations() {
+    mockWindow.isDestroyed = () => false;
+    mockWindow.setFullScreen.mockReset();
+    mockWindow.webContents.executeJavaScript.mockReset();
+    mockWindow.webContents.executeJavaScript.mockResolvedValue("dark");
+    mockWindow.webContents.isDestroyed = () => false;
+    mockWindow.webContents.on.mockReset();
+    mockWindow.webContents.send.mockReset();
+
+    mockElectron.app.getAppPath.mockReset();
+    mockElectron.app.getAppPath.mockReturnValue("/mock/app/path");
+    mockElectron.app.getVersion.mockReset();
+    mockElectron.app.getVersion.mockReturnValue("1.0.0");
+    mockElectron.app.isPackaged = false;
+    mockElectron.app.on.mockReset();
+    mockElectron.app.quit.mockReset();
+    mockElectron.app.whenReady.mockReset();
+    mockElectron.app.whenReady.mockResolvedValue(undefined);
+
+    mockElectron.BrowserWindow.getAllWindows.mockReset();
+    mockElectron.BrowserWindow.getAllWindows.mockReturnValue([mockWindow]);
+    mockElectron.BrowserWindow.fromWebContents.mockReset();
+    mockElectron.BrowserWindow.getFocusedWindow.mockReset();
+    mockElectron.BrowserWindow.getFocusedWindow.mockReturnValue(null);
+
+    mockElectron.dialog.showMessageBox.mockReset();
+    mockElectron.dialog.showOpenDialog.mockReset();
+    mockElectron.dialog.showSaveDialog.mockReset();
+    mockElectron.ipcMain.handle.mockReset();
+    mockElectron.ipcMain.on.mockReset();
+    mockElectron.ipcMain.removeHandler.mockReset();
+    mockElectron.ipcMain.removeListener.mockReset();
+    mockElectron.Menu.getApplicationMenu.mockReset();
+    mockElectron.Menu.setApplicationMenu.mockReset();
+    mockElectron.shell.openExternal.mockReset();
+    mockElectron.session.defaultSession.webRequest.onBeforeRequest.mockReset();
+
+    mockAutoUpdater.autoDownload = false;
+    mockAutoUpdater.checkForUpdates.mockReset();
+    mockAutoUpdater.checkForUpdates.mockResolvedValue(undefined);
+    mockAutoUpdater.downloadUpdate.mockReset();
+    mockAutoUpdater.downloadUpdate.mockResolvedValue(undefined);
+    mockAutoUpdater.on.mockReset();
+    mockAutoUpdater.setFeedURL.mockReset();
+
+    mockServer.listen.mockReset();
+    mockServer.listen.mockImplementation(
+        (
+            port: number,
+            hostOrCallback?: string | ((error?: Error) => void),
+            callback?: (error?: Error) => void
+        ) => {
+            const readyCallback =
+                typeof hostOrCallback === "function"
+                    ? hostOrCallback
+                    : callback;
+            if (readyCallback) readyCallback();
+            return mockServer;
+        }
+    );
+    mockServer.on.mockReset();
+    mockServer.close.mockReset();
+}
+
 describe("main.js - Electron Main Process", () => {
     beforeEach(() => {
+        vi.resetModules();
         vi.clearAllMocks();
+        resetMockImplementations();
 
         // Reset environment
         process.env.NODE_ENV = "test";
+        delete process.env.GYAZO_CLIENT_ID;
+        delete process.env.GYAZO_CLIENT_SECRET;
 
         // Setup globalThis for hoisted mock support
         (globalThis as any).__electronHoistedMock = mockElectron;
@@ -209,6 +341,23 @@ describe("main.js - Electron Main Process", () => {
         vi.clearAllMocks();
         delete (globalThis as any).__electronHoistedMock;
         delete (globalThis as any).devHelpers;
+        const keepalive = (globalThis as any).__ffvTestKeepalive;
+        if (keepalive) {
+            clearInterval(keepalive);
+        }
+        delete (globalThis as any).__ffvTestKeepalive;
+        const retryTimers = (globalThis as any).__ffvTestRetryTimers;
+        if (Array.isArray(retryTimers)) {
+            for (const timer of retryTimers) {
+                clearTimeout(timer);
+            }
+        }
+        delete (globalThis as any).__ffvTestRetryTimers;
+        const gyazoTimer = (globalThis as any).__ffvGyazoStartupTimer;
+        if (gyazoTimer) {
+            clearTimeout(gyazoTimer);
+        }
+        delete (globalThis as any).__ffvGyazoStartupTimer;
 
         // Clear the main module from cache to reset its state
         const mainPath = require.resolve("../../main.js");
@@ -219,33 +368,46 @@ describe("main.js - Electron Main Process", () => {
 
     describe("Module Import and Basic Tests", () => {
         it("should import main.js without errors", async () => {
-            // Should be able to import the main module without throwing
-            await expect(import("../../main.js")).resolves.toBeDefined();
+            const mainModule = await importMainModule();
+
+            expect(Object.keys(mainModule).sort()).toEqual(
+                expectedMainExportKeys
+            );
+            expect(mainModule.CONSTANTS.DEFAULT_THEME).toBe("dark");
+            expect(mainModule.initializeApplication).toBeTypeOf("function");
         });
 
         it("should handle test environment initialization", async () => {
-            // Import the main module - it should run early sync path
-            await import("../../main.js");
+            const mainModule = await importMainModule();
+            const loadHandler = mockWindow.webContents.on.mock.calls.find(
+                ([eventName]) => eventName === "did-finish-load"
+            );
 
-            // The basic import should complete without errors
-            // This tests that the test-specific initialization path works
-            expect(true).toBe(true);
+            expect(mainModule.getAppState("mainWindow")).toBe(mockWindow);
+            expect(loadHandler?.[0]).toBe("did-finish-load");
+            expect(loadHandler?.[1]).toBeTypeOf("function");
         });
 
         it("should handle missing electron gracefully", async () => {
             // Clear the hoisted mock to trigger error path
             delete (globalThis as any).__electronHoistedMock;
 
-            // Should not throw when importing
-            await expect(import("../../main.js")).resolves.toBeDefined();
+            const mainModule = await importMainModule();
+
+            expect(mainModule.CONSTANTS.DEFAULT_THEME).toBe("dark");
+            expect(mainModule.isWindowUsable(null)).toBe(false);
         });
 
         it("should handle state management during early sync path", async () => {
-            await import("../../main.js");
+            const mainModule = await importMainModule();
 
-            // The main.js module completes without errors
-            // State management is mocked but may not be called in early sync path
-            expect(true).toBe(true);
+            mainModule.setAppState("loadedFitFilePath", "/activities/test.fit");
+
+            expect(mainModule.getAppState("loadedFitFilePath")).toBe(
+                "/activities/test.fit"
+            );
+            mainModule.setAppState("loadedFitFilePath", null);
+            expect(mainModule.getAppState("loadedFitFilePath")).toBeNull();
         });
 
         it("should complete early sync path when window exists", async () => {
@@ -254,10 +416,12 @@ describe("main.js - Electron Main Process", () => {
                 mockWindow,
             ]);
 
-            await import("../../main.js");
+            const mainModule = await importMainModule();
 
-            // Should complete without errors in early sync path
-            expect(true).toBe(true);
+            expect(mainModule.getAppState("mainWindow")).toBe(mockWindow);
+            expect(mainModule.validateWindow(mockWindow, "unit test")).toBe(
+                true
+            );
         });
     });
 
@@ -268,8 +432,10 @@ describe("main.js - Electron Main Process", () => {
                 throw new Error("Initialization failed");
             });
 
-            // Should not throw during import
-            await expect(import("../../main.js")).resolves.toBeDefined();
+            const mainModule = await importMainModule();
+
+            expect(mainModule.isWindowUsable(mockWindow)).toBe(true);
+            expect(mainModule.getAppState("mainWindow")).toBe(mockWindow);
         });
 
         it("should handle window enumeration errors", async () => {
@@ -278,45 +444,46 @@ describe("main.js - Electron Main Process", () => {
                 throw new Error("Window enumeration failed");
             });
 
-            // Should not throw during import
-            await expect(import("../../main.js")).resolves.toBeDefined();
+            const mainModule = await importMainModule();
+            const fallbackWindow = mainModule.getAppState("mainWindow");
+
+            expect(fallbackWindow).not.toBe(mockWindow);
+            expect(mainModule.isWindowUsable(fallbackWindow)).toBe(true);
         });
 
         it("should handle auto-updater setup errors", async () => {
-            // Mock auto-updater error
-            mockAutoUpdater.on.mockImplementation(() => {
-                throw new Error("Auto-updater setup failed");
-            });
+            const mainModule = await importMainModule();
+            const warnSpy = vi
+                .spyOn(console, "warn")
+                .mockImplementation(() => {});
+            const invalidUpdater = { autoDownload: false };
 
-            await import("../../main.js");
+            mainModule.setupAutoUpdater(mockWindow, invalidUpdater);
 
-            // Should complete without throwing
-            expect(true).toBe(true);
+            expect(invalidUpdater.autoDownload).toBe(false);
+            expect(warnSpy).toHaveBeenCalledWith(
+                "Cannot setup auto-updater: autoUpdater.on is not a function"
+            );
         });
 
-        it("should handle server creation errors", async () => {
-            // Mock server error
-            mockServer.listen.mockImplementation(
-                (port: number, callback?: (error?: Error) => void) => {
-                    const error = new Error("Port in use") as any;
-                    error.code = "EADDRINUSE";
-                    if (callback) callback(error);
-                }
-            );
+        it("should handle stopping when no Gyazo server exists", async () => {
+            const mainModule = await importMainModule();
 
-            await import("../../main.js");
-
-            // Should complete without throwing
-            expect(true).toBe(true);
+            await expect(mainModule.stopGyazoOAuthServer()).resolves.toEqual({
+                message: "No server was running",
+                success: true,
+            });
+            expect(mainModule.getAppState("gyazoServer")).toBeNull();
         });
     });
 
     describe("Development Features", () => {
         it("should not expose development helpers in test environment", async () => {
-            await import("../../main.js");
+            const mainModule = await importMainModule();
 
             // Development helpers should not be available in test environment
             expect((globalThis as any).devHelpers).toBeUndefined();
+            expect(mainModule.getAppState("mainWindow")).toBe(mockWindow);
         });
 
         it("should handle development flag", async () => {
@@ -328,74 +495,121 @@ describe("main.js - Electron Main Process", () => {
                 "--dev",
             ];
 
-            await import("../../main.js");
+            try {
+                await importMainModule();
 
-            // Should handle dev flag without errors
-            expect(true).toBe(true);
-
-            // Clean up
-            process.argv = originalArgv;
+                expect((globalThis as any).devHelpers).toMatchObject({
+                    cleanupEventHandlers: expect.any(Function),
+                    getAppState: expect.any(Function),
+                    logState: expect.any(Function),
+                    rebuildMenu: expect.any(Function),
+                });
+            } finally {
+                process.argv = originalArgv;
+            }
         });
     });
 
     describe("Platform Compatibility", () => {
         it("should handle different platforms", async () => {
-            // Test doesn't depend on specific platform behavior
-            await import("../../main.js");
+            const mainModule = await importMainModule();
+            const warnSpy = vi
+                .spyOn(console, "warn")
+                .mockImplementation(() => {});
+            const destroyedWindow = {
+                isDestroyed: () => true,
+                webContents: {
+                    isDestroyed: () => false,
+                },
+            };
 
-            // Should work on any platform
-            expect(true).toBe(true);
+            expect(
+                Object.values(mainModule.CONSTANTS.PLATFORMS).sort()
+            ).toEqual([
+                "darwin",
+                "linux",
+                "win32",
+            ]);
+            expect(
+                mainModule.validateWindow(destroyedWindow, "destroyed window")
+            ).toBe(false);
+            expect(warnSpy.mock.calls[0]?.[0]).toContain(
+                "Window validation failed during destroyed window"
+            );
+            expect(
+                JSON.parse(warnSpy.mock.calls[0]?.[1] as string)
+            ).toMatchObject({
+                hasWindow: true,
+                isDestroyed: true,
+            });
         });
 
         it("should handle file operations", async () => {
-            await import("../../main.js");
+            await importMainModule();
+            const fileReadHandler = getRegisteredIpcHandler("file:read");
 
-            // File operations should be mocked and working
-            expect(true).toBe(true);
+            expect(fileReadHandler).toBeTypeOf("function");
+            await expect(fileReadHandler({}, "")).rejects.toThrow(
+                "Invalid file path provided"
+            );
         });
     });
 
     describe("Gyazo OAuth Server", () => {
-        it("should handle server setup with environment variables", async () => {
-            // Mock environment variables
-            process.env.GYAZO_CLIENT_ID = "test-client-id";
-            process.env.GYAZO_CLIENT_SECRET = "test-client-secret";
-
-            await import("../../main.js");
-
-            // Server setup should complete without errors
-            expect(true).toBe(true);
-
-            // Clean up
-            delete process.env.GYAZO_CLIENT_ID;
-            delete process.env.GYAZO_CLIENT_SECRET;
-        });
-
         it("should handle missing Gyazo environment variables", async () => {
             // Ensure no Gyazo environment variables
             delete process.env.GYAZO_CLIENT_ID;
             delete process.env.GYAZO_CLIENT_SECRET;
 
-            await import("../../main.js");
+            const mainModule = await importMainModule();
 
-            // Should complete without errors when Gyazo vars are missing
-            expect(true).toBe(true);
+            expect(mainModule.startGyazoOAuthServer).toBeTypeOf("function");
+            expect(mainModule.stopGyazoOAuthServer).toBeTypeOf("function");
+            expect((globalThis as any).__ffvGyazoStartupTimer).toBeUndefined();
+            await expect(mainModule.stopGyazoOAuthServer()).resolves.toEqual({
+                message: "No server was running",
+                success: true,
+            });
         });
     });
 
     describe("Security Features", () => {
         it("should handle web security setup", async () => {
-            await import("../../main.js");
+            await importMainModule();
+            const requestHandler =
+                mockElectron.session.defaultSession.webRequest.onBeforeRequest
+                    .mock.calls[0]?.[0];
+            const blockedCallback = vi.fn();
+            const allowedCallback = vi.fn();
 
-            // Web security setup should complete without errors
-            expect(true).toBe(true);
+            expect(requestHandler).toBeTypeOf("function");
+            requestHandler(
+                { url: "https://ua.harryonline.net/script.js" },
+                blockedCallback
+            );
+            requestHandler(
+                { url: "https://example.com/app.js" },
+                allowedCallback
+            );
+            expect(blockedCallback).toHaveBeenCalledWith({ cancel: true });
+            expect(allowedCallback).toHaveBeenCalledWith({});
         });
 
         it("should handle URL validation", async () => {
-            await import("../../main.js");
+            await importMainModule();
+            const openExternalHandler =
+                getRegisteredIpcHandler("shell:openExternal");
 
-            // URL validation should be set up correctly
-            expect(true).toBe(true);
+            expect(openExternalHandler).toBeTypeOf("function");
+            await expect(openExternalHandler({}, "not-a-url")).rejects.toThrow(
+                "Invalid URL provided"
+            );
+            await expect(
+                openExternalHandler({}, "https://example.com")
+            ).resolves.toBe(true);
+            expect(mockElectron.shell.openExternal).toHaveBeenCalledWith(
+                "https://example.com"
+            );
         });
     });
 });
