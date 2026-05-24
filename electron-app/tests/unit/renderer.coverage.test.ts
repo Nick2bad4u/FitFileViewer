@@ -18,17 +18,50 @@ if (typeof process === "undefined") {
 // Test suite
 describe("renderer.js - Coverage Test", () => {
     const setupDOM = () => {
-        document.body.innerHTML = `
-            <div id="loading" style="display: block;">Loading...</div>
-            <div id="notification-container"></div>
-            <div id="tab-summary"></div>
-            <div id="tab-chart"></div>
-            <div id="tab-map"></div>
-            <div id="tab-table"></div>
-            <div id="app-content" style="display: none;"></div>
-            <input type="file" id="fileInput" style="display: none;" />
-            <div id="about-modal" style="display: none;"></div>
-        `;
+        const loading = document.createElement("div");
+        loading.id = "loading";
+        loading.style.display = "block";
+        loading.textContent = "Loading...";
+
+        const notificationContainer = document.createElement("div");
+        notificationContainer.id = "notification-container";
+
+        const summaryTab = document.createElement("div");
+        summaryTab.id = "tab-summary";
+
+        const chartTab = document.createElement("div");
+        chartTab.id = "tab-chart";
+
+        const mapTab = document.createElement("div");
+        mapTab.id = "tab-map";
+
+        const tableTab = document.createElement("div");
+        tableTab.id = "tab-table";
+
+        const appContent = document.createElement("div");
+        appContent.id = "app-content";
+        appContent.style.display = "none";
+
+        const fileInput = document.createElement("input");
+        fileInput.id = "fileInput";
+        fileInput.style.display = "none";
+        fileInput.type = "file";
+
+        const aboutModal = document.createElement("div");
+        aboutModal.id = "about-modal";
+        aboutModal.style.display = "none";
+
+        document.body.replaceChildren(
+            loading,
+            notificationContainer,
+            summaryTab,
+            chartTab,
+            mapTab,
+            tableTab,
+            appContent,
+            fileInput,
+            aboutModal
+        );
     };
 
     const setupElectronAPI = () => {
@@ -67,25 +100,60 @@ describe("renderer.js - Coverage Test", () => {
 
         // Just verify that the basic import works without throwing an error
         await import("../../renderer.js");
-        expect(true).toBe(true);
+
+        await Promise.resolve();
+        const electronAPIDescriptor = Object.getOwnPropertyDescriptor(
+            globalThis,
+            "electronAPI"
+        );
+
+        expect(typeof electronAPIDescriptor?.get).toBe("function");
+        expect(typeof electronAPIDescriptor?.set).toBe("function");
     }, 30000);
 
     // Convert previously skipped tests into smoke checks to ensure zero skips
     it("should handle file input change events (smoke)", async () => {
         const input = document.getElementById("fileInput") as HTMLInputElement;
-        expect(input).toBeTruthy();
+
+        expect(input).toBeInstanceOf(HTMLInputElement);
+        expect(input.type).toBe("file");
+        expect(input.style.display).toBe("none");
     });
 
     it("should handle window load event (smoke)", async () => {
+        const loadController = new AbortController();
+        let observedLoadEvent = "";
+        window.addEventListener(
+            "load",
+            (event) => {
+                observedLoadEvent = event.type;
+            },
+            { once: true, signal: loadController.signal }
+        );
+
         const evt = new Event("load");
         window.dispatchEvent(evt);
-        expect(true).toBe(true);
+        loadController.abort();
+
+        expect(observedLoadEvent).toBe("load");
     });
 
     it("should handle DOM content loaded event (smoke)", async () => {
+        const readyController = new AbortController();
+        let observedReadyEvent = "";
+        document.addEventListener(
+            "DOMContentLoaded",
+            (event) => {
+                observedReadyEvent = event.type;
+            },
+            { once: true, signal: readyController.signal }
+        );
+
         const evt = new Event("DOMContentLoaded");
         document.dispatchEvent(evt);
-        expect(true).toBe(true);
+        readyController.abort();
+
+        expect(observedReadyEvent).toBe("DOMContentLoaded");
     });
 
     it("should handle electron API menu actions (smoke)", async () => {
@@ -102,22 +170,32 @@ describe("renderer.js - Coverage Test", () => {
 
     it("should initialize state management (smoke)", async () => {
         // Renderer import already executed; just assert DOM markers exist
-        expect(document.getElementById("app-content")).toBeTruthy();
+        const appContent = document.getElementById("app-content");
+
+        expect(appContent?.style.display).toBe("none");
     });
 
     it("should handle development mode features (smoke)", async () => {
         // Dev features are environment dependent; value may be string/boolean/undefined
         const t = typeof (window as any).__DEVELOPMENT__;
-        expect([
+
+        const supportedDevelopmentFlagTypes = new Set([
             "undefined",
             "boolean",
             "string",
-        ]).toContain(t);
+        ]);
+
+        expect(supportedDevelopmentFlagTypes.has(t)).toBe(true);
     });
 
     it("should handle error scenarios gracefully (smoke)", async () => {
-        // Nothing to do here beyond ensuring test harness is stable
-        expect(true).toBe(true);
+        const notificationContainer = document.getElementById(
+            "notification-container"
+        );
+        const eventResult = window.dispatchEvent(new Event("error"));
+
+        expect(eventResult).toBe(true);
+        expect(notificationContainer?.childElementCount).toBe(0);
     });
 
     it("should set up performance monitoring (smoke)", async () => {
