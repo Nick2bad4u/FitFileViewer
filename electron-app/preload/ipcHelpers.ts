@@ -1,5 +1,15 @@
 {
-    type IpcListener = (event: object, ...args: unknown[]) => void;
+    type GenericInvokeChannel = import("../shared/ipc").GenericInvokeChannel;
+    type GenericSendChannel = import("../shared/ipc").GenericSendChannel;
+    type IpcRequestPayload = import("../shared/ipc").IpcRequestPayload;
+    type IpcResponsePayload = import("../shared/ipc").IpcResponsePayload;
+    type InvokeRequestArgs<Channel extends GenericInvokeChannel> =
+        import("../shared/ipc").InvokeRequestArgs<Channel>;
+    type InvokeResponsePayloadForChannel<
+        Channel extends GenericInvokeChannel,
+    > = import("../shared/ipc").InvokeResponsePayloadForChannel<Channel>;
+
+    type IpcListener = (event: object, ...args: IpcResponsePayload[]) => void;
     type PreloadLog = (
         level: "error" | "info" | "warn",
         message: string,
@@ -21,16 +31,18 @@
         createSafeEventHandler: (
             channel: string,
             methodName: string,
-            transform?: (...args: unknown[]) => null | unknown
+            transform?: (...args: IpcResponsePayload[]) => IpcResponsePayload | null
         ) => (callback: UnknownCallback) => () => void;
-        createSafeInvokeHandler: (
-            channel: string,
+        createSafeInvokeHandler: <Channel extends GenericInvokeChannel>(
+            channel: Channel,
             methodName: string
-        ) => (...args: unknown[]) => Promise<unknown>;
-        createSafeSendHandler: (
-            channel: string,
+        ) => (
+            ...args: InvokeRequestArgs<Channel>
+        ) => Promise<InvokeResponsePayloadForChannel<Channel>>;
+        createSafeSendHandler: <Channel extends GenericSendChannel>(
+            channel: Channel,
             methodName: string
-        ) => (...args: unknown[]) => void;
+        ) => (...args: IpcRequestPayload[]) => void;
         removeIpcListener: (channel: string, handler: IpcListener) => void;
     }
 
@@ -55,7 +67,7 @@
         function createSafeEventHandler(
             channel: string,
             methodName: string,
-            transform?: (...args: unknown[]) => null | unknown
+            transform?: (...args: IpcResponsePayload[]) => IpcResponsePayload | null
         ): (callback: UnknownCallback) => () => void {
             return (callback) => {
                 if (!validateCallback(callback, methodName)) {
@@ -100,13 +112,18 @@
             };
         }
 
-        function createSafeInvokeHandler(
-            channel: string,
+        function createSafeInvokeHandler<Channel extends GenericInvokeChannel>(
+            channel: Channel,
             methodName: string
-        ): (...args: unknown[]) => Promise<unknown> {
+        ): (
+            ...args: InvokeRequestArgs<Channel>
+        ) => Promise<InvokeResponsePayloadForChannel<Channel>> {
             return async (...args) => {
                 try {
-                    return await ipcRenderer.invoke(channel, ...args);
+                    return (await ipcRenderer.invoke(
+                        channel,
+                        ...args
+                    )) as InvokeResponsePayloadForChannel<Channel>;
                 } catch (error) {
                     preloadLog(
                         "error",
@@ -118,10 +135,10 @@
             };
         }
 
-        function createSafeSendHandler(
-            channel: string,
+        function createSafeSendHandler<Channel extends GenericSendChannel>(
+            channel: Channel,
             methodName: string
-        ): (...args: unknown[]) => void {
+        ): (...args: IpcRequestPayload[]) => void {
             return (...args) => {
                 try {
                     ipcRenderer.send(channel, ...args);
