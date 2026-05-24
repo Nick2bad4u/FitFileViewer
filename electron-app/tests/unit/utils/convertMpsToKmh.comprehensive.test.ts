@@ -75,6 +75,7 @@ describe("convertMpsToKmh.js - Speed Unit Converter Utility (MPS to KMH)", () =>
     describe("Basic Conversions", () => {
         it("should convert zero meters per second correctly", () => {
             expect(convertMpsToKmh(0)).toBe(0);
+            expect(convertMpsToKmh(0)).not.toBe(3.6);
         });
 
         it("should convert common walking speed (1.4 m/s)", () => {
@@ -104,6 +105,12 @@ describe("convertMpsToKmh.js - Speed Unit Converter Utility (MPS to KMH)", () =>
     });
 
     describe("Edge Cases", () => {
+        it("should reject invalid-input NaN edge values", () => {
+            expect(() => convertMpsToKmh(Number.NaN)).toThrow(
+                "Expected mps to be a number, received number"
+            );
+        });
+
         it("should handle very small numbers", () => {
             const result = convertMpsToKmh(0.0001);
             expect(result).toBeCloseTo(0.00036, 7);
@@ -146,6 +153,7 @@ describe("convertMpsToKmh.js - Speed Unit Converter Utility (MPS to KMH)", () =>
             expect(results.every((result) => result === firstResult)).toBe(
                 true
             );
+            expect(results).not.toContain(0);
         });
 
         it("should handle rapid successive conversions", () => {
@@ -195,6 +203,7 @@ describe("convertMpsToKmh.js - Speed Unit Converter Utility (MPS to KMH)", () =>
             const gpsSpeed = 3.2; // m/s from GPS
             const result = convertMpsToKmh(gpsSpeed);
             expect(result).toBeCloseTo(11.52, 2);
+            expect(result).not.toBe(gpsSpeed);
         });
 
         it("should handle running pace conversions", () => {
@@ -251,6 +260,7 @@ describe("convertMpsToKmh.js - Speed Unit Converter Utility (MPS to KMH)", () =>
         it("should use correct conversion factor (3.6)", () => {
             // 1 m/s = 3.6 km/h (exact mathematical relationship)
             expect(convertMpsToKmh(1)).toBe(3.6);
+            expect(convertMpsToKmh(1)).not.toBe(1);
         });
 
         it("should validate conversion factor precision", () => {
@@ -284,6 +294,7 @@ describe("convertMpsToKmh.js - Speed Unit Converter Utility (MPS to KMH)", () =>
                 const converted = convertMpsToKmh(speed);
                 const roundTrip = converted / 3.6; // Convert back to m/s
                 expect(roundTrip).toBeCloseTo(speed, 10);
+                expect(converted).not.toBe(speed);
             });
         });
 
