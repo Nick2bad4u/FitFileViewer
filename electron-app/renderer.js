@@ -237,6 +237,19 @@ function getEnvironment() {
 }
 
 /**
+ * @param {unknown} errorLike
+ *
+ * @returns {string}
+ */
+function getErrorMessage(errorLike) {
+    const message = toModuleRecord(errorLike).message;
+
+    return typeof message === "string" && message.length > 0
+        ? message
+        : "Unknown error";
+}
+
+/**
  * @param {string} flagName
  *
  * @returns {unknown}
@@ -500,7 +513,7 @@ function resolveDefaultableExport(moduleRecord, exportName) {
 function resolveExactManualMock(testId) {
     try {
         const reg = getVitestManualMockRegistry();
-        if (reg !== null && reg.has(testId)) {
+        if (reg?.has(testId) === true) {
             const mod = reg.get(testId);
             const modRecord = toModuleRecord(mod);
             return "default" in modRecord ? modRecord.default : mod;
@@ -581,18 +594,15 @@ async function handleUncaughtError(event) {
     logRenderer("error", "[Renderer] Uncaught error:", event.error);
 
     try {
-        const { masterStateManager, showNotification } =
-            await ensureCoreModules();
-        // Use state manager if available, fallback to direct notification
-        if (masterStateManager && masterStateManager.isInitialized) {
-            showNotification(
-                `Critical error: ${event.error?.message || "Unknown error"}`,
-                "error",
-                7000
+        const coreModules = toModuleRecord(await ensureCoreModules());
+        const showNotification = coreModules.showNotification;
+
+        if (typeof showNotification === "function") {
+            const notify = /** @type {UnknownRendererFunction} */ (
+                showNotification
             );
-        } else {
-            showNotification(
-                `Critical error: ${event.error?.message || "Unknown error"}`,
+            notify(
+                `Critical error: ${getErrorMessage(event.error)}`,
                 "error",
                 7000
             );
@@ -623,18 +633,15 @@ async function handleUnhandledRejection(event) {
     );
 
     try {
-        const { masterStateManager, showNotification } =
-            await ensureCoreModules();
-        // Use state manager if available, fallback to direct notification
-        if (masterStateManager && masterStateManager.isInitialized) {
-            showNotification(
-                `Application error: ${event.reason?.message || "Unknown error"}`,
-                "error",
-                5000
+        const coreModules = toModuleRecord(await ensureCoreModules());
+        const showNotification = coreModules.showNotification;
+
+        if (typeof showNotification === "function") {
+            const notify = /** @type {UnknownRendererFunction} */ (
+                showNotification
             );
-        } else {
-            showNotification(
-                `Application error: ${event.reason?.message || "Unknown error"}`,
+            notify(
+                `Application error: ${getErrorMessage(event.reason)}`,
                 "error",
                 5000
             );
