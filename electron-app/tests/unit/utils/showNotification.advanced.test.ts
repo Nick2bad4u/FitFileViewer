@@ -4,6 +4,22 @@ import {
     notify,
     clearAllNotifications,
 } from "../../../utils/ui/notifications/showNotification.js";
+import type { NotificationType } from "../../../utils/ui/notifications/showNotification.js";
+
+type NotificationElementWithHideTimeout = HTMLElement & {
+    hideTimeout?: number;
+};
+
+type NotifyTypeMethod = "error" | "info" | "success" | "warning";
+
+function createNotificationFixture(): HTMLDivElement {
+    const notificationElement = document.createElement("div");
+    notificationElement.id = "notification";
+    notificationElement.className = "notification";
+    notificationElement.style.display = "none";
+    document.body.replaceChildren(notificationElement);
+    return notificationElement;
+}
 
 describe("showNotification.js - advanced coverage", () => {
     const originalWarn = console.warn;
@@ -20,8 +36,7 @@ describe("showNotification.js - advanced coverage", () => {
             cb(0);
             return 0;
         };
-        document.body.innerHTML =
-            '<div id="notification" class="notification" style="display:none"></div>';
+        createNotificationFixture();
     });
 
     afterEach(() => {
@@ -30,27 +45,31 @@ describe("showNotification.js - advanced coverage", () => {
         console.warn = originalWarn;
         console.error = originalError;
         window.requestAnimationFrame = originalRAF;
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         clearAllNotifications();
     });
 
-    it("handles missing notification element gracefully", () => {
-        document.body.innerHTML = ""; // Remove notification element
+    it("handles missing notification element gracefully", async () => {
+        document.body.replaceChildren();
 
-        // Call showNotification with no element - don't await the promise
-        showNotification("Test");
+        await showNotification("Test");
 
-        // Just check that the warning was logged
+        expect(document.querySelector("#notification")).toBeNull();
+        expect(document.body.childElementCount).toBe(0);
         expect(console.warn).toHaveBeenCalledWith(
             "Notification element not found. Unable to display notification."
         );
     });
 
     it("processes queue gracefully when element missing (smoke)", async () => {
-        // Ensure no notification element exists
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
+
         const p = showNotification("No element present");
+
         await p;
+
+        expect(document.querySelector(".notification-message")).toBeNull();
+        expect(document.body.childElementCount).toBe(0);
         expect(console.warn).toHaveBeenCalledWith(
             "Notification element not found. Unable to display notification."
         );
@@ -58,21 +77,33 @@ describe("showNotification.js - advanced coverage", () => {
 
     it("clears existing hideTimeout when displaying new notification", async () => {
         const mockClearTimeout = vi.spyOn(window, "clearTimeout");
-        const notificationEl = document.getElementById("notification");
+        const notificationEl = document.getElementById(
+            "notification"
+        ) as NotificationElementWithHideTimeout | null;
 
-        // Manually set a hideTimeout on the element
-        if (notificationEl) {
-            // @ts-ignore - Setting property for test
-            notificationEl.hideTimeout = 123;
+        if (!notificationEl) {
+            throw new Error("Expected notification fixture to exist");
         }
 
+        notificationEl.hideTimeout = 123;
+
         const p = showNotification("Testing clearTimeout");
+
         await p;
-        expect(mockClearTimeout).toHaveBeenCalled();
+
+        expect(notificationEl.style.display).toBe("flex");
+        expect(
+            notificationEl.querySelector(".notification-message")?.textContent
+        ).toBe("Testing clearTimeout");
+        expect(notificationEl.hideTimeout).not.toBe(123);
+        expect(mockClearTimeout).toHaveBeenCalledWith(123);
     });
 
     it("handles all notification types through the notify object", async () => {
-        const typeTests = [
+        const typeTests: readonly {
+            method: NotifyTypeMethod;
+            type: NotificationType;
+        }[] = [
             { method: "info", type: "info" },
             { method: "success", type: "success" },
             { method: "error", type: "error" },
@@ -80,7 +111,6 @@ describe("showNotification.js - advanced coverage", () => {
         ];
 
         for (const test of typeTests) {
-            // @ts-ignore - Dynamic method call
             const p = notify[test.method](`${test.type} notification`);
             await p;
             const el = document.getElementById("notification")!;
@@ -96,10 +126,12 @@ describe("showNotification.js - advanced coverage", () => {
     it("handles mouseover and mouseout events on close button", async () => {
         const p = notify.persistent("Hover test");
         await p;
-        const closeBtn = document.querySelector(
-            ".notification-close"
-        ) as HTMLButtonElement;
-        expect(closeBtn).toBeTruthy();
+        const closeBtn = document.querySelector(".notification-close");
+        expect(closeBtn).toBeInstanceOf(HTMLButtonElement);
+
+        if (!(closeBtn instanceof HTMLButtonElement)) {
+            throw new Error("Expected persistent notification close button");
+        }
 
         // Simulate mouseover and mouseout
         const mouseoverEvent = new MouseEvent("mouseover");
@@ -118,10 +150,12 @@ describe("showNotification.js - advanced coverage", () => {
         ]);
         await p;
         const el = document.getElementById("notification")!;
-        const btn = el.querySelector(
-            ".notification-actions button"
-        ) as HTMLButtonElement;
-        expect(btn).toBeTruthy();
+        const btn = el.querySelector(".notification-actions button");
+        expect(btn).toBeInstanceOf(HTMLButtonElement);
+
+        if (!(btn instanceof HTMLButtonElement)) {
+            throw new Error("Expected action button to be rendered");
+        }
 
         // Click should still hide notification even without handler
         btn.click();
@@ -146,6 +180,8 @@ describe("showNotification.js - advanced coverage", () => {
         });
 
         el.dispatchEvent(clickEvent);
+        expect(el.style.display).toBe("flex");
+        expect(el.style.cursor).toBe("pointer");
         expect(onClick).not.toHaveBeenCalled();
     });
 
@@ -156,6 +192,7 @@ describe("showNotification.js - advanced coverage", () => {
             persistent: true,
         });
         await p;
+        const notificationEl = document.getElementById("notification")!;
 
         // Create a mock event with a target that would be inside the notification-actions area
         const mockEvent = new MouseEvent("click");
@@ -166,25 +203,26 @@ describe("showNotification.js - advanced coverage", () => {
         const actionsContainer = document.createElement("div");
         actionsContainer.className = "notification-actions";
         actionsContainer.appendChild(mockTarget);
-        document.getElementById("notification")!.appendChild(actionsContainer);
+        notificationEl.appendChild(actionsContainer);
 
         // Mock closest to return the actions container
-        const originalClosest = Element.prototype.closest;
-        // @ts-ignore - Mocking
-        mockTarget.closest = vi.fn().mockReturnValue(actionsContainer);
+        const closestSpy = vi
+            .spyOn(mockTarget, "closest")
+            .mockReturnValue(actionsContainer);
 
         // Override the event target
         Object.defineProperty(mockEvent, "target", { get: () => mockTarget });
 
         // Dispatch the event
-        document.getElementById("notification")!.dispatchEvent(mockEvent);
+        notificationEl.dispatchEvent(mockEvent);
 
         // Should not trigger onClick since it's inside action area
+        expect(notificationEl.style.display).toBe("flex");
+        expect(
+            notificationEl.querySelector(".notification-message")?.textContent
+        ).toBe("Action area test");
         expect(onClick).not.toHaveBeenCalled();
-
-        // Restore original
-        // @ts-ignore - Restoring
-        Element.prototype.closest = originalClosest;
+        closestSpy.mockRestore();
     });
 
     it("handles multiple notifications in queue properly", async () => {
@@ -246,6 +284,8 @@ describe("showNotification.js - advanced coverage", () => {
 
         // Wait a bit to ensure no further notifications appear
         await vi.advanceTimersByTimeAsync(500);
-        expect(el.style.display).toBe("none");
+        expect(el.querySelector(".notification-message")?.textContent).toBe(
+            "First"
+        );
     });
 });
