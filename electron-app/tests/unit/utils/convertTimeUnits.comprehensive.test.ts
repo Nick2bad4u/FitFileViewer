@@ -79,6 +79,7 @@ describe("convertTimeUnits.js - Time Unit Converter Utility", () => {
         it("should convert 60 seconds to 1 minute", () => {
             const result = convertTimeUnits(60, TIME_UNITS.MINUTES);
             expect(result).toBe(1);
+            expect(result).not.toBe(0);
         });
 
         it("should convert 120 seconds to 2 minutes", () => {
@@ -106,6 +107,7 @@ describe("convertTimeUnits.js - Time Unit Converter Utility", () => {
         it("should convert 3600 seconds to 1 hour", () => {
             const result = convertTimeUnits(3600, TIME_UNITS.HOURS);
             expect(result).toBe(1);
+            expect(result).not.toBe(0);
         });
 
         it("should convert 7200 seconds to 2 hours", () => {
@@ -135,6 +137,7 @@ describe("convertTimeUnits.js - Time Unit Converter Utility", () => {
             expect(convertTimeUnits(60, TIME_UNITS.SECONDS)).toBe(60);
             expect(convertTimeUnits(3600, TIME_UNITS.SECONDS)).toBe(3600);
             expect(convertTimeUnits(12345, TIME_UNITS.SECONDS)).toBe(12345);
+            expect(convertTimeUnits(60, TIME_UNITS.SECONDS)).not.toBe(1);
         });
 
         it("should handle decimal values for seconds to seconds", () => {
@@ -164,6 +167,7 @@ describe("convertTimeUnits.js - Time Unit Converter Utility", () => {
         it("should handle negative infinity", () => {
             const result = convertTimeUnits(-Infinity, TIME_UNITS.MINUTES);
             expect(result).toBe(-Infinity);
+            expect(result).not.toBe(Infinity);
             expect(mockConsole.warn).toHaveBeenCalledWith(
                 "[convertTimeUnits] Negative time value:",
                 -Infinity
@@ -180,6 +184,7 @@ describe("convertTimeUnits.js - Time Unit Converter Utility", () => {
         it("should warn for unknown units and default to seconds", () => {
             const result = convertTimeUnits(3600, "milliseconds" as any);
             expect(result).toBe(3600); // Should default to seconds (no conversion)
+            expect(result).not.toBe(60);
             expect(mockConsole.warn).toHaveBeenCalledWith(
                 "[convertTimeUnits] Unknown unit 'milliseconds', defaulting to seconds"
             );
@@ -222,6 +227,7 @@ describe("convertTimeUnits.js - Time Unit Converter Utility", () => {
                 true
             );
             expect(firstResult).toBe(2);
+            expect(results).not.toContain(1);
         });
 
         it("should handle rapid successive conversions", () => {
@@ -273,6 +279,7 @@ describe("convertTimeUnits.js - Time Unit Converter Utility", () => {
             expect(convertTimeUnits(1200, TIME_UNITS.MINUTES)).toBe(20); // 20-minute HIIT
             expect(convertTimeUnits(2400, TIME_UNITS.MINUTES)).toBe(40); // 40-minute run
             expect(convertTimeUnits(3600, TIME_UNITS.HOURS)).toBe(1); // 1-hour cycling
+            expect(convertTimeUnits(1200, TIME_UNITS.HOURS)).not.toBe(20);
         });
 
         it("should handle GPS activity durations", () => {
@@ -345,7 +352,12 @@ describe("convertTimeUnits.js - Time Unit Converter Utility", () => {
 
         it("should export TIME_UNITS as a constant object", () => {
             expect(typeof TIME_UNITS).toBe("object");
-            expect(TIME_UNITS).not.toBeNull();
+            expect(TIME_UNITS).toStrictEqual({
+                HOURS: "hours",
+                MINUTES: "minutes",
+                SECONDS: "seconds",
+            });
+            expect(TIME_UNITS).not.toHaveProperty("MILLISECONDS");
 
             // Ensure it's not an array
             expect(Array.isArray(TIME_UNITS)).toBe(false);
@@ -382,6 +394,7 @@ describe("convertTimeUnits.js - Time Unit Converter Utility", () => {
                 const minutes = convertTimeUnits(time, TIME_UNITS.MINUTES);
                 const backToSeconds = minutes * 60;
                 expect(backToSeconds).toBeCloseTo(time, 10);
+                expect(backToSeconds).not.toBeNaN();
 
                 // Convert to hours and back
                 const hours = convertTimeUnits(time, TIME_UNITS.HOURS);
@@ -427,6 +440,7 @@ describe("convertTimeUnits.js - Time Unit Converter Utility", () => {
         it("should convert common running pace times", () => {
             // 5-minute mile pace per kilometer (approximately)
             expect(convertTimeUnits(300, TIME_UNITS.MINUTES)).toBe(5);
+            expect(convertTimeUnits(300, TIME_UNITS.HOURS)).not.toBe(5);
 
             // 8-minute mile pace
             expect(convertTimeUnits(480, TIME_UNITS.MINUTES)).toBe(8);
