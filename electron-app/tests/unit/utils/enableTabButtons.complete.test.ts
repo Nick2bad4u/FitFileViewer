@@ -1,7 +1,7 @@
+// @vitest-environment jsdom
 /**
- * @vitest-environment jsdom
- * Comprehensive test suite for enableTabButtons module
- * Testing tab button state management, DOM manipulation, and debugging functions
+ * Comprehensive test suite for enableTabButtons module Testing tab button state
+ * management, DOM manipulation, and debugging functions
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
@@ -40,9 +40,59 @@ const mockGetState = vi.mocked(getState);
 const mockSetState = vi.mocked(setState);
 const mockSubscribe = vi.mocked(subscribe);
 const mockIsHTMLElement = vi.mocked(isHTMLElement);
+let testContainer: HTMLElement;
+
+type TestButtonOptions = {
+    readonly ariaSelected?: string;
+    readonly className?: string;
+    readonly disabled?: boolean;
+    readonly id?: string;
+    readonly text?: string;
+    readonly type?: "button" | "reset" | "submit";
+};
+
+function createTestButton({
+    ariaSelected,
+    className = "tab-button",
+    disabled = false,
+    id = "",
+    text = "",
+    type,
+}: TestButtonOptions = {}): HTMLButtonElement {
+    const button = document.createElement("button");
+    button.className = className;
+    button.disabled = disabled;
+    button.id = id;
+    button.textContent = text;
+
+    if (ariaSelected !== undefined) {
+        button.setAttribute("aria-selected", ariaSelected);
+    }
+    if (type !== undefined) {
+        button.type = type;
+    }
+
+    return button;
+}
+
+function appendTestContent(...children: Node[]): void {
+    testContainer.replaceChildren(...children);
+}
+
+function appendTabButtons(buttons: readonly TestButtonOptions[]): void {
+    appendTestContent(...buttons.map((button) => createTestButton(button)));
+}
+
+function getRequiredButton(id: string): HTMLButtonElement {
+    const button = document.getElementById(id);
+    if (!(button instanceof HTMLButtonElement)) {
+        throw new Error(`Expected button #${id} to exist`);
+    }
+
+    return button;
+}
 
 describe("enableTabButtons.js - Complete Test Suite", () => {
-    let testContainer: HTMLElement;
     let originalConsoleLog: typeof console.log;
     let originalConsoleWarn: typeof console.warn;
     let consoleLogSpy: ReturnType<typeof vi.spyOn>;
@@ -133,12 +183,12 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
 
     describe("setTabButtonsEnabled function", () => {
         it("should disable all tab buttons except open file button", () => {
-            testContainer.innerHTML = `
-                <button id="openFileBtn" class="tab-button">Open File</button>
-                <button id="tab-summary" class="tab-button">Summary</button>
-                <button id="tab-chart" class="tab-button">Chart</button>
-                <button id="tab-map" class="tab-button">Map</button>
-            `;
+            appendTabButtons([
+                { id: "openFileBtn", text: "Open File" },
+                { id: "tab-summary", text: "Summary" },
+                { id: "tab-chart", text: "Chart" },
+                { id: "tab-map", text: "Map" },
+            ]);
 
             setTabButtonsEnabled(false);
 
@@ -165,11 +215,11 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
         });
 
         it("should enable all tab buttons except open file button", () => {
-            testContainer.innerHTML = `
-                <button id="openFileBtn" class="tab-button">Open File</button>
-                <button id="tab-summary" class="tab-button" disabled>Summary</button>
-                <button id="tab-chart" class="tab-button" disabled>Chart</button>
-            `;
+            appendTabButtons([
+                { id: "openFileBtn", text: "Open File" },
+                { id: "tab-summary", disabled: true, text: "Summary" },
+                { id: "tab-chart", disabled: true, text: "Chart" },
+            ]);
 
             setTabButtonsEnabled(true);
 
@@ -187,11 +237,14 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
         });
 
         it("should handle multiple open file button ID variants", () => {
-            testContainer.innerHTML = `
-                <button id="open-file-btn" class="tab-button">Open File</button>
-                <button class="tab-button open-file-btn">Open File Alt</button>
-                <button id="tab-summary" class="tab-button">Summary</button>
-            `;
+            appendTabButtons([
+                { id: "open-file-btn", text: "Open File" },
+                {
+                    className: "tab-button open-file-btn",
+                    text: "Open File Alt",
+                },
+                { id: "tab-summary", text: "Summary" },
+            ]);
 
             setTabButtonsEnabled(false);
 
@@ -208,7 +261,7 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
         });
 
         it("should set window global state for debugging", () => {
-            testContainer.innerHTML = `<button id="tab-test" class="tab-button">Test</button>`;
+            appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
             // Debug scope relationships
             console.log("Before setTabButtonsEnabled:");
@@ -248,7 +301,7 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
         });
 
         it("should apply comprehensive styling when disabling", () => {
-            testContainer.innerHTML = `<button id="tab-test" class="tab-button">Test</button>`;
+            appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
             setTabButtonsEnabled(false);
 
@@ -259,7 +312,14 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
         });
 
         it("should apply comprehensive styling when enabling", () => {
-            testContainer.innerHTML = `<button id="tab-test" class="tab-button tab-disabled" disabled>Test</button>`;
+            appendTabButtons([
+                {
+                    id: "tab-test",
+                    className: "tab-button tab-disabled",
+                    disabled: true,
+                    text: "Test",
+                },
+            ]);
 
             setTabButtonsEnabled(true);
 
@@ -272,7 +332,7 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
         });
 
         it("should handle elements that are not HTMLElements gracefully", () => {
-            testContainer.innerHTML = `<button id="tab-test" class="tab-button">Test</button>`;
+            appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
             // Mock isHTMLElement to return false
             mockIsHTMLElement.mockReturnValue(false);
@@ -287,26 +347,27 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
                     source: "setTabButtonsEnabled",
                 }
             );
+            expect(
+                document.getElementById("tab-test")?.hasAttribute("disabled")
+            ).toBe(false);
         });
 
         it("should handle nuclear option for stubborn disabled attributes", () => {
-            testContainer.innerHTML = `<button id="tab-test" class="tab-button" disabled>Test</button>`;
+            appendTabButtons([
+                { id: "tab-test", disabled: true, text: "Test" },
+            ]);
 
             // Mock a button that keeps its disabled attribute
-            const testBtn = document.getElementById("tab-test");
-            const originalHasAttribute = testBtn?.hasAttribute.bind(testBtn);
-            if (testBtn) {
-                vi.spyOn(testBtn, "hasAttribute").mockImplementation((attr) => {
-                    if (attr === "disabled") return true;
-                    return originalHasAttribute?.(attr) || false;
-                });
+            const testBtn = getRequiredButton("tab-test");
+            const originalHasAttribute = testBtn.hasAttribute.bind(testBtn);
+            vi.spyOn(testBtn, "hasAttribute").mockImplementation((attr) => {
+                if (attr === "disabled") return true;
+                return originalHasAttribute(attr);
+            });
 
-                const mockParent = { replaceChild: vi.fn() } as any;
-                vi.spyOn(testBtn, "parentNode", "get").mockReturnValue(
-                    mockParent
-                );
-                vi.spyOn(testBtn, "cloneNode").mockReturnValue(testBtn);
-            }
+            const mockParent = { replaceChild: vi.fn() } as any;
+            vi.spyOn(testBtn, "parentNode", "get").mockReturnValue(mockParent);
+            vi.spyOn(testBtn, "cloneNode").mockReturnValue(testBtn);
 
             setTabButtonsEnabled(true);
 
@@ -314,12 +375,13 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
             expect(consoleLogSpy).toHaveBeenCalledWith(
                 expect.stringContaining("nuclear option")
             );
+            expect(testBtn?.style.pointerEvents).toBe("auto");
         });
     });
 
     describe("initializeTabButtonState function", () => {
         it("should set up state subscription and initial disabled state", () => {
-            testContainer.innerHTML = `<button id="tab-test" class="tab-button">Test</button>`;
+            appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
             initializeTabButtonState();
 
@@ -334,64 +396,62 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
                     source: "setTabButtonsEnabled",
                 }
             );
+            expect(
+                document.getElementById("tab-test")?.hasAttribute("disabled")
+            ).toBe(true);
         });
 
         it("should enable tabs when globalData is present", () => {
-            testContainer.innerHTML = `<button id="tab-test" class="tab-button">Test</button>`;
+            appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
             initializeTabButtonState();
 
             // Get the subscription callback
-            const subscriptionCallback = mockSubscribe.mock.calls?.[0]?.[1];
+            const subscriptionCallback = mockSubscribe.mock.calls[0]?.[1] as
+                | ((data: unknown) => void)
+                | undefined;
+            expect(typeof subscriptionCallback).toBe("function");
 
-            if (subscriptionCallback) {
-                // Simulate globalData being set
-                subscriptionCallback({ someData: true });
+            subscriptionCallback?.({ someData: true });
 
-                expect(mockSetState).toHaveBeenCalledWith(
-                    "ui.tabButtonsEnabled",
-                    true,
-                    {
-                        source: "setTabButtonsEnabled",
-                    }
-                );
-            }
+            expect(
+                document.getElementById("tab-test")?.hasAttribute("disabled")
+            ).toBe(false);
+            expect(mockSetState).toHaveBeenCalledWith(
+                "ui.tabButtonsEnabled",
+                true,
+                {
+                    source: "setTabButtonsEnabled",
+                }
+            );
         });
 
         it("should disable tabs when globalData is null/undefined", () => {
-            testContainer.innerHTML = `<button id="tab-test" class="tab-button">Test</button>`;
+            appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
             initializeTabButtonState();
 
-            const subscriptionCallback = mockSubscribe.mock.calls?.[0]?.[1];
+            const subscriptionCallback = mockSubscribe.mock.calls[0]?.[1] as
+                | ((data: unknown) => void)
+                | undefined;
+            expect(typeof subscriptionCallback).toBe("function");
 
-            if (subscriptionCallback) {
-                // Simulate globalData being null
-                subscriptionCallback(null);
+            subscriptionCallback?.(null);
+            expect(
+                document.getElementById("tab-test")?.hasAttribute("disabled")
+            ).toBe(true);
 
-                expect(mockSetState).toHaveBeenCalledWith(
-                    "ui.tabButtonsEnabled",
-                    false,
-                    {
-                        source: "setTabButtonsEnabled",
-                    }
-                );
+            document.getElementById("tab-test")?.removeAttribute("disabled");
+            subscriptionCallback?.(undefined);
 
-                // Test undefined as well
-                subscriptionCallback(undefined);
-
-                expect(mockSetState).toHaveBeenCalledWith(
-                    "ui.tabButtonsEnabled",
-                    false,
-                    {
-                        source: "setTabButtonsEnabled",
-                    }
-                );
-            }
+            expect(getRequiredButton("tab-test").disabled).toBe(true);
+            expect(
+                mockSetState.mock.calls.filter(([, value]) => value === false)
+            ).toHaveLength(3);
         });
 
         it("should set up MutationObserver when window is available", () => {
-            testContainer.innerHTML = `<button id="tab-test" class="tab-button">Test</button>`;
+            appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
             const mockObserver = {
                 observe: vi.fn(),
@@ -429,13 +489,15 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
                 expect.any(Function)
             );
             expect(mockObserver.observe).toHaveBeenCalled();
+            expect((globalThis as any).tabButtonObserver).toBe(mockObserver);
         });
 
         it("should not create duplicate MutationObserver", () => {
-            testContainer.innerHTML = `<button id="tab-test" class="tab-button">Test</button>`;
+            appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
             // Set up existing observer
-            (global.window as any).tabButtonObserver = { existing: true };
+            const existingObserver = { existing: true };
+            (globalThis as any).tabButtonObserver = existingObserver;
 
             const mockObserver = {
                 observe: vi.fn(),
@@ -448,6 +510,9 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
             initializeTabButtonState();
 
             expect(global.window.MutationObserver).not.toHaveBeenCalled();
+            expect((globalThis as any).tabButtonObserver).toBe(
+                existingObserver
+            );
         });
     });
 
@@ -467,21 +532,27 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
             const result = areTabButtonsEnabled();
 
             expect(result).toBe(false);
+            expect(result).not.toBe(true);
         });
     });
 
     describe("debugTabButtons function", () => {
         it("should log debug information for all tab buttons", () => {
-            testContainer.innerHTML = `
-                <button id="openFileBtn" class="tab-button">Open File</button>
-                <button id="tab-summary" class="tab-button">Summary</button>
-            `;
+            appendTabButtons([
+                { id: "openFileBtn", text: "Open File" },
+                { id: "tab-summary", text: "Summary" },
+            ]);
 
             mockGetState.mockImplementation((key) => {
-                if (key === "globalData") return { test: true };
-                if (key === "isLoading") return false;
-                if (key === "ui.tabButtonsEnabled") return true;
-                return null;
+                const state = new Map<string, unknown>([
+                    ["globalData", { test: true }],
+                    ["isLoading", false],
+                    ["ui.tabButtonsEnabled", true],
+                ]);
+
+                return typeof key === "string"
+                    ? (state.get(key) ?? null)
+                    : null;
             });
 
             debugTabButtons();
@@ -495,21 +566,31 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
             expect(mockGetState).toHaveBeenCalledWith("globalData");
             expect(mockGetState).toHaveBeenCalledWith("isLoading");
             expect(mockGetState).toHaveBeenCalledWith("ui.tabButtonsEnabled");
+            expect(getRequiredButton("tab-summary").disabled).toBe(false);
         });
 
         it("should handle buttons without IDs gracefully", () => {
-            testContainer.innerHTML = `<button class="tab-button">No ID</button>`;
+            appendTabButtons([{ text: "No ID" }]);
 
             expect(() => debugTabButtons()).not.toThrow();
+            expect(consoleLogSpy).toHaveBeenCalledWith(
+                expect.stringContaining("Button No ID:"),
+                expect.objectContaining({ disabled: false })
+            );
         });
     });
 
     describe("forceEnableTabButtons function", () => {
         it("should aggressively enable all tab buttons", () => {
-            testContainer.innerHTML = `
-                <button id="openFileBtn" class="tab-button">Open File</button>
-                <button id="tab-summary" class="tab-button tab-disabled" disabled>Summary</button>
-            `;
+            appendTabButtons([
+                { id: "openFileBtn", text: "Open File" },
+                {
+                    id: "tab-summary",
+                    className: "tab-button tab-disabled",
+                    disabled: true,
+                    text: "Summary",
+                },
+            ]);
 
             forceEnableTabButtons();
 
@@ -528,13 +609,19 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
         });
 
         it("should skip open file buttons", () => {
-            testContainer.innerHTML = `
-                <button id="openFileBtn" class="tab-button">Open File</button>
-                <button id="tab-summary" class="tab-button">Summary</button>
-            `;
+            appendTabButtons([
+                { id: "openFileBtn", text: "Open File" },
+                { id: "tab-summary", text: "Summary" },
+            ]);
 
             forceEnableTabButtons();
 
+            expect(
+                document.getElementById("openFileBtn")?.style.pointerEvents
+            ).not.toBe("auto");
+            expect(
+                document.getElementById("tab-summary")?.style.pointerEvents
+            ).toBe("auto");
             expect(consoleLogSpy).not.toHaveBeenCalledWith(
                 expect.stringContaining("Force enabled: openFileBtn")
             );
@@ -546,32 +633,38 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
 
     describe("testTabButtonClicks function", () => {
         it("should add test click handlers to tab buttons", () => {
-            testContainer.innerHTML = `
-                <button id="openFileBtn" class="tab-button">Open File</button>
-                <button id="tab-summary" class="tab-button">Summary</button>
-            `;
+            appendTabButtons([
+                { id: "openFileBtn", text: "Open File" },
+                { id: "tab-summary", text: "Summary" },
+            ]);
 
             expect(() => testTabButtonClicks()).not.toThrow();
+            getRequiredButton("tab-summary").click();
+
             expect(consoleLogSpy).toHaveBeenCalledWith(
                 expect.stringContaining("Added test handler to: tab-summary")
+            );
+            expect(consoleLogSpy).toHaveBeenCalledWith(
+                expect.stringContaining("TEST CLICK DETECTED on tab-summary!"),
+                expect.any(PointerEvent)
             );
         });
 
         it("should skip open file buttons", () => {
-            testContainer.innerHTML = `<button id="openFileBtn" class="tab-button">Open File</button>`;
+            appendTabButtons([{ id: "openFileBtn", text: "Open File" }]);
 
             expect(() => testTabButtonClicks()).not.toThrow();
+            expect(consoleLogSpy).not.toHaveBeenCalledWith(
+                expect.stringContaining("Added test handler to: openFileBtn")
+            );
         });
 
         it("should remove test handlers after timeout", () => {
             vi.useFakeTimers();
 
-            testContainer.innerHTML = `<button id="tab-summary" class="tab-button">Summary</button>`;
+            appendTabButtons([{ id: "tab-summary", text: "Summary" }]);
 
-            const summaryBtn = document.getElementById(
-                "tab-summary"
-            ) as HTMLButtonElement;
-            expect(summaryBtn).toBeTruthy();
+            const summaryBtn = getRequiredButton("tab-summary");
             const removeEventListenerSpy = vi.spyOn(
                 summaryBtn,
                 "removeEventListener"
@@ -586,6 +679,7 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
                 "click",
                 expect.any(Function)
             );
+            expect(summaryBtn.isConnected).toBe(true);
 
             vi.useRealTimers();
         });
@@ -593,15 +687,25 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
 
     describe("debugTabState function", () => {
         it("should log current tab states and application state", () => {
-            testContainer.innerHTML = `
-                <button id="tab-summary" class="tab-button active" aria-selected="true">Summary</button>
-            `;
+            appendTabButtons([
+                {
+                    id: "tab-summary",
+                    className: "tab-button active",
+                    ariaSelected: "true",
+                    text: "Summary",
+                },
+            ]);
 
             mockGetState.mockImplementation((key) => {
-                if (key === "ui.activeTab") return "summary";
-                if (key === "globalData") return { test: true };
-                if (key === "ui.tabButtonsEnabled") return true;
-                return null;
+                const state = new Map<string, unknown>([
+                    ["ui.activeTab", "summary"],
+                    ["globalData", { test: true }],
+                    ["ui.tabButtonsEnabled", true],
+                ]);
+
+                return typeof key === "string"
+                    ? (state.get(key) ?? null)
+                    : null;
             });
 
             debugTabState();
@@ -612,15 +716,26 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
             expect(mockGetState).toHaveBeenCalledWith("ui.activeTab");
             expect(mockGetState).toHaveBeenCalledWith("globalData");
             expect(mockGetState).toHaveBeenCalledWith("ui.tabButtonsEnabled");
+            expect(getRequiredButton("tab-summary").className).toBe(
+                "tab-button active"
+            );
+            expect(
+                getRequiredButton("tab-summary").getAttribute("aria-selected")
+            ).not.toBe("false");
         });
     });
 
     describe("forceFixTabButtons function", () => {
         it("should aggressively fix all tab button states", () => {
-            testContainer.innerHTML = `
-                <button id="openFileBtn" class="tab-button">Open File</button>
-                <button id="tab-summary" class="tab-button tab-disabled" disabled>Summary</button>
-            `;
+            appendTabButtons([
+                { id: "openFileBtn", text: "Open File" },
+                {
+                    id: "tab-summary",
+                    className: "tab-button tab-disabled",
+                    disabled: true,
+                    text: "Summary",
+                },
+            ]);
 
             forceFixTabButtons();
 
@@ -631,6 +746,9 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
             expect(summaryBtn?.style.cursor).toBe("pointer");
             expect(summaryBtn?.style.filter).toBe("none");
             expect(summaryBtn?.style.opacity).toBe("1");
+            expect(
+                document.getElementById("openFileBtn")?.style.pointerEvents
+            ).not.toBe("auto");
 
             expect(mockSetState).toHaveBeenCalledWith(
                 "ui.tabButtonsEnabled",
@@ -640,10 +758,13 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
         });
 
         it("should log before and after states", () => {
-            testContainer.innerHTML = `<button id="tab-summary" class="tab-button">Summary</button>`;
+            appendTabButtons([{ id: "tab-summary", text: "Summary" }]);
 
             forceFixTabButtons();
 
+            expect(
+                document.getElementById("tab-summary")?.style.pointerEvents
+            ).toBe("auto");
             expect(consoleLogSpy).toHaveBeenCalledWith(
                 expect.stringContaining("BEFORE FIX: tab-summary")
             );
@@ -655,24 +776,26 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
 
     describe("Edge cases and error conditions", () => {
         it("should handle empty DOM gracefully", () => {
-            testContainer.innerHTML = "";
+            testContainer.replaceChildren();
 
             expect(() => setTabButtonsEnabled(true)).not.toThrow();
             expect(() => debugTabButtons()).not.toThrow();
             expect(() => forceEnableTabButtons()).not.toThrow();
+            expect(testContainer.childElementCount).toBe(0);
         });
 
         it("should handle buttons without parent nodes in nuclear option", () => {
-            testContainer.innerHTML = `<button id="tab-test" class="tab-button" disabled>Test</button>`;
+            appendTabButtons([
+                { id: "tab-test", disabled: true, text: "Test" },
+            ]);
 
-            const testBtn = document.getElementById("tab-test");
-            if (testBtn) {
-                vi.spyOn(testBtn, "hasAttribute").mockReturnValue(true);
-                vi.spyOn(testBtn, "parentNode", "get").mockReturnValue(null);
-                vi.spyOn(testBtn, "cloneNode").mockReturnValue(testBtn);
-            }
+            const testBtn = getRequiredButton("tab-test");
+            vi.spyOn(testBtn, "hasAttribute").mockReturnValue(true);
+            vi.spyOn(testBtn, "parentNode", "get").mockReturnValue(null);
+            vi.spyOn(testBtn, "cloneNode").mockReturnValue(testBtn);
 
             expect(() => setTabButtonsEnabled(true)).not.toThrow();
+            expect(testBtn.style.pointerEvents).toBe("auto");
         });
 
         it("should handle missing getComputedStyle", () => {
@@ -682,9 +805,11 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
                 throw new Error("getComputedStyle not available");
             });
 
-            testContainer.innerHTML = `<button id="tab-test" class="tab-button">Test</button>`;
+            appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
-            expect(() => debugTabButtons()).toThrow();
+            expect(() => debugTabButtons()).toThrow(
+                "getComputedStyle not available"
+            );
 
             // Restore original
             globalThis.getComputedStyle = originalGetComputedStyle;
@@ -694,10 +819,13 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
             const originalWindow = global.window;
             (global as any).window = undefined;
 
-            testContainer.innerHTML = `<button id="tab-test" class="tab-button">Test</button>`;
+            appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
             expect(() => setTabButtonsEnabled(true)).not.toThrow();
             expect(() => initializeTabButtonState()).not.toThrow();
+            expect(
+                document.getElementById("tab-test")?.hasAttribute("disabled")
+            ).toBe(true);
 
             global.window = originalWindow;
         });
@@ -705,10 +833,10 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
 
     describe("Integration scenarios", () => {
         it("should handle complete enable/disable cycle", () => {
-            testContainer.innerHTML = `
-                <button id="tab-summary" class="tab-button">Summary</button>
-                <button id="tab-chart" class="tab-button">Chart</button>
-            `;
+            appendTabButtons([
+                { id: "tab-summary", text: "Summary" },
+                { id: "tab-chart", text: "Chart" },
+            ]);
 
             // Start with disable
             setTabButtonsEnabled(false);
@@ -718,6 +846,7 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
 
             expect(summaryBtn?.hasAttribute("disabled")).toBe(true);
             expect(chartBtn?.hasAttribute("disabled")).toBe(true);
+            expect(summaryBtn?.style.pointerEvents).not.toBe("auto");
 
             // Then enable
             setTabButtonsEnabled(true);
@@ -741,13 +870,15 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
         });
 
         it("should handle MutationObserver callback for unauthorized changes", () => {
-            testContainer.innerHTML = `<button id="tab-test" class="tab-button">Test</button>`;
+            appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
             // Ensure clean state first
             delete (global as any).window.tabButtonObserver;
             delete (global as any).tabButtonObserver;
 
-            let mutationCallback: any;
+            let mutationCallback:
+                | ((mutations: readonly Partial<MutationRecord>[]) => void)
+                | undefined;
             const originalMutationObserver = global.MutationObserver;
             const originalWindowMutationObserver =
                 global.window.MutationObserver;
@@ -774,32 +905,26 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
             global.window.MutationObserver = originalWindowMutationObserver;
 
             // Sanity check to ensure setup is correct
-            const testBtn = document.getElementById("tab-test");
-            expect(testBtn).not.toBeNull();
-            expect(mutationCallback).toBeDefined();
+            const testBtn = getRequiredButton("tab-test");
+            expect(typeof mutationCallback).toBe("function");
 
-            // Simulate unauthorized disabled attribute addition
-            if (testBtn && mutationCallback) {
-                const mockMutation = {
-                    type: "attributes",
-                    attributeName: "disabled",
-                    target: testBtn,
-                };
+            const mockMutation = {
+                attributeName: "disabled",
+                target: testBtn,
+                type: "attributes",
+            };
 
-                // Mock hasAttribute to return true (unauthorized disabled)
-                vi.spyOn(testBtn, "hasAttribute").mockReturnValue(true);
-                vi.spyOn(testBtn, "removeAttribute");
-                testBtn.classList.add("tab-button"); // Ensure the element has the expected class
+            vi.spyOn(testBtn, "hasAttribute").mockReturnValue(true);
+            const removeAttributeSpy = vi.spyOn(testBtn, "removeAttribute");
+            testBtn.classList.add("tab-button");
 
-                mutationCallback([mockMutation]);
+            mutationCallback?.([mockMutation]);
 
-                expect(consoleWarnSpy).toHaveBeenCalledWith(
-                    expect.stringContaining("UNAUTHORIZED")
-                );
-                expect(testBtn.removeAttribute).toHaveBeenCalledWith(
-                    "disabled"
-                );
-            }
+            expect(consoleWarnSpy).toHaveBeenCalledWith(
+                expect.stringContaining("UNAUTHORIZED")
+            );
+            expect(removeAttributeSpy).toHaveBeenCalledWith("disabled");
+            expect(testBtn.disabled).toBe(false);
         });
     });
 });
