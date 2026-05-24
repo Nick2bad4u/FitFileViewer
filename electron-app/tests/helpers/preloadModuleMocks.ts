@@ -8,6 +8,9 @@ const preloadIpcBridgeCatalog = requireFromTest(
 const preloadBeforeExitHandler = requireFromTest(
     "../../preload/beforeExitHandler.js"
 );
+const preloadClipboardBridge = requireFromTest(
+    "../../preload/clipboardBridge.js"
+);
 const preloadElectronBridge = requireFromTest("../../preload/electronBridge.js");
 const preloadEnvironment = requireFromTest("../../preload/environment.js");
 const preloadGenericIpcApi = requireFromTest("../../preload/genericIpcApi.js");
@@ -32,6 +35,10 @@ export function resolvePreloadScriptRequire(
 
     if (moduleName === "./preload/beforeExitHandler.js") {
         return preloadBeforeExitHandler;
+    }
+
+    if (moduleName === "./preload/clipboardBridge.js") {
+        return preloadClipboardBridge;
     }
 
     if (moduleName === "./preload/electronBridge.js") {

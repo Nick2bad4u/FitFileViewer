@@ -52,6 +52,7 @@
         "main/constants.ts",
         "main/dev/exposeDevHelpers.ts",
         "preload/beforeExitHandler.ts",
+        "preload/clipboardBridge.ts",
         "preload/electronBridge.ts",
         "preload/environment.ts",
         "preload/genericIpcApi.ts",

@@ -116,6 +116,8 @@
 /**
  * @typedef {import("./shared/preloadApi").ElectronAPI} ElectronAPI
  *
+ * @typedef {Pick<ElectronAPI, "writeClipboardPngDataUrl" | "writeClipboardText">} ClipboardBridge
+ *
  * @typedef {Pick<ElectronAPI, "invoke" | "notifyFitFileLoaded" | "onIpc" | "onUpdateEvent" | "send">} GenericIpcApi
  */
 /**
@@ -126,6 +128,10 @@ const preloadRequire = /** @type {(moduleId: string) => unknown} */ (require);
 const { registerPreloadBeforeExitHandler } =
     /** @type {{ registerPreloadBeforeExitHandler: (options: { globalScope?: typeof globalThis; isDevelopmentMode: () => boolean; preloadLog: (level: "error" | "info" | "warn", message: string, ...details: unknown[]) => void; processRef?: NodeJS.Process }) => void }} */ (
         preloadRequire("./preload/beforeExitHandler.js")
+    );
+const { createClipboardBridge } =
+    /** @type {{ createClipboardBridge: (options: Record<string, unknown>) => ClipboardBridge }} */ (
+        preloadRequire("./preload/clipboardBridge.js")
     );
 const { createPreloadValidators } =
     /** @type {{ createPreloadValidators: (preloadLog: (level: "error" | "info" | "warn", message: string, ...details: unknown[]) => void) => { validateCallback: (callback: unknown, methodName: string) => callback is UnknownCallback; validateChannelName: (value: unknown, paramName: string, methodName: string) => value is string; validateOptionalNonEmptyString: (value: unknown, paramName: string, methodName: string) => value is string | null | undefined; validateRequiredNonEmptyString: (value: unknown, paramName: string, methodName: string) => value is string } }} */ (
@@ -241,6 +247,11 @@ const mainStateBridge = createMainStateBridge({
     removeIpcListener: /** @type {(channel: string, handler: (event: object, change: MainStateChange) => void) => void} */ (
         removeIpcListener
     ),
+});
+const clipboardBridge = createClipboardBridge({
+    channels: CONSTANTS.CHANNELS,
+    ipcRenderer,
+    preloadLog,
 });
 const genericIpcApi = createGenericIpcApi({
     fitFileLoadedChannel: /** @type {GenericSendChannel} */ (
@@ -998,22 +1009,7 @@ const electronAPI = {
      *
      * @returns {Promise<boolean>} True if the write succeeded
      */
-    writeClipboardPngDataUrl: async (pngDataUrl) => {
-        try {
-            const ok = await ipcRenderer.invoke(
-                CONSTANTS.CHANNELS.CLIPBOARD_WRITE_PNG_DATA_URL,
-                pngDataUrl
-            );
-            return Boolean(ok);
-        } catch (error) {
-            preloadLog(
-                "error",
-                "[preload.js] writeClipboardPngDataUrl failed:",
-                error
-            );
-            return false;
-        }
-    },
+    writeClipboardPngDataUrl: clipboardBridge.writeClipboardPngDataUrl,
 
     /**
      * Write text to the system clipboard using Electron's clipboard module.
@@ -1026,22 +1022,7 @@ const electronAPI = {
      *
      * @returns {Promise<boolean>} True if the write succeeded
      */
-    writeClipboardText: async (text) => {
-        try {
-            const ok = await ipcRenderer.invoke(
-                CONSTANTS.CHANNELS.CLIPBOARD_WRITE_TEXT,
-                text
-            );
-            return Boolean(ok);
-        } catch (error) {
-            preloadLog(
-                "error",
-                "[preload.js] writeClipboardText failed:",
-                error
-            );
-            return false;
-        }
-    },
+    writeClipboardText: clipboardBridge.writeClipboardText,
 };
 
 // Enhanced API exposure with error handling
