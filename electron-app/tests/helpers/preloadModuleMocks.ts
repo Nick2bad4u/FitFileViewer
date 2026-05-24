@@ -9,6 +9,9 @@ const preloadBeforeExitHandler = requireFromTest(
     "../../preload/beforeExitHandler.js"
 );
 const preloadEnvironment = requireFromTest("../../preload/environment.js");
+const preloadMainStateBridge = requireFromTest(
+    "../../preload/mainStateBridge.js"
+);
 const preloadValidators = requireFromTest("../../preload/validators.js");
 
 export function resolvePreloadScriptRequire(
@@ -29,6 +32,10 @@ export function resolvePreloadScriptRequire(
 
     if (moduleName === "./preload/environment.js") {
         return preloadEnvironment;
+    }
+
+    if (moduleName === "./preload/mainStateBridge.js") {
+        return preloadMainStateBridge;
     }
 
     if (moduleName === "./preload/validators.js") {

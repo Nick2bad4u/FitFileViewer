@@ -53,6 +53,7 @@
         "main/dev/exposeDevHelpers.ts",
         "preload/beforeExitHandler.ts",
         "preload/environment.ts",
+        "preload/mainStateBridge.ts",
         "preload/validators.ts",
         "preload/ipcBridgeCatalog.ts",
         "shared/fitUnknownMessageLabels.ts",

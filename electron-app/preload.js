@@ -134,6 +134,10 @@ const {
     /** @type {{ isPreloadDevelopmentMode: (processRef?: NodeJS.Process) => boolean; shouldEnforceGenericIpcAllowlist: (processRef?: NodeJS.Process) => boolean }} */ (
         preloadRequire("./preload/environment.js")
     );
+const { createMainStateBridge } =
+    /** @type {{ createMainStateBridge: (options: { ipcRenderer: PreloadIpcRenderer; preloadLog: (level: "error" | "info" | "warn", message: string, ...details: unknown[]) => void; removeIpcListener: (channel: string, handler: (event: object, change: MainStateChange) => void) => void }) => { listenToMainState: (path: string, callback: (change: MainStateChange) => void) => Promise<boolean>; unlistenFromMainState: (path: string, callback: (change: MainStateChange) => void) => Promise<boolean> } }} */ (
+        preloadRequire("./preload/mainStateBridge.js")
+    );
 const ipcBridgeCatalog = /** @type {IpcBridgeCatalog} */ (
     preloadRequire("./preload/ipcBridgeCatalog.js")
 );
@@ -364,37 +368,13 @@ function removeIpcListener(channel, handler) {
     }
 }
 
-/**
- * @param {unknown} value
- *
- * @returns {PreloadElectronBridge | null}
- */
-function unwrapElectronBridge(value) {
-    if (!isPreloadObjectRecord(value)) {
-        return null;
-    }
-
-    if ("contextBridge" in value || "ipcRenderer" in value) {
-        return /** @type {PreloadElectronBridge} */ (value);
-    }
-
-    if ("default" in value) {
-        return unwrapElectronBridge(value.default);
-    }
-
-    return /** @type {PreloadElectronBridge} */ (value);
-}
-
-/**
- * Main-state subscription fanout. Keep a single ipcRenderer listener and
- * dispatch by change.path.
- *
- * @type {Map<string, Set<(change: MainStateChange) => void>>}
- */
-const mainStateCallbacksByPath = new Map();
-
-/** @type {((event: object, change: MainStateChange) => void) | null} */
-let mainStateDispatcher = null;
+const mainStateBridge = createMainStateBridge({
+    ipcRenderer,
+    preloadLog,
+    removeIpcListener: /** @type {(channel: string, handler: (event: object, change: MainStateChange) => void) => void} */ (
+        removeIpcListener
+    ),
+});
 
 /**
  * Wrapper to create a safe invoke handler.
@@ -434,31 +414,24 @@ function createSafeSendHandler(channel, methodName) {
 }
 
 /**
- * @returns {void}
+ * @param {unknown} value
+ *
+ * @returns {PreloadElectronBridge | null}
  */
-function ensureMainStateDispatcher() {
-    if (mainStateDispatcher) return;
-    mainStateDispatcher = (_event, change) => {
-        const p =
-            typeof change.path === "string" && change.path.length > 0
-                ? change.path
-                : null;
-        if (p === null) return;
-        const callbacks = mainStateCallbacksByPath.get(p);
-        if (callbacks === undefined || callbacks.size === 0) return;
-        for (const listener of callbacks) {
-            try {
-                listener(change);
-            } catch (error) {
-                preloadLog(
-                    "error",
-                    "[preload.js] Error in main-state callback:",
-                    error
-                );
-            }
-        }
-    };
-    ipcRenderer.on("main-state-change", mainStateDispatcher);
+function unwrapElectronBridge(value) {
+    if (!isPreloadObjectRecord(value)) {
+        return null;
+    }
+
+    if ("contextBridge" in value || "ipcRenderer" in value) {
+        return /** @type {PreloadElectronBridge} */ (value);
+    }
+
+    if ("default" in value) {
+        return unwrapElectronBridge(value.default);
+    }
+
+    return /** @type {PreloadElectronBridge} */ (value);
 }
 
 /**
@@ -827,18 +800,10 @@ const electronAPI = {
         }
 
         try {
-            ensureMainStateDispatcher();
-
-            const existing = mainStateCallbacksByPath.get(path);
-            const callbacks = existing ?? new Set();
-            callbacks.add(callback);
-            if (!existing) {
-                mainStateCallbacksByPath.set(path, callbacks);
-                // Register the listener with the main process (idempotent in main)
-                return await ipcRenderer.invoke("main-state:listen", path);
-            }
-
-            return true;
+            return await mainStateBridge.listenToMainState(
+                path,
+                /** @type {(change: MainStateChange) => void} */ (callback)
+            );
         } catch (error) {
             preloadLog(
                 "error",
@@ -1349,21 +1314,10 @@ const electronAPI = {
         }
 
         try {
-            const callbacks = mainStateCallbacksByPath.get(path);
-            if (!callbacks) return false;
-
-            callbacks.delete(callback);
-            if (callbacks.size === 0) {
-                mainStateCallbacksByPath.delete(path);
-                await ipcRenderer.invoke("main-state:unlisten", path);
-            }
-
-            if (mainStateCallbacksByPath.size === 0 && mainStateDispatcher) {
-                removeIpcListener("main-state-change", mainStateDispatcher);
-                mainStateDispatcher = null;
-            }
-
-            return true;
+            return await mainStateBridge.unlistenFromMainState(
+                path,
+                /** @type {(change: MainStateChange) => void} */ (callback)
+            );
         } catch (error) {
             preloadLog(
                 "error",
