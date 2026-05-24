@@ -12,6 +12,7 @@ const config = [
             "ffv/**",
             "**/*.html",
             "html/**",
+            "main-ui.js",
             "main/**/*.js",
             "preload/**/*.js",
             "shared/**/*.js",
@@ -47,7 +48,7 @@ const config = [
         },
     },
     {
-        files: ["main.ts"],
+        files: ["main-ui.ts", "main.ts"],
         rules: {
             "@typescript-eslint/no-unsafe-type-assertion": "off",
             "@typescript-eslint/prefer-readonly-parameter-types": "off",

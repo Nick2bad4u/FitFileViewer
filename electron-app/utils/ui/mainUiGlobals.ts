@@ -7,8 +7,7 @@ import { getState, setState } from "../state/core/stateManager.js";
 
 type ShowFitData = (fitData: unknown, filePath: string) => void;
 type RenderChartJS = (
-    data: unknown,
-    filePath: string,
+    targetContainer?: Element | null | string,
     options?: unknown
 ) => void;
 

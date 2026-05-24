@@ -1,3 +1,7 @@
+/* eslint-disable import-x/max-dependencies -- main-ui is the legacy renderer composition root; migration keeps dependency cleanup scoped to extracted modules. */
+/** Main renderer UI composition root with state-management integration. */
+import type { ElectronAPIWithDevFlags } from "./shared/preloadApi.js";
+
 import { setupWindow } from "./utils/app/initialization/setupWindow.js";
 import { AppActions } from "./utils/app/lifecycle/appActions.js";
 import { resourceManager } from "./utils/app/lifecycle/resourceManager.js";
@@ -29,28 +33,63 @@ import {
 } from "./utils/ui/mainUiGlobals.js";
 import { showNotification } from "./utils/ui/notifications/showNotification.js";
 import { setupExternalLinkHandlers } from "./utils/ui/setupExternalLinkHandlers.js";
-const mainUiConsole = globalThis.console;
-function getElectronAPI() {
-    const api = Reflect.get(globalThis, "electronAPI");
-    return typeof api === "object" && api !== null ? api : undefined;
+/* eslint-enable import-x/max-dependencies -- Keep the exception limited to the legacy composition imports above. */
+
+type MainUiGlobal = typeof globalThis & {
+    chartTabIntegration?: { destroy?: () => void };
+    devCleanup?: () => void;
+    dragDropHandler?: unknown;
+    electronAPI?: ElectronAPIWithDevFlags;
+    injectMenu?: (theme?: null | string, fitFilePath?: null | string) => void;
+};
+
+type MainUiIpcListener = (
+    channel: "open-summary-column-selector" | "unload-fit-file",
+    callback: (...args: unknown[]) => void
+) => (() => void) | undefined;
+
+interface PerformanceMonitorLike {
+    readonly endTimer?: (operationId: string) => void;
+    readonly isEnabled?: (() => boolean) | boolean;
+    readonly startTimer?: (operationId: string) => void;
 }
-function getMainUiGlobal() {
+
+type ShowFitDataInput = Parameters<typeof showFitData>[0];
+
+const mainUiConsole = globalThis.console;
+
+function getElectronAPI(): ElectronAPIWithDevFlags | undefined {
+    const api: unknown = Reflect.get(globalThis, "electronAPI");
+    return typeof api === "object" && api !== null
+        ? (api as ElectronAPIWithDevFlags)
+        : undefined;
+}
+
+function getMainUiGlobal(): MainUiGlobal {
     return globalThis;
 }
-function isPerformanceMonitorEnabled(monitor) {
+
+function isPerformanceMonitorEnabled(monitor: PerformanceMonitorLike): boolean {
     return typeof monitor.isEnabled === "function"
         ? monitor.isEnabled()
         : Boolean(monitor.isEnabled);
 }
-function isShowFitDataInput(value) {
+
+function isShowFitDataInput(value: unknown): value is ShowFitDataInput {
     return typeof value === "object" && value !== null;
 }
-function logMainUi(level, message, ...args) {
+
+function logMainUi(
+    level: "error" | "info" | "warn",
+    message: string,
+    ...args: unknown[]
+): void {
     const log = mainUiConsole[level];
     if (typeof log === "function") {
         log.call(mainUiConsole, message, ...args);
     }
 }
+
 // Constants (add missing CONTENT_CHART used by clearContentAreas)
 const CONSTANTS = {
     DOM_IDS: {
@@ -74,16 +113,19 @@ const CONSTANTS = {
         SUMMARY_GEAR_BTN: ".summary-gear-btn",
     },
     SUMMARY_COLUMN_SELECTOR_DELAY: 100,
-};
+} as const;
+
 // Make globalData available on window for backwards compatibility
 defineGlobalDataProperty();
-function clearContentAreas() {
+
+function clearContentAreas(): void {
     const contentIds = [
         CONSTANTS.DOM_IDS.CONTENT_MAP,
         CONSTANTS.DOM_IDS.CONTENT_DATA,
         CONSTANTS.DOM_IDS.CONTENT_CHART,
         CONSTANTS.DOM_IDS.CONTENT_SUMMARY,
     ];
+
     for (const id of contentIds) {
         const element = getElementByIdFlexible(document, id);
         if (element) {
@@ -91,10 +133,12 @@ function clearContentAreas() {
         }
     }
 }
-function clearFitFileDomainState() {
+
+function clearFitFileDomainState(): void {
     if (typeof fitFileStateManager.clearFileState !== "function") {
         return;
     }
+
     try {
         fitFileStateManager.clearFileState();
     } catch (error) {
@@ -105,12 +149,14 @@ function clearFitFileDomainState() {
         );
     }
 }
+
 // Utility functions for file operations
-function unloadFitFile() {
+function unloadFitFile(): void {
     const operationId = `unload_file_${Date.now()}`;
+
     // Start performance monitoring (tolerate differing impl shapes)
     {
-        const pm = performanceMonitor;
+        const pm = performanceMonitor as PerformanceMonitorLike;
         const startTimer = pm.startTimer;
         if (
             isPerformanceMonitorEnabled(pm) &&
@@ -119,12 +165,15 @@ function unloadFitFile() {
             startTimer.call(pm, operationId);
         }
     }
+
     try {
         // Clear global data using state management
         // Prefer clearData for backward compatibility if clearGlobalData absent
         AppActions.clearData();
+
         // Ensure domain-level fit state is cleared as well
         clearFitFileDomainState();
+
         setState(
             "ui.fileInfo",
             {
@@ -142,10 +191,13 @@ function unloadFitFile() {
             silent: false,
             source: "main-ui.unloadFitFile",
         });
+
         // Clear UI
         clearContentAreas();
+
         // Switch to map tab using UI actions
         UIActions.showTab("tab_map");
+
         // Notify main process to update menu
         const electronAPI = getElectronAPI();
         if (typeof electronAPI?.notifyFitFileLoaded === "function") {
@@ -153,16 +205,19 @@ function unloadFitFile() {
         } else if (typeof electronAPI?.send === "function") {
             electronAPI.send("fit-file-loaded", null);
         }
+
         // Tab buttons will be disabled automatically by state management when globalData is cleared
+
         // Show success notification
         void showNotification("File unloaded successfully", "info");
+
         logMainUi("info", "[main-ui] File unloaded successfully");
     } catch (error) {
         logMainUi("error", "[main-ui] Error unloading file:", error);
         void showNotification("Error unloading file", "error");
     } finally {
         // End performance monitoring
-        const pm2 = performanceMonitor;
+        const pm2 = performanceMonitor as PerformanceMonitorLike;
         const endTimer = pm2.endTimer;
         if (
             isPerformanceMonitorEnabled(pm2) &&
@@ -172,6 +227,7 @@ function unloadFitFile() {
         }
     }
 }
+
 // Register legacy globals for backwards compatibility
 registerLegacyGlobals({
     cleanupEventListeners,
@@ -187,10 +243,12 @@ registerLegacyGlobals({
             );
             return;
         }
+
         showFitData(fitData, filePath);
     },
     validateElement,
 });
+
 // Enhanced theme change handling with state management integration
 const electronAPI = getElectronAPI();
 if (
@@ -200,16 +258,20 @@ if (
     // Clean theme change handling through state management
     listenForThemeChange((theme) => {
         applyTheme(theme);
+
         // Update theme in state management - this will trigger reactive chart updates
         UIActions.setTheme(theme);
+
         logMainUi("info", `[main-ui] Theme changed to: ${theme}`);
     });
 }
+
 // On load, apply theme
 applyTheme(loadTheme());
+
 // Register handler to show summary column selector from menu
 if (typeof electronAPI?.onIpc === "function") {
-    const onIpc = electronAPI.onIpc;
+    const onIpc = electronAPI.onIpc as MainUiIpcListener;
     onIpc("open-summary-column-selector", () => {
         try {
             // Switch to summary tab if not already active
@@ -217,6 +279,7 @@ if (typeof electronAPI?.onIpc === "function") {
             if (tabSummary && !tabSummary.classList.contains("active")) {
                 tabSummary.click();
             }
+
             // Wait for renderSummary to finish, then open the column selector
             const summarySelectorTimer = setTimeout(() => {
                 const gearBtn = document.querySelector(
@@ -240,29 +303,38 @@ if (typeof electronAPI?.onIpc === "function") {
         }
     });
 }
+
 // Listen for unload-fit-file event from main process
 if (typeof electronAPI?.onIpc === "function") {
-    const onIpc = electronAPI.onIpc;
+    const onIpc = electronAPI.onIpc as MainUiIpcListener;
     onIpc("unload-fit-file", unloadFitFile);
 }
+
 // Unload file when the red X is clicked
 const unloadBtn = validateElement(CONSTANTS.DOM_IDS.UNLOAD_FILE_BTN);
 if (unloadBtn) {
     addEventListenerWithCleanup(unloadBtn, "click", unloadFitFile);
 }
+
 // Tab button state is now managed automatically by the state management system
 // In utils/ui/controls/enableTabButtons.js
+
 // Initialize drag and drop handler
 const dragDropHandler = new DragDropHandler();
+
 // Expose dragDropHandler for cleanup if needed
 getMainUiGlobal().dragDropHandler = dragDropHandler;
+
 // Move event listener setup to utility functions
 // Sets up event listeners to handle fullscreen mode toggling for the application.
 setupFullscreenListeners();
+
 // Initialize the application window with modern state management
 void setupWindow();
+
 // Register cleanup hooks with resource manager
-let cleanupExternalLinkHandlers = null;
+let cleanupExternalLinkHandlers: (() => void) | null = null;
+
 resourceManager.addShutdownHook(() => {
     logMainUi("info", "[ResourceManager] Executing main-ui cleanup...");
     try {
@@ -277,8 +349,9 @@ resourceManager.addShutdownHook(() => {
     cleanupEventListeners();
     AppActions.clearData();
 });
+
 // External link handler for opening links in default browser
-const initializeExternalLinkHandlers = () => {
+const initializeExternalLinkHandlers = (): void => {
     setupExternalLinkHandlers({
         cleanupExternalLinkHandlers,
         setCleanup: (cleanup) => {
@@ -286,6 +359,7 @@ const initializeExternalLinkHandlers = () => {
         },
     });
 };
+
 // Initialize external link handlers after DOM is loaded
 if (document.readyState === "loading") {
     addEventListenerWithCleanup(
@@ -297,10 +371,11 @@ if (document.readyState === "loading") {
 } else {
     initializeExternalLinkHandlers();
 }
+
 // Enhanced development helper function with better error handling
 getMainUiGlobal().injectMenu = function injectMenu(
-    theme = null,
-    fitFilePath = null
+    theme: null | string = null,
+    fitFilePath: null | string = null
 ) {
     try {
         const api = getElectronAPI();
@@ -323,9 +398,11 @@ getMainUiGlobal().injectMenu = function injectMenu(
         logMainUi("error", "[injectMenu] Error during menu injection:", error);
     }
 };
+
 // Add cleanup function to development helpers with state management integration
-getMainUiGlobal().devCleanup = function devCleanup() {
+getMainUiGlobal().devCleanup = function devCleanup(): void {
     cleanupEventListeners();
+
     // Clear state using the new system
     AppActions.clearData();
     setState("charts.isRendered", false, {
@@ -333,17 +410,21 @@ getMainUiGlobal().devCleanup = function devCleanup() {
         source: "devCleanup",
     });
     setState("ui.dragCounter", 0, { silent: false, source: "devCleanup" });
+
     // Clean up our new state managers
     if (typeof chartTabIntegration.destroy === "function") {
         chartTabIntegration.destroy();
     }
+
     // Cleanup all resources via resource manager
     resourceManager.cleanupAll();
+
     logMainUi(
         "info",
         "[devCleanup] Application state and event listeners cleaned up"
     );
 };
+
 logMainUi("info", "[DEV] Development helpers available:");
 logMainUi(
     "info",
@@ -357,8 +438,10 @@ logMainUi(
     "info",
     "- window.cleanupEventListeners() - Clean up all event listeners"
 );
+
 // Initialize state managers
 logMainUi("info", "[main-ui] Initializing state managers...");
+
 // The imports automatically initialize the state managers
 // ChartTabIntegration is a singleton that self-initializes and brings in the other managers
 logMainUi(
@@ -366,4 +449,5 @@ logMainUi(
     "[main-ui] Chart tab integration:",
     chartTabIntegration.getStatus()
 );
+
 logMainUi("info", "[main-ui] State managers initialized successfully");

@@ -46,6 +46,7 @@
     },
     "files": [
         "main.ts",
+        "main-ui.ts",
         "main/app/setupApplicationEventHandlers.ts",
         "main/constants.ts",
         "main/dev/exposeDevHelpers.ts",
