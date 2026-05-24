@@ -44,6 +44,11 @@ describe("registerClipboardHandlers", () => {
     });
 
     it("registers clipboard handlers", () => {
+        const handlers = {};
+        mockRegisterIpcHandle.mockImplementation((channel, handler) => {
+            handlers[channel] = handler;
+        });
+
         registerClipboardHandlers({
             registerIpcHandle: mockRegisterIpcHandle,
             clipboardRef: mockClipboardRef,
@@ -60,16 +65,19 @@ describe("registerClipboardHandlers", () => {
             "clipboard:writePngDataUrl",
             expect.any(Function)
         );
+        expect(handlers["clipboard:writeText"]).toBeTypeOf("function");
+        expect(handlers["clipboard:writePngDataUrl"]).toBeTypeOf("function");
     });
 
     it("does nothing when registerIpcHandle is not a function", () => {
-        registerClipboardHandlers({
+        const result = registerClipboardHandlers({
             registerIpcHandle: null,
             clipboardRef: mockClipboardRef,
             nativeImageRef: mockNativeImageRef,
             logWithContext: mockLogWithContext,
         });
 
+        expect(result).toBeUndefined();
         expect(mockClipboardRef).not.toHaveBeenCalled();
         expect(mockRegisterIpcHandle).not.toHaveBeenCalled();
     });
