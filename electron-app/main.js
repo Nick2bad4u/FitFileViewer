@@ -5,55 +5,130 @@
  * test-oriented side effects (priming whenReady, IPC wiring, and Gyazo OAuth
  * support) yet keeps the file comfortably under the max-lines lint threshold.
  */
+/**
+ * @typedef {Record<string, unknown>} MainConstants
+ *
+ * @typedef {(key: string) => unknown} GetAppState
+ *
+ * @typedef {(key: string, value: unknown) => void} SetAppState
+ *
+ * @typedef {(
+ *     level: string,
+ *     message: string,
+ *     context?: Record<string, unknown>
+ * ) => void} LogWithContext
+ *
+ * @typedef {() => Promise<unknown>} InitializeApplication
+ *
+ * @typedef {{
+ *     appRef: () => unknown;
+ *     browserWindowRef: () => unknown;
+ *     exposeDevHelpers: () => void;
+ *     getAppState: GetAppState;
+ *     initializeApplication: InitializeApplication;
+ *     logWithContext: LogWithContext;
+ *     setupApplicationEventHandlers: () => void;
+ *     setupIPCHandlers: (win: unknown) => void;
+ *     setupMenuAndEventHandlers: () => void;
+ * }} MainLifecycleDependencies
+ */
 
-const {
-    setupApplicationEventHandlers,
-} = require("./main/app/setupApplicationEventHandlers");
-const { CONSTANTS } = require("./main/constants");
-const { exposeDevHelpers } = require("./main/dev/exposeDevHelpers");
-const { sendToRenderer } = require("./main/ipc/sendToRenderer");
-const { setupIPCHandlers } = require("./main/ipc/setupIPCHandlers");
-const { logWithContext } = require("./main/logging/logWithContext");
-const {
-    setupMenuAndEventHandlers,
-} = require("./main/menu/setupMenuAndEventHandlers");
-const {
-    startGyazoOAuthServer,
-    stopGyazoOAuthServer,
-} = require("./main/oauth/gyazoOAuthServer");
-const { appRef, browserWindowRef } = require("./main/runtime/electronAccess");
-const {
-    ensureFitParserStateIntegration,
-} = require("./main/runtime/fitParserIntegration");
-const {
-    initializeApplication,
-} = require("./main/runtime/initializeApplication");
-const { primeTestEnvironment } = require("./main/runtime/primeTestEnvironment");
-const { setupMainLifecycle } = require("./main/runtime/setupMainLifecycle");
-const { getAppState, setAppState } = require("./main/state/appState");
-const { getThemeFromRenderer } = require("./main/theme/getThemeFromRenderer");
-const {
-    resolveAutoUpdaterAsync,
-    resolveAutoUpdaterSync,
-} = require("./main/updater/autoUpdaterAccess");
-const { setupAutoUpdater } = require("./main/updater/setupAutoUpdater");
-const {
-    isWindowUsable,
-    validateWindow,
-} = require("./main/window/windowValidation");
+const mainRequire = /** @type {(moduleId: string) => unknown} */ (require);
+
+const { setupApplicationEventHandlers } =
+    /** @type {{ setupApplicationEventHandlers: () => void }} */ (
+        mainRequire("./main/app/setupApplicationEventHandlers")
+    );
+const { CONSTANTS } = /** @type {{ CONSTANTS: MainConstants }} */ (
+    mainRequire("./main/constants")
+);
+const { exposeDevHelpers } = /** @type {{ exposeDevHelpers: () => void }} */ (
+    mainRequire("./main/dev/exposeDevHelpers")
+);
+const { sendToRenderer } =
+    /** @type {{ sendToRenderer: (...args: unknown[]) => void }} */ (
+        mainRequire("./main/ipc/sendToRenderer")
+    );
+const { setupIPCHandlers } =
+    /** @type {{ setupIPCHandlers: (win: unknown) => void }} */ (
+        mainRequire("./main/ipc/setupIPCHandlers")
+    );
+const { logWithContext } = /** @type {{ logWithContext: LogWithContext }} */ (
+    mainRequire("./main/logging/logWithContext")
+);
+const { setupMenuAndEventHandlers } =
+    /** @type {{ setupMenuAndEventHandlers: () => void }} */ (
+        mainRequire("./main/menu/setupMenuAndEventHandlers")
+    );
+const { startGyazoOAuthServer, stopGyazoOAuthServer } = /**
+ * @type {{
+ *     startGyazoOAuthServer: (...args: unknown[]) => unknown;
+ *     stopGyazoOAuthServer: (...args: unknown[]) => unknown;
+ * }}
+ */ (mainRequire("./main/oauth/gyazoOAuthServer"));
+const { appRef, browserWindowRef } = /**
+ * @type {{
+ *     appRef: () => unknown;
+ *     browserWindowRef: () => unknown;
+ * }}
+ */ (mainRequire("./main/runtime/electronAccess"));
+const { ensureFitParserStateIntegration } = /** @type {{
+    ensureFitParserStateIntegration: (...args: unknown[]) => unknown;
+}} */ (mainRequire("./main/runtime/fitParserIntegration"));
+const { initializeApplication } =
+    /** @type {{ initializeApplication: InitializeApplication }} */ (
+        mainRequire("./main/runtime/initializeApplication")
+    );
+const { primeTestEnvironment } = /**
+ * @type {{
+ *     primeTestEnvironment: (
+ *         initializeApplication: InitializeApplication
+ *     ) => void;
+ * }}
+ */ (mainRequire("./main/runtime/primeTestEnvironment"));
+const { setupMainLifecycle } = /**
+ * @type {{
+ *     setupMainLifecycle: (deps: MainLifecycleDependencies) => void;
+ * }}
+ */ (mainRequire("./main/runtime/setupMainLifecycle"));
+const { getAppState, setAppState } = /**
+ * @type {{
+ *     getAppState: GetAppState;
+ *     setAppState: SetAppState;
+ * }}
+ */ (mainRequire("./main/state/appState"));
+const { getThemeFromRenderer } = /** @type {{
+    getThemeFromRenderer: (...args: unknown[]) => Promise<string>;
+}} */ (mainRequire("./main/theme/getThemeFromRenderer"));
+const { resolveAutoUpdaterAsync, resolveAutoUpdaterSync } = /**
+ * @type {{
+ *     resolveAutoUpdaterAsync: () => Promise<unknown>;
+ *     resolveAutoUpdaterSync: () => unknown;
+ * }}
+ */ (mainRequire("./main/updater/autoUpdaterAccess"));
+const { setupAutoUpdater } =
+    /** @type {{ setupAutoUpdater: (...args: unknown[]) => unknown }} */ (
+        mainRequire("./main/updater/setupAutoUpdater")
+    );
+const { isWindowUsable, validateWindow } = /**
+ * @type {{
+ *     isWindowUsable: (...args: unknown[]) => boolean;
+ *     validateWindow: (...args: unknown[]) => boolean;
+ * }}
+ */ (mainRequire("./main/window/windowValidation"));
 
 primeTestEnvironment(() => initializeApplication());
 
 setupMainLifecycle({
     appRef,
     browserWindowRef,
+    exposeDevHelpers,
     getAppState,
     initializeApplication,
+    logWithContext,
     setupApplicationEventHandlers,
     setupIPCHandlers,
     setupMenuAndEventHandlers,
-    exposeDevHelpers,
-    logWithContext,
 });
 
 const exported = {
