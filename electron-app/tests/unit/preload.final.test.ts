@@ -94,10 +94,24 @@ function cleanupModuleCache() {
     }
 }
 
+function getExposedGlobal(globalName: string): Record<string, any> {
+    const exposedCall = mockContextBridge.exposeInMainWorld.mock.calls.find(
+        (call) => call[0] === globalName
+    );
+
+    if (!exposedCall) {
+        throw new Error(`${globalName} was not exposed`);
+    }
+
+    expect(exposedCall).toEqual([globalName, expect.any(Object)]);
+    return exposedCall[1] as Record<string, any>;
+}
+
 describe("preload.js - Comprehensive Coverage Tests", () => {
     beforeEach(() => {
         // Clear all mocks
         vi.clearAllMocks();
+        mockIpcRenderer.invoke.mockResolvedValue("mock-result");
 
         // Clean up module cache
         cleanupModuleCache();
@@ -143,6 +157,13 @@ describe("preload.js - Comprehensive Coverage Tests", () => {
             expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledTimes(
                 2
             );
+
+            const electronAPI = getExposedGlobal("electronAPI");
+            const devTools = getExposedGlobal("devTools");
+            expect(electronAPI.validateAPI()).toBe(true);
+            expect(devTools.getPreloadInfo().apiMethods).toContain(
+                "getAppVersion"
+            );
         });
 
         it("should expose complete electronAPI structure", () => {
@@ -151,13 +172,7 @@ describe("preload.js - Comprehensive Coverage Tests", () => {
 
             require("../../preload.js");
 
-            const electronAPICall =
-                mockContextBridge.exposeInMainWorld.mock.calls.find(
-                    (call) => call[0] === "electronAPI"
-                );
-
-            expect(electronAPICall).toBeDefined();
-            const electronAPI = electronAPICall![1];
+            const electronAPI = getExposedGlobal("electronAPI");
 
             // Test key API methods exist
             expect(electronAPI).toHaveProperty("getAppVersion");
@@ -196,7 +211,7 @@ describe("preload.js - Comprehensive Coverage Tests", () => {
             expect(isValid).toBe(true);
         });
 
-        it("should test IPC invoke methods", () => {
+        it("should test IPC invoke methods", async () => {
             process.env.NODE_ENV = "development";
             injectElectronMock();
 
@@ -212,7 +227,7 @@ describe("preload.js - Comprehensive Coverage Tests", () => {
             const electronAPI = electronAPICall![1];
 
             // Test getAppVersion method
-            electronAPI.getAppVersion();
+            await expect(electronAPI.getAppVersion()).resolves.toBe("1.0.0");
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
                 "getAppVersion"
             );
@@ -232,18 +247,39 @@ describe("preload.js - Comprehensive Coverage Tests", () => {
 
             // Test event registration
             const mockCallback = vi.fn();
-            electronAPI.onMenuOpenFile(mockCallback);
+            const unsubscribeOpenFile =
+                electronAPI.onMenuOpenFile(mockCallback);
 
             expect(mockIpcRenderer.on).toHaveBeenCalledWith(
                 "menu-open-file",
                 expect.any(Function)
             );
+            expect(typeof unsubscribeOpenFile).toBe("function");
 
             const overlayCallback = vi.fn();
-            electronAPI.onMenuOpenOverlay(overlayCallback);
+            const unsubscribeOpenOverlay =
+                electronAPI.onMenuOpenOverlay(overlayCallback);
             expect(mockIpcRenderer.on).toHaveBeenCalledWith(
                 "menu-open-overlay",
                 expect.any(Function)
+            );
+            expect(typeof unsubscribeOpenOverlay).toBe("function");
+
+            const openFileHandler = mockIpcRenderer.on.mock.calls.find(
+                (call) => call[0] === "menu-open-file"
+            )![1] as (...args: any[]) => void;
+            const openOverlayHandler = mockIpcRenderer.on.mock.calls.find(
+                (call) => call[0] === "menu-open-overlay"
+            )![1] as (...args: any[]) => void;
+
+            openFileHandler({}, "/mock/path/activity.fit");
+            openOverlayHandler({}, "/mock/path/overlay.fit");
+
+            expect(mockCallback).toHaveBeenCalledWith(
+                "/mock/path/activity.fit"
+            );
+            expect(overlayCallback).toHaveBeenCalledWith(
+                "/mock/path/overlay.fit"
             );
         });
 
@@ -253,13 +289,7 @@ describe("preload.js - Comprehensive Coverage Tests", () => {
 
             require("../../preload.js");
 
-            const devToolsCall =
-                mockContextBridge.exposeInMainWorld.mock.calls.find(
-                    (call) => call[0] === "devTools"
-                );
-
-            expect(devToolsCall).toBeDefined();
-            const devTools = devToolsCall![1];
+            const devTools = getExposedGlobal("devTools");
 
             // Test devTools methods
             expect(devTools).toHaveProperty("getPreloadInfo");
@@ -309,13 +339,7 @@ describe("preload.js - Comprehensive Coverage Tests", () => {
 
             require("../../preload.js");
 
-            const electronAPICall =
-                mockContextBridge.exposeInMainWorld.mock.calls.find(
-                    (call) => call[0] === "electronAPI"
-                );
-
-            expect(electronAPICall).toBeDefined();
-            const electronAPI = electronAPICall![1];
+            const electronAPI = getExposedGlobal("electronAPI");
 
             // Core API should still be available in production
             expect(electronAPI).toHaveProperty("getAppVersion");
@@ -404,7 +428,7 @@ describe("preload.js - Comprehensive Coverage Tests", () => {
             expect(typeof electronAPI.stopGyazoServer).toBe("function");
         });
 
-        it("should test file operations", () => {
+        it("should test file operations", async () => {
             process.env.NODE_ENV = "development";
             injectElectronMock();
 
@@ -423,13 +447,15 @@ describe("preload.js - Comprehensive Coverage Tests", () => {
             expect(electronAPI).toHaveProperty("decodeFitFile");
 
             // Test file dialog
-            electronAPI.openFileDialog();
+            await expect(electronAPI.openFileDialog()).resolves.toBe(
+                "mock-result"
+            );
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
                 "dialog:openFile"
             );
         });
 
-        it("should test theme management", () => {
+        it("should test theme management", async () => {
             process.env.NODE_ENV = "development";
             injectElectronMock();
 
@@ -447,11 +473,11 @@ describe("preload.js - Comprehensive Coverage Tests", () => {
             expect(electronAPI).toHaveProperty("sendThemeChanged");
 
             // Test theme operations
-            electronAPI.getTheme();
+            await expect(electronAPI.getTheme()).resolves.toBe("mock-result");
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("theme:get");
         });
 
-        it("should test recent files management", () => {
+        it("should test recent files management", async () => {
             process.env.NODE_ENV = "development";
             injectElectronMock();
 
@@ -468,7 +494,9 @@ describe("preload.js - Comprehensive Coverage Tests", () => {
             expect(electronAPI).toHaveProperty("recentFiles");
 
             // Test recent files operations
-            electronAPI.addRecentFile("/test/path.fit");
+            await expect(
+                electronAPI.addRecentFile("/test/path.fit")
+            ).resolves.toBe("mock-result");
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
                 "recentFiles:add",
                 "/test/path.fit"
