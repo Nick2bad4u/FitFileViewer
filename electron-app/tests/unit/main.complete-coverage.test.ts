@@ -246,12 +246,15 @@ beforeEach(() => {
         setAutoHideMenuBar: vi.fn(),
         isDestroyed: vi.fn(() => false),
         loadURL: vi.fn(),
+        loadFile: vi.fn(() => Promise.resolve()),
         reload: vi.fn(),
         setTitle: vi.fn(),
         destroy: vi.fn(),
     });
 
-    globalMocks.MockBrowserWindow.mockImplementation(() => mockWindow);
+    globalMocks.MockBrowserWindow.mockImplementation(function () {
+        return mockWindow;
+    });
     globalMocks.browserWindowStatic.getAllWindows.mockReturnValue([mockWindow]);
     globalMocks.browserWindowStatic.getFocusedWindow.mockReturnValue(
         mockWindow
@@ -433,8 +436,7 @@ describe("main.js - Complete Coverage Test", () => {
 
         // Window events simulation
         const mockWindow =
-            globalMocks.MockBrowserWindow.mock.results[0]?.value ||
-            mockWebContents;
+            globalMocks.MockBrowserWindow.mock.results[0]?.value;
         if (mockWindow && typeof mockWindow.emit === "function") {
             mockWindow.emit("ready-to-show");
             mockWindow.emit("closed");
@@ -529,8 +531,12 @@ describe("main.js - Complete Coverage Test", () => {
 
         console.log("[TEST] Complete coverage test finished");
 
-        // Light assertion to ensure test validity
-        expect(true).toBe(true);
+        const hadUnhandledListener = globalMocks.mockApp.emit(
+            "unhandled-test-event"
+        );
+
+        expect(hadUnhandledListener).toBe(false);
+        expect(hadUnhandledListener).not.toBe(true);
     });
 
     test("should exercise IPC handlers and menu functionality", async () => {
@@ -571,6 +577,11 @@ describe("main.js - Complete Coverage Test", () => {
         for (const channel of commonIpcChannels) {
             globalMocks.mockIpcMain.emit(channel, { reply: vi.fn() }, {});
         }
+        const hadMissingChannelListener = globalMocks.mockIpcMain.emit(
+            "missing:channel",
+            { reply: vi.fn() },
+            {}
+        );
 
         // Menu functionality testing
         console.log("[TEST] Testing menu functionality...");
@@ -594,7 +605,9 @@ describe("main.js - Complete Coverage Test", () => {
 
         console.log("[TEST] IPC and menu functionality test completed");
 
-        // Light assertion
-        expect(true).toBe(true);
+        expect(globalMocks.mockMenu.setApplicationMenu).toHaveBeenCalledWith(
+            {}
+        );
+        expect(hadMissingChannelListener).toBe(false);
     });
 });

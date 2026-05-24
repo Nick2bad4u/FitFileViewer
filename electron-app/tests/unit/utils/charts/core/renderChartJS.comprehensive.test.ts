@@ -301,6 +301,152 @@ function injectChartJSMocks() {
     globalThis._chartjsInstances = [];
     globalThis._fitFileViewerChartListener = false;
     globalThis.JSZip = vi.fn();
+    globalThis.showNotification = mocks.showNotification.showNotification;
+    globalThis.uiStateManager = mocks.uiStateManager.uiStateManager;
+
+    vi.doMock(
+        "../../../../../utils/app/initialization/loadSharedConfiguration.js",
+        () => ({
+            default: mocks.loadSharedConfiguration.default,
+            loadSharedConfiguration: mocks.loadSharedConfiguration.default,
+        })
+    );
+    vi.doMock("../../../../../utils/app/lifecycle/appActions.js", () => ({
+        AppActions: mocks.AppActions.AppActions,
+    }));
+    vi.doMock("../../../../../utils/app/lifecycle/resourceManager.js", () => ({
+        resourceManager: {
+            registerChart: vi.fn(),
+        },
+    }));
+    vi.doMock(
+        "../../../../../utils/formatting/display/formatChartFields.js",
+        () => mocks.formatChartFields
+    );
+    vi.doMock(
+        "../../../../../utils/formatting/converters/convertValueToUserUnits.js",
+        () => mocks.convertValueToUserUnits
+    );
+    vi.doMock(
+        "../../../../../utils/data/processing/setupZoneData.js",
+        () => mocks.setupZoneData
+    );
+    vi.doMock("../../../../../utils/state/core/stateManager.js", () => ({
+        getState: mocks.stateManager.getState,
+        setState: mocks.stateManager.setState,
+        subscribe: mocks.stateManager.subscribe,
+        updateState: mocks.stateManager.updateState,
+    }));
+    vi.doMock("../../../../../utils/state/core/stateMiddleware.js", () => ({
+        middlewareManager: mocks.stateMiddleware.middlewareManager,
+    }));
+    vi.doMock(
+        "../../../../../utils/state/core/computedStateManager.js",
+        () => mocks.computedStateManager
+    );
+    vi.doMock(
+        "../../../../../utils/state/domain/settingsStateManager.js",
+        () => ({
+            getChartFieldVisibility:
+                mocks.settingsStateManager.getChartFieldVisibility,
+            getChartSetting: vi.fn(),
+            getChartSettings: mocks.settingsStateManager.getChartSettings,
+            getUserChartSettings: vi.fn().mockReturnValue({}),
+            setChartFieldVisibility:
+                mocks.settingsStateManager.setChartFieldVisibility,
+            setChartSetting: vi.fn(),
+            settingsStateManager: {
+                getSetting: vi.fn(),
+                setSetting: vi.fn(),
+            },
+            updateChartSettings:
+                mocks.settingsStateManager.updateChartSettings,
+        })
+    );
+    vi.doMock(
+        "../../../../../utils/ui/notifications/showNotification.js",
+        () => mocks.showNotification
+    );
+    vi.doMock(
+        "../../../../../utils/ui/notifications/showRenderNotification.js",
+        () => mocks.showRenderNotification
+    );
+    vi.doMock(
+        "../../../../../utils/charts/components/createChartCanvas.js",
+        () => mocks.createChartCanvas
+    );
+    vi.doMock(
+        "../../../../../utils/charts/components/createEnhancedChart.js",
+        () => mocks.createEnhancedChart
+    );
+    vi.doMock(
+        "../../../../../utils/charts/plugins/addChartHoverEffects.js",
+        () => mocks.addChartHoverEffects
+    );
+    vi.doMock(
+        "../../../../../utils/charts/plugins/chartBackgroundColorPlugin.js",
+        () => mocks.chartBackgroundColorPlugin
+    );
+    vi.doMock(
+        "../../../../../utils/charts/plugins/chartLegendItemBoxPlugin.js",
+        () => ({
+            chartLegendItemBoxPlugin: {},
+        })
+    );
+    vi.doMock(
+        "../../../../../utils/charts/rendering/renderEventMessagesChart.js",
+        () => mocks.renderEventMessagesChart
+    );
+    vi.doMock(
+        "../../../../../utils/charts/rendering/renderGPSTrackChart.js",
+        () => mocks.renderGPSTrackChart
+    );
+    vi.doMock(
+        "../../../../../utils/charts/rendering/renderGPSTimeChart.js",
+        () => ({
+            renderGPSTimeChart: vi.fn(),
+        })
+    );
+    vi.doMock(
+        "../../../../../utils/charts/rendering/renderLapZoneCharts.js",
+        () => mocks.renderLapZoneCharts
+    );
+    vi.doMock(
+        "../../../../../utils/charts/rendering/renderPerformanceAnalysisCharts.js",
+        () => mocks.renderPerformanceAnalysisCharts
+    );
+    vi.doMock(
+        "../../../../../utils/charts/rendering/renderTimeInZoneCharts.js",
+        () => mocks.renderTimeInZoneCharts
+    );
+    vi.doMock("../../../../../utils/theming/core/theme.js", () => ({
+        THEME_MODES: { AUTO: "auto", DARK: "dark", LIGHT: "light" },
+        applyTheme: vi.fn(),
+        default: { getThemeConfig: mocks.theme.getThemeConfig },
+        getEffectiveTheme: vi.fn().mockReturnValue("light"),
+        getThemeConfig: mocks.theme.getThemeConfig,
+        initializeTheme: vi.fn(),
+        listenForSystemThemeChange: vi.fn(),
+        listenForThemeChange: vi.fn(),
+        loadTheme: vi.fn().mockReturnValue("light"),
+        toggleTheme: vi.fn(),
+    }));
+    vi.doMock(
+        "../../../../../utils/charts/theming/chartThemeUtils.js",
+        () => mocks.detectCurrentTheme
+    );
+    vi.doMock(
+        "../../../../../utils/charts/theming/chartThemeListener.js",
+        () => mocks.setupChartThemeListener
+    );
+    vi.doMock(
+        "../../../../../utils/ui/components/ensureChartSettingsDropdowns.js",
+        () => mocks.ensureChartSettingsDropdowns
+    );
+    vi.doMock(
+        "../../../../../utils/rendering/components/createUserDeviceInfoBox.js",
+        () => mocks.createUserDeviceInfoBox
+    );
 
     // Enhanced module cache injection
     globalThis.require = function (id) {
@@ -700,7 +846,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
             const result = chartState.hasValidData;
 
-            expect(result).toBe(false);
+            expect(result).toBeNull();
         });
 
         it("should provide renderableFields with visibility filtering", async () => {

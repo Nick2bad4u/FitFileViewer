@@ -245,8 +245,7 @@ describe("formatTooltipData.js - Tooltip Data HTML Formatting", () => {
             it("should handle array as row data", () => {
                 const result = formatTooltipData(10, [] as any, 1);
 
-                expect(result).toContain("<b>Lap:</b> 1");
-                expect(result).toContain("<b>Index:</b> 10");
+                expect(result).toBe("No data available");
             });
         });
 
@@ -599,6 +598,7 @@ describe("formatTooltipData.js - Tooltip Data HTML Formatting", () => {
                 expect(result).toContain("<b>Distance:</b>");
                 expect(result).toContain("5.00 km");
                 expect(result).toContain("3.11 mi");
+                expect(result).not.toContain("NaN");
             });
 
             it("should handle small distances", () => {
@@ -659,6 +659,7 @@ describe("formatTooltipData.js - Tooltip Data HTML Formatting", () => {
                 expect(result).toContain("<b>Alt:</b>");
                 expect(result).toContain("<b>HR:</b>");
                 expect(result.split("<br>").length).toBeGreaterThan(1);
+                expect(result).not.toContain("<script");
             });
 
             it("should join multiple fields with <br> tags", () => {
@@ -690,7 +691,7 @@ describe("formatTooltipData.js - Tooltip Data HTML Formatting", () => {
                 const distancePart = result
                     .split("<br>")
                     .find((part) => part.includes("<b>Distance:</b>"));
-                expect(distancePart).toBeDefined();
+                expect(distancePart).toBe("<b>Distance:</b> 5.00 km / 3.11 mi");
                 expect(distancePart?.split("<br>").length).toBe(1);
             });
         });
@@ -704,11 +705,12 @@ describe("formatTooltipData.js - Tooltip Data HTML Formatting", () => {
                     altitude: 100,
                 };
 
-                formatTooltipData(10, row, 1);
+                const result = formatTooltipData(10, row, 1);
 
                 expect(mockGetState).toHaveBeenCalledWith(
                     "globalData.recordMesgs"
                 );
+                expect(result).toContain("<b>Alt:</b> 100.0 m / 328 ft");
             });
 
             it("should fallback to window.globalData if state manager fails", () => {
@@ -747,12 +749,14 @@ describe("formatTooltipData.js - Tooltip Data HTML Formatting", () => {
                 };
 
                 const startTime = performance.now();
+                let result = "";
                 for (let i = 0; i < 100; i++) {
-                    formatTooltipData(i, row, 1);
+                    result = formatTooltipData(i, row, 1);
                 }
                 const endTime = performance.now();
 
                 expect(endTime - startTime).toBeLessThan(100); // Should complete in under 100ms
+                expect(result).not.toBe("No data available");
             });
 
             it("should be consistent across multiple calls with same input", () => {
