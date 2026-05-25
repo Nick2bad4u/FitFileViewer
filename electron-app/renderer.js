@@ -1338,15 +1338,15 @@ const APP_INFO = {
                 Reflect.get(globalThis, "location")
             );
             const protocol = getRecordString(locationRecord, "protocol") ?? "";
-            const navigatorRecord = toModuleRecord(
-                Reflect.get(globalThis, "navigator")
-            );
-            const cookieEnabled = getRecordBoolean(
-                navigatorRecord,
-                "cookieEnabled"
-            );
 
             if (protocol === "http:" || protocol === "https:") {
+                const navigatorRecord = toModuleRecord(
+                    Reflect.get(globalThis, "navigator")
+                );
+                const cookieEnabled = getRecordBoolean(
+                    navigatorRecord,
+                    "cookieEnabled"
+                );
                 cookieAvailability = cookieEnabled ?? false;
             }
         } catch {

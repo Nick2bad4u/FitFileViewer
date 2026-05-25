@@ -840,9 +840,8 @@ const devHelpers = {
 
 // Export development helpers in development mode
 if (
-    typeof process !== "undefined" &&
-    process.env &&
-    process.env["NODE_ENV"] === "development"
+        typeof process !== "undefined" &&
+        process.env?.["NODE_ENV"] === "development"
 ) {
     (
         globalThis as typeof globalThis & {

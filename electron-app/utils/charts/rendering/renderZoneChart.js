@@ -21,7 +21,7 @@ export function renderZoneChart(
     const runtimeGlobal = globalThis,
         isDevEnvironment =
             typeof process !== "undefined" &&
-            process.env["NODE_ENV"] === "development",
+            process.env?.["NODE_ENV"] === "development",
         isDebugLoggingEnabled =
             isDevEnvironment && Boolean(runtimeGlobal.__FFV_debugCharts),
         isVerboseDebugLoggingEnabled =

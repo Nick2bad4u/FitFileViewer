@@ -39,6 +39,16 @@ function isFileOpenElectronAPI(electronAPI) {
 function getFileOpenGlobal() {
     return globalThis;
 }
+function isMissingFileError(error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return /\bENOENT\b/u.test(message);
+}
+function getFileReadErrorMessage(error) {
+    if (isMissingFileError(error)) {
+        return "File not found. It may have been moved, deleted, or opened from an old recent-file entry.";
+    }
+    return error instanceof Error ? error.message : String(error);
+}
 const resolveFitFileStateManager = () => {
     const candidate = getFileOpenGlobal().__FFV_fitFileStateManager;
     if (
@@ -128,8 +138,7 @@ async function handleOpenFile(
             }
             arrayBuffer = await electronAPI.readFile(filePathString);
         } catch (error) {
-            const message =
-                error instanceof Error ? error.message : String(error);
+            const message = getFileReadErrorMessage(error);
             log("error", "Failed to read file", {
                 error: message,
                 filePath: filePathString,
@@ -179,8 +188,7 @@ async function handleOpenFile(
         const fitData = unwrapFitParseMessages(result);
         if (
             typeof process !== "undefined" &&
-            process.env &&
-            process.env["NODE_ENV"] !== "production"
+            process.env?.["NODE_ENV"] !== "production"
         ) {
             console.log("[DEBUG] FIT parse result:", result);
             const sessionCount = getFitMessagesSessionCount(fitData);

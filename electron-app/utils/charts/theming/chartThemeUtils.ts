@@ -12,7 +12,7 @@ interface ChartDebugGlobal {
 function shouldLogDebugMessages(): boolean {
     const isDevEnvironment =
         typeof process !== "undefined" &&
-        process.env["NODE_ENV"] === "development";
+        process.env?.["NODE_ENV"] === "development";
     const debugGlobal = globalThis as typeof globalThis & ChartDebugGlobal;
 
     return isDevEnvironment && debugGlobal.__FFV_debugCharts === true;

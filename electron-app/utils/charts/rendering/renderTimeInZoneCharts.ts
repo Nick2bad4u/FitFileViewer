@@ -35,7 +35,7 @@ export function renderTimeInZoneCharts(
     try {
         const isDevEnvironment =
                 typeof process !== "undefined" &&
-                process.env["NODE_ENV"] === "development",
+                process.env?.["NODE_ENV"] === "development",
             isDebugLoggingEnabled =
                 isDevEnvironment && Boolean(chartGlobal.__FFV_debugCharts);
 

@@ -14,7 +14,9 @@ function getMapThemeToggleGlobal() {
     return globalThis;
 }
 function isTestEnvironment() {
-    return process.env["NODE_ENV"] === "test";
+    return (
+        typeof process !== "undefined" && process.env?.["NODE_ENV"] === "test"
+    );
 }
 function getThemeColorValue(value, fallback) {
     return typeof value === "string" && value.length > 0 ? value : fallback;

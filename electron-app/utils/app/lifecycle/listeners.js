@@ -16,6 +16,16 @@ import { registerChartResizeListener } from "./listenersResize.js";
 import { registerMenuIpcListeners } from "./menuIpcListeners.js";
 import { attachRecentFilesContextMenu } from "./recentFilesContextMenu.js";
 const lifecycleGlobal = globalThis;
+function isMissingFileError(error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return /\bENOENT\b/u.test(message);
+}
+function getRecentOpenErrorMessage(error) {
+    if (isMissingFileError(error)) {
+        return "File not found. It may have been moved, deleted, or opened from an old recent-file entry.";
+    }
+    return error instanceof Error ? error.message : String(error);
+}
 /**
  * Sets up all event listeners for the FitFileViewer application UI and IPC.
  *
@@ -63,8 +73,7 @@ export function setupListeners({
     };
     const isTestEnvironment =
         lifecycleGlobal.process !== undefined &&
-        Boolean(lifecycleGlobal.process?.env) &&
-        lifecycleGlobal.process.env["NODE_ENV"] === "test";
+        lifecycleGlobal.process?.env?.["NODE_ENV"] === "test";
     // Open File button click
     const handleOpenFileClick = () => {
         handleOpenFile({
@@ -177,8 +186,7 @@ export function setupListeners({
                     // Debug logging for development
                     if (
                         typeof process !== "undefined" &&
-                        process.env &&
-                        process.env["NODE_ENV"] !== "production"
+                        process.env?.["NODE_ENV"] !== "production"
                     ) {
                         console.log(
                             "[DEBUG] Recent file parse result:",
@@ -217,7 +225,7 @@ export function setupListeners({
                     await electronAPI.addRecentFile?.(filePathString);
                 } catch (error) {
                     showNotification(
-                        `Error opening recent file: ${error}`,
+                        `Error opening recent file: ${getRecentOpenErrorMessage(error)}`,
                         "error"
                     );
                 } finally {
@@ -230,9 +238,8 @@ export function setupListeners({
     if (electronAPI && electronAPI.onIpc) {
         const debugMenuEnabled =
             typeof process !== "undefined" &&
-            Boolean(process.env) &&
-            (process.env["FFV_DEBUG_MENU"] === "1" ||
-                process.env["NODE_ENV"] === "development");
+            (process.env?.["FFV_DEBUG_MENU"] === "1" ||
+                process.env?.["NODE_ENV"] === "development");
         const debugMenuLog = (...args) => {
             if (!debugMenuEnabled) return;
             try {

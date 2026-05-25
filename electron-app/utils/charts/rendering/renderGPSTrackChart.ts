@@ -345,10 +345,10 @@ function limitGpsTrackPoints(
 function shouldLogDebugMessages(): boolean {
     const isTestEnvironment =
             typeof process !== "undefined" &&
-            process.env["NODE_ENV"] === "test",
+            process.env?.["NODE_ENV"] === "test",
         isDevEnvironment =
             typeof process !== "undefined" &&
-            process.env["NODE_ENV"] === "development",
+            process.env?.["NODE_ENV"] === "development",
         runtimeGlobal = globalThis as typeof globalThis & GPSTrackRuntimeGlobal;
 
     return (

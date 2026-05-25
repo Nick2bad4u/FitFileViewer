@@ -193,9 +193,8 @@ const __chartThemeMod = __resolveManualMockBySuffix(
 try {
     const debugEnabled =
         typeof process !== "undefined" &&
-        Boolean(process.env) &&
         // Only enable when explicitly requested.
-        process.env["FFV_DEBUG_TEST_MOCKS"] === "1";
+        process.env?.["FFV_DEBUG_TEST_MOCKS"] === "1";
 
     if (debugEnabled) {
         const __dbgReg = __getManualMockRegistry();
@@ -2010,8 +2009,7 @@ export const exportUtils = {
 
         const debugEnabled =
             typeof process !== "undefined" &&
-            Boolean(process.env) &&
-            process.env["FFV_DEBUG_EXPORT_THEME"] === "1";
+            process.env?.["FFV_DEBUG_EXPORT_THEME"] === "1";
         const debugLog = (...args: unknown[]) => {
             if (!debugEnabled) return;
             try {
@@ -3656,8 +3654,7 @@ body {
     async uploadToImgur(base64Image: string): Promise<string> {
         const debugUploads =
             typeof process !== "undefined" &&
-            Boolean(process.env) &&
-            process.env["FFV_DEBUG_UPLOADS"] === "1";
+            process.env?.["FFV_DEBUG_UPLOADS"] === "1";
 
         const config = exportUtils.getImgurConfig();
 

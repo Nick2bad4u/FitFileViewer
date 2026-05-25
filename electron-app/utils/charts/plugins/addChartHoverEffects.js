@@ -138,7 +138,7 @@ function isFullscreenTraceEnabled() {
     }
     return (
         typeof process !== "undefined" &&
-        process.env["NODE_ENV"] === "development"
+        process.env?.["NODE_ENV"] === "development"
     );
 }
 function describeElement(element) {
@@ -280,7 +280,7 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
     const chartCanvases = chartContainer.querySelectorAll(".chart-canvas");
     const isDevEnvironment =
         typeof process !== "undefined" &&
-        process.env["NODE_ENV"] === "development";
+        process.env?.["NODE_ENV"] === "development";
     const isDebugLoggingEnabled =
         isDevEnvironment && Boolean(chartHoverGlobal.__FFV_debugCharts);
     let appliedCount = 0;

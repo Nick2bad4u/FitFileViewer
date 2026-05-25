@@ -46,7 +46,7 @@ export function ensureProcessNextTick() {
  */
 export function isNodeEnv(expected) {
     return (
-        typeof process !== "undefined" && process.env["NODE_ENV"] === expected
+        typeof process !== "undefined" && process.env?.["NODE_ENV"] === expected
     );
 }
 /**

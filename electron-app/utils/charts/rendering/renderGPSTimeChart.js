@@ -417,10 +417,10 @@ function limitGpsTimePoints(latitudeData, longitudeData, maxPoints) {
 function shouldLogDebugMessages() {
     const isTestEnvironment =
             typeof process !== "undefined" &&
-            process.env["NODE_ENV"] === "test",
+            process.env?.["NODE_ENV"] === "test",
         isDevEnvironment =
             typeof process !== "undefined" &&
-            process.env["NODE_ENV"] === "development",
+            process.env?.["NODE_ENV"] === "development",
         runtimeGlobal = globalThis;
     return (
         isTestEnvironment ||

@@ -225,7 +225,7 @@ function isFullscreenTraceEnabled(): boolean {
     }
     return (
         typeof process !== "undefined" &&
-        process.env["NODE_ENV"] === "development"
+        process.env?.["NODE_ENV"] === "development"
     );
 }
 
@@ -401,7 +401,7 @@ export function addChartHoverEffects(
 
     const isDevEnvironment =
         typeof process !== "undefined" &&
-        process.env["NODE_ENV"] === "development";
+        process.env?.["NODE_ENV"] === "development";
     const isDebugLoggingEnabled =
         isDevEnvironment && Boolean(chartHoverGlobal.__FFV_debugCharts);
 

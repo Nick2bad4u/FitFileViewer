@@ -102,8 +102,7 @@ function shouldLogMenuDebug() {
     try {
         const envFlag =
             typeof process !== "undefined" &&
-            Boolean(process.env) &&
-            process.env["FFV_DEBUG_MENU"] === "1";
+            process.env?.["FFV_DEBUG_MENU"] === "1";
         const globalFlag =
             typeof globalThis !== "undefined" &&
             Boolean(getMenuGlobal().__FFV_debugMenu);

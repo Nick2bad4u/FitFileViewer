@@ -9,6 +9,16 @@ import {
 function getRecentFilesGlobal() {
     return globalThis;
 }
+function isMissingFileError(error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return /\bENOENT\b/u.test(message);
+}
+function getRecentOpenErrorMessage(error) {
+    if (isMissingFileError(error)) {
+        return "File not found. It may have been moved, deleted, or opened from an old recent-file entry.";
+    }
+    return error instanceof Error ? error.message : String(error);
+}
 /**
  * Attach the “Recent Files” context menu behavior to the Open File button.
  *
@@ -27,10 +37,9 @@ export function attachRecentFilesContextMenu({
     const rootAbortController = new AbortController();
     const debugEnabled =
         typeof process !== "undefined" &&
-        Boolean(process.env) &&
         // Keep default quiet even in tests; enable only when explicitly requested.
-        (process.env["FFV_DEBUG_RECENT_MENU"] === "1" ||
-            process.env["NODE_ENV"] === "development");
+        (process.env?.["FFV_DEBUG_RECENT_MENU"] === "1" ||
+            process.env?.["NODE_ENV"] === "development");
     const debugLog = (...args) => {
         if (!debugEnabled) return;
         try {
@@ -233,7 +242,7 @@ export function attachRecentFilesContextMenu({
                         await activeElectronAPI.addRecentFile?.(file);
                     } catch (error) {
                         showNotification(
-                            `Error opening recent file: ${error}`,
+                            `Error opening recent file: ${getRecentOpenErrorMessage(error)}`,
                             "error"
                         );
                     } finally {

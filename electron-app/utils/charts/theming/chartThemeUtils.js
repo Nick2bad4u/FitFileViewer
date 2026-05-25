@@ -2,7 +2,7 @@ import { getEffectiveTheme } from "../../theming/core/theme.js";
 function shouldLogDebugMessages() {
     const isDevEnvironment =
         typeof process !== "undefined" &&
-        process.env["NODE_ENV"] === "development";
+        process.env?.["NODE_ENV"] === "development";
     const debugGlobal = globalThis;
     return isDevEnvironment && debugGlobal.__FFV_debugCharts === true;
 }

@@ -32,7 +32,10 @@ function getMapThemeToggleGlobal(): MapThemeToggleGlobal {
 }
 
 function isTestEnvironment(): boolean {
-    return process.env["NODE_ENV"] === "test";
+    return (
+        typeof process !== "undefined" &&
+        process.env?.["NODE_ENV"] === "test"
+    );
 }
 
 function getThemeColorValue(value: unknown, fallback: string): string {
