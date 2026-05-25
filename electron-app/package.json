@@ -394,7 +394,7 @@
     },
     "icon": "icons/favicon.ico",
     "api": "none",
-    "appid": "com.example.fitfileviewer",
+    "appid": "io.github.nick2bad4u.fitfileviewer",
     "authorEmail": "20943337+Nick2bad4u@users.noreply.github.com",
     "authorName": "Nick2bad4u",
     "build": {
@@ -402,7 +402,7 @@
         "directories": {
             "output": "release"
         },
-        "appId": "com.example.fitfileviewer",
+        "appId": "io.github.nick2bad4u.fitfileviewer",
         "artifactName": "Fit-File-Viewer-${platform}-${arch}-${version}.${ext}",
         "asar": true,
         "publish": [

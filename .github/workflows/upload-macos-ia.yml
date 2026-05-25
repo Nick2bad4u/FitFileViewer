@@ -4,7 +4,7 @@ run-name: Upload macOS Distributables To Archive Org (${{ github.ref_name }})
 on:
     workflow_dispatch:
     workflow_run:
-        workflows: ["Build and Release Electron App"]
+        workflows: ["Build And Release Electron App"]
         types:
             - completed
         branches:
@@ -20,6 +20,7 @@ permissions:
 jobs:
     upload-macos:
         name: Upload macOS Distributables
+        if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
         runs-on: ubuntu-latest
         timeout-minutes: 20
         steps:

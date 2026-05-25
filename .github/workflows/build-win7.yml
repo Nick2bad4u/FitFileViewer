@@ -10,7 +10,7 @@ on:
                 required: false
                 default: "main"
     workflow_run:
-        workflows: ["Build and Release Electron App"]
+        workflows: ["Build And Release Electron App"]
         types:
             - completed
         branches:

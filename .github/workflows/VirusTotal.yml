@@ -7,7 +7,7 @@ run-name: Virus Total Scan (${{ github.ref_name }})
 on:
     workflow_dispatch:
     workflow_run:
-        workflows: ["Build and Release Electron App"]
+        workflows: ["Build And Release Electron App"]
         types:
             - completed
         branches:
@@ -23,6 +23,7 @@ concurrency:
 jobs:
     virustotal:
         name: Virus Total Scan
+        if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
         runs-on: ubuntu-latest
         timeout-minutes: 20
         steps:

@@ -54,7 +54,7 @@ npm run build-all
 
 ```json
 {
- "appId": "com.example.fitfileviewer",
+ "appId": "io.github.nick2bad4u.fitfileviewer",
  "productName": "Fit File Viewer",
  "files": ["**/*", "!tests/**"],
  "win": {
@@ -77,7 +77,7 @@ npm run build-all
 ```json
 {
  "build": {
-  "appId": "com.example.fitfileviewer",
+  "appId": "io.github.nick2bad4u.fitfileviewer",
   "artifactName": "Fit-File-Viewer-${platform}-${arch}-${version}.${ext}",
   "publish": [
    {
