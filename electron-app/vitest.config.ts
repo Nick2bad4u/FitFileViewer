@@ -32,7 +32,6 @@ export default defineConfig({
             allowExternal: false,
             clean: true, // Clean coverage directory before each run
             cleanOnRerun: true, // Clean on rerun in watch mode
-            enabled: true,
             exclude: [
                 "node_modules/**",
                 // Exclude built artifacts and generated output
@@ -138,6 +137,7 @@ export default defineConfig({
         },
         exclude: [
             "**/node_modules/**",
+            "tests/playwright/**",
             // Exclude any compiled artifacts accidentally picked up
             "dist/**",
             "**/dist/**",

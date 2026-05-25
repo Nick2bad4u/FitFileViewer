@@ -13,7 +13,7 @@ await esbuild.build({
     format: "cjs",
     legalComments: "none",
     logLevel: "info",
-    outfile: path.join(electronAppDir, "preload.js"),
+    outfile: path.join(electronAppDir, "dist", "preload.js"),
     platform: "node",
     sourcemap: false,
     target: "node22",

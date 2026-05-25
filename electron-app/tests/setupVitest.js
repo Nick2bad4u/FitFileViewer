@@ -2,12 +2,110 @@
 // Mock Leaflet global L for all Vitest tests
 // eslint-disable-next-line import-x/no-unassigned-import -- ensure web storage shim registers before Storybook config executes
 import "./shims/nodeWebStorage";
+import fs from "node:fs";
+import Module from "node:module";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import {
     vi,
     afterEach as vitestAfterEach,
     beforeEach as vitestBeforeEach,
     afterAll as vitestAfterAll,
 } from "vitest";
+
+const setupImportMetaUrl = String(import.meta.url ?? "");
+const electronAppRoot = path.resolve(
+    setupImportMetaUrl.startsWith("file:")
+        ? fileURLToPath(new URL("..", setupImportMetaUrl))
+        : process.cwd()
+);
+const electronAppDist = path.join(electronAppRoot, "dist");
+const generatedRuntimeDirs = new Set([
+    "main",
+    "preload",
+    "shared",
+    "ui",
+    "utils",
+]);
+const generatedRuntimeRootFiles = new Set([
+    "fitParser.js",
+    "main-ui.js",
+    "main.js",
+    "preload.js",
+    "renderer.js",
+    "utils.js",
+    "windowStateUtils.js",
+]);
+
+function isGeneratedRuntimePath(relativePath) {
+    const normalized = relativePath.replaceAll(path.sep, "/");
+    if (
+        normalized.startsWith("../") ||
+        normalized.startsWith("tests/") ||
+        normalized.startsWith("vendor/") ||
+        normalized.startsWith("ffv/")
+    ) {
+        return false;
+    }
+
+    const [firstSegment] = normalized.split("/");
+    return (
+        generatedRuntimeRootFiles.has(normalized) ||
+        generatedRuntimeDirs.has(firstSegment)
+    );
+}
+
+function resolveDistRuntimeRequest(request, parentFilename) {
+    if (
+        typeof request !== "string" ||
+        !request.startsWith(".") ||
+        typeof parentFilename !== "string"
+    ) {
+        return;
+    }
+
+    const requestedPath = path.resolve(path.dirname(parentFilename), request);
+    const sourceCandidates = path.extname(requestedPath)
+        ? [requestedPath]
+        : [`${requestedPath}.js`];
+
+    for (const sourceCandidate of sourceCandidates) {
+        const relativeSourcePath = path.relative(electronAppRoot, sourceCandidate);
+        if (
+            path.isAbsolute(relativeSourcePath) ||
+            !isGeneratedRuntimePath(relativeSourcePath) ||
+            fs.existsSync(sourceCandidate)
+        ) {
+            continue;
+        }
+
+        const distCandidate = path.join(electronAppDist, relativeSourcePath);
+        if (fs.existsSync(distCandidate)) {
+            return distCandidate;
+        }
+    }
+}
+
+if (!globalThis.__fitFileViewerVitestDistResolverInstalled) {
+    const originalResolveFilename = Module._resolveFilename;
+    Module._resolveFilename = function resolveFilename(
+        request,
+        parent,
+        isMain,
+        options
+    ) {
+        const distRuntimeFile = resolveDistRuntimeRequest(
+            request,
+            parent?.filename
+        );
+        if (distRuntimeFile) {
+            return distRuntimeFile;
+        }
+        return originalResolveFilename.call(this, request, parent, isMain, options);
+    };
+    globalThis.__fitFileViewerVitestDistResolverInstalled = true;
+}
+
 // Soft import of state manager test-only resets; guarded to avoid module init cost when not present
 /** @type {undefined | (() => void)} */
 let __resetStateMgr;

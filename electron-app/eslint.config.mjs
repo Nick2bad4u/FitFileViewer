@@ -21,6 +21,7 @@ const config = [
             "preload/**/*.js",
             "shared/**/*.js",
             "temp-win7/**",
+            "test-results/**",
             "types/**",
             "ui/**/*.js",
             "utils/**/*.js",
@@ -49,6 +50,12 @@ const config = [
             "@typescript-eslint/no-unnecessary-type-parameters": "off",
             "import-x/no-commonjs": "off",
             "import-x/unambiguous": "off",
+            "n/no-missing-require": [
+                "error",
+                {
+                    tryExtensions: [".js", ".json", ".node", ".ts"],
+                },
+            ],
             "n/prefer-global/buffer": "off",
             "no-undef": "off",
             "perfectionist/sort-interfaces": "off",
@@ -59,10 +66,26 @@ const config = [
         },
     },
     {
+        files: ["global.d.ts"],
+        rules: {
+            "n/no-unpublished-import": "off",
+        },
+    },
+    {
         files: ["main-ui.ts", "main.ts"],
         rules: {
             "@typescript-eslint/no-unsafe-type-assertion": "off",
             "@typescript-eslint/prefer-readonly-parameter-types": "off",
+        },
+    },
+    {
+        files: ["renderer.ts"],
+        rules: {
+            "@typescript-eslint/ban-ts-comment": "off",
+            "runtime-cleanup/no-floating-timers": "off",
+            "runtime-cleanup/no-unmanaged-event-listeners": "off",
+            "typedoc/no-duplicate-param-tags": "off",
+            "typedoc/no-extra-param-tags": "off",
         },
     },
     {

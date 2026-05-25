@@ -11,12 +11,7 @@ modules:
     - build-commands:
           - cp -r ./node_modules /app/
           - install -Dm755 ./node_modules/electron/dist/electron /app/bin/electron
-          - install -Dm755 ./main.js /app/main.js
-          - install -Dm755 ./preload.js /app/preload.js
-          - install -Dm755 ./renderer.js /app/renderer.js
-          - install -Dm755 ./main-ui.js /app/main-ui.js
-          - install -Dm755 ./fitParser.js /app/fitParser.js
-          - install -Dm755 ./windowStateUtils.js /app/windowStateUtils.js
+          - cp -r ./dist /app/
           - install -Dm644 ./package.json /app/package.json
           - install -Dm644 ./index.html /app/index.html
           - install -Dm644 ./style.css /app/style.css
@@ -25,9 +20,6 @@ modules:
           - cp -r ./assets /app/
           - cp -r ./ffv /app/
           - cp -r ./icons /app/
-          - cp -r ./main /app/
-          - cp -r ./ui /app/
-          - cp -r ./utils /app/
           - cp -r ./vendor /app/
       buildsystem: simple
       name: app

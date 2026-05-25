@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 const __filename = fileURLToPath(import.meta.url);
 
 const __dirname = path.dirname(__filename);
-const outputDir = path.resolve(__dirname, "..", "dist", "win7");
+const outputDir = path.resolve(__dirname, "..", "release", "win7");
 const WIN7_ELECTRON_VERSION = "22.3.27";
 
 async function run() {

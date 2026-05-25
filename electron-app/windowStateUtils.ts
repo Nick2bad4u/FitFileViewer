@@ -433,7 +433,7 @@
             });
 
             void win
-                .loadFile(CONSTANTS.PATHS.HTML.INDEX)
+                .loadFile(path.join(__dirname, CONSTANTS.PATHS.HTML.INDEX))
                 .then(() => {
                     logWithContext(
                         "info",

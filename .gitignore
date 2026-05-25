@@ -15,6 +15,8 @@ lerna-debug.log*
 # electron-app: generated test artifacts
 electron-app/test-report.junit.xml
 electron-app/logs/
+electron-app/test-results/
+electron-app/release/
 
 # Repo-root transient outputs
 temp/

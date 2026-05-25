@@ -10,6 +10,35 @@ const tsconfigPath = path.join(electronAppDir, "tsconfig.runtime.json");
 const prettierBin = require.resolve("prettier/bin/prettier.cjs");
 const batchSize = 40;
 
+function resolveOutputPath(tsconfig, file) {
+    const compilerOptions =
+        tsconfig && typeof tsconfig === "object"
+            ? tsconfig.compilerOptions
+            : undefined;
+    const outDir =
+        compilerOptions &&
+        typeof compilerOptions === "object" &&
+        typeof compilerOptions.outDir === "string"
+            ? compilerOptions.outDir
+            : ".";
+    const rootDir =
+        compilerOptions &&
+        typeof compilerOptions === "object" &&
+        typeof compilerOptions.rootDir === "string"
+            ? compilerOptions.rootDir
+            : ".";
+    const relativeToRoot = path.relative(
+        path.resolve(electronAppDir, rootDir),
+        path.resolve(electronAppDir, file)
+    );
+
+    return path.join(
+        electronAppDir,
+        outDir,
+        relativeToRoot.replace(/\.ts$/u, ".js")
+    );
+}
+
 function readRuntimeOutputFiles() {
     const tsconfig = JSON.parse(fs.readFileSync(tsconfigPath, "utf8"));
 
@@ -19,7 +48,7 @@ function readRuntimeOutputFiles() {
 
     return tsconfig.files
         .filter((file) => typeof file === "string" && file.endsWith(".ts"))
-        .map((file) => path.join(electronAppDir, file.replace(/\.ts$/u, ".js")))
+        .map((file) => resolveOutputPath(tsconfig, file))
         .filter((file) => fs.existsSync(file));
 }
 

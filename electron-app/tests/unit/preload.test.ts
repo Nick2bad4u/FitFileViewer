@@ -114,7 +114,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         vi.stubGlobal("process", mockProcess);
 
         // Load and execute preload script
-        const preloadPath = path.resolve(__dirname, "../../preload.js");
+        const preloadPath = path.resolve(__dirname, "../../dist/preload.js");
         const preloadCode = fs.readFileSync(preloadPath, "utf-8");
 
         const mockRequire = vi.fn().mockImplementation((module: string) => {

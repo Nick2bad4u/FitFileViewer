@@ -60,6 +60,18 @@
         preloadLog,
         validateCallback,
     }: PreloadIpcHelpersOptions): PreloadIpcHelpers {
+        function isMissingFileError(error: unknown): boolean {
+            const message = error instanceof Error ? error.message : String(error);
+            return /\bENOENT\b/u.test(message);
+        }
+
+        function shouldSuppressInvokeErrorLog(
+            methodName: string,
+            error: unknown
+        ): boolean {
+            return methodName === "readFile" && isMissingFileError(error);
+        }
+
         function createNoopUnsubscribe(): () => void {
             return noopUnsubscribe;
         }
@@ -125,11 +137,13 @@
                         ...args
                     )) as InvokeResponsePayloadForChannel<Channel>;
                 } catch (error) {
-                    preloadLog(
-                        "error",
-                        `[preload.js] Error in ${methodName}:`,
-                        error
-                    );
+                    if (!shouldSuppressInvokeErrorLog(methodName, error)) {
+                        preloadLog(
+                            "error",
+                            `[preload.js] Error in ${methodName}:`,
+                            error
+                        );
+                    }
                     throw error;
                 }
             };

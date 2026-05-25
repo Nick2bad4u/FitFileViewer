@@ -34,7 +34,7 @@ describe("preload.js - Advanced Test Coverage", () => {
 
         // Load preload script source
         preloadCode = readFileSync(
-            join(__dirname, "../../preload.js"),
+            join(__dirname, "../../dist/preload.js"),
             "utf-8"
         );
     });
