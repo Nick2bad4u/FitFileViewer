@@ -131,10 +131,12 @@ type ExtendedExportUtils = typeof exportUtils & {
     showImgurAccountManager: () => unknown;
 };
 
-const extendedExportUtils = exportUtils as ExtendedExportUtils;
-
 function getWindowExtensions(): WindowExtensions {
     return globalThis as WindowExtensions;
+}
+
+function getExtendedExportUtils(): ExtendedExportUtils {
+    return exportUtils as ExtendedExportUtils;
 }
 
 function getGlobalData(): GlobalData {
@@ -290,10 +292,13 @@ export function createExportSection(wrapper: HTMLElement): void {
                         const [dataset] = chart.data.datasets,
                             fieldName = dataset?.label || "chart",
                             filename = `${fieldName.replaceAll(/\s+/g, "-").toLowerCase()}-chart.png`;
-                        extendedExportUtils.downloadChartAsPNG(chart, filename);
+                        getExtendedExportUtils().downloadChartAsPNG(
+                            chart,
+                            filename
+                        );
                     },
                     (charts) =>
-                        extendedExportUtils.createCombinedChartsImage(
+                        getExtendedExportUtils().createCombinedChartsImage(
                             charts,
                             "combined-charts.png"
                         )
@@ -305,9 +310,10 @@ export function createExportSection(wrapper: HTMLElement): void {
             action: () =>
                 showChartSelectionModal(
                     "Copy to Clipboard",
-                    (chart) => extendedExportUtils.copyChartToClipboard(chart),
+                    (chart) =>
+                        getExtendedExportUtils().copyChartToClipboard(chart),
                     (charts) =>
-                        extendedExportUtils.copyCombinedChartsToClipboard(
+                        getExtendedExportUtils().copyCombinedChartsToClipboard(
                             charts
                         )
                 ),
@@ -323,7 +329,7 @@ export function createExportSection(wrapper: HTMLElement): void {
                         if (dataset && dataset.data) {
                             const fieldName = dataset.label || "chart",
                                 filename = `${fieldName.replaceAll(/\s+/g, "-").toLowerCase()}-data.csv`;
-                            extendedExportUtils.exportChartDataAsCSV(
+                            getExtendedExportUtils().exportChartDataAsCSV(
                                 dataset.data,
                                 fieldName,
                                 filename
@@ -331,7 +337,7 @@ export function createExportSection(wrapper: HTMLElement): void {
                         }
                     },
                     (charts) =>
-                        extendedExportUtils.exportCombinedChartsDataAsCSV(
+                        getExtendedExportUtils().exportCombinedChartsDataAsCSV(
                             charts,
                             "combined-charts-data.csv"
                         )
@@ -348,7 +354,7 @@ export function createExportSection(wrapper: HTMLElement): void {
                         if (dataset && dataset.data) {
                             const fieldName = dataset.label || "chart",
                                 filename = `${fieldName.replaceAll(/\s+/g, "-").toLowerCase()}-data.json`;
-                            extendedExportUtils.exportChartDataAsJSON(
+                            getExtendedExportUtils().exportChartDataAsJSON(
                                 dataset.data,
                                 fieldName,
                                 filename
@@ -396,8 +402,9 @@ export function createExportSection(wrapper: HTMLElement): void {
             action: () =>
                 showChartSelectionModal(
                     "Print",
-                    (chart) => extendedExportUtils.printChart(chart),
-                    (charts) => extendedExportUtils.printCombinedCharts(charts)
+                    (chart) => getExtendedExportUtils().printChart(chart),
+                    (charts) =>
+                        getExtendedExportUtils().printCombinedCharts(charts)
                 ),
             icon: "🖨️",
             text: "Print",
@@ -412,38 +419,38 @@ export function createExportSection(wrapper: HTMLElement): void {
                     );
                     return;
                 }
-                extendedExportUtils.exportAllAsZip(charts);
+                getExtendedExportUtils().exportAllAsZip(charts);
             },
             icon: "📁",
             text: "Export ZIP",
         },
         {
-            action: () => extendedExportUtils.shareChartsAsURL(),
+            action: () => getExtendedExportUtils().shareChartsAsURL(),
             icon: "🔗",
             text: "Share URL",
         },
         {
             action: () => {
-                if (!extendedExportUtils.isGyazoAuthenticated()) {
+                if (!getExtendedExportUtils().isGyazoAuthenticated()) {
                     showNotification(
                         "Please connect your Gyazo account first",
                         "warning"
                     );
-                    extendedExportUtils.showGyazoAccountManager();
+                    getExtendedExportUtils().showGyazoAccountManager();
                     return;
                 }
-                extendedExportUtils.shareChartsToGyazo();
+                getExtendedExportUtils().shareChartsToGyazo();
             },
             icon: "📸",
             text: "Share Gyazo",
         },
         {
-            action: () => extendedExportUtils.showGyazoAccountManager(),
+            action: () => getExtendedExportUtils().showGyazoAccountManager(),
             icon: "⚙️",
             text: "Gyazo Settings",
         },
         {
-            action: () => extendedExportUtils.showImgurAccountManager(),
+            action: () => getExtendedExportUtils().showImgurAccountManager(),
             icon: "🔧",
             text: "Imgur Settings",
         },
@@ -796,7 +803,7 @@ export function showChartSelectionModal(
 
     // Filter out invalid charts using exportUtils validation
     const validCharts = charts.filter((chart) =>
-        extendedExportUtils.isValidChart(chart)
+        getExtendedExportUtils().isValidChart(chart)
     );
 
     if (validCharts.length === 0) {

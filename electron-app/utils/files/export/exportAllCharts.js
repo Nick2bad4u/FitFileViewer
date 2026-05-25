@@ -1,7 +1,6 @@
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { exportUtils as rawExportUtils } from "./exportUtils.js";
 const chartExportGlobal = globalThis;
-const exportUtils = rawExportUtils;
 function getChartLabel(chart, index) {
     const label = chart.data?.datasets?.[0]?.label;
     return typeof label === "string" && label.length > 0
@@ -17,6 +16,7 @@ function getChartExportFilename(chart, index) {
  */
 export function exportAllCharts() {
     const chartInstances = chartExportGlobal._chartjsInstances;
+    const exportUtils = rawExportUtils;
     if (!Array.isArray(chartInstances) || chartInstances.length === 0) {
         showNotification("No charts available to export", "warning");
         return;

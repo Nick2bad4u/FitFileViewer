@@ -11,7 +11,6 @@ type ChartExportGlobal = typeof globalThis & {
 };
 
 const chartExportGlobal = globalThis as ChartExportGlobal;
-const exportUtils = rawExportUtils as ChartExportUtils;
 
 function getChartLabel(chart: ExportableChart, index: number): string {
     const label = chart.data?.datasets?.[0]?.label;
@@ -30,6 +29,7 @@ function getChartExportFilename(chart: ExportableChart, index: number): string {
  */
 export function exportAllCharts(): void {
     const chartInstances = chartExportGlobal._chartjsInstances;
+    const exportUtils = rawExportUtils as ChartExportUtils;
 
     if (!Array.isArray(chartInstances) || chartInstances.length === 0) {
         showNotification("No charts available to export", "warning");
