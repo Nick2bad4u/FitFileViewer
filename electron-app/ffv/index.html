@@ -160,11 +160,9 @@
                                         typeof url === "string"
                                             ? url
                                             : String(url);
-                                    // @ts-expect-error - internal flag
                                     this.__ffvBlocked =
                                         urlStr && isBlockedUrl(urlStr);
                                 } catch {
-                                    // @ts-expect-error - internal flag
                                     this.__ffvBlocked = false;
                                 }
                                 return origOpen.call(
@@ -177,7 +175,6 @@
                             XMLHttpRequest.prototype.send = function send(
                                 body
                             ) {
-                                // @ts-expect-error - internal flag
                                 if (this.__ffvBlocked) {
                                     try {
                                         this.abort();

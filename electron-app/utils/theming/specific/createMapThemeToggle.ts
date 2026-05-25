@@ -27,15 +27,27 @@ type SvgRayCoordinates = readonly [
     string,
 ];
 
+function getProcessEnvironmentValue(name: string): string | undefined {
+    const processValue = Reflect.get(globalThis, "process");
+    if (typeof processValue !== "object" || processValue === null) {
+        return undefined;
+    }
+
+    const env = Reflect.get(processValue, "env");
+    if (typeof env !== "object" || env === null) {
+        return undefined;
+    }
+
+    const value = Reflect.get(env, name);
+    return typeof value === "string" ? value : undefined;
+}
+
 function getMapThemeToggleGlobal(): MapThemeToggleGlobal {
     return globalThis as MapThemeToggleGlobal;
 }
 
 function isTestEnvironment(): boolean {
-    return (
-        typeof process !== "undefined" &&
-        process.env?.["NODE_ENV"] === "test"
-    );
+    return getProcessEnvironmentValue("NODE_ENV") === "test";
 }
 
 function getThemeColorValue(value: unknown, fallback: string): string {

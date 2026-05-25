@@ -27,6 +27,21 @@ interface RenderChartRuntimeGlobal {
     _chartjsInstances?: unknown[];
 }
 
+function getProcessEnvironmentValue(name: string): string | undefined {
+    const processValue = Reflect.get(globalThis, "process");
+    if (!isObjectRecord(processValue)) {
+        return undefined;
+    }
+
+    const env = processValue["env"];
+    if (!isObjectRecord(env)) {
+        return undefined;
+    }
+
+    const value = env[name];
+    return typeof value === "string" ? value : undefined;
+}
+
 interface DebouncedChartStateManager {
     debouncedRender(reason: string): void;
 }
@@ -105,10 +120,7 @@ export function ensureProcessNextTick(): void {
  * Reads NODE_ENV defensively for browser-like renderer test environments.
  */
 export function isNodeEnv(expected: string): boolean {
-    return (
-        typeof process !== "undefined" &&
-        process.env?.["NODE_ENV"] === expected
-    );
+    return getProcessEnvironmentValue("NODE_ENV") === expected;
 }
 
 /**

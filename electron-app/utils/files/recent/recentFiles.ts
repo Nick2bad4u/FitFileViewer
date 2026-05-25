@@ -97,9 +97,16 @@ function loadRecentFiles(): string[] {
             );
             return [];
         }
-        return parsed.filter(
-            (entry): entry is string => typeof entry === "string"
+        const validEntries = parsed.filter(
+            (entry): entry is string =>
+                typeof entry === "string" && fs.existsSync(entry)
         );
+
+        if (validEntries.length !== parsed.length) {
+            saveRecentFiles(validEntries);
+        }
+
+        return validEntries;
     } catch (error) {
         console.error("Failed to load recent files:", error);
     }

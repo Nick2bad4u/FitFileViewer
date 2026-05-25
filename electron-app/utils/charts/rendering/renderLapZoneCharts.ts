@@ -76,7 +76,7 @@ const DEFAULT_VISIBILITY: LapZoneVisibility = {
  * @param options - Optional visibility and chart settings.
  */
 export function renderLapZoneCharts(
-    container: HTMLElement,
+    container: HTMLElement | null | undefined,
     options: LapZoneChartsOptions | null = {}
 ): void {
     const runtimeGlobal = getRuntimeGlobal(),
@@ -85,6 +85,10 @@ export function renderLapZoneCharts(
     try {
         if (debug.isDebugLoggingEnabled) {
             console.log("[ChartJS] renderLapZoneCharts called");
+        }
+
+        if (!(container instanceof HTMLElement)) {
+            return;
         }
 
         const timeInZoneMesgs = getTimeInZoneMessages(runtimeGlobal);

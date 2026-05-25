@@ -1,4 +1,3 @@
-// @ts-nocheck -- legacy renderer entry remains behavior-preserving during the runtime-dist migration.
 /**
  * @version 21.1.0
  *
@@ -21,140 +20,8 @@
  */
 
 // ==========================================
-// Window Extensions for TypeScript
+// Type Definitions
 // ==========================================
-
-/**
- * @typedef {(...args: unknown[]) => unknown} UnknownRendererFunction
- */
-
-/**
- * @typedef {Object} WindowExtensions
- *
- * @property {boolean} [__DEVELOPMENT__] - Development mode flag
- * @property {() => HTMLButtonElement} [createExportGPXButton] - Export GPX
- *   button creator
- * @property {Record<string, unknown>} [APP_INFO] - Application information
- * @property {Record<string, unknown>} [__renderer_debug] - Renderer debug
- *   utilities
- * @property {Record<string, unknown>} [__renderer_dev] - Renderer development
- *   utilities
- * @property {Record<string, unknown>} [__sensorDebug] - Sensor debug utilities
- * @property {Record<string, unknown>} [__debugChartFormatting] - Chart
- *   formatting debug utilities
- */
-
-/**
- * @typedef {Object} ElectronAPIExtensions
- *
- * @property {boolean} [__devMode] - Development mode flag in electron API
- */
-
-/**
- * @typedef {Object} PerformanceExtended
- *
- * @property {Object} [memory] - Memory usage information
- * @property {number} [memory.usedJSHeapSize] - Used JS heap size
- * @property {number} [memory.totalJSHeapSize] - Total JS heap size
- * @property {number} [memory.jsHeapSizeLimit] - JS heap size limit
- */
-
-/**
- * @typedef {Object} MasterStateManagerExtended
- *
- * @property {() => unknown} getState - Get current state
- * @property {() => unknown[]} getHistory - Get state history
- */
-
-/**
- * @typedef {Object} LegacyRendererAppState
- *
- * @property {boolean} isInitialized - Legacy initialization flag bridge
- * @property {boolean} isOpeningFile - Legacy file-opening flag bridge
- * @property {number | undefined} startTime - Legacy start-time bridge
- */
-
-// In electron-app/renderer.ts
-
-// ==========================================
-// Type Definitions (JSDoc)
-// ==========================================
-
-/**
- * @typedef {Object} RendererDependencies
- *
- * @property {HTMLElement | null} openFileBtn - Open file button element
- * @property {{ value: boolean }} isOpeningFileRef - Reference to file opening
- *   state
- * @property {(loading: boolean) => void} setLoading - Function to show/hide
- *   loading state
- * @property {(message: string, type?: string, timeout?: number) => unknown} showNotification
- *   - Function to display notifications
- * @property {UnknownRendererFunction} handleOpenFile - Function to handle file
- *   opening
- * @property {(
- *     message: string,
- *     type?: string,
- *     duration?: number,
- *     withAction?: boolean | string
- * ) => void} showUpdateNotification
- *   - Function to show update notifications
- * @property {(html?: string) => void} showAboutModal - Function to display
- *   about modal
- * @property {(theme: string, withTransition?: boolean) => void} applyTheme -
- *   Function to apply theme changes
- * @property {(onThemeChange: (theme: string) => void) => void} listenForThemeChange
- *   - Function to listen for theme changes
- */
-
-/**
- * @typedef {Object} RendererCoreModules
- *
- * @property {Record<string, unknown> | undefined} AppActions - Application
- *   action module
- * @property {((theme: string, withTransition?: boolean) => void) | undefined} applyTheme
- *   - Theme application function
- * @property {UnknownRendererFunction | undefined} getAppDomainState - App
- *   domain state accessor
- * @property {UnknownRendererFunction | undefined} handleOpenFile - File open
- *   handler
- * @property {((onThemeChange: (theme: string) => void) => void) | undefined} listenForThemeChange
- *   - Theme-change listener registrar
- * @property {Record<string, unknown> | undefined} masterStateManager - State
- *   manager module
- * @property {UnknownRendererFunction | undefined} setupListeners - Listener
- *   setup function
- * @property {UnknownRendererFunction | undefined} setupTheme - Theme setup
- *   function
- * @property {((html?: string) => void) | undefined} showAboutModal - About
- *   modal function
- * @property {((message: string, type?: string, timeout?: number) => unknown)
- *     | undefined} showNotification
- *   - Notification function
- * @property {((
- *           message: string,
- *           type?: string,
- *           duration?: number,
- *           withAction?: boolean | string
- *       ) => void)
- *     | undefined} showUpdateNotification
- *   - Update notification function
- * @property {UnknownRendererFunction | undefined} subscribeAppDomain - App
- *   domain subscription function
- * @property {Record<string, unknown> | undefined} uiStateManager - UI state
- *   manager module
- */
-
-/**
- * @typedef {Object} ElectronApiStartupHooks
- *
- * @property {((callback: (action: unknown) => void) => unknown) | undefined} onMenuAction
- * @property {((callback: (theme: string) => void) => unknown) | undefined} onThemeChanged
- * @property {(() => Promise<unknown>) | undefined} isDevelopment
- * @property {(() => Promise<unknown>) | undefined} recentFiles
- * @property {(() => unknown) | undefined} checkForUpdates
- */
-
 // ==========================================
 // Utility Imports & Fallbacks
 // ==========================================
@@ -171,6 +38,78 @@ import { createExportGPXButton } from "./utils/files/export/createExportGPXButto
 import { getState, subscribe } from "./utils/state/core/stateManager.js";
 import { querySelectorByIdFlexible } from "./utils/ui/dom/elementIdUtils.js";
 import { setupCreditsMarquee } from "./utils/ui/layout/enhanceCreditsSection.js";
+
+type ApplyTheme = (theme: string, withTransition?: boolean) => void;
+interface ElectronApiStartupHooks {
+    checkForUpdates: (() => unknown) | undefined;
+    isDevelopment: (() => Promise<unknown>) | undefined;
+    onMenuAction:
+        | ((callback: (action: unknown) => void) => unknown)
+        | undefined;
+    onThemeChanged:
+        | ((callback: (theme: string) => void) => unknown)
+        | undefined;
+    recentFiles: (() => Promise<unknown>) | undefined;
+}
+interface LegacyRendererAppState {
+    isInitialized: boolean;
+    isOpeningFile: boolean;
+    startTime: number | undefined;
+}
+type ListenForThemeChange = (
+    onThemeChange: (theme: string) => void
+) => void;
+type LogRendererLevel = "error" | "group" | "groupEnd" | "log" | "warn";
+interface PerformanceMonitorApi {
+    end: (operation: string) => number;
+    getMetrics: () => Record<string, number>;
+    metrics: Map<string, number>;
+    start: (operation: string) => void;
+}
+
+interface RendererCoreModules {
+    [exportName: string]: unknown;
+    AppActions: Record<string, unknown> | undefined;
+    applyTheme: ApplyTheme | undefined;
+    getAppDomainState: undefined | UnknownRendererFunction;
+    handleOpenFile: undefined | UnknownRendererFunction;
+    listenForThemeChange: ListenForThemeChange | undefined;
+    masterStateManager: unknown;
+    setupListeners: undefined | UnknownRendererFunction;
+    setupTheme: undefined | UnknownRendererFunction;
+    showAboutModal: ((html?: string) => void) | undefined;
+    showNotification: ShowNotification | undefined;
+    showUpdateNotification: ShowUpdateNotification | undefined;
+    subscribeAppDomain: undefined | UnknownRendererFunction;
+    uiStateManager: unknown;
+}
+
+interface RendererDependencies {
+    applyTheme: ApplyTheme | undefined;
+    handleOpenFile: undefined | UnknownRendererFunction;
+    isOpeningFileRef: { value: boolean };
+    listenForThemeChange: ListenForThemeChange | undefined;
+    openFileBtn: HTMLElement | null;
+    setLoading: (loading: boolean) => void;
+    showAboutModal: ((html?: string) => void) | undefined;
+    showNotification: ShowNotification | undefined;
+    showUpdateNotification: ShowUpdateNotification | undefined;
+}
+
+type ShowNotification = (
+    message: string,
+    type?: string,
+    timeout?: number
+) => unknown;
+
+type ShowUpdateNotification = (
+    message: string,
+    type?: string,
+    duration?: number,
+    withAction?: boolean | string
+) => void;
+
+type UnknownRendererFunction = (...args: unknown[]) => unknown;
 // Import domain-level appState for tests that mock this path explicitly
 // Note: app domain state functions are dynamically imported via ensureCoreModules()
 // Avoid static import of uiStateManager for the same reason as AppActions in tests
@@ -184,7 +123,11 @@ const rendererConsole = globalThis.console;
  *
  * @returns {void}
  */
-function callBooleanAppAction(appActions, actionName, value) {
+function callBooleanAppAction(
+    appActions: Record<string, unknown>,
+    actionName: "setFileOpening" | "setInitialized",
+    value: boolean
+): void {
     const action = appActions[actionName];
     if (typeof action === "function") {
         const actionFn = /** @type {(value: boolean) => unknown} */ (action);
@@ -198,11 +141,53 @@ function callBooleanAppAction(appActions, actionName, value) {
  *
  * @returns {void}
  */
-function logRenderer(level, ...args) {
+function logRenderer(level: LogRendererLevel, ...args: unknown[]): void {
     const log = rendererConsole[level];
     if (typeof log === "function") {
         log.apply(rendererConsole, args);
     }
+}
+
+function toApplyTheme(value: unknown): ApplyTheme | undefined {
+    return typeof value === "function" ? (value as ApplyTheme) : undefined;
+}
+
+function toListenForThemeChange(
+    value: unknown
+): ListenForThemeChange | undefined {
+    return typeof value === "function"
+        ? (value as ListenForThemeChange)
+        : undefined;
+}
+
+function toShowAboutModal(
+    value: unknown
+): ((html?: string) => void) | undefined {
+    return typeof value === "function"
+        ? (value as (html?: string) => void)
+        : undefined;
+}
+
+function toShowNotification(value: unknown): ShowNotification | undefined {
+    return typeof value === "function"
+        ? (value as ShowNotification)
+        : undefined;
+}
+
+function toShowUpdateNotification(
+    value: unknown
+): ShowUpdateNotification | undefined {
+    return typeof value === "function"
+        ? (value as ShowUpdateNotification)
+        : undefined;
+}
+
+function toUnknownRendererFunction(
+    value: unknown
+): undefined | UnknownRendererFunction {
+    return typeof value === "function"
+        ? (value as UnknownRendererFunction)
+        : undefined;
 }
 
 /**
@@ -210,7 +195,7 @@ function logRenderer(level, ...args) {
  *
  * @type {{ promise: Promise<void> | null; initialized: boolean }}
  */
-const stateInitTracker = {
+const stateInitTracker: { initialized: boolean; promise: null | Promise<void> } = {
     initialized: false,
     promise: null,
 };
@@ -222,7 +207,11 @@ const stateInitTracker = {
  *
  * @returns {unknown}
  */
-function callRecordMethod(target, methodName, args = []) {
+function callRecordMethod(
+    target: unknown,
+    methodName: string,
+    args: unknown[] = []
+): unknown {
     const method = toModuleRecord(target)[methodName];
     if (typeof method !== "function") {
         return undefined;
@@ -239,7 +228,10 @@ function callRecordMethod(target, methodName, args = []) {
  *
  * @returns {unknown}
  */
-function callUnknownFunction(candidate, args = []) {
+function callUnknownFunction(
+    candidate: unknown,
+    args: unknown[] = []
+): unknown {
     if (typeof candidate !== "function") {
         return undefined;
     }
@@ -254,7 +246,7 @@ function callUnknownFunction(candidate, args = []) {
  *
  * @returns {Promise<RendererCoreModules>} Resolved module functions/objects
  */
-async function ensureCoreModules() {
+async function ensureCoreModules(): Promise<RendererCoreModules> {
     const notifMod = await resolveCoreModule(
         "../../utils/ui/notifications/showNotification.js",
         "./utils/ui/notifications/showNotification.js"
@@ -303,18 +295,28 @@ async function ensureCoreModules() {
     return {
         // Be robust to different mock shapes: named export, default.AppActions, default object, or module as object
         AppActions: resolveAppActionsModule(appActionsMod),
-        applyTheme: themeMod.applyTheme,
-        getAppDomainState: resolveDefaultableExport(appDomainMod, "getState"),
-        handleOpenFile: openFileMod.handleOpenFile,
-        listenForThemeChange: themeMod.listenForThemeChange,
+        applyTheme: toApplyTheme(themeMod["applyTheme"]),
+        getAppDomainState: toUnknownRendererFunction(
+            resolveDefaultableExport(appDomainMod, "getState")
+        ),
+        handleOpenFile: toUnknownRendererFunction(openFileMod["handleOpenFile"]),
+        listenForThemeChange: toListenForThemeChange(
+            themeMod["listenForThemeChange"]
+        ),
         masterStateManager:
             resolveDefaultableExport(msmMod, "masterStateManager") ?? msmMod,
-        setupListeners: listenersMod.setupListeners,
-        setupTheme: setupThemeMod.setupTheme,
-        showAboutModal: aboutMod.showAboutModal,
-        showNotification: notifMod.showNotification,
-        showUpdateNotification: updateNotifMod.showUpdateNotification,
-        subscribeAppDomain: resolveDefaultableExport(appDomainMod, "subscribe"),
+        setupListeners: toUnknownRendererFunction(
+            listenersMod["setupListeners"]
+        ),
+        setupTheme: toUnknownRendererFunction(setupThemeMod["setupTheme"]),
+        showAboutModal: toShowAboutModal(aboutMod["showAboutModal"]),
+        showNotification: toShowNotification(notifMod["showNotification"]),
+        showUpdateNotification: toShowUpdateNotification(
+            updateNotifMod["showUpdateNotification"]
+        ),
+        subscribeAppDomain: toUnknownRendererFunction(
+            resolveDefaultableExport(appDomainMod, "subscribe")
+        ),
         uiStateManager:
             resolveDefaultableExport(uiStateMod, "uiStateManager") ??
             uiStateMod,
@@ -326,42 +328,44 @@ async function ensureCoreModules() {
  *
  * @returns {ElectronApiStartupHooks | null}
  */
-function getElectronApiHooksFromValue(apiValue) {
+function getElectronApiHooksFromValue(
+    apiValue: unknown
+): ElectronApiStartupHooks | null {
     const api = toModuleRecord(apiValue);
     if (Object.keys(api).length === 0) {
         return null;
     }
 
-    const isDevelopment = api.isDevelopment;
-    const onMenuAction = api.onMenuAction;
-    const onThemeChanged = api.onThemeChanged;
-    const recentFiles = api.recentFiles;
-    const checkForUpdates = api.checkForUpdates;
+    const isDevelopment = api["isDevelopment"];
+    const onMenuAction = api["onMenuAction"];
+    const onThemeChanged = api["onThemeChanged"];
+    const recentFiles = api["recentFiles"];
+    const checkForUpdates = api["checkForUpdates"];
 
     return {
         checkForUpdates:
             typeof checkForUpdates === "function"
-                ? /** @type {() => unknown} */ (checkForUpdates)
+                ? (checkForUpdates as () => unknown)
                 : undefined,
         isDevelopment:
             typeof isDevelopment === "function"
-                ? /** @type {() => Promise<unknown>} */ (isDevelopment)
+                ? (isDevelopment as () => Promise<unknown>)
                 : undefined,
         onMenuAction:
             typeof onMenuAction === "function"
-                ? /** @type {(callback: (action: unknown) => void) => unknown} */ (
-                      onMenuAction
-                  )
+                ? (onMenuAction as (
+                      callback: (action: unknown) => void
+                  ) => unknown)
                 : undefined,
         onThemeChanged:
             typeof onThemeChanged === "function"
-                ? /** @type {(callback: (theme: string) => void) => unknown} */ (
-                      onThemeChanged
-                  )
+                ? (onThemeChanged as (
+                      callback: (theme: string) => void
+                  ) => unknown)
                 : undefined,
         recentFiles:
             typeof recentFiles === "function"
-                ? /** @type {() => Promise<unknown>} */ (recentFiles)
+                ? (recentFiles as () => Promise<unknown>)
                 : undefined,
     };
 }
@@ -369,7 +373,7 @@ function getElectronApiHooksFromValue(apiValue) {
 /**
  * @returns {ElectronApiStartupHooks | null}
  */
-function getElectronApiStartupHooks() {
+function getElectronApiStartupHooks(): ElectronApiStartupHooks | null {
     return getElectronApiHooksFromValue(Reflect.get(globalThis, "electronAPI"));
 }
 
@@ -378,8 +382,8 @@ function getElectronApiStartupHooks() {
  *
  * @returns {string}
  */
-function getErrorMessage(errorLike) {
-    const message = toModuleRecord(errorLike).message;
+function getErrorMessage(errorLike: unknown): string {
+    const message = toModuleRecord(errorLike)["message"];
 
     return typeof message === "string" && message.length > 0
         ? message
@@ -392,15 +396,15 @@ function getErrorMessage(errorLike) {
  *
  * @returns {boolean}
  */
-function getMasterAppFlag(masterStateManager, key) {
-    const getStateMember = toModuleRecord(masterStateManager).getState;
+function getMasterAppFlag(masterStateManager: unknown, key: string): boolean {
+    const getStateMember = toModuleRecord(masterStateManager)["getState"];
     if (typeof getStateMember !== "function") {
         return false;
     }
 
     const getStateFn = /** @type {() => unknown} */ (getStateMember);
     const state = toModuleRecord(getStateFn());
-    const app = toModuleRecord(state.app);
+    const app = toModuleRecord(state["app"]);
 
     return app[key] === true;
 }
@@ -411,7 +415,10 @@ function getMasterAppFlag(masterStateManager, key) {
  *
  * @returns {boolean | undefined}
  */
-function getRecordBoolean(record, key) {
+function getRecordBoolean(
+    record: Record<string, unknown>,
+    key: string
+): boolean | undefined {
     const value = record[key];
     return typeof value === "boolean" ? value : undefined;
 }
@@ -422,7 +429,10 @@ function getRecordBoolean(record, key) {
  *
  * @returns {number | undefined}
  */
-function getRecordNumber(record, key) {
+function getRecordNumber(
+    record: Record<string, unknown>,
+    key: string
+): number | undefined {
     const value = record[key];
     return typeof value === "number" ? value : undefined;
 }
@@ -433,7 +443,10 @@ function getRecordNumber(record, key) {
  *
  * @returns {string | undefined}
  */
-function getRecordString(record, key) {
+function getRecordString(
+    record: Record<string, unknown>,
+    key: string
+): string | undefined {
     const value = record[key];
     return typeof value === "string" ? value : undefined;
 }
@@ -441,7 +454,7 @@ function getRecordString(record, key) {
 /**
  * @returns {number | undefined}
  */
-function getStateStartTime() {
+function getStateStartTime(): number | undefined {
     const startTime = getState("app.startTime");
     return typeof startTime === "number" ? startTime : undefined;
 }
@@ -449,7 +462,7 @@ function getStateStartTime() {
 /**
  * @returns {Map<string, unknown> | null}
  */
-function getVitestManualMockRegistry() {
+function getVitestManualMockRegistry(): Map<string, unknown> | null {
     const registry = /** @type {unknown} */ (
         Reflect.get(globalThis, "__vitest_manual_mocks__")
     );
@@ -462,7 +475,7 @@ function getVitestManualMockRegistry() {
  *
  * @returns {Promise<unknown>}
  */
-async function importRendererModule(realPath) {
+async function importRendererModule(realPath: string): Promise<unknown> {
     switch (realPath) {
         case "./utils/app/lifecycle/appActions.js": {
             return /** @type {Promise<unknown>} */ (
@@ -530,7 +543,7 @@ async function importRendererModule(realPath) {
  *
  * @returns {value is Record<string, unknown>}
  */
-function isRecord(value) {
+function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === "object" && value !== null;
 }
 
@@ -539,8 +552,8 @@ function isRecord(value) {
  *
  * @returns {void}
  */
-function onUncaughtErrorEvent(event) {
-    void handleUncaughtError(/** @type {ErrorEvent} */ (event));
+function onUncaughtErrorEvent(event: Event): void {
+    void handleUncaughtError(event as ErrorEvent);
 }
 
 /**
@@ -548,8 +561,8 @@ function onUncaughtErrorEvent(event) {
  *
  * @returns {void}
  */
-function onUnhandledRejectionEvent(event) {
-    void handleUnhandledRejection(/** @type {PromiseRejectionEvent} */ (event));
+function onUnhandledRejectionEvent(event: Event): void {
+    void handleUnhandledRejection(event as PromiseRejectionEvent);
 }
 
 /**
@@ -557,7 +570,7 @@ function onUnhandledRejectionEvent(event) {
  *
  * @returns {void}
  */
-function probeDevelopmentMode(apiHooks) {
+function probeDevelopmentMode(apiHooks: ElectronApiStartupHooks): void {
     if (apiHooks.isDevelopment === undefined) {
         return;
     }
@@ -580,11 +593,11 @@ function probeDevelopmentMode(apiHooks) {
  * @returns {void}
  */
 function registerStartupElectronHooks(
-    apiHooks,
-    openFileBtn,
-    showAboutModal,
-    applyTheme
-) {
+    apiHooks: ElectronApiStartupHooks,
+    openFileBtn: HTMLElement | null,
+    showAboutModal: ((html?: string) => void) | undefined,
+    applyTheme: ApplyTheme | undefined
+): void {
     try {
         apiHooks.onMenuAction?.((action) => {
             if (action === "open-file" && openFileBtn !== null) {
@@ -617,23 +630,25 @@ function registerStartupElectronHooks(
  *
  * @returns {Record<string, unknown> | undefined}
  */
-function resolveAppActionsModule(appActionsMod) {
-    const namedActions = appActionsMod.AppActions;
+function resolveAppActionsModule(
+    appActionsMod: Record<string, unknown>
+): Record<string, unknown> | undefined {
+    const namedActions = appActionsMod["AppActions"];
     if (isRecord(namedActions)) {
         return namedActions;
     }
 
-    const defaultRecord = toModuleRecord(appActionsMod.default);
-    const defaultActions = defaultRecord.AppActions;
+    const defaultRecord = toModuleRecord(appActionsMod["default"]);
+    const defaultActions = defaultRecord["AppActions"];
     if (isRecord(defaultActions)) {
         return defaultActions;
     }
 
-    if (typeof appActionsMod.setInitialized === "function") {
+    if (typeof appActionsMod["setInitialized"] === "function") {
         return appActionsMod;
     }
 
-    return typeof defaultRecord.setInitialized === "function"
+    return typeof defaultRecord["setInitialized"] === "function"
         ? defaultRecord
         : undefined;
 }
@@ -644,7 +659,10 @@ function resolveAppActionsModule(appActionsMod) {
  *
  * @returns {Promise<Record<string, unknown>>}
  */
-async function resolveCoreModule(testPath, realPath) {
+async function resolveCoreModule(
+    testPath: string,
+    realPath: string
+): Promise<Record<string, unknown>> {
     const manualMockPath = realPath.startsWith(".")
         ? realPath.slice(1)
         : realPath;
@@ -662,13 +680,16 @@ async function resolveCoreModule(testPath, realPath) {
  *
  * @returns {unknown}
  */
-function resolveDefaultableExport(moduleRecord, exportName) {
+function resolveDefaultableExport(
+    moduleRecord: Record<string, unknown>,
+    exportName: string
+): unknown {
     const namedExport = moduleRecord[exportName];
     if (namedExport !== undefined) {
         return namedExport;
     }
 
-    return toModuleRecord(moduleRecord.default)[exportName];
+    return toModuleRecord(moduleRecord["default"])[exportName];
 }
 
 /**
@@ -679,13 +700,13 @@ function resolveDefaultableExport(moduleRecord, exportName) {
  *
  * @returns {unknown | null}
  */
-function resolveExactManualMock(testId) {
+function resolveExactManualMock(testId: string): null | unknown {
     try {
         const reg = getVitestManualMockRegistry();
         if (reg?.has(testId) === true) {
             const mod = reg.get(testId);
             const modRecord = toModuleRecord(mod);
-            return "default" in modRecord ? modRecord.default : mod;
+            return "default" in modRecord ? modRecord["default"] : mod;
         }
     } catch {
         /* Ignore errors */
@@ -702,14 +723,14 @@ function resolveExactManualMock(testId) {
  *
  * @returns {unknown | null}
  */
-function resolveManualMock(pathSuffix) {
+function resolveManualMock(pathSuffix: string): null | unknown {
     try {
         const reg = getVitestManualMockRegistry();
         if (reg !== null) {
             for (const [id, mod] of reg.entries()) {
                 if (id.endsWith(pathSuffix)) {
                     const modRecord = toModuleRecord(mod);
-                    return "default" in modRecord ? modRecord.default : mod;
+                    return "default" in modRecord ? modRecord["default"] : mod;
                 }
             }
         }
@@ -724,7 +745,7 @@ function resolveManualMock(pathSuffix) {
  *
  * @returns {Record<string, unknown>}
  */
-function toModuleRecord(value) {
+function toModuleRecord(value: unknown): Record<string, unknown> {
     return isRecord(value) ? value : {};
 }
 
@@ -741,7 +762,7 @@ function toModuleRecord(value) {
  *
  * @type {LegacyRendererAppState | null}
  */
-let appState = null;
+let appState: LegacyRendererAppState | null = null;
 
 /**
  * Reference object for tracking file opening state (legacy compatibility)
@@ -755,11 +776,11 @@ const isOpeningFileRef = { value: false };
  *
  * @param {ErrorEvent} event - The error event
  */
-async function handleUncaughtError(event) {
+async function handleUncaughtError(event: ErrorEvent): Promise<void> {
     logRenderer("error", "[Renderer] Uncaught error:", event.error);
 
     try {
-        const coreModules = toModuleRecord(await ensureCoreModules());
+        const coreModules = await ensureCoreModules();
         const showNotification = coreModules.showNotification;
 
         if (typeof showNotification === "function") {
@@ -790,7 +811,9 @@ async function handleUncaughtError(event) {
  *
  * @param {PromiseRejectionEvent} event - The unhandled rejection event
  */
-async function handleUnhandledRejection(event) {
+async function handleUnhandledRejection(
+    event: PromiseRejectionEvent
+): Promise<void> {
     logRenderer(
         "error",
         "[Renderer] Unhandled promise rejection:",
@@ -798,7 +821,7 @@ async function handleUnhandledRejection(event) {
     );
 
     try {
-        const coreModules = toModuleRecord(await ensureCoreModules());
+        const coreModules = await ensureCoreModules();
         const showNotification = coreModules.showNotification;
 
         if (typeof showNotification === "function") {
@@ -832,7 +855,7 @@ async function handleUnhandledRejection(event) {
  *
  * @namespace PerformanceMonitor
  */
-const PerformanceMonitor = {
+const PerformanceMonitor: PerformanceMonitorApi = {
     /**
      * Ends timing an operation and logs the result
      *
@@ -869,7 +892,7 @@ const PerformanceMonitor = {
      * @returns {Record<string, number>} Object containing all metrics
      */
     getMetrics() {
-        const result = /** @type {Record<string, number>} */ ({});
+        const result: Record<string, number> = {};
         for (const [key, value] of this.metrics) {
             if (!key.endsWith("_start")) {
                 result[key] = value;
@@ -900,7 +923,7 @@ const PerformanceMonitor = {
  *
  * @returns {Promise<void>}
  */
-async function initializeApplication() {
+async function initializeApplication(): Promise<void> {
     PerformanceMonitor.start("app_initialization");
 
     try {
@@ -922,9 +945,10 @@ async function initializeApplication() {
             "#open_file_btn"
         );
         // Also support tests that only provide a hidden file input.
-        const fileInput = /** @type {HTMLInputElement | null} */ (
-            querySelectorByIdFlexible(document, "#file_input")
-        );
+        const fileInput = querySelectorByIdFlexible(
+            document,
+            "#file_input"
+        ) as HTMLInputElement | null;
 
         // Setup global error handlers
         globalThis.addEventListener(
@@ -945,7 +969,7 @@ async function initializeApplication() {
             showNotification,
             showUpdateNotification,
         } = coreModules;
-        const dependencies = /** @type {RendererDependencies} */ ({
+        const dependencies: RendererDependencies = {
             applyTheme,
             handleOpenFile,
             isOpeningFileRef,
@@ -955,7 +979,7 @@ async function initializeApplication() {
             showAboutModal,
             showNotification,
             showUpdateNotification,
-        });
+        };
 
         // Initialize core components
         // Initialize core components regardless of openFileBtn presence (tests mock listeners)
@@ -965,9 +989,10 @@ async function initializeApplication() {
         if (fileInput !== null && typeof handleOpenFile === "function") {
             fileInput.addEventListener("change", () => {
                 const { files } = fileInput;
-                if (files !== null && files.length > 0) {
+                const selectedFile = files?.item(0);
+                if (selectedFile !== null && selectedFile !== undefined) {
                     // Call mocked handleOpenFile with first file for coverage test visibility
-                    handleOpenFile(files[0]);
+                    handleOpenFile(selectedFile);
                 }
             });
         }
@@ -994,7 +1019,7 @@ async function initializeApplication() {
 
         // Mark application as initialized using new state system
         const appActions = toModuleRecord(AppActions);
-        const setInitialized = appActions.setInitialized;
+        const setInitialized = appActions["setInitialized"];
         if (typeof setInitialized === "function") {
             const setInitializedFn =
                 /** @type {(initialized: boolean) => unknown} */ (
@@ -1052,7 +1077,7 @@ async function initializeApplication() {
  *
  * @returns {Promise<void>}
  */
-async function initializeAsyncComponents() {
+async function initializeAsyncComponents(): Promise<void> {
     try {
         const electronApiHooks = getElectronApiStartupHooks();
 
@@ -1100,17 +1125,19 @@ async function initializeAsyncComponents() {
  *
  * @returns {Promise<void>}
  */
-async function initializeComponents(dependencies) {
+async function initializeComponents(
+    dependencies: RendererDependencies
+): Promise<void> {
     try {
         // 1. Setup theme system first (affects all UI)
         PerformanceMonitor.start("theme_setup");
         logRenderer("log", "[Renderer] Setting up theme system...");
         try {
             const { setupTheme: setupThemeDyn } = await ensureCoreModules();
-            setupThemeDyn(
+            callUnknownFunction(setupThemeDyn, [
                 dependencies.applyTheme,
-                dependencies.listenForThemeChange
-            );
+                dependencies.listenForThemeChange,
+            ]);
         } catch {
             /* Ignore errors */
         }
@@ -1133,12 +1160,12 @@ async function initializeComponents(dependencies) {
             // Prefer dynamically resolved (mockable) setupListeners for tests
             const { setupListeners: setupListenersDyn } =
                 await ensureCoreModules();
-            setupListenersDyn(/** @type {any} */ (dependencies));
+            callUnknownFunction(setupListenersDyn, [dependencies]);
         } catch {
             // Fallback guard
             try {
                 const { setupListeners: sl } = await ensureCoreModules();
-                sl(/** @type {any} */ (dependencies));
+                callUnknownFunction(sl, [dependencies]);
             } catch (error) {
                 logRenderer(
                     "warn",
@@ -1174,7 +1201,7 @@ async function initializeComponents(dependencies) {
  *
  * @returns {Promise<void>}
  */
-async function initializeStateManager() {
+async function initializeStateManager(): Promise<void> {
     if (stateInitTracker.initialized) {
         return stateInitTracker.promise ?? Promise.resolve();
     }
@@ -1194,7 +1221,7 @@ async function initializeStateManager() {
                 await ensureCoreModules();
             const appActions = toModuleRecord(AppActions);
             const masterStateManagerRecord = toModuleRecord(masterStateManager);
-            const initialize = masterStateManagerRecord.initialize;
+            const initialize = masterStateManagerRecord["initialize"];
             if (typeof initialize !== "function") {
                 throw new TypeError("masterStateManager.initialize missing");
             }
@@ -1266,7 +1293,7 @@ async function initializeStateManager() {
  *
  * @returns {boolean} True if all required elements are present
  */
-function validateDOMElements() {
+function validateDOMElements(): boolean {
     // Accept multiple alternative IDs used across app and tests
     const alternatives = [
         [
@@ -1288,13 +1315,13 @@ function validateDOMElements() {
         ],
     ];
 
-    const missingGroups = [];
+    const missingGroups: (string | undefined)[] = [];
     for (const group of alternatives) {
         const found = group.some(
             ({ id }) => document.querySelector(`#${id}`) !== null
         );
         if (!found) {
-            missingGroups.push(group.map((g) => g.name)[0]);
+            missingGroups.push(group[0]?.name ?? "Unknown UI element");
         }
     }
 
@@ -1358,7 +1385,7 @@ const APP_INFO = {
             Reflect.get(globalThis, "navigator")
         );
         const memoryRecord = toModuleRecord(
-            toModuleRecord(Reflect.get(globalThis, "performance")).memory
+            toModuleRecord(Reflect.get(globalThis, "performance"))["memory"]
         );
         const memoryUsage =
             Object.keys(memoryRecord).length > 0
@@ -1421,7 +1448,10 @@ if (isDevelopmentMode()) {
      *
      * @returns {Promise<unknown>}
      */
-    const callDebugCoreFunction = async (exportName, args) => {
+    const callDebugCoreFunction = async (
+        exportName: keyof RendererCoreModules,
+        args: unknown[]
+    ): Promise<unknown> => {
         try {
             const coreModules = await ensureCoreModules();
             const debugFunction = coreModules[exportName];
@@ -1436,23 +1466,31 @@ if (isDevelopmentMode()) {
     };
 
     /** @type {(...args: unknown[]) => Promise<unknown>} */
-    const handleOpenFileDebug = async (...args) =>
+    const handleOpenFileDebug = async (
+        ...args: unknown[]
+    ): Promise<unknown> =>
         callDebugCoreFunction("handleOpenFile", args);
 
     /** @type {(...args: unknown[]) => Promise<unknown>} */
-    const setupThemeDebug = async (...args) =>
+    const setupThemeDebug = async (...args: unknown[]): Promise<unknown> =>
         callDebugCoreFunction("setupTheme", args);
 
     /** @type {(...args: unknown[]) => Promise<unknown>} */
-    const showAboutModalDebug = async (...args) =>
+    const showAboutModalDebug = async (
+        ...args: unknown[]
+    ): Promise<unknown> =>
         callDebugCoreFunction("showAboutModal", args);
 
     /** @type {(...args: unknown[]) => Promise<unknown>} */
-    const showNotificationDebug = async (...args) =>
+    const showNotificationDebug = async (
+        ...args: unknown[]
+    ): Promise<unknown> =>
         callDebugCoreFunction("showNotification", args);
 
     /** @type {(...args: unknown[]) => Promise<unknown>} */
-    const showUpdateNotificationDebug = async (...args) =>
+    const showUpdateNotificationDebug = async (
+        ...args: unknown[]
+    ): Promise<unknown> =>
         callDebugCoreFunction("showUpdateNotification", args);
 
     Reflect.set(globalThis, "__renderer_debug", {
@@ -1470,7 +1508,7 @@ if (isDevelopmentMode()) {
  *
  * @private
  */
-function resetRendererStateInitializationForTests() {
+function resetRendererStateInitializationForTests(): void {
     stateInitTracker.initialized = false;
     stateInitTracker.promise = null;
     isOpeningFileRef.value = false;
@@ -1496,11 +1534,11 @@ logRenderer("groupEnd");
 /**
  * Cleanup function called before page unload
  */
-function cleanup() {
+function cleanup(): void {
     try {
         logRenderer("log", "[Renderer] Performing cleanup...");
 
-        const resetLegacyOpeningState = () => {
+        const resetLegacyOpeningState = (): void => {
             if (appState !== null) {
                 appState.isInitialized = false;
                 appState.isOpeningFile = false;
@@ -1508,19 +1546,19 @@ function cleanup() {
             isOpeningFileRef.value = false;
         };
 
-        const cleanupStateManagerState = async () => {
+        const cleanupStateManagerState = async (): Promise<void> => {
             try {
                 const { AppActions, masterStateManager } =
                     await ensureCoreModules();
                 const masterStateManagerRecord =
                     toModuleRecord(masterStateManager);
-                if (masterStateManagerRecord.isInitialized === true) {
+                if (masterStateManagerRecord["isInitialized"] === true) {
                     const appActions = toModuleRecord(AppActions);
                     callBooleanAppAction(appActions, "setInitialized", false);
                     callBooleanAppAction(appActions, "setFileOpening", false);
 
                     const cleanupStateManager =
-                        masterStateManagerRecord.cleanup;
+                        masterStateManagerRecord["cleanup"];
                     if (typeof cleanupStateManager === "function") {
                         const cleanupStateManagerFn =
                             /** @type {(this: unknown) => unknown} */ (
@@ -1564,7 +1602,7 @@ window.addEventListener("beforeunload", cleanup);
  *
  * @returns {void}
  */
-function onApplicationReady() {
+function onApplicationReady(): void {
     void initializeApplication();
 }
 
@@ -1585,7 +1623,7 @@ if (document.readyState === "loading") {
 /**
  * @returns {Promise<unknown>}
  */
-async function getRendererStateManagerForDev() {
+async function getRendererStateManagerForDev(): Promise<unknown> {
     try {
         const coreModules = await ensureCoreModules();
         return coreModules.masterStateManager;
@@ -1601,16 +1639,18 @@ async function getRendererStateManagerForDev() {
  *
  * @returns {Promise<void>}
  */
-async function loadDevelopmentDebugUtilities(rendererDevTools) {
+async function loadDevelopmentDebugUtilities(
+    rendererDevTools: Record<string, unknown>
+): Promise<void> {
     try {
         // Resolve and attach optional dev helpers that depend on mocked modules
         try {
             const { AppActions, uiStateManager } = await ensureCoreModules();
             if (AppActions !== undefined) {
-                rendererDevTools.AppActions = AppActions;
+                rendererDevTools["AppActions"] = AppActions;
             }
             if (uiStateManager !== undefined) {
-                rendererDevTools.uiStateManager = uiStateManager;
+                rendererDevTools["uiStateManager"] = uiStateManager;
             }
         } catch {
             /* Ignore errors */
@@ -1726,7 +1766,7 @@ async function loadDevelopmentDebugUtilities(rendererDevTools) {
 /**
  * @returns {Promise<void>}
  */
-async function logRendererDebugState() {
+async function logRendererDebugState(): Promise<void> {
     try {
         const { masterStateManager } = await ensureCoreModules();
         logRenderer(
@@ -1754,7 +1794,9 @@ async function logRendererDebugState() {
  *
  * @returns {void}
  */
-function scheduleDevelopmentDebugUtilities(rendererDevTools) {
+function scheduleDevelopmentDebugUtilities(
+    rendererDevTools: Record<string, unknown>
+): void {
     void loadDevelopmentDebugUtilities(rendererDevTools);
 }
 
@@ -1786,6 +1828,7 @@ if (isDevelopmentMode()) {
             } catch {
                 /* Ignore state access errors */
             }
+            return undefined;
         },
         getStateHistory: async () => {
             try {
@@ -1797,6 +1840,7 @@ if (isDevelopmentMode()) {
             } catch {
                 /* Ignore state history access errors */
             }
+            return undefined;
         },
         isOpeningFileRef,
         // Performance and debugging
@@ -1831,11 +1875,11 @@ if (isDevelopmentMode()) {
 // ==========================================
 
 /**
- * @param {File} file
+ * @param file - Selected file object from the file input.
  *
  * @returns {Promise<void>}
  */
-async function handleDelegatedFileInputChange(file) {
+async function handleDelegatedFileInputChange(file: unknown): Promise<void> {
     try {
         const { handleOpenFile: handleOpenFileFn } = await ensureCoreModules();
         callUnknownFunction(handleOpenFileFn, [file]);
@@ -1849,7 +1893,9 @@ async function handleDelegatedFileInputChange(file) {
  *
  * @returns {Promise<void>}
  */
-async function handleImportTimeFileInputChange(fileInput) {
+async function handleImportTimeFileInputChange(
+    fileInput: HTMLInputElement
+): Promise<void> {
     try {
         const file = fileInput.files?.[0];
         if (file !== undefined) {
@@ -1878,7 +1924,7 @@ async function handleImportTimeFileInputChange(fileInput) {
 /**
  * @returns {Promise<void>}
  */
-async function initializeImportTimeStateManager() {
+async function initializeImportTimeStateManager(): Promise<void> {
     await initializeStateManager();
     try {
         const { getAppDomainState } = await ensureCoreModules();
@@ -1893,7 +1939,7 @@ async function initializeImportTimeStateManager() {
 /**
  * @returns {Promise<void>}
  */
-async function initializeManualMasterStateManager() {
+async function initializeManualMasterStateManager(): Promise<void> {
     await callRecordMethod(resolveManualMasterStateManager(), "initialize");
 }
 
@@ -1902,7 +1948,7 @@ async function initializeManualMasterStateManager() {
  *
  * @returns {void}
  */
-function onDelegatedFileInputChange(event) {
+function onDelegatedFileInputChange(event: Event): void {
     try {
         const target =
             typeof HTMLInputElement === "function" &&
@@ -1921,9 +1967,9 @@ function onDelegatedFileInputChange(event) {
                             "/utils/files/import/handleOpenFile.js"
                         )
                 );
-                const handleOpenFileFn =
-                    moduleRecord.handleOpenFile ??
-                    toModuleRecord(moduleRecord.default).handleOpenFile;
+        const handleOpenFileFn =
+            moduleRecord["handleOpenFile"] ??
+            toModuleRecord(moduleRecord["default"])["handleOpenFile"];
                 if (typeof handleOpenFileFn === "function") {
                     callUnknownFunction(handleOpenFileFn, [firstFile]);
                     return;
@@ -1942,13 +1988,13 @@ function onDelegatedFileInputChange(event) {
 /**
  * @returns {void}
  */
-function onTestDOMContentLoadedSetupListeners() {
+function onTestDOMContentLoadedSetupListeners(): void {
     try {
         const moduleRecord = toModuleRecord(
             resolveExactManualMock("../../utils/app/lifecycle/listeners.js") ??
                 resolveManualMock("/utils/app/lifecycle/listeners.js")
         );
-        const setupListenersFn = moduleRecord.setupListeners;
+        const setupListenersFn = moduleRecord["setupListeners"];
         callUnknownFunction(setupListenersFn, [
             {
                 applyTheme: () => {},
@@ -1973,7 +2019,7 @@ function onTestDOMContentLoadedSetupListeners() {
 /**
  * @returns {void}
  */
-function onTestWindowLoadSetupTheme() {
+function onTestWindowLoadSetupTheme(): void {
     try {
         const setupThemeModule = toModuleRecord(
             resolveExactManualMock("../../utils/theming/core/setupTheme.js") ??
@@ -1983,9 +2029,9 @@ function onTestWindowLoadSetupTheme() {
             resolveExactManualMock("../../utils/theming/core/theme.js") ??
                 resolveManualMock("/utils/theming/core/theme.js")
         );
-        const setupThemeFn = setupThemeModule.setupTheme;
-        const applyThemeFn = themeModule.applyTheme;
-        const listenForThemeChangeFn = themeModule.listenForThemeChange;
+        const setupThemeFn = setupThemeModule["setupTheme"];
+        const applyThemeFn = themeModule["applyTheme"];
+        const listenForThemeChangeFn = themeModule["listenForThemeChange"];
         if (
             typeof setupThemeFn === "function" &&
             typeof applyThemeFn === "function" &&
@@ -2006,7 +2052,7 @@ function onTestWindowLoadSetupTheme() {
 /**
  * @returns {void}
  */
-function registerDelegatedFileInputChangeListener() {
+function registerDelegatedFileInputChangeListener(): void {
     document.addEventListener("change", onDelegatedFileInputChange, true);
     globalThis.addEventListener(
         "beforeunload",
@@ -2019,18 +2065,20 @@ function registerDelegatedFileInputChangeListener() {
  *
  * @returns {void}
  */
-function registerImportTimeFileInputChangeHandler(fileInput) {
+function registerImportTimeFileInputChangeHandler(
+    fileInput: HTMLInputElement
+): void {
     /**
      * @returns {void}
      */
-    function onImportTimeFileInputChange() {
+    function onImportTimeFileInputChange(): void {
         void handleImportTimeFileInputChange(fileInput);
     }
 
     /**
      * @returns {void}
      */
-    function removeImportTimeFileInputChangeHandler() {
+    function removeImportTimeFileInputChangeHandler(): void {
         fileInput.removeEventListener("change", onImportTimeFileInputChange);
         window.removeEventListener(
             "beforeunload",
@@ -2048,7 +2096,7 @@ function registerImportTimeFileInputChangeHandler(fileInput) {
 /**
  * @returns {void}
  */
-function registerTestDOMContentLoadedSetupListener() {
+function registerTestDOMContentLoadedSetupListener(): void {
     document.addEventListener(
         "DOMContentLoaded",
         onTestDOMContentLoadedSetupListeners,
@@ -2063,7 +2111,7 @@ function registerTestDOMContentLoadedSetupListener() {
 /**
  * @returns {void}
  */
-function registerTestWindowLoadThemeSetupListener() {
+function registerTestWindowLoadThemeSetupListener(): void {
     window.addEventListener("load", onTestWindowLoadSetupTheme);
     globalThis.addEventListener(
         "beforeunload",
@@ -2074,7 +2122,7 @@ function registerTestWindowLoadThemeSetupListener() {
 /**
  * @returns {void}
  */
-function removeDelegatedFileInputChangeListener() {
+function removeDelegatedFileInputChangeListener(): void {
     document.removeEventListener("change", onDelegatedFileInputChange, true);
     globalThis.removeEventListener(
         "beforeunload",
@@ -2085,7 +2133,7 @@ function removeDelegatedFileInputChangeListener() {
 /**
  * @returns {void}
  */
-function removeTestDOMContentLoadedSetupListener() {
+function removeTestDOMContentLoadedSetupListener(): void {
     document.removeEventListener(
         "DOMContentLoaded",
         onTestDOMContentLoadedSetupListeners
@@ -2099,7 +2147,7 @@ function removeTestDOMContentLoadedSetupListener() {
 /**
  * @returns {void}
  */
-function removeTestWindowLoadThemeSetupListener() {
+function removeTestWindowLoadThemeSetupListener(): void {
     window.removeEventListener("load", onTestWindowLoadSetupTheme);
     globalThis.removeEventListener(
         "beforeunload",
@@ -2110,7 +2158,7 @@ function removeTestWindowLoadThemeSetupListener() {
 /**
  * @returns {unknown}
  */
-function resolveManualAppStateModule() {
+function resolveManualAppStateModule(): unknown {
     return (
         resolveExactManualMock("../../utils/state/domain/appState.js") ??
         resolveManualMock("/utils/state/domain/appState.js")
@@ -2120,7 +2168,7 @@ function resolveManualAppStateModule() {
 /**
  * @returns {unknown}
  */
-function resolveManualMasterStateManager() {
+function resolveManualMasterStateManager(): unknown {
     const resolved =
         resolveExactManualMock(
             "../../utils/state/core/masterStateManager.js"
@@ -2128,8 +2176,8 @@ function resolveManualMasterStateManager() {
     const resolvedRecord = toModuleRecord(resolved);
 
     return (
-        resolvedRecord.masterStateManager ??
-        toModuleRecord(resolvedRecord.default).masterStateManager ??
+        resolvedRecord["masterStateManager"] ??
+        toModuleRecord(resolvedRecord["default"])["masterStateManager"] ??
         resolved
     );
 }
@@ -2137,35 +2185,35 @@ function resolveManualMasterStateManager() {
 /**
  * @returns {void}
  */
-function scheduleAppDomainStateCoverageTouch() {
+function scheduleAppDomainStateCoverageTouch(): void {
     void touchAppDomainStateForCoverage();
 }
 
 /**
  * @returns {void}
  */
-function scheduleImportTimeListenersSetup() {
+function scheduleImportTimeListenersSetup(): void {
     void setupImportTimeListeners();
 }
 
 /**
  * @returns {void}
  */
-function scheduleImportTimeStateInitialization() {
+function scheduleImportTimeStateInitialization(): void {
     void initializeImportTimeStateManager();
 }
 
 /**
  * @returns {void}
  */
-function scheduleImportTimeThemeSetup() {
+function scheduleImportTimeThemeSetup(): void {
     void setupImportTimeTheme();
 }
 
 /**
  * @returns {Promise<void>}
  */
-async function setupImportTimeListeners() {
+async function setupImportTimeListeners(): Promise<void> {
     const {
         applyTheme: applyThemeFn,
         handleOpenFile: handleOpenFileFn,
@@ -2193,7 +2241,7 @@ async function setupImportTimeListeners() {
 /**
  * @returns {Promise<void>}
  */
-async function setupImportTimeTheme() {
+async function setupImportTimeTheme(): Promise<void> {
     const {
         applyTheme: applyThemeFn,
         listenForThemeChange: listenForThemeChangeFn,
@@ -2205,7 +2253,7 @@ async function setupImportTimeTheme() {
 /**
  * @returns {Promise<void>}
  */
-async function touchAppDomainStateForCoverage() {
+async function touchAppDomainStateForCoverage(): Promise<void> {
     try {
         const { getAppDomainState, subscribeAppDomain } =
             await ensureCoreModules();
@@ -2224,10 +2272,11 @@ async function touchAppDomainStateForCoverage() {
 /**
  * @returns {void}
  */
-function touchManualAppStartTime() {
+function touchManualAppStartTime(): void {
     const domainModule = toModuleRecord(resolveManualAppStateModule());
     const getStateFn =
-        domainModule.getState ?? toModuleRecord(domainModule.default).getState;
+        domainModule["getState"] ??
+        toModuleRecord(domainModule["default"])["getState"];
 
     callUnknownFunction(getStateFn, ["app.startTime"]);
 }
@@ -2263,9 +2312,10 @@ try {
 
 // Attach file input change handler if present at import time (tests rely on this)
 try {
-    const fileInput = /** @type {HTMLInputElement | null} */ (
-        querySelectorByIdFlexible(document, "#file_input")
-    );
+    const fileInput = querySelectorByIdFlexible(
+        document,
+        "#file_input"
+    ) as HTMLInputElement | null;
     if (fileInput && typeof fileInput.addEventListener === "function") {
         registerImportTimeFileInputChangeHandler(fileInput);
     }
@@ -2278,7 +2328,7 @@ try {
  *
  * @returns {Promise<void>}
  */
-async function applyElectronThemeChange(theme) {
+async function applyElectronThemeChange(theme: string): Promise<void> {
     try {
         const { applyTheme: applyThemeFn } = await ensureCoreModules();
         callUnknownFunction(applyThemeFn, [theme]);
@@ -2290,7 +2340,7 @@ async function applyElectronThemeChange(theme) {
 /**
  * @returns {void}
  */
-function installElectronAPIProxy() {
+function installElectronAPIProxy(): void {
     try {
         // Preserve current value
         /** @type {unknown} */
@@ -2300,7 +2350,7 @@ function installElectronAPIProxy() {
             get() {
                 return electronApiValue;
             },
-            set(value) {
+            set(value: unknown) {
                 electronApiValue = value;
                 try {
                     registerElectronAPI(value);
@@ -2323,7 +2373,7 @@ function installElectronAPIProxy() {
 /**
  * @returns {boolean}
  */
-function isVitestManualMockEnvironment() {
+function isVitestManualMockEnvironment(): boolean {
     return Boolean(Reflect.get(globalThis, "__vitest_manual_mocks__"));
 }
 
@@ -2332,13 +2382,14 @@ function isVitestManualMockEnvironment() {
  *
  * @returns {void}
  */
-function onElectronMenuAction(action) {
+function onElectronMenuAction(action: unknown): void {
     try {
         if (action === "open-file") {
             // Could trigger file input if needed
-            const input = /** @type {HTMLInputElement | null} */ (
-                querySelectorByIdFlexible(document, "#file_input")
-            );
+            const input = querySelectorByIdFlexible(
+                document,
+                "#file_input"
+            ) as HTMLInputElement | null;
             if (input !== null) {
                 input.click();
             }
@@ -2355,7 +2406,7 @@ function onElectronMenuAction(action) {
  *
  * @returns {void}
  */
-function onElectronThemeChanged(theme) {
+function onElectronThemeChanged(theme: string): void {
     void applyElectronThemeChange(theme);
 }
 
@@ -2364,7 +2415,9 @@ function onElectronThemeChanged(theme) {
  *
  * @returns {Promise<void>}
  */
-async function queryElectronDevelopmentMode(isDevelopment) {
+async function queryElectronDevelopmentMode(
+    isDevelopment: () => Promise<unknown>
+): Promise<void> {
     try {
         await isDevelopment();
     } catch {
@@ -2377,7 +2430,7 @@ async function queryElectronDevelopmentMode(isDevelopment) {
  *
  * @returns {void}
  */
-function registerElectronAPI(api) {
+function registerElectronAPI(api: unknown): void {
     try {
         const hooks = getElectronApiHooksFromValue(api);
         if (hooks === null) {
@@ -2406,7 +2459,9 @@ function registerElectronAPI(api) {
  *
  * @returns {void}
  */
-function registerElectronAPIFromPropertyDescriptor(descriptor) {
+function registerElectronAPIFromPropertyDescriptor(
+    descriptor: PropertyDescriptor
+): void {
     if (!("value" in descriptor)) {
         return;
     }
@@ -2422,11 +2477,11 @@ function registerElectronAPIFromPropertyDescriptor(descriptor) {
  *
  * @returns {void}
  */
-function registerPollingCleanup(clearPolling) {
+function registerPollingCleanup(clearPolling: () => unknown): void {
     /**
      * @returns {void}
      */
-    function onElectronAPIPollingBeforeUnload() {
+    function onElectronAPIPollingBeforeUnload(): void {
         clearPolling();
         globalThis.removeEventListener(
             "beforeunload",
@@ -2443,7 +2498,7 @@ function registerPollingCleanup(clearPolling) {
 /**
  * @returns {Promise<void>}
  */
-async function showElectronAboutModal() {
+async function showElectronAboutModal(): Promise<void> {
     try {
         const { showAboutModal: showAboutModalFn } = await ensureCoreModules();
         callUnknownFunction(showAboutModalFn);
@@ -2455,9 +2510,9 @@ async function showElectronAboutModal() {
 /**
  * @returns {void}
  */
-function startElectronAPITestPolling() {
+function startElectronAPITestPolling(): void {
     /** @type {unknown} */
-    let lastElectronAPI;
+    let lastElectronAPI: unknown;
     const intervalId = setInterval(() => {
         try {
             const currentElectronAPI = /** @type {unknown} */ (
@@ -2501,12 +2556,17 @@ try {
         // Intercept defineProperty to detect external assignment patterns used in tests
         if (isVitestManualMockEnvironment()) {
             const nativeDefine = Object.defineProperty;
-            Object.defineProperty = function defineProperty(
-                target,
-                prop,
-                descriptor
+            Object.defineProperty = function defineProperty<T>(
+                target: T,
+                prop: PropertyKey,
+                descriptor: PropertyDescriptor & ThisType<unknown>
             ) {
-                const res = nativeDefine.call(Object, target, prop, descriptor);
+                const res = nativeDefine.call(
+                    Object,
+                    target,
+                    prop,
+                    descriptor
+                ) as T;
                 try {
                     if (
                         target === globalThis &&

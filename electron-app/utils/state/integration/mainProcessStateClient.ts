@@ -36,6 +36,21 @@ type MainStateGlobal = typeof globalThis & {
     window?: MainStateWindow;
 };
 
+function getProcessEnvironmentValue(name: string): string | undefined {
+    const processValue = Reflect.get(globalThis, "process");
+    if (typeof processValue !== "object" || processValue === null) {
+        return undefined;
+    }
+
+    const env = Reflect.get(processValue, "env");
+    if (typeof env !== "object" || env === null) {
+        return undefined;
+    }
+
+    const value = Reflect.get(env, name);
+    return typeof value === "string" ? value : undefined;
+}
+
 function getMainStateElectronAPI(): MainStateElectronAPI | undefined {
     const stateGlobal = globalThis as MainStateGlobal;
     if (stateGlobal.window === undefined) {
@@ -111,9 +126,7 @@ export class MainProcessStateClient {
         this._isInitialized = true;
 
         const isDevelopment =
-            typeof process !== "undefined" &&
-            Boolean(process.env) &&
-            process.env["NODE_ENV"] === "development";
+            getProcessEnvironmentValue("NODE_ENV") === "development";
 
         if (isDevelopment) {
             console.log("[MainProcessStateClient] Initialized successfully");

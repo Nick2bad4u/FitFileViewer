@@ -160,6 +160,21 @@ type MainElectronLike = {
     shell?: unknown;
 };
 
+function getProcessEnvironmentValue(name: string): string | undefined {
+    const processValue = Reflect.get(globalThis, "process");
+    if (typeof processValue !== "object" || processValue === null) {
+        return undefined;
+    }
+
+    const env = Reflect.get(processValue, "env");
+    if (typeof env !== "object" || env === null) {
+        return undefined;
+    }
+
+    const value = Reflect.get(env, name);
+    return typeof value === "string" ? value : undefined;
+}
+
 class MainProcessState {
     data: MainProcessStateData;
 
@@ -219,9 +234,7 @@ class MainProcessState {
         this.listeners = new Map();
         this.middleware = [];
         this.devMode =
-            (typeof process !== "undefined" &&
-                process.env &&
-                process.env["NODE_ENV"] === "development") ||
+            getProcessEnvironmentValue("NODE_ENV") === "development" ||
             (typeof process !== "undefined" &&
                 Array.isArray(process.argv) &&
                 process.argv.includes("--dev"));

@@ -7,13 +7,28 @@ export type PerformanceTimer = {
     start: number;
 };
 
+function getProcessEnvironmentValue(name: string): string | undefined {
+    const processValue = Reflect.get(globalThis, "process");
+    if (typeof processValue !== "object" || processValue === null) {
+        return undefined;
+    }
+
+    const env = Reflect.get(processValue, "env");
+    if (typeof env !== "object" || env === null) {
+        return undefined;
+    }
+
+    const value = Reflect.get(env, name);
+    return typeof value === "string" ? value : undefined;
+}
+
 /**
  * Tracks operation timings when performance monitoring is enabled.
  */
 export class PerformanceMonitor {
     private enabled =
-        process.env["NODE_ENV"] === "development" ||
-        process.env["PERFORMANCE_MONITORING"] === "true";
+        getProcessEnvironmentValue("NODE_ENV") === "development" ||
+        getProcessEnvironmentValue("PERFORMANCE_MONITORING") === "true";
 
     private readonly timers = new Map<string, PerformanceTimer>();
 

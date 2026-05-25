@@ -1,5 +1,3 @@
-import { z } from "zod";
-
 import { detectCurrentTheme as __realDetectCurrentTheme } from "../../charts/theming/chartThemeUtils.js";
 import { sanitizeCssColorToken } from "../../dom/index.js";
 import {
@@ -96,13 +94,26 @@ type ValidChart = ExportableChart & {
     config: NonNullable<ExportableChart["config"]>;
     toBase64Image: NonNullable<ExportableChart["toBase64Image"]>;
 };
-type GyazoConfig = z.infer<typeof GyazoConfigSchema>;
+type GyazoConfig = {
+    authUrl: string;
+    clientId: null | string;
+    clientSecret: null | string;
+    redirectUri: string;
+    tokenUrl: string;
+    uploadUrl: string;
+};
 type GyazoOAuthCallbackPayload = {
     code: string;
     state: string;
 };
-type GyazoTokenResponse = z.infer<typeof GyazoTokenResponseSchema>;
+type GyazoTokenResponse = Record<string, unknown> & {
+    access_token: string;
+};
 type GyazoUploadFetchResponse = Response & {
+    permalink_url?: string;
+    url?: string;
+};
+type GyazoUploadResponse = Record<string, unknown> & {
     permalink_url?: string;
     url?: string;
 };
@@ -112,6 +123,15 @@ type ImgurConfig = {
 };
 type OAuthModalReject = (reason?: unknown) => void;
 type OAuthModalResolve = (token: string) => void;
+type ValidationResult<T> =
+    | {
+          data: T;
+          success: true;
+      }
+    | {
+          error: string;
+          success: false;
+      };
 
 function getExportRuntimeGlobal(): ExportRuntimeGlobal {
     return globalThis as ExportRuntimeGlobal;
@@ -394,40 +414,125 @@ function printWhenImageReady(
  */
 // fetchWithTimeout/isAbortError/truncateErrorText are imported.
 
+function failValidation<T>(error: string): ValidationResult<T> {
+    return { error, success: false };
+}
+
+function isObjectRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function getNonEmptyString(
+    record: Record<string, unknown>,
+    key: string
+): string | undefined {
+    const value = record[key];
+    return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
+function getNullableNonEmptyString(
+    record: Record<string, unknown>,
+    key: string
+): null | string | undefined {
+    const value = record[key];
+    if (value === null) {
+        return null;
+    }
+
+    return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
 /*
- * Runtime schema for Gyazo configuration.
+ * Runtime validation for Gyazo configuration.
  *
  * Notes:
  *
  * - ClientId/clientSecret are user-configurable via storage.
  * - Endpoint URLs should always be HTTPS.
+ * - These checks intentionally avoid URL-constructor validation because some
+ *   unit tests mock the global URL object. Semantic validation is enforced at
+ *   use-sites.
  */
-const GyazoConfigSchema = z
-    .object({
-        // NOTE: We validate these as strings here because some unit tests mock the global `URL`
-        // object (to stub URL.createObjectURL), which would break any URL-constructor based
-        // validation. Semantic validation is enforced at use-sites.
-        authUrl: z.string().min(1),
-        clientId: z.string().min(1).nullable(),
-        clientSecret: z.string().min(1).nullable(),
-        redirectUri: z.string().min(1),
-        tokenUrl: z.string().min(1),
-        uploadUrl: z.string().min(1),
-    })
-    .strict();
+function validateGyazoConfig(value: unknown): ValidationResult<GyazoConfig> {
+    if (!isObjectRecord(value)) {
+        return failValidation("Gyazo configuration must be an object");
+    }
 
-const GyazoTokenResponseSchema = z
-    .object({
-        access_token: z.string().min(1),
-    })
-    .passthrough();
+    const authUrl = getNonEmptyString(value, "authUrl"),
+        clientId = getNullableNonEmptyString(value, "clientId"),
+        clientSecret = getNullableNonEmptyString(value, "clientSecret"),
+        redirectUri = getNonEmptyString(value, "redirectUri"),
+        tokenUrl = getNonEmptyString(value, "tokenUrl"),
+        uploadUrl = getNonEmptyString(value, "uploadUrl");
 
-const GyazoUploadResponseSchema = z
-    .object({
-        permalink_url: z.string().min(1).optional(),
-        url: z.string().min(1).optional(),
-    })
-    .passthrough();
+    if (
+        !authUrl ||
+        clientId === undefined ||
+        clientSecret === undefined ||
+        !redirectUri ||
+        !tokenUrl ||
+        !uploadUrl
+    ) {
+        return failValidation("Gyazo configuration has invalid fields");
+    }
+
+    return {
+        data: {
+            authUrl,
+            clientId,
+            clientSecret,
+            redirectUri,
+            tokenUrl,
+            uploadUrl,
+        },
+        success: true,
+    };
+}
+
+function validateGyazoTokenResponse(
+    value: unknown
+): ValidationResult<GyazoTokenResponse> {
+    if (!isObjectRecord(value)) {
+        return failValidation("Gyazo token response must be an object");
+    }
+
+    const accessToken = getNonEmptyString(value, "access_token");
+    if (!accessToken) {
+        return failValidation("Gyazo token response is missing access_token");
+    }
+
+    return {
+        data: { ...value, access_token: accessToken },
+        success: true,
+    };
+}
+
+function validateGyazoUploadResponse(
+    value: unknown
+): ValidationResult<GyazoUploadResponse> {
+    if (!isObjectRecord(value)) {
+        return failValidation("Gyazo upload response must be an object");
+    }
+
+    const permalinkUrl = getNonEmptyString(value, "permalink_url"),
+        url = getNonEmptyString(value, "url");
+
+    if (
+        ("permalink_url" in value && !permalinkUrl) ||
+        ("url" in value && !url)
+    ) {
+        return failValidation("Gyazo upload response has invalid URL fields");
+    }
+
+    return {
+        data: {
+            ...value,
+            ...(permalinkUrl ? { permalink_url: permalinkUrl } : {}),
+            ...(url ? { url } : {}),
+        },
+        success: true,
+    };
+}
 
 /*
  * @param {unknown} value
@@ -1652,7 +1757,7 @@ export const exportUtils = {
                 );
             }
 
-            const parsed = GyazoTokenResponseSchema.safeParse(
+            const parsed = validateGyazoTokenResponse(
                 await response.json()
             );
             if (parsed.success) {
@@ -2198,7 +2303,7 @@ export const exportUtils = {
             uploadUrl: "https://upload.gyazo.com/api/upload",
         };
 
-        const parsed = GyazoConfigSchema.safeParse(candidate);
+        const parsed = validateGyazoConfig(candidate);
         if (parsed.success) {
             return parsed.data;
         }
@@ -3570,7 +3675,7 @@ body {
                     typeof uploadResponse.json === "function"
                         ? await uploadResponse.json()
                         : uploadResponse,
-                parsed = GyazoUploadResponseSchema.safeParse(rawData);
+                parsed = validateGyazoUploadResponse(rawData);
             if (!parsed.success) {
                 throw new Error("Invalid Gyazo upload response");
             }

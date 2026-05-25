@@ -47,18 +47,23 @@ function copyFile(name) {
     fs.copyFileSync(source, destination);
 }
 
+function assertNoNodeModulesReference(filePath, content) {
+    if (content.includes("node_modules")) {
+        throw new Error(
+            `${path.relative(electronAppDir, filePath)} must not reference node_modules directly`
+        );
+    }
+}
+
 function copyIndexHtml() {
     const source = path.join(electronAppDir, "index.html");
     const destination = path.join(distDir, "index.html");
-    const html = fs
-        .readFileSync(source, "utf8")
-        .replace(
-            /"zod": "\.\/node_modules\/zod\/index\.js"/u,
-            '"zod": "../node_modules/zod/index.js"'
-        );
+    const html = fs.readFileSync(source, "utf8");
 
+    assertNoNodeModulesReference(source, html);
     assertInsideElectronApp(destination);
     fs.writeFileSync(destination, html);
+    assertNoNodeModulesReference(destination, html);
 }
 
 fs.mkdirSync(distDir, { recursive: true });

@@ -45,6 +45,14 @@
     const getErrorMessage = (error: unknown): string =>
         error instanceof Error ? error.message : String(error);
 
+    function isMissingFileError(error: unknown): boolean {
+        if (error && typeof error === "object" && "code" in error) {
+            return (error as { code?: unknown }).code === "ENOENT";
+        }
+
+        return /\bENOENT\b/u.test(getErrorMessage(error));
+    }
+
     // Keep this validation minimal; fileAccessPolicy performs the authoritative
     // security checks (approved paths + .fit extension). This is primarily:
     // - to fail fast on obviously invalid inputs
@@ -137,7 +145,13 @@
                     if (typeof fs.stat === "function") {
                         fs.stat(fileReadPath, (statErr, stats) => {
                             if (statErr) {
-                                // If we can't stat, fall back to readFile (will still error if missing).
+                                if (isMissingFileError(statErr)) {
+                                    reject(statErr);
+                                    return;
+                                }
+
+                                // If non-existence is not the problem, fall back
+                                // to readFile and let the platform decide.
                                 read();
                                 return;
                             }
@@ -159,11 +173,13 @@
                     read();
                 });
             } catch (error) {
-                logWithContext?.("error", "Error in file:read:", {
-                    authorizedPath,
-                    error: getErrorMessage(error),
-                    filePath: safeLogValue(filePath),
-                });
+                if (!isMissingFileError(error)) {
+                    logWithContext?.("error", "Error in file:read:", {
+                        authorizedPath,
+                        error: getErrorMessage(error),
+                        filePath: safeLogValue(filePath),
+                    });
+                }
                 throw error;
             }
         });

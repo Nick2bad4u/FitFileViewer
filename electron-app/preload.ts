@@ -713,7 +713,8 @@ const electronAPI: ElectronAPI = {
      * Listens for changes to a specific path in the main process state.
      *
      * @param {string} path - Path to listen to (e.g., 'loadedFitFilePath')
-     * @param {Function} callback - Callback function to handle state changes
+     * @param {(change: MainStateChange) => void} callback - Callback function
+     *   to handle state changes
      *
      * @returns {Promise<boolean>} True if listener was registered successfully
      */
@@ -747,7 +748,8 @@ const electronAPI: ElectronAPI = {
      * Registers a generic handler for any IPC event (for internal use).
      *
      * @param {string} channel - The IPC channel to listen on
-     * @param {Function} callback - Callback function to handle the event
+     * @param {(...args: IpcResponsePayload[]) => void} callback - Callback
+     *   function to handle the event
      *
      * @returns {(() => void) | undefined} Unsubscribe function when
      *   registration succeeds
@@ -758,7 +760,7 @@ const electronAPI: ElectronAPI = {
     /**
      * Registers a handler for the 'menu-open-file' event.
      *
-     * @param {Function} callback
+     * @param {() => void} callback
      */
     onMenuOpenFile: createSafeEventHandler(
         CONSTANTS.EVENTS.MENU_OPEN_FILE,
@@ -768,7 +770,7 @@ const electronAPI: ElectronAPI = {
     /**
      * Registers a handler for the 'menu-open-overlay' event.
      *
-     * @param {Function} callback
+     * @param {() => void} callback
      */
     onMenuOpenOverlay: createSafeEventHandler(
         CONSTANTS.EVENTS.MENU_OPEN_OVERLAY,
@@ -778,7 +780,7 @@ const electronAPI: ElectronAPI = {
     /**
      * Registers a handler for the 'open-recent-file' event.
      *
-     * @param {Function} callback
+     * @param {(filePath: IpcResponsePayload) => void} callback
      */
     onOpenRecentFile: createSafeEventHandler(
         CONSTANTS.EVENTS.OPEN_RECENT_FILE,
@@ -789,7 +791,7 @@ const electronAPI: ElectronAPI = {
     /**
      * Registers a handler for the 'open-summary-column-selector' event.
      *
-     * @param {Function} callback
+     * @param {() => void} callback
      */
     onOpenSummaryColumnSelector: createSafeEventHandler(
         CONSTANTS.EVENTS.OPEN_SUMMARY_COLUMN_SELECTOR,
@@ -799,7 +801,7 @@ const electronAPI: ElectronAPI = {
     /**
      * Registers a handler for the 'set-theme' event.
      *
-     * @param {Function} callback
+     * @param {(theme: IpcResponsePayload) => void} callback
      */
     onSetTheme: createSafeEventHandler(
         CONSTANTS.EVENTS.SET_THEME,
@@ -812,7 +814,8 @@ const electronAPI: ElectronAPI = {
      * Listen for update events from the main process (auto-updater).
      *
      * @param {string} eventName - The update event name to listen for
-     * @param {Function} callback - Callback function to handle the event
+     * @param {(...args: IpcResponsePayload[]) => void} callback - Callback
+     *   function to handle the event
      */
     onUpdateEvent: genericIpcApi.onUpdateEvent,
 
@@ -1003,7 +1006,7 @@ const electronAPI: ElectronAPI = {
      * Subscribe to main state changes and get an unsubscribe function.
      *
      * @param {string} path
-     * @param {Function} callback
+     * @param {(change: MainStateChange) => void} callback
      *
      * @returns {Promise<() => Promise<boolean>>}
      */
@@ -1013,7 +1016,7 @@ const electronAPI: ElectronAPI = {
      * Removes a previously registered main state listener.
      *
      * @param {string} path
-     * @param {Function} callback
+     * @param {(change: MainStateChange) => void} callback
      *
      * @returns {Promise<boolean>}
      */
