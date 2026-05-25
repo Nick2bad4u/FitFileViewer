@@ -7,6 +7,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Module } from "module";
 
+type RequireCacheModule = NonNullable<NodeJS.Require["cache"][string]>;
+
 // Create inline mocks
 const mockContextBridge = {
     exposeInMainWorld: vi.fn(),
@@ -69,11 +71,12 @@ describe("preload.js - Module Cache Injection Test", () => {
         delete require.cache["electron"];
 
         // Inject the mock directly into the require cache
-        require.cache["electron"] = mockModule as any;
+        require.cache["electron"] = mockModule as unknown as RequireCacheModule;
 
         // Also try the full path approach
         const electronPath = require.resolve("electron");
-        require.cache[electronPath] = mockModule as any;
+        require.cache[electronPath] =
+            mockModule as unknown as RequireCacheModule;
 
         // Clear preload.js from cache to ensure fresh require
         delete require.cache[require.resolve("../../preload.js")];

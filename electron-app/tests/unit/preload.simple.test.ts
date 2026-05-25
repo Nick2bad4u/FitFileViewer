@@ -7,26 +7,38 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
  * Simplified interface for ElectronAPI with only the methods we test
  */
 interface TestElectronAPI {
+    [key: string]: unknown;
+    getOperation?: (operationId: string) => Promise<unknown>;
+    invoke: (channel: string, ...args: unknown[]) => Promise<unknown>;
     openFile: () => Promise<string[]>;
+    parseFitFile: (buffer: ArrayBuffer) => Promise<unknown>;
     readFile: (filePath: string) => Promise<ArrayBuffer>;
-    parseFitFile: (buffer: ArrayBuffer) => Promise<any>;
-    invoke: (channel: string, ...args: any[]) => Promise<any>;
     setMainState?: (
         path: string,
-        value: any,
-        options?: any
+        value: unknown,
+        options?: unknown
     ) => Promise<boolean>;
-    getOperation?: (operationId: string) => Promise<any>;
     validateAPI: () => boolean;
-    [key: string]: any;
 }
+
+type ContextBridgeMock = {
+    exposeInMainWorld: ReturnType<typeof vi.fn>;
+};
+
+type IpcRendererMock = {
+    invoke: ReturnType<typeof vi.fn>;
+    on: ReturnType<typeof vi.fn>;
+    once: ReturnType<typeof vi.fn>;
+    removeAllListeners: ReturnType<typeof vi.fn>;
+    removeListener: ReturnType<typeof vi.fn>;
+    send: ReturnType<typeof vi.fn>;
+};
 
 describe("Simple Electron Mock Test", () => {
     // Setup mocks
-    let mockIpcRenderer: any;
-    let mockContextBridge: any;
+    let mockIpcRenderer: IpcRendererMock;
+    let mockContextBridge: ContextBridgeMock;
     let exposedElectronAPI: TestElectronAPI | undefined;
-    let consoleSpy: any;
     const originalNodeEnv = process.env.NODE_ENV;
 
     beforeEach(() => {
@@ -47,10 +59,8 @@ describe("Simple Electron Mock Test", () => {
             exposeInMainWorld: vi.fn(),
         };
 
-        consoleSpy = {
-            log: vi.spyOn(console, "log").mockImplementation(() => {}),
-            error: vi.spyOn(console, "error").mockImplementation(() => {}),
-        };
+        vi.spyOn(console, "log").mockImplementation(() => {});
+        vi.spyOn(console, "error").mockImplementation(() => {});
     });
 
     afterEach(() => {
@@ -60,7 +70,9 @@ describe("Simple Electron Mock Test", () => {
         process.env.NODE_ENV = originalNodeEnv;
     });
 
-    async function createPreloadEnvironment(options = {}) {
+    async function createPreloadEnvironment(
+        options: Partial<NodeJS.ProcessEnv> = {}
+    ) {
         const env = {
             NODE_ENV: "test",
             ...options,
@@ -73,9 +85,14 @@ describe("Simple Electron Mock Test", () => {
         });
         await import("../../preload.js");
 
+        const calls = mockContextBridge.exposeInMainWorld.mock.calls as [
+            string,
+            TestElectronAPI,
+        ][];
+        exposedElectronAPI = calls[0]?.[1];
+
         return {
-            exposedAPI: mockContextBridge.exposeInMainWorld.mock
-                .calls[0]?.[1] as TestElectronAPI,
+            exposedAPI: exposedElectronAPI,
         };
     }
 
@@ -119,7 +136,7 @@ describe("Simple Electron Mock Test", () => {
         mockIpcRenderer.invoke.mockClear();
 
         // Using an invalid channel should reject (validation occurs before ipcRenderer.invoke)
-        await expect(exposedAPI.invoke(null as any)).rejects.toThrow(
+        await expect(exposedAPI.invoke(null as unknown as string)).rejects.toThrow(
             "Invalid channel for invoke"
         );
         expect(mockIpcRenderer.invoke).not.toHaveBeenCalled();
@@ -137,7 +154,10 @@ describe("Simple Electron Mock Test", () => {
         expect(typeof exposedAPI.setMainState).toBe("function");
         mockIpcRenderer.invoke.mockClear();
 
-        const ok = await exposedAPI.setMainState!(null as any, "value");
+        const ok = await exposedAPI.setMainState!(
+            null as unknown as string,
+            "value"
+        );
         expect(ok).toBe(false);
         expect(mockIpcRenderer.invoke).not.toHaveBeenCalled();
     });
@@ -148,7 +168,7 @@ describe("Simple Electron Mock Test", () => {
         expect(typeof exposedAPI.getOperation).toBe("function");
         mockIpcRenderer.invoke.mockClear();
 
-        const op = await exposedAPI.getOperation!(null as any);
+        const op = await exposedAPI.getOperation!(null as unknown as string);
         expect(op).toBeNull();
         expect(mockIpcRenderer.invoke).not.toHaveBeenCalled();
     });

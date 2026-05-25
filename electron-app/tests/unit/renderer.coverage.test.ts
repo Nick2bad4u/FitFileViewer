@@ -3,6 +3,29 @@
  */
 import { describe, it, expect, vi, beforeAll, beforeEach } from "vitest";
 
+interface RendererCoverageElectronAPI {
+    getAppVersion: ReturnType<typeof vi.fn<() => Promise<string>>>;
+    getSystemInfo: ReturnType<
+        typeof vi.fn<
+            () => Promise<{ arch: string; platform: string; version: string }>
+        >
+    >;
+    isDevelopment: ReturnType<typeof vi.fn<() => Promise<boolean>>>;
+    onMenuAction: ReturnType<typeof vi.fn>;
+    onThemeChanged: ReturnType<typeof vi.fn>;
+    showMessageBox: ReturnType<typeof vi.fn>;
+}
+
+type RendererCoverageWindow = Window &
+    typeof globalThis & {
+        __DEVELOPMENT__?: boolean | string;
+        electronAPI: RendererCoverageElectronAPI;
+    };
+
+function getRendererCoverageWindow(): RendererCoverageWindow {
+    return window as RendererCoverageWindow;
+}
+
 // Setup global test environment flags
 vi.stubGlobal("__VITEST__", true);
 vi.stubGlobal("__TEST__", true);
@@ -10,7 +33,7 @@ vi.stubGlobal("VITEST_WORKER_ID", "1");
 
 // Set up process.env for test detection
 if (typeof process === "undefined") {
-    (global as any).process = { env: { VITEST_WORKER_ID: "1" } };
+    vi.stubGlobal("process", { env: { VITEST_WORKER_ID: "1" } });
 } else {
     process.env.VITEST_WORKER_ID = "1";
 }
@@ -77,7 +100,7 @@ describe("renderer.js - Coverage Test", () => {
                 showMessageBox: vi.fn(),
                 getAppVersion: vi.fn().mockResolvedValue("1.0.0"),
                 isDevelopment: vi.fn().mockResolvedValue(false),
-            },
+            } satisfies RendererCoverageElectronAPI,
             writable: true,
             configurable: true,
         });
@@ -157,15 +180,15 @@ describe("renderer.js - Coverage Test", () => {
     });
 
     it("should handle electron API menu actions (smoke)", async () => {
-        expect(typeof (window as any).electronAPI.onMenuAction).toBe(
+        expect(typeof getRendererCoverageWindow().electronAPI.onMenuAction).toBe(
             "function"
         );
     });
 
     it("should handle theme change events (smoke)", async () => {
-        expect(typeof (window as any).electronAPI.onThemeChanged).toBe(
-            "function"
-        );
+        expect(
+            typeof getRendererCoverageWindow().electronAPI.onThemeChanged
+        ).toBe("function");
     });
 
     it("should initialize state management (smoke)", async () => {
@@ -177,7 +200,7 @@ describe("renderer.js - Coverage Test", () => {
 
     it("should handle development mode features (smoke)", async () => {
         // Dev features are environment dependent; value may be string/boolean/undefined
-        const t = typeof (window as any).__DEVELOPMENT__;
+        const t = typeof getRendererCoverageWindow().__DEVELOPMENT__;
 
         const supportedDevelopmentFlagTypes = new Set([
             "undefined",

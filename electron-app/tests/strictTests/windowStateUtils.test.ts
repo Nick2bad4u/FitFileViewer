@@ -3,6 +3,13 @@
  */
 import { describe, it, expect } from "vitest";
 
+interface WindowStateSnapshot {
+    height: number;
+    width: number;
+    x?: number;
+    y?: number;
+}
+
 describe("windowStateUtils strict tests (pure functions)", () => {
     it("validateWindowState accepts well-formed objects", async () => {
         const mod = await import("../../windowStateUtils.js");
@@ -30,15 +37,16 @@ describe("windowStateUtils strict tests (pure functions)", () => {
         expect(s1.width).toBeGreaterThanOrEqual(800);
         expect(s1.height).toBeGreaterThanOrEqual(600);
 
-        const s2 = mod.sanitizeWindowState({
+        const stateWithCoordinates: WindowStateSnapshot = {
             width: 900,
             height: 700,
             x: 5,
             y: 6,
-        } as any);
+        };
+        const s2 = mod.sanitizeWindowState(stateWithCoordinates);
         expect(s2.width).toBe(900);
         expect(s2.height).toBe(700);
-        expect((s2 as any).x).toBe(5);
-        expect((s2 as any).y).toBe(6);
+        expect(s2.x).toBe(5);
+        expect(s2.y).toBe(6);
     });
 });

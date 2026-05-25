@@ -104,7 +104,7 @@ vi.mock("../../utils/state/integration/mainProcessStateManager", () => ({
         get(key: string) {
             return mockState.get(key);
         }
-        set(key: string, value: any) {
+        set(key: string, value: unknown) {
             mockState.set();
             return { success: true };
         }
@@ -117,7 +117,7 @@ vi.mock("../../utils/state/integration/mainProcessStateManager", () => ({
         setupIPCHandlers() {
             return mockState.setupIPCHandlers();
         }
-        makeSerializable(data: any) {
+        makeSerializable(data: unknown) {
             return data;
         }
         listen() {
@@ -148,7 +148,7 @@ Module.prototype.require = function (id: string) {
     if (id === "electron") {
         return mockElectron;
     }
-    return originalRequire.apply(this, arguments as any);
+    return Reflect.apply(originalRequire, this, [id]);
 };
 
 async function importMainModule() {

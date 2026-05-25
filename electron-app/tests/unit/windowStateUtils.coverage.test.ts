@@ -7,6 +7,34 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 const fallbackSettingsPath = join(process.cwd(), "window-state.json");
 
+interface MockFs {
+    existsSync: ReturnType<typeof vi.fn<(path: string) => boolean>>;
+    mkdirSync: ReturnType<typeof vi.fn<() => void>>;
+    readFileSync: ReturnType<typeof vi.fn<(path: string, encoding: string) => string>>;
+    unlinkSync: ReturnType<typeof vi.fn<() => void>>;
+    writeFileSync: ReturnType<typeof vi.fn<(path: string, data: string) => void>>;
+}
+
+interface MockApp {
+    getPath: ReturnType<typeof vi.fn<() => string>>;
+}
+
+interface MockWindowInstance {
+    getBounds: ReturnType<
+        typeof vi.fn<() => { height: number; width: number; x: number; y: number }>
+    >;
+    isDestroyed: ReturnType<typeof vi.fn<() => boolean>>;
+    isMaximized: ReturnType<typeof vi.fn<() => boolean>>;
+    isMinimized: ReturnType<typeof vi.fn<() => boolean>>;
+    loadFile: ReturnType<typeof vi.fn<() => Promise<void>>>;
+    on: ReturnType<typeof vi.fn>;
+    once: ReturnType<typeof vi.fn<(event: string, callback: () => void) => void>>;
+    setMenuBarVisibility: ReturnType<typeof vi.fn>;
+    show: ReturnType<typeof vi.fn>;
+}
+
+type BrowserWindowMock = new (options: unknown) => MockWindowInstance;
+
 function removeFallbackWindowState() {
     if (existsSync(fallbackSettingsPath)) {
         unlinkSync(fallbackSettingsPath);
@@ -20,9 +48,9 @@ describe("windowStateUtils.js - coverage uplift", () => {
         minWidth: 800,
         minHeight: 600,
     };
-    let mockFs: any;
-    let mockApp: any;
-    let mockBrowserWindow: any;
+    let mockFs: MockFs;
+    let mockApp: MockApp;
+    let mockBrowserWindow: BrowserWindowMock;
     let settingsPath: string;
 
     beforeEach(() => {
@@ -62,17 +90,16 @@ describe("windowStateUtils.js - coverage uplift", () => {
                 .fn()
                 .mockReturnValue({ width: 1000, height: 700, x: 10, y: 20 }),
             on: vi.fn(),
-            once: vi.fn((_ev: string, cb: Function) => cb()),
+            once: vi.fn((_ev: string, cb: () => void) => cb()),
             show: vi.fn(),
             loadFile: vi.fn().mockResolvedValue(undefined),
             setMenuBarVisibility: vi.fn(),
         };
         // Provide a constructable BrowserWindow mock
-        function BrowserWindow(this: any, _opts: any) {
+        function BrowserWindow(this: unknown, _opts: unknown) {
             return mockWinInstance;
         }
-        // @ts-ignore
-        mockBrowserWindow = BrowserWindow;
+        mockBrowserWindow = BrowserWindow as unknown as BrowserWindowMock;
 
         vi.doMock("node:fs", () => mockFs);
         vi.doMock("electron", () => ({
@@ -121,7 +148,7 @@ describe("windowStateUtils.js - coverage uplift", () => {
             mkdirSync: vi.fn(),
             unlinkSync: vi.fn(),
         };
-        vi.doMock("node:fs", () => fs2 as any);
+        vi.doMock("node:fs", () => fs2);
         const electron2 = {
             app: { getPath: vi.fn().mockReturnValue("/tmp/fitfileviewer") },
             BrowserWindow: vi.fn(),
@@ -145,7 +172,7 @@ describe("windowStateUtils.js - coverage uplift", () => {
             isMinimized: () => false,
             isMaximized: () => false,
             getBounds: () => ({ width: 1000, height: 700, x: 10, y: 20 }),
-        } as any;
+        } as unknown as Parameters<typeof mod.saveWindowState>[0];
         expect(() => mod.saveWindowState(win)).not.toThrow();
     });
 

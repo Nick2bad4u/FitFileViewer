@@ -3,11 +3,203 @@ import fs from "fs";
 import path from "path";
 import { resolvePreloadScriptRequire } from "../helpers/preloadModuleMocks";
 
+type MockFunction = ReturnType<typeof vi.fn>;
+type MockWithCalls = { mock: { calls: unknown[][] } };
+type IpcListener = (...args: unknown[]) => void;
+type Unsubscribe = (() => void) | undefined;
+
+interface ElectronMock {
+    contextBridge: {
+        exposeInMainWorld: MockFunction;
+    };
+    ipcRenderer: {
+        invoke: MockFunction;
+        on: MockFunction;
+        removeAllListeners: MockFunction;
+        send: MockFunction;
+    };
+}
+
+interface MockProcess {
+    env: {
+        NODE_ENV: string;
+    };
+    once: MockFunction;
+}
+
+interface ChannelInfo {
+    channels: Record<string, unknown>;
+    events: Record<string, unknown>;
+    totalChannels: number;
+    totalEvents: number;
+}
+
+interface PreloadElectronAPI {
+    addRecentFile: (filePath: unknown) => Promise<unknown>;
+    approveRecentFile: (filePath: unknown) => Promise<unknown>;
+    checkForUpdates: () => void;
+    decodeFitFile: (filePath: unknown) => Promise<unknown>;
+    getAppVersion: () => Promise<unknown>;
+    getChannelInfo: () => ChannelInfo;
+    getChromeVersion: () => Promise<unknown>;
+    getElectronVersion: () => Promise<unknown>;
+    getLicenseInfo: () => Promise<unknown>;
+    getNodeVersion: () => Promise<unknown>;
+    getPlatformInfo: () => Promise<unknown>;
+    getTheme: () => Promise<unknown>;
+    injectMenu: (theme: unknown, fitFilePath: unknown) => Promise<unknown>;
+    installUpdate: () => void;
+    invoke: (channel: unknown, ...args: unknown[]) => Promise<unknown>;
+    onIpc: (channel: unknown, callback: unknown) => Unsubscribe;
+    onMenuOpenFile: (callback: IpcListener) => Unsubscribe;
+    onMenuOpenOverlay: (callback: IpcListener) => Unsubscribe;
+    onOpenRecentFile: (callback: IpcListener) => Unsubscribe;
+    onOpenSummaryColumnSelector: (callback: IpcListener) => Unsubscribe;
+    onSetTheme: (callback: IpcListener) => Unsubscribe;
+    onUpdateEvent: (eventName: unknown, callback: IpcListener) => Unsubscribe;
+    openExternal: (url: unknown) => Promise<unknown>;
+    openFile: (filePath: unknown) => Promise<unknown>;
+    openFileDialog: () => Promise<unknown>;
+    parseFitFile: (fileBuffer: unknown) => Promise<unknown>;
+    readFile: (filePath: unknown) => Promise<unknown>;
+    recentFiles: () => Promise<unknown>;
+    send: (channel: unknown, ...args: unknown[]) => void;
+    sendThemeChanged: (theme: unknown) => void;
+    setFullScreen: (fullscreen: unknown) => void;
+    startGyazoServer: () => Promise<unknown>;
+    stopGyazoServer: () => Promise<unknown>;
+    validateAPI: () => boolean;
+}
+
+interface PreloadDevTools {
+    getPreloadInfo: () => {
+        apiMethods: unknown[];
+        constants: Record<string, unknown>;
+        timestamp: string;
+        version: string;
+    };
+    logAPIState: () => void;
+    testIPC: () => Promise<unknown>;
+}
+
+type PreloadTestGlobal = typeof globalThis & {
+    [apiName: string]: unknown;
+    devTools?: PreloadDevTools;
+    electronAPI?: PreloadElectronAPI;
+};
+
+type ExposeCall = [string, unknown];
+type BeforeExitCall = ["beforeExit", () => void];
+
+function getMockCalls(mock: MockWithCalls): unknown[][] {
+    return mock.mock.calls;
+}
+
+function getPreloadGlobal(target: unknown = globalThis): PreloadTestGlobal {
+    return target as PreloadTestGlobal;
+}
+
+function isExposeCall(call: unknown[]): call is ExposeCall {
+    return typeof call[0] === "string" && call.length >= 2;
+}
+
+function isBeforeExitCall(call: unknown[]): call is BeforeExitCall {
+    return call[0] === "beforeExit" && typeof call[1] === "function";
+}
+
+function firstArgumentIncludes(call: unknown[], text: string): boolean {
+    return typeof call[0] === "string" && call[0].includes(text);
+}
+
+function resolveIpcInvoke(channel: string): Promise<unknown> {
+    // Handle all known channels from CONSTANTS
+    switch (channel) {
+        case "getAppVersion":
+            return Promise.resolve("1.0.0");
+        case "getChromeVersion":
+            return Promise.resolve("chrome-version");
+        case "getElectronVersion":
+            return Promise.resolve("electron-version");
+        case "getNodeVersion":
+            return Promise.resolve("node-version");
+        case "getPlatformInfo":
+            return Promise.resolve({ platform: "win32" });
+        case "theme:get":
+            return Promise.resolve("dark");
+        case "recentFiles:get":
+            return Promise.resolve([
+                "file1.fit",
+                "file2.fit",
+            ]);
+        case "recentFiles:approve":
+            return Promise.resolve(true);
+        case "fit:decode":
+            return Promise.resolve("decoded-data");
+        case "fit:parse":
+            return Promise.resolve("parsed-data");
+        case "file:read":
+            return Promise.resolve("file-content");
+        case "dialog:openFile":
+            return Promise.resolve(["file1.fit"]);
+        case "recentFiles:add":
+            return Promise.resolve();
+        case "checkForUpdates":
+            return Promise.resolve(true);
+        case "installUpdate":
+            return Promise.resolve(true);
+        case "setFullScreen":
+            return Promise.resolve();
+        case "sendThemeChanged":
+            return Promise.resolve();
+        case "shell:openExternal":
+            return Promise.resolve();
+        case "devtools-inject-menu":
+            return Promise.resolve(true);
+        case "getLicenseInfo":
+            return Promise.resolve("license-info");
+        case "gyazo:server:start":
+            return Promise.resolve({
+                success: true,
+                port: 3000,
+            });
+        case "gyazo:server:stop":
+            return Promise.resolve({ success: true });
+        default:
+            // Don't reject unknown channels, just return a default value
+            console.warn(
+                `[Test] Unknown channel: ${channel}, returning default mock`
+            );
+            return Promise.resolve("default-mock");
+    }
+}
+
 describe("preload.js - Comprehensive API Testing", () => {
-    let electronMock: any;
-    let consoleLogSpy: any;
-    let consoleErrorSpy: any;
-    let mockProcess: any;
+    let electronMock: ElectronMock;
+    let consoleLogSpy: MockWithCalls;
+    let consoleErrorSpy: MockWithCalls;
+    let mockProcess: MockProcess;
+
+    function findExposedCall(apiName: string): ExposeCall | undefined {
+        return getMockCalls(
+            electronMock.contextBridge.exposeInMainWorld
+        ).find(
+            (call): call is ExposeCall =>
+                isExposeCall(call) && call[0] === apiName
+        );
+    }
+
+    function getElectronAPI(): PreloadElectronAPI {
+        return (
+            findExposedCall("electronAPI")?.[1] ??
+            getPreloadGlobal().electronAPI
+        ) as PreloadElectronAPI;
+    }
+
+    function getDevTools(): PreloadDevTools {
+        return (
+            findExposedCall("devTools")?.[1] ?? getPreloadGlobal().devTools
+        ) as PreloadDevTools;
+    }
 
     beforeEach(() => {
         // Reset everything completely
@@ -24,69 +216,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         // Create comprehensive electron mock
         electronMock = {
             ipcRenderer: {
-                invoke: vi
-                    .fn()
-                    .mockImplementation((channel: string, ...args: any[]) => {
-                        // Handle all known channels from CONSTANTS
-                        switch (channel) {
-                            case "getAppVersion":
-                                return Promise.resolve("1.0.0");
-                            case "getChromeVersion":
-                                return Promise.resolve("chrome-version");
-                            case "getElectronVersion":
-                                return Promise.resolve("electron-version");
-                            case "getNodeVersion":
-                                return Promise.resolve("node-version");
-                            case "getPlatformInfo":
-                                return Promise.resolve({ platform: "win32" });
-                            case "theme:get":
-                                return Promise.resolve("dark");
-                            case "recentFiles:get":
-                                return Promise.resolve([
-                                    "file1.fit",
-                                    "file2.fit",
-                                ]);
-                            case "recentFiles:approve":
-                                return Promise.resolve(true);
-                            case "fit:decode":
-                                return Promise.resolve("decoded-data");
-                            case "fit:parse":
-                                return Promise.resolve("parsed-data");
-                            case "file:read":
-                                return Promise.resolve("file-content");
-                            case "dialog:openFile":
-                                return Promise.resolve(["file1.fit"]);
-                            case "recentFiles:add":
-                                return Promise.resolve();
-                            case "checkForUpdates":
-                                return Promise.resolve(true);
-                            case "installUpdate":
-                                return Promise.resolve(true);
-                            case "setFullScreen":
-                                return Promise.resolve();
-                            case "sendThemeChanged":
-                                return Promise.resolve();
-                            case "shell:openExternal":
-                                return Promise.resolve();
-                            case "devtools-inject-menu":
-                                return Promise.resolve(true);
-                            case "getLicenseInfo":
-                                return Promise.resolve("license-info");
-                            case "gyazo:server:start":
-                                return Promise.resolve({
-                                    success: true,
-                                    port: 3000,
-                                });
-                            case "gyazo:server:stop":
-                                return Promise.resolve({ success: true });
-                            default:
-                                // Don't reject unknown channels, just return a default value
-                                console.warn(
-                                    `[Test] Unknown channel: ${channel}, returning default mock`
-                                );
-                                return Promise.resolve("default-mock");
-                        }
-                    }),
+                invoke: vi.fn().mockImplementation(resolveIpcInvoke),
                 send: vi.fn(),
                 on: vi.fn(),
                 removeAllListeners: vi.fn(),
@@ -94,10 +224,10 @@ describe("preload.js - Comprehensive API Testing", () => {
             contextBridge: {
                 exposeInMainWorld: vi
                     .fn()
-                    .mockImplementation((apiName: string, api: any) => {
+                    .mockImplementation((apiName: string, api: unknown) => {
                         // Actually expose the API to the global object for tests
-                        (globalThis as any)[apiName] = api;
-                        (global as any)[apiName] = api;
+                        getPreloadGlobal()[apiName] = api;
+                        getPreloadGlobal(global)[apiName] = api;
                     }),
             },
         };
@@ -142,14 +272,14 @@ describe("preload.js - Comprehensive API Testing", () => {
             expect(
                 electronMock.contextBridge.exposeInMainWorld
             ).toHaveBeenCalledWith("electronAPI", expect.any(Object));
-            expect((globalThis as any).electronAPI.validateAPI()).toBe(true);
+            expect(getElectronAPI().validateAPI()).toBe(true);
         });
 
         it("should expose devTools to main world", () => {
             expect(
                 electronMock.contextBridge.exposeInMainWorld
             ).toHaveBeenCalledWith("devTools", expect.any(Object));
-            expect((globalThis as any).devTools).toMatchObject({
+            expect(getDevTools()).toMatchObject({
                 getPreloadInfo: expect.any(Function),
                 logAPIState: expect.any(Function),
                 testIPC: expect.any(Function),
@@ -160,16 +290,13 @@ describe("preload.js - Comprehensive API Testing", () => {
             expect(
                 electronMock.contextBridge.exposeInMainWorld
             ).toHaveBeenCalledTimes(2);
-            expect(Object.keys(globalThis as any)).toEqual(
+            expect(Object.keys(getPreloadGlobal())).toEqual(
                 expect.arrayContaining(["electronAPI", "devTools"])
             );
         });
 
         it("should expose electronAPI with all expected methods", () => {
-            const electronAPICall =
-                electronMock.contextBridge.exposeInMainWorld.mock.calls.find(
-                    (call: any) => call[0] === "electronAPI"
-                );
+            const electronAPICall = findExposedCall("electronAPI");
 
             expect(electronAPICall?.[1]).toMatchObject({
                 getAppVersion: expect.any(Function),
@@ -177,7 +304,7 @@ describe("preload.js - Comprehensive API Testing", () => {
                 validateAPI: expect.any(Function),
             });
 
-            const electronAPI = electronAPICall![1];
+            const electronAPI = electronAPICall![1] as PreloadElectronAPI;
 
             // Test core methods
             expect(electronAPI).toHaveProperty("getAppVersion");
@@ -236,14 +363,10 @@ describe("preload.js - Comprehensive API Testing", () => {
     });
 
     describe("API Method Functionality", () => {
-        let electronAPI: any;
+        let electronAPI: PreloadElectronAPI;
 
         beforeEach(() => {
-            const electronAPICall =
-                electronMock.contextBridge.exposeInMainWorld.mock.calls.find(
-                    (call: any) => call[0] === "electronAPI"
-                );
-            electronAPI = electronAPICall[1];
+            electronAPI = getElectronAPI();
         });
 
         it("should handle getAppVersion correctly", async () => {
@@ -437,14 +560,10 @@ describe("preload.js - Comprehensive API Testing", () => {
     });
 
     describe("Event Handlers", () => {
-        let electronAPI: any;
+        let electronAPI: PreloadElectronAPI;
 
         beforeEach(() => {
-            const electronAPICall =
-                electronMock.contextBridge.exposeInMainWorld.mock.calls.find(
-                    (call: any) => call[0] === "electronAPI"
-                );
-            electronAPI = electronAPICall[1];
+            electronAPI = getElectronAPI();
         });
 
         it("should register onMenuOpenFile handler", () => {
@@ -523,14 +642,10 @@ describe("preload.js - Comprehensive API Testing", () => {
     });
 
     describe("CONSTANTS Exposure", () => {
-        let electronAPI: any;
+        let electronAPI: PreloadElectronAPI;
 
         beforeEach(() => {
-            const electronAPICall =
-                electronMock.contextBridge.exposeInMainWorld.mock.calls.find(
-                    (call: any) => call[0] === "electronAPI"
-                );
-            electronAPI = electronAPICall[1];
+            electronAPI = getElectronAPI();
         });
 
         it("should expose getChannelInfo method", () => {
@@ -569,22 +684,20 @@ describe("preload.js - Comprehensive API Testing", () => {
 
     describe("Development Tools", () => {
         it("should expose devTools in development mode", () => {
-            const devToolsCall =
-                electronMock.contextBridge.exposeInMainWorld.mock.calls.find(
-                    (call: any) => call[0] === "devTools"
-                );
+            const devToolsCall = findExposedCall("devTools");
 
             expect(devToolsCall?.[1]).toMatchObject({
                 getPreloadInfo: expect.any(Function),
                 logAPIState: expect.any(Function),
                 testIPC: expect.any(Function),
             });
-            expect(devToolsCall![1]).toHaveProperty("getPreloadInfo");
-            expect(devToolsCall[1]).toHaveProperty("logAPIState");
-            expect(devToolsCall[1]).toHaveProperty("testIPC");
-            expect(typeof devToolsCall[1].getPreloadInfo).toBe("function");
-            expect(typeof devToolsCall[1].logAPIState).toBe("function");
-            expect(typeof devToolsCall[1].testIPC).toBe("function");
+            const devTools = devToolsCall![1] as PreloadDevTools;
+            expect(devTools).toHaveProperty("getPreloadInfo");
+            expect(devTools).toHaveProperty("logAPIState");
+            expect(devTools).toHaveProperty("testIPC");
+            expect(typeof devTools.getPreloadInfo).toBe("function");
+            expect(typeof devTools.logAPIState).toBe("function");
+            expect(typeof devTools.testIPC).toBe("function");
         });
     });
 
@@ -598,13 +711,13 @@ describe("preload.js - Comprehensive API Testing", () => {
                 "exit",
                 expect.any(Function)
             );
-            expect((globalThis as any).electronAPI.validateAPI()).toBe(true);
+            expect(getElectronAPI().validateAPI()).toBe(true);
         });
 
         it("should log cleanup message on beforeExit", () => {
             // Get the beforeExit callback
-            const beforeExitCall = mockProcess.once.mock.calls.find(
-                (call: any) => call[0] === "beforeExit"
+            const beforeExitCall = getMockCalls(mockProcess.once).find(
+                isBeforeExitCall
             );
             expect(typeof beforeExitCall?.[1]).toBe("function");
 
@@ -614,12 +727,11 @@ describe("preload.js - Comprehensive API Testing", () => {
             beforeExitCallback();
 
             // Should log cleanup message
-            const cleanupLogs = consoleLogSpy.mock.calls.filter(
-                (call: any) =>
-                    call[0] &&
-                    call[0].includes(
-                        "[preload.js] Process exiting, performing cleanup..."
-                    )
+            const cleanupLogs = getMockCalls(consoleLogSpy).filter((call) =>
+                firstArgumentIncludes(
+                    call,
+                    "[preload.js] Process exiting, performing cleanup..."
+                )
             );
 
             expect(cleanupLogs.length).toBeGreaterThan(0);
@@ -631,9 +743,8 @@ describe("preload.js - Comprehensive API Testing", () => {
 
     describe("Validation & Logging", () => {
         it("should log API validation results", () => {
-            const validationLogs = consoleLogSpy.mock.calls.filter(
-                (call: any) =>
-                    call[0] && call[0].includes("[preload.js] API Validation:")
+            const validationLogs = getMockCalls(consoleLogSpy).filter((call) =>
+                firstArgumentIncludes(call, "[preload.js] API Validation:")
             );
 
             expect(validationLogs.length).toBeGreaterThan(0);
@@ -644,10 +755,11 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should log successful API exposure", () => {
-            const exposureLogs = consoleLogSpy.mock.calls.filter(
-                (call: any) =>
-                    call[0] &&
-                    call[0].includes("[preload.js] Successfully exposed")
+            const exposureLogs = getMockCalls(consoleLogSpy).filter((call) =>
+                firstArgumentIncludes(
+                    call,
+                    "[preload.js] Successfully exposed"
+                )
             );
 
             expect(exposureLogs.length).toBeGreaterThan(0);
@@ -657,10 +769,11 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should log initialization completion", () => {
-            const initLogs = consoleLogSpy.mock.calls.filter(
-                (call: any) =>
-                    call[0] &&
-                    call[0].includes("[preload.js] Preload script initialized")
+            const initLogs = getMockCalls(consoleLogSpy).filter((call) =>
+                firstArgumentIncludes(
+                    call,
+                    "[preload.js] Preload script initialized"
+                )
             );
 
             expect(initLogs.length).toBeGreaterThan(0);
@@ -670,9 +783,8 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should validate API structure", () => {
-            const structureLogs = consoleLogSpy.mock.calls.filter(
-                (call: any) =>
-                    call[0] && call[0].includes("[preload.js] API Structure:")
+            const structureLogs = getMockCalls(consoleLogSpy).filter((call) =>
+                firstArgumentIncludes(call, "[preload.js] API Structure:")
             );
 
             expect(structureLogs.length).toBeGreaterThan(0);
@@ -686,7 +798,7 @@ describe("preload.js - Comprehensive API Testing", () => {
     describe("Validation Functions", () => {
         it("should test validateCallback with invalid inputs", () => {
             // Access validation functions through existing API
-            const api = (global as any).electronAPI;
+            const api = getElectronAPI();
             expect(api).toMatchObject({
                 onIpc: expect.any(Function),
             });
@@ -714,7 +826,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should test validateString with invalid inputs", () => {
-            const api = (global as any).electronAPI;
+            const api = getElectronAPI();
             expect(api).toMatchObject({
                 send: expect.any(Function),
             });
@@ -743,7 +855,7 @@ describe("preload.js - Comprehensive API Testing", () => {
 
     describe("Error Handling in Safe Handlers", () => {
         it("should handle errors in safe invoke handler", async () => {
-            const api = (global as any).electronAPI;
+            const api = getElectronAPI();
             expect(api).toMatchObject({
                 invoke: expect.any(Function),
             });
@@ -763,7 +875,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should handle errors in safe send handler", () => {
-            const api = (global as any).electronAPI;
+            const api = getElectronAPI();
             expect(api).toMatchObject({
                 send: expect.any(Function),
             });
@@ -787,7 +899,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should handle errors in safe event handler", () => {
-            const api = (global as any).electronAPI;
+            const api = getElectronAPI();
             expect(api).toMatchObject({
                 onIpc: expect.any(Function),
             });
@@ -804,7 +916,7 @@ describe("preload.js - Comprehensive API Testing", () => {
 
     describe("API Method Implementation Tests", () => {
         it("should test send method implementation", () => {
-            const api = (global as any).electronAPI;
+            const api = getElectronAPI();
             expect(api).toMatchObject({
                 send: expect.any(Function),
             });
@@ -819,7 +931,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should test invoke method implementation", async () => {
-            const api = (global as any).electronAPI;
+            const api = getElectronAPI();
             expect(api).toMatchObject({
                 invoke: expect.any(Function),
             });
@@ -836,7 +948,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should test onIpc method implementation", () => {
-            const api = (global as any).electronAPI;
+            const api = getElectronAPI();
             expect(api).toMatchObject({
                 onIpc: expect.any(Function),
             });
@@ -852,7 +964,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should test onUpdateEvent method implementation", () => {
-            const api = (global as any).electronAPI;
+            const api = getElectronAPI();
             expect(api).toMatchObject({
                 onUpdateEvent: expect.any(Function),
             });
@@ -869,7 +981,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should test injectMenu method implementation", async () => {
-            const api = (global as any).electronAPI;
+            const api = getElectronAPI();
             expect(api).toMatchObject({
                 injectMenu: expect.any(Function),
             });
@@ -889,7 +1001,7 @@ describe("preload.js - Comprehensive API Testing", () => {
 
     describe("Utility Function Tests", () => {
         it("should test getChannelInfo method", () => {
-            const api = (global as any).electronAPI;
+            const api = getElectronAPI();
             expect(api).toMatchObject({
                 getChannelInfo: expect.any(Function),
             });
@@ -907,7 +1019,7 @@ describe("preload.js - Comprehensive API Testing", () => {
 
     describe("Development Tools Tests", () => {
         it("should test getPreloadInfo function in development", () => {
-            const devTools = (global as any).devTools;
+            const devTools = getDevTools();
             expect(devTools).toMatchObject({
                 getPreloadInfo: expect.any(Function),
             });
@@ -928,7 +1040,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should test testIPC function in development", async () => {
-            const devTools = (global as any).devTools;
+            const devTools = getDevTools();
             expect(devTools).toMatchObject({
                 testIPC: expect.any(Function),
             });
@@ -944,29 +1056,28 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should test logAPIState function in development", () => {
-            const devTools = (global as any).devTools;
+            const devTools = getDevTools();
             expect(devTools).toMatchObject({
                 logAPIState: expect.any(Function),
             });
 
-            const initialLogCount = consoleLogSpy.mock.calls.length;
+            const initialLogCount = getMockCalls(consoleLogSpy).length;
             const result = devTools.logAPIState();
 
             expect(result).toBeUndefined();
-            expect(consoleLogSpy.mock.calls.length).toBeGreaterThan(
+            expect(getMockCalls(consoleLogSpy).length).toBeGreaterThan(
                 initialLogCount
             );
 
-            const logCalls = consoleLogSpy.mock.calls.slice(initialLogCount);
-            const hasAPIStateLog = logCalls.some(
-                (call: any) =>
-                    call[0] && call[0].includes && call[0].includes("API State")
+            const logCalls = getMockCalls(consoleLogSpy).slice(initialLogCount);
+            const hasAPIStateLog = logCalls.some((call) =>
+                firstArgumentIncludes(call, "API State")
             );
             expect(hasAPIStateLog).toBe(true);
         });
 
         it("should expose all development tools in development mode", () => {
-            const devTools = (global as any).devTools;
+            const devTools = getDevTools();
             expect(devTools).toMatchObject({
                 getPreloadInfo: expect.any(Function),
                 logAPIState: expect.any(Function),
@@ -980,7 +1091,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         it("should handle development mode environment variable correctly", () => {
             // Test that development tools are available when NODE_ENV is development
             expect(mockProcess.env.NODE_ENV).toBe("development");
-            const devTools = (global as any).devTools;
+            const devTools = getDevTools();
             expect(devTools).toMatchObject({
                 getPreloadInfo: expect.any(Function),
             });
@@ -988,14 +1099,10 @@ describe("preload.js - Comprehensive API Testing", () => {
     });
 
     describe("Validation Functions", () => {
-        let electronAPI: any;
+        let electronAPI: PreloadElectronAPI;
 
         beforeEach(() => {
-            const electronAPICall =
-                electronMock.contextBridge.exposeInMainWorld.mock.calls.find(
-                    (call: any) => call[0] === "electronAPI"
-                );
-            electronAPI = electronAPICall[1];
+            electronAPI = getElectronAPI();
         });
 
         it("should test validateCallback through onIpc method", () => {
@@ -1120,14 +1227,10 @@ describe("preload.js - Comprehensive API Testing", () => {
     });
 
     describe("API Method Testing", () => {
-        let electronAPI: any;
+        let electronAPI: PreloadElectronAPI;
 
         beforeEach(() => {
-            const electronAPICall =
-                electronMock.contextBridge.exposeInMainWorld.mock.calls.find(
-                    (call: any) => call[0] === "electronAPI"
-                );
-            electronAPI = electronAPICall[1];
+            electronAPI = getElectronAPI();
         });
 
         it("should test getChannelInfo method", () => {
@@ -1200,14 +1303,10 @@ describe("preload.js - Comprehensive API Testing", () => {
     });
 
     describe("Edge Cases and Error Conditions", () => {
-        let electronAPI: any;
+        let electronAPI: PreloadElectronAPI;
 
         beforeEach(() => {
-            const electronAPICall =
-                electronMock.contextBridge.exposeInMainWorld.mock.calls.find(
-                    (call: any) => call[0] === "electronAPI"
-                );
-            electronAPI = electronAPICall[1];
+            electronAPI = getElectronAPI();
         });
 
         it("should handle null and undefined parameters", async () => {
@@ -1286,9 +1385,8 @@ describe("preload.js - Comprehensive API Testing", () => {
         it("should handle process beforeExit event", () => {
             // We can't directly test process.emit, but we can verify the callback was registered
             // by checking if the beforeExit handler was set up in the existing tests
-            const beforeExitCalls = mockProcess.once?.mock?.calls?.filter(
-                (call: any) => call[0] === "beforeExit"
-            );
+            const beforeExitCalls =
+                getMockCalls(mockProcess.once).filter(isBeforeExitCall);
 
             expect(beforeExitCalls).toHaveLength(1);
             expect(typeof beforeExitCalls[0][1]).toBe("function");

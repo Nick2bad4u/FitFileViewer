@@ -1,10 +1,48 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { JSDOM } from "jsdom";
+import type { ZoneData } from "../../utils/types/sharedChartTypes.js";
 
-let renderTimeInZoneCharts: any;
-let renderZoneChartMock: ReturnType<typeof vi.fn>;
-let getHRZoneVisibilitySettingsMock: ReturnType<typeof vi.fn>;
-let getPowerZoneVisibilitySettingsMock: ReturnType<typeof vi.fn>;
+interface TimeInZoneChartOptions {
+    readonly chartType?: string;
+    readonly [key: string]: unknown;
+}
+
+interface ZoneVisibilitySettings {
+    readonly doughnutVisible?: boolean;
+}
+
+type RenderTimeInZoneCharts = (
+    container: HTMLElement | null | undefined,
+    options?: TimeInZoneChartOptions
+) => void;
+
+type RenderZoneChart = (
+    container: HTMLElement,
+    title: string,
+    zones: ZoneData[],
+    chartId: string,
+    options?: TimeInZoneChartOptions
+) => void;
+
+type GetZoneVisibilitySettings = () => ZoneVisibilitySettings;
+
+type TimeInZoneTestGlobal = typeof globalThis & {
+    heartRateZones?: ZoneData[];
+    powerZones?: ZoneData[];
+};
+
+function getTimeInZoneGlobal(): TimeInZoneTestGlobal {
+    return globalThis as TimeInZoneTestGlobal;
+}
+
+let renderTimeInZoneCharts: RenderTimeInZoneCharts;
+let renderZoneChartMock: ReturnType<typeof vi.fn<RenderZoneChart>>;
+let getHRZoneVisibilitySettingsMock: ReturnType<
+    typeof vi.fn<GetZoneVisibilitySettings>
+>;
+let getPowerZoneVisibilitySettingsMock: ReturnType<
+    typeof vi.fn<GetZoneVisibilitySettings>
+>;
 
 describe("renderTimeInZoneCharts.js - Time in Zone Composite Renderer", () => {
     beforeEach(async () => {
@@ -16,17 +54,17 @@ describe("renderTimeInZoneCharts.js - Time in Zone Composite Renderer", () => {
             resources: "usable",
         });
 
-        (globalThis as any).window = dom.window as any;
-        (globalThis as any).document = dom.window.document as any;
-        (globalThis as any).HTMLElement = dom.window.HTMLElement as any;
+        globalThis.window = dom.window as unknown as Window & typeof globalThis;
+        globalThis.document = dom.window.document;
+        globalThis.HTMLElement = dom.window.HTMLElement;
 
-        (globalThis as any).console = {
+        globalThis.console = {
             log: vi.fn(),
             error: vi.fn(),
             warn: vi.fn(),
-        };
+        } as unknown as Console;
 
-        renderZoneChartMock = vi.fn(
+        renderZoneChartMock = vi.fn<RenderZoneChart>(
             (container: HTMLElement, title: string, _zones, chartId: string) => {
                 const chartMarker = document.createElement("section");
                 chartMarker.dataset.chartId = chartId;
@@ -34,12 +72,13 @@ describe("renderTimeInZoneCharts.js - Time in Zone Composite Renderer", () => {
                 container.append(chartMarker);
             }
         );
-        getHRZoneVisibilitySettingsMock = vi.fn(() => ({
+        getHRZoneVisibilitySettingsMock = vi.fn<GetZoneVisibilitySettings>(() => ({
             doughnutVisible: true,
         }));
-        getPowerZoneVisibilitySettingsMock = vi.fn(() => ({
-            doughnutVisible: true,
-        }));
+        getPowerZoneVisibilitySettingsMock =
+            vi.fn<GetZoneVisibilitySettings>(() => ({
+                doughnutVisible: true,
+            }));
 
         vi.doMock("../../utils/ui/controls/createHRZoneControls.js", () => ({
             getHRZoneVisibilitySettings: getHRZoneVisibilitySettingsMock,
@@ -59,15 +98,16 @@ describe("renderTimeInZoneCharts.js - Time in Zone Composite Renderer", () => {
     afterEach(() => {
         vi.resetModules();
         vi.clearAllMocks();
-        delete (globalThis as any).window;
-        delete (globalThis as any).document;
-        delete (globalThis as any).HTMLElement;
-        delete (globalThis as any).heartRateZones;
-        delete (globalThis as any).powerZones;
+        const timeInZoneGlobal = getTimeInZoneGlobal();
+        delete timeInZoneGlobal.window;
+        delete timeInZoneGlobal.document;
+        delete timeInZoneGlobal.HTMLElement;
+        delete timeInZoneGlobal.heartRateZones;
+        delete timeInZoneGlobal.powerZones;
     });
 
     it("should return immediately when container is not provided", () => {
-        renderTimeInZoneCharts(null as any, {});
+        renderTimeInZoneCharts(null, {});
         expect(renderZoneChartMock).not.toHaveBeenCalled();
         expect(document.body.childElementCount).toBe(0);
     });
@@ -79,8 +119,9 @@ describe("renderTimeInZoneCharts.js - Time in Zone Composite Renderer", () => {
             { zone: 2, label: "Z2", time: 240 },
         ];
         const powerZones = [{ zone: 1, label: "Endurance", time: 300 }];
-        (globalThis as any).heartRateZones = hrZones;
-        (globalThis as any).powerZones = powerZones;
+        const timeInZoneGlobal = getTimeInZoneGlobal();
+        timeInZoneGlobal.heartRateZones = hrZones;
+        timeInZoneGlobal.powerZones = powerZones;
 
         const options = { chartType: "doughnut" };
         renderTimeInZoneCharts(container, options);
@@ -121,10 +162,11 @@ describe("renderTimeInZoneCharts.js - Time in Zone Composite Renderer", () => {
 
     it("should honor visibility toggles and skip missing datasets", () => {
         const container = document.createElement("div");
-        (globalThis as any).heartRateZones = [
+        const timeInZoneGlobal = getTimeInZoneGlobal();
+        timeInZoneGlobal.heartRateZones = [
             { zone: 1, label: "Z1", time: 120 },
         ];
-        (globalThis as any).powerZones = undefined;
+        timeInZoneGlobal.powerZones = undefined;
 
         getHRZoneVisibilitySettingsMock.mockReturnValueOnce({
             doughnutVisible: false,

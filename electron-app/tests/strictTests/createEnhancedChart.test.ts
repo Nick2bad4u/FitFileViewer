@@ -1,20 +1,101 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import type { Mock } from "vitest";
 import { JSDOM } from "jsdom";
 
 // Mock Chart.js
-let Chart: any;
-let chartInstanceMock: any;
-let createEnhancedChart: any;
-let mockLocalStorage: any;
+interface ChartDatasetConfig {
+    [key: string]: unknown;
+    backgroundColor?: unknown;
+    borderColor?: unknown;
+    borderWidth?: unknown;
+    data?: unknown;
+    fill?: unknown;
+    label?: unknown;
+    pointBackgroundColor?: unknown;
+    pointBorderColor?: unknown;
+    pointHoverRadius?: unknown;
+    pointRadius?: unknown;
+    showLine?: unknown;
+    tension?: unknown;
+}
+
+interface ChartConfig {
+    data: {
+        datasets: ChartDatasetConfig[];
+    };
+    options: {
+        animation: Record<string, unknown>;
+        plugins: {
+            legend: {
+                display?: unknown;
+                labels: Record<string, unknown>;
+            };
+            title: Record<string, unknown>;
+            tooltip: Record<string, unknown>;
+            zoom?: Record<string, unknown>;
+        };
+        scales: {
+            x: {
+                grid: Record<string, unknown>;
+                ticks: {
+                    callback?: (value: number) => string;
+                    [key: string]: unknown;
+                };
+            };
+            y: {
+                grid: Record<string, unknown>;
+                ticks: Record<string, unknown>;
+            };
+        };
+    };
+    plugins: unknown[];
+    type: string;
+}
+
+interface ChartInstanceMock {
+    clear: Mock<() => void>;
+    config: Record<string, unknown>;
+    data: { datasets: unknown[] };
+    destroy: Mock<() => void>;
+    options: Record<string, unknown>;
+    render: Mock<() => void>;
+    reset: Mock<() => void>;
+    resize: Mock<() => void>;
+    stop: Mock<() => void>;
+    toBase64Image: Mock<() => unknown>;
+    update: Mock<() => void>;
+}
+
+interface LocalStorageMock {
+    clear: Mock<() => void>;
+    getItem: Mock<() => string | null>;
+    removeItem: Mock<() => void>;
+    setItem: Mock<() => void>;
+}
+
+type ChartConstructorMock = Mock<
+    (canvas: HTMLCanvasElement, config: ChartConfig) => ChartInstanceMock
+>;
+
+type CreateEnhancedChart = typeof import("../../utils/charts/components/createEnhancedChart.js").createEnhancedChart;
+
+type CreateEnhancedChartTestGlobal = typeof globalThis & {
+    Chart?: unknown;
+};
+
+let Chart: ChartConstructorMock;
+let chartInstanceMock: ChartInstanceMock;
+let createEnhancedChart: CreateEnhancedChart;
+let mockLocalStorage: LocalStorageMock;
 
 describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
     beforeEach(async () => {
         // Setup console first
-        (global as any).console = {
+        globalThis.console = {
             log: vi.fn(),
             error: vi.fn(),
             warn: vi.fn(),
-        };
+        } as unknown as Console;
 
         // Setup JSDOM environment
         const dom = new JSDOM(`<!DOCTYPE html><html><body></body></html>`, {
@@ -23,10 +104,10 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             resources: "usable",
         });
 
-        global.window = dom.window as any;
-        global.document = dom.window.document as any;
-        global.HTMLCanvasElement = dom.window.HTMLCanvasElement as any;
-        global.HTMLElement = dom.window.HTMLElement as any;
+        globalThis.window = dom.window as unknown as Window & typeof globalThis;
+        globalThis.document = dom.window.document;
+        globalThis.HTMLCanvasElement = dom.window.HTMLCanvasElement;
+        globalThis.HTMLElement = dom.window.HTMLElement;
 
         // Mock localStorage
         mockLocalStorage = {
@@ -35,7 +116,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             removeItem: vi.fn(),
             clear: vi.fn(),
         };
-        (global as any).localStorage = mockLocalStorage;
+        globalThis.localStorage = mockLocalStorage as unknown as Storage;
 
         // Mock Chart.js
         chartInstanceMock = {
@@ -52,11 +133,11 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             toBase64Image: vi.fn(),
         };
 
-        Chart = vi.fn().mockImplementation(function ChartConstructor() {
+        Chart = vi.fn(function ChartConstructor() {
             return chartInstanceMock;
         });
-        (global as any).window.Chart = Chart;
-        (global as any).globalThis.Chart = Chart;
+        window.Chart = Chart as unknown as typeof window.Chart;
+        (globalThis as CreateEnhancedChartTestGlobal).Chart = Chart;
 
         // Mock all dependencies
         vi.doMock("../../utils/charts/theming/chartThemeUtils.js", () => ({
@@ -142,12 +223,13 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         vi.clearAllMocks();
         vi.resetAllMocks();
         vi.resetModules(); // Clear module cache
-        delete (global as any).window;
-        delete (global as any).document;
-        delete (global as any).HTMLCanvasElement;
-        delete (global as any).HTMLElement;
-        delete (global as any).console;
-        delete (global as any).localStorage;
+        delete globalThis.window;
+        delete globalThis.document;
+        delete globalThis.HTMLCanvasElement;
+        delete globalThis.HTMLElement;
+        delete globalThis.console;
+        delete globalThis.localStorage;
+        delete (globalThis as CreateEnhancedChartTestGlobal).Chart;
     });
 
     describe("Basic Chart Creation", () => {
@@ -388,7 +470,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         it("should configure chart for light theme", async () => {
             const { detectCurrentTheme } =
                 await import("../../utils/charts/theming/chartThemeUtils.js");
-            (detectCurrentTheme as any).mockReturnValue("light");
+            vi.mocked(detectCurrentTheme).mockReturnValue("light");
 
             const canvas = document.createElement("canvas");
             const options = {

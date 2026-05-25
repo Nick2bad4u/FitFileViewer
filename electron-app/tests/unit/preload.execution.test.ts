@@ -6,6 +6,15 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+type PreloadExecutionGlobal = typeof globalThis & {
+    __electronHoistedMock?: {
+        contextBridge: typeof mockContextBridge;
+        ipcRenderer: typeof mockIpcRenderer;
+    };
+};
+
+const preloadExecutionGlobal = globalThis as PreloadExecutionGlobal;
+
 // Create mocks before any imports
 const mockContextBridge = {
     exposeInMainWorld: vi.fn(),
@@ -33,7 +42,7 @@ describe("preload.js - Actual File Execution", () => {
         process.env.NODE_ENV = "development";
 
         // Provide hoisted override so modules that resolve lazily see our mock
-        (globalThis as any).__electronHoistedMock = {
+        preloadExecutionGlobal.__electronHoistedMock = {
             contextBridge: mockContextBridge,
             ipcRenderer: mockIpcRenderer,
         };
@@ -54,7 +63,7 @@ describe("preload.js - Actual File Execution", () => {
         delete process.env.NODE_ENV;
 
         // Remove hoisted override
-        delete (globalThis as any).__electronHoistedMock;
+        delete preloadExecutionGlobal.__electronHoistedMock;
     });
 
     describe("Development Mode Execution", () => {

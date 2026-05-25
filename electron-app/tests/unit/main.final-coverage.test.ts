@@ -22,8 +22,54 @@ import { createRequire } from "module";
 const __nodeRequire = createRequire(import.meta.url);
 import { EventEmitter } from "events";
 
+interface MutableHttpModule {
+    createServer: unknown;
+}
+
+type EventHandler = (...args: unknown[]) => unknown;
+type IpcHandler = (event: unknown, port?: number) => unknown;
+type NodeCallback<T> = (error: Error | null, data: T | null) => void;
+
+interface MockRequest {
+    method: string;
+    url?: string;
+}
+
+interface MockResponse {
+    end: ReturnType<typeof vi.fn>;
+    setHeader: ReturnType<typeof vi.fn>;
+    writeHead: ReturnType<typeof vi.fn>;
+}
+
+type HttpRequestHandler = (request: MockRequest, response: MockResponse) => void;
+
+interface MockHttpServer extends EventEmitter {
+    _errored: boolean;
+    _handler: HttpRequestHandler;
+    _port?: number;
+    address: () => { port: number };
+    close: (callback?: () => void) => void;
+    listen: (port: number, host: string, callback?: () => void) => void;
+}
+
+interface MockHttp {
+    _autoErrorOnPorts: Record<number, string>;
+    _servers: MockHttpServer[];
+    createServer: ReturnType<typeof vi.fn<(handler: HttpRequestHandler) => MockHttpServer>>;
+}
+
+interface MockState {
+    gyazoServer?: MockHttpServer | null;
+    gyazoServerPort?: number | null;
+    [key: string]: unknown;
+}
+
+interface TestGlobal {
+    __electronHoistedMock?: unknown;
+}
+
 // Track all mock references for cleanup
-const mockRefs = new Set<any>();
+const mockRefs = new Set<EventEmitter>();
 const mockTimeoutHandles = new Set<ReturnType<typeof setTimeout>>();
 
 function scheduleMockTimeout(callback: () => void, delay: number) {
@@ -42,18 +88,21 @@ function createComprehensiveMock() {
     const mockWebContents = new EventEmitter();
     Object.assign(mockWebContents, {
         isDestroyed: vi.fn(() => false),
-        on: vi.fn((event: string, handler: any) => {
+        on: vi.fn((event: string, handler: EventHandler) => {
             mockWebContents.addListener(event, handler);
             return mockWebContents;
         }),
         send: vi.fn(),
         executeJavaScript: vi.fn().mockResolvedValue("dark"),
         once: vi.fn(),
-        removeAllListeners: vi.fn(function (this: any, event?: string) {
+        removeAllListeners: vi.fn(function (
+            this: EventEmitter,
+            event?: string | symbol
+        ) {
             // Delegate to EventEmitter implementation to actually clear listeners
             return EventEmitter.prototype.removeAllListeners.call(
                 this,
-                event as any
+                event
             );
         }),
         setWindowOpenHandler: vi.fn(),
@@ -82,15 +131,18 @@ function createComprehensiveMock() {
         getAppPath: vi.fn(() => "/test/app"),
         isPackaged: false,
         quit: vi.fn(),
-        on: vi.fn((event: string, handler: any) => {
+        on: vi.fn((event: string, handler: EventHandler) => {
             mockApp.addListener(event, handler);
             return mockApp;
         }),
         removeListener: vi.fn(),
-        removeAllListeners: vi.fn(function (this: any, event?: string) {
+        removeAllListeners: vi.fn(function (
+            this: EventEmitter,
+            event?: string | symbol
+        ) {
             return EventEmitter.prototype.removeAllListeners.call(
                 this,
-                event as any
+                event
             );
         }),
     });
@@ -105,17 +157,20 @@ function createComprehensiveMock() {
 
     const mockIpcMain = new EventEmitter();
     Object.assign(mockIpcMain, {
-        handle: vi.fn((channel: string, handler: any) => {
+        handle: vi.fn((channel: string, handler: IpcHandler) => {
             mockIpcMain.addListener(`handle:${channel}`, handler);
         }),
-        on: vi.fn((channel: string, handler: any) => {
+        on: vi.fn((channel: string, handler: EventHandler) => {
             mockIpcMain.addListener(`on:${channel}`, handler);
         }),
         removeHandler: vi.fn(),
-        removeAllListeners: vi.fn(function (this: any, event?: string) {
+        removeAllListeners: vi.fn(function (
+            this: EventEmitter,
+            event?: string | symbol
+        ) {
             return EventEmitter.prototype.removeAllListeners.call(
                 this,
-                event as any
+                event
             );
         }),
     });
@@ -190,7 +245,7 @@ function createComprehensiveMock() {
  */
 function createNodeMocks() {
     const mockFs = {
-        readFile: vi.fn((path: string, callback: any) => {
+        readFile: vi.fn((_path: string, callback: NodeCallback<Buffer>) => {
             const data = Buffer.from("test data");
             callback(null, data);
         }),
@@ -204,17 +259,17 @@ function createNodeMocks() {
 
     // Mock HTTP server for Gyazo OAuth
     // Track multiple server instances to exercise port escalation
-    const mockHttp: any = {
-        _servers: [] as any[],
+    const mockHttp: MockHttp = {
+        _servers: [],
         // Map of port -> error code to auto-emit when listen(port) is called
         _autoErrorOnPorts: {} as Record<number, string>,
-        createServer: vi.fn((handler: any) => {
+        createServer: vi.fn((handler: HttpRequestHandler) => {
             // Create a distinct server per call
-            const server: any = new EventEmitter();
+            const server = new EventEmitter() as MockHttpServer;
             // Track if an error occurred before listen callback fires
             server._errored = false;
             const __origEmit = server.emit.bind(server);
-            server.emit = (event: string, ...args: any[]) => {
+            server.emit = (event: string | symbol, ...args: unknown[]) => {
                 if (event === "error") {
                     server._errored = true;
                 }
@@ -223,7 +278,7 @@ function createNodeMocks() {
             server._handler = handler;
             server._port = undefined;
             server.listen = vi.fn(
-                (port: number, host: string, callback: any) => {
+                (port: number, _host: string, callback?: () => void) => {
                     server._port = port;
                     // If a specific error is configured for this port, emit it immediately
                     const configuredError = mockHttp._autoErrorOnPorts?.[port];
@@ -238,7 +293,7 @@ function createNodeMocks() {
                     }, 150);
                 }
             );
-            server.close = vi.fn((callback: any) => {
+            server.close = vi.fn((callback?: () => void) => {
                 scheduleMockTimeout(() => callback && callback(), 0);
             });
             server.address = vi.fn(() => ({ port: server._port ?? 3000 }));
@@ -296,7 +351,7 @@ function createNodeMocks() {
     };
 
     const mockElectronConf = vi.fn(() => ({
-        get: vi.fn((key: string, defaultValue?: any) => {
+        get: vi.fn((key: string, defaultValue?: unknown) => {
             if (key === "theme") return "dark";
             if (key === "selectedMapTab") return "map";
             return defaultValue;
@@ -322,7 +377,7 @@ function createNodeMocks() {
  * Mock state management utilities
  */
 function createStateMocks() {
-    let mockState: { [key: string]: any } = {};
+    const mockState: MockState = {};
 
     const MockMainProcessState = vi.fn(() => ({
         get: vi.fn((path: string) => {
@@ -335,7 +390,7 @@ function createStateMocks() {
                 return mockState.gyazoServerPort || null;
             return mockState[path];
         }),
-        set: vi.fn((path: string, value: any, options?: any) => {
+        set: vi.fn((path: string, value: unknown, _options?: unknown) => {
             console.log(`[MockState] set(${path}, ${value})`);
             mockState[path] = value;
             return true;
@@ -350,7 +405,22 @@ function createStateMocks() {
 }
 
 // Global mocks setup
-let globalMocks: any;
+type GlobalMocks = ReturnType<typeof createComprehensiveMock> &
+    ReturnType<typeof createNodeMocks> &
+    ReturnType<typeof createStateMocks>;
+
+interface IpcMainMock extends EventEmitter {
+    _events?: Record<string, IpcHandler | IpcHandler[]>;
+}
+
+function getIpcHandler(ipc: IpcMainMock, channel: string): IpcHandler | undefined {
+    const eventName = `handle:${channel}`;
+    const listener = ipc.rawListeners(eventName)[0] as IpcHandler | undefined;
+    const eventHandler = ipc._events?.[eventName];
+    return listener || (Array.isArray(eventHandler) ? eventHandler[0] : eventHandler);
+}
+
+let globalMocks: GlobalMocks;
 
 beforeAll(() => {
     // Create all mocks
@@ -361,38 +431,39 @@ beforeAll(() => {
     };
 
     // CRITICAL: Set up hoisted mock for main.js using globalThis.__electronHoistedMock
-    (globalThis as any).__electronHoistedMock = globalMocks.mockElectron;
+    (globalThis as typeof globalThis & TestGlobal).__electronHoistedMock =
+        globalMocks.mockElectron;
 
     // Setup vi.mock calls for all modules (fallback mechanism)
-    vi.mock("electron", () => globalMocks.mockElectron);
-    vi.mock("fs", () => globalMocks.mockFs);
-    vi.mock("path", () => globalMocks.mockPath);
-    vi.mock("http", () => globalMocks.mockHttp);
+    vi.doMock("electron", () => globalMocks.mockElectron);
+    vi.doMock("fs", () => globalMocks.mockFs);
+    vi.doMock("path", () => globalMocks.mockPath);
+    vi.doMock("http", () => globalMocks.mockHttp);
     // Some environments or code paths may resolve the Node core module via 'node:http'.
     // Mock it as well to ensure our HTTP server mock is always used.
-    vi.mock("node:http", () => globalMocks.mockHttp);
-    vi.mock("electron-log", () => globalMocks.mockElectronLog);
-    vi.mock("electron-updater", () => ({
+    vi.doMock("node:http", () => globalMocks.mockHttp);
+    vi.doMock("electron-log", () => globalMocks.mockElectronLog);
+    vi.doMock("electron-updater", () => ({
         autoUpdater: globalMocks.mockAutoUpdater,
     }));
-    vi.mock("electron-conf", () => ({ Conf: globalMocks.mockElectronConf }));
+    vi.doMock("electron-conf", () => ({ Conf: globalMocks.mockElectronConf }));
 
     // Mock utility modules
-    vi.mock("../../../utils/state/integration/mainProcessStateManager", () => ({
+    vi.doMock("../../../utils/state/integration/mainProcessStateManager", () => ({
         MainProcessState: globalMocks.MockMainProcessState,
     }));
 
-    vi.mock("../../fitParser", () => globalMocks.mockFitParser);
+    vi.doMock("../../fitParser", () => globalMocks.mockFitParser);
 
-    vi.mock("../../windowStateUtils", () => ({
+    vi.doMock("../../windowStateUtils", () => ({
         createWindow: vi.fn(() => globalMocks.mockWindow),
     }));
 
-    vi.mock("../../utils/app/menu/createAppMenu", () => ({
+    vi.doMock("../../utils/app/menu/createAppMenu", () => ({
         createAppMenu: vi.fn(),
     }));
 
-    vi.mock("../../utils/files/recent/recentFiles", () => ({
+    vi.doMock("../../utils/files/recent/recentFiles", () => ({
         addRecentFile: vi.fn(),
         loadRecentFiles: vi.fn(() => [
             "/test/recent1.fit",
@@ -401,7 +472,7 @@ beforeAll(() => {
     }));
 
     // Mock Gyazo utilities if they exist
-    vi.mock("../../utils/gyazo/oauth", () => ({
+    vi.doMock("../../utils/gyazo/oauth", () => ({
         startGyazoOAuthServer: vi.fn(),
         stopGyazoOAuthServer: vi.fn(),
     }));
@@ -412,7 +483,7 @@ beforeEach(() => {
     vi.clearAllMocks();
 
     // Clear event listeners
-    mockRefs.forEach((emitter: any) => {
+    mockRefs.forEach((emitter) => {
         // Keep ipcMain listeners intact so handlers registered by main.js persist across tests.
         // Re-registering all IPC handlers on every test would require re-importing main.js or exporting setup functions.
         if (emitter === globalMocks.mockIpcMain) return;
@@ -427,7 +498,8 @@ beforeEach(() => {
     delete process.env.GYAZO_CLIENT_SECRET;
 
     // Ensure hoisted mock is always available
-    (globalThis as any).__electronHoistedMock = globalMocks.mockElectron;
+    (globalThis as typeof globalThis & TestGlobal).__electronHoistedMock =
+        globalMocks.mockElectron;
 
     // Reset mock state
     if (globalMocks.mockState) {
@@ -437,20 +509,18 @@ beforeEach(() => {
     }
 
     // Reset HTTP mock tracking to avoid interference across tests
-    if ((globalMocks as any).mockHttp) {
-        (globalMocks as any).mockHttp._servers.length = 0;
-        (globalMocks as any).mockHttp._autoErrorOnPorts = {};
+    if (globalMocks.mockHttp) {
+        globalMocks.mockHttp._servers.length = 0;
+        globalMocks.mockHttp._autoErrorOnPorts = {};
     }
     // Monkey-patch the actual Node http modules to ensure our mock createServer is used
     try {
-        const realHttp = __nodeRequire("http");
-        // @ts-ignore - reassign for testing
-        realHttp.createServer = (globalMocks as any).mockHttp.createServer;
+        const realHttp = __nodeRequire("http") as MutableHttpModule;
+        realHttp.createServer = globalMocks.mockHttp.createServer;
     } catch {}
     try {
-        const realNodeHttp = __nodeRequire("node:http");
-        // @ts-ignore - reassign for testing
-        realNodeHttp.createServer = (globalMocks as any).mockHttp.createServer;
+        const realNodeHttp = __nodeRequire("node:http") as MutableHttpModule;
+        realNodeHttp.createServer = globalMocks.mockHttp.createServer;
     } catch {}
 });
 
@@ -504,12 +574,8 @@ describe("main.js - Final Coverage Push to 100%", () => {
 
     test("should escalate ports on EADDRINUSE and then reject after 3010", async () => {
         await import("../../main.js");
-        const ipc = (globalMocks as any).mockIpcMain;
-        const startHandlers =
-            (ipc as any).rawListeners?.("handle:gyazo:server:start") || [];
-        const startHandler =
-            startHandlers[0] ||
-            (ipc as any)._events?.["handle:gyazo:server:start"];
+        const ipc = globalMocks.mockIpcMain as IpcMainMock;
+        const startHandler = getIpcHandler(ipc, "gyazo:server:start");
 
         // Invoke handler to start at port 3009
         const startPromise =
@@ -518,7 +584,7 @@ describe("main.js - Final Coverage Push to 100%", () => {
                 : Promise.reject(new Error("no handler"));
 
         // Wait for first server to be created, then emit EADDRINUSE to force escalation to 3010
-        const servers = (globalMocks as any).mockHttp._servers as any[];
+        const { _servers: servers } = globalMocks.mockHttp;
         // Helper to wait for servers length to reach N
         const waitForServers = async (n: number) => {
             await vi.waitFor(
@@ -544,18 +610,14 @@ describe("main.js - Final Coverage Push to 100%", () => {
 
     test("should reject on non-EADDRINUSE server error", async () => {
         await import("../../main.js");
-        const ipc = (globalMocks as any).mockIpcMain;
-        const startHandlers =
-            (ipc as any).rawListeners?.("handle:gyazo:server:start") || [];
-        const startHandler =
-            startHandlers[0] ||
-            (ipc as any)._events?.["handle:gyazo:server:start"];
+        const ipc = globalMocks.mockIpcMain as IpcMainMock;
+        const startHandler = getIpcHandler(ipc, "gyazo:server:start");
         const p =
             typeof startHandler === "function"
                 ? startHandler({}, 3005)
                 : Promise.reject(new Error("no handler"));
         // Wait for server creation then emit a non-EADDR error to force rejection
-        const servers = (globalMocks as any).mockHttp._servers as any[];
+        const { _servers: servers } = globalMocks.mockHttp;
         await vi.waitFor(() => {
             expect(servers.length).toBeGreaterThanOrEqual(1);
         });
@@ -566,22 +628,9 @@ describe("main.js - Final Coverage Push to 100%", () => {
     test("should handle IPC start/stop handlers and stop when no server", async () => {
         await import("../../main.js");
         // Find registered ipc handlers in our mock event emitter
-        const ipc = (globalMocks as any).mockIpcMain;
-
-        // Our mock stored handlers via addListener on channel names prefixed by 'handle:'
-        // Extract the two handlers
-        const startHandlers =
-            (ipc as any).rawListeners?.("handle:gyazo:server:start") || [];
-        const stopHandlers =
-            (ipc as any).rawListeners?.("handle:gyazo:server:stop") || [];
-
-        // Fallback: our vi.fn wrapper added via handle just stores listener; access internal map if necessary
-        const startHandler =
-            startHandlers[0] ||
-            (ipc as any)._events?.["handle:gyazo:server:start"];
-        const stopHandler =
-            stopHandlers[0] ||
-            (ipc as any)._events?.["handle:gyazo:server:stop"];
+        const ipc = globalMocks.mockIpcMain as IpcMainMock;
+        const startHandler = getIpcHandler(ipc, "gyazo:server:start");
+        const stopHandler = getIpcHandler(ipc, "gyazo:server:stop");
 
         // Call start with explicit port
         if (typeof startHandler === "function") {
@@ -600,9 +649,7 @@ describe("main.js - Final Coverage Push to 100%", () => {
 
         expect(startHandler).toBeTypeOf("function");
         expect(stopHandler).toBeTypeOf("function");
-        expect((globalMocks as any).mockHttp._servers.length).toBeGreaterThan(
-            0
-        );
+        expect(globalMocks.mockHttp._servers.length).toBeGreaterThan(0);
     });
 
     test("should exercise all IPC handlers and menu setup", async () => {
@@ -747,7 +794,7 @@ describe("main.js - Final Coverage Push to 100%", () => {
 
         // Test file read callback errors
         globalMocks.mockFs.readFile.mockImplementationOnce(
-            (path: string, callback: any) => {
+            (_path: string, callback: NodeCallback<Buffer>) => {
                 callback(new Error("Async file error"), null);
             }
         );
@@ -829,7 +876,7 @@ describe("main.js - Final Coverage Push to 100%", () => {
         const mockWebContents = new EventEmitter();
         const navigationEvent = { preventDefault: vi.fn() };
         Object.assign(mockWebContents, {
-            on: vi.fn((event: string, handler: any) => {
+            on: vi.fn((event: string, handler: EventHandler) => {
                 if (event === "will-navigate") {
                     // Simulate navigation event
                     scheduleMockTimeout(() => {

@@ -15,6 +15,13 @@ describe("recentFiles integration coverage", () => {
         createdDirs.add(path.normalize(target));
     }
 
+    function createTempFitFile(directory: string, fileName: string): string {
+        const filePath = path.join(directory, fileName);
+        fs.writeFileSync(filePath, Buffer.alloc(0));
+        registerFile(filePath);
+        return filePath;
+    }
+
     function setElectronMock(exports: unknown) {
         try {
             const electronId = require.resolve("electron");
@@ -88,11 +95,12 @@ describe("recentFiles integration coverage", () => {
         const recent = importRecentFiles();
         const expectedPath = path.join(userDataPath, "recent-files.json");
         registerFile(expectedPath);
-        recent.saveRecentFiles(["a.fit"]);
+        const fitFilePath = createTempFitFile(userDataPath, "a.fit");
+        recent.saveRecentFiles([fitFilePath]);
         expect(JSON.parse(fs.readFileSync(expectedPath, "utf8"))).toEqual([
-            "a.fit",
+            fitFilePath,
         ]);
-        expect(recent.loadRecentFiles()).toEqual(["a.fit"]);
+        expect(recent.loadRecentFiles()).toEqual([fitFilePath]);
     });
 
     it("creates a temp-backed recent file when electron app is unavailable", () => {
@@ -112,6 +120,9 @@ describe("recentFiles integration coverage", () => {
                 }
             );
         const recent = importRecentFiles();
+        const fitFileDir = fs.mkdtempSync(path.join(os.tmpdir(), "ffv-fit-"));
+        registerDir(fitFileDir);
+        const fitFilePath = createTempFitFile(fitFileDir, "temp.fit");
         const originalWrite = fs.writeFileSync;
         const writeSpy = vi
             .spyOn(fs, "writeFileSync")
@@ -124,14 +135,14 @@ describe("recentFiles integration coverage", () => {
                     encoding as BufferEncoding
                 );
             });
-        recent.saveRecentFiles(["temp.fit"]);
+        recent.saveRecentFiles([fitFilePath]);
         expect(writeSpy).toHaveBeenCalled();
         const targetPath = path.normalize(String(writeSpy.mock.calls[0][0]));
         expect(targetPath).toMatch(/fit-file-viewer-tests[\\/]+recent-files-/);
         expect(JSON.parse(fs.readFileSync(targetPath, "utf8"))).toEqual([
-            "temp.fit",
+            fitFilePath,
         ]);
-        expect(recent.loadRecentFiles()).toEqual(["temp.fit"]);
+        expect(recent.loadRecentFiles()).toEqual([fitFilePath]);
         expect(exitHandlers).toHaveLength(1);
         exitHandlers[0]!();
         expect(fs.existsSync(targetPath)).toBe(false);
@@ -148,10 +159,12 @@ describe("recentFiles integration coverage", () => {
         process.env.RECENT_FILES_PATH = filePath;
         setElectronMock({});
         const recent = importRecentFiles();
+        const fitFileDir = path.join(tempDir, "activities");
+        fs.mkdirSync(fitFileDir, { recursive: true });
         const entries = [
-            "alpha.fit",
-            "beta.fit",
-            "gamma.fit",
+            createTempFitFile(fitFileDir, "alpha.fit"),
+            createTempFitFile(fitFileDir, "beta.fit"),
+            createTempFitFile(fitFileDir, "gamma.fit"),
         ];
         recent.saveRecentFiles(entries);
         const loaded = recent.loadRecentFiles();

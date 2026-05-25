@@ -18,6 +18,9 @@ import {
 import { convertArrayBufferToBase64 } from "../../../utils/formatting/converters/convertArrayBufferToBase64.js";
 import { convertValueToUserUnits } from "../../../utils/formatting/converters/convertValueToUserUnits.js";
 
+const convertInvalidArrayBufferInput = (buffer: unknown): string =>
+    convertArrayBufferToBase64(buffer as ArrayBuffer);
+
 // Mock console methods to avoid noise in tests
 const mockConsole = {
     warn: vi.fn(),
@@ -67,11 +70,11 @@ describe("Converter Utilities", () => {
         });
 
         it("should throw TypeError for non-numeric input", () => {
-            expect(() => convertMpsToKmh("10" as any)).toThrow(TypeError);
-            expect(() => convertMpsToKmh(null as any)).toThrow(TypeError);
-            expect(() => convertMpsToKmh(undefined as any)).toThrow(TypeError);
+            expect(() => convertMpsToKmh("10")).toThrow(TypeError);
+            expect(() => convertMpsToKmh(null)).toThrow(TypeError);
+            expect(() => convertMpsToKmh(undefined)).toThrow(TypeError);
             expect(() => convertMpsToKmh(NaN)).toThrow(TypeError);
-            expect(() => convertMpsToKmh({} as any)).toThrow(TypeError);
+            expect(() => convertMpsToKmh({})).toThrow(TypeError);
         });
 
         it("should handle very large numbers", () => {
@@ -110,11 +113,11 @@ describe("Converter Utilities", () => {
         });
 
         it("should throw TypeError for non-numeric input", () => {
-            expect(() => convertMpsToMph("10" as any)).toThrow(TypeError);
-            expect(() => convertMpsToMph(null as any)).toThrow(TypeError);
-            expect(() => convertMpsToMph(undefined as any)).toThrow(TypeError);
+            expect(() => convertMpsToMph("10")).toThrow(TypeError);
+            expect(() => convertMpsToMph(null)).toThrow(TypeError);
+            expect(() => convertMpsToMph(undefined)).toThrow(TypeError);
             expect(() => convertMpsToMph(NaN)).toThrow(TypeError);
-            expect(() => convertMpsToMph({} as any)).toThrow(TypeError);
+            expect(() => convertMpsToMph({})).toThrow(TypeError);
         });
 
         it("should handle very large numbers", () => {
@@ -170,16 +173,13 @@ describe("Converter Utilities", () => {
 
         it("should throw TypeError for non-numeric input", () => {
             expect(() =>
-                convertDistanceUnits("1000" as any, DISTANCE_UNITS.KILOMETERS)
+                convertDistanceUnits("1000", DISTANCE_UNITS.KILOMETERS)
             ).toThrow(TypeError);
             expect(() =>
-                convertDistanceUnits(null as any, DISTANCE_UNITS.KILOMETERS)
+                convertDistanceUnits(null, DISTANCE_UNITS.KILOMETERS)
             ).toThrow(TypeError);
             expect(() =>
-                convertDistanceUnits(
-                    undefined as any,
-                    DISTANCE_UNITS.KILOMETERS
-                )
+                convertDistanceUnits(undefined, DISTANCE_UNITS.KILOMETERS)
             ).toThrow(TypeError);
             expect(() =>
                 convertDistanceUnits(NaN, DISTANCE_UNITS.KILOMETERS)
@@ -247,19 +247,19 @@ describe("Converter Utilities", () => {
         it("should throw TypeError for non-numeric input", () => {
             expect(() =>
                 convertTemperatureUnits(
-                    "25" as any,
+                    "25",
                     TEMPERATURE_UNITS.FAHRENHEIT
                 )
             ).toThrow(TypeError);
             expect(() =>
                 convertTemperatureUnits(
-                    null as any,
+                    null,
                     TEMPERATURE_UNITS.FAHRENHEIT
                 )
             ).toThrow(TypeError);
             expect(() =>
                 convertTemperatureUnits(
-                    undefined as any,
+                    undefined,
                     TEMPERATURE_UNITS.FAHRENHEIT
                 )
             ).toThrow(TypeError);
@@ -317,13 +317,13 @@ describe("Converter Utilities", () => {
 
         it("should throw TypeError for non-numeric input", () => {
             expect(() =>
-                convertTimeUnits("3600" as any, TIME_UNITS.HOURS)
+                convertTimeUnits("3600", TIME_UNITS.HOURS)
             ).toThrow(TypeError);
             expect(() =>
-                convertTimeUnits(null as any, TIME_UNITS.HOURS)
+                convertTimeUnits(null, TIME_UNITS.HOURS)
             ).toThrow(TypeError);
             expect(() =>
-                convertTimeUnits(undefined as any, TIME_UNITS.HOURS)
+                convertTimeUnits(undefined, TIME_UNITS.HOURS)
             ).toThrow(TypeError);
             expect(() => convertTimeUnits(NaN, TIME_UNITS.HOURS)).toThrow(
                 TypeError
@@ -396,22 +396,22 @@ describe("Converter Utilities", () => {
 
         it("should throw TypeError for non-ArrayBuffer input", () => {
             expect(() =>
-                convertArrayBufferToBase64("not an array buffer" as any)
+                convertInvalidArrayBufferInput("not an array buffer")
             ).toThrow(TypeError);
-            expect(() => convertArrayBufferToBase64(null as any)).toThrow(
+            expect(() => convertInvalidArrayBufferInput(null)).toThrow(
                 TypeError
             );
-            expect(() => convertArrayBufferToBase64(undefined as any)).toThrow(
+            expect(() => convertInvalidArrayBufferInput(undefined)).toThrow(
                 TypeError
             );
-            expect(() => convertArrayBufferToBase64({} as any)).toThrow(
+            expect(() => convertInvalidArrayBufferInput({})).toThrow(
                 TypeError
             );
-            expect(() => convertArrayBufferToBase64([] as any)).toThrow(
+            expect(() => convertInvalidArrayBufferInput([])).toThrow(
                 TypeError
             );
             expect(() =>
-                convertArrayBufferToBase64(new Uint8Array(4) as any)
+                convertInvalidArrayBufferInput(new Uint8Array(4))
             ).toThrow(TypeError);
         });
 
@@ -564,7 +564,7 @@ describe("Converter Utilities", () => {
 
             it("should handle null field names gracefully", () => {
                 mockConsole.warn.mockClear();
-                const result = convertValueToUserUnits(100, null as any);
+                const result = convertValueToUserUnits(100, null);
                 expect(result).toBe(100);
                 expect(mockConsole.warn).toHaveBeenCalledWith(
                     "[convertValueToUserUnits] Invalid field name:",

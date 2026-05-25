@@ -3,7 +3,15 @@ import {
     addChartHoverEffects,
     removeChartHoverEffects,
     addHoverEffectsToExistingCharts,
+    type ChartHoverThemeConfig,
 } from "../../utils/charts/plugins/addChartHoverEffects.js";
+
+type ChartHoverTestGlobal = typeof globalThis & {
+    __FFV_debugCharts?: boolean;
+    getThemeConfig?: ReturnType<typeof vi.fn>;
+};
+
+const chartHoverTestGlobal = globalThis as ChartHoverTestGlobal;
 
 // Mock getThemeConfig
 vi.mock("../../theming/core/theme.js", () => ({
@@ -34,14 +42,14 @@ let originalNodeEnv;
 describe("addChartHoverEffects", () => {
     let mockContainer: HTMLElement;
     let mockCanvas: HTMLElement;
-    let mockThemeConfig: any;
+    let mockThemeConfig: ChartHoverThemeConfig;
 
     beforeEach(() => {
         // Ensure debug logging is enabled for deterministic log assertions.
         // The implementation only logs when NODE_ENV=development and __FFV_debugCharts is truthy.
         originalNodeEnv = process.env.NODE_ENV;
         process.env.NODE_ENV = "development";
-        (globalThis as any).__FFV_debugCharts = true;
+        chartHoverTestGlobal.__FFV_debugCharts = true;
 
         // Spy console methods *after* Vitest has patched them.
         mockConsoleWarn = vi
@@ -87,14 +95,13 @@ describe("addChartHoverEffects", () => {
         mockConsoleLog?.mockRestore();
         process.env.NODE_ENV = originalNodeEnv;
         // eslint-disable-next-line no-underscore-dangle
-        delete (globalThis as any).__FFV_debugCharts;
+        delete chartHoverTestGlobal.__FFV_debugCharts;
 
         vi.clearAllMocks();
     });
 
     describe("Parameter Validation", () => {
         it("should warn and return when chartContainer is missing", () => {
-            // @ts-ignore - Testing null input
             addChartHoverEffects(null, mockThemeConfig);
 
             expect(document.querySelector(".chart-wrapper")).toBeNull();
@@ -106,7 +113,6 @@ describe("addChartHoverEffects", () => {
         });
 
         it("should warn and return when themeConfig is missing", () => {
-            // @ts-ignore - Testing null input
             addChartHoverEffects(mockContainer, null);
 
             expect(mockContainer.querySelector(".chart-wrapper")).toBeNull();
@@ -118,7 +124,6 @@ describe("addChartHoverEffects", () => {
         });
 
         it("should warn and return when both parameters are missing", () => {
-            // @ts-ignore - Testing null inputs
             addChartHoverEffects(null, null);
 
             expect(document.querySelector(".chart-wrapper")).toBeNull();
@@ -343,7 +348,7 @@ describe("addChartHoverEffects", () => {
         it("should mark canvas as having hover effects", () => {
             addChartHoverEffects(mockContainer, mockThemeConfig);
 
-            expect((mockCanvas as any).dataset.hoverEffectsAdded).toBe("true");
+            expect(mockCanvas.dataset.hoverEffectsAdded).toBe("true");
         });
 
         it("should enter overlay fullscreen when chart fullscreen button is clicked", async () => {
@@ -553,7 +558,6 @@ describe("removeChartHoverEffects", () => {
 
     it("should return early when container is null", () => {
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-        // @ts-ignore - Testing null input
         removeChartHoverEffects(null);
 
         expect(mockContainer.contains(mockCanvas)).toBe(true);
@@ -615,11 +619,11 @@ describe("removeChartHoverEffects", () => {
         const themeConfig = { colors: {} };
         addChartHoverEffects(mockContainer, themeConfig);
 
-        expect((mockCanvas as any).dataset.hoverEffectsAdded).toBe("true");
+        expect(mockCanvas.dataset.hoverEffectsAdded).toBe("true");
 
         removeChartHoverEffects(mockContainer);
 
-        expect((mockCanvas as any).dataset.hoverEffectsAdded).toBeUndefined();
+        expect(mockCanvas.dataset.hoverEffectsAdded).toBeUndefined();
     });
 
     it("should handle empty wrapper collection", () => {
@@ -704,22 +708,7 @@ describe("addHoverEffectsToExistingCharts", () => {
         container.appendChild(canvas);
         document.body.appendChild(container);
 
-        // Mock global function
-        (global as any).window = {
-            getThemeConfig: vi.fn(() => ({ colors: {} })),
-        };
-
-        // Sync getThemeConfig between window and globalThis scopes
-        Object.defineProperty(globalThis, "getThemeConfig", {
-            get() {
-                return (global as any).window?.getThemeConfig;
-            },
-            set(value) {
-                if ((global as any).window)
-                    (global as any).window.getThemeConfig = value;
-            },
-            configurable: true,
-        });
+        chartHoverTestGlobal.getThemeConfig = vi.fn(() => ({ colors: {} }));
 
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         addHoverEffectsToExistingCharts();
@@ -727,21 +716,20 @@ describe("addHoverEffectsToExistingCharts", () => {
         const wrapper = container.querySelector(".chart-wrapper");
         expect(container.querySelectorAll(".chart-wrapper")).toHaveLength(1);
         expect(wrapper?.contains(canvas)).toBe(true);
-        expect((global as any).window.getThemeConfig).toHaveBeenCalled();
+        expect(chartHoverTestGlobal.getThemeConfig).toHaveBeenCalled();
         expect(console.log).toHaveBeenCalledWith(
             "[DevHelper] Hover effects added to existing charts"
         );
 
         logSpy.mockRestore();
-        delete (global as any).window;
-        delete (globalThis as any).getThemeConfig;
+        delete chartHoverTestGlobal.getThemeConfig;
     });
 });
 
 describe("Edge Cases", () => {
     let mockContainer: HTMLElement;
     let mockCanvas: HTMLElement;
-    let mockThemeConfig: any;
+    let mockThemeConfig: ChartHoverThemeConfig;
 
     beforeEach(() => {
         document.body.innerHTML = "";
@@ -756,7 +744,10 @@ describe("Edge Cases", () => {
 
     it("should handle canvas without dataset property", () => {
         // Remove dataset property
-        delete (mockCanvas as any).dataset;
+        Object.defineProperty(mockCanvas, "dataset", {
+            configurable: true,
+            value: undefined,
+        });
 
         expect(() => {
             addChartHoverEffects(mockContainer, mockThemeConfig);

@@ -3,6 +3,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 // SUT
 import { showUpdateNotification } from "../../utils/ui/notifications/showUpdateNotification.js";
 
+type UpdateNotificationTestWindow = Window & {
+    electronAPI?: {
+        installUpdate: ReturnType<typeof vi.fn>;
+    };
+};
+
 // Minimal DOM setup helper
 function ensureNotificationDiv() {
     let el = document.getElementById("notification");
@@ -20,8 +26,7 @@ describe("showUpdateNotification strict", () => {
     beforeEach(() => {
         document.body.replaceChildren();
         // Reset window.electronAPI between tests
-        // @ts-expect-error test setup
-        window.electronAPI = undefined;
+        (window as UpdateNotificationTestWindow).electronAPI = undefined;
         clock = vi.useFakeTimers();
     });
 
@@ -50,8 +55,9 @@ describe("showUpdateNotification strict", () => {
         const el = ensureNotificationDiv();
 
         // Mock electronAPI.installUpdate to verify no crash upon click
-        // @ts-expect-error test setup
-        window.electronAPI = { installUpdate: vi.fn() };
+        (window as UpdateNotificationTestWindow).electronAPI = {
+            installUpdate: vi.fn(),
+        };
 
         showUpdateNotification("Update ready", "success", 1500, true);
 
@@ -62,7 +68,9 @@ describe("showUpdateNotification strict", () => {
 
         // Clicking should attempt to call installUpdate
         btn?.dispatchEvent(new MouseEvent("click"));
-        expect(window.electronAPI.installUpdate).toHaveBeenCalledTimes(1);
+        expect(
+            (window as UpdateNotificationTestWindow).electronAPI?.installUpdate
+        ).toHaveBeenCalledTimes(1);
 
         // Auto-hide still applies when withAction=true
         const hideSpy = vi.spyOn(el.style, "display", "set");
@@ -72,8 +80,9 @@ describe("showUpdateNotification strict", () => {
 
     it("renders update-downloaded with two buttons and Later hides", () => {
         const el = ensureNotificationDiv();
-        // @ts-expect-error test setup
-        window.electronAPI = { installUpdate: vi.fn() };
+        (window as UpdateNotificationTestWindow).electronAPI = {
+            installUpdate: vi.fn(),
+        };
 
         showUpdateNotification(
             "Update downloaded",
@@ -97,7 +106,9 @@ describe("showUpdateNotification strict", () => {
 
         // Clicking Restart triggers install
         restart?.dispatchEvent(new MouseEvent("click"));
-        expect(window.electronAPI.installUpdate).toHaveBeenCalledTimes(1);
+        expect(
+            (window as UpdateNotificationTestWindow).electronAPI?.installUpdate
+        ).toHaveBeenCalledTimes(1);
 
         // Clicking Later hides the notification immediately
         const hideSpy = vi.spyOn(el.style, "display", "set");

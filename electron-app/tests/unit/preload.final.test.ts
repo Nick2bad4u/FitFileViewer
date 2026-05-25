@@ -9,6 +9,24 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { Module } from "module";
 
+type RequireCacheModule = NonNullable<NodeJS.Require["cache"][string]>;
+type EventHandler = (...args: unknown[]) => void;
+
+interface ExposedPreloadGlobal extends Record<string, unknown> {
+    addRecentFile: (filePath: string) => Promise<unknown>;
+    getAppVersion: () => Promise<unknown>;
+    getPreloadInfo: () => {
+        apiMethods: string[];
+        constants?: unknown;
+        timestamp?: unknown;
+    };
+    getTheme: () => Promise<unknown>;
+    onMenuOpenFile: (callback: EventHandler) => unknown;
+    onMenuOpenOverlay: (callback: EventHandler) => unknown;
+    openFileDialog: () => Promise<unknown>;
+    validateAPI: () => boolean;
+}
+
 // Create comprehensive mocks for all electron modules
 const mockContextBridge = {
     exposeInMainWorld: vi.fn(),
@@ -68,12 +86,13 @@ function injectElectronMock() {
     delete require.cache["electron"];
 
     // Inject the mock directly into the require cache
-    require.cache["electron"] = mockModule as any;
+    require.cache["electron"] = mockModule as unknown as RequireCacheModule;
 
     // Also try the full path approach (in case it's needed)
     try {
         const electronPath = require.resolve("electron");
-        require.cache[electronPath] = mockModule as any;
+        require.cache[electronPath] =
+            mockModule as unknown as RequireCacheModule;
     } catch (e) {
         // Ignore if electron path can't be resolved
     }
@@ -94,7 +113,7 @@ function cleanupModuleCache() {
     }
 }
 
-function getExposedGlobal(globalName: string): Record<string, any> {
+function getExposedGlobal(globalName: string): ExposedPreloadGlobal {
     const exposedCall = mockContextBridge.exposeInMainWorld.mock.calls.find(
         (call) => call[0] === globalName
     );
@@ -104,7 +123,7 @@ function getExposedGlobal(globalName: string): Record<string, any> {
     }
 
     expect(exposedCall).toEqual([globalName, expect.any(Object)]);
-    return exposedCall[1] as Record<string, any>;
+    return exposedCall[1] as ExposedPreloadGlobal;
 }
 
 describe("preload.js - Comprehensive Coverage Tests", () => {
@@ -267,10 +286,10 @@ describe("preload.js - Comprehensive Coverage Tests", () => {
 
             const openFileHandler = mockIpcRenderer.on.mock.calls.find(
                 (call) => call[0] === "menu-open-file"
-            )![1] as (...args: any[]) => void;
+            )![1] as EventHandler;
             const openOverlayHandler = mockIpcRenderer.on.mock.calls.find(
                 (call) => call[0] === "menu-open-overlay"
-            )![1] as (...args: any[]) => void;
+            )![1] as EventHandler;
 
             openFileHandler({}, "/mock/path/activity.fit");
             openOverlayHandler({}, "/mock/path/overlay.fit");
@@ -370,7 +389,8 @@ describe("preload.js - Comprehensive Coverage Tests", () => {
                 paths: [],
             };
 
-            require.cache["electron"] = mockModule as any;
+            require.cache["electron"] =
+                mockModule as unknown as RequireCacheModule;
 
             // This should not crash but should fail validation
             expect(() => require("../../preload.js")).not.toThrow();
@@ -396,7 +416,8 @@ describe("preload.js - Comprehensive Coverage Tests", () => {
                 paths: [],
             };
 
-            require.cache["electron"] = mockModule as any;
+            require.cache["electron"] =
+                mockModule as unknown as RequireCacheModule;
 
             // This should not crash but should fail validation
             expect(() => require("../../preload.js")).not.toThrow();

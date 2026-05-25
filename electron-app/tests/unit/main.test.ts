@@ -28,7 +28,9 @@ const mockElectron = {
         whenReady: vi.fn(() => Promise.resolve()),
     },
     BrowserWindow: {
-        getAllWindows: vi.fn(() => [mockWindow] as any[]),
+        getAllWindows: vi.fn<() => Array<typeof mockWindow>>(() => [
+            mockWindow,
+        ]),
         fromWebContents: vi.fn(),
         getFocusedWindow: vi.fn(() => null),
     },
@@ -191,7 +193,7 @@ vi.mock("node:url", () => ({
 // Mock util module
 vi.mock("node:util", () => ({
     default: {
-        promisify: vi.fn((fn: any) => fn),
+        promisify: vi.fn<<T>(fn: T) => T>((fn) => fn),
     },
 }));
 
@@ -239,9 +241,45 @@ const expectedMainExportKeys = [
     "validateWindow",
 ];
 
-async function importMainModule() {
-    const imported = (await import("../../main.js")) as any;
-    return imported.default as any;
+type MainModule = {
+    CONSTANTS: {
+        DEFAULT_THEME: string;
+        PLATFORMS: Record<string, string>;
+    };
+    getAppState: (key: string) => unknown;
+    initializeApplication: (...args: unknown[]) => unknown;
+    isWindowUsable: (window: unknown) => boolean;
+    setAppState: (key: string, value: unknown) => void;
+    setupAutoUpdater: (window: unknown, updater: unknown) => void;
+    startGyazoOAuthServer: (...args: unknown[]) => unknown;
+    stopGyazoOAuthServer: () => Promise<unknown>;
+    validateWindow: (window: unknown, context: string) => boolean;
+};
+
+type MainImport = {
+    default: MainModule;
+};
+
+type TimerHandle = ReturnType<typeof setTimeout>;
+
+type TestGlobals = typeof globalThis & {
+    __electronHoistedMock?: typeof mockElectron;
+    __ffvGyazoStartupTimer?: TimerHandle;
+    __ffvTestKeepalive?: TimerHandle;
+    __ffvTestRetryTimers?: TimerHandle[];
+    devHelpers?: {
+        cleanupEventHandlers?: unknown;
+        getAppState?: unknown;
+        logState?: unknown;
+        rebuildMenu?: unknown;
+    };
+};
+
+const testGlobals = globalThis as TestGlobals;
+
+async function importMainModule(): Promise<MainModule> {
+    const imported = (await import("../../main.js")) as unknown as MainImport;
+    return imported.default;
 }
 
 function getRegisteredIpcHandler(channel: string) {
@@ -327,7 +365,7 @@ describe("main.js - Electron Main Process", () => {
         delete process.env.GYAZO_CLIENT_SECRET;
 
         // Setup globalThis for hoisted mock support
-        (globalThis as any).__electronHoistedMock = mockElectron;
+        testGlobals.__electronHoistedMock = mockElectron;
 
         // Reset mainProcessState to fresh state
         mockMainProcessState.get.mockReturnValue(undefined);
@@ -339,25 +377,25 @@ describe("main.js - Electron Main Process", () => {
 
     afterEach(() => {
         vi.clearAllMocks();
-        delete (globalThis as any).__electronHoistedMock;
-        delete (globalThis as any).devHelpers;
-        const keepalive = (globalThis as any).__ffvTestKeepalive;
+        delete testGlobals.__electronHoistedMock;
+        delete testGlobals.devHelpers;
+        const keepalive = testGlobals.__ffvTestKeepalive;
         if (keepalive) {
             clearInterval(keepalive);
         }
-        delete (globalThis as any).__ffvTestKeepalive;
-        const retryTimers = (globalThis as any).__ffvTestRetryTimers;
+        delete testGlobals.__ffvTestKeepalive;
+        const retryTimers = testGlobals.__ffvTestRetryTimers;
         if (Array.isArray(retryTimers)) {
             for (const timer of retryTimers) {
                 clearTimeout(timer);
             }
         }
-        delete (globalThis as any).__ffvTestRetryTimers;
-        const gyazoTimer = (globalThis as any).__ffvGyazoStartupTimer;
+        delete testGlobals.__ffvTestRetryTimers;
+        const gyazoTimer = testGlobals.__ffvGyazoStartupTimer;
         if (gyazoTimer) {
             clearTimeout(gyazoTimer);
         }
-        delete (globalThis as any).__ffvGyazoStartupTimer;
+        delete testGlobals.__ffvGyazoStartupTimer;
 
         // Clear the main module from cache to reset its state
         const mainPath = require.resolve("../../main.js");
@@ -390,7 +428,7 @@ describe("main.js - Electron Main Process", () => {
 
         it("should handle missing electron gracefully", async () => {
             // Clear the hoisted mock to trigger error path
-            delete (globalThis as any).__electronHoistedMock;
+            delete testGlobals.__electronHoistedMock;
 
             const mainModule = await importMainModule();
 
@@ -482,7 +520,7 @@ describe("main.js - Electron Main Process", () => {
             const mainModule = await importMainModule();
 
             // Development helpers should not be available in test environment
-            expect((globalThis as any).devHelpers).toBeUndefined();
+            expect(testGlobals.devHelpers).toBeUndefined();
             expect(mainModule.getAppState("mainWindow")).toBe(mockWindow);
         });
 
@@ -498,7 +536,7 @@ describe("main.js - Electron Main Process", () => {
             try {
                 await importMainModule();
 
-                expect((globalThis as any).devHelpers).toMatchObject({
+                expect(testGlobals.devHelpers).toMatchObject({
                     cleanupEventHandlers: expect.any(Function),
                     getAppState: expect.any(Function),
                     logState: expect.any(Function),
@@ -565,7 +603,7 @@ describe("main.js - Electron Main Process", () => {
 
             expect(mainModule.startGyazoOAuthServer).toBeTypeOf("function");
             expect(mainModule.stopGyazoOAuthServer).toBeTypeOf("function");
-            expect((globalThis as any).__ffvGyazoStartupTimer).toBeUndefined();
+            expect(testGlobals.__ffvGyazoStartupTimer).toBeUndefined();
             await expect(mainModule.stopGyazoOAuthServer()).resolves.toEqual({
                 message: "No server was running",
                 success: true,

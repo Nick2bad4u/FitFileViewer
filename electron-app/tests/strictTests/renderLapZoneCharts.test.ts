@@ -37,6 +37,25 @@ import { renderSingleHRZoneBar } from "../../utils/data/zones/renderSingleHRZone
 import { renderSinglePowerZoneBar } from "../../utils/data/zones/renderSinglePowerZoneBar.js";
 import { getZoneColor } from "../../utils/data/zones/chartZoneColorUtils.js";
 
+type ThemeConfigMock = Mock<() => unknown>;
+type GetZoneColorMock = Mock<(type: string, index: number) => string>;
+type ChartRenderMock = Mock<
+    (
+        canvas: HTMLCanvasElement,
+        data: readonly unknown[],
+        options: { title: string }
+    ) => unknown
+>;
+
+const getThemeConfigMock = getThemeConfig as unknown as ThemeConfigMock;
+const getZoneColorMock = getZoneColor as unknown as GetZoneColorMock;
+const renderLapZoneChartMock =
+    renderLapZoneChart as unknown as ChartRenderMock;
+const renderSingleHRZoneBarMock =
+    renderSingleHRZoneBar as unknown as ChartRenderMock;
+const renderSinglePowerZoneBarMock =
+    renderSinglePowerZoneBar as unknown as ChartRenderMock;
+
 describe("renderLapZoneCharts", () => {
     let container: HTMLElement;
     let mockConsoleLog: ReturnType<typeof vi.spyOn>;
@@ -82,7 +101,7 @@ describe("renderLapZoneCharts", () => {
 
     describe("Parameter Validation", () => {
         it("should handle null container gracefully", () => {
-            expect(() => renderLapZoneCharts(null as any)).not.toThrow();
+            expect(() => renderLapZoneCharts(null)).not.toThrow();
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] renderLapZoneCharts called"
             );
@@ -91,7 +110,7 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should handle undefined container gracefully", () => {
-            expect(() => renderLapZoneCharts(undefined as any)).not.toThrow();
+            expect(() => renderLapZoneCharts(undefined)).not.toThrow();
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] renderLapZoneCharts called"
             );
@@ -118,7 +137,7 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should handle null options", () => {
-            renderLapZoneCharts(container, null as any);
+            renderLapZoneCharts(container, null);
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] renderLapZoneCharts called"
             );
@@ -219,7 +238,7 @@ describe("renderLapZoneCharts", () => {
 
     describe("Safe Array Parsing", () => {
         beforeEach(() => {
-            (getThemeConfig as any).mockReturnValue({
+            getThemeConfigMock.mockReturnValue({
                 colors: { bgPrimary: "#ffffff", shadow: "none" },
             });
 
@@ -310,7 +329,7 @@ describe("renderLapZoneCharts", () => {
 
     describe("Zone Data Processing", () => {
         beforeEach(() => {
-            (getZoneColor as any).mockImplementation(
+            getZoneColorMock.mockImplementation(
                 (type: string, index: number) => `${type}-zone-${index}`
             );
         });
@@ -497,7 +516,7 @@ describe("renderLapZoneCharts", () => {
 
     describe("Canvas Creation and Styling", () => {
         beforeEach(() => {
-            (getThemeConfig as any).mockReturnValue({
+            getThemeConfigMock.mockReturnValue({
                 name: "test-theme",
                 colors: {
                     bgPrimary: "#ffffff",
@@ -585,16 +604,16 @@ describe("renderLapZoneCharts", () => {
 
     describe("Chart Rendering", () => {
         beforeEach(() => {
-            (getThemeConfig as any).mockReturnValue({
+            getThemeConfigMock.mockReturnValue({
                 name: "test-theme",
                 colors: { bgPrimary: "#ffffff", shadow: "none" },
             });
 
-            (renderLapZoneChart as any).mockReturnValue({ id: "mock-chart" });
-            (renderSingleHRZoneBar as any).mockReturnValue({
+            renderLapZoneChartMock.mockReturnValue({ id: "mock-chart" });
+            renderSingleHRZoneBarMock.mockReturnValue({
                 id: "mock-hr-bar",
             });
-            (renderSinglePowerZoneBar as any).mockReturnValue({
+            renderSinglePowerZoneBarMock.mockReturnValue({
                 id: "mock-power-bar",
             });
 
@@ -616,9 +635,8 @@ describe("renderLapZoneCharts", () => {
             renderLapZoneCharts(container);
 
             // Verify renderLapZoneChart was called for HR chart
-            const hrCalls = renderLapZoneChart.mock.calls.filter(
-                (call: { title: string }[]) =>
-                    call[2]?.title === "HR Zone by Lap (Stacked)"
+            const hrCalls = renderLapZoneChartMock.mock.calls.filter(
+                (call) => call[2]?.title === "HR Zone by Lap (Stacked)"
             );
             expect(hrCalls).toHaveLength(1);
             expect(getCanvasIds()).toContain("chartjs-canvas-lap-hr-zones");
@@ -677,12 +695,12 @@ describe("renderLapZoneCharts", () => {
 
     describe("Chart Instance Management", () => {
         beforeEach(() => {
-            (getThemeConfig as any).mockReturnValue({
+            getThemeConfigMock.mockReturnValue({
                 colors: { bgPrimary: "#ffffff", shadow: "none" },
             });
 
-            (renderLapZoneChart as any).mockReturnValue({ id: "mock-chart" });
-            (renderSingleHRZoneBar as any).mockReturnValue({
+            renderLapZoneChartMock.mockReturnValue({ id: "mock-chart" });
+            renderSingleHRZoneBarMock.mockReturnValue({
                 id: "mock-hr-bar",
             });
 
@@ -716,8 +734,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should handle null chart returns", () => {
-            (renderLapZoneChart as any).mockReturnValue(null);
-            (renderSingleHRZoneBar as any).mockReturnValue(null);
+            renderLapZoneChartMock.mockReturnValue(null);
+            renderSingleHRZoneBarMock.mockReturnValue(null);
 
             window._chartjsInstances = [];
             renderLapZoneCharts(container);
@@ -734,7 +752,7 @@ describe("renderLapZoneCharts", () => {
     describe("Error Handling", () => {
         it("should catch and log errors", () => {
             // Force an error by making getThemeConfig throw
-            (getThemeConfig as any).mockImplementation(() => {
+            getThemeConfigMock.mockImplementation(() => {
                 throw new Error("Theme config error");
             });
 
@@ -756,7 +774,7 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should show notification on error", () => {
-            (getThemeConfig as any).mockImplementation(() => {
+            getThemeConfigMock.mockImplementation(() => {
                 throw new Error("Test error");
             });
 
@@ -779,7 +797,7 @@ describe("renderLapZoneCharts", () => {
 
         it("should continue execution when showNotification is not available", () => {
             delete window.showNotification;
-            (getThemeConfig as any).mockImplementation(() => {
+            getThemeConfigMock.mockImplementation(() => {
                 throw new Error("Test error");
             });
 
@@ -802,7 +820,7 @@ describe("renderLapZoneCharts", () => {
 
     describe("Visibility Settings", () => {
         beforeEach(() => {
-            (getThemeConfig as any).mockReturnValue({
+            getThemeConfigMock.mockReturnValue({
                 colors: { bgPrimary: "#ffffff", shadow: "none" },
             });
 
@@ -889,7 +907,7 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should call getThemeConfig", () => {
-            (getThemeConfig as any).mockReturnValue({ name: "test-theme" });
+            getThemeConfigMock.mockReturnValue({ name: "test-theme" });
             renderLapZoneCharts(container);
             expect(getThemeConfig).toHaveBeenCalled();
             expect(getCanvasIds()).toEqual([
@@ -899,7 +917,7 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should log theme config name when available", () => {
-            (getThemeConfig as any).mockReturnValue({ name: "dark-theme" });
+            getThemeConfigMock.mockReturnValue({ name: "dark-theme" });
             renderLapZoneCharts(container);
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[renderLapZoneCharts] Using theme config:",
@@ -912,7 +930,7 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should handle missing theme config gracefully", () => {
-            (getThemeConfig as any).mockReturnValue(null);
+            getThemeConfigMock.mockReturnValue(null);
             renderLapZoneCharts(container);
             expect(mockConsoleError).not.toHaveBeenCalled();
             expect(getCanvasIds()).toEqual([
@@ -922,7 +940,7 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should handle invalid theme config gracefully", () => {
-            (getThemeConfig as any).mockReturnValue("invalid");
+            getThemeConfigMock.mockReturnValue("invalid");
             renderLapZoneCharts(container);
             expect(mockConsoleError).not.toHaveBeenCalled();
             expect(getCanvasIds()).toEqual([
@@ -932,7 +950,7 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should apply theme colors to canvas styling", () => {
-            (getThemeConfig as any).mockReturnValue({
+            getThemeConfigMock.mockReturnValue({
                 colors: {
                     bgPrimary: "#123456",
                     shadow: "0 2px 8px rgba(0,0,0,0.1)",
@@ -951,7 +969,7 @@ describe("renderLapZoneCharts", () => {
 
     describe("Session Zone Data Handling", () => {
         beforeEach(() => {
-            (getThemeConfig as any).mockReturnValue({
+            getThemeConfigMock.mockReturnValue({
                 colors: { bgPrimary: "#ffffff", shadow: "none" },
             });
         });
@@ -1109,7 +1127,7 @@ describe("renderLapZoneCharts", () => {
 
     describe("Integration Tests", () => {
         it("should render complete lap zone charts with all data types", () => {
-            (getThemeConfig as any).mockReturnValue({
+            getThemeConfigMock.mockReturnValue({
                 name: "integration-theme",
                 colors: {
                     bgPrimary: "#f0f0f0",
@@ -1166,7 +1184,7 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should handle minimal data scenario", () => {
-            (getThemeConfig as any).mockReturnValue({
+            getThemeConfigMock.mockReturnValue({
                 colors: { bgPrimary: "#ffffff", shadow: "none" },
             });
 

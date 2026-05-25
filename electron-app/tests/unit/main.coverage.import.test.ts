@@ -3,13 +3,96 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+type MockFn = ReturnType<typeof vi.fn>;
+type EventHandler = (...args: unknown[]) => Promise<void> | void;
+type DidFinishLoadHandler = () => Promise<void> | void;
+
+interface MockApplicationMenu {
+    getMenuItemById: MockFn;
+}
+
+interface MockApp {
+    getAppPath: MockFn;
+    getPath: MockFn;
+    getVersion: MockFn;
+    on: MockFn;
+    quit: MockFn;
+    whenReady: MockFn;
+}
+
+interface MockBrowserWindowConstructor {
+    fromWebContents: MockFn;
+    getAllWindows: MockFn;
+    getFocusedWindow: MockFn;
+}
+
+interface MockDialog {
+    showMessageBox: MockFn;
+    showOpenDialog: MockFn;
+    showSaveDialog: MockFn;
+}
+
+interface MockElectronModule {
+    app: MockApp;
+    BrowserWindow: MockBrowserWindowConstructor;
+    dialog: MockDialog;
+    ipcMain: MockIpcMain;
+    Menu: MockMenu;
+    shell: MockShell;
+}
+
+interface MockIpcMain {
+    handle: MockFn;
+    on: MockFn;
+}
+
+interface MockMainWindow {
+    isDestroyed: MockFn;
+    setFullScreen: MockFn;
+    webContents: MockWebContents;
+}
+
+interface MockMenu {
+    getApplicationMenu: MockFn;
+}
+
+interface MockShell {
+    openExternal: MockFn;
+}
+
+interface MockWebContents {
+    executeJavaScript: MockFn;
+    isDestroyed: MockFn;
+    on: MockFn;
+    send: MockFn;
+}
+
+interface RegisteredEventHandler {
+    evt: string;
+    handler: EventHandler;
+    target: unknown;
+}
+
+interface StateData {
+    eventHandlers: Map<string, RegisteredEventHandler>;
+    store: Map<string, unknown>;
+}
+
+interface MainProcessStateMock {
+    cleanupEventHandlers: MockFn;
+    data: StateData;
+    get: MockFn;
+    registerEventHandler: MockFn;
+    set: MockFn;
+}
+
 // Simple in-test EventEmitter for mocks
 class Emitter {
-    handlers: Record<string, Function[]> = {};
-    on(evt: string, fn: Function) {
+    handlers: Record<string, EventHandler[]> = {};
+    on(evt: string, fn: EventHandler) {
         (this.handlers[evt] ||= []).push(fn);
     }
-    emit(evt: string, ...args: any[]) {
+    emit(evt: string, ...args: unknown[]) {
         for (const fn of this.handlers[evt] || []) fn(...args);
     }
 }
@@ -18,16 +101,16 @@ class Emitter {
 const autoUpdaterEmitter = new Emitter();
 
 // Declare placeholders that hoisted mocks will read via getters
-let mockApp: any;
-let mockMenu: any;
-let mockBrowserWindow: any;
-let mockIpcMain: any;
-let mockDialog: any;
-let mockShell: any;
-let mockMainWindow: any;
-let createWindowMock: any;
-let createAppMenu: any;
-let mainProcessState: any;
+let mockApp: MockApp;
+let mockMenu: MockMenu;
+let mockBrowserWindow: MockBrowserWindowConstructor;
+let mockIpcMain: MockIpcMain;
+let mockDialog: MockDialog;
+let mockShell: MockShell;
+let mockMainWindow: MockMainWindow;
+let createWindowMock: MockFn;
+let createAppMenu: MockFn;
+let mainProcessState: MainProcessStateMock;
 
 // Hoisted mocks to ensure CommonJS requires in main.js and electron-updater see them
 vi.mock("electron", () => ({
@@ -52,8 +135,9 @@ vi.mock("electron", () => ({
 }));
 // Also expose the mocked module for main.js to see synchronously at import time
 // This avoids relying solely on require("electron") resolution which may not observe hoisted mocks in CJS
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(globalThis as any).__electronHoistedMock = {
+(globalThis as typeof globalThis & {
+    __electronHoistedMock: MockElectronModule;
+}).__electronHoistedMock = {
     get app() {
         return mockApp;
     },
@@ -85,7 +169,7 @@ vi.mock("electron-log", () => mockLogger);
 
 // electron-updater hoisted mock using the shared emitter
 const autoUpdater = {
-    on: vi.fn((evt: string, handler: Function) =>
+    on: vi.fn((evt: string, handler: EventHandler) =>
         autoUpdaterEmitter.on(evt, handler)
     ),
     logger: mockLogger,
@@ -103,14 +187,14 @@ vi.mock("../../windowStateUtils", () => ({
 // electron-conf hoisted mock to avoid accessing app.getPath at import-time
 vi.mock("electron-conf", () => {
     class MockConf {
-        store: Record<string, any>;
+        store: Record<string, unknown>;
         constructor() {
             this.store = {};
         }
-        get(key: string, def?: any) {
+        get(key: string, def?: unknown) {
             return this.store[key] ?? def;
         }
-        set(key: string, val: any) {
+        set(key: string, val: unknown) {
             this.store[key] = val;
         }
     }
@@ -133,7 +217,7 @@ vi.mock("../../utils/state/integration/mainProcessStateManager", () => ({
 
 describe("main.js - import-based coverage", () => {
     // Capture did-finish-load handler
-    let didFinishLoadHandler: (() => Promise<void> | void) | null = null;
+    let didFinishLoadHandler: DidFinishLoadHandler | null = null;
 
     beforeEach(async () => {
         vi.resetModules();
@@ -165,10 +249,13 @@ describe("main.js - import-based coverage", () => {
             webContents: {
                 isDestroyed: vi.fn().mockReturnValue(false),
                 send: vi.fn(),
-                on: vi.fn().mockImplementation((evt: string, handler: any) => {
-                    if (evt === "did-finish-load")
-                        didFinishLoadHandler = handler;
-                }),
+                on: vi.fn().mockImplementation(
+                    (evt: string, handler: EventHandler) => {
+                        if (evt === "did-finish-load")
+                            didFinishLoadHandler =
+                                handler as DidFinishLoadHandler;
+                    }
+                ),
                 executeJavaScript: vi.fn().mockResolvedValue("dark"),
             },
             setFullScreen: vi.fn(),
@@ -193,14 +280,22 @@ describe("main.js - import-based coverage", () => {
         createAppMenu = vi.fn();
 
         // Minimal main process state manager (fresh per test)
-        const stateData: any = { eventHandlers: new Map(), store: new Map() };
+        const stateData: StateData = {
+            eventHandlers: new Map(),
+            store: new Map(),
+        };
         mainProcessState = {
             get: vi.fn((key: string) => stateData.store.get(key)),
-            set: vi.fn((key: string, val: any) =>
+            set: vi.fn((key: string, val: unknown) =>
                 stateData.store.set(key, val)
             ),
             registerEventHandler: vi.fn(
-                (target: any, evt: string, handler: Function, id: string) => {
+                (
+                    target: unknown,
+                    evt: string,
+                    handler: EventHandler,
+                    id: string
+                ) => {
                     stateData.eventHandlers.set(id, { target, evt, handler });
                 }
             ),
@@ -237,7 +332,9 @@ describe("main.js - import-based coverage", () => {
         expect(typeof didFinishLoadHandler === "function").toBe(true);
 
         // Trigger did-finish-load
-        await (didFinishLoadHandler as any)();
+        if (typeof didFinishLoadHandler !== "function")
+            throw new TypeError("did-finish-load handler was not registered");
+        await didFinishLoadHandler();
 
         // autoUpdater.check called
         const { autoUpdater } = await import("electron-updater");
@@ -247,7 +344,8 @@ describe("main.js - import-based coverage", () => {
         autoUpdaterEmitter.emit("update-downloaded", { version: "1.2.3" });
         // Menu should be queried
         expect(mockMenu.getApplicationMenu).toHaveBeenCalled();
-        const appMenu = mockMenu.getApplicationMenu.mock.results[0].value;
+        const appMenu = mockMenu.getApplicationMenu.mock.results[0]
+            ?.value as MockApplicationMenu;
         expect(appMenu.getMenuItemById).toHaveBeenCalledWith("restart-update");
 
         // The renderer should get set-theme during did-finish-load

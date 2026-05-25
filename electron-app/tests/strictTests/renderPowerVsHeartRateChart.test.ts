@@ -2,11 +2,127 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { JSDOM } from "jsdom";
 import { chartSettingsManager } from "../../utils/charts/core/renderChartJS.js";
 
+type ChartDataset = {
+    backgroundColor?: string;
+    data?: unknown[];
+    [key: string]: unknown;
+};
+
+type ChartConfig = {
+    data: {
+        datasets: ChartDataset[];
+    };
+    options: {
+        plugins?: {
+            tooltip?: {
+                callbacks?: {
+                    label?: (context: TooltipContext) => string[];
+                };
+            };
+            [key: string]: unknown;
+        };
+        scales?: Record<string, unknown>;
+        [key: string]: unknown;
+    };
+    plugins?: unknown[];
+    [key: string]: unknown;
+};
+
+type ChartConstructorMock = ReturnType<typeof vi.fn> & {
+    mock: {
+        calls: [HTMLCanvasElement, ChartConfig][];
+    };
+};
+
+type ChartInstanceMock = {
+    clear: ReturnType<typeof vi.fn>;
+    config: Record<string, unknown>;
+    data: { datasets: ChartDataset[] };
+    destroy: ReturnType<typeof vi.fn>;
+    generateLegend: ReturnType<typeof vi.fn>;
+    getDatasetAtEvent: ReturnType<typeof vi.fn>;
+    getElementAtEvent: ReturnType<typeof vi.fn>;
+    getElementsAtEventForMode: ReturnType<typeof vi.fn>;
+    options: Record<string, unknown>;
+    render: ReturnType<typeof vi.fn>;
+    reset: ReturnType<typeof vi.fn>;
+    resize: ReturnType<typeof vi.fn>;
+    stop: ReturnType<typeof vi.fn>;
+    toBase64Image: ReturnType<typeof vi.fn>;
+    update: ReturnType<typeof vi.fn>;
+};
+
+type ChartTestGlobal = typeof globalThis & {
+    Chart?: ChartConstructorMock;
+    HTMLCanvasElement?: typeof HTMLCanvasElement;
+    HTMLElement?: typeof HTMLElement;
+    _chartjsInstances?: ChartInstanceMock[];
+    localStorage?: StorageMock;
+    window?: ChartTestWindow;
+};
+
+type ChartTestWindow = Window &
+    typeof globalThis & {
+        Chart?: ChartConstructorMock;
+        _chartjsInstances?: ChartInstanceMock[];
+    };
+
+type PowerHeartRateDatum = {
+    heartRate?: null | number;
+    power?: null | number;
+};
+
+type PowerHeartRateOptions = {
+    animationStyle?: string;
+    maxPoints?: "all" | number;
+    showGrid?: boolean;
+    showLegend?: boolean;
+    showPoints?: boolean;
+    showTitle?: boolean;
+    theme?: string;
+};
+
+type RenderPowerVsHeartRateChart = (
+    container: HTMLElement,
+    data: PowerHeartRateDatum[],
+    options: PowerHeartRateOptions
+) => void;
+
+type StorageMock = {
+    clear: ReturnType<typeof vi.fn>;
+    getItem: ReturnType<typeof vi.fn>;
+    removeItem: ReturnType<typeof vi.fn>;
+    setItem: ReturnType<typeof vi.fn>;
+};
+
+type TooltipContext = {
+    parsed: {
+        x?: number;
+        y?: number;
+    };
+};
+
+function getChartTestGlobal(): ChartTestGlobal {
+    return globalThis as ChartTestGlobal;
+}
+
+function getChartTestWindow(): ChartTestWindow {
+    return global.window as unknown as ChartTestWindow;
+}
+
+function getLatestChartConfig(): ChartConfig {
+    const config = Chart.mock.calls[0]?.[1];
+    if (!config) {
+        throw new Error("Expected Chart to be called with a config");
+    }
+    return config;
+}
+
 // Mock Chart.js
-let Chart: any;
-let chartInstanceMock: any;
-let renderPowerVsHeartRateChart: any;
-let mockLocalStorage: any;
+let Chart: ChartConstructorMock;
+let chartInstanceMock: ChartInstanceMock;
+let renderPowerVsHeartRateChart: RenderPowerVsHeartRateChart;
+let mockLocalStorage: StorageMock;
 
 describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", () => {
     beforeEach(async () => {
@@ -17,15 +133,17 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             resources: "usable",
         });
 
-        global.window = dom.window as any;
-        global.document = dom.window.document as any;
-        global.HTMLCanvasElement = dom.window.HTMLCanvasElement as any;
-        global.HTMLElement = dom.window.HTMLElement as any;
-        (global as any).console = {
+        global.window = dom.window as unknown as Window & typeof globalThis;
+        global.document = dom.window.document;
+        global.HTMLCanvasElement =
+            dom.window.HTMLCanvasElement as unknown as typeof HTMLCanvasElement;
+        global.HTMLElement =
+            dom.window.HTMLElement as unknown as typeof HTMLElement;
+        global.console = {
             log: vi.fn(),
             error: vi.fn(),
             warn: vi.fn(),
-        };
+        } as unknown as Console;
 
         // Mock localStorage
         mockLocalStorage = {
@@ -34,7 +152,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             removeItem: vi.fn(),
             clear: vi.fn(),
         };
-        (global as any).localStorage = mockLocalStorage;
+        getChartTestGlobal().localStorage = mockLocalStorage;
 
         // Mock Chart.js
         chartInstanceMock = {
@@ -57,17 +175,18 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
 
         Chart = vi.fn(function ChartConstructor() {
             return chartInstanceMock;
-        });
-        (global.window as any).Chart = Chart;
-        (global as any).globalThis.Chart = Chart;
-        (global.window as any)._chartjsInstances = [];
+        }) as ChartConstructorMock;
+        getChartTestWindow().Chart = Chart;
+        getChartTestGlobal().Chart = Chart;
+        getChartTestWindow()._chartjsInstances = [];
         // Sync chart instances between window and globalThis using property descriptor
-        Object.defineProperty((global as any).globalThis, "_chartjsInstances", {
+        Object.defineProperty(getChartTestGlobal(), "_chartjsInstances", {
             get() {
-                return (global.window as any)._chartjsInstances;
+                return getChartTestWindow()._chartjsInstances;
             },
             set(value) {
-                (global.window as any)._chartjsInstances = value;
+                getChartTestWindow()._chartjsInstances =
+                    value as ChartInstanceMock[] | undefined;
             },
             configurable: true,
         });
@@ -80,23 +199,22 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
 
     afterEach(() => {
         vi.clearAllMocks();
-        if (global.window && (global.window as any)._chartjsInstances) {
-            (global.window as any)._chartjsInstances = [];
+        if (global.window && getChartTestWindow()._chartjsInstances) {
+            getChartTestWindow()._chartjsInstances = [];
         }
         // Clean up property descriptor
-        if ((global as any).globalThis) {
-            delete (global as any).globalThis._chartjsInstances;
-        }
+        delete getChartTestGlobal()._chartjsInstances;
+        delete getChartTestGlobal().Chart;
 
         // Clean up JSDOM
         if (global.window) {
-            (global.window as any).close?.();
+            getChartTestWindow().close();
         }
-        (global as any).window = undefined;
-        (global as any).document = undefined;
-        (global as any).HTMLCanvasElement = undefined;
-        (global as any).HTMLElement = undefined;
-        (global as any).localStorage = undefined;
+        getChartTestGlobal().window = undefined;
+        getChartTestGlobal().document = undefined;
+        getChartTestGlobal().HTMLCanvasElement = undefined;
+        getChartTestGlobal().HTMLElement = undefined;
+        getChartTestGlobal().localStorage = undefined;
     });
 
     describe("Data Validation and Processing", () => {
@@ -133,7 +251,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
         it("should return early when field visibility is hidden", () => {
             const visibilitySpy = vi
                 .spyOn(chartSettingsManager, "getFieldVisibility")
-                .mockReturnValue("hidden" as any);
+                .mockReturnValue("hidden");
 
             const container = document.createElement("div");
             const data = [
@@ -165,7 +283,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             renderPowerVsHeartRateChart(container, data, options);
 
             expect(Chart).toHaveBeenCalled();
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             expect(chartConfig.data.datasets[0].data).toEqual([
                 { x: 120, y: 200 },
                 { x: 130, y: 250 },
@@ -205,7 +323,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             renderPowerVsHeartRateChart(container, data, options);
 
             expect(Chart).toHaveBeenCalled();
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             expect(
                 chartConfig.data.datasets[0].data.length
             ).toBeLessThanOrEqual(100);
@@ -227,7 +345,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             renderPowerVsHeartRateChart(container, data, options);
 
             expect(Chart).toHaveBeenCalled();
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             expect(chartConfig.data.datasets[0].data.length).toBe(50);
         });
 
@@ -245,7 +363,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             renderPowerVsHeartRateChart(container, data, options);
 
             expect(Chart).toHaveBeenCalled();
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             expect(chartConfig.data.datasets[0].data.length).toBe(3);
         });
     });
@@ -300,7 +418,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             renderPowerVsHeartRateChart(container, data, options);
 
             expect(Chart).toHaveBeenCalled();
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
 
             expect(chartConfig.type).toBe("scatter");
             expect(chartConfig.type).not.toBe("line");
@@ -322,7 +440,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             const optionsWithLegend = { maxPoints: 1000, showLegend: true };
             renderPowerVsHeartRateChart(container, data, optionsWithLegend);
 
-            let chartConfig = Chart.mock.calls[0][1];
+            let chartConfig = getLatestChartConfig();
             expect(chartConfig.options.plugins.legend.display).toBe(true);
 
             Chart.mockClear();
@@ -332,7 +450,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             const optionsWithoutLegend = { maxPoints: 1000, showLegend: false };
             renderPowerVsHeartRateChart(container, data, optionsWithoutLegend);
 
-            chartConfig = Chart.mock.calls[0][1];
+            chartConfig = getLatestChartConfig();
             expect(chartConfig.options.plugins.legend.display).toBe(false);
         });
 
@@ -346,7 +464,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             const optionsWithTitle = { maxPoints: 1000, showTitle: true };
             renderPowerVsHeartRateChart(container, data, optionsWithTitle);
 
-            let chartConfig = Chart.mock.calls[0][1];
+            let chartConfig = getLatestChartConfig();
             expect(chartConfig.options.plugins.title.display).toBe(true);
             expect(chartConfig.options.plugins.title.text).toBe(
                 "Power vs Heart Rate"
@@ -359,7 +477,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             const optionsWithoutTitle = { maxPoints: 1000, showTitle: false };
             renderPowerVsHeartRateChart(container, data, optionsWithoutTitle);
 
-            chartConfig = Chart.mock.calls[0][1];
+            chartConfig = getLatestChartConfig();
             expect(chartConfig.options.plugins.title.display).toBe(false);
         });
 
@@ -373,7 +491,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             const optionsWithGrid = { maxPoints: 1000, showGrid: true };
             renderPowerVsHeartRateChart(container, data, optionsWithGrid);
 
-            let chartConfig = Chart.mock.calls[0][1];
+            let chartConfig = getLatestChartConfig();
             expect(chartConfig.options.scales.x.grid.display).toBe(true);
             expect(chartConfig.options.scales.y.grid.display).toBe(true);
 
@@ -384,7 +502,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             const optionsWithoutGrid = { maxPoints: 1000, showGrid: false };
             renderPowerVsHeartRateChart(container, data, optionsWithoutGrid);
 
-            chartConfig = Chart.mock.calls[0][1];
+            chartConfig = getLatestChartConfig();
             expect(chartConfig.options.scales.x.grid.display).toBe(false);
             expect(chartConfig.options.scales.y.grid.display).toBe(false);
         });
@@ -399,7 +517,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             const optionsWithPoints = { maxPoints: 1000, showPoints: true };
             renderPowerVsHeartRateChart(container, data, optionsWithPoints);
 
-            let chartConfig = Chart.mock.calls[0][1];
+            let chartConfig = getLatestChartConfig();
             expect(chartConfig.data.datasets[0].pointRadius).toBe(2);
 
             Chart.mockClear();
@@ -409,7 +527,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             const optionsWithoutPoints = { maxPoints: 1000, showPoints: false };
             renderPowerVsHeartRateChart(container, data, optionsWithoutPoints);
 
-            chartConfig = Chart.mock.calls[0][1];
+            chartConfig = getLatestChartConfig();
             expect(chartConfig.data.datasets[0].pointRadius).toBe(1);
         });
     });
@@ -424,7 +542,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
 
             renderPowerVsHeartRateChart(container, data, options);
 
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             expect(chartConfig.options.scales.x.type).toBe("linear");
             expect(chartConfig.options.scales.x.display).toBe(true);
             expect(chartConfig.options.scales.x.title.display).toBe(true);
@@ -445,7 +563,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
 
             renderPowerVsHeartRateChart(container, data, options);
 
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             expect(chartConfig.options.scales.y.type).toBe("linear");
             expect(chartConfig.options.scales.y.display).toBe(true);
             expect(chartConfig.options.scales.y.title.display).toBe(true);
@@ -463,7 +581,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
 
             renderPowerVsHeartRateChart(container, data, options);
 
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             const zoomConfig = chartConfig.options.plugins.zoom;
 
             expect(zoomConfig.pan.enabled).toBe(true);
@@ -496,7 +614,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
 
             renderPowerVsHeartRateChart(container, data, options);
 
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             const tooltipConfig = chartConfig.options.plugins.tooltip;
 
             expect(tooltipConfig.borderWidth).toBe(1);
@@ -522,7 +640,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
 
             renderPowerVsHeartRateChart(container, data, options);
 
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             expect(chartConfig.plugins).toHaveLength(2);
             expect(chartConfig.plugins).not.toHaveLength(0);
             // Note: Actual plugin instances are imported and would be present
@@ -537,7 +655,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
 
             renderPowerVsHeartRateChart(container, data, options);
 
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             expect(
                 chartConfig.options.plugins.chartBackgroundColorPlugin
             ).toStrictEqual({
@@ -556,13 +674,11 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
 
             renderPowerVsHeartRateChart(container, data, options);
 
-            expect(
-                global.window && (global.window as any)._chartjsInstances
-            ).toHaveLength(1);
-            expect((global.window as any)._chartjsInstances).not.toHaveLength(
+            expect(getChartTestWindow()._chartjsInstances).toHaveLength(1);
+            expect(getChartTestWindow()._chartjsInstances).not.toHaveLength(
                 0
             );
-            expect((global.window as any)._chartjsInstances?.[0]).toBe(
+            expect(getChartTestWindow()._chartjsInstances?.[0]).toBe(
                 chartInstanceMock
             );
         });
@@ -624,7 +740,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             mockLocalStorage.getItem.mockReturnValue(null);
 
             const container = document.createElement("div");
-            const data: any[] = [];
+            const data: PowerHeartRateDatum[] = [];
             const options = { maxPoints: 1000 };
 
             renderPowerVsHeartRateChart(container, data, options);
@@ -646,7 +762,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             renderPowerVsHeartRateChart(container, data, options);
 
             expect(Chart).toHaveBeenCalled();
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             expect(chartConfig.data.datasets[0].data).toEqual([
                 { x: 120, y: 0 },
                 { x: 130, y: 0 },
@@ -666,7 +782,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             renderPowerVsHeartRateChart(container, data, options);
 
             expect(Chart).toHaveBeenCalled();
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             expect(chartConfig.data.datasets[0].data).toEqual([
                 { x: 0, y: 200 },
                 { x: 0, y: 250 },
@@ -677,7 +793,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             mockLocalStorage.getItem.mockReturnValue(null);
 
             const container = document.createElement("div");
-            const data: any[] = [];
+            const data: PowerHeartRateDatum[] = [];
             for (let i = 0; i < 10000; i++) {
                 data.push({ power: 200 + i, heartRate: 120 + (i % 100) });
             }
@@ -686,7 +802,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             renderPowerVsHeartRateChart(container, data, options);
 
             expect(Chart).toHaveBeenCalled();
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             expect(
                 chartConfig.data.datasets[0].data.length
             ).toBeLessThanOrEqual(500);
@@ -709,7 +825,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             renderPowerVsHeartRateChart(container, data, options);
 
             expect(Chart).toHaveBeenCalled();
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             expect(chartConfig.data.datasets[0].data).toEqual([
                 { x: 120, y: 200 },
                 { x: 130, y: "invalid" },
@@ -811,7 +927,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             renderPowerVsHeartRateChart(container, data, options);
 
             expect(Chart).toHaveBeenCalled();
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             expect(chartConfig.data.datasets[0].data).toHaveLength(6);
             expect(chartConfig.data.datasets[0].label).toBe(
                 "Power vs Heart Rate"
@@ -837,7 +953,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             renderPowerVsHeartRateChart(container, data, options);
 
             expect(Chart).toHaveBeenCalled();
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             expect(chartConfig.data.datasets[0].data).toContainEqual({
                 x: 165,
                 y: 450,

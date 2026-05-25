@@ -66,15 +66,19 @@ Object.defineProperty(globalThis, "localStorage", {
 });
 
 // Mock JSZip
-Object.defineProperty(globalThis, "JSZip", {
-    value: vi.fn().mockImplementation(() => ({
-        file: vi.fn(),
-        generateAsync: vi.fn(() =>
+function installZipMock(): void {
+    const MockZip = vi.fn(function MockZip(this: any) {
+        this.file = vi.fn();
+        this.generateAsync = vi.fn(() =>
             Promise.resolve(new Blob(["test"], { type: "application/zip" }))
-        ),
-    })),
-    writable: true,
-});
+        );
+    });
+
+    Object.defineProperty(globalThis, "JSZip", {
+        value: MockZip,
+        writable: true,
+    });
+}
 
 // Mock fetch with base64 data URL handling and upload response shapes
 Object.defineProperty(globalThis, "fetch", {
@@ -107,7 +111,8 @@ Object.defineProperty(globalThis, "fetch", {
 // Spy on document.createElement to inject canvas helpers
 const createdAnchors: HTMLAnchorElement[] = [];
 const originalCreateElement = document.createElement.bind(document);
-vi.spyOn(document, "createElement").mockImplementation((tagName: any): any => {
+
+function createMockElement(tagName: any): any {
     const el: any = originalCreateElement(tagName as string);
     // augment with common stubs used by tests/implementation
     el.appendChild = el.appendChild ?? vi.fn();
@@ -130,42 +135,40 @@ vi.spyOn(document, "createElement").mockImplementation((tagName: any): any => {
         createdAnchors.push(el);
     }
     if ((tagName as string).toLowerCase() === "canvas") {
-        el.getContext =
-            el.getContext ??
-            vi.fn(() => ({
-                fillRect: vi.fn(),
-                drawImage: vi.fn(),
-                getImageData: vi.fn(),
-                putImageData: vi.fn(),
-            }));
-        el.toDataURL =
-            el.toDataURL ?? vi.fn(() => "data:image/png;base64,test");
+        el.getContext = vi.fn(() => ({
+            fillRect: vi.fn(),
+            drawImage: vi.fn(),
+            getImageData: vi.fn(),
+            putImageData: vi.fn(),
+        }));
+        el.toDataURL = vi.fn(() => "data:image/png;base64,test");
         el.width = el.width ?? 800;
         el.height = el.height ?? 600;
     }
     return el;
-});
-// Spy body.appendChild/removeChild to avoid DOM mutation errors and to assert downloads
-vi.spyOn(document.body, "appendChild").mockImplementation(vi.fn());
-vi.spyOn(document.body, "removeChild").mockImplementation(vi.fn());
-// Also stub append which is used by export flows
-vi.spyOn(document.body, "append").mockImplementation(vi.fn());
+}
+
+function installDomMocks(): void {
+    vi.spyOn(document, "createElement").mockImplementation(createMockElement);
+}
 
 // Preserve the URL constructor (used by production code). Only stub the static
 // blob helpers needed by export flows.
-if (typeof globalThis.URL === "function") {
-    // @ts-expect-error test-only stubbing
-    globalThis.URL.createObjectURL = vi.fn(() => "blob:mock-url");
-    // @ts-expect-error test-only stubbing
-    globalThis.URL.revokeObjectURL = vi.fn();
-} else {
-    Object.defineProperty(globalThis, "URL", {
-        value: {
-            createObjectURL: vi.fn(() => "blob:mock-url"),
-            revokeObjectURL: vi.fn(),
-        },
-        writable: true,
-    });
+function installUrlMocks(): void {
+    if (typeof globalThis.URL === "function") {
+        // @ts-expect-error test-only stubbing
+        globalThis.URL.createObjectURL = vi.fn(() => "blob:mock-url");
+        // @ts-expect-error test-only stubbing
+        globalThis.URL.revokeObjectURL = vi.fn();
+    } else {
+        Object.defineProperty(globalThis, "URL", {
+            value: {
+                createObjectURL: vi.fn(() => "blob:mock-url"),
+                revokeObjectURL: vi.fn(),
+            },
+            writable: true,
+        });
+    }
 }
 
 Object.defineProperty(globalThis, "navigator", {
@@ -225,6 +228,9 @@ function resetLocalStorageMock(): void {
 
 describe("exportUtils", () => {
     beforeEach(() => {
+        installDomMocks();
+        installUrlMocks();
+        installZipMock();
         localStorageEntries.clear();
         createdAnchors.length = 0;
         vi.clearAllMocks();
@@ -232,7 +238,7 @@ describe("exportUtils", () => {
     });
 
     afterEach(() => {
-        vi.clearAllMocks();
+        vi.restoreAllMocks();
     });
 
     describe("addCombinedCSVToZip", () => {
@@ -902,20 +908,8 @@ describe("exportUtils", () => {
                 uploadUrl: "https://upload.gyazo.com/api/upload",
             } as any);
 
-            // First call: data URL -> blob
-            vi.mocked(globalThis.fetch)
-                .mockImplementationOnce((input: any) =>
-                    Promise.resolve({
-                        ok: true,
-                        status: 200,
-                        blob: () =>
-                            Promise.resolve(
-                                new Blob(["img"], { type: "image/png" })
-                            ),
-                    } as any)
-                )
-                // Second call: upload -> json with url
-                .mockImplementationOnce((input: any, init: any) =>
+            vi.mocked(globalThis.fetch).mockImplementationOnce(
+                (input: any, init: any) =>
                     Promise.resolve({
                         ok: true,
                         status: 200,
@@ -923,7 +917,7 @@ describe("exportUtils", () => {
                             Promise.resolve({ url: "https://gyazo.com/test" }),
                         text: () => Promise.resolve("ok"),
                     } as any)
-                );
+            );
 
             const result = await exportUtils.uploadToGyazo(base64Image);
 
@@ -947,27 +941,15 @@ describe("exportUtils", () => {
                 uploadUrl: "https://upload.gyazo.com/api/upload",
             } as any);
 
-            // First call: data URL -> blob
-            vi.mocked(globalThis.fetch)
-                .mockImplementationOnce((input: any) =>
-                    Promise.resolve({
-                        ok: true,
-                        status: 200,
-                        blob: () =>
-                            Promise.resolve(
-                                new Blob(["img"], { type: "image/png" })
-                            ),
-                    } as any)
-                )
-                // Second call: upload -> error
-                .mockImplementationOnce((input: any, init: any) =>
+            vi.mocked(globalThis.fetch).mockImplementationOnce(
+                (input: any, init: any) =>
                     Promise.resolve({
                         ok: false,
                         status: 400,
                         text: () => Promise.resolve("Bad request"),
                         json: () => Promise.resolve({ error: "Bad request" }),
                     } as any)
-                );
+            );
 
             await expect(
                 exportUtils.uploadToGyazo(base64Image)
@@ -984,20 +966,9 @@ describe("exportUtils", () => {
                 uploadUrl: "https://upload.gyazo.com/api/upload",
             } as any);
 
-            vi.mocked(globalThis.fetch)
-                .mockImplementationOnce((input: any) =>
-                    Promise.resolve({
-                        ok: true,
-                        status: 200,
-                        blob: () =>
-                            Promise.resolve(
-                                new Blob(["img"], { type: "image/png" })
-                            ),
-                    } as any)
-                )
-                .mockImplementationOnce(() =>
-                    Promise.reject({ name: "AbortError" })
-                );
+            vi.mocked(globalThis.fetch).mockImplementationOnce(() =>
+                Promise.reject({ name: "AbortError" })
+            );
 
             await expect(
                 exportUtils.uploadToGyazo(base64Image)
@@ -1014,21 +985,10 @@ describe("exportUtils", () => {
                 uploadUrl: "https://evil.example.com/api/upload",
             } as any);
 
-            vi.mocked(globalThis.fetch).mockImplementationOnce((input: any) =>
-                Promise.resolve({
-                    ok: true,
-                    status: 200,
-                    blob: () =>
-                        Promise.resolve(
-                            new Blob(["img"], { type: "image/png" })
-                        ),
-                } as any)
-            );
-
             await expect(
                 exportUtils.uploadToGyazo(base64Image)
             ).rejects.toThrow("Unexpected Gyazo endpoint host");
-            expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+            expect(globalThis.fetch).not.toHaveBeenCalled();
         });
     });
 

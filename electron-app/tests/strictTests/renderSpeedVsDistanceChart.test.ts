@@ -2,11 +2,133 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { JSDOM } from "jsdom";
 import { chartSettingsManager } from "../../utils/charts/core/renderChartJS.js";
 
+type ChartDataset = {
+    data?: unknown[];
+    [key: string]: unknown;
+};
+
+type ChartConfig = {
+    data: {
+        datasets: ChartDataset[];
+    };
+    options: {
+        maintainAspectRatio?: boolean;
+        plugins?: {
+            chartBackgroundColorPlugin?: unknown;
+            tooltip?: {
+                callbacks?: {
+                    label?: (context: TooltipContext) => string[];
+                };
+            };
+            [key: string]: unknown;
+        };
+        responsive?: boolean;
+        scales?: Record<string, unknown>;
+        [key: string]: unknown;
+    };
+    plugins?: unknown[];
+    [key: string]: unknown;
+};
+
+type ChartConstructorMock = ReturnType<typeof vi.fn> & {
+    mock: {
+        calls: [HTMLCanvasElement, ChartConfig][];
+    };
+};
+
+type ChartInstanceMock = {
+    clear: ReturnType<typeof vi.fn>;
+    config: Record<string, unknown>;
+    data: { datasets: ChartDataset[] };
+    destroy: ReturnType<typeof vi.fn>;
+    generateLegend: ReturnType<typeof vi.fn>;
+    getDatasetAtEvent: ReturnType<typeof vi.fn>;
+    getElementAtEvent: ReturnType<typeof vi.fn>;
+    getElementsAtEventForMode: ReturnType<typeof vi.fn>;
+    options: Record<string, unknown>;
+    render: ReturnType<typeof vi.fn>;
+    reset: ReturnType<typeof vi.fn>;
+    resize: ReturnType<typeof vi.fn>;
+    stop: ReturnType<typeof vi.fn>;
+    toBase64Image: ReturnType<typeof vi.fn>;
+    update: ReturnType<typeof vi.fn>;
+};
+
+type ChartTestGlobal = typeof globalThis & {
+    Chart?: ChartConstructorMock;
+    HTMLCanvasElement?: typeof HTMLCanvasElement;
+    HTMLElement?: typeof HTMLElement;
+    _chartjsInstances?: ChartInstanceMock[];
+    localStorage?: StorageMock;
+    window?: ChartTestWindow;
+};
+
+type ChartTestWindow = Window &
+    typeof globalThis & {
+        Chart?: ChartConstructorMock;
+        _chartjsInstances?: ChartInstanceMock[];
+    };
+
+type RenderSpeedVsDistanceChart = (
+    container: HTMLElement,
+    data: readonly SpeedDistanceDatum[],
+    options: SpeedDistanceOptions
+) => void;
+
+type SpeedDistanceDatum = {
+    distance?: null | number;
+    enhancedSpeed?: number;
+    speed?: null | number;
+};
+
+type SpeedDistanceOptions = {
+    animationStyle?: string;
+    distanceUnits?: string;
+    interpolation?: string;
+    maxPoints: "all" | number;
+    showGrid?: boolean;
+    showLegend?: boolean;
+    showPoints?: boolean;
+    showTitle?: boolean;
+    smoothing?: number;
+    theme?: string;
+};
+
+type StorageMock = {
+    clear: ReturnType<typeof vi.fn>;
+    getItem: ReturnType<typeof vi.fn>;
+    removeItem: ReturnType<typeof vi.fn>;
+    setItem: ReturnType<typeof vi.fn>;
+};
+
+type TooltipContext = {
+    parsed: {
+        x?: number;
+        y?: number;
+    };
+};
+
+function getChartTestGlobal(): ChartTestGlobal {
+    return globalThis as ChartTestGlobal;
+}
+
+function getChartTestWindow(): ChartTestWindow {
+    return global.window as unknown as ChartTestWindow;
+}
+
+function getLatestChartConfig(): ChartConfig {
+    const config = Chart.mock.calls[0]?.[1];
+    if (!config) {
+        throw new Error("Expected Chart to be called with a config");
+    }
+    return config;
+}
+
 // Mock Chart.js
-let Chart: any;
-let chartInstanceMock: any;
-let renderSpeedVsDistanceChart: any;
-let mockLocalStorage: any;
+let Chart: ChartConstructorMock;
+let chartInstanceMock: ChartInstanceMock;
+let renderSpeedVsDistanceChart: RenderSpeedVsDistanceChart;
+let mockLocalStorage: StorageMock;
 
 describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () => {
     beforeEach(async () => {
@@ -17,15 +139,17 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             resources: "usable",
         });
 
-        global.window = dom.window as any;
-        global.document = dom.window.document as any;
-        global.HTMLCanvasElement = dom.window.HTMLCanvasElement as any;
-        global.HTMLElement = dom.window.HTMLElement as any;
-        (global as any).console = {
+        global.window = dom.window as unknown as Window & typeof globalThis;
+        global.document = dom.window.document;
+        global.HTMLCanvasElement =
+            dom.window.HTMLCanvasElement as unknown as typeof HTMLCanvasElement;
+        global.HTMLElement =
+            dom.window.HTMLElement as unknown as typeof HTMLElement;
+        global.console = {
             log: vi.fn(),
             error: vi.fn(),
             warn: vi.fn(),
-        };
+        } as unknown as Console;
 
         // Mock localStorage
         mockLocalStorage = {
@@ -34,7 +158,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             removeItem: vi.fn(),
             clear: vi.fn(),
         };
-        (global as any).localStorage = mockLocalStorage;
+        getChartTestGlobal().localStorage = mockLocalStorage;
 
         // Mock Chart.js
         chartInstanceMock = {
@@ -57,29 +181,30 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
 
         Chart = vi.fn(function ChartConstructor() {
             return chartInstanceMock;
-        });
-        (global.window as any).Chart = Chart;
-        (global as any).globalThis.Chart = Chart;
+        }) as ChartConstructorMock;
+        getChartTestWindow().Chart = Chart;
+        getChartTestGlobal().Chart = Chart;
 
         // Sync Chart constructor between window and globalThis using property descriptor
-        Object.defineProperty((global as any).globalThis, "Chart", {
+        Object.defineProperty(getChartTestGlobal(), "Chart", {
             get() {
-                return (global.window as any).Chart;
+                return getChartTestWindow().Chart;
             },
             set(value) {
-                (global.window as any).Chart = value;
+                getChartTestWindow().Chart = value as ChartConstructorMock;
             },
             configurable: true,
         });
 
-        (global.window as any)._chartjsInstances = [];
+        getChartTestWindow()._chartjsInstances = [];
         // Sync chart instances between window and globalThis using property descriptor
-        Object.defineProperty((global as any).globalThis, "_chartjsInstances", {
+        Object.defineProperty(getChartTestGlobal(), "_chartjsInstances", {
             get() {
-                return (global.window as any)._chartjsInstances;
+                return getChartTestWindow()._chartjsInstances;
             },
             set(value) {
-                (global.window as any)._chartjsInstances = value;
+                getChartTestWindow()._chartjsInstances =
+                    value as ChartInstanceMock[] | undefined;
             },
             configurable: true,
         });
@@ -92,24 +217,22 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
 
     afterEach(() => {
         vi.clearAllMocks();
-        if (global.window && (global.window as any)._chartjsInstances) {
-            (global.window as any)._chartjsInstances = [];
+        if (global.window && getChartTestWindow()._chartjsInstances) {
+            getChartTestWindow()._chartjsInstances = [];
         }
         // Clean up property descriptors
-        if ((global as any).globalThis) {
-            delete (global as any).globalThis._chartjsInstances;
-            delete (global as any).globalThis.Chart;
-        }
+        delete getChartTestGlobal()._chartjsInstances;
+        delete getChartTestGlobal().Chart;
 
         // Clean up JSDOM
         if (global.window) {
-            (global.window as any).close?.();
+            getChartTestWindow().close();
         }
-        (global as any).window = undefined;
-        (global as any).document = undefined;
-        (global as any).HTMLCanvasElement = undefined;
-        (global as any).HTMLElement = undefined;
-        (global as any).localStorage = undefined;
+        getChartTestGlobal().window = undefined;
+        getChartTestGlobal().document = undefined;
+        getChartTestGlobal().HTMLCanvasElement = undefined;
+        getChartTestGlobal().HTMLElement = undefined;
+        getChartTestGlobal().localStorage = undefined;
     });
 
     describe("Data Validation and Processing", () => {
@@ -171,7 +294,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
 
             const visibilitySpy = vi
                 .spyOn(chartSettingsManager, "getFieldVisibility")
-                .mockReturnValue("hidden" as any);
+                .mockReturnValue("hidden");
 
             renderSpeedVsDistanceChart(container, data, options);
 
@@ -202,7 +325,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             renderSpeedVsDistanceChart(container, data, options);
 
             expect(Chart).toHaveBeenCalled();
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             expect(chartConfig.data.datasets[0].data).toEqual([
                 { x: 1, y: 19.8 }, // Distance converted from meters to km, speed converted to km/h
                 { x: 2, y: 21.6 },
@@ -229,7 +352,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             renderSpeedVsDistanceChart(container, data, options);
 
             expect(Chart).toHaveBeenCalled();
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             expect(chartConfig.data.datasets[0].data).toEqual([
                 { x: 1, y: 20.88 }, // enhancedSpeed used instead of speed, converted to km/h
                 { x: 2, y: 22.32 },
@@ -280,7 +403,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             renderSpeedVsDistanceChart(container, data, options);
 
             expect(Chart).toHaveBeenCalled();
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             expect(
                 chartConfig.data.datasets[0].data.length
             ).toBeLessThanOrEqual(100);
@@ -306,7 +429,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             renderSpeedVsDistanceChart(container, data, options);
 
             expect(Chart).toHaveBeenCalled();
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             expect(chartConfig.data.datasets[0].data.length).toBe(50);
         });
 
@@ -329,7 +452,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             renderSpeedVsDistanceChart(container, data, options);
 
             expect(Chart).toHaveBeenCalled();
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             expect(
                 chartConfig.data.datasets[0].data.length
             ).toBeLessThanOrEqual(50);
@@ -356,7 +479,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             renderSpeedVsDistanceChart(container, data, options);
 
             expect(Chart).toHaveBeenCalled();
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             expect(chartConfig.type).toBe("scatter");
             expect(chartConfig.data.datasets[0].label).toBe(
                 "Speed vs Distance"
@@ -382,7 +505,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
 
             renderSpeedVsDistanceChart(container, data, options);
 
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             expect(chartConfig.data.datasets[0].pointRadius).toBe(2);
             expect(chartConfig.options.plugins.legend.display).toBe(true);
             expect(chartConfig.options.plugins.legend.display).not.toBe(false);
@@ -409,7 +532,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
 
             renderSpeedVsDistanceChart(container, data, options);
 
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             expect(chartConfig.data.datasets[0].pointRadius).toBe(1);
             expect(chartConfig.options.plugins.legend.display).toBe(false);
             expect(chartConfig.options.plugins.title.display).toBe(false);
@@ -432,7 +555,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
 
             renderSpeedVsDistanceChart(container, data, options);
 
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             expect(chartConfig.options.scales.x.type).toBe("linear");
             expect(chartConfig.options.scales.x.display).toBe(true);
             expect(chartConfig.options.scales.x.title.display).toBe(true);
@@ -461,7 +584,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
 
             renderSpeedVsDistanceChart(container, data, options);
 
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             expect(chartConfig.options.plugins.zoom.pan.enabled).toBe(true);
             expect(chartConfig.options.plugins.zoom.pan.mode).toBe("x");
             expect(chartConfig.options.plugins.zoom.zoom.wheel.enabled).toBe(
@@ -549,18 +672,18 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
 
             renderSpeedVsDistanceChart(container, data, options);
 
-            expect((global.window as any)._chartjsInstances).toHaveLength(1);
-            expect((global.window as any)._chartjsInstances).not.toHaveLength(
+            expect(getChartTestWindow()._chartjsInstances).toHaveLength(1);
+            expect(getChartTestWindow()._chartjsInstances).not.toHaveLength(
                 0
             );
-            expect((global.window as any)._chartjsInstances[0]).toBe(
+            expect(getChartTestWindow()._chartjsInstances?.[0]).toBe(
                 chartInstanceMock
             );
         });
 
         it("should initialize global instances array if it doesn't exist", () => {
             mockLocalStorage.getItem.mockReturnValue(null);
-            (global.window as any)._chartjsInstances = undefined;
+            getChartTestWindow()._chartjsInstances = undefined;
 
             const container = document.createElement("div");
             const data = [{ speed: 5.5, distance: 1000 }];
@@ -574,7 +697,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
 
             renderSpeedVsDistanceChart(container, data, options);
 
-            expect((global.window as any)._chartjsInstances).toStrictEqual([
+            expect(getChartTestWindow()._chartjsInstances).toStrictEqual([
                 chartInstanceMock,
             ]);
         });
@@ -617,7 +740,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
 
             renderSpeedVsDistanceChart(container, data, options);
 
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             expect(chartConfig.options.plugins.tooltip).toMatchObject({
                 callbacks: {
                     label: expect.any(Function),
@@ -647,7 +770,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
 
             renderSpeedVsDistanceChart(container, data, options);
 
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             const tooltipCallback =
                 chartConfig.options.plugins.tooltip.callbacks.label;
             const mockContext = {
@@ -681,7 +804,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
 
             renderSpeedVsDistanceChart(container, data, options);
 
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             const tooltipCallback =
                 chartConfig.options.plugins.tooltip.callbacks.label;
             const mockContext = {
@@ -712,7 +835,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
 
             renderSpeedVsDistanceChart(container, data, options);
 
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             const tooltipCallback =
                 chartConfig.options.plugins.tooltip.callbacks.label;
             const mockContext = {
@@ -743,7 +866,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
 
             renderSpeedVsDistanceChart(container, data, options);
 
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             const tooltipCallback =
                 chartConfig.options.plugins.tooltip.callbacks.label;
             const mockContext = {
@@ -772,7 +895,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
 
             renderSpeedVsDistanceChart(container, data, options);
 
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             expect(chartConfig.plugins).toHaveLength(2);
             expect(chartConfig.plugins).not.toHaveLength(0);
         });
@@ -792,7 +915,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
 
             renderSpeedVsDistanceChart(container, data, options);
 
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             expect(chartConfig.options.plugins).toHaveProperty(
                 "chartBackgroundColorPlugin"
             );
@@ -871,7 +994,11 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             };
 
             expect(() => {
-                renderSpeedVsDistanceChart(null as any, data, options);
+                renderSpeedVsDistanceChart(
+                    null as unknown as HTMLElement,
+                    data,
+                    options
+                );
             }).not.toThrow();
 
             expect(console.error).toHaveBeenCalledWith(
@@ -897,7 +1024,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
 
             renderSpeedVsDistanceChart(container, data, options);
 
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             expect(chartConfig.options.responsive).toBe(true);
             expect(chartConfig.options.responsive).not.toBe(false);
             expect(chartConfig.options.maintainAspectRatio).toBe(false);
@@ -909,7 +1036,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             mockLocalStorage.getItem.mockReturnValue(null);
 
             const container = document.createElement("div");
-            const data: any[] = [];
+            const data: SpeedDistanceDatum[] = [];
             const options = {
                 maxPoints: 1000,
                 showPoints: true,
@@ -943,7 +1070,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             renderSpeedVsDistanceChart(container, data, options);
 
             expect(Chart).toHaveBeenCalled();
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             expect(chartConfig.data.datasets[0].data).toHaveLength(2);
         });
 
@@ -966,7 +1093,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             renderSpeedVsDistanceChart(container, data, options);
 
             expect(Chart).toHaveBeenCalled();
-            const chartConfig = Chart.mock.calls[0][1];
+            const chartConfig = getLatestChartConfig();
             expect(
                 chartConfig.data.datasets[0].data.length
             ).toBeLessThanOrEqual(33);

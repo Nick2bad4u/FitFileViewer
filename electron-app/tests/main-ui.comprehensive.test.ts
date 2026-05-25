@@ -172,6 +172,14 @@ function setupMainUiDom(): void {
     );
 }
 
+type MainUiTestGlobal = typeof globalThis & {
+    electronAPI?: {
+        onIpc: ReturnType<typeof vi.fn>;
+        onSetTheme: ReturnType<typeof vi.fn>;
+        sendThemeChanged: ReturnType<typeof vi.fn>;
+    };
+};
+
 describe("main-ui.js - UI Controller and State Management", () => {
     beforeEach(() => {
         setupMainUiDom();
@@ -221,7 +229,7 @@ describe("main-ui.js - UI Controller and State Management", () => {
         const onIpc = vi.fn();
         const onSetTheme = vi.fn();
         const sendThemeChanged = vi.fn();
-        (globalThis as any).electronAPI = {
+        (globalThis as MainUiTestGlobal).electronAPI = {
             onIpc,
             onSetTheme,
             sendThemeChanged,

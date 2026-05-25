@@ -6,16 +6,49 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import { resolvePreloadScriptRequire } from "../helpers/preloadModuleMocks";
 
+interface ChannelInfo {
+    channels: Record<string, unknown>;
+    events: Record<string, unknown>;
+    totalChannels: number;
+    totalEvents: number;
+}
+
+interface ExposedPreloadApi {
+    [methodName: string]: (...args: unknown[]) => unknown;
+    getChannelInfo: () => ChannelInfo;
+    validateAPI: () => boolean;
+}
+
+interface MockIpcRenderer {
+    invoke: ReturnType<typeof vi.fn<(...args: unknown[]) => Promise<unknown>>>;
+    on: ReturnType<typeof vi.fn>;
+    once: ReturnType<typeof vi.fn>;
+    removeAllListeners: ReturnType<typeof vi.fn>;
+    removeListener: ReturnType<typeof vi.fn>;
+    send: ReturnType<typeof vi.fn>;
+}
+
+interface MockContextBridge {
+    exposeInMainWorld: ReturnType<
+        typeof vi.fn<(name: string, api: unknown) => void>
+    >;
+}
+
 describe("preload.js - Advanced Test Coverage", () => {
-    let mockIpcRenderer: any;
-    let mockContextBridge: any;
-    let consoleSpy: any;
+    let mockIpcRenderer: MockIpcRenderer;
+    let mockContextBridge: MockContextBridge;
+    let consoleSpy: {
+        error: ReturnType<typeof vi.spyOn>;
+        log: ReturnType<typeof vi.spyOn>;
+    };
     let preloadCode: string;
 
     beforeEach(() => {
         // Reset mocks
         mockIpcRenderer = {
-            invoke: vi.fn().mockResolvedValue("mock-result"),
+            invoke: vi
+                .fn<(...args: unknown[]) => Promise<unknown>>()
+                .mockResolvedValue("mock-result"),
             send: vi.fn(),
             on: vi.fn(),
             once: vi.fn(),
@@ -77,7 +110,9 @@ describe("preload.js - Advanced Test Coverage", () => {
             mockRequire,
             mockProcess,
             mockConsole,
-            exposedAPI: mockContextBridge.exposeInMainWorld.mock.calls[0]?.[1],
+            exposedAPI: mockContextBridge.exposeInMainWorld.mock.calls[0]?.[1] as
+                | ExposedPreloadApi
+                | undefined,
             devTools: mockContextBridge.exposeInMainWorld.mock.calls[1]?.[1],
         };
     }
@@ -627,7 +662,7 @@ describe("preload.js - Advanced Test Coverage", () => {
         test("should reject invoke with invalid channel", async () => {
             const { exposedAPI } = createPreloadEnvironment();
 
-            await expect(exposedAPI.invoke(123 as any)).rejects.toThrow(
+            await expect(exposedAPI.invoke(123)).rejects.toThrow(
                 "Invalid channel for invoke"
             );
         });
@@ -674,7 +709,7 @@ describe("preload.js - Advanced Test Coverage", () => {
 
         test("should reject invalid parameters in injectMenu", async () => {
             const { exposedAPI } = createPreloadEnvironment();
-            const result = await exposedAPI.injectMenu(123 as any);
+            const result = await exposedAPI.injectMenu(123);
 
             expect(result).toBe(false);
             expect(mockIpcRenderer.invoke).not.toHaveBeenCalledWith(

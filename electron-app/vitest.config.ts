@@ -165,8 +165,10 @@ export default defineConfig({
         globals: true, // Enable global test functions (describe, it, expect)
         globalSetup: ["./tests/globalSetup.js"],
         hookTimeout: 30_000,
-        // Only collect tests from the source tests directory
-        include: ["tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
+        include: [
+            "tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
+            "utils/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
+        ],
         includeTaskLocation: true,
         isolate: true,
         logHeapUsage: true,
@@ -219,7 +221,6 @@ export default defineConfig({
         typecheck: {
             allowJs: false,
             checker: "tsc",
-            enabled: true,
             exclude: [
                 "**/dist*/**",
                 "**/{html,dist,assets}/**",

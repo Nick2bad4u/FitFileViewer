@@ -2,10 +2,58 @@
  * @vitest-environment jsdom
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import type { Mock } from "vitest";
+
+interface MockContextBridge {
+    exposeInMainWorld: Mock<(apiKey: string, api: unknown) => void>;
+}
+
+interface MockIpcRenderer {
+    invoke: Mock<(channel: string, ...args: unknown[]) => Promise<unknown>>;
+    on: Mock<(channel: string, listener: (...args: unknown[]) => void) => void>;
+    send: Mock<(channel: string, ...args: unknown[]) => void>;
+}
+
+interface TestElectronApi {
+    getChannelInfo: () => {
+        channels: Record<string, string>;
+        events: Record<string, string>;
+        totalChannels: number;
+        totalEvents: number;
+    };
+    invoke: (channel: unknown, ...args: unknown[]) => Promise<unknown>;
+    openFile: () => Promise<unknown>;
+    readFile: (filePath: string) => Promise<unknown>;
+    send: (channel: unknown, ...args: unknown[]) => void;
+    sendThemeChanged: (theme: string) => void;
+}
+
+interface TestDevTools {
+    getPreloadInfo: () => {
+        apiMethods: string[];
+        constants: {
+            CHANNELS: Record<string, string>;
+            EVENTS: Record<string, string>;
+        };
+        timestamp: string;
+        version: string;
+    };
+    logAPIState: () => void;
+    testIPC: () => Promise<boolean>;
+}
+
+function getExposedApi<T>(
+    contextBridge: MockContextBridge,
+    callIndex: number
+): T {
+    const exposedCall = contextBridge.exposeInMainWorld.mock.calls[callIndex];
+    expect(exposedCall).toBeDefined();
+    return exposedCall[1] as T;
+}
 
 describe("preload.js - import-based coverage", () => {
-    let mockIpcRenderer: any;
-    let mockContextBridge: any;
+    let mockIpcRenderer: MockIpcRenderer;
+    let mockContextBridge: MockContextBridge;
     const originalEnv = process.env.NODE_ENV;
 
     beforeEach(() => {
@@ -51,7 +99,7 @@ describe("preload.js - import-based coverage", () => {
             })
         );
 
-        const api = mockContextBridge.exposeInMainWorld.mock.calls[0][1];
+        const api = getExposedApi<TestElectronApi>(mockContextBridge, 0);
 
         // Exercise a few API paths to accrue coverage
         await api.openFile();
@@ -70,11 +118,11 @@ describe("preload.js - import-based coverage", () => {
         // Validation branches: send with invalid channel, invoke with invalid channel
         const sendCallsBeforeInvalidChannel = mockIpcRenderer.send.mock.calls
             .length;
-        api.send(123 as any);
+        api.send(123);
         expect(mockIpcRenderer.send).toHaveBeenCalledTimes(
             sendCallsBeforeInvalidChannel
         );
-        await expect(api.invoke(123 as any)).rejects.toThrow(
+        await expect(api.invoke(123)).rejects.toThrow(
             "Invalid channel for invoke"
         );
 
@@ -107,7 +155,7 @@ describe("preload.js - import-based coverage", () => {
             })
         );
 
-        const devTools = mockContextBridge.exposeInMainWorld.mock.calls[1][1];
+        const devTools = getExposedApi<TestDevTools>(mockContextBridge, 1);
         const preloadInfo = devTools.getPreloadInfo();
         expect(preloadInfo).toEqual(
             expect.objectContaining({

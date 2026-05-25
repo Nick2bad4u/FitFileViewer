@@ -6,6 +6,21 @@ import {
     resetState,
 } from "../../utils/state/core/stateManager.js";
 
+interface SubscriptionSnapshot {
+    paths: string[];
+    subscriptionDetails: Record<
+        string,
+        { hasListeners: boolean; listenerCount: number } | undefined
+    >;
+    totalListeners: number;
+}
+
+interface InitializationStatusSnapshot {
+    systemState: {
+        missing?: unknown;
+    };
+}
+
 describe("MasterStateManager Basic Functionality", () => {
     beforeEach(() => {
         // Reset state before each test
@@ -95,23 +110,21 @@ describe("MasterStateManager Basic Functionality", () => {
             expect(callCount).toBe(1);
 
             // Check subscriptions list through masterStateManager
-            const subscriptions = masterStateManager.getSubscriptions();
-            expect(
-                (subscriptions as any).subscriptionDetails?.[
-                    "test.subscription"
-                ]
-            ).toEqual({
+            const subscriptions =
+                masterStateManager.getSubscriptions() as SubscriptionSnapshot;
+            expect(subscriptions.subscriptionDetails["test.subscription"]).toEqual({
                 hasListeners: true,
                 listenerCount: 1,
             });
-            expect((subscriptions as any).paths).toContain("test.subscription");
-            expect((subscriptions as any).totalListeners).toBe(1);
+            expect(subscriptions.paths).toContain("test.subscription");
+            expect(subscriptions.totalListeners).toBe(1);
 
             // Clean up
             unsubscribe();
             expect(
-                (masterStateManager.getSubscriptions() as any)
-                    .subscriptionDetails?.["test.subscription"]
+                (
+                    masterStateManager.getSubscriptions() as SubscriptionSnapshot
+                ).subscriptionDetails["test.subscription"]
             ).toBeUndefined();
         });
     });
@@ -133,7 +146,9 @@ describe("MasterStateManager Basic Functionality", () => {
                     version: undefined,
                 },
             });
-            expect((status as any).systemState.missing).toBeUndefined();
+            expect(
+                (status as InitializationStatusSnapshot).systemState.missing
+            ).toBeUndefined();
         });
     });
 });

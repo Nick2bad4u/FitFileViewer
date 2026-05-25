@@ -259,7 +259,7 @@ describe("Tab State Management Integration", () => {
             // Should only be called once per initialization (could be multiple due to repeated init)
             // But should not grow exponentially
             const callCount = mockState.setState.mock.calls.filter(
-                (/** @type {any[]} */ call) =>
+                (call: unknown[]) =>
                     call[0] === "ui.activeTab" && call[1] === "chart"
             ).length;
 

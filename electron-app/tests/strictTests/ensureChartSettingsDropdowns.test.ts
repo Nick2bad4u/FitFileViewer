@@ -3,12 +3,36 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // Use jsdom timers to control debounce/timeouts
 vi.useFakeTimers();
 
+interface ChartInstanceMock {
+    readonly config: { readonly type: string };
+    readonly data: {
+        readonly datasets: readonly {
+            readonly data: readonly number[];
+            readonly label: string;
+        }[];
+    };
+}
+
+type EnsureDropdownsTestWindow = Window &
+    typeof globalThis & {
+        _chartjsInstances?: ChartInstanceMock[];
+        globalData?: unknown;
+    };
+
+function getTestWindow(): EnsureDropdownsTestWindow {
+    return window as EnsureDropdownsTestWindow;
+}
+
+function isObjectRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null;
+}
+
 // Hoisted container for spies and state to satisfy Vitest mock hoisting
 const h = vi.hoisted(() => {
-    const chartSettings: Record<string, any> = {};
+    const chartSettings: Record<string, unknown> = {};
     const fieldVisibility: Record<string, string> = {};
     const getChartSetting = vi.fn((key: string) => chartSettings[key]);
-    const setChartSetting = vi.fn((key: string, value: any) => {
+    const setChartSetting = vi.fn((key: string, value: unknown) => {
         chartSettings[key] = value;
         return true;
     });
@@ -24,7 +48,7 @@ const h = vi.hoisted(() => {
     );
 
     return {
-        state: {} as Record<string, any>,
+        state: {} as Record<string, unknown>,
         chartSettings,
         fieldVisibility,
         getChartSetting,
@@ -57,11 +81,14 @@ const spies = h.spies as typeof h.spies;
 // Mocks for modules used by ensure/create* modules. Must be declared before imports.
 vi.mock("../../utils/state/core/stateManager.js", () => ({
     getState: (key: string) => state[key],
-    setState: (key: string, value: any) => {
+    setState: (key: string, value: unknown) => {
         state[key] = value;
     },
-    updateState: (ns: string, patch: any) => {
-        state[ns] = { ...(state[ns] || {}), ...patch };
+    updateState: (ns: string, patch: Record<string, unknown>) => {
+        state[ns] = {
+            ...(isObjectRecord(state[ns]) ? state[ns] : {}),
+            ...patch,
+        };
     },
 }));
 
@@ -134,7 +161,7 @@ vi.mock("../../utils/charts/plugins/chartOptionsConfig.js", () => ({
 
 vi.mock("../../utils/files/export/exportUtils.js", () => ({
     exportUtils: {
-        isValidChart: (c: any) => !!c,
+        isValidChart: (chart: unknown) => Boolean(chart),
         downloadChartAsPNG: vi.fn(),
         createCombinedChartsImage: vi.fn(),
         copyChartToClipboard: vi.fn(),
@@ -188,7 +215,7 @@ function setupDOM(withContainer = false) {
 }
 
 function seedGlobalData() {
-    (window as any).globalData = {
+    getTestWindow().globalData = {
         recordMesgs: [
             {
                 speed: 1.2,
@@ -248,7 +275,7 @@ function seedGlobalData() {
 }
 
 function seedCharts(count = 2) {
-    (window as any)._chartjsInstances = Array.from(
+    getTestWindow()._chartjsInstances = Array.from(
         { length: count },
         (_, i) => ({
             data: {
@@ -277,12 +304,14 @@ beforeEach(() => {
     h.setChartSetting.mockClear();
     h.getChartFieldVisibility.mockClear();
     h.setChartFieldVisibility.mockClear();
-    Object.values(spies).forEach((fn) => (fn as any).mockClear?.());
+    Object.values(spies).forEach((fn) => {
+        fn.mockClear();
+    });
     if (typeof localStorage !== "undefined") {
         localStorage.clear();
     }
-    delete (window as any)._chartjsInstances;
-    delete (window as any).globalData;
+    delete getTestWindow()._chartjsInstances;
+    delete getTestWindow().globalData;
 });
 
 afterEach(() => {
@@ -485,7 +514,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
         const wrapper = document.getElementById("chartjs-settings-wrapper")!;
 
         // No charts path
-        delete (window as any)._chartjsInstances;
+        delete getTestWindow()._chartjsInstances;
         const exportZipBtn = Array.from(
             wrapper.querySelectorAll("button")
         ).find((b) =>

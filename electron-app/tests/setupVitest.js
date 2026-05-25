@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Mock Leaflet global L for all Vitest tests
 // eslint-disable-next-line import-x/no-unassigned-import -- ensure web storage shim registers before Storybook config executes
 import "./shims/nodeWebStorage";
@@ -489,7 +488,6 @@ function restoreNativeDom() {
         if (!isValidDoc(curDoc) && __nativeDocument) {
             try {
                 // Restore global document reference
-                // @ts-ignore
                 globalThis.document = __nativeDocument;
                 if (curWin && typeof curWin === "object") {
                     // Keep the same window object but ensure it points to the restored document
@@ -512,7 +510,6 @@ function restoreNativeDom() {
         if (effDoc) {
             // Always realign global and window document references to the same instance
             try {
-                // @ts-ignore
                 globalThis.document = effDoc;
             } catch {
                 /* Ignore errors */
@@ -526,7 +523,6 @@ function restoreNativeDom() {
             }
             // Expose a canonical reference for modules to use, avoiding cross-realm mismatches
             try {
-                // @ts-ignore
                 globalThis.__vitest_effective_document__ = effDoc;
             } catch {
                 /* Ignore errors */
@@ -662,33 +658,27 @@ function restoreNativeDom() {
 try {
     if (globalThis.console) {
         if (typeof globalThis.console.group !== "function") {
-            // @ts-ignore
             globalThis.console.group = vi.fn();
         }
         if (typeof globalThis.console.groupEnd !== "function") {
-            // @ts-ignore
             globalThis.console.groupEnd = vi.fn();
         }
         if (typeof globalThis.console.groupCollapsed !== "function") {
-            // @ts-ignore
             globalThis.console.groupCollapsed = vi.fn();
         }
     }
     if (typeof window !== "undefined" && window.console) {
         if (typeof window.console.group !== "function") {
-            // @ts-ignore
             window.console.group = /** @type {any} */ (
                 globalThis.console.group || vi.fn()
             );
         }
         if (typeof window.console.groupEnd !== "function") {
-            // @ts-ignore
             window.console.groupEnd = /** @type {any} */ (
                 globalThis.console.groupEnd || vi.fn()
             );
         }
         if (typeof window.console.groupCollapsed !== "function") {
-            // @ts-ignore
             window.console.groupCollapsed = /** @type {any} */ (
                 globalThis.console.groupCollapsed || vi.fn()
             );
@@ -1433,13 +1423,11 @@ if (typeof window !== "undefined") {
     if (typeof window.dispatchEvent !== "function") {
         try {
             // Bind to EventTarget prototype if available
-            // @ts-ignore
             const et =
                 typeof EventTarget !== "undefined"
                     ? EventTarget.prototype.dispatchEvent
                     : undefined;
             if (typeof et === "function") {
-                // @ts-ignore
                 window.dispatchEvent =
                     /** @type {(event: Event) => boolean} */ (et.bind(window));
             } else {
@@ -1447,14 +1435,12 @@ if (typeof window !== "undefined") {
                 /** @type {(event: Event) => boolean} */
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const noop = (_event) => true;
-                // @ts-ignore
                 window.dispatchEvent = noop;
             }
         } catch {
             /** @type {(event: Event) => boolean} */
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const noop = (_event) => true;
-            // @ts-ignore
             window.dispatchEvent = noop;
         }
     }
@@ -1709,7 +1695,6 @@ if (!applyBrowserGuardsIfReady()) {
      */
     function installSafeConstructor(name) {
         try {
-            // @ts-ignore
             const nativeRef = globalThis[name];
             if (typeof nativeRef !== "function") return; // nothing to do
             let current = nativeRef;
@@ -1737,7 +1722,6 @@ if (!applyBrowserGuardsIfReady()) {
     installSafeConstructor("WeakMap");
     installSafeConstructor("WeakSet");
     // Guard Buffer to avoid instanceof crashes in Vitest error serializer
-    // @ts-ignore
     if (typeof globalThis.Buffer !== "undefined")
         installSafeConstructor("Buffer");
 
@@ -1755,7 +1739,6 @@ if (!applyBrowserGuardsIfReady()) {
         ];
         for (const n of names) {
             try {
-                // @ts-ignore
                 const nativeRef = window[n];
                 if (typeof nativeRef !== "function") continue;
                 let current = nativeRef;
@@ -1774,7 +1757,6 @@ if (!applyBrowserGuardsIfReady()) {
         }
         // Also guard window.Buffer if present
         try {
-            // @ts-ignore
             const nativeBuf = window.Buffer;
             if (typeof nativeBuf === "function") {
                 let current = nativeBuf;
@@ -1910,7 +1892,6 @@ try {
         }
         // Ensure canonical effective document reflects the current global document
         try {
-            // @ts-ignore
             globalThis.__vitest_effective_document__ =
                 typeof document !== "undefined" ? document : undefined;
         } catch {
@@ -2024,7 +2005,6 @@ try {
         }
         // Ensure canonical effective document reflects the current global document
         try {
-            // @ts-ignore
             globalThis.__vitest_effective_document__ =
                 typeof document !== "undefined" ? document : undefined;
         } catch {
@@ -2063,9 +2043,7 @@ try {
         /** @type {(o: any) => string[]} */
         let current = nativeKeys;
         // Global opt-in flag to allow tests to force throw-through
-        // @ts-ignore
         if (typeof globalThis.__vitest_object_keys_allow_throw !== "boolean") {
-            // @ts-ignore
             globalThis.__vitest_object_keys_allow_throw = false;
         }
         /**
@@ -2075,10 +2053,8 @@ try {
          */
         const wrapped = (/** @type {any} */ o) => {
             try {
-                // @ts-ignore - may be a mocked implementation
                 return /** @type {any} */ (current)(o);
             } catch (err) {
-                // @ts-ignore
                 if (globalThis.__vitest_object_keys_allow_throw) {
                     throw err;
                 }
@@ -2102,7 +2078,6 @@ try {
             },
             set(v) {
                 if (typeof v === "function") {
-                    // @ts-ignore
                     if (v && v.__isObjectKeysWrapper) {
                         current = nativeKeys; // reset to native to avoid recursion
                     } else {

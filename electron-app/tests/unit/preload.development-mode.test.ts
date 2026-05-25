@@ -1,17 +1,65 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { ElectronAPI } from "../../shared/preloadApi";
+
+type ConsoleCall = unknown[];
+type ExposedElectronAPI = Pick<
+    ElectronAPI,
+    "getAppVersion" | "injectMenu" | "invoke" | "validateAPI"
+>;
+
+interface ExposedDevTools {
+    getPreloadInfo: () => {
+        apiMethods: string[];
+        constants: Record<string, unknown>;
+        timestamp: string;
+        version: string;
+    };
+    logAPIState: () => void;
+    testIPC: () => Promise<boolean>;
+}
+
+interface ElectronHoistedMock {
+    contextBridge: {
+        exposeInMainWorld: (name: string, api: unknown) => void;
+    };
+    ipcRenderer: {
+        invoke: (...args: unknown[]) => Promise<unknown>;
+        on: (...args: unknown[]) => unknown;
+        send: (...args: unknown[]) => unknown;
+    };
+}
+
+type ProcessOnceListener = (...args: unknown[]) => void;
+
+function getGlobalValue(name: string): unknown {
+    return Reflect.get(globalThis, name);
+}
+
+function setGlobalValue(name: string, value: unknown): void {
+    Reflect.set(globalThis, name, value);
+}
+
+function getExposedElectronAPI(): ExposedElectronAPI {
+    return getGlobalValue("electronAPI") as ExposedElectronAPI;
+}
+
+function getExposedDevTools(): ExposedDevTools {
+    return getGlobalValue("devTools") as ExposedDevTools;
+}
+
 describe("preload.js - Development mode coverage", () => {
-    let originalElectronAPI: any;
-    let originalDevTools: any;
+    let originalElectronAPI: unknown;
+    let originalDevTools: unknown;
     const originalNodeEnv = process.env.NODE_ENV;
 
     beforeEach(() => {
         vi.clearAllMocks();
         vi.resetModules();
-        originalElectronAPI = (globalThis as any).electronAPI;
-        originalDevTools = (globalThis as any).devTools;
-        delete (globalThis as any).electronAPI;
-        delete (globalThis as any).devTools;
+        originalElectronAPI = getGlobalValue("electronAPI");
+        originalDevTools = getGlobalValue("devTools");
+        Reflect.deleteProperty(globalThis, "electronAPI");
+        Reflect.deleteProperty(globalThis, "devTools");
     });
 
     afterEach(() => {
@@ -20,56 +68,61 @@ describe("preload.js - Development mode coverage", () => {
         Reflect.deleteProperty(globalThis, "__electronHoistedMock");
         process.env.NODE_ENV = originalNodeEnv;
         // restore globals if they existed
-        if (originalElectronAPI)
-            (globalThis as any).electronAPI = originalElectronAPI;
-        if (originalDevTools) (globalThis as any).devTools = originalDevTools;
+        if (originalElectronAPI) setGlobalValue("electronAPI", originalElectronAPI);
+        if (originalDevTools) setGlobalValue("devTools", originalDevTools);
     });
 
     it("exposes api and dev tools, logs dev messages, and handles beforeExit in development", async () => {
         const ipcRenderer = {
-            invoke: vi.fn().mockResolvedValue("2.3.4"),
-            send: vi.fn(),
-            on: vi.fn(),
-        } as const;
+            invoke: vi
+                .fn<(...args: unknown[]) => Promise<string>>()
+                .mockResolvedValue("2.3.4"),
+            on: vi.fn<(...args: unknown[]) => void>(),
+            send: vi.fn<(...args: unknown[]) => void>(),
+        } satisfies ElectronHoistedMock["ipcRenderer"];
 
         const contextBridge = {
             exposeInMainWorld: vi
-                .fn()
-                .mockImplementation((name: string, api: any) => {
-                    (globalThis as any)[name] = api;
+                .fn<(name: string, api: unknown) => void>()
+                .mockImplementation((name, api) => {
+                    setGlobalValue(name, api);
                 }),
-        };
+        } satisfies ElectronHoistedMock["contextBridge"];
 
-        const logs: any[] = [];
-        const errors: any[] = [];
+        const logs: ConsoleCall[] = [];
+        const errors: ConsoleCall[] = [];
         const consoleLogSpy = vi
             .spyOn(console, "log")
-            .mockImplementation((...args: any[]) => {
+            .mockImplementation((...args: unknown[]) => {
                 logs.push(args);
             });
         const consoleErrorSpy = vi
             .spyOn(console, "error")
-            .mockImplementation((...args: any[]) => {
+            .mockImplementation((...args: unknown[]) => {
                 errors.push(args);
             });
 
-        const onceCalls: Array<{ event: string; cb: Function }> = [];
+        const onceCalls: Array<{
+            cb: ProcessOnceListener;
+            event: string | symbol;
+        }> = [];
         const processOnceSpy = vi
             .spyOn(process, "once")
-            .mockImplementation((event: string, cb: Function) => {
-                onceCalls.push({ event, cb });
+            .mockImplementation((event, cb) => {
+                onceCalls.push({ event, cb: cb as ProcessOnceListener });
                 return process;
-            }) as any;
+            });
 
         process.env.NODE_ENV = "development";
-        Reflect.set(globalThis, "__electronHoistedMock", {
+        const electronMock: ElectronHoistedMock = {
             contextBridge,
             ipcRenderer,
-        });
+        };
+        Reflect.set(globalThis, "__electronHoistedMock", electronMock);
         await import("../../preload.js");
 
         // electronAPI should be exposed
-        const api = (globalThis as any).electronAPI;
+        const api = getExposedElectronAPI();
         expect(api).toEqual(
             expect.objectContaining({
                 getAppVersion: expect.any(Function),
@@ -80,7 +133,7 @@ describe("preload.js - Development mode coverage", () => {
         );
 
         // devTools should be exposed in development
-        const devTools = (globalThis as any).devTools;
+        const devTools = getExposedDevTools();
         expect(devTools).toEqual(
             expect.objectContaining({
                 getPreloadInfo: expect.any(Function),

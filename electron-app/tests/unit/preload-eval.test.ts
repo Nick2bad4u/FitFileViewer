@@ -1,12 +1,28 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+type BeforeExitCallback = () => void;
+
+interface ElectronEvalMock {
+    contextBridge: {
+        exposeInMainWorld: ReturnType<
+            typeof vi.fn<(name: string, api: unknown) => void>
+        >;
+    };
+    ipcRenderer: {
+        invoke: ReturnType<typeof vi.fn<() => Promise<string>>>;
+        on: ReturnType<typeof vi.fn>;
+        removeAllListeners: ReturnType<typeof vi.fn>;
+        send: ReturnType<typeof vi.fn>;
+    };
+}
+
 describe("preload.js - Script Evaluation Test", () => {
-    let electronMock: any;
-    let consoleLogSpy: any;
-    let consoleErrorSpy: any;
-    let processOnceSpy: any;
+    let electronMock: ElectronEvalMock;
+    let consoleLogSpy: ReturnType<typeof vi.spyOn>;
+    let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
+    let processOnceSpy: ReturnType<typeof vi.spyOn>;
     const originalNodeEnv = process.env.NODE_ENV;
-    const onceCalls: Array<{ cb: Function; event: string }> = [];
+    const onceCalls: Array<{ cb: BeforeExitCallback; event: string }> = [];
 
     beforeEach(async () => {
         // Reset everything completely
@@ -35,10 +51,10 @@ describe("preload.js - Script Evaluation Test", () => {
             .mockImplementation(() => {});
         processOnceSpy = vi
             .spyOn(process, "once")
-            .mockImplementation((event: string, cb: Function) => {
+            .mockImplementation((event: string, cb: BeforeExitCallback) => {
                 onceCalls.push({ cb, event });
                 return process;
-            }) as any;
+            });
 
         process.env.NODE_ENV = "development";
         Reflect.set(globalThis, "__electronHoistedMock", electronMock);
@@ -56,7 +72,7 @@ describe("preload.js - Script Evaluation Test", () => {
         // Check if contextBridge.exposeInMainWorld was called
         const exposeCalls =
             electronMock.contextBridge.exposeInMainWorld.mock.calls;
-        expect(exposeCalls.map((call: any) => call[0])).toEqual([
+        expect(exposeCalls.map((call: unknown[]) => call[0])).toEqual([
             "electronAPI",
             "devTools",
         ]);
@@ -99,13 +115,16 @@ describe("preload.js - Script Evaluation Test", () => {
         // Look for specific log messages
         const logCalls = consoleLogSpy.mock.calls;
         const hasPreloadLogs = logCalls.some(
-            (call: any) => call[0] && call[0].includes("[preload.js]")
+            (call: unknown[]) =>
+                typeof call[0] === "string" && call[0].includes("[preload.js]")
         );
 
         expect(hasPreloadLogs).toBe(true);
         expect(
-            logCalls.some((call: any) =>
-                call[0]?.includes("Preload script initialized successfully")
+            logCalls.some(
+                (call: unknown[]) =>
+                    typeof call[0] === "string" &&
+                    call[0].includes("Preload script initialized successfully")
             )
         ).toBe(true);
     });

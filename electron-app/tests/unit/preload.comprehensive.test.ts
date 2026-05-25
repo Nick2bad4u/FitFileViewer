@@ -6,17 +6,58 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import { resolvePreloadScriptRequire } from "../helpers/preloadModuleMocks";
 
+interface ChannelInfo {
+    channels: Record<string, unknown>;
+    events: Record<string, unknown>;
+    totalChannels: number;
+    totalEvents: number;
+}
+
+interface ExposedPreloadApi {
+    [methodName: string]: (...args: unknown[]) => unknown;
+    getChannelInfo: () => ChannelInfo;
+    validateAPI: () => boolean;
+}
+
+interface ExposedDevToolsApi {
+    [methodName: string]: (...args: unknown[]) => unknown;
+    getPreloadInfo: () => {
+        apiMethods: string[];
+        constants?: unknown;
+        timestamp?: unknown;
+    };
+    testIPC: () => Promise<unknown>;
+}
+
+interface MockIpcRenderer {
+    invoke: ReturnType<typeof vi.fn<(...args: unknown[]) => Promise<unknown>>>;
+    on: ReturnType<typeof vi.fn>;
+    once: ReturnType<typeof vi.fn>;
+    removeAllListeners: ReturnType<typeof vi.fn>;
+    removeListener: ReturnType<typeof vi.fn>;
+    send: ReturnType<typeof vi.fn>;
+}
+
+interface MockContextBridge {
+    exposeInMainWorld: ReturnType<
+        typeof vi.fn<(name: string, api: unknown) => void>
+    >;
+}
+
 /**
  * Comprehensive test suite for preload.js Targeting significant coverage
  * improvement from 43.42% baseline
  */
 describe("preload.js - Comprehensive Coverage Test Suite", () => {
-    let mockIpcRenderer: any;
-    let mockContextBridge: any;
-    let consoleSpy: any;
+    let mockIpcRenderer: MockIpcRenderer;
+    let mockContextBridge: MockContextBridge;
+    let consoleSpy: {
+        error: ReturnType<typeof vi.spyOn>;
+        log: ReturnType<typeof vi.spyOn>;
+    };
     let preloadCode: string;
-    let exposedAPI: any;
-    let exposedDevTools: any;
+    let exposedAPI: ExposedPreloadApi;
+    let exposedDevTools: ExposedDevToolsApi;
 
     beforeEach(() => {
         // Clear all mocks
@@ -24,7 +65,9 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
 
         // Setup comprehensive IPC renderer mock
         mockIpcRenderer = {
-            invoke: vi.fn().mockResolvedValue("mock-result"),
+            invoke: vi
+                .fn<(...args: unknown[]) => Promise<unknown>>()
+                .mockResolvedValue("mock-result"),
             send: vi.fn(),
             on: vi.fn(),
             once: vi.fn(),
@@ -36,9 +79,9 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
         mockContextBridge = {
             exposeInMainWorld: vi.fn((name, api) => {
                 if (name === "electronAPI") {
-                    exposedAPI = api;
+                    exposedAPI = api as ExposedPreloadApi;
                 } else if (name === "devTools") {
-                    exposedDevTools = api;
+                    exposedDevTools = api as ExposedDevToolsApi;
                 }
             }),
         };
@@ -58,8 +101,8 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
 
     afterEach(() => {
         vi.restoreAllMocks();
-        exposedAPI = undefined;
-        exposedDevTools = undefined;
+        exposedAPI = undefined as unknown as ExposedPreloadApi;
+        exposedDevTools = undefined as unknown as ExposedDevToolsApi;
     });
 
     /**

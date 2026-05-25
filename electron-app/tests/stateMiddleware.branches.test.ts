@@ -1,4 +1,18 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
+import type {
+    MiddlewareContext,
+    MiddlewareDefinition,
+} from "../utils/state/core/stateMiddleware.js";
+
+type StatePerformanceEntry = {
+    duration: number;
+    path: string;
+    timestamp: number;
+};
+
+type StatePerformanceGlobal = typeof globalThis & {
+    _statePerformance?: StatePerformanceEntry[];
+};
 
 // We will import fresh modules in some tests to control module-level flags
 import "./shims/nodeWebStorage";
@@ -34,7 +48,10 @@ describe("stateMiddleware additional branches", () => {
             100
         );
 
-        const ctx = { path: "settings.theme", value: "dark" } as any;
+        const ctx: MiddlewareContext = {
+            path: "settings.theme",
+            value: "dark",
+        };
         await executeMiddleware(MIDDLEWARE_PHASES.BEFORE_SET, ctx);
 
         expect(
@@ -50,7 +67,7 @@ describe("stateMiddleware additional branches", () => {
         vi.resetModules();
         const errorSpy = vi
             .spyOn(console, "error")
-            .mockImplementation((...args: any[]) => {
+            .mockImplementation((...args: unknown[]) => {
                 // Only throw for the inner error-handler invocation log to trigger the outer catch branch
                 if (
                     typeof args[0] === "string" &&
@@ -82,15 +99,14 @@ describe("stateMiddleware additional branches", () => {
         registerMiddleware(
             "errMW",
             {
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                onError(_error: Error) {
+                onError() {
                     throw new Error("inner-handler");
                 },
             },
             20
         );
 
-        const ctx = { path: "x", value: 1 } as any;
+        const ctx: MiddlewareContext = { path: "x", value: 1 };
         await expect(
             executeMiddleware(MIDDLEWARE_PHASES.BEFORE_SET, ctx)
         ).resolves.toEqual(ctx);
@@ -132,7 +148,7 @@ describe("stateMiddleware additional branches", () => {
         registerMiddleware(
             "mutator",
             {
-                beforeSet(ctx: any) {
+                beforeSet(ctx: MiddlewareContext) {
                     return { ...ctx, value: "mutated" };
                 },
             },
@@ -140,7 +156,7 @@ describe("stateMiddleware additional branches", () => {
         );
 
         middlewareManager.setGlobalEnabled(false);
-        const ctx = { path: "p", value: "orig" } as any;
+        const ctx: MiddlewareContext = { path: "p", value: "orig" };
         const result = await executeMiddleware(
             MIDDLEWARE_PHASES.BEFORE_SET,
             ctx
@@ -169,7 +185,8 @@ describe("stateMiddleware additional branches", () => {
         } = await import("../utils/state/core/stateMiddleware.js");
 
         // Pre-seed global performance array with 100 entries
-        (globalThis as any)._statePerformance = new Array(100)
+        const stateGlobal = globalThis as StatePerformanceGlobal;
+        stateGlobal._statePerformance = new Array(100)
             .fill(null)
             .map((_, i) => ({
                 duration: 1,
@@ -179,12 +196,12 @@ describe("stateMiddleware additional branches", () => {
 
         registerMiddleware("performance", performanceMiddleware, 10);
 
-        const ctx: any = { path: "pNew", value: 42 };
+        const ctx: MiddlewareContext = { path: "pNew", value: 42 };
         const ctx2 = await executeMiddleware(MIDDLEWARE_PHASES.BEFORE_SET, ctx);
         await executeMiddleware(MIDDLEWARE_PHASES.AFTER_SET, ctx2);
 
-        expect((globalThis as any)._statePerformance.length).toBe(100);
-        expect((globalThis as any)._statePerformance[99].path).toBe("pNew");
+        expect(stateGlobal._statePerformance?.length).toBe(100);
+        expect(stateGlobal._statePerformance?.[99]?.path).toBe("pNew");
 
         cleanupMiddleware();
     });
@@ -211,7 +228,10 @@ describe("stateMiddleware additional branches", () => {
         } = await import("../utils/state/core/stateMiddleware.js");
 
         registerMiddleware("persist", persistenceMiddleware, 10);
-        const ctx: any = { path: "settings.theme", value: "dark" };
+        const ctx: MiddlewareContext = {
+            path: "settings.theme",
+            value: "dark",
+        };
         await executeMiddleware(MIDDLEWARE_PHASES.AFTER_SET, ctx);
 
         expect(
@@ -224,7 +244,7 @@ describe("stateMiddleware additional branches", () => {
 
         setItemMock.mockRestore();
         // restore just in case
-        (window.localStorage as any).setItem = origSetItem;
+        window.localStorage.setItem = origSetItem;
         cleanupMiddleware();
     });
 
@@ -235,8 +255,11 @@ describe("stateMiddleware additional branches", () => {
         const { registerMiddleware, cleanupMiddleware } =
             await import("../utils/state/core/stateMiddleware.js");
 
-        registerMiddleware("dup", { beforeSet: (c: any) => c }, 50);
-        registerMiddleware("dup", { beforeSet: (c: any) => c }, 60);
+        const duplicateMiddleware: MiddlewareDefinition = {
+            beforeSet: (context) => context,
+        };
+        registerMiddleware("dup", duplicateMiddleware, 50);
+        registerMiddleware("dup", duplicateMiddleware, 60);
 
         expect(
             warnSpy.mock.calls.some((c) =>

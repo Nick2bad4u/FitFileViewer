@@ -63,27 +63,26 @@ beforeAll(() => {
         nativeTheme: globalMocks.mockNativeTheme,
     };
 
-    vi.mock("electron", () => electronMock);
     vi.doMock("electron", () => electronMock);
-    vi.mock("fs", () => globalMocks.mockFs);
-    vi.mock("path", () => globalMocks.mockPath);
-    vi.mock("os", () => globalMocks.mockOs);
-    vi.mock("http", () => globalMocks.mockHttp);
-    vi.mock("https", () => globalMocks.mockHttps);
-    vi.mock("url", () => globalMocks.mockUrl);
-    vi.mock("crypto", () => globalMocks.mockCrypto);
-    vi.mock("querystring", () => globalMocks.mockQuerystring);
+    vi.doMock("fs", () => globalMocks.mockFs);
+    vi.doMock("path", () => globalMocks.mockPath);
+    vi.doMock("os", () => globalMocks.mockOs);
+    vi.doMock("http", () => globalMocks.mockHttp);
+    vi.doMock("https", () => globalMocks.mockHttps);
+    vi.doMock("url", () => globalMocks.mockUrl);
+    vi.doMock("crypto", () => globalMocks.mockCrypto);
+    vi.doMock("querystring", () => globalMocks.mockQuerystring);
 
-    vi.mock("../../utils/state/integration/mainProcessStateManager.js", () => ({
+    vi.doMock("../../utils/state/integration/mainProcessStateManager.js", () => ({
         MainProcessState: globalMocks.MockMainProcessState,
         default: globalMocks.MockMainProcessState,
     }));
 
-    vi.mock(
+    vi.doMock(
         "../../windowStateUtils.js",
         () => globalMocks.mockWindowStateUtils
     );
-    vi.mock(
+    vi.doMock(
         "../../utils/files/recent/recentFiles.js",
         () => globalMocks.mockRecentFiles
     );

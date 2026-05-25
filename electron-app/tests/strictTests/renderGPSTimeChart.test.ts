@@ -1,10 +1,113 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { JSDOM } from "jsdom";
 
-let renderGPSTimeChart: any;
-let Chart: any;
-let chartInstanceMock: any;
-let mockLocalStorage: any;
+type ChartConfig = {
+    data: {
+        datasets: Array<{
+            data: GPSTimePoint[];
+            pointRadius?: number;
+            [key: string]: unknown;
+        }>;
+    };
+    options: {
+        plugins: {
+            legend: {
+                display: boolean;
+            };
+            tooltip: {
+                callbacks: {
+                    label: (context: GPSTimeTooltipContext) => string[];
+                    title: (context: readonly { raw: GPSTimePoint }[]) => string;
+                };
+            };
+        };
+        scales: {
+            x: {
+                grid: {
+                    display: boolean;
+                };
+            };
+        };
+    };
+    plugins: unknown[];
+};
+
+type ChartConstructorMock = ReturnType<typeof vi.fn> & {
+    mock: {
+        calls: [HTMLCanvasElement, ChartConfig][];
+    };
+};
+
+type ChartInstanceMock = {
+    destroy: ReturnType<typeof vi.fn>;
+    update: ReturnType<typeof vi.fn>;
+};
+
+type GPSTimeDatum = {
+    positionLat: null | number;
+    positionLong: null | number;
+    timestamp: null | string;
+};
+
+type GPSTimeOptions = {
+    maxPoints: "all" | number;
+    showGrid?: boolean;
+    showLegend?: boolean;
+    showPoints?: boolean;
+    showTitle?: boolean;
+};
+
+type GPSTimePoint = {
+    elapsedSeconds: number;
+    pointIndex: number;
+    timestamp: Date | number | string;
+    x: number;
+    y: number;
+};
+
+type GPSTimeTestGlobal = typeof globalThis & {
+    Chart?: ChartConstructorMock;
+    HTMLCanvasElement?: typeof HTMLCanvasElement;
+    HTMLElement?: typeof HTMLElement;
+    _chartjsInstances?: ChartInstanceMock[];
+    localStorage?: StorageMock;
+    window?: Window & typeof globalThis;
+};
+
+type GPSTimeTooltipContext = {
+    datasetIndex: number;
+    raw: GPSTimePoint;
+};
+
+type RenderGPSTimeChart = (
+    container: HTMLElement,
+    data: readonly GPSTimeDatum[],
+    options: GPSTimeOptions
+) => void;
+
+type StorageMock = {
+    clear: ReturnType<typeof vi.fn>;
+    getItem: ReturnType<typeof vi.fn>;
+    removeItem: ReturnType<typeof vi.fn>;
+    setItem: ReturnType<typeof vi.fn>;
+};
+
+function getGPSTimeGlobal(): GPSTimeTestGlobal {
+    return globalThis as GPSTimeTestGlobal;
+}
+
+function getLatestChartConfig(): ChartConfig {
+    const config = Chart.mock.calls[0]?.[1];
+    if (!config) {
+        throw new Error("Expected Chart to be called with a config");
+    }
+    return config;
+}
+
+let renderGPSTimeChart: RenderGPSTimeChart;
+let Chart: ChartConstructorMock;
+let chartInstanceMock: ChartInstanceMock;
+let mockLocalStorage: StorageMock;
 let mockChartSettingsManager: { getFieldVisibility: ReturnType<typeof vi.fn> };
 let getThemeConfigMock: ReturnType<typeof vi.fn>;
 let createChartCanvasMock: ReturnType<typeof vi.fn>;
@@ -34,17 +137,19 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
             resources: "usable",
         });
 
-        (globalThis as any).window = dom.window as any;
-        (globalThis as any).document = dom.window.document as any;
-        (globalThis as any).HTMLCanvasElement = dom.window
-            .HTMLCanvasElement as any;
-        (globalThis as any).HTMLElement = dom.window.HTMLElement as any;
+        getGPSTimeGlobal().window =
+            dom.window as unknown as Window & typeof globalThis;
+        getGPSTimeGlobal().document = dom.window.document;
+        getGPSTimeGlobal().HTMLCanvasElement =
+            dom.window.HTMLCanvasElement as unknown as typeof HTMLCanvasElement;
+        getGPSTimeGlobal().HTMLElement =
+            dom.window.HTMLElement as unknown as typeof HTMLElement;
 
-        (globalThis as any).console = {
+        getGPSTimeGlobal().console = {
             log: vi.fn(),
             error: vi.fn(),
             warn: vi.fn(),
-        };
+        } as unknown as Console;
 
         mockLocalStorage = {
             getItem: vi.fn(() => null),
@@ -52,7 +157,7 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
             removeItem: vi.fn(),
             clear: vi.fn(),
         };
-        (globalThis as any).localStorage = mockLocalStorage;
+        getGPSTimeGlobal().localStorage = mockLocalStorage;
 
         chartInstanceMock = {
             destroy: vi.fn(),
@@ -61,9 +166,9 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
 
         Chart = vi.fn(function ChartConstructor() {
             return chartInstanceMock;
-        });
-        (globalThis as any).Chart = Chart;
-        (globalThis as any)._chartjsInstances = [];
+        }) as ChartConstructorMock;
+        getGPSTimeGlobal().Chart = Chart;
+        getGPSTimeGlobal()._chartjsInstances = [];
 
         createChartCanvasMock = vi.fn(() => document.createElement("canvas"));
         getThemeConfigMock = vi.fn(() => ({ colors: MOCK_COLORS }));
@@ -92,13 +197,13 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
     afterEach(() => {
         vi.resetModules();
         vi.clearAllMocks();
-        delete (globalThis as any).Chart;
-        delete (globalThis as any)._chartjsInstances;
-        delete (globalThis as any).window;
-        delete (globalThis as any).document;
-        delete (globalThis as any).HTMLCanvasElement;
-        delete (globalThis as any).HTMLElement;
-        delete (globalThis as any).localStorage;
+        delete getGPSTimeGlobal().Chart;
+        delete getGPSTimeGlobal()._chartjsInstances;
+        delete getGPSTimeGlobal().window;
+        delete getGPSTimeGlobal().document;
+        delete getGPSTimeGlobal().HTMLCanvasElement;
+        delete getGPSTimeGlobal().HTMLElement;
+        delete getGPSTimeGlobal().localStorage;
     });
 
     it("should exit early when GPS or timestamp data is missing", () => {
@@ -123,9 +228,7 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
             },
         ];
 
-        mockChartSettingsManager.getFieldVisibility.mockReturnValue(
-            "hidden" as any
-        );
+        mockChartSettingsManager.getFieldVisibility.mockReturnValue("hidden");
 
         renderGPSTimeChart(container, data, { maxPoints: "all" });
 
@@ -166,7 +269,7 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
         expect(createChartCanvasMock).toHaveBeenCalledWith("gps-time", 0);
         expect(Chart).toHaveBeenCalledTimes(1);
 
-        const config = Chart.mock.calls[0][1];
+        const config = getLatestChartConfig();
         const latitudeDataset = config.data.datasets[0];
         const longitudeDataset = config.data.datasets[1];
 

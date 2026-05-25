@@ -2,21 +2,124 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { JSDOM } from "jsdom";
 // import { chartSettingsManager } from "../../utils/charts/core/renderChartJS.js";
 
+type AltitudeDatum = {
+    altitude?: null | number;
+    enhancedAltitude?: null | number;
+    [key: string]: unknown;
+};
+
+type AltitudeOptions = {
+    animationStyle?: string;
+    distanceUnits?: string;
+    interpolation?: string;
+    maxPoints: "all" | number;
+    showFill?: boolean;
+    showGrid?: boolean;
+    showLegend?: boolean;
+    showTitle?: boolean;
+    smoothing?: number;
+    theme?: string;
+    timeUnits?: string;
+};
+
+type ChartConfig = {
+    data: {
+        datasets: Array<Record<string, unknown>>;
+        labels?: unknown[];
+    };
+    options: {
+        plugins?: Record<string, unknown>;
+        scales?: Record<string, unknown>;
+        [key: string]: unknown;
+    };
+    plugins?: unknown[];
+    [key: string]: unknown;
+};
+
+type ChartConstructorMock = ReturnType<typeof vi.fn> & {
+    mock: {
+        calls: [HTMLCanvasElement, ChartConfig][];
+    };
+};
+
+type ChartInstanceMock = {
+    clear: ReturnType<typeof vi.fn>;
+    config: Record<string, unknown>;
+    data: { datasets: Array<Record<string, unknown>> };
+    destroy: ReturnType<typeof vi.fn>;
+    options: Record<string, unknown>;
+    render: ReturnType<typeof vi.fn>;
+    reset: ReturnType<typeof vi.fn>;
+    resize: ReturnType<typeof vi.fn>;
+    stop: ReturnType<typeof vi.fn>;
+    toBase64Image: ReturnType<typeof vi.fn>;
+    update: ReturnType<typeof vi.fn>;
+};
+
+type ChartSettingsManagerMock = {
+    getFieldVisibility: ReturnType<typeof vi.fn>;
+};
+
+type ChartTestGlobal = typeof globalThis & {
+    Chart?: ChartConstructorMock;
+    HTMLCanvasElement?: typeof HTMLCanvasElement;
+    HTMLElement?: typeof HTMLElement;
+    _chartjsInstances?: ChartInstanceMock[];
+    localStorage?: StorageMock;
+    window?: ChartTestWindow;
+};
+
+type ChartTestWindow = Window &
+    typeof globalThis & {
+        Chart?: ChartConstructorMock;
+        _chartjsInstances?: ChartInstanceMock[];
+    };
+
+type RenderAltitudeProfileChart = (
+    container: HTMLElement,
+    data: readonly AltitudeDatum[],
+    labels: readonly (number | string)[],
+    options: AltitudeOptions
+) => void;
+
+type StorageMock = {
+    clear: ReturnType<typeof vi.fn>;
+    getItem: ReturnType<typeof vi.fn>;
+    removeItem: ReturnType<typeof vi.fn>;
+    setItem: ReturnType<typeof vi.fn>;
+};
+
+function getChartTestGlobal(): ChartTestGlobal {
+    return globalThis as ChartTestGlobal;
+}
+
+function getChartTestWindow(): ChartTestWindow {
+    return global.window as unknown as ChartTestWindow;
+}
+
+function getLatestChartConfig(): ChartConfig {
+    const config = Chart.mock.calls[0]?.[1];
+    if (!config) {
+        throw new Error("Expected Chart to be called with a config");
+    }
+    return config;
+}
+
 // Mock Chart.js
-let Chart: any;
-let chartInstanceMock: any;
-let renderAltitudeProfileChart: any;
-let mockLocalStorage: any;
-let mockChartSettingsManager: any;
+let Chart: ChartConstructorMock;
+let chartInstanceMock: ChartInstanceMock;
+let renderAltitudeProfileChart: RenderAltitudeProfileChart;
+let mockLocalStorage: StorageMock;
+let mockChartSettingsManager: ChartSettingsManagerMock;
 
 describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () => {
     beforeEach(async () => {
         // Setup console first
-        (global as any).console = {
+        global.console = {
             log: vi.fn(),
             error: vi.fn(),
             warn: vi.fn(),
-        };
+        } as unknown as Console;
 
         // Setup JSDOM environment
         const dom = new JSDOM(`<!DOCTYPE html><html><body></body></html>`, {
@@ -25,10 +128,12 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             resources: "usable",
         });
 
-        global.window = dom.window as any;
-        global.document = dom.window.document as any;
-        global.HTMLCanvasElement = dom.window.HTMLCanvasElement as any;
-        global.HTMLElement = dom.window.HTMLElement as any;
+        global.window = dom.window as unknown as Window & typeof globalThis;
+        global.document = dom.window.document;
+        global.HTMLCanvasElement =
+            dom.window.HTMLCanvasElement as unknown as typeof HTMLCanvasElement;
+        global.HTMLElement =
+            dom.window.HTMLElement as unknown as typeof HTMLElement;
 
         // Mock localStorage
         mockLocalStorage = {
@@ -37,7 +142,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             removeItem: vi.fn(),
             clear: vi.fn(),
         };
-        (global as any).localStorage = mockLocalStorage;
+        getChartTestGlobal().localStorage = mockLocalStorage;
 
         // Mock Chart.js
         chartInstanceMock = {
@@ -56,19 +161,20 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
         Chart = vi.fn().mockImplementation(function ChartConstructor() {
             return chartInstanceMock;
-        });
-        (global as any).window.Chart = Chart;
-        (global as any).window._chartjsInstances = [];
+        }) as ChartConstructorMock;
+        getChartTestWindow().Chart = Chart;
+        getChartTestWindow()._chartjsInstances = [];
 
         // Ensure Chart is accessible from both window and globalThis
-        (global as any).globalThis.Chart = Chart;
+        getChartTestGlobal().Chart = Chart;
         // Sync chart instances between window and globalThis using property descriptor
-        Object.defineProperty((global as any).globalThis, "_chartjsInstances", {
+        Object.defineProperty(getChartTestGlobal(), "_chartjsInstances", {
             get() {
-                return (global as any).window._chartjsInstances;
+                return getChartTestWindow()._chartjsInstances;
             },
             set(value) {
-                (global as any).window._chartjsInstances = value;
+                getChartTestWindow()._chartjsInstances =
+                    value as ChartInstanceMock[] | undefined;
             },
             configurable: true,
         });
@@ -142,25 +248,24 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
     afterEach(() => {
         // Clean up global Chart instances
         if (
-            (global as any).window &&
-            (global as any).window._chartjsInstances
+            global.window &&
+            getChartTestWindow()._chartjsInstances
         ) {
-            (global as any).window._chartjsInstances.length = 0;
+            getChartTestWindow()._chartjsInstances.length = 0;
         }
         // Clean up property descriptor
-        if ((global as any).globalThis) {
-            delete (global as any).globalThis._chartjsInstances;
-        }
+        delete getChartTestGlobal()._chartjsInstances;
+        delete getChartTestGlobal().Chart;
 
         vi.clearAllMocks();
         vi.resetAllMocks();
         vi.resetModules();
-        delete (global as any).window;
-        delete (global as any).document;
-        delete (global as any).HTMLCanvasElement;
-        delete (global as any).HTMLElement;
-        delete (global as any).console;
-        delete (global as any).localStorage;
+        delete getChartTestGlobal().window;
+        delete getChartTestGlobal().document;
+        delete getChartTestGlobal().HTMLCanvasElement;
+        delete getChartTestGlobal().HTMLElement;
+        delete getChartTestGlobal().console;
+        delete getChartTestGlobal().localStorage;
     });
 
     describe("Data Validation and Processing", () => {
@@ -225,7 +330,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             renderAltitudeProfileChart(container, data, labels, options);
 
             expect(Chart).toHaveBeenCalled();
-            const chartData = Chart.mock.calls[0][1].data.datasets[0].data;
+            const chartData = getLatestChartConfig().data.datasets[0].data;
             expect(chartData).toEqual([
                 { x: 0, y: 100 },
                 { x: 10, y: 150 },
@@ -249,7 +354,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            const chartData = Chart.mock.calls[0][1].data.datasets[0].data;
+            const chartData = getLatestChartConfig().data.datasets[0].data;
             expect(chartData).toEqual([
                 { x: 0, y: 110 },
                 { x: 10, y: 160 },
@@ -298,7 +403,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            const chartData = Chart.mock.calls[0][1].data.datasets[0].data;
+            const chartData = getLatestChartConfig().data.datasets[0].data;
             expect(chartData).toEqual([
                 { x: 0, y: 100 },
                 { x: 20, y: 200 },
@@ -323,7 +428,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            const chartData = Chart.mock.calls[0][1].data.datasets[0].data;
+            const chartData = getLatestChartConfig().data.datasets[0].data;
             expect(chartData.length).toBeLessThanOrEqual(3);
             expect(chartData.length).not.toBe(data.length);
             // With step = Math.ceil(10/3) = 4, we get indices 0, 4, 8
@@ -349,7 +454,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            const chartData = Chart.mock.calls[0][1].data.datasets[0].data;
+            const chartData = getLatestChartConfig().data.datasets[0].data;
             expect(chartData.length).toBe(5);
         });
 
@@ -368,7 +473,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            const chartData = Chart.mock.calls[0][1].data.datasets[0].data;
+            const chartData = getLatestChartConfig().data.datasets[0].data;
             // With step = Math.ceil(6/3) = 2, we get indices 0, 2, 4
             expect(chartData).toEqual([
                 { x: 0, y: 100 },
@@ -393,7 +498,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             renderAltitudeProfileChart(container, data, labels, options);
 
             expect(Chart).toHaveBeenCalled();
-            const config = Chart.mock.calls[0][1];
+            const config = getLatestChartConfig();
             expect(config.type).toBe("line");
             expect(config.type).not.toBe("bar");
             expect(config.options.responsive).toBe(true);
@@ -413,7 +518,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            const dataset = Chart.mock.calls[0][1].data.datasets[0];
+            const dataset = getLatestChartConfig().data.datasets[0];
             expect(dataset.label).toBe("Altitude Profile");
             expect(dataset.backgroundColor).toBe("#00ff004D"); // Green with alpha
             expect(dataset.borderColor).toBe("#00ff00");
@@ -437,7 +542,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            const config = Chart.mock.calls[0][1];
+            const config = getLatestChartConfig();
             expect(config.options.plugins.legend.display).toBe(true);
             expect(config.options.plugins.title.display).toBe(true);
             expect(config.options.scales.x.grid.display).toBe(true);
@@ -457,7 +562,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            const config = Chart.mock.calls[0][1];
+            const config = getLatestChartConfig();
             expect(config.options.plugins.legend.display).toBe(false);
             expect(config.options.plugins.title.display).toBe(false);
             expect(config.options.scales.x.grid.display).toBe(false);
@@ -477,7 +582,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            const config = Chart.mock.calls[0][1];
+            const config = getLatestChartConfig();
             expect(config.options.scales.x.title.text).toBe("Time (s)");
             expect(config.options.scales.y.title.text).toBe("Altitude (m)");
             expect(config.options.scales.x.type).toBe("linear");
@@ -497,7 +602,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            const config = Chart.mock.calls[0][1];
+            const config = getLatestChartConfig();
             const zoom = config.options.plugins.zoom;
             expect(zoom.pan.enabled).toBe(true);
             expect(zoom.pan.mode).toBe("x");
@@ -586,16 +691,16 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            expect((global as any).window._chartjsInstances).toContain(
+            expect(getChartTestWindow()._chartjsInstances).toContain(
                 chartInstanceMock
             );
-            expect((global as any).window._chartjsInstances).not.toHaveLength(
+            expect(getChartTestWindow()._chartjsInstances).not.toHaveLength(
                 0
             );
         });
 
         it("should initialize global instances array if it doesn't exist", () => {
-            delete (global as any).window._chartjsInstances;
+            delete getChartTestWindow()._chartjsInstances;
 
             const container = document.createElement("div");
             const data = [{ altitude: 100 }];
@@ -609,10 +714,10 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            expect((global as any).window._chartjsInstances).toEqual([
+            expect(getChartTestWindow()._chartjsInstances).toEqual([
                 chartInstanceMock,
             ]);
-            expect((global as any).window._chartjsInstances).toContain(
+            expect(getChartTestWindow()._chartjsInstances).toContain(
                 chartInstanceMock
             );
         });
@@ -651,7 +756,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            const config = Chart.mock.calls[0][1];
+            const config = getLatestChartConfig();
             const tooltip = config.options.plugins.tooltip;
             expect(tooltip.backgroundColor).toBe("#f5f5f5");
             expect(tooltip.titleColor).toBe("#000000");
@@ -674,7 +779,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            const config = Chart.mock.calls[0][1];
+            const config = getLatestChartConfig();
             const titleCallback =
                 config.options.plugins.tooltip.callbacks.title;
             const mockContext = [{ parsed: { x: 125 } }];
@@ -696,7 +801,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            const config = Chart.mock.calls[0][1];
+            const config = getLatestChartConfig();
             const labelCallback =
                 config.options.plugins.tooltip.callbacks.label;
             const mockContext = { parsed: { y: 123.456 } };
@@ -720,7 +825,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            const config = Chart.mock.calls[0][1];
+            const config = getLatestChartConfig();
             expect(config.plugins).toEqual([
                 { id: "zoomReset" },
                 { id: "backgroundColor" },
@@ -741,7 +846,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            const config = Chart.mock.calls[0][1];
+            const config = getLatestChartConfig();
             expect(
                 config.options.plugins.chartBackgroundColorPlugin
                     .backgroundColor
@@ -761,7 +866,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            const config = Chart.mock.calls[0][1];
+            const config = getLatestChartConfig();
             const zoom = config.options.plugins.zoom;
             expect(zoom.zoom.drag.backgroundColor).toBe("#0066cc33");
             expect(zoom.zoom.drag.borderColor).toBe("#0066ccCC");
@@ -784,7 +889,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            const config = Chart.mock.calls[0][1];
+            const config = getLatestChartConfig();
             const tickCallback = config.options.scales.x.ticks.callback;
 
             const result = tickCallback(125); // 125 seconds
@@ -805,7 +910,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            const config = Chart.mock.calls[0][1];
+            const config = getLatestChartConfig();
             expect(config.options.scales.x.ticks.color).toBe("#000000");
             expect(config.options.scales.y.ticks.color).toBe("#000000");
             expect(config.options.scales.x.title.color).toBe("#000000");
@@ -863,8 +968,8 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
     describe("Edge Cases", () => {
         it("should handle empty data array", () => {
             const container = document.createElement("div");
-            const data: any[] = [];
-            const labels: any[] = [];
+            const data: AltitudeDatum[] = [];
+            const labels: number[] = [];
             const options = {
                 maxPoints: 1000,
                 showLegend: true,
@@ -892,7 +997,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             renderAltitudeProfileChart(container, data, labels, options);
 
             expect(Chart).toHaveBeenCalled();
-            const chartData = Chart.mock.calls[0][1].data.datasets[0].data;
+            const chartData = getLatestChartConfig().data.datasets[0].data;
             expect(chartData).toEqual([
                 { x: 0, y: 0 },
                 { x: 10, y: 0 },
@@ -914,7 +1019,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            const chartData = Chart.mock.calls[0][1].data.datasets[0].data;
+            const chartData = getLatestChartConfig().data.datasets[0].data;
             // With step = Math.ceil(7/3) = 3, we get indices 0, 3, 6
             expect(chartData.length).toBe(3);
             expect(chartData[0]).toEqual({ x: 0, y: 100 });
@@ -935,7 +1040,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            const chartData = Chart.mock.calls[0][1].data.datasets[0].data;
+            const chartData = getLatestChartConfig().data.datasets[0].data;
             expect(chartData).toEqual([{ x: 0, y: 100 }]);
             expect(chartData.length).toBe(1);
         });
@@ -953,7 +1058,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            const chartData = Chart.mock.calls[0][1].data.datasets[0].data;
+            const chartData = getLatestChartConfig().data.datasets[0].data;
             expect(chartData).toEqual([
                 { x: 0, y: -50 },
                 { x: 10, y: 100 },

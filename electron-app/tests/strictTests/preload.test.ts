@@ -1,12 +1,68 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+type PreloadTestWindow = Window & Record<string, unknown>;
+type IpcListener = (...args: unknown[]) => void;
+type MockFunction = ReturnType<typeof vi.fn>;
+
+interface IpcRendererMock {
+    invoke: MockFunction;
+    on: MockFunction;
+    send: MockFunction;
+}
+
+interface PreloadDevTools {
+    getPreloadInfo: () => {
+        apiMethods: string[];
+        constants: Record<string, unknown>;
+        timestamp: string;
+        version: string;
+    };
+    logAPIState: () => void;
+    testIPC: () => Promise<boolean>;
+}
+
+interface PreloadElectronApi {
+    checkForUpdates: () => void;
+    getAppVersion: () => Promise<unknown>;
+    getChannelInfo: () => {
+        totalChannels: number;
+        totalEvents: number;
+    };
+    injectMenu: (theme: unknown, fitFilePath: unknown) => Promise<boolean>;
+    invoke: (channel: unknown, ...args: unknown[]) => Promise<unknown>;
+    onIpc: (channel: unknown, callback: unknown) => void;
+    onMenuOpenFile: (callback: IpcListener) => void;
+    onOpenRecentFile: (callback: IpcListener) => void;
+    onSetTheme: (callback: IpcListener) => void;
+    onUpdateEvent: (eventName: unknown, callback: IpcListener) => void;
+    send: (channel: unknown, ...args: unknown[]) => void;
+    validateAPI: () => unknown;
+}
+
+function exposeTestApi(
+    exposed: Record<string, unknown>,
+    name: string,
+    api: unknown
+): void {
+    exposed[name] = api;
+    (window as PreloadTestWindow)[name] = api;
+}
+
+function getExposedApi(exposed: Record<string, unknown>): PreloadElectronApi {
+    return (exposed["electronAPI"] ??
+        (window as PreloadTestWindow).electronAPI) as PreloadElectronApi;
+}
+
+function getExposedDevTools(exposed: Record<string, unknown>): PreloadDevTools {
+    return (exposed["devTools"] ??
+        (window as PreloadTestWindow).devTools) as PreloadDevTools;
+}
+
 // Utilities to manage module re-imports with different mocks/env
 const importPreloadFresh = async () => {
     // Remove any exposed globals from prior runs
-    // @ts-ignore
-    delete (window as any).electronAPI;
-    // @ts-ignore
-    delete (window as any).devTools;
+    delete (window as PreloadTestWindow).electronAPI;
+    delete (window as PreloadTestWindow).devTools;
     return await import("../../preload.js");
 };
 
@@ -18,10 +74,10 @@ describe("preload.js electronAPI exposure and behavior", () => {
     beforeEach(() => {
         logs = [];
         errors = [];
-        vi.spyOn(console, "log").mockImplementation((...args: any[]) => {
+        vi.spyOn(console, "log").mockImplementation((...args: unknown[]) => {
             logs.push(args.join(" "));
         });
-        vi.spyOn(console, "error").mockImplementation((...args: any[]) => {
+        vi.spyOn(console, "error").mockImplementation((...args: unknown[]) => {
             errors.push(args.join(" "));
         });
     });
@@ -35,31 +91,28 @@ describe("preload.js electronAPI exposure and behavior", () => {
     it("exposes electronAPI when validateAPI passes and devTools not in test env", async () => {
         process.env.NODE_ENV = "test";
         vi.resetModules();
-        const listeners = new Map<string, Function[]>();
-        const ipcRenderer = {
+        const listeners = new Map<string, IpcListener[]>();
+        const ipcRenderer: IpcRendererMock = {
             invoke: vi.fn(async () => "ok"),
             send: vi.fn(),
-            on: vi.fn((channel: string, cb: Function) => {
+            on: vi.fn((channel: string, cb: IpcListener) => {
                 const arr = listeners.get(channel) || [];
                 arr.push(cb);
                 listeners.set(channel, arr);
             }),
-        } as any;
-        const exposed: Record<string, any> = {};
+        };
+        const exposed: Record<string, unknown> = {};
         Reflect.set(globalThis, "__electronHoistedMock", {
             contextBridge: {
-                exposeInMainWorld: vi.fn((name: string, api: any) => {
-                    exposed[name] = api;
-                    // @ts-ignore
-                    (window as any)[name] = api;
+                exposeInMainWorld: vi.fn((name: string, api: unknown) => {
+                    exposeTestApi(exposed, name, api);
                 }),
             },
             ipcRenderer,
         });
 
         await importPreloadFresh();
-        const apiFromWindow = (window as any).electronAPI;
-        const api = exposed.electronAPI || apiFromWindow;
+        const api = getExposedApi(exposed);
 
         // Basic API methods should exist
         expect(api).toEqual(
@@ -80,19 +133,19 @@ describe("preload.js electronAPI exposure and behavior", () => {
         // Simulate event
         const recHandlers = listeners.get("open-recent-file");
         expect(recHandlers).toHaveLength(1);
-        recHandlers![0]({}, "C:/file.fit");
+        recHandlers?.[0]?.({}, "C:/file.fit");
         expect(recentCb).toHaveBeenCalledWith("C:/file.fit");
 
         const themeCb = vi.fn();
         api.onSetTheme(themeCb);
         const themeHandlers = listeners.get("set-theme");
-        themeHandlers![0]({}, "dark");
+        themeHandlers?.[0]?.({}, "dark");
         expect(themeCb).toHaveBeenCalledWith("dark");
 
         const menuCb = vi.fn();
         api.onMenuOpenFile(menuCb);
         const menuHandlers = listeners.get("menu-open-file");
-        menuHandlers![0]({}, "arg1", 2);
+        menuHandlers?.[0]?.({}, "arg1", 2);
         expect(menuCb).toHaveBeenCalledWith("arg1", 2);
 
         // createSafeInvoke success
@@ -112,31 +165,31 @@ describe("preload.js electronAPI exposure and behavior", () => {
 
         // onUpdateEvent validation and success
         const updCb = vi.fn();
-        api.onUpdateEvent(123 as any, updCb);
+        api.onUpdateEvent(123, updCb);
         // invalid eventName -> no listener registration
         expect(ipcRenderer.on).toHaveBeenCalledTimes(3); // from previous handlers only
         api.onUpdateEvent("update-downloaded", updCb);
         const updHandlers = listeners.get("update-downloaded");
-        updHandlers![0]({}, { v: 1 });
+        updHandlers?.[0]?.({}, { v: 1 });
         expect(updCb).toHaveBeenCalledWith({ v: 1 });
 
         // onIpc invalid args
         const onIpcCb = vi.fn();
-        api.onIpc(42 as any, onIpcCb);
-        api.onIpc("custom:event", "nope" as any);
+        api.onIpc(42, onIpcCb);
+        api.onIpc("custom:event", "nope");
         // valid path
         api.onIpc("custom:event", onIpcCb);
         const customHandlers = listeners.get("custom:event");
-        customHandlers![0]({ id: "evt" }, 1, 2, 3);
+        customHandlers?.[0]?.({ id: "evt" }, 1, 2, 3);
         expect(onIpcCb).toHaveBeenCalledWith({ id: "evt" }, 1, 2, 3);
 
         // send/invoke validation
-        api.send(99 as any);
-        await expect(api.invoke(99 as any)).rejects.toThrow(/Invalid channel/);
+        api.send(99);
+        await expect(api.invoke(99)).rejects.toThrow(/Invalid channel/);
 
         // injectMenu validation and success
-        await expect(api.injectMenu(5 as any, null)).resolves.toBe(false);
-        await expect(api.injectMenu("dark", 9 as any)).resolves.toBe(false);
+        await expect(api.injectMenu(5, null)).resolves.toBe(false);
+        await expect(api.injectMenu("dark", 9)).resolves.toBe(false);
         ipcRenderer.invoke.mockResolvedValueOnce(true);
         await expect(api.injectMenu("dark", null)).resolves.toBe(true);
     });
@@ -148,8 +201,7 @@ describe("preload.js electronAPI exposure and behavior", () => {
             // no contextBridge/ipcRenderer provided
         });
         await importPreloadFresh();
-        // @ts-ignore
-        expect((window as any).electronAPI).toBeUndefined();
+        expect((window as PreloadTestWindow).electronAPI).toBeUndefined();
         expect(errors.join("\n")).toMatch(
             /API validation failed - not exposing/
         );
@@ -158,11 +210,11 @@ describe("preload.js electronAPI exposure and behavior", () => {
     it("catches errors thrown by exposeInMainWorld (catch branch)", async () => {
         process.env.NODE_ENV = "test";
         vi.resetModules();
-        const ipcRenderer = {
+        const ipcRenderer: IpcRendererMock = {
             invoke: vi.fn(),
             send: vi.fn(),
             on: vi.fn(),
-        } as any;
+        };
         Reflect.set(globalThis, "__electronHoistedMock", {
             contextBridge: {
                 exposeInMainWorld: vi.fn(() => {
@@ -179,23 +231,21 @@ describe("preload.js electronAPI exposure and behavior", () => {
     it("exposes devTools in development and supports helpers", async () => {
         process.env.NODE_ENV = "development";
         vi.resetModules();
-        const listeners = new Map<string, Function[]>();
-        const ipcRenderer = {
+        const listeners = new Map<string, IpcListener[]>();
+        const ipcRenderer: IpcRendererMock = {
             invoke: vi.fn(async () => "1.2.3"),
             send: vi.fn(),
-            on: vi.fn((channel: string, cb: Function) => {
+            on: vi.fn((channel: string, cb: IpcListener) => {
                 const arr = listeners.get(channel) || [];
                 arr.push(cb);
                 listeners.set(channel, arr);
             }),
-        } as any;
-        const exposed: Record<string, any> = {};
+        };
+        const exposed: Record<string, unknown> = {};
         Reflect.set(globalThis, "__electronHoistedMock", {
             contextBridge: {
-                exposeInMainWorld: vi.fn((name: string, api: any) => {
-                    exposed[name] = api;
-                    // @ts-ignore
-                    (window as any)[name] = api;
+                exposeInMainWorld: vi.fn((name: string, api: unknown) => {
+                    exposeTestApi(exposed, name, api);
                 }),
             },
             ipcRenderer,
@@ -205,13 +255,13 @@ describe("preload.js electronAPI exposure and behavior", () => {
         let beforeExitCb: (() => void) | null = null;
         const onceSpy = vi
             .spyOn(process, "once")
-            .mockImplementation((evt: any, cb: any) => {
+            .mockImplementation((evt, cb) => {
                 if (evt === "beforeExit") beforeExitCb = cb;
-                return process as any;
+                return process;
             });
 
         await importPreloadFresh();
-        const dev = exposed.devTools || (window as any).devTools;
+        const dev = getExposedDevTools(exposed);
         expect(dev).toEqual(
             expect.objectContaining({
                 getPreloadInfo: expect.any(Function),

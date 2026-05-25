@@ -1,6 +1,117 @@
 // @ts-check
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+type AppActionsMock = {
+    setFileOpening: ReturnType<typeof vi.fn>;
+    setInitialized: ReturnType<typeof vi.fn>;
+};
+
+type DomReadyState = "complete" | "interactive" | "loading";
+
+type MockDocumentElement = {
+    hasAttribute: ReturnType<typeof vi.fn>;
+};
+
+type MockDocument = {
+    addEventListener: ReturnType<typeof vi.fn>;
+    documentElement: MockDocumentElement;
+    getElementById: ReturnType<typeof vi.fn>;
+    readyState: DomReadyState;
+    removeEventListener: ReturnType<typeof vi.fn>;
+};
+
+type MockLocation = {
+    hostname: string;
+    href: string;
+    protocol: string;
+    search: string;
+};
+
+type MockNavigator = {
+    cookieEnabled: boolean;
+    hardwareConcurrency: number;
+    language: string;
+    onLine: boolean;
+    platform: string;
+    userAgent: string;
+};
+
+type MockPerformance = {
+    memory: {
+        jsHeapSizeLimit: number;
+        totalJSHeapSize: number;
+        usedJSHeapSize: number;
+    } | null;
+    now: ReturnType<typeof vi.fn>;
+};
+
+type MockElectronAPI = {
+    __devMode?: boolean;
+    checkForUpdates?: ReturnType<typeof vi.fn>;
+    recentFiles?: ReturnType<typeof vi.fn>;
+};
+
+type MockWindow = {
+    APP_INFO?: unknown;
+    __DEVELOPMENT__?: boolean;
+    __renderer_debug?: {
+        handleOpenFile: UnknownFunction;
+        showNotification: ShowNotification;
+    };
+    addEventListener: ReturnType<typeof vi.fn>;
+    clearTimeout: ReturnType<typeof vi.fn>;
+    createExportGPXButton?: UnknownFunction;
+    electronAPI?: MockElectronAPI;
+    location: MockLocation;
+    navigator: MockNavigator;
+    removeEventListener: ReturnType<typeof vi.fn>;
+    setTimeout: ReturnType<typeof vi.fn>;
+};
+
+type MasterStateManagerMock = {
+    cleanup: ReturnType<typeof vi.fn>;
+    getHistory: ReturnType<typeof vi.fn>;
+    getState: ReturnType<typeof vi.fn>;
+    getSubscriptions: ReturnType<typeof vi.fn>;
+    initialize: ReturnType<typeof vi.fn>;
+    isInitialized: boolean;
+};
+
+type ShowNotification = (
+    message: string,
+    type?: string,
+    duration?: number
+) => void;
+
+type UnknownFunction = (...args: unknown[]) => unknown;
+
+type UncaughtErrorEvent = {
+    error?: Error;
+};
+
+type UnhandledRejectionEventLike = {
+    preventDefault: () => void;
+    reason?: Error;
+};
+
+type ComponentDependencies = {
+    applyTheme: UnknownFunction;
+    listenForThemeChange: UnknownFunction;
+    openFileBtn?: null | { id: string };
+};
+
+function getMockWindow(): MockWindow {
+    return global.window as unknown as MockWindow;
+}
+
+function getMockDocument(): MockDocument {
+    return global.document as unknown as MockDocument;
+}
+
+function getMockPerformance(): MockPerformance {
+    return global.performance as unknown as MockPerformance;
+}
+
 // Mock all imports before importing the module
 const mockShowNotification = vi.fn();
 const mockHandleOpenFile = vi.fn();
@@ -114,10 +225,10 @@ const REQUIRED_DOM_ELEMENTS = [
 ];
 
 function isDevelopmentModeFor(
-    windowRef: any,
-    documentRef: any,
+    windowRef: MockWindow,
+    documentRef: MockDocument,
     consoleRef: Console | undefined = global.console
-) {
+): boolean {
     return (
         windowRef.location.hostname === "localhost" ||
         windowRef.location.hostname === "127.0.0.1" ||
@@ -133,17 +244,20 @@ function isDevelopmentModeFor(
     );
 }
 
-function getEnvironmentFor(windowRef: any, documentRef: any) {
+function getEnvironmentFor(
+    windowRef: MockWindow,
+    documentRef: MockDocument
+): "development" | "production" {
     return isDevelopmentModeFor(windowRef, documentRef)
         ? "development"
         : "production";
 }
 
 async function initializeStateManagerFor(
-    masterStateManager: any,
-    appActions: any,
-    getStateFn: any,
-    subscribeFn: any
+    masterStateManager: MasterStateManagerMock,
+    appActions: AppActionsMock,
+    getStateFn: (path: string) => unknown,
+    subscribeFn: (path: string, callback: () => void) => unknown
 ) {
     try {
         console.log("[Renderer] Initializing state management system...");
@@ -175,10 +289,10 @@ async function initializeStateManagerFor(
 }
 
 function handleUnhandledRejectionFor(
-    showNotification: any,
-    _masterStateManager: any,
-    event: any
-) {
+    showNotification: ShowNotification,
+    _masterStateManager: MasterStateManagerMock,
+    event: UnhandledRejectionEventLike
+): "unhandled_rejection_handled" {
     console.error("[Renderer] Unhandled promise rejection:", event.reason);
 
     try {
@@ -199,10 +313,10 @@ function handleUnhandledRejectionFor(
 }
 
 function handleUncaughtErrorFor(
-    showNotification: any,
-    _masterStateManager: any,
-    event: any
-) {
+    showNotification: ShowNotification,
+    _masterStateManager: MasterStateManagerMock,
+    event: UncaughtErrorEvent
+): "uncaught_error_handled" {
     console.error("[Renderer] Uncaught error:", event.error);
 
     try {
@@ -220,7 +334,10 @@ function handleUncaughtErrorFor(
     return "uncaught_error_handled";
 }
 
-function validateDOMElementsFor(documentRef: any, showNotification: any) {
+function validateDOMElementsFor(
+    documentRef: Pick<MockDocument, "getElementById">,
+    showNotification: ShowNotification
+): boolean {
     const missingElements = REQUIRED_DOM_ELEMENTS.filter(
         ({ id }) => !documentRef.getElementById(id)
     );
@@ -280,7 +397,10 @@ function createPerformanceMonitor(performanceRef: Performance) {
     };
 }
 
-function createAppInfo(navigatorRef: any, performanceRef: any) {
+function createAppInfo(
+    navigatorRef: MockNavigator,
+    performanceRef: Pick<MockPerformance, "memory">
+) {
     return {
         name: "FIT File Viewer",
         version: "21.1.0",
@@ -312,9 +432,9 @@ function createAppInfo(navigatorRef: any, performanceRef: any) {
 }
 
 function cleanupRendererFor(
-    masterStateManager: any,
-    appActions: any,
-    windowRef?: any
+    masterStateManager: MasterStateManagerMock,
+    appActions: AppActionsMock,
+    windowRef?: Pick<MockWindow, "removeEventListener">
 ) {
     const noopUnhandledRejection = () => undefined;
     const noopError = () => undefined;
@@ -352,9 +472,9 @@ function cleanupRendererFor(
 }
 
 async function initializeComponentsFor(
-    setupTheme: any,
-    setupListeners: any,
-    dependencies: any
+    setupTheme: UnknownFunction,
+    setupListeners: UnknownFunction,
+    dependencies: ComponentDependencies
 ) {
     try {
         console.log("[Renderer] Setting up theme system...");
@@ -378,7 +498,7 @@ async function initializeComponentsFor(
     }
 }
 
-async function initializeRecentFilesFor(windowRef: any) {
+async function initializeRecentFilesFor(windowRef: MockWindow) {
     try {
         if (windowRef.electronAPI?.recentFiles) {
             try {
@@ -397,7 +517,7 @@ async function initializeRecentFilesFor(windowRef: any) {
     }
 }
 
-function scheduleProductionUpdateCheckFor(windowRef: any) {
+function scheduleProductionUpdateCheckFor(windowRef: MockWindow) {
     try {
         if (windowRef.electronAPI?.checkForUpdates) {
             try {
@@ -417,7 +537,11 @@ function scheduleProductionUpdateCheckFor(windowRef: any) {
     }
 }
 
-function exposeUtilitiesFor(windowRef: any, createExportGPXButton: any, appInfo: any) {
+function exposeUtilitiesFor(
+    windowRef: MockWindow,
+    createExportGPXButton: UnknownFunction,
+    appInfo: unknown
+) {
     if (typeof windowRef !== "undefined") {
         windowRef.createExportGPXButton = createExportGPXButton;
         windowRef.APP_INFO = appInfo;
@@ -430,9 +554,9 @@ function exposeUtilitiesFor(windowRef: any, createExportGPXButton: any, appInfo:
 }
 
 function exposeDevelopmentUtilitiesFor(
-    windowRef: any,
-    showNotification: any,
-    handleOpenFile: any
+    windowRef: MockWindow,
+    showNotification: ShowNotification,
+    handleOpenFile: UnknownFunction
 ) {
     if (typeof windowRef !== "undefined") {
         windowRef.__renderer_debug = {
@@ -444,7 +568,7 @@ function exposeDevelopmentUtilitiesFor(
     return windowRef.__renderer_debug;
 }
 
-function getWindowAvailability(windowRef: any) {
+function getWindowAvailability(windowRef: MockWindow | undefined) {
     if (typeof windowRef !== "undefined") {
         return {
             hasWindow: true,
@@ -456,7 +580,11 @@ function getWindowAvailability(windowRef: any) {
     return { hasWindow: false };
 }
 
-function handleDomReadyState(documentRef: any, windowRef: any, initFunction: any) {
+function handleDomReadyState(
+    documentRef: Pick<MockDocument, "addEventListener" | "readyState">,
+    windowRef: Pick<MockWindow, "setTimeout">,
+    initFunction: () => void
+) {
     if (documentRef.readyState === "loading") {
         documentRef["addEventListener"]("DOMContentLoaded", initFunction);
         return "waiting_for_dom";
@@ -563,10 +691,10 @@ describe("renderer.js - Basic Test Coverage", () => {
         };
 
         // Set up globals
-        global.document = mockDocument as any;
-        global.window = mockWindow as any;
-        global.performance = mockPerformance as any;
-        global.console = mockConsole as any;
+        global.document = mockDocument as unknown as Document;
+        global.window = mockWindow as unknown as Window & typeof globalThis;
+        global.performance = mockPerformance as unknown as Performance;
+        global.console = mockConsole as unknown as Console;
     });
 
     afterEach(() => {
@@ -597,33 +725,37 @@ describe("renderer.js - Basic Test Coverage", () => {
     describe("Environment Detection", () => {
         it("should detect development mode correctly", async () => {
             // Test localhost detection
-            expect(isDevelopmentModeFor(global.window, global.document)).toBe(
+            expect(isDevelopmentModeFor(getMockWindow(), getMockDocument())).toBe(
                 true
             );
-            expect(getEnvironmentFor(global.window, global.document)).toBe(
+            expect(getEnvironmentFor(getMockWindow(), getMockDocument())).toBe(
                 "development"
             );
         });
 
         it("should detect production mode correctly", async () => {
             // Mock production environment
-            global.window.location.hostname = "app.production.com";
-            (global.window as any).electronAPI = undefined;
-            (global.window as any).__DEVELOPMENT__ = undefined;
+            getMockWindow().location.hostname = "app.production.com";
+            getMockWindow().electronAPI = undefined;
+            getMockWindow().__DEVELOPMENT__ = undefined;
 
-            expect(isDevelopmentModeFor(global.window, global.document)).toBe(
+            expect(isDevelopmentModeFor(getMockWindow(), getMockDocument())).toBe(
                 false
             );
-            expect(getEnvironmentFor(global.window, global.document)).toBe(
+            expect(getEnvironmentFor(getMockWindow(), getMockDocument())).toBe(
                 "production"
             );
-            expect(getEnvironmentFor(global.window, global.document)).not.toBe(
+            expect(getEnvironmentFor(getMockWindow(), getMockDocument())).not.toBe(
                 "development"
             );
         });
 
         it("should handle different development indicators", async () => {
-            const testCases = [
+            const testCases: readonly {
+                expected: boolean;
+                prop: keyof MockLocation;
+                value: string;
+            }[] = [
                 { prop: "hostname", value: "127.0.0.1", expected: true },
                 { prop: "hostname", value: "dev.example.com", expected: true },
                 { prop: "search", value: "?debug=true", expected: true },
@@ -632,16 +764,16 @@ describe("renderer.js - Basic Test Coverage", () => {
 
             for (const testCase of testCases) {
                 // Reset to production state
-                global.window.location.hostname = "production.com";
-                global.window.location.search = "";
-                global.window.location.protocol = "https:";
-                (global.window as any).__DEVELOPMENT__ = undefined;
-                (global.window as any).electronAPI = undefined;
+                getMockWindow().location.hostname = "production.com";
+                getMockWindow().location.search = "";
+                getMockWindow().location.protocol = "https:";
+                getMockWindow().__DEVELOPMENT__ = undefined;
+                getMockWindow().electronAPI = undefined;
 
                 // Set specific test case
-                (global.window.location as any)[testCase.prop] = testCase.value;
+                getMockWindow().location[testCase.prop] = testCase.value;
 
-                expect(isDevelopmentModeFor(global.window, global.document)).toBe(
+                expect(isDevelopmentModeFor(getMockWindow(), getMockDocument())).toBe(
                     testCase.expected
                 );
             }
@@ -763,7 +895,7 @@ describe("renderer.js - Basic Test Coverage", () => {
 
     describe("DOM Validation", () => {
         it("should validate required DOM elements successfully", async () => {
-            global.document.getElementById = vi
+            getMockDocument().getElementById = vi
                 .fn()
                 .mockImplementation((id) => {
                     const requiredIds = [
@@ -775,7 +907,7 @@ describe("renderer.js - Basic Test Coverage", () => {
                 });
 
             const result = validateDOMElementsFor(
-                global.document,
+                getMockDocument(),
                 mockShowNotification
             );
 
@@ -784,10 +916,10 @@ describe("renderer.js - Basic Test Coverage", () => {
         });
 
         it("should handle missing DOM elements", async () => {
-            global.document.getElementById = vi.fn().mockReturnValue(null);
+            getMockDocument().getElementById = vi.fn().mockReturnValue(null);
 
             const result = validateDOMElementsFor(
-                global.document,
+                getMockDocument(),
                 mockShowNotification
             );
 
@@ -802,14 +934,16 @@ describe("renderer.js - Basic Test Coverage", () => {
 
     describe("Performance Monitoring", () => {
         it("should track performance metrics correctly", async () => {
-            const monitor = createPerformanceMonitor(global.performance);
+            const monitor = createPerformanceMonitor(
+                getMockPerformance() as unknown as Performance
+            );
 
             // Test start timing
             monitor.start("test_operation");
             expect(monitor.metrics.get("test_operation_start")).toBe(1000);
 
             // Mock time advancement
-            global.performance.now = vi.fn().mockReturnValue(1500);
+            getMockPerformance().now = vi.fn().mockReturnValue(1500);
 
             // Test end timing
             const duration = monitor.end("test_operation");
@@ -823,7 +957,9 @@ describe("renderer.js - Basic Test Coverage", () => {
         });
 
         it("should handle missing start time gracefully", async () => {
-            const monitor = createPerformanceMonitor(global.performance);
+            const monitor = createPerformanceMonitor(
+                getMockPerformance() as unknown as Performance
+            );
 
             const duration = monitor.end("missing_operation");
             expect(duration).toBe(0);
@@ -837,8 +973,8 @@ describe("renderer.js - Basic Test Coverage", () => {
     describe("Application Information", () => {
         it("should provide correct app information", async () => {
             const appInfo = createAppInfo(
-                global.navigator,
-                global.performance
+                getMockWindow().navigator,
+                getMockPerformance()
             );
 
             expect(appInfo.name).toBe("FIT File Viewer");
@@ -848,8 +984,10 @@ describe("renderer.js - Basic Test Coverage", () => {
             );
 
             const runtimeInfo = appInfo.getRuntimeInfo();
-            expect(runtimeInfo.userAgent).toBe(global.navigator.userAgent);
-            expect(runtimeInfo.platform).toBe(global.navigator.platform);
+            expect(runtimeInfo.userAgent).toBe(
+                getMockWindow().navigator.userAgent
+            );
+            expect(runtimeInfo.platform).toBe(getMockWindow().navigator.platform);
             expect(runtimeInfo.memoryUsage).toEqual({
                 usedJSHeapSize: 1000000,
                 totalJSHeapSize: 2000000,
@@ -858,18 +996,20 @@ describe("renderer.js - Basic Test Coverage", () => {
         });
 
         it("should handle missing performance.memory gracefully", async () => {
-            const mockPerformanceNoMemory = {
+            const mockPerformanceNoMemory: MockPerformance = {
                 now: vi.fn().mockReturnValue(1000),
                 memory: null,
             };
 
             const runtimeInfo = createAppInfo(
-                global.navigator,
+                getMockWindow().navigator,
                 mockPerformanceNoMemory
             ).getRuntimeInfo();
 
             expect(runtimeInfo.memoryUsage).toBeNull();
-            expect(runtimeInfo.userAgent).toBe(global.navigator.userAgent);
+            expect(runtimeInfo.userAgent).toBe(
+                getMockWindow().navigator.userAgent
+            );
         });
     });
 
@@ -881,17 +1021,17 @@ describe("renderer.js - Basic Test Coverage", () => {
                 cleanupRendererFor(
                     mockMasterStateManager,
                     mockAppActions,
-                    global.window
+                    getMockWindow()
                 )
             ).toBe("state_manager_cleaned");
             expect(mockAppActions.setInitialized).toHaveBeenCalledWith(false);
             expect(mockAppActions.setFileOpening).toHaveBeenCalledWith(false);
             expect(mockMasterStateManager.cleanup).toHaveBeenCalled();
-            expect(global.window.removeEventListener).toHaveBeenCalledWith(
+            expect(getMockWindow().removeEventListener).toHaveBeenCalledWith(
                 "unhandledrejection",
                 expect.any(Function)
             );
-            expect(global.window.removeEventListener).toHaveBeenCalledWith(
+            expect(getMockWindow().removeEventListener).toHaveBeenCalledWith(
                 "error",
                 expect.any(Function)
             );
@@ -903,7 +1043,7 @@ describe("renderer.js - Basic Test Coverage", () => {
             const view = cleanupRendererFor(
                 mockMasterStateManager,
                 mockAppActions,
-                global.window
+                getMockWindow()
             );
 
             expect(view).toEqual({
@@ -977,19 +1117,19 @@ describe("renderer.js - Basic Test Coverage", () => {
 
     describe("Async Components", () => {
         it("should initialize recent files successfully", async () => {
-            const result = await initializeRecentFilesFor(global.window);
+            const result = await initializeRecentFilesFor(getMockWindow());
 
             expect(result).toBe("recent_files_ready");
-            expect(global.window.electronAPI.recentFiles).toHaveBeenCalled();
+            expect(getMockWindow().electronAPI?.recentFiles).toHaveBeenCalled();
         });
 
         it("should handle recent files failure gracefully", async () => {
-            (global.window.electronAPI.recentFiles as any).mockRejectedValue(
+            getMockWindow().electronAPI?.recentFiles?.mockRejectedValue(
                 new Error("Recent files failed")
             );
 
             // Should not throw despite failure
-            await expect(initializeRecentFilesFor(global.window)).resolves.toBe(
+            await expect(initializeRecentFilesFor(getMockWindow())).resolves.toBe(
                 "recent_files_failed"
             );
             expect(global.console.warn).toHaveBeenCalledWith(
@@ -999,11 +1139,11 @@ describe("renderer.js - Basic Test Coverage", () => {
         });
 
         it("should check for updates in production mode", async () => {
-            const result = scheduleProductionUpdateCheckFor(global.window);
+            const result = scheduleProductionUpdateCheckFor(getMockWindow());
 
             // Should set up timeout for update check in production
             expect(result).toBe("update_check_scheduled");
-            expect(global.window.setTimeout).toHaveBeenCalledWith(
+            expect(getMockWindow().setTimeout).toHaveBeenCalledWith(
                 expect.any(Function),
                 5000
             );
@@ -1018,7 +1158,7 @@ describe("renderer.js - Basic Test Coverage", () => {
             };
 
             const result = exposeUtilitiesFor(
-                global.window,
+                getMockWindow(),
                 mockCreateExportGPXButton,
                 APP_INFO
             );
@@ -1031,7 +1171,7 @@ describe("renderer.js - Basic Test Coverage", () => {
 
         it("should expose development utilities in dev mode", async () => {
             const result = exposeDevelopmentUtilitiesFor(
-                global.window,
+                getMockWindow(),
                 mockShowNotification,
                 mockHandleOpenFile
             );
@@ -1069,7 +1209,7 @@ describe("renderer.js - Basic Test Coverage", () => {
         });
 
         it("should handle window object availability", async () => {
-            const result = getWindowAvailability(global.window);
+            const result = getWindowAvailability(getMockWindow());
 
             expect(result).toEqual({
                 hasWindow: true,
@@ -1085,15 +1225,15 @@ describe("renderer.js - Basic Test Coverage", () => {
 
     describe("DOM Ready State Handling", () => {
         it("should handle loading document state", async () => {
-            const mockDoc = {
-                ...global.document,
+            const mockDoc: MockDocument = {
+                ...getMockDocument(),
                 readyState: "loading",
-            } as any;
+            };
 
             const initFunction = vi.fn();
             const result = handleDomReadyState(
                 mockDoc,
-                global.window,
+                getMockWindow(),
                 initFunction
             );
 
@@ -1102,24 +1242,24 @@ describe("renderer.js - Basic Test Coverage", () => {
                 "DOMContentLoaded",
                 initFunction
             );
-            expect(global.window.setTimeout).not.toHaveBeenCalled();
+            expect(getMockWindow().setTimeout).not.toHaveBeenCalled();
         });
 
         it("should handle complete document state", async () => {
-            const mockDoc = {
-                ...global.document,
+            const mockDoc: MockDocument = {
+                ...getMockDocument(),
                 readyState: "complete",
-            } as any;
+            };
 
             const initFunction = vi.fn();
             const result = handleDomReadyState(
                 mockDoc,
-                global.window,
+                getMockWindow(),
                 initFunction
             );
 
             expect(result).toBe("immediate_init");
-            expect(global.window.setTimeout).toHaveBeenCalledWith(
+            expect(getMockWindow().setTimeout).toHaveBeenCalledWith(
                 initFunction,
                 0
             );

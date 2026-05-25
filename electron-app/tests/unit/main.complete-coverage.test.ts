@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Complete Coverage Test for main.js
  *
@@ -16,6 +15,20 @@ import {
     vi,
 } from "vitest";
 import { EventEmitter } from "events";
+
+type NodeCallback<T> = (error: Error | null, value?: T) => void;
+
+interface MockWebContents extends EventEmitter {
+    executeJavaScript: ReturnType<typeof vi.fn<() => Promise<string>>>;
+    isDestroyed: ReturnType<typeof vi.fn<() => boolean>>;
+    on: ReturnType<typeof vi.fn>;
+    send: ReturnType<typeof vi.fn>;
+}
+
+interface MockWindow extends EventEmitter {
+    isDestroyed: ReturnType<typeof vi.fn<() => boolean>>;
+    webContents: MockWebContents;
+}
 
 // Create comprehensive global mocks
 const globalMocks = {
@@ -37,7 +50,8 @@ const globalMocks = {
     // Node.js modules
     mockFs: {
         readFile: vi.fn(
-            (path: string, cb: any) => cb && cb(null, Buffer.from("test"))
+            (path: string, cb?: NodeCallback<Buffer>) =>
+                cb?.(null, Buffer.from("test"))
         ),
         readFileSync: vi.fn(() => Buffer.from("{}")),
         copyFileSync: vi.fn(),
@@ -93,50 +107,50 @@ beforeAll(() => {
     };
 
     // Set up module mocks for both ES6 and CommonJS
-    vi.mock("electron", () => electronMock);
+    vi.doMock("electron", () => electronMock);
     vi.doMock("electron", () => electronMock);
 
     // Set up Node.js module mocks
-    vi.mock("fs", () => globalMocks.mockFs);
+    vi.doMock("fs", () => globalMocks.mockFs);
     // Also provide node:fs alias to ensure require("node:fs") resolves to our mock
-    vi.mock("node:fs", () => globalMocks.mockFs);
-    vi.mock("path", () => globalMocks.mockPath);
-    vi.mock("os", () => globalMocks.mockOs);
-    vi.mock("http", () => globalMocks.mockHttp);
-    vi.mock("https", () => globalMocks.mockHttps);
-    vi.mock("url", () => globalMocks.mockUrl);
-    vi.mock("crypto", () => globalMocks.mockCrypto);
-    vi.mock("querystring", () => globalMocks.mockQuerystring);
+    vi.doMock("node:fs", () => globalMocks.mockFs);
+    vi.doMock("path", () => globalMocks.mockPath);
+    vi.doMock("os", () => globalMocks.mockOs);
+    vi.doMock("http", () => globalMocks.mockHttp);
+    vi.doMock("https", () => globalMocks.mockHttps);
+    vi.doMock("url", () => globalMocks.mockUrl);
+    vi.doMock("crypto", () => globalMocks.mockCrypto);
+    vi.doMock("querystring", () => globalMocks.mockQuerystring);
 
     // Set up utils module mocks
-    vi.mock("../../utils/state/integration/mainProcessStateManager.js", () => ({
+    vi.doMock("../../utils/state/integration/mainProcessStateManager.js", () => ({
         MainProcessState: globalMocks.MockMainProcessState,
         default: globalMocks.MockMainProcessState,
     }));
 
     // Mock both specifier variants to match main.js's require("./windowStateUtils") resolution
-    vi.mock(
+    vi.doMock(
         "../../windowStateUtils.js",
         () => globalMocks.mockWindowStateUtils
     );
-    vi.mock("../../windowStateUtils", () => globalMocks.mockWindowStateUtils);
+    vi.doMock("../../windowStateUtils", () => globalMocks.mockWindowStateUtils);
     // Ensure createWindow exists to avoid BrowserWindow constructor path in initializeApplication
     globalMocks.mockWindowStateUtils.createWindow = vi.fn(() => {
-        const mockWebContents = new EventEmitter() as any;
+        const mockWebContents = new EventEmitter() as MockWebContents;
         Object.assign(mockWebContents, {
             send: vi.fn(),
             isDestroyed: vi.fn(() => false),
             on: vi.fn(),
             executeJavaScript: vi.fn(() => Promise.resolve("light")),
         });
-        const mockWindow = new EventEmitter() as any;
+        const mockWindow = new EventEmitter() as MockWindow;
         Object.assign(mockWindow, {
             webContents: mockWebContents,
             isDestroyed: vi.fn(() => false),
         });
         return mockWindow;
     });
-    vi.mock(
+    vi.doMock(
         "../../utils/files/recent/recentFiles.js",
         () => globalMocks.mockRecentFiles
     );
@@ -198,7 +212,7 @@ beforeAll(() => {
     globalMocks.mockProcess.env.NODE_ENV = "test";
 
     // Ensure electron-updater is mocked to avoid real listeners and side effects
-    vi.mock("electron-updater", () => ({
+    vi.doMock("electron-updater", () => ({
         autoUpdater: globalMocks.mockAutoUpdater,
     }));
 });

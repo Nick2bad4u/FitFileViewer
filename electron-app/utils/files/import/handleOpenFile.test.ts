@@ -13,8 +13,38 @@ import {
     vi,
 } from "vitest";
 
+type HandleOpenFileModule = Awaited<typeof import("./handleOpenFile.js")>;
+type HandleOpenFileParams = Parameters<HandleOpenFileModule["handleOpenFile"]>[0];
+type HandleOpenFileShowNotification = NonNullable<
+    HandleOpenFileParams["showNotification"]
+>;
+
+interface MockElectronAPI {
+    openFile: ReturnType<
+        typeof vi.fn<() => Promise<null | string | string[]>>
+    >;
+    parseFitFile: ReturnType<
+        typeof vi.fn<(arrayBuffer: ArrayBuffer) => Promise<unknown>>
+    >;
+    readFile: ReturnType<typeof vi.fn<(filePath: string) => Promise<ArrayBuffer>>>;
+}
+
+interface MockFileOpenWindow {
+    electronAPI: MockElectronAPI;
+    sendFitFileToAltFitReader: ReturnType<typeof vi.fn>;
+    showFitData: ReturnType<typeof vi.fn>;
+}
+
+type HandleOpenFileTestGlobal = typeof globalThis & {
+    electronAPI?: unknown;
+    sendFitFileToAltFitReader?: unknown;
+    showFitData?: unknown;
+};
+
+const handleOpenFileGlobal = globalThis as HandleOpenFileTestGlobal;
+
 // Import the module to test (and use its exposed stateManager for spying)
-let handleOpenFileModule: any;
+let handleOpenFileModule: HandleOpenFileModule;
 let mockSetState: ReturnType<typeof vi.spyOn>;
 beforeAll(async () => {
     handleOpenFileModule = await import("./handleOpenFile.js");
@@ -32,16 +62,16 @@ const mockConsoleError = vi.spyOn(console, "error");
 
 // Mock window.electronAPI
 const mockElectronAPI = {
-    openFile: vi.fn(),
-    readFile: vi.fn(),
-    parseFitFile: vi.fn(),
+    openFile: vi.fn<() => Promise<null | string | string[]>>(),
+    readFile: vi.fn<(filePath: string) => Promise<ArrayBuffer>>(),
+    parseFitFile: vi.fn<(arrayBuffer: ArrayBuffer) => Promise<unknown>>(),
 };
 
-const mockWindow = {
+const mockWindow: MockFileOpenWindow = {
     electronAPI: mockElectronAPI,
     showFitData: vi.fn(),
     sendFitFileToAltFitReader: vi.fn(),
-} as any;
+};
 
 Object.defineProperty(global, "window", {
     value: mockWindow,
@@ -66,11 +96,11 @@ beforeEach(() => {
 
     // Reset window.electronAPI and map to globalThis for modules using globalThis.electronAPI
     mockWindow.electronAPI = { ...mockElectronAPI };
-    (globalThis as any).electronAPI = mockWindow.electronAPI;
+    handleOpenFileGlobal.electronAPI = mockWindow.electronAPI;
 
     // Map display helpers used by handleOpenFile to globalThis as implementation checks globalThis
-    (globalThis as any).showFitData = mockWindow.showFitData;
-    (globalThis as any).sendFitFileToAltFitReader =
+    handleOpenFileGlobal.showFitData = mockWindow.showFitData;
+    handleOpenFileGlobal.sendFitFileToAltFitReader =
         mockWindow.sendFitFileToAltFitReader;
 
     // Setup mock functions
@@ -161,8 +191,9 @@ describe("handleOpenFile.js", () => {
 
     describe("validateElectronAPI", () => {
         it("should return false when window.electronAPI is not available", () => {
-            delete mockWindow.electronAPI;
-            delete (globalThis as any).electronAPI;
+            delete (mockWindow as { electronAPI?: MockElectronAPI })
+                .electronAPI;
+            delete handleOpenFileGlobal.electronAPI;
 
             const { validateElectronAPI } = handleOpenFileModule;
 
@@ -172,8 +203,10 @@ describe("handleOpenFile.js", () => {
         });
 
         it("should return false when required methods are missing", () => {
-            mockWindow.electronAPI = { openFile: vi.fn() } as any; // Missing readFile and parseFitFile
-            (globalThis as any).electronAPI = mockWindow.electronAPI;
+            mockWindow.electronAPI = {
+                openFile: vi.fn<() => Promise<null | string | string[]>>(),
+            } as unknown as MockElectronAPI;
+            handleOpenFileGlobal.electronAPI = mockWindow.electronAPI;
 
             const { validateElectronAPI } = handleOpenFileModule;
 
@@ -187,8 +220,8 @@ describe("handleOpenFile.js", () => {
                 openFile: "not a function",
                 readFile: vi.fn(),
                 parseFitFile: vi.fn(),
-            } as any;
-            (globalThis as any).electronAPI = mockWindow.electronAPI;
+            } as unknown as MockElectronAPI;
+            handleOpenFileGlobal.electronAPI = mockWindow.electronAPI;
 
             const { validateElectronAPI } = handleOpenFileModule;
 
@@ -203,7 +236,7 @@ describe("handleOpenFile.js", () => {
                 readFile: vi.fn(),
                 parseFitFile: vi.fn(),
             };
-            (globalThis as any).electronAPI = mockWindow.electronAPI;
+            handleOpenFileGlobal.electronAPI = mockWindow.electronAPI;
 
             const { validateElectronAPI } = handleOpenFileModule;
 
@@ -218,7 +251,7 @@ describe("handleOpenFile.js", () => {
             const { updateUIState } = handleOpenFileModule;
 
             const uiElements = {
-                openFileBtn: { disabled: false } as any,
+                openFileBtn: { disabled: false },
                 setLoading: mockSetLoading,
                 isOpeningFileRef: { value: false },
             };
@@ -232,7 +265,7 @@ describe("handleOpenFile.js", () => {
             const { updateUIState } = handleOpenFileModule;
 
             const uiElements = {
-                openFileBtn: { disabled: false } as any,
+                openFileBtn: { disabled: false },
                 setLoading: mockSetLoading,
                 isOpeningFileRef: { value: false },
             };
@@ -247,7 +280,7 @@ describe("handleOpenFile.js", () => {
             const { updateUIState } = handleOpenFileModule;
 
             const uiElements = {
-                openFileBtn: { disabled: false } as any,
+                openFileBtn: { disabled: false },
                 setLoading: mockSetLoading,
                 isOpeningFileRef: { value: false },
             };
@@ -261,7 +294,7 @@ describe("handleOpenFile.js", () => {
             const { updateUIState } = handleOpenFileModule;
 
             const uiElements = {
-                openFileBtn: { disabled: false } as any,
+                openFileBtn: { disabled: false },
                 setLoading: mockSetLoading,
                 isOpeningFileRef: { value: false },
             };
@@ -282,7 +315,7 @@ describe("handleOpenFile.js", () => {
             });
 
             const uiElements = {
-                openFileBtn: { disabled: false } as any,
+                openFileBtn: { disabled: false },
                 setLoading: mockSetLoading,
                 isOpeningFileRef: { value: false },
             };
@@ -297,9 +330,10 @@ describe("handleOpenFile.js", () => {
 
             const result = await handleOpenFile({
                 isOpeningFileRef: { value: false },
-                openFileBtn: { disabled: false } as any,
+                openFileBtn: { disabled: false },
                 setLoading: mockSetLoading,
-                showNotification: "not a function" as any,
+                showNotification:
+                    "not a function" as unknown as HandleOpenFileShowNotification,
             });
 
             expect(result).toBe(false);
@@ -314,7 +348,7 @@ describe("handleOpenFile.js", () => {
 
             const result = await handleOpenFile({
                 isOpeningFileRef,
-                openFileBtn: { disabled: false } as any,
+                openFileBtn: { disabled: false },
                 setLoading: mockSetLoading,
                 showNotification: mockShowNotification,
             });
@@ -331,11 +365,12 @@ describe("handleOpenFile.js", () => {
         it("should return false when Electron API is not available", async () => {
             const { handleOpenFile } = handleOpenFileModule;
 
-            delete mockWindow.electronAPI;
+            delete (mockWindow as { electronAPI?: MockElectronAPI })
+                .electronAPI;
 
             const result = await handleOpenFile({
                 isOpeningFileRef: { value: false },
-                openFileBtn: { disabled: false } as any,
+                openFileBtn: { disabled: false },
                 setLoading: mockSetLoading,
                 showNotification: mockShowNotification,
             });
@@ -346,11 +381,13 @@ describe("handleOpenFile.js", () => {
         it("should return false when required API methods are missing", async () => {
             const { handleOpenFile } = handleOpenFileModule;
 
-            mockWindow.electronAPI = { openFile: vi.fn() } as any;
+            mockWindow.electronAPI = {
+                openFile: vi.fn<() => Promise<null | string | string[]>>(),
+            } as unknown as MockElectronAPI;
 
             const result = await handleOpenFile({
                 isOpeningFileRef: { value: false },
-                openFileBtn: { disabled: false } as any,
+                openFileBtn: { disabled: false },
                 setLoading: mockSetLoading,
                 showNotification: mockShowNotification,
             });
@@ -369,7 +406,7 @@ describe("handleOpenFile.js", () => {
 
             const result = await handleOpenFile({
                 isOpeningFileRef: { value: false },
-                openFileBtn: { disabled: false } as any,
+                openFileBtn: { disabled: false },
                 setLoading: mockSetLoading,
                 showNotification: mockShowNotification,
             });
@@ -388,7 +425,7 @@ describe("handleOpenFile.js", () => {
 
             const result = await handleOpenFile({
                 isOpeningFileRef: { value: false },
-                openFileBtn: { disabled: false } as any,
+                openFileBtn: { disabled: false },
                 setLoading: mockSetLoading,
                 showNotification: mockShowNotification,
             });
@@ -411,7 +448,7 @@ describe("handleOpenFile.js", () => {
 
             const result = await handleOpenFile({
                 isOpeningFileRef: { value: false },
-                openFileBtn: { disabled: false } as any,
+                openFileBtn: { disabled: false },
                 setLoading: mockSetLoading,
                 showNotification: mockShowNotification,
             });
@@ -436,7 +473,7 @@ describe("handleOpenFile.js", () => {
 
             const result = await handleOpenFile({
                 isOpeningFileRef: { value: false },
-                openFileBtn: { disabled: false } as any,
+                openFileBtn: { disabled: false },
                 setLoading: mockSetLoading,
                 showNotification: mockShowNotification,
             });
@@ -465,7 +502,7 @@ describe("handleOpenFile.js", () => {
             const result = await handleOpenFile(
                 {
                     isOpeningFileRef: { value: false },
-                    openFileBtn: { disabled: false } as any,
+                    openFileBtn: { disabled: false },
                     setLoading: mockSetLoading,
                     showNotification: mockShowNotification,
                 },
@@ -493,7 +530,7 @@ describe("handleOpenFile.js", () => {
 
             const result = await handleOpenFile({
                 isOpeningFileRef: { value: false },
-                openFileBtn: { disabled: false } as any,
+                openFileBtn: { disabled: false },
                 setLoading: mockSetLoading,
                 showNotification: mockShowNotification,
             });
@@ -521,7 +558,7 @@ describe("handleOpenFile.js", () => {
 
             const result = await handleOpenFile({
                 isOpeningFileRef: { value: false },
-                openFileBtn: { disabled: false } as any,
+                openFileBtn: { disabled: false },
                 setLoading: mockSetLoading,
                 showNotification: mockShowNotification,
             });
@@ -552,7 +589,7 @@ describe("handleOpenFile.js", () => {
 
             const result = await handleOpenFile({
                 isOpeningFileRef: { value: false },
-                openFileBtn: { disabled: false } as any,
+                openFileBtn: { disabled: false },
                 setLoading: mockSetLoading,
                 showNotification: mockShowNotification,
             });
@@ -590,7 +627,7 @@ describe("handleOpenFile.js", () => {
 
             const result = await handleOpenFile({
                 isOpeningFileRef: { value: false },
-                openFileBtn: { disabled: false } as any,
+                openFileBtn: { disabled: false },
                 setLoading: mockSetLoading,
                 showNotification: mockShowNotification,
             });
@@ -620,7 +657,7 @@ describe("handleOpenFile.js", () => {
 
             const result = await handleOpenFile({
                 isOpeningFileRef: { value: false },
-                openFileBtn: { disabled: false } as any,
+                openFileBtn: { disabled: false },
                 setLoading: mockSetLoading,
                 showNotification: mockShowNotification,
             });
@@ -642,7 +679,7 @@ describe("handleOpenFile.js", () => {
 
             await handleOpenFile({
                 isOpeningFileRef,
-                openFileBtn: { disabled: false } as any,
+                openFileBtn: { disabled: false },
                 setLoading: mockSetLoading,
                 showNotification: mockShowNotification,
             });
@@ -668,7 +705,7 @@ describe("handleOpenFile.js", () => {
 
             const result = await handleOpenFile({
                 isOpeningFileRef: { value: false },
-                openFileBtn: { disabled: false } as any,
+                openFileBtn: { disabled: false },
                 setLoading: mockSetLoading,
                 showNotification: mockShowNotification,
             });
@@ -694,7 +731,7 @@ describe("handleOpenFile.js", () => {
             const result = await handleOpenFile(
                 {
                     isOpeningFileRef: { value: false },
-                    openFileBtn: { disabled: false } as any,
+                    openFileBtn: { disabled: false },
                     setLoading: mockSetLoading,
                     showNotification: mockShowNotification,
                 },
@@ -723,7 +760,7 @@ describe("handleOpenFile.js", () => {
 
             const result = await handleOpenFile({
                 isOpeningFileRef: { value: false },
-                openFileBtn: { disabled: false } as any,
+                openFileBtn: { disabled: false },
                 setLoading: mockSetLoading,
                 showNotification: mockShowNotification,
             });
@@ -753,7 +790,7 @@ describe("handleOpenFile.js", () => {
 
             const result = await handleOpenFile({
                 isOpeningFileRef: { value: false },
-                openFileBtn: { disabled: false } as any,
+                openFileBtn: { disabled: false },
                 setLoading: mockSetLoading,
                 showNotification: mockShowNotification,
             });
@@ -787,7 +824,7 @@ describe("handleOpenFile.js", () => {
 
             const result = await handleOpenFile({
                 isOpeningFileRef: { value: false },
-                openFileBtn: { disabled: false } as any,
+                openFileBtn: { disabled: false },
                 setLoading: mockSetLoading,
                 showNotification: mockShowNotification,
             });
@@ -830,9 +867,9 @@ describe("handleOpenFile.js", () => {
             const { updateUIState } = handleOpenFileModule;
 
             const uiElements = {
-                openFileBtn: { disabled: false } as any,
+                openFileBtn: { disabled: false },
                 setLoading: vi.fn(),
-                isOpeningFileRef: { value: false } as any,
+                isOpeningFileRef: { value: false },
             };
 
             updateUIState(uiElements, true, true);
@@ -859,9 +896,9 @@ describe("handleOpenFile.js", () => {
             const { updateUIState } = handleOpenFileModule;
 
             const uiElements = {
-                openFileBtn: { disabled: false } as any,
+                openFileBtn: { disabled: false },
                 setLoading: errorFn,
-                isOpeningFileRef: { value: false } as any,
+                isOpeningFileRef: { value: false },
             };
 
             // Should not throw despite error in setLoading
@@ -880,9 +917,10 @@ describe("handleOpenFile.js", () => {
 
             const result = await handleOpenFile({
                 isOpeningFileRef: { value: false },
-                openFileBtn: { disabled: false } as any,
+                openFileBtn: { disabled: false },
                 setLoading: vi.fn(),
-                showNotification: "not a function", // Invalid
+                showNotification:
+                    "not a function" as unknown as HandleOpenFileShowNotification,
             });
 
             expect(result).toBe(false);

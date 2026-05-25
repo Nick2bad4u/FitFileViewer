@@ -164,8 +164,13 @@ describe("Real App Integration: Tab Button Bug", () => {
             await import("../../utils/ui/tabs/updateActiveTab.js");
 
         // Set up mutation observer to track all changes
-        /** @type {any[]} */
-        const changes = [];
+        const changes: {
+            newValue: null | string;
+            oldValue: null | string;
+            source: string;
+            target: string;
+            timestamp: number;
+        }[] = [];
         const observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
                 if (

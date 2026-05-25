@@ -3,6 +3,17 @@
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+interface MainUiSmokeWindow extends Window {
+    cleanupEventListeners?: unknown;
+    electronAPI?: {
+        onIpc: ReturnType<typeof vi.fn>;
+        openExternal: ReturnType<typeof vi.fn>;
+        send: ReturnType<typeof vi.fn>;
+    };
+    renderChartJS?: unknown;
+    showFitData?: unknown;
+}
+
 // Mock heavy dependencies that main-ui imports to keep import side-effects safe in tests
 vi.mock("../../utils/theming/core/theme.js", () => ({
     applyTheme: vi.fn(),
@@ -103,25 +114,21 @@ describe("main-ui.js import smoke", () => {
         );
 
         // Provide a minimal electronAPI stub used by main-ui
-        // @ts-ignore
-        globalThis.window = globalThis.window || ({} as any);
-        // @ts-ignore
-        window.electronAPI = {
+        const smokeWindow = window as MainUiSmokeWindow;
+        smokeWindow.electronAPI = {
             onIpc: vi.fn(),
             send: vi.fn(),
             openExternal: vi.fn().mockResolvedValue(true),
-        } as any;
+        };
     });
 
     it("imports without throwing and defines legacy globals", async () => {
         const mod = await import("../../main-ui.js");
         expect(Object.keys(mod)).toEqual([]);
         // Legacy globals exposed by main-ui
-        // @ts-ignore
-        expect(typeof window.showFitData).toBe("function");
-        // @ts-ignore
-        expect(typeof window.renderChartJS).toBe("function");
-        // @ts-ignore
-        expect(typeof window.cleanupEventListeners).toBe("function");
+        const smokeWindow = window as MainUiSmokeWindow;
+        expect(typeof smokeWindow.showFitData).toBe("function");
+        expect(typeof smokeWindow.renderChartJS).toBe("function");
+        expect(typeof smokeWindow.cleanupEventListeners).toBe("function");
     });
 });

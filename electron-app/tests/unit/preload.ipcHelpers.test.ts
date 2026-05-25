@@ -109,6 +109,27 @@ describe("preload IPC helpers", () => {
         expect(preloadLog).not.toHaveBeenCalledWith("warn", expect.anything());
     });
 
+    it("rethrows readFile ENOENT failures without logging preload noise", async () => {
+        expect.assertions(3);
+
+        const { helpers, ipcRenderer, preloadLog } = createHelpers();
+        ipcRenderer.invoke.mockRejectedValueOnce(
+            new Error("ENOENT: no such file or directory, open 'missing.fit'")
+        );
+
+        await expect(
+            helpers.createSafeInvokeHandler("file:read", "readFile")(
+                "missing.fit"
+            )
+        ).rejects.toThrow("ENOENT");
+
+        expect(ipcRenderer.invoke).toHaveBeenCalledWith(
+            "file:read",
+            "missing.fit"
+        );
+        expect(preloadLog).not.toHaveBeenCalled();
+    });
+
     it("sends IPC and logs send failures without throwing", () => {
         expect.assertions(2);
 

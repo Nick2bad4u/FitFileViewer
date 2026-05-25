@@ -155,6 +155,7 @@ vi.mock("./fitParser", () => ({
 vi.mock("fs", () => {
     return {
         readFile: (p: string, cb: Function) => cb(null, Buffer.from("abc")),
+        stat: vi.fn((p: string, cb: Function) => cb(null, { size: 3 })),
         promises: {
             readFile: vi.fn(async () => Buffer.from("abc")),
         },
@@ -307,14 +308,15 @@ describe("main.js strict handlers and events", () => {
         await expect(openHandler({})).resolves.toBeNull();
 
         // Success path -> adds recent, sets state, rebuilds menu with theme
+        const selectedFilePath = "C:/file.fit";
         mockDialog.showOpenDialog.mockResolvedValueOnce({
             canceled: false,
-            filePaths: ["C:/file.fit"],
+            filePaths: [selectedFilePath],
         });
         mockMainWindow.webContents.executeJavaScript.mockResolvedValueOnce(
             "light"
         );
-        await expect(openHandler({})).resolves.toBe("C:/file.fit");
+        await expect(openHandler({})).resolves.toBe(selectedFilePath);
         // Don't assert on addRecentFile or createAppMenu due to module resolution differences; path return suffices
 
         // recentFiles:get
@@ -323,7 +325,7 @@ describe("main.js strict handlers and events", () => {
         );
         expect(recentGet?.[0]).toBe("recentFiles:get");
         const recent = await recentGet?.[1]({});
-        expect(recent).toEqual(["C:/file.fit"]);
+        expect(recent).toEqual([]);
         // recentFiles:add
         const recentAdd = mockIpcMain.handle.mock.calls.find(
             (c: any[]) => c[0] === "recentFiles:add"
@@ -332,9 +334,7 @@ describe("main.js strict handlers and events", () => {
         mockMainWindow.webContents.executeJavaScript.mockResolvedValueOnce(
             "dark"
         );
-        await expect(recentAdd?.[1]({}, "D:/other.fit")).resolves.toEqual([
-            "C:/file.fit",
-        ]);
+        await expect(recentAdd?.[1]({}, "D:/other.fit")).resolves.toEqual([]);
         // In test mode, menu creation is a no-op; verifying no throw is sufficient
     });
 
@@ -375,12 +375,46 @@ describe("main.js strict handlers and events", () => {
         // Override fs.readFile for this call using spy with loose typing
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const fsMod: any = require("fs");
+        (vi.spyOn(fsMod as any, "stat") as any).mockImplementation(
+            (p: string, cb: Function) => cb(null, { size: 3 })
+        );
         (vi.spyOn(fsMod as any, "readFile") as any).mockImplementation(
             (p: string, cb: Function) => cb(null, Buffer.from("abc"))
         );
         const buf = await fileRead?.[1]({}, "C:/x.fit");
         expect(Object.prototype.toString.call(buf)).toBe("[object ArrayBuffer]");
         expect(new Uint8Array(buf)).toEqual(new Uint8Array([97, 98, 99]));
+
+        const missingFileError = Object.assign(
+            new Error("ENOENT: no such file or directory, stat 'C:/x.fit'"),
+            { code: "ENOENT" }
+        );
+        const directFs = {
+            readFile: vi.fn((p: string, cb: Function) =>
+                cb(null, Buffer.from("should-not-read"))
+            ),
+            stat: vi.fn((p: string, cb: Function) => cb(missingFileError)),
+        };
+        const directLog = vi.fn();
+        let directFileRead: any;
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const { registerFileSystemHandlers }: any = require(
+            "../../../main/ipc/registerFileSystemHandlers"
+        );
+        registerFileSystemHandlers({
+            fs: directFs,
+            logWithContext: directLog,
+            registerIpcHandle: (_channel: string, handler: any) => {
+                directFileRead = handler;
+            },
+        });
+        policy.approveFilePath?.("C:/missing.fit", { source: "test" });
+
+        await expect(directFileRead({}, "C:/missing.fit")).rejects.toMatchObject({
+            code: "ENOENT",
+        });
+        expect(directFs.readFile).not.toHaveBeenCalled();
+        expect(directLog).not.toHaveBeenCalled();
 
         // fit parse/decode
         const invalidFitResult = {

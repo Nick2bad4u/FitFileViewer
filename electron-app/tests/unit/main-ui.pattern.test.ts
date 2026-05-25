@@ -8,6 +8,80 @@
 
 import { vi, describe, it, expect, beforeEach } from "vitest";
 
+type TestMock<TArgs extends readonly unknown[] = readonly unknown[], TReturn = unknown> = ((
+    ...args: TArgs
+) => TReturn) & {
+    mockImplementationOnce: (
+        implementation: (...args: TArgs) => TReturn
+    ) => TestMock<TArgs, TReturn>;
+    mockReturnValue: (value: TReturn) => TestMock<TArgs, TReturn>;
+};
+
+type GetElementByIdMock = TestMock<[elementId: string], HTMLElement | null>;
+type QuerySelectorAllMock = TestMock<[selectors: string], Element[]>;
+type QuerySelectorMock = TestMock<[selectors: string], Element | null>;
+type VoidMock = TestMock<readonly unknown[], void>;
+
+interface ElectronAPIMock {
+    changeTheme: VoidMock;
+    injectMenu: VoidMock;
+    onMenuClick: VoidMock;
+    openExternal: VoidMock;
+}
+
+interface TestBodyMock {
+    appendChild?: VoidMock;
+    setAttribute?: TestMock<[qualifiedName: string, value: string], void>;
+}
+
+interface TestDocumentMock {
+    addEventListener: VoidMock;
+    body: TestBodyMock;
+    createElement: TestMock;
+    getElementById: GetElementByIdMock;
+    querySelector: QuerySelectorMock;
+    querySelectorAll: QuerySelectorAllMock;
+}
+
+interface TestWindowMock {
+    addEventListener: VoidMock;
+    alert?: TestMock<[message?: string], void>;
+    electronAPI?: ElectronAPIMock;
+    FileReader: typeof MockFileReader;
+    renderChartJS?: (config: unknown) => void;
+    showFitData?: (data: unknown) => void;
+    unloadFitFile?: () => void;
+}
+
+interface MainUITestGlobal {
+    document: Document;
+    window: Window & typeof globalThis;
+}
+
+class MockFileReader {
+    onerror: ((event: Event) => void) | null = null;
+    onload: ((event: ProgressEvent<FileReader>) => void) | null = null;
+    readAsArrayBuffer = vi.fn().mockImplementation(() => {
+        queueMicrotask(() => {
+            this.onload?.({
+                target: { result: new ArrayBuffer(0) },
+            } as unknown as ProgressEvent<FileReader>);
+        });
+    });
+}
+
+function getTestDocument(): TestDocumentMock {
+    return document as unknown as TestDocumentMock;
+}
+
+function getTestGlobal(): MainUITestGlobal {
+    return globalThis as unknown as MainUITestGlobal;
+}
+
+function getTestWindow(): TestWindowMock {
+    return window as unknown as TestWindowMock;
+}
+
 // Mock all external dependencies to avoid initialization issues
 vi.mock("electron", () => ({
     ipcRenderer: {
@@ -38,16 +112,16 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
         vi.spyOn(console, "warn").mockImplementation(() => {});
 
         // Mock DOM
-        global.document = {
+        getTestGlobal().document = {
             addEventListener: vi.fn(),
             getElementById: vi.fn(),
             querySelector: vi.fn(),
             querySelectorAll: vi.fn().mockReturnValue([]),
             createElement: vi.fn(),
             body: { appendChild: vi.fn() },
-        } as any;
+        } as unknown as Document;
 
-        global.window = {
+        getTestGlobal().window = {
             addEventListener: vi.fn(),
             electronAPI: {
                 injectMenu: vi.fn(),
@@ -56,20 +130,8 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
                 changeTheme: vi.fn(),
             },
             alert: vi.fn(),
-            FileReader: class MockFileReader {
-                onload = null;
-                onerror = null;
-                readAsArrayBuffer = vi.fn().mockImplementation(function () {
-                    queueMicrotask(() => {
-                        if (this.onload) {
-                            this.onload({
-                                target: { result: new ArrayBuffer(0) },
-                            });
-                        }
-                    }, 0);
-                });
-            },
-        } as any;
+            FileReader: MockFileReader,
+        } as unknown as Window & typeof globalThis;
     });
 
     describe("UI Initialization and Setup", () => {
@@ -88,7 +150,7 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
 
             // Test with electronAPI missing
             const originalAPI = window.electronAPI;
-            delete (window as any).electronAPI;
+            delete getTestWindow().electronAPI;
             expect(validateElectronAPI()).toBe(false);
             expect(console.warn).toHaveBeenCalledWith(
                 "electronAPI is not available"
@@ -115,14 +177,16 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
 
             // Mock element exists
             const mockElement = { id: "test-element" };
-            (document.getElementById as any).mockReturnValue(mockElement);
+            getTestDocument().getElementById.mockReturnValue(
+                mockElement as unknown as HTMLElement
+            );
 
             expect(validateElement("test-element", "Test")).toBe(mockElement);
             expect(console.warn).not.toHaveBeenCalled();
 
             // Mock element missing
-            (document.getElementById as any).mockReturnValue(null);
-            (document.querySelector as any).mockReturnValue(null);
+            getTestDocument().getElementById.mockReturnValue(null);
+            getTestDocument().querySelector.mockReturnValue(null);
 
             expect(validateElement("missing-element", "Missing")).toBe(null);
             expect(console.warn).toHaveBeenCalledWith(
@@ -194,7 +258,9 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
                     remove: vi.fn(),
                 },
             };
-            (document.getElementById as any).mockReturnValue(mockElement);
+            getTestDocument().getElementById.mockReturnValue(
+                mockElement as unknown as HTMLElement
+            );
 
             clearFileDisplay();
 
@@ -203,7 +269,7 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
                 "has-file"
             );
 
-            (document.getElementById as any).mockReturnValue(null);
+            getTestDocument().getElementById.mockReturnValue(null);
             expect(() => clearFileDisplay()).not.toThrow();
         });
 
@@ -226,7 +292,9 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
             }
 
             const mockElement = { innerHTML: "<div>content</div>" };
-            (document.querySelector as any).mockReturnValue(mockElement);
+            getTestDocument().querySelector.mockReturnValue(
+                mockElement as unknown as Element
+            );
 
             clearContentAreas();
 
@@ -279,8 +347,12 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
                 textContent: "test.fit",
                 innerHTML: "<div>content</div>",
             };
-            (document.getElementById as any).mockReturnValue(mockElement);
-            (document.querySelector as any).mockReturnValue(mockElement);
+            getTestDocument().getElementById.mockReturnValue(
+                mockElement as unknown as HTMLElement
+            );
+            getTestDocument().querySelector.mockReturnValue(
+                mockElement as unknown as Element
+            );
 
             const result = unloadFitFile();
 
@@ -292,7 +364,7 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
             );
 
             const domError = new Error("DOM unavailable");
-            (document.getElementById as any).mockImplementationOnce(() => {
+            getTestDocument().getElementById.mockImplementationOnce(() => {
                 throw domError;
             });
             expect(unloadFitFile()).toBe(false);
@@ -377,9 +449,14 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
             }
 
             const mockOverlay = { style: { display: "none" } };
-            (document.getElementById as any).mockReturnValue(mockOverlay);
+            getTestDocument().getElementById.mockReturnValue(
+                mockOverlay as unknown as HTMLElement
+            );
 
-            const mockEvent = { preventDefault: vi.fn() } as any;
+            const preventDefault = vi.fn();
+            const mockEvent = {
+                preventDefault,
+            } as unknown as DragEvent;
 
             handleDragEnter(mockEvent);
             expect(dragCounter).toBe(1);
@@ -415,19 +492,22 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
                 }
             }
 
-            function readFileAsArrayBuffer(file: File): Promise<ArrayBuffer> {
+            function readFileAsArrayBuffer(_file: File): Promise<ArrayBuffer> {
                 return Promise.resolve(new ArrayBuffer(0));
             }
 
-            const mockFile = { name: "test.fit" };
+            const mockFile = new File(["test"], "test.fit", {
+                type: "application/octet-stream",
+            });
+            const preventDefault = vi.fn();
             const mockEvent = {
-                preventDefault: vi.fn(),
+                preventDefault,
                 dataTransfer: { files: [mockFile] },
-            } as any;
+            } as unknown as DragEvent;
 
             await handleDropEvent(mockEvent);
 
-            expect(mockEvent.preventDefault).toHaveBeenCalled();
+            expect(preventDefault).toHaveBeenCalled();
             expect(await handleDropEvent(mockEvent)).toBeInstanceOf(
                 ArrayBuffer
             );
@@ -438,7 +518,7 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
             const emptyDropEvent = {
                 preventDefault: vi.fn(),
                 dataTransfer: { files: [] },
-            } as any;
+            } as unknown as DragEvent;
             await expect(handleDropEvent(emptyDropEvent)).resolves.toBe(
                 undefined
             );
@@ -476,8 +556,10 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
                 },
             };
 
-            global.document.body = { setAttribute: vi.fn() } as any;
-            (document.querySelectorAll as any).mockReturnValue([mockElement]);
+            getTestDocument().body = { setAttribute: vi.fn() };
+            getTestDocument().querySelectorAll.mockReturnValue([
+                mockElement as unknown as Element,
+            ]);
 
             expect(handleThemeChange("dark")).toBe(true);
 
@@ -518,7 +600,7 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
                 return currentTheme;
             }
 
-            global.document.body = { setAttribute: vi.fn() } as any;
+            getTestDocument().body = { setAttribute: vi.fn() };
 
             const result = initializeTheme();
 
@@ -536,8 +618,8 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
             // Simulate the menu event registration pattern from main-ui.js
             function registerMenuHandlers() {
                 const registeredActions = [];
-                if ((window.electronAPI as any)?.onMenuClick) {
-                    (window.electronAPI as any).onMenuClick(
+                if (getTestWindow().electronAPI?.onMenuClick) {
+                    getTestWindow().electronAPI.onMenuClick(
                         "unload-fit-file",
                         () => {
                             console.log("Unload menu item clicked");
@@ -545,7 +627,7 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
                     );
                     registeredActions.push("unload-fit-file");
 
-                    (window.electronAPI as any).onMenuClick(
+                    getTestWindow().electronAPI.onMenuClick(
                         "summary-column-selector",
                         () => {
                             console.log("Summary column selector clicked");
@@ -562,12 +644,11 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
                 "unload-fit-file",
                 "summary-column-selector",
             ]);
-            expect(
-                (window.electronAPI as any).onMenuClick
-            ).toHaveBeenCalledWith("unload-fit-file", expect.any(Function));
-            expect(
-                (window.electronAPI as any).onMenuClick
-            ).toHaveBeenCalledWith(
+            expect(getTestWindow().electronAPI?.onMenuClick).toHaveBeenCalledWith(
+                "unload-fit-file",
+                expect.any(Function)
+            );
+            expect(getTestWindow().electronAPI?.onMenuClick).toHaveBeenCalledWith(
                 "summary-column-selector",
                 expect.any(Function)
             );
@@ -575,7 +656,7 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
 
         it("should handle menu actions", () => {
             // Simulate the menu action handling pattern from main-ui.js
-            function handleMenuAction(action: string, data?: any) {
+            function handleMenuAction(action: string, _data?: unknown) {
                 switch (action) {
                     case "unload-fit-file":
                         console.log("Unloading FIT file");
@@ -608,13 +689,27 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
     describe("IFrame Communication", () => {
         it("should handle iframe messaging", () => {
             // Simulate the iframe communication pattern from main-ui.js
-            function sendToIframe(message: any) {
+            interface TestIframe {
+                contentWindow?: {
+                    postMessage: TestMock<
+                        [message: unknown, targetOrigin: string],
+                        void
+                    >;
+                };
+            }
+
+            function getTestIframe(element: Element | null): TestIframe | null {
+                return element as unknown as TestIframe | null;
+            }
+
+            function sendToIframe(message: unknown) {
                 const iframe = document.querySelector(
                     "iframe[data-alt-fit-reader]"
                 );
-                if (iframe && (iframe as any).contentWindow) {
+                const testIframe = getTestIframe(iframe);
+                if (testIframe?.contentWindow) {
                     try {
-                        (iframe as any).contentWindow.postMessage(
+                        testIframe.contentWindow.postMessage(
                             message,
                             "https://fitfileviewer.local"
                         );
@@ -638,7 +733,9 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
                     postMessage: vi.fn(),
                 },
             };
-            (document.querySelector as any).mockReturnValue(mockIframe);
+            getTestDocument().querySelector.mockReturnValue(
+                mockIframe as unknown as Element
+            );
 
             const message = { type: "fitFile", data: {} };
             expect(sendToIframe(message)).toBe(true);
@@ -652,7 +749,7 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
             expect(console.log).toHaveBeenCalledWith("Message sent to iframe");
 
             // Test with iframe missing
-            (document.querySelector as any).mockReturnValue(null);
+            getTestDocument().querySelector.mockReturnValue(null);
             expect(sendToIframe(message)).toBe(false);
             expect(console.warn).toHaveBeenCalledWith(
                 "Iframe not found or not ready"
@@ -695,7 +792,7 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
             );
 
             const originalAlert = window.alert;
-            delete (window as any).alert;
+            delete getTestWindow().alert;
             expect(handleOperationError("map rendering", testError)).toBe(
                 false
             );
@@ -708,7 +805,7 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
             function logOperation(
                 operation: string,
                 status: "start" | "complete" | "error",
-                details?: any
+                details?: unknown
             ) {
                 const timestamp = new Date().toISOString();
                 const logMessage = `[${timestamp}] ${operation}: ${status}`;
@@ -748,43 +845,43 @@ describe("main-ui.js - Pattern-Based Coverage", () => {
         it("should expose functions to window object", () => {
             // Simulate the global function exposure pattern from main-ui.js
             function exposeGlobalFunctions() {
-                (window as any).showFitData = function (data: any) {
+                getTestWindow().showFitData = function (data: unknown) {
                     console.log("showFitData called with:", data);
                 };
 
-                (window as any).renderChartJS = function (config: any) {
+                getTestWindow().renderChartJS = function (config: unknown) {
                     console.log("renderChartJS called with:", config);
                 };
 
-                (window as any).unloadFitFile = function () {
+                getTestWindow().unloadFitFile = function () {
                     console.log("unloadFitFile called");
                 };
             }
 
             exposeGlobalFunctions();
 
-            expect(typeof (window as any).showFitData).toBe("function");
-            expect(typeof (window as any).renderChartJS).toBe("function");
-            expect(typeof (window as any).unloadFitFile).toBe("function");
+            expect(typeof getTestWindow().showFitData).toBe("function");
+            expect(typeof getTestWindow().renderChartJS).toBe("function");
+            expect(typeof getTestWindow().unloadFitFile).toBe("function");
 
             // Test function calls
-            (window as any).showFitData({ test: "data" });
+            getTestWindow().showFitData?.({ test: "data" });
             expect(console.log).toHaveBeenCalledWith(
                 "showFitData called with:",
                 { test: "data" }
             );
 
-            (window as any).renderChartJS({ type: "line" });
+            getTestWindow().renderChartJS?.({ type: "line" });
             expect(console.log).toHaveBeenCalledWith(
                 "renderChartJS called with:",
                 { type: "line" }
             );
 
-            (window as any).unloadFitFile();
+            getTestWindow().unloadFitFile?.();
             expect(console.log).toHaveBeenCalledWith("unloadFitFile called");
 
-            delete (window as any).renderChartJS;
-            expect((window as any).renderChartJS).not.toBeDefined();
+            delete getTestWindow().renderChartJS;
+            expect(getTestWindow().renderChartJS).not.toBeDefined();
         });
     });
 });

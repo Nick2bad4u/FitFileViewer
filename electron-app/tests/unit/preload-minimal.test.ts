@@ -1,11 +1,51 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+type BeforeExitListener = () => void;
+
+interface ElectronPreloadMock {
+    contextBridge: {
+        exposeInMainWorld: ReturnType<
+            typeof vi.fn<(name: string, api: unknown) => void>
+        >;
+    };
+    ipcRenderer: {
+        invoke: ReturnType<typeof vi.fn<() => Promise<string>>>;
+        on: ReturnType<typeof vi.fn>;
+        removeAllListeners: ReturnType<typeof vi.fn>;
+        send: ReturnType<typeof vi.fn>;
+    };
+}
+
+interface PreloadMinimalProcess {
+    env: { NODE_ENV: string };
+    listeners: ReturnType<
+        typeof vi.fn<(eventName: string) => BeforeExitListener[]>
+    >;
+    once: ReturnType<
+        typeof vi.fn<
+            (
+                eventName: string,
+                listener: BeforeExitListener
+            ) => PreloadMinimalProcess
+        >
+    >;
+    removeListener: ReturnType<
+        typeof vi.fn<
+            (
+                eventName: string,
+                listener: BeforeExitListener
+            ) => PreloadMinimalProcess
+        >
+    >;
+}
+
 describe("preload.js - Basic API Validation", () => {
-    let electronMock: any;
+    let electronMock: ElectronPreloadMock;
     let exposedGlobals: Map<string, unknown>;
-    let consoleLogSpy: any;
-    let consoleErrorSpy: any;
-    let beforeExitListeners: Function[];
+    let consoleLogSpy: ReturnType<typeof vi.spyOn>;
+    let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
+    let beforeExitListeners: BeforeExitListener[];
+    let mockProcess: PreloadMinimalProcess;
 
     beforeEach(async () => {
         // Reset everything completely
@@ -38,18 +78,21 @@ describe("preload.js - Basic API Validation", () => {
             .mockImplementation(() => {});
 
         // Mock process object
-        const mockProcess: any = {
+        mockProcess = {
             env: { NODE_ENV: "development" },
             listeners: vi.fn((eventName: string) =>
                 eventName === "beforeExit" ? beforeExitListeners : []
             ),
-            once: vi.fn((eventName: string, listener: Function) => {
+            once: vi.fn(
+                (eventName: string, listener: BeforeExitListener) => {
                 if (eventName === "beforeExit") {
                     beforeExitListeners.push(listener);
                 }
                 return mockProcess;
-            }),
-            removeListener: vi.fn((eventName: string, listener: Function) => {
+                }
+            ),
+            removeListener: vi.fn(
+                (eventName: string, listener: BeforeExitListener) => {
                 if (eventName === "beforeExit") {
                     beforeExitListeners = beforeExitListeners.filter(
                         (currentListener) => currentListener !== listener
@@ -126,9 +169,10 @@ describe("preload.js - Basic API Validation", () => {
 
     it("should register beforeExit handler", () => {
         // Check if process.once was called with beforeExit
-        const mockProcess = globalThis.process as any;
+        const currentProcess =
+            globalThis.process as unknown as PreloadMinimalProcess;
 
-        expect(mockProcess.once).toHaveBeenCalledWith(
+        expect(currentProcess.once).toHaveBeenCalledWith(
             "beforeExit",
             expect.any(Function)
         );
@@ -139,10 +183,18 @@ describe("preload.js - Basic API Validation", () => {
     it("should log initialization message", () => {
         // Check for any initialization logs
         const hasInitLog = consoleLogSpy.mock.calls.some(
-            (call: any) =>
-                call[0] &&
-                (call[0].includes("[preload.js] Preload script initialized") ||
-                    call[0].includes("[preload.js] Successfully exposed"))
+            (call: unknown[]) => {
+                const firstArgument = call[0];
+                return (
+                    typeof firstArgument === "string" &&
+                    (firstArgument.includes(
+                        "[preload.js] Preload script initialized"
+                    ) ||
+                        firstArgument.includes(
+                            "[preload.js] Successfully exposed"
+                        ))
+                );
+            }
         );
 
         expect(hasInitLog).toBe(true);

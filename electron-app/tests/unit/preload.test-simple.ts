@@ -17,8 +17,12 @@ describe("Simple Electron Mock Test", () => {
         delete require.cache[require.resolve("../../preload.js")];
 
         // Mock global variables
-        global.window = { electronAPI: undefined } as any;
-        global.process = { env: { NODE_ENV: "test" } } as any;
+        global.window = {
+            electronAPI: undefined,
+        } as unknown as Window & typeof globalThis;
+        global.process = {
+            env: { NODE_ENV: "test" },
+        } as unknown as NodeJS.Process;
     });
 
     it("should use manual mock correctly", () => {

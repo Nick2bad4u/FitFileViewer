@@ -12,6 +12,32 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+interface TestWebContents {
+    executeJavaScript?: (script: string) => Promise<string>;
+    isDestroyed: () => boolean;
+    send?: (channel: string, ...args: unknown[]) => void;
+}
+
+interface TestWindow {
+    isDestroyed: () => boolean;
+    webContents: TestWebContents | null;
+}
+
+interface WindowOpenDetails {
+    url: string;
+}
+
+interface NavigationEvent {
+    preventDefault: () => void;
+}
+
+type ConsoleLevel = "error" | "info" | "log" | "warn";
+type WindowOpenHandler = (details: WindowOpenDetails) => { action: string };
+type NewWindowHandler = (
+    event: NavigationEvent,
+    navigationUrl: string
+) => void;
+
 // Create comprehensive mocks that will satisfy the main.js dependencies
 const mockElectronApp = {
     getVersion: vi.fn().mockReturnValue("1.0.0"),
@@ -183,7 +209,7 @@ describe("main.js - Comprehensive Coverage", () => {
 
         it("should handle window lifecycle management", () => {
             // Simulate the window validation logic from main.js
-            function isWindowUsable(win: any) {
+            function isWindowUsable(win: TestWindow | null) {
                 if (!win) return false;
                 if (win.isDestroyed && win.isDestroyed()) return false;
                 if (
@@ -195,7 +221,10 @@ describe("main.js - Comprehensive Coverage", () => {
                 return true;
             }
 
-            function validateWindow(win: any, context = "unknown operation") {
+            function validateWindow(
+                win: TestWindow | null,
+                context = "unknown operation"
+            ) {
                 if (!isWindowUsable(win)) {
                     console.warn(`Window validation failed during ${context}`);
                     return false;
@@ -237,7 +266,7 @@ describe("main.js - Comprehensive Coverage", () => {
                 THEME_STORAGE_KEY: "ffv-theme",
             };
 
-            async function readThemeFromWindow(win: any) {
+            async function readThemeFromWindow(win: TestWindow | null) {
                 if (
                     !win ||
                     win.isDestroyed() ||
@@ -248,7 +277,7 @@ describe("main.js - Comprehensive Coverage", () => {
                 }
 
                 try {
-                    const theme = await win.webContents.executeJavaScript(
+                    const theme = await win.webContents.executeJavaScript?.(
                         `localStorage.getItem("${CONSTANTS.THEME_STORAGE_KEY}")`
                     );
                     return theme || CONSTANTS.DEFAULT_THEME;
@@ -285,12 +314,17 @@ describe("main.js - Comprehensive Coverage", () => {
 
         it("should handle IPC communication patterns", () => {
             // Simulate the IPC handler registration patterns from main.js
-            function sendToRenderer(win: any, channel: string, ...args: any[]) {
+            function sendToRenderer(
+                win: TestWindow | null,
+                channel: string,
+                ...args: unknown[]
+            ) {
                 if (
                     win &&
                     !win.isDestroyed() &&
                     win.webContents &&
-                    !win.webContents.isDestroyed()
+                    !win.webContents.isDestroyed() &&
+                    win.webContents.send
                 ) {
                     win.webContents.send(channel, ...args);
                 }
@@ -324,9 +358,9 @@ describe("main.js - Comprehensive Coverage", () => {
         it("should handle logging with context", () => {
             // Simulate the logging function from main.js
             function logWithContext(
-                level: string,
+                level: ConsoleLevel,
                 message: string,
-                context: any = {}
+                context: Record<string, unknown> = {}
             ) {
                 const timestamp = new Date().toISOString();
                 const contextStr =
@@ -334,7 +368,10 @@ describe("main.js - Comprehensive Coverage", () => {
                         ? JSON.stringify(context)
                         : "";
                 const logEntry = `[${timestamp}] [main.js] ${message}`;
-                (console as any)[level](logEntry, contextStr);
+                const consoleMethod = console[level] as (
+                    ...messages: unknown[]
+                ) => void;
+                consoleMethod(logEntry, contextStr);
                 return { contextStr, logEntry };
             }
 
@@ -353,8 +390,10 @@ describe("main.js - Comprehensive Coverage", () => {
 
         it("should handle error wrapping pattern", async () => {
             // Simulate the error handler pattern from main.js
-            function createErrorHandler(operation: Function) {
-                return async (...args: any[]) => {
+            function createErrorHandler<TResult>(
+                operation: (...args: unknown[]) => TResult | Promise<TResult>
+            ) {
+                return async (...args: unknown[]) => {
                     try {
                         return await operation(...args);
                     } catch (error) {
@@ -632,17 +671,15 @@ describe("main.js - Comprehensive Coverage", () => {
     describe("Security Features", () => {
         it("should handle web content security", () => {
             // Simulate web contents security setup
-            let capturedWindowOpenHandler: ((details: any) => {
-                action: string;
-            }) | null = null;
+            let capturedWindowOpenHandler: WindowOpenHandler | null = null;
             let capturedNewWindowHandler:
-                | ((event: any, navigationUrl: string) => void)
+                | NewWindowHandler
                 | null = null;
             const mockWebContents = {
-                setWindowOpenHandler: vi.fn((handler) => {
+                setWindowOpenHandler: vi.fn((handler: WindowOpenHandler) => {
                     capturedWindowOpenHandler = handler;
                 }),
-                on: vi.fn((event, handler) => {
+                on: vi.fn((event: string, handler: NewWindowHandler) => {
                     if (event === "new-window") {
                         capturedNewWindowHandler = handler;
                     }
@@ -650,13 +687,13 @@ describe("main.js - Comprehensive Coverage", () => {
             };
 
             // Simulate security handler setup
-            mockWebContents.setWindowOpenHandler((details: any) => {
+            mockWebContents.setWindowOpenHandler((_details: WindowOpenDetails) => {
                 return { action: "deny" };
             });
 
             mockWebContents.on(
                 "new-window",
-                (event: any, navigationUrl: string) => {
+                (event: NavigationEvent, navigationUrl: string) => {
                     event.preventDefault();
                     mockShell.openExternal(navigationUrl);
                 }
@@ -702,8 +739,8 @@ describe("main.js - Comprehensive Coverage", () => {
         it("should handle file operation errors", async () => {
             // Simulate file reading error
             const fs = await import("fs");
-            (fs.promises.readFile as any).mockRejectedValue(
-                new Error("File not found")
+            vi.mocked(fs.promises.readFile).mockRejectedValue(
+                new Error("File not found") as never
             );
 
             await expect(fs.promises.readFile("/invalid/path")).rejects.toThrow(
@@ -783,7 +820,7 @@ describe("main.js - Comprehensive Coverage", () => {
 
         it("should handle state persistence", () => {
             // Simulate state persistence logic
-            function persistAppState(key: string, value: any) {
+            function persistAppState(key: string, value: unknown) {
                 try {
                     // Simulate state persistence
                     console.log(
@@ -819,7 +856,7 @@ describe("main.js - Comprehensive Coverage", () => {
 
         it("should handle menu actions", () => {
             // Simulate menu action handling
-            function handleMenuAction(action: string, data?: any) {
+            function handleMenuAction(action: string, _data?: unknown) {
                 switch (action) {
                     case "open-file":
                         console.log("Opening file dialog");

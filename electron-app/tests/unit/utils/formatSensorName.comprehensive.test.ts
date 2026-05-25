@@ -27,6 +27,16 @@ vi.mock("../../../utils/formatting/formatters/formatProduct.js", () => ({
 import { formatManufacturer } from "../../../utils/formatting/formatters/formatManufacturer.js";
 import { formatProduct } from "../../../utils/formatting/formatters/formatProduct.js";
 
+type SensorInput = {
+    readonly garminProduct?: unknown;
+    readonly invalidProperty?: unknown;
+    readonly manufacturer?: unknown;
+    readonly product?: unknown;
+};
+
+const mockFormatManufacturer = vi.mocked(formatManufacturer);
+const mockFormatProduct = vi.mocked(formatProduct);
+
 // Mock console for testing error handling
 const mockConsole = {
     warn: vi.fn(),
@@ -50,21 +60,21 @@ const mockConsole = {
     timeLog: vi.fn(),
     timeStamp: vi.fn(),
     Console: vi.fn(),
-    memory: {} as any,
+    memory: {},
     profile: vi.fn(),
     profileEnd: vi.fn(),
-} as Console;
+};
 
 // Setup comprehensive console mocking
-globalThis.console = mockConsole;
-global.console = mockConsole;
+globalThis.console = mockConsole as unknown as Console;
+global.console = mockConsole as unknown as Console;
 
 describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
     beforeEach(() => {
         // Clear all mocks before each test
         vi.clearAllMocks();
-        (mockConsole.warn as any).mockClear();
-        (mockConsole.error as any).mockClear();
+        mockConsole.warn.mockClear();
+        mockConsole.error.mockClear();
     });
 
     afterEach(() => {
@@ -74,7 +84,7 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
 
     describe("Input Validation", () => {
         it("should return fallback for null sensor", () => {
-            const result = formatSensorName(null as any);
+            const result = formatSensorName(null);
             expect(result).toBe("Unknown Sensor");
             expect(mockConsole.warn).toHaveBeenCalledWith(
                 "[formatSensorName] Invalid sensor object provided:",
@@ -85,7 +95,7 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
         });
 
         it("should return fallback for undefined sensor", () => {
-            const result = formatSensorName(undefined as any);
+            const result = formatSensorName(undefined);
             expect(result).toBe("Unknown Sensor");
             expect(mockConsole.warn).toHaveBeenCalledWith(
                 "[formatSensorName] Invalid sensor object provided:",
@@ -96,7 +106,7 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
         });
 
         it("should return fallback for non-object sensor (string)", () => {
-            const result = formatSensorName("invalid" as any);
+            const result = formatSensorName("invalid");
             expect(result).toBe("Unknown Sensor");
             expect(mockConsole.warn).toHaveBeenCalledWith(
                 "[formatSensorName] Invalid sensor object provided:",
@@ -107,7 +117,7 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
         });
 
         it("should return fallback for non-object sensor (number)", () => {
-            const result = formatSensorName(123 as any);
+            const result = formatSensorName(123);
             expect(result).toBe("Unknown Sensor");
             expect(mockConsole.warn).toHaveBeenCalledWith(
                 "[formatSensorName] Invalid sensor object provided:",
@@ -118,7 +128,7 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
         });
 
         it("should return fallback for non-object sensor (boolean)", () => {
-            const result = formatSensorName(true as any);
+            const result = formatSensorName(true);
             expect(result).toBe("Unknown Sensor");
             expect(mockConsole.warn).toHaveBeenCalledWith(
                 "[formatSensorName] Invalid sensor object provided:",
@@ -139,8 +149,8 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
 
     describe("Strategy 1: Manufacturer + Product Combination", () => {
         it("should format sensor with manufacturer and product", () => {
-            (formatManufacturer as any).mockReturnValue("Garmin");
-            (formatProduct as any).mockReturnValue("Edge 520");
+            mockFormatManufacturer.mockReturnValue("Garmin");
+            mockFormatProduct.mockReturnValue("Edge 520");
 
             const sensor = { manufacturer: 1, product: 1735 };
             const result = formatSensorName(sensor);
@@ -151,8 +161,8 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
         });
 
         it("should avoid duplication when product name includes manufacturer", () => {
-            (formatManufacturer as any).mockReturnValue("Garmin");
-            (formatProduct as any).mockReturnValue("Garmin Edge 520");
+            mockFormatManufacturer.mockReturnValue("Garmin");
+            mockFormatProduct.mockReturnValue("Garmin Edge 520");
 
             const sensor = { manufacturer: "garmin", product: 1735 };
             const result = formatSensorName(sensor);
@@ -163,8 +173,8 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
         });
 
         it("should handle case-insensitive duplication check", () => {
-            (formatManufacturer as any).mockReturnValue("GARMIN");
-            (formatProduct as any).mockReturnValue("garmin edge 520");
+            mockFormatManufacturer.mockReturnValue("GARMIN");
+            mockFormatProduct.mockReturnValue("garmin edge 520");
 
             const sensor = { manufacturer: 1, product: 1735 };
             const result = formatSensorName(sensor);
@@ -175,9 +185,9 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
         });
 
         it("should not use manufacturer+product if manufacturer is null", () => {
-            (formatProduct as any).mockReturnValue("Edge 520");
+            mockFormatProduct.mockReturnValue("Edge 520");
 
-            const sensor = { manufacturer: null as any, product: 1735 };
+            const sensor: SensorInput = { manufacturer: null, product: 1735 };
             const result = formatSensorName(sensor);
 
             expect(result).toBe("Unknown Sensor");
@@ -186,7 +196,7 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
         });
 
         it("should not use manufacturer+product if manufacturer is undefined", () => {
-            (formatProduct as any).mockReturnValue("Edge 520");
+            mockFormatProduct.mockReturnValue("Edge 520");
 
             const sensor = { manufacturer: undefined, product: 1735 };
             const result = formatSensorName(sensor);
@@ -197,9 +207,9 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
         });
 
         it("should not use manufacturer+product if product is null", () => {
-            (formatManufacturer as any).mockReturnValue("Garmin");
+            mockFormatManufacturer.mockReturnValue("Garmin");
 
-            const sensor = { manufacturer: 1, product: null as any };
+            const sensor: SensorInput = { manufacturer: 1, product: null };
             const result = formatSensorName(sensor);
 
             expect(result).toBe("Garmin");
@@ -208,7 +218,7 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
         });
 
         it("should not use manufacturer+product if product is undefined", () => {
-            (formatManufacturer as any).mockReturnValue("Garmin");
+            mockFormatManufacturer.mockReturnValue("Garmin");
 
             const sensor = { manufacturer: 1, product: undefined };
             const result = formatSensorName(sensor);
@@ -219,8 +229,8 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
         });
 
         it("should handle zero values as valid", () => {
-            (formatManufacturer as any).mockReturnValue("Test Manufacturer");
-            (formatProduct as any).mockReturnValue("Test Product");
+            mockFormatManufacturer.mockReturnValue("Test Manufacturer");
+            mockFormatProduct.mockReturnValue("Test Product");
 
             const sensor = { manufacturer: 0, product: 0 };
             const result = formatSensorName(sensor);
@@ -284,8 +294,8 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
         });
 
         it("should prioritize manufacturer+product over garmin product", () => {
-            (formatManufacturer as any).mockReturnValue("Garmin");
-            (formatProduct as any).mockReturnValue("Edge 520");
+            mockFormatManufacturer.mockReturnValue("Garmin");
+            mockFormatProduct.mockReturnValue("Edge 520");
 
             const sensor = {
                 manufacturer: 1,
@@ -302,7 +312,7 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
 
     describe("Strategy 3: Manufacturer Only", () => {
         it("should format manufacturer when no product available", () => {
-            (formatManufacturer as any).mockReturnValue("Wahoo");
+            mockFormatManufacturer.mockReturnValue("Wahoo");
 
             const sensor = { manufacturer: "wahoo" };
             const result = formatSensorName(sensor);
@@ -313,7 +323,7 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
         });
 
         it("should format manufacturer numeric ID", () => {
-            (formatManufacturer as any).mockReturnValue("Polar");
+            mockFormatManufacturer.mockReturnValue("Polar");
 
             const sensor = { manufacturer: 7 };
             const result = formatSensorName(sensor);
@@ -324,7 +334,7 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
         });
 
         it("should prioritize garmin product over manufacturer only", () => {
-            (formatManufacturer as any).mockReturnValue("Garmin");
+            mockFormatManufacturer.mockReturnValue("Garmin");
 
             const sensor = {
                 manufacturer: "garmin",
@@ -338,7 +348,7 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
         });
 
         it("should handle manufacturer zero", () => {
-            (formatManufacturer as any).mockReturnValue("Test Manufacturer");
+            mockFormatManufacturer.mockReturnValue("Test Manufacturer");
 
             const sensor = { manufacturer: 0 };
             const result = formatSensorName(sensor);
@@ -351,7 +361,7 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
 
     describe("Error Handling", () => {
         it("should handle formatManufacturer throwing error", () => {
-            (formatManufacturer as any).mockImplementation(() => {
+            mockFormatManufacturer.mockImplementation(() => {
                 throw new Error("Manufacturer error");
             });
 
@@ -366,8 +376,8 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
         });
 
         it("should handle formatProduct throwing error", () => {
-            (formatManufacturer as any).mockReturnValue("Garmin");
-            (formatProduct as any).mockImplementation(() => {
+            mockFormatManufacturer.mockReturnValue("Garmin");
+            mockFormatProduct.mockImplementation(() => {
                 throw new Error("Product error");
             });
 
@@ -384,7 +394,7 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
         it("should handle garmin product formatting error", () => {
             // Test with a garmin product that might cause String conversion issues
             // Since we can't easily mock String globally, test edge case inputs
-            const sensor = { garminProduct: {} as any }; // Invalid type that would cause String() to not work as expected
+            const sensor: SensorInput = { garminProduct: {} }; // Invalid type that would cause String() to not work as expected
             const result = formatSensorName(sensor);
 
             // Function should handle any garmin product formatting gracefully
@@ -394,9 +404,9 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
         it("should handle unexpected object properties gracefully", () => {
             const sensor = {
                 invalidProperty: "invalid",
-                manufacturer: null as any,
-                product: null as any,
-                garminProduct: null as any,
+                manufacturer: null,
+                product: null,
+                garminProduct: null,
             };
             const result = formatSensorName(sensor);
 
@@ -407,8 +417,8 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
 
     describe("Real-world Usage Scenarios", () => {
         it("should handle Garmin Edge 520 sensor correctly", () => {
-            (formatManufacturer as any).mockReturnValue("Garmin");
-            (formatProduct as any).mockReturnValue("Edge 520");
+            mockFormatManufacturer.mockReturnValue("Garmin");
+            mockFormatProduct.mockReturnValue("Edge 520");
 
             const sensor = { manufacturer: 1, product: 1735 };
             const result = formatSensorName(sensor);
@@ -418,8 +428,8 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
         });
 
         it("should handle Wahoo KICKR sensor correctly", () => {
-            (formatManufacturer as any).mockReturnValue("Wahoo");
-            (formatProduct as any).mockReturnValue("KICKR");
+            mockFormatManufacturer.mockReturnValue("Wahoo");
+            mockFormatProduct.mockReturnValue("KICKR");
 
             const sensor = { manufacturer: "wahoo", product: 1537 };
             const result = formatSensorName(sensor);
@@ -428,8 +438,8 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
         });
 
         it("should handle heart rate monitor sensor", () => {
-            (formatManufacturer as any).mockReturnValue("Polar");
-            (formatProduct as any).mockReturnValue("H10");
+            mockFormatManufacturer.mockReturnValue("Polar");
+            mockFormatProduct.mockReturnValue("H10");
 
             const sensor = { manufacturer: 7, product: 1 };
             const result = formatSensorName(sensor);
@@ -438,7 +448,7 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
         });
 
         it("should handle unknown manufacturer correctly", () => {
-            (formatManufacturer as any).mockReturnValue("Unknown Manufacturer");
+            mockFormatManufacturer.mockReturnValue("Unknown Manufacturer");
 
             const sensor = { manufacturer: 999 };
             const result = formatSensorName(sensor);
@@ -454,8 +464,8 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
         });
 
         it("should handle sensors with product already containing manufacturer name", () => {
-            (formatManufacturer as any).mockReturnValue("Garmin");
-            (formatProduct as any).mockReturnValue("Garmin Edge 1030 Plus");
+            mockFormatManufacturer.mockReturnValue("Garmin");
+            mockFormatProduct.mockReturnValue("Garmin Edge 1030 Plus");
 
             const sensor = { manufacturer: 1, product: 3624 };
             const result = formatSensorName(sensor);
@@ -466,8 +476,8 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
 
     describe("Edge Cases", () => {
         it("should handle sensor with all properties set", () => {
-            (formatManufacturer as any).mockReturnValue("Garmin");
-            (formatProduct as any).mockReturnValue("Edge 520");
+            mockFormatManufacturer.mockReturnValue("Garmin");
+            mockFormatProduct.mockReturnValue("Edge 520");
 
             const sensor = {
                 manufacturer: 1,
@@ -508,8 +518,8 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
         });
 
         it("should handle manufacturer with partial duplication in product", () => {
-            (formatManufacturer as any).mockReturnValue("Gar");
-            (formatProduct as any).mockReturnValue("Garmin Edge 520");
+            mockFormatManufacturer.mockReturnValue("Gar");
+            mockFormatProduct.mockReturnValue("Garmin Edge 520");
 
             const sensor = { manufacturer: 1, product: 1735 };
             const result = formatSensorName(sensor);
@@ -518,8 +528,8 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
         });
 
         it("should handle case where formatted values return empty strings", () => {
-            (formatManufacturer as any).mockReturnValue("");
-            (formatProduct as any).mockReturnValue("");
+            mockFormatManufacturer.mockReturnValue("");
+            mockFormatProduct.mockReturnValue("");
 
             const sensor = { manufacturer: 1, product: 1735 };
             const result = formatSensorName(sensor);
@@ -535,7 +545,7 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
                     1,
                     2,
                     3,
-                ] as any,
+                ],
                 product: 1735,
             };
             const result = formatSensorName(sensor);
@@ -544,7 +554,10 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
         });
 
         it("should handle object as product", () => {
-            const sensor = { manufacturer: 1, product: { id: 1735 } as any };
+            const sensor: SensorInput = {
+                manufacturer: 1,
+                product: { id: 1735 },
+            };
             const result = formatSensorName(sensor);
 
             expect(result).toBe("Unknown Sensor");
@@ -553,30 +566,30 @@ describe("formatSensorName.js - Sensor Name Formatter Utility", () => {
 
     describe("Performance and Efficiency", () => {
         it("should not call unnecessary functions for invalid inputs", () => {
-            expect(formatSensorName(null as any)).toBe("Unknown Sensor");
-            expect(formatSensorName(undefined as any)).toBe("Unknown Sensor");
-            expect(formatSensorName("invalid" as any)).toBe("Unknown Sensor");
+            expect(formatSensorName(null)).toBe("Unknown Sensor");
+            expect(formatSensorName(undefined)).toBe("Unknown Sensor");
+            expect(formatSensorName("invalid")).toBe("Unknown Sensor");
 
             expect(formatManufacturer).not.toHaveBeenCalled();
             expect(formatProduct).not.toHaveBeenCalled();
         });
 
         it("should call functions in correct priority order", () => {
-            (formatManufacturer as any).mockReturnValue("Garmin");
-            (formatProduct as any).mockReturnValue("Edge 520");
+            mockFormatManufacturer.mockReturnValue("Garmin");
+            mockFormatProduct.mockReturnValue("Edge 520");
 
             const sensor = { manufacturer: 1, product: 1735 };
             const result = formatSensorName(sensor);
 
             expect(result).toBe("Garmin Edge 520");
             expect(formatManufacturer).toHaveBeenCalledBefore(
-                formatProduct as any
+                mockFormatProduct
             );
         });
 
         it("should handle multiple calls efficiently", () => {
-            (formatManufacturer as any).mockReturnValue("Garmin");
-            (formatProduct as any).mockReturnValue("Edge 520");
+            mockFormatManufacturer.mockReturnValue("Garmin");
+            mockFormatProduct.mockReturnValue("Edge 520");
 
             const sensor = { manufacturer: 1, product: 1735 };
 
