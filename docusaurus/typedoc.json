@@ -3,7 +3,6 @@
     "blockTags": [
         "@fileoverview",
         "@version",
-        "@ts-nocheck",
         "@ts-check",
         "@defaultValue",
         "@description",

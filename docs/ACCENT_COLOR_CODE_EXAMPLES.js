@@ -12,8 +12,6 @@
  * @file Code examples and reference for accent color system
  */
 
-// @ts-nocheck - This is a documentation file with example code
-
 // ============================================================================
 // BASIC USAGE - Setting Accent Colors
 // ============================================================================

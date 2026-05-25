@@ -3,7 +3,6 @@
     "blockTags": [
         "@fileoverview",
         "@version",
-        "@ts-nocheck",
         "@ts-check",
         "@defaultValue",
         "@description",
@@ -74,7 +73,7 @@
     "emit": "docs",
     "entryPointStrategy": "expand",
     "entryPoints": [
-        "C:/Users/Nick/Dropbox/PC (2)/Documents/GitHub/FitFileViewer/electron-app/**/*.{ts,mts,cts,tsx,js,jsx}"
+        "../electron-app/**/*.{ts,mts,cts,tsx,js,jsx}"
     ],
     "exclude": [
         "**/dist/**",
@@ -177,7 +176,7 @@
         "alphabetical"
     ],
     "treatWarningsAsErrors": false,
-    "tsconfig": "C:/Users/Nick/Dropbox/PC (2)/Documents/GitHub/FitFileViewer/electron-app/tsconfig.json",
+    "tsconfig": "../electron-app/tsconfig.json",
     "validation": {
         "invalidLink": false,
         "notDocumented": false,

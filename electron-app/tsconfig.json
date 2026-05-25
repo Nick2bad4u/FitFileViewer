@@ -95,7 +95,6 @@
         "**/dist",
         "**/libs",
         "**/dist/**",
-        "**/docs/**",
         "**/node_modules",
         "**/node_modules/@types/**",
         "**/node_modules/@typescript-eslint/**",
@@ -120,6 +119,7 @@
         "**/assets/**"
     ],
     "include": [
+        "*.ts",
         "**/*.js",
         "global.d.ts",
         "shared/**/*.ts",
@@ -133,6 +133,8 @@
         "src/index.css",
         "src/types/global.d.ts",
         "main/**/*.ts",
+        "preload/**/*.ts",
+        "ui/**/*.ts",
         "windowStateUtils.ts",
         "utils.ts",
         "utils/**/*.ts",

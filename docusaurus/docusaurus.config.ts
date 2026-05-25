@@ -72,7 +72,7 @@ const config = {
 
     markdown: {
         anchors: {
-            maintainCase: true,
+            maintainCase: false,
         },
         format: "detect",
         hooks: {

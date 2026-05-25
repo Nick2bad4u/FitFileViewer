@@ -40,12 +40,12 @@ FitFileViewer is a free, open-source application that lets you:
 
 | Section                                                    | Description                                              |
 | ---------------------------------------------------------- | -------------------------------------------------------- |
-| [🚀 Getting Started](/docs/category/getting-started)       | Installation, system requirements, and quick start guide |
-| [👤 User Guide](/docs/category/user-guide)                 | How to use the application effectively                   |
-| [📊 Data Visualization](/docs/category/data-visualization) | Maps, charts, tables, and summary views                  |
-| [🏗️ Architecture](/docs/category/architecture)             | Technical architecture and design patterns               |
-| [🛠️ Development](/docs/category/development)               | Development setup and contribution guidelines            |
-| [🔧 API Reference](/docs/category/api-reference)           | API documentation for developers                         |
+| [🚀 Getting Started](/docs/getting-started/installation)   | Installation, system requirements, and quick start guide |
+| [👤 User Guide](/docs/user-guide/opening-files)            | How to use the application effectively                   |
+| [📊 Data Visualization](/docs/visualization/maps)          | Maps, charts, tables, and summary views                  |
+| [🏗️ Architecture](/docs/architecture/overview)             | Technical architecture and design patterns               |
+| [🛠️ Development](/docs/development/setup)                  | Development setup and contribution guidelines            |
+| [🔧 API Reference](/docs/api-reference/core-apis)          | API documentation for developers                         |
 
 ## 🚀 Quick Start
 
