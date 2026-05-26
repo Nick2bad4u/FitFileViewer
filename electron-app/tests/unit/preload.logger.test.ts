@@ -54,11 +54,15 @@ describe("preload logger", () => {
         expect(consoleRef.error).toHaveBeenCalledWith("failure");
     });
 
-    it("ignores missing console methods", () => {
-        expect.assertions(1);
+    it("ignores missing console methods without falling back to another level", () => {
+        expect.assertions(2);
 
-        const preloadLog = createPreloadLogger({});
+        const consoleRef = {
+            log: vi.fn<(...args: unknown[]) => void>(),
+        };
+        const preloadLog = createPreloadLogger(consoleRef);
 
-        expect(() => preloadLog("warn", "ignored")).not.toThrow();
+        expect(preloadLog("warn", "ignored")).toBeUndefined();
+        expect(consoleRef.log).not.toHaveBeenCalled();
     });
 });
