@@ -124,12 +124,12 @@ Current `build:runtime-ts` flow:
 
 ## Electron Builder Package Surface
 
-`electron-app/package.json` currently includes these package files:
+`electron-app/package.json` currently allows these Electron Builder app files
+through `build.files`:
 
 - `assets/`
 - `dist/`
 - `elevProfile.css`
-- `global.d.ts`
 - `icons/`
 - `index.html`
 - `package.json`

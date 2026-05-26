@@ -43,7 +43,10 @@ jobs:
               if: runner.os != 'Windows'
               uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
               with:
-                  path: electron-app/node_modules
+                  path: |
+                      ~/.npm
+                      node_modules
+                      electron-app/node_modules
                   key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
                   restore-keys: |
                       ${{ runner.os }}-node-
@@ -64,13 +67,11 @@ jobs:
                   node-version: "20"
 
             - name: Install dependencies
-              run: |
-                  cd electron-app
-                  npm install --force
+              run: npm ci --no-audit --no-fund
 
             - name: Build Flatpak
+              working-directory: electron-app
               run: |
-                  cd electron-app
                   ls -l
                   # Always build the dist repo to ensure it exists and is up-to-date
                   flatpak-builder --repo=dist --force-clean build-dir flatpak-build.yml
@@ -82,8 +83,8 @@ jobs:
                   DEBUG: "@malept/flatpak-bundler"
 
             - name: Create FlatPak bundle
+              working-directory: electron-app
               run: |
-                  cd electron-app
                   ls -l
                   ls -l dist
                   flatpak build-bundle dist FitFileViewer.flatpak com.nick2bad4u.fitfileviewer
@@ -100,8 +101,8 @@ jobs:
                   path: electron-app/FitFileViewer.flatpak
 
             - name: Zip Flatpak bundle
+              working-directory: electron-app
               run: |
-                  cd electron-app
                   ls -l
                   zip FitFileViewer.flatpak.zip FitFileViewer.flatpak
 
@@ -121,8 +122,8 @@ jobs:
                   result-encoding: string
 
             - name: Rename Flatpak and zip with version
+              working-directory: electron-app
               run: |
-                  cd electron-app
                   mv FitFileViewer.flatpak FitFileViewer-${{ steps.get_release.outputs.result }}.flatpak
                   mv FitFileViewer.flatpak.zip FitFileViewer-${{ steps.get_release.outputs.result }}.flatpak.zip
 

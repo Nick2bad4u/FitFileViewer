@@ -32,7 +32,6 @@ jobs:
         defaults:
             run:
                 shell: pwsh
-                working-directory: electron-app
         steps:
             - name: Harden the runner (audit only)
               uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
@@ -49,10 +48,10 @@ jobs:
               with:
                   node-version: 20
                   cache: "npm"
-                  cache-dependency-path: electron-app/package-lock.json
+                  cache-dependency-path: package-lock.json
 
             - name: Install dependencies
-              run: npm ci --force
+              run: npm ci --no-audit --no-fund
 
             - name: Build Win7 portable artifact
               env:
@@ -85,6 +84,7 @@ jobs:
             - name: Prepare Win7 artifact for release
               if: github.event_name == 'workflow_run'
               id: prepare_release
+              working-directory: electron-app
               run: |
                   $releaseTag = "${{ steps.get_release.outputs.result }}"
                   $distDir = Join-Path (Get-Location) "dist" "win7"
@@ -116,5 +116,6 @@ jobs:
                   RELEASE_TAG: ${{ steps.get_release.outputs.result }}
                   RELEASE_EXE: ${{ steps.prepare_release.outputs.exe_path }}
                   RELEASE_ZIP: ${{ steps.prepare_release.outputs.zip_path }}
+              working-directory: electron-app
               run: |
                   gh release upload "$env:RELEASE_TAG" "$env:RELEASE_EXE" "$env:RELEASE_ZIP" --clobber

@@ -343,6 +343,15 @@
         "directories": {
             "output": "release"
         },
+        "files": [
+            "assets/**",
+            "dist/**",
+            "elevProfile.css",
+            "icons/**",
+            "index.html",
+            "package.json",
+            "style.css"
+        ],
         "appId": "io.github.nick2bad4u.fitfileviewer",
         "artifactName": "Fit-File-Viewer-${platform}-${arch}-${version}.${ext}",
         "asar": true,

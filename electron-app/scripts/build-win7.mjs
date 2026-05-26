@@ -1,16 +1,61 @@
 import { Arch, build, Platform } from "electron-builder";
+import fs from "node:fs";
 import path from "node:path";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 
 const __dirname = path.dirname(__filename);
-const outputDir = path.resolve(__dirname, "..", "release", "win7");
+const electronAppDir = path.resolve(__dirname, "..");
+const outputDir = path.join(electronAppDir, "release", "win7");
 const WIN7_ELECTRON_VERSION = "22.3.27";
+const appPackageFiles = [
+    "assets/**",
+    "dist/**",
+    "elevProfile.css",
+    "icons/**",
+    "index.html",
+    "package.json",
+    "style.css",
+];
+
+function assertInsideElectronApp(targetPath) {
+    const relativePath = path.relative(electronAppDir, path.resolve(targetPath));
+
+    if (
+        relativePath === "" ||
+        relativePath.startsWith("..") ||
+        path.isAbsolute(relativePath)
+    ) {
+        throw new Error(`Refusing to operate outside electron-app: ${targetPath}`);
+    }
+}
+
+function runNpmScript(scriptName) {
+    const npmExecPath = process.env.npm_execpath;
+
+    if (npmExecPath) {
+        execFileSync(process.execPath, [npmExecPath, "run", scriptName], {
+            cwd: electronAppDir,
+            stdio: "inherit",
+        });
+        return;
+    }
+
+    execFileSync(process.platform === "win32" ? "npm.cmd" : "npm", ["run", scriptName], {
+        cwd: electronAppDir,
+        stdio: "inherit",
+    });
+}
 
 async function run() {
     console.log("[win7-build] Starting Windows 7 compatibility build...");
     try {
+        assertInsideElectronApp(outputDir);
+        fs.rmSync(outputDir, { force: true, recursive: true });
+        runNpmScript("build:runtime-ts");
+
         await build({
             targets: Platform.WINDOWS.createTarget(["portable"], Arch.ia32),
             config: {
@@ -18,6 +63,7 @@ async function run() {
                 npmRebuild: false,
                 publish: null,
                 asar: false,
+                files: appPackageFiles,
                 directories: {
                     output: outputDir,
                 },
