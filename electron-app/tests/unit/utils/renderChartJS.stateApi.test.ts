@@ -1,15 +1,6 @@
 /**
- * Tests core chart rendering utilities to improve coverage from 0% to high
- * coverage.
- *
- * This test focuses on testing individual utility functions first, then
- * building up to more complex operations.
- *
- * TARGET: renderChartJS.js has 1,499 lines with 0% coverage - highest impact
- * opportunity GOAL: Achieve high statement, function, and branch coverage for
- * this critical file
- *
- * @file Comprehensive test suite for renderChartJS.js utility functions
+ * Tests exported chart render state helpers and compatibility APIs from
+ * renderChartJS.js.
  */
 
 import { describe, expect, test, vi, beforeEach, afterEach } from "vitest";
@@ -100,7 +91,7 @@ import {
     chartActions,
 } from "../../../utils/charts/core/renderChartJS.js";
 
-describe("renderChartJS.js - Comprehensive Utility Function Coverage", () => {
+describe("renderChartJS.js state API", () => {
     beforeEach(() => {
         // Reset all mocks and state before each test
         vi.clearAllMocks();
@@ -298,7 +289,7 @@ describe("renderChartJS.js - Comprehensive Utility Function Coverage", () => {
     });
 
     describe("getChartStatus function - Status Information Retrieval", () => {
-        test("should return comprehensive chart status object", () => {
+        test("should return chart status object", () => {
             // Set up mock state
             globalMockState.data.set("charts.isRendered", true);
             globalMockState.data.set("charts.isRendering", false);

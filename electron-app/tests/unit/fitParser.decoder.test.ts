@@ -67,7 +67,7 @@ const mockPerformanceMonitor = {
 // Mock modules
 vi.mock("@garmin/fitsdk", () => mockFitSDK);
 
-describe("fitParser.js - Comprehensive Coverage", () => {
+describe("fitParser.js decoder behavior", () => {
     let fitParser: FitParserModule;
     let mockDecoder: MockFitSdkDecoder;
     let mockStream: MockFitSdkStream;
