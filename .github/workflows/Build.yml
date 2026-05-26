@@ -240,7 +240,6 @@ jobs:
                   path: |
                       ~\.npm
                       node_modules
-                      electron-app\node_modules
                       docusaurus\node_modules
                       ~\.cache
                   key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
@@ -257,7 +256,6 @@ jobs:
                   path: |
                       ~/.npm
                       node_modules
-                      electron-app/node_modules
                       docusaurus/node_modules
                   key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
                   restore-keys: |

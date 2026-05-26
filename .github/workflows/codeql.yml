@@ -100,7 +100,6 @@ jobs:
                   path: |
                       ~/.npm
                       node_modules
-                      electron-app/node_modules
                       docusaurus/node_modules
                   key: ${{ runner.os }}-workspace-node-modules-${{ hashFiles('package-lock.json') }}
                   restore-keys: |
