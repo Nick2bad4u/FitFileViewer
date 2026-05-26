@@ -2,14 +2,15 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const electronAppDir = fileURLToPath(new URL("..", import.meta.url));
-const distDir = path.join(electronAppDir, "dist");
+const repositoryRoot = fileURLToPath(new URL("..", import.meta.url));
+const appDir = path.join(repositoryRoot, "electron-app");
+const distDir = path.join(appDir, "dist");
 
 const directoryCopies = ["assets", "ffv", "icons"];
 const fileCopies = ["elevProfile.css", "style.css"];
 
 function assertInsideElectronApp(targetPath) {
-    const resolvedRoot = path.resolve(electronAppDir);
+    const resolvedRoot = path.resolve(appDir);
     const resolvedTarget = path.resolve(targetPath);
     const relativePath = path.relative(resolvedRoot, resolvedTarget);
 
@@ -23,7 +24,7 @@ function assertInsideElectronApp(targetPath) {
 }
 
 function copyDirectory(name) {
-    const source = path.join(electronAppDir, name);
+    const source = path.join(appDir, name);
     const destination = path.join(distDir, name);
 
     if (!fs.existsSync(source)) {
@@ -35,7 +36,7 @@ function copyDirectory(name) {
 }
 
 function copyFile(name) {
-    const source = path.join(electronAppDir, name);
+    const source = path.join(appDir, name);
     const destination = path.join(distDir, name);
 
     if (!fs.existsSync(source)) {
@@ -50,13 +51,13 @@ function copyFile(name) {
 function assertNoNodeModulesReference(filePath, content) {
     if (content.includes("node_modules")) {
         throw new Error(
-            `${path.relative(electronAppDir, filePath)} must not reference node_modules directly`
+            `${path.relative(appDir, filePath)} must not reference node_modules directly`
         );
     }
 }
 
 function copyIndexHtml() {
-    const source = path.join(electronAppDir, "index.html");
+    const source = path.join(appDir, "index.html");
     const destination = path.join(distDir, "index.html");
     const html = fs.readFileSync(source, "utf8");
 

@@ -4,9 +4,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const electronAppDir = fileURLToPath(new URL("..", import.meta.url));
+const repositoryRoot = fileURLToPath(new URL("..", import.meta.url));
+const appDir = path.join(repositoryRoot, "electron-app");
 const require = createRequire(import.meta.url);
-const tsconfigPath = path.join(electronAppDir, "tsconfig.runtime.json");
+const tsconfigPath = path.join(appDir, "tsconfig.runtime.json");
 const prettierBin = require.resolve("prettier/bin/prettier.cjs");
 const batchSize = 40;
 
@@ -28,12 +29,12 @@ function resolveOutputPath(tsconfig, file) {
             ? compilerOptions.rootDir
             : ".";
     const relativeToRoot = path.relative(
-        path.resolve(electronAppDir, rootDir),
-        path.resolve(electronAppDir, file)
+        path.resolve(appDir, rootDir),
+        path.resolve(appDir, file)
     );
 
     return path.join(
-        electronAppDir,
+        appDir,
         outDir,
         relativeToRoot.replace(/\.ts$/u, ".js")
     );
@@ -63,7 +64,7 @@ function runPrettier(files) {
                 ...batch,
             ],
             {
-                cwd: electronAppDir,
+                cwd: appDir,
                 stdio: "inherit",
             }
         );

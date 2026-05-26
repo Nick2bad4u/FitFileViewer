@@ -2,11 +2,12 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const electronAppDir = fileURLToPath(new URL("..", import.meta.url));
-const distDir = path.join(electronAppDir, "dist");
+const repositoryRoot = fileURLToPath(new URL("..", import.meta.url));
+const appDir = path.join(repositoryRoot, "electron-app");
+const distDir = path.join(appDir, "dist");
 
 function assertInsideElectronApp(targetPath) {
-    const resolvedRoot = path.resolve(electronAppDir);
+    const resolvedRoot = path.resolve(appDir);
     const resolvedTarget = path.resolve(targetPath);
     const relativePath = path.relative(resolvedRoot, resolvedTarget);
 

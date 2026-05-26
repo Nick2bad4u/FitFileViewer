@@ -14,7 +14,7 @@ compatibility bundle:
   the Chart.js, DataTables, Leaflet, and MapLibre stacks.
 - `electron-app/index.html` loads bundled renderer CSS from
   `renderer/vendor-globals.css`.
-- `electron-app/scripts/prepare-runtime-dist.mjs` no longer copies `vendor/`
+- `scripts/prepare-runtime-dist.mjs` no longer copies `vendor/`
   into `electron-app/dist/vendor/`.
 - `electron-app/package.json` no longer includes `vendor/` in the npm package
   file list.
@@ -110,7 +110,7 @@ The build writes runtime output under `electron-app/dist/`.
 Current `build:runtime-ts` flow:
 
 1. `scripts/clean-runtime-dist.mjs`
-2. `tsc --project .\tsconfig.runtime.json`
+2. `tsc --project electron-app\tsconfig.runtime.json`
 3. `scripts/bundle-preload.mjs`
 4. `npm --prefix .. run build:renderer`
 5. `scripts/format-runtime-output.mjs`

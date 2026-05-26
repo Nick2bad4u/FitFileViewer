@@ -329,7 +329,11 @@ electron-app/utils/
 ├── tsconfig.vitest-typecheck.json   # Root-owned Vitest typecheck configuration
 ├── tsconfig.electron-app.eslint.json # Root-owned ESLint parser project for electron-app
 ├── scripts/
-│   └── analyze-coverage.mjs         # Root-owned coverage analysis helper
+│   ├── analyze-coverage.mjs         # Root-owned coverage analysis helper
+│   ├── bundle-preload.mjs           # Root-owned preload bundling helper
+│   ├── clean-runtime-dist.mjs       # Root-owned runtime output cleanup helper
+│   ├── format-runtime-output.mjs    # Root-owned runtime output formatter
+│   └── prepare-runtime-dist.mjs     # Root-owned runtime package asset helper
 └── electron-app/
     ├── package.json                 # Electron app metadata and packaging configuration
     │   ├── Electron Builder configuration
