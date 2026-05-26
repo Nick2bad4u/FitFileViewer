@@ -91,7 +91,7 @@ function getSubscriptionCallback(): SubscriptionCallback {
     return callback as SubscriptionCallback;
 }
 
-describe("updateActiveTab.js - Focused Comprehensive Tests", () => {
+describe("updateActiveTab", () => {
     beforeEach(() => {
         vi.clearAllMocks();
         document.body.replaceChildren();
@@ -123,6 +123,25 @@ describe("updateActiveTab.js - Focused Comprehensive Tests", () => {
     });
 
     describe("updateActiveTab", () => {
+        it("should keep the requested tab active when it is already selected", () => {
+            appendTabElements([
+                { active: true, id: "tab-summary", text: "Summary" },
+                { id: "tab-chart", text: "Chart" },
+            ]);
+
+            const updated = updateActiveTab("tab-summary");
+
+            expect(updated).toBe(true);
+            expectActiveState("tab-summary", true);
+            expectActiveState("tab-chart", false);
+            expect(mockSetState).toHaveBeenCalledOnce();
+            expect(mockSetState).toHaveBeenCalledWith(
+                "ui.activeTab",
+                "summary",
+                { source: "updateActiveTab" }
+            );
+        });
+
         it("should update tab classes correctly for standard tab pattern", () => {
             appendTabElements([
                 { active: true, id: "tab-summary", text: "Summary" },
