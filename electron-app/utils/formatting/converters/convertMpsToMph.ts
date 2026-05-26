@@ -24,14 +24,5 @@ export function convertMpsToMph(mps: unknown): number {
         console.warn("[convertMpsToMph] Negative speed value:", mps);
     }
 
-    try {
-        return mps * SPEED_CONVERSIONS.MPS_TO_MPH;
-    } catch (error) {
-        console.error("[convertMpsToMph] Conversion failed:", error);
-        throw new Error(`Failed to convert speed: ${getErrorMessage(error)}`);
-    }
-}
-
-function getErrorMessage(error: unknown): string {
-    return error instanceof Error ? error.message : String(error);
+    return mps * SPEED_CONVERSIONS.MPS_TO_MPH;
 }
