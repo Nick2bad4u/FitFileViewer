@@ -350,16 +350,57 @@ test.describe("FitFileViewer Electron UI", () => {
             vendorScriptCount: 0,
         });
 
-        for (const tabId of [
-            "#tab_chartjs",
-            "#tab_data",
-            "#tab_summary",
-        ]) {
+        await page.locator("#tab_chartjs").click();
+        await expect(page.locator("#tab_chartjs")).toHaveClass(/active/u);
+        await expect(page.locator("#content_chartjs")).toBeAttached();
+        await expect(
+            page.locator("#chartjs_chart_container canvas.chart-canvas").first()
+        ).toBeVisible();
+
+        const chartRuntimeHandle = await page.waitForFunction(() => {
+            const globalWindow = window as Window & {
+                _chartjsInstances?: Array<{ canvas?: HTMLCanvasElement }>;
+            };
+            const canvases = Array.from(
+                document.querySelectorAll<HTMLCanvasElement>(
+                    "#chartjs_chart_container canvas.chart-canvas"
+                )
+            );
+            const instances = Array.isArray(globalWindow._chartjsInstances)
+                ? globalWindow._chartjsInstances
+                : [];
+
+            if (canvases.length === 0 || instances.length === 0) {
+                return null;
+            }
+
+            return {
+                canvasCount: canvases.length,
+                chartInstanceCount: instances.length,
+                chartIds: canvases.map((canvas) => canvas.id),
+            };
+        });
+        const chartRuntime = (await chartRuntimeHandle.jsonValue()) as {
+            canvasCount: number;
+            chartIds: string[];
+            chartInstanceCount: number;
+        } | null;
+
+        expect(chartRuntime).toMatchObject({
+            canvasCount: expect.any(Number),
+            chartInstanceCount: expect.any(Number),
+            chartIds: expect.arrayContaining([
+                expect.stringMatching(/^chart/u),
+            ]),
+        });
+        expect(chartRuntime?.canvasCount).toBeGreaterThan(0);
+        expect(chartRuntime?.chartInstanceCount).toBeGreaterThan(0);
+
+        for (const tabId of ["#tab_data", "#tab_summary"]) {
             await page.locator(tabId).click();
             await expect(page.locator(tabId)).toHaveClass(/active/u);
         }
 
-        await expect(page.locator("#content_chartjs")).toBeAttached();
         await expect(page.locator("#content_data")).toBeAttached();
         await expect(page.locator("#content_summary")).toBeAttached();
 
