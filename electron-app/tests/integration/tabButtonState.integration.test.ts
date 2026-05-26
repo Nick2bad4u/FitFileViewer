@@ -1,10 +1,9 @@
 /**
- * Integration test that simulates the real app's initialization sequence to
- * identify where the disabled attribute bug occurs
+ * Exercises the tab-button state transitions used during app startup and
+ * FIT-file load.
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
-// Mock the state manager
 const mockStateManager = {
     getState: vi.fn(),
     setState: vi.fn(),
@@ -15,7 +14,6 @@ const mockStateManager = {
     }),
 };
 
-// Mock the global state
 let globalState = {
     "ui.activeTab": "summary",
     "ui.tabButtonsEnabled": false,
@@ -56,14 +54,12 @@ async function flushMutationObservers(): Promise<void> {
 mockStateManager.getState.mockImplementation((key) => globalState[key]);
 mockStateManager.setState.mockImplementation((key, value) => {
     globalState[key] = value;
-    // Trigger subscribers
     const callbacks = mockStateManager.subscribe.mock.calls
         .filter((call) => call[0] === key)
         .map((call) => call[1]);
     callbacks.forEach((callback) => callback(value));
 });
 
-// Mock the imports before importing the modules
 vi.mock("../../../utils/state/core/stateManager.js", () => ({
     getState: mockStateManager.getState,
     setState: mockStateManager.setState,
@@ -74,19 +70,16 @@ vi.mock("../../../utils/dom/index.js", () => ({
     isHTMLElement: (el) => el instanceof HTMLElement,
 }));
 
-describe("Real App Integration: Tab Button Bug", () => {
+describe("Tab button state integration", () => {
     beforeEach(() => {
-        // Reset state
         globalState = {
             "ui.activeTab": "summary",
             "ui.tabButtonsEnabled": false,
             globalData: null,
         };
 
-        // Clear mocks
         vi.clearAllMocks();
 
-        // Create real DOM like the actual app
         createRealAppTabsDom();
     });
 
@@ -95,44 +88,27 @@ describe("Real App Integration: Tab Button Bug", () => {
         vi.clearAllMocks();
     });
 
-    it("should simulate the exact real app initialization sequence", async () => {
-        // Dynamic import after mocks are set up
+    it("enables all tab buttons after FIT data is loaded", async () => {
         const { setTabButtonsEnabled, initializeTabButtonState } =
             await import("../../utils/ui/controls/enableTabButtons.js");
         const { initializeActiveTabState } =
             await import("../../utils/ui/tabs/updateActiveTab.js");
 
-        console.log("Starting real app simulation...");
+        initializeTabButtonState();
+        initializeActiveTabState();
 
-        // Step 1: Initialize tab button state (like masterStateManager.js does)
-        console.log("Step 1: Initialize tab button state");
-        initializeTabButtonState(); // This sets tabs to disabled initially
-
-        // Step 2: Initialize active tab state (like masterStateManager.js does)
-        console.log("Step 2: Initialize active tab state");
-        initializeActiveTabState(); // This adds click handlers
-
-        // Verify initial state - tabs should be disabled
         const buttons = document.querySelectorAll(".tab-button");
         buttons.forEach((button) => {
             const btn = /** @type {HTMLButtonElement} */ button;
             expect(btn.disabled).toBe(true);
             expect(btn.hasAttribute("disabled")).toBe(true);
-            console.log(
-                `Initial: ${btn.id} - disabled=${btn.disabled}, hasAttr=${btn.hasAttribute("disabled")}`
-            );
         });
 
-        // Step 3: Simulate file loading (like showFitData.js does)
-        console.log("Step 3: Simulate file loading");
-
-        // First set globalData (triggers subscription in initializeTabButtonState)
         globalState.globalData = { records: [{ type: "activity" }] };
         mockStateManager.setState("globalData", globalState.globalData);
 
         await flushMutationObservers();
 
-        // Also call setTabButtonsEnabled directly (like showFitData.js does)
         if (typeof window !== "undefined") {
             window.setTabButtonsEnabled = setTabButtonsEnabled;
         }
@@ -140,30 +116,22 @@ describe("Real App Integration: Tab Button Bug", () => {
 
         await flushMutationObservers();
 
-        // Step 4: Check final state - this is where the bug occurs
-        console.log("Step 4: Check final state");
         buttons.forEach((button) => {
             const btn = /** @type {HTMLButtonElement} */ button;
-            console.log(
-                `Final: ${btn.id} - disabled=${btn.disabled}, hasAttr=${btn.hasAttribute("disabled")}, style=${btn.style.pointerEvents}`
-            );
 
-            // These should all be false, but in the real app, hasAttribute('disabled') remains true
             expect(btn.disabled).toBe(false);
-            expect(btn.hasAttribute("disabled")).toBe(false); // This is the failing assertion in real app
+            expect(btn.hasAttribute("disabled")).toBe(false);
             expect(btn.hasAttribute("disabled")).not.toBe(true);
             expect(btn.style.pointerEvents).toBe("auto");
         });
     }, 15000);
 
-    it("should detect conflicts between multiple enable/disable calls", async () => {
-        // Dynamic import after mocks are set up
+    it("does not re-add disabled attributes across repeated enable calls", async () => {
         const { setTabButtonsEnabled, initializeTabButtonState } =
             await import("../../utils/ui/controls/enableTabButtons.js");
         const { initializeActiveTabState } =
             await import("../../utils/ui/tabs/updateActiveTab.js");
 
-        // Set up mutation observer to track all changes
         const changes: {
             newValue: null | string;
             oldValue: null | string;
@@ -198,29 +166,23 @@ describe("Real App Integration: Tab Button Bug", () => {
             });
         });
 
-        // Simulate rapid initialization
-        initializeTabButtonState(); // Disables tabs
-        initializeActiveTabState(); // Adds click handlers
+        initializeTabButtonState();
+        initializeActiveTabState();
 
         await flushMutationObservers();
 
-        // Simulate file loading
         globalState.globalData = { records: [] };
         mockStateManager.setState("globalData", globalState.globalData);
         setTabButtonsEnabled(true);
 
         await flushMutationObservers();
 
-        // Check if something is re-adding disabled attributes
-        setTabButtonsEnabled(true); // Call again (like showFitData.js might)
+        setTabButtonsEnabled(true);
 
         await flushMutationObservers();
 
         observer.disconnect();
 
-        console.log("Attribute changes detected:", changes);
-
-        // Look for patterns that might indicate the bug
         const unexpectedDisables = changes.filter(
             (change) => change.newValue === "" && change.oldValue === null
         );
@@ -231,7 +193,6 @@ describe("Real App Integration: Tab Button Bug", () => {
             id: button.id,
         }));
 
-        // Assert that no unexpected disables occurred
         expect(unexpectedDisables).toStrictEqual([]);
         expect(buttonStates).toStrictEqual([
             {
@@ -257,18 +218,15 @@ describe("Real App Integration: Tab Button Bug", () => {
         ]);
     }, 15000);
 
-    it("should test timing-sensitive scenarios", async () => {
-        // Dynamic import after mocks are set up
+    it("preserves enabled state after rapid startup toggles", async () => {
         const { setTabButtonsEnabled, initializeTabButtonState } =
             await import("../../utils/ui/controls/enableTabButtons.js");
         const { initializeActiveTabState } =
             await import("../../utils/ui/tabs/updateActiveTab.js");
 
-        // Initialize systems
         initializeTabButtonState();
         initializeActiveTabState();
 
-        // Rapidly toggle state (like might happen during initialization)
         setTabButtonsEnabled(false);
         await flushMutationObservers();
 
@@ -281,7 +239,6 @@ describe("Real App Integration: Tab Button Bug", () => {
         setTabButtonsEnabled(true);
         await flushMutationObservers();
 
-        // Final check
         const buttons = document.querySelectorAll(".tab-button");
         buttons.forEach((button) => {
             const btn = /** @type {HTMLButtonElement} */ button;
