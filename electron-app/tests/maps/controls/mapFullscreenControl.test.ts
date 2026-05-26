@@ -200,8 +200,15 @@ describe("mapFullscreenControl.js", () => {
         expect(newButton).not.toBe(oldButton);
     });
 
-    it("should not throw an error when calling invalidateSize on invalid map", () => {
+    it("should skip map invalidation when the container is detached", () => {
         addFullscreenControl(mockMap);
+        const button =
+            /** @type {HTMLButtonElement} */ document.querySelector(
+                "#fullscreen-btn"
+            );
+        expect(button).toBeInstanceOf(HTMLButtonElement);
+        mapDiv.classList.add("fullscreen");
+        button.title = "Exit Fullscreen";
 
         // Remove map container from DOM
         mapDiv.remove();
@@ -212,9 +219,13 @@ describe("mapFullscreenControl.js", () => {
             get: () => null,
         });
 
-        // This should not throw any error
-        expect(() => {
-            document.dispatchEvent(new Event("fullscreenchange"));
-        }).not.toThrow();
+        expect(document.dispatchEvent(new Event("fullscreenchange"))).toBe(
+            true
+        );
+        vi.advanceTimersByTime(300);
+
+        expect(mapDiv.classList.contains("fullscreen")).toBe(false);
+        expect(button.title).toBe("Enter Fullscreen");
+        expect(mockMap.invalidateSize).not.toHaveBeenCalled();
     });
 });
