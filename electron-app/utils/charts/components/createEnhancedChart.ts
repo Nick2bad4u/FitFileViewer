@@ -2,6 +2,7 @@ import { getUnitSymbol } from "../../data/lookups/getUnitSymbol.js";
 import { convertTimeUnits } from "../../formatting/converters/convertTimeUnits.js";
 import { formatTooltipWithUnits } from "../../formatting/display/formatTooltipWithUnits.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
+import { isDevelopmentEnvironment } from "../../runtime/processEnvironment.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { hexToRgba } from "../core/renderChartJS.js";
 import { updateChartAnimations } from "../core/updateChartAnimations.js";
@@ -333,11 +334,9 @@ export function createEnhancedChart(
     try {
         const currentTheme =
             theme && theme !== "auto" ? theme : detectCurrentTheme();
-        const isDevEnvironment =
-            typeof process !== "undefined" &&
-            process.env?.["NODE_ENV"] === "development";
         const isDebugLoggingEnabled =
-            isDevEnvironment && Boolean(chartGlobal.__FFV_debugCharts);
+            isDevelopmentEnvironment() &&
+            Boolean(chartGlobal.__FFV_debugCharts);
 
         if (isDebugLoggingEnabled) {
             console.log("[ChartJS] Theme debugging for field:", field);

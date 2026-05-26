@@ -1,5 +1,6 @@
 import { getHRZoneVisibilitySettings } from "../../ui/controls/createHRZoneControls.js";
 import { getPowerZoneVisibilitySettings } from "../../ui/controls/createPowerZoneControls.js";
+import { isDevelopmentEnvironment } from "../../runtime/processEnvironment.js";
 import type { ZoneData } from "../../types/sharedChartTypes.js";
 import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 import { renderZoneChart } from "./renderZoneChart.js";
@@ -33,11 +34,9 @@ export function renderTimeInZoneCharts(
     options: TimeInZoneChartOptions = {}
 ): void {
     try {
-        const isDevEnvironment =
-                typeof process !== "undefined" &&
-                process.env?.["NODE_ENV"] === "development",
-            isDebugLoggingEnabled =
-                isDevEnvironment && Boolean(chartGlobal.__FFV_debugCharts);
+        const isDebugLoggingEnabled =
+            isDevelopmentEnvironment() &&
+            Boolean(chartGlobal.__FFV_debugCharts);
 
         if (!container) {
             return;

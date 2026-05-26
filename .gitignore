@@ -18,6 +18,10 @@ electron-app/logs/
 electron-app/test-results/
 electron-app/release/
 
+# Repo-root generated test artifacts
+test-results/
+playwright-report/
+
 # Repo-root transient outputs
 temp/
 

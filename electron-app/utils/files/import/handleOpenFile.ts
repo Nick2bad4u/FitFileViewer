@@ -6,6 +6,7 @@
 import { AppActions } from "../../app/lifecycle/appActions.js";
 import { createRendererLogger } from "../../logging/rendererLogger.js";
 import type { RendererLogLevel } from "../../logging/rendererLogger.js";
+import { getProcessEnvironmentValue } from "../../runtime/processEnvironment.js";
 import * as stateManager from "../../state/core/stateManager.js";
 import {
     getFitMessagesSessionCount,
@@ -279,8 +280,8 @@ async function handleOpenFile(
         const fitData = unwrapFitParseMessages(result);
 
         if (
-            typeof process !== "undefined" &&
-            process.env?.["NODE_ENV"] !== "production"
+            getProcessEnvironmentValue("NODE_ENV") !== undefined &&
+            getProcessEnvironmentValue("NODE_ENV") !== "production"
         ) {
             console.log("[DEBUG] FIT parse result:", result);
             const sessionCount = getFitMessagesSessionCount(fitData);

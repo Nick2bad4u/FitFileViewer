@@ -34,6 +34,7 @@ test.describe("FitFileViewer Electron UI", () => {
                 ...process.env,
                 ELECTRON_IS_DEV: "0",
                 FFV_DISABLE_WEB_SECURITY: "false",
+                NODE_ENV: "production",
             },
         });
 
@@ -129,7 +130,9 @@ test.describe("FitFileViewer Electron UI", () => {
             async ({ filePath, bytes }) => {
                 const api = window.electronAPI;
                 if (!api?.parseFitFile) {
-                    throw new Error("window.electronAPI.parseFitFile is not available");
+                    throw new Error(
+                        "window.electronAPI.parseFitFile is not available"
+                    );
                 }
                 if (typeof window.showFitData !== "function") {
                     throw new Error("window.showFitData is not available");
@@ -144,7 +147,8 @@ test.describe("FitFileViewer Electron UI", () => {
                     activeFileName: document
                         .querySelector("#active_file_name")
                         ?.textContent?.trim(),
-                    globalRecordCount: window.globalData?.recordMesgs?.length ?? 0,
+                    globalRecordCount:
+                        window.globalData?.recordMesgs?.length ?? 0,
                     globalSessionCount:
                         window.globalData?.sessionMesgs?.length ?? 0,
                     mapTabActive:
@@ -241,11 +245,14 @@ test.describe("FitFileViewer Electron UI", () => {
                 exportedBlobs.push({ size: blob.size, type: blob.type });
                 return "blob:ffv-playwright-gpx";
             }) as typeof URL.createObjectURL;
-            URL.revokeObjectURL = (() => undefined) as typeof URL.revokeObjectURL;
+            URL.revokeObjectURL = (() =>
+                undefined) as typeof URL.revokeObjectURL;
 
             try {
                 const exportButton = Array.from(
-                    document.querySelectorAll<HTMLButtonElement>(".map-action-btn")
+                    document.querySelectorAll<HTMLButtonElement>(
+                        ".map-action-btn"
+                    )
                 ).find((button) =>
                     button.textContent?.toLowerCase().includes("export gpx")
                 );
@@ -275,7 +282,8 @@ test.describe("FitFileViewer Electron UI", () => {
         const elevationPopup = await page.evaluate(async () => {
             const globalWindow = window as Window & { Chart?: unknown };
             const originalChart = globalWindow.Chart;
-            const popupDocument = document.implementation.createHTMLDocument("");
+            const popupDocument =
+                document.implementation.createHTMLDocument("");
             const originalOpen = window.open;
             const popupWindow = {
                 document: popupDocument,
@@ -302,7 +310,9 @@ test.describe("FitFileViewer Electron UI", () => {
 
             try {
                 const elevationButton = Array.from(
-                    document.querySelectorAll<HTMLButtonElement>(".map-action-btn")
+                    document.querySelectorAll<HTMLButtonElement>(
+                        ".map-action-btn"
+                    )
                 ).find((button) =>
                     button.textContent?.toLowerCase().includes("elevation")
                 );
@@ -315,15 +325,16 @@ test.describe("FitFileViewer Electron UI", () => {
 
                 return {
                     assignedChart: popupWindow.Chart === chartMock,
-                    canvasCount:
-                        popupDocument.querySelectorAll(".elev-profile-canvas")
-                            .length,
+                    canvasCount: popupDocument.querySelectorAll(
+                        ".elev-profile-canvas"
+                    ).length,
                     containerExists:
-                        popupDocument.querySelector("#elevChartsContainer") !== null,
+                        popupDocument.querySelector("#elevChartsContainer") !==
+                        null,
                     title: popupDocument.title,
-                    vendorScriptCount:
-                        popupDocument.querySelectorAll("script[src*='vendor']")
-                            .length,
+                    vendorScriptCount: popupDocument.querySelectorAll(
+                        "script[src*='vendor']"
+                    ).length,
                 };
             } finally {
                 globalWindow.Chart = originalChart;
@@ -339,7 +350,11 @@ test.describe("FitFileViewer Electron UI", () => {
             vendorScriptCount: 0,
         });
 
-        for (const tabId of ["#tab_chartjs", "#tab_data", "#tab_summary"]) {
+        for (const tabId of [
+            "#tab_chartjs",
+            "#tab_data",
+            "#tab_summary",
+        ]) {
             await page.locator(tabId).click();
             await expect(page.locator(tabId)).toHaveClass(/active/u);
         }
@@ -349,11 +364,17 @@ test.describe("FitFileViewer Electron UI", () => {
         await expect(page.locator("#content_summary")).toBeAttached();
 
         await page.locator("#tab_data").click();
-        const firstTableHeader = page.locator("#content_data .table-header").first();
+        const firstTableHeader = page
+            .locator("#content_data .table-header")
+            .first();
         await expect(firstTableHeader).toBeVisible();
         await firstTableHeader.click();
-        await expect(page.locator("#content_data table.dataTable").first()).toBeVisible();
-        await expect(page.locator("#content_data .dt-container").first()).toBeVisible();
+        await expect(
+            page.locator("#content_data table.dataTable").first()
+        ).toBeVisible();
+        await expect(
+            page.locator("#content_data .dt-container").first()
+        ).toBeVisible();
     });
 
     test.afterAll(() => {

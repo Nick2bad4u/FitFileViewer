@@ -1,4 +1,5 @@
 import { getEffectiveTheme } from "../../theming/core/theme.js";
+import { isDevelopmentEnvironment } from "../../runtime/processEnvironment.js";
 
 /**
  * Concrete theme values that chart rendering can consume.
@@ -10,12 +11,9 @@ interface ChartDebugGlobal {
 }
 
 function shouldLogDebugMessages(): boolean {
-    const isDevEnvironment =
-        typeof process !== "undefined" &&
-        process.env?.["NODE_ENV"] === "development";
     const debugGlobal = globalThis as typeof globalThis & ChartDebugGlobal;
 
-    return isDevEnvironment && debugGlobal.__FFV_debugCharts === true;
+    return isDevelopmentEnvironment() && debugGlobal.__FFV_debugCharts === true;
 }
 
 function logThemeDetection(message: string, detectedTheme?: ChartTheme): void {

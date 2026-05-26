@@ -7,6 +7,7 @@ import {
     getThemeConfig,
     type ThemeColorMap,
 } from "../../theming/core/theme.js";
+import { isDevelopmentEnvironment } from "../../runtime/processEnvironment.js";
 import type { ZoneData } from "../../types/sharedChartTypes.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
 import {
@@ -111,11 +112,9 @@ export function renderZoneChart(
             return;
         }
 
-        const isDevEnvironment =
-                typeof process !== "undefined" &&
-                process.env?.["NODE_ENV"] === "development",
-            isDebugLoggingEnabled =
-                isDevEnvironment && Boolean(runtimeGlobal.__FFV_debugCharts),
+        const isDebugLoggingEnabled =
+                isDevelopmentEnvironment() &&
+                Boolean(runtimeGlobal.__FFV_debugCharts),
             isVerboseDebugLoggingEnabled =
                 isDebugLoggingEnabled &&
                 Boolean(runtimeGlobal.__FFV_debugChartsVerbose);

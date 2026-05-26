@@ -1,5 +1,6 @@
 import { getThemeConfig } from "../../theming/core/theme.js";
 import type { ThemeColorValue } from "../../theming/core/theme.js";
+import { isDevelopmentEnvironment } from "../../runtime/processEnvironment.js";
 import type { AppIconName } from "../../ui/icons/iconFactory.js";
 import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 import { resolveChartTitleIconName } from "./chartTitleOverlayUtils.js";
@@ -223,10 +224,7 @@ function isFullscreenTraceEnabled(): boolean {
     if (typeof override === "boolean") {
         return override;
     }
-    return (
-        typeof process !== "undefined" &&
-        process.env?.["NODE_ENV"] === "development"
-    );
+    return isDevelopmentEnvironment();
 }
 
 function describeElement(element: Element | null): string {
@@ -399,11 +397,9 @@ export function addChartHoverEffects(
     const chartCanvases =
         chartContainer.querySelectorAll<HTMLElement>(".chart-canvas");
 
-    const isDevEnvironment =
-        typeof process !== "undefined" &&
-        process.env?.["NODE_ENV"] === "development";
     const isDebugLoggingEnabled =
-        isDevEnvironment && Boolean(chartHoverGlobal.__FFV_debugCharts);
+        isDevelopmentEnvironment() &&
+        Boolean(chartHoverGlobal.__FFV_debugCharts);
 
     let appliedCount = 0;
     for (const canvas of chartCanvases) {

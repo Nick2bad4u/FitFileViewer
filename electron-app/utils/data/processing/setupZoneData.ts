@@ -1,5 +1,6 @@
 import { updateHRZoneControlsVisibility } from "../../ui/controls/createHRZoneControls.js";
 import { updatePowerZoneControlsVisibility } from "../../ui/controls/createPowerZoneControls.js";
+import { isDevelopmentEnvironment } from "../../runtime/processEnvironment.js";
 import {
     applyZoneColors,
     type ZoneData,
@@ -54,11 +55,7 @@ type ZoneType = "hr" | "power";
 const zoneGlobal = globalThis as typeof globalThis & ZoneGlobals;
 
 function isDebugLoggingEnabled(): boolean {
-    return (
-        typeof process !== "undefined" &&
-        process.env?.["NODE_ENV"] === "development" &&
-        Boolean(zoneGlobal.__FFV_debugCharts)
-    );
+    return isDevelopmentEnvironment() && Boolean(zoneGlobal.__FFV_debugCharts);
 }
 
 function shouldLogVerboseZoneData(): boolean {

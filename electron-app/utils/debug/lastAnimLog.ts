@@ -2,25 +2,12 @@
  * Throttled animation logging utilities for renderer development debugging.
  */
 
+import { isDevelopmentEnvironment } from "../runtime/processEnvironment.js";
+
 type RendererGlobal = typeof globalThis & {
     __renderer_dev?: unknown;
     window?: unknown;
 };
-
-function getProcessEnvironmentValue(name: string): string | undefined {
-    const processValue = Reflect.get(globalThis, "process");
-    if (typeof processValue !== "object" || processValue === null) {
-        return undefined;
-    }
-
-    const env = Reflect.get(processValue, "env");
-    if (typeof env !== "object" || env === null) {
-        return undefined;
-    }
-
-    const value = Reflect.get(env, name);
-    return typeof value === "string" ? value : undefined;
-}
 
 /**
  * Checks whether renderer animation debug logging should be enabled.
@@ -32,7 +19,7 @@ function isDevelopmentMode(): boolean {
     return (
         (globalScope.window !== undefined &&
             Boolean(globalScope.__renderer_dev)) ||
-        getProcessEnvironmentValue("NODE_ENV") === "development"
+        isDevelopmentEnvironment()
     );
 }
 

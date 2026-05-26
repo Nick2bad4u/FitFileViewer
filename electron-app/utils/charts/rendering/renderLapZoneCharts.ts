@@ -1,6 +1,10 @@
 import { getZoneColor } from "../../data/zones/chartZoneColorUtils.js";
 import { renderSingleHRZoneBar } from "../../data/zones/renderSingleHRZoneBar.js";
 import { renderSinglePowerZoneBar } from "../../data/zones/renderSinglePowerZoneBar.js";
+import {
+    isDevelopmentEnvironment,
+    isTestEnvironment,
+} from "../../runtime/processEnvironment.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
 import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
@@ -254,17 +258,13 @@ function getDebugState(runtimeGlobal: LapZoneRuntimeGlobal): {
     readonly isDebugLoggingEnabled: boolean;
     readonly isVerboseDebugLoggingEnabled: boolean;
 } {
-    const isTestEnvironment =
-            typeof process !== "undefined" &&
-            process.env?.["NODE_ENV"] === "test",
-        isDevEnvironment =
-            typeof process !== "undefined" &&
-            process.env?.["NODE_ENV"] === "development",
+    const isTestRuntime = isTestEnvironment(),
         isDebugLoggingEnabled =
-            isTestEnvironment ||
-            (isDevEnvironment && Boolean(runtimeGlobal.__FFV_debugCharts)),
+            isTestRuntime ||
+            (isDevelopmentEnvironment() &&
+                Boolean(runtimeGlobal.__FFV_debugCharts)),
         isVerboseDebugLoggingEnabled =
-            isTestEnvironment ||
+            isTestRuntime ||
             (isDebugLoggingEnabled &&
                 Boolean(runtimeGlobal.__FFV_debugChartsVerbose));
 

@@ -118,6 +118,10 @@ const { getElectron: getRuntimeElectron } =
     require("../../../main/runtime/electronAccess") as {
         getElectron: () => ElectronLike;
     };
+const { getProcessEnvironmentValue } =
+    require("../../runtime/processEnvironment.js") as {
+        getProcessEnvironmentValue: (name: string) => string | undefined;
+    };
 
 let __electronCached: ElectronLike | null = null;
 function getElectron(): ElectronLike {
@@ -197,9 +201,7 @@ let mainMenu: unknown = null;
 // Determine if verbose createAppMenu debug logging should be enabled.
 function shouldLogMenuDebug() {
     try {
-        const envFlag =
-            typeof process !== "undefined" &&
-            process.env?.["FFV_DEBUG_MENU"] === "1";
+        const envFlag = getProcessEnvironmentValue("FFV_DEBUG_MENU") === "1";
         const globalFlag =
             typeof globalThis !== "undefined" &&
             Boolean(getMenuGlobal().__FFV_debugMenu);

@@ -1,5 +1,6 @@
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { openFileSelector } from "../../files/import/openFileSelector.js";
+import { isTestEnvironment } from "../../runtime/processEnvironment.js";
 import { getState, subscribe } from "../../state/core/stateManager.js";
 import { showNotification } from "../notifications/showNotification.js";
 
@@ -8,11 +9,6 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 type AddFitOverlayGlobal = typeof globalThis & {
     __ffvAddFitOverlayButtonUnsubscribe?: unknown;
     __ffvAddFitOverlayButtonUpdate?: unknown;
-    process?: {
-        env?: {
-            NODE_ENV?: string;
-        };
-    };
 };
 
 type FitRecordData = {
@@ -28,10 +24,7 @@ export function createAddFitFileToMapButton(): HTMLButtonElement {
     try {
         const globalRef = globalThis as AddFitOverlayGlobal;
 
-        const isTestEnvironment =
-            globalRef.process !== undefined &&
-            Boolean(globalRef.process.env) &&
-            globalRef.process.env?.NODE_ENV === "test";
+        const runningInTest = isTestEnvironment();
 
         const addOverlayBtn = document.createElement("button");
         const listenerController = new AbortController();
@@ -123,7 +116,7 @@ export function createAddFitFileToMapButton(): HTMLButtonElement {
         addOverlayBtn.addEventListener(
             "click",
             () => {
-                void handleAddOverlayClick(addOverlayBtn, isTestEnvironment);
+                void handleAddOverlayClick(addOverlayBtn, runningInTest);
             },
             { signal: listenerController.signal }
         );

@@ -5,6 +5,7 @@ import type {
     MainStateSetValue,
 } from "../../../shared/ipc.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import { isDevelopmentEnvironment } from "../../runtime/processEnvironment.js";
 
 type Operation = MainStateIpcValue;
 type ErrorEntry = MainStateIpcValue;
@@ -35,21 +36,6 @@ type MainStateGlobal = typeof globalThis & {
     electronAPI?: MainStateElectronAPI;
     window?: MainStateWindow;
 };
-
-function getProcessEnvironmentValue(name: string): string | undefined {
-    const processValue = Reflect.get(globalThis, "process");
-    if (typeof processValue !== "object" || processValue === null) {
-        return undefined;
-    }
-
-    const env = Reflect.get(processValue, "env");
-    if (typeof env !== "object" || env === null) {
-        return undefined;
-    }
-
-    const value = Reflect.get(env, name);
-    return typeof value === "string" ? value : undefined;
-}
 
 function getMainStateElectronAPI(): MainStateElectronAPI | undefined {
     const stateGlobal = globalThis as MainStateGlobal;
@@ -125,10 +111,7 @@ export class MainProcessStateClient {
 
         this._isInitialized = true;
 
-        const isDevelopment =
-            getProcessEnvironmentValue("NODE_ENV") === "development";
-
-        if (isDevelopment) {
+        if (isDevelopmentEnvironment()) {
             console.log("[MainProcessStateClient] Initialized successfully");
         }
     }

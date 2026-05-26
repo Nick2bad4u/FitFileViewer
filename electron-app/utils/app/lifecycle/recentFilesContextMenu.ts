@@ -7,6 +7,10 @@ import {
     getFitParseErrorMessage,
     unwrapFitParseMessages,
 } from "../../files/import/fitParsePayload.js";
+import {
+    getProcessEnvironmentValue,
+    isDevelopmentEnvironment,
+} from "../../runtime/processEnvironment.js";
 import type { FitParsePayload } from "../../files/import/fitParsePayload.js";
 import type { FitMessages } from "../../../shared/fit";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
@@ -68,11 +72,10 @@ export function attachRecentFilesContextMenu({
 }: AttachRecentFilesContextMenuParams): () => void {
     const rootAbortController = new AbortController();
 
+    // Keep default quiet even in tests; enable only when explicitly requested.
     const debugEnabled =
-        typeof process !== "undefined" &&
-        // Keep default quiet even in tests; enable only when explicitly requested.
-        (process.env?.["FFV_DEBUG_RECENT_MENU"] === "1" ||
-            process.env?.["NODE_ENV"] === "development");
+        getProcessEnvironmentValue("FFV_DEBUG_RECENT_MENU") === "1" ||
+        isDevelopmentEnvironment();
 
     const debugLog = (...args: unknown[]) => {
         if (!debugEnabled) return;

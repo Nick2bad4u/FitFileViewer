@@ -10,6 +10,7 @@ import {
     getMapThemeSetting,
     setMapThemeSetting,
 } from "../../state/domain/settingsStateManager.js";
+import { isTestEnvironment as isRuntimeTestEnvironment } from "../../runtime/processEnvironment.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 
 type MapThemeToggleGlobal = typeof globalThis & {
@@ -27,27 +28,12 @@ type SvgRayCoordinates = readonly [
     string,
 ];
 
-function getProcessEnvironmentValue(name: string): string | undefined {
-    const processValue = Reflect.get(globalThis, "process");
-    if (typeof processValue !== "object" || processValue === null) {
-        return undefined;
-    }
-
-    const env = Reflect.get(processValue, "env");
-    if (typeof env !== "object" || env === null) {
-        return undefined;
-    }
-
-    const value = Reflect.get(env, name);
-    return typeof value === "string" ? value : undefined;
-}
-
 function getMapThemeToggleGlobal(): MapThemeToggleGlobal {
     return globalThis as MapThemeToggleGlobal;
 }
 
 function isTestEnvironment(): boolean {
-    return getProcessEnvironmentValue("NODE_ENV") === "test";
+    return isRuntimeTestEnvironment();
 }
 
 function getThemeColorValue(value: unknown, fallback: string): string {

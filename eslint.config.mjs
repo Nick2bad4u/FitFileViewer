@@ -11,6 +11,9 @@ const electronAppSharedConfig = nickTwoBadFourU.configs.all.map((entry) => ({
 /** @type {import("eslint").Linter.Config[]} */
 const config = [
     {
+        ignores: ["playwright-report/**", "test-results/**"],
+    },
+    {
         basePath: electronAppBasePath,
         ignores: [
             ".cache/**",

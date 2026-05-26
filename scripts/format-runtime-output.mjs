@@ -9,7 +9,17 @@ const appDir = path.join(repositoryRoot, "electron-app");
 const require = createRequire(import.meta.url);
 const tsconfigPath = path.join(repositoryRoot, "tsconfig.runtime.json");
 const prettierBin = require.resolve("prettier/bin/prettier.cjs");
+const runtimePrettierIgnorePath = path.join(
+    repositoryRoot,
+    ".cache",
+    "prettier-runtime-output.ignore"
+);
 const batchSize = 40;
+
+function ensureRuntimePrettierIgnore() {
+    fs.mkdirSync(path.dirname(runtimePrettierIgnorePath), { recursive: true });
+    fs.writeFileSync(runtimePrettierIgnorePath, "");
+}
 
 function resolveOutputPath(tsconfig, file) {
     const compilerOptions =
@@ -54,6 +64,8 @@ function readRuntimeOutputFiles() {
 }
 
 function runPrettier(files) {
+    ensureRuntimePrettierIgnore();
+
     for (let index = 0; index < files.length; index += batchSize) {
         const batch = files.slice(index, index + batchSize);
         const result = spawnSync(
@@ -61,6 +73,8 @@ function runPrettier(files) {
             [
                 prettierBin,
                 "--write",
+                "--ignore-path",
+                runtimePrettierIgnorePath,
                 ...batch,
             ],
             {

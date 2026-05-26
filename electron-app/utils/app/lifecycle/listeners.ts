@@ -15,6 +15,10 @@ import {
     getFitParseErrorMessage,
     unwrapFitParseMessages,
 } from "../../files/import/fitParsePayload.js";
+import {
+    getProcessEnvironmentValue,
+    isDevelopmentEnvironment,
+} from "../../runtime/processEnvironment.js";
 import type { FitParsePayload } from "../../files/import/fitParsePayload.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
@@ -304,8 +308,8 @@ export function setupListeners({
 
                     // Debug logging for development
                     if (
-                        typeof process !== "undefined" &&
-                        process.env?.["NODE_ENV"] !== "production"
+                        getProcessEnvironmentValue("NODE_ENV") !== undefined &&
+                        getProcessEnvironmentValue("NODE_ENV") !== "production"
                     ) {
                         console.log(
                             "[DEBUG] Recent file parse result:",
@@ -360,9 +364,8 @@ export function setupListeners({
 
     if (electronAPI && electronAPI.onIpc) {
         const debugMenuEnabled =
-            typeof process !== "undefined" &&
-            (process.env?.["FFV_DEBUG_MENU"] === "1" ||
-                process.env?.["NODE_ENV"] === "development");
+            getProcessEnvironmentValue("FFV_DEBUG_MENU") === "1" ||
+            isDevelopmentEnvironment();
         const debugMenuLog = (...args: unknown[]) => {
             if (!debugMenuEnabled) return;
             try {

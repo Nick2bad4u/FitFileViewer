@@ -5,6 +5,7 @@ import {
     isAbortError,
     truncateErrorText,
 } from "../../net/networkUtils.js";
+import { getProcessEnvironmentValue } from "../../runtime/processEnvironment.js";
 import { getChartSetting } from "../../state/domain/settingsStateManager.js";
 import {
     safeStorageGetItem,
@@ -211,10 +212,9 @@ const __chartThemeMod = __resolveManualMockBySuffix(
 // Debug logging for mock resolution is useful when diagnosing tricky Vitest ESM mocking,
 // but it is extremely noisy in normal test runs. Gate it behind an explicit env flag.
 try {
+    // Only enable when explicitly requested.
     const debugEnabled =
-        typeof process !== "undefined" &&
-        // Only enable when explicitly requested.
-        process.env?.["FFV_DEBUG_TEST_MOCKS"] === "1";
+        getProcessEnvironmentValue("FFV_DEBUG_TEST_MOCKS") === "1";
 
     if (debugEnabled) {
         const __dbgReg = __getManualMockRegistry();
@@ -1757,9 +1757,7 @@ export const exportUtils = {
                 );
             }
 
-            const parsed = validateGyazoTokenResponse(
-                await response.json()
-            );
+            const parsed = validateGyazoTokenResponse(await response.json());
             if (parsed.success) {
                 return parsed.data;
             }
@@ -2113,8 +2111,7 @@ export const exportUtils = {
         const exportTheme = getChartSetting("exportTheme");
 
         const debugEnabled =
-            typeof process !== "undefined" &&
-            process.env?.["FFV_DEBUG_EXPORT_THEME"] === "1";
+            getProcessEnvironmentValue("FFV_DEBUG_EXPORT_THEME") === "1";
         const debugLog = (...args: unknown[]) => {
             if (!debugEnabled) return;
             try {
@@ -3758,8 +3755,7 @@ body {
      */
     async uploadToImgur(base64Image: string): Promise<string> {
         const debugUploads =
-            typeof process !== "undefined" &&
-            process.env?.["FFV_DEBUG_UPLOADS"] === "1";
+            getProcessEnvironmentValue("FFV_DEBUG_UPLOADS") === "1";
 
         const config = exportUtils.getImgurConfig();
 

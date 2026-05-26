@@ -36,6 +36,15 @@ const MAX_DOT_PATH_SEGMENT_LENGTH = 128;
 // Keep segments conservative: allow identifier-ish keys plus ':' (used by fitFile:decode).
 const DOT_PATH_SEGMENT_PATTERN = /^[0-9A-Za-z_:-]+$/u;
 
+const { getProcessEnvironmentValue } =
+    require("../../runtime/processEnvironment.js") as {
+        getProcessEnvironmentValue: (name: string) => string | undefined;
+    };
+
+function isMainProcessDevelopmentEnvironment(): boolean {
+    return getProcessEnvironmentValue("NODE_ENV") === "development";
+}
+
 const { getElectron: getStateRuntimeElectron } =
     require("../../../main/runtime/electronAccess") as {
         getElectron: () => unknown;
@@ -160,21 +169,6 @@ type MainElectronLike = {
     shell?: unknown;
 };
 
-function getProcessEnvironmentValue(name: string): string | undefined {
-    const processValue = Reflect.get(globalThis, "process");
-    if (typeof processValue !== "object" || processValue === null) {
-        return undefined;
-    }
-
-    const env = Reflect.get(processValue, "env");
-    if (typeof env !== "object" || env === null) {
-        return undefined;
-    }
-
-    const value = Reflect.get(env, name);
-    return typeof value === "string" ? value : undefined;
-}
-
 class MainProcessState {
     data: MainProcessStateData;
 
@@ -234,7 +228,7 @@ class MainProcessState {
         this.listeners = new Map();
         this.middleware = [];
         this.devMode =
-            getProcessEnvironmentValue("NODE_ENV") === "development" ||
+            isMainProcessDevelopmentEnvironment() ||
             (typeof process !== "undefined" &&
                 Array.isArray(process.argv) &&
                 process.argv.includes("--dev"));

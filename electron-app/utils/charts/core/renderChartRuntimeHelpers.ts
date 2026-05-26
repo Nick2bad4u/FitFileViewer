@@ -1,4 +1,9 @@
 import { isObjectRecord } from "./renderChartModuleHelpers.js";
+import {
+    isDevelopmentEnvironment as isDevelopmentRuntimeEnvironment,
+    isNodeEnvironment,
+    isTestEnvironment as isTestRuntimeEnvironment,
+} from "../../runtime/processEnvironment.js";
 
 type UnknownFunction = (...args: unknown[]) => unknown;
 
@@ -25,21 +30,6 @@ interface RenderChartRuntimeGlobal {
     uiStateManager?: unknown;
     window?: unknown;
     _chartjsInstances?: unknown[];
-}
-
-function getProcessEnvironmentValue(name: string): string | undefined {
-    const processValue = Reflect.get(globalThis, "process");
-    if (!isObjectRecord(processValue)) {
-        return undefined;
-    }
-
-    const env = processValue["env"];
-    if (!isObjectRecord(env)) {
-        return undefined;
-    }
-
-    const value = env[name];
-    return typeof value === "string" ? value : undefined;
 }
 
 interface DebouncedChartStateManager {
@@ -120,21 +110,21 @@ export function ensureProcessNextTick(): void {
  * Reads NODE_ENV defensively for browser-like renderer test environments.
  */
 export function isNodeEnv(expected: string): boolean {
-    return getProcessEnvironmentValue("NODE_ENV") === expected;
+    return isNodeEnvironment(expected);
 }
 
 /**
  * Returns true when development-only chart diagnostics should run.
  */
 export function isDevelopmentEnvironment(): boolean {
-    return isNodeEnv("development");
+    return isDevelopmentRuntimeEnvironment();
 }
 
 /**
  * Returns true when the current runtime is the test harness.
  */
 export function isTestEnvironment(): boolean {
-    return isNodeEnv("test");
+    return isTestRuntimeEnvironment();
 }
 
 /**

@@ -1,6 +1,7 @@
 import { renderAltitudeProfileChart } from "./renderAltitudeProfileChart.js";
 import { renderPowerVsHeartRateChart } from "./renderPowerVsHeartRateChart.js";
 import { renderSpeedVsDistanceChart } from "./renderSpeedVsDistanceChart.js";
+import { isDevelopmentEnvironment } from "../../runtime/processEnvironment.js";
 
 interface PerformanceAnalysisOptions {
     animationStyle?: string;
@@ -39,11 +40,9 @@ export function renderPerformanceAnalysisCharts(
     options: PerformanceAnalysisOptions
 ): void {
     try {
-        const isDevEnvironment =
-            typeof process !== "undefined" &&
-            process.env?.["NODE_ENV"] === "development";
         const isDebugLoggingEnabled =
-            isDevEnvironment && Boolean(chartGlobal.__FFV_debugCharts);
+            isDevelopmentEnvironment() &&
+            Boolean(chartGlobal.__FFV_debugCharts);
         if (isDebugLoggingEnabled) {
             console.log("[ChartJS] renderPerformanceAnalysisCharts called");
         }

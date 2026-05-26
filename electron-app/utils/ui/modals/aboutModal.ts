@@ -5,6 +5,7 @@
 
 import { loadVersionInfo } from "../../app/initialization/loadVersionInfo.js";
 import { exportUtils } from "../../files/export/exportUtils.js";
+import { isDevelopmentEnvironment } from "../../runtime/processEnvironment.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { attachExternalLinkHandlers } from "../links/externalLinkHandlers.js";
 import { showNotification } from "../notifications/showNotification.js";
@@ -839,10 +840,7 @@ const devHelpers = {
 };
 
 // Export development helpers in development mode
-if (
-        typeof process !== "undefined" &&
-        process.env?.["NODE_ENV"] === "development"
-) {
+if (isDevelopmentEnvironment()) {
     (
         globalThis as typeof globalThis & {
             aboutModalDevHelpers?: typeof devHelpers;

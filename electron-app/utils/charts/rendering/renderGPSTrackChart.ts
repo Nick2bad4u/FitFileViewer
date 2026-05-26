@@ -2,6 +2,10 @@ import {
     getThemeConfig,
     type ThemeColorMap,
 } from "../../theming/core/theme.js";
+import {
+    isDevelopmentEnvironment,
+    isTestEnvironment,
+} from "../../runtime/processEnvironment.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
 import {
     createManagedChart,
@@ -343,17 +347,12 @@ function limitGpsTrackPoints(
 }
 
 function shouldLogDebugMessages(): boolean {
-    const isTestEnvironment =
-            typeof process !== "undefined" &&
-            process.env?.["NODE_ENV"] === "test",
-        isDevEnvironment =
-            typeof process !== "undefined" &&
-            process.env?.["NODE_ENV"] === "development",
-        runtimeGlobal = globalThis as typeof globalThis & GPSTrackRuntimeGlobal;
+    const runtimeGlobal = globalThis as typeof globalThis &
+        GPSTrackRuntimeGlobal;
 
     return (
-        isTestEnvironment ||
-        (isDevEnvironment && Boolean(runtimeGlobal.__FFV_debugCharts))
+        isTestEnvironment() ||
+        (isDevelopmentEnvironment() && Boolean(runtimeGlobal.__FFV_debugCharts))
     );
 }
 
