@@ -158,8 +158,7 @@
         "icons/",
         "index.html",
         "package.json",
-        "style.css",
-        "vendor/"
+        "style.css"
     ],
     "scripts": {
         "prebuild": "npm run build:runtime-ts",

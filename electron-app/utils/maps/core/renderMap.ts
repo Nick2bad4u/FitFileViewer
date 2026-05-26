@@ -1350,9 +1350,9 @@ export function renderMap(): void {
                 },
             },
             edit: {
-                edit: true,
+                edit: {},
                 featureGroup: drawnItems,
-                remove: true,
+                remove: {},
             },
         });
         map.addControl(drawControl);

@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 const electronAppDir = fileURLToPath(new URL("..", import.meta.url));
 const distDir = path.join(electronAppDir, "dist");
 
-const directoryCopies = ["assets", "ffv", "icons", "vendor"];
+const directoryCopies = ["assets", "ffv", "icons"];
 const fileCopies = ["elevProfile.css", "style.css"];
 
 function assertInsideElectronApp(targetPath) {

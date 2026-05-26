@@ -22,6 +22,7 @@ const reportedFailureNeedles = [
 test.describe("FitFileViewer Electron UI", () => {
     let electronApp: ElectronApplication;
     let page: Page;
+    const failedRequests: string[] = [];
     const rendererMessages: string[] = [];
     const pageErrors: string[] = [];
 
@@ -46,6 +47,11 @@ test.describe("FitFileViewer Electron UI", () => {
         });
         page.on("pageerror", (error) => {
             pageErrors.push(error.message);
+        });
+        page.on("requestfailed", (request) => {
+            failedRequests.push(
+                `${request.url()} ${request.failure()?.errorText ?? ""}`.trim()
+            );
         });
 
         await page.waitForLoadState("domcontentloaded");
@@ -185,6 +191,7 @@ test.describe("FitFileViewer Electron UI", () => {
         );
 
         expect(matchedNeedles).toEqual([]);
+        expect(failedRequests).toEqual([]);
         expect(pageErrors).toEqual([]);
     });
 });

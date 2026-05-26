@@ -6,15 +6,18 @@ asset migration. Keep it current while moving browser libraries from
 
 ## Current Runtime Model
 
-The Electron app still uses a classic script/link model for browser libraries:
+The Electron app now loads third-party browser libraries through the renderer
+compatibility bundle:
 
-- `electron-app/index.html` loads CSS and JavaScript from `vendor/`.
 - `electron-app/index.html` loads the Vite-built compatibility bundle at
   `renderer/vendor-globals.js` for DOMPurify, JSZip, Arquero, screenfull, and
-  the Chart.js and DataTables stacks.
-- `electron-app/scripts/prepare-runtime-dist.mjs` copies `vendor/` into
-  `electron-app/dist/vendor/`.
-- `electron-app/package.json` includes `vendor/` in the packaged file list.
+  the Chart.js, DataTables, Leaflet, and MapLibre stacks.
+- `electron-app/index.html` loads bundled renderer CSS from
+  `renderer/vendor-globals.css`.
+- `electron-app/scripts/prepare-runtime-dist.mjs` no longer copies `vendor/`
+  into `electron-app/dist/vendor/`.
+- `electron-app/package.json` no longer includes `vendor/` in the npm package
+  file list.
 - Renderer modules consume browser libraries through globals such as
   `Chart`, `L`, `JSZip`, `DOMPurify`, `screenfull`, and DataTables/jQuery.
 - `electron-app/renderer/vendorGlobals.ts` imports migrated renderer packages
@@ -23,8 +26,9 @@ The Electron app still uses a classic script/link model for browser libraries:
   `index.html`; production should not load browser code directly from
   `node_modules`.
 
-This means vendored assets must stay until the matching browser package is
-imported through a renderer bundle or otherwise generated into runtime output.
+The remaining `electron-app/vendor/leaflet-measure-lite.js` file is curated
+source that is bundled into renderer output; it is not loaded directly by
+`index.html`.
 
 ## Production Dependencies
 
@@ -42,9 +46,8 @@ app and should remain in `dependencies` until proven otherwise.
 ## Browser Libraries Kept In Dev Dependencies
 
 These packages are application libraries, not lint/test-only tooling. They live
-in `devDependencies` because the current production app ships copied browser
-assets from `vendor/`, and the long-term target is to bundle them into renderer
-output.
+in `devDependencies` because the packaged app ships their Vite-bundled renderer
+output, not the npm packages themselves.
 
 | Package                         | Current shipped asset path                                                    | Migration note                                                        |
 | ------------------------------- | ----------------------------------------------------------------------------- | --------------------------------------------------------------------- |
@@ -59,15 +62,15 @@ output.
 | `hammerjs`                      | `dist/renderer/vendor-globals.js`                                             | Migrated from `vendor/` with the Chart.js zoom plugin.                |
 | `jszip`                         | `dist/renderer/vendor-globals.js`                                             | Migrated from `vendor/` to the renderer compatibility bundle.         |
 | `jquery`                        | `dist/renderer/vendor-globals.js`                                             | Migrated from `vendor/` with the DataTables stack.                    |
-| `leaflet`                       | `vendor/leaflet/**`                                                           | High-risk map stack; migrate late with CSS/image handling.            |
-| `leaflet-draw`                  | `vendor/leaflet-draw/**`                                                      | Depends on Leaflet global and bundled images.                         |
-| `leaflet-measure`               | `vendor/leaflet-measure/leaflet-measure.css`, assets only                     | JavaScript is not shipped from the package; see curated assets below. |
-| `leaflet-minimap`               | `vendor/leaflet-minimap/**`                                                   | Depends on Leaflet global and plugin ordering.                        |
-| `leaflet.fullscreen`            | `vendor/leaflet.fullscreen/**`                                                | Current app uses UMD build under file protocol.                       |
-| `leaflet.locatecontrol`         | `vendor/leaflet.locatecontrol/**`                                             | Depends on Leaflet global and CSS/map assets.                         |
-| `leaflet.markercluster`         | `vendor/leaflet.markercluster/**`                                             | Depends on Leaflet global and plugin CSS.                             |
-| `maplibre-gl`                   | `vendor/maplibre-gl/**`                                                       | High-risk due CSS, worker behavior, and file protocol packaging.      |
-| `@maplibre/maplibre-gl-leaflet` | `vendor/maplibre-gl-leaflet/leaflet-maplibre-gl.js`                           | Bridge depends on both MapLibre and Leaflet ordering.                 |
+| `leaflet`                       | `dist/renderer/vendor-globals.js`, `dist/renderer/vendor-globals.css`         | Migrated from `vendor/` to the renderer compatibility bundle.         |
+| `leaflet-draw`                  | `dist/renderer/vendor-globals.js`, `dist/renderer/vendor-globals.css`         | Migrated from `vendor/` to the renderer compatibility bundle.         |
+| `leaflet-measure`               | `dist/renderer/vendor-globals.css`                                            | CSS/assets are bundled; CSP-safe JavaScript remains curated source.   |
+| `leaflet-minimap`               | `dist/renderer/vendor-globals.js`, `dist/renderer/vendor-globals.css`         | Migrated from `vendor/` to the renderer compatibility bundle.         |
+| `leaflet.fullscreen`            | `dist/renderer/vendor-globals.js`, `dist/renderer/vendor-globals.css`         | Migrated from `vendor/` to the renderer compatibility bundle.         |
+| `leaflet.locatecontrol`         | `dist/renderer/vendor-globals.js`, `dist/renderer/vendor-globals.css`         | Migrated from `vendor/` to the renderer compatibility bundle.         |
+| `leaflet.markercluster`         | `dist/renderer/vendor-globals.js`, `dist/renderer/vendor-globals.css`         | Migrated from `vendor/` to the renderer compatibility bundle.         |
+| `maplibre-gl`                   | `dist/renderer/vendor-globals.js`, `dist/renderer/vendor-globals.css`         | Migrated from `vendor/` to the renderer compatibility bundle.         |
+| `@maplibre/maplibre-gl-leaflet` | `dist/renderer/vendor-globals.js`                                             | Migrated from `vendor/` to the renderer compatibility bundle.         |
 | `screenfull`                    | `dist/renderer/vendor-globals.js`                                             | Migrated from `vendor/` to the renderer compatibility bundle.         |
 
 ## Tooling And Test Dependencies
@@ -89,30 +92,18 @@ and should stay in `devDependencies`.
 
 ### Package-Sourced Assets
 
-These files are expected to be replaceable after a renderer bundle owns the
-matching import path.
-
-- `vendor/leaflet/**`
-- `vendor/leaflet-draw/**`
-- `vendor/leaflet-measure/leaflet-measure.css`
-- `vendor/leaflet-measure/assets/**`
-- `vendor/leaflet-minimap/**`
-- `vendor/leaflet.fullscreen/**`
-- `vendor/leaflet.locatecontrol/**`
-- `vendor/leaflet.markercluster/**`
-- `vendor/maplibre-gl/**`
-- `vendor/maplibre-gl-leaflet/**`
+No package-sourced files remain under `electron-app/vendor/`.
 
 ### Curated Or Custom Assets
 
 These files should not be removed just because a package dependency exists.
 They need a specific replacement and runtime verification.
 
-- `vendor/leaflet-measure-lite.js`: CSP-safe measurement control replacement.
+- `vendor/leaflet-measure-lite.js`: CSP-safe measurement control replacement
+  that is imported by `electron-app/renderer/vendorGlobals.ts` and bundled into
+  `dist/renderer/chunks/`.
   The upstream `leaflet-measure` JavaScript should not be restored unless it
   works without weakening the app CSP.
-- Source map files under `vendor/`: useful for debugging but not required for
-  runtime behavior. Remove only as part of a deliberate packaging-size cleanup.
 
 ## Generated Runtime Output
 
@@ -129,7 +120,7 @@ Current `build:runtime-ts` flow:
 
 `prepare-runtime-dist.mjs` copies:
 
-- directories: `assets`, `ffv`, `icons`, `vendor`
+- directories: `assets`, `ffv`, `icons`
 - files: `elevProfile.css`, `style.css`
 - `index.html` after checking that it does not reference `node_modules`
 
@@ -145,11 +136,9 @@ Current `build:runtime-ts` flow:
 - `index.html`
 - `package.json`
 - `style.css`
-- `vendor/`
 
-After renderer bundling is introduced, this surface should move toward shipping
-compiled renderer assets from `dist/` and removing `vendor/` once no runtime HTML
-or module path references it.
+Compiled renderer assets ship from `dist/`; no runtime HTML or module path loads
+directly from `vendor/`.
 
 ## Migration Guardrails
 
