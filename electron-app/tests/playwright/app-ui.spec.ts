@@ -167,6 +167,178 @@ test.describe("FitFileViewer Electron UI", () => {
         });
         expect(loadResult.title).toContain(path.basename(sampleFitPath));
 
+        await page.locator("#tab_map").click();
+        await expect(page.locator("#leaflet-map")).toBeVisible();
+        await expect(page.locator(".leaflet-control-layers")).toBeAttached();
+        await expect(page.locator(".leaflet-control-scale")).toBeVisible();
+        await expect(page.locator("#zoom-slider-input")).toBeVisible();
+        await expect(
+            page.getByRole("button", { name: /toggle map theme/iu })
+        ).toBeVisible();
+        await expect(
+            page.getByRole("button", { name: /print or export map/iu })
+        ).toBeVisible();
+        await expect(
+            page.getByRole("button", { name: /export gpx/iu })
+        ).toBeVisible();
+        await expect(
+            page.getByRole("button", { name: /elevation/iu })
+        ).toBeVisible();
+
+        const mapRuntime = await page.evaluate(() => {
+            const globalWindow = window as Window &
+                Record<string, Record<string, unknown> | undefined>;
+            const layerLabels = Array.from(
+                document.querySelectorAll(".leaflet-control-layers label"),
+                (element) => element.textContent?.trim() ?? ""
+            );
+
+            return {
+                hasLeafletControlLayers:
+                    typeof globalWindow.L?.control?.layers === "function",
+                hasLeafletMap: typeof globalWindow.L?.map === "function",
+                hasMapLibreGlobal:
+                    typeof globalWindow.maplibregl === "object" ||
+                    typeof globalWindow.maplibregl === "function",
+                hasMapLibreLeaflet:
+                    typeof globalWindow.L?.maplibreGL === "function",
+                layerLabels,
+                routeElementCount: document.querySelectorAll(
+                    ".leaflet-marker-icon, .leaflet-interactive"
+                ).length,
+            };
+        });
+
+        expect(mapRuntime.hasLeafletControlLayers).toBe(true);
+        expect(mapRuntime.hasLeafletMap).toBe(true);
+        expect(mapRuntime.hasMapLibreGlobal).toBe(true);
+        expect(mapRuntime.hasMapLibreLeaflet).toBe(true);
+        expect(mapRuntime.layerLabels.length).toBeGreaterThan(10);
+        expect(
+            mapRuntime.layerLabels.some((label) =>
+                label.toLowerCase().includes("open free map")
+            )
+        ).toBe(true);
+        expect(mapRuntime.routeElementCount).toBeGreaterThan(0);
+
+        const gpxExport = await page.evaluate(async () => {
+            const clickedDownloads: Array<{
+                download: string;
+                href: string;
+            }> = [];
+            const exportedBlobs: Array<{ size: number; type: string }> = [];
+            const originalAnchorClick = HTMLAnchorElement.prototype.click;
+            const originalCreateObjectUrl = URL.createObjectURL;
+            const originalRevokeObjectUrl = URL.revokeObjectURL;
+
+            HTMLAnchorElement.prototype.click = function click() {
+                clickedDownloads.push({
+                    download: this.download,
+                    href: this.href,
+                });
+            };
+            URL.createObjectURL = ((blob: Blob) => {
+                exportedBlobs.push({ size: blob.size, type: blob.type });
+                return "blob:ffv-playwright-gpx";
+            }) as typeof URL.createObjectURL;
+            URL.revokeObjectURL = (() => undefined) as typeof URL.revokeObjectURL;
+
+            try {
+                const exportButton = Array.from(
+                    document.querySelectorAll<HTMLButtonElement>(".map-action-btn")
+                ).find((button) =>
+                    button.textContent?.toLowerCase().includes("export gpx")
+                );
+                if (!exportButton) {
+                    throw new Error("Export GPX button was not rendered");
+                }
+
+                exportButton.click();
+                await new Promise((resolve) => setTimeout(resolve, 0));
+
+                return {
+                    clickedDownload: clickedDownloads.at(0),
+                    exportedBlob: exportedBlobs.at(0),
+                };
+            } finally {
+                HTMLAnchorElement.prototype.click = originalAnchorClick;
+                URL.createObjectURL = originalCreateObjectUrl;
+                URL.revokeObjectURL = originalRevokeObjectUrl;
+            }
+        });
+
+        expect(gpxExport.clickedDownload?.download).toMatch(/\.gpx$/u);
+        expect(gpxExport.clickedDownload?.href).toBe("blob:ffv-playwright-gpx");
+        expect(gpxExport.exportedBlob?.size).toBeGreaterThan(0);
+        expect(gpxExport.exportedBlob?.type).toContain("application/gpx+xml");
+
+        const elevationPopup = await page.evaluate(async () => {
+            const globalWindow = window as Window & { Chart?: unknown };
+            const originalChart = globalWindow.Chart;
+            const popupDocument = document.implementation.createHTMLDocument("");
+            const originalOpen = window.open;
+            const popupWindow = {
+                document: popupDocument,
+            } as Window & { Chart?: unknown };
+            const chartConstructor = function chartConstructor(
+                context: CanvasRenderingContext2D,
+                config: unknown
+            ) {
+                void context;
+                void config;
+            };
+            const chartMock = Object.assign(chartConstructor, {
+                helpers: {
+                    color: (color: string) => ({
+                        alpha: (opacity: number) => ({
+                            rgbString: () => `${color}:${opacity}`,
+                        }),
+                    }),
+                },
+            });
+
+            globalWindow.Chart = chartMock;
+            window.open = (() => popupWindow) as typeof window.open;
+
+            try {
+                const elevationButton = Array.from(
+                    document.querySelectorAll<HTMLButtonElement>(".map-action-btn")
+                ).find((button) =>
+                    button.textContent?.toLowerCase().includes("elevation")
+                );
+                if (!elevationButton) {
+                    throw new Error("Elevation button was not rendered");
+                }
+
+                elevationButton.click();
+                await new Promise((resolve) => setTimeout(resolve, 0));
+
+                return {
+                    assignedChart: popupWindow.Chart === chartMock,
+                    canvasCount:
+                        popupDocument.querySelectorAll(".elev-profile-canvas")
+                            .length,
+                    containerExists:
+                        popupDocument.querySelector("#elevChartsContainer") !== null,
+                    title: popupDocument.title,
+                    vendorScriptCount:
+                        popupDocument.querySelectorAll("script[src*='vendor']")
+                            .length,
+                };
+            } finally {
+                globalWindow.Chart = originalChart;
+                window.open = originalOpen;
+            }
+        });
+
+        expect(elevationPopup).toMatchObject({
+            assignedChart: true,
+            canvasCount: 1,
+            containerExists: true,
+            title: "Elevation Profiles",
+            vendorScriptCount: 0,
+        });
+
         for (const tabId of ["#tab_chartjs", "#tab_data", "#tab_summary"]) {
             await page.locator(tabId).click();
             await expect(page.locator(tabId)).toHaveClass(/active/u);

@@ -68,6 +68,7 @@ interface ElevationChartConstructor {
 
 interface ElevationChartWindow extends Window {
     Chart?: unknown;
+    HTMLCanvasElement?: typeof HTMLCanvasElement;
 }
 
 interface ElevationChartConfig {
@@ -367,10 +368,10 @@ function buildElevationProfilePopup(
     { fitFilesModel, isDark, safeThemeColors }: ElevationPopupOptions
 ): void {
     const chartDoc = chartWin.document;
-    chartDoc.title = "Elevation Profiles";
 
     chartDoc.head.replaceChildren();
     chartDoc.body.replaceChildren();
+    chartDoc.title = "Elevation Profiles";
     chartDoc.body.className = isDark ? "theme-dark" : "theme-light";
 
     const viewport = chartDoc.createElement("meta");
@@ -533,8 +534,9 @@ function renderElevationCharts(
         }
 
         const canvas = block.querySelector("canvas");
+        const CanvasElement = chartWin.HTMLCanvasElement ?? HTMLCanvasElement;
         const ctx =
-            canvas instanceof HTMLCanvasElement
+            canvas instanceof CanvasElement
                 ? canvas.getContext("2d")
                 : null;
         if (!ctx) {
