@@ -177,7 +177,6 @@ const config = [
         },
     },
     {
-        basePath: electronAppBasePath,
         files: ["playwright.config.ts"],
         rules: {
             "module-interop/no-require-esm": "off",

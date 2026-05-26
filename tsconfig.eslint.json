@@ -20,6 +20,7 @@
         ".*.mjs",
         "*.js",
         "*.mjs",
+        "*.ts",
         ".github/**/*.js",
         "utils/**/*.js"
     ]
