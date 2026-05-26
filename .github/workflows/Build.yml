@@ -294,7 +294,7 @@ jobs:
                   npm run build:runtime-ts
 
                   run_builder() {
-                    npm --workspace electron-app exec electron-builder -- "$@"
+                    npm exec -- electron-builder --projectDir electron-app --config ../electron-builder.config.cjs "$@"
                   }
 
                   retry_macos_build() {
