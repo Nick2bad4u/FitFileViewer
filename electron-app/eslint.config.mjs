@@ -33,12 +33,7 @@ const config = [
     },
     ...nick2bad4u.configs.all,
     {
-        files: [
-            "fitParser.ts",
-            "jest.config.cjs",
-            "main.ts",
-            "preload.ts",
-        ],
+        files: ["fitParser.ts", "main.ts", "preload.ts"],
         languageOptions: {
             globals: globals.node,
         },

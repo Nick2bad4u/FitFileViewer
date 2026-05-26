@@ -82,7 +82,6 @@
         "test:e2e": "npm --workspace electron-app run test:e2e",
         "test:enhanced": "npm --workspace electron-app run test:enhanced",
         "test:integration": "npm --workspace electron-app run test:integration",
-        "test:jest": "npm --workspace electron-app run test:jest",
         "test:playwright": "npm --workspace electron-app run test:playwright",
         "test:tabs": "npm --workspace electron-app run test:tabs",
         "test:unit": "npm --workspace electron-app run test:unit",

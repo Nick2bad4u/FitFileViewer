@@ -8,7 +8,7 @@ This document provides a high-level tour of the FitFileViewer codebase, covering
 - **UI Layer:** Vanilla JS + DOM APIs, Chart.js, Leaflet, MapLibre, DataTables
 - **State & Data:** Custom observable state manager (`utils/state/core/stateManager.js`), Garmin FIT SDK
 - **Styling & Theming:** CSS, theme utilities (`utils/theming/core`)
-- **Tooling:** Vitest, Jest, ESLint, Prettier, electron-builder, PowerShell helper scripts
+- **Tooling:** Vitest, ESLint, Prettier, electron-builder, PowerShell helper scripts
 
 ## Repository Layout
 
@@ -19,7 +19,7 @@ This document provides a high-level tour of the FitFileViewer codebase, covering
 | `electron-app/renderer.js`  | Renderer bootstrap (state initialization, dependency wiring, DOM readiness)                      |
 | `electron-app/fitParser.js` | FIT file decoding with state & settings integration                                              |
 | `electron-app/utils/`       | Shared utilities (app lifecycle, charts, data, files, formatting, rendering, state, theming, UI) |
-| `electron-app/tests/`       | Vitest- and Jest-based unit, integration, and “strict” regression suites                         |
+| `electron-app/tests/`       | Vitest-based unit, integration, Playwright, and strict regression suites                         |
 | `electron-app/scripts/`     | Maintenance utilities (e.g. converting legacy tests to TS)                                       |
 | `docs/`                     | Product and engineering guides                                                                   |
 | `electron-app/ffv/`         | Embedded alternative FIT viewer assets (kept in-sync with primary viewer feature set)            |
@@ -145,8 +145,6 @@ Refer to `preload.js` and `main.js` for the full set of channels and event names
   `npm run test:unit` exist for focused validation.
 - **Electron smoke:** `npm run test:playwright` opens the packaged-like app
   shell and verifies real FIT data across map, chart, data, and summary tabs.
-- **Legacy Jest tests:** `npm --workspace electron-app run test:jest` for any
-  remaining Jest suites.
 - **Coverage:** `npm run test:coverage` generates coverage data.
 - **Strict regression suites:** Under `tests/strictTests/` to guard tricky DOM/Electron edge cases.
 - **Type checking & linting:** `typecheck`, `lint`, `lint:fix`, `prettier`, and associated `format:*` scripts.

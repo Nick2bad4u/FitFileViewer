@@ -14,14 +14,14 @@ If you discover a security vulnerability, please report it by emailing [20943337
 
 | Dependency       | Version   |
 | ---------------- | --------- |
-| electron         | 36.2.0    |
-| electron-builder | ^26.0.15  |
-| electron-store   | ^10.0.1   |
-| electron-updater | ^6.6.4    |
-| @garmin/fitsdk   | ^21.171.0 |
-| eslint           | ^9.26.0   |
-| jest             | ^29.7.0   |
-| vitest           | ^3.1.3    |
+| @garmin/fitsdk   | ^21.205.0 |
+| electron         | 42.2.0    |
+| electron-builder | ^26.8.1   |
+| electron-conf    | ^1.3.0    |
+| electron-updater | ^6.8.3    |
+| eslint           | ^10.4.0   |
+| vitest           | ^4.1.7    |
+| zod              | ^4.4.3    |
 
 - Do not open files from untrusted sources.
 - If you use a custom build, ensure your dependencies are up to date.

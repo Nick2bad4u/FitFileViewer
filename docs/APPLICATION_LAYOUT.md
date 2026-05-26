@@ -332,7 +332,6 @@ electron-app/
 ├── tsconfig.json                     # TypeScript configuration
 ├── tsconfig.vitest.json             # Vitest TypeScript config
 ├── vitest.config.js                 # Vitest test configuration
-├── jest.config.cjs                  # Jest configuration (legacy)
 ├── eslint.config.mjs                # ESLint configuration
 └── stylelint.config.js              # StyleLint configuration
 ```

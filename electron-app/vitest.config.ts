@@ -49,7 +49,6 @@ export default defineConfig({
                 // Test mocks and stubs
                 "**/__mocks__/**",
                 // Tooling and configuration files (relative to electron-app)
-                "jest.config.cjs",
                 "vitest.config.enhanced.js",
                 "vitest.config.js",
                 "vitest.config.ts",

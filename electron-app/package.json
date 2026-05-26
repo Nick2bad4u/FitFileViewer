@@ -218,7 +218,6 @@
         "test:e2e": "npm run test:playwright",
         "test:enhanced": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vitest --config vitest.config.enhanced.js --run --reporter=dot --silent --maxWorkers 1",
         "test:integration": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vitest --run tests/integration --maxWorkers 1",
-        "test:jest": "jest",
         "test:playwright": "npm run build:runtime-ts && playwright test",
         "test:tabs": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vitest --run --reporter=verbose tests/unit/tabs --maxWorkers 1",
         "test:unit": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vitest --run tests/unit --maxWorkers 1",
