@@ -341,11 +341,7 @@ electron-app/
 ```text
 electron-app/
 ├── .cache/                          # Build cache
-├── .prettier-cache                  # Prettier cache
-├── .prettierrc                      # Prettier configuration
-├── .prettierignore                  # Prettier ignore rules
-├── .markdownlint.json              # Markdown linting
-└── .markdown-link-check.json       # Link validation
+└── node_modules/                    # Workspace dependencies
 ```
 
 ## Testing Infrastructure
