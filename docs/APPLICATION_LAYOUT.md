@@ -330,10 +330,9 @@ electron-app/
 │   └── Dependencies management
 │
 ├── tsconfig.json                     # TypeScript configuration
-├── tsconfig.vitest.json             # Vitest TypeScript config
-├── vitest.config.js                 # Vitest test configuration
-├── eslint.config.mjs                # ESLint configuration
-└── stylelint.config.js              # StyleLint configuration
+├── tsconfig.vitest-typecheck.json   # Vitest typecheck configuration
+├── vitest.config.ts                 # Vitest test configuration
+└── eslint.config.mjs                # ESLint configuration
 ```
 
 ### Environment Configuration

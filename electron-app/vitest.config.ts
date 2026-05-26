@@ -49,10 +49,7 @@ export default defineConfig({
                 // Test mocks and stubs
                 "**/__mocks__/**",
                 // Tooling and configuration files (relative to electron-app)
-                "vitest.config.enhanced.js",
-                "vitest.config.js",
                 "vitest.config.ts",
-                "stylelint.config.js",
                 // Dev-only and debugging utilities
                 "utils/debug/**",
                 "debug-electron-mock.js",
@@ -157,7 +154,6 @@ export default defineConfig({
         // Force rerun triggers - these files will trigger full test suite
         forceRerunTriggers: [
             "**/package.json",
-            "**/vitest.config.js",
             "**/vitest.config.ts",
         ],
         // eslint-disable-next-line vite/no-vitest-globals -- Legacy tests still rely on global describe/it/expect.
@@ -230,7 +226,7 @@ export default defineConfig({
             include: ["**/*.{test,spec}-d.?(c|m)[jt]s?(x)"],
             only: false,
             spawnTimeout: 10_000,
-            tsconfig: "./tsconfig.vitest.json",
+            tsconfig: "./tsconfig.vitest-typecheck.json",
         },
         vmMemoryLimit: 2048, // Increase VM memory limit to 2GB to handle larger test suites
         watch: false,
