@@ -19,6 +19,39 @@ const reportedFailureNeedles = [
     "Error during chart rendering",
 ] as const;
 
+const mapTileHosts = new Set([
+    "basemaps.cartocdn.com",
+    "server.arcgisonline.com",
+    "tile.openstreetmap.org",
+    "tile.openstreetmap.de",
+    "tile.openstreetmap.fr",
+    "tile.opentopomap.org",
+    "tile.waymarkedtrails.org",
+    "tiles.openfreemap.org",
+    "tiles.openseamap.org",
+    "tiles.openrailwaymap.org",
+    "tile-cyclosm.openstreetmap.fr",
+    "tile.thunderforest.com",
+]);
+
+function isIgnorableFailedRequest(url: string, errorText: string): boolean {
+    if (!errorText.includes("ERR_ABORTED")) {
+        return false;
+    }
+
+    try {
+        const { hostname } = new URL(url);
+        return (
+            mapTileHosts.has(hostname) ||
+            Array.from(mapTileHosts).some((host) =>
+                hostname.endsWith(`.${host}`)
+            )
+        );
+    } catch {
+        return false;
+    }
+}
+
 test.describe("FitFileViewer Electron UI", () => {
     let electronApp: ElectronApplication;
     let page: Page;
@@ -50,8 +83,14 @@ test.describe("FitFileViewer Electron UI", () => {
             pageErrors.push(error.message);
         });
         page.on("requestfailed", (request) => {
+            const errorText = request.failure()?.errorText ?? "";
+            const url = request.url();
+            if (isIgnorableFailedRequest(url, errorText)) {
+                return;
+            }
+
             failedRequests.push(
-                `${request.url()} ${request.failure()?.errorText ?? ""}`.trim()
+                `${url} ${errorText}`.trim()
             );
         });
 
@@ -121,6 +160,79 @@ test.describe("FitFileViewer Electron UI", () => {
             isChartZoomRegistered: true,
             vendorBundleSource: "npm-bundle",
         });
+    });
+
+    test("opens a real FIT file through the Open File button", async () => {
+        await electronApp.evaluate(({ dialog }, filePath) => {
+            const mainGlobal = globalThis as typeof globalThis & {
+                __ffvPlaywrightOriginalShowOpenDialog?: typeof dialog.showOpenDialog;
+            };
+
+            mainGlobal.__ffvPlaywrightOriginalShowOpenDialog ??=
+                dialog.showOpenDialog;
+            dialog.showOpenDialog = async () => ({
+                canceled: false,
+                filePaths: [filePath],
+            });
+        }, sampleFitPath);
+
+        try {
+            await page.waitForFunction(() => {
+                const openButton = document.querySelector("#open_file_btn") as
+                    | (HTMLButtonElement & {
+                          __ffvLifecycleListenersCleanup?: unknown;
+                      })
+                    | null;
+
+                return (
+                    openButton !== null &&
+                    !openButton.disabled &&
+                    typeof openButton.__ffvLifecycleListenersCleanup ===
+                        "function"
+                );
+            });
+            await page.locator("#open_file_btn").click();
+
+            await expect(page.locator("#active_file_name")).toContainText(
+                path.basename(sampleFitPath)
+            );
+            await expect(page).toHaveTitle(
+                new RegExp(path.basename(sampleFitPath), "u")
+            );
+            await expect(page.locator("#tab_map")).toHaveClass(/active/u);
+
+            const openedFileState = await page.waitForFunction(() => {
+                const recordCount = window.globalData?.recordMesgs?.length ?? 0;
+                const sessionCount =
+                    window.globalData?.sessionMesgs?.length ?? 0;
+
+                if (recordCount === 0 || sessionCount === 0) {
+                    return null;
+                }
+
+                return {
+                    recordCount,
+                    sessionCount,
+                };
+            });
+
+            expect(await openedFileState.jsonValue()).toStrictEqual({
+                recordCount: 1285,
+                sessionCount: 1,
+            });
+        } finally {
+            await electronApp.evaluate(({ dialog }) => {
+                const mainGlobal = globalThis as typeof globalThis & {
+                    __ffvPlaywrightOriginalShowOpenDialog?: typeof dialog.showOpenDialog;
+                };
+
+                if (mainGlobal.__ffvPlaywrightOriginalShowOpenDialog) {
+                    dialog.showOpenDialog =
+                        mainGlobal.__ffvPlaywrightOriginalShowOpenDialog;
+                    delete mainGlobal.__ffvPlaywrightOriginalShowOpenDialog;
+                }
+            });
+        }
     });
 
     test("renders a real FIT file across map, charts, data, and summary tabs", async () => {
