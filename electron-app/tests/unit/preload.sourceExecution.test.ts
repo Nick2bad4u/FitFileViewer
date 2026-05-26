@@ -1,9 +1,3 @@
-/**
- * Test file that actually imports and executes preload.js for real coverage
- *
- * @file Preload.execution.test.ts
- */
-
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 type PreloadExecutionGlobal = typeof globalThis & {
@@ -15,7 +9,6 @@ type PreloadExecutionGlobal = typeof globalThis & {
 
 const preloadExecutionGlobal = globalThis as PreloadExecutionGlobal;
 
-// Create mocks before any imports
 const mockContextBridge = {
     exposeInMainWorld: vi.fn(),
 };
@@ -27,18 +20,15 @@ const mockIpcRenderer = {
     removeAllListeners: vi.fn(),
 };
 
-// Mock the electron module BEFORE any requires
 vi.mock("electron", () => ({
     contextBridge: mockContextBridge,
     ipcRenderer: mockIpcRenderer,
 }));
 
-describe("preload.js - Actual File Execution", () => {
+describe("preload.js source execution", () => {
     beforeEach(() => {
-        // Clear all mocks
         vi.clearAllMocks();
 
-        // Set up process.env for different test scenarios
         process.env.NODE_ENV = "development";
 
         // Provide hoisted override so modules that resolve lazily see our mock
@@ -47,7 +37,6 @@ describe("preload.js - Actual File Execution", () => {
             ipcRenderer: mockIpcRenderer,
         };
 
-        // Mock console methods to verify logging
         global.console = {
             ...console,
             log: vi.fn(),
@@ -56,42 +45,19 @@ describe("preload.js - Actual File Execution", () => {
     });
 
     afterEach(() => {
-        // Clean up module cache to allow re-import in different test scenarios
         vi.resetModules();
 
-        // Reset environment
         delete process.env.NODE_ENV;
 
-        // Remove hoisted override
         delete preloadExecutionGlobal.__electronHoistedMock;
     });
 
     describe("Development Mode Execution", () => {
         it("should execute preload.js and expose electronAPI in development mode", async () => {
-            // Set development mode
             process.env.NODE_ENV = "development";
 
-            // Add debug logging
-            console.log("Before requiring preload.js");
-            console.log(
-                "mockContextBridge.exposeInMainWorld calls before require:",
-                mockContextBridge.exposeInMainWorld.mock.calls.length
-            );
-
-            // Import the preload.js file to execute it (ensures vi.mock is applied)
             await import("../../preload.js");
 
-            console.log("After requiring preload.js");
-            console.log(
-                "mockContextBridge.exposeInMainWorld calls after require:",
-                mockContextBridge.exposeInMainWorld.mock.calls.length
-            );
-            console.log(
-                "All mock calls:",
-                mockContextBridge.exposeInMainWorld.mock.calls
-            );
-
-            // Check if exposeInMainWorld was called at all
             expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalled();
 
             // Verify contextBridge.exposeInMainWorld was called for electronAPI

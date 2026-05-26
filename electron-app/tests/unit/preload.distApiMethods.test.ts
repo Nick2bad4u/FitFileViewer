@@ -34,7 +34,7 @@ interface MockContextBridge {
     >;
 }
 
-describe("preload.js - Advanced Test Coverage", () => {
+describe("preload.js dist API methods", () => {
     let mockIpcRenderer: MockIpcRenderer;
     let mockContextBridge: MockContextBridge;
     let consoleSpy: {
@@ -44,7 +44,6 @@ describe("preload.js - Advanced Test Coverage", () => {
     let preloadCode: string;
 
     beforeEach(() => {
-        // Reset mocks
         mockIpcRenderer = {
             invoke: vi
                 .fn<(...args: unknown[]) => Promise<unknown>>()
@@ -65,7 +64,6 @@ describe("preload.js - Advanced Test Coverage", () => {
             error: vi.spyOn(console, "error").mockImplementation(() => {}),
         };
 
-        // Load preload script source
         preloadCode = readFileSync(
             join(__dirname, "../../dist/preload.js"),
             "utf-8"
@@ -82,7 +80,6 @@ describe("preload.js - Advanced Test Coverage", () => {
             ...options,
         };
 
-        // Create a virtual environment with our mocks
         const mockRequire = vi.fn((moduleName: string) =>
             resolvePreloadScriptRequire(moduleName, {
                 ipcRenderer: mockIpcRenderer,
@@ -102,7 +99,7 @@ describe("preload.js - Advanced Test Coverage", () => {
 
         try {
             runPreloadScript(mockRequire, mockProcess, mockConsole);
-        } catch (error) {
+        } catch {
             // Some errors are expected in test environment
         }
 
@@ -186,9 +183,6 @@ describe("preload.js - Advanced Test Coverage", () => {
             const { exposedAPI } = createPreloadEnvironment();
             const channelInfo = exposedAPI.getChannelInfo();
 
-            // Debug: log the actual channels
-            console.log("Actual channels:", Object.keys(channelInfo.channels));
-
             const expectedChannels = Object.keys(channelInfo.channels);
 
             expectedChannels.forEach((channel) => {
@@ -199,9 +193,6 @@ describe("preload.js - Advanced Test Coverage", () => {
         test("should include all expected event names", () => {
             const { exposedAPI } = createPreloadEnvironment();
             const channelInfo = exposedAPI.getChannelInfo();
-
-            // Debug: log the actual events
-            console.log("Actual events:", Object.keys(channelInfo.events));
 
             const expectedEvents = Object.keys(channelInfo.events);
 

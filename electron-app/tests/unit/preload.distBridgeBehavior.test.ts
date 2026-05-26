@@ -44,11 +44,7 @@ interface MockContextBridge {
     >;
 }
 
-/**
- * Comprehensive test suite for preload.js Targeting significant coverage
- * improvement from 43.42% baseline
- */
-describe("preload.js - Comprehensive Coverage Test Suite", () => {
+describe("preload.js dist bridge behavior", () => {
     let mockIpcRenderer: MockIpcRenderer;
     let mockContextBridge: MockContextBridge;
     let consoleSpy: {
