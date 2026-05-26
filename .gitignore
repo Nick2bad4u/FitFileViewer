@@ -362,6 +362,7 @@ electron-app/coverage-report.json
 electron-app/html/
 electron-app/coverage_output.txt
 electron-app/coverage-temp.json
+electron-app/codecov.exe
 electron-app/recent-files-test.json
 electron-app/test-report.junit.xml
 todo.md
