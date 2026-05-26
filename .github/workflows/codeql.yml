@@ -97,14 +97,17 @@ jobs:
             - name: Cache node modules
               uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
               with:
-                  path: electron-app/node_modules
-                  key: ${{ runner.os }}-electron-app-node-modules-${{ hashFiles('electron-app/package-lock.json') }}
+                  path: |
+                      ~/.npm
+                      node_modules
+                      electron-app/node_modules
+                      docusaurus/node_modules
+                  key: ${{ runner.os }}-workspace-node-modules-${{ hashFiles('package-lock.json') }}
                   restore-keys: |
-                      ${{ runner.os }}-electron-app-node-modules-
+                      ${{ runner.os }}-workspace-node-modules-
 
             - name: Install dependencies
-              run: npm install
-              working-directory: electron-app
+              run: npm ci --no-audit --no-fund
 
             # ℹ️ Command-line programs to run using the OS shell.
             # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun

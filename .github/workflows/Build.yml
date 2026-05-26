@@ -52,16 +52,9 @@ jobs:
               with:
                   node-version: 24
 
-            - name: Install root dependencies
+            - name: Install workspace dependencies
               run: npm ci --no-audit --no-fund
               working-directory: .
-
-            - name: Install Electron app dependencies
-              run: npm ci --force --no-audit --no-fund
-
-            - name: Install Docusaurus dependencies
-              run: npm ci --force --no-audit --no-fund
-              working-directory: docusaurus
 
             - name: Run repository lint gates
               run: npm run lint
@@ -69,20 +62,23 @@ jobs:
 
             - name: Run Electron runtime TypeScript build
               run: npm run build:runtime-ts
+              working-directory: .
 
             - name: Run Electron test suite
               run: npm test
+              working-directory: .
 
             - name: Run Electron Playwright smoke test
               run: xvfb-run -a npm run test:playwright
+              working-directory: .
 
             - name: Run Docusaurus typecheck
-              run: npm run typecheck
-              working-directory: docusaurus
+              run: npm run docs:typecheck
+              working-directory: .
 
             - name: Build Docusaurus site
-              run: npm run build
-              working-directory: docusaurus
+              run: npm run docs:build
+              working-directory: .
 
             - name: Show git diff for electron-app (debug)
               id: git_diff
@@ -108,9 +104,6 @@ jobs:
                   VERSION=$(jq -r .version package.json)
                   MAJOR=$(echo "$VERSION" | cut -d. -f1)
                   MINOR=$(echo "$VERSION" | cut -d. -f2)
-                  PATCH=$(echo "$VERSION" | cut -d. -f3)
-                  # PATCH appears unused, so remove or export if needed
-                  # export PATCH
                   if [ "$MINOR" -lt 9 ]; then
                     NEW_VERSION="$MAJOR.$((MINOR + 1)).0"
                   else
