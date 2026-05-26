@@ -66,12 +66,12 @@
         ".cache/**",
         "electron-app/.cache/**",
         ".vercel/**",
-        "docs/docusaurus/.docusaurus/**",
-        "docs/docusaurus/build/**",
-        "docs/docusaurus/node_modules/**",
-        "docs/docusaurus/typedoc-plugins/*.d.mts",
+        "docusaurus/.docusaurus/**",
+        "docusaurus/build/**",
+        "docusaurus/node_modules/**",
+        "docusaurus/typedoc-plugins/*.d.mts",
         "eslint.config.bundled_*.mjs",
-        "electron-app/test/fixtures/**"
+        "electron-app/tests/fixtures/**"
     ],
     "extends": "./tsconfig.electron-app.json",
     "include": [

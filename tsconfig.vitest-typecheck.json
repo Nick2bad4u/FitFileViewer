@@ -13,12 +13,16 @@
         "electron-app/dist/**",
         "electron-app/node_modules/**",
         "node_modules/**",
-        "electron-app/test/fixtures/**"
+        "electron-app/tests/fixtures/**"
     ],
-    "extends": "./electron-app/tsconfig.json",
+    "extends": "./tsconfig.electron-app.json",
     "include": [
         "electron-app/index.d.ts",
-        "electron-app/test/**/*.d.ts",
-        "electron-app/test/**/*.ts"
+        "electron-app/tests/**/*.test-d.ts",
+        "electron-app/tests/**/*.test-d.mts",
+        "electron-app/tests/**/*.test-d.cts",
+        "electron-app/tests/**/*.spec-d.ts",
+        "electron-app/tests/**/*.spec-d.mts",
+        "electron-app/tests/**/*.spec-d.cts"
     ]
 }

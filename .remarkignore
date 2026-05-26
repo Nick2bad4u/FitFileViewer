@@ -14,7 +14,7 @@
 /build/
 
 # Skip complex MDX architecture diagrams (handled manually)
-docs/docusaurus/**/*.mdx
+docusaurus/**/*.mdx
 
 ### Docusaurus.Node Stack ###
 # Logs
@@ -815,9 +815,9 @@ HISTORY.md
 # Documentation that may have different formatting requirements
 LICENSE
 .github/
-docs/docusaurus/node_modules/
-docs/docusaurus/build/
-docs/docusaurus/docs/
+docusaurus/node_modules/
+docusaurus/build/
+docusaurus/docs/
 docs/Packages/
 docs/TSDoc/
 

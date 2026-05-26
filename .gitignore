@@ -368,8 +368,8 @@ electron-app/test-report.junit.xml
 todo.md
 electron-app/temp-win7/
 # Ignore generated doc coverage badges
-docs/docusaurus/static/img/coverage.json
-docs/docusaurus/static/img/coverage.svg
+docusaurus/static/img/coverage.json
+docusaurus/static/img/coverage.svg
 
 # Generated declaration output; source TypeScript files are authoritative.
 electron-app/types/
