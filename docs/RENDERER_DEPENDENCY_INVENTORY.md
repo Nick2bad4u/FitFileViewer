@@ -46,8 +46,8 @@ app and should remain in `dependencies` until proven otherwise.
 ## Browser Libraries Kept In Dev Dependencies
 
 These packages are application libraries, not lint/test-only tooling. They live
-in `devDependencies` because the packaged app ships their Vite-bundled renderer
-output, not the npm packages themselves.
+in the root workspace `devDependencies` because the packaged app ships their
+Vite-bundled renderer output, not the npm packages themselves.
 
 | Package                         | Current shipped asset path                                                    | Migration note                                                        |
 | ------------------------------- | ----------------------------------------------------------------------------- | --------------------------------------------------------------------- |
@@ -110,9 +110,9 @@ The build writes runtime output under `electron-app/dist/`.
 Current `build:runtime-ts` flow:
 
 1. `scripts/clean-runtime-dist.mjs`
-2. `tsc --project electron-app\tsconfig.runtime.json`
+2. `tsc --project tsconfig.runtime.json`
 3. `scripts/bundle-preload.mjs`
-4. `npm --prefix .. run build:renderer`
+4. `npm run build:renderer`
 5. `scripts/format-runtime-output.mjs`
 6. `scripts/prepare-runtime-dist.mjs`
 
