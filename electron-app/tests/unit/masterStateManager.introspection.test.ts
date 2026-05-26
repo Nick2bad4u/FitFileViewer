@@ -21,7 +21,7 @@ interface InitializationStatusSnapshot {
     };
 }
 
-describe("MasterStateManager Basic Functionality", () => {
+describe("MasterStateManager introspection", () => {
     beforeEach(() => {
         // Reset state before each test
         resetState();
