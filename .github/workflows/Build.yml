@@ -921,23 +921,23 @@ jobs:
                   echo "Root CHANGELOG.md generated, size: $(stat -c%s CHANGELOG.md 2>/dev/null || echo 'file not found')"
 
                   echo "Generating electron-app CHANGELOG.md..."
-                  cd electron-app && npx git-cliff --config ../cliff.toml --output CHANGELOG.md --verbose && cd ..
+                  npx git-cliff --workdir electron-app --config ../cliff.toml --output CHANGELOG.md --verbose
                   echo "electron-app CHANGELOG.md generated, size: $(stat -c%s electron-app/CHANGELOG.md 2>/dev/null || echo 'file not found')"
 
                   echo "Generating electron-app/icons CHANGELOG.md..."
-                  cd electron-app/icons && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md --verbose && cd ../..
+                  npx git-cliff --workdir electron-app/icons --config ../../cliff.toml --output CHANGELOG.md --verbose
                   echo "icons CHANGELOG.md generated, size: $(stat -c%s electron-app/icons/CHANGELOG.md 2>/dev/null || echo 'file not found')"
 
                   echo "Generating electron-app/screenshots CHANGELOG.md..."
-                  cd electron-app/screenshots && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md --verbose && cd ../..
+                  npx git-cliff --workdir electron-app/screenshots --config ../../cliff.toml --output CHANGELOG.md --verbose
                   echo "screenshots CHANGELOG.md generated, size: $(stat -c%s electron-app/screenshots/CHANGELOG.md 2>/dev/null || echo 'file not found')"
 
                   echo "Generating electron-app/tests CHANGELOG.md..."
-                  cd electron-app/tests && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md --verbose && cd ../..
+                  npx git-cliff --workdir electron-app/tests --config ../../cliff.toml --output CHANGELOG.md --verbose
                   echo "tests CHANGELOG.md generated, size: $(stat -c%s electron-app/tests/CHANGELOG.md 2>/dev/null || echo 'file not found')"
 
                   echo "Generating electron-app/utils CHANGELOG.md..."
-                  cd electron-app/utils && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md --verbose && cd ../..
+                  npx git-cliff --workdir electron-app/utils --config ../../cliff.toml --output CHANGELOG.md --verbose
                   echo "utils CHANGELOG.md generated, size: $(stat -c%s electron-app/utils/CHANGELOG.md 2>/dev/null || echo 'file not found')"
 
                   echo "All changelog generation completed."
