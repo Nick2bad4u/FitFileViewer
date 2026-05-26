@@ -124,10 +124,7 @@ describe("Tab Button Disabled State", () => {
 
             const clickEvent = new MouseEvent("click", { bubbles: true });
             const preventDefaultSpy = vi.spyOn(clickEvent, "preventDefault");
-            const stopPropagationSpy = vi.spyOn(
-                clickEvent,
-                "stopPropagation"
-            );
+            const stopPropagationSpy = vi.spyOn(clickEvent, "stopPropagation");
 
             chartTab.dispatchEvent(clickEvent);
 
@@ -241,12 +238,12 @@ describe("Tab Button Disabled State", () => {
         });
 
         it("should handle state changes to non-existent tabs gracefully", () => {
-            // This should not throw an error
-            expect(() =>
-                mockState.setState("ui.activeTab", "nonexistent")
-            ).not.toThrow();
+            mockState.setState("ui.activeTab", "nonexistent");
 
-            // All tabs should be inactive
+            expect(mockState.getState("ui.activeTab")).toBe("nonexistent");
+            expect(
+                document.querySelector(".tab-button.active")
+            ).not.toBeInstanceOf(HTMLButtonElement);
             const tabs = document.querySelectorAll(".tab-button");
             tabs.forEach((tab) => {
                 expect(tab.classList.contains("active")).toBe(false);
