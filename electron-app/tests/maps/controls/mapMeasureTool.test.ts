@@ -134,9 +134,7 @@ describe("mapMeasureTool.js", () => {
         // Check if button was added
         const button = getMeasureButton();
         expect(getMeasureButtonLabel(button)).toBe("Measure");
-        expect(button.title).toContain(
-            "Click, then click two points"
-        );
+        expect(button.title).toContain("Click, then click two points");
     });
 
     it("should enable measurement mode when button is clicked", () => {
@@ -315,9 +313,7 @@ describe("mapMeasureTool.js", () => {
             (call) => call[0] === "click"
         )[1];
 
-        expect(() =>
-            clickHandler({ latlng: { lat: 0, lng: 0 } })
-        ).not.toThrow();
+        expect(clickHandler({ latlng: { lat: 0, lng: 0 } })).toBeUndefined();
         expect(addedLayers).toHaveLength(0);
         expect(mockMap.addLayer).not.toHaveBeenCalled();
     });
