@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 const repositoryRoot = fileURLToPath(new URL("..", import.meta.url));
 const appDir = path.join(repositoryRoot, "electron-app");
 const require = createRequire(import.meta.url);
-const tsconfigPath = path.join(appDir, "tsconfig.runtime.json");
+const tsconfigPath = path.join(repositoryRoot, "tsconfig.runtime.json");
 const prettierBin = require.resolve("prettier/bin/prettier.cjs");
 const batchSize = 40;
 
@@ -29,12 +29,12 @@ function resolveOutputPath(tsconfig, file) {
             ? compilerOptions.rootDir
             : ".";
     const relativeToRoot = path.relative(
-        path.resolve(appDir, rootDir),
-        path.resolve(appDir, file)
+        path.resolve(repositoryRoot, rootDir),
+        path.resolve(repositoryRoot, file)
     );
 
     return path.join(
-        appDir,
+        repositoryRoot,
         outDir,
         relativeToRoot.replace(/\.ts$/u, ".js")
     );

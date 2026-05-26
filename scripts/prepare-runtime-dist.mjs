@@ -6,7 +6,7 @@ const repositoryRoot = fileURLToPath(new URL("..", import.meta.url));
 const appDir = path.join(repositoryRoot, "electron-app");
 const distDir = path.join(appDir, "dist");
 
-const directoryCopies = ["assets", "ffv", "icons"];
+const directoryCopies = ["ffv", "icons"];
 const fileCopies = ["elevProfile.css", "style.css"];
 
 function assertInsideElectronApp(targetPath) {
