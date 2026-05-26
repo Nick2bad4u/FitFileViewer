@@ -17,6 +17,7 @@ type MockElevationPopupWindow = Window & {
 };
 
 let openSpy: any;
+let chartMock: ReturnType<typeof vi.fn<ChartMockImplementation>>;
 
 const getPopupWindow = (): MockElevationPopupWindow =>
     openSpy.mock.results[0].value as MockElevationPopupWindow;
@@ -27,16 +28,6 @@ const getPopupChartContainer = (mockWin: MockElevationPopupWindow) => {
     expect(container).toBeInstanceOf(HTMLDivElement);
 
     return container as HTMLDivElement;
-};
-
-const triggerChartScriptLoad = (mockWin: MockElevationPopupWindow) => {
-    const script = mockWin.document.querySelector(
-        'script[src="./vendor/chart.umd.js"]'
-    );
-
-    expect(script).toBeInstanceOf(HTMLScriptElement);
-
-    script?.dispatchEvent(new Event("load"));
 };
 
 describe(createElevationProfileButton, () => {
@@ -67,16 +58,18 @@ describe(createElevationProfileButton, () => {
             .spyOn(HTMLCanvasElement.prototype, "getContext")
             .mockReturnValue({} as CanvasRenderingContext2D);
 
+        chartMock = vi.fn<ChartMockImplementation>(function MockChart() {});
+        (window as any).Chart = chartMock;
+
         // Setup window.open spy
         openSpy = vi.spyOn(window, "open").mockImplementation(() => {
             const popupDocument =
                 document.implementation.createHTMLDocument("");
 
             return {
-                Chart: vi.fn<ChartMockImplementation>(function MockChart() {}),
                 HTMLCanvasElement,
                 document: popupDocument,
-            } as MockElevationPopupWindow;
+            } as unknown as MockElevationPopupWindow;
         });
     });
 
@@ -126,10 +119,10 @@ describe(createElevationProfileButton, () => {
             "0 file"
         );
         expect(getPopupChartContainer(mockWin).children).toHaveLength(0);
+        expect(mockWin.document.querySelector("script")).toBeNull();
+        expect(mockWin.Chart).toBe(chartMock);
 
-        triggerChartScriptLoad(mockWin);
-
-        expect(mockWin.Chart).not.toHaveBeenCalled();
+        expect(chartMock).not.toHaveBeenCalled();
     });
 
     it("should handle loadedFitFiles when available", () => {
@@ -156,15 +149,14 @@ describe(createElevationProfileButton, () => {
         expect(openSpy).toHaveBeenCalledOnce();
 
         const mockWin = getPopupWindow();
-        triggerChartScriptLoad(mockWin);
 
         expect(mockWin.document.querySelector("header")?.textContent).toContain(
             "1 file"
         );
         expect(mockWin.document.body.textContent).toContain("test-file.fit");
-        expect(mockWin.Chart).toHaveBeenCalledOnce();
+        expect(chartMock).toHaveBeenCalledOnce();
         expect(
-            mockWin.Chart.mock.calls[0][1].data.datasets[0].data
+            chartMock.mock.calls[0][1].data.datasets[0].data
         ).toStrictEqual([100, 200]);
     });
 
@@ -188,12 +180,11 @@ describe(createElevationProfileButton, () => {
         expect(openSpy).toHaveBeenCalledOnce();
 
         const mockWin = getPopupWindow();
-        triggerChartScriptLoad(mockWin);
 
         expect(mockWin.document.body.textContent).toContain("global-test.fit");
-        expect(mockWin.Chart).toHaveBeenCalledOnce();
+        expect(chartMock).toHaveBeenCalledOnce();
         expect(
-            mockWin.Chart.mock.calls[0][1].data.datasets[0].data
+            chartMock.mock.calls[0][1].data.datasets[0].data
         ).toStrictEqual([300, 400]);
     });
 
@@ -277,13 +268,12 @@ describe(createElevationProfileButton, () => {
         button.click();
 
         const mockWin = getPopupWindow();
-        triggerChartScriptLoad(mockWin);
 
         expect(mockWin.document.body.textContent).toContain("no-altitude.fit");
         expect(mockWin.document.body.textContent).toContain(
             "No altitude data."
         );
-        expect(mockWin.Chart).not.toHaveBeenCalled();
+        expect(chartMock).not.toHaveBeenCalled();
     });
 
     it("should use chartOverlayColorPalette from window.opener when available", () => {
@@ -315,13 +305,12 @@ describe(createElevationProfileButton, () => {
 
         // Verify model uses the palette
         const mockWin = getPopupWindow();
-        triggerChartScriptLoad(mockWin);
 
         expect(mockWin.document.body.textContent).toContain(
             "test-with-colors.fit"
         );
         expect(
-            mockWin.Chart.mock.calls[0][1].data.datasets[0].borderColor
+            chartMock.mock.calls[0][1].data.datasets[0].borderColor
         ).toBe("#ff0000");
 
         // Clean up the mock
@@ -368,7 +357,6 @@ describe(createElevationProfileButton, () => {
         button.click();
 
         const mockWin = getPopupWindow();
-        triggerChartScriptLoad(mockWin);
 
         expect(mockWin.document.querySelector("header")?.textContent).toContain(
             "3 files"
@@ -384,7 +372,7 @@ describe(createElevationProfileButton, () => {
             "without-altitude.fit",
             "partial-data.fit",
         ]);
-        expect(mockWin.Chart).toHaveBeenCalledOnce();
+        expect(chartMock).toHaveBeenCalledOnce();
         expect(getContextSpy).toHaveBeenCalledOnce();
     });
 });

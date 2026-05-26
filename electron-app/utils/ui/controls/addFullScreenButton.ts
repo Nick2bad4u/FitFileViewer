@@ -1,5 +1,4 @@
-// screenfull is loaded globally from index.html via vendor/screenfull-global.js
-// Avoid bare module imports to satisfy CSP and runtime module resolution in Electron
+// screenfull is exposed as a compatibility global by the renderer dependency bundle.
 import { getActiveTabContent } from "../../rendering/helpers/getActiveTabContent.js";
 import { addExitFullscreenOverlay } from "./addExitFullscreenOverlay.js";
 import { removeExitFullscreenOverlay } from "./removeExitFullscreenOverlay.js";

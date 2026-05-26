@@ -44,6 +44,7 @@ interface ElevationPopupThemeColors {
 }
 
 type ElevationGlobal = typeof globalThis & {
+    Chart?: unknown;
     chartOverlayColorPalette?: unknown;
     globalData?: ElevationFitData | null;
     loadedFitFiles?: unknown;
@@ -376,9 +377,6 @@ function buildElevationProfilePopup(
     viewport.name = "viewport";
     viewport.content = "width=device-width, initial-scale=1";
 
-    const chartScript = chartDoc.createElement("script");
-    chartScript.src = "./vendor/chart.umd.js";
-
     const stylesheet = chartDoc.createElement("link");
     stylesheet.rel = "stylesheet";
     stylesheet.href = "./elevProfile.css";
@@ -405,21 +403,15 @@ function buildElevationProfilePopup(
     container.id = "elevChartsContainer";
     chartDoc.body.append(header, container);
 
-    const scriptLoadListener = new AbortController();
-    chartScript.addEventListener(
-        "load",
-        () => {
-            renderElevationCharts(
-                chartWin as ElevationChartWindow,
-                container,
-                fitFilesModel,
-                isDark
-            );
-            scriptLoadListener.abort();
-        },
-        { signal: scriptLoadListener.signal }
+    const elevationChartWindow = chartWin as ElevationChartWindow;
+    elevationChartWindow.Chart ??= (globalThis as ElevationGlobal).Chart;
+
+    renderElevationCharts(
+        elevationChartWindow,
+        container,
+        fitFilesModel,
+        isDark
     );
-    chartDoc.head.append(chartScript);
 }
 
 function createElevationPopupStyles(
