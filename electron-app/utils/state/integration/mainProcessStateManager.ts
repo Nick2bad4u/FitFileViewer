@@ -36,13 +36,11 @@ const MAX_DOT_PATH_SEGMENT_LENGTH = 128;
 // Keep segments conservative: allow identifier-ish keys plus ':' (used by fitFile:decode).
 const DOT_PATH_SEGMENT_PATTERN = /^[0-9A-Za-z_:-]+$/u;
 
-const { getProcessEnvironmentValue } =
-    require("../../runtime/processEnvironment.js") as {
-        getProcessEnvironmentValue: (name: string) => string | undefined;
-    };
-
 function isMainProcessDevelopmentEnvironment(): boolean {
-    return getProcessEnvironmentValue("NODE_ENV") === "development";
+    return (
+        typeof process !== "undefined" &&
+        process.env?.["NODE_ENV"] === "development"
+    );
 }
 
 const { getElectron: getStateRuntimeElectron } =

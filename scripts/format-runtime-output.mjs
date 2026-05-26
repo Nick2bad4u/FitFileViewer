@@ -1,25 +1,10 @@
-import { spawnSync } from "node:child_process";
-import { createRequire } from "node:module";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import prettier from "prettier";
 
 const repositoryRoot = fileURLToPath(new URL("..", import.meta.url));
-const appDir = path.join(repositoryRoot, "electron-app");
-const require = createRequire(import.meta.url);
 const tsconfigPath = path.join(repositoryRoot, "tsconfig.runtime.json");
-const prettierBin = require.resolve("prettier/bin/prettier.cjs");
-const runtimePrettierIgnorePath = path.join(
-    repositoryRoot,
-    ".cache",
-    "prettier-runtime-output.ignore"
-);
-const batchSize = 40;
-
-function ensureRuntimePrettierIgnore() {
-    fs.mkdirSync(path.dirname(runtimePrettierIgnorePath), { recursive: true });
-    fs.writeFileSync(runtimePrettierIgnorePath, "");
-}
 
 function resolveOutputPath(tsconfig, file) {
     const compilerOptions =
@@ -63,38 +48,23 @@ function readRuntimeOutputFiles() {
         .filter((file) => fs.existsSync(file));
 }
 
-function runPrettier(files) {
-    ensureRuntimePrettierIgnore();
+async function formatRuntimeOutputFile(file) {
+    const source = fs.readFileSync(file, "utf8");
+    const options = (await prettier.resolveConfig(file)) ?? {};
+    const formatted = await prettier.format(source, {
+        ...options,
+        filepath: file,
+    });
 
-    for (let index = 0; index < files.length; index += batchSize) {
-        const batch = files.slice(index, index + batchSize);
-        const result = spawnSync(
-            process.execPath,
-            [
-                prettierBin,
-                "--write",
-                "--ignore-path",
-                runtimePrettierIgnorePath,
-                ...batch,
-            ],
-            {
-                cwd: appDir,
-                stdio: "inherit",
-            }
-        );
-
-        if (result.error) {
-            console.error(
-                "format-runtime-output: failed to run prettier",
-                result.error
-            );
-            process.exit(1);
-        }
-
-        if (result.status !== 0) {
-            process.exit(result.status ?? 1);
-        }
+    if (formatted !== source) {
+        fs.writeFileSync(file, formatted);
     }
 }
 
-runPrettier(readRuntimeOutputFiles());
+async function runPrettier(files) {
+    for (const file of files) {
+        await formatRuntimeOutputFile(file);
+    }
+}
+
+await runPrettier(readRuntimeOutputFiles());
