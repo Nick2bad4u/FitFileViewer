@@ -1,9 +1,7 @@
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 
-// Keep fileURLToPath until package engines allow import.meta.dirname.
-// eslint-disable-next-line unicorn/prefer-import-meta-properties
-const electronAppDir = fileURLToPath(new URL(".", import.meta.url));
+const electronAppDir = fileURLToPath(new URL("electron-app/", import.meta.url));
 
 export default defineConfig({
     build: {
@@ -19,7 +17,7 @@ export default defineConfig({
         rollupOptions: {
             output: {
                 assetFileNames(assetInfo) {
-                    return assetInfo.names?.includes("vendor-globals.css")
+                    return assetInfo.names.includes("vendor-globals.css")
                         ? "[name][extname]"
                         : "assets/[name][extname]";
                 },

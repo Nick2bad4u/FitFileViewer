@@ -139,7 +139,6 @@
         "windowStateUtils.ts",
         "utils.ts",
         "utils/**/*.ts",
-        "vite.config.ts",
         "vite/client",
         "vitest.shared.config.ts",
         "tailwind.config.mjs"

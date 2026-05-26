@@ -171,7 +171,7 @@
         "build:dev:package:prod:all": "cross-env NODE_ENV=production electron-builder -l --dir",
         "build:dev:package:prod:all:zip": "cross-env NODE_ENV=production electron-builder -l --dir --win --x64 --ia32 --mac --linux --zip",
         "build:prod": "cross-env NODE_ENV=production electron-builder",
-        "build:renderer": "vite build --config vite.renderer.config.mjs",
+        "build:renderer": "npm --prefix .. run build:renderer",
         "build:runtime-ts": "node ./scripts/clean-runtime-dist.mjs && tsc --project .\\tsconfig.runtime.json && node ./scripts/bundle-preload.mjs && npm run build:renderer && node ./scripts/format-runtime-output.mjs && node ./scripts/prepare-runtime-dist.mjs",
         "build:win7": "node ./scripts/build-win7.mjs",
         "build-all": "electron-builder -mwl",
@@ -250,8 +250,7 @@
         "leaflet.markercluster": "^1.5.3",
         "makensis": "^3.0.5",
         "maplibre-gl": "^5.24.0",
-        "screenfull": "^6.0.2",
-        "vite": "^8.0.14"
+        "screenfull": "^6.0.2"
     },
     "packageManager": "npm@11.15.0",
     "engines": {

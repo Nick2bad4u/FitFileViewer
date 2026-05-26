@@ -112,7 +112,7 @@ Current `build:runtime-ts` flow:
 1. `scripts/clean-runtime-dist.mjs`
 2. `tsc --project .\tsconfig.runtime.json`
 3. `scripts/bundle-preload.mjs`
-4. `vite build --config vite.renderer.config.mjs`
+4. `npm --prefix .. run build:renderer`
 5. `scripts/format-runtime-output.mjs`
 6. `scripts/prepare-runtime-dist.mjs`
 

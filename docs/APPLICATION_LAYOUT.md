@@ -324,6 +324,7 @@ electron-app/utils/
 /
 ├── package.json                     # Root workspace scripts and shared tooling dependencies
 ├── playwright.config.ts             # Root-owned Electron Playwright configuration
+├── vite.renderer.config.mjs         # Root-owned renderer compatibility bundle configuration
 ├── vitest.config.ts                 # Root-owned Vitest configuration for electron-app tests
 ├── tsconfig.vitest-typecheck.json   # Root-owned Vitest typecheck configuration
 ├── tsconfig.electron-app.eslint.json # Root-owned ESLint parser project for electron-app

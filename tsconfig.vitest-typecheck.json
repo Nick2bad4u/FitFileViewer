@@ -19,7 +19,6 @@
     "include": [
         "electron-app/index.d.ts",
         "electron-app/test/**/*.d.ts",
-        "electron-app/test/**/*.ts",
-        "electron-app/vite.config.ts"
+        "electron-app/test/**/*.ts"
     ]
 }

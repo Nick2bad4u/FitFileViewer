@@ -111,7 +111,7 @@ coverage:
         - "**/*.config.*"
         - "**/*.d.ts"
         - "**/node_modules/**/*"
-        - "vite.config.ts"
+        - "vite.renderer.config.mjs"
         - "vitest.config.ts"
         - "vitest.electron.config.ts"
         - "vitest.shared.config.ts"
