@@ -119,23 +119,6 @@
         ></script>
         <script
             defer
-            src="vendor/chart.umd.js"
-        ></script>
-        <!-- Hammer.js for chartjs-plugin-zoom touch/pinch support -->
-        <script
-            defer
-            src="vendor/hammer.min.js"
-        ></script>
-        <script
-            defer
-            src="vendor/chartjs-plugin-zoom.min.js"
-        ></script>
-        <script
-            defer
-            src="vendor/chartjs-adapter-date-fns.bundle.min.js"
-        ></script>
-        <script
-            defer
             src="vendor/leaflet/leaflet.js"
         ></script>
         <script
@@ -176,17 +159,17 @@
             href="style.css"
             rel="stylesheet"
         />
-        <!-- utils.js depends on jQuery, DataTables, Arquero, and Chart.js. Load it after these libraries using defer to maintain order. -->
-        <script
-            type="module"
-            defer
-            src="utils.js"
-        ></script>
         <!-- Renderer dependency bundle. Keep compatibility globals here while migrating away from vendor scripts. -->
         <script
             type="module"
             defer
             src="renderer/vendor-globals.js"
+        ></script>
+        <!-- utils.js depends on jQuery, DataTables, Arquero, and Chart.js. Load it after these libraries using defer to maintain order. -->
+        <script
+            type="module"
+            defer
+            src="utils.js"
         ></script>
         <script
             type="module"

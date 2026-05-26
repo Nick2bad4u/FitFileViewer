@@ -70,13 +70,28 @@ test.describe("FitFileViewer Electron UI", () => {
                 hasArqueroTable:
                     typeof globalWindow.aq?.table === "function" &&
                     typeof globalWindow.arquero?.table === "function",
+                hasChart:
+                    typeof globalWindow.Chart === "function" &&
+                    typeof globalWindow.Chart.register === "function",
+                hasChartZoom:
+                    typeof globalWindow.chartjsPluginZoom === "object" &&
+                    globalWindow.chartjsPluginZoom !== null &&
+                    globalWindow.chartjsPluginZoom.id === "zoom" &&
+                    typeof globalWindow.ChartZoom === "object" &&
+                    globalWindow.ChartZoom !== null &&
+                    globalWindow.ChartZoom.id === "zoom",
                 hasDomPurify:
                     typeof globalWindow.DOMPurify?.sanitize === "function",
+                hasHammer: typeof globalWindow.Hammer === "function",
                 hasJsZip: typeof globalWindow.JSZip === "function",
                 hasScreenfull:
                     typeof globalWindow.screenfull === "object" &&
                     globalWindow.screenfull !== null &&
                     "isEnabled" in globalWindow.screenfull,
+                isChartZoomRegistered:
+                    typeof globalWindow.Chart === "function" &&
+                    globalWindow.Chart.registry?.plugins?.get?.("zoom") !==
+                        undefined,
                 vendorBundleSource:
                     globalWindow.__FFV_RENDERER_VENDOR_BUNDLE__?.source,
             };
@@ -84,9 +99,13 @@ test.describe("FitFileViewer Electron UI", () => {
 
         expect(vendorGlobals).toStrictEqual({
             hasArqueroTable: true,
+            hasChart: true,
+            hasChartZoom: true,
             hasDomPurify: true,
+            hasHammer: true,
             hasJsZip: true,
             hasScreenfull: true,
+            isChartZoomRegistered: true,
             vendorBundleSource: "npm-bundle",
         });
     });
