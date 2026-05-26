@@ -273,6 +273,24 @@ const config = [
             "package-json/require-peerDependencies": "off",
         },
     },
+    {
+        files: ["electron-builder.config.cjs"],
+        languageOptions: {
+            globals: globals.node,
+            parserOptions: {
+                project: ["./tsconfig.eslint.json"],
+            },
+        },
+        rules: {
+            "@typescript-eslint/no-require-imports": "off",
+            "import-x/extensions": "off",
+            "import-x/no-commonjs": "off",
+            "import-x/unambiguous": "off",
+            "no-template-curly-in-string": "off",
+            "perfectionist/sort-objects": "off",
+            "unicorn/prefer-module": "off",
+        },
+    },
 ];
 
 export default config;
