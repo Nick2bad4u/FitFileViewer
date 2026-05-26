@@ -30,7 +30,7 @@ describe("initStartup", () => {
     it("runs startup initializers on DOMContentLoaded", () => {
         expect.assertions(5);
 
-        expect(() => runStartupInitializers()).not.toThrow();
+        expect(runStartupInitializers()).toBeUndefined();
 
         expect(initializerMocks.initQuickColorSwitcher).toHaveBeenCalledOnce();
         expect(initializerMocks.initUnifiedControlBar).toHaveBeenCalledOnce();
