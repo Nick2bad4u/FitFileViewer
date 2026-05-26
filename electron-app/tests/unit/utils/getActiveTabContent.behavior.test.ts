@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { getActiveTabContent } from "../../../utils/rendering/helpers/getActiveTabContent.js";
 
-describe("getActiveTabContent.js - coverage uplift", () => {
+describe("getActiveTabContent behavior", () => {
     const originalWarn = console.warn;
     const originalError = console.error;
 

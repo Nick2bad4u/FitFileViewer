@@ -1,8 +1,7 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 import { JSDOM } from "jsdom";
 
-// Test for uncovered lines in updateActiveTab.js
-describe("updateActiveTab.js - Coverage Completion", () => {
+describe("updateActiveTab defensive DOM handling", () => {
     let mockWindow: any;
     let mockDocument: any;
     let mockSubscribe: any;
@@ -34,8 +33,8 @@ describe("updateActiveTab.js - Coverage Completion", () => {
         vi.resetModules();
     });
 
-    describe("Uncovered line coverage tests", () => {
-        test("should cover defensive checks in updateTabButtonsFromState via state subscription (lines 135-137, 142-144)", async () => {
+    describe("state subscription callback", () => {
+        test("warns for missing or malformed tab buttons", async () => {
             const { initializeActiveTabState } =
                 await import("../../../utils/ui/tabs/updateActiveTab.js");
 
@@ -59,7 +58,6 @@ describe("updateActiveTab.js - Coverage Completion", () => {
 
             const stateCallback = subscriptionCall[1];
 
-            // Test case 1: No tab buttons in DOM (lines 135-137)
             // Clear DOM to ensure no tab buttons exist
             mockDocument.body.innerHTML = "";
 
@@ -72,7 +70,6 @@ describe("updateActiveTab.js - Coverage Completion", () => {
             );
             expect(mockDocument.body.childElementCount).toBe(0);
 
-            // Test case 2: Invalid button elements (lines 142-144)
             // Create a malformed element that will trigger the defensive check
             const mockButton = {
                 id: "tab-summary",

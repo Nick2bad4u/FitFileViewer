@@ -41,7 +41,7 @@ function removeFallbackWindowState() {
     }
 }
 
-describe("windowStateUtils.js - coverage uplift", () => {
+describe("windowStateUtils persistence behavior", () => {
     const defaultState = {
         width: 1200,
         height: 800,

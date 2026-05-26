@@ -5,7 +5,7 @@ import {
     clearAllNotifications,
 } from "../../../utils/ui/notifications/showNotification.js";
 
-describe("showNotification.js - coverage uplift", () => {
+describe("showNotification interactions", () => {
     const originalWarn = console.warn;
     const originalError = console.error;
 

@@ -6,7 +6,7 @@ import {
     addDragDropListeners,
 } from "../../../utils/ui/events/eventListenerManager.js";
 
-describe("eventListenerManager.js - coverage uplift", () => {
+describe("eventListenerManager listener lifecycle", () => {
     beforeEach(() => {
         // Ensure document body is clean and no lingering listeners via cleanup
         cleanupEventListeners();

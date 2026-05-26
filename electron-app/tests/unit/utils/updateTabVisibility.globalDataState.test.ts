@@ -1,8 +1,7 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 import { JSDOM } from "jsdom";
 
-// Test for uncovered lines in updateTabVisibility.js
-describe("updateTabVisibility.js - Coverage Completion", () => {
+describe("updateTabVisibility globalData state subscription", () => {
     let mockWindow: any;
     let mockDocument: any;
     let mockSubscribe: any;
@@ -52,8 +51,8 @@ describe("updateTabVisibility.js - Coverage Completion", () => {
         vi.useRealTimers();
     });
 
-    describe("Uncovered line coverage tests", () => {
-        test("should cover globalData subscription logic for switching to summary (lines 127-129)", async () => {
+    describe("globalData subscription", () => {
+        test("switches to summary when data is cleared from another tab", async () => {
             const { initializeTabVisibilityState } =
                 await import("../../../utils/ui/tabs/updateTabVisibility.js");
 
@@ -65,7 +64,7 @@ describe("updateTabVisibility.js - Coverage Completion", () => {
             // Initialize the tab visibility state management
             initializeTabVisibilityState();
 
-            // Verify initialization message was logged (line 131)
+            // Verify initialization message was logged
             expect(consoleSpy).toHaveBeenCalledWith(
                 "[TabVisibility] State management initialized"
             );
@@ -82,7 +81,7 @@ describe("updateTabVisibility.js - Coverage Completion", () => {
                 data: unknown
             ) => void;
 
-            // Test the specific logic that triggers state change (lines 127-129)
+            // Trigger the state change when data is cleared.
             currentActiveTab = "chart";
 
             // Call the callback with no data (null/undefined)
@@ -90,7 +89,7 @@ describe("updateTabVisibility.js - Coverage Completion", () => {
             globalDataCallback(null);
             vi.advanceTimersByTime(260);
 
-            // Should call setState to switch to summary tab (line 128)
+            // Should call setState to switch to summary tab.
             expect(mockSetState).toHaveBeenCalledWith(
                 "ui.activeTab",
                 "summary",
