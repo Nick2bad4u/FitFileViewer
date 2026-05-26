@@ -194,21 +194,28 @@ describe("Tab State Management Integration", () => {
 
             initializeActiveTabState();
 
-            // Should not throw when trying to set chart as active
-            expect(() => {
-                mockState.setState("ui.activeTab", "chart");
-            }).not.toThrow();
+            mockState.setState("ui.activeTab", "chart");
+
+            expect(document.getElementById("tab-chart")).toBeNull();
+            expect(mockState.getState("ui.activeTab")).toBe("chart");
+            expect(
+                document.querySelectorAll(".tab-button.active")
+            ).toHaveLength(0);
         });
 
         it("should handle initialization without DOM elements", () => {
             cleanupDOM();
 
-            // Should not throw
-            expect(() => {
-                initializeActiveTabState();
-                setTabButtonsEnabled(false);
-                setTabButtonsEnabled(true);
-            }).not.toThrow();
+            initializeActiveTabState();
+            setTabButtonsEnabled(false);
+            setTabButtonsEnabled(true);
+
+            expect(document.body.childElementCount).toBe(0);
+            expect(mockState.getState("ui.tabButtonsEnabled")).toBe(true);
+            expect(mockState.subscribe).toHaveBeenCalledWith(
+                "ui.activeTab",
+                expect.any(Function)
+            );
         });
 
         it("should handle state changes before initialization", () => {
@@ -285,7 +292,9 @@ describe("Tab State Management Integration", () => {
             const activeTab = document.querySelector(".tab-button.active");
             expect(activeTab).toBeInstanceOf(HTMLButtonElement);
             expect(activeTab?.id).toBe("tab-table");
-            expect(document.querySelectorAll(".tab-button.active")).toHaveLength(1);
+            expect(
+                document.querySelectorAll(".tab-button.active")
+            ).toHaveLength(1);
             expect(activeTab?.id).not.toBe("tab-summary");
         });
     });
