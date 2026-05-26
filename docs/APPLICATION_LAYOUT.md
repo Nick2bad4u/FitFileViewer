@@ -325,6 +325,7 @@ electron-app/utils/
 ├── package.json                     # Root workspace scripts and shared tooling dependencies
 ├── playwright.config.ts             # Root-owned Electron Playwright configuration
 ├── vitest.config.ts                 # Root-owned Vitest configuration for electron-app tests
+├── tsconfig.vitest-typecheck.json   # Root-owned Vitest typecheck configuration
 └── electron-app/
     ├── package.json                 # Electron app metadata and packaging configuration
     │   ├── Electron Builder configuration
@@ -332,9 +333,7 @@ electron-app/utils/
     │   ├── File associations (.fit files)
     │   └── Runtime/build scripts still scoped to the app
     │
-    ├── tsconfig.json                # TypeScript configuration
-    └── tsconfig.vitest-typecheck.json
-                                      # Vitest typecheck configuration
+    └── tsconfig.json                # TypeScript configuration
 ```
 
 ### Environment Configuration

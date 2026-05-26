@@ -1,0 +1,25 @@
+{
+    "$schema": "https://www.schemastore.org/tsconfig.json",
+    "compilerOptions": {
+        "isolatedDeclarations": false,
+        "noEmit": true,
+        "tsBuildInfoFile": "./.cache/tsbuildinfo/tsconfig.vitest-typecheck.tsbuildinfo"
+    },
+    "exclude": [
+        ".cache/**",
+        "coverage/**",
+        "electron-app/.cache/**",
+        "electron-app/coverage/**",
+        "electron-app/dist/**",
+        "electron-app/node_modules/**",
+        "node_modules/**",
+        "electron-app/test/fixtures/**"
+    ],
+    "extends": "./electron-app/tsconfig.json",
+    "include": [
+        "electron-app/index.d.ts",
+        "electron-app/test/**/*.d.ts",
+        "electron-app/test/**/*.ts",
+        "electron-app/vite.config.ts"
+    ]
+}

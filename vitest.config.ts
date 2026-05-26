@@ -236,7 +236,7 @@ export default defineConfig({
             include: ["**/*.{test,spec}-d.?(c|m)[jt]s?(x)"],
             only: false,
             spawnTimeout: 10_000,
-            tsconfig: "./tsconfig.vitest-typecheck.json",
+            tsconfig: "../tsconfig.vitest-typecheck.json",
         },
         vmMemoryLimit: 2048, // Increase VM memory limit to 2GB to handle larger test suites
         watch: false,
