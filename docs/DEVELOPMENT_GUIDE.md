@@ -32,7 +32,7 @@ Electron Fiddle (for testing)
 ```bash
 # Clone the repository
 git clone https://github.com/Nick2bad4u/FitFileViewer.git
-cd FitFileViewer/electron-app
+cd FitFileViewer
 
 # Install dependencies
 npm install
@@ -52,25 +52,23 @@ npm run build
 ```bash
 # Development
 npm start                    # Run app with debugging
-npm run start-prod          # Run production build
+npm run start:prod          # Run production build
 npm test                    # Run all tests
 npm run test:watch          # Run tests in watch mode
 npm run test:coverage       # Run tests with coverage
+npm run test:playwright     # Run Electron Playwright smoke test
 
 # Code Quality
-npm run lint               # Run ESLint
-npm run lint:fix          # Fix ESLint issues
+npm run lint               # Run root, Electron, and docs lint gates
+npm run lint:fix          # Fix auto-fixable lint issues
 npm run lint:css           # Run Stylelint on CSS
 npm run lint:css:fix       # Fix Stylelint issues
-npm run lint:all           # Run all checks (CSS + ESLint + typecheck + prettier)
-npm run lint:all:fix       # Fix all auto-fixable issues (CSS + ESLint + prettier)
-npm run prettier          # Check code formatting
-npm run prettier:fix      # Fix code formatting
 npm run typecheck         # TypeScript type checking
 
 # Build & Package
 npm run build             # Build for current platform
-npm run build-all         # Build for all platforms
+npm run build:runtime-ts  # Build runtime TypeScript and renderer assets
+npm run build:all         # Build for all platforms
 npm run package           # Create package without installer
 ```
 
@@ -408,7 +406,7 @@ npm run build:prod
 
 ```bash
 # Build for all platforms
-npm run build-all
+npm run build:all
 
 # Platform-specific builds
 npm run build -- --win

@@ -113,7 +113,8 @@ The preload script exposes a constrained API (all methods validate their argumen
 
 ## Auto-Update & Deployment
 
-- `electron-builder` scripts (`build`, `build-all`, `package`) handle packaging for Windows/Mac/Linux.
+- Root `electron-builder` wrappers (`build`, `build:all`, `package`) handle
+  packaging for Windows/Mac/Linux.
 - Auto-update events (`update-available`, `update-downloaded`, etc.) surface in both renderer UI and application menu items.
 - NSIS, Squirrel, AppImage, Debian, and other targets are preconfigured in `package.json`.
 
@@ -140,9 +141,13 @@ Refer to `preload.js` and `main.js` for the full set of channels and event names
 
 ## Testing & Quality
 
-- **Unit & integration:** `npm --prefix electron-app run test` (Vitest). Targeted suites (`test:unit`, `test:integration`, `test:tabs`, etc.) exist for focused validation.
-- **Legacy Jest tests:** `npm --prefix electron-app run test:jest` for any remaining Jest suites.
-- **Coverage:** `test:coverage` generates coverage data.
+- **Unit & integration:** `npm test` runs Vitest. Targeted suites such as
+  `npm run test:unit` exist for focused validation.
+- **Electron smoke:** `npm run test:playwright` opens the packaged-like app
+  shell and verifies real FIT data across map, chart, data, and summary tabs.
+- **Legacy Jest tests:** `npm --workspace electron-app run test:jest` for any
+  remaining Jest suites.
+- **Coverage:** `npm run test:coverage` generates coverage data.
 - **Strict regression suites:** Under `tests/strictTests/` to guard tricky DOM/Electron edge cases.
 - **Type checking & linting:** `typecheck`, `lint`, `lint:fix`, `prettier`, and associated `format:*` scripts.
 
@@ -150,11 +155,11 @@ Refer to `preload.js` and `main.js` for the full set of channels and event names
 
 Common scripts:
 
-- `npm --prefix electron-app run start` – Development mode with Chromium inspector
-- `npm --prefix electron-app run start-prod` – Launch packaged-like instance
-- `npm --prefix electron-app run build` – Build platform-specific installers
-- `npm --prefix electron-app run build-all` – Cross-platform artifacts
-- `npm --prefix electron-app run package` – Unpacked directories for manual inspection
+- `npm start` – Development mode with Chromium inspector
+- `npm run start:prod` – Launch packaged-like instance
+- `npm run build` – Build platform-specific installers
+- `npm run build:all` – Cross-platform artifacts
+- `npm run package` – Unpacked directories for manual inspection
 
 Artifacts are configured via `electron-builder` to include NSIS, Squirrel, AppImage, Debian, RPM, snap, and more.
 

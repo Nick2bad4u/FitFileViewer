@@ -354,7 +354,7 @@ To set up a development environment:
 git clone https://github.com/Nick2bad4u/FitFileViewer.git
 
 # Navigate to the project directory
-cd FitFileViewer/electron-app
+cd FitFileViewer
 
 # Install dependencies
 npm install
