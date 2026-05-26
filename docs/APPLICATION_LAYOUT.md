@@ -321,17 +321,20 @@ electron-app/utils/
 ### Build Configuration
 
 ```text
-electron-app/
-├── package.json                      # Main package configuration
-│   ├── Electron Builder configuration
-│   ├── Multi-platform build targets
-│   ├── File associations (.fit files)
-│   ├── Scripts (60+ npm scripts)
-│   └── Dependencies management
-│
-├── tsconfig.json                     # TypeScript configuration
-├── tsconfig.vitest-typecheck.json   # Vitest typecheck configuration
-└── vitest.config.ts                 # Vitest test configuration
+/
+├── package.json                     # Root workspace scripts and shared tooling dependencies
+├── playwright.config.ts             # Root-owned Electron Playwright configuration
+├── vitest.config.ts                 # Root-owned Vitest configuration for electron-app tests
+└── electron-app/
+    ├── package.json                 # Electron app metadata and packaging configuration
+    │   ├── Electron Builder configuration
+    │   ├── Multi-platform build targets
+    │   ├── File associations (.fit files)
+    │   └── Runtime/build scripts still scoped to the app
+    │
+    ├── tsconfig.json                # TypeScript configuration
+    └── tsconfig.vitest-typecheck.json
+                                      # Vitest typecheck configuration
 ```
 
 ### Environment Configuration

@@ -1,3 +1,4 @@
+import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 /* eslint-disable module-interop/no-require-esm -- Vitest loads this config through its ESM-aware config loader. */
 import {
@@ -7,18 +8,25 @@ import {
 } from "vitest/config";
 /* eslint-enable module-interop/no-require-esm -- Re-enable after the Vitest config import. */
 
-const coverageProjectRoot = fileURLToPath(new URL("..", import.meta.url));
+// import.meta.dirname would be cleaner, but this package still declares support
+// for Node versions where that property is not available.
+// eslint-disable-next-line unicorn/prefer-import-meta-properties -- Keep Vitest config compatible with the declared Node engine range.
+const configFilePath = fileURLToPath(import.meta.url);
+// eslint-disable-next-line unicorn/prefer-import-meta-properties -- Keep Vitest config compatible with the declared Node engine range.
+const coverageProjectRoot = path.dirname(configFilePath);
+const electronAppRoot = fileURLToPath(new URL("electron-app", import.meta.url));
 const electronStubPath = fileURLToPath(
-    new URL("tests/stubs/electron-virtual.js", import.meta.url)
+    new URL("electron-app/tests/stubs/electron-virtual.js", import.meta.url)
 );
 
 export default defineConfig({
-    cacheDir: "node_modules/.vite",
+    cacheDir: "../.cache/vitest",
     resolve: {
         alias: {
             electron: electronStubPath,
         },
     },
+    root: electronAppRoot,
 
     test: {
         allowOnly: false, // Fail if .only is left in the code
@@ -153,6 +161,8 @@ export default defineConfig({
         fileParallelism: true,
         // Force rerun triggers - these files will trigger full test suite
         forceRerunTriggers: [
+            "../package.json",
+            "../vitest.config.ts",
             "**/package.json",
             "**/vitest.config.ts",
         ],
