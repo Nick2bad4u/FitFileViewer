@@ -76,7 +76,7 @@ The renderer build should:
 
 - Compile renderer TypeScript.
 - Bundle browser npm imports.
-- Emit stable output into dist/renderer or another clearly owned runtime output folder.
+- Emit stable output into dist/renderer or another owned runtime output folder.
 - Handle CSS imports.
 - Handle Leaflet images and plugin CSS.
 - Preserve Electron file:// compatibility.
@@ -221,7 +221,7 @@ package.json
 electron-builder config
 ```
 
-But do not do this unless the benefit clearly outweighs the path churn.
+But do not do this unless the benefit outweighs the path churn.
 
 A workspace-managed electron-app/ can already be easy to manage. Flattening the repo is optional, not required.
 
