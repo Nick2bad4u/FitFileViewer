@@ -51,7 +51,8 @@
         "test:playwright": "npm --workspace electron-app run test:playwright",
         "test:unit": "npm --workspace electron-app run test:unit",
         "test:watch": "npm --workspace electron-app run test:watch",
-        "typecheck": "npm --workspace electron-app run typecheck"
+        "typecheck": "npm --workspace electron-app run typecheck",
+        "update-deps": "npx npm-check-updates -i --workspaces --root --install never && npm install"
     },
     "devDependencies": {
         "eslint-config-nick2bad4u": "^1.1.0",

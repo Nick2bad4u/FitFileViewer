@@ -235,7 +235,7 @@
         "update-changelog": "npm --workspace-root run changelog",
         "update-changelog:all": "npm --workspace-root run changelog:all",
         "update-changelog:latest": "npm --workspace-root run changelog",
-        "update-deps": "npx ncu -i --install never && npm install --force && cd ../docusaurus && npx ncu -i --install never && npm install --force && cd ../electron-app"
+        "update-deps": "npm --workspace-root run update-deps"
     },
     "overrides": {
         "jsonc-eslint-parser": "$jsonc-eslint-parser"
