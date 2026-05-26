@@ -84,7 +84,7 @@ docusaurus/
 ### Settings
 
 - **allowJs**: Enabled - processes JavaScript files
-- **tsconfig**: Uses `electron-app/tsconfig.json` for context
+- **tsconfig**: Uses `tsconfig.electron-app.json` for context
 - **skipErrorChecking**: Enabled - continues on minor errors
 - **intentionallyNotExported**: Lists types that may not resolve
 - **validation**: Lenient - warns but doesn't fail

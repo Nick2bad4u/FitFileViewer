@@ -73,7 +73,7 @@
         "eslint.config.bundled_*.mjs",
         "electron-app/test/fixtures/**"
     ],
-    "extends": "./electron-app/tsconfig.json",
+    "extends": "./tsconfig.electron-app.json",
     "include": [
         "electron-app/**/*",
         "electron-app/**/.*"

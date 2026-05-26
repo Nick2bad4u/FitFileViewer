@@ -9,7 +9,7 @@
         "alwaysStrict": true,
         "checkJs": false,
         "declaration": true,
-        "declarationDir": "./types",
+        "declarationDir": "./electron-app/types",
         "declarationMap": false,
         "disableSizeLimit": true,
         "esModuleInterop": true,
@@ -50,16 +50,16 @@
         "noUncheckedSideEffectImports": true,
         "noUnusedLocals": true,
         "noUnusedParameters": true,
-        "outDir": "dist",
+        "outDir": "./electron-app/dist",
         "paths": {
             "@app/*": [
-                "./src/*"
+                "./electron-app/src/*"
             ],
             "@electron/*": [
-                "./electron/*"
+                "./electron-app/electron/*"
             ],
             "@shared/*": [
-                "./shared/*"
+                "./electron-app/shared/*"
             ]
         },
         "plugins": [
@@ -71,6 +71,7 @@
         "resolveJsonModule": true,
         "resolvePackageJsonExports": true,
         "resolvePackageJsonImports": true,
+        "rootDir": "./electron-app",
         "skipDefaultLibCheck": true,
         "skipLibCheck": true,
         "sourceMap": true,
@@ -81,7 +82,7 @@
         "strictNullChecks": true,
         "strictPropertyInitialization": true,
         "target": "ES2024",
-        "tsBuildInfoFile": "./dist/tsconfig.tsbuildinfo",
+        "tsBuildInfoFile": "./electron-app/dist/tsconfig.tsbuildinfo",
         "types": [
             "electron",
             "node"
@@ -101,47 +102,47 @@
         "**/node_modules/**",
         "**/node_modules/typescript/**",
         "coverage",
-        "dist-electron",
-        "dist",
-        "dist-shared",
+        "electron-app/dist-electron",
+        "electron-app/dist",
+        "electron-app/dist-shared",
         "**/dist-shared/**",
-        "electron",
+        "electron-app/electron",
         "node_modules",
         "node_modules/**/*",
         "out",
-        "release",
+        "electron-app/release",
         "**/*.test.ts",
         "**/html/**",
         "**/*.test.tsx",
         "**/tests/**",
-        "__mocks__/**",
-        "debug-electron-mock.js",
+        "electron-app/__mocks__/**",
+        "electron-app/debug-electron-mock.js",
         "**/assets/**"
     ],
     "include": [
-        "*.ts",
-        "**/*.js",
-        "global.d.ts",
-        "shared/**/*.ts",
-        "src/**/*.css",
-        "src/**/*.ts",
-        "src/**/*.mts",
-        "src/**/*.cts",
-        "src/**/*.tsx",
-        "src/**/*",
-        "src/App.tsx",
-        "src/index.css",
-        "src/types/global.d.ts",
-        "main/**/*.ts",
-        "preload/**/*.ts",
-        "renderer/**/*.ts",
-        "ui/**/*.ts",
-        "windowStateUtils.ts",
-        "utils.ts",
-        "utils/**/*.ts",
+        "electron-app/*.ts",
+        "electron-app/**/*.js",
+        "electron-app/global.d.ts",
+        "electron-app/shared/**/*.ts",
+        "electron-app/src/**/*.css",
+        "electron-app/src/**/*.ts",
+        "electron-app/src/**/*.mts",
+        "electron-app/src/**/*.cts",
+        "electron-app/src/**/*.tsx",
+        "electron-app/src/**/*",
+        "electron-app/src/App.tsx",
+        "electron-app/src/index.css",
+        "electron-app/src/types/global.d.ts",
+        "electron-app/main/**/*.ts",
+        "electron-app/preload/**/*.ts",
+        "electron-app/renderer/**/*.ts",
+        "electron-app/ui/**/*.ts",
+        "electron-app/windowStateUtils.ts",
+        "electron-app/utils.ts",
+        "electron-app/utils/**/*.ts",
         "vite/client",
-        "vitest.shared.config.ts",
-        "tailwind.config.mjs"
+        "electron-app/vitest.shared.config.ts",
+        "electron-app/tailwind.config.mjs"
     ],
     "typeAcquisition": {
         "enable": true
