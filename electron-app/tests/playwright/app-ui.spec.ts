@@ -89,9 +89,7 @@ test.describe("FitFileViewer Electron UI", () => {
                 return;
             }
 
-            failedRequests.push(
-                `${url} ${errorText}`.trim()
-            );
+            failedRequests.push(`${url} ${errorText}`.trim());
         });
 
         await page.waitForLoadState("domcontentloaded");
