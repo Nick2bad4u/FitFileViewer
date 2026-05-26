@@ -172,7 +172,8 @@
         "build:dev:package:prod:all": "cross-env NODE_ENV=production electron-builder -l --dir",
         "build:dev:package:prod:all:zip": "cross-env NODE_ENV=production electron-builder -l --dir --win --x64 --ia32 --mac --linux --zip",
         "build:prod": "cross-env NODE_ENV=production electron-builder",
-        "build:runtime-ts": "node ./scripts/clean-runtime-dist.mjs && tsc --project .\\tsconfig.runtime.json && node ./scripts/bundle-preload.mjs && node ./scripts/format-runtime-output.mjs && node ./scripts/prepare-runtime-dist.mjs",
+        "build:renderer": "vite build --config vite.renderer.config.mjs",
+        "build:runtime-ts": "node ./scripts/clean-runtime-dist.mjs && tsc --project .\\tsconfig.runtime.json && node ./scripts/bundle-preload.mjs && npm run build:renderer && node ./scripts/format-runtime-output.mjs && node ./scripts/prepare-runtime-dist.mjs",
         "build:win7": "node ./scripts/build-win7.mjs",
         "build-all": "electron-builder -mwl",
         "changelog": "powershell -ExecutionPolicy Bypass -File .\\Update-ChangeLogs.ps1",
@@ -297,6 +298,7 @@
         "secretlint-config-nick2bad4u": "^1.0.5",
         "stylelint": "^17.12.0",
         "stylelint-config-nick2bad4u": "^1.0.12",
+        "vite": "^8.0.14",
         "vitest": "^4.1.7"
     },
     "packageManager": "npm@11.15.0",

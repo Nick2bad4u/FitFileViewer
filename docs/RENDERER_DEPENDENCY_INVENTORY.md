@@ -9,11 +9,16 @@ asset migration. Keep it current while moving browser libraries from
 The Electron app still uses a classic script/link model for browser libraries:
 
 - `electron-app/index.html` loads CSS and JavaScript from `vendor/`.
+- `electron-app/index.html` also loads the Vite-built compatibility bundle at
+  `renderer/vendor-globals.js`.
 - `electron-app/scripts/prepare-runtime-dist.mjs` copies `vendor/` into
   `electron-app/dist/vendor/`.
 - `electron-app/package.json` includes `vendor/` in the packaged file list.
 - Renderer modules consume browser libraries through globals such as
   `Chart`, `L`, `JSZip`, `DOMPurify`, `screenfull`, and DataTables/jQuery.
+- `electron-app/renderer/vendorGlobals.ts` imports the first low-risk utility
+  group from npm and exposes missing compatibility globals without overriding
+  the existing vendor globals.
 - `prepare-runtime-dist.mjs` rejects direct `node_modules` references in
   `index.html`; production should not load browser code directly from
   `node_modules`.
@@ -133,8 +138,9 @@ Current `build:runtime-ts` flow:
 1. `scripts/clean-runtime-dist.mjs`
 2. `tsc --project .\tsconfig.runtime.json`
 3. `scripts/bundle-preload.mjs`
-4. `scripts/format-runtime-output.mjs`
-5. `scripts/prepare-runtime-dist.mjs`
+4. `vite build --config vite.renderer.config.mjs`
+5. `scripts/format-runtime-output.mjs`
+6. `scripts/prepare-runtime-dist.mjs`
 
 `prepare-runtime-dist.mjs` copies:
 

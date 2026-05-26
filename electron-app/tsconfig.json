@@ -134,6 +134,7 @@
         "src/types/global.d.ts",
         "main/**/*.ts",
         "preload/**/*.ts",
+        "renderer/**/*.ts",
         "ui/**/*.ts",
         "windowStateUtils.ts",
         "utils.ts",
