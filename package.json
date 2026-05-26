@@ -32,6 +32,8 @@
         "format": "npm run prettier:fix",
         "format:check": "npm run prettier",
         "lint": "npm run lint:root && npm run lint:electron-app && npm run lint:docusaurus",
+        "lint:all": "npm run lint",
+        "lint:all:fix": "npm run lint:fix",
         "lint:css": "stylelint \"electron-app/**/*.css\" --config stylelint.config.mjs --quiet",
         "lint:css:fix": "stylelint \"electron-app/**/*.css\" --config stylelint.config.mjs --fix",
         "lint:docusaurus": "npm --workspace docusaurus run lint",
