@@ -49,7 +49,17 @@ function readRuntimeOutputFiles() {
 }
 
 async function formatRuntimeOutputFile(file) {
-    const source = fs.readFileSync(file, "utf8");
+    let source;
+    try {
+        source = fs.readFileSync(file, "utf8");
+    } catch (error) {
+        if (error && error.code === "ENOENT") {
+            return;
+        }
+
+        throw error;
+    }
+
     const options = (await prettier.resolveConfig(file)) ?? {};
     const formatted = await prettier.format(source, {
         ...options,
@@ -57,6 +67,7 @@ async function formatRuntimeOutputFile(file) {
     });
 
     if (formatted !== source) {
+        fs.mkdirSync(path.dirname(file), { recursive: true });
         fs.writeFileSync(file, formatted);
     }
 }
