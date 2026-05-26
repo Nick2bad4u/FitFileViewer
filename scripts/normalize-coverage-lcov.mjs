@@ -3,8 +3,8 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const electronAppDir = fileURLToPath(new URL("..", import.meta.url));
-const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
+const repoRoot = fileURLToPath(new URL("..", import.meta.url));
+const electronAppDir = path.join(repoRoot, "electron-app");
 const repoRootPosix = repoRoot.replaceAll("\\", "/");
 const coverageTargetDir = path.join(electronAppDir, "coverage");
 
@@ -109,4 +109,3 @@ try {
     );
     process.exitCode = 1;
 }
-``;

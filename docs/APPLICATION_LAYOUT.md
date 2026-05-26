@@ -330,9 +330,11 @@ electron-app/utils/
 ├── tsconfig.electron-app.eslint.json # Root-owned ESLint parser project for electron-app
 ├── scripts/
 │   ├── analyze-coverage.mjs         # Root-owned coverage analysis helper
+│   ├── build-win7.mjs               # Root-owned Windows 7 compatibility build helper
 │   ├── bundle-preload.mjs           # Root-owned preload bundling helper
 │   ├── clean-runtime-dist.mjs       # Root-owned runtime output cleanup helper
 │   ├── format-runtime-output.mjs    # Root-owned runtime output formatter
+│   ├── normalize-coverage-lcov.mjs  # Root-owned coverage path normalization helper
 │   └── prepare-runtime-dist.mjs     # Root-owned runtime package asset helper
 └── electron-app/
     ├── package.json                 # Electron app metadata and packaging configuration

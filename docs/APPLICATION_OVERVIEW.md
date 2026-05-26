@@ -20,7 +20,7 @@ This document provides a high-level tour of the FitFileViewer codebase, covering
 | `electron-app/fitParser.js` | FIT file decoding with state & settings integration                                              |
 | `electron-app/utils/`       | Shared utilities (app lifecycle, charts, data, files, formatting, rendering, state, theming, UI) |
 | `electron-app/tests/`       | Vitest-based unit, integration, Playwright, and strict regression suites                         |
-| `electron-app/scripts/`     | Maintenance utilities (e.g. converting legacy tests to TS)                                       |
+| `scripts/`                  | Root-owned build, coverage, and runtime packaging helpers                                        |
 | `docs/`                     | Product and engineering guides                                                                   |
 | `electron-app/ffv/`         | Embedded alternative FIT viewer assets (kept in-sync with primary viewer feature set)            |
 | `node_modules/`             | Third-party libraries managed via npm (Chart.js, Leaflet, MapLibre, DataTables, etc.)            |

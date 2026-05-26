@@ -1,13 +1,14 @@
 import { Arch, build, Platform } from "electron-builder";
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 
 const __dirname = path.dirname(__filename);
-const electronAppDir = path.resolve(__dirname, "..");
+const repoRoot = path.resolve(__dirname, "..");
+const electronAppDir = path.join(repoRoot, "electron-app");
 const outputDir = path.join(electronAppDir, "release", "win7");
 const WIN7_ELECTRON_VERSION = "22.3.27";
 const appPackageFiles = [
@@ -37,16 +38,20 @@ function runNpmScript(scriptName) {
 
     if (npmExecPath) {
         execFileSync(process.execPath, [npmExecPath, "run", scriptName], {
-            cwd: electronAppDir,
+            cwd: repoRoot,
             stdio: "inherit",
         });
         return;
     }
 
-    execFileSync(process.platform === "win32" ? "npm.cmd" : "npm", ["run", scriptName], {
-        cwd: electronAppDir,
-        stdio: "inherit",
-    });
+    execFileSync(
+        process.platform === "win32" ? "npm.cmd" : "npm",
+        ["run", scriptName],
+        {
+            cwd: repoRoot,
+            stdio: "inherit",
+        }
+    );
 }
 
 async function run() {

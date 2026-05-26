@@ -173,7 +173,7 @@
         "build:prod": "cross-env NODE_ENV=production electron-builder",
         "build:renderer": "npm --prefix .. run build:renderer",
         "build:runtime-ts": "npm --prefix .. run build:runtime-ts",
-        "build:win7": "node ./scripts/build-win7.mjs",
+        "build:win7": "npm --prefix .. run build:win7",
         "build-all": "electron-builder -mwl",
         "format": "npm --prefix .. run format",
         "format:check": "npm --prefix .. run format:check",
@@ -203,7 +203,6 @@
         "test:unit": "npm --prefix .. run test:unit",
         "test:watch": "npm --prefix .. run test:watch",
         "test:watch-changed": "npm --prefix .. run test:watch-changed",
-        "tests:convert-to-ts": "node ./scripts/convert-tests-to-ts.mjs",
         "typecheck": "tsc --project .\\tsconfig.json --noEmit",
         "types:build": "tsc --project .\\tsconfig.json --declaration --emitDeclarationOnly --declarationMap false --outDir ./types",
         "update-deps": "npm --workspace-root run update-deps"
