@@ -32,7 +32,7 @@ function getExposedElectronAPI(): AdditionalPreloadElectronApi {
     return getGlobalValue("electronAPI") as AdditionalPreloadElectronApi;
 }
 
-describe("preload.js - Additional edge coverage", () => {
+describe("preload edge cases", () => {
     const originalNodeEnv = process.env.NODE_ENV;
 
     async function importPreloadWithMock(electronBridge: unknown) {
