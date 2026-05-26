@@ -140,9 +140,7 @@
         "electron-app/windowStateUtils.ts",
         "electron-app/utils.ts",
         "electron-app/utils/**/*.ts",
-        "vite/client",
-        "electron-app/vitest.shared.config.ts",
-        "electron-app/tailwind.config.mjs"
+        "vite/client"
     ],
     "typeAcquisition": {
         "enable": true
