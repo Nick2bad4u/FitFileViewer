@@ -11,6 +11,7 @@ import {
 // Import the function to test
 const { setTabButtonsEnabled } =
     await import("../../../utils/ui/controls/enableTabButtons.js");
+const { getState } = await import("../../../utils/state/core/stateManager.js");
 
 describe("Enable Tab Buttons", () => {
     beforeEach(() => {
@@ -58,11 +59,14 @@ describe("Enable Tab Buttons", () => {
         it("should handle empty DOM gracefully", () => {
             cleanupDOM();
 
-            // Should not throw error
-            expect(() => {
-                setTabButtonsEnabled(false);
-                setTabButtonsEnabled(true);
-            }).not.toThrow();
+            setTabButtonsEnabled(false);
+            setTabButtonsEnabled(true);
+
+            expect(document.querySelector(".tab-button")).not.toBeInstanceOf(
+                HTMLButtonElement
+            );
+            expect(document.body.childElementCount).toBe(0);
+            expect(getState("ui.tabButtonsEnabled")).toBe(true);
         });
 
         it("should work with mixed button states", () => {
