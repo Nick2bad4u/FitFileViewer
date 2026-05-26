@@ -76,8 +76,7 @@ const LOW_COVERAGE_THRESHOLD = 90;
 
 // eslint-disable-next-line unicorn/prefer-import-meta-properties -- package.json still supports Node 16; import.meta.dirname requires newer Node.
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
-const packageRoot = scriptDirectory;
-const repositoryRoot = path.resolve(packageRoot, "..");
+const repositoryRoot = path.resolve(scriptDirectory, "..");
 
 /** @type {Record<string, Colorize>} */
 const ANSI_COLORS = {
@@ -246,8 +245,8 @@ async function findCoveragePath() {
             ? undefined
             : path.join(explicitCoverageDirectory, COVERAGE_FILE_NAME),
         path.join(os.tmpdir(), "ffv-vitest-coverage", COVERAGE_FILE_NAME),
-        path.join(packageRoot, "coverage", COVERAGE_FILE_NAME),
         path.join(repositoryRoot, "coverage", COVERAGE_FILE_NAME),
+        path.join(repositoryRoot, "electron-app", "coverage", COVERAGE_FILE_NAME),
     ].filter((candidatePath) => candidatePath !== undefined);
 
     const results = await Promise.all(
@@ -262,7 +261,7 @@ async function findCoveragePath() {
     }
 
     throw new Error(
-        "coverage-final.json not found. Checked VITEST_COVERAGE_DIR, OS temp ffv-vitest-coverage, electron-app/coverage, and project coverage."
+        "coverage-final.json not found. Checked VITEST_COVERAGE_DIR, OS temp ffv-vitest-coverage, root coverage, and electron-app/coverage."
     );
 }
 

@@ -47,6 +47,7 @@
         "clean-releases-tags": "powershell -ExecutionPolicy Bypass -File ./.github/Clean-Releases.ps1 -deleteTags",
         "cliff": "npm run changelog",
         "cliff-all": "npm run changelog:all",
+        "coverage:analyze": "node scripts/analyze-coverage.mjs",
         "docs:build": "npm --workspace docusaurus run build",
         "docs:start": "npm --workspace docusaurus start",
         "docs:typecheck": "npm --workspace docusaurus run typecheck",
