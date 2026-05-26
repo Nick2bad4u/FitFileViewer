@@ -61,10 +61,7 @@ cd FitFileViewer
 ### 2. Install Dependencies
 
 ```bash
-# Enter electron-app directory
-cd electron-app
-
-# Install all dependencies
+# Install all workspace dependencies
 npm install
 ```
 
@@ -113,7 +110,7 @@ FitFileViewer/
 npm start
 
 # Production mode (no DevTools)
-npm run start-prod
+npm run start:prod
 ```
 
 ### Testing
@@ -146,7 +143,7 @@ npm run lint:fix
 npm run build
 
 # Build for all platforms
-npm run build-all
+npm run build:all
 ```
 
 ## Configuration Files
