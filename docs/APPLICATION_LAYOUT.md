@@ -331,8 +331,7 @@ electron-app/
 │
 ├── tsconfig.json                     # TypeScript configuration
 ├── tsconfig.vitest-typecheck.json   # Vitest typecheck configuration
-├── vitest.config.ts                 # Vitest test configuration
-└── eslint.config.mjs                # ESLint configuration
+└── vitest.config.ts                 # Vitest test configuration
 ```
 
 ### Environment Configuration
