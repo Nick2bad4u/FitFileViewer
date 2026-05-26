@@ -73,7 +73,7 @@ describe("storage utilities", () => {
     });
 
     it("ignores write and remove failures", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const setItem = vi.fn<(key: string, value: string) => void>(() => {
             throw new Error("write denied");
@@ -82,12 +82,13 @@ describe("storage utilities", () => {
             throw new Error("remove denied");
         });
 
-        expect(() =>
+        expect(
             safeStorageSetItem("key", "value", () => ({ setItem }))
-        ).not.toThrow();
-        expect(() =>
+        ).toBeUndefined();
+        expect(
             safeStorageRemoveItem("key", () => ({ removeItem }))
-        ).not.toThrow();
+        ).toBeUndefined();
         expect(setItem).toHaveBeenCalledWith("key", "value");
+        expect(removeItem).toHaveBeenCalledWith("key");
     });
 });
