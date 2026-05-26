@@ -65,7 +65,11 @@ describe("data ant manufacturer ID lookup", () => {
         expect(Object.isFrozen(dataAntManufacturerIDs)).toBe(true);
         expect(entries.length).toBeGreaterThan(150);
         expect(entries.length).toBeLessThan(250);
-        expect(keys.slice(0, 3)).toEqual(["1", "2", "3"]);
+        expect(keys.slice(0, 3)).toEqual([
+            "1",
+            "2",
+            "3",
+        ]);
         expect(entries.at(0)).toEqual(["1", "garmin"]);
         expect(entries.at(-1)).toEqual(["5759", "actigraphcorp"]);
     });
@@ -91,7 +95,10 @@ describe("data ant manufacturer ID lookup", () => {
             knownManufacturerMappings.length
         );
 
-        for (const [manufacturerId, expectedName] of knownManufacturerMappings) {
+        for (const [
+            manufacturerId,
+            expectedName,
+        ] of knownManufacturerMappings) {
             expect(getManufacturer(manufacturerId)).toBe(expectedName);
         }
     });
@@ -100,9 +107,9 @@ describe("data ant manufacturer ID lookup", () => {
         expect.assertions(invalidLookupKeys.length * 2);
 
         for (const [, manufacturerId] of invalidLookupKeys) {
-            expect(Object.hasOwn(manufacturerLookup, String(manufacturerId))).toBe(
-                false
-            );
+            expect(
+                Object.hasOwn(manufacturerLookup, String(manufacturerId))
+            ).toBe(false);
             expect(getManufacturer(manufacturerId)).toBeUndefined();
         }
     });
