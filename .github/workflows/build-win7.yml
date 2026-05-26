@@ -62,7 +62,7 @@ jobs:
               uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
               with:
                   name: win7-dist-${{ github.run_id }}
-                  path: electron-app/dist/win7
+                  path: electron-app/release/win7
                   if-no-files-found: error
 
             - name: Get latest release tag
@@ -87,7 +87,7 @@ jobs:
               working-directory: electron-app
               run: |
                   $releaseTag = "${{ steps.get_release.outputs.result }}"
-                  $distDir = Join-Path (Get-Location) "dist" "win7"
+                  $distDir = Join-Path (Get-Location) "release" "win7"
                   if (-not (Test-Path $distDir)) {
                       throw "Win7 dist directory not found: $distDir"
                   }

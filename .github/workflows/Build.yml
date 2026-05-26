@@ -192,10 +192,6 @@ jobs:
                     # Exclude Windows with ia32 (if not supported, uncomment)
                     # - os: windows-latest
                     #   arch: ia32
-        defaults:
-            run:
-                working-directory: electron-app
-
         steps:
             - name: Harden the runner (Audit all outbound calls)
               uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
@@ -234,13 +230,6 @@ jobs:
               run: |
                   brew install rpm dpkg xz gnu-tar
 
-            - name: Install dmg-license workaround for Mac Builder
-              id: install_dmg_license
-              if: runner.os == 'macOS'
-              shell: bash
-              run: npm install --force --no-save --no-audit --no-fund dmg-license
-              working-directory: electron-app
-
             - name: Install Windows build dependencies (Chocolatey)
               id: install_windows_deps
               if: runner.os == 'Windows'
@@ -257,12 +246,11 @@ jobs:
               with:
                   path: |
                       ~\.npm
+                      node_modules
                       electron-app\node_modules
-                      ~\node_modules
-                      ~\electron-app
+                      docusaurus\node_modules
                       ~\.cache
-                      ~\icons
-                  key: ${{ runner.os }}-node-${{ hashFiles('electron-app/package-lock.json') }}
+                  key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
                   restore-keys: |
                       ${{ runner.os }}-node-
                   enableCrossOsArchive: true
@@ -273,17 +261,27 @@ jobs:
               if: runner.os != 'Windows'
               uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
               with:
-                  path: ~/.npm
-                  key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+                  path: |
+                      ~/.npm
+                      node_modules
+                      electron-app/node_modules
+                      docusaurus/node_modules
+                  key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
                   restore-keys: |
                       ${{ runner.os }}-node-
                   enableCrossOsArchive: true
               continue-on-error: true
 
-            - name: Install NPM dependencies (electron-app package.json)
+            - name: Install workspace dependencies
               id: install_dependencies
               shell: bash
-              run: npm install --force --no-audit --no-fund
+              run: npm ci --no-audit --no-fund
+
+            - name: Install dmg-license workaround for Mac Builder
+              id: install_dmg_license
+              if: runner.os == 'macOS'
+              shell: bash
+              run: npm install --workspace electron-app --force --no-save --no-audit --no-fund dmg-license
 
             # - name: Install electron-builder
             #   run: npm install -D electron-builder
@@ -295,6 +293,10 @@ jobs:
                   set -euo pipefail
                   npm run build:runtime-ts
 
+                  run_builder() {
+                    npm --workspace electron-app exec electron-builder -- "$@"
+                  }
+
                   retry_macos_build() {
                     local -r max_attempts="$1"
                     shift
@@ -305,9 +307,9 @@ jobs:
                     while true; do
                       echo "Running: $* (attempt ${attempt}/${max_attempts})"
 
-                      # When the flake hits, electron-builder may have partially written dist files.
-                      # Clean dist so retries start from a known-good state.
-                      rm -rf dist || true
+                      # When the flake hits, electron-builder may have partially written release files.
+                      # Clean release output so retries start from a known-good state.
+                      rm -rf electron-app/release || true
 
                       if "$@"; then
                         return 0
@@ -328,29 +330,29 @@ jobs:
 
                   if [[ "${{ runner.os }}" == "Windows" ]]; then
                     if [[ "${{ matrix.arch }}" == "x64" ]]; then
-                      npx electron-builder --win --publish never
+                      run_builder --win --publish never
                     else
-                      npx electron-builder --win --ia32 --publish never
+                      run_builder --win --ia32 --publish never
                     fi
                   elif [[ "${{ matrix.os }}" == "macos-15" ]]; then
                     # DMG creation is occasionally flaky on GitHub-hosted macOS runners.
-                    retry_macos_build 3 npx electron-builder --arm64 --publish never
+                    retry_macos_build 3 run_builder --arm64 --publish never
                   elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
-                    retry_macos_build 3 npx electron-builder --universal --publish never
+                    retry_macos_build 3 run_builder --universal --publish never
                   elif [[ "${{ matrix.os }}" == "macos-15-intel" ]]; then
-                    retry_macos_build 3 npx electron-builder --mac --${{ matrix.arch }} --publish never
+                    retry_macos_build 3 run_builder --mac --${{ matrix.arch }} --publish never
                   elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
                     if [[ "${{ matrix.arch }}" == "x64" ]]; then
-                      npx electron-builder --win --publish never
+                      run_builder --win --publish never
                     else
-                      npx electron-builder --win --ia32 --publish never
+                      run_builder --win --ia32 --publish never
                     fi
                   elif [[ "${{ matrix.os }}" == "ubuntu-24.04-arm" ]]; then
-                    npx electron-builder --linux --arm64 --publish never
+                    run_builder --linux --arm64 --publish never
                   elif [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
-                    npx electron-builder --linux --${{ matrix.arch }} --publish never
+                    run_builder --linux --${{ matrix.arch }} --publish never
                   else
-                    npx electron-builder --${{ matrix.arch }} --publish never
+                    run_builder --${{ matrix.arch }} --publish never
                   fi
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -366,7 +368,7 @@ jobs:
                   $patterns = @('*.exe','*.nupkg','*.dmg','*.AppImage','*.snap','*.zip','*.yml','*.blockmap','*.msi','*.deb','*.rpm','*.7z','*.pkg','*.mas','*.apk','*.p5p','*.pacman','*.freebsd','*.flatpak','*.tar.xz','*.tar.gz','*.tar.bz2')
                   $files = @()
                   foreach ($pattern in $patterns) {
-                    $files += Get-ChildItem -Path dist -Recurse -Include $pattern -ErrorAction SilentlyContinue
+                    $files += Get-ChildItem -Path electron-app/release -Recurse -Include $pattern -ErrorAction SilentlyContinue
                   }
                   foreach ($file in $files | Sort-Object FullName -Unique) {
                     $hash = Get-FileHash $file.FullName -Algorithm SHA512
@@ -380,7 +382,7 @@ jobs:
               if: runner.os == 'Linux'
               shell: bash
               run: |
-                  find dist -type f \( -name '*.exe' -o -name '*.7z' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.snap' -o -name '*.zip' -o -name '*.yml' -o -name '*.blockmap' -o -name '*.msi' -o -name '*.deb' -o -name '*.rpm' -o -name '*.pkg' -o -name '*.mas' -o -name '*.apk' -o -name '*.p5p' -o -name '*.pacman' -o -name '*.freebsd' -o -name '*.flatpak' -o -name '*.tar.xz' -o -name '*.tar.gz' -o -name '*.tar.bz2' \) | sort | while read -r file; do
+                  find electron-app/release -type f \( -name '*.exe' -o -name '*.7z' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.snap' -o -name '*.zip' -o -name '*.yml' -o -name '*.blockmap' -o -name '*.msi' -o -name '*.deb' -o -name '*.rpm' -o -name '*.pkg' -o -name '*.mas' -o -name '*.apk' -o -name '*.p5p' -o -name '*.pacman' -o -name '*.freebsd' -o -name '*.flatpak' -o -name '*.tar.xz' -o -name '*.tar.gz' -o -name '*.tar.bz2' \) | sort | while read -r file; do
                     hash=$(sha512sum "$file" | awk '{print $1}')
                     b64=$(echo "$hash" | xxd -r -p | base64)
                     echo "$file: $b64"
@@ -391,23 +393,23 @@ jobs:
               if: runner.os == 'macOS'
               shell: bash
               run: |
-                  find dist -type f \( -name '*.exe' -o -name '*.7z' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.snap' -o -name '*.zip' -o -name '*.yml' -o -name '*.blockmap' -o -name '*.msi' -o -name '*.deb' -o -name '*.rpm' -o -name '*.pkg' -o -name '*.mas' -o -name '*.apk' -o -name '*.p5p' -o -name '*.pacman' -o -name '*.freebsd' -o -name '*.flatpak' -o -name '*.tar.xz' -o -name '*.tar.gz' -o -name '*.tar.bz2' \) | sort | while read -r file; do
+                  find electron-app/release -type f \( -name '*.exe' -o -name '*.7z' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.snap' -o -name '*.zip' -o -name '*.yml' -o -name '*.blockmap' -o -name '*.msi' -o -name '*.deb' -o -name '*.rpm' -o -name '*.pkg' -o -name '*.mas' -o -name '*.apk' -o -name '*.p5p' -o -name '*.pacman' -o -name '*.freebsd' -o -name '*.flatpak' -o -name '*.tar.xz' -o -name '*.tar.gz' -o -name '*.tar.bz2' \) | sort | while read -r file; do
                     hash=$(shasum -a 512 "$file" | awk '{print $1}')
                     b64=$(echo "$hash" | xxd -r -p | base64)
                     echo "$file: $b64"
                   done
               continue-on-error: true
 
-            - name: Upload build dist files as artifact
+            - name: Upload build release files as artifact
               id: upload_artifact
               uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
               with:
                   name: dist-${{ matrix.os }}-${{ matrix.arch }}
                   path: |
-                      electron-app/dist/Fit-File-Viewer-*
-                      electron-app/dist/latest*.yml
-                      electron-app/dist/squirrel*/*
-                      electron-app/dist/nsis-web/*
+                      electron-app/release/Fit-File-Viewer-*
+                      electron-app/release/latest*.yml
+                      electron-app/release/squirrel*/*
+                      electron-app/release/nsis-web/*
                   include-hidden-files: true
 
             - name: Update Build Matrix Summary (per platform/arch)
