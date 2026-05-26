@@ -49,28 +49,28 @@ These packages are application libraries, not lint/test-only tooling. They live
 in the root workspace `devDependencies` because the packaged app ships their
 Vite-bundled renderer output, not the npm packages themselves.
 
-| Package                         | Current shipped asset path                                                    | Migration note                                                        |
-| ------------------------------- | ----------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| `arquero`                       | `dist/renderer/vendor-globals.js`                                             | Migrated from `vendor/` to the renderer compatibility bundle.         |
-| `chart.js`                      | `dist/renderer/vendor-globals.js`                                             | Migrated from `vendor/` to the renderer compatibility bundle.         |
-| `chartjs-adapter-date-fns`      | `dist/renderer/vendor-globals.js`                                             | Migrated from `vendor/` to the renderer compatibility bundle.         |
-| `chartjs-plugin-zoom`           | `dist/renderer/vendor-globals.js`                                             | Migrated from `vendor/` to the renderer compatibility bundle.         |
-| `datatables.net-dt`             | `dist/renderer/vendor-globals.js`, `dist/renderer/vendor-globals.css`         | Migrated from `vendor/`; provides the DataTables core dependency.     |
-| `date-fns`                      | bundled inside adapter asset today                                            | Keep as explicit renderer input when chart adapter is bundled.        |
-| `dompurify`                     | `dist/renderer/vendor-globals.js`                                             | Migrated from `vendor/` to the renderer compatibility bundle.         |
-| `hammerjs`                      | `dist/renderer/vendor-globals.js`                                             | Migrated from `vendor/` with the Chart.js zoom plugin.                |
-| `jszip`                         | `dist/renderer/vendor-globals.js`                                             | Migrated from `vendor/` to the renderer compatibility bundle.         |
-| `jquery`                        | `dist/renderer/vendor-globals.js`                                             | Migrated from `vendor/` with the DataTables stack.                    |
-| `leaflet`                       | `dist/renderer/vendor-globals.js`, `dist/renderer/vendor-globals.css`         | Migrated from `vendor/` to the renderer compatibility bundle.         |
-| `leaflet-draw`                  | `dist/renderer/vendor-globals.js`, `dist/renderer/vendor-globals.css`         | Migrated from `vendor/` to the renderer compatibility bundle.         |
-| `leaflet-measure`               | `dist/renderer/vendor-globals.css`                                            | CSS/assets are bundled; CSP-safe JavaScript remains curated source.   |
-| `leaflet-minimap`               | `dist/renderer/vendor-globals.js`, `dist/renderer/vendor-globals.css`         | Migrated from `vendor/` to the renderer compatibility bundle.         |
-| `leaflet.fullscreen`            | `dist/renderer/vendor-globals.js`, `dist/renderer/vendor-globals.css`         | Migrated from `vendor/` to the renderer compatibility bundle.         |
-| `leaflet.locatecontrol`         | `dist/renderer/vendor-globals.js`, `dist/renderer/vendor-globals.css`         | Migrated from `vendor/` to the renderer compatibility bundle.         |
-| `leaflet.markercluster`         | `dist/renderer/vendor-globals.js`, `dist/renderer/vendor-globals.css`         | Migrated from `vendor/` to the renderer compatibility bundle.         |
-| `maplibre-gl`                   | `dist/renderer/vendor-globals.js`, `dist/renderer/vendor-globals.css`         | Migrated from `vendor/` to the renderer compatibility bundle.         |
-| `@maplibre/maplibre-gl-leaflet` | `dist/renderer/vendor-globals.js`                                             | Migrated from `vendor/` to the renderer compatibility bundle.         |
-| `screenfull`                    | `dist/renderer/vendor-globals.js`                                             | Migrated from `vendor/` to the renderer compatibility bundle.         |
+| Package                         | Current shipped asset path                                            | Migration note                                                      |
+| ------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `arquero`                       | `dist/renderer/vendor-globals.js`                                     | Migrated from `vendor/` to the renderer compatibility bundle.       |
+| `chart.js`                      | `dist/renderer/vendor-globals.js`                                     | Migrated from `vendor/` to the renderer compatibility bundle.       |
+| `chartjs-adapter-date-fns`      | `dist/renderer/vendor-globals.js`                                     | Migrated from `vendor/` to the renderer compatibility bundle.       |
+| `chartjs-plugin-zoom`           | `dist/renderer/vendor-globals.js`                                     | Migrated from `vendor/` to the renderer compatibility bundle.       |
+| `datatables.net-dt`             | `dist/renderer/vendor-globals.js`, `dist/renderer/vendor-globals.css` | Migrated from `vendor/`; provides the DataTables core dependency.   |
+| `date-fns`                      | bundled inside adapter asset today                                    | Keep as explicit renderer input when chart adapter is bundled.      |
+| `dompurify`                     | `dist/renderer/vendor-globals.js`                                     | Migrated from `vendor/` to the renderer compatibility bundle.       |
+| `hammerjs`                      | `dist/renderer/vendor-globals.js`                                     | Migrated from `vendor/` with the Chart.js zoom plugin.              |
+| `jszip`                         | `dist/renderer/vendor-globals.js`                                     | Migrated from `vendor/` to the renderer compatibility bundle.       |
+| `jquery`                        | `dist/renderer/vendor-globals.js`                                     | Migrated from `vendor/` with the DataTables stack.                  |
+| `leaflet`                       | `dist/renderer/vendor-globals.js`, `dist/renderer/vendor-globals.css` | Migrated from `vendor/` to the renderer compatibility bundle.       |
+| `leaflet-draw`                  | `dist/renderer/vendor-globals.js`, `dist/renderer/vendor-globals.css` | Migrated from `vendor/` to the renderer compatibility bundle.       |
+| `leaflet-measure`               | `dist/renderer/vendor-globals.css`                                    | CSS/assets are bundled; CSP-safe JavaScript remains curated source. |
+| `leaflet-minimap`               | `dist/renderer/vendor-globals.js`, `dist/renderer/vendor-globals.css` | Migrated from `vendor/` to the renderer compatibility bundle.       |
+| `leaflet.fullscreen`            | `dist/renderer/vendor-globals.js`, `dist/renderer/vendor-globals.css` | Migrated from `vendor/` to the renderer compatibility bundle.       |
+| `leaflet.locatecontrol`         | `dist/renderer/vendor-globals.js`, `dist/renderer/vendor-globals.css` | Migrated from `vendor/` to the renderer compatibility bundle.       |
+| `leaflet.markercluster`         | `dist/renderer/vendor-globals.js`, `dist/renderer/vendor-globals.css` | Migrated from `vendor/` to the renderer compatibility bundle.       |
+| `maplibre-gl`                   | `dist/renderer/vendor-globals.js`, `dist/renderer/vendor-globals.css` | Migrated from `vendor/` to the renderer compatibility bundle.       |
+| `@maplibre/maplibre-gl-leaflet` | `dist/renderer/vendor-globals.js`                                     | Migrated from `vendor/` to the renderer compatibility bundle.       |
+| `screenfull`                    | `dist/renderer/vendor-globals.js`                                     | Migrated from `vendor/` to the renderer compatibility bundle.       |
 
 ## Tooling And Test Dependencies
 
@@ -83,7 +83,7 @@ and should stay in `devDependencies`.
 | TypeScript/build helpers | `esbuild`, `globals`                                                                                                                                                                                                         |
 | Lint/format/docs         | `eslint`, `eslint-config-nick2bad4u`, `prettier`, `prettier-config-nick2bad4u`, `remark`, `remark-cli`, `remark-config-nick2bad4u`, `secretlint`, `secretlint-config-nick2bad4u`, `stylelint`, `stylelint-config-nick2bad4u` |
 | Tests                    | `vitest`, `@vitest/coverage-v8`, `@playwright/test`, `fast-check`, `fast-xml-parser`, `jsdom`                                                                                                                                |
-| Types                    | `@types/hammerjs`, `@types/jquery`, `@types/jsdom`, `@types/leaflet`, `@types/leaflet-draw`, `@types/leaflet.markercluster`                                                                                                   |
+| Types                    | `@types/hammerjs`, `@types/jquery`, `@types/jsdom`, `@types/leaflet`, `@types/leaflet-draw`, `@types/leaflet.markercluster`                                                                                                  |
 | Release/changelog        | `git-cliff` is managed by the root workspace package.                                                                                                                                                                        |
 
 ## Vendored Asset Groups
@@ -118,7 +118,7 @@ Current `build:runtime-ts` flow:
 
 `prepare-runtime-dist.mjs` copies:
 
-- directories: `assets`, `ffv`, `icons`
+- directories: `ffv`, `icons`
 - files: `elevProfile.css`, `style.css`
 - `index.html` after checking that it does not reference `node_modules`
 
@@ -127,7 +127,6 @@ Current `build:runtime-ts` flow:
 `electron-app/package.json` currently allows these Electron Builder app files
 through `build.files`:
 
-- `assets/`
 - `dist/`
 - `elevProfile.css`
 - `icons/`

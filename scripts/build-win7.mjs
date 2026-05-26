@@ -12,7 +12,6 @@ const electronAppDir = path.join(repoRoot, "electron-app");
 const outputDir = path.join(electronAppDir, "release", "win7");
 const WIN7_ELECTRON_VERSION = "22.3.27";
 const appPackageFiles = [
-    "assets/**",
     "dist/**",
     "elevProfile.css",
     "icons/**",
@@ -22,14 +21,19 @@ const appPackageFiles = [
 ];
 
 function assertInsideElectronApp(targetPath) {
-    const relativePath = path.relative(electronAppDir, path.resolve(targetPath));
+    const relativePath = path.relative(
+        electronAppDir,
+        path.resolve(targetPath)
+    );
 
     if (
         relativePath === "" ||
         relativePath.startsWith("..") ||
         path.isAbsolute(relativePath)
     ) {
-        throw new Error(`Refusing to operate outside electron-app: ${targetPath}`);
+        throw new Error(
+            `Refusing to operate outside electron-app: ${targetPath}`
+        );
     }
 }
 
@@ -37,10 +41,18 @@ function runNpmScript(scriptName) {
     const npmExecPath = process.env.npm_execpath;
 
     if (npmExecPath) {
-        execFileSync(process.execPath, [npmExecPath, "run", scriptName], {
-            cwd: repoRoot,
-            stdio: "inherit",
-        });
+        execFileSync(
+            process.execPath,
+            [
+                npmExecPath,
+                "run",
+                scriptName,
+            ],
+            {
+                cwd: repoRoot,
+                stdio: "inherit",
+            }
+        );
         return;
     }
 
