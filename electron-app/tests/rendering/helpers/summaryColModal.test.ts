@@ -58,7 +58,7 @@ function getCheckboxByLabelText(text: string): HTMLInputElement {
 
 describe("summaryColModal", () => {
     it("updates file and global column preferences from modal controls", () => {
-        expect.assertions(13);
+        expect.assertions(14);
 
         resetSummaryModalFixture();
 
@@ -142,11 +142,14 @@ describe("summaryColModal", () => {
             getButtonByText("Close").click();
 
             expect([...document.body.children]).not.toContain(overlay);
-            expect(() =>
+            expect(
                 overlay.dispatchEvent(
                     new KeyboardEvent("keydown", { key: "Escape" })
                 )
-            ).not.toThrow();
+            ).toBe(true);
+            expect(
+                document.querySelector(".summary-col-modal-overlay")
+            ).toBeNull();
         } finally {
             resetSummaryModalFixture();
         }
