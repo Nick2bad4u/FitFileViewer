@@ -11,17 +11,26 @@
         }
     ],
     "main": "package.json",
+    "workspaces": [
+        "electron-app",
+        "docusaurus"
+    ],
     "scripts": {
+        "build": "npm --workspace electron-app run build",
         "lint": "npm run lint:root && npm run lint:electron-app && npm run lint:docusaurus",
-        "lint:docusaurus": "cd docusaurus && npm run lint",
-        "lint:docusaurus:content": "cd docusaurus && npm run lint:content",
-        "lint:docusaurus:fix": "cd docusaurus && npm run lint:fix",
-        "lint:electron-app": "cd electron-app && npm run lint",
-        "lint:electron-app:fix": "cd electron-app && npm run lint:fix",
+        "lint:docusaurus": "npm --workspace docusaurus run lint",
+        "lint:docusaurus:content": "npm --workspace docusaurus run lint:content",
+        "lint:docusaurus:fix": "npm --workspace docusaurus run lint:fix",
+        "lint:electron-app": "npm --workspace electron-app run lint",
+        "lint:electron-app:fix": "npm --workspace electron-app run lint:fix",
         "lint:fix": "npm run lint:root:fix && npm run lint:electron-app:fix && npm run lint:docusaurus:fix",
         "lint:root": "npx eslint --cache --cache-strategy content --cache-location electron-app/.cache/.eslintcache-root . --ignore-pattern \"electron-app/**\" --ignore-pattern \"docusaurus/**\"",
         "lint:root:check": "npx eslint --cache --cache-strategy content --cache-location electron-app/.cache/.eslintcache-root . --ignore-pattern \"electron-app/**\" --ignore-pattern \"docusaurus/**\"",
-        "lint:root:fix": "npx eslint --cache --cache-strategy content --cache-location electron-app/.cache/.eslintcache-root --fix . --ignore-pattern \"electron-app/**\" --ignore-pattern \"docusaurus/**\""
+        "lint:root:fix": "npx eslint --cache --cache-strategy content --cache-location electron-app/.cache/.eslintcache-root --fix . --ignore-pattern \"electron-app/**\" --ignore-pattern \"docusaurus/**\"",
+        "package": "npm --workspace electron-app run package",
+        "start": "npm --workspace electron-app start",
+        "test": "npm --workspace electron-app test",
+        "typecheck": "npm --workspace electron-app run typecheck"
     },
     "devDependencies": {
         "eslint-config-nick2bad4u": "^1.1.0",
@@ -36,7 +45,7 @@
         "stylelint": "^17.11.1",
         "stylelint-config-nick2bad4u": "^1.0.12"
     },
-    "packageManager": "npm@11.14.1",
+    "packageManager": "npm@11.15.0",
     "engines": {
         "node": ">=16.0.0",
         "npm": ">=7.0.0"

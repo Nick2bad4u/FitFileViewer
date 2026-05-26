@@ -110,6 +110,17 @@ const config = [
     {
         files: ["package.json"],
         rules: {
+            "node-dependencies/absolute-version": [
+                "error",
+                {
+                    devDependencies: "never",
+                    overridePackages: {
+                        electron: {
+                            devDependencies: "ignore",
+                        },
+                    },
+                },
+            ],
             "package-json/require-peerDependencies": "off",
         },
     },
