@@ -6,15 +6,15 @@ FitFileViewer is centered on `electron-app/`, the Electron desktop app for openi
 
 ## Build, Test, and Development Commands
 
-- `npm install`: install root tooling.
-- `cd electron-app && npm install`: install app dependencies.
+- `npm install`: install root workspace, Electron app, and Docusaurus dependencies.
 - `npm run lint`: run root, Electron, and Docusaurus lint workflows.
-- `cd electron-app && npm start`: build runtime TypeScript, then launch Electron.
-- `cd electron-app && npm run typecheck`: run the app TypeScript check.
-- `cd electron-app && npm test`: run the Vitest suite.
-- `cd electron-app && npm run package`: run runtime TypeScript build and create an unpacked Electron package.
-- `cd docusaurus && npm start`: run the docs site locally.
-- `cd docusaurus && npm run build`: generate API docs and build the static site.
+- `npm start`: build runtime TypeScript, then launch Electron.
+- `npm run typecheck`: run the app TypeScript check.
+- `npm test`: run the Vitest suite.
+- `npm run test:playwright`: run the Electron Playwright smoke test.
+- `npm run package`: run runtime TypeScript build and create an unpacked Electron package.
+- `npm run docs:start`: run the docs site locally.
+- `npm run docs:build`: generate API docs and build the static site.
 
 ## Coding Style & Naming Conventions
 
