@@ -79,7 +79,7 @@ describe("setupBlockedRequests", () => {
         const { electronAccess, setupBlockedRequests } = loadModules();
         electronAccess.setElectronOverride({});
 
-        expect(() => setupBlockedRequests()).not.toThrow();
+        expect(setupBlockedRequests()).toBeUndefined();
     });
 
     it("registers a request guard that cancels only blocked hostnames", () => {

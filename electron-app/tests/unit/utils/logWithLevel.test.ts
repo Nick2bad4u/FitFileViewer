@@ -134,7 +134,7 @@ describe("logWithLevel", () => {
             throw new Error("console.warn failed");
         });
 
-        expect(() => logWithLevel("warn", "Fallback path")).not.toThrow();
+        expect(logWithLevel("warn", "Fallback path")).toBeUndefined();
         expect(logSpy).toHaveBeenCalledWith(
             "[FFV][logWithLevel] Logging failure"
         );
