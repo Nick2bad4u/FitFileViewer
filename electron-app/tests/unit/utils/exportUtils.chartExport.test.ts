@@ -290,7 +290,7 @@ function setupDomHarness(): {
     };
 }
 
-describe("exportUtils.js - Basic Test Coverage", () => {
+describe("exportUtils chart export helpers", () => {
     /* eslint-disable vitest/prefer-to-be, vitest/prefer-to-be-falsy, vitest/prefer-to-be-truthy -- test-signal requires exact boolean assertions. */
     describe("isValidChart function", () => {
         it("returns false for null chart", () => {
