@@ -17,6 +17,8 @@
     ],
     "scripts": {
         "build": "npm --workspace electron-app run build",
+        "changelog": "powershell -ExecutionPolicy Bypass -File ./.github/Update-ChangeLogs.ps1",
+        "changelog:all": "powershell -ExecutionPolicy Bypass -File ./.github/Update-ChangeLogs.ps1",
         "lint": "npm run lint:root && npm run lint:electron-app && npm run lint:docusaurus",
         "lint:docusaurus": "npm --workspace docusaurus run lint",
         "lint:docusaurus:content": "npm --workspace docusaurus run lint:content",
@@ -34,6 +36,7 @@
     },
     "devDependencies": {
         "eslint-config-nick2bad4u": "^1.1.0",
+        "git-cliff": "^2.13.1",
         "prettier": "^3.8.3",
         "prettier-config-nick2bad4u": "^1.0.13",
         "remark": "^15.0.1",

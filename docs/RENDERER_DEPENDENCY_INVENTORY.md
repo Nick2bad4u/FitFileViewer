@@ -55,8 +55,7 @@ output, not the npm packages themselves.
 | `chart.js`                      | `dist/renderer/vendor-globals.js`                                             | Migrated from `vendor/` to the renderer compatibility bundle.         |
 | `chartjs-adapter-date-fns`      | `dist/renderer/vendor-globals.js`                                             | Migrated from `vendor/` to the renderer compatibility bundle.         |
 | `chartjs-plugin-zoom`           | `dist/renderer/vendor-globals.js`                                             | Migrated from `vendor/` to the renderer compatibility bundle.         |
-| `datatables.net`                | `dist/renderer/vendor-globals.js`                                             | Migrated from `vendor/` to the renderer compatibility bundle.         |
-| `datatables.net-dt`             | `dist/renderer/vendor-globals.js`, `dist/renderer/vendor-globals.css`         | Migrated from `vendor/` to the renderer compatibility bundle.         |
+| `datatables.net-dt`             | `dist/renderer/vendor-globals.js`, `dist/renderer/vendor-globals.css`         | Migrated from `vendor/`; provides the DataTables core dependency.     |
 | `date-fns`                      | bundled inside adapter asset today                                            | Keep as explicit renderer input when chart adapter is bundled.        |
 | `dompurify`                     | `dist/renderer/vendor-globals.js`                                             | Migrated from `vendor/` to the renderer compatibility bundle.         |
 | `hammerjs`                      | `dist/renderer/vendor-globals.js`                                             | Migrated from `vendor/` with the Chart.js zoom plugin.                |
@@ -85,8 +84,7 @@ and should stay in `devDependencies`.
 | Lint/format/docs         | `eslint`, `eslint-config-nick2bad4u`, `prettier`, `prettier-config-nick2bad4u`, `remark`, `remark-cli`, `remark-config-nick2bad4u`, `secretlint`, `secretlint-config-nick2bad4u`, `stylelint`, `stylelint-config-nick2bad4u` |
 | Tests                    | `vitest`, `@vitest/coverage-v8`, `@playwright/test`, `fast-check`, `fast-xml-parser`, `jsdom`                                                                                                                                |
 | Types                    | `@types/hammerjs`, `@types/jquery`, `@types/jsdom`, `@types/leaflet`, `@types/leaflet-draw`, `@types/leaflet.markercluster`                                                                                                   |
-| Release/changelog        | `git-cliff`                                                                                                                                                                                                                  |
-| Browser package helper   | `@kurkle/color`                                                                                                                                                                                                              |
+| Release/changelog        | `git-cliff` is managed by the root workspace package.                                                                                                                                                                        |
 
 ## Vendored Asset Groups
 

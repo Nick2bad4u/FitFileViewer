@@ -175,8 +175,8 @@
         "build:runtime-ts": "node ./scripts/clean-runtime-dist.mjs && tsc --project .\\tsconfig.runtime.json && node ./scripts/bundle-preload.mjs && npm run build:renderer && node ./scripts/format-runtime-output.mjs && node ./scripts/prepare-runtime-dist.mjs",
         "build:win7": "node ./scripts/build-win7.mjs",
         "build-all": "electron-builder -mwl",
-        "changelog": "powershell -ExecutionPolicy Bypass -File .\\Update-ChangeLogs.ps1",
-        "changelog:all": "powershell -ExecutionPolicy Bypass -File .\\Update-ChangeLogs.ps1",
+        "changelog": "npm --workspace-root run changelog",
+        "changelog:all": "npm --workspace-root run changelog:all",
         "clean-releases": "powershell -ExecutionPolicy Bypass -File ../.github/Clean-Releases.ps1",
         "clean-releases:1": "powershell -ExecutionPolicy Bypass -File ../.github/Clean-Releases.ps1 -deleteTags -keepLast 1",
         "clean-releases:10": "powershell -ExecutionPolicy Bypass -File ../.github/Clean-Releases.ps1 -deleteTags -keepLast 10",
@@ -232,9 +232,9 @@
         "tests:convert-to-ts": "node ./scripts/convert-tests-to-ts.mjs",
         "typecheck": "tsc --project .\\tsconfig.json --noEmit",
         "types:build": "tsc --project .\\tsconfig.json --declaration --emitDeclarationOnly --declarationMap false --outDir ./types",
-        "update-changelog": "powershell -ExecutionPolicy Bypass -File .\\Update-ChangeLogs.ps1",
-        "update-changelog:all": "powershell -ExecutionPolicy Bypass -File .\\Update-ChangeLogs.ps1",
-        "update-changelog:latest": "powershell -ExecutionPolicy Bypass -File .\\Update-ChangeLogs.ps1",
+        "update-changelog": "npm --workspace-root run changelog",
+        "update-changelog:all": "npm --workspace-root run changelog:all",
+        "update-changelog:latest": "npm --workspace-root run changelog",
         "update-deps": "npx ncu -i --install never && npm install --force && cd ../docusaurus && npx ncu -i --install never && npm install --force && cd ../electron-app"
     },
     "overrides": {
@@ -248,7 +248,6 @@
         "zod": "^4.4.3"
     },
     "devDependencies": {
-        "@kurkle/color": "^0.4.0",
         "@maplibre/maplibre-gl-leaflet": "^0.1.3",
         "@playwright/test": "^1.60.0",
         "@types/hammerjs": "^2.0.46",
@@ -263,7 +262,6 @@
         "chartjs-adapter-date-fns": "^3.0.0",
         "chartjs-plugin-zoom": "^2.2.0",
         "cross-env": "^10.1.0",
-        "datatables.net": "^2.3.8",
         "datatables.net-dt": "^2.3.8",
         "date-fns": "^4.3.0",
         "dompurify": "^3.4.5",
@@ -275,7 +273,6 @@
         "eslint-config-nick2bad4u": "^1.1.0",
         "fast-check": "^4.8.0",
         "fast-xml-parser": "^5.8.0",
-        "git-cliff": "^2.13.1",
         "globals": "^17.6.0",
         "hammerjs": "^2.0.8",
         "jquery": "^4.0.0",
