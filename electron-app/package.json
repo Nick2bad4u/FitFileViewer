@@ -162,8 +162,8 @@
     "scripts": {
         "start": "npm --prefix .. run start",
         "start-prod": "npm --prefix .. run start:prod",
-        "typecheck": "tsc --project .\\tsconfig.json --noEmit",
-        "types:build": "tsc --project .\\tsconfig.json --declaration --emitDeclarationOnly --declarationMap false --outDir ./types"
+        "typecheck": "npm --prefix .. run typecheck",
+        "types:build": "npm --prefix .. run types:build"
     },
     "overrides": {
         "jsonc-eslint-parser": "$jsonc-eslint-parser"
