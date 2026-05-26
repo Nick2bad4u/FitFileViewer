@@ -54,12 +54,12 @@
         "connectionId": "nick2bad4u",
         "projectKey": "Nick2bad4u_FitFileViewer"
     },
-    "stylelint.configFile": "C:\\Users\\Nick\\Dropbox\\PC (2)\\Documents\\GitHub\\FitFileViewer\\stylelint.config.js",
+    "stylelint.configFile": "${workspaceFolder}/stylelint.config.mjs",
     "stylelint.reportDescriptionlessDisables": true,
     "stylelint.reportInvalidScopeDisables": true,
     "stylelint.reportNeedlessDisables": true,
     "typescript.preferences.includePackageJsonAutoImports": "on",
     "typescript.suggest.autoImports": true,
     "typescript.tsc.autoDetect": "off",
-    "vitest.rootConfig": "C:\\Users\\Nick\\Dropbox\\PC (2)\\Documents\\GitHub\\FitFileViewer\\electron-app\\vitest.config.js"
+    "vitest.rootConfig": "${workspaceFolder}/vitest.config.ts"
 }
