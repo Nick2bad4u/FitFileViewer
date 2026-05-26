@@ -95,6 +95,7 @@
         "update-deps": "npx npm-check-updates -i --workspaces --root --install never && npm install"
     },
     "devDependencies": {
+        "eslint": "^10.4.0",
         "eslint-config-nick2bad4u": "^1.1.0",
         "eslint-plugin-depend": "^1.5.0",
         "git-cliff": "^2.13.1",
