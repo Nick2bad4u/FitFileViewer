@@ -11,19 +11,18 @@ modules:
     - build-commands:
           - cp -r ./node_modules /app/
           - install -Dm755 ./node_modules/electron/dist/electron /app/bin/electron
-          - cp -r ./dist /app/
-          - install -Dm644 ./package.json /app/package.json
-          - install -Dm644 ./index.html /app/index.html
-          - install -Dm644 ./style.css /app/style.css
-          - install -Dm644 ./elevProfile.css /app/elevProfile.css
-          - install -Dm644 ./favicon.ico /app/favicon.ico
-          - cp -r ./assets /app/
-          - cp -r ./ffv /app/
-          - cp -r ./icons /app/
+          - cp -r ./electron-app/dist /app/
+          - install -Dm644 ./electron-app/package.json /app/package.json
+          - install -Dm644 ./electron-app/index.html /app/index.html
+          - install -Dm644 ./electron-app/style.css /app/style.css
+          - install -Dm644 ./electron-app/elevProfile.css /app/elevProfile.css
+          - install -Dm644 ./electron-app/favicon.ico /app/favicon.ico
+          - cp -r ./electron-app/ffv /app/
+          - cp -r ./electron-app/icons /app/
       buildsystem: simple
       name: app
       sources:
-          - path: .
+          - path: ..
             type: dir
 runtime: org.freedesktop.Platform
 runtime-version: "23.08"

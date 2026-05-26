@@ -28,7 +28,6 @@ jobs:
         defaults:
             run:
                 shell: bash
-                working-directory: electron-app
         outputs:
             new_version: ${{ steps.bump.outputs.new_version }}
             bump_sha: ${{ steps.commit_version.outputs.bump_sha }}
@@ -54,31 +53,24 @@ jobs:
 
             - name: Install workspace dependencies
               run: npm ci --no-audit --no-fund
-              working-directory: .
 
             - name: Run repository lint gates
               run: npm run lint
-              working-directory: .
 
             - name: Run Electron runtime TypeScript build
               run: npm run build:runtime-ts
-              working-directory: .
 
             - name: Run Electron test suite
               run: npm test
-              working-directory: .
 
             - name: Run Electron Playwright smoke test
               run: xvfb-run -a npm run test:playwright
-              working-directory: .
 
             - name: Run Docusaurus typecheck
               run: npm run docs:typecheck
-              working-directory: .
 
             - name: Build Docusaurus site
               run: npm run docs:build
-              working-directory: .
 
             - name: Show git diff for electron-app (debug)
               id: git_diff
@@ -93,15 +85,16 @@ jobs:
             - name: Bump package.json version number
               id: bump
               run: |
-                  if [ ! -f package.json ]; then
-                    echo "Error: package.json not found" >&2
+                  app_package="electron-app/package.json"
+                  if [ ! -f "$app_package" ]; then
+                    echo "Error: $app_package not found" >&2
                     exit 1
                   fi
-                  if ! jq empty package.json >/dev/null 2>&1; then
-                    echo "Error: package.json is not valid JSON" >&2
+                  if ! jq empty "$app_package" >/dev/null 2>&1; then
+                    echo "Error: $app_package is not valid JSON" >&2
                     exit 1
                   fi
-                  VERSION=$(jq -r .version package.json)
+                  VERSION=$(jq -r .version "$app_package")
                   MAJOR=$(echo "$VERSION" | cut -d. -f1)
                   MINOR=$(echo "$VERSION" | cut -d. -f2)
                   if [ "$MINOR" -lt 9 ]; then
@@ -109,8 +102,8 @@ jobs:
                   else
                     NEW_VERSION="$((MAJOR + 1)).0.0"
                   fi
-                  # Update both package.json and package-lock.json without running lifecycle scripts.
-                  npm version --no-git-tag-version --ignore-scripts "$NEW_VERSION"
+                  # Update the Electron workspace package and the root lockfile without running lifecycle scripts.
+                  npm version --workspace electron-app --no-git-tag-version --ignore-scripts "$NEW_VERSION"
                   echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
 
             - name: Commit and push version bump to repo
@@ -125,7 +118,7 @@ jobs:
                   git config user.name "github-actions[bot]"
                   git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-                  git add package.json package-lock.json
+                  git add electron-app/package.json package-lock.json
                   git commit -m "chore(release): v${{ steps.bump.outputs.new_version }} [skip ci]"
                   git push origin "HEAD:${target_branch}"
 

@@ -84,10 +84,9 @@ jobs:
             - name: Prepare Win7 artifact for release
               if: github.event_name == 'workflow_run'
               id: prepare_release
-              working-directory: electron-app
               run: |
                   $releaseTag = "${{ steps.get_release.outputs.result }}"
-                  $distDir = Join-Path (Get-Location) "release" "win7"
+                  $distDir = [System.IO.Path]::Combine((Get-Location).Path, "electron-app", "release", "win7")
                   if (-not (Test-Path $distDir)) {
                       throw "Win7 dist directory not found: $distDir"
                   }
@@ -116,6 +115,5 @@ jobs:
                   RELEASE_TAG: ${{ steps.get_release.outputs.result }}
                   RELEASE_EXE: ${{ steps.prepare_release.outputs.exe_path }}
                   RELEASE_ZIP: ${{ steps.prepare_release.outputs.zip_path }}
-              working-directory: electron-app
               run: |
                   gh release upload "$env:RELEASE_TAG" "$env:RELEASE_EXE" "$env:RELEASE_ZIP" --clobber

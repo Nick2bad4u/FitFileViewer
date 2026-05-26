@@ -69,29 +69,8 @@ jobs:
             - name: Install dependencies
               run: npm ci --no-audit --no-fund
 
-            - name: Build Electron runtime assets
-              run: npm run build:runtime-ts
-
             - name: Build Flatpak
-              working-directory: electron-app
-              run: |
-                  ls -l
-                  ls -l dist
-                  rm -rf flatpak-repo
-                  flatpak-builder --repo=flatpak-repo --force-clean build-dir flatpak-build.yml
-                  ls -l
-                  ls -l flatpak-repo
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  CI: true
-                  DEBUG: "@malept/flatpak-bundler"
-
-            - name: Create FlatPak bundle
-              working-directory: electron-app
-              run: |
-                  ls -l
-                  ls -l flatpak-repo
-                  flatpak build-bundle flatpak-repo FitFileViewer.flatpak com.nick2bad4u.fitfileviewer
+              run: npm run build:flatpak
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   CI: true
@@ -105,10 +84,7 @@ jobs:
                   path: electron-app/FitFileViewer.flatpak
 
             - name: Zip Flatpak bundle
-              working-directory: electron-app
-              run: |
-                  ls -l
-                  zip FitFileViewer.flatpak.zip FitFileViewer.flatpak
+              run: zip -j electron-app/FitFileViewer.flatpak.zip electron-app/FitFileViewer.flatpak
 
             - name: Get latest release tag
               id: get_release
@@ -126,10 +102,9 @@ jobs:
                   result-encoding: string
 
             - name: Rename Flatpak and zip with version
-              working-directory: electron-app
               run: |
-                  mv FitFileViewer.flatpak FitFileViewer-${{ steps.get_release.outputs.result }}.flatpak
-                  mv FitFileViewer.flatpak.zip FitFileViewer-${{ steps.get_release.outputs.result }}.flatpak.zip
+                  mv electron-app/FitFileViewer.flatpak electron-app/FitFileViewer-${{ steps.get_release.outputs.result }}.flatpak
+                  mv electron-app/FitFileViewer.flatpak.zip electron-app/FitFileViewer-${{ steps.get_release.outputs.result }}.flatpak.zip
 
             - name: Upload .flatpak and .zip to latest release
               env:

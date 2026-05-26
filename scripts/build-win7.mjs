@@ -2,7 +2,7 @@ import { Arch, build, Platform } from "electron-builder";
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 
@@ -38,13 +38,13 @@ function assertInsideElectronApp(targetPath) {
 }
 
 function runNpmScript(scriptName) {
-    const npmExecPath = process.env.npm_execpath;
+    const npmCliPath = resolveNpmCliPath();
 
-    if (npmExecPath) {
+    if (npmCliPath) {
         execFileSync(
             process.execPath,
             [
-                npmExecPath,
+                npmCliPath,
                 "run",
                 scriptName,
             ],
@@ -62,8 +62,29 @@ function runNpmScript(scriptName) {
         {
             cwd: repoRoot,
             stdio: "inherit",
+            shell: process.platform === "win32",
         }
     );
+}
+
+function resolveNpmCliPath() {
+    const npmExecPath = process.env.npm_execpath;
+    if (npmExecPath) {
+        return npmExecPath;
+    }
+
+    const nodeBinDir = path.dirname(process.execPath);
+    const candidate = path.join(
+        nodeBinDir,
+        "node_modules",
+        "npm",
+        "bin",
+        "npm-cli.js"
+    );
+
+    if (fs.existsSync(candidate)) {
+        return candidate;
+    }
 }
 
 async function run() {
@@ -74,6 +95,7 @@ async function run() {
         runNpmScript("build:runtime-ts");
 
         await build({
+            projectDir: electronAppDir,
             targets: Platform.WINDOWS.createTarget(["portable"], Arch.ia32),
             config: {
                 electronVersion: WIN7_ELECTRON_VERSION,
@@ -106,4 +128,6 @@ async function run() {
     }
 }
 
-run();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+    run();
+}
