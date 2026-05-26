@@ -31,7 +31,7 @@ npm start
 # Production build (with TypeDoc API docs)
 npm run build
 
-# Local build (uses absolute paths in typedoc.local.json)
+# Local build alias
 npm run build:local
 
 # Just generate TypeDoc docs
@@ -64,8 +64,7 @@ docusaurus/
 │   └── img/              # Images, favicon, logo
 ├── docusaurus.config.ts  # Site configuration
 ├── sidebars.ts           # Sidebar navigation
-├── typedoc.json          # TypeDoc config (relative paths)
-├── typedoc.local.json    # TypeDoc config (absolute paths for local dev)
+├── typedoc.json          # Shared TypeDoc config
 └── package.json          # Dependencies and scripts
 ```
 

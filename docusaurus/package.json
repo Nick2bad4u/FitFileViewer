@@ -5,11 +5,11 @@
     "description": "Documentation website for FitFileViewer - Cross-platform .fit file viewer and analyzer",
     "scripts": {
         "build": "npm run docs:typedoc && docusaurus build",
-        "build:local": "npm run docs:typedoc:local && docusaurus build",
+        "build:local": "npm run build",
         "clear": "docusaurus clear",
         "deploy": "docusaurus deploy",
         "docs:typedoc": "typedoc --options typedoc.json && node scripts/generate-api-categories.mjs",
-        "docs:typedoc:local": "typedoc --options typedoc.local.json && node scripts/generate-api-categories.mjs",
+        "docs:typedoc:local": "npm run docs:typedoc",
         "docusaurus": "docusaurus",
         "lint": "npm run lint:code && npm run lint:content",
         "lint:code": "cd .. && eslint --config ./eslint.config.mjs --cache --cache-strategy content --cache-location .cache/.eslintcache-docusaurus docusaurus/**/*.{js,jsx,ts,tsx}",

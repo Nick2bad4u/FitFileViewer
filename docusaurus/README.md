@@ -32,10 +32,10 @@ This command:
 1. Runs `npm run docs:typedoc` to generate API docs from JSDoc comments
 2. Runs `docusaurus build` to build the complete site
 
-### Local Build (with absolute paths)
+### Local Build
 
 ```bash
-# Use local TypeDoc config with absolute paths
+# Alias for the production docs build
 npm run build:local
 ```
 
@@ -56,7 +56,7 @@ TypeDoc automatically generates API documentation from JSDoc comments in the `el
 # Generate API docs only
 npm run docs:typedoc
 
-# Or with local config (absolute paths)
+# Local alias for the same TypeDoc config
 npm run docs:typedoc:local
 ```
 
@@ -73,10 +73,9 @@ TypeDoc processes:
 
 ### Configuration
 
-- **typedoc.json** - Relative paths (for CI/CD)
-- **typedoc.local.json** - Absolute paths (for local development)
+- **typedoc.json** - Shared TypeDoc config for CI and local builds
 
-Both configs:
+This config:
 
 - Use `tsconfig.electron-app.json` for type context
 - Exclude tests, build outputs, and generated types
