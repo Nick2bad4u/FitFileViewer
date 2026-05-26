@@ -69,13 +69,35 @@ function resolveDistRuntimeRequest(request, parentFilename) {
         : [`${requestedPath}.js`];
 
     for (const sourceCandidate of sourceCandidates) {
-        const relativeSourcePath = path.relative(electronAppRoot, sourceCandidate);
+        const relativeSourcePath = path.relative(
+            electronAppRoot,
+            sourceCandidate
+        );
         if (
             path.isAbsolute(relativeSourcePath) ||
-            !isGeneratedRuntimePath(relativeSourcePath) ||
-            fs.existsSync(sourceCandidate)
+            !isGeneratedRuntimePath(relativeSourcePath)
         ) {
             continue;
+        }
+
+        if (fs.existsSync(sourceCandidate)) {
+            return sourceCandidate;
+        }
+
+        const sourceExtension = path.extname(sourceCandidate);
+        const sourceWithoutExtension = sourceExtension
+            ? sourceCandidate.slice(0, -sourceExtension.length)
+            : sourceCandidate;
+        for (const extension of [
+            ".ts",
+            ".tsx",
+            ".mts",
+            ".cts",
+        ]) {
+            const sourceTypeScriptCandidate = `${sourceWithoutExtension}${extension}`;
+            if (fs.existsSync(sourceTypeScriptCandidate)) {
+                return sourceTypeScriptCandidate;
+            }
         }
 
         const distCandidate = path.join(electronAppDist, relativeSourcePath);
@@ -100,7 +122,13 @@ if (!globalThis.__fitFileViewerVitestDistResolverInstalled) {
         if (distRuntimeFile) {
             return distRuntimeFile;
         }
-        return originalResolveFilename.call(this, request, parent, isMain, options);
+        return originalResolveFilename.call(
+            this,
+            request,
+            parent,
+            isMain,
+            options
+        );
     };
     globalThis.__fitFileViewerVitestDistResolverInstalled = true;
 }
@@ -373,10 +401,7 @@ function cleanupWindowGlobals(win) {
     }
     // Clear storage to avoid unit selection bleed (seconds/minutes/hours) between tests
     try {
-        if (
-            win.localStorage &&
-            typeof win.localStorage.clear === "function"
-        ) {
+        if (win.localStorage && typeof win.localStorage.clear === "function") {
             win.localStorage.clear();
         }
     } catch {
