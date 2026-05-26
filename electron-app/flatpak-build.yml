@@ -20,7 +20,6 @@ modules:
           - cp -r ./assets /app/
           - cp -r ./ffv /app/
           - cp -r ./icons /app/
-          - cp -r ./vendor /app/
       buildsystem: simple
       name: app
       sources:
