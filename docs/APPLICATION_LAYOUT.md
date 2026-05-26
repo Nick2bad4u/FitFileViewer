@@ -326,6 +326,7 @@ electron-app/utils/
 ├── playwright.config.ts             # Root-owned Electron Playwright configuration
 ├── vitest.config.ts                 # Root-owned Vitest configuration for electron-app tests
 ├── tsconfig.vitest-typecheck.json   # Root-owned Vitest typecheck configuration
+├── tsconfig.electron-app.eslint.json # Root-owned ESLint parser project for electron-app
 └── electron-app/
     ├── package.json                 # Electron app metadata and packaging configuration
     │   ├── Electron Builder configuration

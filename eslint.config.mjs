@@ -45,7 +45,7 @@ const config = [
         files: ["**/*.{cjs,js,mjs,ts,tsx}"],
         languageOptions: {
             parserOptions: {
-                project: ["./electron-app/tsconfig.eslint.json"],
+                project: ["./tsconfig.electron-app.eslint.json"],
             },
         },
     },

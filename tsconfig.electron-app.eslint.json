@@ -8,7 +8,7 @@
         "isolatedDeclarations": false,
         "noCheck": false,
         "noEmit": true,
-        "tsBuildInfoFile": "./.cache/tsbuildinfo/tsconfig.eslint.tsbuildinfo"
+        "tsBuildInfoFile": "./.cache/tsbuildinfo/tsconfig.electron-app.eslint.tsbuildinfo"
     },
     "exclude": [
         "**/_nuxt/**",
@@ -64,17 +64,18 @@
         "**/temp/**",
         "**/tmp/**",
         ".cache/**",
+        "electron-app/.cache/**",
         ".vercel/**",
         "docs/docusaurus/.docusaurus/**",
         "docs/docusaurus/build/**",
         "docs/docusaurus/node_modules/**",
         "docs/docusaurus/typedoc-plugins/*.d.mts",
         "eslint.config.bundled_*.mjs",
-        "test/fixtures/**"
+        "electron-app/test/fixtures/**"
     ],
-    "extends": "./tsconfig.json",
+    "extends": "./electron-app/tsconfig.json",
     "include": [
-        "**/*",
-        "**/.*"
+        "electron-app/**/*",
+        "electron-app/**/.*"
     ]
 }
