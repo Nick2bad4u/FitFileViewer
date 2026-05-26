@@ -459,7 +459,7 @@ function setPlatform(platform: NodeJS.Platform): void {
     });
 }
 
-describe("main.js ultra coverage", () => {
+describe("main.js entrypoint behavior", () => {
     it("wires startup, IPC, updater, and renderer events through the real entry point", async () => {
         expect.hasAssertions();
 
