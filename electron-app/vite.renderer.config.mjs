@@ -9,6 +9,7 @@ export default defineConfig({
     build: {
         emptyOutDir: false,
         lib: {
+            cssFileName: "vendor-globals",
             entry: "renderer/vendorGlobals.ts",
             fileName: () => "vendor-globals.js",
             formats: ["es"],
@@ -17,7 +18,11 @@ export default defineConfig({
         outDir: "dist/renderer",
         rollupOptions: {
             output: {
-                assetFileNames: "assets/[name][extname]",
+                assetFileNames(assetInfo) {
+                    return assetInfo.names?.includes("vendor-globals.css")
+                        ? "[name][extname]"
+                        : "assets/[name][extname]";
+                },
                 chunkFileNames: "chunks/[name]-[hash].js",
                 entryFileNames: "vendor-globals.js",
             },

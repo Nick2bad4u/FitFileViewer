@@ -84,6 +84,11 @@ test.describe("FitFileViewer Electron UI", () => {
                     typeof globalWindow.DOMPurify?.sanitize === "function",
                 hasHammer: typeof globalWindow.Hammer === "function",
                 hasJsZip: typeof globalWindow.JSZip === "function",
+                hasJQueryDataTables:
+                    typeof globalWindow.$ === "function" &&
+                    typeof globalWindow.jQuery === "function" &&
+                    typeof globalWindow.jQuery.fn?.DataTable === "function" &&
+                    typeof globalWindow.DataTable === "function",
                 hasScreenfull:
                     typeof globalWindow.screenfull === "object" &&
                     globalWindow.screenfull !== null &&
@@ -104,6 +109,7 @@ test.describe("FitFileViewer Electron UI", () => {
             hasDomPurify: true,
             hasHammer: true,
             hasJsZip: true,
+            hasJQueryDataTables: true,
             hasScreenfull: true,
             isChartZoomRegistered: true,
             vendorBundleSource: "npm-bundle",
@@ -163,6 +169,13 @@ test.describe("FitFileViewer Electron UI", () => {
         await expect(page.locator("#content_chartjs")).toBeAttached();
         await expect(page.locator("#content_data")).toBeAttached();
         await expect(page.locator("#content_summary")).toBeAttached();
+
+        await page.locator("#tab_data").click();
+        const firstTableHeader = page.locator("#content_data .table-header").first();
+        await expect(firstTableHeader).toBeVisible();
+        await firstTableHeader.click();
+        await expect(page.locator("#content_data table.dataTable").first()).toBeVisible();
+        await expect(page.locator("#content_data .dt-container").first()).toBeVisible();
     });
 
     test.afterAll(() => {

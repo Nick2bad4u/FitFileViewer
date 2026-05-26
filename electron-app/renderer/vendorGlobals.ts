@@ -2,20 +2,26 @@ import * as arquero from "arquero";
 import Chart from "chart.js/auto";
 import "chartjs-adapter-date-fns";
 import zoomPlugin from "chartjs-plugin-zoom";
+import DataTable from "datatables.net-dt";
+import "datatables.net-dt/css/dataTables.dataTables.css";
 import DOMPurify from "dompurify";
 import Hammer from "hammerjs";
+import $ from "jquery";
 import JSZip from "jszip";
 import screenfull from "screenfull";
 
 type RendererVendorGlobal = typeof globalThis & {
+    $?: typeof $;
     Chart?: typeof Chart;
     ChartZoom?: typeof zoomPlugin;
+    DataTable?: typeof DataTable;
     DOMPurify?: typeof DOMPurify;
     Hammer?: typeof Hammer;
     JSZip?: typeof JSZip;
     aq?: typeof arquero;
     arquero?: typeof arquero;
     chartjsPluginZoom?: typeof zoomPlugin;
+    jQuery?: typeof $;
     screenfull?: typeof screenfull;
     __FFV_RENDERER_VENDOR_BUNDLE__?: Readonly<{
         loaded: true;
@@ -59,6 +65,9 @@ defineMissingGlobal("Chart", Chart);
 defineMissingGlobal("ChartZoom", zoomPlugin);
 defineMissingGlobal("chartjsPluginZoom", zoomPlugin);
 defineMissingGlobal("Hammer", Hammer);
+defineMissingGlobal("$", $);
+defineMissingGlobal("jQuery", $);
+defineMissingGlobal("DataTable", DataTable);
 
 vendorGlobal.__FFV_RENDERER_VENDOR_BUNDLE__ = {
     loaded: true,

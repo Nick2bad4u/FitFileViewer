@@ -11,14 +11,14 @@ The Electron app still uses a classic script/link model for browser libraries:
 - `electron-app/index.html` loads CSS and JavaScript from `vendor/`.
 - `electron-app/index.html` loads the Vite-built compatibility bundle at
   `renderer/vendor-globals.js` for DOMPurify, JSZip, Arquero, screenfull, and
-  the Chart.js stack.
+  the Chart.js and DataTables stacks.
 - `electron-app/scripts/prepare-runtime-dist.mjs` copies `vendor/` into
   `electron-app/dist/vendor/`.
 - `electron-app/package.json` includes `vendor/` in the packaged file list.
 - Renderer modules consume browser libraries through globals such as
   `Chart`, `L`, `JSZip`, `DOMPurify`, `screenfull`, and DataTables/jQuery.
-- `electron-app/renderer/vendorGlobals.ts` imports the first low-risk utility
-  group from npm and exposes compatibility globals.
+- `electron-app/renderer/vendorGlobals.ts` imports migrated renderer packages
+  from npm and exposes compatibility globals.
 - `prepare-runtime-dist.mjs` rejects direct `node_modules` references in
   `index.html`; production should not load browser code directly from
   `node_modules`.
@@ -52,12 +52,13 @@ output.
 | `chart.js`                      | `dist/renderer/vendor-globals.js`                                             | Migrated from `vendor/` to the renderer compatibility bundle.         |
 | `chartjs-adapter-date-fns`      | `dist/renderer/vendor-globals.js`                                             | Migrated from `vendor/` to the renderer compatibility bundle.         |
 | `chartjs-plugin-zoom`           | `dist/renderer/vendor-globals.js`                                             | Migrated from `vendor/` to the renderer compatibility bundle.         |
-| `datatables.net`                | `vendor/dataTables.min.js`                                                    | DataTables/jQuery ordering must be preserved.                         |
-| `datatables.net-dt`             | `vendor/dataTables.dataTables.min.js`, `vendor/dataTables.dataTables.min.css` | CSS and styling package for DataTables.                               |
+| `datatables.net`                | `dist/renderer/vendor-globals.js`                                             | Migrated from `vendor/` to the renderer compatibility bundle.         |
+| `datatables.net-dt`             | `dist/renderer/vendor-globals.js`, `dist/renderer/vendor-globals.css`         | Migrated from `vendor/` to the renderer compatibility bundle.         |
 | `date-fns`                      | bundled inside adapter asset today                                            | Keep as explicit renderer input when chart adapter is bundled.        |
 | `dompurify`                     | `dist/renderer/vendor-globals.js`                                             | Migrated from `vendor/` to the renderer compatibility bundle.         |
 | `hammerjs`                      | `dist/renderer/vendor-globals.js`                                             | Migrated from `vendor/` with the Chart.js zoom plugin.                |
 | `jszip`                         | `dist/renderer/vendor-globals.js`                                             | Migrated from `vendor/` to the renderer compatibility bundle.         |
+| `jquery`                        | `dist/renderer/vendor-globals.js`                                             | Migrated from `vendor/` with the DataTables stack.                    |
 | `leaflet`                       | `vendor/leaflet/**`                                                           | High-risk map stack; migrate late with CSS/image handling.            |
 | `leaflet-draw`                  | `vendor/leaflet-draw/**`                                                      | Depends on Leaflet global and bundled images.                         |
 | `leaflet-measure`               | `vendor/leaflet-measure/leaflet-measure.css`, assets only                     | JavaScript is not shipped from the package; see curated assets below. |
@@ -80,7 +81,7 @@ and should stay in `devDependencies`.
 | TypeScript/build helpers | `esbuild`, `globals`                                                                                                                                                                                                         |
 | Lint/format/docs         | `eslint`, `eslint-config-nick2bad4u`, `prettier`, `prettier-config-nick2bad4u`, `remark`, `remark-cli`, `remark-config-nick2bad4u`, `secretlint`, `secretlint-config-nick2bad4u`, `stylelint`, `stylelint-config-nick2bad4u` |
 | Tests                    | `vitest`, `@vitest/coverage-v8`, `@playwright/test`, `fast-check`, `fast-xml-parser`, `jsdom`                                                                                                                                |
-| Types                    | `@types/hammerjs`, `@types/jsdom`, `@types/leaflet`, `@types/leaflet-draw`, `@types/leaflet.markercluster`                                                                                                                   |
+| Types                    | `@types/hammerjs`, `@types/jquery`, `@types/jsdom`, `@types/leaflet`, `@types/leaflet-draw`, `@types/leaflet.markercluster`                                                                                                   |
 | Release/changelog        | `git-cliff`                                                                                                                                                                                                                  |
 | Browser package helper   | `@kurkle/color`                                                                                                                                                                                                              |
 
@@ -91,10 +92,6 @@ and should stay in `devDependencies`.
 These files are expected to be replaceable after a renderer bundle owns the
 matching import path.
 
-- `vendor/dataTables.dataTables.min.css`
-- `vendor/dataTables.dataTables.min.js`
-- `vendor/dataTables.min.js`
-- `vendor/jquery.min.js`
 - `vendor/leaflet/**`
 - `vendor/leaflet-draw/**`
 - `vendor/leaflet-measure/leaflet-measure.css`

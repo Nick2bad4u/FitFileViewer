@@ -1,3 +1,4 @@
+import dependPlugin from "eslint-plugin-depend";
 import nick2bad4u from "eslint-config-nick2bad4u";
 import globals from "globals";
 
@@ -109,7 +110,16 @@ const config = [
     },
     {
         files: ["package.json"],
+        plugins: {
+            depend: dependPlugin,
+        },
         rules: {
+            "depend/ban-dependencies": [
+                "error",
+                {
+                    allowed: ["jquery"],
+                },
+            ],
             "node-dependencies/absolute-version": [
                 "error",
                 {
@@ -122,6 +132,20 @@ const config = [
                 },
             ],
             "package-json/require-peerDependencies": "off",
+        },
+    },
+    {
+        files: ["renderer/vendorGlobals.ts"],
+        plugins: {
+            depend: dependPlugin,
+        },
+        rules: {
+            "depend/ban-dependencies": [
+                "error",
+                {
+                    allowed: ["jquery"],
+                },
+            ],
         },
     },
     {
