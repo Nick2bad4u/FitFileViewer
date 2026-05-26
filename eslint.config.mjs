@@ -267,15 +267,6 @@ const config = [
         },
     },
     {
-        files: [
-            "utils/files/import/handleOpenFile.js",
-            "utils/ui/notifications/showNotification.js",
-        ],
-        rules: {
-            "no-barrel-files/no-barrel-files": "off",
-        },
-    },
-    {
         files: ["package.json"],
         rules: {
             "package-json/require-dependencies": "off",
