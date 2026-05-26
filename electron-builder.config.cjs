@@ -8,7 +8,6 @@ module.exports = {
         output: "release",
     },
     files: [
-        "assets/**",
         "dist/**",
         "elevProfile.css",
         "icons/**",
