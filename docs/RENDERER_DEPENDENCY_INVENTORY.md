@@ -9,16 +9,15 @@ asset migration. Keep it current while moving browser libraries from
 The Electron app still uses a classic script/link model for browser libraries:
 
 - `electron-app/index.html` loads CSS and JavaScript from `vendor/`.
-- `electron-app/index.html` also loads the Vite-built compatibility bundle at
-  `renderer/vendor-globals.js`.
+- `electron-app/index.html` loads the Vite-built compatibility bundle at
+  `renderer/vendor-globals.js` for DOMPurify, JSZip, Arquero, and screenfull.
 - `electron-app/scripts/prepare-runtime-dist.mjs` copies `vendor/` into
   `electron-app/dist/vendor/`.
 - `electron-app/package.json` includes `vendor/` in the packaged file list.
 - Renderer modules consume browser libraries through globals such as
   `Chart`, `L`, `JSZip`, `DOMPurify`, `screenfull`, and DataTables/jQuery.
 - `electron-app/renderer/vendorGlobals.ts` imports the first low-risk utility
-  group from npm and exposes missing compatibility globals without overriding
-  the existing vendor globals.
+  group from npm and exposes compatibility globals.
 - `prepare-runtime-dist.mjs` rejects direct `node_modules` references in
   `index.html`; production should not load browser code directly from
   `node_modules`.
@@ -46,28 +45,28 @@ in `devDependencies` because the current production app ships copied browser
 assets from `vendor/`, and the long-term target is to bundle them into renderer
 output.
 
-| Package                         | Current shipped asset path                                                    | Migration note                                                             |
-| ------------------------------- | ----------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `arquero`                       | `vendor/arquero/arquero.min.js`                                               | Low-risk utility global; good early bundling target.                       |
-| `chart.js`                      | `vendor/chart.umd.js`                                                         | Migrate with chart adapter, zoom plugin, and Hammer.                       |
-| `chartjs-adapter-date-fns`      | `vendor/chartjs-adapter-date-fns.bundle.min.js`                               | Needs Chart.js registration order preserved.                               |
-| `chartjs-plugin-zoom`           | `vendor/chartjs-plugin-zoom.min.js`                                           | Needs Hammer/touch support verified.                                       |
-| `datatables.net`                | `vendor/dataTables.min.js`                                                    | DataTables/jQuery ordering must be preserved.                              |
-| `datatables.net-dt`             | `vendor/dataTables.dataTables.min.js`, `vendor/dataTables.dataTables.min.css` | CSS and styling package for DataTables.                                    |
-| `date-fns`                      | bundled inside adapter asset today                                            | Keep as explicit renderer input when chart adapter is bundled.             |
-| `dompurify`                     | `vendor/purify.min.js`                                                        | Low-risk utility global; good early bundling target.                       |
-| `hammerjs`                      | `vendor/hammer.min.js`                                                        | Migrate with chart zoom plugin.                                            |
-| `jszip`                         | `vendor/jszip.min.js`                                                         | Low-risk utility global; good early bundling target.                       |
-| `leaflet`                       | `vendor/leaflet/**`                                                           | High-risk map stack; migrate late with CSS/image handling.                 |
-| `leaflet-draw`                  | `vendor/leaflet-draw/**`                                                      | Depends on Leaflet global and bundled images.                              |
-| `leaflet-measure`               | `vendor/leaflet-measure/leaflet-measure.css`, assets only                     | JavaScript is not shipped from the package; see curated assets below.      |
-| `leaflet-minimap`               | `vendor/leaflet-minimap/**`                                                   | Depends on Leaflet global and plugin ordering.                             |
-| `leaflet.fullscreen`            | `vendor/leaflet.fullscreen/**`                                                | Current app uses UMD build under file protocol.                            |
-| `leaflet.locatecontrol`         | `vendor/leaflet.locatecontrol/**`                                             | Depends on Leaflet global and CSS/map assets.                              |
-| `leaflet.markercluster`         | `vendor/leaflet.markercluster/**`                                             | Depends on Leaflet global and plugin CSS.                                  |
-| `maplibre-gl`                   | `vendor/maplibre-gl/**`                                                       | High-risk due CSS, worker behavior, and file protocol packaging.           |
-| `@maplibre/maplibre-gl-leaflet` | `vendor/maplibre-gl-leaflet/leaflet-maplibre-gl.js`                           | Bridge depends on both MapLibre and Leaflet ordering.                      |
-| `screenfull`                    | `vendor/screenfull.js`, `vendor/screenfull-global.js`                         | Low-risk utility global; wrapper preserves legacy `globalThis.screenfull`. |
+| Package                         | Current shipped asset path                                                    | Migration note                                                        |
+| ------------------------------- | ----------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `arquero`                       | `dist/renderer/vendor-globals.js`                                             | Migrated from `vendor/` to the renderer compatibility bundle.         |
+| `chart.js`                      | `vendor/chart.umd.js`                                                         | Migrate with chart adapter, zoom plugin, and Hammer.                  |
+| `chartjs-adapter-date-fns`      | `vendor/chartjs-adapter-date-fns.bundle.min.js`                               | Needs Chart.js registration order preserved.                          |
+| `chartjs-plugin-zoom`           | `vendor/chartjs-plugin-zoom.min.js`                                           | Needs Hammer/touch support verified.                                  |
+| `datatables.net`                | `vendor/dataTables.min.js`                                                    | DataTables/jQuery ordering must be preserved.                         |
+| `datatables.net-dt`             | `vendor/dataTables.dataTables.min.js`, `vendor/dataTables.dataTables.min.css` | CSS and styling package for DataTables.                               |
+| `date-fns`                      | bundled inside adapter asset today                                            | Keep as explicit renderer input when chart adapter is bundled.        |
+| `dompurify`                     | `dist/renderer/vendor-globals.js`                                             | Migrated from `vendor/` to the renderer compatibility bundle.         |
+| `hammerjs`                      | `vendor/hammer.min.js`                                                        | Migrate with chart zoom plugin.                                       |
+| `jszip`                         | `dist/renderer/vendor-globals.js`                                             | Migrated from `vendor/` to the renderer compatibility bundle.         |
+| `leaflet`                       | `vendor/leaflet/**`                                                           | High-risk map stack; migrate late with CSS/image handling.            |
+| `leaflet-draw`                  | `vendor/leaflet-draw/**`                                                      | Depends on Leaflet global and bundled images.                         |
+| `leaflet-measure`               | `vendor/leaflet-measure/leaflet-measure.css`, assets only                     | JavaScript is not shipped from the package; see curated assets below. |
+| `leaflet-minimap`               | `vendor/leaflet-minimap/**`                                                   | Depends on Leaflet global and plugin ordering.                        |
+| `leaflet.fullscreen`            | `vendor/leaflet.fullscreen/**`                                                | Current app uses UMD build under file protocol.                       |
+| `leaflet.locatecontrol`         | `vendor/leaflet.locatecontrol/**`                                             | Depends on Leaflet global and CSS/map assets.                         |
+| `leaflet.markercluster`         | `vendor/leaflet.markercluster/**`                                             | Depends on Leaflet global and plugin CSS.                             |
+| `maplibre-gl`                   | `vendor/maplibre-gl/**`                                                       | High-risk due CSS, worker behavior, and file protocol packaging.      |
+| `@maplibre/maplibre-gl-leaflet` | `vendor/maplibre-gl-leaflet/leaflet-maplibre-gl.js`                           | Bridge depends on both MapLibre and Leaflet ordering.                 |
+| `screenfull`                    | `dist/renderer/vendor-globals.js`                                             | Migrated from `vendor/` to the renderer compatibility bundle.         |
 
 ## Tooling And Test Dependencies
 
@@ -91,7 +90,6 @@ and should stay in `devDependencies`.
 These files are expected to be replaceable after a renderer bundle owns the
 matching import path.
 
-- `vendor/arquero/arquero.min.js`
 - `vendor/chart.umd.js`
 - `vendor/chartjs-adapter-date-fns.bundle.min.js`
 - `vendor/chartjs-plugin-zoom.min.js`
@@ -100,7 +98,6 @@ matching import path.
 - `vendor/dataTables.min.js`
 - `vendor/hammer.min.js`
 - `vendor/jquery.min.js`
-- `vendor/jszip.min.js`
 - `vendor/leaflet/**`
 - `vendor/leaflet-draw/**`
 - `vendor/leaflet-measure/leaflet-measure.css`
@@ -111,7 +108,6 @@ matching import path.
 - `vendor/leaflet.markercluster/**`
 - `vendor/maplibre-gl/**`
 - `vendor/maplibre-gl-leaflet/**`
-- `vendor/purify.min.js`
 
 ### Curated Or Custom Assets
 
@@ -121,11 +117,6 @@ They need a specific replacement and runtime verification.
 - `vendor/leaflet-measure-lite.js`: CSP-safe measurement control replacement.
   The upstream `leaflet-measure` JavaScript should not be restored unless it
   works without weakening the app CSP.
-- `vendor/screenfull.js`: local ESM copy used by the current wrapper. Replace
-  with the npm `screenfull` import only when the renderer bundle can expose the
-  same behavior.
-- `vendor/screenfull-global.js`: compatibility wrapper that sets
-  `globalThis.screenfull` for legacy code paths.
 - Source map files under `vendor/`: useful for debugging but not required for
   runtime behavior. Remove only as part of a deliberate packaging-size cleanup.
 

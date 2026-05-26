@@ -61,6 +61,34 @@ test.describe("FitFileViewer Electron UI", () => {
         await expect(page.locator("#tabs")).toBeVisible();
         await expect(page.locator("#tab_map")).toHaveClass(/active/u);
         await expect(page.locator(".tab-button")).toHaveCount(7);
+
+        const vendorGlobals = await page.evaluate(() => {
+            const globalWindow = window as Window &
+                Record<string, Record<string, unknown> | undefined>;
+
+            return {
+                hasArqueroTable:
+                    typeof globalWindow.aq?.table === "function" &&
+                    typeof globalWindow.arquero?.table === "function",
+                hasDomPurify:
+                    typeof globalWindow.DOMPurify?.sanitize === "function",
+                hasJsZip: typeof globalWindow.JSZip === "function",
+                hasScreenfull:
+                    typeof globalWindow.screenfull === "object" &&
+                    globalWindow.screenfull !== null &&
+                    "isEnabled" in globalWindow.screenfull,
+                vendorBundleSource:
+                    globalWindow.__FFV_RENDERER_VENDOR_BUNDLE__?.source,
+            };
+        });
+
+        expect(vendorGlobals).toStrictEqual({
+            hasArqueroTable: true,
+            hasDomPurify: true,
+            hasJsZip: true,
+            hasScreenfull: true,
+            vendorBundleSource: "npm-bundle",
+        });
     });
 
     test("renders a real FIT file across map, charts, data, and summary tabs", async () => {

@@ -105,12 +105,6 @@
             href="vendor/leaflet-measure/leaflet-measure.css"
             rel="stylesheet"
         />
-        <!-- DOMPurify is loaded as a curated classic vendor script (global DOMPurify) under file:// in Electron. -->
-        <script
-            defer
-            src="vendor/purify.min.js"
-        ></script>
-
         <script
             defer
             src="vendor/jquery.min.js"
@@ -122,10 +116,6 @@
         <script
             defer
             src="vendor/dataTables.dataTables.min.js"
-        ></script>
-        <script
-            defer
-            src="vendor/arquero/arquero.min.js"
         ></script>
         <script
             defer
@@ -143,11 +133,6 @@
         <script
             defer
             src="vendor/chartjs-adapter-date-fns.bundle.min.js"
-        ></script>
-        <!-- JSZip for ZIP file creation -->
-        <script
-            defer
-            src="vendor/jszip.min.js"
         ></script>
         <script
             defer
@@ -196,12 +181,6 @@
             type="module"
             defer
             src="utils.js"
-        ></script>
-        <!-- Load screenfull before main-ui.js -->
-        <script
-            type="module"
-            defer
-            src="vendor/screenfull-global.js"
         ></script>
         <!-- Renderer dependency bundle. Keep compatibility globals here while migrating away from vendor scripts. -->
         <script
