@@ -15,7 +15,6 @@ electron-app/logs/
 # Ignore Change Logs
 **/CHANGELOG.md
 
-html/
 .github/PROMPTS/
 types/
 **/*.d.ts

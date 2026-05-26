@@ -150,17 +150,18 @@ describe("dom helpers", () => {
     });
 
     it("ignores invalid element inputs for mutating helpers", () => {
-        expect(() => {
-            clearElement(null);
-            focus(null);
-            removeClass(null, "missing");
-            setChecked(null, true);
-            setData(null, "key", "value");
-            setDisabled(null, true);
-            setStyle(null, "color", "red");
-            setText(null, "value");
-            setValue(null, "value");
-        }).not.toThrow();
+        const bodyBefore = document.body.innerHTML;
+
+        expect(clearElement(null)).toBeUndefined();
+        expect(focus(null)).toBeUndefined();
+        expect(removeClass(null, "missing")).toBeUndefined();
+        expect(setChecked(null, true)).toBeUndefined();
+        expect(setData(null, "key", "value")).toBeUndefined();
+        expect(setDisabled(null, true)).toBeUndefined();
+        expect(setStyle(null, "color", "red")).toBeUndefined();
+        expect(setText(null, "value")).toBeUndefined();
+        expect(setValue(null, "value")).toBeUndefined();
+        expect(document.body.innerHTML).toBe(bodyBefore);
     });
 
     it("throws for empty class names before touching the element", () => {

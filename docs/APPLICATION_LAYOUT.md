@@ -418,9 +418,7 @@ electron-app/
 │   └── [Various sized icons]
 │
 ├── screenshots/                     # Application screenshots
-├── html/                           # Static HTML assets
-├── ffv/                            # Alternative FIT viewer web app
-└── node_modules/                   # Third-party libraries managed via npm
+└── ffv/                            # Alternative FIT viewer web app
 ```
 
 ## CI/CD & Automation

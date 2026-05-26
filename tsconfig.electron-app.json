@@ -112,7 +112,6 @@
         "out",
         "electron-app/release",
         "**/*.test.ts",
-        "**/html/**",
         "**/*.test.tsx",
         "**/tests/**",
         "electron-app/__mocks__/**",

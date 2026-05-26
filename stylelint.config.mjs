@@ -8,7 +8,6 @@ const stylelintConfig = {
         "electron-app/coverage/**",
         "electron-app/dist/**",
         "electron-app/ffv/assets/**",
-        "electron-app/html/**",
         "electron-app/release/**",
         "electron-app/temp-win7/**",
         "electron-app/test-results/**",
