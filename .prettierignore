@@ -15,8 +15,6 @@ electron-app/logs/
 # Ignore Change Logs
 **/CHANGELOG.md
 
-# Ignore package in electron-app
-electron-app/package-lock.json
 html/
 .github/PROMPTS/
 types/
