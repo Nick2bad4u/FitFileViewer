@@ -33,8 +33,8 @@ Get started contributing to FitFileViewer.
 # Clone the repository
 git clone https://github.com/Nick2bad4u/FitFileViewer.git
 
-# Navigate to electron app
-cd FitFileViewer/electron-app
+# Navigate to the repository root
+cd FitFileViewer
 
 # Install dependencies
 npm install
@@ -95,7 +95,7 @@ FitFileViewer/
 │   ├── fitParser.js      # FIT parsing
 │   ├── utils/            # Utility modules
 │   ├── tests/            # Test files
-│   └── package.json      # Dependencies
+│   └── package.json      # Electron package metadata and runtime deps
 ├── docs/                  # Documentation
 ├── fit-test-files/        # Sample FIT files
 └── README.md
@@ -159,23 +159,18 @@ export default [
 
 ### Prettier
 
-```json
-// .prettierrc
-{
- "tabWidth": 4,
- "useTabs": true,
- "singleQuote": true
-}
+```javascript
+// prettier.config.mjs
+export { default } from "prettier-config-nick2bad4u";
 ```
 
 ### TypeScript
 
 ```json
-// tsconfig.json
+// tsconfig.electron-app.json
 {
  "compilerOptions": {
-  "checkJs": true,
-  "allowJs": true
+  "noEmit": true
  }
 }
 ```
@@ -211,9 +206,9 @@ fit-test-files/
    "name": "Debug Main Process",
    "type": "node",
    "request": "launch",
-   "cwd": "${workspaceFolder}/electron-app",
-   "runtimeExecutable": "${workspaceFolder}/electron-app/node_modules/.bin/electron",
-   "args": ["."]
+   "cwd": "${workspaceFolder}",
+   "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
+   "args": ["electron-app"]
   }
  ]
 }
