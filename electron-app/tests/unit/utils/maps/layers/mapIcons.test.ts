@@ -1,4 +1,4 @@
-import type { IconOptions } from "leaflet";
+import type { DivIconOptions } from "leaflet";
 
 import { describe, expect, it, vi } from "vitest";
 
@@ -6,15 +6,14 @@ describe("map marker icons", () => {
     it("creates start and end icons through the Leaflet global", async () => {
         expect.assertions(3);
 
-        const icon = vi.fn<(options: IconOptions) => { options: IconOptions }>(
-            (options) => ({ options })
-        );
+        const divIcon = vi.fn<
+            (options: DivIconOptions) => { options: DivIconOptions }
+        >((options) => ({ options }));
 
         try {
             vi.resetModules();
             vi.stubGlobal("L", {
-                divIcon: vi.fn<() => Record<string, never>>(() => ({})),
-                icon,
+                divIcon,
             });
 
             const { createEndIcon, createStartIcon } =
@@ -22,21 +21,23 @@ describe("map marker icons", () => {
 
             expect(createStartIcon()).toStrictEqual({
                 options: {
-                    iconAnchor: [16, 32],
-                    iconSize: [32, 32],
-                    iconUrl: "assets/map-icons/start-icon.png",
-                    popupAnchor: [0, -32],
+                    className: "ffv-map-marker ffv-map-marker--start",
+                    html: '<span class="ffv-map-marker__pin" aria-hidden="true"><span class="ffv-map-marker__glyph">S</span></span>',
+                    iconAnchor: [14, 37],
+                    iconSize: [28, 37],
+                    popupAnchor: [0, -37],
                 },
             });
             expect(createEndIcon()).toStrictEqual({
                 options: {
-                    iconAnchor: [16, 32],
-                    iconSize: [32, 32],
-                    iconUrl: "assets/map-icons/end-icon.png",
-                    popupAnchor: [0, -32],
+                    className: "ffv-map-marker ffv-map-marker--end",
+                    html: '<span class="ffv-map-marker__pin" aria-hidden="true"><span class="ffv-map-marker__glyph">E</span></span>',
+                    iconAnchor: [14, 37],
+                    iconSize: [28, 37],
+                    popupAnchor: [0, -37],
                 },
             });
-            expect(icon).toHaveBeenCalledTimes(2);
+            expect(divIcon).toHaveBeenCalledTimes(2);
         } finally {
             vi.unstubAllGlobals();
             vi.resetModules();
