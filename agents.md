@@ -22,7 +22,7 @@ Use the existing CommonJS runtime style unless a file is already TypeScript or p
 
 ## Testing Guidelines
 
-Use Vitest for app tests. Prefer `*.test.ts` for new tests and place them under the relevant `electron-app/tests/` area. Use `electron-app/tests/fixtures/` for reusable fixtures and `fit-test-files/` for real FIT-file coverage. Run targeted tests while developing, then run `cd electron-app && npm test` before opening a PR.
+Use Vitest for app tests. Prefer `*.test.ts` for new tests and place them under the relevant `electron-app/tests/` area. Use `electron-app/tests/fixtures/` for reusable fixtures and `fit-test-files/` for real FIT-file coverage. Run targeted tests while developing, then run `npm test` before opening a PR.
 
 ## Commit & Pull Request Guidelines
 
