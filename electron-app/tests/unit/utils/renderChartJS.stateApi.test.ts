@@ -236,12 +236,6 @@ describe("renderChartJS.js state API", () => {
     });
 
     describe("refreshChartsIfNeeded function - Conditional Refresh Logic", () => {
-        test("should expose refresh decision path (smoke)", () => {
-            // Without valid data, function returns false; smoke check only
-            const result = refreshChartsIfNeeded();
-            expect(result).toBe(false);
-        });
-
         test("should return false when no valid data exists", () => {
             // Mock state to have no data
             globalMockState.data.set("globalData", null);
@@ -468,8 +462,7 @@ describe("chartActions object - State Actions", () => {
 });
 
 describe("Integration and Error Handling", () => {
-    // Skip these tests that try to modify getState behavior
-    test("should handle undefined state gracefully (smoke)", async () => {
+    test("should read chart status without throwing when state is undefined", async () => {
         expect(() => getChartStatus()).not.toThrow();
     });
 
