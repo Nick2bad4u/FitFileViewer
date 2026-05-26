@@ -92,6 +92,7 @@ const config = [
         basePath: electronAppBasePath,
         files: ["global.d.ts"],
         rules: {
+            "n/no-extraneous-import": "off",
             "n/no-unpublished-import": "off",
         },
     },
@@ -269,6 +270,12 @@ const config = [
     {
         files: ["package.json"],
         rules: {
+            "depend/ban-dependencies": [
+                "error",
+                {
+                    allowed: ["jquery"],
+                },
+            ],
             "package-json/require-dependencies": "off",
             "package-json/require-peerDependencies": "off",
         },
