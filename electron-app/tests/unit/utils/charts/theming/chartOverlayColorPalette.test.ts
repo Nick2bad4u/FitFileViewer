@@ -7,8 +7,8 @@ import {
 } from "../../../../../utils/charts/theming/chartOverlayColorPalette.js";
 
 describe(getChartOverlayColorPalette, () => {
-    it("removes duplicates and visually similar colors before shuffling", () => {
-        expect.assertions(6);
+    it("removes duplicates and visually similar colors before deterministic shuffling", () => {
+        expect.assertions(2);
 
         const palette = getChartOverlayColorPalette([
             "#000000",
@@ -21,11 +21,12 @@ describe(getChartOverlayColorPalette, () => {
         ]);
 
         expect(palette).toHaveLength(4);
-        expect(new Set(palette).size).toBe(palette.length);
-        expect(palette).toContain("#000000");
-        expect(palette).toContain("#ffffff");
-        expect(palette).toContain("#abc");
-        expect(palette).toContain("#ff0000");
+        expect(palette).toEqual([
+            "#000000",
+            "#abc",
+            "#ff0000",
+            "#ffffff",
+        ]);
     });
 
     it("returns a deterministic palette for the same input order", () => {

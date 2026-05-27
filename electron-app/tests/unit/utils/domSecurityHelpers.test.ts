@@ -12,10 +12,13 @@ describe("html escaping", () => {
         );
     });
 
-    it("does not leave raw markup delimiters in escaped output", () => {
-        expect.assertions(1);
+    it("escapes standalone markup delimiters", () => {
+        expect.assertions(2);
 
-        expect(escapeHtml("<script>")).not.toContain("<");
+        const escapedMarkup = escapeHtml("<script>");
+
+        expect(escapedMarkup).toBe("&lt;script&gt;");
+        expect(escapedMarkup).not.toBe("<script>");
     });
 });
 
