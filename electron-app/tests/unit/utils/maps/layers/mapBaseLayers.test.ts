@@ -1,5 +1,41 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+const EXPECTED_LAYER_NAMES = [
+    "CartoDB_DarkMatter",
+    "CartoDB_Positron",
+    "CartoDB_Voyager",
+    "CyclOSM",
+    "Esri_NatGeo",
+    "Esri_Topo",
+    "Esri_WorldGrayCanvas",
+    "Esri_WorldImagery",
+    "Esri_WorldImagery_Labels",
+    "Esri_WorldPhysical",
+    "Esri_WorldShadedRelief",
+    "Esri_WorldStreetMap",
+    "Esri_WorldStreetMap_Labels",
+    "Esri_WorldTerrain",
+    "Esri_WorldTopo_Labels",
+    "Humanitarian",
+    "OpenFreeMap_Bright",
+    "OpenFreeMap_Dark",
+    "OpenFreeMap_Fiord",
+    "OpenFreeMap_Liberty",
+    "OpenFreeMap_Positron",
+    "OpenRailwayMap",
+    "OpenSeaMap",
+    "OpenStreetMap",
+    "OSM_DE",
+    "OSM_France",
+    "Satellite",
+    "Thunderforest_Cycle",
+    "Thunderforest_Transport",
+    "OpenTopoMap",
+    "WaymarkedTrails_Cycling",
+    "WaymarkedTrails_Hiking",
+    "WaymarkedTrails_Slopes",
+];
+
 describe("mapBaseLayers", () => {
     let originalL: any;
 
@@ -17,13 +53,7 @@ describe("mapBaseLayers", () => {
         const mod =
             await import("../../../../../utils/maps/layers/mapBaseLayers.js");
         const { baseLayers } = mod;
-        expect(Object.keys(baseLayers)).toEqual(
-            expect.arrayContaining([
-                "CartoDB_Positron",
-                "OpenFreeMap_Dark",
-                "OpenStreetMap",
-            ])
-        );
+        expect(Object.keys(baseLayers)).toEqual(EXPECTED_LAYER_NAMES);
         expect(baseLayers.OpenStreetMap).toEqual({});
         expect(baseLayers.CartoDB_Positron).toEqual({});
         expect(baseLayers.OpenFreeMap_Dark).toEqual({});
@@ -42,13 +72,14 @@ describe("mapBaseLayers", () => {
         expect(baseLayers.OpenStreetMap).toBe(rasterLayer);
         expect(baseLayers.CartoDB_DarkMatter).toBe(rasterLayer);
         expect(baseLayers.OpenFreeMap_Bright).toBe(vectorLayer);
-        expect((global as any).L.tileLayer).toHaveBeenCalled();
-        expect((global as any).L.maplibreGL).toHaveBeenCalled();
+        expect((global as any).L.tileLayer).toHaveBeenCalledTimes(28);
+        expect((global as any).L.maplibreGL).toHaveBeenCalledTimes(5);
         expect((global as any).L.tileLayer).toHaveBeenCalledWith(
             "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-            expect.objectContaining({
-                attribution: expect.stringContaining("OpenStreetMap"),
-            })
+            {
+                attribution:
+                    '&copy; <a href="https://www.openstreetmap.org/copyright" data-external-link="true" rel="noopener noreferrer">OpenStreetMap</a> contributors',
+            }
         );
         expect((global as any).L.maplibreGL).toHaveBeenCalledWith({
             style: "https://tiles.openfreemap.org/styles/bright",
