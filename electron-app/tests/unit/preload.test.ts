@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import fs from "fs";
 import path from "path";
-import { resolvePreloadScriptRequire } from "../helpers/preloadModuleMocks";
+import { resolvePreloadScriptRequire } from "../../../tests/vitest/helpers/preloadModuleMocks";
 
 type MockFunction = ReturnType<typeof vi.fn>;
 type MockWithCalls = { mock: { calls: unknown[][] } };

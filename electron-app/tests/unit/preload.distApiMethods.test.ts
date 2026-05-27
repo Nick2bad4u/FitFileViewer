@@ -4,7 +4,7 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 import { readFileSync } from "fs";
 import { join } from "path";
-import { resolvePreloadScriptRequire } from "../helpers/preloadModuleMocks";
+import { resolvePreloadScriptRequire } from "../../../tests/vitest/helpers/preloadModuleMocks";
 
 interface ChannelInfo {
     channels: Record<string, unknown>;

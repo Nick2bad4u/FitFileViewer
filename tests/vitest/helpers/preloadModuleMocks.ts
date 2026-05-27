@@ -3,30 +3,44 @@ import { createRequire } from "node:module";
 const requireFromTest = createRequire(import.meta.url);
 
 const preloadIpcBridgeCatalog = requireFromTest(
-    "../../preload/ipcBridgeCatalog.js"
+    "../../../electron-app/preload/ipcBridgeCatalog.js"
 );
 const preloadApiDiagnostics = requireFromTest(
-    "../../preload/apiDiagnostics.js"
+    "../../../electron-app/preload/apiDiagnostics.js"
 );
 const preloadBeforeExitHandler = requireFromTest(
-    "../../preload/beforeExitHandler.js"
+    "../../../electron-app/preload/beforeExitHandler.js"
 );
 const preloadClipboardBridge = requireFromTest(
-    "../../preload/clipboardBridge.js"
+    "../../../electron-app/preload/clipboardBridge.js"
 );
 const preloadDevtoolsMenuApi = requireFromTest(
-    "../../preload/devtoolsMenuApi.js"
+    "../../../electron-app/preload/devtoolsMenuApi.js"
 );
-const preloadElectronBridge = requireFromTest("../../preload/electronBridge.js");
-const preloadEnvironment = requireFromTest("../../preload/environment.js");
-const preloadGenericIpcApi = requireFromTest("../../preload/genericIpcApi.js");
-const preloadIpcHelpers = requireFromTest("../../preload/ipcHelpers.js");
-const preloadLogger = requireFromTest("../../preload/logger.js");
-const preloadMainStateApi = requireFromTest("../../preload/mainStateApi.js");
+const preloadElectronBridge = requireFromTest(
+    "../../../electron-app/preload/electronBridge.js"
+);
+const preloadEnvironment = requireFromTest(
+    "../../../electron-app/preload/environment.js"
+);
+const preloadGenericIpcApi = requireFromTest(
+    "../../../electron-app/preload/genericIpcApi.js"
+);
+const preloadIpcHelpers = requireFromTest(
+    "../../../electron-app/preload/ipcHelpers.js"
+);
+const preloadLogger = requireFromTest(
+    "../../../electron-app/preload/logger.js"
+);
+const preloadMainStateApi = requireFromTest(
+    "../../../electron-app/preload/mainStateApi.js"
+);
 const preloadMainStateBridge = requireFromTest(
-    "../../preload/mainStateBridge.js"
+    "../../../electron-app/preload/mainStateBridge.js"
 );
-const preloadValidators = requireFromTest("../../preload/validators.js");
+const preloadValidators = requireFromTest(
+    "../../../electron-app/preload/validators.js"
+);
 
 export function resolvePreloadScriptRequire(
     moduleName: string,
