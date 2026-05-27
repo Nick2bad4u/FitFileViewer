@@ -15,11 +15,7 @@ const steps = [
         label: "clean runtime dist",
     },
     {
-        args: [
-            require.resolve("typescript/bin/tsc"),
-            "--project",
-            "tsconfig.runtime.json",
-        ],
+        args: [scriptPath("run-typescript.mjs"), "runtime"],
         label: "compile runtime TypeScript",
     },
     {

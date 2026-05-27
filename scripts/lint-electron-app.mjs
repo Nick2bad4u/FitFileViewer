@@ -11,7 +11,6 @@ const eslintCliPath = path.join(
     path.dirname(eslintPackagePath),
     "bin/eslint.js"
 );
-const tscCliPath = require.resolve("typescript/bin/tsc");
 
 function runStep(label, args) {
     console.log(`[lint-electron-app] ${label}`);
@@ -44,9 +43,8 @@ runStep("eslint", [
     "electron-app",
 ]);
 
-runStep("typecheck", [
-    tscCliPath,
-    "--project",
-    "tsconfig.electron-app.json",
-    "--noEmit",
-]);
+runStep("typecheck", [scriptPath("run-typescript.mjs"), "typecheck"]);
+
+function scriptPath(name) {
+    return path.join(repositoryRoot, "scripts", name);
+}

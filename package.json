@@ -79,8 +79,8 @@
         "test:unit": "node scripts/run-vitest.mjs --run electron-app/tests/unit --maxWorkers 1",
         "test:watch": "node scripts/run-vitest.mjs --watch",
         "test:watch:changed": "node scripts/run-vitest.mjs --watch --changed",
-        "typecheck": "tsc --project tsconfig.electron-app.json --noEmit",
-        "types:build": "tsc --project tsconfig.electron-app.json --declaration --emitDeclarationOnly --declarationMap false --outDir ./electron-app/types",
+        "typecheck": "node scripts/run-typescript.mjs typecheck",
+        "types:build": "node scripts/run-typescript.mjs declarations",
         "update-deps": "npx npm-check-updates -i --workspaces --root --install never && npm install"
     },
     "devDependencies": {
