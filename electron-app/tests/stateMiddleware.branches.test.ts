@@ -63,7 +63,7 @@ describe("stateMiddleware additional branches", () => {
                 expect.stringContaining('Slow middleware "slowMW.beforeSet"'),
             ])
         );
-        expect(perfSpy).toHaveBeenCalled();
+        expect(perfSpy).toHaveBeenCalledTimes(2);
         cleanupMiddleware();
     });
 

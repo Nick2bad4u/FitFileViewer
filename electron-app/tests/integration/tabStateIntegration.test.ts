@@ -58,7 +58,7 @@ describe("Tab State Management Integration", () => {
             chartTab?.dispatchEvent(clickEvent);
 
             // Should prevent the click
-            expect(preventDefaultSpy).toHaveBeenCalled();
+            expect(preventDefaultSpy).toHaveBeenCalledOnce();
             // State should not change
             expect(mockState.setState).not.toHaveBeenCalledWith(
                 "ui.activeTab",
