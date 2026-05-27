@@ -11,6 +11,10 @@ type WorkspacesModule = {
     appWorkspacePath: string;
     appWorkspaceRepositoryPath: (...segments: string[]) => string;
     appWorkspaceRelativePath: (...segments: string[]) => string;
+    docusaurusWorkspaceAbsolutePath: (...segments: string[]) => string;
+    docusaurusWorkspaceName: string;
+    docusaurusWorkspacePath: string;
+    docusaurusWorkspaceRelativePath: (...segments: string[]) => string;
     repositoryRoot: string;
     repositoryScriptPath: (...segments: string[]) => string;
     scriptsPath: string;
@@ -22,7 +26,7 @@ async function importWorkspaces(): Promise<WorkspacesModule> {
 
 describe("workspace path helpers", () => {
     it("centralizes the app workspace root and generated output paths", async () => {
-        expect.assertions(12);
+        expect.assertions(16);
 
         const workspaces = await importWorkspaces();
 
@@ -33,6 +37,10 @@ describe("workspace path helpers", () => {
         expect(workspaces.appWorkspaceName).toBe("electron-app");
         expect(workspaces.appWorkspacePath).toBe(
             path.join(process.cwd(), "electron-app")
+        );
+        expect(workspaces.docusaurusWorkspaceName).toBe("docusaurus");
+        expect(workspaces.docusaurusWorkspacePath).toBe(
+            path.join(process.cwd(), "docusaurus")
         );
         expect(workspaces.appDistPath).toBe(path.join("electron-app", "dist"));
         expect(workspaces.appReleasePath).toBe(
@@ -49,6 +57,12 @@ describe("workspace path helpers", () => {
         );
         expect(workspaces.appWorkspaceAbsolutePath("dist")).toBe(
             path.join(process.cwd(), "electron-app", "dist")
+        );
+        expect(workspaces.docusaurusWorkspaceRelativePath("static")).toBe(
+            path.join("docusaurus", "static")
+        );
+        expect(workspaces.docusaurusWorkspaceAbsolutePath("static")).toBe(
+            path.join(process.cwd(), "docusaurus", "static")
         );
         expect(workspaces.scriptsPath).toBe(
             path.join(process.cwd(), "scripts")

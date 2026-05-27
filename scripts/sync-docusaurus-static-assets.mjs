@@ -1,62 +1,93 @@
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import process from "node:process";
+import { pathToFileURL } from "node:url";
 
-const repositoryRoot = fileURLToPath(new URL("..", import.meta.url));
-const staticAssets = [
-    {
-        source: path.join(
-            repositoryRoot,
-            "electron-app",
-            "icons",
-            "favicon.ico"
-        ),
-        target: path.join(
-            repositoryRoot,
-            "docusaurus",
-            "static",
-            "favicon.ico"
-        ),
-    },
-];
-const screenshotNames = [
+import {
+    appWorkspaceName,
+    docusaurusWorkspaceName,
+    repositoryRoot,
+} from "./lib/workspaces.mjs";
+
+export const screenshotNames = [
     "MapsV2.png",
     "DataV2.png",
     "ChartsV3.png",
 ];
-const sourceDir = path.join(repositoryRoot, "docs", "screenshots");
-const targetDir = path.join(
-    repositoryRoot,
-    "docusaurus",
-    "static",
-    "img",
-    "screenshots"
-);
 
-fs.mkdirSync(targetDir, { recursive: true });
+export function createStaticAssetPlan(root = repositoryRoot) {
+    const screenshotSourceDir = path.join(root, "docs", "screenshots");
+    const screenshotTargetDir = path.join(
+        root,
+        docusaurusWorkspaceName,
+        "static",
+        "img",
+        "screenshots"
+    );
 
-for (const { source, target } of staticAssets) {
-    if (!fs.existsSync(source)) {
-        throw new Error(`Missing canonical static asset: ${source}`);
-    }
-
-    fs.mkdirSync(path.dirname(target), { recursive: true });
-    fs.copyFileSync(source, target);
+    return {
+        screenshotNames,
+        screenshotSourceDir,
+        screenshotTargetDir,
+        staticAssets: [
+            {
+                source: path.join(
+                    root,
+                    appWorkspaceName,
+                    "icons",
+                    "favicon.ico"
+                ),
+                target: path.join(
+                    root,
+                    docusaurusWorkspaceName,
+                    "static",
+                    "favicon.ico"
+                ),
+            },
+        ],
+    };
 }
 
-for (const screenshotName of screenshotNames) {
-    const sourcePath = path.join(sourceDir, screenshotName);
-    const targetPath = path.join(targetDir, screenshotName);
+export function syncDocusaurusStaticAssets(
+    root = repositoryRoot,
+    logger = console.log
+) {
+    const plan = createStaticAssetPlan(root);
 
-    if (!fs.existsSync(sourcePath)) {
-        throw new Error(`Missing canonical screenshot: ${sourcePath}`);
+    fs.mkdirSync(plan.screenshotTargetDir, { recursive: true });
+
+    for (const { source, target } of plan.staticAssets) {
+        if (!fs.existsSync(source)) {
+            throw new Error(`Missing canonical static asset: ${source}`);
+        }
+
+        fs.mkdirSync(path.dirname(target), { recursive: true });
+        fs.copyFileSync(source, target);
     }
 
-    fs.copyFileSync(sourcePath, targetPath);
+    for (const screenshotName of plan.screenshotNames) {
+        const sourcePath = path.join(plan.screenshotSourceDir, screenshotName);
+        const targetPath = path.join(plan.screenshotTargetDir, screenshotName);
+
+        if (!fs.existsSync(sourcePath)) {
+            throw new Error(`Missing canonical screenshot: ${sourcePath}`);
+        }
+
+        fs.copyFileSync(sourcePath, targetPath);
+    }
+
+    const syncedCount = plan.staticAssets.length + plan.screenshotNames.length;
+
+    logger(
+        `[sync-docusaurus-static-assets] Synced ${syncedCount} static assets.`
+    );
+
+    return syncedCount;
 }
 
-console.log(
-    `[sync-docusaurus-static-assets] Synced ${
-        staticAssets.length + screenshotNames.length
-    } static assets.`
-);
+if (
+    process.argv[1] &&
+    import.meta.url === pathToFileURL(process.argv[1]).href
+) {
+    syncDocusaurusStaticAssets();
+}

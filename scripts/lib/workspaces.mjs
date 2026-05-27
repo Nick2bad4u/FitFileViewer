@@ -4,7 +4,12 @@ import { fileURLToPath } from "node:url";
 
 export const repositoryRoot = resolveRepositoryRoot();
 export const appWorkspaceName = "electron-app";
+export const docusaurusWorkspaceName = "docusaurus";
 export const appWorkspacePath = path.join(repositoryRoot, appWorkspaceName);
+export const docusaurusWorkspacePath = path.join(
+    repositoryRoot,
+    docusaurusWorkspaceName
+);
 export const appDistPath = appWorkspaceRelativePath("dist");
 export const appReleasePath = appWorkspaceRelativePath("release");
 export const appTypesPath = appWorkspaceRelativePath("types");
@@ -20,6 +25,14 @@ export function appWorkspaceAbsolutePath(...segments) {
 
 export function appWorkspaceRepositoryPath(...segments) {
     return path.posix.join(appWorkspaceName, ...segments);
+}
+
+export function docusaurusWorkspaceAbsolutePath(...segments) {
+    return path.join(docusaurusWorkspacePath, ...segments);
+}
+
+export function docusaurusWorkspaceRelativePath(...segments) {
+    return path.join(docusaurusWorkspaceName, ...segments);
 }
 
 export function repositoryScriptPath(...segments) {
