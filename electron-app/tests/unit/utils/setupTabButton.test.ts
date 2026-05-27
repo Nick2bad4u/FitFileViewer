@@ -179,9 +179,8 @@ describe("setupTabButton", () => {
     it("does nothing when clearing before cache initialization", () => {
         setupTabButtonWithCache.cache = undefined;
 
-        expect(() => {
-            clearTabButtonCache();
-        }).not.toThrow();
-        expect(setupTabButtonWithCache.cache).toBeUndefined();
+        expect(clearTabButtonCache()).toBeUndefined();
+
+        expect(setupTabButtonWithCache.cache).not.toBeDefined();
     });
 });
