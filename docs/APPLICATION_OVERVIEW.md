@@ -190,5 +190,6 @@ For deeper dives into particular subsystems:
 
 - FIT parsing: `docs/FIT_PARSER_MIGRATION_GUIDE.md`
 - Renderer state migration: `docs/STATE_MANAGEMENT_COMPLETE_GUIDE.md`
+- Main-process state client: `docs/MAIN_PROCESS_STATE_CLIENT_USAGE.md`
 
 Feel free to expand this overview as new modules or workflows are introduced.
