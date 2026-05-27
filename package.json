@@ -30,7 +30,7 @@
         "build:renderer": "vite build --config vite.renderer.config.mjs",
         "build:runtime-ts": "node scripts/clean-runtime-dist.mjs && tsc --project tsconfig.runtime.json && node scripts/bundle-preload.mjs && npm run build:renderer && node scripts/format-runtime-output.mjs && node scripts/prepare-runtime-dist.mjs",
         "build:win7": "node scripts/build-win7.mjs",
-        "changelog": "powershell -ExecutionPolicy Bypass -File ./.github/Update-ChangeLogs.ps1",
+        "changelog": "git-cliff --config cliff.toml --output CHANGELOG.md",
         "clean-releases": "powershell -ExecutionPolicy Bypass -File ./.github/Clean-Releases.ps1",
         "clean-releases:1": "powershell -ExecutionPolicy Bypass -File ./.github/Clean-Releases.ps1 -deleteTags -keepLast 1",
         "clean-releases:10": "powershell -ExecutionPolicy Bypass -File ./.github/Clean-Releases.ps1 -deleteTags -keepLast 10",
