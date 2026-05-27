@@ -1,0 +1,38 @@
+{
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "compilerOptions": {
+        "allowSyntheticDefaultImports": true,
+        "baseUrl": ".",
+        "esModuleInterop": true,
+        "isolatedModules": true,
+        "jsx": "react-jsx",
+        "lib": [
+            "DOM",
+            "DOM.Iterable",
+            "ESNext"
+        ],
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "noEmit": true,
+        "paths": {
+            "@site/*": [
+                "docusaurus/*"
+            ]
+        },
+        "resolveJsonModule": true,
+        "skipLibCheck": true,
+        "strict": true,
+        "target": "ESNext"
+    },
+    "exclude": [
+        "docusaurus/node_modules",
+        "docusaurus/build",
+        "docusaurus/.docusaurus"
+    ],
+    "extends": "@docusaurus/tsconfig",
+    "include": [
+        "docusaurus/src/**/*",
+        "docusaurus/docusaurus.config.ts",
+        "docusaurus/sidebars.ts"
+    ]
+}

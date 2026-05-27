@@ -3,9 +3,7 @@ import { createRequire } from "node:module";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 
-const docusaurusRoot = fileURLToPath(
-    new URL("../docusaurus/", import.meta.url)
-);
+const repositoryRoot = fileURLToPath(new URL("..", import.meta.url));
 const requireFromDocusaurus = createRequire(
     new URL("../docusaurus/package.json", import.meta.url)
 );
@@ -16,11 +14,11 @@ const result = spawnSync(
     [
         tscCliPath,
         "--project",
-        "tsconfig.json",
+        "tsconfig.docusaurus.json",
         ...process.argv.slice(2),
     ],
     {
-        cwd: docusaurusRoot,
+        cwd: repositoryRoot,
         stdio: "inherit",
     }
 );

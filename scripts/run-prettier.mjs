@@ -38,6 +38,7 @@ const prettierTargets = [
     "tsconfig.eslint.json",
     "tsconfig.electron-app.json",
     "tsconfig.runtime.json",
+    "tsconfig.docusaurus.json",
     "tsconfig.vitest-typecheck.json",
     "tsconfig.electron-app.eslint.json",
     "*.yml",
