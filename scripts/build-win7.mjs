@@ -9,6 +9,7 @@ import {
     appWorkspacePath,
     repositoryPath,
     repositoryRoot,
+    rootElectronBuilderFilesPath,
 } from "./lib/workspaces.mjs";
 
 const electronAppDir = appWorkspacePath;
@@ -17,7 +18,7 @@ const WIN7_ELECTRON_VERSION = "22.3.27";
 export const appPackageFiles = readElectronBuilderFiles();
 
 export function readElectronBuilderFiles() {
-    const fileListPath = repositoryPath("electron-builder.files.json");
+    const fileListPath = repositoryPath(rootElectronBuilderFilesPath);
     const parsed = JSON.parse(fs.readFileSync(fileListPath, "utf8"));
 
     return parseElectronBuilderFiles(parsed);
@@ -29,7 +30,7 @@ export function parseElectronBuilderFiles(parsed) {
         parsed.some((entry) => typeof entry !== "string")
     ) {
         throw new TypeError(
-            "electron-builder.files.json must contain an array of file pattern strings"
+            `${rootElectronBuilderFilesPath} must contain an array of file pattern strings`
         );
     }
 

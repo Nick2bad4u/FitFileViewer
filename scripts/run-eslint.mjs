@@ -8,6 +8,7 @@ import {
     appWorkspaceName,
     docusaurusWorkspaceName,
     repositoryRoot,
+    rootEslintConfigPath,
 } from "./lib/workspaces.mjs";
 
 const require = createRequire(import.meta.url);
@@ -21,14 +22,14 @@ export const eslintTargets = Object.freeze({
     docusaurus: {
         cacheLocation: ".cache/.eslintcache-docusaurus",
         paths: [`${docusaurusWorkspaceName}/**/*.{js,jsx,ts,tsx}`],
-        prefixArgs: ["--config", "eslint.config.mjs"],
+        prefixArgs: ["--config", rootEslintConfigPath],
     },
     electronApp: {
         cacheLocation: ".cache/.eslintcache-electron",
         paths: [appWorkspaceName],
         prefixArgs: [
             "--config",
-            "eslint.config.mjs",
+            rootEslintConfigPath,
             "--quiet",
         ],
     },

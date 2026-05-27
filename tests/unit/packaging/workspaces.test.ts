@@ -23,13 +23,25 @@ type WorkspacesModule = {
     repositoryRoot: string;
     repositoryPath: (...segments: string[]) => string;
     repositoryScriptPath: (...segments: string[]) => string;
+    rootElectronBuilderConfigPath: string;
+    rootElectronBuilderFilesPath: string;
     rootArtifactsPath: string;
     rootDocusaurusTsconfigPath: string;
     rootElectronAppTsconfigPath: string;
+    rootEslintConfigPath: string;
+    rootFlatpakBuildPath: string;
+    rootFlatpakBundlePath: string;
+    rootFlatpakManifestPath: string;
+    rootFlatpakRepoPath: string;
+    rootFlatpakZipPath: string;
+    rootPrettierConfigPath: string;
     rootReleaseDistPath: string;
     rootReleaseDistRelativePath: (...segments: string[]) => string;
     rootRuntimeTsconfigPath: string;
+    rootStylelintConfigPath: string;
+    rootTypedocConfigPath: string;
     scriptsPath: string;
+    appWorkspaceRelativeToRepositoryRootPath: (...segments: string[]) => string;
 };
 
 async function importWorkspaces(): Promise<WorkspacesModule> {
@@ -37,8 +49,8 @@ async function importWorkspaces(): Promise<WorkspacesModule> {
 }
 
 describe("workspace path helpers", () => {
-    it("centralizes the app workspace root and generated output paths", async () => {
-        expect.assertions(22);
+    it("centralizes the app workspace root paths", async () => {
+        expect.assertions(17);
 
         const workspaces = await importWorkspaces();
 
@@ -82,17 +94,39 @@ describe("workspace path helpers", () => {
         expect(workspaces.repositoryScriptPath("build-runtime.mjs")).toBe(
             path.join(process.cwd(), "scripts", "build-runtime.mjs")
         );
-        expect(workspaces.repositoryPath("flatpak-build.yml")).toBe(
-            path.join(process.cwd(), "flatpak-build.yml")
-        );
+        expect(
+            workspaces.repositoryPath(workspaces.rootFlatpakManifestPath)
+        ).toBe(path.join(process.cwd(), workspaces.rootFlatpakManifestPath));
+    });
+
+    it("centralizes root config and generated output paths", async () => {
+        expect.assertions(17);
+
+        const workspaces = await importWorkspaces();
+
         expect(workspaces.rootArtifactsPath).toBe("artifacts");
+        expect(workspaces.rootElectronBuilderConfigPath).toBe(
+            "electron-builder.config.cjs"
+        );
+        expect(workspaces.rootElectronBuilderFilesPath).toBe(
+            "electron-builder.files.json"
+        );
         expect(workspaces.rootElectronAppTsconfigPath).toBe(
             "tsconfig.electron-app.json"
         );
+        expect(workspaces.rootEslintConfigPath).toBe("eslint.config.mjs");
+        expect(workspaces.rootFlatpakBuildPath).toBe("flatpak-build-dir");
+        expect(workspaces.rootFlatpakBundlePath).toBe("FitFileViewer.flatpak");
+        expect(workspaces.rootFlatpakManifestPath).toBe("flatpak-build.yml");
+        expect(workspaces.rootFlatpakRepoPath).toBe("flatpak-repo");
+        expect(workspaces.rootFlatpakZipPath).toBe("FitFileViewer.flatpak.zip");
+        expect(workspaces.rootPrettierConfigPath).toBe("prettier.config.mjs");
         expect(workspaces.rootRuntimeTsconfigPath).toBe(
             "tsconfig.runtime.json"
         );
         expect(workspaces.rootReleaseDistPath).toBe("release-dist");
+        expect(workspaces.rootStylelintConfigPath).toBe("stylelint.config.mjs");
+        expect(workspaces.rootTypedocConfigPath).toBe("typedoc.json");
         expect(
             workspaces.rootReleaseDistRelativePath(
                 "windows-latest-ia32",
@@ -105,6 +139,11 @@ describe("workspace path helpers", () => {
                 "squirrel-windows-ia32"
             )
         );
+        expect(
+            workspaces.appWorkspaceRelativeToRepositoryRootPath(
+                workspaces.rootElectronBuilderConfigPath
+            )
+        ).toBe("../electron-builder.config.cjs");
     });
 
     it("centralizes the Docusaurus workspace root and package paths", async () => {

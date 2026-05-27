@@ -7,11 +7,13 @@ import { describe, expect, it } from "vitest";
 import {
     appWorkspacePath,
     repositoryPath,
+    rootElectronBuilderConfigPath,
+    rootElectronBuilderFilesPath,
 } from "../../../scripts/lib/workspaces.mjs";
 
 const requireFromTest = createRequire(import.meta.url);
 const repositoryRoot = process.cwd();
-const sharedFileListPath = repositoryPath("electron-builder.files.json");
+const sharedFileListPath = repositoryPath(rootElectronBuilderFilesPath);
 const electronAppRoot = appWorkspacePath;
 
 type ElectronBuilderConfig = {
@@ -58,15 +60,12 @@ describe("electron-builder file list", () => {
 
         const sharedFileList = readSharedFileList();
         const builderConfig = requireFromTest(
-            "../../../electron-builder.config.cjs"
+            repositoryPath(rootElectronBuilderConfigPath)
         ) as ElectronBuilderConfig;
         const win7Build =
             (await import("../../../scripts/build-win7.mjs")) as Win7BuildModule;
 
-        expect(sharedFileList).toStrictEqual([
-            "dist/**",
-            "package.json",
-        ]);
+        expect(sharedFileList).toStrictEqual(["dist/**", "package.json"]);
         expect(builderConfig.files).toStrictEqual(sharedFileList);
         expect(win7Build.readElectronBuilderFiles()).toStrictEqual(
             sharedFileList
@@ -83,7 +82,7 @@ describe("electron-builder file list", () => {
         expect(() => {
             win7Build.parseElectronBuilderFiles(["dist/**", 42]);
         }).toThrow(
-            "electron-builder.files.json must contain an array of file pattern strings"
+            `${rootElectronBuilderFilesPath} must contain an array of file pattern strings`
         );
     });
 

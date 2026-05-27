@@ -9,6 +9,7 @@ import {
     stylelintConfigPath,
     stylelintTargets,
 } from "../../../scripts/lint-css.mjs";
+import { rootStylelintConfigPath } from "../../../scripts/lib/workspaces.mjs";
 
 type CommandRunner = (
     command: string,
@@ -21,7 +22,7 @@ describe("lint-css wrapper", () => {
         expect.assertions(2);
 
         expect(stylelintTargets).toStrictEqual(["electron-app/**/*.css"]);
-        expect(stylelintConfigPath).toBe("stylelint.config.mjs");
+        expect(stylelintConfigPath).toBe(rootStylelintConfigPath);
     });
 
     it("builds Stylelint CLI arguments with root config and forwarded flags", () => {
@@ -34,7 +35,7 @@ describe("lint-css wrapper", () => {
             expect.arrayContaining([
                 "electron-app/**/*.css",
                 "--config",
-                "stylelint.config.mjs",
+                rootStylelintConfigPath,
                 "--quiet",
             ])
         );

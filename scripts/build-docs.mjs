@@ -8,6 +8,7 @@ import {
     docusaurusWorkspacePath,
     repositoryRoot,
     repositoryScriptPath,
+    rootTypedocConfigPath,
 } from "./lib/workspaces.mjs";
 
 const require = createRequire(import.meta.url);
@@ -18,7 +19,7 @@ const typedocCliPath = path.join(
     "typedoc"
 );
 
-export const typedocConfigPath = "typedoc.json";
+export const typedocConfigPath = rootTypedocConfigPath;
 
 export function buildDocsSteps(argv = process.argv.slice(2)) {
     const typedocOnly = argv.includes("--typedoc-only");

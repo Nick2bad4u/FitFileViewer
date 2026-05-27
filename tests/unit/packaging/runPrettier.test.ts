@@ -13,8 +13,14 @@ import {
     appPackageRepositoryPath,
     docusaurusPackageRepositoryPath,
     rootDocusaurusTsconfigPath,
+    rootElectronBuilderConfigPath,
+    rootElectronBuilderFilesPath,
     rootElectronAppTsconfigPath,
+    rootEslintConfigPath,
+    rootPrettierConfigPath,
     rootRuntimeTsconfigPath,
+    rootStylelintConfigPath,
+    rootTypedocConfigPath,
 } from "../../../scripts/lib/workspaces.mjs";
 
 type CommandRunner = (
@@ -25,12 +31,17 @@ type CommandRunner = (
 
 describe("run-prettier wrapper", () => {
     it("keeps root-owned formatting targets for app and workspace metadata", () => {
-        expect.assertions(9);
+        expect.assertions(14);
 
         expect(prettierTargets).toContain("package.json");
         expect(prettierTargets).toContain(appPackageRepositoryPath);
         expect(prettierTargets).toContain(docusaurusPackageRepositoryPath);
-        expect(prettierTargets).toContain("prettier.config.mjs");
+        expect(prettierTargets).toContain(rootPrettierConfigPath);
+        expect(prettierTargets).toContain(rootEslintConfigPath);
+        expect(prettierTargets).toContain(rootStylelintConfigPath);
+        expect(prettierTargets).toContain(rootTypedocConfigPath);
+        expect(prettierTargets).toContain(rootElectronBuilderConfigPath);
+        expect(prettierTargets).toContain(rootElectronBuilderFilesPath);
         expect(prettierTargets).toContain(rootElectronAppTsconfigPath);
         expect(prettierTargets).toContain(rootRuntimeTsconfigPath);
         expect(prettierTargets).toContain(rootDocusaurusTsconfigPath);

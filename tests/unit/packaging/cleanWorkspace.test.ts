@@ -9,6 +9,12 @@ import {
     appTypesPath,
     appWorkspaceRelativePath,
     docusaurusWorkspaceRelativePath,
+    rootArtifactsPath,
+    rootFlatpakBuildPath,
+    rootFlatpakBundlePath,
+    rootFlatpakRepoPath,
+    rootFlatpakZipPath,
+    rootReleaseDistPath,
 } from "../../../scripts/lib/workspaces.mjs";
 
 type CleanWorkspaceModule = {
@@ -51,14 +57,14 @@ describe("clean-workspace script", () => {
 
         expect(cleanupTargets).toEqual(
             expect.arrayContaining([
-                "FitFileViewer.flatpak",
-                "FitFileViewer.flatpak.zip",
-                "artifacts",
-                "flatpak-build-dir",
-                "flatpak-repo",
+                rootFlatpakBundlePath,
+                rootFlatpakZipPath,
+                rootArtifactsPath,
+                rootFlatpakBuildPath,
+                rootFlatpakRepoPath,
                 "coverage",
                 "html",
-                "release-dist",
+                rootReleaseDistPath,
                 appWorkspaceRelativePath("coverage"),
                 appDistPath,
                 appWorkspaceRelativePath("html"),
@@ -77,10 +83,10 @@ describe("clean-workspace script", () => {
         const { cleanWorkspace } = await importCleanWorkspace();
         const temporaryRoot = makeTemporaryRoot();
         const targets = [
-            "FitFileViewer.flatpak",
-            "artifacts",
-            "flatpak-repo",
-            "release-dist",
+            rootFlatpakBundlePath,
+            rootArtifactsPath,
+            rootFlatpakRepoPath,
+            rootReleaseDistPath,
             appDistPath,
             docusaurusWorkspaceRelativePath("build"),
         ];

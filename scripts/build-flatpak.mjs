@@ -4,11 +4,18 @@ import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
-import { repositoryPath, repositoryRoot } from "./lib/workspaces.mjs";
+import {
+    repositoryPath,
+    repositoryRoot,
+    rootFlatpakBuildPath,
+    rootFlatpakBundlePath,
+    rootFlatpakManifestPath,
+    rootFlatpakRepoPath,
+} from "./lib/workspaces.mjs";
 
-export const flatpakRepoDir = repositoryPath("flatpak-repo");
-export const flatpakBuildDir = repositoryPath("flatpak-build-dir");
-export const flatpakBundlePath = repositoryPath("FitFileViewer.flatpak");
+export const flatpakRepoDir = repositoryPath(rootFlatpakRepoPath);
+export const flatpakBuildDir = repositoryPath(rootFlatpakBuildPath);
+export const flatpakBundlePath = repositoryPath(rootFlatpakBundlePath);
 
 export function assertInsideRepo(targetPath, root = repositoryRoot) {
     const relativePath = path.relative(root, path.resolve(targetPath));
@@ -45,10 +52,10 @@ export function buildFlatpak({
     run(
         "flatpak-builder",
         [
-            "--repo=flatpak-repo",
+            `--repo=${rootFlatpakRepoPath}`,
             "--force-clean",
-            "flatpak-build-dir",
-            "flatpak-build.yml",
+            rootFlatpakBuildPath,
+            rootFlatpakManifestPath,
         ],
         commandRunner
     );
@@ -57,8 +64,8 @@ export function buildFlatpak({
         "flatpak",
         [
             "build-bundle",
-            "flatpak-repo",
-            "FitFileViewer.flatpak",
+            rootFlatpakRepoPath,
+            rootFlatpakBundlePath,
             "com.nick2bad4u.fitfileviewer",
         ],
         commandRunner

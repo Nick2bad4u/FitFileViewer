@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
     appWorkspaceName,
     docusaurusWorkspaceName,
+    rootEslintConfigPath,
 } from "../../../scripts/lib/workspaces.mjs";
 
 type RunEslintModule = {
@@ -45,7 +46,7 @@ describe("run-eslint script", () => {
         ]);
         expect(buildEslintArgs("electronApp")).toStrictEqual([
             "--config",
-            "eslint.config.mjs",
+            rootEslintConfigPath,
             "--quiet",
             "--cache",
             "--cache-strategy",
@@ -56,7 +57,7 @@ describe("run-eslint script", () => {
         ]);
         expect(buildEslintArgs("docusaurus")).toStrictEqual([
             "--config",
-            "eslint.config.mjs",
+            rootEslintConfigPath,
             "--cache",
             "--cache-strategy",
             "content",

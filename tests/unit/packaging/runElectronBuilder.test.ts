@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
 
+import {
+    appWorkspaceName,
+    appWorkspaceRelativeToRepositoryRootPath,
+    rootElectronBuilderConfigPath,
+} from "../../../scripts/lib/workspaces.mjs";
+
 type RunElectronBuilderModule = {
     electronBuilderBaseArgs: string[];
     parseArgs: (args: string[]) => {
@@ -21,9 +27,11 @@ describe("run-electron-builder script", () => {
 
         expect(electronBuilderBaseArgs).toStrictEqual([
             "--projectDir",
-            "electron-app",
+            appWorkspaceName,
             "--config",
-            "../electron-builder.config.cjs",
+            appWorkspaceRelativeToRepositoryRootPath(
+                rootElectronBuilderConfigPath
+            ),
         ]);
         expect(
             parseArgs([

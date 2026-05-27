@@ -23,7 +23,7 @@ describe("gitignore policy", () => {
     it("keeps root script helpers trackable while ignoring generated release output", () => {
         expect.assertions(4);
 
-        expect(checkIgnore("scripts/lib/new-helper.mjs")).toBe(false);
+        expect(checkIgnore("scripts/lib/new-helper.mjs")).not.toBe(true);
         expect(checkIgnore("artifacts/file")).toBe(true);
         expect(checkIgnore("release-dist/file")).toBe(true);
         expect(checkIgnore("html/index.html")).toBe(true);

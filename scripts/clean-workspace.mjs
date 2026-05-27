@@ -8,6 +8,10 @@ import {
     docusaurusWorkspaceRelativePath,
     repositoryRoot,
     rootArtifactsPath,
+    rootFlatpakBuildPath,
+    rootFlatpakBundlePath,
+    rootFlatpakRepoPath,
+    rootFlatpakZipPath,
     rootReleaseDistPath,
 } from "./lib/workspaces.mjs";
 
@@ -37,11 +41,11 @@ export const cleanupTargets = [
         "screenshots",
         "MapsV2.png"
     ),
-    "FitFileViewer.flatpak",
-    "FitFileViewer.flatpak.zip",
+    rootFlatpakBundlePath,
+    rootFlatpakZipPath,
     rootArtifactsPath,
-    "flatpak-build-dir",
-    "flatpak-repo",
+    rootFlatpakBuildPath,
+    rootFlatpakRepoPath,
     "coverage",
     "html",
     "playwright-report",

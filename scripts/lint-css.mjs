@@ -7,6 +7,7 @@ import { pathToFileURL } from "node:url";
 import {
     appWorkspaceRepositoryPath,
     repositoryRoot,
+    rootStylelintConfigPath,
 } from "./lib/workspaces.mjs";
 
 const require = createRequire(import.meta.url);
@@ -17,7 +18,7 @@ const stylelintCliPath = path.join(
 );
 
 export const stylelintTargets = [appWorkspaceRepositoryPath("**", "*.css")];
-export const stylelintConfigPath = "stylelint.config.mjs";
+export const stylelintConfigPath = rootStylelintConfigPath;
 
 export function buildStylelintArgs(argv = process.argv.slice(2)) {
     return [

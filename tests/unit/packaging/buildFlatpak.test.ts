@@ -9,6 +9,12 @@ import {
     flatpakBundlePath,
     flatpakRepoDir,
 } from "../../../scripts/build-flatpak.mjs";
+import {
+    rootFlatpakBuildPath,
+    rootFlatpakBundlePath,
+    rootFlatpakManifestPath,
+    rootFlatpakRepoPath,
+} from "../../../scripts/lib/workspaces.mjs";
 
 type CommandCall = {
     args: string[];
@@ -25,12 +31,14 @@ describe("build-flatpak script", () => {
     it("keeps generated Flatpak paths under the repository root", () => {
         expect.assertions(4);
 
-        expect(flatpakRepoDir).toBe(path.join(process.cwd(), "flatpak-repo"));
+        expect(flatpakRepoDir).toBe(
+            path.join(process.cwd(), rootFlatpakRepoPath)
+        );
         expect(flatpakBuildDir).toBe(
-            path.join(process.cwd(), "flatpak-build-dir")
+            path.join(process.cwd(), rootFlatpakBuildPath)
         );
         expect(flatpakBundlePath).toBe(
-            path.join(process.cwd(), "FitFileViewer.flatpak")
+            path.join(process.cwd(), rootFlatpakBundlePath)
         );
         expect(() => assertInsideRepo(path.join(process.cwd(), ".."))).toThrow(
             "Refusing to operate outside repo root"
@@ -64,10 +72,10 @@ describe("build-flatpak script", () => {
             "flatpak",
         ]);
         expect(commands[0]?.args).toStrictEqual([
-            "--repo=flatpak-repo",
+            `--repo=${rootFlatpakRepoPath}`,
             "--force-clean",
-            "flatpak-build-dir",
-            "flatpak-build.yml",
+            rootFlatpakBuildPath,
+            rootFlatpakManifestPath,
         ]);
         expect(commands.map(({ options }) => options.cwd)).toStrictEqual([
             process.cwd(),

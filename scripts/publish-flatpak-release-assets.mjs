@@ -4,9 +4,11 @@ import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
-const repositoryRoot = process.cwd();
-const flatpakBundleName = "FitFileViewer.flatpak";
-const flatpakZipName = `${flatpakBundleName}.zip`;
+import {
+    repositoryRoot,
+    rootFlatpakBundlePath,
+    rootFlatpakZipPath,
+} from "./lib/workspaces.mjs";
 
 if (
     process.argv[1] &&
@@ -122,8 +124,8 @@ export function getFlatpakReleaseAssetPaths(root, releaseTag) {
     return {
         releaseBundlePath: path.join(root, `${releaseBaseName}.flatpak`),
         releaseZipPath: path.join(root, `${releaseBaseName}.flatpak.zip`),
-        sourceBundlePath: path.join(root, flatpakBundleName),
-        sourceZipPath: path.join(root, flatpakZipName),
+        sourceBundlePath: path.join(root, rootFlatpakBundlePath),
+        sourceZipPath: path.join(root, rootFlatpakZipPath),
     };
 }
 
@@ -132,7 +134,7 @@ function printUsage() {
 
 Options:
   --release-tag <tag>  Release tag to upload to. Defaults to RELEASE_TAG.
-  --root <path>        Workspace root containing FitFileViewer.flatpak.
+  --root <path>        Workspace root containing ${rootFlatpakBundlePath}.
   -h, --help           Show this help text.`);
 }
 

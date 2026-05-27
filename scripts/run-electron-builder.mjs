@@ -4,7 +4,12 @@ import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
-import { appWorkspaceName, repositoryRoot } from "./lib/workspaces.mjs";
+import {
+    appWorkspaceName,
+    appWorkspaceRelativeToRepositoryRootPath,
+    repositoryRoot,
+    rootElectronBuilderConfigPath,
+} from "./lib/workspaces.mjs";
 
 const require = createRequire(
     pathToFileURL(
@@ -16,7 +21,7 @@ export const electronBuilderBaseArgs = [
     "--projectDir",
     appWorkspaceName,
     "--config",
-    "../electron-builder.config.cjs",
+    appWorkspaceRelativeToRepositoryRootPath(rootElectronBuilderConfigPath),
 ];
 
 export function parseArgs(argv) {

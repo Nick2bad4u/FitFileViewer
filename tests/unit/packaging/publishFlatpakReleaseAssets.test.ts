@@ -4,6 +4,11 @@ import path from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
+import {
+    rootFlatpakBundlePath,
+    rootFlatpakZipPath,
+} from "../../../scripts/lib/workspaces.mjs";
+
 type CommandCall = {
     args: string[];
     command: string;
@@ -80,8 +85,8 @@ describe("publish-flatpak-release-assets script", () => {
                 "workspace",
                 "FitFileViewer-v29.9.0.flatpak.zip"
             ),
-            sourceBundlePath: path.join("workspace", "FitFileViewer.flatpak"),
-            sourceZipPath: path.join("workspace", "FitFileViewer.flatpak.zip"),
+            sourceBundlePath: path.join("workspace", rootFlatpakBundlePath),
+            sourceZipPath: path.join("workspace", rootFlatpakZipPath),
         });
     });
 
@@ -91,7 +96,7 @@ describe("publish-flatpak-release-assets script", () => {
         const { publishFlatpakReleaseAssets } =
             await importPublishFlatpakReleaseAssets();
         const root = makeTemporaryRoot();
-        const sourceBundlePath = path.join(root, "FitFileViewer.flatpak");
+        const sourceBundlePath = path.join(root, rootFlatpakBundlePath);
         const calls: CommandCall[] = [];
 
         fs.writeFileSync(sourceBundlePath, "bundle");
@@ -112,7 +117,7 @@ describe("publish-flatpak-release-assets script", () => {
         expect(calls[0]?.command).toBe("zip");
         expect(calls[0]?.args).toStrictEqual([
             "-j",
-            path.join(root, "FitFileViewer.flatpak.zip"),
+            path.join(root, rootFlatpakZipPath),
             sourceBundlePath,
         ]);
         expect(calls[1]?.command).toBe("gh");
