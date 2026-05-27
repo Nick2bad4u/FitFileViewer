@@ -4,8 +4,8 @@ import process from "node:process";
 import { describe, expect, it, vi } from "vitest";
 
 import {
-    appIntegrationTestsPath,
     appUnitTestsPath,
+    rootIntegrationTestsPath,
     rootTabsTestsPath,
     rootUnitTestsPath,
     rootVitestConfigPath,
@@ -136,7 +136,7 @@ describe("run-vitest wrapper", () => {
                 expect.stringContaining(path.join("vitest", "vitest.mjs")),
                 "--config",
                 rootVitestConfigPath,
-                appIntegrationTestsPath,
+                rootIntegrationTestsPath,
             ])
         );
         expect(path.resolve(options.cwd)).toBe(process.cwd());

@@ -21,6 +21,7 @@ export const rootReleaseDistPath = "release-dist";
 export const rootRuntimeTsconfigPath = "tsconfig.runtime.json";
 export const rootStaticAssetsPath = "static";
 export const rootStylelintConfigPath = "stylelint.config.mjs";
+export const rootIntegrationTestsPath = path.posix.join("tests", "integration");
 export const rootTypedocConfigPath = "typedoc.json";
 export const rootUnitTestsPath = path.posix.join("tests", "unit");
 export const rootTabsTestsPath = path.posix.join(rootUnitTestsPath, "tabs");
@@ -36,10 +37,6 @@ export const appDistPath = appWorkspaceRelativePath("dist");
 export const appElevProfileCssPath = "elevProfile.css";
 export const appIconsPath = "icons";
 export const appIndexHtmlPath = "index.html";
-export const appIntegrationTestsPath = appWorkspaceRepositoryPath(
-    "tests",
-    "integration"
-);
 export const appPackagePath = appWorkspaceAbsolutePath("package.json");
 export const appPackageRepositoryPath =
     appWorkspaceRepositoryPath("package.json");

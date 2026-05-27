@@ -5,16 +5,16 @@ import process from "node:process";
 import { pathToFileURL } from "node:url";
 
 import {
-    appIntegrationTestsPath,
     appUnitTestsPath,
     repositoryRoot,
+    rootIntegrationTestsPath,
     rootTabsTestsPath,
     rootUnitTestsPath,
     rootVitestConfigPath,
 } from "./lib/workspaces.mjs";
 
 export const vitestSuites = Object.freeze({
-    integration: [appIntegrationTestsPath],
+    integration: [rootIntegrationTestsPath],
     tabs: [rootTabsTestsPath],
     unit: [rootUnitTestsPath, appUnitTestsPath],
 });

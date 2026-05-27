@@ -2,19 +2,25 @@
  * Exercises the tab-button state transitions used during app startup and
  * FIT-file load.
  */
+/* eslint-disable vitest/no-hooks -- Integration tests share DOM lifecycle setup. */
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
-const mockStateManager = {
-    getState: vi.fn(),
-    setState: vi.fn(),
-    subscribe: vi.fn((key, cb) => {
-        return () => {
-            /* noop */
-        };
-    }),
+type StateKey = "globalData" | "ui.activeTab" | "ui.tabButtonsEnabled";
+type StateShape = {
+    globalData: null | { records: { type?: string }[] };
+    "ui.activeTab": string;
+    "ui.tabButtonsEnabled": boolean;
 };
 
-let globalState = {
+const mockStateManager = {
+    getState: vi.fn<(key: StateKey) => StateShape[StateKey]>(),
+    setState: vi.fn<(key: StateKey, value: StateShape[StateKey]) => void>(),
+    subscribe: vi.fn<
+        (key: StateKey, cb: (value: StateShape[StateKey]) => void) => () => void
+    >(() => () => {}),
+};
+
+let globalState: StateShape = {
     "ui.activeTab": "summary",
     "ui.tabButtonsEnabled": false,
     globalData: null,
@@ -50,6 +56,14 @@ async function flushMutationObservers(): Promise<void> {
     await Promise.resolve();
 }
 
+function toHtmlButton(button: Element): HTMLButtonElement {
+    if (!(button instanceof HTMLButtonElement)) {
+        throw new TypeError(`Expected ${button.id} to be a button.`);
+    }
+
+    return button;
+}
+
 // Mock implementation
 mockStateManager.getState.mockImplementation((key) => globalState[key]);
 mockStateManager.setState.mockImplementation((key, value) => {
@@ -57,20 +71,25 @@ mockStateManager.setState.mockImplementation((key, value) => {
     const callbacks = mockStateManager.subscribe.mock.calls
         .filter((call) => call[0] === key)
         .map((call) => call[1]);
-    callbacks.forEach((callback) => callback(value));
+    for (const callback of callbacks) {
+        callback(value);
+    }
 });
 
-vi.mock("../../../utils/state/core/stateManager.js", () => ({
-    getState: mockStateManager.getState,
-    setState: mockStateManager.setState,
-    subscribe: mockStateManager.subscribe,
+vi.mock(
+    import("../../../electron-app/utils/state/core/stateManager.js"),
+    () => ({
+        getState: mockStateManager.getState,
+        setState: mockStateManager.setState,
+        subscribe: mockStateManager.subscribe,
+    })
+);
+
+vi.mock(import("../../../electron-app/utils/dom/index.js"), () => ({
+    isHTMLElement: (el: unknown) => el instanceof HTMLElement,
 }));
 
-vi.mock("../../../utils/dom/index.js", () => ({
-    isHTMLElement: (el) => el instanceof HTMLElement,
-}));
-
-describe("Tab button state integration", () => {
+describe("tab button state integration", () => {
     beforeEach(() => {
         globalState = {
             "ui.activeTab": "summary",
@@ -89,19 +108,27 @@ describe("Tab button state integration", () => {
     });
 
     it("enables all tab buttons after FIT data is loaded", async () => {
+        expect.hasAssertions();
+
         const { setTabButtonsEnabled, initializeTabButtonState } =
-            await import("../../utils/ui/controls/enableTabButtons.js");
+            await import("../../../electron-app/utils/ui/controls/enableTabButtons.js");
         const { initializeActiveTabState } =
-            await import("../../utils/ui/tabs/updateActiveTab.js");
+            await import("../../../electron-app/utils/ui/tabs/updateActiveTab.js");
 
         initializeTabButtonState();
         initializeActiveTabState();
 
         const buttons = document.querySelectorAll(".tab-button");
         buttons.forEach((button) => {
-            const btn = /** @type {HTMLButtonElement} */ button;
-            expect(btn.disabled).toBe(true);
-            expect(btn.hasAttribute("disabled")).toBe(true);
+            const btn = toHtmlButton(button);
+
+            expect({
+                disabled: btn.disabled,
+                hasDisabledAttribute: btn.hasAttribute("disabled"),
+            }).toStrictEqual({
+                disabled: true,
+                hasDisabledAttribute: true,
+            });
         });
 
         globalState.globalData = { records: [{ type: "activity" }] };
@@ -109,28 +136,37 @@ describe("Tab button state integration", () => {
 
         await flushMutationObservers();
 
-        if (typeof window !== "undefined") {
-            window.setTabButtonsEnabled = setTabButtonsEnabled;
-        }
+        window.setTabButtonsEnabled = setTabButtonsEnabled;
         setTabButtonsEnabled(true);
 
         await flushMutationObservers();
 
         buttons.forEach((button) => {
-            const btn = /** @type {HTMLButtonElement} */ button;
+            const btn = toHtmlButton(button);
 
-            expect(btn.disabled).toBe(false);
-            expect(btn.hasAttribute("disabled")).toBe(false);
-            expect(btn.hasAttribute("disabled")).not.toBe(true);
-            expect(btn.style.pointerEvents).toBe("auto");
+            expect({
+                disabled: btn.disabled,
+                hasDisabledAttribute: btn.hasAttribute("disabled"),
+                pointerEvents: btn.style.pointerEvents,
+            }).toStrictEqual({
+                disabled: false,
+                hasDisabledAttribute: false,
+                pointerEvents: "auto",
+            });
         });
+
+        expect(
+            [...buttons].map((button) => button.hasAttribute("disabled"))
+        ).not.toContain(true);
     }, 15000);
 
     it("does not re-add disabled attributes across repeated enable calls", async () => {
+        expect.hasAssertions();
+
         const { setTabButtonsEnabled, initializeTabButtonState } =
-            await import("../../utils/ui/controls/enableTabButtons.js");
+            await import("../../../electron-app/utils/ui/controls/enableTabButtons.js");
         const { initializeActiveTabState } =
-            await import("../../utils/ui/tabs/updateActiveTab.js");
+            await import("../../../electron-app/utils/ui/tabs/updateActiveTab.js");
 
         const changes: {
             newValue: null | string;
@@ -145,7 +181,7 @@ describe("Tab button state integration", () => {
                     mutation.type === "attributes" &&
                     mutation.attributeName === "disabled"
                 ) {
-                    const target = /** @type {HTMLElement} */ mutation.target;
+                    const target = mutation.target as HTMLElement;
                     changes.push({
                         target: target.id,
                         oldValue: mutation.oldValue,
@@ -219,10 +255,12 @@ describe("Tab button state integration", () => {
     }, 15000);
 
     it("preserves enabled state after rapid startup toggles", async () => {
+        expect.hasAssertions();
+
         const { setTabButtonsEnabled, initializeTabButtonState } =
-            await import("../../utils/ui/controls/enableTabButtons.js");
+            await import("../../../electron-app/utils/ui/controls/enableTabButtons.js");
         const { initializeActiveTabState } =
-            await import("../../utils/ui/tabs/updateActiveTab.js");
+            await import("../../../electron-app/utils/ui/tabs/updateActiveTab.js");
 
         initializeTabButtonState();
         initializeActiveTabState();
@@ -241,9 +279,16 @@ describe("Tab button state integration", () => {
 
         const buttons = document.querySelectorAll(".tab-button");
         buttons.forEach((button) => {
-            const btn = /** @type {HTMLButtonElement} */ button;
-            expect(btn.disabled).toBe(false);
-            expect(btn.hasAttribute("disabled")).toBe(false);
+            const btn = toHtmlButton(button);
+
+            expect({
+                disabled: btn.disabled,
+                hasDisabledAttribute: btn.hasAttribute("disabled"),
+            }).toStrictEqual({
+                disabled: false,
+                hasDisabledAttribute: false,
+            });
         });
     }, 15000);
 });
+/* eslint-enable vitest/no-hooks */

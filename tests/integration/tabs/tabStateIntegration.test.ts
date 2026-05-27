@@ -2,27 +2,35 @@
  * Integration tests for tab state management These tests verify the interaction
  * between TabStateManager, updateActiveTab, and enableTabButtons
  */
+/* eslint-disable vitest/no-hooks -- Integration tests share DOM lifecycle setup. */
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
     createMockTabButtons,
     cleanupDOM,
     mockStateManager,
-} from "../../../tests/fixtures/tabFixtures.js";
+} from "../../fixtures/tabFixtures.js";
 
 // Mock the state manager
 const mockState = mockStateManager();
-vi.mock("../../utils/state/core/stateManager.js", () => mockState);
+vi.mock(
+    import("../../../electron-app/utils/state/core/stateManager.js"),
+    () => mockState
+);
 
 // Import modules after mocking
 const { initializeActiveTabState } =
-    await import("../../utils/ui/tabs/updateActiveTab.js");
+    await import("../../../electron-app/utils/ui/tabs/updateActiveTab.js");
 const { setTabButtonsEnabled } =
-    await import("../../utils/ui/controls/enableTabButtons.js");
+    await import("../../../electron-app/utils/ui/controls/enableTabButtons.js");
 
 function getRequiredTabButton(id: string): HTMLButtonElement {
     const element = document.getElementById(id);
-    expect(element).toBeInstanceOf(HTMLButtonElement);
-    return element as HTMLButtonElement;
+
+    if (!(element instanceof HTMLButtonElement)) {
+        throw new TypeError(`Expected #${id} to be a button.`);
+    }
+
+    return element;
 }
 
 function getTabState(button: HTMLButtonElement) {
@@ -36,7 +44,7 @@ function getTabState(button: HTMLButtonElement) {
     };
 }
 
-describe("Tab State Management Integration", () => {
+describe("tab state management integration", () => {
     beforeEach(() => {
         // Reset mocks and DOM
         vi.clearAllMocks();
@@ -52,8 +60,10 @@ describe("Tab State Management Integration", () => {
         cleanupDOM();
     });
 
-    describe("Tab button lifecycle during file loading", () => {
+    describe("tab button lifecycle during file loading", () => {
         it("should disable tabs before file load and prevent clicks", () => {
+            expect.hasAssertions();
+
             // Initialize tab state management
             initializeActiveTabState();
 
@@ -62,6 +72,7 @@ describe("Tab State Management Integration", () => {
 
             // Verify tabs are disabled
             const chartTab = getRequiredTabButton("tab-chart");
+
             expect(getTabState(chartTab)).toStrictEqual({
                 ariaSelected: "false",
                 classes: ["tab-button", "tab-disabled"],
@@ -88,6 +99,8 @@ describe("Tab State Management Integration", () => {
         });
 
         it("should re-enable tabs after file load and allow clicks", () => {
+            expect.hasAssertions();
+
             // Initialize and disable tabs
             initializeActiveTabState();
             setTabButtonsEnabled(false);
@@ -97,6 +110,7 @@ describe("Tab State Management Integration", () => {
 
             // Verify tabs are enabled
             const chartTab = getRequiredTabButton("tab-chart");
+
             expect(getTabState(chartTab)).toStrictEqual({
                 ariaSelected: "false",
                 classes: ["tab-button"],
@@ -119,6 +133,8 @@ describe("Tab State Management Integration", () => {
         });
 
         it("should handle multiple enable/disable cycles correctly", () => {
+            expect.hasAssertions();
+
             initializeActiveTabState();
 
             const chartTab = getRequiredTabButton("tab-chart");
@@ -126,11 +142,15 @@ describe("Tab State Management Integration", () => {
             // Cycle through multiple disable/enable states
             for (let i = 0; i < 5; i++) {
                 setTabButtonsEnabled(false);
-                expect(chartTab.disabled).toBe(true);
+
+                expect({ disabled: chartTab.disabled }).toStrictEqual({
+                    disabled: true,
+                });
 
                 // Click should be prevented
                 const clickEvent = new MouseEvent("click", { bubbles: true });
                 chartTab.dispatchEvent(clickEvent);
+
                 expect(mockState.setState).not.toHaveBeenCalledWith(
                     "ui.activeTab",
                     "chart",
@@ -140,7 +160,10 @@ describe("Tab State Management Integration", () => {
                 );
 
                 setTabButtonsEnabled(true);
-                expect(chartTab.disabled).toBe(false);
+
+                expect({ disabled: chartTab.disabled }).toStrictEqual({
+                    disabled: false,
+                });
 
                 // Clear previous calls for next iteration
                 mockState.setState.mockClear();
@@ -148,8 +171,10 @@ describe("Tab State Management Integration", () => {
         });
     });
 
-    describe("State synchronization between systems", () => {
+    describe("state synchronization between systems", () => {
         it("should maintain state consistency when tabs are disabled", () => {
+            expect.hasAssertions();
+
             initializeActiveTabState();
 
             // Set chart as active programmatically
@@ -199,6 +224,8 @@ describe("Tab State Management Integration", () => {
         });
 
         it("should handle rapid state changes during disabled state", () => {
+            expect.hasAssertions();
+
             initializeActiveTabState();
             setTabButtonsEnabled(false);
 
@@ -215,6 +242,7 @@ describe("Tab State Management Integration", () => {
 
             // Final state should be reflected in DOM
             const summaryTab = getRequiredTabButton("tab-summary");
+
             expect([...summaryTab.classList].sort()).toStrictEqual([
                 "active",
                 "tab-button",
@@ -222,12 +250,16 @@ describe("Tab State Management Integration", () => {
             ]);
 
             // But tabs should still be disabled
-            expect(summaryTab.disabled).toBe(true);
+            expect({ disabled: summaryTab.disabled }).toStrictEqual({
+                disabled: true,
+            });
         });
     });
 
-    describe("Error handling and edge cases", () => {
+    describe("error handling and edge cases", () => {
         it("should handle missing tab elements gracefully", () => {
+            expect.hasAssertions();
+
             // Remove a tab button
             getRequiredTabButton("tab-chart").remove();
 
@@ -243,6 +275,8 @@ describe("Tab State Management Integration", () => {
         });
 
         it("should handle initialization without DOM elements", () => {
+            expect.hasAssertions();
+
             cleanupDOM();
 
             initializeActiveTabState();
@@ -262,6 +296,8 @@ describe("Tab State Management Integration", () => {
         });
 
         it("should handle state changes before initialization", () => {
+            expect.hasAssertions();
+
             // Change state before initializing
             mockState.setState("ui.activeTab", "chart");
 
@@ -274,6 +310,7 @@ describe("Tab State Management Integration", () => {
 
             // Should reflect the state
             const chartTab = getRequiredTabButton("tab-chart");
+
             expect([...chartTab.classList]).toStrictEqual([
                 "tab-button",
                 "active",
@@ -281,6 +318,8 @@ describe("Tab State Management Integration", () => {
         });
 
         it("should handle invalid tab names", () => {
+            expect.hasAssertions();
+
             initializeActiveTabState();
 
             // Set invalid tab name
@@ -295,8 +334,10 @@ describe("Tab State Management Integration", () => {
         });
     });
 
-    describe("Performance and memory", () => {
+    describe("performance and memory", () => {
         it("should not leak event listeners on repeated initialization", () => {
+            expect.hasAssertions();
+
             // Initialize multiple times
             for (let i = 0; i < 10; i++) {
                 initializeActiveTabState();
@@ -315,7 +356,7 @@ describe("Tab State Management Integration", () => {
             );
 
             expect(tabClickCalls).toHaveLength(10);
-            expect(tabClickCalls).toEqual(
+            expect(tabClickCalls).toStrictEqual(
                 Array.from({ length: 10 }, () => [
                     "ui.activeTab",
                     "chart",
@@ -325,6 +366,8 @@ describe("Tab State Management Integration", () => {
         });
 
         it("should handle high-frequency state changes", () => {
+            expect.hasAssertions();
+
             initializeActiveTabState();
 
             // Rapidly change states
@@ -340,8 +383,11 @@ describe("Tab State Management Integration", () => {
 
             // Should handle without errors
             const activeTab = document.querySelector(".tab-button.active");
+
             expect(activeTab).toBeInstanceOf(HTMLButtonElement);
+
             const activeTabButton = activeTab as HTMLButtonElement;
+
             expect(activeTabButton.id).toBe("tab-table");
             expect(
                 document.querySelectorAll(".tab-button.active")
@@ -350,3 +396,4 @@ describe("Tab State Management Integration", () => {
         });
     });
 });
+/* eslint-enable vitest/no-hooks */

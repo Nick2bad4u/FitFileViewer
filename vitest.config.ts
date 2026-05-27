@@ -166,6 +166,7 @@ export default defineConfig({
         globalSetup: ["tests/vitest/globalSetup.mjs"],
         hookTimeout: 30_000,
         include: [
+            "tests/integration/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
             "tests/unit/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
             "electron-app/tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
             "electron-app/utils/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",

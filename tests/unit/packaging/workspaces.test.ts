@@ -8,7 +8,6 @@ type WorkspacesModule = {
     appElevProfileCssPath: string;
     appIconsPath: string;
     appIndexHtmlPath: string;
-    appIntegrationTestsPath: string;
     appPackagePath: string;
     appPackageRepositoryPath: string;
     appStyleCssPath: string;
@@ -46,6 +45,7 @@ type WorkspacesModule = {
     rootFlatpakManifestPath: string;
     rootFlatpakRepoPath: string;
     rootFlatpakZipPath: string;
+    rootIntegrationTestsPath: string;
     rootPrettierConfigPath: string;
     rootReleaseDistPath: string;
     rootReleaseDistRelativePath: (...segments: string[]) => string;
@@ -111,7 +111,7 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes app runtime asset and test paths", async () => {
-        expect.assertions(14);
+        expect.assertions(13);
 
         const workspaces = await importWorkspaces();
 
@@ -128,9 +128,6 @@ describe("workspace path helpers", () => {
         expect(workspaces.rootAppIconsPath).toBe("static/icons");
         expect(workspaces.rootAppIndexHtmlPath).toBe("static/app/index.html");
         expect(workspaces.rootAppStyleCssPath).toBe("static/app/style.css");
-        expect(workspaces.appIntegrationTestsPath).toBe(
-            "electron-app/tests/integration"
-        );
         expect(workspaces.appStyleCssPath).toBe("style.css");
         expect(workspaces.appUnitTestsPath).toBe("electron-app/tests/unit");
     });
@@ -164,7 +161,7 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes root generated output and test paths", async () => {
-        expect.assertions(10);
+        expect.assertions(11);
 
         const workspaces = await importWorkspaces();
 
@@ -174,6 +171,7 @@ describe("workspace path helpers", () => {
         expect(workspaces.rootFlatpakRepoPath).toBe("flatpak-repo");
         expect(workspaces.rootFlatpakZipPath).toBe("FitFileViewer.flatpak.zip");
         expect(workspaces.rootReleaseDistPath).toBe("release-dist");
+        expect(workspaces.rootIntegrationTestsPath).toBe("tests/integration");
         expect(workspaces.rootUnitTestsPath).toBe("tests/unit");
         expect(workspaces.rootTabsTestsPath).toBe("tests/unit/tabs");
         expect(

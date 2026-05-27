@@ -376,6 +376,9 @@ electron-app/tests/
 ├── mocks/                           # Test mocks
 └── strictTests/                     # Strict testing scenarios
 
+tests/integration/
+└── tabs/                            # Root-owned tab integration tests
+
 tests/unit/
 ├── packaging/                       # Root-owned build/tooling tests
 └── tabs/                            # Root-owned shared tab behavior tests

@@ -58,6 +58,7 @@ export const prettierTargets = [
     ".github/workflows/*.yml",
     "scripts/*.mjs",
     "tests/fixtures/**/*.{js,ts}",
+    "tests/integration/**/*.ts",
     "tests/unit/**/*.ts",
     "tests/playwright/**/*.ts",
     "tests/vitest/**/*.{cjs,mjs,ts}",
