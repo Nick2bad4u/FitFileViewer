@@ -4,12 +4,17 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import {
+    appWorkspaceAbsolutePath,
+    appWorkspacePath,
+} from "./lib/workspaces.mjs";
+
 const __filename = fileURLToPath(import.meta.url);
 
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "..");
-const electronAppDir = path.join(repoRoot, "electron-app");
-const outputDir = path.join(electronAppDir, "release", "win7");
+const electronAppDir = appWorkspacePath;
+const outputDir = appWorkspaceAbsolutePath("release", "win7");
 const WIN7_ELECTRON_VERSION = "22.3.27";
 export const appPackageFiles = readElectronBuilderFiles();
 

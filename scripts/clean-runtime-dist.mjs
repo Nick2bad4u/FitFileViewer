@@ -1,10 +1,13 @@
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
-const repositoryRoot = fileURLToPath(new URL("..", import.meta.url));
-const appDir = path.join(repositoryRoot, "electron-app");
-const distDir = path.join(appDir, "dist");
+import {
+    appWorkspaceAbsolutePath,
+    appWorkspacePath,
+} from "./lib/workspaces.mjs";
+
+const appDir = appWorkspacePath;
+const distDir = appWorkspaceAbsolutePath("dist");
 
 function assertInsideElectronApp(targetPath) {
     const resolvedRoot = path.resolve(appDir);

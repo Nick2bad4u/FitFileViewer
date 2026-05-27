@@ -3,6 +3,8 @@ import { createRequire } from "node:module";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 
+import { appTypesPath } from "./lib/workspaces.mjs";
+
 const repositoryRoot = fileURLToPath(new URL("..", import.meta.url));
 const require = createRequire(import.meta.url);
 const tscCliPath = require.resolve("typescript/bin/tsc");
@@ -18,7 +20,7 @@ const tasks = new Map([
             "--declarationMap",
             "false",
             "--outDir",
-            "./electron-app/types",
+            `./${appTypesPath}`,
         ],
     ],
     ["runtime", ["--project", "tsconfig.runtime.json"]],

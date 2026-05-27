@@ -1,23 +1,17 @@
 import fs from "node:fs";
 import path from "node:path";
-import process from "node:process";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { pathToFileURL } from "node:url";
 
-const repositoryRoot = resolveRepositoryRoot();
-const defaultAppDir = path.join(repositoryRoot, "electron-app");
-const defaultDistDir = path.join(defaultAppDir, "dist");
+import {
+    appWorkspaceAbsolutePath,
+    appWorkspacePath,
+} from "./lib/workspaces.mjs";
+
+const defaultAppDir = appWorkspacePath;
+const defaultDistDir = appWorkspaceAbsolutePath("dist");
 
 export const directoryCopies = ["ffv", "icons"];
 export const fileCopies = ["elevProfile.css", "style.css"];
-
-function resolveRepositoryRoot() {
-    const setupImportMetaUrl = String(import.meta.url ?? "");
-    if (setupImportMetaUrl.startsWith("file:")) {
-        return fileURLToPath(new URL("..", setupImportMetaUrl));
-    }
-
-    return process.cwd();
-}
 
 function assertInsideElectronApp(appDir, targetPath) {
     const resolvedRoot = path.resolve(appDir);

@@ -4,8 +4,10 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { appWorkspaceName } from "./lib/workspaces.mjs";
+
 const defaultRepositoryRoot = resolveRepositoryRoot();
-export const defaultWorkspace = "electron-app";
+export const defaultWorkspace = appWorkspaceName;
 
 if (
     process.argv[1] &&

@@ -2,23 +2,15 @@ import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import path from "node:path";
 import process from "node:process";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { pathToFileURL } from "node:url";
 
-const repositoryRoot = resolveRepositoryRoot();
+import { appWorkspaceName, repositoryRoot } from "./lib/workspaces.mjs";
+
 const require = createRequire(
     pathToFileURL(path.join(repositoryRoot, "scripts", "run-electron.mjs")).href
 );
 const electronCliPath = require.resolve("electron/cli.js");
-export const defaultAppPath = "electron-app";
-
-function resolveRepositoryRoot() {
-    const setupImportMetaUrl = String(import.meta.url ?? "");
-    if (setupImportMetaUrl.startsWith("file:")) {
-        return fileURLToPath(new URL("..", setupImportMetaUrl));
-    }
-
-    return process.cwd();
-}
+export const defaultAppPath = appWorkspaceName;
 
 export function parseArgs(argv) {
     const electronArgs = [];

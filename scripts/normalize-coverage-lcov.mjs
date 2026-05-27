@@ -3,10 +3,11 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { appWorkspaceAbsolutePath } from "./lib/workspaces.mjs";
+
 const repoRoot = fileURLToPath(new URL("..", import.meta.url));
-const electronAppDir = path.join(repoRoot, "electron-app");
 const repoRootPosix = repoRoot.replaceAll("\\", "/");
-const coverageTargetDir = path.join(electronAppDir, "coverage");
+const coverageTargetDir = appWorkspaceAbsolutePath("coverage");
 
 const candidateDirs = [
     process.env.VITEST_COVERAGE_DIR

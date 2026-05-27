@@ -3,6 +3,8 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { appWorkspaceRelativePath } from "./lib/workspaces.mjs";
+
 const repositoryRoot = resolveRepositoryRoot();
 
 export const cleanupTargets = [
@@ -23,13 +25,13 @@ export const cleanupTargets = [
     "html",
     "playwright-report",
     "test-results",
-    path.join("electron-app", "dist"),
-    path.join("electron-app", "html"),
-    path.join("electron-app", "logs"),
-    path.join("electron-app", "release"),
-    path.join("electron-app", "temp-win7"),
-    path.join("electron-app", "test-results"),
-    path.join("electron-app", "types"),
+    appWorkspaceRelativePath("dist"),
+    appWorkspaceRelativePath("html"),
+    appWorkspaceRelativePath("logs"),
+    appWorkspaceRelativePath("release"),
+    appWorkspaceRelativePath("temp-win7"),
+    appWorkspaceRelativePath("test-results"),
+    appWorkspaceRelativePath("types"),
 ];
 
 export function cleanWorkspace(

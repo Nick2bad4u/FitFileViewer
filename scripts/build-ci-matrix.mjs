@@ -4,9 +4,11 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { appReleasePath } from "./lib/workspaces.mjs";
+
 export const defaultInitialRetryDelaySeconds = 15;
 export const defaultMaxMacosAttempts = 3;
-export const defaultReleaseDirectory = path.join("electron-app", "release");
+export const defaultReleaseDirectory = appReleasePath;
 
 if (
     process.argv[1] &&

@@ -4,6 +4,8 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { appWorkspaceName } from "./lib/workspaces.mjs";
+
 const repositoryRoot = resolveRepositoryRoot();
 const require = createRequire(
     pathToFileURL(path.join(repositoryRoot, "scripts", "run-eslint.mjs")).href
@@ -22,7 +24,7 @@ export const eslintTargets = Object.freeze({
     },
     electronApp: {
         cacheLocation: ".cache/.eslintcache-electron",
-        paths: ["electron-app"],
+        paths: [appWorkspaceName],
         prefixArgs: [
             "--config",
             "eslint.config.mjs",
@@ -34,7 +36,7 @@ export const eslintTargets = Object.freeze({
         paths: [
             ".",
             "--ignore-pattern",
-            "electron-app/**",
+            `${appWorkspaceName}/**`,
             "--ignore-pattern",
             "docusaurus/**",
         ],
