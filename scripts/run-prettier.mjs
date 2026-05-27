@@ -14,7 +14,7 @@ const prettierTargets = [
     "docusaurus/docusaurus.config.ts",
     "docusaurus/sidebars.ts",
     "docusaurus/tsconfig.json",
-    "docusaurus/typedoc.json",
+    "typedoc.json",
     ".devskim.json",
     ".jscpd.json",
     ".markdown-link-check.json",

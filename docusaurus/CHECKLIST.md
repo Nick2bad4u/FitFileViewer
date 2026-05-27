@@ -140,7 +140,7 @@ If you see these, something is wrong:
 
 ### TypeDoc Fails
 
-1. Check `typedoc.json` exclude list
+1. Check `../typedoc.json` exclude list
 2. Run `npm run docs:typedoc` separately from the repository root to see full output
 3. Check electron-app JSDoc comments are valid
 4. See `SETUP.md` for detailed troubleshooting

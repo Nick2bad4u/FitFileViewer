@@ -92,7 +92,7 @@ const config = {
     organizationName: "Nick2bad4u",
 
     // TypeDoc documentation is generated via standalone TypeDoc (npm run docs:typedoc)
-    // This uses our custom typedoc.config.json configuration for better docs
+    // This uses the root typedoc.json configuration for better docs
     plugins: [
         "docusaurus-plugin-image-zoom",
         [

@@ -73,7 +73,7 @@ TypeDoc processes:
 
 ### Configuration
 
-- **typedoc.json** - Shared TypeDoc config for CI and local builds
+- **../typedoc.json** - Shared TypeDoc config for CI and local builds
 
 This config:
 

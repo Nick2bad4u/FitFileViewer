@@ -28,7 +28,7 @@ const steps = [
             "--options",
             "typedoc.json",
         ],
-        cwd: docusaurusRoot,
+        cwd: repositoryRoot,
         label: "generate API docs",
     },
     {

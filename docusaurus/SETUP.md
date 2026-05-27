@@ -63,7 +63,6 @@ docusaurus/
 │   └── img/              # Site images and logo
 ├── docusaurus.config.ts  # Site configuration
 ├── sidebars.ts           # Sidebar navigation
-├── typedoc.json          # Shared TypeDoc config
 └── package.json          # Docusaurus workspace dependencies
 ```
 
@@ -121,7 +120,7 @@ These are generated type definitions, not source files. They're excluded from pr
 
 If TypeDoc encounters errors:
 
-- Check `typedoc.json` exclude list
+- Check `../typedoc.json` exclude list
 - Problematic files can be excluded individually
 - `skipErrorChecking: true` helps with minor issues
 

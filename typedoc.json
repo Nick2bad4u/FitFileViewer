@@ -66,14 +66,14 @@
     "cleanOutputDir": true,
     "commentStyle": "all",
     "compilerOptions": {
-        "skipLibCheck": true,
+        "noErrorTruncation": false,
         "skipDefaultLibCheck": true,
-        "noErrorTruncation": false
+        "skipLibCheck": true
     },
     "emit": "docs",
     "entryPointStrategy": "expand",
     "entryPoints": [
-        "../electron-app/**/*.{ts,mts,cts,tsx,js,jsx}"
+        "electron-app/**/*.{ts,mts,cts,tsx,js,jsx}"
     ],
     "exclude": [
         "**/dist/**",
@@ -106,6 +106,9 @@
     "expandObjects": true,
     "expandParameters": true,
     "externalSymbolLinkMappings": {
+        "chart.js": {
+            "Chart": "https://www.chartjs.org/docs/latest/getting-started/"
+        },
         "electron": {
             "BrowserWindow": "https://www.electronjs.org/docs/latest/api/browser-window",
             "Menu": "https://www.electronjs.org/docs/latest/api/menu",
@@ -114,13 +117,6 @@
             "ipcMain": "https://www.electronjs.org/docs/latest/api/ipc-main",
             "ipcRenderer": "https://www.electronjs.org/docs/latest/api/ipc-renderer"
         },
-        "chart.js": {
-            "Chart": "https://www.chartjs.org/docs/latest/getting-started/"
-        },
-        "leaflet": {
-            "L": "https://leafletjs.com/reference.html",
-            "Map": "https://leafletjs.com/reference.html#map"
-        },
         "javascript": {
             "Array": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array",
             "Date": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date",
@@ -128,6 +124,10 @@
             "Map": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map",
             "Promise": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise",
             "Set": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set"
+        },
+        "leaflet": {
+            "L": "https://leafletjs.com/reference.html",
+            "Map": "https://leafletjs.com/reference.html#map"
         },
         "node": {
             "Buffer": "https://nodejs.org/docs/latest/api/buffer.html#class-buffer",
@@ -161,7 +161,7 @@
         "Method"
     ],
     "name": "FitFileViewer - API Documentation",
-    "out": "docs/api",
+    "out": "docusaurus/docs/api",
     "plugin": [
         "typedoc-plugin-markdown"
     ],
@@ -175,7 +175,7 @@
         "alphabetical"
     ],
     "treatWarningsAsErrors": false,
-    "tsconfig": "../tsconfig.electron-app.json",
+    "tsconfig": "tsconfig.electron-app.json",
     "validation": {
         "invalidLink": false,
         "notDocumented": false,
