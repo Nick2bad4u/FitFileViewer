@@ -1,20 +1,15 @@
 // Electron Builder config is rooted here so packaging is managed from the workspace root.
 const { version: electronVersion } = require("electron/package.json");
 
+const appPackageFiles = require("./electron-builder.files.json");
+
 module.exports = {
     electronVersion,
     icon: "icons/favicon.ico",
     directories: {
         output: "release",
     },
-    files: [
-        "dist/**",
-        "elevProfile.css",
-        "icons/**",
-        "index.html",
-        "package.json",
-        "style.css",
-    ],
+    files: appPackageFiles,
     appId: "io.github.nick2bad4u.fitfileviewer",
     artifactName: "Fit-File-Viewer-${platform}-${arch}-${version}.${ext}",
     asar: true,

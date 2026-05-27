@@ -11,14 +11,23 @@ const repoRoot = path.resolve(__dirname, "..");
 const electronAppDir = path.join(repoRoot, "electron-app");
 const outputDir = path.join(electronAppDir, "release", "win7");
 const WIN7_ELECTRON_VERSION = "22.3.27";
-const appPackageFiles = [
-    "dist/**",
-    "elevProfile.css",
-    "icons/**",
-    "index.html",
-    "package.json",
-    "style.css",
-];
+const appPackageFiles = readElectronBuilderFiles();
+
+function readElectronBuilderFiles() {
+    const fileListPath = path.join(repoRoot, "electron-builder.files.json");
+    const parsed = JSON.parse(fs.readFileSync(fileListPath, "utf8"));
+
+    if (
+        !Array.isArray(parsed) ||
+        parsed.some((entry) => typeof entry !== "string")
+    ) {
+        throw new TypeError(
+            "electron-builder.files.json must contain an array of file pattern strings"
+        );
+    }
+
+    return parsed;
+}
 
 function assertInsideElectronApp(targetPath) {
     const relativePath = path.relative(
