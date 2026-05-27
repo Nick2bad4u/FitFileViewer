@@ -57,7 +57,7 @@ describe("createPowerZoneControls", () => {
     it("updatePowerZoneControlsVisibility does not create controls when missing", async () => {
         const { updatePowerZoneControlsVisibility } = await loadModule();
 
-        expect(() => updatePowerZoneControlsVisibility(true)).not.toThrow();
+        expect(updatePowerZoneControlsVisibility(true)).toBeUndefined();
         expect(document.getElementById("power-zone-controls")).toBeNull();
     });
 });

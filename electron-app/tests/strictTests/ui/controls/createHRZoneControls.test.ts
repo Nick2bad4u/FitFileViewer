@@ -32,9 +32,7 @@ describe("createHRZoneControls", () => {
         expect(content).toBeInstanceOf(HTMLElement);
         expect(content.style.maxHeight).toBe("0px");
         expect(btn.getAttribute("aria-expanded")).toBe("false");
-        expect(localStorage.getItem("hr-zone-controls-collapsed")).toBe(
-            "true"
-        );
+        expect(localStorage.getItem("hr-zone-controls-collapsed")).toBe("true");
         btn.click();
         expect(content.style.maxHeight).toBe("500px");
         expect(localStorage.getItem("hr-zone-controls-collapsed")).toBe(
@@ -59,7 +57,7 @@ describe("createHRZoneControls", () => {
     it("updateHRZoneControlsVisibility does not create controls when missing", async () => {
         const { updateHRZoneControlsVisibility } = await loadModule();
 
-        expect(() => updateHRZoneControlsVisibility(true)).not.toThrow();
+        expect(updateHRZoneControlsVisibility(true)).toBeUndefined();
         expect(document.getElementById("hr-zone-controls")).toBeNull();
     });
 });
