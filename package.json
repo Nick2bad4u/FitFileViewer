@@ -102,7 +102,7 @@
         "test:playwright": "node scripts/run-playwright.mjs",
         "test:tabs": "node scripts/run-vitest.mjs --run --reporter=verbose electron-app/tests/unit/tabs --maxWorkers 1",
         "test:ui": "node scripts/run-vitest.mjs --ui",
-        "test:unit": "node scripts/run-vitest.mjs --run tests/unit ../tests/unit --maxWorkers 1",
+        "test:unit": "node scripts/run-vitest.mjs --run tests/unit electron-app/tests/unit --maxWorkers 1",
         "test:watch": "node scripts/run-vitest.mjs --watch",
         "test:watch:changed": "node scripts/run-vitest.mjs --watch --changed",
         "typecheck": "node scripts/run-typescript.mjs typecheck",

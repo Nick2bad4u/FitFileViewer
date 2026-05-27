@@ -20,6 +20,7 @@ export const cleanupTargets = [
     "FitFileViewer.flatpak.zip",
     "flatpak-build-dir",
     "flatpak-repo",
+    "html",
     "playwright-report",
     "test-results",
     path.join("electron-app", "dist"),

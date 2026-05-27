@@ -10,23 +10,26 @@ import {
 
 // import.meta.dirname would be cleaner, but this package still declares support
 // for Node versions where that property is not available.
-// eslint-disable-next-line unicorn/prefer-import-meta-properties -- Keep Vitest config compatible with the declared Node engine range.
-const configFilePath = fileURLToPath(import.meta.url);
-// eslint-disable-next-line unicorn/prefer-import-meta-properties -- Keep Vitest config compatible with the declared Node engine range.
-const coverageProjectRoot = path.dirname(configFilePath);
-const electronAppRoot = fileURLToPath(new URL("electron-app", import.meta.url));
-const electronStubPath = fileURLToPath(
-    new URL("tests/vitest/stubs/electron-virtual.cjs", import.meta.url)
+const configImportMetaUrl = import.meta.url;
+const repositoryRoot = configImportMetaUrl.startsWith("file:")
+    ? path.dirname(fileURLToPath(configImportMetaUrl))
+    : process.cwd();
+const electronStubPath = path.join(
+    repositoryRoot,
+    "tests",
+    "vitest",
+    "stubs",
+    "electron-virtual.cjs"
 );
 
 export default defineConfig({
-    cacheDir: "../.cache/vitest",
+    cacheDir: ".cache/vitest",
     resolve: {
         alias: {
             electron: electronStubPath,
         },
     },
-    root: electronAppRoot,
+    root: repositoryRoot,
 
     test: {
         allowOnly: false, // Fail if .only is left in the code
@@ -43,7 +46,8 @@ export default defineConfig({
             exclude: [
                 "node_modules/**",
                 // Exclude built artifacts and generated output
-                "dist/**",
+                "electron-app/dist/**",
+                "electron-app/tests/**",
                 "tests/**",
                 // Exclude any colocated test files under source folders
                 "**/*.test.*",
@@ -51,67 +55,67 @@ export default defineConfig({
                 "**/*.d.ts",
                 "coverage/**",
                 // Third-party/vendor code is not part of the app coverage contract
-                "vendor/**",
+                "electron-app/vendor/**",
                 // Barrels (pure re-export index files)
                 "**/index.js",
-                // Tooling and configuration files (relative to electron-app)
+                // Tooling and configuration files
                 "vitest.config.ts",
                 // Dev-only and debugging utilities
-                "utils/debug/**",
+                "electron-app/utils/debug/**",
                 // Performance monitoring (dev tooling)
-                "utils/performance/**",
+                "electron-app/utils/performance/**",
                 // State integration bridges are environment-coupled and not part of the strict unit coverage contract
-                "utils/state/integration/**",
+                "electron-app/utils/state/integration/**",
                 // Test-only Electron mock priming is exercised through the generated CommonJS runtime file.
-                "main/runtime/primeTestEnvironment.ts",
+                "electron-app/main/runtime/primeTestEnvironment.ts",
                 // UI state manager is currently exercised mostly via integration flows
-                "utils/state/domain/uiStateManager.js",
+                "electron-app/utils/state/domain/uiStateManager.js",
                 // Some newer state modules are not yet held to the strict unit coverage contract
-                "utils/state/core/unifiedStateManager.js",
-                "utils/state/domain/appState.js",
-                "utils/state/domain/settingsStateManager.js",
+                "electron-app/utils/state/core/unifiedStateManager.js",
+                "electron-app/utils/state/domain/appState.js",
+                "electron-app/utils/state/domain/settingsStateManager.js",
                 // UI tab utilities are currently exercised via integration flows;
                 // exclude until dedicated tests exist.
-                "utils/ui/tabs/**",
+                "electron-app/utils/ui/tabs/**",
                 // Most UI utilities are integration-heavy. We keep them out of the strict unit coverage gate
                 // by default via the curated `include` list, but we do NOT exclude `utils/ui/**` globally
                 // so specific UI modules can be explicitly included and tested at high coverage.
                 // Constants-only modules
-                "utils/charts/theming/chartOverlayColorPalette.js",
-                "utils/maps/core/mapColors.js",
+                "electron-app/utils/charts/theming/chartOverlayColorPalette.js",
+                "electron-app/utils/maps/core/mapColors.js",
                 "**/assets/**",
                 ...coverageConfigDefaults.exclude,
             ],
             excludeAfterRemap: true, // Exclude files after remapping for accuracy
             // Curated include set: target modules with stable, complete unit tests
             // so that a strict ≥95% gate is meaningful and consistently achievable.
-            // Paths are relative to the electron-app directory.
+            // Paths are relative to the repository root.
             include: [
                 // Main process core
-                "main/**/*.js",
-                "main/**/*.ts",
+                "electron-app/main/**/*.js",
+                "electron-app/main/**/*.ts",
                 // Preload and window bootstrap/security
-                "preload.js",
-                "windowStateUtils.js",
+                "electron-app/preload.js",
+                "electron-app/windowStateUtils.js",
                 // Core domain logic
-                "utils/charts/**/*.js",
-                "utils/charts/**/*.ts",
-                "utils/files/**/*.js",
-                "utils/files/**/*.ts",
+                "electron-app/utils/charts/**/*.js",
+                "electron-app/utils/charts/**/*.ts",
+                "electron-app/utils/files/**/*.js",
+                "electron-app/utils/files/**/*.ts",
                 // Estimated Power (Virtual Power)
-                "utils/data/processing/estimateCyclingPower.js",
-                "utils/data/processing/powerEstimationSettings.js",
-                "utils/ui/modals/openPowerEstimationSettingsModal.js",
-                "utils/ui/controls/createPowerEstimationButton.js",
+                "electron-app/utils/data/processing/estimateCyclingPower.js",
+                "electron-app/utils/data/processing/powerEstimationSettings.js",
+                "electron-app/utils/ui/modals/openPowerEstimationSettingsModal.js",
+                "electron-app/utils/ui/controls/createPowerEstimationButton.js",
                 // Tooltip display (shows estimated power when real power missing)
-                "utils/formatting/display/formatTooltipData.js",
+                "electron-app/utils/formatting/display/formatTooltipData.js",
             ],
             provider: "v8",
             reporter: [
                 "text",
                 "html",
                 "json",
-                ["lcov", { projectRoot: coverageProjectRoot }],
+                ["lcov", { projectRoot: repositoryRoot }],
             ],
             reportOnFailure: true,
             reportsDirectory: "./coverage",
@@ -138,7 +142,7 @@ export default defineConfig({
         },
         exclude: [
             "**/node_modules/**",
-            "../tests/playwright/**",
+            "tests/playwright/**",
             // Exclude any compiled artifacts accidentally picked up
             "dist/**",
             "**/dist/**",
@@ -158,19 +162,19 @@ export default defineConfig({
         fileParallelism: true,
         // Force rerun triggers - these files will trigger full test suite
         forceRerunTriggers: [
-            "../package.json",
-            "../vitest.config.ts",
+            "package.json",
+            "vitest.config.ts",
             "**/package.json",
             "**/vitest.config.ts",
         ],
         // eslint-disable-next-line vite/no-vitest-globals -- Legacy tests still rely on global describe/it/expect.
         globals: true, // Enable global test functions (describe, it, expect)
-        globalSetup: ["../tests/vitest/globalSetup.mjs"],
+        globalSetup: ["tests/vitest/globalSetup.mjs"],
         hookTimeout: 30_000,
         include: [
-            "../tests/unit/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
-            "tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
-            "utils/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
+            "tests/unit/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
+            "electron-app/tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
+            "electron-app/utils/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
         ],
         includeTaskLocation: true,
         isolate: true,
@@ -210,14 +214,14 @@ export default defineConfig({
         server: {
             deps: {
                 inline: [
-                    "utils/files/import/handleOpenFile.js",
-                    "utils/state/core/stateManager.js",
-                    "utils/ui/controls/createElevationProfileButton.js",
-                    "utils/charts/theming/getThemeColors.js",
+                    "electron-app/utils/files/import/handleOpenFile.js",
+                    "electron-app/utils/state/core/stateManager.js",
+                    "electron-app/utils/ui/controls/createElevationProfileButton.js",
+                    "electron-app/utils/charts/theming/getThemeColors.js",
                 ],
             },
         },
-        setupFiles: ["../tests/vitest/setupVitest.mjs"],
+        setupFiles: ["tests/vitest/setupVitest.mjs"],
         slowTestThreshold: 1000,
         teardownTimeout: 30_000,
         testTimeout: 30_000,
@@ -234,7 +238,7 @@ export default defineConfig({
             include: ["**/*.{test,spec}-d.?(c|m)[jt]s?(x)"],
             only: false,
             spawnTimeout: 10_000,
-            tsconfig: "../tsconfig.vitest-typecheck.json",
+            tsconfig: "tsconfig.vitest-typecheck.json",
         },
         vmMemoryLimit: 2048, // Increase VM memory limit to 2GB to handle larger test suites
         watch: false,

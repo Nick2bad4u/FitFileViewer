@@ -48,6 +48,7 @@ describe("clean-workspace script", () => {
                 "FitFileViewer.flatpak.zip",
                 "flatpak-build-dir",
                 "flatpak-repo",
+                "html",
                 path.join("electron-app", "dist"),
                 path.join("electron-app", "types"),
                 "playwright-report",
