@@ -24,6 +24,34 @@ function removeContainer(container: HTMLElement): void {
     delete getTestGlobal().globalData;
 }
 
+function getRequiredSelect(container: HTMLElement): HTMLSelectElement {
+    const select = container.querySelector("#lap-select");
+    expect(select).toBeInstanceOf(HTMLSelectElement);
+    return select as HTMLSelectElement;
+}
+
+function getRequiredButton(
+    container: HTMLElement,
+    selector: string
+): HTMLButtonElement {
+    const button = container.querySelector(selector);
+    expect(button).toBeInstanceOf(HTMLButtonElement);
+    return button as HTMLButtonElement;
+}
+
+function getSelectorState(select: HTMLSelectElement) {
+    return {
+        multiple: select.multiple,
+        multipleAttribute: select.getAttribute("multiple"),
+        optionLabels: [...select.options].map((option) => option.textContent),
+        optionValues: [...select.options].map((option) => option.value),
+        selectedValues: [...select.selectedOptions].map(
+            (option) => option.value
+        ),
+        size: select.size,
+    };
+}
+
 describe("mapLapSelector", () => {
     it("does not render a lap selector when lap data is missing", () => {
         expect.assertions(2);
@@ -52,30 +80,37 @@ describe("mapLapSelector", () => {
 
         addLapSelector({}, container, vi.fn<DrawLaps>());
 
-        const select =
-            container.querySelector<HTMLSelectElement>("#lap-select");
-        const labels = [...(select?.options ?? [])].map(
-            (option) => option.textContent
-        );
+        const select = getRequiredSelect(container);
 
         expect(
             container.querySelectorAll(".custom-lap-control-container")
         ).toHaveLength(1);
-        expect(select?.options).toHaveLength(4);
-        expect(labels).toStrictEqual([
-            "All",
-            "Lap 1",
-            "Lap 2",
-            "Lap 3",
-        ]);
-        expect(labels).not.toContain("Lap 4");
+        expect(getSelectorState(select)).toStrictEqual({
+            multiple: false,
+            multipleAttribute: null,
+            optionLabels: [
+                "All",
+                "Lap 1",
+                "Lap 2",
+                "Lap 3",
+            ],
+            optionValues: [
+                "all",
+                "0",
+                "1",
+                "2",
+            ],
+            selectedValues: ["all"],
+            size: 1,
+        });
+        expect(getSelectorState(select).optionLabels).not.toContain("Lap 4");
         expect(container.querySelectorAll("#deselect-all-btn")).toHaveLength(1);
 
         removeContainer(container);
     });
 
     it("calls mapDrawLaps with selected single and multi-lap values", () => {
-        expect.assertions(5);
+        expect.assertions(9);
 
         getTestGlobal().globalData = {
             lapMesgs: [
@@ -89,24 +124,48 @@ describe("mapLapSelector", () => {
 
         addLapSelector({}, container, mapDrawLaps);
 
-        const select =
-            container.querySelector<HTMLSelectElement>("#lap-select");
-        const toggle =
-            container.querySelector<HTMLButtonElement>("#multi-lap-toggle");
+        const select = getRequiredSelect(container);
+        const toggle = getRequiredButton(container, "#multi-lap-toggle");
+        const deselectAll = getRequiredButton(container, "#deselect-all-btn");
 
-        expect(select?.getAttribute("multiple") ?? "missing").toBe("missing");
+        expect(getSelectorState(select)).toMatchObject({
+            multiple: false,
+            multipleAttribute: null,
+            selectedValues: ["all"],
+            size: 1,
+        });
 
-        select!.value = "1";
-        select!.dispatchEvent(new Event("change"));
+        select.value = "1";
+        select.dispatchEvent(new Event("change"));
 
         expect(mapDrawLaps).toHaveBeenCalledWith(["1"]);
 
-        toggle!.click();
-        select!.options[1]!.selected = true;
-        select!.options[2]!.selected = true;
-        select!.dispatchEvent(new Event("change"));
+        toggle.click();
+        select.options[1]!.selected = true;
+        select.options[2]!.selected = true;
+        select.dispatchEvent(new Event("change"));
 
-        expect(select?.getAttribute("multiple") ?? "missing").toBe("");
+        expect(getSelectorState(select)).toMatchObject({
+            multiple: true,
+            multipleAttribute: "",
+            selectedValues: [
+                "0",
+                "1",
+            ],
+            size: 4,
+        });
+        expect({
+            deselectDisplay: deselectAll.style.display,
+            toggleActive: [...toggle.classList],
+            toggleTitle: toggle.title,
+        }).toStrictEqual({
+            deselectDisplay: "",
+            toggleActive: [
+                "multi-lap-toggle",
+                "active",
+            ],
+            toggleTitle: "Return to single-lap mode",
+        });
         expect(mapDrawLaps).toHaveBeenCalledWith(["0", "1"]);
         expect(mapDrawLaps).not.toHaveBeenCalledWith(["3"]);
 
