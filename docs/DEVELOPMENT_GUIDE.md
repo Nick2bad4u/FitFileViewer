@@ -473,13 +473,16 @@ npm start
 ```json
 // .vscode/launch.json
 {
- "name": "Debug Electron Main",
- "program": "${workspaceFolder}/main.js",
- "request": "launch",
- "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
+ "name": "Attach to Electron Main",
+ "port": 9229,
+ "request": "attach",
  "type": "node"
 }
 ```
+
+Run `npm start` from the repository root, then attach VS Code to the Electron
+main process with the `Attach to Electron Main` configuration. Root tasks in
+`.vscode/tasks.json` cover runtime builds, tests, app linting, and typechecks.
 
 ### Common Issues & Solutions
 
