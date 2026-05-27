@@ -113,13 +113,12 @@ describe("tabStateManager regressions", () => {
 
         mockGetState.mockReturnValue("summary");
 
-        // @ts-ignore
-        global.window = {
+        Object.assign(window, {
             createTables: vi.fn(),
             renderSummary: vi.fn(),
             renderMap: vi.fn(),
             renderChartJS: vi.fn(),
-        };
+        });
     });
 
     afterEach(() => {
@@ -380,7 +379,7 @@ describe("tabStateManager regressions", () => {
 
         it("documents async render failures that require awaiting", async () => {
             // Mock failing async functions
-            global.window.renderChartJS = vi
+            window.renderChartJS = vi
                 .fn()
                 .mockRejectedValue(new Error("Chart render failed"));
 
@@ -388,7 +387,7 @@ describe("tabStateManager regressions", () => {
 
             // Simulate the actual error handling (or lack thereof)
             try {
-                global.window.renderChartJS(); // Missing await in real code
+                window.renderChartJS(); // Missing await in real code
             } catch (error) {
                 caughtError = error; // Won't catch async errors
             }
@@ -397,7 +396,7 @@ describe("tabStateManager regressions", () => {
 
             // Proper error handling would catch it
             try {
-                await global.window.renderChartJS();
+                await window.renderChartJS();
             } catch (error) {
                 caughtError = error;
             }
