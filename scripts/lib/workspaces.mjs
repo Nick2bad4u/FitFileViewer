@@ -8,6 +8,7 @@ export const appWorkspacePath = path.join(repositoryRoot, appWorkspaceName);
 export const appDistPath = appWorkspaceRelativePath("dist");
 export const appReleasePath = appWorkspaceRelativePath("release");
 export const appTypesPath = appWorkspaceRelativePath("types");
+export const scriptsPath = path.join(repositoryRoot, "scripts");
 
 export function appWorkspaceRelativePath(...segments) {
     return path.join(appWorkspaceName, ...segments);
@@ -15,6 +16,10 @@ export function appWorkspaceRelativePath(...segments) {
 
 export function appWorkspaceAbsolutePath(...segments) {
     return path.join(appWorkspacePath, ...segments);
+}
+
+export function repositoryScriptPath(...segments) {
+    return path.join(scriptsPath, ...segments);
 }
 
 function resolveRepositoryRoot() {

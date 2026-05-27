@@ -1,55 +1,63 @@
 import { spawnSync } from "node:child_process";
-import path from "node:path";
 import process from "node:process";
-import { fileURLToPath } from "node:url";
+import { pathToFileURL } from "node:url";
 
-const repositoryRoot = fileURLToPath(new URL("..", import.meta.url));
+import { repositoryRoot, repositoryScriptPath } from "./lib/workspaces.mjs";
 
-const steps = [
+export const buildRuntimeSteps = [
     {
-        args: [scriptPath("clean-runtime-dist.mjs")],
+        args: [repositoryScriptPath("clean-runtime-dist.mjs")],
         label: "clean runtime dist",
     },
     {
-        args: [scriptPath("run-typescript.mjs"), "runtime"],
+        args: [repositoryScriptPath("run-typescript.mjs"), "runtime"],
         label: "compile runtime TypeScript",
     },
     {
-        args: [scriptPath("bundle-preload.mjs")],
+        args: [repositoryScriptPath("bundle-preload.mjs")],
         label: "bundle preload",
     },
     {
-        args: [scriptPath("build-renderer.mjs")],
+        args: [repositoryScriptPath("build-renderer.mjs")],
         label: "build renderer bundle",
     },
     {
-        args: [scriptPath("format-runtime-output.mjs")],
+        args: [repositoryScriptPath("format-runtime-output.mjs")],
         label: "format runtime output",
     },
     {
-        args: [scriptPath("prepare-runtime-dist.mjs")],
+        args: [repositoryScriptPath("prepare-runtime-dist.mjs")],
         label: "prepare runtime dist",
     },
 ];
 
-function scriptPath(name) {
-    return path.join(repositoryRoot, "scripts", name);
+export function runBuildRuntime(
+    commandRunner = spawnSync,
+    logger = console.log
+) {
+    for (const step of buildRuntimeSteps) {
+        logger(`[build-runtime] ${step.label}`);
+
+        const result = commandRunner(process.execPath, step.args, {
+            cwd: repositoryRoot,
+            stdio: "inherit",
+        });
+
+        if (result.error) {
+            throw result.error;
+        }
+
+        if (result.status !== 0) {
+            return result.status ?? 1;
+        }
+    }
+
+    return 0;
 }
 
-for (const step of steps) {
-    console.log(`[build-runtime] ${step.label}`);
-
-    const result = spawnSync(process.execPath, step.args, {
-        cwd: repositoryRoot,
-        stdio: "inherit",
-    });
-
-    if (result.error) {
-        throw result.error;
-    }
-
-    if (result.status !== 0) {
-        process.exitCode = result.status ?? 1;
-        break;
-    }
+if (
+    process.argv[1] &&
+    import.meta.url === pathToFileURL(process.argv[1]).href
+) {
+    process.exitCode = runBuildRuntime();
 }
