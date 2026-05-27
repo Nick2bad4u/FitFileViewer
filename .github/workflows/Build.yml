@@ -426,21 +426,7 @@ jobs:
 
             - name: Rename Squirrel win32 nupkg and RELEASES for release
               shell: bash
-              run: |
-                  ia32_dir="./release-dist/windows-latest-ia32/squirrel-windows-ia32"
-                  ia32_nupkg="$ia32_dir/fitfileviewer-*-full.nupkg"
-                  for file in $ia32_nupkg; do
-                    if [ -f "$file" ]; then
-                      new_nupkg="${file/-full.nupkg/-win32-full.nupkg}"
-                      mv "$file" "$new_nupkg"
-                      echo "Renamed $file -> $new_nupkg"
-                    fi
-                  done
-                  # Also rename RELEASES to RELEASES-win32 if it exists
-                  if [ -f "$ia32_dir/RELEASES" ]; then
-                    mv "$ia32_dir/RELEASES" "$ia32_dir/RELEASES-win32"
-                    echo "Renamed $ia32_dir/RELEASES -> $ia32_dir/RELEASES-win32"
-                  fi
+              run: node scripts/rename-squirrel-win32-release-assets.mjs
               continue-on-error: true
 
             - name: Create or update release with distributable builds
