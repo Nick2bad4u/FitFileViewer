@@ -21,9 +21,12 @@ electron-app/release/
 # Repo-root generated test artifacts
 test-results/
 playwright-report/
+html/
 
 # Repo-root transient outputs
 temp/
+artifacts/
+release-dist/
 flatpak-repo/
 flatpak-build-dir/
 FitFileViewer*.flatpak
@@ -365,6 +368,7 @@ vscode-extension/*
 **/.prettier-cache
 todo.md
 electron-app/temp-win7/
+electron-app/html/
 # Ignore generated doc coverage badges
 docusaurus/static/img/coverage.json
 docusaurus/static/img/coverage.svg

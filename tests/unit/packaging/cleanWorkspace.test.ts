@@ -53,12 +53,15 @@ describe("clean-workspace script", () => {
             expect.arrayContaining([
                 "FitFileViewer.flatpak",
                 "FitFileViewer.flatpak.zip",
+                "artifacts",
                 "flatpak-build-dir",
                 "flatpak-repo",
                 "coverage",
                 "html",
+                "release-dist",
                 appWorkspaceRelativePath("coverage"),
                 appDistPath,
+                appWorkspaceRelativePath("html"),
                 appTypesPath,
                 docusaurusWorkspaceRelativePath("build"),
                 docusaurusWorkspaceRelativePath("docs", "api"),
@@ -69,13 +72,15 @@ describe("clean-workspace script", () => {
     });
 
     it("removes generated files and directories under the selected workspace root", async () => {
-        expect.assertions(7);
+        expect.assertions(9);
 
         const { cleanWorkspace } = await importCleanWorkspace();
         const temporaryRoot = makeTemporaryRoot();
         const targets = [
             "FitFileViewer.flatpak",
+            "artifacts",
             "flatpak-repo",
+            "release-dist",
             appDistPath,
             docusaurusWorkspaceRelativePath("build"),
         ];
