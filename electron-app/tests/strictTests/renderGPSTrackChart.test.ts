@@ -422,9 +422,9 @@ describe(renderGPSTrackChart, () => {
                 }
             };
 
-            expect(() =>
+            expect(
                 renderGPSTrackChart(container, defaultData, defaultOptions)
-            ).not.toThrow();
+            ).toBeUndefined();
             expect(consoleError).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering GPS track chart:",
                 expect.any(Error)
