@@ -468,19 +468,9 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
             - name: Add Job Summary
               if: always()
-              run: |
-                  {
-                    echo "## 🏗️ Build and Release Electron App Workflow Summary"
-                    echo ""
-                    echo "See above for the full build matrix results."
-                    echo "---"
-                    echo "- **Version bump and tagging** performed for electron-app."
-                    echo "- **Builds executed** for multiple OS and architectures."
-                    echo "- **Build artifacts uploaded** for each platform."
-                    echo "- **Release created** if build and version bump succeeded."
-                    echo "- **Changelogs will be updated** and committed directly to the repository."
-                    echo "- Workflow completed with status: ${{ job.status }}"
-                  } >> "$GITHUB_STEP_SUMMARY"
+              run: node scripts/update-release-job-summary.mjs
+              env:
+                  JOB_STATUS: ${{ job.status }}
 
     update-changelogs:
         name: Update Changelogs

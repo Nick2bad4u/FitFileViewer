@@ -82,6 +82,7 @@
         "release:publish-version": "node scripts/publish-app-version.mjs",
         "release:rename-squirrel-win32-assets": "node scripts/rename-squirrel-win32-release-assets.mjs",
         "release:rename-windows-latest-yml": "node scripts/rename-windows-latest-yml.mjs",
+        "release:summary": "node scripts/update-release-job-summary.mjs",
         "start": "node scripts/start-electron.mjs --inspect=9229 --remote-debugging-port=9222 electron-app",
         "start:prod": "node scripts/start-electron.mjs --electron-is-dev 0 electron-app",
         "pretest": "npm run build:runtime-ts",
