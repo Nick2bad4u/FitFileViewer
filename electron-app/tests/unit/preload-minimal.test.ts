@@ -83,23 +83,22 @@ describe("preload.js - Basic API Validation", () => {
             listeners: vi.fn((eventName: string) =>
                 eventName === "beforeExit" ? beforeExitListeners : []
             ),
-            once: vi.fn(
-                (eventName: string, listener: BeforeExitListener) => {
+            once: vi.fn((eventName: string, listener: BeforeExitListener) => {
                 if (eventName === "beforeExit") {
                     beforeExitListeners.push(listener);
                 }
                 return mockProcess;
-                }
-            ),
+            }),
             removeListener: vi.fn(
                 (eventName: string, listener: BeforeExitListener) => {
-                if (eventName === "beforeExit") {
-                    beforeExitListeners = beforeExitListeners.filter(
-                        (currentListener) => currentListener !== listener
-                    );
+                    if (eventName === "beforeExit") {
+                        beforeExitListeners = beforeExitListeners.filter(
+                            (currentListener) => currentListener !== listener
+                        );
+                    }
+                    return mockProcess;
                 }
-                return mockProcess;
-            }),
+            ),
         };
         vi.stubGlobal("process", mockProcess);
 
@@ -138,11 +137,16 @@ describe("preload.js - Basic API Validation", () => {
     });
 
     it("should expose development tools API when validation passes", () => {
-        const developmentToolsGlobalName = "devTools",
+        const electronAPI = exposedGlobals.get("electronAPI") as Record<
+                string,
+                unknown
+            >,
+            developmentToolsGlobalName = "devTools",
             devTools = exposedGlobals.get(developmentToolsGlobalName) as Record<
                 string,
                 unknown
             >,
+            expectedApiMethods = Object.keys(electronAPI),
             preloadInfo = (
                 devTools.getPreloadInfo as () => {
                     apiMethods: string[];
@@ -156,15 +160,11 @@ describe("preload.js - Basic API Validation", () => {
         ]);
         expect(typeof devTools.getPreloadInfo).toBe("function");
         expect(preloadInfo.version).toBe("1.0.0");
-        expect(preloadInfo.apiMethods).toEqual(
-            expect.arrayContaining([
-                "validateAPI",
-                "getChannelInfo",
-                "openFile",
-                "readFile",
-            ])
-        );
-        expect(preloadInfo.apiMethods).not.toHaveLength(0);
+        expect(preloadInfo.apiMethods).toEqual(expectedApiMethods);
+        expect(preloadInfo.apiMethods).toContain("validateAPI");
+        expect(preloadInfo.apiMethods).toContain("getChannelInfo");
+        expect(preloadInfo.apiMethods).toContain("openFile");
+        expect(preloadInfo.apiMethods).toContain("readFile");
     });
 
     it("should register beforeExit handler", () => {
@@ -182,20 +182,16 @@ describe("preload.js - Basic API Validation", () => {
 
     it("should log initialization message", () => {
         // Check for any initialization logs
-        const hasInitLog = consoleLogSpy.mock.calls.some(
-            (call: unknown[]) => {
-                const firstArgument = call[0];
-                return (
-                    typeof firstArgument === "string" &&
-                    (firstArgument.includes(
-                        "[preload.js] Preload script initialized"
-                    ) ||
-                        firstArgument.includes(
-                            "[preload.js] Successfully exposed"
-                        ))
-                );
-            }
-        );
+        const hasInitLog = consoleLogSpy.mock.calls.some((call: unknown[]) => {
+            const firstArgument = call[0];
+            return (
+                typeof firstArgument === "string" &&
+                (firstArgument.includes(
+                    "[preload.js] Preload script initialized"
+                ) ||
+                    firstArgument.includes("[preload.js] Successfully exposed"))
+            );
+        });
 
         expect(hasInitLog).toBe(true);
         expect(hasInitLog).not.toBe(false);
