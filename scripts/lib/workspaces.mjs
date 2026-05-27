@@ -18,6 +18,10 @@ export function appWorkspaceAbsolutePath(...segments) {
     return path.join(appWorkspacePath, ...segments);
 }
 
+export function appWorkspaceRepositoryPath(...segments) {
+    return path.posix.join(appWorkspaceName, ...segments);
+}
+
 export function repositoryScriptPath(...segments) {
     return path.join(scriptsPath, ...segments);
 }

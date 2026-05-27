@@ -3,8 +3,10 @@ import fs from "node:fs";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
+import { appWorkspaceRepositoryPath } from "./lib/workspaces.mjs";
+
 export const defaultVersionFiles = [
-    "electron-app/package.json",
+    appWorkspaceRepositoryPath("package.json"),
     "package-lock.json",
 ];
 export const githubActionsBot = {

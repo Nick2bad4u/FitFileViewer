@@ -9,6 +9,7 @@ type WorkspacesModule = {
     appWorkspaceAbsolutePath: (...segments: string[]) => string;
     appWorkspaceName: string;
     appWorkspacePath: string;
+    appWorkspaceRepositoryPath: (...segments: string[]) => string;
     appWorkspaceRelativePath: (...segments: string[]) => string;
     repositoryRoot: string;
     repositoryScriptPath: (...segments: string[]) => string;
@@ -21,7 +22,7 @@ async function importWorkspaces(): Promise<WorkspacesModule> {
 
 describe("workspace path helpers", () => {
     it("centralizes the app workspace root and generated output paths", async () => {
-        expect.assertions(11);
+        expect.assertions(12);
 
         const workspaces = await importWorkspaces();
 
@@ -42,6 +43,9 @@ describe("workspace path helpers", () => {
         );
         expect(workspaces.appWorkspaceRelativePath("release", "win7")).toBe(
             path.join("electron-app", "release", "win7")
+        );
+        expect(workspaces.appWorkspaceRepositoryPath("package.json")).toBe(
+            "electron-app/package.json"
         );
         expect(workspaces.appWorkspaceAbsolutePath("dist")).toBe(
             path.join(process.cwd(), "electron-app", "dist")
