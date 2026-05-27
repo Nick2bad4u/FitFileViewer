@@ -12,8 +12,10 @@ across the workspace:
 
 ## Docusaurus lint scripts
 
-The Docusaurus package now includes lint scripts:
+Run Docusaurus linting from the repository root:
 
-- `npm run lint` runs both code and content linting.
-- `npm run lint:code` lints TS/TSX code using the Electron ESLint config.
-- `npm run lint:content` continues to run markdownlint for docs/blog/src.
+- `npm run lint:docusaurus` runs both code and content linting.
+- `npm run lint:docusaurus:fix` fixes Docusaurus code lint issues and then
+  runs content linting.
+- `npm run lint:docusaurus:content` runs the Docusaurus markdown/content lint
+  gate.
