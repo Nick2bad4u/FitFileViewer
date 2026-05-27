@@ -124,9 +124,10 @@ Current `build:runtime-ts` flow:
 
 ## Electron Builder Package Surface
 
-The root `electron-builder.config.cjs` packages `dist/**` from
-`electron-app/`. The runtime build copies these app assets into `dist/` before
-packaging:
+The root `electron-builder.files.json` file is the source of truth for the
+Electron Builder package surface. Both `electron-builder.config.cjs` and the
+Windows 7 build helper read that list. The runtime build copies these app assets
+into `dist/` before packaging:
 
 - `dist/`
 - `elevProfile.css`

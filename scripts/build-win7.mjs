@@ -11,12 +11,16 @@ const repoRoot = path.resolve(__dirname, "..");
 const electronAppDir = path.join(repoRoot, "electron-app");
 const outputDir = path.join(electronAppDir, "release", "win7");
 const WIN7_ELECTRON_VERSION = "22.3.27";
-const appPackageFiles = readElectronBuilderFiles();
+export const appPackageFiles = readElectronBuilderFiles();
 
-function readElectronBuilderFiles() {
+export function readElectronBuilderFiles() {
     const fileListPath = path.join(repoRoot, "electron-builder.files.json");
     const parsed = JSON.parse(fs.readFileSync(fileListPath, "utf8"));
 
+    return parseElectronBuilderFiles(parsed);
+}
+
+export function parseElectronBuilderFiles(parsed) {
     if (
         !Array.isArray(parsed) ||
         parsed.some((entry) => typeof entry !== "string")
