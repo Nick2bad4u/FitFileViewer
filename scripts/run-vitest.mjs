@@ -4,12 +4,19 @@ import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
-import { repositoryRoot } from "./lib/workspaces.mjs";
+import {
+    appIntegrationTestsPath,
+    appTabsTestsPath,
+    appUnitTestsPath,
+    repositoryRoot,
+    rootUnitTestsPath,
+    rootVitestConfigPath,
+} from "./lib/workspaces.mjs";
 
 export const vitestSuites = Object.freeze({
-    integration: ["electron-app/tests/integration"],
-    tabs: ["electron-app/tests/unit/tabs"],
-    unit: ["tests/unit", "electron-app/tests/unit"],
+    integration: [appIntegrationTestsPath],
+    tabs: [appTabsTestsPath],
+    unit: [rootUnitTestsPath, appUnitTestsPath],
 });
 
 const require = createRequire(import.meta.url);
@@ -33,7 +40,7 @@ const vitestOptionsWithValues = new Set([
 export function buildVitestArgs(argv) {
     return [
         "--config",
-        "vitest.config.ts",
+        rootVitestConfigPath,
         ...expandSuiteArgs(argv),
     ];
 }

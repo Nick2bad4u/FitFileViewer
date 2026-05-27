@@ -9,7 +9,10 @@ import {
     stylelintConfigPath,
     stylelintTargets,
 } from "../../../scripts/lint-css.mjs";
-import { rootStylelintConfigPath } from "../../../scripts/lib/workspaces.mjs";
+import {
+    appWorkspaceRepositoryPath,
+    rootStylelintConfigPath,
+} from "../../../scripts/lib/workspaces.mjs";
 
 type CommandRunner = (
     command: string,
@@ -21,7 +24,9 @@ describe("lint-css wrapper", () => {
     it("keeps root-owned Stylelint targets for app styles", () => {
         expect.assertions(2);
 
-        expect(stylelintTargets).toStrictEqual(["electron-app/**/*.css"]);
+        expect(stylelintTargets).toStrictEqual([
+            appWorkspaceRepositoryPath("**", "*.css"),
+        ]);
         expect(stylelintConfigPath).toBe(rootStylelintConfigPath);
     });
 
@@ -33,14 +38,14 @@ describe("lint-css wrapper", () => {
         expect(args[0]).toMatch(/[\\/]stylelint[\\/]bin[\\/]stylelint\.mjs$/u);
         expect(args).toEqual(
             expect.arrayContaining([
-                "electron-app/**/*.css",
+                appWorkspaceRepositoryPath("**", "*.css"),
                 "--config",
                 rootStylelintConfigPath,
                 "--quiet",
             ])
         );
         expect(args.indexOf("--config")).toBeGreaterThan(
-            args.indexOf("electron-app/**/*.css")
+            args.indexOf(appWorkspaceRepositoryPath("**", "*.css"))
         );
         expect(args.at(-1)).toBe("--quiet");
     });

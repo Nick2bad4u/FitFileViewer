@@ -3,6 +3,11 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 import {
+    appAlternativeFitViewPath,
+    appElevProfileCssPath,
+    appIconsPath,
+    appIndexHtmlPath,
+    appStyleCssPath,
     appWorkspaceAbsolutePath,
     appWorkspacePath,
 } from "./lib/workspaces.mjs";
@@ -10,8 +15,8 @@ import {
 const defaultAppDir = appWorkspacePath;
 const defaultDistDir = appWorkspaceAbsolutePath("dist");
 
-export const directoryCopies = ["ffv", "icons"];
-export const fileCopies = ["elevProfile.css", "style.css"];
+export const directoryCopies = [appAlternativeFitViewPath, appIconsPath];
+export const fileCopies = [appElevProfileCssPath, appStyleCssPath];
 
 function assertInsideAppDir(appDir, targetPath) {
     const resolvedRoot = path.resolve(appDir);
@@ -63,8 +68,8 @@ function assertNoNodeModulesReference(appDir, filePath, content) {
 }
 
 function copyIndexHtml(appDir, distDir) {
-    const source = path.join(appDir, "index.html");
-    const destination = path.join(distDir, "index.html");
+    const source = path.join(appDir, appIndexHtmlPath);
+    const destination = path.join(distDir, appIndexHtmlPath);
     const html = fs.readFileSync(source, "utf8");
 
     assertNoNodeModulesReference(appDir, source, html);

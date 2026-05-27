@@ -3,11 +3,19 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 type WorkspacesModule = {
+    appAlternativeFitViewPath: string;
     appDistPath: string;
+    appElevProfileCssPath: string;
+    appIconsPath: string;
+    appIndexHtmlPath: string;
+    appIntegrationTestsPath: string;
     appPackagePath: string;
     appPackageRepositoryPath: string;
     appReleasePath: string;
+    appStyleCssPath: string;
+    appTabsTestsPath: string;
     appTypesPath: string;
+    appUnitTestsPath: string;
     appWorkspaceAbsolutePath: (...segments: string[]) => string;
     appWorkspaceName: string;
     appWorkspacePath: string;
@@ -40,6 +48,9 @@ type WorkspacesModule = {
     rootRuntimeTsconfigPath: string;
     rootStylelintConfigPath: string;
     rootTypedocConfigPath: string;
+    rootUnitTestsPath: string;
+    rootViteRendererConfigPath: string;
+    rootVitestConfigPath: string;
     scriptsPath: string;
     appWorkspaceRelativeToRepositoryRootPath: (...segments: string[]) => string;
 };
@@ -99,8 +110,27 @@ describe("workspace path helpers", () => {
         ).toBe(path.join(process.cwd(), workspaces.rootFlatpakManifestPath));
     });
 
+    it("centralizes app runtime asset and test paths", async () => {
+        expect.assertions(8);
+
+        const workspaces = await importWorkspaces();
+
+        expect(workspaces.appAlternativeFitViewPath).toBe("ffv");
+        expect(workspaces.appElevProfileCssPath).toBe("elevProfile.css");
+        expect(workspaces.appIconsPath).toBe("icons");
+        expect(workspaces.appIndexHtmlPath).toBe("index.html");
+        expect(workspaces.appIntegrationTestsPath).toBe(
+            "electron-app/tests/integration"
+        );
+        expect(workspaces.appStyleCssPath).toBe("style.css");
+        expect(workspaces.appTabsTestsPath).toBe(
+            "electron-app/tests/unit/tabs"
+        );
+        expect(workspaces.appUnitTestsPath).toBe("electron-app/tests/unit");
+    });
+
     it("centralizes root config and generated output paths", async () => {
-        expect.assertions(17);
+        expect.assertions(20);
 
         const workspaces = await importWorkspaces();
 
@@ -127,6 +157,11 @@ describe("workspace path helpers", () => {
         expect(workspaces.rootReleaseDistPath).toBe("release-dist");
         expect(workspaces.rootStylelintConfigPath).toBe("stylelint.config.mjs");
         expect(workspaces.rootTypedocConfigPath).toBe("typedoc.json");
+        expect(workspaces.rootUnitTestsPath).toBe("tests/unit");
+        expect(workspaces.rootViteRendererConfigPath).toBe(
+            "vite.renderer.config.mjs"
+        );
+        expect(workspaces.rootVitestConfigPath).toBe("vitest.config.ts");
         expect(
             workspaces.rootReleaseDistRelativePath(
                 "windows-latest-ia32",

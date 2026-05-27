@@ -4,6 +4,14 @@ import path from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
+import {
+    appAlternativeFitViewPath,
+    appElevProfileCssPath,
+    appIconsPath,
+    appIndexHtmlPath,
+    appStyleCssPath,
+} from "../../../scripts/lib/workspaces.mjs";
+
 type PrepareRuntimeDistModule = {
     directoryCopies: string[];
     fileCopies: string[];
@@ -23,14 +31,22 @@ function makeTemporaryApp(): { appDir: string; distDir: string } {
     const appDir = fs.mkdtempSync(path.join(os.tmpdir(), "ffv-runtime-app-"));
     temporaryRoots.push(appDir);
 
-    fs.mkdirSync(path.join(appDir, "ffv", "assets"), { recursive: true });
-    fs.mkdirSync(path.join(appDir, "icons"), { recursive: true });
-    fs.writeFileSync(path.join(appDir, "index.html"), "<html></html>");
-    fs.writeFileSync(path.join(appDir, "ffv", "index.html"), "<html></html>");
-    fs.writeFileSync(path.join(appDir, "ffv", "assets", "app.js"), "app");
-    fs.writeFileSync(path.join(appDir, "icons", "favicon.ico"), "icon");
-    fs.writeFileSync(path.join(appDir, "elevProfile.css"), "profile");
-    fs.writeFileSync(path.join(appDir, "style.css"), "style");
+    fs.mkdirSync(path.join(appDir, appAlternativeFitViewPath, "assets"), {
+        recursive: true,
+    });
+    fs.mkdirSync(path.join(appDir, appIconsPath), { recursive: true });
+    fs.writeFileSync(path.join(appDir, appIndexHtmlPath), "<html></html>");
+    fs.writeFileSync(
+        path.join(appDir, appAlternativeFitViewPath, "index.html"),
+        "<html></html>"
+    );
+    fs.writeFileSync(
+        path.join(appDir, appAlternativeFitViewPath, "assets", "app.js"),
+        "app"
+    );
+    fs.writeFileSync(path.join(appDir, appIconsPath, "favicon.ico"), "icon");
+    fs.writeFileSync(path.join(appDir, appElevProfileCssPath), "profile");
+    fs.writeFileSync(path.join(appDir, appStyleCssPath), "style");
 
     return { appDir, distDir: path.join(appDir, "dist") };
 }
@@ -51,17 +67,32 @@ describe("prepare-runtime-dist script", () => {
 
         prepareRuntimeDist({ appDir, distDir });
 
-        expect(directoryCopies).toStrictEqual(["ffv", "icons"]);
-        expect(fileCopies).toStrictEqual(["elevProfile.css", "style.css"]);
-        expect(fs.existsSync(path.join(distDir, "ffv", "index.html"))).toBe(
-            true
-        );
+        expect(directoryCopies).toStrictEqual([
+            appAlternativeFitViewPath,
+            appIconsPath,
+        ]);
+        expect(fileCopies).toStrictEqual([
+            appElevProfileCssPath,
+            appStyleCssPath,
+        ]);
         expect(
-            fs.existsSync(path.join(distDir, "ffv", "assets", "app.js"))
+            fs.existsSync(
+                path.join(distDir, appAlternativeFitViewPath, "index.html")
+            )
         ).toBe(true);
-        expect(fs.existsSync(path.join(distDir, "icons", "favicon.ico"))).toBe(
-            true
-        );
+        expect(
+            fs.existsSync(
+                path.join(
+                    distDir,
+                    appAlternativeFitViewPath,
+                    "assets",
+                    "app.js"
+                )
+            )
+        ).toBe(true);
+        expect(
+            fs.existsSync(path.join(distDir, appIconsPath, "favicon.ico"))
+        ).toBe(true);
     });
 
     it("rejects dist paths outside the app directory", async () => {
@@ -85,7 +116,7 @@ describe("prepare-runtime-dist script", () => {
         const { appDir, distDir } = makeTemporaryApp();
 
         fs.writeFileSync(
-            path.join(appDir, "index.html"),
+            path.join(appDir, appIndexHtmlPath),
             '<script src="./node_modules/leaflet/dist/leaflet.js"></script>'
         );
 

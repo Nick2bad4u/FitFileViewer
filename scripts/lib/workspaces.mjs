@@ -21,17 +21,35 @@ export const rootReleaseDistPath = "release-dist";
 export const rootRuntimeTsconfigPath = "tsconfig.runtime.json";
 export const rootStylelintConfigPath = "stylelint.config.mjs";
 export const rootTypedocConfigPath = "typedoc.json";
+export const rootUnitTestsPath = path.posix.join("tests", "unit");
+export const rootViteRendererConfigPath = "vite.renderer.config.mjs";
+export const rootVitestConfigPath = "vitest.config.ts";
 export const appWorkspacePath = path.join(repositoryRoot, appWorkspaceName);
 export const docusaurusWorkspacePath = path.join(
     repositoryRoot,
     docusaurusWorkspaceName
 );
+export const appAlternativeFitViewPath = "ffv";
 export const appDistPath = appWorkspaceRelativePath("dist");
+export const appElevProfileCssPath = "elevProfile.css";
+export const appIconsPath = "icons";
+export const appIndexHtmlPath = "index.html";
+export const appIntegrationTestsPath = appWorkspaceRepositoryPath(
+    "tests",
+    "integration"
+);
 export const appPackagePath = appWorkspaceAbsolutePath("package.json");
 export const appPackageRepositoryPath =
     appWorkspaceRepositoryPath("package.json");
 export const appReleasePath = appWorkspaceRelativePath("release");
+export const appStyleCssPath = "style.css";
+export const appTabsTestsPath = appWorkspaceRepositoryPath(
+    "tests",
+    "unit",
+    "tabs"
+);
 export const appTypesPath = appWorkspaceRelativePath("types");
+export const appUnitTestsPath = appWorkspaceRepositoryPath("tests", "unit");
 export const docusaurusPackagePath =
     docusaurusWorkspaceAbsolutePath("package.json");
 export const docusaurusPackageRepositoryPath =

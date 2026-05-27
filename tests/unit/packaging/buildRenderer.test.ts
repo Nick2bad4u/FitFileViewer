@@ -3,6 +3,7 @@ import process from "node:process";
 
 import { describe, expect, it, vi } from "vitest";
 
+import { rootViteRendererConfigPath } from "../../../scripts/lib/workspaces.mjs";
 import {
     buildRendererArgs,
     rendererViteConfigPath,
@@ -28,7 +29,7 @@ describe("build-renderer script", () => {
             "--mode",
             "development",
         ]);
-        expect(rendererViteConfigPath).toBe("vite.renderer.config.mjs");
+        expect(rendererViteConfigPath).toBe(rootViteRendererConfigPath);
         expect(viteCliPath).toMatch(/[\\/]vite[\\/]bin[\\/]vite\.js$/u);
     });
 

@@ -3,6 +3,13 @@ import process from "node:process";
 
 import { describe, expect, it, vi } from "vitest";
 
+import {
+    appIntegrationTestsPath,
+    appTabsTestsPath,
+    appUnitTestsPath,
+    rootUnitTestsPath,
+    rootVitestConfigPath,
+} from "../../../scripts/lib/workspaces.mjs";
 import { buildVitestArgs, runVitest } from "../../../scripts/run-vitest.mjs";
 
 type CommandRunner = (
@@ -25,10 +32,10 @@ describe("run-vitest wrapper", () => {
             ])
         ).toStrictEqual([
             "--config",
-            "vitest.config.ts",
+            rootVitestConfigPath,
             "--run",
-            "tests/unit",
-            "electron-app/tests/unit",
+            rootUnitTestsPath,
+            appUnitTestsPath,
             "--maxWorkers",
             "1",
         ]);
@@ -45,10 +52,10 @@ describe("run-vitest wrapper", () => {
             ])
         ).toStrictEqual([
             "--config",
-            "vitest.config.ts",
+            rootVitestConfigPath,
             "--run",
             "--reporter=verbose",
-            "electron-app/tests/unit/tabs",
+            appTabsTestsPath,
         ]);
     });
 
@@ -66,7 +73,7 @@ describe("run-vitest wrapper", () => {
             ])
         ).toStrictEqual([
             "--config",
-            "vitest.config.ts",
+            rootVitestConfigPath,
             "--run",
             "--maxWorkers",
             "1",
@@ -86,12 +93,12 @@ describe("run-vitest wrapper", () => {
             ])
         ).toStrictEqual([
             "--config",
-            "vitest.config.ts",
+            rootVitestConfigPath,
             "--run",
             "--reporter",
             "dot",
-            "tests/unit",
-            "electron-app/tests/unit",
+            rootUnitTestsPath,
+            appUnitTestsPath,
         ]);
     });
 
@@ -128,8 +135,8 @@ describe("run-vitest wrapper", () => {
                 "--max-old-space-size=8192",
                 expect.stringContaining(path.join("vitest", "vitest.mjs")),
                 "--config",
-                "vitest.config.ts",
-                "electron-app/tests/integration",
+                rootVitestConfigPath,
+                appIntegrationTestsPath,
             ])
         );
         expect(path.resolve(options.cwd)).toBe(process.cwd());
