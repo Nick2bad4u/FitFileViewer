@@ -583,14 +583,7 @@ jobs:
 
             - name: Add Changelog Job Summary
               if: always()
-              run: |
-                  {
-                    echo "## 📝 Changelog Update Summary"
-                    echo "- **Version**: v${{ needs.bump-version.outputs.new_version }}"
-                    echo "- **CHANGELOG.md** generated at the repository root"
-                    echo "- **Changes committed** directly to repository (no PR required)"
-                    echo "- **Status**: ${{ job.status }}"
-                    echo ""
-                    echo "### Files Updated:"
-                    echo "- \`/CHANGELOG.md\`"
-                  } >> "$GITHUB_STEP_SUMMARY"
+              run: node scripts/update-changelog-job-summary.mjs
+              env:
+                  CHANGELOG_VERSION: ${{ needs.bump-version.outputs.new_version }}
+                  JOB_STATUS: ${{ job.status }}
