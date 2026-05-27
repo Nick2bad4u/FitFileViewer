@@ -97,7 +97,6 @@
         "**/*.d.ts",
         "**/html/**",
         "**/assets/**",
-        "**/__mocks__/**",
         "**/utils/files/export/gpxExport.js"
     ],
     "excludeInternal": false,
