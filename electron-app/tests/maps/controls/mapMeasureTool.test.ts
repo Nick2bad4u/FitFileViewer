@@ -183,7 +183,7 @@ describe("mapMeasureTool.js", () => {
             { lat: 0, lng: 0 },
             { draggable: false }
         );
-        expect(mockMap.addLayer).toHaveBeenCalled();
+        expect(mockMap.addLayer).toHaveBeenCalledOnce();
         expect(addedLayers).toHaveLength(1);
 
         // Reset mock counts to distinguish second click calls
@@ -242,7 +242,7 @@ describe("mapMeasureTool.js", () => {
         clickHandler({ latlng: { lat: 2, lng: 2 } });
 
         // Should have cleared previous measurement by removing layers
-        expect(mockMap.removeLayer).toHaveBeenCalled();
+        expect(mockMap.removeLayer).toHaveBeenCalledTimes(4);
         expect(addedLayers).toHaveLength(1);
     });
 
@@ -268,7 +268,7 @@ describe("mapMeasureTool.js", () => {
         document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
 
         // Should have removed the marker and disabled measurement mode
-        expect(mockMap.removeLayer).toHaveBeenCalled();
+        expect(mockMap.removeLayer).toHaveBeenCalledOnce();
         expect(mockMap.off).toHaveBeenCalledWith("click", expect.any(Function));
 
         // Button should be reset
@@ -358,7 +358,7 @@ describe("mapMeasureTool.js", () => {
         mapClickHandler({ latlng: { lat: 1, lng: 1 } });
 
         // Verify that the divIcon was created with the exit button
-        expect(global.L.divIcon).toHaveBeenCalled();
+        expect(global.L.divIcon).toHaveBeenCalledOnce();
         const divIconCall = global.L.divIcon.mock.calls[0][0];
         expect(divIconCall.html).toBeInstanceOf(HTMLElement);
         const exitButton = divIconCall.html.querySelector(".measure-exit-btn");
@@ -373,7 +373,7 @@ describe("mapMeasureTool.js", () => {
         exitButton.click();
 
         // Now verify that removeLayer was called, indicating measurements were cleared
-        expect(mockMap.removeLayer).toHaveBeenCalled();
+        expect(mockMap.removeLayer).toHaveBeenCalledTimes(4);
         expect(addedLayers).toHaveLength(0);
     });
 });

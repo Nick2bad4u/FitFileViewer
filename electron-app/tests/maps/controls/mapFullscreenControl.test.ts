@@ -89,6 +89,7 @@ describe("mapFullscreenControl.js", () => {
         addFullscreenControl(mockMap);
 
         // Verify warning was logged
+        expect(console.warn).toHaveBeenCalledOnce();
         expect(console.warn).toHaveBeenCalledWith(
             "[mapFullscreenControl] Map container not found"
         );
@@ -118,7 +119,7 @@ describe("mapFullscreenControl.js", () => {
         expect(button.title).toBe("Exit Fullscreen");
 
         // Verify requestFullscreen was called
-        expect(mapDiv.requestFullscreen).toHaveBeenCalled();
+        expect(mapDiv.requestFullscreen).toHaveBeenCalledOnce();
 
         // Verify map size was invalidated
         vi.advanceTimersByTime(300);
@@ -134,7 +135,7 @@ describe("mapFullscreenControl.js", () => {
         expect(button.title).toBe("Enter Fullscreen");
 
         // Verify exitFullscreen was called
-        expect(document.exitFullscreen).toHaveBeenCalled();
+        expect(document.exitFullscreen).toHaveBeenCalledOnce();
     });
 
     it("should handle fullscreenchange event", () => {
