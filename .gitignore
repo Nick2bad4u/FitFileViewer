@@ -363,12 +363,6 @@ vscode-extension/*
 .github\copilot-instructions.md
 .codacy/cli.sh
 **/.prettier-cache
-electron-app/coverage-report.json
-electron-app/coverage_output.txt
-electron-app/coverage-temp.json
-electron-app/codecov.exe
-electron-app/recent-files-test.json
-electron-app/test-report.junit.xml
 todo.md
 electron-app/temp-win7/
 # Ignore generated doc coverage badges
