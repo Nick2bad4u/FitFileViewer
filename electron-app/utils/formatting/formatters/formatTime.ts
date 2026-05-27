@@ -26,11 +26,7 @@ export function formatTime(seconds: unknown, useUserUnits = false): string {
         return TIME_FORMAT_CONSTANTS.FALLBACK_VALUE;
     }
 
-    if (seconds === Infinity) {
-        return "Infinity:NaN:NaN";
-    }
-
-    if (Number.isNaN(seconds)) {
+    if (!Number.isFinite(seconds)) {
         console.warn("[formatTime] Invalid seconds value:", seconds);
         return TIME_FORMAT_CONSTANTS.FALLBACK_VALUE;
     }

@@ -180,7 +180,20 @@ describe("Working Formatter Utilities", () => {
 
             it("should handle Infinity input gracefully", () => {
                 const result = formatTime(Infinity);
-                expect(result).toBe("Infinity:NaN:NaN"); // Actual behavior for Infinity
+                expect(result).toBe("0:00");
+                expect(console.warn).toHaveBeenCalledWith(
+                    "[formatTime] Invalid seconds value:",
+                    Infinity
+                );
+            });
+
+            it("should handle negative Infinity input gracefully", () => {
+                const result = formatTime(-Infinity);
+                expect(result).toBe("0:00");
+                expect(console.warn).toHaveBeenCalledWith(
+                    "[formatTime] Invalid seconds value:",
+                    -Infinity
+                );
             });
         });
 
