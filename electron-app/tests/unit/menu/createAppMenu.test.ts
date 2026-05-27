@@ -161,14 +161,12 @@ describe("createAppMenu", () => {
         expect(Array.isArray(tpl)).toBe(true);
         expect(tpl).toHaveLength(4);
         const labels = tpl.map((i: any) => i.label);
-        expect(labels).toEqual(
-            expect.arrayContaining([
-                "📁 File",
-                "👁️ View",
-                "⚙️ Settings",
-                "❓ Help",
-            ])
-        );
+        expect(labels).toStrictEqual([
+            "📁 File",
+            "👁️ View",
+            "⚙️ Settings",
+            "❓ Help",
+        ]);
 
         // Find Open Recent submenu and verify it contains mapped items
         const fileMenu = tpl.find((i: any) => i.label === "📁 File");
@@ -184,9 +182,12 @@ describe("createAppMenu", () => {
             submenu: expect.any(Array),
         });
         const recentLabels = openRecent.submenu.map((i: any) => i.label);
-        expect(
-            recentLabels.some((l: string) => l.includes("activity1.fit"))
-        ).toBe(true);
+        expect(recentLabels).toStrictEqual([
+            "activity1.fit",
+            "activity2.fit",
+            undefined,
+            "🧹 Clear Recent Files",
+        ]);
     });
 
     it("enables Summary Columns when a file is loaded and triggers IPC on click", () => {
@@ -197,9 +198,12 @@ describe("createAppMenu", () => {
         const tpl =
             capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         expect(Array.isArray(tpl)).toBe(true);
-        expect(tpl.map((i: any) => i.label)).toEqual(
-            expect.arrayContaining(["⚙️ Settings"])
-        );
+        expect(tpl.map((i: any) => i.label)).toStrictEqual([
+            "📁 File",
+            "👁️ View",
+            "⚙️ Settings",
+            "❓ Help",
+        ]);
         const settingsMenu = (tpl || []).find(
             (i: any) => i.label === "⚙️ Settings"
         );
@@ -465,12 +469,10 @@ describe("createAppMenu", () => {
         about.click();
         shortcuts.click();
         const ipcCalls: any[][] = (globalThis as any).__ipcCalls || [];
-        expect(ipcCalls).toEqual(
-            expect.arrayContaining([
-                ["menu-about"],
-                ["menu-keyboard-shortcuts"],
-            ])
-        );
+        expect(ipcCalls).toStrictEqual([
+            ["menu-about"],
+            ["menu-keyboard-shortcuts"],
+        ]);
     });
 
     it("file > Close Window item is present and clickable", () => {
@@ -1164,13 +1166,11 @@ describe("createAppMenu - additional robust branches", () => {
         yellow.click();
         off.click();
         const ipcCalls: any[][] = (globalThis as any).__ipcCalls || [];
-        expect(ipcCalls).toEqual(
-            expect.arrayContaining([
-                ["set-high-contrast", "white"],
-                ["set-high-contrast", "yellow"],
-                ["set-high-contrast", "off"],
-            ])
-        );
+        expect(ipcCalls).toStrictEqual([
+            ["set-high-contrast", "white"],
+            ["set-high-contrast", "yellow"],
+            ["set-high-contrast", "off"],
+        ]);
     });
 
     it("uses mainWindow fallback when BrowserWindow.getFocusedWindow returns null (About, Keyboard, High Contrast)", () => {
