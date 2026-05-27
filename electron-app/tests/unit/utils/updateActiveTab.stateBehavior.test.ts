@@ -91,7 +91,7 @@ function getSubscriptionCallback(): SubscriptionCallback {
     return callback as SubscriptionCallback;
 }
 
-describe("updateActiveTab", () => {
+describe("updateActiveTab state behavior", () => {
     beforeEach(() => {
         vi.clearAllMocks();
         document.body.replaceChildren();
@@ -474,7 +474,7 @@ describe("updateActiveTab", () => {
         });
     });
 
-    describe("State integration tests", () => {
+    describe("state integration", () => {
         it("should handle state subscription callback", () => {
             appendTabElements([
                 { id: "tab-summary", text: "Summary" },
@@ -544,7 +544,7 @@ describe("updateActiveTab", () => {
         });
     });
 
-    describe("Edge cases and error conditions", () => {
+    describe("edge cases and error conditions", () => {
         it("should handle rapid successive calls", () => {
             appendTabElement({ id: "tab-summary", text: "Summary" });
 
