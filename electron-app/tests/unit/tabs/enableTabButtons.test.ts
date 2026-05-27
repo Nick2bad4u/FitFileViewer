@@ -108,9 +108,12 @@ describe("Enable Tab Buttons", () => {
             expect(firstButton.classList.contains("tab-disabled")).toBe(true);
 
             setTabButtonsEnabled(true);
-            expect([...firstButton.classList]).toEqual(
-                expect.arrayContaining(["custom-class", "another-class"])
-            );
+            expect([...firstButton.classList]).toStrictEqual([
+                "tab-button",
+                "active",
+                "custom-class",
+                "another-class",
+            ]);
             expect(firstButton.classList.contains("tab-disabled")).toBe(false);
             expect(firstButton.getAttribute("aria-disabled")).toBe("false");
         });
