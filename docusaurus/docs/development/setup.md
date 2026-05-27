@@ -123,7 +123,7 @@ npm test
 npm run test:coverage
 
 # Run specific test file
-npm test -- tests/unit/formatDistance.test.js
+npm test -- electron-app/tests/unit/utils/formatUtils.test.ts
 ```
 
 ### Linting

@@ -45,7 +45,7 @@ npm run build -- --linux
 
 ```bash
 # Build for all platforms
-npm run build-all
+npm run build:all
 ```
 
 ## Build Configuration
@@ -140,7 +140,7 @@ jobs:
   steps:
    - uses: actions/checkout@v4
    - uses: actions/setup-node@v4
-   - run: npm install
+   - run: npm ci
    - run: npm run build
 ```
 

@@ -13,15 +13,16 @@ FitFileViewer uses Vitest for testing with comprehensive test coverage.
 ## Test Structure
 
 ```
-tests/
+electron-app/tests/
 ├── unit/              # Unit tests
-│   ├── formatDistance.test.js
-│   ├── formatDuration.test.js
+│   ├── utils/formatters.working.test.ts
+│   ├── utils/formatUtils.test.ts
 │   └── ...
 ├── integration/       # Integration tests
-│   ├── fileLoading.test.js
+│   ├── ...
 │   └── ...
-└── e2e/              # End-to-end tests
+└── strictTests/       # Browser-oriented strict tests
+    ├── renderGPSTrackChart.test.ts
     └── ...
 ```
 
@@ -38,7 +39,7 @@ npm run test:coverage
 npm run test:watch
 
 # Run specific file
-npm test -- tests/unit/formatDistance.test.js
+npm test -- electron-app/tests/unit/utils/formatters.working.test.ts
 
 # Run with pattern
 npm test -- --grep "formatDistance"
