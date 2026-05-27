@@ -15,7 +15,7 @@
         "lint:code": "node ../scripts/lint-docusaurus.mjs",
         "lint:code:check": "node ../scripts/lint-docusaurus.mjs",
         "lint:code:fix": "node ../scripts/lint-docusaurus.mjs --fix",
-        "lint:content": "npx --yes markdownlint-cli2 \"docs/**/*.{md,mdx}\" \"!docs/api/**/*.md\" \"blog/**/*.{md,mdx}\" \"src/**/*.{md,mdx}\" --config ../.markdownlint.json",
+        "lint:content": "node ../scripts/lint-docusaurus-content.mjs",
         "lint:fix": "npm run lint:code:fix && npm run lint:content",
         "serve": "docusaurus serve",
         "start": "docusaurus start",
