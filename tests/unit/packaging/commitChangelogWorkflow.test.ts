@@ -98,7 +98,12 @@ describe("commit-changelog-workflow script", () => {
             "add CHANGELOG.md",
             "diff --staged --quiet",
         ]);
-        expect(calls.every((call) => call.command === "git")).toBe(true);
+        expect(calls.map((call) => call.command)).toStrictEqual([
+            "git",
+            "git",
+            "git",
+            "git",
+        ]);
     });
 
     it("commits and pushes staged changelog changes", async () => {
