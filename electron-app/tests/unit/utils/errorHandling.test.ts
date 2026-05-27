@@ -198,7 +198,7 @@ describe("error handling utilities", () => {
                 "title"
             );
 
-            expect(result.isValid ? "valid" : "invalid").toBe("valid");
+            expect(result.isValid).toBe(true);
             expect(result.errors).toStrictEqual([]);
             expect(result.validatedValue).toBe("Morning Ride");
         });
@@ -219,7 +219,7 @@ describe("error handling utilities", () => {
                 "speed"
             );
 
-            expect(result.isValid ? "valid" : "invalid").toBe("invalid");
+            expect(result.isValid).toBe(false);
             expect(result.errors).not.toStrictEqual([]);
             expect(result.errors).toContain("speed must be a finite number");
             expect(result.errors).toContain(

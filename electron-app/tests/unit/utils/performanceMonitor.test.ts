@@ -14,7 +14,7 @@ describe(PerformanceMonitor, () => {
         monitor.setEnabled(false);
         monitor.startTimer("disabled-operation");
 
-        expect(monitor.isEnabled() ? "enabled" : "disabled").toBe("disabled");
+        expect(monitor.isEnabled()).toBe(false);
         expect(monitor.getTimer("disabled-operation")).toBeNull();
         expect(monitor.endTimer("disabled-operation")).toBeNull();
     });

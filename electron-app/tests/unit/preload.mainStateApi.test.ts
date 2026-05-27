@@ -54,17 +54,11 @@ function createApi() {
         >();
     const listenToMainState =
         vi.fn<
-            (
-                path: string,
-                callback: MainStateListener
-            ) => Promise<boolean>
+            (path: string, callback: MainStateListener) => Promise<boolean>
         >();
     const unlistenFromMainState =
         vi.fn<
-            (
-                path: string,
-                callback: MainStateListener
-            ) => Promise<boolean>
+            (path: string, callback: MainStateListener) => Promise<boolean>
         >();
 
     return {
@@ -79,9 +73,7 @@ function createApi() {
                 callback: unknown
             ): callback is (...args: unknown[]) => unknown =>
                 typeof callback === "function",
-            validateRequiredNonEmptyString: (
-                value: unknown
-            ): value is string =>
+            validateRequiredNonEmptyString: (value: unknown): value is string =>
                 typeof value === "string" && value.trim().length > 0,
         }),
         invoke,
@@ -131,7 +123,7 @@ describe("preload main-state API", () => {
 
         const invalidSetResult = await api.setMainState("", "value");
 
-        expect(invalidSetResult ? "valid" : "invalid").toBe("invalid");
+        expect(invalidSetResult).toBe(false);
         expect(invoke).not.toHaveBeenCalled();
 
         invoke.mockResolvedValueOnce(true);
@@ -143,7 +135,7 @@ describe("preload main-state API", () => {
             }
         );
 
-        expect(validSetResult ? "valid" : "invalid").toBe("valid");
+        expect(validSetResult).toBe(true);
     });
 
     it("delegates main-state listener lifecycle through the bridge", async () => {
@@ -161,7 +153,7 @@ describe("preload main-state API", () => {
         const unsubscribeResult = await unsubscribe();
 
         expect(unsubscribe).toBeTypeOf("function");
-        expect(unsubscribeResult ? "removed" : "kept").toBe("removed");
+        expect(unsubscribeResult).toBe(true);
         expect(listenToMainState).toHaveBeenCalledWith(
             "loadedFitFilePath",
             callback
@@ -185,7 +177,7 @@ describe("preload main-state API", () => {
         );
         const unsubscribeResult = await unsubscribe();
 
-        expect(unsubscribeResult ? "removed" : "kept").toBe("kept");
+        expect(unsubscribeResult).toBe(false);
         expect(listenToMainState).toHaveBeenCalledOnce();
         expect(unlistenFromMainState).not.toHaveBeenCalled();
     });
