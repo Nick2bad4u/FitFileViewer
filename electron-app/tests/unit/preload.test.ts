@@ -127,10 +127,7 @@ function resolveIpcInvoke(channel: string): Promise<unknown> {
         case "theme:get":
             return Promise.resolve("dark");
         case "recentFiles:get":
-            return Promise.resolve([
-                "file1.fit",
-                "file2.fit",
-            ]);
+            return Promise.resolve(["file1.fit", "file2.fit"]);
         case "recentFiles:approve":
             return Promise.resolve(true);
         case "fit:decode":
@@ -180,25 +177,20 @@ describe("preload.js - Comprehensive API Testing", () => {
     let mockProcess: MockProcess;
 
     function findExposedCall(apiName: string): ExposeCall | undefined {
-        return getMockCalls(
-            electronMock.contextBridge.exposeInMainWorld
-        ).find(
+        return getMockCalls(electronMock.contextBridge.exposeInMainWorld).find(
             (call): call is ExposeCall =>
                 isExposeCall(call) && call[0] === apiName
         );
     }
 
     function getElectronAPI(): PreloadElectronAPI {
-        return (
-            findExposedCall("electronAPI")?.[1] ??
-            getPreloadGlobal().electronAPI
-        ) as PreloadElectronAPI;
+        return (findExposedCall("electronAPI")?.[1] ??
+            getPreloadGlobal().electronAPI) as PreloadElectronAPI;
     }
 
     function getDevTools(): PreloadDevTools {
-        return (
-            findExposedCall("devTools")?.[1] ?? getPreloadGlobal().devTools
-        ) as PreloadDevTools;
+        return (findExposedCall("devTools")?.[1] ??
+            getPreloadGlobal().devTools) as PreloadDevTools;
     }
 
     beforeEach(() => {
@@ -756,10 +748,7 @@ describe("preload.js - Comprehensive API Testing", () => {
 
         it("should log successful API exposure", () => {
             const exposureLogs = getMockCalls(consoleLogSpy).filter((call) =>
-                firstArgumentIncludes(
-                    call,
-                    "[preload.js] Successfully exposed"
-                )
+                firstArgumentIncludes(call, "[preload.js] Successfully exposed")
             );
 
             expect(exposureLogs.length).toBeGreaterThan(0);
@@ -813,15 +802,13 @@ describe("preload.js - Comprehensive API Testing", () => {
                 {},
                 [],
             ];
-            testCases.forEach((testCase) => {
-                expect(() => {
-                    // This will exercise the validateCallback function internally
-                    api.onIpc("test-channel", testCase);
-                }).not.toThrow(); // Should handle invalid callbacks gracefully
-            });
-            expect(electronMock.ipcRenderer.on).not.toHaveBeenCalledWith(
-                "test-channel",
-                null
+            electronMock.ipcRenderer.on.mockClear();
+            for (const testCase of testCases) {
+                expect(api.onIpc("test-channel", testCase)).toBeUndefined();
+            }
+            expect(electronMock.ipcRenderer.on).not.toHaveBeenCalled();
+            expect(consoleErrorSpy).toHaveBeenCalledWith(
+                "[preload.js] onIpc: callback must be a function"
             );
         });
 
@@ -840,15 +827,13 @@ describe("preload.js - Comprehensive API Testing", () => {
                 [],
                 true,
             ];
-            testCases.forEach((testCase) => {
-                expect(() => {
-                    // This will exercise the validateString function internally
-                    api.send(testCase, "data");
-                }).not.toThrow(); // Should handle invalid strings gracefully
-            });
-            expect(electronMock.ipcRenderer.send).not.toHaveBeenCalledWith(
-                null,
-                "data"
+            electronMock.ipcRenderer.send.mockClear();
+            for (const testCase of testCases) {
+                expect(api.send(testCase, "data")).toBeUndefined();
+            }
+            expect(electronMock.ipcRenderer.send).not.toHaveBeenCalled();
+            expect(consoleErrorSpy).toHaveBeenCalledWith(
+                "[preload.js] send: channel must be a string"
             );
         });
     });
@@ -1108,9 +1093,9 @@ describe("preload.js - Comprehensive API Testing", () => {
         it("should test validateCallback through onIpc method", () => {
             // Test valid callback
             const validCallback = vi.fn();
-            expect(() =>
-                electronAPI.onIpc("test-channel", validCallback)
-            ).not.toThrow();
+            expect(
+                typeof electronAPI.onIpc("test-channel", validCallback)
+            ).toBe("function");
             expect(electronMock.ipcRenderer.on).toHaveBeenCalledWith(
                 "test-channel",
                 expect.any(Function)
@@ -1120,26 +1105,34 @@ describe("preload.js - Comprehensive API Testing", () => {
             ).toBe("function");
 
             // Test invalid callbacks to trigger validateCallback
-            expect(() => electronAPI.onIpc("test-channel", null)).not.toThrow();
-            expect(() =>
-                electronAPI.onIpc("test-channel", undefined)
-            ).not.toThrow();
-            expect(() =>
-                electronAPI.onIpc("test-channel", "not-a-function")
-            ).not.toThrow();
-            expect(() => electronAPI.onIpc("test-channel", 123)).not.toThrow();
-            expect(() => electronAPI.onIpc("test-channel", {})).not.toThrow();
-            expect(electronMock.ipcRenderer.on).not.toHaveBeenCalledWith(
-                "test-channel",
-                null
+            expect(
+                typeof electronAPI.onIpc("test-channel-3", validCallback)
+            ).toBe("function");
+            const validListenerCount = getMockCalls(
+                electronMock.ipcRenderer.on
+            ).length;
+            for (const invalidCallback of [
+                null,
+                undefined,
+                "not-a-function",
+                123,
+                {},
+            ]) {
+                expect(
+                    electronAPI.onIpc("test-channel", invalidCallback)
+                ).toBeUndefined();
+            }
+            expect(getMockCalls(electronMock.ipcRenderer.on)).toHaveLength(
+                validListenerCount
+            );
+            expect(consoleErrorSpy).toHaveBeenCalledWith(
+                "[preload.js] onIpc: callback must be a function"
             );
         });
 
         it("should test validateString through send method", () => {
             // Test valid string
-            expect(() =>
-                electronAPI.send("valid-channel", "data")
-            ).not.toThrow();
+            expect(electronAPI.send("valid-channel", "data")).toBeUndefined();
             expect(electronMock.ipcRenderer.send).toHaveBeenCalledWith(
                 "valid-channel",
                 "data"
@@ -1147,14 +1140,25 @@ describe("preload.js - Comprehensive API Testing", () => {
             expect(electronAPI.send("valid-channel-2", "data")).toBeUndefined();
 
             // Test invalid channels to trigger validateString
-            expect(() => electronAPI.send(null, "data")).not.toThrow();
-            expect(() => electronAPI.send(undefined, "data")).not.toThrow();
-            expect(() => electronAPI.send(123, "data")).not.toThrow();
-            expect(() => electronAPI.send({}, "data")).not.toThrow();
-            expect(() => electronAPI.send([], "data")).not.toThrow();
-            expect(electronMock.ipcRenderer.send).not.toHaveBeenCalledWith(
+            const validSendCount = getMockCalls(
+                electronMock.ipcRenderer.send
+            ).length;
+            for (const invalidChannel of [
                 null,
-                "data"
+                undefined,
+                123,
+                {},
+                [],
+            ]) {
+                expect(
+                    electronAPI.send(invalidChannel, "data")
+                ).toBeUndefined();
+            }
+            expect(getMockCalls(electronMock.ipcRenderer.send)).toHaveLength(
+                validSendCount
+            );
+            expect(consoleErrorSpy).toHaveBeenCalledWith(
+                "[preload.js] send: channel must be a string"
             );
         });
 
@@ -1317,10 +1321,14 @@ describe("preload.js - Comprehensive API Testing", () => {
             });
 
             // Test all methods with null/undefined parameters
-            expect(() => electronAPI.send(null, null)).not.toThrow();
-            expect(() => electronAPI.send(undefined, undefined)).not.toThrow();
-            expect(() => electronAPI.onIpc(null, null)).not.toThrow();
-            expect(() => electronAPI.onIpc(undefined, undefined)).not.toThrow();
+            electronMock.ipcRenderer.on.mockClear();
+            electronMock.ipcRenderer.send.mockClear();
+            expect(electronAPI.send(null, null)).toBeUndefined();
+            expect(electronAPI.send(undefined, undefined)).toBeUndefined();
+            expect(electronAPI.onIpc(null, null)).toBeUndefined();
+            expect(electronAPI.onIpc(undefined, undefined)).toBeUndefined();
+            expect(electronMock.ipcRenderer.send).not.toHaveBeenCalled();
+            expect(electronMock.ipcRenderer.on).not.toHaveBeenCalled();
 
             // invoke now requires a non-empty string channel
             await expect(electronAPI.invoke(null, null)).rejects.toThrow(
@@ -1349,15 +1357,15 @@ describe("preload.js - Comprehensive API Testing", () => {
             ];
 
             for (const invalid of invalidTypes) {
-                expect(() => electronAPI.send(invalid, "data")).not.toThrow();
-                expect(() =>
-                    electronAPI.onIpc("channel", invalid)
-                ).not.toThrow();
+                expect(electronAPI.send(invalid, "data")).toBeUndefined();
+                expect(electronAPI.onIpc("channel", invalid)).toBeUndefined();
                 // invoke should reject invalid channel types
                 await expect(
                     electronAPI.invoke(invalid, "data")
                 ).rejects.toThrow("Invalid channel for invoke");
             }
+            expect(electronMock.ipcRenderer.send).not.toHaveBeenCalled();
+            expect(electronMock.ipcRenderer.on).not.toHaveBeenCalled();
         });
 
         it("should handle empty and special string values", async () => {
@@ -1385,8 +1393,9 @@ describe("preload.js - Comprehensive API Testing", () => {
         it("should handle process beforeExit event", () => {
             // We can't directly test process.emit, but we can verify the callback was registered
             // by checking if the beforeExit handler was set up in the existing tests
-            const beforeExitCalls =
-                getMockCalls(mockProcess.once).filter(isBeforeExitCall);
+            const beforeExitCalls = getMockCalls(mockProcess.once).filter(
+                isBeforeExitCall
+            );
 
             expect(beforeExitCalls).toHaveLength(1);
             expect(typeof beforeExitCalls[0][1]).toBe("function");
