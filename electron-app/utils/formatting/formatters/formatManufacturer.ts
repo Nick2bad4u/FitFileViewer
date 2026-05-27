@@ -21,7 +21,7 @@ const MANUFACTURER_MAP = {
     development: "Development",
     direto: "Elite Direto",
     elite: "Elite",
-    faveroElectronics: "Favero Electronics",
+    faveroelectronics: "Favero Electronics",
     fluid2: "CycleOps Fluid2",
     flux: "Tacx Flux",
     garmin: "Garmin",

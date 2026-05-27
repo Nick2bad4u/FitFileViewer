@@ -37,7 +37,6 @@ describe("formatManufacturer.js - Manufacturer Name Formatting", () => {
                     "Garmin",
                     "Garmin",
                 ]);
-                expect(formatManufacturer("garmin")).not.toBe("garmin");
             });
 
             it("should format all cycling manufacturers correctly", () => {
@@ -108,6 +107,7 @@ describe("formatManufacturer.js - Manufacturer Name Formatting", () => {
                     "CustomManufacturer"
                 );
                 expect(formatManufacturer("MyBike")).toBe("MyBike");
+                expect(hasManufacturerMapping("unknownBrand")).not.toBe(true);
             });
         });
 
@@ -120,11 +120,11 @@ describe("formatManufacturer.js - Manufacturer Name Formatting", () => {
             });
 
             it("should format electronics manufacturers correctly", () => {
-                // Note: faveroElectronics doesn't work due to camelCase key vs lowercase lookup
                 expect(formatManufacturer("faveroElectronics")).toBe(
-                    "faveroElectronics"
+                    "Favero Electronics"
                 );
-                expect(formatManufacturer("faveroElectronics")).not.toBe(
+                expect(hasManufacturerMapping("faveroElectronics")).toBe(true);
+                expect(formatManufacturer("faveroElectronicsPlus")).not.toBe(
                     "Favero Electronics"
                 );
                 expect(formatManufacturer("cateye")).toBe("CatEye");
@@ -167,8 +167,8 @@ describe("formatManufacturer.js - Manufacturer Name Formatting", () => {
             it("should resolve numeric IDs using external lookup service", () => {
                 mockGetManufacturerName.mockReturnValue("Garmin");
                 expect(formatManufacturer(1)).toBe("Garmin");
-                expect(formatManufacturer(1)).not.toBe("1");
                 expect(mockGetManufacturerName).toHaveBeenCalledWith(1);
+                expect(mockGetManufacturerName).not.toHaveBeenCalledWith(2);
             });
 
             it("should resolve string numeric IDs using external lookup service", () => {
@@ -242,10 +242,10 @@ describe("formatManufacturer.js - Manufacturer Name Formatting", () => {
                 expect(formatManufacturer(null as any)).toBe(
                     "Unknown Manufacturer"
                 );
-                expect(formatManufacturer(null as any)).not.toBe("null");
                 expect(console.warn).toHaveBeenCalledWith(
                     "[formatManufacturer] Null or undefined manufacturer provided"
                 );
+                expect(console.error).not.toHaveBeenCalled();
             });
 
             it("should handle undefined input gracefully", () => {
@@ -255,6 +255,7 @@ describe("formatManufacturer.js - Manufacturer Name Formatting", () => {
                 expect(console.warn).toHaveBeenCalledWith(
                     "[formatManufacturer] Null or undefined manufacturer provided"
                 );
+                expect(console.error).not.toHaveBeenCalled();
             });
         });
 
@@ -262,7 +263,7 @@ describe("formatManufacturer.js - Manufacturer Name Formatting", () => {
             it("should handle boolean inputs by converting to string", () => {
                 expect(formatManufacturer(true as any)).toBe("true");
                 expect(formatManufacturer(false as any)).toBe("false");
-                expect(formatManufacturer(true as any)).not.toBe("True");
+                expect(console.error).not.toHaveBeenCalled();
             });
 
             it("should handle array inputs by converting to string", () => {
@@ -349,8 +350,13 @@ describe("formatManufacturer.js - Manufacturer Name Formatting", () => {
             it("should return an immutable copy (not reference)", () => {
                 const mappings1 = getAllManufacturerMappings();
                 const mappings2 = getAllManufacturerMappings();
-                expect(mappings1).not.toBe(mappings2);
+
                 expect(mappings1).toEqual(mappings2);
+                mappings1.garmin = "Mutated Garmin";
+                expect(getAllManufacturerMappings().garmin).toBe("Garmin");
+                expect(getAllManufacturerMappings().garmin).not.toBe(
+                    "Mutated Garmin"
+                );
             });
 
             it("should include all major manufacturer categories", () => {
@@ -418,6 +424,9 @@ describe("formatManufacturer.js - Manufacturer Name Formatting", () => {
                 expect(hasManufacturerMapping("GaRmIn")).toBe(true);
                 expect(hasManufacturerMapping("garmin")).toBe(true);
                 expect(hasManufacturerMapping("Garmin")).toBe(true);
+                expect(hasManufacturerMapping("faveroElectronics")).toBe(
+                    true
+                );
             });
 
             it("should handle whitespace in manufacturer names", () => {
@@ -460,9 +469,9 @@ describe("formatManufacturer.js - Manufacturer Name Formatting", () => {
                 const result = formatManufacturer(42);
 
                 expect(result).toBe("42");
-                expect(result).not.toBe("Test Manufacturer");
                 expect(mockGetManufacturerName).toHaveBeenCalledWith(42);
                 expect(mockGetManufacturerName).toHaveBeenCalledTimes(1);
+                expect(console.error).not.toHaveBeenCalled();
             });
 
             it("should handle when getManufacturerName is not available", () => {
