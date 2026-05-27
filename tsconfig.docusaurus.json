@@ -4,6 +4,7 @@
         "allowSyntheticDefaultImports": true,
         "baseUrl": ".",
         "esModuleInterop": true,
+        "ignoreDeprecations": "6.0",
         "isolatedModules": true,
         "jsx": "react-jsx",
         "lib": [
