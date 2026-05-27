@@ -74,6 +74,7 @@
         "release:bump-version": "node scripts/bump-app-version.mjs",
         "release:notes": "node scripts/generate-release-notes.mjs",
         "release:publish-version": "node scripts/publish-app-version.mjs",
+        "release:rename-windows-latest-yml": "node scripts/rename-windows-latest-yml.mjs",
         "start": "node scripts/start-electron.mjs --inspect=9229 --remote-debugging-port=9222 electron-app",
         "start:prod": "node scripts/start-electron.mjs --electron-is-dev 0 electron-app",
         "pretest": "npm run build:runtime-ts",

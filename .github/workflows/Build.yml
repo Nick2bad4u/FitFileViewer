@@ -392,25 +392,7 @@ jobs:
             - name: Rename Windows latest.yml files for unique arch/platform
               id: rename_windows_latest_yml
               shell: bash
-              run: |
-                  echo "Renaming nsis-web and root latest.yml files for Windows builds in ./artifacts..."
-                  # 32-bit (ia32)
-                  ia32_root="./artifacts/dist-windows-latest-ia32/latest.yml"
-                  ia32_nsis="./artifacts/dist-windows-latest-ia32/nsis-web/latest.yml"
-                  if [ -f "$ia32_root" ]; then
-                    mv "$ia32_root" "./artifacts/dist-windows-latest-ia32/latest-win32.yml"
-                    echo "Renamed $ia32_root -> ./artifacts/dist-windows-latest-ia32/latest-win32.yml"
-                  fi
-                  if [ -f "$ia32_nsis" ]; then
-                    mv "$ia32_nsis" "./artifacts/dist-windows-latest-ia32/nsis-web/latest-nsis-web-win32.yml"
-                    echo "Renamed $ia32_nsis -> ./artifacts/dist-windows-latest-ia32/nsis-web/latest-nsis-web-win32.yml"
-                  fi
-                  # 64-bit (x64)
-                  x64_nsis="./artifacts/dist-windows-latest-x64/nsis-web/latest.yml"
-                  if [ -f "$x64_nsis" ]; then
-                    mv "$x64_nsis" "./artifacts/dist-windows-latest-x64/nsis-web/latest-nsis-web.yml"
-                    echo "Renamed $x64_nsis -> ./artifacts/dist-windows-latest-x64/nsis-web/latest-nsis-web.yml"
-                  fi
+              run: node scripts/rename-windows-latest-yml.mjs
 
             - name: Organize distributables by platform and arch
               id: organize_distributables
