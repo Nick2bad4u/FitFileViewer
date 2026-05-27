@@ -263,15 +263,20 @@ describe("Tab State Management Integration", () => {
             const clickEvent = new MouseEvent("click", { bubbles: true });
             chartTab?.dispatchEvent(clickEvent);
 
-            // Should only be called once per initialization (could be multiple due to repeated init)
-            // But should not grow exponentially
-            const callCount = mockState.setState.mock.calls.filter(
+            // Current behavior registers one click listener per initialization.
+            const tabClickCalls = mockState.setState.mock.calls.filter(
                 (call: unknown[]) =>
                     call[0] === "ui.activeTab" && call[1] === "chart"
-            ).length;
+            );
 
-            expect(callCount).toBeGreaterThan(0);
-            expect(callCount).toBeLessThan(20); // Reasonable upper bound
+            expect(tabClickCalls).toHaveLength(10);
+            expect(tabClickCalls).toEqual(
+                Array.from({ length: 10 }, () => [
+                    "ui.activeTab",
+                    "chart",
+                    { source: "tabButtonClick" },
+                ])
+            );
         });
 
         it("should handle high-frequency state changes", () => {
