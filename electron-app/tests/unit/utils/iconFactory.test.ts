@@ -25,7 +25,13 @@ describe("iconFactory", () => {
         expect(icon.getAttribute("width")).toBe("18");
         expect(icon.getAttribute("stroke-width")).toBe("3");
         expect(icon.querySelector("title")?.textContent).toBe("<Timer>");
-        expect(icon.querySelectorAll("circle,path").length).toBeGreaterThan(0);
+        expect(Array.from(icon.children, (child) => child.tagName)).toEqual([
+            "title",
+            "circle",
+            "path",
+            "path",
+            "path",
+        ]);
     });
 
     it("escapes dynamic values in the legacy SVG string API", () => {

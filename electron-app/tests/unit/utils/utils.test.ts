@@ -98,8 +98,15 @@ describe("utils global attachment and API", () => {
 
         const helpers = (globalThis as any).window.devUtilsHelpers;
         const results = helpers.getAttachmentResults();
-        // There should be at least one collision recorded
-        expect(results.collisions.length).toBeGreaterThan(0);
+        expect(results.collisions).toEqual([
+            {
+                name: "formatDistance",
+                newType: "function",
+                previousType: "function",
+                resolved: true,
+                serious: false,
+            },
+        ]);
 
         // cleanup removes globals
         helpers.cleanup();
