@@ -4,13 +4,15 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import {
+    appWorkspacePath,
+    repositoryPath,
+} from "../../../scripts/lib/workspaces.mjs";
+
 const requireFromTest = createRequire(import.meta.url);
 const repositoryRoot = process.cwd();
-const sharedFileListPath = path.join(
-    repositoryRoot,
-    "electron-builder.files.json"
-);
-const electronAppRoot = path.join(repositoryRoot, "electron-app");
+const sharedFileListPath = repositoryPath("electron-builder.files.json");
+const electronAppRoot = appWorkspacePath;
 
 type ElectronBuilderConfig = {
     files: string[];

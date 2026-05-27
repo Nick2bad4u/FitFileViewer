@@ -1,14 +1,17 @@
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import process from "node:process";
+import { pathToFileURL } from "node:url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const repoRoot = path.resolve(__dirname, "..");
+import { repositoryPath, repositoryRoot } from "./lib/workspaces.mjs";
 
-function assertInsideRepo(targetPath) {
-    const relativePath = path.relative(repoRoot, path.resolve(targetPath));
+export const flatpakRepoDir = repositoryPath("flatpak-repo");
+export const flatpakBuildDir = repositoryPath("flatpak-build-dir");
+export const flatpakBundlePath = repositoryPath("FitFileViewer.flatpak");
+
+export function assertInsideRepo(targetPath, root = repositoryRoot) {
+    const relativePath = path.relative(root, path.resolve(targetPath));
 
     if (
         relativePath === "" ||
@@ -19,40 +22,47 @@ function assertInsideRepo(targetPath) {
     }
 }
 
-function run(command, args) {
-    execFileSync(command, args, {
-        cwd: repoRoot,
+function run(command, args, commandRunner = execFileSync) {
+    commandRunner(command, args, {
+        cwd: repositoryRoot,
         env: process.env,
         stdio: "inherit",
     });
 }
 
-const flatpakRepoDir = path.join(repoRoot, "flatpak-repo");
-const buildDir = path.join(repoRoot, "flatpak-build-dir");
-const bundlePath = path.join(repoRoot, "FitFileViewer.flatpak");
+export function buildFlatpak({
+    commandRunner = execFileSync,
+    fileSystem = fs,
+} = {}) {
+    assertInsideRepo(flatpakRepoDir);
+    assertInsideRepo(flatpakBuildDir);
+    assertInsideRepo(flatpakBundlePath);
 
-assertInsideRepo(flatpakRepoDir);
-assertInsideRepo(buildDir);
-assertInsideRepo(bundlePath);
+    fileSystem.rmSync(flatpakRepoDir, { force: true, recursive: true });
+    fileSystem.rmSync(flatpakBuildDir, { force: true, recursive: true });
+    fileSystem.rmSync(flatpakBundlePath, { force: true });
 
-function buildFlatpak() {
-    fs.rmSync(flatpakRepoDir, { force: true, recursive: true });
-    fs.rmSync(buildDir, { force: true, recursive: true });
-    fs.rmSync(bundlePath, { force: true });
+    run(
+        "flatpak-builder",
+        [
+            "--repo=flatpak-repo",
+            "--force-clean",
+            "flatpak-build-dir",
+            "flatpak-build.yml",
+        ],
+        commandRunner
+    );
 
-    run("flatpak-builder", [
-        "--repo=flatpak-repo",
-        "--force-clean",
-        "flatpak-build-dir",
-        "flatpak-build.yml",
-    ]);
-
-    run("flatpak", [
-        "build-bundle",
-        "flatpak-repo",
-        "FitFileViewer.flatpak",
-        "com.nick2bad4u.fitfileviewer",
-    ]);
+    run(
+        "flatpak",
+        [
+            "build-bundle",
+            "flatpak-repo",
+            "FitFileViewer.flatpak",
+            "com.nick2bad4u.fitfileviewer",
+        ],
+        commandRunner
+    );
 }
 
 if (

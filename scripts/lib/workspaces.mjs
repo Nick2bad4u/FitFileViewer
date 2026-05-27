@@ -50,6 +50,10 @@ export function repositoryScriptPath(...segments) {
     return path.join(scriptsPath, ...segments);
 }
 
+export function repositoryPath(...segments) {
+    return path.join(repositoryRoot, ...segments);
+}
+
 function resolveRepositoryRoot() {
     const setupImportMetaUrl = import.meta.url;
     if (setupImportMetaUrl.startsWith("file:")) {

@@ -2,24 +2,22 @@ import { Arch, build, Platform } from "electron-builder";
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { pathToFileURL } from "node:url";
 
 import {
     appWorkspaceAbsolutePath,
     appWorkspacePath,
+    repositoryPath,
+    repositoryRoot,
 } from "./lib/workspaces.mjs";
 
-const __filename = fileURLToPath(import.meta.url);
-
-const __dirname = path.dirname(__filename);
-const repoRoot = path.resolve(__dirname, "..");
 const electronAppDir = appWorkspacePath;
 const outputDir = appWorkspaceAbsolutePath("release", "win7");
 const WIN7_ELECTRON_VERSION = "22.3.27";
 export const appPackageFiles = readElectronBuilderFiles();
 
 export function readElectronBuilderFiles() {
-    const fileListPath = path.join(repoRoot, "electron-builder.files.json");
+    const fileListPath = repositoryPath("electron-builder.files.json");
     const parsed = JSON.parse(fs.readFileSync(fileListPath, "utf8"));
 
     return parseElectronBuilderFiles(parsed);
@@ -67,7 +65,7 @@ function runNpmScript(scriptName) {
                 scriptName,
             ],
             {
-                cwd: repoRoot,
+                cwd: repositoryRoot,
                 stdio: "inherit",
             }
         );
@@ -78,7 +76,7 @@ function runNpmScript(scriptName) {
         process.platform === "win32" ? "npm.cmd" : "npm",
         ["run", scriptName],
         {
-            cwd: repoRoot,
+            cwd: repositoryRoot,
             stdio: "inherit",
             shell: process.platform === "win32",
         }

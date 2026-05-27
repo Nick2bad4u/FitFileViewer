@@ -21,6 +21,7 @@ type WorkspacesModule = {
     docusaurusWorkspaceRepositoryPath: (...segments: string[]) => string;
     docusaurusWorkspaceRelativePath: (...segments: string[]) => string;
     repositoryRoot: string;
+    repositoryPath: (...segments: string[]) => string;
     repositoryScriptPath: (...segments: string[]) => string;
     scriptsPath: string;
 };
@@ -31,7 +32,7 @@ async function importWorkspaces(): Promise<WorkspacesModule> {
 
 describe("workspace path helpers", () => {
     it("centralizes the app workspace root and generated output paths", async () => {
-        expect.assertions(16);
+        expect.assertions(17);
 
         const workspaces = await importWorkspaces();
 
@@ -74,6 +75,9 @@ describe("workspace path helpers", () => {
         );
         expect(workspaces.repositoryScriptPath("build-runtime.mjs")).toBe(
             path.join(process.cwd(), "scripts", "build-runtime.mjs")
+        );
+        expect(workspaces.repositoryPath("flatpak-build.yml")).toBe(
+            path.join(process.cwd(), "flatpak-build.yml")
         );
     });
 
