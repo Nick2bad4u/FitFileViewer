@@ -5,15 +5,15 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 import {
-    appWorkspaceAbsolutePath,
     appWorkspacePath,
     repositoryPath,
     repositoryRoot,
     rootElectronBuilderFilesPath,
+    rootReleaseDistPath,
 } from "./lib/workspaces.mjs";
 
 const electronAppDir = appWorkspacePath;
-const outputDir = appWorkspaceAbsolutePath("release", "win7");
+export const outputDir = repositoryPath(rootReleaseDistPath, "win7");
 const WIN7_ELECTRON_VERSION = "22.3.27";
 export const appPackageFiles = readElectronBuilderFiles();
 
@@ -37,9 +37,9 @@ export function parseElectronBuilderFiles(parsed) {
     return parsed;
 }
 
-function assertInsideElectronApp(targetPath) {
+function assertInsideRepository(targetPath) {
     const relativePath = path.relative(
-        electronAppDir,
+        repositoryRoot,
         path.resolve(targetPath)
     );
 
@@ -49,7 +49,7 @@ function assertInsideElectronApp(targetPath) {
         path.isAbsolute(relativePath)
     ) {
         throw new Error(
-            `Refusing to operate outside electron-app: ${targetPath}`
+            `Refusing to operate outside repository: ${targetPath}`
         );
     }
 }
@@ -107,7 +107,7 @@ function resolveNpmCliPath() {
 async function run() {
     console.log("[win7-build] Starting Windows 7 compatibility build...");
     try {
-        assertInsideElectronApp(outputDir);
+        assertInsideRepository(outputDir);
         fs.rmSync(outputDir, { force: true, recursive: true });
         runNpmScript("build:runtime-ts");
 

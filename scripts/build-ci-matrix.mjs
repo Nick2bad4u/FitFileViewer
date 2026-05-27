@@ -4,14 +4,14 @@ import process from "node:process";
 import { pathToFileURL } from "node:url";
 
 import {
-    appReleasePath,
     repositoryRoot,
     repositoryScriptPath,
+    rootReleaseDistPath,
 } from "./lib/workspaces.mjs";
 
 export const defaultInitialRetryDelaySeconds = 15;
 export const defaultMaxMacosAttempts = 3;
-export const defaultReleaseDirectory = appReleasePath;
+export const defaultReleaseDirectory = rootReleaseDistPath;
 
 if (
     process.argv[1] &&

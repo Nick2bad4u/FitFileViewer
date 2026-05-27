@@ -7,7 +7,7 @@ module.exports = {
     electronVersion,
     icon: "icons/favicon.ico",
     directories: {
-        output: "release",
+        output: "../release-dist",
     },
     files: appPackageFiles,
     appId: "io.github.nick2bad4u.fitfileviewer",

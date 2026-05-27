@@ -5,6 +5,8 @@ import path from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
+import { rootReleaseDistPath } from "../../../scripts/lib/workspaces.mjs";
+
 type PrintDistributableHashesModule = {
     findDistributableFiles: (rootDirectory: string) => string[];
     formatHashLine: (filePath: string, baseDirectory?: string) => string;
@@ -139,8 +141,8 @@ describe("print-distributable-hashes script", () => {
 
         const { parseArgs } = await importPrintDistributableHashes();
 
-        expect(parseArgs(["electron-app/release"])).toStrictEqual({
-            directory: "electron-app/release",
+        expect(parseArgs([rootReleaseDistPath])).toStrictEqual({
+            directory: rootReleaseDistPath,
             help: false,
         });
     });

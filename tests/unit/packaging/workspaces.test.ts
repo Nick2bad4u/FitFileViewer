@@ -11,7 +11,6 @@ type WorkspacesModule = {
     appIntegrationTestsPath: string;
     appPackagePath: string;
     appPackageRepositoryPath: string;
-    appReleasePath: string;
     appStyleCssPath: string;
     appTabsTestsPath: string;
     appTypesPath: string;
@@ -61,7 +60,7 @@ async function importWorkspaces(): Promise<WorkspacesModule> {
 
 describe("workspace path helpers", () => {
     it("centralizes the app workspace root paths", async () => {
-        expect.assertions(17);
+        expect.assertions(15);
 
         const workspaces = await importWorkspaces();
 
@@ -84,14 +83,8 @@ describe("workspace path helpers", () => {
         expect(workspaces.appPackageRepositoryPath).toBe(
             "electron-app/package.json"
         );
-        expect(workspaces.appReleasePath).toBe(
-            path.join("electron-app", "release")
-        );
         expect(workspaces.appTypesPath).toBe(
             path.join("electron-app", "types")
-        );
-        expect(workspaces.appWorkspaceRelativePath("release", "win7")).toBe(
-            path.join("electron-app", "release", "win7")
         );
         expect(workspaces.appWorkspaceRepositoryPath("package.json")).toBe(
             "electron-app/package.json"

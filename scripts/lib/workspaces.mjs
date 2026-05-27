@@ -41,7 +41,6 @@ export const appIntegrationTestsPath = appWorkspaceRepositoryPath(
 export const appPackagePath = appWorkspaceAbsolutePath("package.json");
 export const appPackageRepositoryPath =
     appWorkspaceRepositoryPath("package.json");
-export const appReleasePath = appWorkspaceRelativePath("release");
 export const appStyleCssPath = "style.css";
 export const appTabsTestsPath = appWorkspaceRepositoryPath(
     "tests",

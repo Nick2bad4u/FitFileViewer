@@ -5,10 +5,12 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
+    appWorkspaceRelativeToRepositoryRootPath,
     appWorkspacePath,
     repositoryPath,
     rootElectronBuilderConfigPath,
     rootElectronBuilderFilesPath,
+    rootReleaseDistPath,
 } from "../../../scripts/lib/workspaces.mjs";
 
 const requireFromTest = createRequire(import.meta.url);
@@ -17,11 +19,15 @@ const sharedFileListPath = repositoryPath(rootElectronBuilderFilesPath);
 const electronAppRoot = appWorkspacePath;
 
 type ElectronBuilderConfig = {
+    directories: {
+        output: string;
+    };
     files: string[];
 };
 
 type Win7BuildModule = {
     appPackageFiles: string[];
+    outputDir: string;
     parseElectronBuilderFiles: (parsed: unknown) => string[];
     readElectronBuilderFiles: () => string[];
 };
@@ -56,7 +62,7 @@ function findMarkdownFiles(directory: string): string[] {
 
 describe("electron-builder file list", () => {
     it("keeps normal and Win7 package surfaces aligned to the root file list", async () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const sharedFileList = readSharedFileList();
         const builderConfig = requireFromTest(
@@ -67,10 +73,16 @@ describe("electron-builder file list", () => {
 
         expect(sharedFileList).toStrictEqual(["dist/**", "package.json"]);
         expect(builderConfig.files).toStrictEqual(sharedFileList);
+        expect(builderConfig.directories.output).toBe(
+            appWorkspaceRelativeToRepositoryRootPath(rootReleaseDistPath)
+        );
         expect(win7Build.readElectronBuilderFiles()).toStrictEqual(
             sharedFileList
         );
         expect(win7Build.appPackageFiles).toStrictEqual(sharedFileList);
+        expect(win7Build.outputDir).toBe(
+            repositoryPath(rootReleaseDistPath, "win7")
+        );
     });
 
     it("rejects invalid package file lists", async () => {

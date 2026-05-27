@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
-    appReleasePath,
     repositoryScriptPath,
+    rootReleaseDistPath,
 } from "../../../scripts/lib/workspaces.mjs";
 
 type BuildCiMatrixModule = {
@@ -264,7 +264,7 @@ describe("build-ci-matrix script", () => {
                 initialRetryDelaySeconds: 15,
                 log() {},
                 maxAttempts: 3,
-                releaseDirectory: appReleasePath,
+                releaseDirectory: rootReleaseDistPath,
                 removeDirectory(directory) {
                     removedDirectories.push(directory);
                 },
@@ -279,8 +279,8 @@ describe("build-ci-matrix script", () => {
 
         expect(exitCode).toBe(0);
         expect(removedDirectories).toStrictEqual([
-            appReleasePath,
-            appReleasePath,
+            rootReleaseDistPath,
+            rootReleaseDistPath,
         ]);
         expect(sleepDelays).toStrictEqual([15]);
         expect(exitCodes).toStrictEqual([]);
@@ -304,7 +304,7 @@ describe("build-ci-matrix script", () => {
                     logMessages.push(message);
                 },
                 maxAttempts: 2,
-                releaseDirectory: appReleasePath,
+                releaseDirectory: rootReleaseDistPath,
                 removeDirectory() {},
                 runCommand() {
                     return 7;

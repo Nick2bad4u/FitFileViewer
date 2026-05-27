@@ -225,7 +225,7 @@ jobs:
             - name: Print distributable hashes (debug)
               id: print_hashes
               shell: bash
-              run: node scripts/print-distributable-hashes.mjs electron-app/release
+              run: node scripts/print-distributable-hashes.mjs release-dist
               continue-on-error: true
 
             - name: Upload build release files as artifact
@@ -234,10 +234,10 @@ jobs:
               with:
                   name: dist-${{ matrix.os }}-${{ matrix.arch }}
                   path: |
-                      electron-app/release/Fit-File-Viewer-*
-                      electron-app/release/latest*.yml
-                      electron-app/release/squirrel*/*
-                      electron-app/release/nsis-web/*
+                      release-dist/Fit-File-Viewer-*
+                      release-dist/latest*.yml
+                      release-dist/squirrel*/*
+                      release-dist/nsis-web/*
                   include-hidden-files: true
 
             - name: Update Build Matrix Summary (per platform/arch)
