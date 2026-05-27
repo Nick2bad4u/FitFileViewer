@@ -333,6 +333,7 @@ describe("main-ui.js core flows", () => {
         vi.useFakeTimers();
         vi.resetModules();
         vi.clearAllMocks();
+        listenCb = null;
         mockState["globalData"] = undefined;
         mockState["ui.dragCounter"] = 0;
         mockState["ui.dropOverlay.visible"] = false;
@@ -352,7 +353,23 @@ describe("main-ui.js core flows", () => {
         document.body.replaceChildren();
     });
 
-    // Theme change wiring is exercised implicitly by module import; skip strict assertions due to path resolution nuances.
+    it("applies the stored theme and handles theme-change callbacks", async () => {
+        expect.assertions(8);
+
+        await importMainUI();
+
+        expect(loadTheme).toHaveBeenCalledTimes(1);
+        expect(applyTheme).toHaveBeenCalledWith("dark");
+        expect(listenForThemeChange).toHaveBeenCalledTimes(1);
+        expect(typeof listenCb).toBe("function");
+
+        listenCb?.("light");
+
+        expect(applyTheme).toHaveBeenLastCalledWith("light");
+        expect(applyTheme).toHaveBeenCalledTimes(2);
+        expect(UIActions.setTheme).toHaveBeenCalledWith("light");
+        expect(UIActions.setTheme).toHaveBeenCalledTimes(1);
+    });
 
     it("unloads file via button and emits IPC", async () => {
         const api = installElectronAPI();
