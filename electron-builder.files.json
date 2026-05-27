@@ -1,8 +1,4 @@
 [
     "dist/**",
-    "elevProfile.css",
-    "icons/**",
-    "index.html",
-    "package.json",
-    "style.css"
+    "package.json"
 ]

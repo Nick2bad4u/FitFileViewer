@@ -65,11 +65,7 @@ describe("electron-builder file list", () => {
 
         expect(sharedFileList).toStrictEqual([
             "dist/**",
-            "elevProfile.css",
-            "icons/**",
-            "index.html",
             "package.json",
-            "style.css",
         ]);
         expect(builderConfig.files).toStrictEqual(sharedFileList);
         expect(win7Build.readElectronBuilderFiles()).toStrictEqual(
