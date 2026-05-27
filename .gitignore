@@ -377,5 +377,8 @@ electron-app/temp-win7/
 docusaurus/static/img/coverage.json
 docusaurus/static/img/coverage.svg
 
+# Docusaurus generated API docs
+docusaurus/docs/api/
+
 # Generated declaration output; source TypeScript files are authoritative.
 electron-app/types/
