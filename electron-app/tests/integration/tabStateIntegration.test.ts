@@ -19,6 +19,23 @@ const { initializeActiveTabState } =
 const { setTabButtonsEnabled } =
     await import("../../utils/ui/controls/enableTabButtons.js");
 
+function getRequiredTabButton(id: string): HTMLButtonElement {
+    const element = document.getElementById(id);
+    expect(element).toBeInstanceOf(HTMLButtonElement);
+    return element as HTMLButtonElement;
+}
+
+function getTabState(button: HTMLButtonElement) {
+    return {
+        ariaSelected: button.getAttribute("aria-selected"),
+        classes: [...button.classList],
+        disabled: button.disabled,
+        hasDisabledAttribute: button.hasAttribute("disabled"),
+        id: button.id,
+        pointerEvents: button.style.pointerEvents,
+    };
+}
+
 describe("Tab State Management Integration", () => {
     beforeEach(() => {
         // Reset mocks and DOM
@@ -44,18 +61,24 @@ describe("Tab State Management Integration", () => {
             setTabButtonsEnabled(false);
 
             // Verify tabs are disabled
-            const chartTab =
-                /** @type {HTMLButtonElement} */ document.getElementById(
-                    "tab-chart"
-                );
-            expect(chartTab?.disabled).toBe(true);
-            expect(chartTab?.classList.contains("tab-disabled")).toBe(true);
+            const chartTab = getRequiredTabButton("tab-chart");
+            expect(getTabState(chartTab)).toStrictEqual({
+                ariaSelected: "false",
+                classes: [
+                    "tab-button",
+                    "tab-disabled",
+                ],
+                disabled: true,
+                hasDisabledAttribute: true,
+                id: "tab-chart",
+                pointerEvents: "none",
+            });
 
             // Try to click disabled tab
             const clickEvent = new MouseEvent("click", { bubbles: true });
             const preventDefaultSpy = vi.spyOn(clickEvent, "preventDefault");
 
-            chartTab?.dispatchEvent(clickEvent);
+            chartTab.dispatchEvent(clickEvent);
 
             // Should prevent the click
             expect(preventDefaultSpy).toHaveBeenCalledOnce();
@@ -76,16 +99,19 @@ describe("Tab State Management Integration", () => {
             setTabButtonsEnabled(true);
 
             // Verify tabs are enabled
-            const chartTab =
-                /** @type {HTMLButtonElement} */ document.getElementById(
-                    "tab-chart"
-                );
-            expect(chartTab?.disabled).toBe(false);
-            expect(chartTab?.classList.contains("tab-disabled")).toBe(false);
+            const chartTab = getRequiredTabButton("tab-chart");
+            expect(getTabState(chartTab)).toStrictEqual({
+                ariaSelected: "false",
+                classes: ["tab-button"],
+                disabled: false,
+                hasDisabledAttribute: false,
+                id: "tab-chart",
+                pointerEvents: "auto",
+            });
 
             // Click should now work
             const clickEvent = new MouseEvent("click", { bubbles: true });
-            chartTab?.dispatchEvent(clickEvent);
+            chartTab.dispatchEvent(clickEvent);
 
             // State should change
             expect(mockState.setState).toHaveBeenCalledWith(
@@ -98,19 +124,16 @@ describe("Tab State Management Integration", () => {
         it("should handle multiple enable/disable cycles correctly", () => {
             initializeActiveTabState();
 
-            const chartTab =
-                /** @type {HTMLButtonElement} */ document.getElementById(
-                    "tab-chart"
-                );
+            const chartTab = getRequiredTabButton("tab-chart");
 
             // Cycle through multiple disable/enable states
             for (let i = 0; i < 5; i++) {
                 setTabButtonsEnabled(false);
-                expect(chartTab?.disabled).toBe(true);
+                expect(chartTab.disabled).toBe(true);
 
                 // Click should be prevented
                 const clickEvent = new MouseEvent("click", { bubbles: true });
-                chartTab?.dispatchEvent(clickEvent);
+                chartTab.dispatchEvent(clickEvent);
                 expect(mockState.setState).not.toHaveBeenCalledWith(
                     "ui.activeTab",
                     "chart",
@@ -120,7 +143,7 @@ describe("Tab State Management Integration", () => {
                 );
 
                 setTabButtonsEnabled(true);
-                expect(chartTab?.disabled).toBe(false);
+                expect(chartTab.disabled).toBe(false);
 
                 // Clear previous calls for next iteration
                 mockState.setState.mockClear();
@@ -135,26 +158,58 @@ describe("Tab State Management Integration", () => {
             // Set chart as active programmatically
             mockState.setState("ui.activeTab", "chart");
 
-            const summaryTab =
-                /** @type {HTMLElement} */ document.getElementById(
-                    "tab-summary"
-                );
-            const chartTab =
-                /** @type {HTMLElement} */ document.getElementById("tab-chart");
+            const summaryTab = getRequiredTabButton("tab-summary");
+            const chartTab = getRequiredTabButton("tab-chart");
 
             // Visual state should update
-            expect(summaryTab?.classList.contains("active")).toBe(false);
-            expect(chartTab?.classList.contains("active")).toBe(true);
+            expect(
+                [
+                    summaryTab,
+                    chartTab,
+                ].map((tab) => ({
+                    classes: [...tab.classList],
+                    id: tab.id,
+                }))
+            ).toStrictEqual([
+                { classes: ["tab-button"], id: "tab-summary" },
+                { classes: ["tab-button", "active"], id: "tab-chart" },
+            ]);
 
             // Now disable tabs
             setTabButtonsEnabled(false);
 
             // Disabled state should be applied but active state preserved
-            expect(summaryTab?.classList.contains("active")).not.toBe(true);
-            expect(chartTab?.getAttribute("aria-selected")).toBe("true");
-            expect(/** @type {HTMLButtonElement} */ chartTab?.disabled).toBe(
-                true
-            );
+            expect([...summaryTab.classList]).not.toContain("active");
+            expect(
+                [
+                    summaryTab,
+                    chartTab,
+                ].map(getTabState)
+            ).toStrictEqual([
+                {
+                    ariaSelected: "false",
+                    classes: [
+                        "tab-button",
+                        "tab-disabled",
+                    ],
+                    disabled: true,
+                    hasDisabledAttribute: true,
+                    id: "tab-summary",
+                    pointerEvents: "none",
+                },
+                {
+                    ariaSelected: "true",
+                    classes: [
+                        "tab-button",
+                        "active",
+                        "tab-disabled",
+                    ],
+                    disabled: true,
+                    hasDisabledAttribute: true,
+                    id: "tab-chart",
+                    pointerEvents: "none",
+                },
+            ]);
         });
 
         it("should handle rapid state changes during disabled state", () => {
@@ -173,24 +228,22 @@ describe("Tab State Management Integration", () => {
             });
 
             // Final state should be reflected in DOM
-            const summaryTab =
-                /** @type {HTMLElement} */ document.getElementById(
-                    "tab-summary"
-                );
-            expect(summaryTab?.classList.contains("active")).toBe(true);
+            const summaryTab = getRequiredTabButton("tab-summary");
+            expect([...summaryTab.classList].sort()).toStrictEqual([
+                "active",
+                "tab-button",
+                "tab-disabled",
+            ]);
 
             // But tabs should still be disabled
-            expect(/** @type {HTMLButtonElement} */ summaryTab?.disabled).toBe(
-                true
-            );
+            expect(summaryTab.disabled).toBe(true);
         });
     });
 
     describe("Error handling and edge cases", () => {
         it("should handle missing tab elements gracefully", () => {
             // Remove a tab button
-            const chartTab = document.getElementById("tab-chart");
-            chartTab?.remove();
+            getRequiredTabButton("tab-chart").remove();
 
             initializeActiveTabState();
 
@@ -211,7 +264,11 @@ describe("Tab State Management Integration", () => {
             setTabButtonsEnabled(true);
 
             expect(document.body.childElementCount).toBe(0);
-            expect(mockState.getState("ui.tabButtonsEnabled")).toBe(true);
+            expect({
+                tabButtonsEnabled: mockState.getState("ui.tabButtonsEnabled"),
+            }).toStrictEqual({
+                tabButtonsEnabled: true,
+            });
             expect(mockState.subscribe).toHaveBeenCalledWith(
                 "ui.activeTab",
                 expect.any(Function)
@@ -230,9 +287,11 @@ describe("Tab State Management Integration", () => {
             mockState.setState("ui.activeTab", "chart");
 
             // Should reflect the state
-            const chartTab =
-                /** @type {HTMLElement} */ document.getElementById("tab-chart");
-            expect(chartTab?.classList.contains("active")).toBe(true);
+            const chartTab = getRequiredTabButton("tab-chart");
+            expect([...chartTab.classList]).toStrictEqual([
+                "tab-button",
+                "active",
+            ]);
         });
 
         it("should handle invalid tab names", () => {
@@ -242,10 +301,11 @@ describe("Tab State Management Integration", () => {
             mockState.setState("ui.activeTab", "nonexistent");
 
             // Should not break, all tabs should be inactive
-            const tabs = document.querySelectorAll(".tab-button");
-            tabs.forEach((tab) => {
-                expect(tab.classList.contains("active")).toBe(false);
-            });
+            expect(
+                [...document.querySelectorAll(".tab-button.active")].map(
+                    (tab) => tab.id
+                )
+            ).toStrictEqual([]);
         });
     });
 
@@ -256,12 +316,11 @@ describe("Tab State Management Integration", () => {
                 initializeActiveTabState();
             }
 
-            const chartTab =
-                /** @type {HTMLElement} */ document.getElementById("tab-chart");
+            const chartTab = getRequiredTabButton("tab-chart");
 
             // Click once
             const clickEvent = new MouseEvent("click", { bubbles: true });
-            chartTab?.dispatchEvent(clickEvent);
+            chartTab.dispatchEvent(clickEvent);
 
             // Current behavior registers one click listener per initialization.
             const tabClickCalls = mockState.setState.mock.calls.filter(
@@ -296,11 +355,12 @@ describe("Tab State Management Integration", () => {
             // Should handle without errors
             const activeTab = document.querySelector(".tab-button.active");
             expect(activeTab).toBeInstanceOf(HTMLButtonElement);
-            expect(activeTab?.id).toBe("tab-table");
+            const activeTabButton = activeTab as HTMLButtonElement;
+            expect(activeTabButton.id).toBe("tab-table");
             expect(
                 document.querySelectorAll(".tab-button.active")
             ).toHaveLength(1);
-            expect(activeTab?.id).not.toBe("tab-summary");
+            expect(activeTabButton.id).not.toBe("tab-summary");
         });
     });
 });
