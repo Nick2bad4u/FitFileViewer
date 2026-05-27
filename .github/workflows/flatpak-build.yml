@@ -77,9 +77,6 @@ jobs:
                   name: flatpak-bundle
                   path: FitFileViewer.flatpak
 
-            - name: Zip Flatpak bundle
-              run: zip -j FitFileViewer.flatpak.zip FitFileViewer.flatpak
-
             - name: Get latest release tag
               id: get_release
               uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
@@ -95,14 +92,8 @@ jobs:
                       return releases.data[0].tag_name;
                   result-encoding: string
 
-            - name: Rename Flatpak and zip with version
-              run: |
-                  mv FitFileViewer.flatpak FitFileViewer-${{ steps.get_release.outputs.result }}.flatpak
-                  mv FitFileViewer.flatpak.zip FitFileViewer-${{ steps.get_release.outputs.result }}.flatpak.zip
-
             - name: Upload .flatpak and .zip to latest release
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   RELEASE_TAG: ${{ steps.get_release.outputs.result }}
-              run: |
-                  gh release upload "$RELEASE_TAG" "FitFileViewer-${RELEASE_TAG}.flatpak" "FitFileViewer-${RELEASE_TAG}.flatpak.zip" --clobber
+              run: npm run release:flatpak-assets
