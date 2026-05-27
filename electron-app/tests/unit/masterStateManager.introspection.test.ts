@@ -21,6 +21,42 @@ interface InitializationStatusSnapshot {
     };
 }
 
+interface RootStateSnapshot {
+    charts: {
+        controlsVisible: boolean;
+        isRendered: boolean;
+        selectedChart: string;
+        zoomLevel: number;
+    };
+    map: {
+        baseLayer: string;
+        trackVisible: boolean;
+        zoom: number;
+    };
+    performance: {
+        lastLoadTime: null | number;
+        memoryUsage: null | number;
+    };
+    tables: {
+        currentPage: number;
+        pageSize: number;
+        sortDirection: string;
+    };
+    ui: {
+        activeTab: string;
+        theme: string;
+        unloadButtonVisible: boolean;
+    };
+}
+
+interface StateHistorySnapshot {
+    newValue: unknown;
+    oldValue: unknown;
+    path: string;
+    source: string;
+    timestamp: number;
+}
+
 describe("MasterStateManager introspection", () => {
     beforeEach(() => {
         // Reset state before each test
@@ -37,16 +73,33 @@ describe("MasterStateManager introspection", () => {
             expect(typeof masterStateManager.getState).toBe("function");
 
             // Test basic state access
-            const initialState = masterStateManager.getState();
-            expect(initialState).toEqual(
-                expect.objectContaining({
-                    charts: expect.any(Object),
-                    map: expect.any(Object),
-                    performance: expect.any(Object),
-                    tables: expect.any(Object),
-                    ui: expect.any(Object),
-                })
-            );
+            const initialState =
+                masterStateManager.getState() as RootStateSnapshot;
+            expect(initialState.charts).toMatchObject({
+                controlsVisible: true,
+                isRendered: false,
+                selectedChart: "elevation",
+                zoomLevel: 1,
+            });
+            expect(initialState.map).toMatchObject({
+                baseLayer: "openstreetmap",
+                trackVisible: true,
+                zoom: 13,
+            });
+            expect(initialState.performance).toMatchObject({
+                lastLoadTime: null,
+                memoryUsage: null,
+            });
+            expect(initialState.tables).toMatchObject({
+                currentPage: 1,
+                pageSize: 50,
+                sortDirection: "asc",
+            });
+            expect(initialState.ui).toMatchObject({
+                activeTab: "summary",
+                theme: "system",
+                unloadButtonVisible: false,
+            });
             expect(
                 masterStateManager.getState("missing.branch")
             ).toBeUndefined();
@@ -85,14 +138,47 @@ describe("MasterStateManager introspection", () => {
         });
 
         it("should track state history through masterStateManager", () => {
+            const initialHistoryLength = masterStateManager.getHistory().length;
+
             // Make some state changes using direct stateManager
             setState("test.counter", 1);
             setState("test.counter", 2);
             setState("test.counter", 3);
 
             // Check history through masterStateManager
-            const history = masterStateManager.getHistory();
-            expect(history.length).toBeGreaterThan(0);
+            const newHistory = masterStateManager
+                .getHistory()
+                .slice(initialHistoryLength) as StateHistorySnapshot[];
+            expect(
+                newHistory.map(({ newValue, oldValue, path, source }) => ({
+                    newValue,
+                    oldValue,
+                    path,
+                    source,
+                }))
+            ).toStrictEqual([
+                {
+                    newValue: 1,
+                    oldValue: undefined,
+                    path: "test.counter",
+                    source: "unknown",
+                },
+                {
+                    newValue: 2,
+                    oldValue: 1,
+                    path: "test.counter",
+                    source: "unknown",
+                },
+                {
+                    newValue: 3,
+                    oldValue: 2,
+                    path: "test.counter",
+                    source: "unknown",
+                },
+            ]);
+            expect(newHistory.every(({ timestamp }) => timestamp > 0)).toBe(
+                true
+            );
         });
 
         it("should access subscriptions through masterStateManager", () => {
@@ -112,7 +198,9 @@ describe("MasterStateManager introspection", () => {
             // Check subscriptions list through masterStateManager
             const subscriptions =
                 masterStateManager.getSubscriptions() as SubscriptionSnapshot;
-            expect(subscriptions.subscriptionDetails["test.subscription"]).toEqual({
+            expect(
+                subscriptions.subscriptionDetails["test.subscription"]
+            ).toEqual({
                 hasListeners: true,
                 listenerCount: 1,
             });
@@ -122,9 +210,8 @@ describe("MasterStateManager introspection", () => {
             // Clean up
             unsubscribe();
             expect(
-                (
-                    masterStateManager.getSubscriptions() as SubscriptionSnapshot
-                ).subscriptionDetails["test.subscription"]
+                (masterStateManager.getSubscriptions() as SubscriptionSnapshot)
+                    .subscriptionDetails["test.subscription"]
             ).toBeUndefined();
         });
     });
