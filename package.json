@@ -70,6 +70,7 @@
         "package": "node scripts/build-package.mjs --dir",
         "prettier": "node scripts/run-prettier.mjs --check",
         "prettier:fix": "node scripts/run-prettier.mjs --write",
+        "release:bump-version": "node scripts/bump-app-version.mjs",
         "start": "node scripts/start-electron.mjs --inspect=9229 --remote-debugging-port=9222 electron-app",
         "start:prod": "node scripts/start-electron.mjs --electron-is-dev 0 electron-app",
         "pretest": "npm run build:runtime-ts",

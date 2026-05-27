@@ -84,27 +84,7 @@ jobs:
 
             - name: Bump package.json version number
               id: bump
-              run: |
-                  app_package="electron-app/package.json"
-                  if [ ! -f "$app_package" ]; then
-                    echo "Error: $app_package not found" >&2
-                    exit 1
-                  fi
-                  if ! jq empty "$app_package" >/dev/null 2>&1; then
-                    echo "Error: $app_package is not valid JSON" >&2
-                    exit 1
-                  fi
-                  VERSION=$(jq -r .version "$app_package")
-                  MAJOR=$(echo "$VERSION" | cut -d. -f1)
-                  MINOR=$(echo "$VERSION" | cut -d. -f2)
-                  if [ "$MINOR" -lt 9 ]; then
-                    NEW_VERSION="$MAJOR.$((MINOR + 1)).0"
-                  else
-                    NEW_VERSION="$((MAJOR + 1)).0.0"
-                  fi
-                  # Update the Electron workspace package and the root lockfile without running lifecycle scripts.
-                  npm version --workspace electron-app --no-git-tag-version --ignore-scripts "$NEW_VERSION"
-                  echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+              run: node scripts/bump-app-version.mjs --github-output
 
             - name: Commit and push version bump to repo
               id: commit_version
