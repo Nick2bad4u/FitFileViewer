@@ -3,7 +3,12 @@ import { createRequire } from "node:module";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
-import { appTypesPath, repositoryRoot } from "./lib/workspaces.mjs";
+import {
+    appTypesPath,
+    repositoryRoot,
+    rootElectronAppTsconfigPath,
+    rootRuntimeTsconfigPath,
+} from "./lib/workspaces.mjs";
 
 const require = createRequire(import.meta.url);
 const tscCliPath = require.resolve("typescript/bin/tsc");
@@ -13,7 +18,7 @@ export const typescriptTasks = new Map([
         "declarations",
         [
             "--project",
-            "tsconfig.electron-app.json",
+            rootElectronAppTsconfigPath,
             "--declaration",
             "--emitDeclarationOnly",
             "--declarationMap",
@@ -22,12 +27,12 @@ export const typescriptTasks = new Map([
             `./${appTypesPath}`,
         ],
     ],
-    ["runtime", ["--project", "tsconfig.runtime.json"]],
+    ["runtime", ["--project", rootRuntimeTsconfigPath]],
     [
         "typecheck",
         [
             "--project",
-            "tsconfig.electron-app.json",
+            rootElectronAppTsconfigPath,
             "--noEmit",
         ],
     ],

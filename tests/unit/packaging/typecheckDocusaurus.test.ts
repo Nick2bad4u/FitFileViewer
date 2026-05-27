@@ -9,6 +9,7 @@ import {
     docusaurusTypeScriptCliPath,
     runDocusaurusTypecheck,
 } from "../../../scripts/typecheck-docusaurus.mjs";
+import { rootDocusaurusTsconfigPath } from "../../../scripts/lib/workspaces.mjs";
 
 type CommandRunner = (
     command: string,
@@ -29,7 +30,7 @@ describe("typecheck-docusaurus script", () => {
             "--pretty",
             "false",
         ]);
-        expect(docusaurusTypecheckProject).toBe("tsconfig.docusaurus.json");
+        expect(docusaurusTypecheckProject).toBe(rootDocusaurusTsconfigPath);
         expect(docusaurusTypeScriptCliPath).toMatch(
             /[\\/]typescript[\\/]bin[\\/]tsc$/u
         );

@@ -3,14 +3,18 @@ import { createRequire } from "node:module";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
-import { docusaurusPackagePath, repositoryRoot } from "./lib/workspaces.mjs";
+import {
+    docusaurusPackagePath,
+    repositoryRoot,
+    rootDocusaurusTsconfigPath,
+} from "./lib/workspaces.mjs";
 
 const requireFromDocusaurus = createRequire(
     pathToFileURL(docusaurusPackagePath).href
 );
 export const docusaurusTypeScriptCliPath =
     requireFromDocusaurus.resolve("typescript/bin/tsc");
-export const docusaurusTypecheckProject = "tsconfig.docusaurus.json";
+export const docusaurusTypecheckProject = rootDocusaurusTsconfigPath;
 
 export function buildDocusaurusTypecheckArgs(argv = process.argv.slice(2)) {
     return [

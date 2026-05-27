@@ -6,7 +6,10 @@ export const repositoryRoot = resolveRepositoryRoot();
 export const appWorkspaceName = "electron-app";
 export const docusaurusWorkspaceName = "docusaurus";
 export const rootArtifactsPath = "artifacts";
+export const rootDocusaurusTsconfigPath = "tsconfig.docusaurus.json";
+export const rootElectronAppTsconfigPath = "tsconfig.electron-app.json";
 export const rootReleaseDistPath = "release-dist";
+export const rootRuntimeTsconfigPath = "tsconfig.runtime.json";
 export const appWorkspacePath = path.join(repositoryRoot, appWorkspaceName);
 export const docusaurusWorkspacePath = path.join(
     repositoryRoot,
@@ -63,7 +66,9 @@ export function rootReleaseDistRelativePath(...segments) {
 function resolveRepositoryRoot() {
     const setupImportMetaUrl = import.meta.url;
     if (setupImportMetaUrl.startsWith("file:")) {
-        return path.resolve(fileURLToPath(new URL("../..", setupImportMetaUrl)));
+        return path.resolve(
+            fileURLToPath(new URL("../..", setupImportMetaUrl))
+        );
     }
 
     return path.resolve(process.cwd());

@@ -3,12 +3,13 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import prettier from "prettier";
 
-import { repositoryRoot as defaultRepositoryRoot } from "./lib/workspaces.mjs";
+import {
+    repositoryPath,
+    repositoryRoot as defaultRepositoryRoot,
+    rootRuntimeTsconfigPath,
+} from "./lib/workspaces.mjs";
 
-export const runtimeTsconfigPath = path.join(
-    defaultRepositoryRoot,
-    "tsconfig.runtime.json"
-);
+export const runtimeTsconfigPath = repositoryPath(rootRuntimeTsconfigPath);
 
 export function resolveOutputPath(
     tsconfig,

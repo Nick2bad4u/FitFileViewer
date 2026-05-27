@@ -24,8 +24,11 @@ type WorkspacesModule = {
     repositoryPath: (...segments: string[]) => string;
     repositoryScriptPath: (...segments: string[]) => string;
     rootArtifactsPath: string;
+    rootDocusaurusTsconfigPath: string;
+    rootElectronAppTsconfigPath: string;
     rootReleaseDistPath: string;
     rootReleaseDistRelativePath: (...segments: string[]) => string;
+    rootRuntimeTsconfigPath: string;
     scriptsPath: string;
 };
 
@@ -35,7 +38,7 @@ async function importWorkspaces(): Promise<WorkspacesModule> {
 
 describe("workspace path helpers", () => {
     it("centralizes the app workspace root and generated output paths", async () => {
-        expect.assertions(20);
+        expect.assertions(22);
 
         const workspaces = await importWorkspaces();
 
@@ -83,6 +86,12 @@ describe("workspace path helpers", () => {
             path.join(process.cwd(), "flatpak-build.yml")
         );
         expect(workspaces.rootArtifactsPath).toBe("artifacts");
+        expect(workspaces.rootElectronAppTsconfigPath).toBe(
+            "tsconfig.electron-app.json"
+        );
+        expect(workspaces.rootRuntimeTsconfigPath).toBe(
+            "tsconfig.runtime.json"
+        );
         expect(workspaces.rootReleaseDistPath).toBe("release-dist");
         expect(
             workspaces.rootReleaseDistRelativePath(
@@ -99,7 +108,7 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes the Docusaurus workspace root and package paths", async () => {
-        expect.assertions(8);
+        expect.assertions(9);
 
         const workspaces = await importWorkspaces();
 
@@ -122,6 +131,9 @@ describe("workspace path helpers", () => {
         );
         expect(workspaces.docusaurusPackageRepositoryPath).toBe(
             "docusaurus/package.json"
+        );
+        expect(workspaces.rootDocusaurusTsconfigPath).toBe(
+            "tsconfig.docusaurus.json"
         );
     });
 });

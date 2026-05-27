@@ -7,6 +7,10 @@ import {
     buildTypescriptArgs,
     runTypescriptTask,
 } from "../../../scripts/run-typescript.mjs";
+import {
+    rootElectronAppTsconfigPath,
+    rootRuntimeTsconfigPath,
+} from "../../../scripts/lib/workspaces.mjs";
 
 type CommandRunner = (
     command: string,
@@ -21,7 +25,7 @@ describe("run-typescript wrapper", () => {
         const args = buildTypescriptArgs("typecheck", ["--pretty", "false"]);
 
         expect(args[0]).toMatch(/[\\/]typescript[\\/]bin[\\/]tsc$/u);
-        expect(args).toContain("tsconfig.electron-app.json");
+        expect(args).toContain(rootElectronAppTsconfigPath);
         expect(args).toContain("--noEmit");
         expect(args).toContain("--pretty");
     });
@@ -31,7 +35,7 @@ describe("run-typescript wrapper", () => {
 
         expect(buildTypescriptArgs("runtime").slice(1)).toStrictEqual([
             "--project",
-            "tsconfig.runtime.json",
+            rootRuntimeTsconfigPath,
         ]);
     });
 
@@ -40,7 +44,7 @@ describe("run-typescript wrapper", () => {
 
         expect(buildTypescriptArgs("declarations").slice(1)).toStrictEqual([
             "--project",
-            "tsconfig.electron-app.json",
+            rootElectronAppTsconfigPath,
             "--declaration",
             "--emitDeclarationOnly",
             "--declarationMap",
@@ -83,7 +87,7 @@ describe("run-typescript wrapper", () => {
 
         expect(command).toBe(process.execPath);
         expect(args?.[0]).toMatch(/[\\/]typescript[\\/]bin[\\/]tsc$/u);
-        expect(args).toContain("tsconfig.runtime.json");
+        expect(args).toContain(rootRuntimeTsconfigPath);
         expect({
             ...options,
             cwd: path.resolve(options?.cwd ?? ""),
