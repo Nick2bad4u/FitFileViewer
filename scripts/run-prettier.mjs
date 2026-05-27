@@ -32,6 +32,7 @@ const prettierTargets = [
     "vite.renderer.config.mjs",
     "vitest.config.ts",
     "tsconfig.eslint.json",
+    "tsconfig.electron-app.base.json",
     "tsconfig.electron-app.json",
     "tsconfig.runtime.json",
     "tsconfig.docusaurus.json",
