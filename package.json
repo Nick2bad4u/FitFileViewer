@@ -73,6 +73,7 @@
         "prettier:fix": "node scripts/run-prettier.mjs --write",
         "release:bump-version": "node scripts/bump-app-version.mjs",
         "release:notes": "node scripts/generate-release-notes.mjs",
+        "release:organize-distributables": "node scripts/organize-distributables.mjs",
         "release:publish-version": "node scripts/publish-app-version.mjs",
         "release:rename-windows-latest-yml": "node scripts/rename-windows-latest-yml.mjs",
         "start": "node scripts/start-electron.mjs --inspect=9229 --remote-debugging-port=9222 electron-app",

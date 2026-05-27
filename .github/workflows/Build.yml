@@ -397,37 +397,7 @@ jobs:
             - name: Organize distributables by platform and arch
               id: organize_distributables
               shell: bash
-              run: |
-                  mkdir -p release-dist
-                  echo "Before copy, contents of ./artifacts:"
-                  ls -R ./artifacts
-
-                  for artifact_dir in ./artifacts/dist-*; do
-                    [ -d "$artifact_dir" ] || continue
-                    artifact_name=$(basename "$artifact_dir")
-                    platform_arch=${artifact_name#dist-}
-                    mkdir -p "release-dist/$platform_arch"
-                    echo "Copying main files from $artifact_dir to release-dist/$platform_arch/"
-                    cp -v "$artifact_dir"/Fit-File-Viewer-* "$artifact_dir"/fitfileviewer-* "$artifact_dir"/*.yml "release-dist/$platform_arch/" 2>/dev/null || true
-                    # Rename latest-mac.yml if it exists
-                    if [ -f "$artifact_dir/latest-mac.yml" ]; then
-                      cp "$artifact_dir/latest-mac.yml" "release-dist/$platform_arch/latest-$platform_arch.yml"
-                      rm "$artifact_dir/latest-mac.yml"
-                    fi
-                    for subdir in nsis-web squirrel-windows squirrel-windows-ia32; do
-                      if [ -d "$artifact_dir/$subdir" ]; then
-                        echo "Copying $artifact_dir/$subdir to release-dist/$platform_arch/"
-                        cp -r "$artifact_dir/$subdir" "release-dist/$platform_arch/"
-                      fi
-                    done
-                    # Remove generic latest-mac.yml if it was copied, only keep the renamed one
-                    if [ -f "release-dist/$platform_arch/latest-mac.yml" ]; then
-                      rm "release-dist/$platform_arch/latest-mac.yml"
-                    fi
-                  done
-
-                  echo "After copy, contents of release-dist:"
-                  ls -R release-dist
+              run: node scripts/organize-distributables.mjs
 
             - name: Fix all sha512 in latest*.yml files
               id: fix_sha512

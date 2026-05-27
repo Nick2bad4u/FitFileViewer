@@ -1,0 +1,240 @@
+import fs from "node:fs";
+import path from "node:path";
+import process from "node:process";
+import { pathToFileURL } from "node:url";
+
+export const defaultArtifactsDirectory = "artifacts";
+export const defaultOutputDirectory = "release-dist";
+export const artifactSubdirectories = [
+    "nsis-web",
+    "squirrel-windows",
+    "squirrel-windows-ia32",
+];
+
+if (
+    process.argv[1] &&
+    import.meta.url === pathToFileURL(process.argv[1]).href
+) {
+    const options = parseArgs(process.argv.slice(2));
+
+    if (options.help) {
+        printUsage();
+    } else {
+        const result = organizeDistributables(options);
+
+        console.log(
+            `[organize-distributables] Copied ${result.copiedFiles.length} files and ${result.copiedDirectories.length} directories into ${options.outputDirectory}.`
+        );
+    }
+}
+
+export function getArtifactPlatformArch(artifactDirectoryName) {
+    return artifactDirectoryName.startsWith("dist-")
+        ? artifactDirectoryName.slice("dist-".length)
+        : "";
+}
+
+export function isTopLevelDistributable(fileName) {
+    return (
+        fileName.startsWith("Fit-File-Viewer-") ||
+        fileName.startsWith("fitfileviewer-") ||
+        fileName.endsWith(".yml")
+    );
+}
+
+export function organizeDistributables(options = {}) {
+    const artifactsDirectory =
+        options.artifactsDirectory ?? defaultArtifactsDirectory;
+    const outputDirectory = options.outputDirectory ?? defaultOutputDirectory;
+    const copiedDirectories = [];
+    const copiedFiles = [];
+    const processedArtifacts = [];
+
+    fs.mkdirSync(outputDirectory, { recursive: true });
+
+    if (!fs.existsSync(artifactsDirectory)) {
+        return {
+            copiedDirectories,
+            copiedFiles,
+            processedArtifacts,
+        };
+    }
+
+    for (const entry of fs.readdirSync(artifactsDirectory, {
+        withFileTypes: true,
+    })) {
+        if (!entry.isDirectory() || !entry.name.startsWith("dist-")) {
+            continue;
+        }
+
+        const artifactDirectory = path.join(artifactsDirectory, entry.name);
+        const platformArch = getArtifactPlatformArch(entry.name);
+        const platformOutputDirectory = path.join(
+            outputDirectory,
+            platformArch
+        );
+
+        fs.mkdirSync(platformOutputDirectory, { recursive: true });
+        processedArtifacts.push(normalizePath(artifactDirectory));
+
+        for (const childEntry of fs.readdirSync(artifactDirectory, {
+            withFileTypes: true,
+        })) {
+            if (
+                !childEntry.isFile() ||
+                !isTopLevelDistributable(childEntry.name)
+            ) {
+                continue;
+            }
+
+            const sourcePath = path.join(artifactDirectory, childEntry.name);
+            const destinationPath = path.join(
+                platformOutputDirectory,
+                childEntry.name
+            );
+
+            fs.copyFileSync(sourcePath, destinationPath);
+            copiedFiles.push({
+                from: normalizePath(sourcePath),
+                to: normalizePath(destinationPath),
+            });
+        }
+
+        const latestMacPath = path.join(artifactDirectory, "latest-mac.yml");
+        if (fs.existsSync(latestMacPath)) {
+            const renamedLatestMacPath = path.join(
+                platformOutputDirectory,
+                `latest-${platformArch}.yml`
+            );
+
+            fs.copyFileSync(latestMacPath, renamedLatestMacPath);
+            fs.rmSync(latestMacPath, { force: true });
+            copiedFiles.push({
+                from: normalizePath(latestMacPath),
+                to: normalizePath(renamedLatestMacPath),
+            });
+        }
+
+        for (const subdirectory of artifactSubdirectories) {
+            const sourcePath = path.join(artifactDirectory, subdirectory);
+
+            if (!fs.existsSync(sourcePath)) {
+                continue;
+            }
+
+            const destinationPath = path.join(
+                platformOutputDirectory,
+                subdirectory
+            );
+
+            fs.cpSync(sourcePath, destinationPath, {
+                force: true,
+                recursive: true,
+            });
+            copiedDirectories.push({
+                from: normalizePath(sourcePath),
+                to: normalizePath(destinationPath),
+            });
+        }
+
+        fs.rmSync(path.join(platformOutputDirectory, "latest-mac.yml"), {
+            force: true,
+        });
+    }
+
+    return {
+        copiedDirectories,
+        copiedFiles,
+        processedArtifacts,
+    };
+}
+
+export function parseArgs(args) {
+    const options = {
+        artifactsDirectory: defaultArtifactsDirectory,
+        help: false,
+        outputDirectory: defaultOutputDirectory,
+    };
+
+    for (let index = 0; index < args.length; index += 1) {
+        const arg = args[index];
+
+        if (arg === "--artifacts-directory") {
+            options.artifactsDirectory = readOptionValue(
+                args,
+                index,
+                "--artifacts-directory"
+            );
+            index += 1;
+            continue;
+        }
+
+        if (arg.startsWith("--artifacts-directory=")) {
+            options.artifactsDirectory = readInlineOptionValue(
+                arg,
+                "--artifacts-directory"
+            );
+            continue;
+        }
+
+        if (arg === "--help" || arg === "-h") {
+            options.help = true;
+            continue;
+        }
+
+        if (arg === "--output-directory") {
+            options.outputDirectory = readOptionValue(
+                args,
+                index,
+                "--output-directory"
+            );
+            index += 1;
+            continue;
+        }
+
+        if (arg.startsWith("--output-directory=")) {
+            options.outputDirectory = readInlineOptionValue(
+                arg,
+                "--output-directory"
+            );
+            continue;
+        }
+
+        throw new Error(`Unknown option: ${arg}`);
+    }
+
+    return options;
+}
+
+function normalizePath(filePath) {
+    return filePath.split(path.sep).join("/");
+}
+
+function printUsage() {
+    console.log(`Usage: node scripts/organize-distributables.mjs [options]
+
+Options:
+  --artifacts-directory <path>  Artifacts directory. Defaults to artifacts.
+  --output-directory <path>     Output directory. Defaults to release-dist.
+  -h, --help                    Show this help text.`);
+}
+
+function readInlineOptionValue(arg, optionName) {
+    const value = arg.slice(`${optionName}=`.length);
+
+    if (!value) {
+        throw new Error(`${optionName} requires a value`);
+    }
+
+    return value;
+}
+
+function readOptionValue(args, index, optionName) {
+    const value = args[index + 1];
+
+    if (!value || value.startsWith("-")) {
+        throw new Error(`${optionName} requires a value`);
+    }
+
+    return value;
+}
