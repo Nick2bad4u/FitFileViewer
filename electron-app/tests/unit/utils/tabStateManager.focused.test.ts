@@ -447,13 +447,12 @@ describe("tabStateManager - Critical Bug Detection", () => {
                 ([, count]) => count > 1
             );
 
-            // This will reveal duplicate renderChartJS handlers
-            if (duplicates.length > 0) {
-                console.warn("Duplicate handlers found:", duplicates);
-            }
-
-            // Minimal assertion to satisfy requireAssertions while preserving diagnostic behavior
-            expect(Array.isArray(duplicates)).toBe(true);
+            expect(duplicates).toStrictEqual([["renderChartJS", 2]]);
+            expect(
+                Object.entries(TAB_CONFIG)
+                    .filter(([, config]) => config.handler === "renderChartJS")
+                    .map(([tabName]) => tabName)
+            ).toStrictEqual(["chart", "chartjs"]);
         });
     });
 

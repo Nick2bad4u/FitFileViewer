@@ -64,7 +64,6 @@
         "**/temp/**",
         "**/tmp/**",
         ".cache/**",
-        "electron-app/.cache/**",
         ".vercel/**",
         "docusaurus/.docusaurus/**",
         "docusaurus/build/**",
