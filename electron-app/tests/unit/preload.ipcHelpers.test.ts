@@ -3,12 +3,28 @@ import { createRequire } from "node:module";
 import { describe, expect, it, vi } from "vitest";
 
 interface IpcRendererMock {
-    invoke: ReturnType<typeof vi.fn<(channel: string, ...args: unknown[]) => Promise<unknown>>>;
-    off?: ReturnType<typeof vi.fn<(channel: string, listener: (...args: unknown[]) => void) => void>>;
-    on: ReturnType<typeof vi.fn<(channel: string, listener: (...args: unknown[]) => void) => void>>;
+    invoke: ReturnType<
+        typeof vi.fn<(channel: string, ...args: unknown[]) => Promise<unknown>>
+    >;
+    off?: ReturnType<
+        typeof vi.fn<
+            (channel: string, listener: (...args: unknown[]) => void) => void
+        >
+    >;
+    on: ReturnType<
+        typeof vi.fn<
+            (channel: string, listener: (...args: unknown[]) => void) => void
+        >
+    >;
     removeAllListeners?: ReturnType<typeof vi.fn<(channel: string) => void>>;
-    removeListener?: ReturnType<typeof vi.fn<(channel: string, listener: (...args: unknown[]) => void) => void>>;
-    send: ReturnType<typeof vi.fn<(channel: string, ...args: unknown[]) => void>>;
+    removeListener?: ReturnType<
+        typeof vi.fn<
+            (channel: string, listener: (...args: unknown[]) => void) => void
+        >
+    >;
+    send: ReturnType<
+        typeof vi.fn<(channel: string, ...args: unknown[]) => void>
+    >;
 }
 
 interface PreloadIpcHelpersModule {
@@ -51,10 +67,19 @@ const { createPreloadIpcHelpers } = requireFromTest(
 
 function createIpcRendererMock(): IpcRendererMock {
     return {
-        invoke: vi.fn<(channel: string, ...args: unknown[]) => Promise<unknown>>(),
-        on: vi.fn<(channel: string, listener: (...args: unknown[]) => void) => void>(),
+        invoke: vi.fn<
+            (channel: string, ...args: unknown[]) => Promise<unknown>
+        >(),
+        on: vi.fn<
+            (channel: string, listener: (...args: unknown[]) => void) => void
+        >(),
         removeListener:
-            vi.fn<(channel: string, listener: (...args: unknown[]) => void) => void>(),
+            vi.fn<
+                (
+                    channel: string,
+                    listener: (...args: unknown[]) => void
+                ) => void
+            >(),
         send: vi.fn<(channel: string, ...args: unknown[]) => void>(),
     };
 }
@@ -118,9 +143,10 @@ describe("preload IPC helpers", () => {
         );
 
         await expect(
-            helpers.createSafeInvokeHandler("file:read", "readFile")(
-                "missing.fit"
-            )
+            helpers.createSafeInvokeHandler(
+                "file:read",
+                "readFile"
+            )("missing.fit")
         ).rejects.toThrow("ENOENT");
 
         expect(ipcRenderer.invoke).toHaveBeenCalledWith(
@@ -131,17 +157,18 @@ describe("preload IPC helpers", () => {
     });
 
     it("sends IPC and logs send failures without throwing", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const { helpers, ipcRenderer, preloadLog } = createHelpers();
         ipcRenderer.send.mockImplementationOnce(() => {
             throw new Error("send failed");
         });
 
-        expect(() =>
+        expect(
             helpers.createSafeSendHandler("app:test", "testSend")("payload")
-        ).not.toThrow();
+        ).toBeUndefined();
 
+        expect(ipcRenderer.send).toHaveBeenCalledWith("app:test", "payload");
         expect(preloadLog).toHaveBeenCalledWith(
             "error",
             "[preload.js] Error in testSend:",
