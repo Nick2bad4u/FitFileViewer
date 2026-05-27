@@ -5,9 +5,7 @@ const importRendererFresh = async () => {
     // Reset module cache and global hooks between runs
     vi.resetModules();
     // Remove globals possibly left from prior imports
-    // @ts-ignore
     delete (window as any).electronAPI;
-    // @ts-ignore
     delete (window as any).__renderer_dev;
     // Fresh DOM skeleton
     const openFileBtn = document.createElement("button");
@@ -58,7 +56,6 @@ const importRendererFresh = async () => {
         recentFiles: vi.fn(async () => []),
         checkForUpdates: vi.fn(),
     };
-    // @ts-ignore
     (window as any).electronAPI = api;
 
     // Manual mocks for all modules dynamically resolved via ensureCoreModules()
@@ -254,7 +251,6 @@ describe("renderer.js strict behavior", () => {
 
     it("exposes dev helpers and performance metrics in development", async () => {
         await importRendererFresh();
-        // @ts-ignore
         const dev = (window as any).__renderer_dev;
         expect(dev).toMatchObject({
             APP_INFO: {
