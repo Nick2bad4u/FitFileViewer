@@ -59,6 +59,7 @@ vi.mock("../utils/app/lifecycle/appActions.js", () => ({
         APP_INITIALIZED: "APP_INITIALIZED",
         APP_ERROR: "APP_ERROR",
         APP_READY: "APP_READY",
+        clearData: vi.fn(),
     },
 }));
 
@@ -194,12 +195,10 @@ describe("main-ui.js - UI Controller and State Management", () => {
 
     it("registers legacy globals and rejects invalid legacy FIT data", async () => {
         await import("../main-ui.js");
-        const { renderChartJS } = await import(
-            "../utils/charts/core/renderChartJS.js"
-        );
-        const { showFitData } = await import(
-            "../utils/rendering/core/showFitData.js"
-        );
+        const { renderChartJS } =
+            await import("../utils/charts/core/renderChartJS.js");
+        const { showFitData } =
+            await import("../utils/rendering/core/showFitData.js");
         const renderChartJSMock = vi.mocked(renderChartJS);
         const showFitDataMock = vi.mocked(showFitData);
 
@@ -212,10 +211,12 @@ describe("main-ui.js - UI Controller and State Management", () => {
         expect(showFitDataMock).not.toHaveBeenCalled();
 
         const fitData = { records: [] };
-        (globalThis.showFitData as (fitData: unknown, filePath: string) => void)(
-            fitData,
-            "activity.fit"
-        );
+        (
+            globalThis.showFitData as (
+                fitData: unknown,
+                filePath: string
+            ) => void
+        )(fitData, "activity.fit");
         expect(showFitDataMock).toHaveBeenCalledWith(fitData, "activity.fit");
 
         const targetContainer = createElement("div", { id: "chart-target" });
@@ -236,34 +237,28 @@ describe("main-ui.js - UI Controller and State Management", () => {
         };
 
         await import("../main-ui.js");
-        const { setupWindow } = await import(
-            "../utils/app/initialization/setupWindow.js"
-        );
-        const { resourceManager } = await import(
-            "../utils/app/lifecycle/resourceManager.js"
-        );
-        const { chartTabIntegration } = await import(
-            "../utils/charts/core/chartTabIntegration.js"
-        );
-        const {
-            applyTheme,
-            listenForThemeChange,
-            loadTheme,
-        } = await import("../utils/theming/core/theme.js");
-        const { setupFullscreenListeners } = await import(
-            "../utils/ui/controls/addFullScreenButton.js"
-        );
-        const { DragDropHandler } = await import(
-            "../utils/ui/dragDropHandler.js"
-        );
-        const { setupExternalLinkHandlers } = await import(
-            "../utils/ui/setupExternalLinkHandlers.js"
-        );
+        const { setupWindow } =
+            await import("../utils/app/initialization/setupWindow.js");
+        const { AppActions } =
+            await import("../utils/app/lifecycle/appActions.js");
+        const { resourceManager } =
+            await import("../utils/app/lifecycle/resourceManager.js");
+        const { chartTabIntegration } =
+            await import("../utils/charts/core/chartTabIntegration.js");
+        const { applyTheme, listenForThemeChange, loadTheme } =
+            await import("../utils/theming/core/theme.js");
+        const { setupFullscreenListeners } =
+            await import("../utils/ui/controls/addFullScreenButton.js");
+        const { DragDropHandler } =
+            await import("../utils/ui/dragDropHandler.js");
+        const { setupExternalLinkHandlers } =
+            await import("../utils/ui/setupExternalLinkHandlers.js");
         const applyThemeMock = vi.mocked(applyTheme);
         const dragDropHandlerMock = vi.mocked(DragDropHandler);
         const listenForThemeChangeMock = vi.mocked(listenForThemeChange);
         const loadThemeMock = vi.mocked(loadTheme);
         const resourceManagerMock = vi.mocked(resourceManager);
+        const appActionsMock = vi.mocked(AppActions);
         const setupExternalLinkHandlersMock = vi.mocked(
             setupExternalLinkHandlers
         );
@@ -277,15 +272,29 @@ describe("main-ui.js - UI Controller and State Management", () => {
         expect(listenForThemeChangeMock).toHaveBeenCalledOnce();
         expect(setupFullscreenListenersMock).toHaveBeenCalledOnce();
         expect(setupWindowMock).toHaveBeenCalledOnce();
-        expect(setupExternalLinkHandlersMock).toHaveBeenCalledWith({
+        expect(setupExternalLinkHandlersMock).toHaveBeenCalledOnce();
+        const [externalLinkOptions] =
+            setupExternalLinkHandlersMock.mock.calls[0] ?? [];
+        expect(externalLinkOptions).toMatchObject({
             cleanupExternalLinkHandlers: null,
-            setCleanup: expect.any(Function),
         });
-        expect(resourceManagerMock.addShutdownHook).toHaveBeenCalledWith(
-            expect.any(Function)
-        );
+        expect(externalLinkOptions?.setCleanup).toBeInstanceOf(Function);
+
+        expect(resourceManagerMock.addShutdownHook).toHaveBeenCalledOnce();
+        const [shutdownHook] =
+            resourceManagerMock.addShutdownHook.mock.calls[0] ?? [];
+        expect(shutdownHook).toBeInstanceOf(Function);
+
+        const cleanupExternalLinks = vi.fn();
+        externalLinkOptions?.setCleanup(cleanupExternalLinks);
+        shutdownHook?.();
+        expect(cleanupExternalLinks).toHaveBeenCalledOnce();
+        expect(appActionsMock.clearData).toHaveBeenCalledOnce();
+
         expect(dragDropHandlerMock).toHaveBeenCalledOnce();
-        expect(globalThis.dragDropHandler).toEqual({ dispose: expect.any(Function) });
+        const dragDropInstance = dragDropHandlerMock.mock.results[0]?.value;
+        expect(globalThis.dragDropHandler).toBe(dragDropInstance);
+        expect(dragDropInstance.dispose).toBeInstanceOf(Function);
         expect(onIpc).toHaveBeenCalledWith(
             "unload-fit-file",
             expect.any(Function)
