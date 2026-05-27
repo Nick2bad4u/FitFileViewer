@@ -13,6 +13,35 @@ function getExitButton(container: HTMLElement): HTMLButtonElement {
     return button;
 }
 
+function getExitIcon(button: HTMLButtonElement): HTMLSpanElement {
+    const icon = button.querySelector(".fullscreen-exit-icon");
+    expect(icon).toBeInstanceOf(HTMLSpanElement);
+    return icon as HTMLSpanElement;
+}
+
+function getExitSvg(icon: HTMLSpanElement): SVGSVGElement {
+    const svg = icon.querySelector("svg.inline-svg");
+    expect(svg).toBeInstanceOf(SVGSVGElement);
+    return svg as SVGSVGElement;
+}
+
+function getSvgState(svg: SVGSVGElement) {
+    return {
+        fill: svg.getAttribute("fill"),
+        height: svg.getAttribute("height"),
+        paths: [...svg.querySelectorAll("path")].map((path) => ({
+            d: path.getAttribute("d"),
+            linecap: path.getAttribute("stroke-linecap"),
+            linejoin: path.getAttribute("stroke-linejoin"),
+            stroke: path.getAttribute("stroke"),
+            strokeWidth: path.getAttribute("stroke-width"),
+        })),
+        title: svg.querySelector("title")?.textContent ?? null,
+        viewBox: svg.getAttribute("viewBox"),
+        width: svg.getAttribute("width"),
+    };
+}
+
 function resetDocument(): void {
     document.body.replaceChildren();
     vi.restoreAllMocks();
@@ -39,7 +68,7 @@ function setExitFullscreen(
 
 describe(addExitFullscreenOverlay, () => {
     it("adds an accessible themed exit button to the container", () => {
-        expect.assertions(9);
+        expect.assertions(10);
 
         resetDocument();
         const container = document.createElement("section");
@@ -48,8 +77,8 @@ describe(addExitFullscreenOverlay, () => {
             addExitFullscreenOverlay(container);
 
             const button = getExitButton(container);
-            const icon = button.querySelector(".fullscreen-exit-icon");
-            const svg = button.querySelector("svg.inline-svg");
+            const icon = getExitIcon(button);
+            const svg = getExitSvg(icon);
 
             expect(button.type).toBe("button");
             expect(button.title).toBe("Exit Fullscreen");
@@ -59,12 +88,45 @@ describe(addExitFullscreenOverlay, () => {
                 "themed-btn",
                 "exit-fullscreen-btn",
             ]);
-            expect(icon?.getAttribute("aria-hidden")).toBe("true");
-            expect(svg?.getAttribute("viewBox")).toBe("0 0 28 28");
-            expect(svg?.querySelector("title")?.textContent).toBe(
-                "Exit Fullscreen Icon"
-            );
-            expect(svg?.querySelectorAll("path")).toHaveLength(4);
+            expect(icon.getAttribute("aria-hidden")).toBe("true");
+            expect(getSvgState(svg)).toStrictEqual({
+                fill: "none",
+                height: "28",
+                paths: [
+                    {
+                        d: "M9 19H5V23",
+                        linecap: "round",
+                        linejoin: "round",
+                        stroke: "currentColor",
+                        strokeWidth: "2",
+                    },
+                    {
+                        d: "M19 9H23V5",
+                        linecap: "round",
+                        linejoin: "round",
+                        stroke: "currentColor",
+                        strokeWidth: "2",
+                    },
+                    {
+                        d: "M19 19H23V23",
+                        linecap: "round",
+                        linejoin: "round",
+                        stroke: "currentColor",
+                        strokeWidth: "2",
+                    },
+                    {
+                        d: "M9 9H5V5",
+                        linecap: "round",
+                        linejoin: "round",
+                        stroke: "currentColor",
+                        strokeWidth: "2",
+                    },
+                ],
+                title: "Exit Fullscreen Icon",
+                viewBox: "0 0 28 28",
+                width: "28",
+            });
+            expect(button.parentElement).toBe(container);
             expect(container.children).toHaveLength(1);
         } finally {
             resetDocument();
