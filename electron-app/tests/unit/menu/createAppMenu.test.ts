@@ -851,9 +851,7 @@ describe("createAppMenu", () => {
         // Call handler directly to exercise branch
         restart.click();
         const ipcCalls: any[][] = (globalThis as any).__ipcCalls || [];
-        expect(ipcCalls).toEqual(
-            expect.arrayContaining([["menu-restart-update"]])
-        );
+        expect(ipcCalls).toStrictEqual([["menu-restart-update"]]);
     });
 
     it("exposes template via global when Menu API is unavailable", () => {
@@ -870,7 +868,12 @@ describe("createAppMenu", () => {
         createAppMenu(fakeWin as any, "dark", null);
         const tpl = (globalThis as any).__lastBuiltMenuTemplate as any[];
         expect(Array.isArray(tpl)).toBe(true);
-        expect(tpl.length).toBeGreaterThan(0);
+        expect(tpl.map((item) => item.label)).toStrictEqual([
+            "📁 File",
+            "👁️ View",
+            "⚙️ Settings",
+            "❓ Help",
+        ]);
         // restore
         (globalThis as any).__electronHoistedMock = originalMock;
     });
@@ -1270,9 +1273,7 @@ describe("createAppMenu - additional robust branches", () => {
         const about = appMenu.submenu.find((i: any) => i.label === "About");
         about.click();
         const ipcCalls: any[][] = (globalThis as any).__ipcCalls || [];
-        expect(ipcCalls).toStrictEqual(
-            expect.arrayContaining([["menu-about"]])
-        );
+        expect(ipcCalls).toStrictEqual([["menu-about"]]);
         expect(
             appMenu.submenu.some((i: any) => i.label === "Preferences...")
         ).toBe(false);
@@ -1301,9 +1302,7 @@ describe("createAppMenu - additional robust branches", () => {
         const about = appMenu.submenu.find((i: any) => i.label === "About");
         about.click();
         const ipcCalls: any[][] = (globalThis as any).__ipcCalls || [];
-        expect(ipcCalls).toStrictEqual(
-            expect.arrayContaining([["menu-about"]])
-        );
+        expect(ipcCalls).toStrictEqual([["menu-about"]]);
         expect(
             appMenu.submenu.some((i: any) => i.label === "Preferences...")
         ).toBe(false);
