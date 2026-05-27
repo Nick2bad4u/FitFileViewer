@@ -182,9 +182,6 @@ Key Docusaurus plugins:
 TypeDoc plugins:
 
 - `typedoc-plugin-markdown` - Markdown output
-- `typedoc-plugin-mdn-links` - MDN links
-- `typedoc-plugin-missing-exports` - Find exports
-- Plus 5 more for enhanced documentation
 
 ## 🎯 Next Steps
 
