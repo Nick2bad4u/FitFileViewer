@@ -380,7 +380,7 @@ describe("chartActions object - State Actions", () => {
         const { setState } =
             await import("../../../utils/state/core/stateManager.js");
 
-        expect(() => chartActions.startRendering()).not.toThrow();
+        expect(chartActions.startRendering()).toBeUndefined();
 
         expect(setState).toHaveBeenCalledWith("charts.isRendering", true, {
             silent: false,
@@ -399,9 +399,7 @@ describe("chartActions object - State Actions", () => {
         const { AppActions } =
             await import("../../../utils/app/lifecycle/appActions.js");
 
-        expect(() =>
-            chartActions.completeRendering(true, 5, 250)
-        ).not.toThrow();
+        expect(chartActions.completeRendering(true, 5, 250)).toBeUndefined();
 
         expect(updateState).toHaveBeenCalledWith(
             "charts",
@@ -436,9 +434,7 @@ describe("chartActions object - State Actions", () => {
         const { AppActions } =
             await import("../../../utils/app/lifecycle/appActions.js");
 
-        expect(() =>
-            chartActions.completeRendering(false, 0, 100)
-        ).not.toThrow();
+        expect(chartActions.completeRendering(false, 0, 100)).toBeUndefined();
 
         expect(updateState).toHaveBeenCalledWith(
             "charts",
@@ -463,7 +459,18 @@ describe("chartActions object - State Actions", () => {
 
 describe("Integration and Error Handling", () => {
     test("should read chart status without throwing when state is undefined", async () => {
-        expect(() => getChartStatus()).not.toThrow();
+        expect(getChartStatus()).toEqual({
+            chartOptions: null,
+            controlsVisible: true,
+            hasData: null,
+            isRendered: false,
+            isRendering: false,
+            lastRenderTime: null,
+            performance: null,
+            renderableFields: [],
+            renderedCount: 0,
+            selectedChart: "elevation",
+        });
     });
 
     test("should work with undefined state values", () => {
