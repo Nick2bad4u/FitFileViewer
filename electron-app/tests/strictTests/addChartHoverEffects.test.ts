@@ -172,13 +172,16 @@ describe("addChartHoverEffects", () => {
             const logSpy = vi
                 .spyOn(console, "log")
                 .mockImplementation(() => {});
-            expect(() =>
+            expect(
                 addChartHoverEffects(mockContainer, mockThemeConfig)
-            ).not.toThrow();
+            ).toBeUndefined();
 
             expect(
                 mockContainer.querySelectorAll(".chart-wrapper")
             ).toHaveLength(0);
+            expect(
+                document.querySelector("#chart-hover-effects-styles")
+            ).toBeInstanceOf(HTMLStyleElement);
             expect(console.log).toHaveBeenCalledWith(
                 "[ChartHoverEffects] Added hover effects to 0 chart(s)"
             );
@@ -743,32 +746,35 @@ describe("Edge Cases", () => {
     });
 
     it("should handle canvas without dataset property", () => {
-        // Remove dataset property
         Object.defineProperty(mockCanvas, "dataset", {
             configurable: true,
             value: undefined,
         });
 
-        expect(() => {
-            addChartHoverEffects(mockContainer, mockThemeConfig);
-        }).not.toThrow();
+        expect(
+            addChartHoverEffects(mockContainer, mockThemeConfig)
+        ).toBeUndefined();
+
+        const wrapper = mockContainer.querySelector(".chart-wrapper");
+        expect(wrapper).toBeInstanceOf(HTMLDivElement);
+        expect(wrapper?.contains(mockCanvas)).toBe(true);
+        expect(mockCanvas.style.height).toBe("400px");
     });
 
     it("should handle canvas without parentNode", () => {
         const orphanCanvas = document.createElement("canvas");
         orphanCanvas.className = "chart-canvas";
-        // Don't add to container so it has no parent
+        mockContainer.querySelectorAll = vi
+            .fn()
+            .mockReturnValue([orphanCanvas]);
 
-        // Mock the function to handle canvases without parentNode
-        expect(() => {
-            // This would normally fail, but the function should handle it gracefully
-            if (orphanCanvas.parentNode) {
-                orphanCanvas.parentNode.insertBefore(
-                    document.createElement("div"),
-                    orphanCanvas
-                );
-            }
-        }).not.toThrow();
+        expect(
+            addChartHoverEffects(mockContainer, mockThemeConfig)
+        ).toBeUndefined();
+
+        expect(orphanCanvas.dataset.hoverEffectsAdded).toBe("true");
+        expect(orphanCanvas.parentElement?.className).toBe("chart-wrapper");
+        expect(document.body.contains(orphanCanvas)).toBe(false);
     });
 
     it("should handle wrapper creation failure gracefully", () => {
