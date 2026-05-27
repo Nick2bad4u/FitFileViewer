@@ -565,7 +565,14 @@ describe("updateActiveTab", () => {
                 { id: "", text: "Empty ID" },
             ]);
 
-            expect(() => initializeActiveTabState()).not.toThrow();
+            expect(initializeActiveTabState()).toBeUndefined();
+            expect(mockSubscribe).toHaveBeenCalledWith(
+                "ui.activeTab",
+                expect.any(Function)
+            );
+            expect(testContainer.querySelectorAll(".tab-button")).toHaveLength(
+                3
+            );
             expect(updateActiveTab("tab-test")).toBe(true);
             expectActiveState("tab-test", true);
         });
