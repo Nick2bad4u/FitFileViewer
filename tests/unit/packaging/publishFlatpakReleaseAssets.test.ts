@@ -124,12 +124,13 @@ describe("publish-flatpak-release-assets script", () => {
             paths.releaseZipPath,
             "--clobber",
         ]);
-        expect(calls.every((call) => call.options.stdio === "inherit")).toBe(
-            true
-        );
+        expect(calls.map((call) => call.options.stdio)).toStrictEqual([
+            "inherit",
+            "inherit",
+        ]);
         expect(fs.existsSync(sourceBundlePath)).toBe(false);
-        expect(fs.existsSync(paths.releaseBundlePath)).toBe(true);
-        expect(fs.existsSync(paths.releaseZipPath)).toBe(true);
+        expect(fs.readFileSync(paths.releaseBundlePath, "utf8")).toBe("bundle");
+        expect(fs.readFileSync(paths.releaseZipPath, "utf8")).toBe("zip");
     });
 
     it("parses release tag options and environment defaults", async () => {
