@@ -39,6 +39,20 @@ interface PreloadMinimalProcess {
     >;
 }
 
+interface PreloadMinimalChannelInfo {
+    channels: Record<string, string>;
+    events: Record<string, string>;
+    totalChannels: number;
+    totalEvents: number;
+}
+
+interface PreloadMinimalElectronAPI {
+    getChannelInfo: () => PreloadMinimalChannelInfo;
+    openFile: () => Promise<string>;
+    readFile: (filePath: string) => Promise<string>;
+    validateAPI: () => boolean;
+}
+
 describe("preload.js - Basic API Validation", () => {
     let electronMock: ElectronPreloadMock;
     let exposedGlobals: Map<string, unknown>;
@@ -121,19 +135,57 @@ describe("preload.js - Basic API Validation", () => {
         vi.restoreAllMocks();
     });
 
-    it("should expose a validated electron API", () => {
-        const electronAPI = exposedGlobals.get("electronAPI") as Record<
-            string,
-            unknown
-        >;
+    it("should expose a validated electron API", async () => {
+        const electronApiExposure =
+            electronMock.contextBridge.exposeInMainWorld.mock.calls.find(
+                ([name]) => name === "electronAPI"
+            );
 
-        expect(exposedGlobals.has("electronAPI")).toBe(true);
-        expect(typeof electronAPI.validateAPI).toBe("function");
-        expect(typeof electronAPI.getChannelInfo).toBe("function");
-        expect(typeof electronAPI.openFile).toBe("function");
-        expect(typeof electronAPI.readFile).toBe("function");
-        expect((electronAPI.validateAPI as () => boolean)()).toBe(true);
-        expect((electronAPI.validateAPI as () => boolean)()).not.toBe(false);
+        expect(electronApiExposure).toEqual([
+            "electronAPI",
+            expect.objectContaining({
+                getChannelInfo: expect.any(Function),
+                openFile: expect.any(Function),
+                readFile: expect.any(Function),
+                validateAPI: expect.any(Function),
+            }),
+        ]);
+
+        const electronAPI =
+                electronApiExposure?.[1] as PreloadMinimalElectronAPI,
+            channelInfo = electronAPI.getChannelInfo();
+
+        expect(exposedGlobals.get("electronAPI")).toBe(electronAPI);
+        expect(electronAPI.validateAPI()).toBe(true);
+        expect(channelInfo.channels).toMatchObject({
+            APP_VERSION: "getAppVersion",
+            DIALOG_OPEN_FILE: "dialog:openFile",
+            FILE_READ: "file:read",
+        });
+        expect(channelInfo.events).toMatchObject({
+            MENU_OPEN_FILE: "menu-open-file",
+            THEME_CHANGED: "theme-changed",
+        });
+        expect(channelInfo.totalChannels).toBe(
+            Object.keys(channelInfo.channels).length
+        );
+        expect(channelInfo.totalEvents).toBe(
+            Object.keys(channelInfo.events).length
+        );
+
+        await expect(electronAPI.openFile()).resolves.toBe("mock-result");
+        await expect(electronAPI.readFile("activity.fit")).resolves.toBe(
+            "mock-result"
+        );
+        expect(electronMock.ipcRenderer.invoke).toHaveBeenNthCalledWith(
+            1,
+            "dialog:openFile"
+        );
+        expect(electronMock.ipcRenderer.invoke).toHaveBeenNthCalledWith(
+            2,
+            "file:read",
+            "activity.fit"
+        );
     });
 
     it("should expose development tools API when validation passes", () => {
