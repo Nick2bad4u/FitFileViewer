@@ -54,8 +54,6 @@ export default defineConfig({
                 "vendor/**",
                 // Barrels (pure re-export index files)
                 "**/index.js",
-                // Test mocks and stubs
-                "**/__mocks__/**",
                 // Tooling and configuration files (relative to electron-app)
                 "vitest.config.ts",
                 // Dev-only and debugging utilities

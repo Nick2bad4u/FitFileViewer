@@ -114,7 +114,6 @@
         "**/*.test.ts",
         "**/*.test.tsx",
         "**/tests/**",
-        "electron-app/__mocks__/**",
         "electron-app/debug-electron-mock.js",
         "**/assets/**"
     ],

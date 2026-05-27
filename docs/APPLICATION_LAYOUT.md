@@ -392,13 +392,7 @@ tests/vitest/
 
 ```text
 electron-app/
-├── __mocks__/                       # Module mocks
-│   ├── electron.js                  # Electron API mocks
-│   ├── electron.cjs                 # CommonJS Electron mocks
-│   └── [Various module mocks]
-├── global.d.ts                      # Global type definitions
-├── fitsdk.d.ts                     # FIT SDK type definitions
-└── test-errors.log                 # Test error logging
+└── global.d.ts                      # Global type definitions
 ```
 
 ## Documentation & Assets
