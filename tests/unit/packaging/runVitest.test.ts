@@ -52,6 +52,49 @@ describe("run-vitest wrapper", () => {
         ]);
     });
 
+    it("uses explicit test paths instead of expanding suite defaults", () => {
+        expect.assertions(1);
+
+        expect(
+            buildVitestArgs([
+                "--run",
+                "--suite",
+                "unit",
+                "--maxWorkers",
+                "1",
+                "tests/unit/packaging/cleanWorkspace.test.ts",
+            ])
+        ).toStrictEqual([
+            "--config",
+            "vitest.config.ts",
+            "--run",
+            "--maxWorkers",
+            "1",
+            "tests/unit/packaging/cleanWorkspace.test.ts",
+        ]);
+    });
+
+    it("does not mistake option values for explicit test paths", () => {
+        expect.assertions(1);
+
+        expect(
+            buildVitestArgs([
+                "--run",
+                "--reporter",
+                "dot",
+                "--suite=unit",
+            ])
+        ).toStrictEqual([
+            "--config",
+            "vitest.config.ts",
+            "--run",
+            "--reporter",
+            "dot",
+            "tests/unit",
+            "electron-app/tests/unit",
+        ]);
+    });
+
     it("rejects invalid suite arguments", () => {
         expect.assertions(2);
 
