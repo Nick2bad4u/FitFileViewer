@@ -107,9 +107,8 @@ describe("preload.js dist API methods", () => {
             mockRequire,
             mockProcess,
             mockConsole,
-            exposedAPI: mockContextBridge.exposeInMainWorld.mock.calls[0]?.[1] as
-                | ExposedPreloadApi
-                | undefined,
+            exposedAPI: mockContextBridge.exposeInMainWorld.mock
+                .calls[0]?.[1] as ExposedPreloadApi | undefined,
             devTools: mockContextBridge.exposeInMainWorld.mock.calls[1]?.[1],
         };
     }
@@ -135,9 +134,23 @@ describe("preload.js dist API methods", () => {
 
     describe("Module Loading and Basic Structure", () => {
         test("should import and execute without errors", () => {
-            expect(() => {
+            const { exposedAPI, mockProcess, mockRequire } =
                 createPreloadEnvironment();
-            }).not.toThrow();
+
+            expect(mockRequire).toHaveBeenCalledWith("electron");
+            expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith(
+                "electronAPI",
+                expect.objectContaining({
+                    getChannelInfo: expect.any(Function),
+                    validateAPI: expect.any(Function),
+                })
+            );
+            expect(exposedAPI?.validateAPI()).toBe(true);
+            expect(mockProcess.once).toHaveBeenCalledWith(
+                "beforeExit",
+                expect.any(Function)
+            );
+            expect(consoleSpy.error).not.toHaveBeenCalled();
         });
 
         test("should expose electronAPI to main world", () => {
@@ -795,10 +808,17 @@ describe("preload.js dist API methods", () => {
                 .mockImplementation(() => {});
             const mockConsole = { log: consoleSpy, error: consoleSpy };
 
-            expect(() =>
-                runPreloadScript(mockRequire, mockProcess, mockConsole)
-            ).not.toThrow();
+            const result = runPreloadScript(
+                mockRequire,
+                mockProcess,
+                mockConsole
+            );
 
+            expect(result).toBeUndefined();
+            expect(mockProcess.once).toHaveBeenCalledWith(
+                "beforeExit",
+                expect.any(Function)
+            );
             expect(consoleSpy).toHaveBeenCalledWith(
                 "[preload.js] Failed to expose electronAPI:",
                 expect.any(Error)
@@ -817,9 +837,17 @@ describe("preload.js dist API methods", () => {
                 .mockImplementation(() => {});
             const { exposedAPI } = createPreloadEnvironment();
 
-            expect(() => {
-                exposedAPI.sendThemeChanged("dark");
-            }).not.toThrow();
+            const result = exposedAPI.sendThemeChanged("dark");
+
+            expect(result).toBeUndefined();
+            expect(mockIpcRenderer.send).toHaveBeenCalledWith(
+                "theme-changed",
+                "dark"
+            );
+            expect(consoleSpy).toHaveBeenCalledWith(
+                "[preload.js] Error in sendThemeChanged:",
+                expect.any(Error)
+            );
 
             consoleSpy.mockRestore();
         });
