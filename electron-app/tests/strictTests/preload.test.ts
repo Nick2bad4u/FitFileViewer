@@ -13,7 +13,14 @@ interface IpcRendererMock {
 interface PreloadDevTools {
     getPreloadInfo: () => {
         apiMethods: string[];
-        constants: Record<string, unknown>;
+        constants: {
+            CHANNELS: Record<string, string>;
+            DEFAULT_VALUES: {
+                FIT_FILE_PATH: null | string;
+                THEME: null | string;
+            };
+            EVENTS: Record<string, string>;
+        };
         timestamp: string;
         version: string;
     };
@@ -25,6 +32,8 @@ interface PreloadElectronApi {
     checkForUpdates: () => void;
     getAppVersion: () => Promise<unknown>;
     getChannelInfo: () => {
+        channels: Record<string, string>;
+        events: Record<string, string>;
         totalChannels: number;
         totalEvents: number;
     };
@@ -122,10 +131,23 @@ describe("preload.js electronAPI exposure and behavior", () => {
             })
         );
 
-        // getChannelInfo returns counts > 0
+        // getChannelInfo returns the preload catalog used by the exposed API.
         const info = api.getChannelInfo();
-        expect(info.totalChannels).toBeGreaterThan(0);
-        expect(info.totalEvents).toBeGreaterThan(0);
+        expect(info.totalChannels).toBe(27);
+        expect(info.totalEvents).toBe(10);
+        expect(info.channels).toMatchObject({
+            APP_VERSION: "getAppVersion",
+            DEVTOOLS_INJECT_MENU: "devtools-inject-menu",
+            FILE_READ: "file:read",
+            FIT_DECODE: "fit:decode",
+            THEME_GET: "theme:get",
+        });
+        expect(info.events).toMatchObject({
+            MENU_CHECK_FOR_UPDATES: "menu-check-for-updates",
+            MENU_OPEN_FILE: "menu-open-file",
+            OPEN_RECENT_FILE: "open-recent-file",
+            SET_THEME: "set-theme",
+        });
 
         // Transform branches for event handlers
         const recentCb = vi.fn();
@@ -271,16 +293,25 @@ describe("preload.js electronAPI exposure and behavior", () => {
             })
         );
         const info = dev.getPreloadInfo();
-        expect(info).toEqual(
-            expect.objectContaining({
-                apiMethods: expect.arrayContaining(["getAppVersion"]),
-                constants: expect.any(Object),
-                timestamp: expect.stringMatching(
-                    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/
-                ),
-                version: "1.0.0",
-            })
-        );
+        expect(info.apiMethods).toContain("getAppVersion");
+        expect(info.apiMethods).toContain("getChannelInfo");
+        expect(info.apiMethods).toContain("injectMenu");
+        expect(info.constants.CHANNELS).toMatchObject({
+            APP_VERSION: "getAppVersion",
+            DEVTOOLS_INJECT_MENU: "devtools-inject-menu",
+            FIT_PARSE: "fit:parse",
+        });
+        expect(info.constants.EVENTS).toMatchObject({
+            INSTALL_UPDATE: "install-update",
+            OPEN_RECENT_FILE: "open-recent-file",
+            THEME_CHANGED: "theme-changed",
+        });
+        expect(info.constants.DEFAULT_VALUES).toEqual({
+            FIT_FILE_PATH: null,
+            THEME: null,
+        });
+        expect(info.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
+        expect(info.version).toBe("1.0.0");
 
         await expect(dev.testIPC()).resolves.toBe(true);
         dev.logAPIState();
