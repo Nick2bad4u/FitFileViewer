@@ -1,6 +1,6 @@
 // Mock Leaflet global L for all Vitest tests
 // eslint-disable-next-line import-x/no-unassigned-import -- ensure web storage shim registers before Storybook config executes
-import "./shims/nodeWebStorage";
+import "../../electron-app/tests/shims/nodeWebStorage";
 import fs from "node:fs";
 import Module from "node:module";
 import path from "node:path";
@@ -15,7 +15,7 @@ import {
 const setupImportMetaUrl = String(import.meta.url ?? "");
 const electronAppRoot = path.resolve(
     setupImportMetaUrl.startsWith("file:")
-        ? fileURLToPath(new URL("..", setupImportMetaUrl))
+        ? fileURLToPath(new URL("../../electron-app", setupImportMetaUrl))
         : process.cwd()
 );
 const electronAppDist = path.join(electronAppRoot, "dist");
@@ -142,7 +142,8 @@ let __clearListeners;
 // and to keep setup lightweight if tests don't touch state.
 (async () => {
     try {
-        const sm = await import("../utils/state/core/stateManager.js");
+        const sm =
+            await import("../../electron-app/utils/state/core/stateManager.js");
         __resetStateMgr = /** @type {any} */ (sm).__resetStateManagerForTests;
         __clearListeners = /** @type {any} */ (sm).__clearAllListenersForTests;
     } catch {
@@ -319,7 +320,7 @@ try {
     /* ignore: runner not yet available */
 }
 // Import the enhanced JSDOM setup to fix DOM-related test failures
-// Import the enhanced JSDOM setup directly inside setupVitest.js
+// Import the enhanced JSDOM setup directly inside setupVitest.mjs
 // directly include the JSDOM setup code instead of importing
 
 // Enhanced JSDOM environment setup (with guards for non-DOM environments)

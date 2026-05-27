@@ -219,7 +219,7 @@ export default defineConfig({
                 ],
             },
         },
-        setupFiles: ["./tests/setupVitest.js"],
+        setupFiles: ["../tests/vitest/setupVitest.mjs"],
         slowTestThreshold: 1000,
         teardownTimeout: 30_000,
         testTimeout: 30_000,

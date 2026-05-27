@@ -314,6 +314,27 @@ const config = [
         },
     },
     {
+        files: ["tests/vitest/setupVitest.mjs"],
+        languageOptions: {
+            globals: globals.node,
+        },
+        linterOptions: {
+            reportUnusedDisableDirectives: "off",
+        },
+        rules: {
+            "@typescript-eslint/strict-void-return": "off",
+            "vitest/no-duplicate-hooks": "off",
+            "vitest/no-hooks": "off",
+            "vitest/prefer-hooks-in-order": "off",
+            "vitest/prefer-import-in-mock": "off",
+            "vitest/prefer-mock-return-shorthand": "off",
+            "vitest/prefer-spy-on": "off",
+            "vitest/require-mock-type-parameters": "off",
+            "vitest/require-top-level-describe": "off",
+            "vitest/unbound-method": "off",
+        },
+    },
+    {
         files: ["electron-builder.config.cjs"],
         languageOptions: {
             globals: globals.node,
