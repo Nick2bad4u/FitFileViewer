@@ -79,12 +79,12 @@ and should stay in `devDependencies`.
 
 | Category                 | Packages                                                                                                                                                                                                                     |
 | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Electron build/package   | `electron`, `electron-builder`, `electron-builder-squirrel-windows`, `makensis`, `cross-env`                                                                                                                                 |
-| TypeScript/build helpers | `esbuild`, `globals`                                                                                                                                                                                                         |
+| Electron build/package   | `electron`, `electron-builder`, `electron-builder-squirrel-windows`, `makensis`                                                                                                                                              |
+| TypeScript/build helpers | `esbuild`, `globals`, `typescript`, `vite`                                                                                                                                                                                   |
 | Lint/format/docs         | `eslint`, `eslint-config-nick2bad4u`, `prettier`, `prettier-config-nick2bad4u`, `remark`, `remark-cli`, `remark-config-nick2bad4u`, `secretlint`, `secretlint-config-nick2bad4u`, `stylelint`, `stylelint-config-nick2bad4u` |
-| Tests                    | `vitest`, `@vitest/coverage-v8`, `@playwright/test`, `fast-check`, `fast-xml-parser`, `jsdom`                                                                                                                                |
-| Types                    | `@types/hammerjs`, `@types/jquery`, `@types/jsdom`, `@types/leaflet`, `@types/leaflet-draw`, `@types/leaflet.markercluster`                                                                                                  |
-| Release/changelog        | `git-cliff` is managed by the root workspace package.                                                                                                                                                                        |
+| Tests                    | `vitest`, `@vitest/coverage-v8`, `@vitest/ui`, `@playwright/test`, `fast-check`, `fast-xml-parser`, `jsdom`                                                                                                                  |
+| Types                    | `@types/hammerjs`, `@types/jquery`, `@types/jsdom`, `@types/leaflet`, `@types/leaflet-draw`, `@types/leaflet.markercluster`, `@types/node`                                                                                   |
+| Release/dependency tools | `git-cliff`, `npm-check-updates`                                                                                                                                                                                             |
 
 ## Vendored Asset Groups
 
