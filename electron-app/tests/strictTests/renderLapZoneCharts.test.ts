@@ -727,11 +727,10 @@ describe("renderLapZoneCharts", () => {
         it("should add chart instances to global array", () => {
             window._chartjsInstances = [];
             renderLapZoneCharts(container);
-            expect(window._chartjsInstances.length).toBeGreaterThan(0);
-            expect(window._chartjsInstances[0]).toEqual({ id: "mock-chart" });
-            expect(window._chartjsInstances).toContainEqual({
-                id: "mock-hr-bar",
-            });
+            expect(window._chartjsInstances).toEqual([
+                { id: "mock-chart" },
+                { id: "mock-hr-bar" },
+            ]);
         });
 
         it("should handle null chart returns", () => {
@@ -1013,19 +1012,17 @@ describe("renderLapZoneCharts", () => {
             ];
 
             renderLapZoneCharts(container);
+            const expectedHrZones = [
+                { color: "red", label: "Zone 1", time: 100, value: 100 },
+                { color: "blue", label: "Zone 2", time: 200, value: 200 },
+            ];
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] HR zone data after value mapping:",
-                expect.arrayContaining([
-                    expect.objectContaining({ value: 100 }),
-                    expect.objectContaining({ value: 200 }),
-                ])
+                expectedHrZones
             );
             expect(renderSingleHRZoneBar).toHaveBeenCalledWith(
                 expect.any(HTMLCanvasElement),
-                expect.arrayContaining([
-                    expect.objectContaining({ value: 100 }),
-                    expect.objectContaining({ value: 200 }),
-                ]),
+                expectedHrZones,
                 { title: "HR Zone by Lap (Individual)" }
             );
             expect(getCanvasIds()).toContain("chartjs-canvas-single-lap-hr");
@@ -1033,6 +1030,9 @@ describe("renderLapZoneCharts", () => {
 
         it("should aggregate HR zone data from laps when session data not available", () => {
             delete window.heartRateZones;
+            getZoneColorMock.mockImplementation(
+                (type: string, index: number) => `${type}-zone-${index}`
+            );
 
             window.globalData.timeInZoneMesgs = [
                 {
@@ -1053,14 +1053,17 @@ describe("renderLapZoneCharts", () => {
             );
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] Aggregated HR zones:",
-                expect.any(Array)
+                [
+                    { color: "hr-zone-0", label: "HR Zone 1", value: 15 },
+                    { color: "hr-zone-1", label: "HR Zone 2", value: 15 },
+                ]
             );
             expect(renderSingleHRZoneBar).toHaveBeenCalledWith(
                 expect.any(HTMLCanvasElement),
-                expect.arrayContaining([
-                    expect.objectContaining({ label: "HR Zone 1", value: 15 }),
-                    expect.objectContaining({ label: "HR Zone 2", value: 15 }),
-                ]),
+                [
+                    { color: "hr-zone-0", label: "HR Zone 1", value: 15 },
+                    { color: "hr-zone-1", label: "HR Zone 2", value: 15 },
+                ],
                 { title: "HR Zone by Lap (Individual)" }
             );
             expect(getCanvasIds()).toContain("chartjs-canvas-single-lap-hr");
@@ -1090,6 +1093,9 @@ describe("renderLapZoneCharts", () => {
 
         it("should aggregate Power zone data from laps when session data not available", () => {
             delete window.powerZones;
+            getZoneColorMock.mockImplementation(
+                (type: string, index: number) => `${type}-zone-${index}`
+            );
 
             window.globalData.timeInZoneMesgs = [
                 {
@@ -1110,16 +1116,18 @@ describe("renderLapZoneCharts", () => {
             );
             expect(renderSinglePowerZoneBar).toHaveBeenCalledWith(
                 expect.any(HTMLCanvasElement),
-                expect.arrayContaining([
-                    expect.objectContaining({
+                [
+                    {
+                        color: "power-zone-0",
                         label: "Power Zone 1",
                         value: 8,
-                    }),
-                    expect.objectContaining({
+                    },
+                    {
+                        color: "power-zone-1",
                         label: "Power Zone 2",
                         value: 12,
-                    }),
-                ]),
+                    },
+                ],
                 { title: "Power Zone by Lap (Individual)" }
             );
             expect(getCanvasIds()).toContain("chartjs-canvas-single-lap-power");
