@@ -114,7 +114,7 @@ describe("network utilities", () => {
     });
 
     it("passes an AbortController signal to fetch and clears the timeout", async () => {
-        expect.assertions(4);
+        expect.assertions(8);
 
         const timeoutSpy = vi.spyOn(globalThis, "setTimeout");
         const clearSpy = vi.spyOn(globalThis, "clearTimeout");
@@ -126,12 +126,67 @@ describe("network utilities", () => {
             fetchWithTimeout("https://example.test", 100)
         ).resolves.toBe(response);
 
-        expect(fetchSpy).toHaveBeenCalledWith(
-            "https://example.test",
-            expect.objectContaining({ signal: expect.any(AbortSignal) })
-        );
-        expect(timeoutSpy).toHaveBeenCalledWith(expect.any(Function), 100);
+        expect(fetchSpy).toHaveBeenCalledTimes(1);
+        const fetchCall = fetchSpy.mock.calls.at(0);
+        if (fetchCall === undefined) {
+            throw new Error("fetch was not called");
+        }
+        const [
+            url,
+            init,
+        ] = fetchCall;
+        expect(url).toBe("https://example.test");
+        expect(init?.signal).toBeInstanceOf(AbortSignal);
+        expect(init?.signal?.aborted).toBe(false);
+
+        const timeoutCall = timeoutSpy.mock.calls.at(0);
+        if (timeoutCall === undefined) {
+            throw new Error("setTimeout was not called");
+        }
+        const [
+            timeoutHandler,
+            timeoutDelay,
+        ] = timeoutCall;
+        expect(typeof timeoutHandler).toBe("function");
+        expect(timeoutDelay).toBe(100);
         expect(clearSpy).toHaveBeenCalledWith(expect.anything());
+    });
+
+    it("aborts the fetch signal when the timeout elapses", async () => {
+        expect.assertions(4);
+        vi.useFakeTimers();
+
+        const abortEvents: string[] = [];
+        const fetchSpy = vi.fn<typeof fetch>((_url, init) => {
+            if (!(init?.signal instanceof AbortSignal)) {
+                throw new TypeError("Expected fetch timeout signal");
+            }
+            const listenerCleanup = new AbortController();
+            const timeoutSignal = init.signal;
+            const handleAbort = () => {
+                abortEvents.push("abort");
+                listenerCleanup.abort();
+            };
+            timeoutSignal.addEventListener("abort", handleAbort, {
+                signal: listenerCleanup.signal,
+            });
+            return new Promise<Response>(() => {});
+        });
+        globalRef.fetch = fetchSpy;
+
+        void fetchWithTimeout("https://example.test/slow", 250);
+        await vi.advanceTimersByTimeAsync(249);
+        expect(abortEvents).toStrictEqual([]);
+
+        await vi.advanceTimersByTimeAsync(1);
+        expect(abortEvents).toStrictEqual(["abort"]);
+
+        const fetchCall = fetchSpy.mock.calls.at(0);
+        if (fetchCall === undefined) {
+            throw new Error("fetch was not called");
+        }
+        expect(fetchCall[0]).toBe("https://example.test/slow");
+        expect(fetchCall[1]?.signal?.aborted).toBe(true);
     });
 
     it("detects abort errors and rejects unrelated values", () => {
