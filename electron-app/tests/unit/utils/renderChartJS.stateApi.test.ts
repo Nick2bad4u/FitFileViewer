@@ -199,12 +199,7 @@ describe("renderChartJS.js state API", () => {
         test("should reset all chart state values to defaults", () => {
             // First set some values
             previousChartState.chartCount = 10;
-            // @ts-ignore - Working around TypeScript inference issue
-            previousChartState.fieldsRendered = [
-                "field1",
-                "field2",
-                "field3",
-            ];
+            previousChartState.fieldsRendered = [true, true, true];
             previousChartState.lastRenderTimestamp = Date.now();
 
             // Reset the state
@@ -213,7 +208,7 @@ describe("renderChartJS.js state API", () => {
             expect(previousChartState.chartCount).toBe(0);
             expect(previousChartState.fieldsRendered).toEqual([]);
             expect(previousChartState.lastRenderTimestamp).toBe(0);
-            expect(previousChartState.fieldsRendered).not.toContain("field1");
+            expect(previousChartState.fieldsRendered).not.toContain(true);
         });
 
         test("should work correctly when called multiple times", () => {
