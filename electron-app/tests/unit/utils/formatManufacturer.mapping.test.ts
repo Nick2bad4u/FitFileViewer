@@ -1,22 +1,19 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// Mock the external dependency
 const mockGetManufacturerName = vi.fn();
 vi.mock("../../../utils/formatting/display/formatAntNames.js", () => ({
     getManufacturerName: mockGetManufacturerName,
 }));
 
-// Import the module after mocking
 const {
     formatManufacturer,
     getAllManufacturerMappings,
     hasManufacturerMapping,
 } = await import("../../../utils/formatting/formatters/formatManufacturer.js");
 
-describe("formatManufacturer.js - Manufacturer Name Formatting", () => {
+describe("formatManufacturer mapping behavior", () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        // Setup console spy to suppress warnings in tests
         vi.spyOn(console, "warn").mockImplementation(() => {});
         vi.spyOn(console, "error").mockImplementation(() => {});
     });

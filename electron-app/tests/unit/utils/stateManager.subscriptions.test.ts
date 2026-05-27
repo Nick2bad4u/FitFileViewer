@@ -1,5 +1,5 @@
 /**
- * @file Simple State Manager Test
+ * @file State manager subscription behavior tests.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -12,7 +12,7 @@ import {
     subscribe,
 } from "../../../utils/state/core/stateManager.js";
 
-describe("State Manager Simple Test", () => {
+describe("state manager subscriptions", () => {
     beforeEach(() => {
         vi.spyOn(console, "log").mockImplementation(() => undefined);
         vi.spyOn(console, "warn").mockImplementation(() => undefined);
@@ -30,7 +30,7 @@ describe("State Manager Simple Test", () => {
         const unsubscribe = subscribe("ui.activeTab", listener);
 
         setState("ui.activeTab", "map", {
-            source: "stateManager.simple.test",
+            source: "stateManager.subscriptions.test",
         });
 
         expect(getState("ui.activeTab")).toBe("map");
@@ -40,7 +40,7 @@ describe("State Manager Simple Test", () => {
                 newValue: "map",
                 oldValue: "summary",
                 path: "ui.activeTab",
-                source: "stateManager.simple.test",
+                source: "stateManager.subscriptions.test",
             }),
         ]);
 
@@ -48,7 +48,7 @@ describe("State Manager Simple Test", () => {
         listener.mockClear();
 
         setState("ui.activeTab", "table", {
-            source: "stateManager.simple.test",
+            source: "stateManager.subscriptions.test",
         });
 
         expect(getState("ui.activeTab")).toBe("table");
@@ -59,7 +59,7 @@ describe("State Manager Simple Test", () => {
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
         setState("", "ignored", {
-            source: "stateManager.simple.invalid",
+            source: "stateManager.subscriptions.invalid",
         });
 
         expect(warnSpy).toHaveBeenCalledWith(

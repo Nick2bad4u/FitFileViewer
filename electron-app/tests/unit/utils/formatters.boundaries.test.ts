@@ -1,25 +1,23 @@
 /**
- * @file Working formatter utilities test suite
+ * @file Formatter boundary test suite
  *
- *   This test suite provides complete coverage for the working formatting utility
- *   functions. Based on actual function outputs discovered during testing.
+ *   Covers shared formatter boundary behavior with representative unit, invalid,
+ *   and edge-case inputs.
  *
  * @author FitFileViewer Test Suite
  *
  * @since 1.0.0
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// Import working formatter utilities
 import { formatDistance } from "../../../utils/formatting/formatters/formatDistance.js";
 import { formatTime } from "../../../utils/formatting/formatters/formatTime.js";
 import { formatWeight } from "../../../utils/formatting/formatters/formatWeight.js";
 import { formatHeight } from "../../../utils/formatting/formatters/formatHeight.js";
 
-describe("Working Formatter Utilities", () => {
+describe("formatter boundary behavior", () => {
     beforeEach(() => {
-        // Mock console methods to prevent noise in tests
         vi.spyOn(console, "warn").mockImplementation(() => {});
         vi.spyOn(console, "error").mockImplementation(() => {});
     });
