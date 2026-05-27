@@ -27,6 +27,9 @@ describe("resourceManager", () => {
         try {
             const chartCleanup = vi.fn<() => void>();
             const timerCleanup = vi.fn<() => void>();
+            vi.spyOn(Date, "now")
+                .mockReturnValueOnce(1000)
+                .mockReturnValueOnce(2000);
 
             const chartId = resourceManager.register("chart", chartCleanup, {
                 id: "chart-1",
@@ -41,24 +44,53 @@ describe("resourceManager", () => {
                 timerId: expect.stringMatching(/^resource-timer-\d+$/u),
             });
 
-            expect(resourceManager.getStats()).toMatchObject({
+            expect(resourceManager.getStats()).toStrictEqual({
                 byOwner: { charts: 1, timers: 1 },
-                byType: { chart: 1, timer: 1 },
+                byType: {
+                    chart: 1,
+                    eventListener: 0,
+                    interval: 0,
+                    map: 0,
+                    observer: 0,
+                    other: 0,
+                    timer: 1,
+                    worker: 0,
+                },
                 total: 2,
             });
 
-            expect(resourceManager.list()).toContainEqual(
-                expect.objectContaining({
+            expect(resourceManager.list()).toStrictEqual([
+                {
                     id: "chart-1",
                     owner: "charts",
+                    timestamp: 1000,
                     type: "chart",
-                })
-            );
+                },
+                {
+                    id: timerId,
+                    owner: "timers",
+                    timestamp: 2000,
+                    type: "timer",
+                },
+            ]);
 
             expect(resourceManager.cleanup({ owner: "charts" })).toBe(1);
             expect(chartCleanup).toHaveBeenCalledOnce();
             expect(timerCleanup).not.toHaveBeenCalled();
-            expect(resourceManager.getStats()).toMatchObject({ total: 1 });
+            expect(resourceManager.getStats()).toStrictEqual({
+                byOwner: { timers: 1 },
+                byType: {
+                    chart: 0,
+                    eventListener: 0,
+                    interval: 0,
+                    map: 0,
+                    observer: 0,
+                    other: 0,
+                    timer: 1,
+                    worker: 0,
+                },
+                total: 1,
+            });
 
             expect(resourceManager.cleanup({ type: "timer" })).toBe(1);
         } finally {
@@ -83,7 +115,20 @@ describe("resourceManager", () => {
 
             expect(cleanupAll()).toBe(2);
             expect(calls).toStrictEqual(["second", "first"]);
-            expect(getStats()).toMatchObject({ total: 0 });
+            expect(getStats()).toStrictEqual({
+                byOwner: {},
+                byType: {
+                    chart: 0,
+                    eventListener: 0,
+                    interval: 0,
+                    map: 0,
+                    observer: 0,
+                    other: 0,
+                    timer: 0,
+                    worker: 0,
+                },
+                total: 0,
+            });
         } finally {
             cleanupFixture();
         }
@@ -167,7 +212,20 @@ describe("resourceManager", () => {
             }).toStrictEqual({
                 unregisteredAgain: false,
             });
-            expect(resourceManager.getStats()).toMatchObject({ total: 0 });
+            expect(resourceManager.getStats()).toStrictEqual({
+                byOwner: {},
+                byType: {
+                    chart: 0,
+                    eventListener: 0,
+                    interval: 0,
+                    map: 0,
+                    observer: 0,
+                    other: 0,
+                    timer: 0,
+                    worker: 0,
+                },
+                total: 0,
+            });
         } finally {
             cleanupFixture();
         }
