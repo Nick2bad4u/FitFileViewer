@@ -91,6 +91,120 @@ type PreloadTestGlobal = typeof globalThis & {
 type ExposeCall = [string, unknown];
 type BeforeExitCall = ["beforeExit", () => void];
 
+const EXPECTED_PRELOAD_CHANNELS = {
+    APP_VERSION: "getAppVersion",
+    CHROME_VERSION: "getChromeVersion",
+    CLIPBOARD_WRITE_PNG_DATA_URL: "clipboard:writePngDataUrl",
+    CLIPBOARD_WRITE_TEXT: "clipboard:writeText",
+    DEVTOOLS_INJECT_MENU: "devtools-inject-menu",
+    DIALOG_OPEN_FILE: "dialog:openFile",
+    DIALOG_OPEN_FOLDER: "dialog:openFolder",
+    DIALOG_OPEN_OVERLAY_FILES: "dialog:openOverlayFiles",
+    ELECTRON_VERSION: "getElectronVersion",
+    FILE_READ: "file:read",
+    FIT_BROWSER_GET_FOLDER: "browser:getFolder",
+    FIT_BROWSER_IS_ENABLED: "browser:isEnabled",
+    FIT_BROWSER_LIST_FOLDER: "browser:listFolder",
+    FIT_BROWSER_SET_ENABLED: "browser:setEnabled",
+    FIT_BROWSER_SET_FOLDER: "browser:setFolder",
+    FIT_DECODE: "fit:decode",
+    FIT_PARSE: "fit:parse",
+    GYAZO_SERVER_START: "gyazo:server:start",
+    GYAZO_SERVER_STOP: "gyazo:server:stop",
+    LICENSE_INFO: "getLicenseInfo",
+    NODE_VERSION: "getNodeVersion",
+    PLATFORM_INFO: "getPlatformInfo",
+    RECENT_FILES_ADD: "recentFiles:add",
+    RECENT_FILES_APPROVE: "recentFiles:approve",
+    RECENT_FILES_GET: "recentFiles:get",
+    SHELL_OPEN_EXTERNAL: "shell:openExternal",
+    THEME_GET: "theme:get",
+} as const;
+
+const EXPECTED_PRELOAD_EVENTS = {
+    FIT_FILE_LOADED: "fit-file-loaded",
+    INSTALL_UPDATE: "install-update",
+    MENU_CHECK_FOR_UPDATES: "menu-check-for-updates",
+    MENU_OPEN_FILE: "menu-open-file",
+    MENU_OPEN_OVERLAY: "menu-open-overlay",
+    OPEN_RECENT_FILE: "open-recent-file",
+    OPEN_SUMMARY_COLUMN_SELECTOR: "open-summary-column-selector",
+    SET_FULLSCREEN: "set-fullscreen",
+    SET_THEME: "set-theme",
+    THEME_CHANGED: "theme-changed",
+} as const;
+
+const EXPECTED_PRELOAD_CONSTANTS = {
+    CHANNELS: EXPECTED_PRELOAD_CHANNELS,
+    DEFAULT_VALUES: {
+        FIT_FILE_PATH: null,
+        THEME: null,
+    },
+    EVENTS: EXPECTED_PRELOAD_EVENTS,
+} as const;
+
+const EXPECTED_ELECTRON_API_METHODS = [
+    "addRecentFile",
+    "approveRecentFile",
+    "checkForUpdates",
+    "decodeFitFile",
+    "getAppVersion",
+    "getChannelInfo",
+    "getChromeVersion",
+    "getElectronVersion",
+    "getErrors",
+    "getFitBrowserFolder",
+    "getLicenseInfo",
+    "getMainState",
+    "getMetrics",
+    "getNodeVersion",
+    "getOperation",
+    "getOperations",
+    "getPlatformInfo",
+    "getTheme",
+    "injectMenu",
+    "installUpdate",
+    "invoke",
+    "isFitBrowserEnabled",
+    "listenToMainState",
+    "listFitBrowserFolder",
+    "notifyFitFileLoaded",
+    "onIpc",
+    "onMenuOpenFile",
+    "onMenuOpenOverlay",
+    "onOpenRecentFile",
+    "onOpenSummaryColumnSelector",
+    "onSetTheme",
+    "onUpdateEvent",
+    "openExternal",
+    "openFile",
+    "openFileDialog",
+    "openFolderDialog",
+    "openOverlayDialog",
+    "parseFitFile",
+    "readFile",
+    "recentFiles",
+    "send",
+    "sendThemeChanged",
+    "setFitBrowserEnabled",
+    "setFitBrowserFolder",
+    "setFullScreen",
+    "setMainState",
+    "startGyazoServer",
+    "stopGyazoServer",
+    "subscribeToMainState",
+    "unlistenFromMainState",
+    "validateAPI",
+    "writeClipboardPngDataUrl",
+    "writeClipboardText",
+] as const;
+
+const EXPECTED_DEVTOOLS_METHODS = [
+    "getPreloadInfo",
+    "logAPIState",
+    "testIPC",
+] as const;
+
 function getMockCalls(mock: MockWithCalls): unknown[][] {
     return mock.mock.calls;
 }
@@ -261,96 +375,64 @@ describe("preload.js - Comprehensive API Testing", () => {
 
     describe("API Exposure", () => {
         it("should expose electronAPI to main world", () => {
+            const exposedCall = findExposedCall("electronAPI");
+
+            expect(exposedCall?.[0]).toBe("electronAPI");
             expect(
-                electronMock.contextBridge.exposeInMainWorld
-            ).toHaveBeenCalledWith("electronAPI", expect.any(Object));
-            expect(getElectronAPI().validateAPI()).toBe(true);
+                Object.keys(exposedCall?.[1] as Record<string, unknown>)
+            ).toEqual(EXPECTED_ELECTRON_API_METHODS);
+            expect((exposedCall?.[1] as PreloadElectronAPI).validateAPI()).toBe(
+                true
+            );
         });
 
         it("should expose devTools to main world", () => {
+            const exposedCall = findExposedCall("devTools");
+
+            expect(exposedCall?.[0]).toBe("devTools");
             expect(
-                electronMock.contextBridge.exposeInMainWorld
-            ).toHaveBeenCalledWith("devTools", expect.any(Object));
-            expect(getDevTools()).toMatchObject({
-                getPreloadInfo: expect.any(Function),
-                logAPIState: expect.any(Function),
-                testIPC: expect.any(Function),
-            });
+                Object.keys(exposedCall?.[1] as Record<string, unknown>)
+            ).toEqual(EXPECTED_DEVTOOLS_METHODS);
         });
 
         it("should expose exactly 2 APIs", () => {
             expect(
                 electronMock.contextBridge.exposeInMainWorld
             ).toHaveBeenCalledTimes(2);
-            expect(Object.keys(getPreloadGlobal())).toEqual(
-                expect.arrayContaining(["electronAPI", "devTools"])
-            );
+            expect(
+                getMockCalls(electronMock.contextBridge.exposeInMainWorld).map(
+                    ([apiName]) => apiName
+                )
+            ).toEqual(["electronAPI", "devTools"]);
+            expect(
+                getMockCalls(electronMock.contextBridge.exposeInMainWorld).map(
+                    ([apiName]) => apiName
+                )
+            ).not.toContain("__proto__");
+            expect(getPreloadGlobal().electronAPI).toBe(getElectronAPI());
+            expect(getPreloadGlobal().devTools).toBe(getDevTools());
         });
 
         it("should expose electronAPI with all expected methods", () => {
             const electronAPICall = findExposedCall("electronAPI");
 
-            expect(electronAPICall?.[1]).toMatchObject({
-                getAppVersion: expect.any(Function),
-                getChannelInfo: expect.any(Function),
-                validateAPI: expect.any(Function),
-            });
+            expect(
+                Object.keys(electronAPICall?.[1] as Record<string, unknown>)
+            ).toEqual(EXPECTED_ELECTRON_API_METHODS);
 
-            const electronAPI = electronAPICall![1] as PreloadElectronAPI;
+            const electronAPI = electronAPICall![1] as Record<string, unknown>;
 
-            // Test core methods
-            expect(electronAPI).toHaveProperty("getAppVersion");
-            expect(electronAPI).toHaveProperty("getChromeVersion");
-            expect(electronAPI).toHaveProperty("getElectronVersion");
-            expect(electronAPI).toHaveProperty("getNodeVersion");
-            expect(electronAPI).toHaveProperty("getPlatformInfo");
-            expect(electronAPI).toHaveProperty("getTheme");
-            expect(electronAPI).toHaveProperty("getLicenseInfo");
-            expect(electronAPI).toHaveProperty("getChannelInfo");
-
-            // Test file operations
-            expect(electronAPI).toHaveProperty("openFile");
-            expect(electronAPI).toHaveProperty("openFileDialog");
-            expect(electronAPI).toHaveProperty("readFile");
-            expect(electronAPI).toHaveProperty("recentFiles");
-            expect(electronAPI).toHaveProperty("approveRecentFile");
-            expect(electronAPI).toHaveProperty("addRecentFile");
-
-            // Test FIT file operations
-            expect(electronAPI).toHaveProperty("decodeFitFile");
-            expect(electronAPI).toHaveProperty("parseFitFile");
-
-            // Test IPC operations
-            expect(electronAPI).toHaveProperty("invoke");
-            expect(electronAPI).toHaveProperty("send");
-            expect(electronAPI).toHaveProperty("onIpc");
-
-            // Test menu operations
-            expect(electronAPI).toHaveProperty("injectMenu");
-            expect(electronAPI).toHaveProperty("onMenuOpenFile");
-            expect(electronAPI).toHaveProperty("onMenuOpenOverlay");
-            expect(electronAPI).toHaveProperty("onOpenRecentFile");
-            expect(electronAPI).toHaveProperty("onOpenSummaryColumnSelector");
-
-            // Test theme operations
-            expect(electronAPI).toHaveProperty("onSetTheme");
-            expect(electronAPI).toHaveProperty("sendThemeChanged");
-
-            // Test update operations
-            expect(electronAPI).toHaveProperty("checkForUpdates");
-            expect(electronAPI).toHaveProperty("installUpdate");
-            expect(electronAPI).toHaveProperty("onUpdateEvent");
-
-            // Test window operations
-            expect(electronAPI).toHaveProperty("setFullScreen");
-            expect(electronAPI).toHaveProperty("openExternal");
-
-            // Test Gyazo operations
-            expect(electronAPI).toHaveProperty("startGyazoServer");
-            expect(electronAPI).toHaveProperty("stopGyazoServer");
-
-            // Test validation
-            expect(electronAPI).toHaveProperty("validateAPI");
+            expect(
+                EXPECTED_ELECTRON_API_METHODS.map((methodName) => [
+                    methodName,
+                    typeof electronAPI[methodName],
+                ])
+            ).toEqual(
+                EXPECTED_ELECTRON_API_METHODS.map((methodName) => [
+                    methodName,
+                    "function",
+                ])
+            );
         });
     });
 
@@ -726,10 +808,9 @@ describe("preload.js - Comprehensive API Testing", () => {
                 )
             );
 
-            expect(cleanupLogs.length).toBeGreaterThan(0);
-            expect(cleanupLogs[0][0]).toContain(
-                "[preload.js] Process exiting, performing cleanup..."
-            );
+            expect(cleanupLogs).toEqual([
+                ["[preload.js] Process exiting, performing cleanup..."],
+            ]);
         });
     });
 
@@ -739,10 +820,18 @@ describe("preload.js - Comprehensive API Testing", () => {
                 firstArgumentIncludes(call, "[preload.js] API Validation:")
             );
 
-            expect(validationLogs.length).toBeGreaterThan(0);
-            expect(validationLogs[0][0]).toContain(
-                "[preload.js] API Validation:"
-            );
+            expect(validationLogs).toEqual([
+                [
+                    "[preload.js] API Validation:",
+                    {
+                        channelCount: Object.keys(EXPECTED_PRELOAD_CHANNELS)
+                            .length,
+                        eventCount: Object.keys(EXPECTED_PRELOAD_EVENTS).length,
+                        hasContextBridge: true,
+                        hasIpcRenderer: true,
+                    },
+                ],
+            ]);
             expect(validationLogs[0][0]).not.toContain("failed");
         });
 
@@ -751,10 +840,9 @@ describe("preload.js - Comprehensive API Testing", () => {
                 firstArgumentIncludes(call, "[preload.js] Successfully exposed")
             );
 
-            expect(exposureLogs.length).toBeGreaterThan(0);
-            expect(exposureLogs[0][0]).toContain(
-                "[preload.js] Successfully exposed"
-            );
+            expect(exposureLogs).toEqual([
+                ["[preload.js] Successfully exposed electronAPI to main world"],
+            ]);
         });
 
         it("should log initialization completion", () => {
@@ -765,10 +853,9 @@ describe("preload.js - Comprehensive API Testing", () => {
                 )
             );
 
-            expect(initLogs.length).toBeGreaterThan(0);
-            expect(initLogs[0][0]).toContain(
-                "[preload.js] Preload script initialized"
-            );
+            expect(initLogs).toEqual([
+                ["[preload.js] Preload script initialized successfully"],
+            ]);
         });
 
         it("should validate API structure", () => {
@@ -776,10 +863,16 @@ describe("preload.js - Comprehensive API Testing", () => {
                 firstArgumentIncludes(call, "[preload.js] API Structure:")
             );
 
-            expect(structureLogs.length).toBeGreaterThan(0);
-            expect(structureLogs[0][0]).toContain(
-                "[preload.js] API Structure:"
-            );
+            expect(structureLogs).toEqual([
+                [
+                    "[preload.js] API Structure:",
+                    {
+                        methods: EXPECTED_ELECTRON_API_METHODS,
+                        properties: [],
+                        total: EXPECTED_ELECTRON_API_METHODS.length,
+                    },
+                ],
+            ]);
         });
     });
 
@@ -993,11 +1086,12 @@ describe("preload.js - Comprehensive API Testing", () => {
             expect(typeof api.getChannelInfo).toBe("function");
 
             const channelInfo = api.getChannelInfo();
-            expect(channelInfo).toMatchObject({
-                channels: expect.any(Object),
-                events: expect.any(Object),
+            expect(channelInfo).toEqual({
+                channels: EXPECTED_PRELOAD_CHANNELS,
+                events: EXPECTED_PRELOAD_EVENTS,
+                totalChannels: Object.keys(EXPECTED_PRELOAD_CHANNELS).length,
+                totalEvents: Object.keys(EXPECTED_PRELOAD_EVENTS).length,
             });
-            expect(typeof channelInfo).toBe("object");
             expect(channelInfo.channels).not.toHaveProperty("UNKNOWN_CHANNEL");
         });
     });
@@ -1010,18 +1104,12 @@ describe("preload.js - Comprehensive API Testing", () => {
             });
 
             const info = devTools.getPreloadInfo();
-            expect(info).toMatchObject({
-                apiMethods: expect.any(Array),
-                constants: expect.any(Object),
+            expect(info).toEqual({
+                apiMethods: EXPECTED_ELECTRON_API_METHODS,
+                constants: EXPECTED_PRELOAD_CONSTANTS,
                 timestamp: expect.any(String),
-                version: expect.any(String),
+                version: "1.0.0",
             });
-            expect(typeof info).toBe("object");
-            expect(Array.isArray(info.apiMethods)).toBe(true);
-            expect(typeof info.constants).toBe("object");
-            expect(typeof info.timestamp).toBe("string");
-            expect(typeof info.version).toBe("string");
-            expect(info.apiMethods.length).toBeGreaterThan(0);
         });
 
         it("should test testIPC function in development", async () => {
@@ -1240,24 +1328,13 @@ describe("preload.js - Comprehensive API Testing", () => {
         it("should test getChannelInfo method", () => {
             const channelInfo = electronAPI.getChannelInfo();
 
-            expect(channelInfo).toMatchObject({
-                channels: expect.any(Object),
-                events: expect.any(Object),
-                totalChannels: expect.any(Number),
-                totalEvents: expect.any(Number),
+            expect(channelInfo).toEqual({
+                channels: EXPECTED_PRELOAD_CHANNELS,
+                events: EXPECTED_PRELOAD_EVENTS,
+                totalChannels: Object.keys(EXPECTED_PRELOAD_CHANNELS).length,
+                totalEvents: Object.keys(EXPECTED_PRELOAD_EVENTS).length,
             });
-            expect(channelInfo).toHaveProperty("channels");
-            expect(channelInfo).toHaveProperty("events");
-            expect(channelInfo).toHaveProperty("totalChannels");
-            expect(channelInfo).toHaveProperty("totalEvents");
-
-            expect(typeof channelInfo.channels).toBe("object");
-            expect(typeof channelInfo.events).toBe("object");
-            expect(typeof channelInfo.totalChannels).toBe("number");
-            expect(typeof channelInfo.totalEvents).toBe("number");
-
-            expect(channelInfo.totalChannels).toBeGreaterThan(0);
-            expect(channelInfo.totalEvents).toBeGreaterThan(0);
+            expect(channelInfo.channels).not.toHaveProperty("UNKNOWN_CHANNEL");
         });
 
         it("should test injectMenu method", async () => {
@@ -1293,13 +1370,11 @@ describe("preload.js - Comprehensive API Testing", () => {
                 callback
             );
 
-            expect(electronMock.ipcRenderer.on.mock.calls).toEqual(
-                expect.arrayContaining([
-                    ["update-available", expect.any(Function)],
-                    ["update-downloaded", expect.any(Function)],
-                    ["update-error", expect.any(Function)],
-                ])
-            );
+            expect(electronMock.ipcRenderer.on.mock.calls).toEqual([
+                ["update-available", expect.any(Function)],
+                ["update-downloaded", expect.any(Function)],
+                ["update-error", expect.any(Function)],
+            ]);
             expect(typeof availableUnsubscribe).toBe("function");
             expect(typeof downloadedUnsubscribe).toBe("function");
             expect(typeof errorUnsubscribe).toBe("function");
