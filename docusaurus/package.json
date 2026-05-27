@@ -20,7 +20,7 @@
         "serve": "docusaurus serve",
         "start": "docusaurus start",
         "swizzle": "docusaurus swizzle",
-        "typecheck": "tsc --project tsconfig.json",
+        "typecheck": "node ../scripts/typecheck-docusaurus.mjs",
         "write-heading-ids": "docusaurus write-heading-ids",
         "write-translations": "docusaurus write-translations"
     },
