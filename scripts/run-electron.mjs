@@ -1,13 +1,26 @@
 import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
+import path from "node:path";
 import process from "node:process";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
-const repositoryRoot = fileURLToPath(new URL("..", import.meta.url));
-const require = createRequire(import.meta.url);
+const repositoryRoot = resolveRepositoryRoot();
+const require = createRequire(
+    pathToFileURL(path.join(repositoryRoot, "scripts", "run-electron.mjs")).href
+);
 const electronCliPath = require.resolve("electron/cli.js");
+export const defaultAppPath = "electron-app";
 
-function parseArgs(argv) {
+function resolveRepositoryRoot() {
+    const setupImportMetaUrl = String(import.meta.url ?? "");
+    if (setupImportMetaUrl.startsWith("file:")) {
+        return fileURLToPath(new URL("..", setupImportMetaUrl));
+    }
+
+    return process.cwd();
+}
+
+export function parseArgs(argv) {
     const electronArgs = [];
     let electronIsDev;
 
@@ -39,17 +52,45 @@ function parseArgs(argv) {
     return { electronArgs, electronIsDev };
 }
 
-const { electronArgs, electronIsDev } = parseArgs(process.argv.slice(2));
-const result = spawnSync(process.execPath, [electronCliPath, ...electronArgs], {
-    cwd: repositoryRoot,
-    env: electronIsDev
-        ? { ...process.env, ELECTRON_IS_DEV: electronIsDev }
-        : process.env,
-    stdio: "inherit",
-});
+export function withDefaultAppPath(electronArgs, appPath = defaultAppPath) {
+    if (
+        electronArgs.includes("--help") ||
+        electronArgs.includes("-h") ||
+        electronArgs.includes("--version") ||
+        electronArgs.includes("-v")
+    ) {
+        return electronArgs;
+    }
 
-if (result.error) {
-    throw result.error;
+    return electronArgs.some((arg) => !arg.startsWith("-"))
+        ? electronArgs
+        : [...electronArgs, appPath];
 }
 
-process.exitCode = result.status ?? 1;
+export function runElectron(argv = process.argv.slice(2)) {
+    const { electronArgs, electronIsDev } = parseArgs(argv);
+    const result = spawnSync(
+        process.execPath,
+        [electronCliPath, ...withDefaultAppPath(electronArgs)],
+        {
+            cwd: repositoryRoot,
+            env: electronIsDev
+                ? { ...process.env, ELECTRON_IS_DEV: electronIsDev }
+                : process.env,
+            stdio: "inherit",
+        }
+    );
+
+    if (result.error) {
+        throw result.error;
+    }
+
+    return result.status ?? 1;
+}
+
+if (
+    process.argv[1] &&
+    import.meta.url === pathToFileURL(process.argv[1]).href
+) {
+    process.exitCode = runElectron();
+}
