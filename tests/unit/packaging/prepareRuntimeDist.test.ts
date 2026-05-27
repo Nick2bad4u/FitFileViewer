@@ -10,14 +10,24 @@ import {
     appIconsPath,
     appIndexHtmlPath,
     appStyleCssPath,
+    rootStaticAssetsPath,
 } from "../../../scripts/lib/workspaces.mjs";
 
+type RuntimeCopyRoot = "app" | "static";
+
+type RuntimeCopy = {
+    destination: string;
+    source: string;
+    sourceRoot: RuntimeCopyRoot;
+};
+
 type PrepareRuntimeDistModule = {
-    directoryCopies: string[];
-    fileCopies: string[];
+    directoryCopies: RuntimeCopy[];
+    fileCopies: RuntimeCopy[];
     prepareRuntimeDist: (options?: {
         appDir?: string;
         distDir?: string;
+        staticDir?: string;
     }) => void;
 };
 
@@ -27,28 +37,37 @@ async function importPrepareRuntimeDist(): Promise<PrepareRuntimeDistModule> {
     return (await import("../../../scripts/prepare-runtime-dist.mjs")) as PrepareRuntimeDistModule;
 }
 
-function makeTemporaryApp(): { appDir: string; distDir: string } {
-    const appDir = fs.mkdtempSync(path.join(os.tmpdir(), "ffv-runtime-app-"));
-    temporaryRoots.push(appDir);
+function makeTemporaryApp(): {
+    appDir: string;
+    distDir: string;
+    staticDir: string;
+} {
+    const temporaryRoot = fs.mkdtempSync(
+        path.join(os.tmpdir(), "ffv-runtime-app-")
+    );
+    temporaryRoots.push(temporaryRoot);
 
-    fs.mkdirSync(path.join(appDir, appAlternativeFitViewPath, "assets"), {
+    const appDir = path.join(temporaryRoot, "electron-app");
+    const staticDir = path.join(temporaryRoot, rootStaticAssetsPath);
+
+    fs.mkdirSync(path.join(staticDir, appAlternativeFitViewPath, "assets"), {
         recursive: true,
     });
     fs.mkdirSync(path.join(appDir, appIconsPath), { recursive: true });
     fs.writeFileSync(path.join(appDir, appIndexHtmlPath), "<html></html>");
     fs.writeFileSync(
-        path.join(appDir, appAlternativeFitViewPath, "index.html"),
+        path.join(staticDir, appAlternativeFitViewPath, "index.html"),
         "<html></html>"
     );
     fs.writeFileSync(
-        path.join(appDir, appAlternativeFitViewPath, "assets", "app.js"),
+        path.join(staticDir, appAlternativeFitViewPath, "assets", "app.js"),
         "app"
     );
     fs.writeFileSync(path.join(appDir, appIconsPath, "favicon.ico"), "icon");
     fs.writeFileSync(path.join(appDir, appElevProfileCssPath), "profile");
     fs.writeFileSync(path.join(appDir, appStyleCssPath), "style");
 
-    return { appDir, distDir: path.join(appDir, "dist") };
+    return { appDir, distDir: path.join(appDir, "dist"), staticDir };
 }
 
 afterEach(() => {
@@ -63,17 +82,33 @@ describe("prepare-runtime-dist script", () => {
 
         const { directoryCopies, fileCopies, prepareRuntimeDist } =
             await importPrepareRuntimeDist();
-        const { appDir, distDir } = makeTemporaryApp();
+        const { appDir, distDir, staticDir } = makeTemporaryApp();
 
-        prepareRuntimeDist({ appDir, distDir });
+        prepareRuntimeDist({ appDir, distDir, staticDir });
 
         expect(directoryCopies).toStrictEqual([
-            appAlternativeFitViewPath,
-            appIconsPath,
+            {
+                destination: appAlternativeFitViewPath,
+                source: appAlternativeFitViewPath,
+                sourceRoot: "static",
+            },
+            {
+                destination: appIconsPath,
+                source: appIconsPath,
+                sourceRoot: "app",
+            },
         ]);
         expect(fileCopies).toStrictEqual([
-            appElevProfileCssPath,
-            appStyleCssPath,
+            {
+                destination: appElevProfileCssPath,
+                source: appElevProfileCssPath,
+                sourceRoot: "app",
+            },
+            {
+                destination: appStyleCssPath,
+                source: appStyleCssPath,
+                sourceRoot: "app",
+            },
         ]);
         expect(
             fs.existsSync(
@@ -99,12 +134,13 @@ describe("prepare-runtime-dist script", () => {
         expect.assertions(1);
 
         const { prepareRuntimeDist } = await importPrepareRuntimeDist();
-        const { appDir } = makeTemporaryApp();
+        const { appDir, staticDir } = makeTemporaryApp();
 
         expect(() =>
             prepareRuntimeDist({
                 appDir,
                 distDir: path.join(appDir, "..", "outside-dist"),
+                staticDir,
             })
         ).toThrow("Refusing to operate outside app directory");
     });
@@ -113,15 +149,15 @@ describe("prepare-runtime-dist script", () => {
         expect.assertions(1);
 
         const { prepareRuntimeDist } = await importPrepareRuntimeDist();
-        const { appDir, distDir } = makeTemporaryApp();
+        const { appDir, distDir, staticDir } = makeTemporaryApp();
 
         fs.writeFileSync(
             path.join(appDir, appIndexHtmlPath),
             '<script src="./node_modules/leaflet/dist/leaflet.js"></script>'
         );
 
-        expect(() => prepareRuntimeDist({ appDir, distDir })).toThrow(
-            "index.html must not reference node_modules directly"
-        );
+        expect(() =>
+            prepareRuntimeDist({ appDir, distDir, staticDir })
+        ).toThrow("index.html must not reference node_modules directly");
     });
 });

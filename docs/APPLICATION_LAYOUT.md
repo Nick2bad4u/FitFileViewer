@@ -417,14 +417,15 @@ docs/
 
 ```text
 electron-app/
-├── icons/                           # Application icons
+└── icons/                           # Application icons
 │   ├── favicon.ico                  # Main application icon
 │   ├── favicon-256x256.ico         # Windows icon
 │   ├── favicon-512x512.icns        # macOS icon
 │   ├── favicon-256x256.png         # Linux icon
 │   └── [Various sized icons]
-│
-└── ffv/                            # Alternative FIT viewer web app
+
+static/
+└── ffv/                            # Alternative FIT viewer web app source copied into runtime dist
 ```
 
 Application screenshots used by repository documentation live in

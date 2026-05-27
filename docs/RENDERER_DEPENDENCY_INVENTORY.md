@@ -122,7 +122,7 @@ Current `build:runtime-ts` flow:
 
 `prepare-runtime-dist.mjs` copies:
 
-- directories: `ffv`, `icons`
+- directories: `static/ffv` to `dist/ffv`, `icons` to `dist/icons`
 - files: `elevProfile.css`, `style.css`
 - `index.html` after checking that it does not reference `node_modules`
 
@@ -138,7 +138,7 @@ Windows 7 build helper read that list. Electron Builder packages only:
 The runtime build copies these app assets into `dist/` before packaging:
 
 - `elevProfile.css`
-- `ffv/`
+- `ffv/` from `static/ffv/`
 - `icons/`
 - `index.html`
 - `style.css`

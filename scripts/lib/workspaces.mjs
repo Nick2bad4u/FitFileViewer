@@ -19,6 +19,7 @@ export const rootFlatpakZipPath = `${rootFlatpakBundlePath}.zip`;
 export const rootPrettierConfigPath = "prettier.config.mjs";
 export const rootReleaseDistPath = "release-dist";
 export const rootRuntimeTsconfigPath = "tsconfig.runtime.json";
+export const rootStaticAssetsPath = "static";
 export const rootStylelintConfigPath = "stylelint.config.mjs";
 export const rootTypedocConfigPath = "typedoc.json";
 export const rootUnitTestsPath = path.posix.join("tests", "unit");
@@ -53,6 +54,10 @@ export const docusaurusPackagePath =
     docusaurusWorkspaceAbsolutePath("package.json");
 export const docusaurusPackageRepositoryPath =
     docusaurusWorkspaceRepositoryPath("package.json");
+export const rootAlternativeFitViewPath = path.posix.join(
+    rootStaticAssetsPath,
+    appAlternativeFitViewPath
+);
 export const scriptsPath = path.join(repositoryRoot, "scripts");
 
 export function appWorkspaceRelativePath(...segments) {

@@ -7,10 +7,10 @@ const stylelintConfig = {
         "**/node_modules/**",
         "electron-app/coverage/**",
         "electron-app/dist/**",
-        "electron-app/ffv/assets/**",
         "electron-app/release/**",
         "electron-app/temp-win7/**",
         "electron-app/test-results/**",
+        "static/ffv/assets/**",
     ],
     reportNeedlessDisables: false,
 };

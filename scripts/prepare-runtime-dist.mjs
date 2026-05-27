@@ -10,13 +10,38 @@ import {
     appStyleCssPath,
     appWorkspaceAbsolutePath,
     appWorkspacePath,
+    repositoryPath,
+    rootStaticAssetsPath,
 } from "./lib/workspaces.mjs";
 
 const defaultAppDir = appWorkspacePath;
 const defaultDistDir = appWorkspaceAbsolutePath("dist");
+const defaultStaticDir = repositoryPath(rootStaticAssetsPath);
 
-export const directoryCopies = [appAlternativeFitViewPath, appIconsPath];
-export const fileCopies = [appElevProfileCssPath, appStyleCssPath];
+export const directoryCopies = [
+    {
+        destination: appAlternativeFitViewPath,
+        source: appAlternativeFitViewPath,
+        sourceRoot: "static",
+    },
+    {
+        destination: appIconsPath,
+        source: appIconsPath,
+        sourceRoot: "app",
+    },
+];
+export const fileCopies = [
+    {
+        destination: appElevProfileCssPath,
+        source: appElevProfileCssPath,
+        sourceRoot: "app",
+    },
+    {
+        destination: appStyleCssPath,
+        source: appStyleCssPath,
+        sourceRoot: "app",
+    },
+];
 
 function assertInsideAppDir(appDir, targetPath) {
     const resolvedRoot = path.resolve(appDir);
@@ -34,9 +59,21 @@ function assertInsideAppDir(appDir, targetPath) {
     }
 }
 
-function copyDirectory(appDir, distDir, name) {
-    const source = path.join(appDir, name);
-    const destination = path.join(distDir, name);
+function resolveCopySource({ appDir, copy, staticDir }) {
+    if (copy.sourceRoot === "app") {
+        return path.join(appDir, copy.source);
+    }
+
+    if (copy.sourceRoot === "static") {
+        return path.join(staticDir, copy.source);
+    }
+
+    throw new Error(`Unknown runtime asset source root: ${copy.sourceRoot}`);
+}
+
+function copyDirectory(appDir, distDir, staticDir, copy) {
+    const source = resolveCopySource({ appDir, copy, staticDir });
+    const destination = path.join(distDir, copy.destination);
 
     if (!fs.existsSync(source)) {
         return;
@@ -46,9 +83,9 @@ function copyDirectory(appDir, distDir, name) {
     fs.cpSync(source, destination, { force: true, recursive: true });
 }
 
-function copyFile(appDir, distDir, name) {
-    const source = path.join(appDir, name);
-    const destination = path.join(distDir, name);
+function copyFile(appDir, distDir, staticDir, copy) {
+    const source = resolveCopySource({ appDir, copy, staticDir });
+    const destination = path.join(distDir, copy.destination);
 
     if (!fs.existsSync(source)) {
         return;
@@ -81,14 +118,15 @@ function copyIndexHtml(appDir, distDir) {
 export function prepareRuntimeDist({
     appDir = defaultAppDir,
     distDir = defaultDistDir,
+    staticDir = defaultStaticDir,
 } = {}) {
     fs.mkdirSync(distDir, { recursive: true });
     copyIndexHtml(appDir, distDir);
-    for (const name of directoryCopies) {
-        copyDirectory(appDir, distDir, name);
+    for (const copy of directoryCopies) {
+        copyDirectory(appDir, distDir, staticDir, copy);
     }
-    for (const name of fileCopies) {
-        copyFile(appDir, distDir, name);
+    for (const copy of fileCopies) {
+        copyFile(appDir, distDir, staticDir, copy);
     }
 }
 

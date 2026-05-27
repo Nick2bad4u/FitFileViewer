@@ -17,7 +17,7 @@ modules:
           - install -Dm644 ./electron-app/style.css /app/style.css
           - install -Dm644 ./electron-app/elevProfile.css /app/elevProfile.css
           - install -Dm644 ./electron-app/icons/favicon.ico /app/favicon.ico
-          - cp -r ./electron-app/ffv /app/
+          - cp -r ./static/ffv /app/
           - cp -r ./electron-app/icons /app/
       buildsystem: simple
       name: app

@@ -1,6 +1,8 @@
 import nickTwoBadFourU from "eslint-config-nick2bad4u";
 import globals from "globals";
 
+import { rootAlternativeFitViewPath } from "./scripts/lib/workspaces.mjs";
+
 const electronAppBasePath = "electron-app";
 const dependPlugin = nickTwoBadFourU.configs.all.find(
     (entry) => entry.plugins?.depend
@@ -19,7 +21,11 @@ if (!dependPlugin) {
 /** @type {import("eslint").Linter.Config[]} */
 const config = [
     {
-        ignores: ["playwright-report/**", "test-results/**"],
+        ignores: [
+            "playwright-report/**",
+            `${rootAlternativeFitViewPath}/**`,
+            "test-results/**",
+        ],
     },
     {
         basePath: electronAppBasePath,
@@ -29,7 +35,6 @@ const config = [
             "dist/**",
             "**/main.js",
             "**/*.css",
-            "ffv/**",
             "fitParser.js",
             "**/*.html",
             "html/**",
