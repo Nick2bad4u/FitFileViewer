@@ -12,6 +12,9 @@ import {
 import {
     appPackageRepositoryPath,
     docusaurusPackageRepositoryPath,
+    rootDocusaurusTsconfigPath,
+    rootElectronAppTsconfigPath,
+    rootRuntimeTsconfigPath,
 } from "../../../scripts/lib/workspaces.mjs";
 
 type CommandRunner = (
@@ -22,12 +25,15 @@ type CommandRunner = (
 
 describe("run-prettier wrapper", () => {
     it("keeps root-owned formatting targets for app and workspace metadata", () => {
-        expect.assertions(6);
+        expect.assertions(9);
 
         expect(prettierTargets).toContain("package.json");
         expect(prettierTargets).toContain(appPackageRepositoryPath);
         expect(prettierTargets).toContain(docusaurusPackageRepositoryPath);
         expect(prettierTargets).toContain("prettier.config.mjs");
+        expect(prettierTargets).toContain(rootElectronAppTsconfigPath);
+        expect(prettierTargets).toContain(rootRuntimeTsconfigPath);
+        expect(prettierTargets).toContain(rootDocusaurusTsconfigPath);
         expect(prettierTargets).toContain("scripts/*.mjs");
         expect(prettierTargets).not.toContain("electron-app/*.config.*");
     });

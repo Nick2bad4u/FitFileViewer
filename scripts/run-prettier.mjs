@@ -7,6 +7,9 @@ import {
     appPackageRepositoryPath,
     docusaurusPackageRepositoryPath,
     repositoryRoot,
+    rootDocusaurusTsconfigPath,
+    rootElectronAppTsconfigPath,
+    rootRuntimeTsconfigPath,
 } from "./lib/workspaces.mjs";
 
 const require = createRequire(import.meta.url);
@@ -38,9 +41,9 @@ export const prettierTargets = [
     "vitest.config.ts",
     "tsconfig.eslint.json",
     "tsconfig.electron-app.base.json",
-    "tsconfig.electron-app.json",
-    "tsconfig.runtime.json",
-    "tsconfig.docusaurus.json",
+    rootElectronAppTsconfigPath,
+    rootRuntimeTsconfigPath,
+    rootDocusaurusTsconfigPath,
     "tsconfig.vitest-typecheck.json",
     "tsconfig.electron-app.eslint.json",
     "*.yml",
