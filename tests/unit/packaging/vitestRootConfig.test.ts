@@ -28,7 +28,7 @@ function getRootScripts(): Record<string, string> {
 
 describe("vitest root config", () => {
     it("uses the repository root for cache, setup, and test script paths", async () => {
-        expect.assertions(6);
+        expect.assertions(8);
 
         const { default: config } = await importVitestConfig();
 
@@ -42,7 +42,13 @@ describe("vitest root config", () => {
             "tests/vitest/setupVitest.mjs",
         ]);
         expect(getRootScripts()["test:unit"]).toBe(
-            "node scripts/run-vitest.mjs --run tests/unit electron-app/tests/unit --maxWorkers 1"
+            "node scripts/run-vitest.mjs --run --suite unit --maxWorkers 1"
+        );
+        expect(getRootScripts()["test:integration"]).toBe(
+            "node scripts/run-vitest.mjs --run --suite integration --maxWorkers 1"
+        );
+        expect(getRootScripts()["test:tabs"]).toBe(
+            "node scripts/run-vitest.mjs --run --reporter=verbose --suite tabs --maxWorkers 1"
         );
     });
 });
