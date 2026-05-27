@@ -8,22 +8,21 @@ description: Testing strategies and practices for FitFileViewer.
 
 # Testing
 
-FitFileViewer uses Vitest for testing with comprehensive test coverage.
+FitFileViewer uses root-owned Vitest and Playwright tooling for test coverage.
 
 ## Test Structure
 
-```
+```text
+tests/
+├── unit/              # Root-owned unit tests for tooling, runtime, rendering, maps, charts, and shared UI behavior
+├── integration/       # Root-owned Vitest integration tests
+├── fixtures/          # Reusable Vitest fixtures
+├── playwright/        # Electron Playwright smoke tests
+└── vitest/            # Shared Vitest setup, shims, and stubs
+
 electron-app/tests/
-├── unit/              # Unit tests
-│   ├── utils/formatters.working.test.ts
-│   ├── utils/formatUtils.test.ts
-│   └── ...
-├── integration/       # Integration tests
-│   ├── ...
-│   └── ...
-└── strictTests/       # Browser-oriented strict tests
-    ├── renderGPSTrackChart.test.ts
-    └── ...
+├── unit/              # Remaining app-coupled unit tests during migration
+└── strictTests/       # Browser-oriented strict regression tests
 ```
 
 ## Running Tests
@@ -39,7 +38,7 @@ npm run test:coverage
 npm run test:watch
 
 # Run specific file
-npm test -- electron-app/tests/unit/utils/formatters.working.test.ts
+npm test -- tests/unit/rendering/helpers/renderSummaryHelpers.test.ts
 
 # Run with pattern
 npm test -- --grep "formatDistance"
@@ -51,7 +50,7 @@ npm test -- --grep "formatDistance"
 
 ```javascript
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { formatDistance } from "../../utils/formatting/formatDistance.js";
+import { formatDistance } from "../../../../electron-app/utils/formatting/formatDistance.js";
 
 describe("formatDistance", () => {
  describe("basic formatting", () => {

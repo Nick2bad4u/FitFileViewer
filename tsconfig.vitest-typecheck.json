@@ -13,7 +13,12 @@
     ],
     "extends": "./tsconfig.electron-app.json",
     "include": [
-        "electron-app/index.d.ts",
+        "tests/**/*.test-d.ts",
+        "tests/**/*.test-d.mts",
+        "tests/**/*.test-d.cts",
+        "tests/**/*.spec-d.ts",
+        "tests/**/*.spec-d.mts",
+        "tests/**/*.spec-d.cts",
         "electron-app/tests/**/*.test-d.ts",
         "electron-app/tests/**/*.test-d.mts",
         "electron-app/tests/**/*.test-d.cts",

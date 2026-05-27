@@ -30,12 +30,6 @@
         "noCheck": false,
         "noImplicitUseStrict": false,
         "paths": {
-            "@app/*": [
-                "./electron-app/src/*"
-            ],
-            "@electron/*": [
-                "./electron-app/electron/*"
-            ],
             "@shared/*": [
                 "./electron-app/shared/*"
             ]
@@ -71,7 +65,6 @@
         "electron-app/dist",
         "electron-app/dist-shared",
         "**/dist-shared/**",
-        "electron-app/electron",
         "node_modules",
         "node_modules/**/*",
         "out",
@@ -87,15 +80,6 @@
         "electron-app/**/*.js",
         "electron-app/global.d.ts",
         "electron-app/shared/**/*.ts",
-        "electron-app/src/**/*.css",
-        "electron-app/src/**/*.ts",
-        "electron-app/src/**/*.mts",
-        "electron-app/src/**/*.cts",
-        "electron-app/src/**/*.tsx",
-        "electron-app/src/**/*",
-        "electron-app/src/App.tsx",
-        "electron-app/src/index.css",
-        "electron-app/src/types/global.d.ts",
         "electron-app/main/**/*.ts",
         "electron-app/preload/**/*.ts",
         "electron-app/renderer/**/*.ts",
