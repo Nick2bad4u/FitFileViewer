@@ -160,34 +160,9 @@ jobs:
               with:
                   node-version: 24
 
-            - name: Install Linux build dependencies
-              id: install_linux_deps
-              if: runner.os == 'Linux'
+            - name: Install platform build dependencies
               shell: bash
-              run: |
-                  sudo apt-get update
-                  sudo apt-get install -y rpm dpkg fakeroot xz-utils flatpak flatpak-builder ruby ruby-dev build-essential zlib1g-dev
-                  sudo gem install --no-document fpm
-                  sudo apt-get install -y libarchive-tools
-                  sudo apt-get install -y pkg-config pkgconf pkg-haskell-tools pkg-js-tools pkg-kde-tools pkg-perl-tools pkg-php-tools
-                  which bsdtar
-                  sudo apt-get install -y pacman
-
-            - name: Install macOS build dependencies
-              id: install_macos_deps
-              if: runner.os == 'macOS'
-              shell: bash
-              run: |
-                  brew install rpm dpkg xz gnu-tar
-
-            - name: Install Windows build dependencies (Chocolatey)
-              id: install_windows_deps
-              if: runner.os == 'Windows'
-              shell: pwsh
-              run: |
-                  choco install -y 7zip.install
-                  # Install NSIS (makensis) to avoid issues with NSIS target building on some runners
-                  choco install -y nsis
+              run: node scripts/install-build-dependencies.mjs
 
             - name: Cache node modules (Windows)
               id: cache_node_modules_windows
