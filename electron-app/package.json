@@ -148,7 +148,6 @@
         "./renderer.js": "./dist/renderer.js"
     },
     "main": "dist/main.js",
-    "module": "electron",
     "types": "./global.d.ts",
     "files": [
         "dist/",
@@ -178,36 +177,13 @@
         "ia32",
         "x64"
     ],
-    "preferGlobal": false,
     "publishConfig": {
         "registry": "https://registry.npmjs.org/"
     },
     "icon": "icons/favicon.ico",
-    "api": "none",
     "appid": "io.github.nick2bad4u.fitfileviewer",
-    "authorEmail": "20943337+Nick2bad4u@users.noreply.github.com",
-    "authorName": "Nick2bad4u",
-    "capabilities": {
-        "fileSystem": true,
-        "fileSystemRead": true,
-        "fileSystemWrite": true,
-        "fileSystemDelete": true,
-        "fileSystemRename": true,
-        "fileSystemCopy": true,
-        "fileSystemMove": true,
-        "fileSystemCreate": true,
-        "fileSystemOpen": true,
-        "fileSystemClose": true,
-        "fileSystemReadFile": true,
-        "fileSystemWriteFile": true,
-        "fileSystemDeleteFile": true,
-        "fileSystemRenameFile": true,
-        "fileSystemCopyFile": true,
-        "fileSystemMoveFile": true
-    },
     "companyName": "Nick2bad4u",
     "copyright": "Copyright © 2025 Nick2bad4u",
-    "pricing": "Free",
     "productName": "Fit File Viewer",
     "readme": "README.md"
 }
