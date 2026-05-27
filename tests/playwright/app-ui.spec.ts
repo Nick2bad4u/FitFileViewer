@@ -52,6 +52,22 @@ function isIgnorableFailedRequest(url: string, errorText: string): boolean {
     }
 }
 
+function formatCollectedEntries(entries: readonly string[]): string {
+    return entries
+        .map((entry, index) => `${index + 1}. ${entry}`)
+        .join("\n");
+}
+
+function expectNoCollectedEntries(
+    label: string,
+    entries: readonly string[]
+): void {
+    expect(
+        entries,
+        `${label}:${entries.length === 0 ? " none" : `\n${formatCollectedEntries(entries)}`}`
+    ).toStrictEqual([]);
+}
+
 test.describe("FitFileViewer Electron UI", () => {
     let electronApp: ElectronApplication;
     let page: Page;
@@ -560,12 +576,14 @@ test.describe("FitFileViewer Electron UI", () => {
 
     test.afterAll(() => {
         const combinedMessages = [...rendererMessages, ...pageErrors];
-        const matchedNeedles = reportedFailureNeedles.filter((needle) =>
-            combinedMessages.some((message) => message.includes(needle))
+        const matchedReports = reportedFailureNeedles.flatMap((needle) =>
+            combinedMessages
+                .filter((message) => message.includes(needle))
+                .map((message) => `${needle}: ${message}`)
         );
 
-        expect(matchedNeedles).toEqual([]);
-        expect(failedRequests).toEqual([]);
-        expect(pageErrors).toEqual([]);
+        expectNoCollectedEntries("Reported renderer failures", matchedReports);
+        expectNoCollectedEntries("Unexpected request failures", failedRequests);
+        expectNoCollectedEntries("Renderer page errors", pageErrors);
     });
 });
