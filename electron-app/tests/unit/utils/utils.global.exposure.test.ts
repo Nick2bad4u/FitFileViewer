@@ -63,16 +63,27 @@ describe("utils.js – global exposure and helpers", () => {
 
         // setTimeout callback should have attached the individual utilities on window
         const available = w.FitFileViewerUtils.getAvailableUtils();
-        // Spot-check some high-signal utilities
-        expect(available).toEqual(
-            expect.arrayContaining([
-                "formatDistance",
-                "formatDuration",
-                "renderMap",
-                "renderSummary",
-                "updateActiveTab",
-            ])
-        );
+        expect(available).toStrictEqual([
+            "setLoading",
+            "copyTableAsCSV",
+            "patchSummaryFields",
+            "formatArray",
+            "formatDistance",
+            "formatDuration",
+            "createTables",
+            "renderMap",
+            "renderSummary",
+            "renderTable",
+            "showFitData",
+            "applyTheme",
+            "listenForThemeChange",
+            "loadTheme",
+            "updateMapTheme",
+            "setTabButtonsEnabled",
+            "showNotification",
+            "updateActiveTab",
+            "updateTabVisibility",
+        ]);
 
         // And they should be functions on window
         for (const key of [
