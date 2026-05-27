@@ -10,8 +10,7 @@
         "coverage/**",
         "electron-app/coverage/**",
         "electron-app/dist/**",
-        "node_modules/**",
-        "electron-app/tests/fixtures/**"
+        "node_modules/**"
     ],
     "extends": "./tsconfig.electron-app.json",
     "include": [

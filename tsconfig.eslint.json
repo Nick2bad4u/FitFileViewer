@@ -24,6 +24,7 @@
         "*.ts",
         ".github/**/*.js",
         "tests/**/*.cjs",
+        "tests/**/*.js",
         "tests/**/*.mjs",
         "tests/**/*.ts",
         "utils/**/*.js"

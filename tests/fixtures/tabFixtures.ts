@@ -1,15 +1,16 @@
-/**
- * DOM test fixtures for tab functionality tests
- */
 import { vi } from "vitest";
 
-/**
- * @param {string} id
- * @param {string} label
- * @param {boolean} isActive
- * @returns {HTMLButtonElement}
- */
-function createTabButton(id, label, isActive) {
+type StateSubscriber = (
+    value: unknown,
+    oldValue: unknown,
+    options: unknown
+) => void;
+
+function createTabButton(
+    id: string,
+    label: string,
+    isActive: boolean
+): HTMLButtonElement {
     const button = document.createElement("button");
     button.id = id;
     button.classList.add("tab-button");
@@ -21,13 +22,11 @@ function createTabButton(id, label, isActive) {
     return button;
 }
 
-/**
- * @param {string} id
- * @param {string} text
- * @param {boolean} isActive
- * @returns {HTMLDivElement}
- */
-function createTabPane(id, text, isActive) {
+function createTabPane(
+    id: string,
+    text: string,
+    isActive: boolean
+): HTMLDivElement {
     const pane = document.createElement("div");
     pane.id = id;
     pane.classList.add("tab-pane");
@@ -38,7 +37,7 @@ function createTabPane(id, text, isActive) {
     return pane;
 }
 
-export function createMockTabButtons() {
+export function createMockTabButtons(): HTMLDivElement {
     const container = document.createElement("div");
     const tabContainer = document.createElement("div");
     tabContainer.classList.add("tab-container");
@@ -64,7 +63,7 @@ export function createMockTabButtons() {
     return container;
 }
 
-export function createDisabledTabButtons() {
+export function createDisabledTabButtons(): HTMLDivElement {
     const container = createMockTabButtons();
     const tabButtons = container.querySelectorAll(".tab-button");
 
@@ -73,7 +72,7 @@ export function createDisabledTabButtons() {
         if (button.id !== "tab-summary") {
             switch (index % 3) {
                 case 0:
-                    /** @type {HTMLButtonElement} */ (button).disabled = true;
+                    (button as HTMLButtonElement).disabled = true;
                     break;
                 case 1:
                     button.setAttribute("disabled", "true");
@@ -88,48 +87,44 @@ export function createDisabledTabButtons() {
     return container;
 }
 
-export function cleanupDOM() {
+export function cleanupDOM(): void {
     document.body.replaceChildren();
 }
 
 export function mockStateManager() {
-    const state = new Map();
-    const subscribers = new Map();
+    const state = new Map<string, unknown>();
+    const subscribers = new Map<string, StateSubscriber[]>();
 
     return {
-        getState: vi.fn((/** @type {string} */ key) => state.get(key)),
-        setState: vi.fn(
-            (
-                /** @type {string} */ key,
-                /** @type {any} */ value,
-                /** @type {any} */ options = {}
-            ) => {
-                const oldValue = state.get(key);
-                state.set(key, value);
+        getState: vi.fn<(key: string) => unknown>((key) => state.get(key)),
+        setState: vi.fn<
+            (key: string, value: unknown, options?: unknown) => void
+        >((key: string, value: unknown, options: unknown = {}) => {
+            const oldValue = state.get(key);
+            state.set(key, value);
 
-                // Notify subscribers
+            // Notify subscribers
+            const keySubscribers = subscribers.get(key) || [];
+            keySubscribers.forEach((callback) => {
+                callback(value, oldValue, options);
+            });
+        }),
+        subscribe: vi.fn<
+            (key: string, callback: StateSubscriber) => () => void
+        >((key, callback) => {
+            if (!subscribers.has(key)) {
+                subscribers.set(key, []);
+            }
+            subscribers.get(key)?.push(callback);
+
+            return () => {
                 const keySubscribers = subscribers.get(key) || [];
-                keySubscribers.forEach((/** @type {Function} */ callback) =>
-                    callback(value, oldValue, options)
-                );
-            }
-        ),
-        subscribe: vi.fn(
-            (/** @type {string} */ key, /** @type {Function} */ callback) => {
-                if (!subscribers.has(key)) {
-                    subscribers.set(key, []);
+                const index = keySubscribers.indexOf(callback);
+                if (index > -1) {
+                    keySubscribers.splice(index, 1);
                 }
-                subscribers.get(key).push(callback);
-
-                return () => {
-                    const keySubscribers = subscribers.get(key) || [];
-                    const index = keySubscribers.indexOf(callback);
-                    if (index > -1) {
-                        keySubscribers.splice(index, 1);
-                    }
-                };
-            }
-        ),
+            };
+        }),
         // Expose internals for testing
         _state: state,
         _subscribers: subscribers,

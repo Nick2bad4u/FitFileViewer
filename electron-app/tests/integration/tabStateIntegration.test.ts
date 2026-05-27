@@ -7,7 +7,7 @@ import {
     createMockTabButtons,
     cleanupDOM,
     mockStateManager,
-} from "../fixtures/tabFixtures.js";
+} from "../../../tests/fixtures/tabFixtures.js";
 
 // Mock the state manager
 const mockState = mockStateManager();
@@ -64,10 +64,7 @@ describe("Tab State Management Integration", () => {
             const chartTab = getRequiredTabButton("tab-chart");
             expect(getTabState(chartTab)).toStrictEqual({
                 ariaSelected: "false",
-                classes: [
-                    "tab-button",
-                    "tab-disabled",
-                ],
+                classes: ["tab-button", "tab-disabled"],
                 disabled: true,
                 hasDisabledAttribute: true,
                 id: "tab-chart",
@@ -163,10 +160,7 @@ describe("Tab State Management Integration", () => {
 
             // Visual state should update
             expect(
-                [
-                    summaryTab,
-                    chartTab,
-                ].map((tab) => ({
+                [summaryTab, chartTab].map((tab) => ({
                     classes: [...tab.classList],
                     id: tab.id,
                 }))
@@ -180,18 +174,10 @@ describe("Tab State Management Integration", () => {
 
             // Disabled state should be applied but active state preserved
             expect([...summaryTab.classList]).not.toContain("active");
-            expect(
-                [
-                    summaryTab,
-                    chartTab,
-                ].map(getTabState)
-            ).toStrictEqual([
+            expect([summaryTab, chartTab].map(getTabState)).toStrictEqual([
                 {
                     ariaSelected: "false",
-                    classes: [
-                        "tab-button",
-                        "tab-disabled",
-                    ],
+                    classes: ["tab-button", "tab-disabled"],
                     disabled: true,
                     hasDisabledAttribute: true,
                     id: "tab-summary",

@@ -373,9 +373,11 @@ electron-app/tests/
 │   ├── performance/                 # Performance tests
 │   └── accessibility/               # A11y tests
 │
-├── fixtures/                        # Test data & fixtures
 ├── mocks/                           # Test mocks
 └── strictTests/                     # Strict testing scenarios
+
+tests/fixtures/
+└── tabFixtures.ts                   # Root-owned reusable Vitest DOM fixtures
 
 tests/playwright/
 └── app-ui.spec.ts                   # Root-owned Electron Playwright smoke coverage

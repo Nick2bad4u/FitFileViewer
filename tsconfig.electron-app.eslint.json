@@ -69,8 +69,7 @@
         "docusaurus/build/**",
         "docusaurus/node_modules/**",
         "docusaurus/typedoc-plugins/*.d.mts",
-        "eslint.config.bundled_*.mjs",
-        "electron-app/tests/fixtures/**"
+        "eslint.config.bundled_*.mjs"
     ],
     "extends": "./tsconfig.electron-app.json",
     "include": [
