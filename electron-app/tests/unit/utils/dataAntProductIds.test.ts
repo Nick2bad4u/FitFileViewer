@@ -99,7 +99,7 @@ describe("data ant product ID lookup", () => {
             const numericManufacturerId = Number(manufacturerId);
 
             expect(Number.isInteger(numericManufacturerId)).toBe(true);
-            expect(numericManufacturerId >= 1).toBe(true);
+            expect(numericManufacturerId).toBeGreaterThanOrEqual(1);
             expect(products).toBeTypeOf("object");
             expect(Array.isArray(products)).toBe(false);
 
@@ -107,7 +107,7 @@ describe("data ant product ID lookup", () => {
                 const numericProductId = Number(productId);
 
                 expect(Number.isInteger(numericProductId)).toBe(true);
-                expect(numericProductId >= 1).toBe(true);
+                expect(numericProductId).toBeGreaterThanOrEqual(1);
                 expect(productName).toBeTypeOf("string");
                 expect(productName.trim()).toBe(productName);
                 expect(productName).not.toBe("");

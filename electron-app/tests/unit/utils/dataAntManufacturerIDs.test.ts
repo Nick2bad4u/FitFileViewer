@@ -80,7 +80,7 @@ describe("data ant manufacturer ID lookup", () => {
             const numericKey = Number(key);
 
             expect(Number.isInteger(numericKey)).toBe(true);
-            expect(numericKey >= 1).toBe(true);
+            expect(numericKey).toBeGreaterThanOrEqual(1);
             expect(value).toBeTypeOf("string");
             expect(value.trim()).toBe(value);
             expect(value).not.toBe("");

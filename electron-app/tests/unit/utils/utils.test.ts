@@ -151,6 +151,6 @@ describe("utils global attachment and API", () => {
         // Advance the polling interval in utils.js.
         await vi.advanceTimersByTimeAsync(100);
         const { FitFileViewerUtils } = mod as any;
-        expect(FitFileViewerUtils.version === "7.7.7").toBe(true);
+        expect(FitFileViewerUtils.version).toBe("7.7.7");
     });
 });
