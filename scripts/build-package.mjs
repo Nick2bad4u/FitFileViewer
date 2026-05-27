@@ -1,33 +1,50 @@
 import { spawnSync } from "node:child_process";
-import path from "node:path";
 import process from "node:process";
-import { fileURLToPath } from "node:url";
+import { pathToFileURL } from "node:url";
 
-const repositoryRoot = fileURLToPath(new URL("..", import.meta.url));
+import { repositoryRoot, repositoryScriptPath } from "./lib/workspaces.mjs";
 
-function runStep(label, args) {
-    console.log(`[build-package] ${label}`);
-
-    const result = spawnSync(process.execPath, args, {
-        cwd: repositoryRoot,
-        stdio: "inherit",
-    });
-
-    if (result.error) {
-        throw result.error;
-    }
-
-    if (result.status !== 0) {
-        process.exit(result.status ?? 1);
-    }
+export function buildPackageSteps(argv = process.argv.slice(2)) {
+    return [
+        {
+            args: [repositoryScriptPath("build-runtime.mjs")],
+            label: "build runtime",
+        },
+        {
+            args: [repositoryScriptPath("run-electron-builder.mjs"), ...argv],
+            label: "run electron-builder",
+        },
+    ];
 }
 
-runStep("build runtime", [scriptPath("build-runtime.mjs")]);
-runStep("run electron-builder", [
-    scriptPath("run-electron-builder.mjs"),
-    ...process.argv.slice(2),
-]);
+export function runBuildPackage(
+    argv = process.argv.slice(2),
+    commandRunner = spawnSync,
+    logger = console.log
+) {
+    for (const { args, label } of buildPackageSteps(argv)) {
+        logger(`[build-package] ${label}`);
 
-function scriptPath(name) {
-    return path.join(repositoryRoot, "scripts", name);
+        const result = commandRunner(process.execPath, args, {
+            cwd: repositoryRoot,
+            stdio: "inherit",
+        });
+
+        if (result.error) {
+            throw result.error;
+        }
+
+        if (result.status !== 0) {
+            return result.status ?? 1;
+        }
+    }
+
+    return 0;
+}
+
+if (
+    process.argv[1] &&
+    import.meta.url === pathToFileURL(process.argv[1]).href
+) {
+    process.exitCode = runBuildPackage();
 }
