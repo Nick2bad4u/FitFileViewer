@@ -288,7 +288,7 @@ describe("Tab Button Disabled State", () => {
                 expect(mockState.setState).toHaveBeenCalledWith(
                     "ui.activeTab",
                     expectedName,
-                    expect.any(Object)
+                    { source: "tabButtonClick" }
                 );
                 expect(mockState.getState("ui.activeTab")).toBe(expectedName);
                 expect(button.classList.contains("active")).toBe(true);
@@ -311,7 +311,7 @@ describe("Tab Button Disabled State", () => {
             expect(mockState.setState).not.toHaveBeenCalledWith(
                 "ui.activeTab",
                 "",
-                expect.any(Object)
+                { source: "tabButtonClick" }
             );
         });
     });
