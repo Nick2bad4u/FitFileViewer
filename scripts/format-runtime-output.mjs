@@ -1,12 +1,20 @@
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { pathToFileURL } from "node:url";
 import prettier from "prettier";
 
-const repositoryRoot = fileURLToPath(new URL("..", import.meta.url));
-const tsconfigPath = path.join(repositoryRoot, "tsconfig.runtime.json");
+import { repositoryRoot as defaultRepositoryRoot } from "./lib/workspaces.mjs";
 
-function resolveOutputPath(tsconfig, file) {
+export const runtimeTsconfigPath = path.join(
+    defaultRepositoryRoot,
+    "tsconfig.runtime.json"
+);
+
+export function resolveOutputPath(
+    tsconfig,
+    file,
+    repositoryRoot = defaultRepositoryRoot
+) {
     const compilerOptions =
         tsconfig && typeof tsconfig === "object"
             ? tsconfig.compilerOptions
@@ -35,8 +43,12 @@ function resolveOutputPath(tsconfig, file) {
     );
 }
 
-function readRuntimeOutputFiles() {
-    const tsconfig = JSON.parse(fs.readFileSync(tsconfigPath, "utf8"));
+export function readRuntimeOutputFiles({
+    fileSystem = fs,
+    repositoryRoot = defaultRepositoryRoot,
+    tsconfigPath = runtimeTsconfigPath,
+} = {}) {
+    const tsconfig = JSON.parse(fileSystem.readFileSync(tsconfigPath, "utf8"));
 
     if (!Array.isArray(tsconfig.files)) {
         throw new TypeError("tsconfig.runtime.json must contain a files array");
@@ -44,14 +56,17 @@ function readRuntimeOutputFiles() {
 
     return tsconfig.files
         .filter((file) => typeof file === "string" && file.endsWith(".ts"))
-        .map((file) => resolveOutputPath(tsconfig, file))
-        .filter((file) => fs.existsSync(file));
+        .map((file) => resolveOutputPath(tsconfig, file, repositoryRoot))
+        .filter((file) => fileSystem.existsSync(file));
 }
 
-async function formatRuntimeOutputFile(file) {
+export async function formatRuntimeOutputFile(
+    file,
+    { fileSystem = fs, prettierModule = prettier } = {}
+) {
     let source;
     try {
-        source = fs.readFileSync(file, "utf8");
+        source = fileSystem.readFileSync(file, "utf8");
     } catch (error) {
         if (error && error.code === "ENOENT") {
             return;
@@ -60,22 +75,31 @@ async function formatRuntimeOutputFile(file) {
         throw error;
     }
 
-    const options = (await prettier.resolveConfig(file)) ?? {};
-    const formatted = await prettier.format(source, {
+    const options = (await prettierModule.resolveConfig(file)) ?? {};
+    const formatted = await prettierModule.format(source, {
         ...options,
         filepath: file,
     });
 
     if (formatted !== source) {
-        fs.mkdirSync(path.dirname(file), { recursive: true });
-        fs.writeFileSync(file, formatted);
+        fileSystem.mkdirSync(path.dirname(file), { recursive: true });
+        fileSystem.writeFileSync(file, formatted);
     }
 }
 
-async function runPrettier(files) {
+export async function formatRuntimeOutputFiles(files, options = {}) {
     for (const file of files) {
-        await formatRuntimeOutputFile(file);
+        await formatRuntimeOutputFile(file, options);
     }
 }
 
-await runPrettier(readRuntimeOutputFiles());
+export async function runFormatRuntimeOutput(options = {}) {
+    await formatRuntimeOutputFiles(readRuntimeOutputFiles(options), options);
+}
+
+if (
+    process.argv[1] &&
+    import.meta.url === pathToFileURL(process.argv[1]).href
+) {
+    await runFormatRuntimeOutput();
+}
