@@ -7,6 +7,32 @@ type PreloadExecutionGlobal = typeof globalThis & {
     };
 };
 
+interface ExposedElectronAPI {
+    getAppVersion: () => Promise<unknown>;
+    getChannelInfo: () => {
+        channels: Record<string, string>;
+        events: Record<string, string>;
+        totalChannels: number;
+        totalEvents: number;
+    };
+    validateAPI: () => boolean;
+}
+
+interface ExposedDevTools {
+    getPreloadInfo: () => {
+        apiMethods: string[];
+        constants: {
+            CHANNELS: Record<string, string>;
+            DEFAULT_VALUES: {
+                FIT_FILE_PATH: null | string;
+                THEME: null | string;
+            };
+            EVENTS: Record<string, string>;
+        };
+        version: string;
+    };
+}
+
 const preloadExecutionGlobal = globalThis as PreloadExecutionGlobal;
 
 const mockContextBridge = {
@@ -100,20 +126,31 @@ describe("preload.js source execution", () => {
                 mockContextBridge.exposeInMainWorld.mock.calls.find(
                     (call) => call[0] === "devTools"
                 );
-            const electronAPI = electronAPICall?.[1];
-            const devTools = devToolsCall?.[1];
+            const electronAPI = electronAPICall?.[1] as
+                | ExposedElectronAPI
+                | undefined;
+            const devTools = devToolsCall?.[1] as ExposedDevTools | undefined;
 
-            expect(electronAPI.validateAPI()).toBe(true);
-            expect(devTools.getPreloadInfo()).toEqual(
-                expect.objectContaining({
-                    apiMethods: expect.arrayContaining([
-                        "getAppVersion",
-                        "validateAPI",
-                    ]),
-                    constants: expect.any(Object),
-                    version: "1.0.0",
-                })
-            );
+            expect(electronAPI?.validateAPI()).toBe(true);
+            const preloadInfo = devTools?.getPreloadInfo();
+            expect(preloadInfo?.apiMethods).toEqual(Object.keys(electronAPI!));
+            expect(preloadInfo?.apiMethods).toContain("getAppVersion");
+            expect(preloadInfo?.apiMethods).toContain("validateAPI");
+            expect(preloadInfo?.constants.CHANNELS).toMatchObject({
+                APP_VERSION: "getAppVersion",
+                FIT_PARSE: "fit:parse",
+                THEME_GET: "theme:get",
+            });
+            expect(preloadInfo?.constants.EVENTS).toMatchObject({
+                OPEN_RECENT_FILE: "open-recent-file",
+                SET_THEME: "set-theme",
+                THEME_CHANGED: "theme-changed",
+            });
+            expect(preloadInfo?.constants.DEFAULT_VALUES).toEqual({
+                FIT_FILE_PATH: null,
+                THEME: null,
+            });
+            expect(preloadInfo?.version).toBe("1.0.0");
         });
 
         it("should provide working API methods when executed", async () => {
@@ -148,7 +185,20 @@ describe("preload.js source execution", () => {
             expect(channelInfo).toHaveProperty("totalChannels");
             expect(channelInfo).toHaveProperty("totalEvents");
             expect(typeof channelInfo.totalChannels).toBe("number");
-            expect(channelInfo.totalChannels).toBeGreaterThan(0);
+            expect(channelInfo.totalChannels).toBe(27);
+            expect(channelInfo.totalEvents).toBe(10);
+            expect(channelInfo.channels).toMatchObject({
+                APP_VERSION: "getAppVersion",
+                FIT_DECODE: "fit:decode",
+                FIT_PARSE: "fit:parse",
+                THEME_GET: "theme:get",
+            });
+            expect(channelInfo.events).toMatchObject({
+                MENU_OPEN_FILE: "menu-open-file",
+                OPEN_RECENT_FILE: "open-recent-file",
+                SET_THEME: "set-theme",
+                THEME_CHANGED: "theme-changed",
+            });
         });
 
         it("should handle IPC invoke methods correctly", async () => {
@@ -183,10 +233,17 @@ describe("preload.js source execution", () => {
             await import("../../preload.js");
 
             // Verify electronAPI was exposed
-            expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith(
+            const electronAPICall =
+                mockContextBridge.exposeInMainWorld.mock.calls.find(
+                    (call) => call[0] === "electronAPI"
+                );
+            expect(electronAPICall).toEqual([
                 "electronAPI",
-                expect.any(Object)
-            );
+                expect.objectContaining({
+                    getChannelInfo: expect.any(Function),
+                    validateAPI: expect.any(Function),
+                }),
+            ]);
 
             // Verify devTools was NOT exposed in production
             const devToolsCall =
