@@ -160,10 +160,27 @@ describe("preload.js dist bridge behavior", () => {
     }
 
     describe("Module Loading and Initialization", () => {
-        test("should load and execute without throwing errors", () => {
-            expect(() => {
-                executePreloadScript();
-            }).not.toThrow();
+        test("should initialize preload dependencies and lifecycle hooks", () => {
+            const { mockProcess, mockRequire } = executePreloadScript();
+
+            expect(mockRequire).toHaveBeenCalledWith("electron");
+            expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith(
+                "electronAPI",
+                expect.objectContaining({
+                    getChannelInfo: expect.any(Function),
+                    validateAPI: expect.any(Function),
+                })
+            );
+            expect(exposedAPI.validateAPI()).toBe(true);
+            expect(exposedAPI.getChannelInfo()).toMatchObject({
+                totalChannels: expect.any(Number),
+                totalEvents: expect.any(Number),
+            });
+            expect(mockProcess.once).toHaveBeenCalledWith(
+                "beforeExit",
+                expect.any(Function)
+            );
+            expect(consoleSpy.error).not.toHaveBeenCalled();
         });
 
         test("should expose electronAPI to main world", () => {
@@ -198,16 +215,19 @@ describe("preload.js dist bridge behavior", () => {
                 })
             );
 
-            expect(() => {
-                runPreloadScript(
-                    mockRequire,
-                    { env: { NODE_ENV: "test" }, once: vi.fn() },
-                    console
-                );
-            }).not.toThrow();
+            const mockProcess = { env: { NODE_ENV: "test" }, once: vi.fn() };
+            const result = runPreloadScript(mockRequire, mockProcess, console);
 
             // Should not have been called since contextBridge is undefined
+            expect(result).toBeUndefined();
             expect(exposedAPI).toBeUndefined();
+            expect(mockProcess.once).toHaveBeenCalledWith(
+                "beforeExit",
+                expect.any(Function)
+            );
+            expect(consoleSpy.error).toHaveBeenCalledWith(
+                "[preload.js] API validation failed - not exposing to main world"
+            );
         });
     });
 
