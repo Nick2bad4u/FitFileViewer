@@ -13,7 +13,7 @@ const defaultDistDir = appWorkspaceAbsolutePath("dist");
 export const directoryCopies = ["ffv", "icons"];
 export const fileCopies = ["elevProfile.css", "style.css"];
 
-function assertInsideElectronApp(appDir, targetPath) {
+function assertInsideAppDir(appDir, targetPath) {
     const resolvedRoot = path.resolve(appDir);
     const resolvedTarget = path.resolve(targetPath);
     const relativePath = path.relative(resolvedRoot, resolvedTarget);
@@ -24,7 +24,7 @@ function assertInsideElectronApp(appDir, targetPath) {
         path.isAbsolute(relativePath)
     ) {
         throw new Error(
-            `Refusing to operate outside electron-app: ${targetPath}`
+            `Refusing to operate outside app directory: ${targetPath}`
         );
     }
 }
@@ -37,7 +37,7 @@ function copyDirectory(appDir, distDir, name) {
         return;
     }
 
-    assertInsideElectronApp(appDir, destination);
+    assertInsideAppDir(appDir, destination);
     fs.cpSync(source, destination, { force: true, recursive: true });
 }
 
@@ -49,12 +49,12 @@ function copyFile(appDir, distDir, name) {
         return;
     }
 
-    assertInsideElectronApp(appDir, destination);
+    assertInsideAppDir(appDir, destination);
     fs.mkdirSync(path.dirname(destination), { recursive: true });
     fs.copyFileSync(source, destination);
 }
 
-function assertNoNodeModulesReference(filePath, content) {
+function assertNoNodeModulesReference(appDir, filePath, content) {
     if (content.includes("node_modules")) {
         throw new Error(
             `${path.relative(appDir, filePath)} must not reference node_modules directly`
@@ -67,10 +67,10 @@ function copyIndexHtml(appDir, distDir) {
     const destination = path.join(distDir, "index.html");
     const html = fs.readFileSync(source, "utf8");
 
-    assertNoNodeModulesReference(source, html);
-    assertInsideElectronApp(appDir, destination);
+    assertNoNodeModulesReference(appDir, source, html);
+    assertInsideAppDir(appDir, destination);
     fs.writeFileSync(destination, html);
-    assertNoNodeModulesReference(destination, html);
+    assertNoNodeModulesReference(appDir, destination, html);
 }
 
 export function prepareRuntimeDist({

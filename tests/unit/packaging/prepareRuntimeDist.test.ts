@@ -75,6 +75,22 @@ describe("prepare-runtime-dist script", () => {
                 appDir,
                 distDir: path.join(appDir, "..", "outside-dist"),
             })
-        ).toThrow("Refusing to operate outside electron-app");
+        ).toThrow("Refusing to operate outside app directory");
+    });
+
+    it("rejects direct node_modules references in the runtime HTML", async () => {
+        expect.assertions(1);
+
+        const { prepareRuntimeDist } = await importPrepareRuntimeDist();
+        const { appDir, distDir } = makeTemporaryApp();
+
+        fs.writeFileSync(
+            path.join(appDir, "index.html"),
+            '<script src="./node_modules/leaflet/dist/leaflet.js"></script>'
+        );
+
+        expect(() => prepareRuntimeDist({ appDir, distDir })).toThrow(
+            "index.html must not reference node_modules directly"
+        );
     });
 });
