@@ -181,6 +181,6 @@ describe("setupTabButton", () => {
 
         expect(clearTabButtonCache()).toBeUndefined();
 
-        expect(setupTabButtonWithCache.cache).not.toBeDefined();
+        expect(setupTabButtonWithCache.cache).toBeUndefined();
     });
 });
