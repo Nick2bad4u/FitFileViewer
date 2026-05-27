@@ -6,7 +6,14 @@
 import { access, readFile } from "node:fs/promises";
 import os from "node:os";
 import * as path from "node:path";
-import { fileURLToPath } from "node:url";
+import process from "node:process";
+import { pathToFileURL } from "node:url";
+
+import {
+    appWorkspaceAbsolutePath,
+    repositoryPath,
+    repositoryRoot,
+} from "./lib/workspaces.mjs";
 
 /** @typedef {"csv" | "json" | "table"} OutputFormat */
 /** @typedef {(text: string) => string} Colorize */
@@ -74,10 +81,6 @@ const NUMERIC_COLUMN_WIDTH = 14;
 const COVERAGE_FILE_NAME = "coverage-final.json";
 const LOW_COVERAGE_THRESHOLD = 90;
 
-// eslint-disable-next-line unicorn/prefer-import-meta-properties -- package.json still supports Node 16; import.meta.dirname requires newer Node.
-const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
-const repositoryRoot = path.resolve(scriptDirectory, "..");
-
 /** @type {Record<string, Colorize>} */
 const ANSI_COLORS = {
     bold: (text) => `\u001B[1m${text}\u001B[22m`,
@@ -102,7 +105,7 @@ const PLAIN_COLORS = {
  *
  * @returns {FileCoverageAnalysis[]}
  */
-function analyzeCoverage(coverageData, projectRoot) {
+export function analyzeCoverage(coverageData, projectRoot) {
     return Object.entries(coverageData).map(([filePath, data]) => {
         const lines = deriveLineCounts(
             data.l ?? {},
@@ -233,31 +236,39 @@ function ellipsize(text, maxLength) {
     return `${text.slice(0, headLength)}...${text.slice(-tailLength)}`;
 }
 
+export function createCoverageCandidatePaths({
+    appCoverageDirectory = appWorkspaceAbsolutePath("coverage"),
+    environmentCoverageDirectory = getEnvironmentValue("VITEST_COVERAGE_DIR"),
+    rootCoverageDirectory = repositoryPath("coverage"),
+    temporaryDirectory = os.tmpdir(),
+} = {}) {
+    return [
+        environmentCoverageDirectory === undefined
+            ? undefined
+            : path.join(environmentCoverageDirectory, COVERAGE_FILE_NAME),
+        path.join(
+            temporaryDirectory,
+            "ffv-vitest-coverage",
+            COVERAGE_FILE_NAME
+        ),
+        path.join(rootCoverageDirectory, COVERAGE_FILE_NAME),
+        path.join(appCoverageDirectory, COVERAGE_FILE_NAME),
+    ].filter((candidatePath) => candidatePath !== undefined);
+}
+
 /**
  * @returns {Promise<string>}
  */
-async function findCoveragePath() {
-    const explicitCoverageDirectory = getEnvironmentValue(
-        "VITEST_COVERAGE_DIR"
-    );
-    const candidates = [
-        explicitCoverageDirectory === undefined
-            ? undefined
-            : path.join(explicitCoverageDirectory, COVERAGE_FILE_NAME),
-        path.join(os.tmpdir(), "ffv-vitest-coverage", COVERAGE_FILE_NAME),
-        path.join(repositoryRoot, "coverage", COVERAGE_FILE_NAME),
-        path.join(
-            repositoryRoot,
-            "electron-app",
-            "coverage",
-            COVERAGE_FILE_NAME
-        ),
-    ].filter((candidatePath) => candidatePath !== undefined);
+export async function findCoveragePath({
+    candidatePaths = createCoverageCandidatePaths(),
+    pathExistsFunction = pathExists,
+} = {}) {
+    const candidates = candidatePaths;
 
     const results = await Promise.all(
         candidates.map(async (candidatePath) => ({
             candidatePath,
-            exists: await pathExists(candidatePath),
+            exists: await pathExistsFunction(candidatePath),
         }))
     );
     const found = results.find((result) => result.exists);
@@ -386,7 +397,7 @@ function padRight(text, width) {
  *
  * @returns {IstanbulCoverage}
  */
-function parseCoverageData(value) {
+export function parseCoverageData(value) {
     if (!isRecord(value)) {
         throw new Error("coverage-final.json must contain an object.");
     }
@@ -831,15 +842,20 @@ function writeLine(line = "") {
     process.stdout.write(`${line}\n`);
 }
 
-// eslint-disable-next-line unicorn/prefer-top-level-await -- n/no-top-level-await forbids TLA for published modules in this package.
-main().catch(
-    /**
-     * @param {unknown} error
-     *
-     * @returns {void}
-     */
-    (error) => {
-        writeError(error instanceof Error ? error.message : String(error));
-        process.exitCode = 1;
-    }
-);
+if (
+    process.argv[1] &&
+    import.meta.url === pathToFileURL(process.argv[1]).href
+) {
+    // eslint-disable-next-line unicorn/prefer-top-level-await -- n/no-top-level-await forbids TLA for published modules in this package.
+    main().catch(
+        /**
+         * @param {unknown} error
+         *
+         * @returns {void}
+         */
+        (error) => {
+            writeError(error instanceof Error ? error.message : String(error));
+            process.exitCode = 1;
+        }
+    );
+}
