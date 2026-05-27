@@ -58,32 +58,11 @@ jobs:
               shell: pwsh
               run: npm install -g git-cliff
 
-            - name: Generate CHANGELOG.md files (With verbose logging)
+            - name: Generate root CHANGELOG.md (with verbose logging)
               shell: pwsh
               run: |
                   echo "Generating changelogs with git-cliff..."
                   npx git-cliff --config cliff.toml --verbose --output CHANGELOG.md
-                  Get-ChildItem -Name
-                  Push-Location electron-app
-                  npx git-cliff --config ../cliff.toml --verbose --output CHANGELOG.md
-                  Get-ChildItem -Name
-                  Pop-Location
-                  Push-Location electron-app/icons
-                  npx git-cliff --config ../../cliff.toml --verbose --output CHANGELOG.md
-                  Get-ChildItem -Name
-                  Pop-Location
-                  Push-Location electron-app/screenshots
-                  npx git-cliff --config ../../cliff.toml --verbose --output CHANGELOG.md
-                  Get-ChildItem -Name
-                  Pop-Location
-                  Push-Location electron-app/tests
-                  npx git-cliff --config ../../cliff.toml --verbose --output CHANGELOG.md
-                  Get-ChildItem -Name
-                  Pop-Location
-                  Push-Location electron-app/utils
-                  npx git-cliff --config ../../cliff.toml --verbose --output CHANGELOG.md
-                  Get-ChildItem -Name
-                  Pop-Location
 
             - name: Create Pull Request for changelogs
               uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
@@ -92,7 +71,7 @@ jobs:
                   title: "chore: update changelogs"
                   body: "Automated changelog update via GitHub Actions.\n\nThis PR was created automatically and will not be merged automatically."
                   branch: "chore/update-changelogs"
-                  add-paths: "**/CHANGELOG.md"
+                  add-paths: "CHANGELOG.md"
                   delete-branch: false
                   token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -139,7 +118,7 @@ jobs:
               shell: pwsh
               run: |
                   Add-Content -Path $env:GITHUB_STEP_SUMMARY "## 📝 Changelog Update Workflow Summary"
-                  Add-Content -Path $env:GITHUB_STEP_SUMMARY "- CHANGELOG.md files were generated or updated in the repository and subfolders."
+                  Add-Content -Path $env:GITHUB_STEP_SUMMARY "- Root CHANGELOG.md was generated or updated."
                   Add-Content -Path $env:GITHUB_STEP_SUMMARY "- A pull request was created or updated with the new changelogs."
                   Add-Content -Path $env:GITHUB_STEP_SUMMARY "- Check runs were updated to reflect the workflow status."
                   Add-Content -Path $env:GITHUB_STEP_SUMMARY "- Workflow completed with status: ${{ job.status }}".

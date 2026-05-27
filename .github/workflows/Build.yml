@@ -901,7 +901,7 @@ jobs:
             - name: Install git-cliff
               run: npm install -g git-cliff
 
-            - name: Generate CHANGELOG.md files
+            - name: Generate root CHANGELOG.md
               run: |
                   echo "Starting changelog generation with git-cliff..."
                   echo "Current directory: $(pwd)"
@@ -910,26 +910,6 @@ jobs:
                   echo "Generating root CHANGELOG.md..."
                   npx git-cliff --config cliff.toml --output CHANGELOG.md --verbose
                   echo "Root CHANGELOG.md generated, size: $(stat -c%s CHANGELOG.md 2>/dev/null || echo 'file not found')"
-
-                  echo "Generating electron-app CHANGELOG.md..."
-                  npx git-cliff --workdir electron-app --config ../cliff.toml --output CHANGELOG.md --verbose
-                  echo "electron-app CHANGELOG.md generated, size: $(stat -c%s electron-app/CHANGELOG.md 2>/dev/null || echo 'file not found')"
-
-                  echo "Generating electron-app/icons CHANGELOG.md..."
-                  npx git-cliff --workdir electron-app/icons --config ../../cliff.toml --output CHANGELOG.md --verbose
-                  echo "icons CHANGELOG.md generated, size: $(stat -c%s electron-app/icons/CHANGELOG.md 2>/dev/null || echo 'file not found')"
-
-                  echo "Generating electron-app/screenshots CHANGELOG.md..."
-                  npx git-cliff --workdir electron-app/screenshots --config ../../cliff.toml --output CHANGELOG.md --verbose
-                  echo "screenshots CHANGELOG.md generated, size: $(stat -c%s electron-app/screenshots/CHANGELOG.md 2>/dev/null || echo 'file not found')"
-
-                  echo "Generating electron-app/tests CHANGELOG.md..."
-                  npx git-cliff --workdir electron-app/tests --config ../../cliff.toml --output CHANGELOG.md --verbose
-                  echo "tests CHANGELOG.md generated, size: $(stat -c%s electron-app/tests/CHANGELOG.md 2>/dev/null || echo 'file not found')"
-
-                  echo "Generating electron-app/utils CHANGELOG.md..."
-                  npx git-cliff --workdir electron-app/utils --config ../../cliff.toml --output CHANGELOG.md --verbose
-                  echo "utils CHANGELOG.md generated, size: $(stat -c%s electron-app/utils/CHANGELOG.md 2>/dev/null || echo 'file not found')"
 
                   echo "All changelog generation completed."
                   echo "Final directory listing:"
@@ -940,8 +920,7 @@ jobs:
                   git config user.name "github-actions[bot]"
                   git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-                  # Add all CHANGELOG.md files
-                  git add ./**/CHANGELOG.md ./CHANGELOG.md
+                  git add CHANGELOG.md
                   # Check if there are any changes to commit
                   if git diff --staged --quiet; then
                     echo "No changelog changes to commit"
@@ -991,15 +970,10 @@ jobs:
                   {
                     echo "## 📝 Changelog Update Summary"
                     echo "- **Version**: v${{ needs.bump-version.outputs.new_version }}"
-                    echo "- **CHANGELOG.md files** generated for root and all subdirectories"
+                    echo "- **CHANGELOG.md** generated at the repository root"
                     echo "- **Changes committed** directly to repository (no PR required)"
                     echo "- **Status**: ${{ job.status }}"
                     echo ""
                     echo "### Files Updated:"
                     echo "- \`/CHANGELOG.md\`"
-                    echo "- \`/electron-app/CHANGELOG.md\`"
-                    echo "- \`/electron-app/icons/CHANGELOG.md\`"
-                    echo "- \`/electron-app/screenshots/CHANGELOG.md\`"
-                    echo "- \`/electron-app/tests/CHANGELOG.md\`"
-                    echo "- \`/electron-app/utils/CHANGELOG.md\`"
                   } >> "$GITHUB_STEP_SUMMARY"
