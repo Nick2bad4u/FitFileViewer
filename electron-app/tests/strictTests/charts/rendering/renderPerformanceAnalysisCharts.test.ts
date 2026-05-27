@@ -35,7 +35,7 @@ describe("renderPerformanceAnalysisCharts", () => {
             await import("../../../../utils/charts/rendering/renderPerformanceAnalysisCharts.js");
 
         const container = document.createElement("div");
-        expect(() => {
+        expect(
             renderPerformanceAnalysisCharts(
                 container,
                 { points: [] },
@@ -45,8 +45,8 @@ describe("renderPerformanceAnalysisCharts", () => {
                     3,
                 ],
                 {}
-            );
-        }).not.toThrow();
+            )
+        ).toBeUndefined();
 
         expect(spd.renderSpeedVsDistanceChart).toHaveBeenCalled();
         expect(pvh.renderPowerVsHeartRateChart).toHaveBeenCalled();
@@ -56,6 +56,10 @@ describe("renderPerformanceAnalysisCharts", () => {
     it("handles renderer errors gracefully", async () => {
         const spd =
             await import("../../../../utils/charts/rendering/renderSpeedVsDistanceChart.js");
+        const pvh =
+            await import("../../../../utils/charts/rendering/renderPowerVsHeartRateChart.js");
+        const alt =
+            await import("../../../../utils/charts/rendering/renderAltitudeProfileChart.js");
         const { renderPerformanceAnalysisCharts } =
             await import("../../../../utils/charts/rendering/renderPerformanceAnalysisCharts.js");
 
@@ -68,7 +72,7 @@ describe("renderPerformanceAnalysisCharts", () => {
         });
 
         const container = document.createElement("div");
-        expect(() => {
+        expect(
             renderPerformanceAnalysisCharts(
                 container,
                 { points: [] },
@@ -78,12 +82,14 @@ describe("renderPerformanceAnalysisCharts", () => {
                     3,
                 ],
                 {}
-            );
-        }).not.toThrow();
+            )
+        ).toBeUndefined();
 
         expect(consoleError).toHaveBeenCalledWith(
             "[ChartJS] Error rendering performance analysis charts:",
             error
         );
+        expect(pvh.renderPowerVsHeartRateChart).not.toHaveBeenCalled();
+        expect(alt.renderAltitudeProfileChart).not.toHaveBeenCalled();
     });
 });
