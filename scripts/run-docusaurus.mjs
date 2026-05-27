@@ -2,14 +2,16 @@ import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import path from "node:path";
 import process from "node:process";
-import { fileURLToPath } from "node:url";
+import { pathToFileURL } from "node:url";
 
-const repositoryRoot = fileURLToPath(new URL("..", import.meta.url));
-const docusaurusRoot = fileURLToPath(
-    new URL("../docusaurus/", import.meta.url)
-);
+import {
+    docusaurusWorkspacePath,
+    repositoryRoot,
+    repositoryScriptPath,
+} from "./lib/workspaces.mjs";
+
 const requireFromDocusaurus = createRequire(
-    new URL("../docusaurus/package.json", import.meta.url)
+    pathToFileURL(path.join(docusaurusWorkspacePath, "package.json"))
 );
 const docusaurusPackagePath = requireFromDocusaurus.resolve(
     "@docusaurus/core/package.json"
@@ -19,52 +21,69 @@ const docusaurusCliPath = path.join(
     "bin",
     "docusaurus.mjs"
 );
-const docusaurusArgs = process.argv.slice(2);
-const docusaurusCommand = docusaurusArgs.find((arg) => !arg.startsWith("-"));
 
-if (
-    [
-        "build",
-        "deploy",
-        "serve",
-        "start",
-    ].includes(docusaurusCommand ?? "")
-) {
-    const syncResult = spawnSync(
-        process.execPath,
-        [
-            path.join(
-                repositoryRoot,
-                "scripts",
-                "sync-docusaurus-static-assets.mjs"
-            ),
-        ],
-        {
-            cwd: repositoryRoot,
-            stdio: "inherit",
-        }
-    );
-
-    if (syncResult.error) {
-        throw syncResult.error;
-    }
-
-    if (syncResult.status !== 0) {
-        process.exit(syncResult.status ?? 1);
-    }
-}
-
-const result = spawnSync(
-    process.execPath,
-    [docusaurusCliPath, ...docusaurusArgs],
-    {
-        cwd: docusaurusRoot,
-        stdio: "inherit",
-    }
+export const docusaurusCommandsThatSyncAssets = [
+    "build",
+    "deploy",
+    "serve",
+    "start",
+];
+export const syncDocusaurusStaticAssetsScript = repositoryScriptPath(
+    "sync-docusaurus-static-assets.mjs"
 );
 
-if (result.error) {
-    throw result.error;
+export function buildDocusaurusArgs(argv = process.argv.slice(2)) {
+    return [docusaurusCliPath, ...argv];
 }
 
-process.exitCode = result.status ?? 1;
+export function findDocusaurusCommand(argv = process.argv.slice(2)) {
+    return argv.find((arg) => !arg.startsWith("-"));
+}
+
+export function runDocusaurus(
+    argv = process.argv.slice(2),
+    commandRunner = spawnSync
+) {
+    if (shouldSyncStaticAssets(argv)) {
+        const syncResult = commandRunner(
+            process.execPath,
+            [syncDocusaurusStaticAssetsScript],
+            {
+                cwd: repositoryRoot,
+                stdio: "inherit",
+            }
+        );
+
+        if (syncResult.error) {
+            throw syncResult.error;
+        }
+
+        if (syncResult.status !== 0) {
+            return syncResult.status ?? 1;
+        }
+    }
+
+    const result = commandRunner(process.execPath, buildDocusaurusArgs(argv), {
+        cwd: docusaurusWorkspacePath,
+        stdio: "inherit",
+    });
+
+    if (result.error) {
+        throw result.error;
+    }
+
+    return result.status ?? 1;
+}
+
+export function shouldSyncStaticAssets(argv = process.argv.slice(2)) {
+    return docusaurusCommandsThatSyncAssets.includes(
+        findDocusaurusCommand(argv) ?? ""
+    );
+}
+
+if (
+    process.argv[1] &&
+    import.meta.url === pathToFileURL(process.argv[1]).href
+) {
+    process.exitCode = runDocusaurus();
+}
