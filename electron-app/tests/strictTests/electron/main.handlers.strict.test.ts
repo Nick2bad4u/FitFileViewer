@@ -269,19 +269,19 @@ describe("main.js strict handlers and events", () => {
         );
         expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
             "update-available",
-            expect.any(Object)
+            { v: "1.0.1" }
         );
         expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
             "update-not-available",
-            expect.any(Object)
+            { v: "1.0.0" }
         );
         expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
             "update-download-progress",
-            expect.any(Object)
+            { p: 10 }
         );
         expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
             "update-downloaded",
-            expect.any(Object)
+            { v: "1.0.1" }
         );
 
         // IPC handler registration happened
