@@ -508,18 +508,7 @@ jobs:
               run: npm ci
 
             - name: Generate root CHANGELOG.md
-              run: |
-                  echo "Starting changelog generation..."
-                  echo "Current directory: $(pwd)"
-                  echo "Available files: $(ls -la)"
-
-                  echo "Generating root CHANGELOG.md..."
-                  npm run changelog -- --verbose
-                  echo "Root CHANGELOG.md generated, size: $(stat -c%s CHANGELOG.md 2>/dev/null || echo 'file not found')"
-
-                  echo "All changelog generation completed."
-                  echo "Final directory listing:"
-                  find . -name "CHANGELOG.md" -exec echo "Found: {}" \; -exec wc -l {} \;
+              run: node scripts/generate-changelog-workflow.mjs
 
             - name: Commit and push changelog updates
               run: |

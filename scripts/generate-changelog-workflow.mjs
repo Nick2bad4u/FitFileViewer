@@ -1,0 +1,159 @@
+import { spawnSync } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
+import process from "node:process";
+import { pathToFileURL } from "node:url";
+
+const repositoryRoot = resolveRepositoryRoot();
+const generateChangelogScript = path.join(
+    repositoryRoot,
+    "scripts",
+    "generate-changelog.mjs"
+);
+
+if (
+    process.argv[1] &&
+    import.meta.url === pathToFileURL(process.argv[1]).href
+) {
+    const options = parseArgs(process.argv.slice(2));
+
+    if (options.help) {
+        printUsage();
+    } else {
+        runChangelogWorkflow(options);
+    }
+}
+
+export function createChangelogMetadata(cwd = repositoryRoot) {
+    const changelogPath = path.join(cwd, "CHANGELOG.md");
+
+    if (!fs.existsSync(changelogPath)) {
+        return {
+            exists: false,
+            lineCount: 0,
+            path: "CHANGELOG.md",
+            size: "file not found",
+        };
+    }
+
+    const contents = fs.readFileSync(changelogPath, "utf8");
+
+    return {
+        exists: true,
+        lineCount: contents ? contents.split(/\r?\n/).length : 0,
+        path: "CHANGELOG.md",
+        size: String(fs.statSync(changelogPath).size),
+    };
+}
+
+export function createDirectoryListing(cwd = repositoryRoot) {
+    return fs
+        .readdirSync(cwd, { withFileTypes: true })
+        .map((entry) => ({
+            name: entry.name,
+            type: entry.isDirectory() ? "directory" : "file",
+        }))
+        .sort((left, right) => left.name.localeCompare(right.name));
+}
+
+export function formatChangelogMetadata(metadata) {
+    if (!metadata.exists) {
+        return "Root CHANGELOG.md generated, size: file not found";
+    }
+
+    return `Root CHANGELOG.md generated, size: ${metadata.size}, lines: ${metadata.lineCount}`;
+}
+
+export function formatDirectoryListing(entries) {
+    return entries
+        .map(
+            (entry) => `${entry.type === "directory" ? "d" : "-"} ${entry.name}`
+        )
+        .join("\n");
+}
+
+export function parseArgs(args) {
+    const options = {
+        help: false,
+        verbose: true,
+    };
+
+    for (const arg of args) {
+        if (arg === "--help" || arg === "-h") {
+            options.help = true;
+            continue;
+        }
+
+        if (arg === "--no-verbose") {
+            options.verbose = false;
+            continue;
+        }
+
+        throw new Error(`Unknown option: ${arg}`);
+    }
+
+    return options;
+}
+
+export function runChangelogWorkflow(options = {}) {
+    const cwd = options.cwd ?? repositoryRoot;
+    const runCommand = options.runCommand ?? spawnSync;
+    const log = options.log ?? console.log;
+    const verbose = options.verbose ?? true;
+
+    log("Starting changelog generation...");
+    log(`Current directory: ${cwd}`);
+    log("Available files:");
+    log(formatDirectoryListing(createDirectoryListing(cwd)));
+    log("");
+    log("Generating root CHANGELOG.md...");
+
+    const result = runCommand(
+        process.execPath,
+        [generateChangelogScript, ...(verbose ? ["--verbose"] : [])],
+        { cwd, stdio: "inherit" }
+    );
+
+    if (result.error) {
+        throw result.error;
+    }
+
+    const exitCode = result.status ?? 1;
+
+    if (exitCode !== 0) {
+        process.exitCode = exitCode;
+        return exitCode;
+    }
+
+    log(formatChangelogMetadata(createChangelogMetadata(cwd)));
+    log("");
+    log("All changelog generation completed.");
+    log("Files updated:");
+    log(`Found: ${createChangelogMetadata(cwd).path}`);
+
+    return 0;
+}
+
+function printUsage() {
+    console.log(`Usage: node scripts/generate-changelog-workflow.mjs [options]
+
+Options:
+  --no-verbose    Run changelog generation without passing --verbose.
+  -h, --help      Show this help text.`);
+}
+
+function resolveRepositoryRoot() {
+    const cwd = process.cwd();
+
+    if (fs.existsSync(path.join(cwd, "scripts", "generate-changelog.mjs"))) {
+        return cwd;
+    }
+
+    const parent = path.dirname(cwd);
+
+    if (fs.existsSync(path.join(parent, "scripts", "generate-changelog.mjs"))) {
+        return parent;
+    }
+
+    return cwd;
+}

@@ -36,6 +36,7 @@
         "changelog": "node scripts/generate-changelog.mjs",
         "changelog:check-run": "node scripts/update-changelog-check-run.mjs",
         "changelog:summary": "node scripts/update-changelog-job-summary.mjs",
+        "changelog:workflow": "node scripts/generate-changelog-workflow.mjs",
         "clean:workspace": "node scripts/clean-workspace.mjs",
         "clean-releases": "node scripts/clean-releases.mjs",
         "clean-releases:1": "node scripts/clean-releases.mjs --delete-tags --keep-last 1",
