@@ -2,12 +2,14 @@ import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import path from "node:path";
 import process from "node:process";
-import { fileURLToPath } from "node:url";
+import { pathToFileURL } from "node:url";
 
-const repositoryRoot = fileURLToPath(new URL("..", import.meta.url));
-const docusaurusRoot = fileURLToPath(
-    new URL("../docusaurus/", import.meta.url)
-);
+import {
+    docusaurusWorkspacePath,
+    repositoryRoot,
+    repositoryScriptPath,
+} from "./lib/workspaces.mjs";
+
 const require = createRequire(import.meta.url);
 const typedocPackagePath = require.resolve("typedoc/package.json");
 const typedocCliPath = path.join(
@@ -16,51 +18,69 @@ const typedocCliPath = path.join(
     "typedoc"
 );
 
-const typedocOnly = process.argv.includes("--typedoc-only");
-const steps = [
-    {
-        args: [
-            typedocCliPath,
-            "--options",
-            "typedoc.json",
-        ],
-        cwd: repositoryRoot,
-        label: "generate API docs",
-    },
-    {
-        args: [scriptPath("generate-api-categories.mjs")],
-        cwd: docusaurusRoot,
-        label: "generate API categories",
-    },
-    ...(typedocOnly
-        ? []
-        : [
-              {
-                  args: [scriptPath("run-docusaurus.mjs"), "build"],
-                  cwd: repositoryRoot,
-                  label: "build Docusaurus site",
-              },
-          ]),
-];
+export const typedocConfigPath = "typedoc.json";
 
-for (const step of steps) {
-    console.log(`[build-docs] ${step.label}`);
+export function buildDocsSteps(argv = process.argv.slice(2)) {
+    const typedocOnly = argv.includes("--typedoc-only");
 
-    const result = spawnSync(process.execPath, step.args, {
-        cwd: step.cwd,
-        stdio: "inherit",
-    });
-
-    if (result.error) {
-        throw result.error;
-    }
-
-    if (result.status !== 0) {
-        process.exitCode = result.status ?? 1;
-        break;
-    }
+    return [
+        {
+            args: [
+                typedocCliPath,
+                "--options",
+                typedocConfigPath,
+            ],
+            cwd: repositoryRoot,
+            label: "generate API docs",
+        },
+        {
+            args: [repositoryScriptPath("generate-api-categories.mjs")],
+            cwd: docusaurusWorkspacePath,
+            label: "generate API categories",
+        },
+        ...(typedocOnly
+            ? []
+            : [
+                  {
+                      args: [
+                          repositoryScriptPath("run-docusaurus.mjs"),
+                          "build",
+                      ],
+                      cwd: repositoryRoot,
+                      label: "build Docusaurus site",
+                  },
+              ]),
+    ];
 }
 
-function scriptPath(name) {
-    return path.join(repositoryRoot, "scripts", name);
+export function runBuildDocs(
+    argv = process.argv.slice(2),
+    commandRunner = spawnSync,
+    logger = console.log
+) {
+    for (const step of buildDocsSteps(argv)) {
+        logger(`[build-docs] ${step.label}`);
+
+        const result = commandRunner(process.execPath, step.args, {
+            cwd: step.cwd,
+            stdio: "inherit",
+        });
+
+        if (result.error) {
+            throw result.error;
+        }
+
+        if (result.status !== 0) {
+            return result.status ?? 1;
+        }
+    }
+
+    return 0;
+}
+
+if (
+    process.argv[1] &&
+    import.meta.url === pathToFileURL(process.argv[1]).href
+) {
+    process.exitCode = runBuildDocs();
 }
