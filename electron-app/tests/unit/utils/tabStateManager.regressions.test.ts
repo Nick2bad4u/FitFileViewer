@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Regression coverage for tabStateManager edge cases.
  *
