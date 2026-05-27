@@ -376,42 +376,14 @@ jobs:
               shell: bash
               run: node scripts/print-distributable-hashes.mjs artifacts
 
-            - name: Determine previous release tag
-              id: previous_tag
-              shell: bash
-              run: |
-                  set -euo pipefail
-                  git fetch --tags --force
-                  current_tag="v${{ needs.bump-version.outputs.new_version }}"
-                  prev_tag=$(git describe --tags --match "v*" --abbrev=0 "${current_tag}^" 2>/dev/null || true)
-                  echo "previous_tag=${prev_tag}" >> "$GITHUB_OUTPUT"
-
             - name: Generate release notes since previous tag
               id: release_notes
               shell: bash
-              run: |
-                  set -euo pipefail
-                  git fetch --tags --force
-
-                  current_tag="v${{ needs.bump-version.outputs.new_version }}"
-                  prev_tag="${{ steps.previous_tag.outputs.previous_tag }}"
-
-                  if [ -n "$prev_tag" ]; then
-                    range_spec="${prev_tag}..${current_tag}"
-                  else
-                    range_spec="$current_tag"
-                  fi
-
-                  NOTES=$(git log "$range_spec" --pretty=format:"- %s%n  - Author: %an <%ae>%n  - Commit: [%h](https://github.com/${{ github.repository }}/commit/%H)%n  - Date: %ad%n" --date=short)
-                  if [ -z "$NOTES" ]; then
-                    NOTES="No commits found for range ${range_spec}"
-                  fi
-
-                  {
-                    echo "notes<<EOF"
-                    echo "$NOTES"
-                    echo "EOF"
-                  } >> "$GITHUB_OUTPUT"
+              run: >
+                  node scripts/generate-release-notes.mjs
+                  --version "${{ needs.bump-version.outputs.new_version }}"
+                  --repository "${{ github.repository }}"
+                  --github-output
 
             - name: List artifacts (debug)
               id: list_artifacts
