@@ -141,10 +141,10 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
 
         global.window = dom.window as unknown as Window & typeof globalThis;
         global.document = dom.window.document;
-        global.HTMLCanvasElement =
-            dom.window.HTMLCanvasElement as unknown as typeof HTMLCanvasElement;
-        global.HTMLElement =
-            dom.window.HTMLElement as unknown as typeof HTMLElement;
+        global.HTMLCanvasElement = dom.window
+            .HTMLCanvasElement as unknown as typeof HTMLCanvasElement;
+        global.HTMLElement = dom.window
+            .HTMLElement as unknown as typeof HTMLElement;
         global.console = {
             log: vi.fn(),
             error: vi.fn(),
@@ -203,8 +203,9 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
                 return getChartTestWindow()._chartjsInstances;
             },
             set(value) {
-                getChartTestWindow()._chartjsInstances =
-                    value as ChartInstanceMock[] | undefined;
+                getChartTestWindow()._chartjsInstances = value as
+                    | ChartInstanceMock[]
+                    | undefined;
             },
             configurable: true,
         });
@@ -673,9 +674,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             renderSpeedVsDistanceChart(container, data, options);
 
             expect(getChartTestWindow()._chartjsInstances).toHaveLength(1);
-            expect(getChartTestWindow()._chartjsInstances).not.toHaveLength(
-                0
-            );
+            expect(getChartTestWindow()._chartjsInstances).not.toHaveLength(0);
             expect(getChartTestWindow()._chartjsInstances?.[0]).toBe(
                 chartInstanceMock
             );
@@ -939,14 +938,17 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
                 showGrid: true,
             };
 
-            expect(() => {
-                renderSpeedVsDistanceChart(container, data, options);
-            }).not.toThrow();
+            expect(
+                renderSpeedVsDistanceChart(container, data, options)
+            ).toBeUndefined();
 
             expect(console.error).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering speed vs distance chart:",
                 expect.any(Error)
             );
+            expect(Chart).toHaveBeenCalledOnce();
+            expect(getChartTestWindow()._chartjsInstances).toHaveLength(0);
+            expect(container.children).toHaveLength(1);
         });
 
         it("should handle errors during canvas creation", () => {
@@ -969,14 +971,17 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             const container = document.createElement("div");
             const data = [{ speed: 5.5, distance: 1000 }];
 
-            expect(() => {
-                renderSpeedVsDistanceChart(container, data, { maxPoints: 100 });
-            }).not.toThrow();
+            expect(
+                renderSpeedVsDistanceChart(container, data, { maxPoints: 100 })
+            ).toBeUndefined();
 
             expect(consoleSpy).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering speed vs distance chart:",
                 expect.any(Error)
             );
+            expect(mockChart).toHaveBeenCalledOnce();
+            expect(getChartTestWindow()._chartjsInstances).toHaveLength(0);
+            expect(container.children).toHaveLength(1);
 
             consoleSpy.mockRestore();
         });
@@ -993,18 +998,20 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
                 showGrid: true,
             };
 
-            expect(() => {
+            expect(
                 renderSpeedVsDistanceChart(
                     null as unknown as HTMLElement,
                     data,
                     options
-                );
-            }).not.toThrow();
+                )
+            ).toBeUndefined();
 
             expect(console.error).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering speed vs distance chart:",
                 expect.any(Error)
             );
+            expect(Chart).not.toHaveBeenCalled();
+            expect(getChartTestWindow()._chartjsInstances).toHaveLength(0);
         });
     });
 
