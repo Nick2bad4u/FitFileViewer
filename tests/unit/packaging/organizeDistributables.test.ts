@@ -26,7 +26,7 @@ type OrganizeDistributablesModule = {
 const temporaryRoots: string[] = [];
 
 async function importOrganizeDistributables(): Promise<OrganizeDistributablesModule> {
-    return (await import("../../../../scripts/organize-distributables.mjs")) as OrganizeDistributablesModule;
+    return (await import("../../../scripts/organize-distributables.mjs")) as OrganizeDistributablesModule;
 }
 
 function makeTemporaryRoot(): string {

@@ -22,7 +22,7 @@ type InstallFlatpakDependenciesModule = {
 };
 
 async function importInstallFlatpakDependencies(): Promise<InstallFlatpakDependenciesModule> {
-    return (await import("../../../../scripts/install-flatpak-dependencies.mjs")) as InstallFlatpakDependenciesModule;
+    return (await import("../../../scripts/install-flatpak-dependencies.mjs")) as InstallFlatpakDependenciesModule;
 }
 
 describe("install-flatpak-dependencies script", () => {

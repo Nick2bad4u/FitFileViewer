@@ -18,7 +18,7 @@ type ListReleaseDistFilesModule = {
 const temporaryRoots: string[] = [];
 
 async function importListReleaseDistFiles(): Promise<ListReleaseDistFilesModule> {
-    return (await import("../../../../scripts/list-release-dist-files.mjs")) as ListReleaseDistFilesModule;
+    return (await import("../../../scripts/list-release-dist-files.mjs")) as ListReleaseDistFilesModule;
 }
 
 function makeTemporaryRoot(): string {

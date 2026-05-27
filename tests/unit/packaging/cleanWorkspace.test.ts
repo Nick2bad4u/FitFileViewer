@@ -12,7 +12,7 @@ type CleanWorkspaceModule = {
 const temporaryRoots: string[] = [];
 
 async function importCleanWorkspace(): Promise<CleanWorkspaceModule> {
-    return (await import("../../../../scripts/clean-workspace.mjs")) as CleanWorkspaceModule;
+    return (await import("../../../scripts/clean-workspace.mjs")) as CleanWorkspaceModule;
 }
 
 function makeTemporaryRoot(): string {

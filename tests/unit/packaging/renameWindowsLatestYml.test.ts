@@ -19,7 +19,7 @@ type RenameWindowsLatestYmlModule = {
 const temporaryRoots: string[] = [];
 
 async function importRenameWindowsLatestYml(): Promise<RenameWindowsLatestYmlModule> {
-    return (await import("../../../../scripts/rename-windows-latest-yml.mjs")) as RenameWindowsLatestYmlModule;
+    return (await import("../../../scripts/rename-windows-latest-yml.mjs")) as RenameWindowsLatestYmlModule;
 }
 
 function makeTemporaryRoot(): string {

@@ -27,7 +27,7 @@ type CleanReleasesModule = {
 };
 
 async function importCleanReleases(): Promise<CleanReleasesModule> {
-    return (await import("../../../../scripts/clean-releases.mjs")) as CleanReleasesModule;
+    return (await import("../../../scripts/clean-releases.mjs")) as CleanReleasesModule;
 }
 
 describe("clean-releases script", () => {

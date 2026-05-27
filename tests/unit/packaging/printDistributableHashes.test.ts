@@ -22,7 +22,7 @@ type PrintDistributableHashesModule = {
 const temporaryRoots: string[] = [];
 
 async function importPrintDistributableHashes(): Promise<PrintDistributableHashesModule> {
-    return (await import("../../../../scripts/print-distributable-hashes.mjs")) as PrintDistributableHashesModule;
+    return (await import("../../../scripts/print-distributable-hashes.mjs")) as PrintDistributableHashesModule;
 }
 
 function makeTemporaryRoot(): string {

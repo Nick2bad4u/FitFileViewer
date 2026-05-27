@@ -37,7 +37,7 @@ type CommitChangelogWorkflowModule = {
 };
 
 async function importCommitChangelogWorkflow(): Promise<CommitChangelogWorkflowModule> {
-    return (await import("../../../../scripts/commit-changelog-workflow.mjs")) as CommitChangelogWorkflowModule;
+    return (await import("../../../scripts/commit-changelog-workflow.mjs")) as CommitChangelogWorkflowModule;
 }
 
 function makeCommandRecorder(diffStatus: number): {

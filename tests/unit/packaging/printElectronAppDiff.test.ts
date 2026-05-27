@@ -31,7 +31,7 @@ type PrintElectronAppDiffModule = {
 };
 
 async function importPrintElectronAppDiff(): Promise<PrintElectronAppDiffModule> {
-    return (await import("../../../../scripts/print-electron-app-diff.mjs")) as PrintElectronAppDiffModule;
+    return (await import("../../../scripts/print-electron-app-diff.mjs")) as PrintElectronAppDiffModule;
 }
 
 function createResult(overrides: Partial<CommandResult> = {}): CommandResult {

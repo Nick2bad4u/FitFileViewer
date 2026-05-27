@@ -19,7 +19,7 @@ type RenameSquirrelWin32ReleaseAssetsModule = {
 const temporaryRoots: string[] = [];
 
 async function importRenameSquirrelWin32ReleaseAssets(): Promise<RenameSquirrelWin32ReleaseAssetsModule> {
-    return (await import("../../../../scripts/rename-squirrel-win32-release-assets.mjs")) as RenameSquirrelWin32ReleaseAssetsModule;
+    return (await import("../../../scripts/rename-squirrel-win32-release-assets.mjs")) as RenameSquirrelWin32ReleaseAssetsModule;
 }
 
 function makeTemporaryRoot(): string {

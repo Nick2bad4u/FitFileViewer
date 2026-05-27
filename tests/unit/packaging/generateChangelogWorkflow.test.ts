@@ -41,7 +41,7 @@ type GenerateChangelogWorkflowModule = {
 const temporaryRoots: string[] = [];
 
 async function importGenerateChangelogWorkflow(): Promise<GenerateChangelogWorkflowModule> {
-    return (await import("../../../../scripts/generate-changelog-workflow.mjs")) as GenerateChangelogWorkflowModule;
+    return (await import("../../../scripts/generate-changelog-workflow.mjs")) as GenerateChangelogWorkflowModule;
 }
 
 function makeTemporaryRoot(): string {

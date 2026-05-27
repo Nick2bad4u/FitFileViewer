@@ -27,7 +27,7 @@ type InstallBuildDependenciesModule = {
 };
 
 async function importInstallBuildDependencies(): Promise<InstallBuildDependenciesModule> {
-    return (await import("../../../../scripts/install-build-dependencies.mjs")) as InstallBuildDependenciesModule;
+    return (await import("../../../scripts/install-build-dependencies.mjs")) as InstallBuildDependenciesModule;
 }
 
 describe("install-build-dependencies script", () => {

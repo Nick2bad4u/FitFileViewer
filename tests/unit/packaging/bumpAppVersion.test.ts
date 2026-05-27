@@ -35,7 +35,7 @@ type BumpAppVersionModule = {
 const temporaryRoots: string[] = [];
 
 async function importBumpAppVersion(): Promise<BumpAppVersionModule> {
-    return (await import("../../../../scripts/bump-app-version.mjs")) as BumpAppVersionModule;
+    return (await import("../../../scripts/bump-app-version.mjs")) as BumpAppVersionModule;
 }
 
 function makeTemporaryRoot(version: string): string {

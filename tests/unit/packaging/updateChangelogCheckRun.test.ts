@@ -53,7 +53,7 @@ type UpdateChangelogCheckRunModule = {
 const temporaryRoots: string[] = [];
 
 async function importUpdateChangelogCheckRun(): Promise<UpdateChangelogCheckRunModule> {
-    return (await import("../../../../scripts/update-changelog-check-run.mjs")) as UpdateChangelogCheckRunModule;
+    return (await import("../../../scripts/update-changelog-check-run.mjs")) as UpdateChangelogCheckRunModule;
 }
 
 function makeTemporaryRoot(): string {

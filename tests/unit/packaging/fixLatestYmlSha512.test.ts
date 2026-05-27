@@ -30,7 +30,7 @@ type FixLatestYmlSha512Module = {
 const temporaryRoots: string[] = [];
 
 async function importFixLatestYmlSha512(): Promise<FixLatestYmlSha512Module> {
-    return (await import("../../../../scripts/fix-latest-yml-sha512.mjs")) as FixLatestYmlSha512Module;
+    return (await import("../../../scripts/fix-latest-yml-sha512.mjs")) as FixLatestYmlSha512Module;
 }
 
 function makeTemporaryRoot(): string {

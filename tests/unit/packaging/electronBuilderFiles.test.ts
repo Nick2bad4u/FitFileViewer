@@ -56,10 +56,10 @@ describe("electron-builder file list", () => {
 
         const sharedFileList = readSharedFileList();
         const builderConfig = requireFromTest(
-            "../../../../electron-builder.config.cjs"
+            "../../../electron-builder.config.cjs"
         ) as ElectronBuilderConfig;
         const win7Build =
-            (await import("../../../../scripts/build-win7.mjs")) as Win7BuildModule;
+            (await import("../../../scripts/build-win7.mjs")) as Win7BuildModule;
 
         expect(sharedFileList).toStrictEqual([
             "dist/**",
@@ -80,7 +80,7 @@ describe("electron-builder file list", () => {
         expect.assertions(1);
 
         const win7Build =
-            (await import("../../../../scripts/build-win7.mjs")) as Win7BuildModule;
+            (await import("../../../scripts/build-win7.mjs")) as Win7BuildModule;
 
         expect(() => {
             win7Build.parseElectronBuilderFiles(["dist/**", 42]);

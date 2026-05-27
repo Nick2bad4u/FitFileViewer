@@ -38,7 +38,7 @@ type UpdateBuildMatrixSummaryModule = {
 const temporaryRoots: string[] = [];
 
 async function importUpdateBuildMatrixSummary(): Promise<UpdateBuildMatrixSummaryModule> {
-    return (await import("../../../../scripts/update-build-matrix-summary.mjs")) as UpdateBuildMatrixSummaryModule;
+    return (await import("../../../scripts/update-build-matrix-summary.mjs")) as UpdateBuildMatrixSummaryModule;
 }
 
 function makeTemporaryRoot(): string {

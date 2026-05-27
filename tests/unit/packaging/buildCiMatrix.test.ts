@@ -60,7 +60,7 @@ type BuildCiMatrixModule = {
 };
 
 async function importBuildCiMatrix(): Promise<BuildCiMatrixModule> {
-    return (await import("../../../../scripts/build-ci-matrix.mjs")) as BuildCiMatrixModule;
+    return (await import("../../../scripts/build-ci-matrix.mjs")) as BuildCiMatrixModule;
 }
 
 describe("build-ci-matrix script", () => {

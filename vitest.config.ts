@@ -168,6 +168,7 @@ export default defineConfig({
         globalSetup: ["../tests/vitest/globalSetup.mjs"],
         hookTimeout: 30_000,
         include: [
+            "../tests/unit/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
             "tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
             "utils/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
         ],

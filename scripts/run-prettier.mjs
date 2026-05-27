@@ -43,6 +43,7 @@ const prettierTargets = [
     ".github/*.yml",
     ".github/workflows/*.yml",
     "scripts/*.mjs",
+    "tests/unit/**/*.ts",
     "tests/playwright/**/*.ts",
     "tests/vitest/**/*.{cjs,mjs,ts}",
 ];

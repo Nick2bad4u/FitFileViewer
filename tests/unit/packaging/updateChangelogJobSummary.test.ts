@@ -28,7 +28,7 @@ type UpdateChangelogJobSummaryModule = {
 const temporaryRoots: string[] = [];
 
 async function importUpdateChangelogJobSummary(): Promise<UpdateChangelogJobSummaryModule> {
-    return (await import("../../../../scripts/update-changelog-job-summary.mjs")) as UpdateChangelogJobSummaryModule;
+    return (await import("../../../scripts/update-changelog-job-summary.mjs")) as UpdateChangelogJobSummaryModule;
 }
 
 function makeTemporaryRoot(): string {

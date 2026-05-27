@@ -41,7 +41,7 @@ type PublishAppVersionModule = {
 };
 
 async function importPublishAppVersion(): Promise<PublishAppVersionModule> {
-    return (await import("../../../../scripts/publish-app-version.mjs")) as PublishAppVersionModule;
+    return (await import("../../../scripts/publish-app-version.mjs")) as PublishAppVersionModule;
 }
 
 describe("publish-app-version script", () => {

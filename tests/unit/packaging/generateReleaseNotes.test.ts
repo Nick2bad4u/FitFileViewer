@@ -36,7 +36,7 @@ type GenerateReleaseNotesModule = {
 };
 
 async function importGenerateReleaseNotes(): Promise<GenerateReleaseNotesModule> {
-    return (await import("../../../../scripts/generate-release-notes.mjs")) as GenerateReleaseNotesModule;
+    return (await import("../../../scripts/generate-release-notes.mjs")) as GenerateReleaseNotesModule;
 }
 
 describe("generate-release-notes script", () => {

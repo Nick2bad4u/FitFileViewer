@@ -44,7 +44,7 @@ type PublishFlatpakReleaseAssetsModule = {
 const temporaryRoots: string[] = [];
 
 async function importPublishFlatpakReleaseAssets(): Promise<PublishFlatpakReleaseAssetsModule> {
-    return (await import("../../../../scripts/publish-flatpak-release-assets.mjs")) as PublishFlatpakReleaseAssetsModule;
+    return (await import("../../../scripts/publish-flatpak-release-assets.mjs")) as PublishFlatpakReleaseAssetsModule;
 }
 
 function makeTemporaryRoot(): string {
