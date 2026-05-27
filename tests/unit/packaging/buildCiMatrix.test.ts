@@ -2,6 +2,8 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { appReleasePath } from "../../../scripts/lib/workspaces.mjs";
+
 type BuildCiMatrixModule = {
     buildCiMatrix: (
         options: {
@@ -261,7 +263,7 @@ describe("build-ci-matrix script", () => {
                 initialRetryDelaySeconds: 15,
                 log() {},
                 maxAttempts: 3,
-                releaseDirectory: "electron-app/release",
+                releaseDirectory: appReleasePath,
                 removeDirectory(directory) {
                     removedDirectories.push(directory);
                 },
@@ -276,8 +278,8 @@ describe("build-ci-matrix script", () => {
 
         expect(exitCode).toBe(0);
         expect(removedDirectories).toStrictEqual([
-            "electron-app/release",
-            "electron-app/release",
+            appReleasePath,
+            appReleasePath,
         ]);
         expect(sleepDelays).toStrictEqual([15]);
         expect(exitCodes).toStrictEqual([]);
@@ -301,7 +303,7 @@ describe("build-ci-matrix script", () => {
                     logMessages.push(message);
                 },
                 maxAttempts: 2,
-                releaseDirectory: "electron-app/release",
+                releaseDirectory: appReleasePath,
                 removeDirectory() {},
                 runCommand() {
                     return 7;

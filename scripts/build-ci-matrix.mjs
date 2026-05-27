@@ -327,7 +327,7 @@ Options:
   --dry-run                          Print selected electron-builder args without running commands.
   --max-macos-attempts <count>       Max macOS builder attempts. Defaults to 3.
   --initial-retry-delay-seconds <n>  Initial macOS retry delay. Defaults to 15.
-  --release-directory <path>         Release directory removed before macOS retries. Defaults to electron-app/release.
+  --release-directory <path>         Release directory removed before macOS retries. Defaults to ${defaultReleaseDirectory}.
   -h, --help                         Show this help text.`);
 }
 
