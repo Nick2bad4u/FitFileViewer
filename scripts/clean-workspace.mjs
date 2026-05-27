@@ -1,9 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import process from "node:process";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
-const repositoryRoot = fileURLToPath(new URL("..", import.meta.url));
-const cleanupTargets = [
+const repositoryRoot = resolveRepositoryRoot();
+
+export const cleanupTargets = [
     ".cache",
     ".stylelintcache",
     path.join("docusaurus", ".docusaurus"),
@@ -29,11 +31,27 @@ const cleanupTargets = [
     path.join("electron-app", "types"),
 ];
 
-function assertInsideRepository(targetPath) {
-    const relativePath = path.relative(
-        repositoryRoot,
-        path.resolve(targetPath)
-    );
+export function cleanWorkspace(
+    root = repositoryRoot,
+    targets = cleanupTargets
+) {
+    const removedTargets = [];
+
+    for (const relativeTarget of targets) {
+        const targetPath = path.join(root, relativeTarget);
+        assertInsideRepository(root, targetPath);
+
+        if (fs.existsSync(targetPath)) {
+            fs.rmSync(targetPath, { force: true, recursive: true });
+            removedTargets.push(relativeTarget);
+        }
+    }
+
+    return removedTargets;
+}
+
+function assertInsideRepository(root, targetPath) {
+    const relativePath = path.relative(root, path.resolve(targetPath));
 
     if (
         relativePath === "" ||
@@ -44,21 +62,27 @@ function assertInsideRepository(targetPath) {
     }
 }
 
-const removedTargets = [];
-for (const relativeTarget of cleanupTargets) {
-    const targetPath = path.join(repositoryRoot, relativeTarget);
-    assertInsideRepository(targetPath);
-
-    if (fs.existsSync(targetPath)) {
-        fs.rmSync(targetPath, { force: true, recursive: true });
-        removedTargets.push(relativeTarget);
+function printCleanupResult(removedTargets) {
+    if (removedTargets.length > 0) {
+        console.log(
+            `[clean-workspace] Removed generated paths: ${removedTargets.join(", ")}`
+        );
+    } else {
+        console.log("[clean-workspace] No generated paths to remove.");
     }
 }
 
-if (removedTargets.length > 0) {
-    console.log(
-        `[clean-workspace] Removed generated paths: ${removedTargets.join(", ")}`
-    );
-} else {
-    console.log("[clean-workspace] No generated paths to remove.");
+function resolveRepositoryRoot() {
+    try {
+        return fileURLToPath(new URL("..", import.meta.url));
+    } catch {
+        return process.cwd();
+    }
+}
+
+if (
+    process.argv[1] &&
+    import.meta.url === pathToFileURL(process.argv[1]).href
+) {
+    printCleanupResult(cleanWorkspace());
 }
