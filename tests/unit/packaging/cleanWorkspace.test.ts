@@ -4,6 +4,13 @@ import path from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
+import {
+    appDistPath,
+    appTypesPath,
+    appWorkspaceRelativePath,
+    docusaurusWorkspaceRelativePath,
+} from "../../../scripts/lib/workspaces.mjs";
+
 type CleanWorkspaceModule = {
     cleanWorkspace: (root?: string, targets?: string[]) => string[];
     cleanupTargets: string[];
@@ -50,9 +57,11 @@ describe("clean-workspace script", () => {
                 "flatpak-repo",
                 "coverage",
                 "html",
-                path.join("electron-app", "coverage"),
-                path.join("electron-app", "dist"),
-                path.join("electron-app", "types"),
+                appWorkspaceRelativePath("coverage"),
+                appDistPath,
+                appTypesPath,
+                docusaurusWorkspaceRelativePath("build"),
+                docusaurusWorkspaceRelativePath("docs", "api"),
                 "playwright-report",
                 "test-results",
             ])
@@ -60,14 +69,15 @@ describe("clean-workspace script", () => {
     });
 
     it("removes generated files and directories under the selected workspace root", async () => {
-        expect.assertions(6);
+        expect.assertions(7);
 
         const { cleanWorkspace } = await importCleanWorkspace();
         const temporaryRoot = makeTemporaryRoot();
         const targets = [
             "FitFileViewer.flatpak",
             "flatpak-repo",
-            path.join("electron-app", "dist"),
+            appDistPath,
+            docusaurusWorkspaceRelativePath("build"),
         ];
         const unrelatedFile = "README.md";
 

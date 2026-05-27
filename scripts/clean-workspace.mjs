@@ -3,21 +3,39 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { appWorkspaceRelativePath } from "./lib/workspaces.mjs";
+import {
+    appWorkspaceRelativePath,
+    docusaurusWorkspaceRelativePath,
+} from "./lib/workspaces.mjs";
 
 const repositoryRoot = resolveRepositoryRoot();
 
 export const cleanupTargets = [
     ".cache",
     ".stylelintcache",
-    path.join("docusaurus", ".docusaurus"),
-    path.join("docusaurus", "build"),
-    path.join("docusaurus", "docs", "api"),
-    path.join("docusaurus", "static", "favicon.ico"),
-    path.join("docusaurus", "static", "img", "favicon.ico"),
-    path.join("docusaurus", "static", "img", "screenshots", "ChartsV3.png"),
-    path.join("docusaurus", "static", "img", "screenshots", "DataV2.png"),
-    path.join("docusaurus", "static", "img", "screenshots", "MapsV2.png"),
+    docusaurusWorkspaceRelativePath(".docusaurus"),
+    docusaurusWorkspaceRelativePath("build"),
+    docusaurusWorkspaceRelativePath("docs", "api"),
+    docusaurusWorkspaceRelativePath("static", "favicon.ico"),
+    docusaurusWorkspaceRelativePath("static", "img", "favicon.ico"),
+    docusaurusWorkspaceRelativePath(
+        "static",
+        "img",
+        "screenshots",
+        "ChartsV3.png"
+    ),
+    docusaurusWorkspaceRelativePath(
+        "static",
+        "img",
+        "screenshots",
+        "DataV2.png"
+    ),
+    docusaurusWorkspaceRelativePath(
+        "static",
+        "img",
+        "screenshots",
+        "MapsV2.png"
+    ),
     "FitFileViewer.flatpak",
     "FitFileViewer.flatpak.zip",
     "flatpak-build-dir",
