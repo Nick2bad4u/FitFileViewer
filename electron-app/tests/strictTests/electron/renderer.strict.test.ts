@@ -257,9 +257,23 @@ describe("renderer.js strict behavior", () => {
         // @ts-ignore
         const dev = (window as any).__renderer_dev;
         expect(dev).toMatchObject({
-            APP_INFO: expect.any(Object),
-            PerformanceMonitor: expect.any(Object),
-            appState: expect.any(Object),
+            APP_INFO: {
+                author: "FIT File Viewer Team",
+                description:
+                    "Advanced FIT file analysis and visualization tool",
+                getRuntimeInfo: expect.any(Function),
+                license: "MIT",
+                name: "FIT File Viewer",
+                repository: "https://github.com/user/FitFileViewer",
+                version: "21.1.0",
+            },
+            PerformanceMonitor: {
+                end: expect.any(Function),
+                getMetrics: expect.any(Function),
+                metrics: expect.any(Map),
+                start: expect.any(Function),
+            },
+            appState: null,
             cleanup: expect.any(Function),
             debugState: expect.any(Function),
             getPerformanceMetrics: expect.any(Function),
@@ -277,8 +291,8 @@ describe("renderer.js strict behavior", () => {
                 strict_test_operation: expect.any(Number),
             })
         );
-        expect(Object.keys(metrics).every((key) => !key.endsWith("_start"))).toBe(
-            true
-        );
+        expect(
+            Object.keys(metrics).every((key) => !key.endsWith("_start"))
+        ).toBe(true);
     });
 });
