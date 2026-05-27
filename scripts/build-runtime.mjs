@@ -1,13 +1,9 @@
 import { spawnSync } from "node:child_process";
-import { createRequire } from "node:module";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 const repositoryRoot = fileURLToPath(new URL("..", import.meta.url));
-const require = createRequire(import.meta.url);
-const vitePackagePath = require.resolve("vite/package.json");
-const viteCliPath = path.join(path.dirname(vitePackagePath), "bin", "vite.js");
 
 const steps = [
     {
@@ -23,12 +19,7 @@ const steps = [
         label: "bundle preload",
     },
     {
-        args: [
-            viteCliPath,
-            "build",
-            "--config",
-            "vite.renderer.config.mjs",
-        ],
+        args: [scriptPath("build-renderer.mjs")],
         label: "build renderer bundle",
     },
     {
