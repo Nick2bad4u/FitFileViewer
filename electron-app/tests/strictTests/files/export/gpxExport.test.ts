@@ -43,7 +43,7 @@ describe("gpxExport", () => {
         if (!gpx) {
             throw new Error("Expected GPX string to be generated");
         }
-        expect(gpx.length).toBeGreaterThan(0);
+        expect(gpx).toMatch(/^<\?xml version="1\.0" encoding="UTF-8"\?>/u);
         expect(gpx).toContain('version="1.1"');
         expect(gpx).toContain('xmlns="http://www.topografix.com/GPX/1/1"');
         expect(gpx).toContain(

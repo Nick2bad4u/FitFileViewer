@@ -430,7 +430,9 @@ describe(renderGPSTrackChart, () => {
                 expect.any(Error)
             );
             expect(globalThis._chartjsInstances).toStrictEqual([]);
-            expect(container.querySelector("canvas")).not.toBeNull();
+            expect(container.querySelector("canvas")).toBeInstanceOf(
+                HTMLCanvasElement
+            );
         });
     });
 });
