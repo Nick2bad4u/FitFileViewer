@@ -334,6 +334,7 @@ electron-app/utils/
 │   ├── bundle-preload.mjs           # Root-owned preload bundling helper
 │   ├── clean-runtime-dist.mjs       # Root-owned runtime output cleanup helper
 │   ├── format-runtime-output.mjs    # Root-owned runtime output formatter
+│   ├── generate-api-categories.mjs  # Root-owned generated API docs category helper
 │   ├── normalize-coverage-lcov.mjs  # Root-owned coverage path normalization helper
 │   └── prepare-runtime-dist.mjs     # Root-owned runtime package asset helper
 └── electron-app/

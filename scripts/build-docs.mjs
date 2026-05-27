@@ -32,9 +32,7 @@ const steps = [
         label: "generate API docs",
     },
     {
-        args: [
-            path.join(docusaurusRoot, "scripts", "generate-api-categories.mjs"),
-        ],
+        args: [scriptPath("generate-api-categories.mjs")],
         cwd: docusaurusRoot,
         label: "generate API categories",
     },

@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const apiDir = path.resolve(__dirname, "../docs/api");
+const apiDir = path.resolve(__dirname, "../docusaurus/docs/api");
 
 /**
  * Optional explicit label overrides for specific API module directories. Falls
