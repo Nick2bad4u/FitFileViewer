@@ -2,22 +2,14 @@
     "$schema": "https://www.schemastore.org/tsconfig.json",
     "compilerOptions": {
         "allowJs": true,
-        "allowSyntheticDefaultImports": true,
         "allowUmdGlobalAccess": false,
         "allowUnreachableCode": false,
         "allowUnusedLabels": false,
-        "alwaysStrict": true,
-        "checkJs": false,
         "declaration": true,
         "declarationDir": "./electron-app/types",
         "declarationMap": false,
         "disableSizeLimit": true,
-        "esModuleInterop": true,
-        "exactOptionalPropertyTypes": true,
-        "forceConsistentCasingInFileNames": true,
         "incremental": true,
-        "isolatedDeclarations": false,
-        "isolatedModules": true,
         "jsx": "react-jsx",
         "lib": [
             "DOM.Iterable",
@@ -35,22 +27,8 @@
             "ES7",
             "ESNext"
         ],
-        "module": "ESNext",
-        "moduleDetection": "auto",
-        "moduleResolution": "bundler",
         "noCheck": false,
-        "noFallthroughCasesInSwitch": true,
-        "noImplicitAny": true,
-        "noImplicitOverride": true,
-        "noImplicitReturns": true,
-        "noImplicitThis": true,
         "noImplicitUseStrict": false,
-        "noPropertyAccessFromIndexSignature": true,
-        "noUncheckedIndexedAccess": true,
-        "noUncheckedSideEffectImports": true,
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
-        "outDir": "./electron-app/dist",
         "paths": {
             "@app/*": [
                 "./electron-app/src/*"
@@ -68,27 +46,14 @@
             }
         ],
         "pretty": true,
-        "resolveJsonModule": true,
-        "resolvePackageJsonExports": true,
-        "resolvePackageJsonImports": true,
-        "rootDir": "./electron-app",
         "skipDefaultLibCheck": true,
-        "skipLibCheck": true,
         "sourceMap": true,
-        "strict": true,
         "strictBindCallApply": true,
         "strictBuiltinIteratorReturn": true,
         "strictFunctionTypes": true,
         "strictNullChecks": true,
         "strictPropertyInitialization": true,
-        "target": "ES2024",
-        "tsBuildInfoFile": "./electron-app/dist/tsconfig.tsbuildinfo",
-        "types": [
-            "electron",
-            "node"
-        ],
-        "useDefineForClassFields": true,
-        "useUnknownInCatchVariables": true
+        "tsBuildInfoFile": "./electron-app/dist/tsconfig.tsbuildinfo"
     },
     "exclude": [
         "**/dist-electron",
@@ -116,6 +81,7 @@
         "**/tests/**",
         "**/assets/**"
     ],
+    "extends": "./tsconfig.electron-app.base.json",
     "include": [
         "electron-app/*.ts",
         "electron-app/**/*.js",
