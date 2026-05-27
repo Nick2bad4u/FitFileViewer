@@ -1,7 +1,7 @@
 /**
  * @vitest-environment node
  */
-import { existsSync, unlinkSync } from "node:fs";
+import { existsSync, readFileSync, unlinkSync } from "node:fs";
 import { join } from "node:path";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
@@ -10,9 +10,13 @@ const fallbackSettingsPath = join(process.cwd(), "window-state.json");
 interface MockFs {
     existsSync: ReturnType<typeof vi.fn<(path: string) => boolean>>;
     mkdirSync: ReturnType<typeof vi.fn<() => void>>;
-    readFileSync: ReturnType<typeof vi.fn<(path: string, encoding: string) => string>>;
+    readFileSync: ReturnType<
+        typeof vi.fn<(path: string, encoding: string) => string>
+    >;
     unlinkSync: ReturnType<typeof vi.fn<() => void>>;
-    writeFileSync: ReturnType<typeof vi.fn<(path: string, data: string) => void>>;
+    writeFileSync: ReturnType<
+        typeof vi.fn<(path: string, data: string) => void>
+    >;
 }
 
 interface MockApp {
@@ -21,14 +25,18 @@ interface MockApp {
 
 interface MockWindowInstance {
     getBounds: ReturnType<
-        typeof vi.fn<() => { height: number; width: number; x: number; y: number }>
+        typeof vi.fn<
+            () => { height: number; width: number; x: number; y: number }
+        >
     >;
     isDestroyed: ReturnType<typeof vi.fn<() => boolean>>;
     isMaximized: ReturnType<typeof vi.fn<() => boolean>>;
     isMinimized: ReturnType<typeof vi.fn<() => boolean>>;
     loadFile: ReturnType<typeof vi.fn<() => Promise<void>>>;
     on: ReturnType<typeof vi.fn>;
-    once: ReturnType<typeof vi.fn<(event: string, callback: () => void) => void>>;
+    once: ReturnType<
+        typeof vi.fn<(event: string, callback: () => void) => void>
+    >;
     setMenuBarVisibility: ReturnType<typeof vi.fn>;
     show: ReturnType<typeof vi.fn>;
 }
@@ -51,7 +59,6 @@ describe("windowStateUtils persistence behavior", () => {
     let mockFs: MockFs;
     let mockApp: MockApp;
     let mockBrowserWindow: BrowserWindowMock;
-    let settingsPath: string;
 
     beforeEach(() => {
         vi.resetModules();
@@ -69,7 +76,6 @@ describe("windowStateUtils persistence behavior", () => {
             writeFileSync: vi.fn((p: string, data: string) => {
                 fileExists = true;
                 fileContent = data;
-                settingsPath = p;
             }),
             mkdirSync: vi.fn(),
             unlinkSync: vi.fn(() => {
@@ -164,7 +170,7 @@ describe("windowStateUtils persistence behavior", () => {
         expect(typeof state).toBe("object");
     });
 
-    it("saveWindowState runs without throwing and sanitizes bounds", async () => {
+    it("saveWindowState persists sanitized bounds", async () => {
         const mod = await import("../../windowStateUtils.js");
         // Pass a stub window directly to avoid constructor path
         const win = {
@@ -173,7 +179,15 @@ describe("windowStateUtils persistence behavior", () => {
             isMaximized: () => false,
             getBounds: () => ({ width: 1000, height: 700, x: 10, y: 20 }),
         } as unknown as Parameters<typeof mod.saveWindowState>[0];
-        expect(() => mod.saveWindowState(win)).not.toThrow();
+
+        expect(mod.saveWindowState(win)).toBeUndefined();
+        expect(existsSync(fallbackSettingsPath)).toBe(true);
+        expect(JSON.parse(readFileSync(fallbackSettingsPath, "utf8"))).toEqual({
+            height: 700,
+            width: 1000,
+            x: 10,
+            y: 20,
+        });
     });
 
     it("createWindow attempts BrowserWindow construction (may throw in tests)", async () => {
