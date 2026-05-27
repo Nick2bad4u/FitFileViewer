@@ -422,9 +422,11 @@ electron-app/
 │   ├── favicon-256x256.png         # Linux icon
 │   └── [Various sized icons]
 │
-├── screenshots/                     # Application screenshots
 └── ffv/                            # Alternative FIT viewer web app
 ```
+
+Application screenshots used by repository documentation live in
+`docs/screenshots/`.
 
 ## CI/CD & Automation
 
