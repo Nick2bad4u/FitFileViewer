@@ -7,15 +7,13 @@ const gitCliffCliPath = fileURLToPath(
     await import.meta.resolve("git-cliff/cli")
 );
 const userArgs = process.argv.slice(2);
-const gitCliffArgs =
-    userArgs.length > 0
-        ? userArgs
-        : [
-              "--config",
-              "cliff.toml",
-              "--output",
-              "CHANGELOG.md",
-          ];
+const gitCliffArgs = [
+    "--config",
+    "cliff.toml",
+    "--output",
+    "CHANGELOG.md",
+    ...userArgs,
+];
 
 const result = spawnSync(process.execPath, [gitCliffCliPath, ...gitCliffArgs], {
     cwd: repositoryRoot,

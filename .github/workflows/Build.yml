@@ -898,17 +898,17 @@ jobs:
               with:
                   node-version: "20"
 
-            - name: Install git-cliff
-              run: npm install -g git-cliff
+            - name: Install dependencies
+              run: npm ci
 
             - name: Generate root CHANGELOG.md
               run: |
-                  echo "Starting changelog generation with git-cliff..."
+                  echo "Starting changelog generation..."
                   echo "Current directory: $(pwd)"
                   echo "Available files: $(ls -la)"
 
                   echo "Generating root CHANGELOG.md..."
-                  npx git-cliff --config cliff.toml --output CHANGELOG.md --verbose
+                  npm run changelog -- --verbose
                   echo "Root CHANGELOG.md generated, size: $(stat -c%s CHANGELOG.md 2>/dev/null || echo 'file not found')"
 
                   echo "All changelog generation completed."
