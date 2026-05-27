@@ -74,44 +74,23 @@
 
 <details><summary>CI Badges</summary>
 
-[![ActionLint](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/ActionLint.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/ActionLint.yml) 🧹
 [![Build and Release Electron App](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/Build.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/Build.yml) 🏗️
+[![Windows 7 Compatibility Build](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/build-win7.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/build-win7.yml) 🪟
 [![Build Flatpak](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/flatpak-build.yml) 📦
-[![Show Release Stats](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/release-stats.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/release-stats.yml) 📊
-[![Print Release Asset Sizes](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/print-release-asset-sizes.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/print-release-asset-sizes.yml) 📋
-[![Analyze Repo with git-sizer](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/git-sizer-dispatch.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/git-sizer-dispatch.yml)
+[![Docusaurus](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/docusaurus.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/docusaurus.yml) 📚
 [![Clean Old Releases](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/cleanReleases.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/cleanReleases.yml) 🧹
 [![CodeQL-Advanced](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/codeql.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/codeql.yml) 🛡️
-[![Dependabot Updates](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/dependabot/dependabot-updates) 🤖
 [![Dependency Review](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/dependency-review.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/dependency-review.yml) 🔍
-[![Deploy Jekyll with GitHub Pages dependencies preinstalled](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/jekyll-gh-pages.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/jekyll-gh-pages.yml) 📚
-[![DevSkim](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/devskim.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/devskim.yml) 🔒
-[![ESLint](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/eslint.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/eslint.yml) 🧑‍💻
-[![Electronegativity Scan](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/electronegativity.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/electronegativity.yml) ⚡
-[![GitHub Pages - Generate XML sitemap](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/sitemap.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/sitemap.yml) 🗺️
+[![GitLeaks Scan](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/gitleaks.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/gitleaks.yml) 🔑
 [![Greetings](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/greetings.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/greetings.yml) 👋
-[![Lint Code Base](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/superlinter.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/superlinter.yml) 🧹
 [![Mark stale issues and pull requests](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/stale.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/stale.yml) 💤
-[![OSV-Scanner](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/osv-scanner.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/osv-scanner.yml) 🔎
-[![Prettier](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/prettier.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/prettier.yml) 🎨
-[![Scorecard supply-chain security](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/scorecards.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/scorecards.yml) 📊
-[![StyleLint](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/stylelint.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/stylelint.yml) 🎨
-[![Summarize new issues](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/summary.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/summary.yml) 📋
+[![Automatic Rebase](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/rebase.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/rebase.yml) 🔄
+[![Repo Stats](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/repo-stats.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/repo-stats.yml) 📊
 [![TruffleHog Secret Scan](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/trufflehog.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/trufflehog.yml) 🔑
 [![Update ChangeLogs](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/updateChangeLogs.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/updateChangeLogs.yml) 📝
 [![Upload Linux Distributables to Archive.org](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/upload-linux-ia.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/upload-linux-ia.yml) 🐧
 [![Upload Mac Distributables to Archive.org](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/upload-macos-ia.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/upload-macos-ia.yml) 🍏
 [![Upload Windows Distributables to Archive.org](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/upload-windows-ia.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/upload-windows-ia.yml) 🪟
-[![VSCode Version Matrix](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/vscode-version.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/vscode-version.yml) 📅
-[![npm audit](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/npm-audit.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/npm-audit.yml) 🔍
-[![GitHub Pages Build & Deployment](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/pages/pages-build-deployment) 🌐
-[![GitLeaks Scan](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/gitleaks.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/gitleaks.yml) 🔑
-[![Automatic Rebase](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/rebase.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/rebase.yml) 🔄
-[![MegaLinter](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/mega-linter.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/mega-linter.yml) 🧹
-[![Microsoft Security DevOps](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/security-devops.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/security-devops.yml) 🛡️
-[![PSSecretScanner](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/pssecret-scanner.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/pssecret-scanner.yml) 🔑
-[![Spell Check (typos)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/typos.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/typos.yml) 🔤
-[![Spellcheck Action](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/spelling_action.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/spelling_action.yml) 📖
 [![VirusTotal Scan](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/VirusTotal.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/VirusTotal.yml) 🦠
 
 <div align="center">
