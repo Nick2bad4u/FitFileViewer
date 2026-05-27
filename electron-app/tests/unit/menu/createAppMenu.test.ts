@@ -1398,7 +1398,6 @@ describe("createAppMenu - additional robust branches", () => {
                     PropertyDescriptor,
                 ]
             >;
-            expect(calls.length).toBeGreaterThan(0);
             const targetedIndex = calls.findIndex(
                 ([, prop]) => prop === "__FFV_createAppMenuExports"
             );
@@ -1459,7 +1458,12 @@ describe("createAppMenu - additional robust branches", () => {
             }
         }
         collect(template);
-        expect(clickableItems.length).toBeGreaterThan(0);
+        const clickableLabels = clickableItems.map((item) => item.label);
+        expect(clickableLabels).toContain("📁 File");
+        expect(clickableLabels).toContain("📂 Open FIT File...");
+        expect(clickableLabels).toContain("💿 Decoder Options");
+        expect(clickableLabels).toContain("❓ Help");
+        expect(clickableLabels).toContain("⌨️ Keyboard Shortcuts");
 
         // Exercise each item's click handler
         for (const item of clickableItems) {
