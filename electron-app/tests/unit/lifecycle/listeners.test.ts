@@ -94,7 +94,7 @@ describe("utils/app/lifecycle/listeners.js", () => {
         openFileBtn.click();
         expect(handleOpenFile).toHaveBeenCalledTimes(1);
         expect(handleOpenFile).toHaveBeenCalledWith({
-            isOpeningFileRef: expect.any(Object),
+            isOpeningFileRef,
             openFileBtn,
             setLoading,
             showNotification,
