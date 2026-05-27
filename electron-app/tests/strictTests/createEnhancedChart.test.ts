@@ -672,8 +672,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             ).toBe("string");
             expect(
                 config.options.plugins.chartBackgroundColorPlugin
-                    .backgroundColor.length
-            ).toBeGreaterThan(0);
+                    .backgroundColor
+            ).toBe("#181c24");
         });
     });
 

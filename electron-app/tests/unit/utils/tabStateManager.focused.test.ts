@@ -295,7 +295,9 @@ describe("tabStateManager - Critical Bug Detection", () => {
                 undefined,
                 undefined,
             ]);
-            expect(configs).not.toContainEqual(expect.any(Object));
+            expect(
+                configs.every((config) => typeof config === "undefined")
+            ).toBe(true);
         });
     });
 
