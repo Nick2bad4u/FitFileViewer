@@ -1,5 +1,27 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+const EXPECTED_AVAILABLE_UTILS = [
+    "setLoading",
+    "copyTableAsCSV",
+    "patchSummaryFields",
+    "formatArray",
+    "formatDistance",
+    "formatDuration",
+    "createTables",
+    "renderMap",
+    "renderSummary",
+    "renderTable",
+    "showFitData",
+    "applyTheme",
+    "listenForThemeChange",
+    "loadTheme",
+    "updateMapTheme",
+    "setTabButtonsEnabled",
+    "showNotification",
+    "updateActiveTab",
+    "updateTabVisibility",
+] as const;
+
 async function importUtilsModule() {
     return import("../../../utils.js");
 }
@@ -43,27 +65,29 @@ describe("utils global attachment and API", () => {
 
         // Dev helpers exposed
         const helpers = (globalThis as any).window.devUtilsHelpers;
-        expect(helpers).toEqual(
-            expect.objectContaining({
-                cleanup: expect.any(Function),
-                getAttachmentResults: expect.any(Function),
-                reattachUtils: expect.any(Function),
-                validateUtils: expect.any(Function),
-            })
+        expect(Object.keys(helpers).sort()).toStrictEqual(
+            [
+                "cleanup",
+                "getAttachmentResults",
+                "logLevel",
+                "reattachUtils",
+                "validateUtils",
+            ].sort()
         );
+        expect(typeof helpers.cleanup).toBe("function");
         expect(typeof helpers.getAttachmentResults).toBe("function");
+        expect(helpers.logLevel).toBe("debug");
+        expect(typeof helpers.reattachUtils).toBe("function");
+        expect(typeof helpers.validateUtils).toBe("function");
 
         // Version propagated
         const { UTILS_CONSTANTS, FitFileViewerUtils } = mod as any;
-        expect(
-            FitFileViewerUtils.version === "9.9.9" ||
-                UTILS_CONSTANTS.VERSION === "9.9.9"
-        ).toBe(true);
+        expect(FitFileViewerUtils.version).toBe("9.9.9");
+        expect(UTILS_CONSTANTS.VERSION).toBe("9.9.9");
 
         // FitFileViewerUtils core API
         const available = FitFileViewerUtils.getAvailableUtils();
-        expect(Array.isArray(available)).toBe(true);
-        expect(available.length).toBeGreaterThan(5);
+        expect(available).toStrictEqual(EXPECTED_AVAILABLE_UTILS);
         expect(FitFileViewerUtils.isUtilAvailable("formatDistance")).toBe(true);
         const fn = FitFileViewerUtils.getUtil("formatDistance");
         expect(typeof fn).toBe("function");
@@ -81,7 +105,10 @@ describe("utils global attachment and API", () => {
 
         // validate utilities
         const validation = FitFileViewerUtils.validateAllUtils();
-        expect(Array.isArray(validation.valid)).toBe(true);
+        expect(validation).toStrictEqual({
+            invalid: [],
+            valid: EXPECTED_AVAILABLE_UTILS,
+        });
 
         // safeExecute should throw on unknown util
         expect(() =>
