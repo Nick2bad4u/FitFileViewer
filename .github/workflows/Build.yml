@@ -268,15 +268,13 @@ jobs:
             - name: Update Build Matrix Summary (per platform/arch)
               if: always()
               shell: bash
-              run: |
-                  STATUS="${{ job.status }}"
-                  # If build_app step failed, mark as failure
-                  if [ "${{ steps.build_app.outcome }}" = "failure" ]; then
-                    STATUS="failure"
-                  elif [ "${{ steps.build_app.outcome }}" = "success" ]; then
-                    STATUS="success"
-                  fi
-                    echo "| ${{ needs.bump-version.outputs.new_version }} | ${{ matrix.os }} | ${{ matrix.arch }} | Build Status: $STATUS |" >> "$GITHUB_STEP_SUMMARY"
+              run: node scripts/update-build-matrix-summary.mjs
+              env:
+                  BUILD_APP_OUTCOME: ${{ steps.build_app.outcome }}
+                  BUILD_VERSION: ${{ needs.bump-version.outputs.new_version }}
+                  JOB_STATUS: ${{ job.status }}
+                  MATRIX_ARCH: ${{ matrix.arch }}
+                  MATRIX_OS: ${{ matrix.os }}
 
     release:
         name: Create Release
