@@ -18,6 +18,7 @@
     "scripts": {
         "build": "node scripts/build-package.mjs",
         "build:all": "node scripts/build-package.mjs -mwl",
+        "build:ci-matrix": "node scripts/build-ci-matrix.mjs",
         "build:dev": "node scripts/build-package.mjs --node-env development",
         "build:dev:all": "node scripts/build-package.mjs --node-env development -l",
         "build:dev:package": "node scripts/build-package.mjs --node-env development --dir",

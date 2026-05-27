@@ -242,76 +242,15 @@ jobs:
             - name: Build Electron app (debug)
               id: build_app
               shell: bash
-              run: |
-                  set -euo pipefail
-                  npm run build:runtime-ts
-
-                  run_builder() {
-                    node scripts/run-electron-builder.mjs "$@"
-                  }
-
-                  retry_macos_build() {
-                    local -r max_attempts="$1"
-                    shift
-
-                    local attempt=1
-                    local delay_seconds=15
-
-                    while true; do
-                      echo "Running: $* (attempt ${attempt}/${max_attempts})"
-
-                      # When the flake hits, electron-builder may have partially written release files.
-                      # Clean release output so retries start from a known-good state.
-                      rm -rf electron-app/release || true
-
-                      if "$@"; then
-                        return 0
-                      fi
-
-                      local exit_code=$?
-                      if [ "$attempt" -ge "$max_attempts" ]; then
-                        echo "Command failed after ${attempt} attempts (exit code ${exit_code})."
-                        return "$exit_code"
-                      fi
-
-                      echo "Command failed (exit code ${exit_code}). Retrying in ${delay_seconds}s..."
-                      sleep "$delay_seconds"
-                      attempt=$((attempt + 1))
-                      delay_seconds=$((delay_seconds * 2))
-                    done
-                  }
-
-                  if [[ "${{ runner.os }}" == "Windows" ]]; then
-                    if [[ "${{ matrix.arch }}" == "x64" ]]; then
-                      run_builder --win --publish never
-                    else
-                      run_builder --win --ia32 --publish never
-                    fi
-                  elif [[ "${{ matrix.os }}" == "macos-15" ]]; then
-                    # DMG creation is occasionally flaky on GitHub-hosted macOS runners.
-                    retry_macos_build 3 run_builder --arm64 --publish never
-                  elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
-                    retry_macos_build 3 run_builder --universal --publish never
-                  elif [[ "${{ matrix.os }}" == "macos-15-intel" ]]; then
-                    retry_macos_build 3 run_builder --mac --${{ matrix.arch }} --publish never
-                  elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-                    if [[ "${{ matrix.arch }}" == "x64" ]]; then
-                      run_builder --win --publish never
-                    else
-                      run_builder --win --ia32 --publish never
-                    fi
-                  elif [[ "${{ matrix.os }}" == "ubuntu-24.04-arm" ]]; then
-                    run_builder --linux --arm64 --publish never
-                  elif [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
-                    run_builder --linux --${{ matrix.arch }} --publish never
-                  else
-                    run_builder --${{ matrix.arch }} --publish never
-                  fi
+              run: npm run build:ci-matrix
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   DEBUG_DEMB: true
                   CI: true
                   DEBUG: "@malept/flatpak-bundler"
+                  MATRIX_ARCH: ${{ matrix.arch }}
+                  MATRIX_OS: ${{ matrix.os }}
+                  RUNNER_OS: ${{ runner.os }}
 
             - name: Print distributable hashes (debug)
               id: print_hashes
