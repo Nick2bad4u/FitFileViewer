@@ -1,11 +1,11 @@
 // @ts-nocheck
 /**
- * Focused bug detection test suite for critical tabStateManager issues
+ * Regression coverage for tabStateManager edge cases.
  *
- * @file TabStateManager.focused.test.js
+ * @file tabStateManager.regressions.test.ts
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock dependencies with proper hoisting
 vi.mock("../../../utils/state/core/stateManager", () => ({
@@ -101,7 +101,7 @@ const setupContentMoveDom = () => {
     document.body.replaceChildren(bgContainer, visibleContainer);
 };
 
-describe("tabStateManager - Critical Bug Detection", () => {
+describe("tabStateManager regressions", () => {
     beforeEach(() => {
         // Set up complete DOM structure matching TAB_CONFIG
         setupTabDom();
@@ -185,8 +185,8 @@ describe("tabStateManager - Critical Bug Detection", () => {
         });
     });
 
-    describe("State Synchronization Bugs", () => {
-        it("BUG CRITICAL: should expose DOM/state synchronization race condition", () => {
+    describe("State synchronization", () => {
+        it("detects mismatched DOM and state active tabs", () => {
             const summaryBtn = document.getElementById("tab-summary");
 
             // Manually set DOM to active state
@@ -204,7 +204,7 @@ describe("tabStateManager - Critical Bug Detection", () => {
             expect(isDOMActive && stateActive === "summary").toBe(false);
         });
 
-        it("BUG CRITICAL: should expose async state change timing issues", async () => {
+        it("documents async handler failures that require awaiting", async () => {
             let asyncError = null;
 
             // Simulate async handler that fails
@@ -237,7 +237,7 @@ describe("tabStateManager - Critical Bug Detection", () => {
     });
 
     describe("Data Validation Edge Cases", () => {
-        it("BUG HIGH: should expose edge cases with malformed data", () => {
+        it("treats malformed globalData as unavailable data", () => {
             const testCases = [
                 { recordMesgs: null },
                 { recordMesgs: undefined },
@@ -276,7 +276,7 @@ describe("tabStateManager - Critical Bug Detection", () => {
             expect(results).not.toContain(true);
         });
 
-        it("BUG HIGH: should expose tab configuration validation gaps", () => {
+        it("does not resolve configuration for invalid tab names", () => {
             // Test with invalid tab name
             const invalidTabs = [
                 "",
@@ -302,7 +302,7 @@ describe("tabStateManager - Critical Bug Detection", () => {
     });
 
     describe("DOM Manipulation Security Issues", () => {
-        it("BUG HIGH: should expose unsafe iframe manipulation", () => {
+        it("sets the AltFit iframe source when it is not loaded", () => {
             document.body.append(
                 createElement("iframe", {
                     id: "altfit-iframe",
@@ -328,7 +328,7 @@ describe("tabStateManager - Critical Bug Detection", () => {
             expect(iframe.src).not.toBe("about:blank");
         });
 
-        it("BUG MEDIUM: should expose content moving race conditions", () => {
+        it("moves background data content into the visible data container", () => {
             setupContentMoveDom();
 
             const bgContainer = document.getElementById(
@@ -358,7 +358,7 @@ describe("tabStateManager - Critical Bug Detection", () => {
     });
 
     describe("Performance and Error Handling", () => {
-        it("BUG MEDIUM: should expose repeated DOM query performance issues", () => {
+        it("keeps repeated tab DOM queries within a reasonable duration", () => {
             const performanceTest = () => {
                 const start = performance.now();
 
@@ -379,7 +379,7 @@ describe("tabStateManager - Critical Bug Detection", () => {
             expect(duration).toBeLessThan(100);
         });
 
-        it("BUG HIGH: should expose error handling gaps in async operations", async () => {
+        it("documents async render failures that require awaiting", async () => {
             // Mock failing async functions
             global.window.renderChartJS = vi
                 .fn()
@@ -408,7 +408,7 @@ describe("tabStateManager - Critical Bug Detection", () => {
     });
 
     describe("Tab Configuration Validation", () => {
-        it("BUG MEDIUM: should validate tab configuration consistency", () => {
+        it("validates tab configuration consistency", () => {
             // Check for missing or invalid configurations
             const requiredProps = [
                 "id",
@@ -433,7 +433,7 @@ describe("tabStateManager - Critical Bug Detection", () => {
             });
         });
 
-        it("BUG LOW: should identify duplicate handler assignments", () => {
+        it("documents duplicate chart handler assignments", () => {
             const handlers = Object.values(TAB_CONFIG)
                 .filter((config) => config.handler)
                 .map((config) => config.handler);
@@ -457,7 +457,7 @@ describe("tabStateManager - Critical Bug Detection", () => {
     });
 
     describe("Integration Issues", () => {
-        it("BUG CRITICAL: should test circular dependency scenarios", () => {
+        it("keeps subscription callbacks bounded during recursive state updates", () => {
             let recursionCount = 0;
             const maxRecursion = 3;
 
@@ -474,7 +474,7 @@ describe("tabStateManager - Critical Bug Detection", () => {
             expect(recursionCount).not.toBeGreaterThan(maxRecursion);
         });
 
-        it("BUG HIGH: should expose state consistency validation gaps", () => {
+        it("reports invalid state when active tab has no configuration", () => {
             // Test with state that doesn't match DOM
             mockGetState.mockReturnValue("nonexistent-tab");
 
