@@ -72,6 +72,7 @@
         "prettier": "node scripts/run-prettier.mjs --check",
         "prettier:fix": "node scripts/run-prettier.mjs --write",
         "release:bump-version": "node scripts/bump-app-version.mjs",
+        "release:fix-latest-yml-sha512": "node scripts/fix-latest-yml-sha512.mjs",
         "release:notes": "node scripts/generate-release-notes.mjs",
         "release:organize-distributables": "node scripts/organize-distributables.mjs",
         "release:publish-version": "node scripts/publish-app-version.mjs",
