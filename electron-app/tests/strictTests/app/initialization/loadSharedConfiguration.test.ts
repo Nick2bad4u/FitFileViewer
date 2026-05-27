@@ -58,7 +58,7 @@ describe("loadSharedConfiguration", () => {
         const { loadSharedConfiguration } =
             await import("../../../../utils/app/initialization/loadSharedConfiguration.js");
 
-        expect(() => loadSharedConfiguration()).not.toThrow();
+        expect(loadSharedConfiguration()).toBeUndefined();
 
         expect(h.setChartSetting).not.toHaveBeenCalled();
         expect(h.setChartFieldVisibility).not.toHaveBeenCalled();
@@ -92,7 +92,7 @@ describe("loadSharedConfiguration", () => {
         const { loadSharedConfiguration } =
             await import("../../../../utils/app/initialization/loadSharedConfiguration.js");
 
-        expect(() => loadSharedConfiguration()).not.toThrow();
+        expect(loadSharedConfiguration()).toBeUndefined();
 
         vi.runAllTimers();
 
@@ -136,7 +136,7 @@ describe("loadSharedConfiguration", () => {
         const { loadSharedConfiguration } =
             await import("../../../../utils/app/initialization/loadSharedConfiguration.js");
 
-        expect(() => loadSharedConfiguration()).not.toThrow();
+        expect(loadSharedConfiguration()).toBeUndefined();
 
         vi.runAllTimers();
 
