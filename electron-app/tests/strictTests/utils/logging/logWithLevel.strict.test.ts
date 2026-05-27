@@ -20,11 +20,7 @@ describe("logWithLevel.strict", () => {
         const cwarn = vi.spyOn(console, "warn").mockImplementation(() => {});
         const cerr = vi.spyOn(console, "error").mockImplementation(() => {});
 
-        let logResult: void;
-        expect(() => {
-            logResult = logWithLevel("log", "hello");
-        }).not.toThrow();
-        expect(logResult).toBeUndefined();
+        expect(logWithLevel("log", "hello")).toBeUndefined();
         expect(clog).toHaveBeenCalledWith(
             expect.stringContaining("[FFV] hello")
         );
@@ -56,11 +52,7 @@ describe("logWithLevel.strict", () => {
             return originalKeys(obj as any) as any;
         }) as any);
 
-        let result: void;
-        expect(() => {
-            result = logWithLevel("info", "boom", ctx);
-        }).not.toThrow();
-        expect(result).toBeUndefined();
+        expect(logWithLevel("info", "boom", ctx)).toBeUndefined();
         expect(baseLog).toHaveBeenCalledWith(
             "[FFV][logWithLevel] Logging failure"
         );
