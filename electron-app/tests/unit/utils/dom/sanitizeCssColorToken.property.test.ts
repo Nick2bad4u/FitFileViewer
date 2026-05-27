@@ -7,22 +7,31 @@ import { describe, expect, it } from "vitest";
 
 import { sanitizeCssColorToken } from "../../../../utils/dom/index.js";
 
+const FALLBACK_COLOR = "#123456";
+const SAFE_COLOR_TOKEN_PATTERN =
+    /^(?:#[\da-f]{3,4}|#[\da-f]{6}(?:[\da-f]{2})?|rgba?\([\d., %]+\)|hsla?\([\d., %]+\)|var\(--[a-z\d_-]{1,64}\)|transparent|currentcolor)$/iu;
+
 describe("sanitizeCssColorToken (property)", () => {
     it("never returns an unsafe token", () => {
         expect(
-            sanitizeCssColorToken('url("javascript:alert(1)")', "#123456")
-        ).toBe("#123456");
+            sanitizeCssColorToken(
+                'url("javascript:alert(1)")',
+                FALLBACK_COLOR
+            )
+        ).toBe(FALLBACK_COLOR);
         expect(
-            sanitizeCssColorToken('url("javascript:alert(1)")', "#123456")
+            sanitizeCssColorToken(
+                'url("javascript:alert(1)")',
+                FALLBACK_COLOR
+            )
         ).not.toBe('url("javascript:alert(1)")');
 
         fc.assert(
             fc.property(fc.string(), (input) => {
-                const out = sanitizeCssColorToken(input, "#123456");
+                const out = sanitizeCssColorToken(input, FALLBACK_COLOR);
 
-                expect(typeof out).toBe("string");
-                expect(out.length).toBeGreaterThan(0);
-                expect(out.length).toBeLessThanOrEqual(128);
+                expect([FALLBACK_COLOR, input.trim()]).toContain(out);
+                expect(out).toMatch(SAFE_COLOR_TOKEN_PATTERN);
 
                 // Must not be able to break out of attribute contexts or inject extra declarations
                 expect(/['"<>;\n\r\0]/u.test(out)).toBe(false);
