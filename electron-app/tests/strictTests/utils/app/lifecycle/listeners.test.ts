@@ -2003,29 +2003,9 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         "error handling: parse error without details (line 105)",
         { timeout: 15000 },
         async () => {
-            // Debug output to check test state
-            console.log(
-                "Test 105 - electronAPI exists:",
-                !!(globalThis as any).electronAPI
-            );
-            console.log(
-                "Test 105 - electronAPI === globalThis.electronAPI:",
-                electronAPI === (globalThis as any).electronAPI
-            );
-            console.log(
-                "Test 105 - electronAPI.recentFiles exists:",
-                !!electronAPI.recentFiles
-            );
-
             // Mock recent files as strings (this test targets recent file click handler)
             const files = ["/path/to/test.fit"];
-            electronAPI.recentFiles = vi.fn().mockResolvedValue(files);
-
-            // Add detailed instrumentation to the mock to trace execution
-            electronAPI.recentFiles = vi.fn().mockImplementation(async () => {
-                console.log("Test 105 - recentFiles() called");
-                return files;
-            });
+            electronAPI.recentFiles = vi.fn(async () => files);
 
             electronAPI.readFile = vi
                 .fn()
@@ -2034,15 +2014,6 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
                 error: "Parse error",
                 // No details property
             });
-
-            console.log(
-                "Test 105 - After mock setup, electronAPI.recentFiles exists:",
-                !!electronAPI.recentFiles
-            );
-            console.log(
-                "Test 105 - globalThis.electronAPI.recentFiles exists:",
-                !!(globalThis as any).electronAPI?.recentFiles
-            );
 
             setupListeners({
                 openFileBtn,
@@ -2054,16 +2025,6 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
                 showAboutModal,
             });
 
-            // Check for menu immediately
-            console.log(
-                "Test 105 - Menu exists immediately:",
-                !!document.querySelector("#recent-files-menu")
-            );
-            console.log(
-                "Test 105 - Document body children count:",
-                document.body.children.length
-            );
-
             // Right-click to open context menu
             const contextEvent = new MouseEvent("contextmenu", {
                 bubbles: true,
@@ -2073,29 +2034,19 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             });
             openFileBtn.dispatchEvent(contextEvent);
 
-            // Check for menu immediately after event
-            console.log(
-                "Test 105 - Menu exists immediately after event:",
-                !!document.querySelector("#recent-files-menu")
-            );
-            console.log(
-                "Test 105 - Document body children count after event:",
-                document.body.children.length
-            );
-
             // Wait for the async recentFiles call to complete and menu to be created
             await vi.waitFor(
                 () => {
-                    const contextMenu =
-                        document.querySelector("#recent-files-menu");
-                    console.log("Test 105 - Menu found:", !!contextMenu);
+                    const contextMenu = document.getElementById(
+                        "recent-files-menu"
+                    );
                     return contextMenu !== null;
                 },
                 { timeout: 15000, interval: 100 }
             );
 
-            const contextMenu = document.querySelector("#recent-files-menu");
-            expect(contextMenu).toBeTruthy();
+            const contextMenu = document.getElementById("recent-files-menu");
+            expect(contextMenu).toBeInstanceOf(HTMLDivElement);
 
             // Mock error result without details
             vi.mocked(electronAPI.readFile).mockResolvedValue(
@@ -2107,10 +2058,14 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             });
 
             // Click the menu item to trigger the error path
-            const menu = document.querySelector("#recent-files-menu");
+            const menu = document.getElementById("recent-files-menu");
             const menuItem = menu?.querySelector(
                 "div[role='menuitem']"
-            ) as HTMLDivElement;
+            );
+            expect(menuItem).toBeInstanceOf(HTMLDivElement);
+            if (!(menuItem instanceof HTMLDivElement)) {
+                throw new TypeError("Expected recent file menu item.");
+            }
             menuItem.click();
 
             await vi.waitFor(() => {
@@ -2158,15 +2113,14 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             // Wait for the async recentFiles call to complete and menu to be created
             await vi.waitFor(
                 () => {
-                    const menu = document.querySelector("#recent-files-menu");
-                    console.log("Test 181-182 - Menu found:", !!menu);
+                    const menu = document.getElementById("recent-files-menu");
                     return menu !== null;
                 },
                 { timeout: 15000, interval: 100 }
             );
 
-            const menu = document.querySelector("#recent-files-menu");
-            expect(menu).toBeTruthy();
+            const menu = document.getElementById("recent-files-menu");
+            expect(menu).toBeInstanceOf(HTMLDivElement);
 
             // Trigger mousedown to cleanup
             const mousedownEvent = new MouseEvent("mousedown", {
@@ -2176,8 +2130,8 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             document.dispatchEvent(mousedownEvent);
 
             // Menu should be removed
-            const removedMenu = document.querySelector("#recent-files-menu");
-            expect(removedMenu).toBeFalsy();
+            const removedMenu = document.getElementById("recent-files-menu");
+            expect(removedMenu).toBeNull();
 
             // Explicit cleanup to ensure no DOM pollution for subsequent tests
             if (removedMenu) {
@@ -2216,25 +2170,27 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             // Wait for the async recentFiles call to complete and menu to be created
             await vi.waitFor(
                 () => {
-                    const menu = document.querySelector("#recent-files-menu");
-                    console.log("Test 200-201 - Menu found:", !!menu);
+                    const menu = document.getElementById("recent-files-menu");
                     return menu !== null;
                 },
                 { timeout: 15000, interval: 100 }
             );
 
             // Find the menu item (first child div of the menu)
-            const menu = document.querySelector("#recent-files-menu");
-            expect(menu).toBeTruthy();
+            const menu = document.getElementById("recent-files-menu");
+            expect(menu).toBeInstanceOf(HTMLDivElement);
             const menuItem = menu?.querySelector("div[role='menuitem']");
-            expect(menuItem).toBeTruthy();
+            expect(menuItem).toBeInstanceOf(HTMLDivElement);
+            if (!(menuItem instanceof HTMLDivElement)) {
+                throw new TypeError("Expected recent file menu item.");
+            }
 
             // Set a mock onclick function to test the original onclick call path
             const mockOnclick = vi.fn();
-            (menuItem as any).onclick = mockOnclick;
+            menuItem.onclick = mockOnclick;
 
             // Click the menu item
-            menuItem!.dispatchEvent(
+            menuItem.dispatchEvent(
                 new MouseEvent("click", {
                     bubbles: true,
                     cancelable: true,
