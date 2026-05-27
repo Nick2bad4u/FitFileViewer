@@ -262,7 +262,7 @@ describe("renderLapZoneChart", () => {
         expect(chartConfig.data.datasets[1].data).toEqual([180, 240]);
 
         // Check theme configuration
-        expect(getThemeConfig).toHaveBeenCalled();
+        expect(getThemeConfig).toHaveBeenCalledOnce();
         expect(chartConfig.options.plugins.title.text).toBe(
             "Heart Rate Zones by Lap"
         );
