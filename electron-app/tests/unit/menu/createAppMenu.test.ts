@@ -1011,8 +1011,18 @@ describe("createAppMenu - additional robust branches", () => {
         if (shellSpy && typeof shellSpy.mockReset === "function")
             shellSpy.mockReset();
         else (globalThis as any).__electronShellOpenSpy = vi.fn();
+        const shellShowSpy = (globalThis as any).__electronShellShowSpy;
+        if (shellShowSpy && typeof shellShowSpy.mockReset === "function")
+            shellShowSpy.mockReset();
+        else (globalThis as any).__electronShellShowSpy = vi.fn();
+        const clipboardSpy = (globalThis as any).__electronClipboardWriteSpy;
+        if (clipboardSpy && typeof clipboardSpy.mockReset === "function")
+            clipboardSpy.mockReset();
+        else (globalThis as any).__electronClipboardWriteSpy = vi.fn();
         (globalThis as any).__ipcCalls = [];
         (globalThis as any).__shellOpenCalls = [];
+        (globalThis as any).__shellRevealCalls = [];
+        (globalThis as any).__clipboardWrites = [];
         (globalThis as any).__mockRecentFiles = [
             "C:/Users/Test/Documents/activity1.fit",
             "C:/Users/Test/Documents/activity2.fit",
@@ -1049,6 +1059,25 @@ describe("createAppMenu - additional robust branches", () => {
                     (globalThis as any).__shellOpenCalls = calls;
                     const fn =
                         (globalThis as any).__electronShellOpenSpy || vi.fn();
+                    return fn(...args);
+                },
+                showItemInFolder: (...args: any[]) => {
+                    const calls = (globalThis as any).__shellRevealCalls || [];
+                    calls.push(args);
+                    (globalThis as any).__shellRevealCalls = calls;
+                    const fn =
+                        (globalThis as any).__electronShellShowSpy || vi.fn();
+                    return fn(...args);
+                },
+            },
+            clipboard: {
+                writeText: (...args: any[]) => {
+                    const calls = (globalThis as any).__clipboardWrites || [];
+                    calls.push(args);
+                    (globalThis as any).__clipboardWrites = calls;
+                    const fn =
+                        (globalThis as any).__electronClipboardWriteSpy ||
+                        vi.fn();
                     return fn(...args);
                 },
             },
@@ -1465,21 +1494,31 @@ describe("createAppMenu - additional robust branches", () => {
         expect(clickableLabels).toContain("❓ Help");
         expect(clickableLabels).toContain("⌨️ Keyboard Shortcuts");
 
-        // Exercise each item's click handler
-        for (const item of clickableItems) {
-            const { click } = item;
-            if (typeof click !== "function") {
-                continue;
+        const handlerFailures: Array<{ error: unknown; label: unknown }> = [];
+        const consoleErrorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
+        try {
+            // Exercise each item's click handler with the menu item argument Electron supplies.
+            for (const item of clickableItems) {
+                const { click } = item;
+                if (typeof click !== "function") {
+                    continue;
+                }
+                const menuItemArgument = {
+                    ...item,
+                    checked: item.checked ?? true,
+                };
+                try {
+                    click(menuItemArgument);
+                } catch (error) {
+                    handlerFailures.push({ error, label: item.label });
+                }
             }
-            // Wrap in a try/catch to ensure one failing handler doesn't prevent others from being tested
-            try {
-                click();
-            } catch (e) {
-                console.error(
-                    `Error executing click handler for ${item.label}:`,
-                    e
-                );
-            }
+            expect(handlerFailures).toStrictEqual([]);
+            expect(consoleErrorSpy).not.toHaveBeenCalled();
+        } finally {
+            consoleErrorSpy.mockRestore();
         }
     });
 });
