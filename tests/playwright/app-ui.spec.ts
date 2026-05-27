@@ -53,9 +53,7 @@ function isIgnorableFailedRequest(url: string, errorText: string): boolean {
 }
 
 function formatCollectedEntries(entries: readonly string[]): string {
-    return entries
-        .map((entry, index) => `${index + 1}. ${entry}`)
-        .join("\n");
+    return entries.map((entry, index) => `${index + 1}. ${entry}`).join("\n");
 }
 
 function expectNoCollectedEntries(
@@ -322,33 +320,41 @@ test.describe("FitFileViewer Electron UI", () => {
                 document.querySelectorAll(".leaflet-control-layers label"),
                 (element) => element.textContent?.trim() ?? ""
             );
-
-            return {
-                hasLeafletControlLayers:
+            const runtimeFeatureChecks = {
+                "Leaflet control layers":
                     typeof globalWindow.L?.control?.layers === "function",
-                hasLeafletMap: typeof globalWindow.L?.map === "function",
-                hasMapLibreGlobal:
+                "Leaflet map factory":
+                    typeof globalWindow.L?.map === "function",
+                "MapLibre global":
                     typeof globalWindow.maplibregl === "object" ||
                     typeof globalWindow.maplibregl === "function",
-                hasMapLibreLeaflet:
+                "MapLibre Leaflet bridge":
                     typeof globalWindow.L?.maplibreGL === "function",
+            };
+
+            return {
                 layerLabels,
+                missingRuntimeFeatures: Object.entries(runtimeFeatureChecks)
+                    .filter(([, available]) => !available)
+                    .map(([name]) => name),
+                openFreeMapLabels: layerLabels.filter((label) =>
+                    label.startsWith("Open Free Map ")
+                ),
                 routeElementCount: document.querySelectorAll(
                     ".leaflet-marker-icon, .leaflet-interactive"
                 ).length,
             };
         });
 
-        expect(mapRuntime.hasLeafletControlLayers).toBe(true);
-        expect(mapRuntime.hasLeafletMap).toBe(true);
-        expect(mapRuntime.hasMapLibreGlobal).toBe(true);
-        expect(mapRuntime.hasMapLibreLeaflet).toBe(true);
+        expect(mapRuntime.missingRuntimeFeatures).toStrictEqual([]);
         expect(mapRuntime.layerLabels).toHaveLength(33);
-        expect(
-            mapRuntime.layerLabels.some((label) =>
-                label.toLowerCase().includes("open free map")
-            )
-        ).toBe(true);
+        expect(mapRuntime.openFreeMapLabels).toEqual([
+            "Open Free Map Bright",
+            "Open Free Map Dark",
+            "Open Free Map Fiord",
+            "Open Free Map Liberty",
+            "Open Free Map Positron",
+        ]);
         expect(mapRuntime.routeElementCount).toBe(58);
 
         const gpxExport = await page.evaluate(async () => {
