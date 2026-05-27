@@ -86,6 +86,10 @@ and should stay in `devDependencies`.
 | Types                    | `@types/hammerjs`, `@types/jquery`, `@types/jsdom`, `@types/leaflet`, `@types/leaflet-draw`, `@types/leaflet.markercluster`, `@types/node`                                                                                   |
 | Release/dependency tools | `git-cliff`, `npm-check-updates`                                                                                                                                                                                             |
 
+`@vitest/ui` is intentionally retained for the local Vitest UI and VS Code
+Vitest extension workflow even though it is not imported by application source
+or invoked by the regular CI test scripts.
+
 ## Vendored Asset Groups
 
 ### Package-Sourced Assets
