@@ -204,7 +204,7 @@ describe("error handling utilities", () => {
         });
 
         it("collects boolean, object, and thrown validation failures", () => {
-            expect.assertions(4);
+            expect.assertions(3);
 
             const result = validateInput(
                 Number.NaN,
@@ -220,11 +220,12 @@ describe("error handling utilities", () => {
             );
 
             expect(result.isValid).toBe(false);
-            expect(result.errors).not.toStrictEqual([]);
-            expect(result.errors).toContain("speed must be a finite number");
-            expect(result.errors).toContain(
-                "Validation error for speed: custom check failed"
-            );
+            expect(result.errors).toStrictEqual([
+                "speed must be a finite number",
+                "Invalid speed",
+                "Validation error for speed: custom check failed",
+            ]);
+            expect(result.errors).not.toContain("speed is required");
         });
     });
 

@@ -555,8 +555,8 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             renderEventMessagesChart(container, {}, new Date());
 
             expect(container.children.length).toBe(1);
-            expect(container.children.length).not.toBe(0);
             expect(container.children[0].tagName).toBe("CANVAS");
+            expect(container.children[0]).not.toBeInstanceOf(HTMLDivElement);
         });
 
         test("should apply theme-based canvas styling", () => {
