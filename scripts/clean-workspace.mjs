@@ -7,6 +7,8 @@ import {
     appWorkspaceRelativePath,
     docusaurusWorkspaceRelativePath,
     repositoryRoot,
+    rootArtifactsPath,
+    rootReleaseDistPath,
 } from "./lib/workspaces.mjs";
 
 export const cleanupTargets = [
@@ -37,13 +39,13 @@ export const cleanupTargets = [
     ),
     "FitFileViewer.flatpak",
     "FitFileViewer.flatpak.zip",
-    "artifacts",
+    rootArtifactsPath,
     "flatpak-build-dir",
     "flatpak-repo",
     "coverage",
     "html",
     "playwright-report",
-    "release-dist",
+    rootReleaseDistPath,
     "test-results",
     appWorkspaceRelativePath("coverage"),
     appWorkspaceRelativePath("dist"),

@@ -3,8 +3,9 @@ import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
-export const defaultSquirrelWin32Directory = path.join(
-    "release-dist",
+import { rootReleaseDistRelativePath } from "./lib/workspaces.mjs";
+
+export const defaultSquirrelWin32Directory = rootReleaseDistRelativePath(
     "windows-latest-ia32",
     "squirrel-windows-ia32"
 );

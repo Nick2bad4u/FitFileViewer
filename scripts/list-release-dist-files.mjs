@@ -3,7 +3,9 @@ import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
-export const defaultReleaseDistDirectory = "release-dist";
+import { rootReleaseDistPath } from "./lib/workspaces.mjs";
+
+export const defaultReleaseDistDirectory = rootReleaseDistPath;
 
 if (
     process.argv[1] &&

@@ -5,6 +5,8 @@ import { fileURLToPath } from "node:url";
 export const repositoryRoot = resolveRepositoryRoot();
 export const appWorkspaceName = "electron-app";
 export const docusaurusWorkspaceName = "docusaurus";
+export const rootArtifactsPath = "artifacts";
+export const rootReleaseDistPath = "release-dist";
 export const appWorkspacePath = path.join(repositoryRoot, appWorkspaceName);
 export const docusaurusWorkspacePath = path.join(
     repositoryRoot,
@@ -52,6 +54,10 @@ export function repositoryScriptPath(...segments) {
 
 export function repositoryPath(...segments) {
     return path.join(repositoryRoot, ...segments);
+}
+
+export function rootReleaseDistRelativePath(...segments) {
+    return path.join(rootReleaseDistPath, ...segments);
 }
 
 function resolveRepositoryRoot() {

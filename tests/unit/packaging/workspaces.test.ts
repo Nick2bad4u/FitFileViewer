@@ -23,6 +23,9 @@ type WorkspacesModule = {
     repositoryRoot: string;
     repositoryPath: (...segments: string[]) => string;
     repositoryScriptPath: (...segments: string[]) => string;
+    rootArtifactsPath: string;
+    rootReleaseDistPath: string;
+    rootReleaseDistRelativePath: (...segments: string[]) => string;
     scriptsPath: string;
 };
 
@@ -32,7 +35,7 @@ async function importWorkspaces(): Promise<WorkspacesModule> {
 
 describe("workspace path helpers", () => {
     it("centralizes the app workspace root and generated output paths", async () => {
-        expect.assertions(17);
+        expect.assertions(20);
 
         const workspaces = await importWorkspaces();
 
@@ -78,6 +81,20 @@ describe("workspace path helpers", () => {
         );
         expect(workspaces.repositoryPath("flatpak-build.yml")).toBe(
             path.join(process.cwd(), "flatpak-build.yml")
+        );
+        expect(workspaces.rootArtifactsPath).toBe("artifacts");
+        expect(workspaces.rootReleaseDistPath).toBe("release-dist");
+        expect(
+            workspaces.rootReleaseDistRelativePath(
+                "windows-latest-ia32",
+                "squirrel-windows-ia32"
+            )
+        ).toBe(
+            path.join(
+                "release-dist",
+                "windows-latest-ia32",
+                "squirrel-windows-ia32"
+            )
         );
     });
 

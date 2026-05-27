@@ -3,7 +3,9 @@ import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
-export const defaultArtifactsDirectory = "artifacts";
+import { rootArtifactsPath } from "./lib/workspaces.mjs";
+
+export const defaultArtifactsDirectory = rootArtifactsPath;
 export const renameRules = [
     {
         from: path.join("dist-windows-latest-ia32", "latest.yml"),
