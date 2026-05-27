@@ -20,7 +20,6 @@ const config = [
             "coverage/**",
             "dist/**",
             "**/main.js",
-            "**/tests/jsdomSetup.js",
             "**/*.css",
             "ffv/**",
             "fitParser.js",
