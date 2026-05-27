@@ -6,7 +6,7 @@ import {
     showNotification,
 } from "../../../utils/ui/notifications/showNotification.js";
 
-describe("showNotification.js - error handling", () => {
+describe("showNotification display failure handling", () => {
     const originalError = console.error;
     const originalWarn = console.warn;
 

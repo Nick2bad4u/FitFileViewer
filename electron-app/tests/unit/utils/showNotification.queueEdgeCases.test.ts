@@ -12,7 +12,7 @@ import * as notificationModule from "../../../utils/ui/notifications/showNotific
 const { notificationQueue, isShowingNotification, processNotificationQueue } =
     await import("../../../utils/ui/notifications/showNotification.js");
 
-describe("showNotification.js - extended coverage", () => {
+describe("showNotification queue edge cases", () => {
     const originalWarn = console.warn;
     const originalError = console.error;
     const originalRAF = window.requestAnimationFrame;
