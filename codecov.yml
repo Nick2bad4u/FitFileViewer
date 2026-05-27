@@ -50,8 +50,9 @@ component_management:
           paths:
               - electron-app/renderer.js
               - electron-app/main-ui.js
-              - electron-app/index.html
-              - electron-app/style.css
+              - static/app/index.html
+              - static/app/style.css
+              - static/app/elevProfile.css
           statuses:
               - target: 80%
                 threshold: 3%
