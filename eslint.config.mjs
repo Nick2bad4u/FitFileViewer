@@ -283,6 +283,26 @@ const config = [
         },
     },
     {
+        files: ["tests/unit/**/*.{spec,test}.{js,ts}"],
+        linterOptions: {
+            reportUnusedDisableDirectives: "off",
+        },
+        rules: {
+            "vitest/no-hooks": "off",
+            "vitest/padding-around-after-each-blocks": "off",
+            "vitest/padding-around-all": "off",
+            "vitest/padding-around-before-each-blocks": "off",
+            "vitest/padding-around-describe-blocks": "off",
+            "vitest/padding-around-expect-groups": "off",
+            "vitest/padding-around-test-blocks": "off",
+            "vitest/prefer-strict-equal": "off",
+            "vitest/prefer-to-be": "off",
+            "vitest/prefer-to-be-falsy": "off",
+            "vitest/prefer-to-be-truthy": "off",
+            "vitest/require-top-level-describe": "off",
+        },
+    },
+    {
         files: ["tests/playwright/**/*.ts"],
         languageOptions: {
             globals: globals.node,
