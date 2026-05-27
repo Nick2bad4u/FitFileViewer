@@ -758,8 +758,8 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             expect(tooltip.titleColor).toBe("#000000");
             expect(tooltip.bodyColor).toBe("#000000");
             expect(tooltip.borderColor).toBe("#cccccc");
+            expect(tooltip.borderColor).not.toBe(tooltip.backgroundColor);
             expect(tooltip.borderWidth).toBe(1);
-            expect(tooltip.borderWidth).not.toBe(0);
         });
 
         it("should format tooltip title correctly", () => {

@@ -141,10 +141,10 @@ describe("renderChartJS.js state API", () => {
             updatePreviousChartState(chartCount, visibleFields, timestamp);
 
             expect(previousChartState.chartCount).toBe(chartCount);
-            expect(previousChartState.chartCount).not.toBe(0);
             expect(previousChartState.fieldsRendered).toHaveLength(
                 visibleFields
             );
+            expect(previousChartState.fieldsRendered).not.toContain(false);
             expect(previousChartState.lastRenderTimestamp).toBe(timestamp);
         });
 
