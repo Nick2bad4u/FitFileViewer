@@ -49,8 +49,7 @@ type ChartRenderMock = Mock<
 
 const getThemeConfigMock = getThemeConfig as unknown as ThemeConfigMock;
 const getZoneColorMock = getZoneColor as unknown as GetZoneColorMock;
-const renderLapZoneChartMock =
-    renderLapZoneChart as unknown as ChartRenderMock;
+const renderLapZoneChartMock = renderLapZoneChart as unknown as ChartRenderMock;
 const renderSingleHRZoneBarMock =
     renderSingleHRZoneBar as unknown as ChartRenderMock;
 const renderSinglePowerZoneBarMock =
@@ -101,21 +100,23 @@ describe("renderLapZoneCharts", () => {
 
     describe("Parameter Validation", () => {
         it("should handle null container gracefully", () => {
-            expect(() => renderLapZoneCharts(null)).not.toThrow();
+            expect(renderLapZoneCharts(null)).toBeUndefined();
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] renderLapZoneCharts called"
             );
             expect(container.querySelectorAll("canvas")).toHaveLength(0);
             expect(window._chartjsInstances).toEqual([]);
+            expect(mockShowNotification).not.toHaveBeenCalled();
         });
 
         it("should handle undefined container gracefully", () => {
-            expect(() => renderLapZoneCharts(undefined)).not.toThrow();
+            expect(renderLapZoneCharts(undefined)).toBeUndefined();
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] renderLapZoneCharts called"
             );
             expect(container.querySelectorAll("canvas")).toHaveLength(0);
             expect(window._chartjsInstances).toEqual([]);
+            expect(mockShowNotification).not.toHaveBeenCalled();
         });
 
         it("should accept valid container", () => {
@@ -809,12 +810,13 @@ describe("renderLapZoneCharts", () => {
                 },
             ];
 
-            // Should not throw
-            expect(() => renderLapZoneCharts(container)).not.toThrow();
+            expect(renderLapZoneCharts(container)).toBeUndefined();
             expect(mockConsoleError).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering lap zone charts:",
                 expect.any(Error)
             );
+            expect(container.querySelectorAll("canvas")).toHaveLength(0);
+            expect(window._chartjsInstances).toEqual([]);
         });
     });
 
