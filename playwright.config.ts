@@ -4,7 +4,7 @@ export default defineConfig({
     forbidOnly: false,
     fullyParallel: false,
     reporter: [["list"]],
-    testDir: "./electron-app/tests/playwright",
+    testDir: "./tests/playwright",
     timeout: 60_000,
     use: {
         trace: "retain-on-failure",

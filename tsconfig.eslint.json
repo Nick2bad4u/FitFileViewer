@@ -23,6 +23,7 @@
         "*.mjs",
         "*.ts",
         ".github/**/*.js",
+        "tests/**/*.ts",
         "utils/**/*.js"
     ]
 }

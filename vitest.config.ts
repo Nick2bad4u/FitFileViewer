@@ -141,7 +141,7 @@ export default defineConfig({
         },
         exclude: [
             "**/node_modules/**",
-            "tests/playwright/**",
+            "../tests/playwright/**",
             // Exclude any compiled artifacts accidentally picked up
             "dist/**",
             "**/dist/**",

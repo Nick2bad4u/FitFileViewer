@@ -3,8 +3,8 @@ import type { ElectronApplication, Page } from "@playwright/test";
 import fs from "node:fs";
 import path from "node:path";
 
-const appRoot = path.resolve(__dirname, "../..");
-const repositoryRoot = path.resolve(appRoot, "..");
+const repositoryRoot = path.resolve(__dirname, "../..");
+const appRoot = path.join(repositoryRoot, "electron-app");
 const sampleFitPath = path.join(
     repositoryRoot,
     "fit-test-files",

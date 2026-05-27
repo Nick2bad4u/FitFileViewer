@@ -284,6 +284,24 @@ const config = [
         },
     },
     {
+        files: ["tests/playwright/**/*.ts"],
+        languageOptions: {
+            globals: globals.node,
+            parserOptions: {
+                project: ["./tsconfig.eslint.json"],
+            },
+        },
+        rules: {
+            "@typescript-eslint/strict-void-return": "off",
+            "testing-library/prefer-screen-queries": "off",
+            "vitest/consistent-test-filename": "off",
+            "vitest/padding-around-all": "off",
+            "vitest/padding-around-expect-groups": "off",
+            "vitest/prefer-importing-vitest-globals": "off",
+            "vitest/unbound-method": "off",
+        },
+    },
+    {
         files: ["electron-builder.config.cjs"],
         languageOptions: {
             globals: globals.node,
