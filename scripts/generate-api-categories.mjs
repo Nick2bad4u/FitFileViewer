@@ -1,11 +1,11 @@
 import { readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import process from "node:process";
+import { pathToFileURL } from "node:url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { docusaurusWorkspaceAbsolutePath } from "./lib/workspaces.mjs";
 
-const apiDir = path.resolve(__dirname, "../docusaurus/docs/api");
+export const apiDir = docusaurusWorkspaceAbsolutePath("docs", "api");
 
 /**
  * Optional explicit label overrides for specific API module directories. Falls
@@ -35,7 +35,7 @@ const LABEL_OVERRIDES = new Map([
  *
  * @returns {string}
  */
-function prettifyLabel(dirName) {
+export function prettifyLabel(dirName) {
     const override = LABEL_OVERRIDES.get(dirName);
     if (override) {
         return override;
@@ -65,7 +65,7 @@ function prettifyLabel(dirName) {
  *
  * @returns {Promise<void>}
  */
-async function generateCategoryFile(dirPath, label) {
+export async function generateCategoryFile(dirPath, label) {
     const filePath = path.join(dirPath, "_category_.json");
     const data = {
         label,
@@ -74,28 +74,33 @@ async function generateCategoryFile(dirPath, label) {
     await writeFile(filePath, `${JSON.stringify(data, null, 2)}\n`, "utf8");
 }
 
-async function main() {
+export async function generateApiCategories(directory = apiDir) {
     // Root category for the generated API docs
-    await generateCategoryFile(apiDir, "Generated API Docs");
+    await generateCategoryFile(directory, "Generated API Docs");
 
-    const entries = await readdir(apiDir, { withFileTypes: true });
+    const entries = await readdir(directory, { withFileTypes: true });
     const directories = entries.filter((entry) => entry.isDirectory());
 
     await Promise.all(
         directories.map(async (entry) => {
             const dirName = entry.name; // e.g. "fitParser", "main", "ui"
-            const dirPath = path.join(apiDir, dirName);
+            const dirPath = path.join(directory, dirName);
             const label = prettifyLabel(dirName);
             await generateCategoryFile(dirPath, label);
         })
     );
 }
 
-main().catch((error) => {
-    // Log but do not hard-crash the build; sidebar labels falling back to
-    // defaults is better than failing the entire docs build.
-    console.error(
-        "[generate-api-categories] Failed to generate category files:",
-        error
-    );
-});
+if (
+    process.argv[1] &&
+    import.meta.url === pathToFileURL(process.argv[1]).href
+) {
+    generateApiCategories().catch((error) => {
+        // Log but do not hard-crash the build; sidebar labels falling back to
+        // defaults is better than failing the entire docs build.
+        console.error(
+            "[generate-api-categories] Failed to generate category files:",
+            error
+        );
+    });
+}

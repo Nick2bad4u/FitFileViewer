@@ -1,29 +1,56 @@
 import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import process from "node:process";
-import { fileURLToPath } from "node:url";
+import { pathToFileURL } from "node:url";
 
-const docusaurusRoot = fileURLToPath(new URL("../docusaurus", import.meta.url));
+import {
+    docusaurusWorkspaceRepositoryPath,
+    repositoryRoot,
+} from "./lib/workspaces.mjs";
+
 const require = createRequire(import.meta.url);
 const markdownlintCliPath = require.resolve("markdownlint-cli2");
 
-const markdownlintArgs = [
-    markdownlintCliPath,
-    "docs/**/*.{md,mdx}",
-    "!docs/api/**/*.md",
-    "blog/**/*.{md,mdx}",
-    "src/**/*.{md,mdx}",
-    "--config",
-    "../.markdownlint.json",
+export const markdownlintTargets = [
+    docusaurusWorkspaceRepositoryPath("docs/**/*.{md,mdx}"),
+    `!${docusaurusWorkspaceRepositoryPath("docs/api/**/*.md")}`,
+    docusaurusWorkspaceRepositoryPath("blog/**/*.{md,mdx}"),
+    docusaurusWorkspaceRepositoryPath("src/**/*.{md,mdx}"),
 ];
 
-const result = spawnSync(process.execPath, markdownlintArgs, {
-    cwd: docusaurusRoot,
-    stdio: "inherit",
-});
-
-if (result.error) {
-    throw result.error;
+export function buildMarkdownlintArgs(argv = process.argv.slice(2)) {
+    return [
+        markdownlintCliPath,
+        ...markdownlintTargets,
+        "--config",
+        ".markdownlint.json",
+        ...argv,
+    ];
 }
 
-process.exitCode = result.status ?? 1;
+export function runLintDocusaurusContent(
+    argv = process.argv.slice(2),
+    commandRunner = spawnSync
+) {
+    const result = commandRunner(
+        process.execPath,
+        buildMarkdownlintArgs(argv),
+        {
+            cwd: repositoryRoot,
+            stdio: "inherit",
+        }
+    );
+
+    if (result.error) {
+        throw result.error;
+    }
+
+    return result.status ?? 1;
+}
+
+if (
+    process.argv[1] &&
+    import.meta.url === pathToFileURL(process.argv[1]).href
+) {
+    process.exitCode = runLintDocusaurusContent();
+}
