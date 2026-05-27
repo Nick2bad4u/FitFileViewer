@@ -475,7 +475,7 @@ function getSentUpdateChannels(): string[] {
 
 describe("main.js entrypoint behavior", () => {
     it("wires startup, IPC, updater, and renderer events through the real entry point", async () => {
-        expect.hasAssertions();
+        expect.assertions(13);
 
         resetHarness();
 
@@ -527,7 +527,7 @@ describe("main.js entrypoint behavior", () => {
     });
 
     it("covers platform startup and rejects unusable windows without throwing", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         resetHarness();
 
