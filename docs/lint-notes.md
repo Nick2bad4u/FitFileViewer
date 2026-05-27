@@ -9,7 +9,6 @@ across the workspace:
   linting.
 - `npm run lint:root` lints root-level code (excluding `electron-app` and
   `docusaurus`) using the Electron ESLint config.
-- `npm run lint:root:check` runs the same root lint pass without auto-fixes.
 
 ## Docusaurus lint scripts
 
