@@ -58,6 +58,7 @@ const prettierOptions = [
 ];
 
 const mode = process.argv[2] ?? "--check";
+const explicitTargets = process.argv.slice(3);
 
 if (!new Set(["--check", "--write"]).has(mode)) {
     throw new Error(
@@ -69,7 +70,7 @@ const result = spawnSync(
     process.execPath,
     [
         prettierCliPath,
-        ...prettierTargets,
+        ...(explicitTargets.length > 0 ? explicitTargets : prettierTargets),
         ...prettierOptions,
         mode,
     ],
