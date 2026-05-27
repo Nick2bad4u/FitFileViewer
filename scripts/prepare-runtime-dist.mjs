@@ -19,7 +19,9 @@ function assertInsideElectronApp(targetPath) {
         relativePath.startsWith("..") ||
         path.isAbsolute(relativePath)
     ) {
-        throw new Error(`Refusing to operate outside electron-app: ${targetPath}`);
+        throw new Error(
+            `Refusing to operate outside electron-app: ${targetPath}`
+        );
     }
 }
 

@@ -16,7 +16,9 @@ function assertInsideElectronApp(targetPath) {
         relativePath.startsWith("..") ||
         path.isAbsolute(relativePath)
     ) {
-        throw new Error(`Refusing to remove outside electron-app: ${targetPath}`);
+        throw new Error(
+            `Refusing to remove outside electron-app: ${targetPath}`
+        );
     }
 }
 

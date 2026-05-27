@@ -246,7 +246,12 @@ async function findCoveragePath() {
             : path.join(explicitCoverageDirectory, COVERAGE_FILE_NAME),
         path.join(os.tmpdir(), "ffv-vitest-coverage", COVERAGE_FILE_NAME),
         path.join(repositoryRoot, "coverage", COVERAGE_FILE_NAME),
-        path.join(repositoryRoot, "electron-app", "coverage", COVERAGE_FILE_NAME),
+        path.join(
+            repositoryRoot,
+            "electron-app",
+            "coverage",
+            COVERAGE_FILE_NAME
+        ),
     ].filter((candidatePath) => candidatePath !== undefined);
 
     const results = await Promise.all(
