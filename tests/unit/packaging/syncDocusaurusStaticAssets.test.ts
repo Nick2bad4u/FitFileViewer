@@ -44,7 +44,7 @@ describe("sync-docusaurus-static-assets script", () => {
             {
                 source: path.join(
                     temporaryRoot,
-                    "electron-app",
+                    "static",
                     "icons",
                     "favicon.ico"
                 ),
@@ -79,7 +79,7 @@ describe("sync-docusaurus-static-assets script", () => {
 
         writePlaceholder(
             temporaryRoot,
-            path.join("electron-app", "icons", "favicon.ico")
+            path.join("static", "icons", "favicon.ico")
         );
 
         for (const screenshotName of screenshotNames) {
@@ -98,7 +98,7 @@ describe("sync-docusaurus-static-assets script", () => {
                 path.join(temporaryRoot, "docusaurus", "static", "favicon.ico"),
                 "utf8"
             )
-        ).toBe(path.join("electron-app", "icons", "favicon.ico"));
+        ).toBe(path.join("static", "icons", "favicon.ico"));
 
         for (const screenshotName of screenshotNames) {
             expect(
@@ -124,7 +124,7 @@ describe("sync-docusaurus-static-assets script", () => {
 
         writePlaceholder(
             temporaryRoot,
-            path.join("electron-app", "icons", "favicon.ico")
+            path.join("static", "icons", "favicon.ico")
         );
 
         expect(() => syncDocusaurusStaticAssets(temporaryRoot, logger)).toThrow(

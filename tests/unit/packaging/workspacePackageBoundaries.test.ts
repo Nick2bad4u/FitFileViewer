@@ -8,7 +8,9 @@ import { appPackageRepositoryPath } from "../../../scripts/lib/workspaces.mjs";
 type PackageJson = {
     dependencies?: Record<string, string>;
     devDependencies?: Record<string, string>;
+    exports?: Record<string, string>;
     files?: string[];
+    icon?: string;
     scripts?: Record<string, string>;
     workspaces?: string[];
 };
@@ -52,7 +54,7 @@ describe("workspace package boundaries", () => {
     });
 
     it("keeps the Electron app package limited to runtime publish metadata", () => {
-        expect.assertions(6);
+        expect.assertions(8);
 
         const appPackage = readPackageJson(appPackageRepositoryPath);
 
@@ -69,13 +71,11 @@ describe("workspace package boundaries", () => {
         );
         expect(appPackage.files).toStrictEqual([
             "dist/",
-            "elevProfile.css",
             "global.d.ts",
-            "icons/",
-            "index.html",
             "package.json",
-            "style.css",
         ]);
+        expect(appPackage.exports?.["./index.html"]).toBe("./dist/index.html");
+        expect(appPackage.icon).toBe("dist/icons/favicon.ico");
         expect(appPackage.files).not.toContain("vendor/");
         expect(appPackage.files).not.toContain("node_modules/");
     });

@@ -352,8 +352,8 @@ npm run build
 
 This project uses the following libraries and tools:
 
-- [**FitFileViewer.com**](https://www.FitFileViewer.com/) [![FitFileViewer.com logo](electron-app/icons/harry.png)](https://www.FitFileViewer.com/)
-- [**HarryOnline**](https://www.harryonline.net/) [![HarryOnline logo](electron-app/icons/harry.png)](https://www.harryonline.net/)
+- [**FitFileViewer.com**](https://www.FitFileViewer.com/) [![FitFileViewer.com logo](static/icons/harry.png)](https://www.FitFileViewer.com/)
+- [**HarryOnline**](https://www.harryonline.net/) [![HarryOnline logo](static/icons/harry.png)](https://www.harryonline.net/)
 - [Garmin FIT JavaScript SDK](https://github.com/garmin/fit-javascript-sdk) ([FIT Protocol License Agreement](https://developer.garmin.com/fit/download/)) ⌚
 - [Leaflet.js](https://leafletjs.com) ([BSD-2-Clause License](https://github.com/Leaflet/Leaflet/blob/main/LICENSE)) 🗺️
 - [Vega-Lite](https://vega.github.io/vega-lite/) ([BSD-3-Clause License](https://github.com/vega/vega-lite/blob/main/LICENSE)) 📊

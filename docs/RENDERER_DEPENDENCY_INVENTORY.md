@@ -122,7 +122,7 @@ Current `build:runtime-ts` flow:
 
 `prepare-runtime-dist.mjs` copies:
 
-- directories: `static/ffv` to `dist/ffv`, `icons` to `dist/icons`
+- directories: `static/ffv` to `dist/ffv`, `static/icons` to `dist/icons`
 - files: `elevProfile.css`, `style.css`
 - `index.html` after checking that it does not reference `node_modules`
 
@@ -139,7 +139,7 @@ The runtime build copies these app assets into `dist/` before packaging:
 
 - `elevProfile.css`
 - `ffv/` from `static/ffv/`
-- `icons/`
+- `icons/` from `static/icons/`
 - `index.html`
 - `style.css`
 

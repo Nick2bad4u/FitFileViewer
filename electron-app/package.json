@@ -137,11 +137,11 @@
     "exports": {
         ".": "./dist/main.js",
         "./fitParser.js": "./dist/fitParser.js",
-        "./icons/favicon-256x256.ico": "./icons/favicon-256x256.ico",
-        "./icons/favicon-256x256.png": "./icons/favicon-256x256.png",
-        "./icons/favicon-512x512.icns": "./icons/favicon-512x512.icns",
-        "./icons/favicon.ico": "./icons/favicon.ico",
-        "./index.html": "./index.html",
+        "./icons/favicon-256x256.ico": "./dist/icons/favicon-256x256.ico",
+        "./icons/favicon-256x256.png": "./dist/icons/favicon-256x256.png",
+        "./icons/favicon-512x512.icns": "./dist/icons/favicon-512x512.icns",
+        "./icons/favicon.ico": "./dist/icons/favicon.ico",
+        "./index.html": "./dist/index.html",
         "./main.js": "./dist/main.js",
         "./package.json": "./package.json",
         "./preload.js": "./dist/preload.js",
@@ -151,12 +151,8 @@
     "types": "./global.d.ts",
     "files": [
         "dist/",
-        "elevProfile.css",
         "global.d.ts",
-        "icons/",
-        "index.html",
-        "package.json",
-        "style.css"
+        "package.json"
     ],
     "dependencies": {
         "@garmin/fitsdk": "^21.205.0",
@@ -180,7 +176,7 @@
     "publishConfig": {
         "registry": "https://registry.npmjs.org/"
     },
-    "icon": "icons/favicon.ico",
+    "icon": "dist/icons/favicon.ico",
     "appid": "io.github.nick2bad4u.fitfileviewer",
     "companyName": "Nick2bad4u",
     "copyright": "Copyright © 2025 Nick2bad4u",

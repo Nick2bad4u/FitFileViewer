@@ -5,7 +5,7 @@ const appPackageFiles = require("./electron-builder.files.json");
 
 module.exports = {
     electronVersion,
-    icon: "icons/favicon.ico",
+    icon: "dist/icons/favicon.ico",
     directories: {
         output: "../release-dist",
     },
@@ -21,7 +21,7 @@ module.exports = {
         },
     ],
     win: {
-        icon: "icons/favicon-256x256.ico",
+        icon: "dist/icons/favicon-256x256.ico",
         target: [
             "nsis",
             "nsis-web",
@@ -92,7 +92,7 @@ module.exports = {
         artifactName: "Fit-File-Viewer-flatpak-${arch}-${version}.${ext}",
     },
     mac: {
-        icon: "icons/favicon-512x512.icns",
+        icon: "dist/icons/favicon-512x512.icns",
         target: [
             "dmg",
             "zip",
@@ -106,7 +106,7 @@ module.exports = {
         gatekeeperAssess: true,
     },
     linux: {
-        icon: "icons/favicon-256x256.png",
+        icon: "dist/icons/favicon-256x256.png",
         target: [
             "AppImage",
             "deb",

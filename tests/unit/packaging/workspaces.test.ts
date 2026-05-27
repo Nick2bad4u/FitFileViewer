@@ -31,6 +31,7 @@ type WorkspacesModule = {
     repositoryPath: (...segments: string[]) => string;
     repositoryScriptPath: (...segments: string[]) => string;
     rootAlternativeFitViewPath: string;
+    rootAppIconsPath: string;
     rootElectronBuilderConfigPath: string;
     rootElectronBuilderFilesPath: string;
     rootArtifactsPath: string;
@@ -106,7 +107,7 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes app runtime asset and test paths", async () => {
-        expect.assertions(10);
+        expect.assertions(11);
 
         const workspaces = await importWorkspaces();
 
@@ -116,6 +117,7 @@ describe("workspace path helpers", () => {
         expect(workspaces.appIndexHtmlPath).toBe("index.html");
         expect(workspaces.rootStaticAssetsPath).toBe("static");
         expect(workspaces.rootAlternativeFitViewPath).toBe("static/ffv");
+        expect(workspaces.rootAppIconsPath).toBe("static/icons");
         expect(workspaces.appIntegrationTestsPath).toBe(
             "electron-app/tests/integration"
         );

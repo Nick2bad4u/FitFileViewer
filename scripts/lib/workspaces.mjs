@@ -58,6 +58,10 @@ export const rootAlternativeFitViewPath = path.posix.join(
     rootStaticAssetsPath,
     appAlternativeFitViewPath
 );
+export const rootAppIconsPath = path.posix.join(
+    rootStaticAssetsPath,
+    appIconsPath
+);
 export const scriptsPath = path.join(repositoryRoot, "scripts");
 
 export function appWorkspaceRelativePath(...segments) {

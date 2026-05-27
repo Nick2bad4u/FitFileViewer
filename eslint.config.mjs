@@ -1,7 +1,10 @@
 import nickTwoBadFourU from "eslint-config-nick2bad4u";
 import globals from "globals";
 
-import { rootAlternativeFitViewPath } from "./scripts/lib/workspaces.mjs";
+import {
+    rootAlternativeFitViewPath,
+    rootAppIconsPath,
+} from "./scripts/lib/workspaces.mjs";
 
 const electronAppBasePath = "electron-app";
 const dependPlugin = nickTwoBadFourU.configs.all.find(
@@ -24,6 +27,7 @@ const config = [
         ignores: [
             "playwright-report/**",
             `${rootAlternativeFitViewPath}/**`,
+            `${rootAppIconsPath}/**`,
             "test-results/**",
         ],
     },

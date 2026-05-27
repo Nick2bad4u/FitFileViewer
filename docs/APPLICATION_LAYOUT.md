@@ -416,16 +416,14 @@ docs/
 ### Application Assets
 
 ```text
-electron-app/
-└── icons/                           # Application icons
-│   ├── favicon.ico                  # Main application icon
-│   ├── favicon-256x256.ico         # Windows icon
-│   ├── favicon-512x512.icns        # macOS icon
-│   ├── favicon-256x256.png         # Linux icon
-│   └── [Various sized icons]
-
 static/
-└── ffv/                            # Alternative FIT viewer web app source copied into runtime dist
+├── ffv/                            # Alternative FIT viewer web app source copied into runtime dist
+└── icons/                          # Application icon source copied into runtime dist
+    ├── favicon.ico                 # Main application icon
+    ├── favicon-256x256.ico         # Windows icon
+    ├── favicon-512x512.icns        # macOS icon
+    ├── favicon-256x256.png         # Linux icon
+    └── [Various sized icons]
 ```
 
 Application screenshots used by repository documentation live in

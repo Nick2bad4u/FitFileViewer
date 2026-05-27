@@ -4,9 +4,9 @@ import process from "node:process";
 import { pathToFileURL } from "node:url";
 
 import {
-    appWorkspaceName,
     docusaurusWorkspaceName,
     repositoryRoot,
+    rootAppIconsPath,
 } from "./lib/workspaces.mjs";
 
 export const screenshotNames = [
@@ -31,12 +31,7 @@ export function createStaticAssetPlan(root = repositoryRoot) {
         screenshotTargetDir,
         staticAssets: [
             {
-                source: path.join(
-                    root,
-                    appWorkspaceName,
-                    "icons",
-                    "favicon.ico"
-                ),
+                source: path.join(root, rootAppIconsPath, "favicon.ico"),
                 target: path.join(
                     root,
                     docusaurusWorkspaceName,

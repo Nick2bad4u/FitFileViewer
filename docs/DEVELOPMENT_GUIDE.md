@@ -422,7 +422,7 @@ npm run build:win7
 
 ### Windows 7 Compatibility Builds
 
-- `npm run build:win7` calls `scripts/build-win7.mjs`, forcing an Electron 22, ia32 portable build whose output is stored under `electron-app/release/win7`. Use this script when you need to verify behavior on legacy Windows 7 hardware.
+- `npm run build:win7` calls `scripts/build-win7.mjs`, forcing an Electron 22, ia32 portable build whose output is stored under `release-dist/win7`. Use this script when you need to verify behavior on legacy Windows 7 hardware.
 - Because Electron 22’s Node runtime cannot load ESM packages from inside an `.asar`, the Win7 helper disables asar packaging entirely. Expect a slightly larger artifact, but all dependencies (notably `@garmin/fitsdk`) remain accessible at runtime.
 - To generate the same artifact in CI, trigger the GitHub Actions workflow **“Build Windows 7 Compatibility Artifact.”** Choose the branch or tag you want to validate, run the workflow, and download the `win7-dist-*` artifact for installation/testing on a Windows 7 VM.
 - These builds are intentionally isolated from the primary release train. Treat them as ad-hoc compatibility snapshots rather than officially supported releases.
@@ -437,15 +437,15 @@ npm run build:win7
   "asar": true,
   "win": {
    "target": ["portable", "squirrel", "msi"],
-   "icon": "icons/favicon-256x256.ico"
+   "icon": "dist/icons/favicon-256x256.ico"
   },
   "mac": {
    "target": ["dmg", "zip", "pkg"],
-   "icon": "icons/favicon-512x512.icns"
+   "icon": "dist/icons/favicon-512x512.icns"
   },
   "linux": {
    "target": ["AppImage", "deb", "rpm", "snap"],
-   "icon": "icons/favicon-256x256.png"
+   "icon": "dist/icons/favicon-256x256.png"
   }
  }
 }

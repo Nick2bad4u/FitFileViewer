@@ -19,8 +19,8 @@ on:
         paths-ignore:
             - "*"
             - "*/**"
-            - "!electron-app/icons/**"
-            - "!electron-app/icons"
+            - "!static/icons/**"
+            - "!static/icons"
             - "!electron-app/**"
             - "!electron-app"
             - "**/CHANGELOG.md"
@@ -31,8 +31,8 @@ on:
         paths-ignore:
             - "*"
             - "*/**"
-            - "!electron-app/icons/**"
-            - "!electron-app/icons"
+            - "!static/icons/**"
+            - "!static/icons"
             - "!electron-app/**"
             - "!electron-app"
             - "**/CHANGELOG.md"

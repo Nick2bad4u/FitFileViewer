@@ -53,7 +53,8 @@ function makeTemporaryApp(): {
     fs.mkdirSync(path.join(staticDir, appAlternativeFitViewPath, "assets"), {
         recursive: true,
     });
-    fs.mkdirSync(path.join(appDir, appIconsPath), { recursive: true });
+    fs.mkdirSync(appDir, { recursive: true });
+    fs.mkdirSync(path.join(staticDir, appIconsPath), { recursive: true });
     fs.writeFileSync(path.join(appDir, appIndexHtmlPath), "<html></html>");
     fs.writeFileSync(
         path.join(staticDir, appAlternativeFitViewPath, "index.html"),
@@ -63,7 +64,7 @@ function makeTemporaryApp(): {
         path.join(staticDir, appAlternativeFitViewPath, "assets", "app.js"),
         "app"
     );
-    fs.writeFileSync(path.join(appDir, appIconsPath, "favicon.ico"), "icon");
+    fs.writeFileSync(path.join(staticDir, appIconsPath, "favicon.ico"), "icon");
     fs.writeFileSync(path.join(appDir, appElevProfileCssPath), "profile");
     fs.writeFileSync(path.join(appDir, appStyleCssPath), "style");
 
@@ -95,7 +96,7 @@ describe("prepare-runtime-dist script", () => {
             {
                 destination: appIconsPath,
                 source: appIconsPath,
-                sourceRoot: "app",
+                sourceRoot: "static",
             },
         ]);
         expect(fileCopies).toStrictEqual([

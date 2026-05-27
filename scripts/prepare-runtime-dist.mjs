@@ -27,7 +27,7 @@ export const directoryCopies = [
     {
         destination: appIconsPath,
         source: appIconsPath,
-        sourceRoot: "app",
+        sourceRoot: "static",
     },
 ];
 export const fileCopies = [
