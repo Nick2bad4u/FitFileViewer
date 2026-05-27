@@ -22,7 +22,7 @@ modules:
       buildsystem: simple
       name: app
       sources:
-          - path: ..
+          - path: .
             type: dir
 runtime: org.freedesktop.Platform
 runtime-version: "23.08"

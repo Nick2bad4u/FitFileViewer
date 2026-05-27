@@ -6,40 +6,34 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "..");
-const electronAppDir = path.join(repoRoot, "electron-app");
 
-function assertInsideElectronApp(targetPath) {
-    const relativePath = path.relative(
-        electronAppDir,
-        path.resolve(targetPath)
-    );
+function assertInsideRepo(targetPath) {
+    const relativePath = path.relative(repoRoot, path.resolve(targetPath));
 
     if (
         relativePath === "" ||
         relativePath.startsWith("..") ||
         path.isAbsolute(relativePath)
     ) {
-        throw new Error(
-            `Refusing to operate outside electron-app: ${targetPath}`
-        );
+        throw new Error(`Refusing to operate outside repo root: ${targetPath}`);
     }
 }
 
 function run(command, args) {
     execFileSync(command, args, {
-        cwd: electronAppDir,
+        cwd: repoRoot,
         env: process.env,
         stdio: "inherit",
     });
 }
 
-const flatpakRepoDir = path.join(electronAppDir, "flatpak-repo");
-const buildDir = path.join(electronAppDir, "build-dir");
-const bundlePath = path.join(electronAppDir, "FitFileViewer.flatpak");
+const flatpakRepoDir = path.join(repoRoot, "flatpak-repo");
+const buildDir = path.join(repoRoot, "flatpak-build-dir");
+const bundlePath = path.join(repoRoot, "FitFileViewer.flatpak");
 
-assertInsideElectronApp(flatpakRepoDir);
-assertInsideElectronApp(buildDir);
-assertInsideElectronApp(bundlePath);
+assertInsideRepo(flatpakRepoDir);
+assertInsideRepo(buildDir);
+assertInsideRepo(bundlePath);
 
 function buildFlatpak() {
     fs.rmSync(flatpakRepoDir, { force: true, recursive: true });
@@ -49,7 +43,7 @@ function buildFlatpak() {
     run("flatpak-builder", [
         "--repo=flatpak-repo",
         "--force-clean",
-        "build-dir",
+        "flatpak-build-dir",
         "flatpak-build.yml",
     ]);
 
@@ -61,6 +55,9 @@ function buildFlatpak() {
     ]);
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (
+    process.argv[1] &&
+    import.meta.url === pathToFileURL(process.argv[1]).href
+) {
     buildFlatpak();
 }

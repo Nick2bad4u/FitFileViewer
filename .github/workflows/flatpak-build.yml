@@ -80,10 +80,10 @@ jobs:
               uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
               with:
                   name: flatpak-bundle
-                  path: electron-app/FitFileViewer.flatpak
+                  path: FitFileViewer.flatpak
 
             - name: Zip Flatpak bundle
-              run: zip -j electron-app/FitFileViewer.flatpak.zip electron-app/FitFileViewer.flatpak
+              run: zip -j FitFileViewer.flatpak.zip FitFileViewer.flatpak
 
             - name: Get latest release tag
               id: get_release
@@ -102,12 +102,12 @@ jobs:
 
             - name: Rename Flatpak and zip with version
               run: |
-                  mv electron-app/FitFileViewer.flatpak electron-app/FitFileViewer-${{ steps.get_release.outputs.result }}.flatpak
-                  mv electron-app/FitFileViewer.flatpak.zip electron-app/FitFileViewer-${{ steps.get_release.outputs.result }}.flatpak.zip
+                  mv FitFileViewer.flatpak FitFileViewer-${{ steps.get_release.outputs.result }}.flatpak
+                  mv FitFileViewer.flatpak.zip FitFileViewer-${{ steps.get_release.outputs.result }}.flatpak.zip
 
             - name: Upload .flatpak and .zip to latest release
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   RELEASE_TAG: ${{ steps.get_release.outputs.result }}
               run: |
-                  gh release upload "$RELEASE_TAG" "electron-app/FitFileViewer-${RELEASE_TAG}.flatpak" "electron-app/FitFileViewer-${RELEASE_TAG}.flatpak.zip" --clobber
+                  gh release upload "$RELEASE_TAG" "FitFileViewer-${RELEASE_TAG}.flatpak" "FitFileViewer-${RELEASE_TAG}.flatpak.zip" --clobber
