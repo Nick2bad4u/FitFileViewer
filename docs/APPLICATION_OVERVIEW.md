@@ -19,7 +19,8 @@ This document provides a high-level tour of the FitFileViewer codebase, covering
 | `electron-app/renderer.js`  | Renderer bootstrap (state initialization, dependency wiring, DOM readiness)                      |
 | `electron-app/fitParser.js` | FIT file decoding with state & settings integration                                              |
 | `electron-app/utils/`       | Shared utilities (app lifecycle, charts, data, files, formatting, rendering, state, theming, UI) |
-| `electron-app/tests/`       | Vitest-based unit, integration, Playwright, and strict regression suites                         |
+| `electron-app/tests/`       | Vitest-based unit, integration, fixture, and strict regression suites                            |
+| `tests/playwright/`         | Root-owned Electron Playwright smoke tests                                                       |
 | `scripts/`                  | Root-owned build, coverage, and runtime packaging helpers                                        |
 | `docs/`                     | Product and engineering guides                                                                   |
 | `electron-app/ffv/`         | Embedded alternative FIT viewer assets (kept in-sync with primary viewer feature set)            |
@@ -143,10 +144,11 @@ Refer to `preload.js` and `main.js` for the full set of channels and event names
 
 - **Unit & integration:** `npm test` runs Vitest. Targeted suites such as
   `npm run test:unit` exist for focused validation.
-- **Electron smoke:** `npm run test:playwright` opens the packaged-like app
-  shell and verifies real FIT data across map, chart, data, and summary tabs.
+- **Electron smoke:** `npm run test:playwright` runs the root-owned
+  `tests/playwright/` suite, opens the packaged-like app shell, and verifies
+  real FIT data across map, chart, data, and summary tabs.
 - **Coverage:** `npm run test:coverage` generates coverage data.
-- **Strict regression suites:** Under `tests/strictTests/` to guard tricky DOM/Electron edge cases.
+- **Strict regression suites:** Under `electron-app/tests/strictTests/` to guard tricky DOM/Electron edge cases.
 - **Type checking & linting:** `typecheck`, `lint`, `lint:fix`, `prettier`, and associated `format:*` scripts.
 
 ## Build & Distribution

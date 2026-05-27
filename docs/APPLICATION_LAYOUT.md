@@ -337,13 +337,12 @@ electron-app/utils/
 │   ├── normalize-coverage-lcov.mjs  # Root-owned coverage path normalization helper
 │   └── prepare-runtime-dist.mjs     # Root-owned runtime package asset helper
 └── electron-app/
-    ├── package.json                 # Electron app metadata and packaging configuration
-    │   ├── Electron Builder configuration
-    │   ├── Multi-platform build targets
+    ├── package.json                 # Electron app metadata and publish/package manifest
+    │   ├── App identity, keywords, license, and publish metadata
+    │   ├── Runtime dependencies shipped with the Electron app
     │   ├── File associations (.fit files)
-    │   └── Runtime/build scripts still scoped to the app
-    │
-    └── tsconfig.json                # TypeScript configuration
+    │   └── npm package export/file allowlists
+    └── global.d.ts                  # Shared renderer/main global type declarations
 ```
 
 ### Environment Configuration
@@ -376,6 +375,9 @@ electron-app/tests/
 ├── fixtures/                        # Test data & fixtures
 ├── mocks/                           # Test mocks & stubs
 └── strictTests/                     # Strict testing scenarios
+
+tests/playwright/
+└── app-ui.spec.ts                   # Root-owned Electron Playwright smoke coverage
 ```
 
 ### Test Support Files
