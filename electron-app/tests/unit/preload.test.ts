@@ -1143,10 +1143,13 @@ describe("preload.js - Comprehensive API Testing", () => {
             );
 
             const logCalls = getMockCalls(consoleLogSpy).slice(initialLogCount);
-            const hasAPIStateLog = logCalls.some((call) =>
-                firstArgumentIncludes(call, "API State")
+            expect(logCalls).toEqual(
+                expect.arrayContaining([
+                    expect.arrayContaining([
+                        expect.stringContaining("API State"),
+                    ]),
+                ])
             );
-            expect(hasAPIStateLog).toBe(true);
         });
 
         it("should expose all development tools in development mode", () => {

@@ -98,7 +98,9 @@ describe("preload.js - Script Evaluation Test", () => {
             "beforeExit",
             expect.any(Function)
         );
-        const beforeExit = onceCalls.find((call) => call.event === "beforeExit");
+        const beforeExit = onceCalls.find(
+            (call) => call.event === "beforeExit"
+        );
         expect(beforeExit).toEqual({
             cb: expect.any(Function),
             event: "beforeExit",
@@ -112,20 +114,19 @@ describe("preload.js - Script Evaluation Test", () => {
     });
 
     it("should log initialization messages", () => {
-        // Look for specific log messages
-        const logCalls = consoleLogSpy.mock.calls;
-        const hasPreloadLogs = logCalls.some(
-            (call: unknown[]) =>
-                typeof call[0] === "string" && call[0].includes("[preload.js]")
-        );
+        const logMessages = consoleLogSpy.mock.calls
+            .map((call: unknown[]) => call[0])
+            .filter(
+                (message): message is string => typeof message === "string"
+            );
 
-        expect(hasPreloadLogs).toBe(true);
-        expect(
-            logCalls.some(
-                (call: unknown[]) =>
-                    typeof call[0] === "string" &&
-                    call[0].includes("Preload script initialized successfully")
-            )
-        ).toBe(true);
+        expect(logMessages).toEqual(
+            expect.arrayContaining([
+                expect.stringContaining("[preload.js]"),
+                expect.stringContaining(
+                    "Preload script initialized successfully"
+                ),
+            ])
+        );
     });
 });

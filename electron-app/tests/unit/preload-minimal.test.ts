@@ -181,19 +181,18 @@ describe("preload.js - Basic API Validation", () => {
     });
 
     it("should log initialization message", () => {
-        // Check for any initialization logs
-        const hasInitLog = consoleLogSpy.mock.calls.some((call: unknown[]) => {
-            const firstArgument = call[0];
-            return (
-                typeof firstArgument === "string" &&
-                (firstArgument.includes(
-                    "[preload.js] Preload script initialized"
-                ) ||
-                    firstArgument.includes("[preload.js] Successfully exposed"))
+        const logMessages = consoleLogSpy.mock.calls
+            .map((call: unknown[]) => call[0])
+            .filter(
+                (message): message is string => typeof message === "string"
             );
-        });
 
-        expect(hasInitLog).toBe(true);
-        expect(hasInitLog).not.toBe(false);
+        expect(logMessages).toEqual(
+            expect.arrayContaining([
+                expect.stringMatching(
+                    /\[preload\.js\] (Preload script initialized|Successfully exposed)/u
+                ),
+            ])
+        );
     });
 });
