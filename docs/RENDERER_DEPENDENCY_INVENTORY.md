@@ -2,7 +2,7 @@
 
 This inventory is the Phase 1 baseline for the renderer dependency and vendor
 asset migration. Keep it current while moving browser libraries from
-`electron-app/vendor/` to package imports and a renderer build pipeline.
+package imports and a renderer build pipeline.
 
 ## Current Runtime Model
 
@@ -26,7 +26,7 @@ compatibility bundle:
   `index.html`; production should not load browser code directly from
   `node_modules`.
 
-The remaining `electron-app/vendor/leaflet-measure-lite.js` file is curated
+The remaining `vendor/leaflet-measure-lite.js` file is curated
 source that is bundled into renderer output; it is not loaded directly by
 `index.html`.
 
@@ -94,16 +94,17 @@ or invoked by the regular CI test scripts.
 
 ### Package-Sourced Assets
 
-No package-sourced files remain under `electron-app/vendor/`.
+No package-sourced files remain under `electron-app/vendor/`, and the app no
+longer needs that directory.
 
 ### Curated Or Custom Assets
 
 These files should not be removed just because a package dependency exists.
 They need a specific replacement and runtime verification.
 
-- `vendor/leaflet-measure-lite.js`: CSP-safe measurement control replacement
-  that is imported by `electron-app/renderer/vendorGlobals.ts` and bundled into
-  `dist/renderer/chunks/`.
+- `vendor/leaflet-measure-lite.js`: Root-owned CSP-safe measurement control replacement
+  that is imported by `electron-app/renderer/vendorGlobals.ts` through the
+  `@ffv-vendor` Vite alias and bundled into `dist/renderer/vendor-globals.js`.
   The upstream `leaflet-measure` JavaScript should not be restored unless it
   works without weakening the app CSP.
 
@@ -150,9 +151,9 @@ directly from `vendor/`.
 
 ## Migration Guardrails
 
-- Keep `electron-app/vendor/` limited to curated source, currently
+- Keep `vendor/` limited to curated source, currently
   `leaflet-measure-lite.js`; do not add package-sourced browser assets back
-  there.
+  into the repository.
 - Do not load browser assets directly from `node_modules` in production.
 - Remove one dependency group at a time and verify the affected feature.
 - Preserve script, CSS, and plugin ordering until imports make ordering explicit.

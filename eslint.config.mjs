@@ -31,6 +31,7 @@ const config = [
             `${rootAppIconsPath}/**`,
             `${rootAppStaticPath}/**`,
             "test-results/**",
+            "vendor/**",
         ],
     },
     {

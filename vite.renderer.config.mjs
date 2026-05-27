@@ -1,18 +1,19 @@
+import * as path from "node:path";
 import { defineConfig } from "vite";
 
-import { appWorkspacePath } from "./scripts/lib/workspaces.mjs";
+import { repositoryRoot } from "./scripts/lib/workspaces.mjs";
 
 export default defineConfig({
     build: {
         emptyOutDir: false,
         lib: {
             cssFileName: "vendor-globals",
-            entry: "renderer/vendorGlobals.ts",
+            entry: "electron-app/renderer/vendorGlobals.ts",
             fileName: () => "vendor-globals.js",
             formats: ["es"],
         },
         minify: false,
-        outDir: "dist/renderer",
+        outDir: "electron-app/dist/renderer",
         rollupOptions: {
             output: {
                 assetFileNames(assetInfo) {
@@ -28,5 +29,10 @@ export default defineConfig({
         target: "es2024",
     },
     publicDir: false,
-    root: appWorkspacePath,
+    resolve: {
+        alias: {
+            "@ffv-vendor": path.join(repositoryRoot, "vendor"),
+        },
+    },
+    root: repositoryRoot,
 });

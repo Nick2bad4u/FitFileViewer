@@ -60,6 +60,7 @@ export const prettierTargets = [
     "tests/unit/**/*.ts",
     "tests/playwright/**/*.ts",
     "tests/vitest/**/*.{cjs,mjs,ts}",
+    "vendor/**/*.js",
 ];
 
 export const prettierOptions = [

@@ -11,7 +11,7 @@ import JSZip from "jszip";
 import * as Leaflet from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet-draw/dist/leaflet.draw.css";
-// CSS comes from the npm package, but JS uses ../vendor/leaflet-measure-lite.js
+// CSS comes from the npm package, but JS uses @ffv-vendor/leaflet-measure-lite.js
 // because upstream leaflet-measure JS uses unsafe-eval and violates the app CSP.
 import "leaflet-measure/dist/leaflet-measure.css";
 import "leaflet-minimap/dist/Control.MiniMap.min.css";
@@ -49,7 +49,8 @@ type RendererVendorGlobal = typeof globalThis & {
 };
 
 /**
- * Shared browser global used to expose bundled packages to legacy renderer code.
+ * Shared browser global used to expose bundled packages to legacy renderer
+ * code.
  */
 export const vendorGlobal = globalThis as RendererVendorGlobal;
 

@@ -22,16 +22,14 @@ describe("leaflet measure vendor asset policy", () => {
         const vendorGlobals = readWorkspaceFile(
             "electron-app/renderer/vendorGlobals.ts"
         );
-        const measureLite = readWorkspaceFile(
-            "electron-app/vendor/leaflet-measure-lite.js"
-        );
+        const measureLite = readWorkspaceFile("vendor/leaflet-measure-lite.js");
 
         expect(rootPackage.devDependencies?.["leaflet-measure"]).toBe("^3.1.0");
         expect(vendorGlobalsCore).toContain(
             'import "leaflet-measure/dist/leaflet-measure.css";'
         );
         expect(vendorGlobals).toContain(
-            'import "../vendor/leaflet-measure-lite.js";'
+            'import "@ffv-vendor/leaflet-measure-lite.js";'
         );
         expect(vendorGlobals).not.toContain(
             'import "leaflet-measure/dist/leaflet-measure.js";'
