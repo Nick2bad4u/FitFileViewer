@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { renderLapZoneChart } from "../../utils/charts/rendering/renderLapZoneChart.js";
-import { getThemeConfig } from "../../utils/theming/core/theme.js";
-import { getZoneColor } from "../../utils/data/zones/chartZoneColorUtils.js";
+import { renderLapZoneChart } from "../../../electron-app/utils/charts/rendering/renderLapZoneChart.js";
+import { getThemeConfig } from "../../../electron-app/utils/theming/core/theme.js";
+import { getZoneColor } from "../../../electron-app/utils/data/zones/chartZoneColorUtils.js";
 
 interface ChartConfig {
     data: {
@@ -36,18 +36,23 @@ interface ChartDataset {
 }
 
 interface ChartMockInstance {
-    destroy: ReturnType<typeof vi.fn>;
+    destroy: ReturnType<typeof vi.fn<() => void>>;
 }
 
-type ChartMock = ReturnType<typeof vi.fn>;
+type ChartMock = ReturnType<typeof vi.fn<() => ChartMockInstance>>;
+type ShowNotificationMock = ReturnType<typeof vi.fn<() => void>>;
 
-type LapZoneChartTestWindow = Window & {
+type LapZoneChartTestGlobal = typeof globalThis & {
     Chart?: ChartMock;
-    showNotification?: ReturnType<typeof vi.fn>;
+    showNotification?: ShowNotificationMock;
 };
 
+type FormatTime = (seconds: number) => string;
+type GetZoneColorMock = (type: string, index: number) => string;
+type GetUnitSymbol = () => string;
+
 function getChartMock(): ChartMock {
-    const chartMock = (window as LapZoneChartTestWindow).Chart;
+    const chartMock = (globalThis as LapZoneChartTestGlobal).Chart;
     if (chartMock === undefined) {
         throw new TypeError("Chart mock is not installed");
     }
@@ -66,8 +71,8 @@ function getLatestChartConfig(): ChartConfig {
     return chartConfig;
 }
 
-function getShowNotificationMock(): ReturnType<typeof vi.fn> {
-    const showNotification = (window as LapZoneChartTestWindow)
+function getShowNotificationMock(): ShowNotificationMock {
+    const showNotification = (globalThis as LapZoneChartTestGlobal)
         .showNotification;
     if (showNotification === undefined) {
         throw new TypeError("showNotification mock is not installed");
@@ -76,8 +81,8 @@ function getShowNotificationMock(): ReturnType<typeof vi.fn> {
 }
 
 // Mock dependencies
-vi.mock("../../utils/theming/core/theme.js", () => ({
-    getThemeConfig: vi.fn(() => ({
+vi.mock(import("../../../electron-app/utils/theming/core/theme.js"), () => ({
+    getThemeConfig: vi.fn<typeof getThemeConfig>(() => ({
         name: "mockTheme",
         colors: {
             textPrimary: "#111",
@@ -92,67 +97,89 @@ vi.mock("../../utils/theming/core/theme.js", () => ({
     })),
 }));
 
-vi.mock("../../utils/data/zones/chartZoneColorUtils.js", () => ({
-    getZoneColor: vi.fn((type, index) => {
-        const colors = {
-            hr: [
-                "#ff0000",
-                "#ff5500",
-                "#ffaa00",
-                "#ffff00",
-                "#00ff00",
-            ],
-            power: [
-                "#ff00ff",
-                "#aa00ff",
-                "#5500ff",
-                "#0000ff",
-                "#00ffff",
-            ],
-        };
-        // Type-safe indexing
-        const colorArray =
-            type === "hr" ? colors.hr : type === "power" ? colors.power : [];
-        return colorArray[index] || "#cccccc";
-    }),
-}));
+vi.mock(
+    import("../../../electron-app/utils/data/zones/chartZoneColorUtils.js"),
+    () => ({
+        getZoneColor: vi.fn<GetZoneColorMock>((type, index) => {
+            const colors = {
+                hr: [
+                    "#ff0000",
+                    "#ff5500",
+                    "#ffaa00",
+                    "#ffff00",
+                    "#00ff00",
+                ],
+                power: [
+                    "#ff00ff",
+                    "#aa00ff",
+                    "#5500ff",
+                    "#0000ff",
+                    "#00ffff",
+                ],
+            };
+            // Type-safe indexing
+            const colorArray =
+                type === "hr"
+                    ? colors.hr
+                    : type === "power"
+                      ? colors.power
+                      : [];
+            return colorArray[index] || "#cccccc";
+        }),
+    })
+);
 
-vi.mock("../../utils/data/lookups/getUnitSymbol.js", () => ({
-    getUnitSymbol: vi.fn(() => "h:m:s"),
-}));
+vi.mock(
+    import("../../../electron-app/utils/data/lookups/getUnitSymbol.js"),
+    () => ({
+        getUnitSymbol: vi.fn<GetUnitSymbol>(() => "h:m:s"),
+    })
+);
 
-vi.mock("../../utils/formatting/formatters/formatTime.js", () => ({
-    formatTime: vi.fn((seconds) => {
-        const h = Math.floor(seconds / 3600);
-        const m = Math.floor((seconds % 3600) / 60);
-        const s = Math.floor(seconds % 60);
-        return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-    }),
-}));
+vi.mock(
+    import("../../../electron-app/utils/formatting/formatters/formatTime.js"),
+    () => ({
+        formatTime: vi.fn<FormatTime>((seconds) => {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = Math.floor(seconds % 60);
+            return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+        }),
+    })
+);
 
-vi.mock("../../utils/charts/plugins/chartZoomResetPlugin.js", () => ({
-    chartZoomResetPlugin: { id: "chartZoomResetPlugin", beforeDraw: vi.fn() },
-}));
+vi.mock(
+    import("../../../electron-app/utils/charts/plugins/chartZoomResetPlugin.js"),
+    () => ({
+        chartZoomResetPlugin: {
+            id: "chartZoomResetPlugin",
+            beforeDraw: vi.fn<() => void>(),
+        },
+    })
+);
 
-describe("renderLapZoneChart", () => {
+describe(renderLapZoneChart, () => {
     let mockCanvas: HTMLCanvasElement;
     let mockChart: ChartMockInstance;
 
     beforeEach(() => {
-        // Create mock canvas
-        mockCanvas =
-            /** @type {HTMLCanvasElement} */ document.createElement("canvas");
+        mockCanvas = document.createElement("canvas");
         document.body.appendChild(mockCanvas);
 
-        // Mock Chart.js
         mockChart = {
-            destroy: vi.fn(),
+            destroy: vi.fn<() => void>(),
         };
 
-        (window as LapZoneChartTestWindow).Chart = vi.fn(function ChartMock() {
-            return mockChart;
+        Object.defineProperty(globalThis, "Chart", {
+            configurable: true,
+            value: vi.fn<() => ChartMockInstance>(function ChartMock() {
+                return mockChart;
+            }),
         });
-        (window as LapZoneChartTestWindow).showNotification = vi.fn();
+        Object.defineProperty(globalThis, "showNotification", {
+            configurable: true,
+            value: vi.fn<() => void>(),
+        });
     });
 
     afterEach(() => {
@@ -164,12 +191,14 @@ describe("renderLapZoneChart", () => {
         vi.clearAllMocks();
 
         // Remove Chart.js mock
-        delete (window as LapZoneChartTestWindow).Chart;
-        delete (window as LapZoneChartTestWindow).showNotification;
+        delete (globalThis as LapZoneChartTestGlobal).Chart;
+        delete (globalThis as LapZoneChartTestGlobal).showNotification;
     });
 
     it("should return null when Chart.js is missing", () => {
-        delete (window as LapZoneChartTestWindow).Chart;
+        expect.hasAssertions();
+
+        delete (globalThis as LapZoneChartTestGlobal).Chart;
 
         const view = renderLapZoneChart(mockCanvas, []);
 
@@ -181,7 +210,12 @@ describe("renderLapZoneChart", () => {
     });
 
     it("should return null when canvas is missing", () => {
-        const view = renderLapZoneChart(null as unknown as HTMLCanvasElement, []);
+        expect.hasAssertions();
+
+        const view = renderLapZoneChart(
+            null as unknown as HTMLCanvasElement,
+            []
+        );
 
         expect(view).toBeNull();
         expect(getShowNotificationMock()).toHaveBeenCalledWith(
@@ -191,6 +225,8 @@ describe("renderLapZoneChart", () => {
     });
 
     it("should return null when lapZoneData is not an array", () => {
+        expect.hasAssertions();
+
         const view = renderLapZoneChart(
             mockCanvas,
             null as unknown as Parameters<typeof renderLapZoneChart>[1]
@@ -204,6 +240,8 @@ describe("renderLapZoneChart", () => {
     });
 
     it("should create a Chart.js chart with correct configuration", () => {
+        expect.hasAssertions();
+
         const lapZoneData = [
             {
                 lapLabel: "Lap 1",
@@ -246,7 +284,7 @@ describe("renderLapZoneChart", () => {
         const view = renderLapZoneChart(mockCanvas, lapZoneData, options);
 
         expect(view).toBe(mockChart);
-        expect(getChartMock()).toHaveBeenCalledTimes(1);
+        expect(getChartMock()).toHaveBeenCalledOnce();
 
         // Check that Chart was called with the correct parameters
         const chartCall = getChartCalls()[0];
@@ -269,10 +307,12 @@ describe("renderLapZoneChart", () => {
     });
 
     it("should handle empty lap zone data", () => {
+        expect.hasAssertions();
+
         const view = renderLapZoneChart(mockCanvas, [], {});
 
         expect(view).toBe(mockChart);
-        expect(getChartMock()).toHaveBeenCalledTimes(1);
+        expect(getChartMock()).toHaveBeenCalledOnce();
 
         const chartCall = getChartCalls()[0];
         const chartConfig = chartCall[1];
@@ -281,6 +321,8 @@ describe("renderLapZoneChart", () => {
     });
 
     it('should use power zone colors when title includes "power"', () => {
+        expect.hasAssertions();
+
         const lapZoneData = [
             {
                 lapLabel: "Lap 1",
@@ -307,6 +349,8 @@ describe("renderLapZoneChart", () => {
     });
 
     it("should use HR zone colors by default", () => {
+        expect.hasAssertions();
+
         const lapZoneData = [
             {
                 lapLabel: "Lap 1",
@@ -331,6 +375,8 @@ describe("renderLapZoneChart", () => {
     });
 
     it("should sort zones by their numeric index", () => {
+        expect.hasAssertions();
+
         const lapZoneData = [
             {
                 lapLabel: "Lap 1",
@@ -354,6 +400,8 @@ describe("renderLapZoneChart", () => {
     });
 
     it("should handle missing zone data for some laps", () => {
+        expect.hasAssertions();
+
         const lapZoneData = [
             {
                 lapLabel: "Lap 1",
@@ -382,6 +430,8 @@ describe("renderLapZoneChart", () => {
     });
 
     it("tooltip callbacks compute total footer and label string", () => {
+        expect.hasAssertions();
+
         const lapZoneData = [
             {
                 lapLabel: "Lap 1",

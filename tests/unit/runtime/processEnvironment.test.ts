@@ -5,7 +5,7 @@ import {
     isDevelopmentEnvironment,
     isNodeEnvironment,
     isTestEnvironment,
-} from "../../../../utils/runtime/processEnvironment.js";
+} from "../../../electron-app/utils/runtime/processEnvironment.js";
 
 const originalProcessDescriptor = Object.getOwnPropertyDescriptor(
     globalThis,

@@ -380,7 +380,9 @@ tests/integration/
 └── tabs/                            # Root-owned tab integration tests
 
 tests/unit/
+├── charts/                          # Root-owned chart behavior tests
 ├── packaging/                       # Root-owned build/tooling tests
+├── runtime/                         # Root-owned runtime boundary tests
 └── tabs/                            # Root-owned shared tab behavior tests
 
 tests/fixtures/

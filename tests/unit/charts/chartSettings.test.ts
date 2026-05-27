@@ -1,8 +1,8 @@
 import type { Mock } from "vitest";
 import { describe, expect, it, vi } from "vitest";
-import { createEnhancedChart } from "../../utils/charts/components/createEnhancedChart.js";
-import { detectCurrentTheme } from "../../utils/charts/theming/chartThemeUtils.js";
-import { showNotification } from "../../utils/ui/notifications/showNotification.js";
+import { createEnhancedChart } from "../../../electron-app/utils/charts/components/createEnhancedChart.js";
+import { detectCurrentTheme } from "../../../electron-app/utils/charts/theming/chartThemeUtils.js";
+import { showNotification } from "../../../electron-app/utils/ui/notifications/showNotification.js";
 
 type ChartPoint = {
     readonly x: number;
@@ -125,30 +125,33 @@ type HexToRgba = (hex: string, alpha: number) => string;
 type ShowNotification = typeof showNotification;
 type UpdateChartAnimations = (chart: unknown, field: string) => void;
 
-vi.mock(import("../../utils/data/lookups/getUnitSymbol.js"), () => ({
-    getUnitSymbol: vi.fn<GetUnitSymbol>((field) => {
-        switch (field) {
-            case "altitude": {
-                return "m";
+vi.mock(
+    import("../../../electron-app/utils/data/lookups/getUnitSymbol.js"),
+    () => ({
+        getUnitSymbol: vi.fn<GetUnitSymbol>((field) => {
+            switch (field) {
+                case "altitude": {
+                    return "m";
+                }
+                case "distance": {
+                    return "km";
+                }
+                case "speed": {
+                    return "km/h";
+                }
+                case "temperature": {
+                    return "°C";
+                }
+                default: {
+                    return "";
+                }
             }
-            case "distance": {
-                return "km";
-            }
-            case "speed": {
-                return "km/h";
-            }
-            case "temperature": {
-                return "°C";
-            }
-            default: {
-                return "";
-            }
-        }
-    }),
-}));
+        }),
+    })
+);
 
 vi.mock(
-    import("../../utils/formatting/converters/convertTimeUnits.js"),
+    import("../../../electron-app/utils/formatting/converters/convertTimeUnits.js"),
     () => ({
         convertTimeUnits: vi.fn<ConvertTimeUnits>((value, unit) => {
             if (unit === "hours") {
@@ -165,7 +168,7 @@ vi.mock(
 );
 
 vi.mock(
-    import("../../utils/formatting/display/formatTooltipWithUnits.js"),
+    import("../../../electron-app/utils/formatting/display/formatTooltipWithUnits.js"),
     () => ({
         formatTooltipWithUnits: vi.fn<FormatTooltipWithUnits>(
             (value, _field) => `${value} units`
@@ -173,40 +176,61 @@ vi.mock(
     })
 );
 
-vi.mock(import("../../utils/formatting/formatters/formatTime.js"), () => ({
-    formatTime: vi.fn<FormatTime>((value) => `${value}s`),
-}));
-
-vi.mock(import("../../utils/ui/notifications/showNotification.js"), () => ({
-    showNotification: vi.fn<ShowNotification>(),
-}));
-
-vi.mock(import("../../utils/charts/core/renderChartJS.js"), () => ({
-    hexToRgba: vi.fn<HexToRgba>((_hex, alpha) => `rgba(0,0,0,${alpha})`),
-}));
-
-vi.mock(import("../../utils/charts/core/updateChartAnimations.js"), () => ({
-    updateChartAnimations: vi.fn<UpdateChartAnimations>(),
-}));
+vi.mock(
+    import("../../../electron-app/utils/formatting/formatters/formatTime.js"),
+    () => ({
+        formatTime: vi.fn<FormatTime>((value) => `${value}s`),
+    })
+);
 
 vi.mock(
-    import("../../utils/charts/plugins/chartBackgroundColorPlugin.js"),
+    import("../../../electron-app/utils/ui/notifications/showNotification.js"),
+    () => ({
+        showNotification: vi.fn<ShowNotification>(),
+    })
+);
+
+vi.mock(
+    import("../../../electron-app/utils/charts/core/renderChartJS.js"),
+    () => ({
+        hexToRgba: vi.fn<HexToRgba>((_hex, alpha) => `rgba(0,0,0,${alpha})`),
+    })
+);
+
+vi.mock(
+    import("../../../electron-app/utils/charts/core/updateChartAnimations.js"),
+    () => ({
+        updateChartAnimations: vi.fn<UpdateChartAnimations>(),
+    })
+);
+
+vi.mock(
+    import("../../../electron-app/utils/charts/plugins/chartBackgroundColorPlugin.js"),
     () => ({
         chartBackgroundColorPlugin: { id: "chartBackgroundColorPlugin" },
     })
 );
 
-vi.mock(import("../../utils/charts/plugins/chartZoomResetPlugin.js"), () => ({
-    chartZoomResetPlugin: { id: "chartZoomResetPlugin" },
-}));
+vi.mock(
+    import("../../../electron-app/utils/charts/plugins/chartZoomResetPlugin.js"),
+    () => ({
+        chartZoomResetPlugin: { id: "chartZoomResetPlugin" },
+    })
+);
 
-vi.mock(import("../../utils/charts/theming/chartThemeUtils.js"), () => ({
-    detectCurrentTheme: vi.fn<() => "light">(() => "light"),
-}));
+vi.mock(
+    import("../../../electron-app/utils/charts/theming/chartThemeUtils.js"),
+    () => ({
+        detectCurrentTheme: vi.fn<() => "light">(() => "light"),
+    })
+);
 
-vi.mock(import("../../utils/charts/theming/getFieldColor.js"), () => ({
-    getFieldColor: vi.fn<GetFieldColor>(() => "#ff0000"),
-}));
+vi.mock(
+    import("../../../electron-app/utils/charts/theming/getFieldColor.js"),
+    () => ({
+        getFieldColor: vi.fn<GetFieldColor>(() => "#ff0000"),
+    })
+);
 
 const defaultOptions = {
     chartData: [
