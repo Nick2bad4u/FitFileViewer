@@ -294,7 +294,7 @@ describe("exportUtils chart export helpers", () => {
     /* eslint-disable vitest/prefer-to-be, vitest/prefer-to-be-falsy, vitest/prefer-to-be-truthy -- test-signal requires exact boolean assertions. */
     describe("isValidChart function", () => {
         it("returns false for null chart", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             setupDomHarness();
 
@@ -302,7 +302,7 @@ describe("exportUtils chart export helpers", () => {
         });
 
         it("returns false for undefined chart", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             setupDomHarness();
 
@@ -310,7 +310,7 @@ describe("exportUtils chart export helpers", () => {
         });
 
         it("returns false for chart without canvas", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             setupDomHarness();
 
@@ -320,7 +320,7 @@ describe("exportUtils chart export helpers", () => {
         });
 
         it("returns false for chart with canvas but no dimensions", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             setupDomHarness();
 
@@ -330,7 +330,7 @@ describe("exportUtils chart export helpers", () => {
         });
 
         it("returns true for valid chart", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const { chartFixture } = setupDomHarness();
 
@@ -340,7 +340,7 @@ describe("exportUtils chart export helpers", () => {
         });
 
         it("returns false for chart with invalid canvas width", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             setupDomHarness();
 
@@ -350,7 +350,7 @@ describe("exportUtils chart export helpers", () => {
         });
 
         it("returns false for chart with invalid canvas height", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             setupDomHarness();
 
@@ -363,7 +363,7 @@ describe("exportUtils chart export helpers", () => {
 
     describe("getExportThemeBackground function", () => {
         it("returns light background when no export theme is set", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             setupDomHarness();
             dependencyMocks.getChartSetting.mockReturnValue(null);
@@ -374,7 +374,7 @@ describe("exportUtils chart export helpers", () => {
         });
 
         it("returns dark background for dark theme", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             setupDomHarness();
             dependencyMocks.getChartSetting.mockReturnValue("dark");
@@ -383,7 +383,7 @@ describe("exportUtils chart export helpers", () => {
         });
 
         it("returns light background for light theme", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             setupDomHarness();
             dependencyMocks.getChartSetting.mockReturnValue("light");
@@ -392,7 +392,7 @@ describe("exportUtils chart export helpers", () => {
         });
 
         it("returns transparent background for transparent theme", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             setupDomHarness();
             dependencyMocks.getChartSetting.mockReturnValue("transparent");
@@ -401,7 +401,7 @@ describe("exportUtils chart export helpers", () => {
         });
 
         it("detects dark background for auto theme", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             setupDomHarness();
             dependencyMocks.getChartSetting.mockReturnValue("auto");
@@ -412,7 +412,7 @@ describe("exportUtils chart export helpers", () => {
         });
 
         it("detects light background for auto theme", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             setupDomHarness();
             dependencyMocks.getChartSetting.mockReturnValue("auto");
@@ -423,7 +423,7 @@ describe("exportUtils chart export helpers", () => {
         });
 
         it("falls back to light for unknown theme values", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             setupDomHarness();
             dependencyMocks.getChartSetting.mockReturnValue("unknown-theme");
