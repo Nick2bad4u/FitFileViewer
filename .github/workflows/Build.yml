@@ -511,19 +511,10 @@ jobs:
               run: node scripts/generate-changelog-workflow.mjs
 
             - name: Commit and push changelog updates
-              run: |
-                  git config user.name "github-actions[bot]"
-                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-                  git add CHANGELOG.md
-                  # Check if there are any changes to commit
-                  if git diff --staged --quiet; then
-                    echo "No changelog changes to commit"
-                  else
-                    git commit -m "chore: update changelogs for v${{ needs.bump-version.outputs.new_version }} [skip ci]"
-                    git push origin ${{ inputs.branch || github.ref_name }}
-                    echo "Changelogs updated and pushed to repository"
-                  fi
+              run: node scripts/commit-changelog-workflow.mjs
+              env:
+                  CHANGELOG_VERSION: ${{ needs.bump-version.outputs.new_version }}
+                  TARGET_BRANCH: ${{ inputs.branch || github.ref_name }}
 
             - name: Update Check Run - Changelogs Generated
               if: success()

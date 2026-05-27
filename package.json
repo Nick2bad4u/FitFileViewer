@@ -35,6 +35,7 @@
         "build:win7": "node scripts/build-win7.mjs",
         "changelog": "node scripts/generate-changelog.mjs",
         "changelog:check-run": "node scripts/update-changelog-check-run.mjs",
+        "changelog:commit": "node scripts/commit-changelog-workflow.mjs",
         "changelog:summary": "node scripts/update-changelog-job-summary.mjs",
         "changelog:workflow": "node scripts/generate-changelog-workflow.mjs",
         "clean:workspace": "node scripts/clean-workspace.mjs",
