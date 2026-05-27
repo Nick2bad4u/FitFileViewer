@@ -3,6 +3,7 @@ import { createRequire } from "node:module";
 import path from "node:path";
 import process from "node:process";
 
+import { resolveCommandForPlatform } from "./lib/child-process.mjs";
 import { repositoryRoot } from "./lib/workspaces.mjs";
 
 const require = createRequire(import.meta.url);
@@ -32,11 +33,14 @@ if (ncuResult.error) {
 if (ncuResult.status !== 0) {
     process.exitCode = ncuResult.status ?? 1;
 } else if (shouldInstall) {
-    const installResult = spawnSync("npm", ["install"], {
-        cwd: repositoryRoot,
-        shell: process.platform === "win32",
-        stdio: "inherit",
-    });
+    const installResult = spawnSync(
+        resolveCommandForPlatform("npm"),
+        ["install"],
+        {
+            cwd: repositoryRoot,
+            stdio: "inherit",
+        }
+    );
 
     if (installResult.error) {
         throw installResult.error;

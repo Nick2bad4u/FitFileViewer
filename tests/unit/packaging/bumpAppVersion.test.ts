@@ -2,7 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 type BumpAppVersionModule = {
     bumpAppVersion: (options?: {
@@ -128,6 +128,32 @@ describe("bump-app-version script", () => {
         expect(result.packagePath).toBe(
             path.join(temporaryRoot, "electron-app", "package.json")
         );
+    });
+
+    it("runs npm version without shelling through Windows command parsing", async () => {
+        expect.assertions(4);
+
+        const { bumpAppVersion } = await importBumpAppVersion();
+        const temporaryRoot = makeTemporaryRoot("29.9.0");
+        const commandRunner =
+            vi.fn<
+                (
+                    command: string,
+                    args: string[],
+                    options: Record<string, unknown>
+                ) => void
+            >();
+
+        const result = bumpAppVersion({
+            commandRunner,
+            repositoryRoot: temporaryRoot,
+            workspace: "electron-app",
+        });
+
+        expect(result.newVersion).toBe("30.0.0");
+        expect(commandRunner).toHaveBeenCalledOnce();
+        expect(commandRunner.mock.calls[0]?.[0]).toMatch(/^npm(?:\.cmd)?$/u);
+        expect(commandRunner.mock.calls[0]?.[2]).not.toHaveProperty("shell");
     });
 
     it("writes the GitHub Actions output value", async () => {

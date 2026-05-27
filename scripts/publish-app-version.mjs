@@ -53,14 +53,12 @@ export function publishAppVersion(options) {
     for (const command of commands) {
         commandRunner(command.command, command.args, {
             cwd: normalizedOptions.repositoryRoot,
-            shell: process.platform === "win32",
             stdio: "inherit",
         });
     }
 
     const bumpSha = captureCommand("git", ["rev-parse", "HEAD"], {
         cwd: normalizedOptions.repositoryRoot,
-        shell: process.platform === "win32",
     });
 
     return {

@@ -2,6 +2,8 @@ import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import process from "node:process";
 
+import { resolveCommandForPlatform } from "./lib/child-process.mjs";
+
 const require = createRequire(import.meta.url);
 
 if (process.platform !== "darwin") {
@@ -16,7 +18,7 @@ try {
     console.log("[ensure-macos-builder-deps] Installing dmg-license.");
 
     const result = spawnSync(
-        "npm",
+        resolveCommandForPlatform("npm"),
         [
             "install",
             "--force",
@@ -27,7 +29,6 @@ try {
             "dmg-license",
         ],
         {
-            shell: process.platform === "win32",
             stdio: "inherit",
         }
     );

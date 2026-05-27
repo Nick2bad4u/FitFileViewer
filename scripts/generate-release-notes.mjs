@@ -172,7 +172,6 @@ function captureCommand(command, args, options = {}) {
     const result = spawnSync(command, args, {
         ...options,
         encoding: "utf8",
-        shell: process.platform === "win32",
         stdio: [
             "ignore",
             "pipe",

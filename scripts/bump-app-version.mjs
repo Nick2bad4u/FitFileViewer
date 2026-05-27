@@ -8,6 +8,7 @@ import {
     appWorkspaceName,
     repositoryRoot as defaultRepositoryRoot,
 } from "./lib/workspaces.mjs";
+import { resolveCommandForPlatform } from "./lib/child-process.mjs";
 
 export const defaultWorkspace = appWorkspaceName;
 
@@ -42,11 +43,14 @@ export function bumpAppVersion(options = {}) {
 
     if (!options.dryRun) {
         const commandRunner = options.commandRunner ?? runCommand;
-        commandRunner("npm", createNpmVersionArgs(workspace, newVersion), {
-            cwd: repositoryRoot,
-            shell: process.platform === "win32",
-            stdio: "inherit",
-        });
+        commandRunner(
+            resolveCommandForPlatform("npm"),
+            createNpmVersionArgs(workspace, newVersion),
+            {
+                cwd: repositoryRoot,
+                stdio: "inherit",
+            }
+        );
     }
 
     return {

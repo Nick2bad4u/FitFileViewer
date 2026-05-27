@@ -11,6 +11,7 @@ import {
     rootElectronBuilderFilesPath,
     rootReleaseDistPath,
 } from "./lib/workspaces.mjs";
+import { resolveCommandForPlatform } from "./lib/child-process.mjs";
 
 const electronAppDir = appWorkspacePath;
 export const outputDir = repositoryPath(rootReleaseDistPath, "win7");
@@ -73,15 +74,10 @@ function runNpmScript(scriptName) {
         return;
     }
 
-    execFileSync(
-        process.platform === "win32" ? "npm.cmd" : "npm",
-        ["run", scriptName],
-        {
-            cwd: repositoryRoot,
-            stdio: "inherit",
-            shell: process.platform === "win32",
-        }
-    );
+    execFileSync(resolveCommandForPlatform("npm"), ["run", scriptName], {
+        cwd: repositoryRoot,
+        stdio: "inherit",
+    });
 }
 
 function resolveNpmCliPath() {
