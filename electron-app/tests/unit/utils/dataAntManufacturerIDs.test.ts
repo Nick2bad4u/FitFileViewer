@@ -55,7 +55,7 @@ const getManufacturer = (manufacturerId: unknown): string | undefined =>
 
 describe("data ant manufacturer ID lookup", () => {
     it("exports an immutable numeric lookup table", () => {
-        expect.assertions(8);
+        expect.assertions(7);
 
         const entries = Object.entries(dataAntManufacturerIDs);
         const keys = Object.keys(dataAntManufacturerIDs);
@@ -63,8 +63,7 @@ describe("data ant manufacturer ID lookup", () => {
         expect(dataAntManufacturerIDs).toBeTypeOf("object");
         expect(Array.isArray(dataAntManufacturerIDs)).toBe(false);
         expect(Object.isFrozen(dataAntManufacturerIDs)).toBe(true);
-        expect(entries.length).toBeGreaterThan(150);
-        expect(entries.length).toBeLessThan(250);
+        expect(entries).toHaveLength(232);
         expect(keys.slice(0, 3)).toEqual([
             "1",
             "2",
@@ -81,10 +80,10 @@ describe("data ant manufacturer ID lookup", () => {
             const numericKey = Number(key);
 
             expect(Number.isInteger(numericKey)).toBe(true);
-            expect(numericKey).toBeGreaterThan(0);
+            expect(numericKey >= 1).toBe(true);
             expect(value).toBeTypeOf("string");
             expect(value.trim()).toBe(value);
-            expect(value.length).toBeGreaterThan(0);
+            expect(value).not.toBe("");
         }
     });
 
@@ -122,7 +121,7 @@ describe("data ant manufacturer ID lookup", () => {
             (value) => value === value.toLowerCase()
         );
 
-        expect(lowercaseNames.length / values.length).toBeGreaterThan(0.98);
+        expect(lowercaseNames).toHaveLength(230);
 
         for (const value of values) {
             expect(value).toMatch(/^[a-zA-Z0-9_]+$/);
@@ -164,7 +163,7 @@ describe("data ant manufacturer ID lookup", () => {
         const garminEntry = entries.find(([, name]) => name === "garmin");
         const wahooEntry = entries.find(([, name]) => name === "wahoo_fitness");
 
-        expect(entries.length).toBeGreaterThan(150);
+        expect(entries).toHaveLength(232);
         expect(garminEntry).toEqual(["1", "garmin"]);
         expect(wahooEntry).toEqual(["32", "wahoo_fitness"]);
         expect(entries.some(([, name]) => name === "not_a_manufacturer")).toBe(

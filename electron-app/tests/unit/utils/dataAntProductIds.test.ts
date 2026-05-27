@@ -84,7 +84,7 @@ describe("data ant product ID lookup", () => {
 
         expect(dataAntProductIds).toBeTypeOf("object");
         expect(Array.isArray(dataAntProductIds)).toBe(false);
-        expect(entries.length).toBeGreaterThanOrEqual(5);
+        expect(entries).toHaveLength(5);
         expect(productLookup["1"]).toBeTypeOf("object");
         expect(productLookup["32"]).toBeTypeOf("object");
         expect(productLookup["99999"]).toBeUndefined();
@@ -99,7 +99,7 @@ describe("data ant product ID lookup", () => {
             const numericManufacturerId = Number(manufacturerId);
 
             expect(Number.isInteger(numericManufacturerId)).toBe(true);
-            expect(numericManufacturerId).toBeGreaterThan(0);
+            expect(numericManufacturerId >= 1).toBe(true);
             expect(products).toBeTypeOf("object");
             expect(Array.isArray(products)).toBe(false);
 
@@ -107,10 +107,10 @@ describe("data ant product ID lookup", () => {
                 const numericProductId = Number(productId);
 
                 expect(Number.isInteger(numericProductId)).toBe(true);
-                expect(numericProductId).toBeGreaterThan(0);
+                expect(numericProductId >= 1).toBe(true);
                 expect(productName).toBeTypeOf("string");
                 expect(productName.trim()).toBe(productName);
-                expect(productName.length).toBeGreaterThan(0);
+                expect(productName).not.toBe("");
             }
         }
     });
@@ -170,7 +170,7 @@ describe("data ant product ID lookup", () => {
             ([, productName]) => productName === "edge500"
         );
 
-        expect(productEntries.length).toBeGreaterThan(300);
+        expect(productEntries).toHaveLength(458);
         expect(edge500Entry).toEqual(["1036", "edge500"]);
         expect(
             productEntries.some(([, productName]) => productName === "missing")
