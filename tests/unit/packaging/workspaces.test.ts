@@ -12,7 +12,6 @@ type WorkspacesModule = {
     appPackagePath: string;
     appPackageRepositoryPath: string;
     appStyleCssPath: string;
-    appTabsTestsPath: string;
     appTypesPath: string;
     appUnitTestsPath: string;
     appWorkspaceAbsolutePath: (...segments: string[]) => string;
@@ -53,6 +52,7 @@ type WorkspacesModule = {
     rootRuntimeTsconfigPath: string;
     rootStaticAssetsPath: string;
     rootStylelintConfigPath: string;
+    rootTabsTestsPath: string;
     rootTypedocConfigPath: string;
     rootUnitTestsPath: string;
     rootViteRendererConfigPath: string;
@@ -111,7 +111,7 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes app runtime asset and test paths", async () => {
-        expect.assertions(15);
+        expect.assertions(14);
 
         const workspaces = await importWorkspaces();
 
@@ -132,18 +132,14 @@ describe("workspace path helpers", () => {
             "electron-app/tests/integration"
         );
         expect(workspaces.appStyleCssPath).toBe("style.css");
-        expect(workspaces.appTabsTestsPath).toBe(
-            "electron-app/tests/unit/tabs"
-        );
         expect(workspaces.appUnitTestsPath).toBe("electron-app/tests/unit");
     });
 
-    it("centralizes root config and generated output paths", async () => {
-        expect.assertions(20);
+    it("centralizes root config paths", async () => {
+        expect.assertions(11);
 
         const workspaces = await importWorkspaces();
 
-        expect(workspaces.rootArtifactsPath).toBe("artifacts");
         expect(workspaces.rootElectronBuilderConfigPath).toBe(
             "electron-builder.config.cjs"
         );
@@ -154,23 +150,32 @@ describe("workspace path helpers", () => {
             "tsconfig.electron-app.json"
         );
         expect(workspaces.rootEslintConfigPath).toBe("eslint.config.mjs");
-        expect(workspaces.rootFlatpakBuildPath).toBe("flatpak-build-dir");
-        expect(workspaces.rootFlatpakBundlePath).toBe("FitFileViewer.flatpak");
         expect(workspaces.rootFlatpakManifestPath).toBe("flatpak-build.yml");
-        expect(workspaces.rootFlatpakRepoPath).toBe("flatpak-repo");
-        expect(workspaces.rootFlatpakZipPath).toBe("FitFileViewer.flatpak.zip");
         expect(workspaces.rootPrettierConfigPath).toBe("prettier.config.mjs");
         expect(workspaces.rootRuntimeTsconfigPath).toBe(
             "tsconfig.runtime.json"
         );
-        expect(workspaces.rootReleaseDistPath).toBe("release-dist");
         expect(workspaces.rootStylelintConfigPath).toBe("stylelint.config.mjs");
         expect(workspaces.rootTypedocConfigPath).toBe("typedoc.json");
-        expect(workspaces.rootUnitTestsPath).toBe("tests/unit");
         expect(workspaces.rootViteRendererConfigPath).toBe(
             "vite.renderer.config.mjs"
         );
         expect(workspaces.rootVitestConfigPath).toBe("vitest.config.ts");
+    });
+
+    it("centralizes root generated output and test paths", async () => {
+        expect.assertions(10);
+
+        const workspaces = await importWorkspaces();
+
+        expect(workspaces.rootArtifactsPath).toBe("artifacts");
+        expect(workspaces.rootFlatpakBuildPath).toBe("flatpak-build-dir");
+        expect(workspaces.rootFlatpakBundlePath).toBe("FitFileViewer.flatpak");
+        expect(workspaces.rootFlatpakRepoPath).toBe("flatpak-repo");
+        expect(workspaces.rootFlatpakZipPath).toBe("FitFileViewer.flatpak.zip");
+        expect(workspaces.rootReleaseDistPath).toBe("release-dist");
+        expect(workspaces.rootUnitTestsPath).toBe("tests/unit");
+        expect(workspaces.rootTabsTestsPath).toBe("tests/unit/tabs");
         expect(
             workspaces.rootReleaseDistRelativePath(
                 "windows-latest-ia32",

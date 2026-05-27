@@ -19,7 +19,8 @@ This document provides a high-level tour of the FitFileViewer codebase, covering
 | `electron-app/renderer.js`  | Renderer bootstrap (state initialization, dependency wiring, DOM readiness)                      |
 | `electron-app/fitParser.js` | FIT file decoding with state & settings integration                                              |
 | `electron-app/utils/`       | Shared utilities (app lifecycle, charts, data, files, formatting, rendering, state, theming, UI) |
-| `electron-app/tests/`       | Vitest-based unit, integration, and strict regression suites                                     |
+| `electron-app/tests/`       | App-coupled Vitest unit, integration, and strict regression suites                               |
+| `tests/unit/`               | Root-owned Vitest suites for tooling and shared UI behavior                                      |
 | `tests/fixtures/`           | Root-owned reusable Vitest fixtures                                                              |
 | `tests/playwright/`         | Root-owned Electron Playwright smoke tests                                                       |
 | `scripts/`                  | Root-owned build, coverage, and runtime packaging helpers                                        |

@@ -5,8 +5,8 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
     appIntegrationTestsPath,
-    appTabsTestsPath,
     appUnitTestsPath,
+    rootTabsTestsPath,
     rootUnitTestsPath,
     rootVitestConfigPath,
 } from "../../../scripts/lib/workspaces.mjs";
@@ -55,7 +55,7 @@ describe("run-vitest wrapper", () => {
             rootVitestConfigPath,
             "--run",
             "--reporter=verbose",
-            appTabsTestsPath,
+            rootTabsTestsPath,
         ]);
     });
 

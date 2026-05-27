@@ -6,16 +6,16 @@ import { pathToFileURL } from "node:url";
 
 import {
     appIntegrationTestsPath,
-    appTabsTestsPath,
     appUnitTestsPath,
     repositoryRoot,
+    rootTabsTestsPath,
     rootUnitTestsPath,
     rootVitestConfigPath,
 } from "./lib/workspaces.mjs";
 
 export const vitestSuites = Object.freeze({
     integration: [appIntegrationTestsPath],
-    tabs: [appTabsTestsPath],
+    tabs: [rootTabsTestsPath],
     unit: [rootUnitTestsPath, appUnitTestsPath],
 });
 

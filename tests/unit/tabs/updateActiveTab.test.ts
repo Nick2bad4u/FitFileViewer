@@ -11,11 +11,14 @@ import {
 
 // Mock the state manager before importing tab modules
 const mockState = mockStateManager();
-vi.mock("../../../utils/state/core/stateManager.js", () => mockState);
+vi.mock(
+    import("../../../electron-app/utils/state/core/stateManager.js"),
+    () => mockState
+);
 
 // Import tab modules after mocking
 const { updateActiveTab, initializeActiveTabState } =
-    await import("../../../utils/ui/tabs/updateActiveTab.js");
+    await import("../../../electron-app/utils/ui/tabs/updateActiveTab.js");
 
 function getRequiredElement(id: string): HTMLElement {
     const element = document.getElementById(id);
@@ -56,9 +59,8 @@ function expectActiveTabButtonClass(activeId: string): void {
     }
 }
 
-describe("Tab Button Disabled State", () => {
-    /** @type {HTMLElement} */
-    let container;
+describe("tab button disabled state", () => {
+    let container: HTMLElement;
 
     beforeEach(() => {
         // Reset mocks
@@ -79,6 +81,8 @@ describe("Tab Button Disabled State", () => {
 
     describe("updateActiveTab function", () => {
         it("should update active tab when called programmatically", () => {
+            expect.hasAssertions();
+
             updateActiveTab("tab-chart");
 
             expectActiveTabButtonClass("tab-chart");
@@ -91,6 +95,8 @@ describe("Tab Button Disabled State", () => {
         });
 
         it("should handle invalid tab IDs gracefully", () => {
+            expect.hasAssertions();
+
             const consoleSpy = vi
                 .spyOn(console, "warn")
                 .mockImplementation(() => {});
@@ -111,13 +117,15 @@ describe("Tab Button Disabled State", () => {
         });
     });
 
-    describe("Tab Button Click Handling", () => {
+    describe("tab button click handling", () => {
         beforeEach(() => {
             // Initialize the tab state management
             initializeActiveTabState();
         });
 
         it("should prevent clicks on buttons with disabled property", () => {
+            expect.hasAssertions();
+
             const chartTab = getRequiredButton("tab-chart");
             enableTabButton(chartTab);
             chartTab.disabled = true;
@@ -142,6 +150,8 @@ describe("Tab Button Disabled State", () => {
         });
 
         it("should prevent clicks on buttons with disabled attribute", () => {
+            expect.hasAssertions();
+
             const mapTab = getRequiredButton("tab-map");
             enableTabButton(mapTab);
             mapTab.setAttribute("disabled", "true");
@@ -164,6 +174,8 @@ describe("Tab Button Disabled State", () => {
         });
 
         it("should prevent clicks on buttons with tab-disabled class", () => {
+            expect.hasAssertions();
+
             const tableTab = getRequiredButton("tab-table");
             enableTabButton(tableTab);
             tableTab.classList.add("tab-disabled");
@@ -186,6 +198,8 @@ describe("Tab Button Disabled State", () => {
         });
 
         it("should allow clicks on enabled buttons", () => {
+            expect.hasAssertions();
+
             const summaryTab = getRequiredButton("tab-summary");
             enableTabButton(summaryTab);
 
@@ -204,6 +218,8 @@ describe("Tab Button Disabled State", () => {
         });
 
         it("should log disabled button clicks for debugging", () => {
+            expect.hasAssertions();
+
             const consoleSpy = vi
                 .spyOn(console, "log")
                 .mockImplementation(() => {});
@@ -224,12 +240,14 @@ describe("Tab Button Disabled State", () => {
         });
     });
 
-    describe("Tab State Synchronization", () => {
+    describe("tab state synchronization", () => {
         beforeEach(() => {
             initializeActiveTabState();
         });
 
         it("should update DOM when state changes", () => {
+            expect.hasAssertions();
+
             // Change state programmatically
             mockState.setState("ui.activeTab", "chart");
 
@@ -238,6 +256,8 @@ describe("Tab Button Disabled State", () => {
         });
 
         it("should handle state changes to non-existent tabs gracefully", () => {
+            expect.hasAssertions();
+
             mockState.setState("ui.activeTab", "nonexistent");
 
             expect(mockState.getState("ui.activeTab")).toBe("nonexistent");
@@ -252,13 +272,15 @@ describe("Tab Button Disabled State", () => {
         });
     });
 
-    describe("Tab Name Extraction", () => {
+    describe("tab name extraction", () => {
         beforeEach(() => {
             // Initialize the tab state management for this test group
             initializeActiveTabState();
         });
 
         it("should extract tab names from various ID patterns", () => {
+            expect.hasAssertions();
+
             // This tests the internal extractTabName function indirectly
             const testCases = [
                 ["tab-summary", "summary"],
@@ -297,6 +319,8 @@ describe("Tab Button Disabled State", () => {
         });
 
         it("should ignore buttons without extractable tab names", () => {
+            expect.hasAssertions();
+
             const button = document.createElement("button");
             button.className = "tab-button";
             button.setAttribute("aria-selected", "false");

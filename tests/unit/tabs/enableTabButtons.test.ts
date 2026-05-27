@@ -10,10 +10,21 @@ import {
 
 // Import the function to test
 const { setTabButtonsEnabled } =
-    await import("../../../utils/ui/controls/enableTabButtons.js");
-const { getState } = await import("../../../utils/state/core/stateManager.js");
+    await import("../../../electron-app/utils/ui/controls/enableTabButtons.js");
+const { getState } =
+    await import("../../../electron-app/utils/state/core/stateManager.js");
 
-describe("Enable Tab Buttons", () => {
+function getRequiredTabButton(): HTMLElement {
+    const firstButton = document.querySelector<HTMLElement>(".tab-button");
+
+    if (firstButton === null) {
+        throw new Error("Expected a tab button in the test DOM.");
+    }
+
+    return firstButton;
+}
+
+describe("enable tab buttons", () => {
     beforeEach(() => {
         createMockTabButtons();
     });
@@ -25,11 +36,13 @@ describe("Enable Tab Buttons", () => {
 
     describe("setTabButtonsEnabled function", () => {
         it("should disable all tab buttons when called with false", () => {
+            expect.hasAssertions();
+
             setTabButtonsEnabled(false);
 
             const tabButtons = document.querySelectorAll(".tab-button");
             tabButtons.forEach((button) => {
-                const htmlButton = /** @type {HTMLButtonElement} */ button;
+                const htmlButton = button as HTMLButtonElement;
                 expect(htmlButton.disabled).toBe(true);
                 expect(htmlButton.classList.contains("tab-disabled")).toBe(
                     true
@@ -39,6 +52,8 @@ describe("Enable Tab Buttons", () => {
         });
 
         it("should enable all tab buttons when called with true", () => {
+            expect.hasAssertions();
+
             // First disable them
             setTabButtonsEnabled(false);
 
@@ -47,7 +62,7 @@ describe("Enable Tab Buttons", () => {
 
             const tabButtons = document.querySelectorAll(".tab-button");
             tabButtons.forEach((button) => {
-                const htmlButton = /** @type {HTMLButtonElement} */ button;
+                const htmlButton = button as HTMLButtonElement;
                 expect(htmlButton.disabled).toBe(false);
                 expect(htmlButton.classList.contains("tab-disabled")).toBe(
                     false
@@ -57,6 +72,8 @@ describe("Enable Tab Buttons", () => {
         });
 
         it("should handle empty DOM gracefully", () => {
+            expect.hasAssertions();
+
             cleanupDOM();
 
             setTabButtonsEnabled(false);
@@ -70,23 +87,20 @@ describe("Enable Tab Buttons", () => {
         });
 
         it("should work with mixed button states", () => {
+            expect.hasAssertions();
+
             const tabButtons = document.querySelectorAll(".tab-button");
 
             // Manually set different states
-            /** @type {HTMLButtonElement} */ tabButtons[0].disabled = true;
-            /** @type {HTMLElement} */ tabButtons[1].classList.add(
-                "tab-disabled"
-            );
-            /** @type {HTMLElement} */ tabButtons[2].setAttribute(
-                "aria-disabled",
-                "true"
-            );
+            (tabButtons[0] as HTMLButtonElement).disabled = true;
+            tabButtons[1].classList.add("tab-disabled");
+            tabButtons[2].setAttribute("aria-disabled", "true");
 
             // Enable all
             setTabButtonsEnabled(true);
 
             tabButtons.forEach((button) => {
-                const htmlButton = /** @type {HTMLButtonElement} */ button;
+                const htmlButton = button as HTMLButtonElement;
                 expect(htmlButton.disabled).toBe(false);
                 expect(htmlButton.classList.contains("tab-disabled")).toBe(
                     false
@@ -96,10 +110,9 @@ describe("Enable Tab Buttons", () => {
         });
 
         it("should preserve other classes when enabling/disabling", () => {
-            const firstButton =
-                /** @type {HTMLElement} */ document.querySelector(
-                    ".tab-button"
-                );
+            expect.hasAssertions();
+
+            const firstButton = getRequiredTabButton();
             firstButton.classList.add("custom-class", "another-class");
 
             setTabButtonsEnabled(false);
@@ -119,6 +132,8 @@ describe("Enable Tab Buttons", () => {
         });
 
         it("should log operations for debugging", () => {
+            expect.hasAssertions();
+
             const consoleSpy = vi
                 .spyOn(console, "log")
                 .mockImplementation(() => {});
@@ -128,7 +143,7 @@ describe("Enable Tab Buttons", () => {
 
             const tabButtons = document.querySelectorAll(".tab-button");
             tabButtons.forEach((button) => {
-                const htmlButton = /** @type {HTMLButtonElement} */ button;
+                const htmlButton = button as HTMLButtonElement;
                 expect(htmlButton.disabled).toBe(false);
                 expect(htmlButton.getAttribute("aria-disabled")).toBe("false");
             });
@@ -151,14 +166,16 @@ describe("Enable Tab Buttons", () => {
         });
     });
 
-    describe("Tab button state consistency", () => {
+    describe("tab button state consistency", () => {
         it("should maintain consistent disabled state across all methods", () => {
+            expect.hasAssertions();
+
             const tabButtons = document.querySelectorAll(".tab-button");
 
             setTabButtonsEnabled(false);
 
             tabButtons.forEach((button) => {
-                const htmlButton = /** @type {HTMLButtonElement} */ button;
+                const htmlButton = button as HTMLButtonElement;
 
                 // All three methods should be in sync
                 expect(htmlButton.disabled).toBe(true);
@@ -170,6 +187,8 @@ describe("Enable Tab Buttons", () => {
         });
 
         it("should handle rapid enable/disable cycles", () => {
+            expect.hasAssertions();
+
             for (let i = 0; i < 10; i++) {
                 setTabButtonsEnabled(i % 2 === 0);
             }
@@ -177,7 +196,7 @@ describe("Enable Tab Buttons", () => {
             // Final state should be disabled (i=9, 9%2=1, so setTabButtonsEnabled(false) was last call)
             const tabButtons = document.querySelectorAll(".tab-button");
             tabButtons.forEach((button) => {
-                const htmlButton = /** @type {HTMLButtonElement} */ button;
+                const htmlButton = button as HTMLButtonElement;
                 expect(htmlButton.disabled).toBe(true); // Changed to true since last call was false
                 expect(htmlButton.classList).not.toContain("active-disabled");
             });

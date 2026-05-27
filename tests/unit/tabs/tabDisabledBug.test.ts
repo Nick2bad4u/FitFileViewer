@@ -4,6 +4,9 @@
  */
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 
+const { setTabButtonsEnabled } =
+    await import("../../../electron-app/utils/ui/controls/enableTabButtons.js");
+
 function createTabButton({
     active = false,
     ariaSelected,
@@ -103,17 +106,24 @@ function createAltFitButton(): HTMLButtonElement {
     ellipse.setAttribute("rx", "9");
     ellipse.setAttribute("ry", "3");
     firstPath.setAttribute("d", "M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5");
-    secondPath.setAttribute(
-        "d",
-        "M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"
-    );
+    secondPath.setAttribute("d", "M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3");
     svg.replaceChildren(ellipse, firstPath, secondPath);
     button.prepend(svg);
 
     return button;
 }
 
-describe("Tab Disabled Attribute Bug Investigation", () => {
+function getAltFitButton(): HTMLButtonElement {
+    const button = document.querySelector<HTMLButtonElement>("#tab-altfit");
+
+    if (!(button instanceof HTMLButtonElement)) {
+        throw new TypeError("Expected tab-altfit to be a button");
+    }
+
+    return button;
+}
+
+describe("tab disabled attribute bug investigation", () => {
     let mockButtons: HTMLButtonElement[] = [];
 
     beforeEach(() => {
@@ -129,6 +139,8 @@ describe("Tab Disabled Attribute Bug Investigation", () => {
     });
 
     it("should properly remove disabled attribute through direct DOM manipulation", () => {
+        expect.hasAssertions();
+
         // Manually add disabled attribute like it appears in the real app
         mockButtons.forEach((button) => {
             button.setAttribute("disabled", "");
@@ -155,6 +167,8 @@ describe("Tab Disabled Attribute Bug Investigation", () => {
     });
 
     it("should detect if multiple systems are setting disabled attributes", () => {
+        expect.hasAssertions();
+
         const attributeChanges: {
             target: string;
             oldValue: string | null;
@@ -169,7 +183,7 @@ describe("Tab Disabled Attribute Bug Investigation", () => {
                     mutation.type === "attributes" &&
                     mutation.attributeName === "disabled"
                 ) {
-                    const target = /** @type {HTMLElement} */ mutation.target;
+                    const target = mutation.target as HTMLElement;
                     attributeChanges.push({
                         target: target.id,
                         oldValue: mutation.oldValue,
@@ -197,10 +211,7 @@ describe("Tab Disabled Attribute Bug Investigation", () => {
         });
 
         // Then enable (like file load)
-        mockButtons.forEach((button) => {
-            button.disabled = false;
-            button.removeAttribute("disabled");
-        });
+        setTabButtonsEnabled(true);
 
         recordAttributeChanges(observer.takeRecords());
 
@@ -223,17 +234,12 @@ describe("Tab Disabled Attribute Bug Investigation", () => {
     });
 
     it("should test with the exact same DOM structure as real app", () => {
+        expect.hasAssertions();
+
         // Create button with exact same attributes as the bug report
         document.body.replaceChildren(createAltFitButton());
 
-        const button =
-            document.querySelector<HTMLButtonElement>("#tab-altfit");
-
-        // Verify button exists
-        expect(button).toBeInstanceOf(HTMLButtonElement);
-        if (!(button instanceof HTMLButtonElement)) {
-            throw new TypeError("Expected tab-altfit to be a button");
-        }
+        const button = getAltFitButton();
 
         // Verify initial problematic state
         expect(button.hasAttribute("disabled")).toBe(true);
@@ -242,10 +248,7 @@ describe("Tab Disabled Attribute Bug Investigation", () => {
         expect(button.style.pointerEvents).toBe("auto"); // Should be enabled styling
 
         // Apply the fix
-        button.disabled = false;
-        button.removeAttribute("disabled");
-        button.setAttribute("aria-disabled", "false");
-        button.style.pointerEvents = "auto";
+        setTabButtonsEnabled(true);
 
         // Verify fix works
         expect(button.disabled).toBe(false);
@@ -256,6 +259,8 @@ describe("Tab Disabled Attribute Bug Investigation", () => {
     });
 
     it("should simulate the real app enabling process with timing", async () => {
+        expect.hasAssertions();
+
         // Start with disabled buttons
         mockButtons.forEach((button) => {
             button.setAttribute("disabled", "");
@@ -269,16 +274,7 @@ describe("Tab Disabled Attribute Bug Investigation", () => {
         await Promise.resolve();
 
         // Enable buttons (simulate setTabButtonsEnabled(true))
-        mockButtons.forEach((button) => {
-            button.disabled = false;
-            button.classList.remove("tab-disabled");
-            button.removeAttribute("disabled");
-            button.setAttribute("aria-disabled", "false");
-            button.style.pointerEvents = "auto";
-            button.style.cursor = "pointer";
-            button.style.filter = "none";
-            button.style.opacity = "1";
-        });
+        setTabButtonsEnabled(true);
 
         // Force style recalculation (like the real code does)
         mockButtons.forEach((button) => {

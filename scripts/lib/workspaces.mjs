@@ -23,6 +23,7 @@ export const rootStaticAssetsPath = "static";
 export const rootStylelintConfigPath = "stylelint.config.mjs";
 export const rootTypedocConfigPath = "typedoc.json";
 export const rootUnitTestsPath = path.posix.join("tests", "unit");
+export const rootTabsTestsPath = path.posix.join(rootUnitTestsPath, "tabs");
 export const rootViteRendererConfigPath = "vite.renderer.config.mjs";
 export const rootVitestConfigPath = "vitest.config.ts";
 export const appWorkspacePath = path.join(repositoryRoot, appWorkspaceName);
@@ -43,11 +44,6 @@ export const appPackagePath = appWorkspaceAbsolutePath("package.json");
 export const appPackageRepositoryPath =
     appWorkspaceRepositoryPath("package.json");
 export const appStyleCssPath = "style.css";
-export const appTabsTestsPath = appWorkspaceRepositoryPath(
-    "tests",
-    "unit",
-    "tabs"
-);
 export const appTypesPath = appWorkspaceRelativePath("types");
 export const appUnitTestsPath = appWorkspaceRepositoryPath("tests", "unit");
 export const docusaurusPackagePath =
