@@ -73,10 +73,10 @@ Use this checklist to verify your documentation site is working correctly.
 - [ ] Welcome post is visible
 - [ ] Post content displays correctly
 
-## ✅ Custom Domain
+## ✅ GitHub Pages URL
 
-- [ ] Site URLs use `fitfileviewer.typpi.online`
-- [ ] No `/FitFileViewer/` in paths
+- [ ] Site URLs use `https://nick2bad4u.github.io/FitFileViewer/`
+- [ ] Production paths include the `/FitFileViewer/` base URL
 - [ ] Social card image URL is correct
 - [ ] All internal links work with root baseUrl
 

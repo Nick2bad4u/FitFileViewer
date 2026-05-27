@@ -4,11 +4,12 @@
 
 The FitFileViewer documentation site is now fully configured with:
 
-### 🌐 Custom Domain
+### 🌐 GitHub Pages
 
 - **Production URL**: `https://nick2bad4u.github.io`
 - **Base URL**: `/FitFileViewer/`
-- Uses existing `CNAME` file for GitHub Pages
+- GitHub Pages deployment is managed by the root workflow at
+  `.github/workflows/docusaurus.yml`
 
 ### 📚 TypeDoc Integration
 
@@ -59,11 +60,11 @@ docusaurus/
 │   ├── js/               # Client-side enhancements
 │   └── pages/            # Custom pages (homepage)
 ├── static/
-│   └── img/              # Images, favicon, logo
+│   └── img/              # Site images and logo
 ├── docusaurus.config.ts  # Site configuration
 ├── sidebars.ts           # Sidebar navigation
 ├── typedoc.json          # Shared TypeDoc config
-└── package.json          # Dependencies and scripts
+└── package.json          # Docusaurus workspace dependencies
 ```
 
 ## 🔧 TypeDoc Configuration
@@ -188,7 +189,8 @@ TypeDoc plugins:
 
 ## 🎯 Next Steps
 
-1. **Test locally**: `npm install && npm run docs:start`
+1. **Test locally from the repository root**:
+   `npm install && npm run docs:start`
 2. **Generate API docs**: `npm run docs:typedoc` to test TypeDoc
 3. **Build full site**: `npm run docs:build` to test complete build
 4. **Push to deploy**: Commit and push to trigger CI deployment

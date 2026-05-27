@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 const repositoryRoot = fileURLToPath(new URL("..", import.meta.url));
 const cleanupTargets = [
     ".cache",
+    ".stylelintcache",
     path.join("docusaurus", ".docusaurus"),
     path.join("docusaurus", "build"),
     path.join("docusaurus", "docs", "api"),
