@@ -1,7 +1,6 @@
-import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 
-const electronAppDir = fileURLToPath(new URL("electron-app/", import.meta.url));
+import { appWorkspacePath } from "./scripts/lib/workspaces.mjs";
 
 export default defineConfig({
     build: {
@@ -29,5 +28,5 @@ export default defineConfig({
         target: "es2024",
     },
     publicDir: false,
-    root: electronAppDir,
+    root: appWorkspacePath,
 });
