@@ -16,13 +16,19 @@ const mockChartOverlayColorPalette = [
     "#d32f2f",
 ];
 
-vi.mock("../../charts/theming/getThemeColors.js", () => ({
-    getThemeColors: mockGetThemeColors,
-}));
+vi.mock(
+    import("../../../../electron-app/utils/charts/theming/getThemeColors.js"),
+    () => ({
+        getThemeColors: mockGetThemeColors,
+    })
+);
 
-vi.mock("../../charts/theming/chartOverlayColorPalette.js", () => ({
-    chartOverlayColorPalette: mockChartOverlayColorPalette,
-}));
+vi.mock(
+    import("../../../../electron-app/utils/charts/theming/chartOverlayColorPalette.js"),
+    () => ({
+        chartOverlayColorPalette: mockChartOverlayColorPalette,
+    })
+);
 
 describe("createShownFilesList", () => {
     let createShownFilesList: () => HTMLElement;
@@ -74,14 +80,8 @@ describe("createShownFilesList", () => {
 
         // Import the function dynamically
         const module =
-            await import("../../../../utils/rendering/components/createShownFilesList.js");
+            await import("../../../../electron-app/utils/rendering/components/createShownFilesList.js");
         createShownFilesList = module.createShownFilesList;
-
-        // Get mocked functions
-        const themeModule =
-            await import("../../../../utils/charts/theming/getThemeColors.js");
-        const paletteModule =
-            await import("../../../../utils/charts/theming/chartOverlayColorPalette.js");
     });
 
     afterEach(() => {
@@ -89,7 +89,7 @@ describe("createShownFilesList", () => {
         vi.clearAllTimers();
     });
 
-    describe("Basic DOM Creation", () => {
+    describe("basic DOM Creation", () => {
         it("creates container element with correct properties", () => {
             const container = createShownFilesList();
 
@@ -202,7 +202,7 @@ describe("createShownFilesList", () => {
                     signal: expect.any(AbortSignal),
                 })
             );
-            expect(typeof (container as any)._dispose).toBe("function");
+            expect((container as any)._dispose).toBeTypeOf("function");
             expect(container.getAttribute("role")).toBe("region");
         });
 
@@ -236,7 +236,7 @@ describe("createShownFilesList", () => {
         });
     });
 
-    describe("Color Accessibility System", () => {
+    describe("color Accessibility System", () => {
         let container: HTMLElement;
         beforeEach(() => {
             container = createShownFilesList();
@@ -418,7 +418,7 @@ describe("createShownFilesList", () => {
         });
     });
 
-    describe("File List Management", () => {
+    describe("file List Management", () => {
         beforeEach(() => {
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
@@ -573,7 +573,7 @@ describe("createShownFilesList", () => {
         });
     });
 
-    describe("Remove Button Functionality", () => {
+    describe("remove Button Functionality", () => {
         beforeEach(() => {
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
@@ -603,12 +603,12 @@ describe("createShownFilesList", () => {
             // Click remove button
             removeBtn.click();
 
-            expect((global.window as any).loadedFitFiles.length).toBe(2);
+            expect((global.window as any).loadedFitFiles).toHaveLength(2);
             expect((global.window as any).loadedFitFiles[1].filePath).toBe(
                 "overlay2.fit"
             );
-            expect((global.window as any).renderMap).toHaveBeenCalled();
-            expect(spyUpdateShownFilesList).toHaveBeenCalled();
+            expect((global.window as any).renderMap).toHaveBeenCalledWith();
+            expect(spyUpdateShownFilesList).toHaveBeenCalledWith();
         });
 
         it("prevents event propagation on remove button click", () => {
@@ -624,7 +624,7 @@ describe("createShownFilesList", () => {
 
             removeBtn.dispatchEvent(clickEvent);
 
-            expect(stopPropagationSpy).toHaveBeenCalled();
+            expect(stopPropagationSpy).toHaveBeenCalledWith();
             expect((global.window as any).loadedFitFiles).toHaveLength(2);
         });
 
@@ -699,7 +699,7 @@ describe("createShownFilesList", () => {
         });
     });
 
-    describe("Clear All Functionality", () => {
+    describe("clear All Functionality", () => {
         beforeEach(() => {
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
@@ -748,8 +748,8 @@ describe("createShownFilesList", () => {
             ) as HTMLElement;
             clearAllBtn.click();
 
-            expect((global.window as any).loadedFitFiles.length).toBe(1); // Only main file left
-            expect((global.window as any).renderMap).toHaveBeenCalled();
+            expect((global.window as any).loadedFitFiles).toHaveLength(1); // Only main file left
+            expect((global.window as any).renderMap).toHaveBeenCalledWith();
             expect(
                 container.querySelectorAll("#shown-files-ul li")
             ).toHaveLength(0);
@@ -767,7 +767,7 @@ describe("createShownFilesList", () => {
 
             clearAllBtn.dispatchEvent(clickEvent);
 
-            expect(stopPropagationSpy).toHaveBeenCalled();
+            expect(stopPropagationSpy).toHaveBeenCalledWith();
             expect((global.window as any).loadedFitFiles).toHaveLength(1);
         });
 
@@ -802,7 +802,7 @@ describe("createShownFilesList", () => {
             const clearAllBtns = container.querySelectorAll(
                 ".overlay-clear-all-btn"
             );
-            expect(clearAllBtns.length).toBe(1);
+            expect(clearAllBtns).toHaveLength(1);
         });
 
         it("does not create clear all button when no overlays exist", () => {
@@ -821,7 +821,7 @@ describe("createShownFilesList", () => {
         });
     });
 
-    describe("Interactive Features and Event Handling", () => {
+    describe("interactive Features and Event Handling", () => {
         beforeEach(() => {
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
@@ -841,7 +841,7 @@ describe("createShownFilesList", () => {
             expect((global.window as any)._highlightedOverlayIdx).toBe(1);
             expect(
                 (global.window as any).updateOverlayHighlights
-            ).toHaveBeenCalled();
+            ).toHaveBeenCalledWith();
         });
 
         it("handles mouse enter events on list items", () => {
@@ -901,20 +901,21 @@ describe("createShownFilesList", () => {
             const firstItem = ul?.querySelector("li") as HTMLElement;
 
             // Set up tooltip remover
-            (firstItem as any)._tooltipRemover = vi.fn();
+            const tooltipRemover = vi.fn<() => void>();
+            (firstItem as any)._tooltipRemover = tooltipRemover;
 
             firstItem.dispatchEvent(new MouseEvent("mouseleave"));
 
             vi.advanceTimersByTime(10);
 
-            expect((firstItem as any)._tooltipRemover).toHaveBeenCalled();
+            expect(tooltipRemover).toHaveBeenCalledWith();
             expect((global.window as any)._highlightedOverlayIdx).toBeNull();
 
             vi.useRealTimers();
         });
     });
 
-    describe("Tooltip System", () => {
+    describe("tooltip System", () => {
         beforeEach(() => {
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
@@ -1166,7 +1167,7 @@ describe("createShownFilesList", () => {
         });
     });
 
-    describe("Leaflet Map Integration", () => {
+    describe("leaflet Map Integration", () => {
         let mockPolyline: any;
 
         beforeEach(() => {
@@ -1211,7 +1212,7 @@ describe("createShownFilesList", () => {
             firstItem.click();
 
             expect((global.window as any)._highlightedOverlayIdx).toBe(1);
-            expect(mockPolyline.bringToFront).toHaveBeenCalled();
+            expect(mockPolyline.bringToFront).toHaveBeenCalledWith();
         });
 
         it("brings matching markers to front", () => {
@@ -1230,8 +1231,8 @@ describe("createShownFilesList", () => {
             firstItem.click();
 
             expect((global.window as any)._highlightedOverlayIdx).toBe(1);
-            expect(mockPolyline.bringToFront).toHaveBeenCalled();
-            expect(mockMarker.bringToFront).toHaveBeenCalled();
+            expect(mockPolyline.bringToFront).toHaveBeenCalledWith();
+            expect(mockMarker.bringToFront).toHaveBeenCalledWith();
         });
 
         it("applies visual effects to polyline element", () => {
@@ -1335,7 +1336,7 @@ describe("createShownFilesList", () => {
         });
     });
 
-    describe("Edge Cases and Error Handling", () => {
+    describe("edge Cases and Error Handling", () => {
         it("handles missing ul element gracefully", () => {
             const container = createShownFilesList();
             container.innerHTML = ""; // Remove the ul
@@ -1496,7 +1497,7 @@ describe("createShownFilesList", () => {
         });
     });
 
-    describe("Theme Integration", () => {
+    describe("theme Integration", () => {
         it("responds to dynamic theme changes", () => {
             const container = createShownFilesList();
 

@@ -8,7 +8,6 @@
     "exclude": [
         ".cache/**",
         "coverage/**",
-        "electron-app/coverage/**",
         "electron-app/dist/**",
         "node_modules/**"
     ],

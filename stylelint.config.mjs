@@ -5,7 +5,6 @@ const stylelintConfig = {
     ...sharedConfig,
     ignoreFiles: [
         "**/node_modules/**",
-        "electron-app/coverage/**",
         "electron-app/dist/**",
         "electron-app/release/**",
         "electron-app/temp-win7/**",

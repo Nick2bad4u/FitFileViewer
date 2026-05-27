@@ -361,12 +361,10 @@ electron-app/utils/
 
 ```text
 electron-app/tests/
-├── unit/                            # Unit tests (4,000+ tests)
+├── unit/                            # App-coupled unit tests
 │   ├── utils/                       # Utility function tests
 │   │   ├── formatting/              # Formatting function tests
 │   │   ├── data/                    # Data processing tests
-│   │   ├── charts/                  # Chart functionality tests
-│   │   ├── maps/                    # Map functionality tests
 │   │   ├── state/                   # State management tests
 │   │   └── ui/                      # UI component tests
 │   ├── integration/                 # Integration tests
@@ -383,6 +381,7 @@ tests/unit/
 ├── charts/                          # Root-owned chart behavior tests
 ├── maps/                            # Root-owned map behavior tests
 ├── packaging/                       # Root-owned build/tooling tests
+├── rendering/                       # Root-owned rendering helper and component tests
 ├── runtime/                         # Root-owned runtime boundary tests
 └── tabs/                            # Root-owned shared tab behavior tests
 

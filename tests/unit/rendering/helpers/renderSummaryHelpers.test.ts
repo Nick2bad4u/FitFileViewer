@@ -10,7 +10,7 @@ import {
     orderSummaryColumnsNamedFirst,
     renderTable,
     saveColPrefs,
-} from "../../../utils/rendering/helpers/renderSummaryHelpers.js";
+} from "../../../../electron-app/utils/rendering/helpers/renderSummaryHelpers.js";
 
 type SummaryWindow = Window &
     typeof globalThis & {

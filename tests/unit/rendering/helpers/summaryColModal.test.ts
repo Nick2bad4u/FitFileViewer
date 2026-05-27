@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
 
-import { showColModal } from "../../../utils/rendering/helpers/summaryColModal.js";
+import { showColModal } from "../../../../electron-app/utils/rendering/helpers/summaryColModal.js";
 
 type SummaryWindow = Window &
     typeof globalThis & {

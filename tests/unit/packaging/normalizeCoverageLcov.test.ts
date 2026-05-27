@@ -28,25 +28,28 @@ afterEach(() => {
 });
 
 describe("normalize-coverage-lcov script", () => {
-    it("builds candidate directories from env, temp, and app coverage paths", () => {
-        expect.assertions(3);
+    it("builds candidate directories from env, temp, root, and legacy app coverage paths", () => {
+        expect.assertions(4);
 
-        const targetDirectory = path.join(
+        const rootTargetDirectory = path.join(process.cwd(), "coverage");
+        const legacyDirectory = path.join(
             process.cwd(),
             "electron-app",
             "coverage"
         );
         const candidates = createCoverageCandidateDirs({
             environmentCoverageDir: "custom-coverage",
+            legacyDirectory,
             temporaryDirectory: "tmp-root",
-            targetDirectory,
+            targetDirectory: rootTargetDirectory,
         });
 
         expect(candidates[0]).toBe(path.resolve("custom-coverage"));
         expect(candidates[1]).toBe(
             path.join("tmp-root", "ffv-vitest-coverage")
         );
-        expect(candidates[2]).toBe(targetDirectory);
+        expect(candidates[2]).toBe(rootTargetDirectory);
+        expect(candidates[3]).toBe(legacyDirectory);
     });
 
     it("finds the first candidate containing coverage output", () => {
@@ -79,11 +82,7 @@ describe("normalize-coverage-lcov script", () => {
         const temporaryRoot = makeTemporaryRoot();
         const repositoryRoot = path.join(temporaryRoot, "repo");
         const sourceCoverageDir = path.join(temporaryRoot, "coverage-source");
-        const targetCoverageDir = path.join(
-            repositoryRoot,
-            "electron-app",
-            "coverage"
-        );
+        const targetCoverageDir = path.join(repositoryRoot, "coverage");
         const sourceFile = path.join(repositoryRoot, "electron-app", "main.ts");
 
         fs.mkdirSync(sourceCoverageDir, { recursive: true });
