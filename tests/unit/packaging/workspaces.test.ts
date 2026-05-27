@@ -13,9 +13,12 @@ type WorkspacesModule = {
     appWorkspacePath: string;
     appWorkspaceRepositoryPath: (...segments: string[]) => string;
     appWorkspaceRelativePath: (...segments: string[]) => string;
+    docusaurusPackagePath: string;
+    docusaurusPackageRepositoryPath: string;
     docusaurusWorkspaceAbsolutePath: (...segments: string[]) => string;
     docusaurusWorkspaceName: string;
     docusaurusWorkspacePath: string;
+    docusaurusWorkspaceRepositoryPath: (...segments: string[]) => string;
     docusaurusWorkspaceRelativePath: (...segments: string[]) => string;
     repositoryRoot: string;
     repositoryScriptPath: (...segments: string[]) => string;
@@ -28,7 +31,7 @@ async function importWorkspaces(): Promise<WorkspacesModule> {
 
 describe("workspace path helpers", () => {
     it("centralizes the app workspace root and generated output paths", async () => {
-        expect.assertions(18);
+        expect.assertions(16);
 
         const workspaces = await importWorkspaces();
 
@@ -66,17 +69,38 @@ describe("workspace path helpers", () => {
         expect(workspaces.appWorkspaceAbsolutePath("dist")).toBe(
             path.join(process.cwd(), "electron-app", "dist")
         );
-        expect(workspaces.docusaurusWorkspaceRelativePath("static")).toBe(
-            path.join("docusaurus", "static")
-        );
-        expect(workspaces.docusaurusWorkspaceAbsolutePath("static")).toBe(
-            path.join(process.cwd(), "docusaurus", "static")
-        );
         expect(workspaces.scriptsPath).toBe(
             path.join(process.cwd(), "scripts")
         );
         expect(workspaces.repositoryScriptPath("build-runtime.mjs")).toBe(
             path.join(process.cwd(), "scripts", "build-runtime.mjs")
+        );
+    });
+
+    it("centralizes the Docusaurus workspace root and package paths", async () => {
+        expect.assertions(8);
+
+        const workspaces = await importWorkspaces();
+
+        expect(workspaces.repositoryRoot).toBe(process.cwd());
+        expect(workspaces.docusaurusWorkspaceName).toBe("docusaurus");
+        expect(workspaces.docusaurusWorkspacePath).toBe(
+            path.join(process.cwd(), "docusaurus")
+        );
+        expect(workspaces.docusaurusWorkspaceRelativePath("static")).toBe(
+            path.join("docusaurus", "static")
+        );
+        expect(
+            workspaces.docusaurusWorkspaceRepositoryPath("package.json")
+        ).toBe("docusaurus/package.json");
+        expect(workspaces.docusaurusWorkspaceAbsolutePath("static")).toBe(
+            path.join(process.cwd(), "docusaurus", "static")
+        );
+        expect(workspaces.docusaurusPackagePath).toBe(
+            path.join(process.cwd(), "docusaurus", "package.json")
+        );
+        expect(workspaces.docusaurusPackageRepositoryPath).toBe(
+            "docusaurus/package.json"
         );
     });
 });

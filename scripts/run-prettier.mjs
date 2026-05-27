@@ -3,15 +3,19 @@ import { createRequire } from "node:module";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
-import { appWorkspaceRelativePath, repositoryRoot } from "./lib/workspaces.mjs";
+import {
+    appPackageRepositoryPath,
+    docusaurusPackageRepositoryPath,
+    repositoryRoot,
+} from "./lib/workspaces.mjs";
 
 const require = createRequire(import.meta.url);
 const prettierCliPath = require.resolve("prettier/bin/prettier.cjs");
 
 export const prettierTargets = [
     "package.json",
-    appWorkspaceRelativePath("package.json"),
-    "docusaurus/package.json",
+    appPackageRepositoryPath,
+    docusaurusPackageRepositoryPath,
     "docusaurus/docusaurus.config.ts",
     "docusaurus/sidebars.ts",
     "docusaurus/tsconfig.json",

@@ -3,13 +3,10 @@ import { createRequire } from "node:module";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
-import {
-    docusaurusWorkspaceAbsolutePath,
-    repositoryRoot,
-} from "./lib/workspaces.mjs";
+import { docusaurusPackagePath, repositoryRoot } from "./lib/workspaces.mjs";
 
 const requireFromDocusaurus = createRequire(
-    pathToFileURL(docusaurusWorkspaceAbsolutePath("package.json")).href
+    pathToFileURL(docusaurusPackagePath).href
 );
 export const docusaurusTypeScriptCliPath =
     requireFromDocusaurus.resolve("typescript/bin/tsc");

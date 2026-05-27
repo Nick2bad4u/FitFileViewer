@@ -16,6 +16,10 @@ export const appPackageRepositoryPath =
     appWorkspaceRepositoryPath("package.json");
 export const appReleasePath = appWorkspaceRelativePath("release");
 export const appTypesPath = appWorkspaceRelativePath("types");
+export const docusaurusPackagePath =
+    docusaurusWorkspaceAbsolutePath("package.json");
+export const docusaurusPackageRepositoryPath =
+    docusaurusWorkspaceRepositoryPath("package.json");
 export const scriptsPath = path.join(repositoryRoot, "scripts");
 
 export function appWorkspaceRelativePath(...segments) {
@@ -36,6 +40,10 @@ export function docusaurusWorkspaceAbsolutePath(...segments) {
 
 export function docusaurusWorkspaceRelativePath(...segments) {
     return path.join(docusaurusWorkspaceName, ...segments);
+}
+
+export function docusaurusWorkspaceRepositoryPath(...segments) {
+    return path.posix.join(docusaurusWorkspaceName, ...segments);
 }
 
 export function repositoryScriptPath(...segments) {

@@ -3,6 +3,8 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { appPackageRepositoryPath } from "../../../scripts/lib/workspaces.mjs";
+
 type PackageJson = {
     dependencies?: Record<string, string>;
     devDependencies?: Record<string, string>;
@@ -52,7 +54,7 @@ describe("workspace package boundaries", () => {
     it("keeps the Electron app package limited to runtime publish metadata", () => {
         expect.assertions(6);
 
-        const appPackage = readPackageJson("electron-app/package.json");
+        const appPackage = readPackageJson(appPackageRepositoryPath);
 
         expect(appPackage.scripts ?? {}).toStrictEqual({});
         expect(appPackage).not.toHaveProperty("devDependencies");

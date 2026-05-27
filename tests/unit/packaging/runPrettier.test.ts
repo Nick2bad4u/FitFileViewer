@@ -9,6 +9,10 @@ import {
     prettierTargets,
     runPrettier,
 } from "../../../scripts/run-prettier.mjs";
+import {
+    appPackageRepositoryPath,
+    docusaurusPackageRepositoryPath,
+} from "../../../scripts/lib/workspaces.mjs";
 
 type CommandRunner = (
     command: string,
@@ -21,10 +25,8 @@ describe("run-prettier wrapper", () => {
         expect.assertions(6);
 
         expect(prettierTargets).toContain("package.json");
-        expect(prettierTargets).toContain(
-            path.join("electron-app", "package.json")
-        );
-        expect(prettierTargets).toContain("docusaurus/package.json");
+        expect(prettierTargets).toContain(appPackageRepositoryPath);
+        expect(prettierTargets).toContain(docusaurusPackageRepositoryPath);
         expect(prettierTargets).toContain("prettier.config.mjs");
         expect(prettierTargets).toContain("scripts/*.mjs");
         expect(prettierTargets).not.toContain("electron-app/*.config.*");

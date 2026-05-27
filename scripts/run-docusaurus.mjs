@@ -5,19 +5,20 @@ import process from "node:process";
 import { pathToFileURL } from "node:url";
 
 import {
+    docusaurusPackagePath,
     docusaurusWorkspacePath,
     repositoryRoot,
     repositoryScriptPath,
 } from "./lib/workspaces.mjs";
 
 const requireFromDocusaurus = createRequire(
-    pathToFileURL(path.join(docusaurusWorkspacePath, "package.json"))
+    pathToFileURL(docusaurusPackagePath)
 );
-const docusaurusPackagePath = requireFromDocusaurus.resolve(
+const docusaurusCorePackagePath = requireFromDocusaurus.resolve(
     "@docusaurus/core/package.json"
 );
 const docusaurusCliPath = path.join(
-    path.dirname(docusaurusPackagePath),
+    path.dirname(docusaurusCorePackagePath),
     "bin",
     "docusaurus.mjs"
 );

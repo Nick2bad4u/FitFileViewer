@@ -82,6 +82,7 @@ describe("publish-app-version script", () => {
         expect.assertions(1);
 
         const { createPublishCommands } = await importPublishAppVersion();
+        const { appPackageRepositoryPath } = await importWorkspaces();
 
         expect(
             createPublishCommands({ branch: "main", version: "30.0.0" })
@@ -105,7 +106,7 @@ describe("publish-app-version script", () => {
             {
                 args: [
                     "add",
-                    "electron-app/package.json",
+                    appPackageRepositoryPath,
                     "package-lock.json",
                 ],
                 command: "git",
