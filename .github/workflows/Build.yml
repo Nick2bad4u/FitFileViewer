@@ -272,7 +272,7 @@ jobs:
               id: install_dmg_license
               if: runner.os == 'macOS'
               shell: bash
-              run: npm install --force --no-save --package-lock=false --no-audit --no-fund dmg-license
+              run: npm run build:macos-deps
 
             # - name: Install electron-builder
             #   run: npm install -D electron-builder
