@@ -132,10 +132,9 @@ describe("utils.js – global exposure and helpers", () => {
             w.FitFileViewerUtils.safeExecute("__does_not_exist__")
         ).toThrow("Function is not available: __does_not_exist__");
 
-        // Known util should execute without throwing; we don't assert exact return shape to avoid coupling
-        expect(() =>
-            w.FitFileViewerUtils.safeExecute("formatDistance", 1000)
-        ).not.toThrow();
+        expect(w.FitFileViewerUtils.safeExecute("formatDistance", 1000)).toBe(
+            "1.00 km / 0.62 mi"
+        );
     });
 
     it("exposes dev helpers in development and records collisions", async () => {
