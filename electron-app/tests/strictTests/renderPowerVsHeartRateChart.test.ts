@@ -135,10 +135,10 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
 
         global.window = dom.window as unknown as Window & typeof globalThis;
         global.document = dom.window.document;
-        global.HTMLCanvasElement =
-            dom.window.HTMLCanvasElement as unknown as typeof HTMLCanvasElement;
-        global.HTMLElement =
-            dom.window.HTMLElement as unknown as typeof HTMLElement;
+        global.HTMLCanvasElement = dom.window
+            .HTMLCanvasElement as unknown as typeof HTMLCanvasElement;
+        global.HTMLElement = dom.window
+            .HTMLElement as unknown as typeof HTMLElement;
         global.console = {
             log: vi.fn(),
             error: vi.fn(),
@@ -185,8 +185,9 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
                 return getChartTestWindow()._chartjsInstances;
             },
             set(value) {
-                getChartTestWindow()._chartjsInstances =
-                    value as ChartInstanceMock[] | undefined;
+                getChartTestWindow()._chartjsInstances = value as
+                    | ChartInstanceMock[]
+                    | undefined;
             },
             configurable: true,
         });
@@ -675,9 +676,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             renderPowerVsHeartRateChart(container, data, options);
 
             expect(getChartTestWindow()._chartjsInstances).toHaveLength(1);
-            expect(getChartTestWindow()._chartjsInstances).not.toHaveLength(
-                0
-            );
+            expect(getChartTestWindow()._chartjsInstances).not.toHaveLength(0);
             expect(getChartTestWindow()._chartjsInstances?.[0]).toBe(
                 chartInstanceMock
             );
@@ -871,21 +870,25 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
     });
 
     describe("Integration with Dependencies", () => {
-        it("should handle missing theme configuration gracefully", () => {
+        it("should use fallback colors when theme configuration is missing", () => {
             mockLocalStorage.getItem.mockReturnValue(null);
-
-            // Mock getThemeConfig to return undefined
-            vi.doMock("../../utils/theming/core/theme.js", () => ({
-                getThemeConfig: () => undefined,
-            }));
 
             const container = document.createElement("div");
             const data = [{ power: 200, heartRate: 120 }];
             const options = { maxPoints: 1000 };
 
-            expect(() => {
-                renderPowerVsHeartRateChart(container, data, options);
-            }).not.toThrow();
+            expect(
+                renderPowerVsHeartRateChart(container, data, options)
+            ).toBeUndefined();
+
+            expect(Chart).toHaveBeenCalledOnce();
+            expect(container.children).toHaveLength(1);
+            expect(container.children[0].tagName).toBe("CANVAS");
+            expect(getLatestChartConfig().data.datasets[0]).toMatchObject({
+                backgroundColor: expect.any(String),
+                borderColor: expect.any(String),
+                data: [{ x: 120, y: 200 }],
+            });
         });
 
         it("should call createChartCanvas with correct parameters", () => {
