@@ -58,7 +58,6 @@ export default defineConfig({
                 "vitest.config.ts",
                 // Dev-only and debugging utilities
                 "utils/debug/**",
-                "debug-electron-mock.js",
                 // Performance monitoring (dev tooling)
                 "utils/performance/**",
                 // State integration bridges are environment-coupled and not part of the strict unit coverage contract
