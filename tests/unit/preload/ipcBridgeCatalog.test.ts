@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 const requireFromTest = createRequire(import.meta.url);
 const ipcBridgeCatalog = requireFromTest(
-    "../../../preload/ipcBridgeCatalog.js"
+    "../../../electron-app/preload/ipcBridgeCatalog.js"
 ) as {
     PRELOAD_CHANNELS: Record<string, string>;
     PRELOAD_EVENTS: Record<string, string>;
@@ -66,12 +66,12 @@ describe("preload ipcBridgeCatalog", () => {
         expect(ipcBridgeCatalog.PRELOAD_EVENTS).toStrictEqual(
             expectedPreloadEvents
         );
-        expect(new Set(Object.values(ipcBridgeCatalog.PRELOAD_CHANNELS)).size).toBe(
-            Object.values(ipcBridgeCatalog.PRELOAD_CHANNELS).length
-        );
-        expect(new Set(Object.values(ipcBridgeCatalog.PRELOAD_EVENTS)).size).toBe(
-            Object.values(ipcBridgeCatalog.PRELOAD_EVENTS).length
-        );
+        expect(
+            new Set(Object.values(ipcBridgeCatalog.PRELOAD_CHANNELS)).size
+        ).toBe(Object.values(ipcBridgeCatalog.PRELOAD_CHANNELS).length);
+        expect(
+            new Set(Object.values(ipcBridgeCatalog.PRELOAD_EVENTS)).size
+        ).toBe(Object.values(ipcBridgeCatalog.PRELOAD_EVENTS).length);
     });
 
     it("keeps generic IPC allowlists narrow", () => {
