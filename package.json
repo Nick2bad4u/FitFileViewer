@@ -30,7 +30,7 @@
         "build:renderer": "node scripts/build-renderer.mjs",
         "build:runtime-ts": "node scripts/build-runtime.mjs",
         "build:win7": "node scripts/build-win7.mjs",
-        "changelog": "git-cliff --config cliff.toml --output CHANGELOG.md",
+        "changelog": "node scripts/generate-changelog.mjs",
         "clean:workspace": "node scripts/clean-workspace.mjs",
         "clean-releases": "node scripts/clean-releases.mjs",
         "clean-releases:1": "node scripts/clean-releases.mjs --delete-tags --keep-last 1",
