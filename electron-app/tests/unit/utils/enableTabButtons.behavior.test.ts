@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
 /**
- * Comprehensive test suite for enableTabButtons module Testing tab button state
- * management, DOM manipulation, and debugging functions
+ * Covers enableTabButtons state management, DOM manipulation, and diagnostic
+ * helpers.
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock the state manager
 vi.mock("../../../utils/state/core/stateManager.js", () => ({
@@ -92,7 +92,7 @@ function getRequiredButton(id: string): HTMLButtonElement {
     return button;
 }
 
-describe("enableTabButtons.js - Complete Test Suite", () => {
+describe("enableTabButtons behavior", () => {
     let originalConsoleLog: typeof console.log;
     let originalConsoleWarn: typeof console.warn;
     let consoleLogSpy: ReturnType<typeof vi.spyOn>;
