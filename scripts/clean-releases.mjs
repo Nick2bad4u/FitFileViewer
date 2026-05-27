@@ -2,20 +2,25 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
-const repositoryRoot = fileURLToPath(new URL("..", import.meta.url));
-const defaultKeepLast = 5;
+const repositoryRoot = resolveRepositoryRoot();
+export const defaultKeepLast = 5;
 
-const parsedArgs = parseArgs(process.argv.slice(2));
+if (
+    process.argv[1] &&
+    import.meta.url === pathToFileURL(process.argv[1]).href
+) {
+    const parsedArgs = parseArgs(process.argv.slice(2));
 
-if (parsedArgs.help) {
-    printUsage();
-} else {
-    cleanReleases(parsedArgs);
+    if (parsedArgs.help) {
+        printUsage();
+    } else {
+        cleanReleases(parsedArgs);
+    }
 }
 
-function cleanReleases(options) {
+export function cleanReleases(options) {
     const releases = loadReleases(options);
     const plan = createCleanupPlan(releases, options.keepLast);
 
@@ -42,7 +47,7 @@ function cleanReleases(options) {
     console.log("[clean-releases] Deletion complete.");
 }
 
-function createCleanupPlan(releases, keepLast) {
+export function createCleanupPlan(releases, keepLast) {
     const sortedReleases = releases
         .filter(isValidRelease)
         .map((release) => ({
@@ -199,8 +204,8 @@ function captureCommand(command, args) {
     return result.stdout;
 }
 
-function isValidRelease(release) {
-    return (
+export function isValidRelease(release) {
+    return Boolean(
         release &&
         typeof release === "object" &&
         typeof release.tagName === "string" &&
@@ -239,7 +244,7 @@ function loadReleases(options) {
     );
 }
 
-function parseArgs(args) {
+export function parseArgs(args) {
     const parsed = {
         deleteTags: false,
         help: false,
@@ -355,6 +360,14 @@ Options:
   --yes                     Apply deletions. Without this, the script only prints a dry-run plan.
   --releases-json <path>    Read release JSON from a file for dry-run validation.
   --help                    Show this help text.`);
+}
+
+function resolveRepositoryRoot() {
+    try {
+        return fileURLToPath(new URL("..", import.meta.url));
+    } catch {
+        return process.cwd();
+    }
 }
 
 function runCommand(command, args, options = {}) {
