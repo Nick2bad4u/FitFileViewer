@@ -411,16 +411,7 @@ jobs:
 
             - name: List release-dist files (debug)
               id: list-dedupe
-              run: |
-                  echo "Listing all files in release-dist before deduplication:"
-                  find release-dist -type f | sort
-                  printf "\nDeduplicating files in release-dist...\n"
-                  find release-dist -type f | sort | uniq -d | while read -r dup; do
-                    echo "Duplicate file: $dup"
-                    # Optionally, remove or rename duplicates here
-                  done
-                  printf "\nFinal file list in release-dist:\n"
-                  find release-dist -type f | sort
+              run: node scripts/list-release-dist-files.mjs
               shell: bash
               continue-on-error: true
 
