@@ -74,9 +74,11 @@ describe("data ant manufacturer ID lookup", () => {
     });
 
     it("uses positive integer string keys and non-empty manufacturer keys", () => {
-        expect.hasAssertions();
+        const entries = Object.entries(dataAntManufacturerIDs);
 
-        for (const [key, value] of Object.entries(dataAntManufacturerIDs)) {
+        expect.assertions(entries.length * 5);
+
+        for (const [key, value] of entries) {
             const numericKey = Number(key);
 
             expect(Number.isInteger(numericKey)).toBe(true);
@@ -114,12 +116,12 @@ describe("data ant manufacturer ID lookup", () => {
     });
 
     it("keeps names in the canonical adapter-safe format", () => {
-        expect.hasAssertions();
-
         const values = Object.values(dataAntManufacturerIDs);
         const lowercaseNames = values.filter(
             (value) => value === value.toLowerCase()
         );
+
+        expect.assertions(1 + values.length * 5);
 
         expect(lowercaseNames).toHaveLength(230);
 

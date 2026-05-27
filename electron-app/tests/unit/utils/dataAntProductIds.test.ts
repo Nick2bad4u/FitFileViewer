@@ -91,11 +91,18 @@ describe("data ant product ID lookup", () => {
     });
 
     it("uses positive integer string keys and non-empty product names", () => {
-        expect.hasAssertions();
+        const productEntries = Object.entries(dataAntProductIds);
+        const assertionCount =
+            productEntries.length * 4 +
+            productEntries.reduce(
+                (total, [, products]) =>
+                    total + Object.keys(products).length * 5,
+                0
+            );
 
-        for (const [manufacturerId, products] of Object.entries(
-            dataAntProductIds
-        )) {
+        expect.assertions(assertionCount);
+
+        for (const [manufacturerId, products] of productEntries) {
             const numericManufacturerId = Number(manufacturerId);
 
             expect(Number.isInteger(numericManufacturerId)).toBe(true);
@@ -152,15 +159,17 @@ describe("data ant product ID lookup", () => {
     });
 
     it("keeps product names in formatter-safe display keys", () => {
-        expect.hasAssertions();
+        const productNames = Object.values(dataAntProductIds).flatMap(
+            (products) => Object.values(products)
+        );
 
-        for (const products of Object.values(dataAntProductIds)) {
-            for (const productName of Object.values(products)) {
-                expect(productName).toMatch(/^[a-zA-Z0-9_ +()-]+$/);
-                expect(productName).not.toContain("__");
-                expect(productName).not.toMatch(/^_/);
-                expect(productName).not.toMatch(/_$/);
-            }
+        expect.assertions(productNames.length * 4);
+
+        for (const productName of productNames) {
+            expect(productName).toMatch(/^[a-zA-Z0-9_ +()-]+$/);
+            expect(productName).not.toContain("__");
+            expect(productName).not.toMatch(/^_/);
+            expect(productName).not.toMatch(/_$/);
         }
     });
 
