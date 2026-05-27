@@ -53,13 +53,19 @@ function createDiagnostics({
         send: vi.fn<(...args: unknown[]) => void>(),
     },
 }: {
-    contextBridge?: { exposeInMainWorld?: (key: string, api: unknown) => void };
+    contextBridge?:
+        | { exposeInMainWorld?: (key: string, api: unknown) => void }
+        | null
+        | undefined;
     isDevelopment?: boolean;
-    ipcRenderer?: {
-        invoke?: (...args: unknown[]) => Promise<unknown>;
-        on?: (...args: unknown[]) => void;
-        send?: (...args: unknown[]) => void;
-    };
+    ipcRenderer?:
+        | {
+              invoke?: (...args: unknown[]) => Promise<unknown>;
+              on?: (...args: unknown[]) => void;
+              send?: (...args: unknown[]) => void;
+          }
+        | null
+        | undefined;
 } = {}) {
     const preloadLog =
         vi.fn<
@@ -90,8 +96,6 @@ function createDiagnostics({
 
 describe("preload API diagnostics", () => {
     it("reports channel and event metadata", () => {
-        expect.assertions(2);
-
         const { diagnostics } = createDiagnostics();
         const channelInfo = diagnostics.getChannelInfo();
 
@@ -106,27 +110,88 @@ describe("preload API diagnostics", () => {
             totalChannels: 2,
             totalEvents: 1,
         });
-        expect(channelInfo.totalChannels).not.toBe(0);
     });
 
     it("validates required Electron preload surfaces", () => {
-        expect.assertions(3);
+        expect.assertions(6);
 
-        const { diagnostics: validDiagnostics } = createDiagnostics();
-        const { diagnostics: invalidDiagnostics } = createDiagnostics({
-            ipcRenderer: {
-                invoke: vi.fn<(...args: unknown[]) => Promise<unknown>>(),
-                send: vi.fn<(...args: unknown[]) => void>(),
+        const { diagnostics: validDiagnostics, preloadLog } =
+            createDiagnostics();
+        const invalidCases = [
+            {
+                expectedMetadata: {
+                    totalChannels: 2,
+                    totalEvents: 1,
+                },
+                name: "missing contextBridge",
+                options: {
+                    contextBridge: null,
+                },
             },
-        });
+            {
+                expectedMetadata: {
+                    totalChannels: 2,
+                    totalEvents: 1,
+                },
+                name: "missing ipcRenderer.invoke",
+                options: {
+                    ipcRenderer: {
+                        on: vi.fn<(...args: unknown[]) => void>(),
+                        send: vi.fn<(...args: unknown[]) => void>(),
+                    },
+                },
+            },
+            {
+                expectedMetadata: {
+                    totalChannels: 2,
+                    totalEvents: 1,
+                },
+                name: "missing ipcRenderer.on",
+                options: {
+                    ipcRenderer: {
+                        invoke: vi.fn<
+                            (...args: unknown[]) => Promise<unknown>
+                        >(),
+                        send: vi.fn<(...args: unknown[]) => void>(),
+                    },
+                },
+            },
+            {
+                expectedMetadata: {
+                    totalChannels: 2,
+                    totalEvents: 1,
+                },
+                name: "missing ipcRenderer.send",
+                options: {
+                    ipcRenderer: {
+                        invoke: vi.fn<
+                            (...args: unknown[]) => Promise<unknown>
+                        >(),
+                        on: vi.fn<(...args: unknown[]) => void>(),
+                    },
+                },
+            },
+        ] as const;
 
-        expect(validDiagnostics.validateAPI() ? "valid" : "invalid").toBe(
-            "valid"
-        );
-        expect(invalidDiagnostics.validateAPI() ? "valid" : "invalid").toBe(
-            "invalid"
-        );
-        expect(invalidDiagnostics.getChannelInfo().totalChannels).toBe(2);
+        expect(validDiagnostics.validateAPI()).toBe(true);
+        expect(preloadLog).not.toHaveBeenCalled();
+
+        for (const invalidCase of invalidCases) {
+            const { diagnostics } = createDiagnostics(invalidCase.options);
+
+            expect({
+                isValid: diagnostics.validateAPI(),
+                name: invalidCase.name,
+                totals: {
+                    totalChannels: diagnostics.getChannelInfo().totalChannels,
+                    totalEvents: diagnostics.getChannelInfo().totalEvents,
+                },
+            }).toStrictEqual({
+                isValid: false,
+                name: invalidCase.name,
+                totals: invalidCase.expectedMetadata,
+            });
+        }
     });
 
     it("logs validation details in development mode", () => {
@@ -136,7 +201,7 @@ describe("preload API diagnostics", () => {
             isDevelopment: true,
         });
 
-        expect(diagnostics.validateAPI() ? "valid" : "invalid").toBe("valid");
+        expect(diagnostics.validateAPI()).toBe(true);
         expect(preloadLog).toHaveBeenCalledWith(
             "info",
             "[preload.js] API Validation:",
@@ -173,9 +238,7 @@ describe("preload API diagnostics", () => {
             preloadLog,
         });
 
-        expect(diagnostics.validateAPI() ? "valid" : "invalid").toBe(
-            "invalid"
-        );
+        expect(diagnostics.validateAPI()).toBe(false);
         expect(preloadLog).toHaveBeenCalledWith(
             "error",
             "[preload.js] API validation failed:",
