@@ -377,6 +377,11 @@ electron-app/temp-win7/
 docusaurus/static/img/coverage.json
 docusaurus/static/img/coverage.svg
 
+# Docusaurus screenshots are generated from docs/screenshots.
+docusaurus/static/img/screenshots/ChartsV3.png
+docusaurus/static/img/screenshots/DataV2.png
+docusaurus/static/img/screenshots/MapsV2.png
+
 # Docusaurus generated API docs
 docusaurus/docs/api/
 

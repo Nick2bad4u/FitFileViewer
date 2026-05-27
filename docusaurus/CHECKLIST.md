@@ -126,7 +126,8 @@ If you see these, something is wrong:
    - Update homepage content in `src/pages/index.tsx`
 
 2. **Add Images**
-   - Add screenshots to `static/img/screenshots/`
+   - Add screenshots to `../docs/screenshots/`; root docs scripts sync the
+     homepage copies into `static/img/screenshots/`
    - Create social card image: `static/img/fitfileviewer-social-card.png`
    - Add favicon: `static/img/favicon.ico`
 
