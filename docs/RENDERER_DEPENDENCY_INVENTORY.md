@@ -145,11 +145,12 @@ directly from `vendor/`.
 
 ## Migration Guardrails
 
-- Do not remove `vendor/` wholesale before a renderer bundle is in place.
+- Keep `electron-app/vendor/` limited to curated source, currently
+  `leaflet-measure-lite.js`; do not add package-sourced browser assets back
+  there.
 - Do not load browser assets directly from `node_modules` in production.
 - Remove one dependency group at a time and verify the affected feature.
 - Preserve script, CSS, and plugin ordering until imports make ordering explicit.
 - Keep compatibility globals temporarily where the existing renderer expects
   them.
-- Treat Leaflet, MapLibre, and their plugins as the highest-risk migration.
 - Keep `leaflet-measure-lite.js` unless a CSP-safe package replacement is proven.
