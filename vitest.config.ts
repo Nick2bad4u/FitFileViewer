@@ -168,7 +168,7 @@ export default defineConfig({
         ],
         // eslint-disable-next-line vite/no-vitest-globals -- Legacy tests still rely on global describe/it/expect.
         globals: true, // Enable global test functions (describe, it, expect)
-        globalSetup: ["./tests/globalSetup.js"],
+        globalSetup: ["../tests/vitest/globalSetup.mjs"],
         hookTimeout: 30_000,
         include: [
             "tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",

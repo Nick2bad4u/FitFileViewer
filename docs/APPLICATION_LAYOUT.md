@@ -380,6 +380,8 @@ tests/playwright/
 └── app-ui.spec.ts                   # Root-owned Electron Playwright smoke coverage
 
 tests/vitest/
+├── env-setup.mjs                    # Root-owned Vitest warning/output filters
+├── globalSetup.mjs                  # Root-owned Vitest global setup
 └── stubs/                           # Root-owned Vitest module alias stubs
 ```
 

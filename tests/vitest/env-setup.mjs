@@ -1,6 +1,6 @@
 // This file runs before the jsdom environment initializes
 // Suppress jsdom's --localstorage-file warning
-const originalEmitWarning = process.emitWarning;
+const originalEmitWarning = process.emitWarning.bind(process);
 process.emitWarning = function (warning, ...args) {
     const message = (() => {
         if (typeof warning === "string") return warning;
@@ -13,8 +13,7 @@ process.emitWarning = function (warning, ...args) {
     })();
 
     if (message.includes("--localstorage-file")) return;
-    // eslint-disable-next-line prefer-spread
-    return originalEmitWarning.apply(process, [warning, ...args]);
+    return originalEmitWarning(warning, ...args);
 };
 
 const JS_DOM_WARNING_PATTERNS = [
@@ -26,7 +25,6 @@ const JS_DOM_WARNING_PATTERNS = [
 // rather than going through console.warn/error or process.emitWarning. Filter only
 // the known noisy jsdom messages to keep test output readable.
 const originalStderrWrite = process.stderr.write.bind(process.stderr);
-// eslint-disable-next-line no-undef
 process.stderr.write = function (chunk, encoding, callback) {
     try {
         const text = (() => {
@@ -54,7 +52,6 @@ process.stderr.write = function (chunk, encoding, callback) {
         // fall through
     }
 
-    // eslint-disable-next-line prefer-spread
     return originalStderrWrite.apply(process.stderr, [
         chunk,
         encoding,
