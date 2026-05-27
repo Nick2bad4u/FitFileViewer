@@ -1,23 +1,16 @@
-/**
- * @vitest-environment jsdom
- */
+// @vitest-environment jsdom
+/* eslint-disable vitest/require-mock-type-parameters -- Legacy Leaflet mock shape is intentionally broad while this suite is moved to root ownership. */
+/* eslint-disable vitest/prefer-expect-assertions -- These interaction tests use helper assertions and variable event flows. */
+/* eslint-disable vitest/no-conditional-in-test -- The final DOM narrowing mirrors the user interaction being tested. */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { addSimpleMeasureTool } from "../../../utils/maps/controls/mapMeasureTool.js";
+import { addSimpleMeasureTool } from "../../../../electron-app/utils/maps/controls/mapMeasureTool.js";
 
 describe("mapMeasureTool.js", () => {
-    // Mock document and its elements
-    /** @type {HTMLElement} */
-    let mapDiv;
-
-    /** @type {HTMLElement} */
-    let controlsDiv;
-
-    /** @type {any} */
-    let mockMap;
-
-    /** @type {HTMLElement[]} */
-    let addedLayers = [];
+    let mapDiv: HTMLElement;
+    let controlsDiv: HTMLElement;
+    let mockMap: any;
+    let addedLayers: any[] = [];
 
     beforeEach(() => {
         // Create map element
@@ -172,7 +165,7 @@ describe("mapMeasureTool.js", () => {
 
         // Get the click handler
         const clickHandler = mockMap.on.mock.calls.find(
-            /** @param {any} call */ (call) => call[0] === "click"
+            (call) => call[0] === "click"
         )[1];
 
         // Simulate first point click
@@ -256,7 +249,7 @@ describe("mapMeasureTool.js", () => {
 
         // Get the click handler and make a point
         const clickHandler = mockMap.on.mock.calls.find(
-            /** @param {any} call */ (call) => call[0] === "click"
+            (call) => call[0] === "click"
         )[1];
         clickHandler({ latlng: { lat: 0, lng: 0 } });
 
@@ -324,7 +317,7 @@ describe("mapMeasureTool.js", () => {
         // Set up a mock implementation for Leaflet's marker that allows us to simulate the exit button click
 
         // Override the getElement implementation to capture the click handler
-        global.L.marker = vi.fn((_latlng, options) => {
+        vi.spyOn(global.L, "marker").mockImplementation((_latlng, options) => {
             const labelElement = document.createElement("div");
             labelElement.className = "leaflet-marker-icon";
             if (options?.icon?.html instanceof HTMLElement) {
@@ -350,7 +343,7 @@ describe("mapMeasureTool.js", () => {
 
         // Get the click handler
         const mapClickHandler = mockMap.on.mock.calls.find(
-            /** @param {any} call */ (call) => call[0] === "click"
+            (call) => call[0] === "click"
         )[1];
 
         // Add two points to complete a measurement
@@ -377,3 +370,6 @@ describe("mapMeasureTool.js", () => {
         expect(addedLayers).toHaveLength(0);
     });
 });
+/* eslint-enable vitest/no-conditional-in-test */
+/* eslint-enable vitest/prefer-expect-assertions */
+/* eslint-enable vitest/require-mock-type-parameters */

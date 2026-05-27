@@ -148,7 +148,7 @@ describe("mapActionButtons", () => {
                 updateShownFilesList,
             } = installMapGlobals();
 
-            await import("../../../utils/maps/controls/mapActionButtons.js");
+            await import("../../../../electron-app/utils/maps/controls/mapActionButtons.js");
 
             expect(activeFileName.style.cursor).toBe("pointer");
             expect(activeFileName.title).toBe(

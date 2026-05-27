@@ -381,6 +381,7 @@ tests/integration/
 
 tests/unit/
 ├── charts/                          # Root-owned chart behavior tests
+├── maps/                            # Root-owned map behavior tests
 ├── packaging/                       # Root-owned build/tooling tests
 ├── runtime/                         # Root-owned runtime boundary tests
 └── tabs/                            # Root-owned shared tab behavior tests

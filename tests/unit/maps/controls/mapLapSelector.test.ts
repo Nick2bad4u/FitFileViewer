@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { addLapSelector } from "../../../utils/maps/controls/mapLapSelector.js";
+import { addLapSelector } from "../../../../electron-app/utils/maps/controls/mapLapSelector.js";
 
 type LapSelectorGlobal = typeof globalThis & {
     globalData?: { lapMesgs: unknown[] };
@@ -148,10 +148,7 @@ describe("mapLapSelector", () => {
         expect(getSelectorState(select)).toMatchObject({
             multiple: true,
             multipleAttribute: "",
-            selectedValues: [
-                "0",
-                "1",
-            ],
+            selectedValues: ["0", "1"],
             size: 4,
         });
         expect({
@@ -160,10 +157,7 @@ describe("mapLapSelector", () => {
             toggleTitle: toggle.title,
         }).toStrictEqual({
             deselectDisplay: "",
-            toggleActive: [
-                "multi-lap-toggle",
-                "active",
-            ],
+            toggleActive: ["multi-lap-toggle", "active"],
             toggleTitle: "Return to single-lap mode",
         });
         expect(mapDrawLaps).toHaveBeenCalledWith(["0", "1"]);

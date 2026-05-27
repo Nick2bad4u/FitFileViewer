@@ -1,10 +1,4 @@
-import {
-    afterEach,
-    describe,
-    expect,
-    it,
-    vi,
-} from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 const EXPECTED_LAYER_NAMES = [
     "CartoDB_DarkMatter",
@@ -46,8 +40,20 @@ async function importBaseLayersWithLeaflet(leaflet: unknown) {
     vi.resetModules();
     (globalThis as { L?: unknown }).L = leaflet;
 
-    return import("../../../utils/maps/layers/mapBaseLayers.js");
+    return import("../../../../electron-app/utils/maps/layers/mapBaseLayers.js");
 }
+
+type MockLayer = {
+    readonly options: Record<string, unknown>;
+    readonly type: "raster" | "vector";
+    readonly urlTemplate?: string;
+};
+
+type MockMaplibreFactory = (options: Record<string, unknown>) => MockLayer;
+type MockTileLayerFactory = (
+    urlTemplate: string,
+    options: Record<string, unknown>
+) => MockLayer;
 
 describe("mapBaseLayers", () => {
     afterEach(() => {
@@ -59,17 +65,15 @@ describe("mapBaseLayers", () => {
         expect.assertions(1);
 
         const { baseLayers } = await importBaseLayersWithLeaflet({
-            maplibreGL: vi.fn((options: Record<string, unknown>) => ({
+            maplibreGL: vi.fn<MockMaplibreFactory>((options) => ({
                 options,
                 type: "vector",
             })),
-            tileLayer: vi.fn(
-                (urlTemplate: string, options: Record<string, unknown>) => ({
-                    options,
-                    type: "raster",
-                    urlTemplate,
-                })
-            ),
+            tileLayer: vi.fn<MockTileLayerFactory>((urlTemplate, options) => ({
+                options,
+                type: "raster",
+                urlTemplate,
+            })),
         });
 
         expect(Object.keys(baseLayers)).toEqual(EXPECTED_LAYER_NAMES);
@@ -78,12 +82,12 @@ describe("mapBaseLayers", () => {
     it("creates representative raster and vector layers with expected source metadata", async () => {
         expect.assertions(7);
 
-        const maplibreGL = vi.fn((options: Record<string, unknown>) => ({
+        const maplibreGL = vi.fn<MockMaplibreFactory>((options) => ({
             options,
             type: "vector",
         }));
-        const tileLayer = vi.fn(
-            (urlTemplate: string, options: Record<string, unknown>) => ({
+        const tileLayer = vi.fn<MockTileLayerFactory>(
+            (urlTemplate, options) => ({
                 options,
                 type: "raster",
                 urlTemplate,
