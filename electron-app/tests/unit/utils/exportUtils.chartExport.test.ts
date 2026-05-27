@@ -435,7 +435,7 @@ describe("exportUtils chart export helpers", () => {
 
     describe("downloadChartAsPNG function", () => {
         it("downloads chart with default filename", async () => {
-            expect.hasAssertions();
+            expect.assertions(6);
 
             const { chartFixture, queueLink } = setupDomHarness();
             const linkFixture = createLinkFixture();
@@ -462,7 +462,7 @@ describe("exportUtils chart export helpers", () => {
         });
 
         it("downloads chart with custom filename", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const { chartFixture, queueLink } = setupDomHarness();
             const linkFixture = createLinkFixture();
@@ -480,7 +480,7 @@ describe("exportUtils chart export helpers", () => {
         });
 
         it("notifies when chart image conversion fails", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const { chartFixture } = setupDomHarness();
             chartFixture.chart.toBase64Image.mockImplementation(() => {
@@ -500,7 +500,7 @@ describe("exportUtils chart export helpers", () => {
 
     describe("createCombinedChartsImage function", () => {
         it("notifies for empty charts array", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             setupDomHarness();
 
@@ -515,7 +515,7 @@ describe("exportUtils chart export helpers", () => {
         });
 
         it("notifies for null charts parameter", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             setupDomHarness();
 
@@ -530,7 +530,7 @@ describe("exportUtils chart export helpers", () => {
         });
 
         it("creates combined image for single chart", async () => {
-            expect.hasAssertions();
+            expect.assertions(6);
 
             const { chartFixture, queueCanvas, queueLink } = setupDomHarness();
             const combinedCanvas = createCanvasFixture(
@@ -556,7 +556,7 @@ describe("exportUtils chart export helpers", () => {
         });
 
         it("creates combined image for multiple charts", async () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             const { chartFixture, queueCanvas, queueLink } = setupDomHarness();
             const combinedCanvas = createCanvasFixture(
@@ -591,7 +591,7 @@ describe("exportUtils chart export helpers", () => {
         });
 
         it("notifies when combined canvas context creation fails", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const { chartFixture, queueCanvas } = setupDomHarness();
             const combinedCanvas = createCanvasFixture();
@@ -611,7 +611,7 @@ describe("exportUtils chart export helpers", () => {
 
     describe("copyChartToClipboard function", () => {
         it("copies valid chart to browser clipboard", async () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             const { chartFixture, queueCanvas } = setupDomHarness();
             const exportCanvas = createCanvasFixture();
@@ -634,7 +634,7 @@ describe("exportUtils chart export helpers", () => {
         });
 
         it("notifies for invalid chart", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             setupDomHarness();
 
@@ -649,7 +649,7 @@ describe("exportUtils chart export helpers", () => {
         });
 
         it("notifies when Electron and browser clipboard writes fail", async () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             const { chartFixture, queueCanvas } = setupDomHarness();
             const exportCanvas = createCanvasFixture();
@@ -683,7 +683,7 @@ describe("exportUtils chart export helpers", () => {
 
     describe("copyCombinedChartsToClipboard function", () => {
         it("notifies for empty charts array", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             setupDomHarness();
 
@@ -698,7 +698,7 @@ describe("exportUtils chart export helpers", () => {
         });
 
         it("notifies for null charts parameter", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             setupDomHarness();
 
@@ -713,7 +713,7 @@ describe("exportUtils chart export helpers", () => {
         });
 
         it("copies combined charts through the Electron bridge", async () => {
-            expect.hasAssertions();
+            expect.assertions(5);
 
             const { chartFixture, queueCanvas } = setupDomHarness();
             const combinedCanvas = createCanvasFixture(
@@ -746,7 +746,7 @@ describe("exportUtils chart export helpers", () => {
 
     describe("error handling and edge cases", () => {
         it("notifies when combined chart canvas context is missing", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const { chartFixture, queueCanvas } = setupDomHarness();
             const combinedCanvas = createCanvasFixture();
@@ -764,7 +764,7 @@ describe("exportUtils chart export helpers", () => {
         });
 
         it("skips fillRect for transparent background in combined charts", async () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             const { chartFixture, queueCanvas, queueLink } = setupDomHarness();
             const combinedCanvas = createCanvasFixture(
@@ -789,7 +789,7 @@ describe("exportUtils chart export helpers", () => {
         });
 
         it("notifies when a chart is missing toBase64Image", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const { chartFixture } = setupDomHarness();
             const invalidChart = {
