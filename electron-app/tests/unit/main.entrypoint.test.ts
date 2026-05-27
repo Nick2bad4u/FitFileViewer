@@ -459,6 +459,20 @@ function setPlatform(platform: NodeJS.Platform): void {
     });
 }
 
+function getRegisteredIpcHandleChannels(): string[] {
+    return harness.ipcMain.handle.mock.calls.map(([channel]) => channel);
+}
+
+function getSentRendererChannels(): string[] {
+    return harness.webContents.send.mock.calls.map(([channel]) => channel);
+}
+
+function getSentUpdateChannels(): string[] {
+    return getSentRendererChannels().filter((channel) =>
+        channel.startsWith("update-")
+    );
+}
+
 describe("main.js entrypoint behavior", () => {
     it("wires startup, IPC, updater, and renderer events through the real entry point", async () => {
         expect.hasAssertions();
@@ -483,7 +497,11 @@ describe("main.js entrypoint behavior", () => {
             expect(mainModule.setupMainLifecycle).toBeTypeOf("function");
             expect(harness.app.whenReady).toHaveBeenCalledWith();
             expect(harness.browserWindow.getAllWindows).toHaveBeenCalledWith();
-            expect(harness.ipcMain.handle.mock.calls.length).toBeGreaterThan(0);
+            const registeredIpcChannels = getRegisteredIpcHandleChannels();
+            expect(registeredIpcChannels).toContain("dialog:openFile");
+            expect(registeredIpcChannels).toContain("file:read");
+            expect(registeredIpcChannels).toContain("fit:parse");
+            expect(registeredIpcChannels).toContain("getAppVersion");
             expect(harness.webContents.on).toHaveBeenCalledWith(
                 "did-finish-load",
                 expect.any(Function)
@@ -493,11 +511,13 @@ describe("main.js entrypoint behavior", () => {
                 expect.any(Function)
             );
             expect(
-                harness.autoUpdater.checkForUpdatesAndNotify.mock.calls.length
-            ).toBeGreaterThan(0);
-            expect(harness.webContents.send.mock.calls.length).toBeGreaterThan(
-                0
-            );
+                harness.autoUpdater.checkForUpdatesAndNotify
+            ).toHaveBeenCalledWith();
+            expect(getSentUpdateChannels()).toEqual([
+                "update-checking",
+                "update-download-progress",
+                "update-downloaded",
+            ]);
             expect(
                 harness.session.defaultSession.webRequest.onBeforeRequest
             ).toHaveBeenCalledWith(expect.any(Function));
@@ -529,7 +549,7 @@ describe("main.js entrypoint behavior", () => {
 
             const mainModule = await importMainWithEnvironment("test");
 
-            expect(harness.app.whenReady.mock.calls.length).toBeGreaterThan(0);
+            expect(harness.app.whenReady).toHaveBeenCalledWith();
             expect([
                 mainModule.validateWindow(harness.mainWindow, "broken-window"),
             ]).toStrictEqual([false]);
