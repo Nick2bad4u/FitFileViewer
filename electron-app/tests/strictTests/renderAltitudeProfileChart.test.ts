@@ -130,10 +130,10 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
         global.window = dom.window as unknown as Window & typeof globalThis;
         global.document = dom.window.document;
-        global.HTMLCanvasElement =
-            dom.window.HTMLCanvasElement as unknown as typeof HTMLCanvasElement;
-        global.HTMLElement =
-            dom.window.HTMLElement as unknown as typeof HTMLElement;
+        global.HTMLCanvasElement = dom.window
+            .HTMLCanvasElement as unknown as typeof HTMLCanvasElement;
+        global.HTMLElement = dom.window
+            .HTMLElement as unknown as typeof HTMLElement;
 
         // Mock localStorage
         mockLocalStorage = {
@@ -173,8 +173,9 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
                 return getChartTestWindow()._chartjsInstances;
             },
             set(value) {
-                getChartTestWindow()._chartjsInstances =
-                    value as ChartInstanceMock[] | undefined;
+                getChartTestWindow()._chartjsInstances = value as
+                    | ChartInstanceMock[]
+                    | undefined;
             },
             configurable: true,
         });
@@ -247,10 +248,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
     afterEach(() => {
         // Clean up global Chart instances
-        if (
-            global.window &&
-            getChartTestWindow()._chartjsInstances
-        ) {
+        if (global.window && getChartTestWindow()._chartjsInstances) {
             getChartTestWindow()._chartjsInstances.length = 0;
         }
         // Clean up property descriptor
@@ -694,9 +692,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             expect(getChartTestWindow()._chartjsInstances).toContain(
                 chartInstanceMock
             );
-            expect(getChartTestWindow()._chartjsInstances).not.toHaveLength(
-                0
-            );
+            expect(getChartTestWindow()._chartjsInstances).not.toHaveLength(0);
         });
 
         it("should initialize global instances array if it doesn't exist", () => {
@@ -934,34 +930,16 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
                 showGrid: true,
             };
 
-            expect(() => {
-                renderAltitudeProfileChart(container, data, labels, options);
-            }).not.toThrow();
+            expect(
+                renderAltitudeProfileChart(container, data, labels, options)
+            ).toBeUndefined();
 
             expect(console.error).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering altitude profile chart:",
                 expect.any(Error)
             );
-        });
-
-        it("should handle errors gracefully without throwing", () => {
-            Chart.mockImplementationOnce(() => {
-                throw new Error("Chart creation failed");
-            });
-
-            const container = document.createElement("div");
-            const data = [{ altitude: 100 }];
-            const labels = [0];
-            const options = {
-                maxPoints: 1000,
-                showLegend: true,
-                showTitle: true,
-                showGrid: true,
-            };
-
-            expect(() => {
-                renderAltitudeProfileChart(container, data, labels, options);
-            }).not.toThrow();
+            expect(getChartTestWindow()._chartjsInstances).toHaveLength(0);
+            expect(container.children).toHaveLength(1);
         });
     });
 
