@@ -34,6 +34,7 @@
         "build:runtime-ts": "node scripts/build-runtime.mjs",
         "build:win7": "node scripts/build-win7.mjs",
         "changelog": "node scripts/generate-changelog.mjs",
+        "changelog:check-run": "node scripts/update-changelog-check-run.mjs",
         "changelog:summary": "node scripts/update-changelog-job-summary.mjs",
         "clean:workspace": "node scripts/clean-workspace.mjs",
         "clean-releases": "node scripts/clean-releases.mjs",
