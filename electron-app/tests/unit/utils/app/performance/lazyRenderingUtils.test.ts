@@ -68,7 +68,7 @@ function cleanupFixture(): void {
 
 describe("lazy rendering utilities", () => {
     it("batches DOM reads and writes through requestAnimationFrame", async () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         try {
             const requestAnimationFrame = vi.fn<
@@ -88,9 +88,60 @@ describe("lazy rendering utilities", () => {
             expect(readResult).toStrictEqual(["height", "width"]);
             expect({ writeCount }).toStrictEqual({ writeCount: 1 });
             expect(requestAnimationFrame).toHaveBeenCalledTimes(2);
-            expect(requestAnimationFrame).toHaveBeenCalledWith(
-                expect.any(Function)
+            const animationFrameCallbacks = requestAnimationFrame.mock.calls.map(
+                ([callback]) => typeof callback
             );
+            expect(animationFrameCallbacks).toStrictEqual([
+                "function",
+                "function",
+            ]);
+            expect(requestAnimationFrame.mock.results).toStrictEqual([
+                { type: "return", value: 1 },
+                { type: "return", value: 1 },
+            ]);
+        } finally {
+            cleanupFixture();
+        }
+    });
+
+    it("recovers from DOM batch callback errors", async () => {
+        expect.assertions(3);
+
+        try {
+            const readError = new Error("read failed");
+            const writeError = new Error("write failed");
+            const errorSpy = vi
+                .spyOn(console, "error")
+                .mockImplementation(() => {});
+            vi.stubGlobal(
+                "requestAnimationFrame",
+                (callback: FrameRequestCallback) => {
+                    callback(1);
+                    return 1;
+                }
+            );
+
+            await expect(
+                batchDOMReads(() => {
+                    throw readError;
+                })
+            ).resolves.toStrictEqual([]);
+            await expect(
+                batchDOMWrites(() => {
+                    throw writeError;
+                })
+            ).resolves.toBeUndefined();
+
+            expect(errorSpy.mock.calls).toStrictEqual([
+                [
+                    "[BatchDOMReads] Read error:",
+                    readError,
+                ],
+                [
+                    "[BatchDOMWrites] Write error:",
+                    writeError,
+                ],
+            ]);
         } finally {
             cleanupFixture();
         }
@@ -113,7 +164,7 @@ describe("lazy rendering utilities", () => {
             disconnect();
 
             expect(observers).toHaveLength(1);
-            expect(observers[0]?.options).toMatchObject({
+            expect(observers[0]?.options).toStrictEqual({
                 rootMargin: "0px",
                 threshold: 0.1,
             });
@@ -150,7 +201,7 @@ describe("lazy rendering utilities", () => {
     });
 
     it("defers callbacks to requestIdleCallback when available", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         try {
             let callbackCount = 0;
@@ -174,12 +225,17 @@ describe("lazy rendering utilities", () => {
 
             expect(requestId).toBe(42);
             expect({ callbackCount }).toStrictEqual({ callbackCount: 1 });
-            expect(requestIdleCallback).toHaveBeenCalledWith(
-                expect.any(Function),
-                {
-                    timeout: 123,
-                }
-            );
+            expect(requestIdleCallback).toHaveBeenCalledTimes(1);
+            const idleCall = requestIdleCallback.mock.calls.at(0);
+            if (idleCall === undefined) {
+                throw new Error("requestIdleCallback was not called");
+            }
+            const [
+                idleCallback,
+                idleOptions,
+            ] = idleCall;
+            expect(typeof idleCallback).toBe("function");
+            expect(idleOptions).toStrictEqual({ timeout: 123 });
         } finally {
             cleanupFixture();
         }
