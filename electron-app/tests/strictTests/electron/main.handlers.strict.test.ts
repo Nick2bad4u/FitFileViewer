@@ -382,8 +382,16 @@ describe("main.js strict handlers and events", () => {
             (p: string, cb: Function) => cb(null, Buffer.from("abc"))
         );
         const buf = await fileRead?.[1]({}, "C:/x.fit");
-        expect(Object.prototype.toString.call(buf)).toBe("[object ArrayBuffer]");
-        expect(new Uint8Array(buf)).toEqual(new Uint8Array([97, 98, 99]));
+        expect(Object.prototype.toString.call(buf)).toBe(
+            "[object ArrayBuffer]"
+        );
+        expect(new Uint8Array(buf)).toEqual(
+            new Uint8Array([
+                97,
+                98,
+                99,
+            ])
+        );
 
         const missingFileError = Object.assign(
             new Error("ENOENT: no such file or directory, stat 'C:/x.fit'"),
@@ -398,9 +406,9 @@ describe("main.js strict handlers and events", () => {
         const directLog = vi.fn();
         let directFileRead: any;
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const { registerFileSystemHandlers }: any = require(
-            "../../../main/ipc/registerFileSystemHandlers"
-        );
+        const {
+            registerFileSystemHandlers,
+        }: any = require("../../../main/ipc/registerFileSystemHandlers");
         registerFileSystemHandlers({
             fs: directFs,
             logWithContext: directLog,
@@ -410,7 +418,9 @@ describe("main.js strict handlers and events", () => {
         });
         policy.approveFilePath?.("C:/missing.fit", { source: "test" });
 
-        await expect(directFileRead({}, "C:/missing.fit")).rejects.toMatchObject({
+        await expect(
+            directFileRead({}, "C:/missing.fit")
+        ).rejects.toMatchObject({
             code: "ENOENT",
         });
         expect(directFs.readFile).not.toHaveBeenCalled();
@@ -431,25 +441,30 @@ describe("main.js strict handlers and events", () => {
 
     it("menu events and fullscreen, security navigation guards", async () => {
         await import("../../../main.js");
+        const updater = (await import("electron-updater")).autoUpdater as any;
 
-        // menu-check-for-updates executes without throwing
+        // menu-check-for-updates delegates to the updater check path
         const onCalls = mockIpcMain.on.mock.calls;
-        const updaterCheck = onCalls.find(
-            (c: any[]) => c[0] === "menu-check-for-updates"
-        );
+        const updaterCheck = onCalls
+            .filter((c: any[]) => c[0] === "menu-check-for-updates")
+            .at(-1);
         expect(updaterCheck?.[0]).toBe("menu-check-for-updates");
-        // Execute handler; don't assert internal call count to keep test robust across module interop
-        expect(() => updaterCheck?.[1]({})).not.toThrow();
+        updater.checkForUpdates.mockClear();
+        expect(updaterCheck?.[1]({})).toBeUndefined();
+        expect(updater.checkForUpdates).toHaveBeenCalledTimes(1);
 
         // install-update triggers quitAndInstall; simulate linux dialog path
         const originalPlatform = process.platform;
         try {
             Object.defineProperty(process, "platform", { value: "linux" });
-            const install = onCalls.find(
-                (c: any[]) => c[0] === "install-update"
-            );
+            const install = onCalls
+                .filter((c: any[]) => c[0] === "install-update")
+                .at(-1);
             expect(install?.[0]).toBe("install-update");
-            expect(() => install?.[1]({})).not.toThrow();
+            updater.quitAndInstall.mockClear();
+            expect(install?.[1]({})).toBeUndefined();
+            expect(updater.quitAndInstall).toHaveBeenCalledTimes(1);
+            expect(mockDialog.showMessageBox).not.toHaveBeenCalled();
         } finally {
             Object.defineProperty(process, "platform", {
                 value: originalPlatform,
@@ -484,7 +499,8 @@ describe("main.js strict handlers and events", () => {
         willNavigateCall?.[1](ev, "https://malicious.example.com");
         expect(ev.preventDefault).toHaveBeenCalledTimes(1);
         expect(contents.setWindowOpenHandler).toHaveBeenCalled();
-        const windowOpenHandler = contents.setWindowOpenHandler.mock.calls[0][0];
+        const windowOpenHandler =
+            contents.setWindowOpenHandler.mock.calls[0][0];
         expect(windowOpenHandler({ url: "https://bad.example.com" })).toEqual({
             action: "deny",
         });

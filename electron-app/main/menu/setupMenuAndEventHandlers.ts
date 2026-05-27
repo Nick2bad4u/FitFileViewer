@@ -41,10 +41,6 @@
         quitAndInstall?: () => void;
     }
 
-    interface ElectronUpdaterModuleLike {
-        autoUpdater?: AutoUpdaterLike;
-    }
-
     interface ConfStore {
         set: (key: string, value: unknown) => void;
     }
@@ -133,6 +129,10 @@
             context?: string
         ) => boolean;
     };
+    const { resolveAutoUpdaterSync } =
+        require("../updater/autoUpdaterAccess") as {
+            resolveAutoUpdaterSync: () => AutoUpdaterLike | null;
+        };
     const { safeCreateAppMenu } = require("./safeCreateAppMenu") as {
         safeCreateAppMenu: (
             win: BrowserWindow,
@@ -190,8 +190,7 @@
     }
 
     function requireAutoUpdater(): AutoUpdaterLike {
-        const { autoUpdater } =
-            require("electron-updater") as ElectronUpdaterModuleLike;
+        const autoUpdater = resolveAutoUpdaterSync();
         if (!autoUpdater) {
             throw new Error("electron-updater autoUpdater is unavailable");
         }
