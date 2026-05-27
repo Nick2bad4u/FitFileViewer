@@ -1,16 +1,18 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import {
-    showNotification,
-    notify,
-    clearAllNotifications,
     __testResetNotifications,
+    clearAllNotifications,
+    isShowingNotification,
+    notificationQueue,
+    notify,
+    processNotificationQueue,
+    showNotification,
+    type NotificationElement,
+    type NotificationType,
+    type QueuedNotification,
 } from "../../../utils/ui/notifications/showNotification.js";
-import * as notificationModule from "../../../utils/ui/notifications/showNotification.js";
 
-// Access internal variables and functions for testing
-// @ts-ignore - Accessing internals for testing
-const { notificationQueue, isShowingNotification, processNotificationQueue } =
-    await import("../../../utils/ui/notifications/showNotification.js");
+type NotifyMethod = "error" | "info" | "success" | "warning";
 
 describe("showNotification queue edge cases", () => {
     const originalWarn = console.warn;
@@ -77,16 +79,17 @@ describe("showNotification queue edge cases", () => {
             expect.objectContaining({ message: "Simulated error" })
         );
         expect(notificationQueue).toHaveLength(0);
-        expect(notificationModule.isShowingNotification).toBe(false);
+        expect(isShowingNotification).toBe(false);
     });
 
     it("clears existing hideTimeout when displaying new notification", async () => {
         const mockClearTimeout = vi.spyOn(window, "clearTimeout");
-        const notificationEl = document.getElementById("notification");
+        const notificationEl = document.getElementById(
+            "notification"
+        ) as NotificationElement | null;
 
         // Manually set a hideTimeout on the element
         if (notificationEl) {
-            // @ts-expect-error - Setting property for test
             notificationEl.hideTimeout = 123;
         }
 
@@ -94,11 +97,15 @@ describe("showNotification queue edge cases", () => {
         await p;
         expect(mockClearTimeout).toHaveBeenCalledWith(123);
         expect(notificationEl?.style.display).toBe("flex");
-        expect((notificationEl as any).hideTimeout).not.toBe(123);
+        expect(notificationEl?.hideTimeout).not.toBe(123);
     });
 
     it("handles all notification types through the notify object", async () => {
-        const typeTests = [
+        const typeTests: Array<{
+            readonly duration: number;
+            readonly method: NotifyMethod;
+            readonly type: NotificationType;
+        }> = [
             { method: "info", type: "info", duration: 4000 },
             { method: "success", type: "success", duration: 3000 },
             { method: "error", type: "error", duration: 6000 },
@@ -106,7 +113,6 @@ describe("showNotification queue edge cases", () => {
         ];
 
         for (const test of typeTests) {
-            // @ts-expect-error - Dynamic method call
             const p = notify[test.method](`${test.type} notification`);
             await p;
             const el = document.getElementById("notification")!;
@@ -200,10 +206,9 @@ describe("showNotification queue edge cases", () => {
         actionsContainer.appendChild(mockTarget);
         document.getElementById("notification")!.appendChild(actionsContainer);
 
-        // Mock closest to return the actions container
-        const originalClosest = Element.prototype.closest;
-        // @ts-ignore - Mocking
-        mockTarget.closest = vi.fn().mockReturnValue(actionsContainer);
+        const closestSpy = vi
+            .spyOn(mockTarget, "closest")
+            .mockReturnValue(actionsContainer);
 
         // Override the event target
         Object.defineProperty(mockEvent, "target", { get: () => mockTarget });
@@ -217,15 +222,11 @@ describe("showNotification queue edge cases", () => {
             "flex"
         );
 
-        // Restore original
-        // @ts-ignore - Restoring
-        Element.prototype.closest = originalClosest;
+        closestSpy.mockRestore();
     });
 
     it("handles error when resolveShown throws", async () => {
-        // Create a notification with a resolveShown that throws
-        // @ts-ignore - Modifying internals for testing
-        notificationQueue.push({
+        const notification: QueuedNotification = {
             message: "Error test",
             type: "info",
             duration: 1000,
@@ -237,7 +238,8 @@ describe("showNotification queue edge cases", () => {
             resolveShown: () => {
                 throw new Error("resolveShown error");
             },
-        });
+        };
+        notificationQueue.push(notification);
 
         // This shouldn't throw despite the error in resolveShown
         await processNotificationQueue();
@@ -246,18 +248,16 @@ describe("showNotification queue edge cases", () => {
             expect.objectContaining({ message: "resolveShown error" })
         );
         expect(notificationQueue).toHaveLength(0);
-        expect(notificationModule.isShowingNotification).toBe(false);
+        expect(isShowingNotification).toBe(false);
     });
 
     it("processes empty queue without errors", async () => {
         // Ensure queue is empty
         clearAllNotifications();
-        // @ts-ignore - Accessing internals for testing
         expect(notificationQueue.length).toBe(0);
 
         // Should not throw or cause issues
         await processNotificationQueue();
-        // @ts-ignore - Accessing internals for testing
         expect(isShowingNotification).toBe(false);
     });
 

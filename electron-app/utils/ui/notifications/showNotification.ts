@@ -26,7 +26,8 @@ export type NotificationOptions = {
     readonly persistent?: boolean;
 };
 
-type QueuedNotification = {
+/** Internal queue item used to serialize notification rendering. */
+export type QueuedNotification = {
     readonly actions: readonly NotificationAction[];
     readonly ariaLabel: string;
     readonly duration: null | number;
@@ -40,7 +41,8 @@ type QueuedNotification = {
 
 type HideTimeout = number | ReturnType<typeof setTimeout>;
 
-type NotificationElement = HTMLElement & {
+/** Notification host element with an optional scheduled hide timer. */
+export type NotificationElement = HTMLElement & {
     hideTimeout?: HideTimeout;
 };
 
