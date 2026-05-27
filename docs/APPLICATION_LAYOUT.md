@@ -373,11 +373,14 @@ electron-app/tests/
 │
 ├── e2e/                             # End-to-end tests
 ├── fixtures/                        # Test data & fixtures
-├── mocks/                           # Test mocks & stubs
+├── mocks/                           # Test mocks
 └── strictTests/                     # Strict testing scenarios
 
 tests/playwright/
 └── app-ui.spec.ts                   # Root-owned Electron Playwright smoke coverage
+
+tests/vitest/
+└── stubs/                           # Root-owned Vitest module alias stubs
 ```
 
 ### Test Support Files

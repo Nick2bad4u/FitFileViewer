@@ -302,6 +302,19 @@ const config = [
         },
     },
     {
+        files: ["tests/vitest/stubs/**/*.cjs"],
+        languageOptions: {
+            globals: globals.node,
+        },
+        rules: {
+            "@typescript-eslint/no-require-imports": "off",
+            "import-x/no-commonjs": "off",
+            "import-x/unambiguous": "off",
+            "n/no-missing-require": "off",
+            "unicorn/prefer-module": "off",
+        },
+    },
+    {
         files: ["electron-builder.config.cjs"],
         languageOptions: {
             globals: globals.node,

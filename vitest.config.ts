@@ -16,7 +16,7 @@ const configFilePath = fileURLToPath(import.meta.url);
 const coverageProjectRoot = path.dirname(configFilePath);
 const electronAppRoot = fileURLToPath(new URL("electron-app", import.meta.url));
 const electronStubPath = fileURLToPath(
-    new URL("electron-app/tests/stubs/electron-virtual.js", import.meta.url)
+    new URL("tests/vitest/stubs/electron-virtual.cjs", import.meta.url)
 );
 
 export default defineConfig({
