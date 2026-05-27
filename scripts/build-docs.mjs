@@ -8,12 +8,8 @@ const repositoryRoot = fileURLToPath(new URL("..", import.meta.url));
 const docusaurusRoot = fileURLToPath(
     new URL("../docusaurus/", import.meta.url)
 );
-const requireFromDocusaurus = createRequire(
-    new URL("../docusaurus/package.json", import.meta.url)
-);
-const typedocPackagePath = requireFromDocusaurus.resolve(
-    "typedoc/package.json"
-);
+const require = createRequire(import.meta.url);
+const typedocPackagePath = require.resolve("typedoc/package.json");
 const typedocCliPath = path.join(
     path.dirname(typedocPackagePath),
     "bin",
