@@ -8,6 +8,7 @@ const cleanupTargets = [
     "playwright-report",
     "test-results",
     path.join("electron-app", "dist"),
+    path.join("electron-app", "html"),
     path.join("electron-app", "logs"),
     path.join("electron-app", "release"),
     path.join("electron-app", "temp-win7"),
