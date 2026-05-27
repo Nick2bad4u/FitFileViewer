@@ -367,6 +367,8 @@ vscode-extension/*
 .codacy/cli.sh
 **/.prettier-cache
 todo.md
+!scripts/lib/
+!scripts/lib/**
 electron-app/temp-win7/
 electron-app/html/
 # Ignore generated doc coverage badges
