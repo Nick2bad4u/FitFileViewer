@@ -11,6 +11,9 @@ export const docusaurusWorkspacePath = path.join(
     docusaurusWorkspaceName
 );
 export const appDistPath = appWorkspaceRelativePath("dist");
+export const appPackagePath = appWorkspaceAbsolutePath("package.json");
+export const appPackageRepositoryPath =
+    appWorkspaceRepositoryPath("package.json");
 export const appReleasePath = appWorkspaceRelativePath("release");
 export const appTypesPath = appWorkspaceRelativePath("types");
 export const scriptsPath = path.join(repositoryRoot, "scripts");

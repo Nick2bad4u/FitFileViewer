@@ -3,10 +3,10 @@ import fs from "node:fs";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
-import { appWorkspaceRepositoryPath } from "./lib/workspaces.mjs";
+import { appPackageRepositoryPath } from "./lib/workspaces.mjs";
 
 export const defaultVersionFiles = [
-    appWorkspaceRepositoryPath("package.json"),
+    appPackageRepositoryPath,
     "package-lock.json",
 ];
 export const githubActionsBot = {

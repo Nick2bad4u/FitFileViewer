@@ -4,6 +4,8 @@ import { describe, expect, it } from "vitest";
 
 type WorkspacesModule = {
     appDistPath: string;
+    appPackagePath: string;
+    appPackageRepositoryPath: string;
     appReleasePath: string;
     appTypesPath: string;
     appWorkspaceAbsolutePath: (...segments: string[]) => string;
@@ -26,7 +28,7 @@ async function importWorkspaces(): Promise<WorkspacesModule> {
 
 describe("workspace path helpers", () => {
     it("centralizes the app workspace root and generated output paths", async () => {
-        expect.assertions(16);
+        expect.assertions(18);
 
         const workspaces = await importWorkspaces();
 
@@ -43,6 +45,12 @@ describe("workspace path helpers", () => {
             path.join(process.cwd(), "docusaurus")
         );
         expect(workspaces.appDistPath).toBe(path.join("electron-app", "dist"));
+        expect(workspaces.appPackagePath).toBe(
+            path.join(process.cwd(), "electron-app", "package.json")
+        );
+        expect(workspaces.appPackageRepositoryPath).toBe(
+            "electron-app/package.json"
+        );
         expect(workspaces.appReleasePath).toBe(
             path.join("electron-app", "release")
         );

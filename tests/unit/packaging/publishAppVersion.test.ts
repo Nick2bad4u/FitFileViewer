@@ -40,8 +40,16 @@ type PublishAppVersionModule = {
     writeGithubOutput: (bumpSha: string, outputPath?: string) => void;
 };
 
+type WorkspacesModule = {
+    appPackageRepositoryPath: string;
+};
+
 async function importPublishAppVersion(): Promise<PublishAppVersionModule> {
     return (await import("../../../scripts/publish-app-version.mjs")) as PublishAppVersionModule;
+}
+
+async function importWorkspaces(): Promise<WorkspacesModule> {
+    return (await import("../../../scripts/lib/workspaces.mjs")) as WorkspacesModule;
 }
 
 describe("publish-app-version script", () => {
@@ -62,9 +70,10 @@ describe("publish-app-version script", () => {
         expect.assertions(1);
 
         const { defaultVersionFiles } = await importPublishAppVersion();
+        const { appPackageRepositoryPath } = await importWorkspaces();
 
         expect(defaultVersionFiles).toStrictEqual([
-            "electron-app/package.json",
+            appPackageRepositoryPath,
             "package-lock.json",
         ]);
     });
