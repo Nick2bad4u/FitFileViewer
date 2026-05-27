@@ -33,13 +33,13 @@ export const directoryCopies = [
 export const fileCopies = [
     {
         destination: appElevProfileCssPath,
-        source: appElevProfileCssPath,
-        sourceRoot: "app",
+        source: path.posix.join("app", appElevProfileCssPath),
+        sourceRoot: "static",
     },
     {
         destination: appStyleCssPath,
-        source: appStyleCssPath,
-        sourceRoot: "app",
+        source: path.posix.join("app", appStyleCssPath),
+        sourceRoot: "static",
     },
 ];
 
@@ -104,8 +104,8 @@ function assertNoNodeModulesReference(appDir, filePath, content) {
     }
 }
 
-function copyIndexHtml(appDir, distDir) {
-    const source = path.join(appDir, appIndexHtmlPath);
+function copyIndexHtml(appDir, distDir, staticDir) {
+    const source = path.join(staticDir, "app", appIndexHtmlPath);
     const destination = path.join(distDir, appIndexHtmlPath);
     const html = fs.readFileSync(source, "utf8");
 
@@ -121,7 +121,7 @@ export function prepareRuntimeDist({
     staticDir = defaultStaticDir,
 } = {}) {
     fs.mkdirSync(distDir, { recursive: true });
-    copyIndexHtml(appDir, distDir);
+    copyIndexHtml(appDir, distDir, staticDir);
     for (const copy of directoryCopies) {
         copyDirectory(appDir, distDir, staticDir, copy);
     }

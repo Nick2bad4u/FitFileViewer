@@ -9,10 +9,10 @@ asset migration. Keep it current while moving browser libraries from
 The Electron app now loads third-party browser libraries through the renderer
 compatibility bundle:
 
-- `electron-app/index.html` loads the Vite-built compatibility bundle at
+- `static/app/index.html` loads the Vite-built compatibility bundle at
   `renderer/vendor-globals.js` for DOMPurify, JSZip, Arquero, screenfull, and
   the Chart.js, DataTables, Leaflet, and MapLibre stacks.
-- `electron-app/index.html` loads bundled renderer CSS from
+- `static/app/index.html` loads bundled renderer CSS from
   `renderer/vendor-globals.css`.
 - `scripts/prepare-runtime-dist.mjs` no longer copies `vendor/`
   into `electron-app/dist/vendor/`.
@@ -123,8 +123,10 @@ Current `build:runtime-ts` flow:
 `prepare-runtime-dist.mjs` copies:
 
 - directories: `static/ffv` to `dist/ffv`, `static/icons` to `dist/icons`
-- files: `elevProfile.css`, `style.css`
-- `index.html` after checking that it does not reference `node_modules`
+- files: `static/app/elevProfile.css` to `dist/elevProfile.css`,
+  `static/app/style.css` to `dist/style.css`
+- `static/app/index.html` to `dist/index.html` after checking that it does not
+  reference `node_modules`
 
 ## Electron Builder Package Surface
 
@@ -137,11 +139,11 @@ Windows 7 build helper read that list. Electron Builder packages only:
 
 The runtime build copies these app assets into `dist/` before packaging:
 
-- `elevProfile.css`
+- `elevProfile.css` from `static/app/elevProfile.css`
 - `ffv/` from `static/ffv/`
 - `icons/` from `static/icons/`
-- `index.html`
-- `style.css`
+- `index.html` from `static/app/index.html`
+- `style.css` from `static/app/style.css`
 
 Compiled renderer assets ship from `dist/`; no runtime HTML or module path loads
 directly from `vendor/`.

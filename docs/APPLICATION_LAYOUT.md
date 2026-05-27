@@ -68,8 +68,6 @@ electron-app/
 electron-app/
 ├── fitParser.js                      # FIT file parsing (Garmin SDK integration)
 ├── windowStateUtils.js               # Window state persistence
-├── index.html                        # Main application HTML
-├── style.css                         # Application styling & themes
 └── utils.js                          # Legacy utilities (being phased out)
 ```
 
@@ -417,6 +415,10 @@ docs/
 
 ```text
 static/
+├── app/                            # Main HTML and CSS source copied into runtime dist
+│   ├── index.html                  # Main application HTML
+│   ├── style.css                   # Application styling and themes
+│   └── elevProfile.css             # Elevation profile styling
 ├── ffv/                            # Alternative FIT viewer web app source copied into runtime dist
 └── icons/                          # Application icon source copied into runtime dist
     ├── favicon.ico                 # Main application icon

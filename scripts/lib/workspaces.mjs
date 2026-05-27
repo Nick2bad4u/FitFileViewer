@@ -58,9 +58,22 @@ export const rootAlternativeFitViewPath = path.posix.join(
     rootStaticAssetsPath,
     appAlternativeFitViewPath
 );
+export const rootAppStaticPath = path.posix.join(rootStaticAssetsPath, "app");
+export const rootAppElevProfileCssPath = path.posix.join(
+    rootAppStaticPath,
+    appElevProfileCssPath
+);
 export const rootAppIconsPath = path.posix.join(
     rootStaticAssetsPath,
     appIconsPath
+);
+export const rootAppIndexHtmlPath = path.posix.join(
+    rootAppStaticPath,
+    appIndexHtmlPath
+);
+export const rootAppStyleCssPath = path.posix.join(
+    rootAppStaticPath,
+    appStyleCssPath
 );
 export const scriptsPath = path.join(repositoryRoot, "scripts");
 

@@ -23,7 +23,9 @@ This document provides a high-level tour of the FitFileViewer codebase, covering
 | `tests/playwright/`         | Root-owned Electron Playwright smoke tests                                                       |
 | `scripts/`                  | Root-owned build, coverage, and runtime packaging helpers                                        |
 | `docs/`                     | Product and engineering guides                                                                   |
+| `static/app/`               | Main HTML and CSS source assets copied into the app runtime bundle                               |
 | `static/ffv/`               | Embedded alternative FIT viewer source assets copied into the app runtime bundle                 |
+| `static/icons/`             | Application icon source assets copied into the app runtime bundle                                |
 | `node_modules/`             | Third-party libraries managed via npm (Chart.js, Leaflet, MapLibre, DataTables, etc.)            |
 
 ## Runtime Architecture

@@ -54,8 +54,12 @@ function makeTemporaryApp(): {
         recursive: true,
     });
     fs.mkdirSync(appDir, { recursive: true });
+    fs.mkdirSync(path.join(staticDir, "app"), { recursive: true });
     fs.mkdirSync(path.join(staticDir, appIconsPath), { recursive: true });
-    fs.writeFileSync(path.join(appDir, appIndexHtmlPath), "<html></html>");
+    fs.writeFileSync(
+        path.join(staticDir, "app", appIndexHtmlPath),
+        "<html></html>"
+    );
     fs.writeFileSync(
         path.join(staticDir, appAlternativeFitViewPath, "index.html"),
         "<html></html>"
@@ -65,8 +69,11 @@ function makeTemporaryApp(): {
         "app"
     );
     fs.writeFileSync(path.join(staticDir, appIconsPath, "favicon.ico"), "icon");
-    fs.writeFileSync(path.join(appDir, appElevProfileCssPath), "profile");
-    fs.writeFileSync(path.join(appDir, appStyleCssPath), "style");
+    fs.writeFileSync(
+        path.join(staticDir, "app", appElevProfileCssPath),
+        "profile"
+    );
+    fs.writeFileSync(path.join(staticDir, "app", appStyleCssPath), "style");
 
     return { appDir, distDir: path.join(appDir, "dist"), staticDir };
 }
@@ -102,13 +109,13 @@ describe("prepare-runtime-dist script", () => {
         expect(fileCopies).toStrictEqual([
             {
                 destination: appElevProfileCssPath,
-                source: appElevProfileCssPath,
-                sourceRoot: "app",
+                source: "app/elevProfile.css",
+                sourceRoot: "static",
             },
             {
                 destination: appStyleCssPath,
-                source: appStyleCssPath,
-                sourceRoot: "app",
+                source: "app/style.css",
+                sourceRoot: "static",
             },
         ]);
         expect(
@@ -153,7 +160,7 @@ describe("prepare-runtime-dist script", () => {
         const { appDir, distDir, staticDir } = makeTemporaryApp();
 
         fs.writeFileSync(
-            path.join(appDir, appIndexHtmlPath),
+            path.join(staticDir, "app", appIndexHtmlPath),
             '<script src="./node_modules/leaflet/dist/leaflet.js"></script>'
         );
 

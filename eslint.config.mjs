@@ -4,6 +4,7 @@ import globals from "globals";
 import {
     rootAlternativeFitViewPath,
     rootAppIconsPath,
+    rootAppStaticPath,
 } from "./scripts/lib/workspaces.mjs";
 
 const electronAppBasePath = "electron-app";
@@ -28,6 +29,7 @@ const config = [
             "playwright-report/**",
             `${rootAlternativeFitViewPath}/**`,
             `${rootAppIconsPath}/**`,
+            `${rootAppStaticPath}/**`,
             "test-results/**",
         ],
     },
