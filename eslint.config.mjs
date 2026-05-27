@@ -264,14 +264,6 @@ const config = [
         },
     },
     {
-        files: [".vscode-test.mjs"],
-        rules: {
-            "@typescript-eslint/no-unsafe-call": "off",
-            "import-x/no-unresolved": "off",
-            "ts/no-unsafe-call": "off",
-        },
-    },
-    {
         files: [".github/agents/beastmode.agent.md"],
         rules: {
             "copilot/prefer-qualified-tools": "off",

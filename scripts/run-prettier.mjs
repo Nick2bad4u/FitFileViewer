@@ -19,7 +19,6 @@ const prettierTargets = [
     ".markdownlint.json",
     ".ncurc.json",
     ".secretlintrc.cjs",
-    ".vscode-test.mjs",
     "cliff.toml",
     "cspell.json",
     "electron-builder.config.cjs",
@@ -43,6 +42,7 @@ const prettierTargets = [
     ".github/*.yml",
     ".github/workflows/*.yml",
     "scripts/*.mjs",
+    "tests/playwright/**/*.ts",
     "tests/vitest/**/*.{cjs,mjs,ts}",
 ];
 
