@@ -39,15 +39,18 @@ describe("createAppMenu", () => {
             delete (globalThis as any).__FFV_createAppMenuExports;
         } catch {}
         // Default recent files mock for most tests (can be overridden in a specific test)
-        vi.doMock("../../../utils/files/recent/recentFiles", () => ({
-            loadRecentFiles: vi.fn(() => [
-                "C:/Users/Test/Documents/activity1.fit",
-                "C:/Users/Test/Documents/activity2.fit",
-            ]),
-            getShortRecentName: vi.fn((p: string) =>
-                p.split(/\\|\//g).slice(-2).join("\\")
-            ),
-        }));
+        vi.doMock(
+            "../../../electron-app/utils/files/recent/recentFiles",
+            () => ({
+                loadRecentFiles: vi.fn(() => [
+                    "C:/Users/Test/Documents/activity1.fit",
+                    "C:/Users/Test/Documents/activity2.fit",
+                ]),
+                getShortRecentName: vi.fn((p: string) =>
+                    p.split(/\\|\//g).slice(-2).join("\\")
+                ),
+            })
+        );
         // Do NOT reassign these spies — the electron mock captures the original references.
         // Instead, clear existing calls so expectations remain accurate per-test.
         const sendSpy = (globalThis as any).__electronSendSpy;
@@ -143,7 +146,7 @@ describe("createAppMenu", () => {
 
     function importCreateAppMenu() {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const mod = require("../../../utils/app/menu/createAppMenu.js");
+        const mod = require("../../../electron-app/utils/app/menu/createAppMenu.js");
         return mod.createAppMenu as (
             mainWindow: any,
             currentTheme?: string,
@@ -496,12 +499,15 @@ describe("createAppMenu", () => {
         (globalThis as any).__lastBuiltMenuTemplate = undefined;
         vi.resetModules();
         // Also reset the default mock from beforeEach so it doesn't override
-        vi.doMock("../../../utils/files/recent/recentFiles", () => ({
-            loadRecentFiles: vi.fn(() => []),
-            getShortRecentName: vi.fn((p: string) =>
-                p ? p.split(/\\|\//g).pop() : ""
-            ),
-        }));
+        vi.doMock(
+            "../../../electron-app/utils/files/recent/recentFiles",
+            () => ({
+                loadRecentFiles: vi.fn(() => []),
+                getShortRecentName: vi.fn((p: string) =>
+                    p ? p.split(/\\|\//g).pop() : ""
+                ),
+            })
+        );
 
         const createAppMenu = importCreateAppMenu();
         const fakeWin = { webContents: { send: vi.fn() } };
@@ -993,15 +999,18 @@ describe("createAppMenu - additional robust branches", () => {
         try {
             delete (globalThis as any).__FFV_createAppMenuExports;
         } catch {}
-        vi.doMock("../../../utils/files/recent/recentFiles", () => ({
-            loadRecentFiles: vi.fn(() => [
-                "C:/Users/Test/Documents/activity1.fit",
-                "C:/Users/Test/Documents/activity2.fit",
-            ]),
-            getShortRecentName: vi.fn((p: string) =>
-                p.split(/\\|\//g).slice(-2).join("\\")
-            ),
-        }));
+        vi.doMock(
+            "../../../electron-app/utils/files/recent/recentFiles",
+            () => ({
+                loadRecentFiles: vi.fn(() => [
+                    "C:/Users/Test/Documents/activity1.fit",
+                    "C:/Users/Test/Documents/activity2.fit",
+                ]),
+                getShortRecentName: vi.fn((p: string) =>
+                    p.split(/\\|\//g).slice(-2).join("\\")
+                ),
+            })
+        );
         // reset spies and call logs
         const sendSpy = (globalThis as any).__electronSendSpy;
         if (sendSpy && typeof sendSpy.mockReset === "function")
@@ -1093,7 +1102,7 @@ describe("createAppMenu - additional robust branches", () => {
 
     function importCreateAppMenu() {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const mod = require("../../../utils/app/menu/createAppMenu.js");
+        const mod = require("../../../electron-app/utils/app/menu/createAppMenu.js");
         return mod.createAppMenu as (
             mainWindow?: any,
             currentTheme?: string,
@@ -1413,10 +1422,10 @@ describe("createAppMenu - additional robust branches", () => {
         try {
             delete (globalThis as any).__FFV_createAppMenuExports;
             const modulePath =
-                require.resolve("../../../utils/app/menu/createAppMenu.js");
+                require.resolve("../../../electron-app/utils/app/menu/createAppMenu.js");
             delete require.cache[modulePath];
             // eslint-disable-next-line @typescript-eslint/no-var-requires
-            const mod = require("../../../utils/app/menu/createAppMenu.js");
+            const mod = require("../../../electron-app/utils/app/menu/createAppMenu.js");
             expect(typeof mod.createAppMenu).toBe("function");
             const defineMock = defineSpy as unknown as Mock;
             const calls = defineMock.mock.calls as Array<
