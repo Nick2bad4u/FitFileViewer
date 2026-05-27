@@ -21,6 +21,7 @@ vi.mock("../../../utils/ui/notifications/showNotification", () => ({
 
 // Import module AFTER mocks are set up
 import {
+    TabStateManager,
     tabStateManager,
     TAB_CONFIG,
 } from "../../../utils/ui/tabs/tabStateManager.js";
@@ -131,22 +132,19 @@ describe("tabStateManager - Critical Bug Detection", () => {
         // Don't reset mockSubscribe to preserve initialization calls
     });
 
-    describe("Memory Leak Detection", () => {
-        it("BUG CRITICAL: should expose memory leak from no unsubscribe mechanism", () => {
-            // Test that the module exists and has a cleanup method
+    describe("Cleanup behavior", () => {
+        it("should expose an idempotent cleanup method", () => {
             expect(tabStateManager).toEqual(
                 expect.objectContaining({
                     cleanup: expect.any(Function),
                 })
             );
 
-            // Check that cleanup doesn't actually unsubscribe (critical bug)
             const consoleSpy = vi
                 .spyOn(console, "log")
                 .mockImplementation(() => {});
-            tabStateManager.cleanup();
 
-            // Verify cleanup was called but no actual unsubscribe happened
+            expect(tabStateManager.cleanup()).toBeUndefined();
             expect(consoleSpy).toHaveBeenCalledWith(
                 "[TabStateManager] cleanup invoked"
             );
@@ -154,24 +152,31 @@ describe("tabStateManager - Critical Bug Detection", () => {
                 "[TabStateManager] cleanup failed"
             );
 
-            // The critical bug: cleanup exists but doesn't store/call unsubscribe functions
-            // This is evidenced by the fact that cleanup just logs without doing real cleanup
             consoleSpy.mockRestore();
         });
 
-        it("BUG CRITICAL: should track subscription leaks with multiple cleanup calls", () => {
-            // Test multiple cleanup calls - should be idempotent if properly implemented
+        it("should unsubscribe tracked state listeners once across multiple cleanup calls", () => {
+            const unsubscribeActive = vi.fn();
+            const unsubscribeData = vi.fn();
             const consoleSpy = vi
                 .spyOn(console, "log")
                 .mockImplementation(() => {});
+            mockSubscribe
+                .mockImplementationOnce(() => unsubscribeActive)
+                .mockImplementationOnce(() => unsubscribeData);
 
-            // Multiple cleanup calls should not cause issues
-            expect(() => {
-                tabStateManager.cleanup();
-                tabStateManager.cleanup();
-            }).not.toThrow();
+            const manager = new TabStateManager();
 
-            // The bug is that cleanup doesn't actually store unsubscribe handles
+            expect(mockSubscribe.mock.calls.slice(-2)).toEqual([
+                ["ui.activeTab", expect.any(Function)],
+                ["globalData", expect.any(Function)],
+            ]);
+            expect([manager.cleanup(), manager.cleanup()]).toStrictEqual([
+                undefined,
+                undefined,
+            ]);
+            expect(unsubscribeActive).toHaveBeenCalledOnce();
+            expect(unsubscribeData).toHaveBeenCalledOnce();
             expect(consoleSpy).toHaveBeenCalledWith(
                 "[TabStateManager] cleanup invoked"
             );
