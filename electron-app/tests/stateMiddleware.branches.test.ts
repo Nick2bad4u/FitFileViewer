@@ -15,7 +15,7 @@ type StatePerformanceGlobal = typeof globalThis & {
 };
 
 // We will import fresh modules in some tests to control module-level flags
-import "./shims/nodeWebStorage";
+import "../../tests/vitest/shims/nodeWebStorage";
 describe("stateMiddleware additional branches", () => {
     afterEach(() => {
         vi.restoreAllMocks();

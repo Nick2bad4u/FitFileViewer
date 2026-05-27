@@ -1,6 +1,6 @@
 // Mock Leaflet global L for all Vitest tests
 // eslint-disable-next-line import-x/no-unassigned-import -- ensure web storage shim registers before Storybook config executes
-import "../../electron-app/tests/shims/nodeWebStorage";
+import "./shims/nodeWebStorage";
 import fs from "node:fs";
 import Module from "node:module";
 import path from "node:path";

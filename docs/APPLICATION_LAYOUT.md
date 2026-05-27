@@ -383,6 +383,7 @@ tests/vitest/
 ├── env-setup.mjs                    # Root-owned Vitest warning/output filters
 ├── globalSetup.mjs                  # Root-owned Vitest global setup
 ├── setupVitest.mjs                  # Root-owned Vitest per-test environment setup
+├── shims/                           # Root-owned Vitest environment shims
 └── stubs/                           # Root-owned Vitest module alias stubs
 ```
 
