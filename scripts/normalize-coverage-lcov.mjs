@@ -1,43 +1,53 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import process from "node:process";
+import { pathToFileURL } from "node:url";
 
-import { appWorkspaceAbsolutePath } from "./lib/workspaces.mjs";
+import { appWorkspaceAbsolutePath, repositoryRoot } from "./lib/workspaces.mjs";
 
-const repoRoot = fileURLToPath(new URL("..", import.meta.url));
-const repoRootPosix = repoRoot.replaceAll("\\", "/");
-const coverageTargetDir = appWorkspaceAbsolutePath("coverage");
+export const coverageTargetDir = appWorkspaceAbsolutePath("coverage");
 
-const candidateDirs = [
-    process.env.VITEST_COVERAGE_DIR
-        ? path.resolve(process.env.VITEST_COVERAGE_DIR)
-        : null,
-    path.join(os.tmpdir(), "ffv-vitest-coverage"),
-    coverageTargetDir,
-].filter(Boolean);
+export function createCoverageCandidateDirs({
+    environmentCoverageDir = process.env.VITEST_COVERAGE_DIR,
+    temporaryDirectory = os.tmpdir(),
+    targetDirectory = coverageTargetDir,
+} = {}) {
+    return [
+        environmentCoverageDir ? path.resolve(environmentCoverageDir) : null,
+        path.join(temporaryDirectory, "ffv-vitest-coverage"),
+        targetDirectory,
+    ].filter(Boolean);
+}
 
 /**
  * Determine the directory that actually contains the generated lcov report.
  *
  * @returns {string | null}
  */
-function findSourceDir() {
-    for (const dir of candidateDirs) {
+export function findSourceDir({
+    candidateDirectories = createCoverageCandidateDirs(),
+    fileSystem = fs,
+    logger = console.warn,
+} = {}) {
+    for (const dir of candidateDirectories) {
         if (!dir) continue;
         try {
-            const stats = fs.statSync(dir, { throwIfNoEntry: false });
+            const stats = fileSystem.statSync(dir, { throwIfNoEntry: false });
             if (!stats || !stats.isDirectory()) {
                 continue;
             }
             const lcovPath = path.join(dir, "lcov.info");
             const coverageJsonPath = path.join(dir, "coverage-final.json");
-            if (fs.existsSync(lcovPath) || fs.existsSync(coverageJsonPath)) {
+            if (
+                fileSystem.existsSync(lcovPath) ||
+                fileSystem.existsSync(coverageJsonPath)
+            ) {
                 return dir;
             }
         } catch (error) {
             if (error?.code !== "ENOENT") {
-                console.warn(
+                logger(
                     `normalize-coverage-lcov: failed to inspect ${dir}:`,
                     error
                 );
@@ -47,36 +57,47 @@ function findSourceDir() {
     return null;
 }
 
-function normalizeCoverage() {
-    const sourceDir = findSourceDir();
+export function normalizeCoverage({
+    candidateDirectories = createCoverageCandidateDirs(),
+    fileSystem = fs,
+    logger = console.warn,
+    root = repositoryRoot,
+    targetDirectory = coverageTargetDir,
+} = {}) {
+    const sourceDir = findSourceDir({
+        candidateDirectories,
+        fileSystem,
+        logger,
+    });
 
     if (!sourceDir) {
-        console.warn(
+        logger(
             "normalize-coverage-lcov: no coverage directory found. Skipping normalization."
         );
         return;
     }
 
-    if (!fs.existsSync(coverageTargetDir)) {
-        fs.mkdirSync(coverageTargetDir, { recursive: true });
+    if (!fileSystem.existsSync(targetDirectory)) {
+        fileSystem.mkdirSync(targetDirectory, { recursive: true });
     }
 
-    if (path.resolve(sourceDir) !== path.resolve(coverageTargetDir)) {
-        fs.cpSync(sourceDir, coverageTargetDir, {
+    if (path.resolve(sourceDir) !== path.resolve(targetDirectory)) {
+        fileSystem.cpSync(sourceDir, targetDirectory, {
             recursive: true,
             force: true,
         });
     }
 
-    const lcovPath = path.join(coverageTargetDir, "lcov.info");
-    if (!fs.existsSync(lcovPath)) {
-        console.warn(
+    const lcovPath = path.join(targetDirectory, "lcov.info");
+    if (!fileSystem.existsSync(lcovPath)) {
+        logger(
             `normalize-coverage-lcov: ${lcovPath} not found. Nothing to normalize.`
         );
         return;
     }
 
-    const rawLcov = fs.readFileSync(lcovPath, "utf8");
+    const rootPosix = root.replaceAll("\\", "/");
+    const rawLcov = fileSystem.readFileSync(lcovPath, "utf8");
     const normalized = rawLcov
         .split(/\r?\n/)
         .map((line) => {
@@ -86,10 +107,10 @@ function normalizeCoverage() {
 
             const filePath = line.slice(3).replaceAll("\\", "/");
             const absolutePosixPath = path
-                .resolve(repoRoot, filePath)
+                .resolve(root, filePath)
                 .replaceAll("\\", "/");
             const relativePath = path.posix.relative(
-                repoRootPosix,
+                rootPosix,
                 absolutePosixPath
             );
             const normalizedPosixPath = path.posix.normalize(relativePath);
@@ -98,15 +119,20 @@ function normalizeCoverage() {
         })
         .join("\n");
 
-    fs.writeFileSync(lcovPath, normalized, "utf8");
+    fileSystem.writeFileSync(lcovPath, normalized, "utf8");
 }
 
-try {
-    normalizeCoverage();
-} catch (error) {
-    console.error(
-        "normalize-coverage-lcov: failed to normalize coverage report",
-        error
-    );
-    process.exitCode = 1;
+if (
+    process.argv[1] &&
+    import.meta.url === pathToFileURL(process.argv[1]).href
+) {
+    try {
+        normalizeCoverage();
+    } catch (error) {
+        console.error(
+            "normalize-coverage-lcov: failed to normalize coverage report",
+            error
+        );
+        process.exitCode = 1;
+    }
 }

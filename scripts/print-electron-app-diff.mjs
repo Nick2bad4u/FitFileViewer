@@ -1,9 +1,13 @@
 import { spawnSync } from "node:child_process";
-import path from "node:path";
 import process from "node:process";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { pathToFileURL } from "node:url";
 
-export const defaultDiffPath = "electron-app/";
+import {
+    appWorkspaceRepositoryPath,
+    repositoryRoot,
+} from "./lib/workspaces.mjs";
+
+export const defaultDiffPath = `${appWorkspaceRepositoryPath()}/`;
 export const defaultTagPattern = "v*";
 
 if (
@@ -128,14 +132,6 @@ export function printElectronAppDiff(options = {}, dependencies = {}) {
     return diffResult.status;
 }
 
-function getRepositoryRoot() {
-    if (import.meta.url.startsWith("file:")) {
-        return fileURLToPath(new URL("..", import.meta.url));
-    }
-
-    return path.resolve(process.cwd(), "..");
-}
-
 function printUsage() {
     console.log(`Usage: node scripts/print-electron-app-diff.mjs [options]
 
@@ -167,7 +163,7 @@ function readOptionValue(args, index, optionName) {
 
 function runCommandSync(command, args) {
     const result = spawnSync(command, args, {
-        cwd: getRepositoryRoot(),
+        cwd: repositoryRoot,
         encoding: "utf8",
     });
 

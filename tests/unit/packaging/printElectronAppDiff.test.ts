@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { appWorkspaceRepositoryPath } from "../../../scripts/lib/workspaces.mjs";
+
 type CommandResult = {
     status: number;
     stderr: string;
@@ -87,7 +89,8 @@ describe("print-electron-app-diff script", () => {
     it("prints the electron-app diff between the selected ref and HEAD", async () => {
         expect.assertions(3);
 
-        const { printElectronAppDiff } = await importPrintElectronAppDiff();
+        const { defaultDiffPath, printElectronAppDiff } =
+            await importPrintElectronAppDiff();
         const calls: string[] = [];
         const logs: string[] = [];
 
@@ -119,7 +122,7 @@ describe("print-electron-app-diff script", () => {
         expect(calls).toStrictEqual([
             "git fetch --tags --force",
             "git describe --tags --match v* --abbrev=0",
-            "git diff --name-status v30.0.0 -- electron-app/",
+            `git diff --name-status v30.0.0 -- ${defaultDiffPath}`,
         ]);
         expect(logs).toStrictEqual([
             "--- GIT DIFF OUTPUT (since last tag) ---",
@@ -172,12 +175,12 @@ describe("print-electron-app-diff script", () => {
         });
         expect(
             parseArgs([
-                "--diff-path=electron-app/utils",
+                `--diff-path=${appWorkspaceRepositoryPath("utils")}`,
                 "--tag-pattern",
                 "v3*",
             ])
         ).toStrictEqual({
-            diffPath: "electron-app/utils",
+            diffPath: appWorkspaceRepositoryPath("utils"),
             help: false,
             tagPattern: "v3*",
         });
