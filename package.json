@@ -95,6 +95,7 @@
         "@types/leaflet.markercluster": "~1.5.6",
         "@types/node": "^25.9.1",
         "@vitest/coverage-v8": "^4.1.7",
+        "@vitest/ui": "^4.1.7",
         "arquero": "^8.0.3",
         "chart.js": "^4.5.1",
         "chartjs-adapter-date-fns": "^3.0.0",
