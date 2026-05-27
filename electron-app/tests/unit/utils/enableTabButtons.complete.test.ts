@@ -337,7 +337,7 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
             // Mock isHTMLElement to return false
             mockIsHTMLElement.mockReturnValue(false);
 
-            expect(() => setTabButtonsEnabled(false)).not.toThrow();
+            expect(setTabButtonsEnabled(false)).toBeUndefined();
 
             // Should still call setState
             expect(mockSetState).toHaveBeenCalledWith(
@@ -572,7 +572,7 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
         it("should handle buttons without IDs gracefully", () => {
             appendTabButtons([{ text: "No ID" }]);
 
-            expect(() => debugTabButtons()).not.toThrow();
+            expect(debugTabButtons()).toBeUndefined();
             expect(consoleLogSpy).toHaveBeenCalledWith(
                 expect.stringContaining("Button No ID:"),
                 expect.objectContaining({ disabled: false })
@@ -638,7 +638,7 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
                 { id: "tab-summary", text: "Summary" },
             ]);
 
-            expect(() => testTabButtonClicks()).not.toThrow();
+            expect(testTabButtonClicks()).toBeUndefined();
             getRequiredButton("tab-summary").click();
 
             expect(consoleLogSpy).toHaveBeenCalledWith(
@@ -653,7 +653,7 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
         it("should skip open file buttons", () => {
             appendTabButtons([{ id: "openFileBtn", text: "Open File" }]);
 
-            expect(() => testTabButtonClicks()).not.toThrow();
+            expect(testTabButtonClicks()).toBeUndefined();
             expect(consoleLogSpy).not.toHaveBeenCalledWith(
                 expect.stringContaining("Added test handler to: openFileBtn")
             );
@@ -778,9 +778,9 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
         it("should handle empty DOM gracefully", () => {
             testContainer.replaceChildren();
 
-            expect(() => setTabButtonsEnabled(true)).not.toThrow();
-            expect(() => debugTabButtons()).not.toThrow();
-            expect(() => forceEnableTabButtons()).not.toThrow();
+            expect(setTabButtonsEnabled(true)).toBeUndefined();
+            expect(debugTabButtons()).toBeUndefined();
+            expect(forceEnableTabButtons()).toBeUndefined();
             expect(testContainer.childElementCount).toBe(0);
         });
 
@@ -794,7 +794,7 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
             vi.spyOn(testBtn, "parentNode", "get").mockReturnValue(null);
             vi.spyOn(testBtn, "cloneNode").mockReturnValue(testBtn);
 
-            expect(() => setTabButtonsEnabled(true)).not.toThrow();
+            expect(setTabButtonsEnabled(true)).toBeUndefined();
             expect(testBtn.style.pointerEvents).toBe("auto");
         });
 
@@ -821,8 +821,8 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
 
             appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
-            expect(() => setTabButtonsEnabled(true)).not.toThrow();
-            expect(() => initializeTabButtonState()).not.toThrow();
+            expect(setTabButtonsEnabled(true)).toBeUndefined();
+            expect(initializeTabButtonState()).toBeUndefined();
             expect(
                 document.getElementById("tab-test")?.hasAttribute("disabled")
             ).toBe(true);
