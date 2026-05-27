@@ -124,14 +124,15 @@ Current `build:runtime-ts` flow:
 
 ## Electron Builder Package Surface
 
-`electron-app/package.json` currently allows these Electron Builder app files
-through `build.files`:
+The root `electron-builder.config.cjs` packages `dist/**` from
+`electron-app/`. The runtime build copies these app assets into `dist/` before
+packaging:
 
 - `dist/`
 - `elevProfile.css`
+- `ffv/`
 - `icons/`
 - `index.html`
-- `package.json`
 - `style.css`
 
 Compiled renderer assets ship from `dist/`; no runtime HTML or module path loads
