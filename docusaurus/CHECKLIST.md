@@ -4,13 +4,13 @@ Use this checklist to verify your documentation site is working correctly.
 
 ## ✅ Initial Setup
 
-- [ ] Navigate to `docusaurus/` directory
-- [ ] Run `npm install` to install dependencies
+- [ ] Start from the repository root
+- [ ] Run `npm install` to install workspace dependencies
 - [ ] Verify no major installation errors
 
 ## ✅ Development Server
 
-- [ ] Run `npm start`
+- [ ] Run `npm run docs:start`
 - [ ] Browser opens to <http://localhost:3000/>
 - [ ] Homepage loads with FitFileViewer branding
 - [ ] Dark theme is active by default
@@ -42,12 +42,12 @@ Use this checklist to verify your documentation site is working correctly.
 
 ## ✅ Production Build
 
-- [ ] Run `npm run build`
+- [ ] Run `npm run docs:build`
 - [ ] TypeDoc runs first
 - [ ] Docusaurus build completes
 - [ ] No critical errors
 - [ ] `build/` directory created
-- [ ] Run `npm run serve`
+- [ ] Run `npm run docs:serve`
 - [ ] Preview build at <http://localhost:3000/>
 - [ ] All features work in production build
 
@@ -100,13 +100,13 @@ These warnings are **expected** and safe to ignore:
 
 **Reason**: Generated `.d.ts` files are outputs, not sources. They're excluded from TypeDoc processing.
 
-### TypeScript Compilation Errors (Before npm install)
+### TypeScript Compilation Errors (Before root npm install)
 
 ```
 Cannot find module '@docusaurus/...' or its corresponding type declarations
 ```
 
-**Reason**: Dependencies not installed yet. Resolved after `npm install`.
+**Reason**: Workspace dependencies not installed yet. Resolved after root `npm install`.
 
 ## 🚨 Critical Issues to Fix
 
@@ -140,15 +140,15 @@ If you see these, something is wrong:
 ### TypeDoc Fails
 
 1. Check `typedoc.json` exclude list
-2. Run `npm run docs:typedoc` separately to see full output
+2. Run `npm run docs:typedoc` separately from the repository root to see full output
 3. Check electron-app JSDoc comments are valid
 4. See `SETUP.md` for detailed troubleshooting
 
 ### Build Fails
 
-1. Clear Docusaurus cache: `npm run clear`
+1. Clear Docusaurus cache: `npm run docs:clear`
 2. Delete `node_modules` and `package-lock.json`
-3. Reinstall: `npm install`
+3. Reinstall from the repository root: `npm install`
 4. Try building again
 
 ### Pages Don't Load

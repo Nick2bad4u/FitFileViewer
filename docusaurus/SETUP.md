@@ -13,32 +13,30 @@ The FitFileViewer documentation site is now fully configured with:
 ### 📚 TypeDoc Integration
 
 - **Auto-generates API docs** from JSDoc comments in `electron-app/**/*.js`
-- **Integrated into build**: `npm run build` runs TypeDoc before Docusaurus
+- **Integrated into build**: `npm run docs:build` runs TypeDoc before Docusaurus
 - **Output**: Generated docs appear in `docs/api/` directory
 - **Sidebar**: Auto-generated API docs section under "API Reference"
 
 ## 🚀 Quick Start
 
 ```bash
-cd docusaurus
-
 # Install dependencies (first time only)
 npm install
 
 # Development server (no TypeDoc, fast iteration)
-npm start
+npm run docs:start
 
 # Production build (with TypeDoc API docs)
-npm run build
+npm run docs:build
 
 # Local build alias
-npm run build:local
+npm run docs:build
 
 # Just generate TypeDoc docs
 npm run docs:typedoc
 
 # Preview production build
-npm run serve
+npm run docs:serve
 ```
 
 ## 📁 Structure
@@ -94,17 +92,16 @@ docusaurus/
 
 Push to `main` branch → workflow triggers:
 
-1. Runs `npm install` in `docusaurus/`
-2. Runs `npm run build` (includes TypeDoc)
+1. Runs root `npm ci`
+2. Runs `npm run docs:build` (includes TypeDoc)
 3. Deploys to GitHub Pages
 4. Available at `https://nick2bad4u.github.io/FitFileViewer`
 
 ### Manual
 
 ```bash
-cd docusaurus
-npm run build
-npm run deploy
+npm run docs:build
+npm run docs:deploy
 ```
 
 ## 🔍 Troubleshooting
@@ -131,7 +128,7 @@ If TypeDoc encounters errors:
 
 If `docs/api/` is empty after build:
 
-- Run `npm run docs:typedoc` separately to see errors
+- Run `npm run docs:typedoc` separately from the repository root to see errors
 - Check TypeDoc output for specific issues
 - Verify electron-app has JSDoc comments
 
@@ -191,9 +188,9 @@ TypeDoc plugins:
 
 ## 🎯 Next Steps
 
-1. **Test locally**: `cd docusaurus && npm install && npm start`
+1. **Test locally**: `npm install && npm run docs:start`
 2. **Generate API docs**: `npm run docs:typedoc` to test TypeDoc
-3. **Build full site**: `npm run build` to test complete build
+3. **Build full site**: `npm run docs:build` to test complete build
 4. **Push to deploy**: Commit and push to trigger CI deployment
 
 ---

@@ -8,12 +8,15 @@ This directory contains the Docusaurus documentation site for FitFileViewer.
 
 ## Quick Start
 
+Run docs commands from the repository root so they use the shared workspace
+lockfile and root script wrappers.
+
 ```bash
 # Install dependencies
 npm install
 
 # Start development server
-npm start
+npm run docs:start
 ```
 
 The site will be available at <http://localhost:3000/>
@@ -24,7 +27,7 @@ The site will be available at <http://localhost:3000/>
 
 ```bash
 # Full build including auto-generated API documentation
-npm run build
+npm run docs:build
 ```
 
 This command:
@@ -36,14 +39,14 @@ This command:
 
 ```bash
 # Alias for the production docs build
-npm run build:local
+npm run docs:build
 ```
 
 ### Serve Production Build Locally
 
 ```bash
 # After building, serve the production build
-npm run serve
+npm run docs:serve
 ```
 
 ## 📚 TypeDoc Integration
@@ -55,9 +58,6 @@ TypeDoc automatically generates API documentation from JSDoc comments in the `el
 ```bash
 # Generate API docs only
 npm run docs:typedoc
-
-# Local alias for the same TypeDoc config
-npm run docs:typedoc:local
 ```
 
 **Output**: `docs/api/` - Automatically included in sidebar under "API Reference → Generated API Docs"
@@ -157,7 +157,7 @@ The documentation is automatically deployed to GitHub Pages via GitHub Actions.
 To manually deploy:
 
 ```bash
-npm run deploy
+npm run docs:deploy
 ```
 
 ## Resources
