@@ -377,7 +377,9 @@ electron-app/temp-win7/
 docusaurus/static/img/coverage.json
 docusaurus/static/img/coverage.svg
 
-# Docusaurus screenshots are generated from docs/screenshots.
+# Docusaurus static assets are generated from canonical root/app assets.
+docusaurus/static/favicon.ico
+docusaurus/static/img/favicon.ico
 docusaurus/static/img/screenshots/ChartsV3.png
 docusaurus/static/img/screenshots/DataV2.png
 docusaurus/static/img/screenshots/MapsV2.png

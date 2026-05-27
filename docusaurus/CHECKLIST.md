@@ -129,7 +129,7 @@ If you see these, something is wrong:
    - Add screenshots to `../docs/screenshots/`; root docs scripts sync the
      homepage copies into `static/img/screenshots/`
    - Create social card image: `static/img/fitfileviewer-social-card.png`
-   - Add favicon: `static/img/favicon.ico`
+   - Update the canonical app favicon in `../electron-app/icons/favicon.ico`
 
 3. **Deploy**
    - Commit and push to `main` branch

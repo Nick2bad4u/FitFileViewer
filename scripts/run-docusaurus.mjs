@@ -36,7 +36,7 @@ if (
             path.join(
                 repositoryRoot,
                 "scripts",
-                "sync-docusaurus-screenshots.mjs"
+                "sync-docusaurus-static-assets.mjs"
             ),
         ],
         {

@@ -3,6 +3,22 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const repositoryRoot = fileURLToPath(new URL("..", import.meta.url));
+const staticAssets = [
+    {
+        source: path.join(
+            repositoryRoot,
+            "electron-app",
+            "icons",
+            "favicon.ico"
+        ),
+        target: path.join(
+            repositoryRoot,
+            "docusaurus",
+            "static",
+            "favicon.ico"
+        ),
+    },
+];
 const screenshotNames = [
     "MapsV2.png",
     "DataV2.png",
@@ -19,6 +35,15 @@ const targetDir = path.join(
 
 fs.mkdirSync(targetDir, { recursive: true });
 
+for (const { source, target } of staticAssets) {
+    if (!fs.existsSync(source)) {
+        throw new Error(`Missing canonical static asset: ${source}`);
+    }
+
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    fs.copyFileSync(source, target);
+}
+
 for (const screenshotName of screenshotNames) {
     const sourcePath = path.join(sourceDir, screenshotName);
     const targetPath = path.join(targetDir, screenshotName);
@@ -31,5 +56,7 @@ for (const screenshotName of screenshotNames) {
 }
 
 console.log(
-    `[sync-docusaurus-screenshots] Synced ${screenshotNames.length} screenshots.`
+    `[sync-docusaurus-static-assets] Synced ${
+        staticAssets.length + screenshotNames.length
+    } static assets.`
 );

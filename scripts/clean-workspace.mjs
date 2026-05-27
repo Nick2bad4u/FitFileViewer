@@ -8,6 +8,8 @@ const cleanupTargets = [
     path.join("docusaurus", ".docusaurus"),
     path.join("docusaurus", "build"),
     path.join("docusaurus", "docs", "api"),
+    path.join("docusaurus", "static", "favicon.ico"),
+    path.join("docusaurus", "static", "img", "favicon.ico"),
     path.join("docusaurus", "static", "img", "screenshots", "ChartsV3.png"),
     path.join("docusaurus", "static", "img", "screenshots", "DataV2.png"),
     path.join("docusaurus", "static", "img", "screenshots", "MapsV2.png"),
