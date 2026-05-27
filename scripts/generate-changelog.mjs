@@ -2,7 +2,8 @@ import { spawnSync } from "node:child_process";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 
-const repositoryRoot = fileURLToPath(new URL("..", import.meta.url));
+import { repositoryRoot } from "./lib/workspaces.mjs";
+
 const gitCliffCliPath = fileURLToPath(
     await import.meta.resolve("git-cliff/cli")
 );

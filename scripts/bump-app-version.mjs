@@ -2,11 +2,13 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { pathToFileURL } from "node:url";
 
-import { appWorkspaceName } from "./lib/workspaces.mjs";
+import {
+    appWorkspaceName,
+    repositoryRoot as defaultRepositoryRoot,
+} from "./lib/workspaces.mjs";
 
-const defaultRepositoryRoot = resolveRepositoryRoot();
 export const defaultWorkspace = appWorkspaceName;
 
 if (
@@ -187,14 +189,6 @@ function readPackageJson(packagePath) {
         throw new Error(`Package file is not valid JSON: ${packagePath}`, {
             cause: error,
         });
-    }
-}
-
-function resolveRepositoryRoot() {
-    try {
-        return fileURLToPath(new URL("..", import.meta.url));
-    } catch {
-        return process.cwd();
     }
 }
 

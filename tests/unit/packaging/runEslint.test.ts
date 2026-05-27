@@ -2,6 +2,11 @@ import path from "node:path";
 
 import { describe, expect, it, vi } from "vitest";
 
+import {
+    appWorkspaceName,
+    docusaurusWorkspaceName,
+} from "../../../scripts/lib/workspaces.mjs";
+
 type RunEslintModule = {
     buildEslintArgs: (targetName: string, userArgs?: string[]) => string[];
     runEslintTarget: (
@@ -34,9 +39,9 @@ describe("run-eslint script", () => {
             "--fix",
             ".",
             "--ignore-pattern",
-            "electron-app/**",
+            `${appWorkspaceName}/**`,
             "--ignore-pattern",
-            "docusaurus/**",
+            `${docusaurusWorkspaceName}/**`,
         ]);
         expect(buildEslintArgs("electronApp")).toStrictEqual([
             "--config",
@@ -47,7 +52,7 @@ describe("run-eslint script", () => {
             "content",
             "--cache-location",
             ".cache/.eslintcache-electron",
-            "electron-app",
+            appWorkspaceName,
         ]);
         expect(buildEslintArgs("docusaurus")).toStrictEqual([
             "--config",
@@ -57,7 +62,7 @@ describe("run-eslint script", () => {
             "content",
             "--cache-location",
             ".cache/.eslintcache-docusaurus",
-            "docusaurus/**/*.{js,jsx,ts,tsx}",
+            `${docusaurusWorkspaceName}/**/*.{js,jsx,ts,tsx}`,
         ]);
         expect(() => buildEslintArgs("missing")).toThrow(
             "Unknown ESLint target: missing"

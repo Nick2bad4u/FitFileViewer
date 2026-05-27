@@ -2,9 +2,10 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { pathToFileURL } from "node:url";
 
-const repositoryRoot = resolveRepositoryRoot();
+import { repositoryRoot } from "./lib/workspaces.mjs";
+
 export const defaultKeepLast = 5;
 
 if (
@@ -360,14 +361,6 @@ Options:
   --yes                     Apply deletions. Without this, the script only prints a dry-run plan.
   --releases-json <path>    Read release JSON from a file for dry-run validation.
   --help                    Show this help text.`);
-}
-
-function resolveRepositoryRoot() {
-    try {
-        return fileURLToPath(new URL("..", import.meta.url));
-    } catch {
-        return process.cwd();
-    }
 }
 
 function runCommand(command, args, options = {}) {

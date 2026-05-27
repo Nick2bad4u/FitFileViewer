@@ -4,12 +4,9 @@ import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
-const repositoryRoot = resolveRepositoryRoot();
-const generateChangelogScript = path.join(
-    repositoryRoot,
-    "scripts",
-    "generate-changelog.mjs"
-);
+import { repositoryRoot, repositoryScriptPath } from "./lib/workspaces.mjs";
+
+const generateChangelogScript = repositoryScriptPath("generate-changelog.mjs");
 
 if (
     process.argv[1] &&
@@ -140,20 +137,4 @@ function printUsage() {
 Options:
   --no-verbose    Run changelog generation without passing --verbose.
   -h, --help      Show this help text.`);
-}
-
-function resolveRepositoryRoot() {
-    const cwd = process.cwd();
-
-    if (fs.existsSync(path.join(cwd, "scripts", "generate-changelog.mjs"))) {
-        return cwd;
-    }
-
-    const parent = path.dirname(cwd);
-
-    if (fs.existsSync(path.join(parent, "scripts", "generate-changelog.mjs"))) {
-        return parent;
-    }
-
-    return cwd;
 }

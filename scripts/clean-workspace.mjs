@@ -1,14 +1,13 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { pathToFileURL } from "node:url";
 
 import {
     appWorkspaceRelativePath,
     docusaurusWorkspaceRelativePath,
+    repositoryRoot,
 } from "./lib/workspaces.mjs";
-
-const repositoryRoot = resolveRepositoryRoot();
 
 export const cleanupTargets = [
     ".cache",
@@ -92,14 +91,6 @@ function printCleanupResult(removedTargets) {
         );
     } else {
         console.log("[clean-workspace] No generated paths to remove.");
-    }
-}
-
-function resolveRepositoryRoot() {
-    try {
-        return fileURLToPath(new URL("..", import.meta.url));
-    } catch {
-        return process.cwd();
     }
 }
 

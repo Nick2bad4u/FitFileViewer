@@ -1,10 +1,13 @@
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
-import path from "node:path";
 import process from "node:process";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { pathToFileURL } from "node:url";
 
-import { appReleasePath } from "./lib/workspaces.mjs";
+import {
+    appReleasePath,
+    repositoryRoot,
+    repositoryScriptPath,
+} from "./lib/workspaces.mjs";
 
 export const defaultInitialRetryDelaySeconds = 15;
 export const defaultMaxMacosAttempts = 3;
@@ -331,14 +334,6 @@ Options:
   -h, --help                         Show this help text.`);
 }
 
-function getRepositoryRoot() {
-    if (import.meta.url.startsWith("file:")) {
-        return fileURLToPath(new URL("..", import.meta.url));
-    }
-
-    return path.resolve(process.cwd(), "..");
-}
-
 function readInlineOptionValue(arg, optionName) {
     const value = arg.slice(`${optionName}=`.length);
 
@@ -385,7 +380,7 @@ function requireOption(value, optionName) {
 
 function runCommandSync(command, args) {
     const result = spawnSync(command, args, {
-        cwd: getRepositoryRoot(),
+        cwd: repositoryRoot,
         stdio: "inherit",
     });
 
@@ -398,7 +393,7 @@ function runCommandSync(command, args) {
 
 function runElectronBuilder(builderArgs, { runCommand }) {
     return runCommand(process.execPath, [
-        path.join("scripts", "run-electron-builder.mjs"),
+        repositoryScriptPath("run-electron-builder.mjs"),
         ...builderArgs,
     ]);
 }

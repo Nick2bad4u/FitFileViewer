@@ -2,9 +2,9 @@ import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import path from "node:path";
 import process from "node:process";
-import { fileURLToPath } from "node:url";
 
-const repositoryRoot = fileURLToPath(new URL("..", import.meta.url));
+import { repositoryRoot } from "./lib/workspaces.mjs";
+
 const require = createRequire(import.meta.url);
 const ncuPackagePath = require.resolve("npm-check-updates/package.json");
 const ncuCliPath = path.join(path.dirname(ncuPackagePath), "build", "cli.js");

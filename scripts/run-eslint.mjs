@@ -2,14 +2,15 @@ import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import path from "node:path";
 import process from "node:process";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { pathToFileURL } from "node:url";
 
-import { appWorkspaceName } from "./lib/workspaces.mjs";
+import {
+    appWorkspaceName,
+    docusaurusWorkspaceName,
+    repositoryRoot,
+} from "./lib/workspaces.mjs";
 
-const repositoryRoot = resolveRepositoryRoot();
-const require = createRequire(
-    pathToFileURL(path.join(repositoryRoot, "scripts", "run-eslint.mjs")).href
-);
+const require = createRequire(import.meta.url);
 const eslintPackagePath = require.resolve("eslint/package.json");
 const eslintCliPath = path.join(
     path.dirname(eslintPackagePath),
@@ -19,7 +20,7 @@ const eslintCliPath = path.join(
 export const eslintTargets = Object.freeze({
     docusaurus: {
         cacheLocation: ".cache/.eslintcache-docusaurus",
-        paths: ["docusaurus/**/*.{js,jsx,ts,tsx}"],
+        paths: [`${docusaurusWorkspaceName}/**/*.{js,jsx,ts,tsx}`],
         prefixArgs: ["--config", "eslint.config.mjs"],
     },
     electronApp: {
@@ -38,7 +39,7 @@ export const eslintTargets = Object.freeze({
             "--ignore-pattern",
             `${appWorkspaceName}/**`,
             "--ignore-pattern",
-            "docusaurus/**",
+            `${docusaurusWorkspaceName}/**`,
         ],
         prefixArgs: [],
     },
@@ -81,15 +82,6 @@ export function runEslintTarget(
     }
 
     return result.status ?? 1;
-}
-
-function resolveRepositoryRoot() {
-    const setupImportMetaUrl = import.meta.url;
-    if (setupImportMetaUrl.startsWith("file:")) {
-        return fileURLToPath(new URL("..", setupImportMetaUrl));
-    }
-
-    return process.cwd();
 }
 
 if (
