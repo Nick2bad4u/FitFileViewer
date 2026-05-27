@@ -58,5 +58,5 @@
     "timeout": 0,
     "upgrade": true,
     "verbose": false,
-    "workspaces": false
+    "workspaces": true
 }

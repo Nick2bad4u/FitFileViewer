@@ -1,6 +1,6 @@
 # This is a Dependabot configuration file for automating dependency updates.
 # The configuration is set to version 2 of the Dependabot schema.
-# It defines update settings for three package ecosystems: GitHub Actions, Bundler, and npm.
+# It defines update settings for GitHub Actions and npm package ecosystems.
 # Each ecosystem has its own update configuration, including:
 # - The directory to scan for dependencies (root directory in this case).
 # - The schedule for checking updates (daily).
@@ -45,7 +45,7 @@ updates:
       cooldown:
           default-days: 3
           include: ["*"]
-      directory: /electron-app
+      directory: /
       target-branch: main
       versioning-strategy: increase
       allow:
@@ -56,6 +56,22 @@ updates:
             versions: ["< 26.0.18"]
           - dependency-name: "electron-builder-squirrel-windows"
             versions: ["< 26.0.18"]
+      labels:
+          - "npm"
+      multi-ecosystem-group: dependabot-all
+      patterns:
+          - "*"
+
+    - package-ecosystem: npm
+      cooldown:
+          default-days: 3
+          include: ["*"]
+      directory: /electron-app
+      target-branch: main
+      versioning-strategy: increase
+      allow:
+          # Allow both direct and indirect updates for all packages
+          - dependency-type: "all"
       labels:
           - "npm"
       multi-ecosystem-group: dependabot-all
