@@ -313,44 +313,10 @@ jobs:
                   CI: true
                   DEBUG: "@malept/flatpak-bundler"
 
-            - name: Print Windows distributable hash (debug, Windows)
-              id: print_hash_windows
-              if: runner.os == 'Windows'
-              shell: pwsh
-              run: |
-                  $patterns = @('*.exe','*.nupkg','*.dmg','*.AppImage','*.snap','*.zip','*.yml','*.blockmap','*.msi','*.deb','*.rpm','*.7z','*.pkg','*.mas','*.apk','*.p5p','*.pacman','*.freebsd','*.flatpak','*.tar.xz','*.tar.gz','*.tar.bz2')
-                  $files = @()
-                  foreach ($pattern in $patterns) {
-                    $files += Get-ChildItem -Path electron-app/release -Recurse -Include $pattern -ErrorAction SilentlyContinue
-                  }
-                  foreach ($file in $files | Sort-Object FullName -Unique) {
-                    $hash = Get-FileHash $file.FullName -Algorithm SHA512
-                    $bytes = for ($i = 0; $i -lt $hash.Hash.Length; $i += 2) { [Convert]::ToByte($hash.Hash.Substring($i, 2), 16) }
-                    $b64 = [Convert]::ToBase64String($bytes)
-                    Write-Host "$($file.FullName): $b64"
-                  }
-              continue-on-error: true
-            - name: Print Linux distributable hash (debug, Linux)
-              id: print_hash_linux
-              if: runner.os == 'Linux'
+            - name: Print distributable hashes (debug)
+              id: print_hashes
               shell: bash
-              run: |
-                  find electron-app/release -type f \( -name '*.exe' -o -name '*.7z' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.snap' -o -name '*.zip' -o -name '*.yml' -o -name '*.blockmap' -o -name '*.msi' -o -name '*.deb' -o -name '*.rpm' -o -name '*.pkg' -o -name '*.mas' -o -name '*.apk' -o -name '*.p5p' -o -name '*.pacman' -o -name '*.freebsd' -o -name '*.flatpak' -o -name '*.tar.xz' -o -name '*.tar.gz' -o -name '*.tar.bz2' \) | sort | while read -r file; do
-                    hash=$(sha512sum "$file" | awk '{print $1}')
-                    b64=$(echo "$hash" | xxd -r -p | base64)
-                    echo "$file: $b64"
-                  done
-              continue-on-error: true
-            - name: Print Mac distributable hash (debug, macOS)
-              id: print_hash_macos
-              if: runner.os == 'macOS'
-              shell: bash
-              run: |
-                  find electron-app/release -type f \( -name '*.exe' -o -name '*.7z' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.snap' -o -name '*.zip' -o -name '*.yml' -o -name '*.blockmap' -o -name '*.msi' -o -name '*.deb' -o -name '*.rpm' -o -name '*.pkg' -o -name '*.mas' -o -name '*.apk' -o -name '*.p5p' -o -name '*.pacman' -o -name '*.freebsd' -o -name '*.flatpak' -o -name '*.tar.xz' -o -name '*.tar.gz' -o -name '*.tar.bz2' \) | sort | while read -r file; do
-                    hash=$(shasum -a 512 "$file" | awk '{print $1}')
-                    b64=$(echo "$hash" | xxd -r -p | base64)
-                    echo "$file: $b64"
-                  done
+              run: node scripts/print-distributable-hashes.mjs electron-app/release
               continue-on-error: true
 
             - name: Upload build release files as artifact
@@ -405,42 +371,10 @@ jobs:
               with:
                   path: ./artifacts
 
-            - name: Print Windows artifact hash (debug, Windows)
-              id: print_artifact_hash_windows
-              if: runner.os == 'Windows'
-              shell: pwsh
-              run: |
-                  $patterns = @('*.exe','*.nupkg','*.dmg','*.AppImage','*.snap','*.zip','*.yml','*.blockmap','*.msi','*.deb','*.rpm','*.7z','*.pkg','*.mas','*.apk','*.p5p','*.pacman','*.freebsd','*.flatpak','*.tar.xz','*.tar.gz','*.tar.bz2')
-                  $files = @()
-                  foreach ($pattern in $patterns) {
-                    $files += Get-ChildItem -Path artifacts -Recurse -Include $pattern -ErrorAction SilentlyContinue
-                  }
-                  foreach ($file in $files | Sort-Object FullName -Unique) {
-                    $hash = Get-FileHash $file.FullName -Algorithm SHA512
-                    $bytes = for ($i = 0; $i -lt $hash.Hash.Length; $i += 2) { [Convert]::ToByte($hash.Hash.Substring($i, 2), 16) }
-                    $b64 = [Convert]::ToBase64String($bytes)
-                    Write-Host "$($file.FullName): $b64"
-                  }
-            - name: Print Linux artifact hash (debug, Linux)
-              id: print_artifact_hash_linux
-              if: runner.os == 'Linux'
+            - name: Print artifact hashes (debug)
+              id: print_artifact_hashes
               shell: bash
-              run: |
-                  find artifacts -type f \( -name '*.exe' -o -name '*.7z' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.snap' -o -name '*.zip' -o -name '*.yml' -o -name '*.blockmap' -o -name '*.msi' -o -name '*.deb' -o -name '*.rpm' -o -name '*.pkg' -o -name '*.mas' -o -name '*.apk' -o -name '*.p5p' -o -name '*.pacman' -o -name '*.freebsd' -o -name '*.flatpak' -o -name '*.tar.xz' -o -name '*.tar.gz' -o -name '*.tar.bz2' \) | sort | while read -r file; do
-                    hash=$(sha512sum "$file" | awk '{print $1}')
-                    b64=$(echo "$hash" | xxd -r -p | base64)
-                    echo "$file: $b64"
-                  done
-            - name: Print MacOS artifact hash (debug, macOS)
-              id: print_artifact_hash_macos
-              if: runner.os == 'macOS'
-              shell: bash
-              run: |
-                  find artifacts -type f \( -name '*.exe' -o -name '*.7z' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.snap' -o -name '*.zip' -o -name '*.yml' -o -name '*.blockmap' -o -name '*.msi' -o -name '*.deb' -o -name '*.rpm' -o -name '*.pkg' -o -name '*.mas' -o -name '*.apk' -o -name '*.p5p' -o -name '*.pacman' -o -name '*.freebsd' -o -name '*.flatpak' -o -name '*.tar.xz' -o -name '*.tar.gz' -o -name '*.tar.bz2' \) | sort | while read -r file; do
-                    hash=$(shasum -a 512 "$file" | awk '{print $1}')
-                    b64=$(echo "$hash" | xxd -r -p | base64)
-                    echo "$file: $b64"
-                  done
+              run: node scripts/print-distributable-hashes.mjs artifacts
 
             - name: Determine previous release tag
               id: previous_tag
@@ -616,42 +550,10 @@ jobs:
                     echo "Updated $yml"
                   done
 
-            - name: Print artifact hash (debug, Windows)
-              id: print_artifact_hash_debug_windows
-              if: runner.os == 'Windows'
-              shell: pwsh
-              run: |
-                  $patterns = @('*.exe','*.nupkg','*.dmg','*.AppImage','*.snap','*.zip','*.yml','*.blockmap','*.msi','*.deb','*.rpm','*.7z','*.pkg','*.mas','*.apk','*.p5p','*.pacman','*.freebsd','*.flatpak','*.tar.xz','*.tar.gz','*.tar.bz2')
-                  $files = @()
-                  foreach ($pattern in $patterns) {
-                    $files += Get-ChildItem -Path artifacts -Recurse -Include $pattern -ErrorAction SilentlyContinue
-                  }
-                  foreach ($file in $files | Sort-Object FullName -Unique) {
-                    $hash = Get-FileHash $file.FullName -Algorithm SHA512
-                    $bytes = for ($i = 0; $i -lt $hash.Hash.Length; $i += 2) { [Convert]::ToByte($hash.Hash.Substring($i, 2), 16) }
-                    $b64 = [Convert]::ToBase64String($bytes)
-                    Write-Host "$($file.FullName): $b64"
-                  }
-            - name: Print artifact hash (debug, Linux)
-              id: print_artifact_hash_debug_linux
-              if: runner.os == 'Linux'
+            - name: Print fixed artifact hashes (debug)
+              id: print_artifact_hashes_debug
               shell: bash
-              run: |
-                  find artifacts -type f \( -name '*.exe' -o -name '*.7z' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.snap' -o -name '*.zip' -o -name '*.yml' -o -name '*.blockmap' -o -name '*.msi' -o -name '*.deb' -o -name '*.rpm' -o -name '*.pkg' -o -name '*.mas' -o -name '*.apk' -o -name '*.p5p' -o -name '*.pacman' -o -name '*.freebsd' -o -name '*.flatpak' -o -name '*.tar.xz' -o -name '*.tar.gz' -o -name '*.tar.bz2' \) | sort | while read -r file; do
-                    hash=$(sha512sum "$file" | awk '{print $1}')
-                    b64=$(echo "$hash" | xxd -r -p | base64)
-                    echo "$file: $b64"
-                  done
-            - name: Print artifact hash (debug, macOS)
-              id: print_artifact_hash_debug_macos
-              if: runner.os == 'macOS'
-              shell: bash
-              run: |
-                  find artifacts -type f \( -name '*.exe' -o -name '*.7z' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.snap' -o -name '*.zip' -o -name '*.yml' -o -name '*.blockmap' -o -name '*.msi' -o -name '*.deb' -o -name '*.rpm' -o -name '*.pkg' -o -name '*.mas' -o -name '*.apk' -o -name '*.p5p' -o -name '*.pacman' -o -name '*.freebsd' -o -name '*.flatpak' -o -name '*.tar.xz' -o -name '*.tar.gz' -o -name '*.tar.bz2' \) | sort | while read -r file; do
-                    hash=$(shasum -a 512 "$file" | awk '{print $1}')
-                    b64=$(echo "$hash" | xxd -r -p | base64)
-                    echo "$file: $b64"
-                  done
+              run: node scripts/print-distributable-hashes.mjs artifacts
 
             - name: List release-dist files (debug)
               id: list-dedupe

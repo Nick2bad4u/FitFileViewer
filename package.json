@@ -56,6 +56,7 @@
         "docs:typecheck": "node scripts/typecheck-docusaurus.mjs",
         "docs:typedoc": "node scripts/build-docs.mjs --typedoc-only",
         "format": "npm run prettier:fix",
+        "hash:distributables": "node scripts/print-distributable-hashes.mjs",
         "lint": "npm run lint:root && npm run lint:electron-app && npm run lint:docusaurus",
         "lint:css": "node scripts/lint-css.mjs --quiet",
         "lint:css:fix": "node scripts/lint-css.mjs --fix",
