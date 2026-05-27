@@ -74,12 +74,7 @@ jobs:
 
             - name: Show git diff for electron-app (debug)
               id: git_diff
-              run: |
-                  echo "--- GIT DIFF OUTPUT (since last tag) ---"
-                  git fetch --tags --force
-                  LAST_REF=$(git describe --tags --match "v*" --abbrev=0 2>/dev/null || git rev-list --max-parents=0 HEAD)
-                  git diff --name-status "$LAST_REF" -- "electron-app/"
-                  echo "--- END GIT DIFF OUTPUT ---"
+              run: node scripts/print-electron-app-diff.mjs
               continue-on-error: true
 
             - name: Bump package.json version number
