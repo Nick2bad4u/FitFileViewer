@@ -1340,11 +1340,9 @@ describe("createAppMenu - additional robust branches", () => {
     });
 
     it("skips setting menu and warns when template is invalid (forced via Array.isArray stub)", () => {
-        const originalIsArray = Array.isArray;
         // Force the defensive branch: treat the valid template as invalid
         // so the function warns and returns early.
-        // @ts-ignore
-        Array.isArray = () => false;
+        const isArraySpy = vi.spyOn(Array, "isArray").mockReturnValue(false);
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         const setAppMenuSpy = vi.fn();
         const original = (globalThis as any).__electronHoistedMock;
@@ -1356,18 +1354,19 @@ describe("createAppMenu - additional robust branches", () => {
                 setApplicationMenu: setAppMenuSpy,
             },
         };
-        const createAppMenu = importCreateAppMenu();
-        createAppMenu(undefined, "dark", null);
-        expect(capturedTemplate).toBeNull();
-        expect(warnSpy).toHaveBeenCalledWith(
-            "[createAppMenu] WARNING: Attempted to set an empty or invalid menu template. Skipping Menu.setApplicationMenu."
-        );
-        expect(setAppMenuSpy).not.toHaveBeenCalled();
-        warnSpy.mockRestore();
-        // restore globals
-        // @ts-ignore
-        Array.isArray = originalIsArray;
-        (globalThis as any).__electronHoistedMock = original;
+        try {
+            const createAppMenu = importCreateAppMenu();
+            createAppMenu(undefined, "dark", null);
+            expect(capturedTemplate).toBeNull();
+            expect(warnSpy).toHaveBeenCalledWith(
+                "[createAppMenu] WARNING: Attempted to set an empty or invalid menu template. Skipping Menu.setApplicationMenu."
+            );
+            expect(setAppMenuSpy).not.toHaveBeenCalled();
+        } finally {
+            warnSpy.mockRestore();
+            isArraySpy.mockRestore();
+            (globalThis as any).__electronHoistedMock = original;
+        }
     });
 
     it("uses default theme from getTheme when currentTheme is undefined", () => {
