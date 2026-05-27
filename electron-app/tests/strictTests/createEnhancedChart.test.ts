@@ -77,7 +77,8 @@ type ChartConstructorMock = Mock<
     (canvas: HTMLCanvasElement, config: ChartConfig) => ChartInstanceMock
 >;
 
-type CreateEnhancedChart = typeof import("../../utils/charts/components/createEnhancedChart.js").createEnhancedChart;
+type CreateEnhancedChart =
+    typeof import("../../utils/charts/components/createEnhancedChart.js").createEnhancedChart;
 
 type CreateEnhancedChartTestGlobal = typeof globalThis & {
     Chart?: unknown;
@@ -1317,7 +1318,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             );
         });
 
-        it("should handle errors gracefully without throwing", () => {
+        it("should return null and log when chart creation fails", () => {
             Chart.mockImplementationOnce(() => {
                 throw new Error("Chart creation failed");
             });
@@ -1341,9 +1342,13 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 theme: "light",
             };
 
-            expect(() => {
-                createEnhancedChart(canvas, options);
-            }).not.toThrow();
+            const createdChart = createEnhancedChart(canvas, options);
+
+            expect(createdChart).toBeNull();
+            expect(console.error).toHaveBeenCalledWith(
+                "[ChartJS] Error creating chart for power:",
+                expect.any(Error)
+            );
         });
     });
 
