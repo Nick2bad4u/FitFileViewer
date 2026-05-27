@@ -1,26 +1,50 @@
 import { spawnSync } from "node:child_process";
-import path from "node:path";
 import process from "node:process";
-import { fileURLToPath } from "node:url";
+import { pathToFileURL } from "node:url";
 
+import { repositoryRoot, repositoryScriptPath } from "./lib/workspaces.mjs";
 import { runEslintTarget } from "./run-eslint.mjs";
 
-const repositoryRoot = fileURLToPath(new URL("..", import.meta.url));
-
-function runStep(label, runner) {
-    console.log(`[lint-electron-app] ${label}`);
-
-    const status = runner();
-    if (status !== 0) {
-        process.exit(status ?? 1);
-    }
+export function lintElectronAppSteps(argv = process.argv.slice(2)) {
+    return [
+        {
+            args: argv,
+            label: "eslint",
+            target: "electronApp",
+            type: "eslint",
+        },
+        {
+            args: [repositoryScriptPath("run-typescript.mjs"), "typecheck"],
+            label: "typecheck",
+            type: "script",
+        },
+    ];
 }
 
-runStep("eslint", () => runEslintTarget("electronApp", process.argv.slice(2)));
-runStep("typecheck", () => runScript("run-typescript.mjs", ["typecheck"]));
+export function runLintElectronApp(
+    argv = process.argv.slice(2),
+    eslintRunner = runEslintTarget,
+    commandRunner = spawnSync,
+    logger = console.log
+) {
+    for (const step of lintElectronAppSteps(argv)) {
+        logger(`[lint-electron-app] ${step.label}`);
 
-function runScript(name, args) {
-    const result = spawnSync(process.execPath, [scriptPath(name), ...args], {
+        const status =
+            step.type === "eslint"
+                ? eslintRunner(step.target, step.args)
+                : runScript(step.args, commandRunner);
+
+        if (status !== 0) {
+            return status ?? 1;
+        }
+    }
+
+    return 0;
+}
+
+function runScript(args, commandRunner) {
+    const result = commandRunner(process.execPath, args, {
         cwd: repositoryRoot,
         stdio: "inherit",
     });
@@ -32,6 +56,9 @@ function runScript(name, args) {
     return result.status ?? 1;
 }
 
-function scriptPath(name) {
-    return path.join(repositoryRoot, "scripts", name);
+if (
+    process.argv[1] &&
+    import.meta.url === pathToFileURL(process.argv[1]).href
+) {
+    process.exitCode = runLintElectronApp();
 }
