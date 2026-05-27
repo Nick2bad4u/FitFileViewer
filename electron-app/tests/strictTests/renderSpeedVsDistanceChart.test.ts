@@ -760,6 +760,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             const container = document.createElement("div");
             const data = [{ speed: 5.5, distance: 1000 }];
             const options = {
+                distanceUnits: "kilometers",
                 maxPoints: 1000,
                 showPoints: true,
                 showLegend: true,
@@ -777,11 +778,10 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             };
 
             const result = tooltipCallback(mockContext);
-            expect(Array.isArray(result)).toBe(true);
-            expect(result).toHaveLength(2);
-            expect(result[0]).toContain("Distance:");
-            expect(result[1]).toContain("Speed:");
-            expect(result).not.toHaveLength(0);
+            expect(result).toStrictEqual([
+                "Distance: 1.00 km (0.62 mi)",
+                "Speed: 19.80 km/h",
+            ]);
         });
 
         it("should format tooltip correctly with feet distance units", () => {
@@ -794,6 +794,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             const container = document.createElement("div");
             const data = [{ speed: 5.5, distance: 1000 }];
             const options = {
+                distanceUnits: "feet",
                 maxPoints: 1000,
                 showPoints: true,
                 showLegend: true,
@@ -811,8 +812,10 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             };
 
             const result = tooltipCallback(mockContext);
-            expect(Array.isArray(result)).toBe(true);
-            expect(result).toHaveLength(2);
+            expect(result).toStrictEqual([
+                "Distance: 0.62 mi (1.00 km)",
+                "Speed: 19.80 mph",
+            ]);
         });
 
         it("should format tooltip correctly with miles distance units", () => {
@@ -825,6 +828,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             const container = document.createElement("div");
             const data = [{ speed: 5.5, distance: 1000 }];
             const options = {
+                distanceUnits: "miles",
                 maxPoints: 1000,
                 showPoints: true,
                 showLegend: true,
@@ -842,8 +846,10 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             };
 
             const result = tooltipCallback(mockContext);
-            expect(Array.isArray(result)).toBe(true);
-            expect(result).toHaveLength(2);
+            expect(result).toStrictEqual([
+                "Distance: 0.62 mi (1.00 km)",
+                "Speed: 19.80 mph",
+            ]);
         });
 
         it("should handle tooltip formatting with default units when no localStorage value", () => {
@@ -873,8 +879,10 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             };
 
             const result = tooltipCallback(mockContext);
-            expect(Array.isArray(result)).toBe(true);
-            expect(result).toHaveLength(2);
+            expect(result).toStrictEqual([
+                "Distance: 1.00 km (0.62 mi)",
+                "Speed: 19.80 km/h",
+            ]);
         });
     });
 

@@ -375,7 +375,6 @@ electron-app/tests/
 │   ├── performance/                 # Performance tests
 │   └── accessibility/               # A11y tests
 │
-├── e2e/                             # End-to-end tests
 ├── fixtures/                        # Test data & fixtures
 ├── mocks/                           # Test mocks
 └── strictTests/                     # Strict testing scenarios
@@ -438,17 +437,21 @@ Application screenshots used by repository documentation live in
 ```text
 .github/
 ├── workflows/                       # GitHub Actions workflows (30+ workflows)
-│   ├── Build.yml                   # Multi-platform builds
-│   ├── superlinter.yml             # Code quality checks
-│   ├── eslint.yml                  # JavaScript linting
-│   ├── prettier.yml                # Code formatting
+│   ├── Build.yml                   # Root lint/test/docs gate plus multi-platform builds
+│   ├── build-win7.yml              # Windows 7 compatibility build
+│   ├── docusaurus.yml              # Documentation site build and deploy
 │   ├── codeql.yml                  # Security analysis
-│   ├── dependabot/                 # Dependency updates
+│   ├── dependency-review.yml       # Dependency review gate
+│   ├── gitleaks.yml                # Secret scanning
+│   ├── trufflehog.yml              # Secret scanning
+│   ├── VirusTotal.yml              # Release artifact scanning
+│   ├── upload-linux-ia.yml         # Linux archive upload
+│   ├── upload-macos-ia.yml         # macOS archive upload
+│   ├── upload-windows-ia.yml       # Windows archive upload
 │   └── [Many other workflows]
 │
-├── CODEOWNERS                      # Code ownership
 ├── ISSUE_TEMPLATE/                 # Issue templates
-└── PULL_REQUEST_TEMPLATE.md        # PR template
+└── PULL_REQUEST_TEMPLATE/          # PR templates
 ```
 
 ### Build & Release System

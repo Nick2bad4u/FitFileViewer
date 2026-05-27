@@ -201,7 +201,7 @@ npm run test:coverage
 ### Coverage Configuration
 
 ```javascript
-// vitest.config.js
+// vitest.config.ts (root-owned)
 export default {
  test: {
   coverage: {
