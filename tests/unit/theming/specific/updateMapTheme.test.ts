@@ -9,19 +9,23 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock the dependency
 const mockGetMapThemeInverted = vi.fn();
-vi.mock("../../../../utils/theming/specific/createMapThemeToggle.js", () => ({
-    getMapThemeInverted: mockGetMapThemeInverted,
-    MAP_THEME_EVENTS: {
-        CHANGED: "mapThemeChanged",
-    },
-}));
+vi.mock(
+    "../../../../electron-app/utils/theming/specific/createMapThemeToggle.js",
+    () => ({
+        getMapThemeInverted: mockGetMapThemeInverted,
+        MAP_THEME_EVENTS: {
+            CHANGED: "mapThemeChanged",
+        },
+    })
+);
 
 // Import the module AFTER setting up mocks
 const {
     installUpdateMapThemeListeners,
     uninstallUpdateMapThemeListeners,
     updateMapTheme,
-} = await import("../../../../utils/theming/specific/updateMapTheme.js");
+} =
+    await import("../../../../electron-app/utils/theming/specific/updateMapTheme.js");
 
 describe("updateMapTheme - comprehensive coverage", () => {
     const DARK_TILE_FILTER =

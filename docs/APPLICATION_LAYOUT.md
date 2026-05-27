@@ -385,7 +385,8 @@ tests/unit/
 ├── preload/                         # Root-owned preload boundary tests
 ├── rendering/                       # Root-owned rendering helper and component tests
 ├── runtime/                         # Root-owned runtime boundary tests
-└── tabs/                            # Root-owned shared tab behavior tests
+├── tabs/                            # Root-owned shared tab behavior tests
+└── theming/                         # Root-owned theming behavior tests
 
 tests/fixtures/
 └── tabFixtures.ts                   # Root-owned reusable Vitest DOM fixtures
