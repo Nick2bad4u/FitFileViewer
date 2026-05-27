@@ -282,7 +282,9 @@ describe("fitParser.js decoder behavior", () => {
             const result = fitParser.validateDecoderOptions(options);
 
             expect(result.isValid).toBe(false);
-            expect(result.errors.length).toBeGreaterThan(0);
+            expect(result.errors).toStrictEqual([
+                "applyScaleAndOffset must be of type boolean, got string",
+            ]);
             expect(result.validatedOptions).toMatchObject(
                 fitParser.getDefaultDecoderOptions()
             );
@@ -427,11 +429,9 @@ describe("fitParser.js decoder behavior", () => {
             const result = fitParser.updateDecoderOptions(invalidOptions);
 
             expect(result.success).toBe(false);
-            expect(result.errors).toEqual(
-                expect.arrayContaining([
-                    expect.stringContaining("applyScaleAndOffset"),
-                ])
-            );
+            expect(result.errors).toStrictEqual([
+                "applyScaleAndOffset must be of type boolean, got string",
+            ]);
         });
 
         it("should get current decoder options", () => {
