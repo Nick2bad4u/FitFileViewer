@@ -55,14 +55,32 @@ afterEach(() => {
 
 describe("print-distributable-hashes script", () => {
     it("detects distributable file names by release extension", async () => {
-        expect.assertions(4);
+        expect.assertions(1);
 
         const { isDistributableFile } = await importPrintDistributableHashes();
 
-        expect(isDistributableFile("Fit-File-Viewer-30.0.0.exe")).toBe(true);
-        expect(isDistributableFile("latest.yml")).toBe(true);
-        expect(isDistributableFile("Fit-File-Viewer-30.0.0.tar.xz")).toBe(true);
-        expect(isDistributableFile("debug.log")).toBe(false);
+        expect(
+            [
+                "Fit-File-Viewer-30.0.0.exe",
+                "latest.yml",
+                "Fit-File-Viewer-30.0.0.tar.xz",
+                "debug.log",
+            ].map((fileName) => ({
+                fileName,
+                isDistributable: isDistributableFile(fileName),
+            }))
+        ).toStrictEqual([
+            {
+                fileName: "Fit-File-Viewer-30.0.0.exe",
+                isDistributable: true,
+            },
+            { fileName: "latest.yml", isDistributable: true },
+            {
+                fileName: "Fit-File-Viewer-30.0.0.tar.xz",
+                isDistributable: true,
+            },
+            { fileName: "debug.log", isDistributable: false },
+        ]);
     });
 
     it("finds distributable files recursively in sorted order", async () => {

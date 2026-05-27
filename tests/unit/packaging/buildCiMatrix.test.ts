@@ -164,20 +164,26 @@ describe("build-ci-matrix script", () => {
     });
 
     it("retries only macOS builder runs", async () => {
-        expect.assertions(4);
+        expect.assertions(1);
 
         const { shouldRetryElectronBuilder } = await importBuildCiMatrix();
 
-        expect(shouldRetryElectronBuilder({ matrixOs: "macos-15" })).toBe(true);
-        expect(shouldRetryElectronBuilder({ matrixOs: "macos-latest" })).toBe(
-            true
-        );
-        expect(shouldRetryElectronBuilder({ matrixOs: "macos-15-intel" })).toBe(
-            true
-        );
-        expect(shouldRetryElectronBuilder({ matrixOs: "windows-latest" })).toBe(
-            false
-        );
+        expect(
+            [
+                "macos-15",
+                "macos-latest",
+                "macos-15-intel",
+                "windows-latest",
+            ].map((matrixOs) => ({
+                matrixOs,
+                shouldRetry: shouldRetryElectronBuilder({ matrixOs }),
+            }))
+        ).toStrictEqual([
+            { matrixOs: "macos-15", shouldRetry: true },
+            { matrixOs: "macos-latest", shouldRetry: true },
+            { matrixOs: "macos-15-intel", shouldRetry: true },
+            { matrixOs: "windows-latest", shouldRetry: false },
+        ]);
     });
 
     it("runs runtime build before electron-builder for non-retry builds", async () => {

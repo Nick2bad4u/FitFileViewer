@@ -70,19 +70,33 @@ describe("organize-distributables script", () => {
     });
 
     it("matches the workflow's top-level distributable file patterns", async () => {
-        expect.assertions(4);
+        expect.assertions(1);
 
         const { isTopLevelDistributable } =
             await importOrganizeDistributables();
 
-        expect(isTopLevelDistributable("Fit-File-Viewer-nsis-x64.exe")).toBe(
-            true
-        );
         expect(
-            isTopLevelDistributable("fitfileviewer-30.0.0-x64.nsis.7z")
-        ).toBe(true);
-        expect(isTopLevelDistributable("latest.yml")).toBe(true);
-        expect(isTopLevelDistributable("debug.log")).toBe(false);
+            [
+                "Fit-File-Viewer-nsis-x64.exe",
+                "fitfileviewer-30.0.0-x64.nsis.7z",
+                "latest.yml",
+                "debug.log",
+            ].map((fileName) => ({
+                fileName,
+                isDistributable: isTopLevelDistributable(fileName),
+            }))
+        ).toStrictEqual([
+            {
+                fileName: "Fit-File-Viewer-nsis-x64.exe",
+                isDistributable: true,
+            },
+            {
+                fileName: "fitfileviewer-30.0.0-x64.nsis.7z",
+                isDistributable: true,
+            },
+            { fileName: "latest.yml", isDistributable: true },
+            { fileName: "debug.log", isDistributable: false },
+        ]);
     });
 
     it("copies distributables and selected updater directories into release-dist", async () => {
