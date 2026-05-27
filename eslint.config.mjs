@@ -1,12 +1,20 @@
-import dependPlugin from "eslint-plugin-depend";
 import nickTwoBadFourU from "eslint-config-nick2bad4u";
 import globals from "globals";
 
 const electronAppBasePath = "electron-app";
+const dependPlugin = nickTwoBadFourU.configs.all.find(
+    (entry) => entry.plugins?.depend
+)?.plugins.depend;
 const electronAppSharedConfig = nickTwoBadFourU.configs.all.map((entry) => ({
     ...entry,
     basePath: electronAppBasePath,
 }));
+
+if (!dependPlugin) {
+    throw new Error(
+        "eslint-config-nick2bad4u must provide eslint-plugin-depend"
+    );
+}
 
 /** @type {import("eslint").Linter.Config[]} */
 const config = [
