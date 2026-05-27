@@ -327,13 +327,13 @@ test.describe("FitFileViewer Electron UI", () => {
         expect(mapRuntime.hasLeafletMap).toBe(true);
         expect(mapRuntime.hasMapLibreGlobal).toBe(true);
         expect(mapRuntime.hasMapLibreLeaflet).toBe(true);
-        expect(mapRuntime.layerLabels.length).toBeGreaterThan(10);
+        expect(mapRuntime.layerLabels).toHaveLength(33);
         expect(
             mapRuntime.layerLabels.some((label) =>
                 label.toLowerCase().includes("open free map")
             )
         ).toBe(true);
-        expect(mapRuntime.routeElementCount).toBeGreaterThan(0);
+        expect(mapRuntime.routeElementCount).toBe(58);
 
         const gpxExport = await page.evaluate(async () => {
             const clickedDownloads: Array<{
@@ -371,7 +371,15 @@ test.describe("FitFileViewer Electron UI", () => {
                 }
 
                 exportButton.click();
-                await new Promise((resolve) => setTimeout(resolve, 0));
+                for (let attempt = 0; attempt < 20; attempt += 1) {
+                    if (
+                        clickedDownloads.length > 0 &&
+                        exportedBlobs.length > 0
+                    ) {
+                        break;
+                    }
+                    await new Promise((resolve) => setTimeout(resolve, 50));
+                }
 
                 return {
                     clickedDownload: clickedDownloads.at(0),
@@ -386,8 +394,10 @@ test.describe("FitFileViewer Electron UI", () => {
 
         expect(gpxExport.clickedDownload?.download).toMatch(/\.gpx$/u);
         expect(gpxExport.clickedDownload?.href).toBe("blob:ffv-playwright-gpx");
-        expect(gpxExport.exportedBlob?.size).toBeGreaterThan(0);
-        expect(gpxExport.exportedBlob?.type).toContain("application/gpx+xml");
+        expect(gpxExport.exportedBlob).toStrictEqual({
+            size: 450_729,
+            type: "application/gpx+xml;charset=utf-8",
+        });
 
         const elevationPopup = await page.evaluate(async () => {
             const globalWindow = window as Window & { Chart?: unknown };
@@ -496,15 +506,35 @@ test.describe("FitFileViewer Electron UI", () => {
             chartInstanceCount: number;
         } | null;
 
-        expect(chartRuntime).toMatchObject({
-            canvasCount: expect.any(Number),
-            chartInstanceCount: expect.any(Number),
-            chartIds: expect.arrayContaining([
-                expect.stringMatching(/^chart/u),
-            ]),
+        expect(chartRuntime).toStrictEqual({
+            canvasCount: 23,
+            chartInstanceCount: 25,
+            chartIds: [
+                "chart-heartRate-1",
+                "chart-power-2",
+                "chart-cadence-3",
+                "chart-temperature-4",
+                "chart-distance-5",
+                "chart-enhancedSpeed-6",
+                "chart-enhancedAltitude-7",
+                "chart-flow-8",
+                "chart-grit-9",
+                "chart-positionLat-10",
+                "chart-positionLong-11",
+                "chart-events-0",
+                "chart-heart-rate-zones-0",
+                "chart-power-zones-0",
+                "chartjs-canvas-lap-hr-zones",
+                "chartjs-canvas-lap-power-zones",
+                "chartjs-canvas-single-lap-hr",
+                "chartjs-canvas-single-lap-power",
+                "chart-gps-track-0",
+                "chart-gps-time-0",
+                "chart-speed-vs-distance-0",
+                "chart-power-vs-hr-0",
+                "chart-altitude-profile-0",
+            ],
         });
-        expect(chartRuntime?.canvasCount).toBeGreaterThan(0);
-        expect(chartRuntime?.chartInstanceCount).toBeGreaterThan(0);
 
         for (const tabId of ["#tab_data", "#tab_summary"]) {
             await page.locator(tabId).click();
