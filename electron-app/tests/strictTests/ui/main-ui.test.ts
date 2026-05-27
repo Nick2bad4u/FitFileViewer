@@ -607,7 +607,7 @@ describe("main-ui.js core flows", () => {
         mockState["charts.isRendered"] = true;
         mockState["ui.dragCounter"] = 3;
         const devCleanup = getWindowFunction<() => void>("devCleanup");
-        expect(() => devCleanup()).not.toThrow();
+        expect(devCleanup()).toBeUndefined();
         expect(mockState["charts.isRendered"]).toBe(false);
         expect(mockState["ui.dragCounter"]).toBe(0);
     });
