@@ -1,5 +1,3 @@
-import * as path from "node:path";
-import { fileURLToPath } from "node:url";
 /* eslint-disable module-interop/no-require-esm -- Vitest loads this config through its ESM-aware config loader. */
 import {
     coverageConfigDefaults,
@@ -8,14 +6,10 @@ import {
 } from "vitest/config";
 /* eslint-enable module-interop/no-require-esm -- Re-enable after the Vitest config import. */
 
-// import.meta.dirname would be cleaner, but this package still declares support
-// for Node versions where that property is not available.
-const configImportMetaUrl = import.meta.url;
-const repositoryRoot = configImportMetaUrl.startsWith("file:")
-    ? path.dirname(fileURLToPath(configImportMetaUrl))
-    : process.cwd();
-const electronStubPath = path.join(
-    repositoryRoot,
+// eslint-disable-next-line module-interop/no-require-esm -- Vitest loads this config through its ESM-aware config loader.
+import { repositoryPath, repositoryRoot } from "./scripts/lib/workspaces.mjs";
+
+const electronStubPath = repositoryPath(
     "tests",
     "vitest",
     "stubs",

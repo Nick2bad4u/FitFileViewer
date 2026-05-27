@@ -4,7 +4,6 @@ import "./shims/nodeWebStorage";
 import fs from "node:fs";
 import Module from "node:module";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import {
     vi,
     afterEach as vitestAfterEach,
@@ -12,12 +11,9 @@ import {
     afterAll as vitestAfterAll,
 } from "vitest";
 
-const setupImportMetaUrl = String(import.meta.url ?? "");
-const electronAppRoot = path.resolve(
-    setupImportMetaUrl.startsWith("file:")
-        ? fileURLToPath(new URL("../../electron-app", setupImportMetaUrl))
-        : process.cwd()
-);
+import { appWorkspacePath } from "../../scripts/lib/workspaces.mjs";
+
+const electronAppRoot = appWorkspacePath;
 const electronAppDist = path.join(electronAppRoot, "dist");
 const generatedRuntimeDirs = new Set([
     "main",
