@@ -98,6 +98,9 @@ type AutoUpdaterMock = {
     >;
     quitAndInstall: ReturnType<typeof vi.fn<() => void>>;
     removeAllListeners: ReturnType<typeof vi.fn<(eventName?: string) => void>>;
+    removeListener: ReturnType<
+        typeof vi.fn<(eventName: string, listener: Listener) => void>
+    >;
 };
 
 type MainExports = {
@@ -276,6 +279,11 @@ const harness = vi.hoisted(() => {
         removeAllListeners: vi.fn<(eventName?: string) => void>((eventName) => {
             autoUpdaterEmitter.removeAllListeners(eventName);
         }),
+        removeListener: vi.fn<(eventName: string, listener: Listener) => void>(
+            (eventName, listener) => {
+                autoUpdaterEmitter.removeListener(eventName, listener);
+            }
+        ),
     };
 
     const dialog = {

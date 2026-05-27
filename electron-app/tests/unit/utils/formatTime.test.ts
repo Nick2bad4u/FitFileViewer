@@ -27,7 +27,6 @@ describe("formatTime", () => {
         expect(formatTime(3600)).toBe("1:00:00");
         expect(formatTime(3661)).toBe("1:01:01");
         expect(formatTime(90.9)).toBe("1:30");
-        expect(formatTime(Infinity)).toBe("Infinity:NaN:NaN");
     });
 
     it("formats user-unit settings for seconds, minutes, and hours", () => {
@@ -61,6 +60,7 @@ describe("formatTime", () => {
             {},
             [],
             Number.NaN,
+            Infinity,
             -60,
             -Infinity,
         ]) {
@@ -74,6 +74,10 @@ describe("formatTime", () => {
         expect(warnSpy).toHaveBeenCalledWith(
             "[formatTime] Negative time value:",
             -60
+        );
+        expect(warnSpy).toHaveBeenCalledWith(
+            "[formatTime] Invalid seconds value:",
+            Infinity
         );
     });
 

@@ -44,7 +44,9 @@ describe("eventListenerManager listener lifecycle", () => {
         );
         expect(typeof cleanup).toBe("function");
         cleanup(); // should be safe no-op
-        expect(warn).toHaveBeenCalled();
+        expect(warn).toHaveBeenCalledWith(
+            "[EventListenerManager] Invalid element provided to addEventListenerWithCleanup"
+        );
     });
 
     it("returns no-op when given invalid handler", () => {
@@ -56,7 +58,9 @@ describe("eventListenerManager listener lifecycle", () => {
         );
         expect(typeof cleanup).toBe("function");
         cleanup();
-        expect(warn).toHaveBeenCalled();
+        expect(warn).toHaveBeenCalledWith(
+            "[EventListenerManager] Invalid handler provided to addEventListenerWithCleanup"
+        );
     });
 
     it("cleanupEventListeners removes all tracked listeners and logs count", () => {
@@ -68,7 +72,9 @@ describe("eventListenerManager listener lifecycle", () => {
         expect(getListenerCount()).toBe(2);
         cleanupEventListeners();
         expect(getListenerCount()).toBe(0);
-        expect(log).toHaveBeenCalled();
+        expect(log).toHaveBeenCalledWith(
+            "[EventListenerManager] Cleaned up 2 event listeners"
+        );
     });
 
     it("addDragDropListeners wires up provided handlers and supports cleanup", () => {
@@ -88,10 +94,10 @@ describe("eventListenerManager listener lifecycle", () => {
         window.dispatchEvent(new Event("dragleave"));
         window.dispatchEvent(new Event("dragover"));
         window.dispatchEvent(new Event("drop"));
-        expect(onDragEnter).toHaveBeenCalled();
-        expect(onDragLeave).toHaveBeenCalled();
-        expect(onDragOver).toHaveBeenCalled();
-        expect(onDrop).toHaveBeenCalled();
+        expect(onDragEnter).toHaveBeenCalledOnce();
+        expect(onDragLeave).toHaveBeenCalledOnce();
+        expect(onDragOver).toHaveBeenCalledOnce();
+        expect(onDrop).toHaveBeenCalledOnce();
 
         cleanup();
         expect(getListenerCount()).toBe(0);

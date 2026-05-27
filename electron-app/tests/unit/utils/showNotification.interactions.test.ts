@@ -74,7 +74,7 @@ describe("showNotification interactions", () => {
         expect(btn?.textContent).toBe("Do");
         expect(btn?.className).toBe("themed-btn");
         btn.click();
-        expect(onAct).toHaveBeenCalled();
+        expect(onAct).toHaveBeenCalledOnce();
         vi.advanceTimersByTime(300);
         expect(el.style.display).toBe("none");
     });
@@ -88,7 +88,7 @@ describe("showNotification interactions", () => {
         await p;
         const el = document.getElementById("notification")!;
         el.click();
-        expect(onClick).toHaveBeenCalled();
+        expect(onClick).toHaveBeenCalledOnce();
         vi.advanceTimersByTime(300);
         expect(el.style.display).toBe("none");
     });
@@ -96,7 +96,9 @@ describe("showNotification interactions", () => {
     it("handles invalid inputs and unknown type fallback", async () => {
         // invalid message
         await showNotification(null as any);
-        expect(console.warn).toHaveBeenCalled();
+        expect(console.warn).toHaveBeenCalledWith(
+            "showNotification: Invalid message provided"
+        );
 
         // unknown type
         const p = showNotification("Msg", "unknown" as any);

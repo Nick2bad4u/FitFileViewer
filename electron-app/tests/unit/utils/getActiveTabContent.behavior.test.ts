@@ -41,7 +41,9 @@ describe("getActiveTabContent behavior", () => {
     it("returns null when no .tab-content elements are present and warns", () => {
         const result = getActiveTabContent();
         expect(result).toBeNull();
-        expect(console.warn).toHaveBeenCalled();
+        expect(console.warn).toHaveBeenCalledWith(
+            "[ActiveTabContent] No tab content elements found"
+        );
     });
 
     it("returns null when none are visible (display not 'block')", () => {
@@ -94,10 +96,13 @@ describe("getActiveTabContent behavior", () => {
             .spyOn(document, "querySelectorAll")
             .mockImplementation(() => {
                 throw new Error("boom");
-            });
+        });
         const result = getActiveTabContent();
         expect(result).toBeNull();
-        expect(console.error).toHaveBeenCalled();
+        expect(console.error).toHaveBeenCalledWith(
+            "[ActiveTabContent] Error getting active tab content:",
+            new Error("boom")
+        );
         spy.mockRestore();
     });
 });
