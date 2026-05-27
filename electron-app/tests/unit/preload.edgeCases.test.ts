@@ -4,7 +4,9 @@ type IpcListener = (event: unknown, ...args: unknown[]) => void;
 
 interface IpcRendererMock {
     invoke: ReturnType<typeof vi.fn<(...args: unknown[]) => Promise<unknown>>>;
-    on: ReturnType<typeof vi.fn<(channel: string, listener: IpcListener) => void>>;
+    on: ReturnType<
+        typeof vi.fn<(channel: string, listener: IpcListener) => void>
+    >;
     send: ReturnType<typeof vi.fn<(...args: unknown[]) => void>>;
 }
 
@@ -78,7 +80,9 @@ describe("preload edge cases", () => {
                 typeof c[0] === "string" &&
                 c[0].includes("API validation failed - not exposing")
         );
-        expect(validationErrors.length).toBeGreaterThan(0);
+        expect(validationErrors).toEqual([
+            ["[preload.js] API validation failed - not exposing to main world"],
+        ]);
 
         // Dev tools exposure should also fail and log an error due to missing contextBridge
         const devtoolsErrors = consoleErrorSpy.mock.calls.filter(
@@ -86,7 +90,14 @@ describe("preload edge cases", () => {
                 typeof c[0] === "string" &&
                 c[0].includes("Failed to expose development tools")
         );
-        expect(devtoolsErrors.length).toBeGreaterThan(0);
+        expect(devtoolsErrors).toHaveLength(1);
+        expect(devtoolsErrors[0]?.[0]).toBe(
+            "[preload.js] Failed to expose development tools:"
+        );
+        expect(devtoolsErrors[0]?.[1]).toBeInstanceOf(Error);
+        expect((devtoolsErrors[0]?.[1] as Error).message).toBe(
+            "contextBridge unavailable"
+        );
 
         // And no exposeInMainWorld should have been called (since it's missing entirely)
         expect(getGlobalValue("electronAPI")).toBeUndefined();
