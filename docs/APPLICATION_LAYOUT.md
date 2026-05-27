@@ -323,11 +323,14 @@ electron-app/utils/
 ```text
 /
 ├── package.json                     # Root workspace scripts and shared tooling dependencies
+├── node_modules/                    # Root workspace dependencies
 ├── playwright.config.ts             # Root-owned Electron Playwright configuration
 ├── vite.renderer.config.mjs         # Root-owned renderer compatibility bundle configuration
 ├── vitest.config.ts                 # Root-owned Vitest configuration for electron-app tests
 ├── tsconfig.vitest-typecheck.json   # Root-owned Vitest typecheck configuration
 ├── tsconfig.electron-app.eslint.json # Root-owned ESLint parser project for electron-app
+├── electron-builder.config.cjs      # Root-owned Electron Builder targets and file associations
+├── electron-builder.files.json      # Root-owned packaged file allowlist
 ├── scripts/
 │   ├── analyze-coverage.mjs         # Root-owned coverage analysis helper
 │   ├── build-win7.mjs               # Root-owned Windows 7 compatibility build helper
@@ -341,7 +344,6 @@ electron-app/utils/
     ├── package.json                 # Electron app metadata and publish/package manifest
     │   ├── App identity, keywords, license, and publish metadata
     │   ├── Runtime dependencies shipped with the Electron app
-    │   ├── File associations (.fit files)
     │   └── npm package export/file allowlists
     └── global.d.ts                  # Shared renderer/main global type declarations
 ```
@@ -349,9 +351,10 @@ electron-app/utils/
 ### Environment Configuration
 
 ```text
-electron-app/
-├── .cache/                          # Build cache
-└── node_modules/                    # Workspace dependencies
+/
+├── node_modules/                    # npm workspace dependencies
+└── electron-app/
+    └── dist/                        # Generated runtime output; remove with `npm run clean:workspace`
 ```
 
 ## Testing Infrastructure
