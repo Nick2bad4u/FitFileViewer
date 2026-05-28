@@ -1,26 +1,44 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 
-import path from "node:path";
 import { createRequire } from "node:module";
+import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
+
+type FileAccessPolicyModule = {
+    __resetForTests?: () => void;
+    approveFilePath: (
+        filePath: unknown,
+        options?: { source?: string }
+    ) => string;
+    isApprovedFilePath: (filePath: unknown) => boolean;
+};
+
+type NodeModulesRuntime = {
+    fs: {
+        realpathSync: ((filePath: string) => string) & {
+            native?: (filePath: string) => string;
+        };
+    };
+    path: typeof path;
+};
 
 /**
  * Load fileAccessPolicy with a controlled realpath implementation.
  */
-function loadPolicyWithRealpath(realpathImpl: (p: string) => string) {
+function loadPolicyWithRealpath(
+    realpathImpl: (filePath: string) => string
+): FileAccessPolicyModule {
     vi.resetModules();
     const require = createRequire(import.meta.url);
 
-    /** @type {{ fs: any; path: typeof import("node:path") }} */
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const nodeModules = require("../../../../electron-app/main/runtime/nodeModules.js");
+    const nodeModules = require("../../../../electron-app/main/runtime/nodeModules.js") as NodeModulesRuntime;
 
     const realpathSync = Object.assign(
-        ((p: string) => realpathImpl(p)) as (p: string) => string,
+        ((filePath: string) => realpathImpl(filePath)) as (
+            filePath: string
+        ) => string,
         {
-            native: (p: string) => realpathImpl(p),
+            native: (filePath: string) => realpathImpl(filePath),
         }
     );
 
@@ -28,14 +46,15 @@ function loadPolicyWithRealpath(realpathImpl: (p: string) => string) {
     nodeModules.fs = { realpathSync };
     nodeModules.path = path;
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const policy = require("../../../../electron-app/main/security/fileAccessPolicy.js");
+    const policy = require("../../../../electron-app/main/security/fileAccessPolicy.js") as FileAccessPolicyModule;
     policy.__resetForTests?.();
     return policy;
 }
 
 describe("fileAccessPolicy", () => {
     it("rejects URI-like file paths", async () => {
+        expect.hasAssertions();
+
         const mod =
             await import("../../../../electron-app/main/security/fileAccessPolicy.js");
         mod.__resetForTests?.();
@@ -47,6 +66,8 @@ describe("fileAccessPolicy", () => {
     });
 
     it("rejects Windows extended-length/device path prefixes", async () => {
+        expect.hasAssertions();
+
         const mod =
             await import("../../../../electron-app/main/security/fileAccessPolicy.js");
         mod.__resetForTests?.();
@@ -61,10 +82,12 @@ describe("fileAccessPolicy", () => {
     });
 
     it("uses realpath for approvals and invalidates if the symlink retargets", async () => {
+        expect.hasAssertions();
+
         let target = "/real/a.fit";
         const mod = loadPolicyWithRealpath(() => target);
 
-        mod.approveFilePath("/tmp/link.fit", { source: "test" });
+        mod.approveFilePath("/tmp/link.fit");
         expect(mod.isApprovedFilePath("/tmp/link.fit")).toBe(true);
 
         // Simulate the symlink now pointing elsewhere.
@@ -73,15 +96,17 @@ describe("fileAccessPolicy", () => {
     });
 
     it("caps the approval set to prevent unbounded growth", async () => {
+        expect.hasAssertions();
+
         const mod = loadPolicyWithRealpath(() => {
             throw new Error("ENOENT");
         });
 
         const first = "/tmp/first.fit";
-        mod.approveFilePath(first, { source: "test" });
+        mod.approveFilePath(first);
 
         for (let i = 0; i < 550; i += 1) {
-            mod.approveFilePath(`/tmp/file-${i}.fit`, { source: "test" });
+            mod.approveFilePath(`/tmp/file-${i}.fit`);
         }
 
         // Oldest entries should have been evicted.
