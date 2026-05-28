@@ -23,25 +23,31 @@ const mockModules = vi.hoisted(() => ({
 }));
 
 // Mock dependencies first
-vi.mock("../../../../utils/state/core/stateManager.js", () => ({
+vi.mock("../../../../electron-app/utils/state/core/stateManager.js", () => ({
     getState: mockModules.getState,
     setState: mockModules.setState,
     subscribe: mockModules.subscribe,
     updateState: mockModules.updateState,
 }));
 
-vi.mock("../../../../utils/ui/notifications/showNotification.js", () => ({
-    showNotification: mockModules.showNotification,
-}));
+vi.mock(
+    "../../../../electron-app/utils/ui/notifications/showNotification.js",
+    () => ({
+        showNotification: mockModules.showNotification,
+    })
+);
 
-vi.mock("../../../../utils/charts/core/renderChartJS.js", () => ({
+vi.mock("../../../../electron-app/utils/charts/core/renderChartJS.js", () => ({
     invalidateChartRenderCache: mockModules.invalidateChartRenderCache,
     renderChartJS: mockModules.renderChartJS,
 }));
 
-vi.mock("../../../../utils/state/domain/settingsStateManager.js", () => ({
-    subscribeToChartSettings: mockModules.subscribeToChartSettings,
-}));
+vi.mock(
+    "../../../../electron-app/utils/state/domain/settingsStateManager.js",
+    () => ({
+        subscribeToChartSettings: mockModules.subscribeToChartSettings,
+    })
+);
 
 // Import mocked functions for spying
 import {
@@ -49,15 +55,15 @@ import {
     setState,
     subscribe,
     updateState,
-} from "../../../../utils/state/core/stateManager.js";
-import { showNotification } from "../../../../utils/ui/notifications/showNotification.js";
+} from "../../../../electron-app/utils/state/core/stateManager.js";
+import { showNotification } from "../../../../electron-app/utils/ui/notifications/showNotification.js";
 import {
     invalidateChartRenderCache,
     renderChartJS,
-} from "../../../../utils/charts/core/renderChartJS.js";
+} from "../../../../electron-app/utils/charts/core/renderChartJS.js";
 
 // Import the module being tested
-import chartStateManager from "../../../../utils/charts/core/chartStateManager.js";
+import chartStateManager from "../../../../electron-app/utils/charts/core/chartStateManager.js";
 
 describe("ChartStateManager", () => {
     beforeEach(() => {
