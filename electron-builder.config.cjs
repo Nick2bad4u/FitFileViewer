@@ -1,16 +1,69 @@
 // Electron Builder config is rooted here so packaging is managed from the workspace root.
+/**
+ * @typedef {object} PackagePerson
+ *
+ * @property {string} [email]
+ * @property {string} name
+ */
+
+/**
+ * @typedef {object} AppPackage
+ *
+ * @property {string} appid
+ * @property {string} author
+ * @property {string} copyright
+ * @property {Record<string, string>} exports
+ * @property {string} icon
+ * @property {PackagePerson[]} maintainers
+ * @property {string} productName
+ */
+
 const { version: electronVersion } = require("electron/package.json");
 
+const appPackage = /** @type {AppPackage} */ (
+    require("./electron-app/package.json")
+);
 const appPackageFiles = require("./electron-builder.files.json");
+
+/**
+ * @param {string} exportName
+ *
+ * @returns {string}
+ */
+function appPackageExportPath(exportName) {
+    const exportPath = appPackage.exports[exportName];
+    if (typeof exportPath !== "string" || !exportPath.startsWith("./")) {
+        throw new Error(`Missing app package export path for ${exportName}`);
+    }
+
+    return exportPath.slice(2);
+}
+
+/**
+ * @param {PackagePerson | undefined} person
+ *
+ * @returns {string}
+ */
+function formatPackagePerson(person) {
+    if (!person || typeof person !== "object") {
+        return appPackage.author;
+    }
+
+    return typeof person.email === "string" && person.email.length > 0
+        ? `${person.name} <${person.email}>`
+        : person.name;
+}
 
 module.exports = {
     electronVersion,
-    icon: "dist/icons/favicon.ico",
+    icon: appPackage.icon,
     directories: {
         output: "../release-dist",
     },
     files: appPackageFiles,
-    appId: "io.github.nick2bad4u.fitfileviewer",
+    appId: appPackage.appid,
+    productName: appPackage.productName,
+    copyright: appPackage.copyright,
     artifactName: "Fit-File-Viewer-${platform}-${arch}-${version}.${ext}",
     asar: true,
     publish: [
@@ -21,7 +74,7 @@ module.exports = {
         },
     ],
     win: {
-        icon: "dist/icons/favicon-256x256.ico",
+        icon: appPackageExportPath("./icons/favicon-256x256.ico"),
         target: [
             "nsis",
             "nsis-web",
@@ -92,7 +145,7 @@ module.exports = {
         artifactName: "Fit-File-Viewer-flatpak-${arch}-${version}.${ext}",
     },
     mac: {
-        icon: "dist/icons/favicon-512x512.icns",
+        icon: appPackageExportPath("./icons/favicon-512x512.icns"),
         target: [
             "dmg",
             "zip",
@@ -106,7 +159,7 @@ module.exports = {
         gatekeeperAssess: true,
     },
     linux: {
-        icon: "dist/icons/favicon-256x256.png",
+        icon: appPackageExportPath("./icons/favicon-256x256.png"),
         target: [
             "AppImage",
             "deb",
@@ -122,7 +175,7 @@ module.exports = {
         ],
         category: "Utility",
         synopsis: "A cross-platform viewer for .fit activity files.",
-        maintainer: "Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com>",
+        maintainer: formatPackagePerson(appPackage.maintainers[0]),
         desktop: {
             entry: {
                 Name: "Fit File Viewer",
