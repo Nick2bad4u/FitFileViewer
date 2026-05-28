@@ -16,6 +16,7 @@ import {
     rootRuntimeTsconfigPath,
     rootStylelintConfigPath,
     rootTypedocConfigPath,
+    rootVendorPath,
 } from "./lib/workspaces.mjs";
 
 const require = createRequire(import.meta.url);
@@ -62,7 +63,7 @@ export const prettierTargets = [
     "tests/unit/**/*.ts",
     "tests/playwright/**/*.ts",
     "tests/vitest/**/*.{cjs,mjs,ts}",
-    "vendor/**/*.js",
+    `${rootVendorPath}/**/*.js`,
 ];
 
 export const prettierOptions = [

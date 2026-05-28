@@ -25,6 +25,7 @@ export const rootIntegrationTestsPath = path.posix.join("tests", "integration");
 export const rootTypedocConfigPath = "typedoc.json";
 export const rootUnitTestsPath = path.posix.join("tests", "unit");
 export const rootTabsTestsPath = path.posix.join(rootUnitTestsPath, "tabs");
+export const rootVendorPath = "vendor";
 export const rootViteRendererConfigPath = "vite.renderer.config.mjs";
 export const rootVitestConfigPath = "vitest.config.ts";
 export const appWorkspacePath = path.join(repositoryRoot, appWorkspaceName);

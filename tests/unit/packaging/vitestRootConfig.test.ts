@@ -3,11 +3,16 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { rootVendorPath } from "../../../scripts/lib/workspaces.mjs";
+
 type VitestConfigModule = {
     default: {
         cacheDir?: string;
         root?: string;
         test?: {
+            coverage?: {
+                exclude?: string[];
+            };
             globalSetup?: string[];
             setupFiles?: string[];
         };
@@ -28,7 +33,7 @@ function getRootScripts(): Record<string, string> {
 
 describe("vitest root config", () => {
     it("uses the repository root for cache, setup, and test script paths", async () => {
-        expect.assertions(8);
+        expect.assertions(10);
 
         const { default: config } = await importVitestConfig();
 
@@ -41,6 +46,12 @@ describe("vitest root config", () => {
         expect(config.test?.setupFiles).toStrictEqual([
             "tests/vitest/setupVitest.mjs",
         ]);
+        expect(config.test?.coverage?.exclude).toContain(
+            `${rootVendorPath}/**`
+        );
+        expect(config.test?.coverage?.exclude).not.toContain(
+            "electron-app/vendor/**"
+        );
         expect(getRootScripts()["test:unit"]).toBe(
             "node scripts/run-vitest.mjs --run --suite unit --maxWorkers 1"
         );

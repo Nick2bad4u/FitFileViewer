@@ -7,7 +7,11 @@ import {
 /* eslint-enable module-interop/no-require-esm -- Re-enable after the Vitest config import. */
 
 // eslint-disable-next-line module-interop/no-require-esm -- Vitest loads this config through its ESM-aware config loader.
-import { repositoryPath, repositoryRoot } from "./scripts/lib/workspaces.mjs";
+import {
+    repositoryPath,
+    repositoryRoot,
+    rootVendorPath,
+} from "./scripts/lib/workspaces.mjs";
 
 const electronStubPath = repositoryPath(
     "tests",
@@ -48,7 +52,7 @@ export default defineConfig({
                 "**/*.d.ts",
                 "coverage/**",
                 // Third-party/vendor code is not part of the app coverage contract
-                "electron-app/vendor/**",
+                `${rootVendorPath}/**`,
                 // Barrels (pure re-export index files)
                 "**/index.js",
                 // Tooling and configuration files

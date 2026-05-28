@@ -2,7 +2,10 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { repositoryRoot } from "../../../scripts/lib/workspaces.mjs";
+import {
+    repositoryRoot,
+    rootVendorPath,
+} from "../../../scripts/lib/workspaces.mjs";
 
 type ViteRendererConfigModule = {
     default: {
@@ -43,7 +46,7 @@ describe("renderer Vite config", () => {
         );
         expect(config.build?.lib?.fileName?.()).toBe("vendor-globals.js");
         expect(config.resolve?.alias?.["@ffv-vendor"]).toBe(
-            path.join(repositoryRoot, "vendor")
+            path.join(repositoryRoot, rootVendorPath)
         );
     });
 });
