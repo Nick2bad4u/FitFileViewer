@@ -30,6 +30,26 @@ async function importCleanReleases(): Promise<CleanReleasesModule> {
     return (await import("../../../scripts/clean-releases.mjs")) as CleanReleasesModule;
 }
 
+function getReleaseValidity(
+    isValidRelease: (release: unknown) => boolean
+): Record<string, boolean> {
+    return {
+        invalidDate: isValidRelease({
+            publishedAt: "bad",
+            tagName: "v1.0.0",
+        }),
+        missingPublishedAt: isValidRelease({ tagName: "v1.0.0" }),
+        missingTagName: isValidRelease({
+            publishedAt: "2024-01-01T00:00:00Z",
+        }),
+        nullRelease: isValidRelease(null),
+        validRelease: isValidRelease({
+            publishedAt: "2024-01-01T00:00:00Z",
+            tagName: "v1.0.0",
+        }),
+    };
+}
+
 describe("clean-releases script", () => {
     it("keeps first major releases and the requested newest releases", async () => {
         expect.assertions(3);
@@ -101,23 +121,17 @@ describe("clean-releases script", () => {
     });
 
     it("validates release records before planning deletion", async () => {
-        expect.assertions(5);
+        expect.assertions(2);
 
         const { defaultKeepLast, isValidRelease } = await importCleanReleases();
 
         expect(defaultKeepLast).toBe(5);
-        expect(
-            isValidRelease({
-                publishedAt: "2024-01-01T00:00:00Z",
-                tagName: "v1.0.0",
-            })
-        ).toBe(true);
-        expect(isValidRelease({ publishedAt: "bad", tagName: "v1.0.0" })).toBe(
-            false
-        );
-        expect(isValidRelease({ publishedAt: "2024-01-01T00:00:00Z" })).toBe(
-            false
-        );
-        expect(isValidRelease(null)).toBe(false);
+        expect(getReleaseValidity(isValidRelease)).toStrictEqual({
+            invalidDate: false,
+            missingPublishedAt: false,
+            missingTagName: false,
+            nullRelease: false,
+            validRelease: true,
+        });
     });
 });
