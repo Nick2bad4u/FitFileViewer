@@ -88,6 +88,16 @@ describe("registerClipboardHandlers", () => {
         return handler;
     }
 
+    function getClipboardWriteSnapshot(): {
+        imageWrites: unknown[][];
+        textWrites: unknown[][];
+    } {
+        return {
+            imageWrites: mockClipboard.writeImage.mock.calls,
+            textWrites: mockClipboard.writeText.mock.calls,
+        };
+    }
+
     it("registers clipboard handlers", () => {
         expect.hasAssertions();
 
@@ -145,8 +155,16 @@ describe("registerClipboardHandlers", () => {
         const handler = getRegisteredHandler("clipboard:writeText");
         const ok = await handler({}, "hello");
 
-        expect(ok).toBe(true);
-        expect(mockClipboard.writeText).toHaveBeenCalledWith("hello");
+        expect({
+            ok,
+            writes: getClipboardWriteSnapshot(),
+        }).toStrictEqual({
+            ok: true,
+            writes: {
+                imageWrites: [],
+                textWrites: [["hello"]],
+            },
+        });
     });
 
     it("clipboard:writeText returns false when clipboard is unavailable", async () => {
@@ -164,8 +182,16 @@ describe("registerClipboardHandlers", () => {
         const handler = getRegisteredHandler("clipboard:writeText");
         const ok = await handler({}, "hello");
 
-        expect(ok).toBe(false);
-        expect(mockClipboard.writeText).not.toHaveBeenCalled();
+        expect({
+            ok,
+            writes: getClipboardWriteSnapshot(),
+        }).toStrictEqual({
+            ok: false,
+            writes: {
+                imageWrites: [],
+                textWrites: [],
+            },
+        });
     });
 
     it("clipboard:writePngDataUrl writes image to clipboard", async () => {
@@ -183,13 +209,18 @@ describe("registerClipboardHandlers", () => {
             "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB";
         const ok = await handler({}, pngDataUrl);
 
-        expect(ok).toBe(true);
         expect(mockNativeImage.createFromDataURL).toHaveBeenCalledWith(
             pngDataUrl
         );
-        expect(mockClipboard.writeImage).toHaveBeenCalledWith({
-            __img: true,
-            url: pngDataUrl,
+        expect({
+            ok,
+            writes: getClipboardWriteSnapshot(),
+        }).toStrictEqual({
+            ok: true,
+            writes: {
+                imageWrites: [[{ __img: true, url: pngDataUrl }]],
+                textWrites: [],
+            },
         });
     });
 
@@ -206,7 +237,15 @@ describe("registerClipboardHandlers", () => {
         const handler = getRegisteredHandler("clipboard:writePngDataUrl");
         const ok = await handler({}, "data:image/jpeg;base64,abc");
 
-        expect(ok).toBe(false);
-        expect(mockClipboard.writeImage).not.toHaveBeenCalled();
+        expect({
+            ok,
+            writes: getClipboardWriteSnapshot(),
+        }).toStrictEqual({
+            ok: false,
+            writes: {
+                imageWrites: [],
+                textWrites: [],
+            },
+        });
     });
 });
