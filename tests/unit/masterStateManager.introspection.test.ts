@@ -57,7 +57,7 @@ interface StateHistorySnapshot {
     timestamp: number;
 }
 
-describe("MasterStateManager introspection", () => {
+describe("masterStateManager introspection", () => {
     beforeEach(() => {
         // Reset state before each test
         resetState();
@@ -68,9 +68,11 @@ describe("MasterStateManager introspection", () => {
         resetState();
     });
 
-    describe("Introspection Methods", () => {
+    describe("introspection methods", () => {
         it("should provide getState method", () => {
-            expect(typeof masterStateManager.getState).toBe("function");
+            expect.hasAssertions();
+
+            expect(masterStateManager.getState).toBeTypeOf("function");
 
             // Test basic state access
             const initialState =
@@ -106,7 +108,9 @@ describe("MasterStateManager introspection", () => {
         });
 
         it("should provide getHistory method", () => {
-            expect(typeof masterStateManager.getHistory).toBe("function");
+            expect.hasAssertions();
+
+            expect(masterStateManager.getHistory).toBeTypeOf("function");
 
             // Test history access
             const history = masterStateManager.getHistory();
@@ -114,7 +118,9 @@ describe("MasterStateManager introspection", () => {
         });
 
         it("should provide getSubscriptions method", () => {
-            expect(typeof masterStateManager.getSubscriptions).toBe("function");
+            expect.hasAssertions();
+
+            expect(masterStateManager.getSubscriptions).toBeTypeOf("function");
 
             // Test subscriptions access
             const subscriptions = masterStateManager.getSubscriptions();
@@ -126,8 +132,10 @@ describe("MasterStateManager introspection", () => {
         });
     });
 
-    describe("State Management Integration", () => {
+    describe("state management integration", () => {
         it("should get state changes through masterStateManager", () => {
+            expect.hasAssertions();
+
             // Set a test value using direct stateManager
             setState("test.value", "hello world");
 
@@ -138,6 +146,8 @@ describe("MasterStateManager introspection", () => {
         });
 
         it("should track state history through masterStateManager", () => {
+            expect.hasAssertions();
+
             const initialHistoryLength = masterStateManager.getHistory().length;
 
             // Make some state changes using direct stateManager
@@ -182,6 +192,8 @@ describe("MasterStateManager introspection", () => {
         });
 
         it("should access subscriptions through masterStateManager", () => {
+            expect.hasAssertions();
+
             let callCount = 0;
 
             // Subscribe using direct stateManager
@@ -216,9 +228,11 @@ describe("MasterStateManager introspection", () => {
         });
     });
 
-    describe("Initialization Status", () => {
+    describe("initialization status", () => {
         it("should provide initialization status", () => {
-            expect(typeof masterStateManager.getInitializationStatus).toBe(
+            expect.hasAssertions();
+
+            expect(masterStateManager.getInitializationStatus).toBeTypeOf(
                 "function"
             );
 
