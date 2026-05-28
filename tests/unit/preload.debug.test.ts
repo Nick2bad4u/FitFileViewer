@@ -1,53 +1,67 @@
-/**
- * Simple test to debug preload.js execution using Module cache injection
- *
- * @file Preload.debug.test.ts
- */
-
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Module } from "module";
 
 type RequireCacheModule = NonNullable<NodeJS.Require["cache"][string]>;
+type AppGetPath = (name: string) => string;
+type AppStringGetter = () => string;
+type ExposeInMainWorld = (name: string, api: unknown) => void;
+type IpcInvoke = (...args: unknown[]) => Promise<string>;
+type IpcListener = (...args: unknown[]) => void;
+
+function isDebugPreloadTestEnabled(): boolean {
+    return (
+        typeof process !== "undefined" &&
+        Boolean(process.env) &&
+        process.env.FFV_DEBUG_PRELOAD_TEST === "1"
+    );
+}
+
+function writeDebugPreloadMessage(message: string): void {
+    if (isDebugPreloadTestEnabled()) process.stdout.write(message);
+}
 
 // Create inline mocks
 const mockContextBridge = {
-    exposeInMainWorld: vi.fn(),
+    exposeInMainWorld: vi.fn<ExposeInMainWorld>(),
 };
 
 const mockIpcRenderer = {
-    invoke: vi.fn().mockResolvedValue("mock-result"),
-    send: vi.fn(),
-    on: vi.fn(),
-    once: vi.fn(),
-    removeListener: vi.fn(),
-    removeAllListeners: vi.fn(),
+    invoke: vi.fn<IpcInvoke>().mockResolvedValue("mock-result"),
+    send: vi.fn<IpcListener>(),
+    on: vi.fn<IpcListener>(),
+    once: vi.fn<IpcListener>(),
+    removeListener: vi.fn<IpcListener>(),
+    removeAllListeners: vi.fn<IpcListener>(),
 };
 
 const mockApp = {
-    getPath: vi.fn((name) => `/mock/path/${name}`),
+    getPath: vi.fn<AppGetPath>((name) => `/mock/path/${name}`),
     isPackaged: false,
-    getVersion: vi.fn(() => "1.0.0"),
-    getName: vi.fn(() => "FitFileViewer"),
-    on: vi.fn(),
-    whenReady: vi.fn(() => Promise.resolve()),
-    quit: vi.fn(),
+    getVersion: vi.fn<AppStringGetter>(() => "1.0.0"),
+    getName: vi.fn<AppStringGetter>(() => "FitFileViewer"),
+    on: vi.fn<IpcListener>(),
+    whenReady: vi.fn<() => Promise<void>>(() => Promise.resolve()),
+    quit: vi.fn<() => void>(),
 };
 
 describe("preload.js - Module Cache Injection Test", () => {
+    let consoleLogSpy: ReturnType<typeof vi.spyOn>;
+
     beforeEach(() => {
         // Clear all mocks
         vi.clearAllMocks();
 
         // Set up process.env for different test scenarios
         process.env.NODE_ENV = "development";
+        consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
     });
 
     it("should execute preload.js with module cache injection", () => {
-        const debugEnabled =
-            typeof process !== "undefined" &&
-            Boolean(process.env) &&
-            // Only enable when explicitly requested.
-            process.env.FFV_DEBUG_PRELOAD_TEST === "1";
+        expect.hasAssertions();
 
         // Create a mock electron module
         const mockElectron = {
@@ -81,37 +95,32 @@ describe("preload.js - Module Cache Injection Test", () => {
         // Clear preload.js from cache to ensure fresh require
         delete require.cache[require.resolve("../../electron-app/preload.js")];
 
-        if (debugEnabled) {
-            process.stdout.write(
-                `About to require preload.js with module cache injection\n`
-            );
-            process.stdout.write(
-                `Electron mock in cache: ${!!require.cache["electron"]}\n`
-            );
-            process.stdout.write(
-                `mockContextBridge exists: ${!!mockContextBridge}\n`
-            );
-        }
+        writeDebugPreloadMessage(
+            `About to require preload.js with module cache injection\n`
+        );
+        writeDebugPreloadMessage(
+            `Electron mock in cache: ${!!require.cache["electron"]}\n`
+        );
+        writeDebugPreloadMessage(
+            `mockContextBridge exists: ${!!mockContextBridge}\n`
+        );
 
         // Check mock calls before require
         const callsBefore =
             mockContextBridge.exposeInMainWorld.mock.calls.length;
 
         // Require the preload.js file to execute it
-        const preloadModule = require("../../electron-app/preload.js");
+        require("../../electron-app/preload.js");
 
         // Check mock calls after require
         const callsAfter =
             mockContextBridge.exposeInMainWorld.mock.calls.length;
 
-        if (debugEnabled) {
-            // Log results
-            process.stdout.write(`Mock calls before require: ${callsBefore}\n`);
-            process.stdout.write(`Mock calls after require: ${callsAfter}\n`);
-            process.stdout.write(
-                `All calls: ${JSON.stringify(mockContextBridge.exposeInMainWorld.mock.calls, null, 2)}\n`
-            );
-        }
+        writeDebugPreloadMessage(`Mock calls before require: ${callsBefore}\n`);
+        writeDebugPreloadMessage(`Mock calls after require: ${callsAfter}\n`);
+        writeDebugPreloadMessage(
+            `All calls: ${JSON.stringify(mockContextBridge.exposeInMainWorld.mock.calls, null, 2)}\n`
+        );
 
         // Clean up the cache
         delete require.cache["electron"];
@@ -120,5 +129,8 @@ describe("preload.js - Module Cache Injection Test", () => {
         // Basic assertion - expect calls to have been made
         expect(callsAfter).toBeGreaterThan(callsBefore);
         expect(callsAfter).not.toBe(callsBefore);
+        expect(consoleLogSpy).toHaveBeenCalledWith(
+            "[preload.js] Preload script initialized successfully"
+        );
     });
 });
