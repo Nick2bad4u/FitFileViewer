@@ -1,111 +1,204 @@
-/**
- * @vitest-environment jsdom
- */
+// @vitest-environment jsdom
 import "../vitest/shims/nodeWebStorage";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { Mock } from "vitest";
+import type { ElectronAPIWithDevFlags } from "../../electron-app/shared/preloadApi.js";
 
-// Mock the DOM elements and utilities that main-ui.js depends on
-vi.mock("../../electron-app/utils/theming/core/theme.js", () => ({
-    applyTheme: vi.fn(),
-    listenForThemeChange: vi.fn(),
-    loadTheme: vi.fn(() => "dark"),
+type DragDropInstance = {
+    dispose: Mock<() => void>;
+};
+
+type ExternalLinkOptions = {
+    cleanupExternalLinkHandlers: (() => void) | null;
+    setCleanup: (cleanup: (() => void) | null) => void;
+};
+
+type MainUiTestGlobal = typeof globalThis & {
+    cleanupEventListeners?: () => void;
+    dragDropHandler?: DragDropInstance;
+    electronAPI?: Partial<
+        Pick<
+            ElectronAPIWithDevFlags,
+            "onIpc" | "onSetTheme" | "sendThemeChanged"
+        >
+    >;
+    renderChartJS?: (target: HTMLElement) => void;
+    showFitData?: (fitData: unknown, filePath?: string) => void;
+};
+
+const mocks = vi.hoisted(() => ({
+    applyTheme: vi.fn<(theme: string) => void>(),
+    clearData: vi.fn<() => void>(),
+    cleanupAll: vi.fn<() => void>(),
+    convertArrayBufferToBase64: vi.fn<(buffer: ArrayBuffer) => string>(),
+    dragDropDispose: vi.fn<() => void>(),
+    getState: vi.fn<(path?: string) => unknown>(),
+    listenForThemeChange: vi.fn<(callback: (theme: string) => void) => void>(),
+    loadTheme: vi.fn<() => string>().mockReturnValue("dark"),
+    mark: vi.fn<(name: string) => void>(),
+    measure: vi.fn<(name: string) => void>(),
+    registerTimer:
+        vi.fn<
+            (timer: ReturnType<typeof setTimeout>, options?: unknown) => void
+        >(),
+    renderChartJS: vi.fn<(target: HTMLElement) => void>(),
+    resourceAddShutdownHook: vi.fn<(callback: () => void) => void>(),
+    setState:
+        vi.fn<(path: string, value: unknown, options?: unknown) => void>(),
+    setupDOMContentLoaded: vi.fn<() => void>(),
+    setupExternalLinkHandlers: vi.fn<(options: ExternalLinkOptions) => void>(),
+    setupFullscreenListeners: vi.fn<() => void>(),
+    setupWindow: vi.fn<() => void>(),
+    showFitData: vi.fn<(fitData: unknown, filePath?: string) => void>(),
+    showNotification: vi.fn<(message: string, type?: string) => void>(),
+    updateCharts: vi.fn<() => void>(),
+    updateError: vi.fn<(error: Error | string) => void>(),
+    updateFitData: vi.fn<(data: unknown) => void>(),
+    updateLoadingProgress: vi.fn<(progress: number) => void>(),
 }));
 
-vi.mock("../../electron-app/utils/rendering/core/showFitData.js", () => ({
-    showFitData: vi.fn(),
+const chartTabStatus = { initialized: true } as const;
+
+// Mock the DOM elements and utilities that main-ui.js depends on
+vi.mock(import("../../electron-app/utils/theming/core/theme.js"), () => ({
+    applyTheme: mocks.applyTheme,
+    listenForThemeChange: mocks.listenForThemeChange,
+    loadTheme: mocks.loadTheme,
 }));
 
 vi.mock(
-    "../../electron-app/utils/formatting/converters/convertArrayBufferToBase64.js",
+    import("../../electron-app/utils/rendering/core/showFitData.js"),
     () => ({
-        convertArrayBufferToBase64: vi.fn(),
+        showFitData: mocks.showFitData,
     })
 );
 
-vi.mock("../../electron-app/utils/ui/controls/addFullScreenButton.js", () => ({
-    setupDOMContentLoaded: vi.fn(),
-    setupFullscreenListeners: vi.fn(),
+vi.mock(
+    import("../../electron-app/utils/formatting/converters/convertArrayBufferToBase64.js"),
+    () => ({
+        convertArrayBufferToBase64: mocks.convertArrayBufferToBase64,
+    })
+);
+
+vi.mock(
+    import("../../electron-app/utils/ui/controls/addFullScreenButton.js"),
+    () => ({
+        setupDOMContentLoaded: mocks.setupDOMContentLoaded,
+        setupFullscreenListeners: mocks.setupFullscreenListeners,
+    })
+);
+
+vi.mock(
+    import("../../electron-app/utils/app/initialization/setupWindow.js"),
+    () => ({
+        setupWindow: mocks.setupWindow,
+    })
+);
+
+vi.mock(
+    import("../../electron-app/utils/app/lifecycle/resourceManager.js"),
+    () => ({
+        resourceManager: {
+            addShutdownHook: mocks.resourceAddShutdownHook,
+            cleanupAll: mocks.cleanupAll,
+            registerTimer: mocks.registerTimer,
+        },
+    })
+);
+
+vi.mock(
+    import("../../electron-app/utils/charts/core/renderChartJS.js"),
+    () => ({
+        renderChartJS: mocks.renderChartJS,
+    })
+);
+
+vi.mock(import("../../electron-app/utils/state/core/stateManager.js"), () => ({
+    getState: mocks.getState,
+    setState: mocks.setState,
 }));
 
-vi.mock("../../electron-app/utils/app/initialization/setupWindow.js", () => ({
-    setupWindow: vi.fn(),
-}));
+vi.mock(
+    import("../../electron-app/utils/state/domain/uiStateManager.js"),
+    () => ({
+        UIActions: {
+            TOGGLE_TAB: "UI_TOGGLE_TAB",
+            SET_ACTIVE_TAB: "UI_SET_ACTIVE_TAB",
+            SHOW_LOADING: "UI_SHOW_LOADING",
+            HIDE_LOADING: "UI_HIDE_LOADING",
+            setTheme: vi.fn<(theme: string) => void>(),
+            showTab: vi.fn<(tabId: string) => void>(),
+        },
+    })
+);
 
-vi.mock("../../electron-app/utils/app/lifecycle/resourceManager.js", () => ({
-    resourceManager: {
-        addShutdownHook: vi.fn(),
-        cleanupAll: vi.fn(),
-        registerTimer: vi.fn(),
-    },
-}));
-
-vi.mock("../../electron-app/utils/charts/core/renderChartJS.js", () => ({
-    renderChartJS: vi.fn(),
-}));
-
-vi.mock("../../electron-app/utils/state/core/stateManager.js", () => ({
-    getState: vi.fn(),
-    setState: vi.fn(),
-}));
-
-vi.mock("../../electron-app/utils/state/domain/uiStateManager.js", () => ({
-    UIActions: {
-        TOGGLE_TAB: "UI_TOGGLE_TAB",
-        SET_ACTIVE_TAB: "UI_SET_ACTIVE_TAB",
-        SHOW_LOADING: "UI_SHOW_LOADING",
-        HIDE_LOADING: "UI_HIDE_LOADING",
-    },
-}));
-
-vi.mock("../../electron-app/utils/app/lifecycle/appActions.js", () => ({
+vi.mock(import("../../electron-app/utils/app/lifecycle/appActions.js"), () => ({
     AppActions: {
         APP_INITIALIZED: "APP_INITIALIZED",
         APP_ERROR: "APP_ERROR",
         APP_READY: "APP_READY",
-        clearData: vi.fn(),
-    },
-}));
-
-vi.mock("../../electron-app/utils/state/domain/fitFileState.js", () => ({
-    fitFileStateManager: {
-        updateLoadingProgress: vi.fn(),
-        updateError: vi.fn(),
-        updateFitData: vi.fn(),
-    },
-}));
-
-vi.mock("../../electron-app/utils/debug/stateDevTools.js", () => ({
-    performanceMonitor: {
-        mark: vi.fn(),
-        measure: vi.fn(),
+        clearData: mocks.clearData,
     },
 }));
 
 vi.mock(
-    "../../electron-app/utils/ui/notifications/showNotification.js",
+    import("../../electron-app/utils/state/domain/fitFileState.js"),
     () => ({
-        showNotification: vi.fn(),
+        fitFileStateManager: {
+            clearFileState: vi.fn<() => void>(),
+            updateLoadingProgress: mocks.updateLoadingProgress,
+            updateError: mocks.updateError,
+            updateFitData: mocks.updateFitData,
+        },
     })
 );
 
-vi.mock("../../electron-app/utils/charts/core/chartTabIntegration.js", () => ({
-    chartTabIntegration: {
-        destroy: vi.fn(),
-        getStatus: vi.fn(() => ({ initialized: true })),
-        initialize: vi.fn(),
-        updateCharts: vi.fn(),
+vi.mock(import("../../electron-app/utils/debug/stateDevTools.js"), () => ({
+    performanceMonitor: {
+        mark: mocks.mark,
+        measure: mocks.measure,
     },
 }));
 
-vi.mock("../../electron-app/utils/ui/dragDropHandler.js", () => ({
-    DragDropHandler: vi.fn(function MockDragDropHandler() {
-        return { dispose: vi.fn() };
-    }),
+vi.mock(
+    import("../../electron-app/utils/ui/notifications/showNotification.js"),
+    () => ({
+        showNotification: mocks.showNotification,
+    })
+);
+
+vi.mock(
+    import("../../electron-app/utils/charts/core/chartTabIntegration.js"),
+    () => ({
+        chartTabIntegration: {
+            destroy: vi.fn<() => void>(),
+            getStatus: vi
+                .fn<() => typeof chartTabStatus>()
+                .mockReturnValue(chartTabStatus),
+            initialize: vi.fn<() => void>(),
+            updateCharts: mocks.updateCharts,
+        },
+    })
+);
+
+vi.mock(import("../../electron-app/utils/ui/dragDropHandler.js"), () => ({
+    DragDropHandler: vi.fn<() => DragDropInstance>(
+        function MockDragDropHandler() {
+            return { dispose: mocks.dragDropDispose };
+        }
+    ),
 }));
 
-vi.mock("../../electron-app/utils/ui/setupExternalLinkHandlers.js", () => ({
-    setupExternalLinkHandlers: vi.fn(),
-}));
+vi.mock(
+    import("../../electron-app/utils/ui/setupExternalLinkHandlers.js"),
+    () => ({
+        setupExternalLinkHandlers: mocks.setupExternalLinkHandlers,
+    })
+);
+
+function getMainUiTestGlobal(): MainUiTestGlobal {
+    return globalThis as MainUiTestGlobal;
+}
 
 function createElement<K extends keyof HTMLElementTagNameMap>(
     tagName: K,
@@ -179,18 +272,11 @@ function setupMainUiDom(): void {
     );
 }
 
-type MainUiTestGlobal = typeof globalThis & {
-    electronAPI?: {
-        onIpc: ReturnType<typeof vi.fn>;
-        onSetTheme: ReturnType<typeof vi.fn>;
-        sendThemeChanged: ReturnType<typeof vi.fn>;
-    };
-};
-
 describe("main-ui.js - UI Controller and State Management", () => {
     beforeEach(() => {
         setupMainUiDom();
         vi.clearAllMocks();
+        mocks.loadTheme.mockReturnValue("dark");
         vi.resetModules();
         Reflect.deleteProperty(globalThis, "dragDropHandler");
         Reflect.deleteProperty(globalThis, "electronAPI");
@@ -200,87 +286,63 @@ describe("main-ui.js - UI Controller and State Management", () => {
     });
 
     it("registers legacy globals and rejects invalid legacy FIT data", async () => {
-        await import("../../electron-app/main-ui.js");
-        const { renderChartJS } =
-            await import("../../electron-app/utils/charts/core/renderChartJS.js");
-        const { showFitData } =
-            await import("../../electron-app/utils/rendering/core/showFitData.js");
-        const renderChartJSMock = vi.mocked(renderChartJS);
-        const showFitDataMock = vi.mocked(showFitData);
+        expect.hasAssertions();
 
-        expect(globalThis.showFitData).toBeInstanceOf(Function);
-        expect(globalThis.renderChartJS).toBeInstanceOf(Function);
-        expect(globalThis.cleanupEventListeners).toBeInstanceOf(Function);
+        await import("../../electron-app/main-ui.js");
+        const mainUiGlobal = getMainUiTestGlobal();
+
+        expect(mainUiGlobal.showFitData).toBeInstanceOf(Function);
+        expect(mainUiGlobal.renderChartJS).toBeInstanceOf(Function);
+        expect(mainUiGlobal.cleanupEventListeners).toBeInstanceOf(Function);
         expect(document.querySelectorAll(".tab-button")).toHaveLength(3);
 
-        (globalThis.showFitData as (fitData: unknown) => void)(null);
-        expect(showFitDataMock).not.toHaveBeenCalled();
+        mainUiGlobal.showFitData?.(null);
+        expect(mocks.showFitData).not.toHaveBeenCalled();
 
         const fitData = { records: [] };
-        (
-            globalThis.showFitData as (
-                fitData: unknown,
-                filePath: string
-            ) => void
-        )(fitData, "activity.fit");
-        expect(showFitDataMock).toHaveBeenCalledWith(fitData, "activity.fit");
+        mainUiGlobal.showFitData?.(fitData, "activity.fit");
+        expect(mocks.showFitData).toHaveBeenCalledWith(fitData, "activity.fit");
 
         const targetContainer = createElement("div", { id: "chart-target" });
-        (globalThis.renderChartJS as (target: HTMLElement) => void)(
-            targetContainer
-        );
-        expect(renderChartJSMock).toHaveBeenCalledWith(targetContainer);
+        mainUiGlobal.renderChartJS?.(targetContainer);
+        expect(mocks.renderChartJS).toHaveBeenCalledWith(targetContainer);
     });
 
     it("initializes UI side effects when loaded", async () => {
-        const onIpc = vi.fn();
-        const onSetTheme = vi.fn();
-        const sendThemeChanged = vi.fn();
-        (globalThis as MainUiTestGlobal).electronAPI = {
+        expect.hasAssertions();
+
+        const onIpc =
+            vi.fn<NonNullable<MainUiTestGlobal["electronAPI"]>["onIpc"]>();
+        const onSetTheme =
+            vi.fn<NonNullable<MainUiTestGlobal["electronAPI"]>["onSetTheme"]>();
+        const sendThemeChanged =
+            vi.fn<
+                NonNullable<MainUiTestGlobal["electronAPI"]>["sendThemeChanged"]
+            >();
+        getMainUiTestGlobal().electronAPI = {
             onIpc,
             onSetTheme,
             sendThemeChanged,
         };
 
         await import("../../electron-app/main-ui.js");
-        const { setupWindow } =
-            await import("../../electron-app/utils/app/initialization/setupWindow.js");
-        const { AppActions } =
-            await import("../../electron-app/utils/app/lifecycle/appActions.js");
         const { resourceManager } =
             await import("../../electron-app/utils/app/lifecycle/resourceManager.js");
         const { chartTabIntegration } =
             await import("../../electron-app/utils/charts/core/chartTabIntegration.js");
-        const { applyTheme, listenForThemeChange, loadTheme } =
-            await import("../../electron-app/utils/theming/core/theme.js");
-        const { setupFullscreenListeners } =
-            await import("../../electron-app/utils/ui/controls/addFullScreenButton.js");
         const { DragDropHandler } =
             await import("../../electron-app/utils/ui/dragDropHandler.js");
-        const { setupExternalLinkHandlers } =
-            await import("../../electron-app/utils/ui/setupExternalLinkHandlers.js");
-        const applyThemeMock = vi.mocked(applyTheme);
-        const dragDropHandlerMock = vi.mocked(DragDropHandler);
-        const listenForThemeChangeMock = vi.mocked(listenForThemeChange);
-        const loadThemeMock = vi.mocked(loadTheme);
         const resourceManagerMock = vi.mocked(resourceManager);
-        const appActionsMock = vi.mocked(AppActions);
-        const setupExternalLinkHandlersMock = vi.mocked(
-            setupExternalLinkHandlers
-        );
-        const setupFullscreenListenersMock = vi.mocked(
-            setupFullscreenListeners
-        );
-        const setupWindowMock = vi.mocked(setupWindow);
+        const dragDropHandlerMock = vi.mocked(DragDropHandler);
 
-        expect(loadThemeMock).toHaveBeenCalledOnce();
-        expect(applyThemeMock).toHaveBeenCalledWith("dark");
-        expect(listenForThemeChangeMock).toHaveBeenCalledOnce();
-        expect(setupFullscreenListenersMock).toHaveBeenCalledOnce();
-        expect(setupWindowMock).toHaveBeenCalledOnce();
-        expect(setupExternalLinkHandlersMock).toHaveBeenCalledOnce();
+        expect(mocks.loadTheme).toHaveBeenCalledOnce();
+        expect(mocks.applyTheme).toHaveBeenCalledWith("dark");
+        expect(mocks.listenForThemeChange).toHaveBeenCalledOnce();
+        expect(mocks.setupFullscreenListeners).toHaveBeenCalledOnce();
+        expect(mocks.setupWindow).toHaveBeenCalledOnce();
+        expect(mocks.setupExternalLinkHandlers).toHaveBeenCalledOnce();
         const [externalLinkOptions] =
-            setupExternalLinkHandlersMock.mock.calls[0] ?? [];
+            mocks.setupExternalLinkHandlers.mock.calls[0] ?? [];
         expect(externalLinkOptions).toMatchObject({
             cleanupExternalLinkHandlers: null,
         });
@@ -291,15 +353,15 @@ describe("main-ui.js - UI Controller and State Management", () => {
             resourceManagerMock.addShutdownHook.mock.calls[0] ?? [];
         expect(shutdownHook).toBeInstanceOf(Function);
 
-        const cleanupExternalLinks = vi.fn();
+        const cleanupExternalLinks = vi.fn<() => void>();
         externalLinkOptions?.setCleanup(cleanupExternalLinks);
         shutdownHook?.();
         expect(cleanupExternalLinks).toHaveBeenCalledOnce();
-        expect(appActionsMock.clearData).toHaveBeenCalledOnce();
+        expect(mocks.clearData).toHaveBeenCalledOnce();
 
         expect(dragDropHandlerMock).toHaveBeenCalledOnce();
         const dragDropInstance = dragDropHandlerMock.mock.results[0]?.value;
-        expect(globalThis.dragDropHandler).toBe(dragDropInstance);
+        expect(getMainUiTestGlobal().dragDropHandler).toBe(dragDropInstance);
         expect(dragDropInstance.dispose).toBeInstanceOf(Function);
         expect(onIpc).toHaveBeenCalledWith(
             "unload-fit-file",
