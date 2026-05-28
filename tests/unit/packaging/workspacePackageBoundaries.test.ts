@@ -32,7 +32,10 @@ describe("workspace package boundaries", () => {
             "docusaurus",
         ]);
         expect(rootPackage.scripts).toMatchObject({
-            "lint:electron-app": "node scripts/lint-electron-app.mjs",
+            "lint:electron-app":
+                "node scripts/run-eslint.mjs electronApp && node scripts/run-typescript.mjs typecheck",
+            "lint:electron-app:fix":
+                "node scripts/run-eslint.mjs electronApp --fix && node scripts/run-typescript.mjs typecheck",
             "test:ui": "node scripts/run-vitest.mjs --ui",
             "update-deps": "node scripts/update-deps.mjs",
         });
