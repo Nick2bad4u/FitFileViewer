@@ -8,7 +8,6 @@ const stylelintConfig = {
         "electron-app/dist/**",
         "electron-app/release/**",
         "electron-app/temp-win7/**",
-        "electron-app/test-results/**",
         "static/ffv/assets/**",
     ],
     reportNeedlessDisables: false,

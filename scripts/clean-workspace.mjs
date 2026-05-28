@@ -57,7 +57,6 @@ export const cleanupTargets = [
     appWorkspaceRelativePath("logs"),
     appWorkspaceRelativePath("release"),
     appWorkspaceRelativePath("temp-win7"),
-    appWorkspaceRelativePath("test-results"),
     appWorkspaceRelativePath("types"),
 ];
 
