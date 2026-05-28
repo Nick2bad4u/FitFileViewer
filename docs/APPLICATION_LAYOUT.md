@@ -362,6 +362,7 @@ electron-app/utils/
 ```text
 electron-app/tests/
 ├── unit/                            # App-coupled unit tests
+│   ├── *.test.*                     # Legacy app/preload unit tests pending root migration
 │   └── utils/                       # Utility unit tests pending root migration
 │
 └── strictTests/                     # Strict testing scenarios
@@ -381,7 +382,8 @@ tests/unit/
 ├── rendering/                       # Root-owned rendering helper and component tests
 ├── runtime/                         # Root-owned runtime boundary tests
 ├── tabs/                            # Root-owned shared tab behavior tests
-└── theming/                         # Root-owned theming behavior tests
+├── theming/                         # Root-owned theming behavior tests
+└── utils/                           # Root-owned utility behavior tests
 
 tests/fixtures/
 └── tabFixtures.ts                   # Root-owned reusable Vitest DOM fixtures

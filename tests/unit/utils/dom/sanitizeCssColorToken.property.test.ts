@@ -5,7 +5,7 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
-import { sanitizeCssColorToken } from "../../../../utils/dom/index.js";
+import { sanitizeCssColorToken } from "../../../../electron-app/utils/dom/index.js";
 
 const FALLBACK_COLOR = "#123456";
 const SAFE_COLOR_TOKEN_PATTERN =
@@ -14,16 +14,10 @@ const SAFE_COLOR_TOKEN_PATTERN =
 describe("sanitizeCssColorToken (property)", () => {
     it("never returns an unsafe token", () => {
         expect(
-            sanitizeCssColorToken(
-                'url("javascript:alert(1)")',
-                FALLBACK_COLOR
-            )
+            sanitizeCssColorToken('url("javascript:alert(1)")', FALLBACK_COLOR)
         ).toBe(FALLBACK_COLOR);
         expect(
-            sanitizeCssColorToken(
-                'url("javascript:alert(1)")',
-                FALLBACK_COLOR
-            )
+            sanitizeCssColorToken('url("javascript:alert(1)")', FALLBACK_COLOR)
         ).not.toBe('url("javascript:alert(1)")');
 
         fc.assert(

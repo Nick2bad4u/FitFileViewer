@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { sanitizeCssColorToken } from "../../../../utils/dom/index.js";
+import { sanitizeCssColorToken } from "../../../../electron-app/utils/dom/index.js";
 
 describe("sanitizeCssColorToken", () => {
     it("returns fallback for non-string inputs", () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { sanitizeHtmlAllowlist } from "../../../../utils/dom/index.js";
+import { sanitizeHtmlAllowlist } from "../../../../electron-app/utils/dom/index.js";
 
 describe("sanitizeHtmlAllowlist", () => {
     it("removes disallowed tags and keeps their textContent", () => {
