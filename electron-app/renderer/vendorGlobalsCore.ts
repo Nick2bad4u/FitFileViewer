@@ -11,8 +11,8 @@ import JSZip from "jszip";
 import * as Leaflet from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet-draw/dist/leaflet.draw.css";
-// CSS comes from the npm package, but JS uses @ffv-vendor/leaflet-measure-lite.js
-// because upstream leaflet-measure JS uses unsafe-eval and violates the app CSP.
+// CSS comes from the npm package, but the measurement control implementation is
+// local because upstream leaflet-measure JS uses unsafe-eval and violates the app CSP.
 import "leaflet-measure/dist/leaflet-measure.css";
 import "leaflet-minimap/dist/Control.MiniMap.min.css";
 import minimapToggleIconUrl from "leaflet-minimap/dist/images/toggle.svg";

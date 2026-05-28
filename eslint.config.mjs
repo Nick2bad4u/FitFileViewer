@@ -31,7 +31,6 @@ const config = [
             `${rootAppIconsPath}/**`,
             `${rootAppStaticPath}/**`,
             "test-results/**",
-            "vendor/**",
         ],
     },
     {
@@ -56,7 +55,6 @@ const config = [
             "ui/**/*.js",
             "utils/**/*.js",
             "utils.js",
-            "vendor/**",
             "windowStateUtils.js",
         ],
     },

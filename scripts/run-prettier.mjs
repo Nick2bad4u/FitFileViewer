@@ -16,7 +16,6 @@ import {
     rootRuntimeTsconfigPath,
     rootStylelintConfigPath,
     rootTypedocConfigPath,
-    rootVendorPath,
 } from "./lib/workspaces.mjs";
 
 const require = createRequire(import.meta.url);
@@ -63,7 +62,7 @@ export const prettierTargets = [
     "tests/unit/**/*.ts",
     "tests/playwright/**/*.ts",
     "tests/vitest/**/*.{cjs,mjs,ts}",
-    `${rootVendorPath}/**/*.js`,
+    "electron-app/renderer/leafletMeasureLite.js",
 ];
 
 export const prettierOptions = [

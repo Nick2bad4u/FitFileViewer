@@ -1,11 +1,6 @@
-import path from "node:path";
-
 import { describe, expect, it } from "vitest";
 
-import {
-    repositoryRoot,
-    rootVendorPath,
-} from "../../../scripts/lib/workspaces.mjs";
+import { repositoryRoot } from "../../../scripts/lib/workspaces.mjs";
 
 type ViteRendererConfigModule = {
     default: {
@@ -20,7 +15,7 @@ type ViteRendererConfigModule = {
         };
         publicDir?: boolean;
         resolve?: {
-            alias?: Record<string, string>;
+            alias?: unknown;
         };
         root?: string;
     };
@@ -45,8 +40,6 @@ describe("renderer Vite config", () => {
             "electron-app/renderer/vendorGlobals.ts"
         );
         expect(config.build?.lib?.fileName?.()).toBe("vendor-globals.js");
-        expect(config.resolve?.alias?.["@ffv-vendor"]).toBe(
-            path.join(repositoryRoot, rootVendorPath)
-        );
+        expect(config.resolve?.alias).toBeUndefined();
     });
 });

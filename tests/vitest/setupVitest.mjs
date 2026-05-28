@@ -37,7 +37,6 @@ function isGeneratedRuntimePath(relativePath) {
     if (
         normalized.startsWith("../") ||
         normalized.startsWith("tests/") ||
-        normalized.startsWith("vendor/") ||
         normalized.startsWith("ffv/")
     ) {
         return false;

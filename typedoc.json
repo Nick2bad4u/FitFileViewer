@@ -92,7 +92,6 @@
         "**/mock*",
         "**/test-*",
         "**/setupTests*",
-        "**/vendor/**",
         "**/types/**",
         "**/*.d.ts",
         "**/html/**",

@@ -1,7 +1,6 @@
-import * as path from "node:path";
 import { defineConfig } from "vite";
 
-import { repositoryRoot, rootVendorPath } from "./scripts/lib/workspaces.mjs";
+import { repositoryRoot } from "./scripts/lib/workspaces.mjs";
 
 export default defineConfig({
     build: {
@@ -29,10 +28,5 @@ export default defineConfig({
         target: "es2024",
     },
     publicDir: false,
-    resolve: {
-        alias: {
-            "@ffv-vendor": path.join(repositoryRoot, rootVendorPath),
-        },
-    },
     root: repositoryRoot,
 });

@@ -14,10 +14,10 @@ compatibility bundle:
   the Chart.js, DataTables, Leaflet, and MapLibre stacks.
 - `static/app/index.html` loads bundled renderer CSS from
   `renderer/vendor-globals.css`.
-- `scripts/prepare-runtime-dist.mjs` no longer copies `vendor/`
-  into `electron-app/dist/vendor/`.
-- `electron-app/package.json` no longer includes `vendor/` in the npm package
-  file list.
+- `scripts/prepare-runtime-dist.mjs` no longer copies a `vendor/` tree into
+  `electron-app/dist/`.
+- `electron-app/package.json` no longer includes a `vendor/` tree in the npm
+  package file list.
 - Renderer modules consume browser libraries through globals such as
   `Chart`, `L`, `JSZip`, `DOMPurify`, `screenfull`, and DataTables/jQuery.
 - `electron-app/renderer/vendorGlobals.ts` imports migrated renderer packages
@@ -26,9 +26,9 @@ compatibility bundle:
   `index.html`; production should not load browser code directly from
   `node_modules`.
 
-The remaining `vendor/leaflet-measure-lite.js` file is curated
-source that is bundled into renderer output; it is not loaded directly by
-`index.html`.
+The CSP-safe measurement control now lives in
+`electron-app/renderer/leafletMeasureLite.js` as first-party renderer source and
+is bundled into renderer output; it is not loaded directly by `index.html`.
 
 ## Production Dependencies
 
@@ -94,19 +94,19 @@ or invoked by the regular CI test scripts.
 
 ### Package-Sourced Assets
 
-No package-sourced files remain under `electron-app/vendor/`, and the app no
-longer needs that directory.
+No package-sourced files remain under an app or root `vendor/` tree, and the app
+no longer needs those directories.
 
 ### Curated Or Custom Assets
 
 These files should not be removed just because a package dependency exists.
 They need a specific replacement and runtime verification.
 
-- `vendor/leaflet-measure-lite.js`: Root-owned CSP-safe measurement control replacement
-  that is imported by `electron-app/renderer/vendorGlobals.ts` through the
-  `@ffv-vendor` Vite alias and bundled into `dist/renderer/vendor-globals.js`.
-  The upstream `leaflet-measure` JavaScript should not be restored unless it
-  works without weakening the app CSP.
+- `electron-app/renderer/leafletMeasureLite.js`: CSP-safe measurement control
+  replacement imported by `electron-app/renderer/vendorGlobals.ts` and bundled
+  into `dist/renderer/vendor-globals.js`. The upstream `leaflet-measure`
+  JavaScript should not be restored unless it works without weakening the app
+  CSP.
 
 ## Generated Runtime Output
 
@@ -147,16 +147,16 @@ The runtime build copies these app assets into `dist/` before packaging:
 - `style.css` from `static/app/style.css`
 
 Compiled renderer assets ship from `dist/`; no runtime HTML or module path loads
-directly from `vendor/`.
+directly from a `vendor/` path.
 
 ## Migration Guardrails
 
-- Keep `vendor/` limited to curated source, currently
-  `leaflet-measure-lite.js`; do not add package-sourced browser assets back
-  into the repository.
+- Do not add package-sourced browser assets back into a repository `vendor/`
+  directory.
 - Do not load browser assets directly from `node_modules` in production.
 - Remove one dependency group at a time and verify the affected feature.
 - Preserve script, CSS, and plugin ordering until imports make ordering explicit.
 - Keep compatibility globals temporarily where the existing renderer expects
   them.
-- Keep `leaflet-measure-lite.js` unless a CSP-safe package replacement is proven.
+- Keep `electron-app/renderer/leafletMeasureLite.js` unless a CSP-safe package
+  replacement is proven.
