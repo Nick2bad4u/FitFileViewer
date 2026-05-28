@@ -208,19 +208,20 @@ fit-test-files/
 
 ```json
 {
- "version": "0.2.0",
  "configurations": [
   {
-   "name": "Debug Main Process",
-   "type": "node",
-   "request": "launch",
-   "cwd": "${workspaceFolder}",
-   "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
-   "args": ["electron-app"]
+   "name": "Attach to Electron Main",
+   "port": 9229,
+   "request": "attach",
+   "type": "node"
   }
- ]
+ ],
+ "version": "0.2.0"
 }
 ```
+
+Run `npm start` from the repository root, then attach VS Code to the Electron
+main process with this configuration.
 
 ### Chrome DevTools
 
