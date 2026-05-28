@@ -43,6 +43,18 @@ function writePlaceholder(root: string, relativePath: string): void {
     fs.writeFileSync(targetPath, "generated");
 }
 
+function getTargetExistence(
+    root: string,
+    targets: string[]
+): Record<string, boolean> {
+    return Object.fromEntries(
+        targets.map((target) => [
+            target,
+            fs.existsSync(path.join(root, target)),
+        ])
+    );
+}
+
 afterEach(() => {
     for (const temporaryRoot of temporaryRoots.splice(0)) {
         fs.rmSync(temporaryRoot, { force: true, recursive: true });
@@ -78,7 +90,7 @@ describe("clean-workspace script", () => {
     });
 
     it("removes generated files and directories under the selected workspace root", async () => {
-        expect.assertions(9);
+        expect.assertions(4);
 
         const { cleanWorkspace } = await importCleanWorkspace();
         const temporaryRoot = makeTemporaryRoot();
@@ -97,21 +109,19 @@ describe("clean-workspace script", () => {
         }
         writePlaceholder(temporaryRoot, unrelatedFile);
 
-        expect(
-            targets.every((target) =>
-                fs.existsSync(path.join(temporaryRoot, target))
-            )
-        ).toBe(true);
+        expect(getTargetExistence(temporaryRoot, targets)).toStrictEqual(
+            Object.fromEntries(targets.map((target) => [target, true]))
+        );
 
         const removedTargets = cleanWorkspace(temporaryRoot, targets);
 
         expect(removedTargets).toStrictEqual(targets);
-        for (const target of targets) {
-            expect(fs.existsSync(path.join(temporaryRoot, target))).toBe(false);
-        }
-        expect(fs.existsSync(path.join(temporaryRoot, unrelatedFile))).toBe(
-            true
+        expect(getTargetExistence(temporaryRoot, targets)).toStrictEqual(
+            Object.fromEntries(targets.map((target) => [target, false]))
         );
+        expect(
+            fs.readFileSync(path.join(temporaryRoot, unrelatedFile), "utf8")
+        ).toBe("generated");
     });
 
     it("refuses cleanup targets that resolve outside the selected root", async () => {
