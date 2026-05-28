@@ -982,39 +982,103 @@ describe("fitParser.js decoder behavior", () => {
         it("should apply unknown message labels", () => {
             expect.hasAssertions();
 
-            const messages = {
+            const timestamp = new Date("2024-01-02T03:04:05.000Z");
+            const messages: FitMessages = {
+                unknown_104: [
+                    {
+                        0: 3.71,
+                        2: 88,
+                        3: 21,
+                        4: "ok",
+                        253: timestamp,
+                    },
+                ],
+                activity: [{ sport: "cycling" }],
+            };
+
+            const result = fitParser.applyUnknownMessageLabels(messages);
+
+            expect(result.activity).toStrictEqual([{ sport: "cycling" }]);
+            expect(result).not.toHaveProperty("unknown_104");
+            expect(result["Device Status"]).toStrictEqual([
+                {
+                    battery_level: 88,
+                    battery_voltage: 3.71,
+                    field_4: "ok",
+                    temperature: 21,
+                    timestamp,
+                },
+            ]);
+        });
+
+        it("should apply device status labels from numeric unknown message keys", () => {
+            expect.hasAssertions();
+
+            const timestamp = new Date("2024-02-03T04:05:06.000Z");
+            const messages: FitMessages = {
+                "104": [
+                    {
+                        0: 3.62,
+                        2: 74,
+                        3: 19,
+                        4: "charging",
+                        253: timestamp,
+                    },
+                ],
+            };
+
+            const result = fitParser.applyUnknownMessageLabels(messages);
+
+            expect(result).not.toHaveProperty("104");
+            expect(result["Device Status"]).toStrictEqual([
+                {
+                    battery_level: 74,
+                    battery_voltage: 3.62,
+                    field_4: "charging",
+                    temperature: 19,
+                    timestamp,
+                },
+            ]);
+        });
+
+        it("should preserve unmapped unknown message labels", () => {
+            expect.hasAssertions();
+
+            const messages: FitMessages = {
                 unknown_123: [{ field1: "value1" }],
                 activity: [{ sport: "cycling" }],
             };
 
             const result = fitParser.applyUnknownMessageLabels(messages);
 
-            expect(result.activity).toEqual([{ sport: "cycling" }]);
-            // Unknown messages should be processed
-            expect(Object.keys(result)).toContain("unknown_123");
+            expect(result).toStrictEqual(messages);
+            expect(result).not.toHaveProperty("Device Status");
         });
 
         it("should handle messages without unknown labels", () => {
             expect.hasAssertions();
 
-            const messages = {
+            const timestamp = new Date("2024-03-04T05:06:07.000Z");
+            const messages: FitMessages = {
                 activity: [{ sport: "cycling" }],
-                record: [{ timestamp: new Date() }],
+                record: [{ timestamp }],
             };
 
             const result = fitParser.applyUnknownMessageLabels(messages);
 
-            expect(result).toEqual(messages);
+            expect(result).toStrictEqual(messages);
+            expect(result).not.toHaveProperty("Device Status");
         });
 
         it("should handle empty messages object", () => {
             expect.hasAssertions();
 
-            const messages = {};
+            const messages: FitMessages = {};
 
             const result = fitParser.applyUnknownMessageLabels(messages);
 
-            expect(result).toEqual({});
+            expect(result).toStrictEqual({});
+            expect(Object.keys(result)).toHaveLength(0);
         });
 
         it("should handle null/undefined messages", () => {
@@ -1023,8 +1087,10 @@ describe("fitParser.js decoder behavior", () => {
             const result1 = fitParser.applyUnknownMessageLabels(null);
             const result2 = fitParser.applyUnknownMessageLabels(undefined);
 
-            expect(result1).toEqual({});
-            expect(result2).toEqual({});
+            expect(result1).toStrictEqual({});
+            expect(result2).toStrictEqual({});
+            expect(Object.keys(result1)).toHaveLength(0);
+            expect(Object.keys(result2)).toHaveLength(0);
         });
     });
 
