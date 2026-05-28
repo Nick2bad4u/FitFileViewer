@@ -12,7 +12,6 @@ type WorkspacesModule = {
     appPackageRepositoryPath: string;
     appStyleCssPath: string;
     appTypesPath: string;
-    appUnitTestsPath: string;
     appWorkspaceAbsolutePath: (...segments: string[]) => string;
     appWorkspaceName: string;
     appWorkspacePath: string;
@@ -110,8 +109,8 @@ describe("workspace path helpers", () => {
         ).toBe(path.join(process.cwd(), workspaces.rootFlatpakManifestPath));
     });
 
-    it("centralizes app runtime asset and test paths", async () => {
-        expect.assertions(13);
+    it("centralizes app runtime asset paths", async () => {
+        expect.assertions(12);
 
         const workspaces = await importWorkspaces();
 
@@ -129,7 +128,6 @@ describe("workspace path helpers", () => {
         expect(workspaces.rootAppIndexHtmlPath).toBe("static/app/index.html");
         expect(workspaces.rootAppStyleCssPath).toBe("static/app/style.css");
         expect(workspaces.appStyleCssPath).toBe("style.css");
-        expect(workspaces.appUnitTestsPath).toBe("electron-app/tests/unit");
     });
 
     it("centralizes root config paths", async () => {

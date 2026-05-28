@@ -4,7 +4,7 @@ import process from "node:process";
 import { describe, expect, it, vi } from "vitest";
 
 import {
-    appUnitTestsPath,
+    repositoryScriptPath,
     rootIntegrationTestsPath,
     rootTabsTestsPath,
     rootUnitTestsPath,
@@ -35,7 +35,6 @@ describe("run-vitest wrapper", () => {
             rootVitestConfigPath,
             "--run",
             rootUnitTestsPath,
-            appUnitTestsPath,
             "--maxWorkers",
             "1",
         ]);
@@ -98,7 +97,6 @@ describe("run-vitest wrapper", () => {
             "--reporter",
             "dot",
             rootUnitTestsPath,
-            appUnitTestsPath,
         ]);
     });
 
@@ -114,23 +112,38 @@ describe("run-vitest wrapper", () => {
     });
 
     it("runs Vitest from the repository root", () => {
-        expect.assertions(6);
+        expect.assertions(10);
 
         const commandRunner = vi.fn<CommandRunner>(() => ({ status: 0 }));
 
-        expect(runVitest(["--run", "--suite=integration"], commandRunner)).toBe(
-            0
-        );
-        expect(commandRunner).toHaveBeenCalledOnce();
+        expect(
+            runVitest(
+                ["--run", "--suite=integration"],
+                commandRunner,
+                () => false
+            )
+        ).toBe(0);
+        expect(commandRunner).toHaveBeenCalledTimes(2);
 
         const [
-            command,
-            args,
-            options,
+            buildCommand,
+            buildArgs,
+            buildOptions,
         ] = commandRunner.mock.calls[0];
+        const [
+            vitestCommand,
+            vitestArgs,
+            vitestOptions,
+        ] = commandRunner.mock.calls[1];
 
-        expect(command).toBe(process.execPath);
-        expect(args).toEqual(
+        expect(buildCommand).toBe(process.execPath);
+        expect(buildArgs).toStrictEqual([
+            repositoryScriptPath("build-runtime.mjs"),
+        ]);
+        expect(path.resolve(buildOptions.cwd)).toBe(process.cwd());
+        expect(buildOptions.stdio).toBe("inherit");
+        expect(vitestCommand).toBe(process.execPath);
+        expect(vitestArgs).toEqual(
             expect.arrayContaining([
                 "--max-old-space-size=8192",
                 expect.stringContaining(path.join("vitest", "vitest.mjs")),
@@ -139,7 +152,7 @@ describe("run-vitest wrapper", () => {
                 rootIntegrationTestsPath,
             ])
         );
-        expect(path.resolve(options.cwd)).toBe(process.cwd());
-        expect(options.stdio).toBe("inherit");
+        expect(path.resolve(vitestOptions.cwd)).toBe(process.cwd());
+        expect(vitestOptions.stdio).toBe("inherit");
     });
 });

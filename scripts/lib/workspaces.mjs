@@ -42,7 +42,6 @@ export const appPackageRepositoryPath =
     appWorkspaceRepositoryPath("package.json");
 export const appStyleCssPath = "style.css";
 export const appTypesPath = appWorkspaceRelativePath("types");
-export const appUnitTestsPath = appWorkspaceRepositoryPath("tests", "unit");
 export const docusaurusPackagePath =
     docusaurusWorkspaceAbsolutePath("package.json");
 export const docusaurusPackageRepositoryPath =

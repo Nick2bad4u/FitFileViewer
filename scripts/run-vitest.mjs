@@ -1,12 +1,14 @@
 import { spawnSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
 import {
-    appUnitTestsPath,
+    appWorkspaceAbsolutePath,
     repositoryRoot,
+    repositoryScriptPath,
     rootIntegrationTestsPath,
     rootTabsTestsPath,
     rootUnitTestsPath,
@@ -16,13 +18,14 @@ import {
 export const vitestSuites = Object.freeze({
     integration: [rootIntegrationTestsPath],
     tabs: [rootTabsTestsPath],
-    unit: [rootUnitTestsPath, appUnitTestsPath],
+    unit: [rootUnitTestsPath],
 });
 
 const require = createRequire(import.meta.url);
 const vitestPackagePath = require.resolve("vitest/package.json");
 const vitestCliPath = path.join(path.dirname(vitestPackagePath), "vitest.mjs");
 const suitePathMarker = "\0ffv-suite-paths\0";
+const runtimeDistSentinelPath = appWorkspaceAbsolutePath("dist", "preload.js");
 const vitestOptionsWithValues = new Set([
     "--config",
     "--environment",
@@ -88,8 +91,17 @@ export function expandSuiteArgs(argv) {
 
 export function runVitest(
     argv = process.argv.slice(2),
-    commandRunner = spawnSync
+    commandRunner = spawnSync,
+    runtimeDistExists = existsSync
 ) {
+    const runtimeBuildStatus = ensureRuntimeDist(
+        commandRunner,
+        runtimeDistExists
+    );
+    if (runtimeBuildStatus !== 0) {
+        return runtimeBuildStatus;
+    }
+
     const result = commandRunner(
         process.execPath,
         [
@@ -97,6 +109,30 @@ export function runVitest(
             vitestCliPath,
             ...buildVitestArgs(argv),
         ],
+        {
+            cwd: repositoryRoot,
+            stdio: "inherit",
+        }
+    );
+
+    if (result.error) {
+        throw result.error;
+    }
+
+    return result.status ?? 1;
+}
+
+export function ensureRuntimeDist(
+    commandRunner = spawnSync,
+    runtimeDistExists = existsSync
+) {
+    if (runtimeDistExists(runtimeDistSentinelPath)) {
+        return 0;
+    }
+
+    const result = commandRunner(
+        process.execPath,
+        [repositoryScriptPath("build-runtime.mjs")],
         {
             cwd: repositoryRoot,
             stdio: "inherit",
