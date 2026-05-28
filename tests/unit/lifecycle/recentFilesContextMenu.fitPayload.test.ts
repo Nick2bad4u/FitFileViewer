@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { attachRecentFilesContextMenu } from "../../../utils/app/lifecycle/recentFilesContextMenu.js";
+import { attachRecentFilesContextMenu } from "../../../electron-app/utils/app/lifecycle/recentFilesContextMenu.js";
 
 type AddRecentFile = (file: string) => Promise<void>;
 type ApproveRecentFile = (file: string) => Promise<boolean>;

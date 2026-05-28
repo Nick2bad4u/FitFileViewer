@@ -2,12 +2,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Mock } from "vitest";
 
-vi.mock("../../../utils/files/import/openFileSelector.js", () => ({
+vi.mock("../../../electron-app/utils/files/import/openFileSelector.js", () => ({
     openFileSelector: vi.fn(),
 }));
 
-import { openFileSelector } from "../../../utils/files/import/openFileSelector.js";
-import { setupListeners } from "../../../utils/app/lifecycle/listeners.js";
+import { openFileSelector } from "../../../electron-app/utils/files/import/openFileSelector.js";
+import { setupListeners } from "../../../electron-app/utils/app/lifecycle/listeners.js";
 
 const openFileSelectorMock = vi.mocked(openFileSelector);
 
@@ -140,7 +140,7 @@ describe("utils/app/lifecycle/listeners.js", () => {
         vi.useRealTimers();
     });
 
-    it("menu-open-overlay IPC triggers openFileSelector", () => {
+    it("menu-open-overlay IPC triggers openFileSelector", async () => {
         openFileSelectorMock.mockImplementationOnce(() => {
             document.body.dataset.overlaySelectorOpened = "true";
         });
@@ -150,14 +150,14 @@ describe("utils/app/lifecycle/listeners.js", () => {
             (args: any[]) => args[0] === "menu-open-overlay"
         );
         expect(entry).toEqual(["menu-open-overlay", expect.any(Function)]);
-        const handler = entry[1] as () => void;
-        handler();
+        const handler = entry[1] as () => Promise<void>;
+        await handler();
         expect(openFileSelectorMock).toHaveBeenCalledTimes(1);
         expect(document.body.dataset.overlaySelectorOpened).toBe("true");
         expect(showNotification).not.toHaveBeenCalled();
     });
 
-    it("menu-open-overlay handler reports errors", () => {
+    it("menu-open-overlay handler reports errors", async () => {
         openFileSelectorMock.mockImplementationOnce(() => {
             throw new Error("fail");
         });
@@ -167,8 +167,8 @@ describe("utils/app/lifecycle/listeners.js", () => {
             (args: any[]) => args[0] === "menu-open-overlay"
         );
         expect(entry).toEqual(["menu-open-overlay", expect.any(Function)]);
-        const handler = entry[1] as () => void;
-        handler();
+        const handler = entry[1] as () => Promise<void>;
+        await handler();
         expect(showNotification).toHaveBeenCalledWith(
             "Failed to open overlay selector.",
             "error",

@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
 
-import { setupListeners } from "../../../utils/app/lifecycle/listeners.js";
-import type { SetupListenersOptions } from "../../../utils/app/lifecycle/listeners.js";
+import { setupListeners } from "../../../electron-app/utils/app/lifecycle/listeners.js";
+import type { SetupListenersOptions } from "../../../electron-app/utils/app/lifecycle/listeners.js";
 
 type AddRecentFile = (filePath: string) => Promise<void>;
 type ApproveRecentFile = (filePath: string) => Promise<boolean>;

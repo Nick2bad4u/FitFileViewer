@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
 
-import { registerMenuIpcListeners } from "../../../utils/app/lifecycle/menuIpcListeners.js";
+import { registerMenuIpcListeners } from "../../../electron-app/utils/app/lifecycle/menuIpcListeners.js";
 
 type MenuSendChannel = "menu-export" | "menu-save-as";
 type MenuIpcChannel =
