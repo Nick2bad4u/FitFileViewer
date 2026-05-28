@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { handleOpenFile } from "../../../../utils/files/import/handleOpenFile.js";
+import { handleOpenFile } from "../../../../electron-app/utils/files/import/handleOpenFile.js";
 
 type HandleFileLoadingError = (error: Error) => void;
 type OpenFile = () => Promise<string>;

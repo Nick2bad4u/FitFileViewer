@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { loadSingleOverlayFile } from "../../../../utils/files/import/loadSingleOverlayFile.js";
-import type { FitDecodeResult } from "../../../../shared/fit";
+import { loadSingleOverlayFile } from "../../../../electron-app/utils/files/import/loadSingleOverlayFile.js";
+import type { FitDecodeResult } from "../../../../electron-app/shared/fit";
 
 type DecodeFitFile = (
     arrayBuffer: ArrayBuffer

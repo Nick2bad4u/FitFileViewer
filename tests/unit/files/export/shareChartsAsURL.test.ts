@@ -5,13 +5,19 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Mock dependencies
-vi.mock("../../../../utils/ui/notifications/showNotification.js", () => ({
-    showNotification: vi.fn(),
-}));
+vi.mock(
+    "../../../../electron-app/utils/ui/notifications/showNotification.js",
+    () => ({
+        showNotification: vi.fn(),
+    })
+);
 
-vi.mock("../../../../utils/ui/components/createSettingsHeader.js", () => ({
-    showChartSelectionModal: vi.fn(),
-}));
+vi.mock(
+    "../../../../electron-app/utils/ui/components/createSettingsHeader.js",
+    () => ({
+        showChartSelectionModal: vi.fn(),
+    })
+);
 
 // Mock clipboard API
 Object.defineProperty(global, "navigator", {
@@ -24,9 +30,9 @@ Object.defineProperty(global, "navigator", {
 });
 
 // Import the module after mocking
-import { exportUtils } from "../../../../utils/files/export/exportUtils.js";
-import { showNotification } from "../../../../utils/ui/notifications/showNotification.js";
-import { showChartSelectionModal } from "../../../../utils/ui/components/createSettingsHeader.js";
+import { exportUtils } from "../../../../electron-app/utils/files/export/exportUtils.js";
+import { showNotification } from "../../../../electron-app/utils/ui/notifications/showNotification.js";
+import { showChartSelectionModal } from "../../../../electron-app/utils/ui/components/createSettingsHeader.js";
 
 describe("shareChartsAsURL with Imgur fallback", () => {
     // Get typed references to the mocked functions

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { openFitFileFromPath } from "../../../../utils/files/import/openFitFileFromPath.js";
+import { openFitFileFromPath } from "../../../../electron-app/utils/files/import/openFitFileFromPath.js";
 
 type HandleFileLoadingError = (error: Error) => void;
 type NotifyFitFileLoaded = (filePath: string) => void;

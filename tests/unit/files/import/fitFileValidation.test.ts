@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
     getFitFileBufferValidationError,
     MAX_FIT_FILE_BYTES,
-} from "../../../../utils/files/import/fitFileValidation.js";
+} from "../../../../electron-app/utils/files/import/fitFileValidation.js";
 
 describe("fitFileValidation", () => {
     it("rejects non-ArrayBuffer inputs", () => {

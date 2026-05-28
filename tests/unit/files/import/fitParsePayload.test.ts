@@ -5,11 +5,11 @@ import {
     getFitMessagesSessionCount,
     getFitParseErrorMessage,
     unwrapFitParseMessages,
-} from "../../../../utils/files/import/fitParsePayload.js";
+} from "../../../../electron-app/utils/files/import/fitParsePayload.js";
 import type {
     FitDecodeErrorPayload,
     FitMessages,
-} from "../../../../shared/fit";
+} from "../../../../electron-app/shared/fit";
 
 describe("fitParsePayload", () => {
     it("unwraps direct FIT message payloads", () => {

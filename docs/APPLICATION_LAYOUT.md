@@ -379,6 +379,7 @@ tests/integration/
 
 tests/unit/
 ├── charts/                          # Root-owned chart behavior tests
+├── files/                           # Root-owned file import/export behavior tests
 ├── lifecycle/                       # Root-owned app lifecycle behavior tests
 ├── maps/                            # Root-owned map behavior tests
 ├── menu/                            # Root-owned application menu behavior tests
