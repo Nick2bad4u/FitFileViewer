@@ -1,53 +1,97 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
+import type { Mock } from "vitest";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { registerClipboardHandlers } from "../../../../electron-app/main/ipc/registerClipboardHandlers.js";
 
-describe("registerClipboardHandlers", () => {
-    /** @type {ReturnType<typeof vi.fn>} */
-    let mockRegisterIpcHandle;
-    /** @type {ReturnType<typeof vi.fn>} */
-    let mockClipboardRef;
-    /** @type {ReturnType<typeof vi.fn>} */
-    let mockNativeImageRef;
-    /** @type {ReturnType<typeof vi.fn>} */
-    let mockLogWithContext;
+type ClipboardInvokeChannel =
+    | "clipboard:writePngDataUrl"
+    | "clipboard:writeText";
+type ClipboardIpcHandler = (event: unknown, ...args: unknown[]) => unknown;
+type RegisterIpcHandle = (
+    channel: ClipboardInvokeChannel,
+    handler: ClipboardIpcHandler
+) => void;
+type ClipboardWriter = {
+    writeImage: Mock<(image: unknown) => void>;
+    writeText: Mock<(text: string) => void>;
+};
+type NativeImageValue = { __img: true; url: string };
+type NativeImageFactory = {
+    createFromDataURL: Mock<(url: string) => NativeImageValue>;
+};
+type LogWithContext = (
+    level: "error" | "info" | "warn",
+    message: string,
+    context?: Record<string, unknown>
+) => void;
 
-    /**
-     * @type {{
-     *     writeText: ReturnType<typeof vi.fn>;
-     *     writeImage: ReturnType<typeof vi.fn>;
-     * }}
-     */
-    let mockClipboard;
-    /** @type {{ createFromDataURL: ReturnType<typeof vi.fn> }} */
-    let mockNativeImage;
+describe("registerClipboardHandlers", () => {
+    let mockRegisterIpcHandle: Mock<RegisterIpcHandle>;
+    let mockClipboardRef: Mock<() => ClipboardWriter | null>;
+    let mockNativeImageRef: Mock<() => NativeImageFactory | null>;
+    let mockLogWithContext: Mock<LogWithContext>;
+    let mockClipboard: ClipboardWriter;
+    let mockNativeImage: NativeImageFactory;
 
     beforeEach(() => {
         mockClipboard = {
-            writeText: vi.fn(),
-            writeImage: vi.fn(),
+            writeImage: vi.fn<(image: unknown) => void>(),
+            writeText: vi.fn<(text: string) => void>(),
         };
         mockNativeImage = {
-            createFromDataURL: vi.fn((url) => ({ __img: true, url })),
+            createFromDataURL: vi.fn<(url: string) => NativeImageValue>(
+                (url) => ({ __img: true, url })
+            ),
         };
 
-        mockRegisterIpcHandle = vi.fn();
-        mockClipboardRef = vi.fn(() => mockClipboard);
-        mockNativeImageRef = vi.fn(() => mockNativeImage);
-        mockLogWithContext = vi.fn();
+        mockRegisterIpcHandle = vi.fn<RegisterIpcHandle>();
+        mockClipboardRef = vi.fn<() => ClipboardWriter | null>(
+            () => mockClipboard
+        );
+        mockNativeImageRef = vi.fn<() => NativeImageFactory | null>(
+            () => mockNativeImage
+        );
+        mockLogWithContext = vi.fn<LogWithContext>();
     });
 
     afterEach(() => {
         vi.clearAllMocks();
     });
 
-    it("registers clipboard handlers", () => {
-        const handlers = {};
+    function captureClipboardHandlers(): Partial<
+        Record<ClipboardInvokeChannel, ClipboardIpcHandler>
+    > {
+        const handlers: Partial<
+            Record<ClipboardInvokeChannel, ClipboardIpcHandler>
+        > = {};
+
         mockRegisterIpcHandle.mockImplementation((channel, handler) => {
             handlers[channel] = handler;
         });
+
+        return handlers;
+    }
+
+    function getRegisteredHandler(
+        channel: ClipboardInvokeChannel
+    ): ClipboardIpcHandler {
+        const handler = mockRegisterIpcHandle.mock.calls.find(
+            ([registeredChannel]) => registeredChannel === channel
+        )?.[1];
+
+        expect(handler).toBeTypeOf("function");
+
+        if (typeof handler !== "function") {
+            throw new TypeError(`${channel} handler was not registered`);
+        }
+
+        return handler;
+    }
+
+    it("registers clipboard handlers", () => {
+        expect.hasAssertions();
+
+        const handlers = captureClipboardHandlers();
 
         registerClipboardHandlers({
             registerIpcHandle: mockRegisterIpcHandle,
@@ -67,9 +111,15 @@ describe("registerClipboardHandlers", () => {
         );
         expect(handlers["clipboard:writeText"]).toBeTypeOf("function");
         expect(handlers["clipboard:writePngDataUrl"]).toBeTypeOf("function");
+        expect(Object.keys(handlers).sort()).toStrictEqual([
+            "clipboard:writePngDataUrl",
+            "clipboard:writeText",
+        ]);
     });
 
     it("does nothing when registerIpcHandle is not a function", () => {
+        expect.hasAssertions();
+
         const result = registerClipboardHandlers({
             registerIpcHandle: null,
             clipboardRef: mockClipboardRef,
@@ -83,6 +133,8 @@ describe("registerClipboardHandlers", () => {
     });
 
     it("clipboard:writeText writes to clipboard", async () => {
+        expect.hasAssertions();
+
         registerClipboardHandlers({
             registerIpcHandle: mockRegisterIpcHandle,
             clipboardRef: mockClipboardRef,
@@ -90,9 +142,7 @@ describe("registerClipboardHandlers", () => {
             logWithContext: mockLogWithContext,
         });
 
-        const handler = mockRegisterIpcHandle.mock.calls.find(
-            (c) => c[0] === "clipboard:writeText"
-        )[1];
+        const handler = getRegisteredHandler("clipboard:writeText");
         const ok = await handler({}, "hello");
 
         expect(ok).toBe(true);
@@ -100,6 +150,8 @@ describe("registerClipboardHandlers", () => {
     });
 
     it("clipboard:writeText returns false when clipboard is unavailable", async () => {
+        expect.hasAssertions();
+
         mockClipboardRef.mockReturnValue(null);
 
         registerClipboardHandlers({
@@ -109,9 +161,7 @@ describe("registerClipboardHandlers", () => {
             logWithContext: mockLogWithContext,
         });
 
-        const handler = mockRegisterIpcHandle.mock.calls.find(
-            (c) => c[0] === "clipboard:writeText"
-        )[1];
+        const handler = getRegisteredHandler("clipboard:writeText");
         const ok = await handler({}, "hello");
 
         expect(ok).toBe(false);
@@ -119,6 +169,8 @@ describe("registerClipboardHandlers", () => {
     });
 
     it("clipboard:writePngDataUrl writes image to clipboard", async () => {
+        expect.hasAssertions();
+
         registerClipboardHandlers({
             registerIpcHandle: mockRegisterIpcHandle,
             clipboardRef: mockClipboardRef,
@@ -126,9 +178,7 @@ describe("registerClipboardHandlers", () => {
             logWithContext: mockLogWithContext,
         });
 
-        const handler = mockRegisterIpcHandle.mock.calls.find(
-            (c) => c[0] === "clipboard:writePngDataUrl"
-        )[1];
+        const handler = getRegisteredHandler("clipboard:writePngDataUrl");
         const pngDataUrl =
             "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB";
         const ok = await handler({}, pngDataUrl);
@@ -144,6 +194,8 @@ describe("registerClipboardHandlers", () => {
     });
 
     it("clipboard:writePngDataUrl returns false for non-png data URLs", async () => {
+        expect.hasAssertions();
+
         registerClipboardHandlers({
             registerIpcHandle: mockRegisterIpcHandle,
             clipboardRef: mockClipboardRef,
@@ -151,9 +203,7 @@ describe("registerClipboardHandlers", () => {
             logWithContext: mockLogWithContext,
         });
 
-        const handler = mockRegisterIpcHandle.mock.calls.find(
-            (c) => c[0] === "clipboard:writePngDataUrl"
-        )[1];
+        const handler = getRegisteredHandler("clipboard:writePngDataUrl");
         const ok = await handler({}, "data:image/jpeg;base64,abc");
 
         expect(ok).toBe(false);
