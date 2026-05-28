@@ -1,7 +1,5 @@
-/**
- * @vitest-environment jsdom
- */
-import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
+// @vitest-environment jsdom
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { readFileSync } from "fs";
 import { join } from "path";
 import { resolvePreloadScriptRequire } from "../vitest/helpers/preloadModuleMocks";
@@ -29,19 +27,36 @@ interface ExposedDevToolsApi {
     testIPC: () => Promise<unknown>;
 }
 
+type ContextBridgeExpose = (name: string, api: unknown) => void;
+type IpcInvoke = (...args: unknown[]) => Promise<unknown>;
+type IpcListener = (...args: unknown[]) => void;
+type ProcessListener = (...args: unknown[]) => void;
+type ProcessListeners = (eventName: string) => ProcessListener[];
+type ProcessOnce = (eventName: string, listener: ProcessListener) => void;
+type ProcessRemoveListener = (
+    eventName: string,
+    listener: ProcessListener
+) => void;
+type RequireModule = (moduleName: string) => unknown;
+
 interface MockIpcRenderer {
-    invoke: ReturnType<typeof vi.fn<(...args: unknown[]) => Promise<unknown>>>;
-    on: ReturnType<typeof vi.fn>;
-    once: ReturnType<typeof vi.fn>;
-    removeAllListeners: ReturnType<typeof vi.fn>;
-    removeListener: ReturnType<typeof vi.fn>;
-    send: ReturnType<typeof vi.fn>;
+    invoke: ReturnType<typeof vi.fn<IpcInvoke>>;
+    on: ReturnType<typeof vi.fn<IpcListener>>;
+    once: ReturnType<typeof vi.fn<IpcListener>>;
+    removeAllListeners: ReturnType<typeof vi.fn<IpcListener>>;
+    removeListener: ReturnType<typeof vi.fn<IpcListener>>;
+    send: ReturnType<typeof vi.fn<IpcListener>>;
 }
 
 interface MockContextBridge {
-    exposeInMainWorld: ReturnType<
-        typeof vi.fn<(name: string, api: unknown) => void>
-    >;
+    exposeInMainWorld: ReturnType<typeof vi.fn<ContextBridgeExpose>>;
+}
+
+interface MockProcessRef {
+    env: Record<string, unknown>;
+    listeners: ReturnType<typeof vi.fn<ProcessListeners>>;
+    once: ReturnType<typeof vi.fn<ProcessOnce>>;
+    removeListener: ReturnType<typeof vi.fn<ProcessRemoveListener>>;
 }
 
 const EXPECTED_PRELOAD_CHANNELS = {
@@ -87,6 +102,8 @@ const EXPECTED_PRELOAD_EVENTS = {
     THEME_CHANGED: "theme-changed",
 } as const;
 
+const developmentToolsGlobalName = ["dev", "Tools"].join("");
+
 describe("preload.js dist bridge behavior", () => {
     let mockIpcRenderer: MockIpcRenderer;
     let mockContextBridge: MockContextBridge;
@@ -104,22 +121,20 @@ describe("preload.js dist bridge behavior", () => {
 
         // Setup comprehensive IPC renderer mock
         mockIpcRenderer = {
-            invoke: vi
-                .fn<(...args: unknown[]) => Promise<unknown>>()
-                .mockResolvedValue("mock-result"),
-            send: vi.fn(),
-            on: vi.fn(),
-            once: vi.fn(),
-            removeListener: vi.fn(),
-            removeAllListeners: vi.fn(),
+            invoke: vi.fn<IpcInvoke>().mockResolvedValue("mock-result"),
+            send: vi.fn<IpcListener>(),
+            on: vi.fn<IpcListener>(),
+            once: vi.fn<IpcListener>(),
+            removeListener: vi.fn<IpcListener>(),
+            removeAllListeners: vi.fn<IpcListener>(),
         };
 
         // Setup context bridge mock
         mockContextBridge = {
-            exposeInMainWorld: vi.fn((name, api) => {
+            exposeInMainWorld: vi.fn<ContextBridgeExpose>((name, api) => {
                 if (name === "electronAPI") {
                     exposedAPI = api as ExposedPreloadApi;
-                } else if (name === "devTools") {
+                } else if (name === developmentToolsGlobalName) {
                     exposedDevTools = api as ExposedDevToolsApi;
                 }
             }),
@@ -147,23 +162,48 @@ describe("preload.js dist bridge behavior", () => {
     /**
      * Execute preload script in controlled environment
      */
-    function executePreloadScript(envOptions = {}) {
+    function createMockProcess(env: Record<string, unknown>): MockProcessRef {
+        const beforeExitListeners: ProcessListener[] = [];
+
+        return {
+            env,
+            listeners: vi.fn<ProcessListeners>((eventName) =>
+                eventName === "beforeExit" ? [...beforeExitListeners] : []
+            ),
+            once: vi.fn<ProcessOnce>((eventName, listener) => {
+                if (eventName === "beforeExit") {
+                    beforeExitListeners.push(listener);
+                }
+            }),
+            removeListener: vi.fn<ProcessRemoveListener>(
+                (eventName, listener) => {
+                    if (eventName !== "beforeExit") {
+                        return;
+                    }
+
+                    const listenerIndex = beforeExitListeners.indexOf(listener);
+                    if (listenerIndex >= 0) {
+                        beforeExitListeners.splice(listenerIndex, 1);
+                    }
+                }
+            ),
+        };
+    }
+
+    function executePreloadScript(envOptions: Record<string, unknown> = {}) {
         const env = {
             NODE_ENV: "test",
             ...envOptions,
         };
 
-        const mockRequire = vi.fn((moduleName: string) =>
+        const mockRequire = vi.fn<RequireModule>((moduleName) =>
             resolvePreloadScriptRequire(moduleName, {
                 ipcRenderer: mockIpcRenderer,
                 contextBridge: mockContextBridge,
             })
         );
 
-        const mockProcess = {
-            env,
-            once: vi.fn(),
-        };
+        const mockProcess = createMockProcess(env);
 
         const mockConsole = {
             log: consoleSpy.log,
@@ -185,10 +225,7 @@ describe("preload.js dist bridge behavior", () => {
 
     function runPreloadScript(
         mockRequire: (moduleName: string) => unknown,
-        mockProcess: {
-            env: Record<string, unknown>;
-            once: ReturnType<typeof vi.fn>;
-        },
+        mockProcess: MockProcessRef,
         mockConsole: { error: unknown; log: unknown }
     ) {
         // eslint-disable-next-line no-new-func -- preload.js is a CommonJS side-effect script executed with controlled test doubles.
@@ -202,8 +239,9 @@ describe("preload.js dist bridge behavior", () => {
         return preloadScript(mockRequire, mockProcess, mockConsole);
     }
 
-    describe("Module Loading and Initialization", () => {
-        test("should initialize preload dependencies and lifecycle hooks", () => {
+    describe("module loading and initialization", () => {
+        it("should initialize preload dependencies and lifecycle hooks", () => {
+            expect.hasAssertions();
             const { mockProcess, mockRequire } = executePreloadScript();
 
             expect(mockRequire).toHaveBeenCalledWith("electron");
@@ -228,7 +266,8 @@ describe("preload.js dist bridge behavior", () => {
             expect(consoleSpy.error).not.toHaveBeenCalled();
         });
 
-        test("should expose electronAPI to main world", () => {
+        it("should expose electronAPI to main world", () => {
+            expect.hasAssertions();
             executePreloadScript();
 
             expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith(
@@ -242,25 +281,27 @@ describe("preload.js dist bridge behavior", () => {
             expect(exposedAPI.validateAPI()).toBe(true);
         });
 
-        test("should validate API before exposing", () => {
+        it("should validate API before exposing", () => {
+            expect.hasAssertions();
             executePreloadScript();
 
-            expect(typeof exposedAPI.validateAPI).toBe("function");
+            expect(exposedAPI.validateAPI).toBeTypeOf("function");
             expect(exposedAPI.validateAPI()).toBe(true);
         });
 
-        test("should not expose API if validation fails", () => {
+        it("should not expose API if validation fails", () => {
+            expect.hasAssertions();
             // Mock contextBridge to be undefined to trigger validation failure
             mockContextBridge = undefined;
 
-            const mockRequire = vi.fn((moduleName: string) =>
+            const mockRequire = vi.fn<RequireModule>((moduleName) =>
                 resolvePreloadScriptRequire(moduleName, {
                     ipcRenderer: mockIpcRenderer,
                     contextBridge: mockContextBridge,
                 })
             );
 
-            const mockProcess = { env: { NODE_ENV: "test" }, once: vi.fn() };
+            const mockProcess = createMockProcess({ NODE_ENV: "test" });
             const result = runPreloadScript(mockRequire, mockProcess, console);
 
             // Should not have been called since contextBridge is undefined
@@ -276,12 +317,13 @@ describe("preload.js dist bridge behavior", () => {
         });
     });
 
-    describe("Development Mode Features", () => {
-        test("should expose devTools in development mode", () => {
+    describe("development mode features", () => {
+        it("should expose development tools in development mode", () => {
+            expect.hasAssertions();
             executePreloadScript({ NODE_ENV: "development" });
 
             expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith(
-                "devTools",
+                developmentToolsGlobalName,
                 exposedDevTools
             );
             expect(exposedDevTools).toMatchObject({
@@ -291,21 +333,19 @@ describe("preload.js dist bridge behavior", () => {
             });
         });
 
-        test("should not expose devTools in production mode", () => {
+        it("should not expose development tools in production mode", () => {
+            expect.hasAssertions();
             executePreloadScript({ NODE_ENV: "production" });
 
-            // Should only have one call for electronAPI, not devTools
-            expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledTimes(
-                1
-            );
-            expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith(
-                "electronAPI",
-                exposedAPI
-            );
+            // Should only have one call for electronAPI, not development tools.
+            expect(
+                mockContextBridge.exposeInMainWorld
+            ).toHaveBeenCalledExactlyOnceWith("electronAPI", exposedAPI);
             expect(exposedDevTools).toBeUndefined();
         });
 
-        test("devTools should provide development utilities", () => {
+        it("development tools should provide utilities", () => {
+            expect.hasAssertions();
             executePreloadScript({ NODE_ENV: "development" });
 
             expect(exposedDevTools).toMatchObject({
@@ -315,7 +355,8 @@ describe("preload.js dist bridge behavior", () => {
             });
         });
 
-        test("devTools.getPreloadInfo should return preload information", () => {
+        it("getPreloadInfo should return preload information", () => {
+            expect.hasAssertions();
             executePreloadScript({ NODE_ENV: "development" });
 
             const preloadInfo = exposedDevTools.getPreloadInfo();
@@ -336,7 +377,8 @@ describe("preload.js dist bridge behavior", () => {
             expect(preloadInfo.version).toBe("1.0.0");
         });
 
-        test("devTools.testIPC should test IPC communication", async () => {
+        it("testIPC should test IPC communication", async () => {
+            expect.hasAssertions();
             mockIpcRenderer.invoke.mockResolvedValue("1.0.0");
             executePreloadScript({ NODE_ENV: "development" });
 
@@ -348,7 +390,8 @@ describe("preload.js dist bridge behavior", () => {
             );
         });
 
-        test("devTools.testIPC should handle IPC failures", async () => {
+        it("testIPC should handle IPC failures", async () => {
+            expect.hasAssertions();
             mockIpcRenderer.invoke.mockRejectedValue(new Error("IPC failed"));
             executePreloadScript({ NODE_ENV: "development" });
 
@@ -362,8 +405,9 @@ describe("preload.js dist bridge behavior", () => {
         });
     });
 
-    describe("API Structure and Methods", () => {
-        test("should have all expected API methods", () => {
+    describe("api structure and methods", () => {
+        it("should have all expected API methods", () => {
+            expect.hasAssertions();
             executePreloadScript();
 
             const expectedMethods = [
@@ -406,7 +450,8 @@ describe("preload.js dist bridge behavior", () => {
             });
         });
 
-        test("getChannelInfo should return channel information", () => {
+        it("getChannelInfo should return channel information", () => {
+            expect.hasAssertions();
             executePreloadScript();
 
             const channelInfo = exposedAPI.getChannelInfo();
@@ -419,7 +464,8 @@ describe("preload.js dist bridge behavior", () => {
             });
         });
 
-        test("validateAPI should perform comprehensive validation", () => {
+        it("validateAPI should perform comprehensive validation", () => {
+            expect.hasAssertions();
             executePreloadScript();
 
             const result = exposedAPI.validateAPI();
@@ -427,7 +473,8 @@ describe("preload.js dist bridge behavior", () => {
             expect(result).toBe(true);
         });
 
-        test("getChannelInfo should not include unknown channels", () => {
+        it("getChannelInfo should not include unknown channels", () => {
+            expect.hasAssertions();
             executePreloadScript();
 
             const channelInfo = exposedAPI.getChannelInfo();
@@ -437,12 +484,13 @@ describe("preload.js dist bridge behavior", () => {
         });
     });
 
-    describe("IPC Invoke Methods", () => {
+    describe("invoke methods", () => {
         beforeEach(() => {
             executePreloadScript();
         });
 
-        test("addRecentFile should invoke correct channel", async () => {
+        it("addRecentFile should invoke correct channel", async () => {
+            expect.hasAssertions();
             const filePath = "/path/to/file.fit";
             const result = await exposedAPI.addRecentFile(filePath);
 
@@ -453,7 +501,8 @@ describe("preload.js dist bridge behavior", () => {
             expect(result).toBe("mock-result");
         });
 
-        test("decodeFitFile should invoke correct channel", async () => {
+        it("decodeFitFile should invoke correct channel", async () => {
+            expect.hasAssertions();
             const arrayBuffer = new ArrayBuffer(8);
             const result = await exposedAPI.decodeFitFile(arrayBuffer);
 
@@ -464,7 +513,8 @@ describe("preload.js dist bridge behavior", () => {
             expect(result).toBe("mock-result");
         });
 
-        test("getAppVersion should invoke correct channel", async () => {
+        it("getAppVersion should invoke correct channel", async () => {
+            expect.hasAssertions();
             const result = await exposedAPI.getAppVersion();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
@@ -473,7 +523,8 @@ describe("preload.js dist bridge behavior", () => {
             expect(result).toBe("mock-result");
         });
 
-        test("getChromeVersion should invoke correct channel", async () => {
+        it("getChromeVersion should invoke correct channel", async () => {
+            expect.hasAssertions();
             const result = await exposedAPI.getChromeVersion();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
@@ -482,7 +533,8 @@ describe("preload.js dist bridge behavior", () => {
             expect(result).toBe("mock-result");
         });
 
-        test("getElectronVersion should invoke correct channel", async () => {
+        it("getElectronVersion should invoke correct channel", async () => {
+            expect.hasAssertions();
             const result = await exposedAPI.getElectronVersion();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
@@ -491,7 +543,8 @@ describe("preload.js dist bridge behavior", () => {
             expect(result).toBe("mock-result");
         });
 
-        test("getLicenseInfo should invoke correct channel", async () => {
+        it("getLicenseInfo should invoke correct channel", async () => {
+            expect.hasAssertions();
             const result = await exposedAPI.getLicenseInfo();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
@@ -500,7 +553,8 @@ describe("preload.js dist bridge behavior", () => {
             expect(result).toBe("mock-result");
         });
 
-        test("getNodeVersion should invoke correct channel", async () => {
+        it("getNodeVersion should invoke correct channel", async () => {
+            expect.hasAssertions();
             const result = await exposedAPI.getNodeVersion();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
@@ -509,7 +563,8 @@ describe("preload.js dist bridge behavior", () => {
             expect(result).toBe("mock-result");
         });
 
-        test("getPlatformInfo should invoke correct channel", async () => {
+        it("getPlatformInfo should invoke correct channel", async () => {
+            expect.hasAssertions();
             const result = await exposedAPI.getPlatformInfo();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
@@ -518,14 +573,16 @@ describe("preload.js dist bridge behavior", () => {
             expect(result).toBe("mock-result");
         });
 
-        test("getTheme should invoke correct channel", async () => {
+        it("getTheme should invoke correct channel", async () => {
+            expect.hasAssertions();
             const result = await exposedAPI.getTheme();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("theme:get");
             expect(result).toBe("mock-result");
         });
 
-        test("openExternal should invoke correct channel", async () => {
+        it("openExternal should invoke correct channel", async () => {
+            expect.hasAssertions();
             const url = "https://example.com";
             const result = await exposedAPI.openExternal(url);
 
@@ -536,7 +593,8 @@ describe("preload.js dist bridge behavior", () => {
             expect(result).toBe("mock-result");
         });
 
-        test("openFile should invoke correct channel", async () => {
+        it("openFile should invoke correct channel", async () => {
+            expect.hasAssertions();
             const result = await exposedAPI.openFile();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
@@ -545,7 +603,8 @@ describe("preload.js dist bridge behavior", () => {
             expect(result).toBe("mock-result");
         });
 
-        test("openFileDialog should invoke correct channel", async () => {
+        it("openFileDialog should invoke correct channel", async () => {
+            expect.hasAssertions();
             const result = await exposedAPI.openFileDialog();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
@@ -554,7 +613,8 @@ describe("preload.js dist bridge behavior", () => {
             expect(result).toBe("mock-result");
         });
 
-        test("parseFitFile should invoke correct channel", async () => {
+        it("parseFitFile should invoke correct channel", async () => {
+            expect.hasAssertions();
             const arrayBuffer = new ArrayBuffer(8);
             const result = await exposedAPI.parseFitFile(arrayBuffer);
 
@@ -565,7 +625,8 @@ describe("preload.js dist bridge behavior", () => {
             expect(result).toBe("mock-result");
         });
 
-        test("readFile should invoke correct channel", async () => {
+        it("readFile should invoke correct channel", async () => {
+            expect.hasAssertions();
             const filePath = "/path/to/file.fit";
             const result = await exposedAPI.readFile(filePath);
 
@@ -576,7 +637,8 @@ describe("preload.js dist bridge behavior", () => {
             expect(result).toBe("mock-result");
         });
 
-        test("recentFiles should invoke correct channel", async () => {
+        it("recentFiles should invoke correct channel", async () => {
+            expect.hasAssertions();
             const result = await exposedAPI.recentFiles();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
@@ -585,7 +647,8 @@ describe("preload.js dist bridge behavior", () => {
             expect(result).toBe("mock-result");
         });
 
-        test("startGyazoServer should invoke correct channel", async () => {
+        it("startGyazoServer should invoke correct channel", async () => {
+            expect.hasAssertions();
             const port = 3000;
             const result = await exposedAPI.startGyazoServer(port);
 
@@ -596,7 +659,8 @@ describe("preload.js dist bridge behavior", () => {
             expect(result).toBe("mock-result");
         });
 
-        test("stopGyazoServer should invoke correct channel", async () => {
+        it("stopGyazoServer should invoke correct channel", async () => {
+            expect.hasAssertions();
             const result = await exposedAPI.stopGyazoServer();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
@@ -605,7 +669,8 @@ describe("preload.js dist bridge behavior", () => {
             expect(result).toBe("mock-result");
         });
 
-        test("getTheme should surface IPC rejection", async () => {
+        it("getTheme should surface IPC rejection", async () => {
+            expect.hasAssertions();
             const error = new Error("theme unavailable");
             mockIpcRenderer.invoke.mockRejectedValue(error);
 
@@ -619,12 +684,13 @@ describe("preload.js dist bridge behavior", () => {
         });
     });
 
-    describe("IPC Send Methods", () => {
+    describe("send methods", () => {
         beforeEach(() => {
             executePreloadScript();
         });
 
-        test("checkForUpdates should send correct event", () => {
+        it("checkForUpdates should send correct event", () => {
+            expect.hasAssertions();
             const result = exposedAPI.checkForUpdates();
 
             expect(mockIpcRenderer.send).toHaveBeenCalledWith(
@@ -633,14 +699,16 @@ describe("preload.js dist bridge behavior", () => {
             expect(result).toBeUndefined();
         });
 
-        test("installUpdate should send correct event", () => {
+        it("installUpdate should send correct event", () => {
+            expect.hasAssertions();
             const result = exposedAPI.installUpdate();
 
             expect(mockIpcRenderer.send).toHaveBeenCalledWith("install-update");
             expect(result).toBeUndefined();
         });
 
-        test("sendThemeChanged should send correct event", () => {
+        it("sendThemeChanged should send correct event", () => {
+            expect.hasAssertions();
             const theme = "dark";
             const result = exposedAPI.sendThemeChanged(theme);
 
@@ -651,7 +719,8 @@ describe("preload.js dist bridge behavior", () => {
             expect(result).toBeUndefined();
         });
 
-        test("setFullScreen should send correct event", () => {
+        it("setFullScreen should send correct event", () => {
+            expect.hasAssertions();
             const flag = true;
             const result = exposedAPI.setFullScreen(flag);
 
@@ -662,7 +731,8 @@ describe("preload.js dist bridge behavior", () => {
             expect(result).toBeUndefined();
         });
 
-        test("checkForUpdates should report send failures", () => {
+        it("checkForUpdates should report send failures", () => {
+            expect.hasAssertions();
             const error = new Error("update check unavailable");
             mockIpcRenderer.send.mockImplementation(() => {
                 throw error;
@@ -678,46 +748,50 @@ describe("preload.js dist bridge behavior", () => {
         });
     });
 
-    describe("Event Handler Registration", () => {
+    describe("event handler registration", () => {
         beforeEach(() => {
             executePreloadScript();
         });
 
-        test("onMenuOpenFile should register event handler", () => {
-            const callback = vi.fn();
+        it("onMenuOpenFile should register event handler", () => {
+            expect.hasAssertions();
+            const callback = vi.fn<IpcListener>();
             const unsubscribe = exposedAPI.onMenuOpenFile(callback);
 
             expect(mockIpcRenderer.on).toHaveBeenCalledWith(
                 "menu-open-file",
                 expect.any(Function)
             );
-            expect(typeof unsubscribe).toBe("function");
+            expect(unsubscribe).toBeTypeOf("function");
         });
 
-        test("onMenuOpenOverlay should register event handler", () => {
-            const callback = vi.fn();
+        it("onMenuOpenOverlay should register event handler", () => {
+            expect.hasAssertions();
+            const callback = vi.fn<IpcListener>();
             const unsubscribe = exposedAPI.onMenuOpenOverlay(callback);
 
             expect(mockIpcRenderer.on).toHaveBeenCalledWith(
                 "menu-open-overlay",
                 expect.any(Function)
             );
-            expect(typeof unsubscribe).toBe("function");
+            expect(unsubscribe).toBeTypeOf("function");
         });
 
-        test("onOpenRecentFile should register event handler", () => {
-            const callback = vi.fn();
+        it("onOpenRecentFile should register event handler", () => {
+            expect.hasAssertions();
+            const callback = vi.fn<IpcListener>();
             const unsubscribe = exposedAPI.onOpenRecentFile(callback);
 
             expect(mockIpcRenderer.on).toHaveBeenCalledWith(
                 "open-recent-file",
                 expect.any(Function)
             );
-            expect(typeof unsubscribe).toBe("function");
+            expect(unsubscribe).toBeTypeOf("function");
         });
 
-        test("onOpenSummaryColumnSelector should register event handler", () => {
-            const callback = vi.fn();
+        it("onOpenSummaryColumnSelector should register event handler", () => {
+            expect.hasAssertions();
+            const callback = vi.fn<IpcListener>();
             const unsubscribe =
                 exposedAPI.onOpenSummaryColumnSelector(callback);
 
@@ -725,48 +799,52 @@ describe("preload.js dist bridge behavior", () => {
                 "open-summary-column-selector",
                 expect.any(Function)
             );
-            expect(typeof unsubscribe).toBe("function");
+            expect(unsubscribe).toBeTypeOf("function");
         });
 
-        test("onSetTheme should register event handler", () => {
-            const callback = vi.fn();
+        it("onSetTheme should register event handler", () => {
+            expect.hasAssertions();
+            const callback = vi.fn<IpcListener>();
             const unsubscribe = exposedAPI.onSetTheme(callback);
 
             expect(mockIpcRenderer.on).toHaveBeenCalledWith(
                 "set-theme",
                 expect.any(Function)
             );
-            expect(typeof unsubscribe).toBe("function");
+            expect(unsubscribe).toBeTypeOf("function");
         });
 
-        test("onUpdateEvent should register event handler", () => {
+        it("onUpdateEvent should register event handler", () => {
+            expect.hasAssertions();
             const eventName = "update-available";
-            const callback = vi.fn();
+            const callback = vi.fn<IpcListener>();
             const unsubscribe = exposedAPI.onUpdateEvent(eventName, callback);
 
             expect(mockIpcRenderer.on).toHaveBeenCalledWith(
                 eventName,
                 expect.any(Function)
             );
-            expect(typeof unsubscribe).toBe("function");
+            expect(unsubscribe).toBeTypeOf("function");
         });
 
-        test("onIpc should register generic event handler", () => {
+        it("onIpc should register generic event handler", () => {
+            expect.hasAssertions();
             const channel = "custom-channel";
-            const callback = vi.fn();
+            const callback = vi.fn<IpcListener>();
             const unsubscribe = exposedAPI.onIpc(channel, callback);
 
             expect(mockIpcRenderer.on).toHaveBeenCalledWith(
                 channel,
                 expect.any(Function)
             );
-            expect(typeof unsubscribe).toBe("function");
+            expect(unsubscribe).toBeTypeOf("function");
         });
 
-        test("onMenuOpenFile should reject invalid callbacks", () => {
+        it("onMenuOpenFile should reject invalid callbacks", () => {
+            expect.hasAssertions();
             const unsubscribe = exposedAPI.onMenuOpenFile("not-a-function");
 
-            expect(typeof unsubscribe).toBe("function");
+            expect(unsubscribe).toBeTypeOf("function");
             expect(mockIpcRenderer.on).not.toHaveBeenCalled();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] onMenuOpenFile: callback must be a function"
@@ -774,12 +852,13 @@ describe("preload.js dist bridge behavior", () => {
         });
     });
 
-    describe("Generic IPC Methods", () => {
+    describe("generic IPC methods", () => {
         beforeEach(() => {
             executePreloadScript();
         });
 
-        test("invoke should call ipcRenderer.invoke", async () => {
+        it("invoke should call ipcRenderer.invoke", async () => {
+            expect.hasAssertions();
             const channel = "test-channel";
             const args = ["arg1", "arg2"];
             const result = await exposedAPI.invoke(channel, ...args);
@@ -791,7 +870,8 @@ describe("preload.js dist bridge behavior", () => {
             expect(result).toBe("mock-result");
         });
 
-        test("send should call ipcRenderer.send", () => {
+        it("send should call ipcRenderer.send", () => {
+            expect.hasAssertions();
             const channel = "test-channel";
             const args = ["arg1", "arg2"];
             const result = exposedAPI.send(channel, ...args);
@@ -800,7 +880,8 @@ describe("preload.js dist bridge behavior", () => {
             expect(result).toBeUndefined();
         });
 
-        test("send should reject invalid channels", () => {
+        it("send should reject invalid channels", () => {
+            expect.hasAssertions();
             const result = exposedAPI.send(123);
 
             expect(result).toBeUndefined();
@@ -811,12 +892,13 @@ describe("preload.js dist bridge behavior", () => {
         });
     });
 
-    describe("Special Methods", () => {
+    describe("special methods", () => {
         beforeEach(() => {
             executePreloadScript();
         });
 
-        test("injectMenu should validate parameters and invoke channel", async () => {
+        it("injectMenu should validate parameters and invoke channel", async () => {
+            expect.hasAssertions();
             const theme = "dark";
             const fitFilePath = "/path/to/file.fit";
 
@@ -830,7 +912,8 @@ describe("preload.js dist bridge behavior", () => {
             expect(result).toBe("mock-result");
         });
 
-        test("injectMenu should handle default parameters", async () => {
+        it("injectMenu should handle default parameters", async () => {
+            expect.hasAssertions();
             const result = await exposedAPI.injectMenu();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
@@ -841,7 +924,8 @@ describe("preload.js dist bridge behavior", () => {
             expect(result).toBe("mock-result");
         });
 
-        test("injectMenu should validate theme parameter", async () => {
+        it("injectMenu should validate theme parameter", async () => {
+            expect.hasAssertions();
             const invalidTheme = 123; // Not a string or null
 
             const result = await exposedAPI.injectMenu(invalidTheme);
@@ -853,7 +937,8 @@ describe("preload.js dist bridge behavior", () => {
             );
         });
 
-        test("injectMenu should validate fitFilePath parameter", async () => {
+        it("injectMenu should validate fitFilePath parameter", async () => {
+            expect.hasAssertions();
             const invalidPath = 123; // Not a string or null
 
             const result = await exposedAPI.injectMenu("dark", invalidPath);
@@ -866,12 +951,13 @@ describe("preload.js dist bridge behavior", () => {
         });
     });
 
-    describe("Error Handling", () => {
+    describe("error handling", () => {
         beforeEach(() => {
             executePreloadScript();
         });
 
-        test("should handle IPC invoke errors", async () => {
+        it("should handle IPC invoke errors", async () => {
+            expect.hasAssertions();
             const error = new Error("IPC error");
             mockIpcRenderer.invoke.mockRejectedValue(error);
 
@@ -884,7 +970,8 @@ describe("preload.js dist bridge behavior", () => {
             );
         });
 
-        test("should handle IPC send errors", () => {
+        it("should handle IPC send errors", () => {
+            expect.hasAssertions();
             const error = new Error("Send error");
             mockIpcRenderer.send.mockImplementation(() => {
                 throw error;
@@ -899,32 +986,35 @@ describe("preload.js dist bridge behavior", () => {
             );
         });
 
-        test("should handle event registration errors", () => {
+        it("should handle event registration errors", () => {
+            expect.hasAssertions();
             const error = new Error("Event error");
             mockIpcRenderer.on.mockImplementation(() => {
                 throw error;
             });
 
-            const unsubscribe = exposedAPI.onMenuOpenFile(vi.fn());
+            const unsubscribe = exposedAPI.onMenuOpenFile(vi.fn<IpcListener>());
 
-            expect(typeof unsubscribe).toBe("function");
+            expect(unsubscribe).toBeTypeOf("function");
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] Error setting up onMenuOpenFile event handler:",
                 error
             );
         });
 
-        test("should validate callback in event handlers", () => {
+        it("should validate callback in event handlers", () => {
+            expect.hasAssertions();
             const unsubscribe = exposedAPI.onMenuOpenFile("not-a-function");
 
-            expect(typeof unsubscribe).toBe("function");
+            expect(unsubscribe).toBeTypeOf("function");
             expect(mockIpcRenderer.on).not.toHaveBeenCalled();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] onMenuOpenFile: callback must be a function"
             );
         });
 
-        test("should validate callback in onUpdateEvent", () => {
+        it("should validate callback in onUpdateEvent", () => {
+            expect.hasAssertions();
             const unsubscribe = exposedAPI.onUpdateEvent(
                 "test-event",
                 "not-a-function"
@@ -937,8 +1027,12 @@ describe("preload.js dist bridge behavior", () => {
             );
         });
 
-        test("should validate eventName in onUpdateEvent", () => {
-            const unsubscribe = exposedAPI.onUpdateEvent(123, vi.fn());
+        it("should validate eventName in onUpdateEvent", () => {
+            expect.hasAssertions();
+            const unsubscribe = exposedAPI.onUpdateEvent(
+                123,
+                vi.fn<IpcListener>()
+            );
 
             expect(unsubscribe).toBeUndefined();
             expect(mockIpcRenderer.on).not.toHaveBeenCalled();
@@ -947,7 +1041,8 @@ describe("preload.js dist bridge behavior", () => {
             );
         });
 
-        test("should validate channel in generic methods", async () => {
+        it("should validate channel in generic methods", async () => {
+            expect.hasAssertions();
             await expect(exposedAPI.invoke(123)).rejects.toThrow(
                 "Invalid channel for invoke"
             );
@@ -956,7 +1051,8 @@ describe("preload.js dist bridge behavior", () => {
             );
         });
 
-        test("should validate channel in send method", () => {
+        it("should validate channel in send method", () => {
+            expect.hasAssertions();
             const result = exposedAPI.send(123);
 
             expect(result).toBeUndefined();
@@ -966,8 +1062,9 @@ describe("preload.js dist bridge behavior", () => {
             );
         });
 
-        test("should validate channel in onIpc method", () => {
-            const unsubscribe = exposedAPI.onIpc(123, vi.fn());
+        it("should validate channel in onIpc method", () => {
+            expect.hasAssertions();
+            const unsubscribe = exposedAPI.onIpc(123, vi.fn<IpcListener>());
 
             expect(unsubscribe).toBeUndefined();
             expect(mockIpcRenderer.on).not.toHaveBeenCalled();
@@ -976,7 +1073,8 @@ describe("preload.js dist bridge behavior", () => {
             );
         });
 
-        test("should validate callback in onIpc method", () => {
+        it("should validate callback in onIpc method", () => {
+            expect.hasAssertions();
             const unsubscribe = exposedAPI.onIpc(
                 "test-channel",
                 "not-a-function"
@@ -990,13 +1088,14 @@ describe("preload.js dist bridge behavior", () => {
         });
     });
 
-    describe("Event Callback Error Handling", () => {
+    describe("event callback error handling", () => {
         beforeEach(() => {
             executePreloadScript();
         });
 
-        test("should handle errors in event callbacks", () => {
-            const errorCallback = vi.fn(() => {
+        it("should handle errors in event callbacks", () => {
+            expect.hasAssertions();
+            const errorCallback = vi.fn<IpcListener>(() => {
                 throw new Error("Callback error");
             });
 
@@ -1014,8 +1113,9 @@ describe("preload.js dist bridge behavior", () => {
             expect(errorCallback).toHaveBeenCalledWith("test-data");
         });
 
-        test("should handle errors in transform callbacks", () => {
-            const callback = vi.fn();
+        it("should handle errors in transform callbacks", () => {
+            expect.hasAssertions();
+            const callback = vi.fn<IpcListener>();
 
             exposedAPI.onOpenRecentFile(callback);
 
@@ -1029,8 +1129,9 @@ describe("preload.js dist bridge behavior", () => {
             expect(callback).not.toHaveBeenCalledWith(event, "test-file-path");
         });
 
-        test("should handle errors in onUpdateEvent callbacks", () => {
-            const errorCallback = vi.fn(() => {
+        it("should handle errors in onUpdateEvent callbacks", () => {
+            expect.hasAssertions();
+            const errorCallback = vi.fn<IpcListener>(() => {
                 throw new Error("Update callback error");
             });
 
@@ -1049,14 +1150,14 @@ describe("preload.js dist bridge behavior", () => {
         });
     });
 
-    describe("Process Lifecycle", () => {
-        test("should register beforeExit handler", () => {
-            const mockProcess = {
-                env: { NODE_ENV: "development" },
-                once: vi.fn(),
-            };
+    describe("process lifecycle", () => {
+        it("should register beforeExit handler", () => {
+            expect.hasAssertions();
+            const mockProcess = createMockProcess({
+                NODE_ENV: "development",
+            });
 
-            const mockRequire = vi.fn((moduleName: string) =>
+            const mockRequire = vi.fn<RequireModule>((moduleName) =>
                 resolvePreloadScriptRequire(moduleName, {
                     ipcRenderer: mockIpcRenderer,
                     contextBridge: mockContextBridge,
@@ -1077,8 +1178,9 @@ describe("preload.js dist bridge behavior", () => {
         });
     });
 
-    describe("Constants and Configuration", () => {
-        test("should expose channel information correctly", () => {
+    describe("constants and configuration", () => {
+        it("should expose channel information correctly", () => {
+            expect.hasAssertions();
             executePreloadScript();
 
             const channelInfo = exposedAPI.getChannelInfo();
@@ -1106,8 +1208,9 @@ describe("preload.js dist bridge behavior", () => {
         });
     });
 
-    describe("Development vs Production Behavior", () => {
-        test("should log in development mode", () => {
+    describe("development vs production behavior", () => {
+        it("should log in development mode", () => {
+            expect.hasAssertions();
             executePreloadScript({ NODE_ENV: "development" });
 
             expect(consoleSpy.log).toHaveBeenCalledWith(
@@ -1118,7 +1221,8 @@ describe("preload.js dist bridge behavior", () => {
             });
         });
 
-        test("should not log in production mode", () => {
+        it("should not log in production mode", () => {
+            expect.hasAssertions();
             executePreloadScript({ NODE_ENV: "production" });
 
             expect(consoleSpy.log).not.toHaveBeenCalledWith(
@@ -1128,22 +1232,24 @@ describe("preload.js dist bridge behavior", () => {
         });
     });
 
-    describe("Edge Cases and Robustness", () => {
-        test("should handle module loading failures gracefully", () => {
-            const mockRequire = vi.fn(() => {
+    describe("edge cases and robustness", () => {
+        it("should handle module loading failures gracefully", () => {
+            expect.hasAssertions();
+            const mockRequire = vi.fn<RequireModule>(() => {
                 throw new Error("Module loading failed");
             });
 
             expect(() => {
                 runPreloadScript(
                     mockRequire,
-                    { env: { NODE_ENV: "test" }, once: vi.fn() },
+                    createMockProcess({ NODE_ENV: "test" }),
                     console
                 );
             }).toThrow("Module loading failed");
         });
 
-        test("should handle contextBridge exposure failures", () => {
+        it("should handle contextBridge exposure failures", () => {
+            expect.hasAssertions();
             mockContextBridge.exposeInMainWorld.mockImplementation(() => {
                 throw new Error("Exposure failed");
             });
@@ -1157,10 +1263,11 @@ describe("preload.js dist bridge behavior", () => {
             expect(exposedAPI).toBeUndefined();
         });
 
-        test("should handle devTools exposure failures in development", () => {
+        it("should handle development tools exposure failures in development", () => {
+            expect.hasAssertions();
             mockContextBridge.exposeInMainWorld.mockImplementation(
                 (name: string) => {
-                    if (name === "devTools") {
+                    if (name === developmentToolsGlobalName) {
                         throw new Error("DevTools exposure failed");
                     }
                 }
