@@ -27,19 +27,6 @@
         },
         {
             "args": [
-                "test",
-                "--",
-                "electron-app/tests/unit/utils/data/processing/estimateCyclingPower.highAltitude.test.ts"
-            ],
-            "command": "npm",
-            "group": "test",
-            "isBackground": false,
-            "label": "test high altitude from root",
-            "problemMatcher": [],
-            "type": "shell"
-        },
-        {
-            "args": [
                 "run",
                 "lint:electron-app"
             ],
