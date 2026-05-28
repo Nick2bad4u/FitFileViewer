@@ -82,7 +82,7 @@ describe("preload.js source execution", () => {
         it("should execute preload.js and expose electronAPI in development mode", async () => {
             process.env.NODE_ENV = "development";
 
-            await import("../../preload.js");
+            await import("../../electron-app/preload.js");
 
             expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalled();
 
@@ -157,7 +157,7 @@ describe("preload.js source execution", () => {
             process.env.NODE_ENV = "development";
 
             // Import preload.js so mocks are honored
-            await import("../../preload.js");
+            await import("../../electron-app/preload.js");
 
             // Get the exposed electronAPI from the mock call
             const exposeMainWorldCalls =
@@ -207,7 +207,7 @@ describe("preload.js source execution", () => {
             // Mock successful IPC response
             mockIpcRenderer.invoke.mockResolvedValue("test-result");
 
-            await import("../../preload.js");
+            await import("../../electron-app/preload.js");
 
             const exposeMainWorldCalls =
                 mockContextBridge.exposeInMainWorld.mock.calls;
@@ -230,7 +230,7 @@ describe("preload.js source execution", () => {
             // Set production mode
             process.env.NODE_ENV = "production";
 
-            await import("../../preload.js");
+            await import("../../electron-app/preload.js");
 
             // Verify electronAPI was exposed
             const electronAPICall =

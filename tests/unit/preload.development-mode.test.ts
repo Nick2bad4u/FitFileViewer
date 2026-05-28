@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { ElectronAPI } from "../../shared/preloadApi";
+import type { ElectronAPI } from "../../electron-app/shared/preloadApi";
 
 type ConsoleCall = unknown[];
 type ExposedElectronAPI = Pick<
@@ -68,7 +68,8 @@ describe("preload.js - Development mode coverage", () => {
         Reflect.deleteProperty(globalThis, "__electronHoistedMock");
         process.env.NODE_ENV = originalNodeEnv;
         // restore globals if they existed
-        if (originalElectronAPI) setGlobalValue("electronAPI", originalElectronAPI);
+        if (originalElectronAPI)
+            setGlobalValue("electronAPI", originalElectronAPI);
         if (originalDevTools) setGlobalValue("devTools", originalDevTools);
     });
 
@@ -119,7 +120,7 @@ describe("preload.js - Development mode coverage", () => {
             ipcRenderer,
         };
         Reflect.set(globalThis, "__electronHoistedMock", electronMock);
-        await import("../../preload.js");
+        await import("../../electron-app/preload.js");
 
         // electronAPI should be exposed
         const api = getExposedElectronAPI();

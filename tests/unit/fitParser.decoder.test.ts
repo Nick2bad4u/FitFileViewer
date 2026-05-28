@@ -4,12 +4,12 @@ import type {
     DecoderOptions,
     FitFieldValue,
     FitMessages,
-} from "../../shared/fit";
+} from "../../electron-app/shared/fit";
 import type {
     FitParserModule,
     SettingsStateManager,
-} from "../../shared/fitParser";
-import type { FitSdkStream } from "../../shared/fitSdk";
+} from "../../electron-app/shared/fitParser";
+import type { FitSdkStream } from "../../electron-app/shared/fitSdk";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { Buffer } from "node:buffer";
 
@@ -114,7 +114,7 @@ describe("fitParser.js decoder behavior", () => {
 
         // Import the module after setting up mocks
         fitParser =
-            (await import("../../fitParser.js")) as unknown as FitParserModule;
+            (await import("../../electron-app/fitParser.js")) as unknown as FitParserModule;
     });
 
     afterEach(() => {

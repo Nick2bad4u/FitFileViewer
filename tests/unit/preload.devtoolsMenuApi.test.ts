@@ -6,7 +6,7 @@ import type {
     DevtoolsInjectMenuFitFilePath,
     DevtoolsInjectMenuTheme,
     DevtoolsInvokeChannel,
-} from "../../shared/ipc";
+} from "../../electron-app/shared/ipc";
 
 interface DevtoolsMenuApiModule {
     createDevtoolsMenuApi: (options: Record<string, unknown>) => {
@@ -19,7 +19,7 @@ interface DevtoolsMenuApiModule {
 
 const requireFromTest = createRequire(import.meta.url);
 const { createDevtoolsMenuApi } = requireFromTest(
-    "../../preload/devtoolsMenuApi.js"
+    "../../electron-app/preload/devtoolsMenuApi.js"
 ) as DevtoolsMenuApiModule;
 
 function createApi() {
@@ -86,11 +86,7 @@ describe("preload devtools menu API", () => {
         const result = await api.injectMenu();
 
         expect(result ? "injected" : "skipped").toBe("injected");
-        expect(invoke).toHaveBeenCalledWith(
-            "devtools-inject-menu",
-            null,
-            null
-        );
+        expect(invoke).toHaveBeenCalledWith("devtools-inject-menu", null, null);
     });
 
     it("rejects invalid values before invoking IPC", async () => {
@@ -125,6 +121,10 @@ describe("preload devtools menu API", () => {
             "[preload.js] Error in injectMenu:",
             expect.any(Error)
         );
-        expect(invoke).toHaveBeenCalledWith("devtools-inject-menu", "dark", null);
+        expect(invoke).toHaveBeenCalledWith(
+            "devtools-inject-menu",
+            "dark",
+            null
+        );
     });
 });

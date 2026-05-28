@@ -4,7 +4,7 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 import { readFileSync } from "fs";
 import { join } from "path";
-import { resolvePreloadScriptRequire } from "../../../tests/vitest/helpers/preloadModuleMocks";
+import { resolvePreloadScriptRequire } from "../vitest/helpers/preloadModuleMocks";
 
 interface ChannelInfo {
     channels: Record<string, unknown>;
@@ -108,7 +108,7 @@ describe("preload.js dist API methods", () => {
         };
 
         preloadCode = readFileSync(
-            join(__dirname, "../../dist/preload.js"),
+            join(__dirname, "../../electron-app/dist/preload.js"),
             "utf-8"
         );
     });

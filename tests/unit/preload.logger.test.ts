@@ -16,7 +16,7 @@ interface PreloadLoggerModule {
 
 const requireFromTest = createRequire(import.meta.url);
 const { createPreloadLogger } = requireFromTest(
-    "../../preload/logger.js"
+    "../../electron-app/preload/logger.js"
 ) as PreloadLoggerModule;
 
 describe("preload logger", () => {

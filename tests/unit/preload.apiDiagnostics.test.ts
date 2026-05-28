@@ -39,7 +39,7 @@ interface ApiDiagnosticsModule {
 
 const requireFromTest = createRequire(import.meta.url);
 const { createApiDiagnostics } = requireFromTest(
-    "../../preload/apiDiagnostics.js"
+    "../../electron-app/preload/apiDiagnostics.js"
 ) as ApiDiagnosticsModule;
 
 function createDiagnostics({

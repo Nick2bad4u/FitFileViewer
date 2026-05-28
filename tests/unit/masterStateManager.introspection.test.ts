@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { masterStateManager } from "../../utils/state/core/masterStateManager.js";
+import { masterStateManager } from "../../electron-app/utils/state/core/masterStateManager.js";
 import {
     setState,
     subscribe,
     resetState,
-} from "../../utils/state/core/stateManager.js";
+} from "../../electron-app/utils/state/core/stateManager.js";
 
 interface SubscriptionSnapshot {
     paths: string[];

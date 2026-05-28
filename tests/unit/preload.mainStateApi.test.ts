@@ -7,7 +7,7 @@ import type {
     MainStateListener,
     MainStateSetOptions,
     MainStateSetValue,
-} from "../../shared/ipc";
+} from "../../electron-app/shared/ipc";
 
 interface MainStateApiModule {
     createMainStateApi: (options: Record<string, unknown>) => {
@@ -38,7 +38,7 @@ interface MainStateApiModule {
 
 const requireFromTest = createRequire(import.meta.url);
 const { createMainStateApi } = requireFromTest(
-    "../../preload/mainStateApi.js"
+    "../../electron-app/preload/mainStateApi.js"
 ) as MainStateApiModule;
 
 function createApi() {

@@ -9,7 +9,7 @@ import type {
     IpcResponsePayload,
     RendererIpcEventChannel,
     UpdateEventName,
-} from "../../shared/ipc";
+} from "../../electron-app/shared/ipc";
 
 interface IpcRendererMock {
     invoke: ReturnType<
@@ -39,22 +39,22 @@ interface GenericIpcApiModule {
         notifyFitFileLoaded: (filePath: null | string) => void;
         onIpc: (
             channel: RendererIpcEventChannel,
-            callback: (
-                event: object,
-                ...args: IpcResponsePayload[]
-            ) => unknown
+            callback: (event: object, ...args: IpcResponsePayload[]) => unknown
         ) => (() => void) | undefined;
         onUpdateEvent: (
             eventName: UpdateEventName,
             callback: (...args: IpcResponsePayload[]) => unknown
         ) => (() => void) | undefined;
-        send: (channel: GenericSendChannel, ...args: IpcRequestPayload[]) => void;
+        send: (
+            channel: GenericSendChannel,
+            ...args: IpcRequestPayload[]
+        ) => void;
     };
 }
 
 const requireFromTest = createRequire(import.meta.url);
 const { createGenericIpcApi } = requireFromTest(
-    "../../preload/genericIpcApi.js"
+    "../../electron-app/preload/genericIpcApi.js"
 ) as GenericIpcApiModule;
 
 function createIpcMock(): IpcRendererMock {
@@ -90,10 +90,7 @@ function createApi({
         vi.fn<
             (
                 channel: string,
-                handler: (
-                    event: object,
-                    ...args: IpcResponsePayload[]
-                ) => void
+                handler: (event: object, ...args: IpcResponsePayload[]) => void
             ) => void
         >();
 

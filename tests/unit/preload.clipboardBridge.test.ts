@@ -6,7 +6,7 @@ import type {
     ClipboardInvokeChannel,
     ClipboardRequestPayload,
     ClipboardResponsePayload,
-} from "../../shared/ipc";
+} from "../../electron-app/shared/ipc";
 
 interface ClipboardBridgeModule {
     createClipboardBridge: (options: {
@@ -43,7 +43,7 @@ interface ClipboardBridgeModule {
 
 const requireFromTest = createRequire(import.meta.url);
 const { createClipboardBridge } = requireFromTest(
-    "../../preload/clipboardBridge.js"
+    "../../electron-app/preload/clipboardBridge.js"
 ) as ClipboardBridgeModule;
 
 function createBridge() {

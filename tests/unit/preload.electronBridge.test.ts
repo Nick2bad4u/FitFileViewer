@@ -14,7 +14,7 @@ interface PreloadElectronBridgeModule {
 
 const requireFromTest = createRequire(import.meta.url);
 const { resolvePreloadElectronBridge } = requireFromTest(
-    "../../preload/electronBridge.js"
+    "../../electron-app/preload/electronBridge.js"
 ) as PreloadElectronBridgeModule;
 
 describe("preload electron bridge resolver", () => {
@@ -34,9 +34,7 @@ describe("preload electron bridge resolver", () => {
             ipcRenderer,
         }));
 
-        expect(
-            resolvePreloadElectronBridge({ requireModule })
-        ).toStrictEqual({
+        expect(resolvePreloadElectronBridge({ requireModule })).toStrictEqual({
             contextBridge,
             ipcRenderer,
         });
@@ -59,7 +57,9 @@ describe("preload electron bridge resolver", () => {
 
         expect(
             resolvePreloadElectronBridge({
-                requireModule: () => ({ default: { contextBridge, ipcRenderer } }),
+                requireModule: () => ({
+                    default: { contextBridge, ipcRenderer },
+                }),
             })
         ).toStrictEqual({
             contextBridge,

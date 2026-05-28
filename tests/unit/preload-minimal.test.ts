@@ -121,7 +121,7 @@ describe("preload.js - Basic API Validation", () => {
 
         console.log("[TEST] About to import preload script...");
 
-        await import("../../preload.js");
+        await import("../../electron-app/preload.js");
 
         console.log("[TEST] Preload script imported successfully");
         console.log(

@@ -127,7 +127,7 @@ describe("windowStateUtils persistence behavior", () => {
     });
 
     it("getWindowState returns defaults when file missing", async () => {
-        const mod = await import("../../windowStateUtils.js");
+        const mod = await import("../../electron-app/windowStateUtils.js");
         const state = mod.getWindowState();
         expect(state.width).toBe(defaultState.width);
         expect(state.height).toBe(defaultState.height);
@@ -161,7 +161,7 @@ describe("windowStateUtils persistence behavior", () => {
         };
         vi.doMock("electron", () => electron2);
 
-        const mod = await import("../../windowStateUtils.js");
+        const mod = await import("../../electron-app/windowStateUtils.js");
         const state = mod.getWindowState();
         expect(state.width).toBeGreaterThanOrEqual(800); // minWidth applied
         expect(state.height).toBeGreaterThanOrEqual(600); // minHeight applied
@@ -171,7 +171,7 @@ describe("windowStateUtils persistence behavior", () => {
     });
 
     it("saveWindowState persists sanitized bounds", async () => {
-        const mod = await import("../../windowStateUtils.js");
+        const mod = await import("../../electron-app/windowStateUtils.js");
         // Pass a stub window directly to avoid constructor path
         const win = {
             isDestroyed: () => false,
@@ -191,7 +191,7 @@ describe("windowStateUtils persistence behavior", () => {
     });
 
     it("createWindow attempts BrowserWindow construction (may throw in tests)", async () => {
-        const mod = await import("../../windowStateUtils.js");
+        const mod = await import("../../electron-app/windowStateUtils.js");
         expect(() => mod.createWindow()).toThrow(
             "BrowserWindow is not a constructor"
         );
@@ -200,7 +200,7 @@ describe("windowStateUtils persistence behavior", () => {
     it("devHelpers are exposed only in development", async () => {
         process.env.NODE_ENV = "development";
         try {
-            const mod = await import("../../windowStateUtils.js");
+            const mod = await import("../../electron-app/windowStateUtils.js");
 
             expect(mod.devHelpers).toEqual({
                 getConfig: expect.any(Function),

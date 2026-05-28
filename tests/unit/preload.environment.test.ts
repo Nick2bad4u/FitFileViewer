@@ -19,7 +19,7 @@ interface PreloadEnvironmentModule {
 
 const requireFromTest = createRequire(import.meta.url);
 const preloadEnvironment = requireFromTest(
-    "../../preload/environment.js"
+    "../../electron-app/preload/environment.js"
 ) as PreloadEnvironmentModule;
 
 describe("preload environment helpers", () => {

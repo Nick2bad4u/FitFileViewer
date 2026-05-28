@@ -39,7 +39,7 @@ describe("preload edge cases", () => {
 
     async function importPreloadWithMock(electronBridge: unknown) {
         Reflect.set(globalThis, "__electronHoistedMock", electronBridge);
-        await import("../../preload.js");
+        await import("../../electron-app/preload.js");
     }
 
     beforeEach(() => {

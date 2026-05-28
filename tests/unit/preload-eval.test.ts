@@ -58,7 +58,7 @@ describe("preload.js - Script Evaluation Test", () => {
 
         process.env.NODE_ENV = "development";
         Reflect.set(globalThis, "__electronHoistedMock", electronMock);
-        await import("../../preload.js");
+        await import("../../electron-app/preload.js");
     });
 
     afterEach(() => {

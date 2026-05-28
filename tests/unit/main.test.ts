@@ -198,17 +198,17 @@ vi.mock("node:util", () => ({
 }));
 
 // Mock mainProcessState
-vi.mock("../../../utils/state/mainProcessState.js", () => ({
+vi.mock("../../electron-app/utils/state/mainProcessState.js", () => ({
     default: mockMainProcessState,
 }));
 
 // Mock fitParser
-vi.mock("../../fitParser.js", () => ({
+vi.mock("../../electron-app/fitParser.js", () => ({
     default: mockFitParser,
 }));
 
 // Mock all utility modules
-vi.mock("../../../utils/files/recentFiles.js", () => ({
+vi.mock("../../electron-app/utils/files/recentFiles.js", () => ({
     default: {
         get: vi.fn(() => []),
         add: vi.fn(),
@@ -278,7 +278,8 @@ type TestGlobals = typeof globalThis & {
 const testGlobals = globalThis as TestGlobals;
 
 async function importMainModule(): Promise<MainModule> {
-    const imported = (await import("../../main.js")) as unknown as MainImport;
+    const imported =
+        (await import("../../electron-app/main.js")) as unknown as MainImport;
     return imported.default;
 }
 
@@ -398,7 +399,7 @@ describe("main.js - Electron Main Process", () => {
         delete testGlobals.__ffvGyazoStartupTimer;
 
         // Clear the main module from cache to reset its state
-        const mainPath = require.resolve("../../main.js");
+        const mainPath = require.resolve("../../electron-app/main.js");
         if (require.cache[mainPath]) {
             delete require.cache[mainPath];
         }

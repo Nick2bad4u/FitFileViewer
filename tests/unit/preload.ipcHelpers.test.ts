@@ -62,7 +62,7 @@ interface PreloadIpcHelpersModule {
 
 const requireFromTest = createRequire(import.meta.url);
 const { createPreloadIpcHelpers } = requireFromTest(
-    "../../preload/ipcHelpers.js"
+    "../../electron-app/preload/ipcHelpers.js"
 ) as PreloadIpcHelpersModule;
 
 function createIpcRendererMock(): IpcRendererMock {

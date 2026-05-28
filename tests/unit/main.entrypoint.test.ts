@@ -454,7 +454,8 @@ async function importMainWithEnvironment(
     process.env.NODE_ENV = nodeEnvironment;
     Reflect.set(globalThis, "__electronHoistedMock", harness.electronModule);
 
-    const mainModule = (await import("../../main.js")) as MainExports;
+    const mainModule =
+        (await import("../../electron-app/main.js")) as MainExports;
     await settleStartup();
 
     return mainModule;
