@@ -5,9 +5,12 @@ import {
     getMetricDefinition,
     MAP_FILTER_METRICS,
 } from "../../../../electron-app/utils/maps/filters/mapMetricFilter.js";
+import type { MetricRecord } from "../../../../electron-app/utils/maps/filters/mapMetricFilter.js";
 
-describe("createMetricFilter", () => {
+describe(createMetricFilter, () => {
     it("returns inactive result when disabled", () => {
+        expect.hasAssertions();
+
         const records = [{ speed: 10 }, { speed: 20 }];
         const result = createMetricFilter(records, {
             enabled: false,
@@ -19,6 +22,8 @@ describe("createMetricFilter", () => {
     });
 
     it("selects the correct number of entries for the requested percentile", () => {
+        expect.hasAssertions();
+
         const records = [
             { speed: 1 },
             { speed: 5 },
@@ -39,6 +44,8 @@ describe("createMetricFilter", () => {
     });
 
     it("supports custom value extractors for derived datasets", () => {
+        expect.hasAssertions();
+
         const metric = getMetricDefinition("speed");
         expect(metric).toMatchObject({
             key: "speed",
@@ -80,7 +87,7 @@ describe("createMetricFilter", () => {
             ],
         ];
         const result = createMetricFilter(
-            coords as unknown as any[],
+            coords as unknown as MetricRecord[],
             { enabled: true, metric: "speed", percent: 50 },
             {
                 valueExtractor: (coord: unknown) => {
@@ -97,6 +104,8 @@ describe("createMetricFilter", () => {
     });
 
     it("returns a reason when metric data is missing", () => {
+        expect.hasAssertions();
+
         const records = [{ cadence: undefined }, { cadence: undefined }];
         const result = createMetricFilter(records, {
             enabled: true,
@@ -108,8 +117,10 @@ describe("createMetricFilter", () => {
     });
 });
 
-describe("MAP_FILTER_METRICS", () => {
+describe("map filter metrics", () => {
     it("exposes a speed metric by default", () => {
+        expect.hasAssertions();
+
         const metricKeys = MAP_FILTER_METRICS.map((metric) => metric.key);
         expect(metricKeys).toContain("speed");
         expect(metricKeys).not.toContain("__missing_metric__");
@@ -118,6 +129,8 @@ describe("MAP_FILTER_METRICS", () => {
 
 describe("createMetricFilter range mode", () => {
     it("selects entries within the requested value range", () => {
+        expect.hasAssertions();
+
         const records = [
             { speed: 2 },
             { speed: 4 },
@@ -140,6 +153,8 @@ describe("createMetricFilter range mode", () => {
     });
 
     it("returns a reason when the range excludes all data", () => {
+        expect.hasAssertions();
+
         const records = [{ power: 100 }, { power: 150 }];
         const result = createMetricFilter(records, {
             enabled: true,
@@ -154,8 +169,10 @@ describe("createMetricFilter range mode", () => {
     });
 });
 
-describe("computeMetricStatistics", () => {
+describe(computeMetricStatistics, () => {
     it("computes bounds and averages for a metric", () => {
+        expect.hasAssertions();
+
         const stats = computeMetricStatistics(
             [
                 { speed: 1.5 },
@@ -179,6 +196,8 @@ describe("computeMetricStatistics", () => {
     });
 
     it("returns null for an unknown metric", () => {
+        expect.hasAssertions();
+
         const stats = computeMetricStatistics([{ speed: 1.5 }], "unknown");
         expect(stats).toEqual(null);
     });
