@@ -15,14 +15,11 @@ FitFileViewer uses root-owned Vitest and Playwright tooling for test coverage.
 ```text
 tests/
 ├── unit/              # Root-owned unit tests for tooling, runtime, rendering, maps, charts, and shared UI behavior
+│   └── strictTests/   # Browser-oriented strict regression tests
 ├── integration/       # Root-owned Vitest integration tests
 ├── fixtures/          # Reusable Vitest fixtures
 ├── playwright/        # Electron Playwright smoke tests
 └── vitest/            # Shared Vitest setup, shims, and stubs
-
-electron-app/tests/
-├── unit/              # Remaining app-coupled unit tests during migration
-└── strictTests/       # Browser-oriented strict regression tests
 ```
 
 ## Running Tests

@@ -50,44 +50,26 @@ npm run build:all
 
 ## Build Configuration
 
-### electron-builder.json
+### Root Builder Config
 
-```json
-{
- "appId": "io.github.nick2bad4u.fitfileviewer",
- "productName": "Fit File Viewer",
- "files": ["**/*", "!tests/**"],
- "win": {
-  "target": ["nsis", "portable", "msi"],
-  "icon": "icons/favicon.ico"
- },
- "mac": {
-  "target": ["dmg", "pkg"],
-  "icon": "icons/favicon.icns"
- },
- "linux": {
-  "target": ["AppImage", "deb", "rpm"],
-  "icon": "icons/favicon.png"
- }
-}
-```
+Packaging is configured from the repository root:
 
-### package.json Build Settings
+- `electron-builder.config.cjs` owns Electron Builder targets, artifact names,
+  publish settings, and platform options.
+- `electron-builder.files.json` keeps packaged files limited to runtime output
+  and app package metadata.
+- `electron-app/package.json` remains the app package manifest for version,
+  runtime dependencies, exports, and publish metadata.
 
-```json
-{
- "build": {
-  "appId": "io.github.nick2bad4u.fitfileviewer",
-  "artifactName": "Fit-File-Viewer-${platform}-${arch}-${version}.${ext}",
-  "publish": [
-   {
-    "provider": "github",
-    "owner": "Nick2bad4u",
-    "repo": "FitFileViewer"
-   }
-  ]
- }
-}
+```javascript
+// electron-builder.config.cjs
+module.exports = {
+ appId: appPackage.appid,
+ productName: appPackage.productName,
+ files: appPackageFiles,
+ artifactName: "Fit-File-Viewer-${platform}-${arch}-${version}.${ext}",
+ publish: [{ provider: "github", owner: "Nick2bad4u", repo: "FitFileViewer" }],
+};
 ```
 
 ## Output Formats
@@ -149,8 +131,8 @@ jobs:
 ### 1. Update Version
 
 ```bash
-# Update version in package.json
-npm version patch  # or minor, major
+# Update the Electron app version
+npm run release:bump-version
 ```
 
 ### 2. Update Changelog

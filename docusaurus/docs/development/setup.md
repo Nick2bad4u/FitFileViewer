@@ -87,17 +87,25 @@ This will:
 
 ```
 FitFileViewer/
-├── electron-app/          # Main application
-│   ├── main.js           # Main process
-│   ├── renderer.js       # Renderer process
-│   ├── preload.js        # Preload script
-│   ├── main-ui.js        # UI management
-│   ├── fitParser.js      # FIT parsing
-│   ├── utils/            # Utility modules
-│   ├── tests/            # Test files
-│   └── package.json      # Electron package metadata and runtime deps
+├── electron-app/          # Electron runtime source and package metadata
+│   ├── main.ts           # Main process
+│   ├── renderer.ts       # Renderer process
+│   ├── preload.ts        # Preload script
+│   ├── main-ui.ts        # UI management
+│   ├── fitParser.ts      # FIT parsing
+│   ├── utils/            # Runtime utility modules
+│   └── package.json      # Publish metadata and runtime dependencies
+├── scripts/               # Root-owned build, lint, test, and release wrappers
+├── static/                # Root-owned static assets copied into runtime dist
+├── tests/                 # Root-owned Vitest and Playwright tests
 ├── docs/                  # Documentation
+├── docusaurus/            # Documentation site
+├── vendor/                # Curated source-only vendor replacements
 ├── fit-test-files/        # Sample FIT files
+├── electron-builder.config.cjs
+├── eslint.config.mjs
+├── prettier.config.mjs
+├── stylelint.config.mjs
 └── README.md
 ```
 
@@ -123,7 +131,7 @@ npm test
 npm run test:coverage
 
 # Run specific test file
-npm test -- electron-app/tests/unit/utils/formatUtils.test.ts
+npm test -- tests/unit/utils/formatUtils.test.ts
 ```
 
 ### Linting
