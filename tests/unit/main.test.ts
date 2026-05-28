@@ -1,61 +1,113 @@
-/**
- * @vitest-environment jsdom
- */
+// @vitest-environment jsdom
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
-import fs from "node:fs";
-import path from "node:path";
+import type { Mock } from "vitest";
+
+type MockWindow = {
+    isDestroyed: () => boolean;
+    setFullScreen: Mock<(fullscreen: boolean) => void>;
+    webContents: {
+        executeJavaScript: Mock<(script?: string) => Promise<string>>;
+        isDestroyed: () => boolean;
+        on: Mock<
+            (eventName: string, listener: (...args: unknown[]) => void) => void
+        >;
+        send: Mock<(channel: string, ...args: unknown[]) => void>;
+    };
+};
+
+type MockServer = {
+    close: Mock<(callback?: () => void) => void>;
+    listen: Mock<
+        (
+            port: number,
+            hostOrCallback?: string | ((error?: Error) => void),
+            callback?: (error?: Error) => void
+        ) => MockServer
+    >;
+    on: Mock<
+        (eventName: string, listener: (...args: unknown[]) => void) => void
+    >;
+};
 
 // Create mock window that the main.js initialization expects
-const mockWindow = {
+const mockWindow: MockWindow = {
     isDestroyed: () => false,
-    setFullScreen: vi.fn(),
+    setFullScreen: vi.fn<(fullscreen: boolean) => void>(),
     webContents: {
-        executeJavaScript: vi.fn(() => Promise.resolve("dark")),
+        executeJavaScript: vi
+            .fn<(script?: string) => Promise<string>>()
+            .mockResolvedValue("dark"),
         isDestroyed: () => false,
-        on: vi.fn(),
-        send: vi.fn(),
+        on: vi.fn<
+            (eventName: string, listener: (...args: unknown[]) => void) => void
+        >(),
+        send: vi.fn<(channel: string, ...args: unknown[]) => void>(),
     },
 };
 
 // Mock electron module before importing main.js
 const mockElectron = {
     app: {
-        getAppPath: vi.fn(() => "/mock/app/path"),
-        getVersion: vi.fn(() => "1.0.0"),
+        getAppPath: vi.fn<() => string>().mockReturnValue("/mock/app/path"),
+        getVersion: vi.fn<() => string>().mockReturnValue("1.0.0"),
         isPackaged: false,
-        on: vi.fn(),
-        quit: vi.fn(),
-        whenReady: vi.fn(() => Promise.resolve()),
+        on: vi.fn<
+            (eventName: string, listener: (...args: unknown[]) => void) => void
+        >(),
+        quit: vi.fn<() => void>(),
+        whenReady: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
     },
     BrowserWindow: {
         getAllWindows: vi.fn<() => Array<typeof mockWindow>>(() => [
             mockWindow,
         ]),
-        fromWebContents: vi.fn(),
-        getFocusedWindow: vi.fn(() => null),
+        fromWebContents: vi.fn<(webContents: unknown) => MockWindow | null>(),
+        getFocusedWindow: vi
+            .fn<() => MockWindow | null>()
+            .mockReturnValue(null),
     },
     dialog: {
-        showMessageBox: vi.fn(),
-        showOpenDialog: vi.fn(),
-        showSaveDialog: vi.fn(),
+        showMessageBox: vi.fn<(...args: unknown[]) => Promise<unknown>>(),
+        showOpenDialog: vi.fn<(...args: unknown[]) => Promise<unknown>>(),
+        showSaveDialog: vi.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
     ipcMain: {
-        handle: vi.fn(),
-        on: vi.fn(),
-        removeHandler: vi.fn(),
-        removeListener: vi.fn(),
+        handle: vi.fn<
+            (channel: string, listener: (...args: unknown[]) => unknown) => void
+        >(),
+        on: vi.fn<
+            (channel: string, listener: (...args: unknown[]) => void) => void
+        >(),
+        removeHandler: vi.fn<(channel: string) => void>(),
+        removeListener:
+            vi.fn<
+                (
+                    channel: string,
+                    listener: (...args: unknown[]) => void
+                ) => void
+            >(),
     },
     Menu: {
-        getApplicationMenu: vi.fn(),
-        setApplicationMenu: vi.fn(),
+        getApplicationMenu: vi.fn<() => unknown>(),
+        setApplicationMenu: vi.fn<(menu: unknown) => void>(),
     },
     shell: {
-        openExternal: vi.fn(),
+        openExternal: vi.fn<(url: string) => Promise<void>>(),
     },
     session: {
         defaultSession: {
             webRequest: {
-                onBeforeRequest: vi.fn(),
+                onBeforeRequest:
+                    vi.fn<
+                        (
+                            listener: (
+                                details: { url: string },
+                                callback: (
+                                    response: Record<string, unknown>
+                                ) => void
+                            ) => void
+                        ) => void
+                    >(),
             },
         },
     },
@@ -64,15 +116,23 @@ const mockElectron = {
 // Mock auto-updater module
 const mockAutoUpdater = {
     autoDownload: false,
-    checkForUpdates: vi.fn(() => Promise.resolve()),
-    downloadUpdate: vi.fn(() => Promise.resolve()),
-    on: vi.fn(),
-    setFeedURL: vi.fn(),
+    checkForUpdates: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+    downloadUpdate: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+    on: vi.fn<
+        (eventName: string, listener: (...args: unknown[]) => void) => void
+    >(),
+    setFeedURL: vi.fn<(options: unknown) => void>(),
 };
 
 // Mock server module
-const mockServer = {
-    listen: vi.fn(
+const mockServer: MockServer = {
+    listen: vi.fn<
+        (
+            port: number,
+            hostOrCallback?: string | ((error?: Error) => void),
+            callback?: (error?: Error) => void
+        ) => MockServer
+    >(
         (
             port: number,
             hostOrCallback?: string | ((error?: Error) => void),
@@ -86,134 +146,168 @@ const mockServer = {
             return mockServer;
         }
     ),
-    on: vi.fn(),
-    close: vi.fn(),
+    on: vi.fn<
+        (eventName: string, listener: (...args: unknown[]) => void) => void
+    >(),
+    close: vi.fn<(callback?: () => void) => void>(),
 };
 
 // Mock mainProcessState
 const mockMainProcessState = {
-    get: vi.fn(),
-    set: vi.fn(),
-    has: vi.fn(),
-    delete: vi.fn(),
-    clear: vi.fn(),
+    get: vi.fn<(key: string) => unknown>(),
+    set: vi.fn<(key: string, value: unknown) => void>(),
+    has: vi.fn<(key: string) => boolean>(),
+    delete: vi.fn<(key: string) => boolean>(),
+    clear: vi.fn<() => void>(),
 };
 
 // Mock fitParser
 const mockFitParser = {
-    parse: vi.fn(() => Promise.resolve({ success: true, data: {} })),
-    decode: vi.fn(() => Promise.resolve({ success: true, data: {} })),
+    parse: vi
+        .fn<
+            (
+                buffer?: unknown
+            ) => Promise<{ data: Record<string, unknown>; success: true }>
+        >()
+        .mockResolvedValue({ success: true, data: {} }),
+    decode: vi
+        .fn<
+            (
+                buffer?: unknown
+            ) => Promise<{ data: Record<string, unknown>; success: true }>
+        >()
+        .mockResolvedValue({ success: true, data: {} }),
 };
 
 // Mock fs module
-vi.mock("node:fs", () => ({
+vi.mock(import("node:fs"), () => ({
     default: {
-        readFile: vi.fn(
+        readFile: vi.fn<
             (
-                path: string,
+                filePath: string,
+                callback: (error: Error | null, data?: Buffer) => void
+            ) => void
+        >(
+            (
+                filePath: string,
                 callback: (error: Error | null, data?: Buffer) => void
             ) => {
                 callback(null, Buffer.from("test file content"));
             }
         ),
-        writeFile: vi.fn(),
-        existsSync: vi.fn(() => true),
-        createReadStream: vi.fn(),
-        createWriteStream: vi.fn(),
+        writeFile: vi.fn<(...args: unknown[]) => void>(),
+        existsSync: vi
+            .fn<(filePath: string) => boolean>()
+            .mockReturnValue(true),
+        createReadStream: vi.fn<(filePath: string) => unknown>(),
+        createWriteStream: vi.fn<(filePath: string) => unknown>(),
     },
 }));
 
 // Mock http module
-vi.mock("http", () => ({
-    createServer: vi.fn(() => mockServer),
+vi.mock(import("http"), () => ({
+    createServer: vi.fn<(...args: unknown[]) => MockServer>(() => mockServer),
     default: {
-        createServer: vi.fn(() => mockServer),
+        createServer: vi.fn<(...args: unknown[]) => MockServer>(
+            () => mockServer
+        ),
     },
 }));
 
-vi.mock("node:http", () => ({
-    createServer: vi.fn(() => mockServer),
+vi.mock(import("node:http"), () => ({
+    createServer: vi.fn<(...args: unknown[]) => MockServer>(() => mockServer),
     default: {
-        createServer: vi.fn(() => mockServer),
+        createServer: vi.fn<(...args: unknown[]) => MockServer>(
+            () => mockServer
+        ),
     },
 }));
 
 // Mock electron-updater
-vi.mock("electron-updater", () => ({
+vi.mock(import("electron-updater"), () => ({
     autoUpdater: mockAutoUpdater,
 }));
 
 // Mock path module
-vi.mock("node:path", () => ({
+vi.mock(import("node:path"), () => ({
     default: {
-        join: vi.fn((...args: string[]) => args.join("/")),
-        dirname: vi.fn(() => "/mock/dirname"),
-        resolve: vi.fn((...args: string[]) => args.join("/")),
-        extname: vi.fn(() => ".fit"),
-        basename: vi.fn(() => "test.fit"),
+        join: vi.fn<(...args: string[]) => string>((...args) => args.join("/")),
+        dirname: vi.fn<(filePath: string) => string>(() => "/mock/dirname"),
+        resolve: vi.fn<(...args: string[]) => string>((...args) =>
+            args.join("/")
+        ),
+        extname: vi.fn<(filePath: string) => string>(() => ".fit"),
+        basename: vi.fn<(filePath: string) => string>(() => "test.fit"),
     },
 }));
 
 // Mock crypto module
-vi.mock("node:crypto", () => ({
+vi.mock(import("node:crypto"), () => ({
     default: {
-        randomBytes: vi.fn(() => Buffer.from("random")),
-        createHash: vi.fn(() => ({
-            update: vi.fn(),
-            digest: vi.fn(() => "hash"),
+        randomBytes: vi.fn<(size: number) => Buffer>(() =>
+            Buffer.from("random")
+        ),
+        createHash: vi.fn<
+            (algorithm: string) => {
+                digest: Mock<(encoding?: string) => string>;
+                update: Mock<(data: unknown) => unknown>;
+            }
+        >(() => ({
+            update: vi.fn<(data: unknown) => unknown>(),
+            digest: vi.fn<(encoding?: string) => string>(() => "hash"),
         })),
     },
 }));
 
 // Mock child_process module
-vi.mock("node:child_process", () => ({
+vi.mock(import("node:child_process"), () => ({
     default: {
-        exec: vi.fn(),
-        spawn: vi.fn(),
+        exec: vi.fn<(...args: unknown[]) => unknown>(),
+        spawn: vi.fn<(...args: unknown[]) => unknown>(),
     },
 }));
 
 // Mock os module
-vi.mock("node:os", () => ({
+vi.mock(import("node:os"), () => ({
     default: {
-        platform: vi.fn(() => "test"),
-        homedir: vi.fn(() => "/home/test"),
-        tmpdir: vi.fn(() => "/tmp"),
+        platform: vi.fn<() => string>(() => "test"),
+        homedir: vi.fn<() => string>(() => "/home/test"),
+        tmpdir: vi.fn<() => string>(() => "/tmp"),
     },
 }));
 
 // Mock url module
-vi.mock("node:url", () => ({
+vi.mock(import("node:url"), () => ({
     default: {
-        parse: vi.fn(),
-        format: vi.fn(),
+        parse: vi.fn<(...args: unknown[]) => unknown>(),
+        format: vi.fn<(...args: unknown[]) => string>(),
     },
 }));
 
 // Mock util module
-vi.mock("node:util", () => ({
+vi.mock(import("node:util"), () => ({
     default: {
         promisify: vi.fn<<T>(fn: T) => T>((fn) => fn),
     },
 }));
 
 // Mock mainProcessState
-vi.mock("../../electron-app/utils/state/mainProcessState.js", () => ({
+vi.mock(import("../../electron-app/utils/state/mainProcessState.js"), () => ({
     default: mockMainProcessState,
 }));
 
 // Mock fitParser
-vi.mock("../../electron-app/fitParser.js", () => ({
+vi.mock(import("../../electron-app/fitParser.js"), () => ({
     default: mockFitParser,
 }));
 
 // Mock all utility modules
-vi.mock("../../electron-app/utils/files/recentFiles.js", () => ({
+vi.mock(import("../../electron-app/utils/files/recentFiles.js"), () => ({
     default: {
-        get: vi.fn(() => []),
-        add: vi.fn(),
-        remove: vi.fn(),
-        clear: vi.fn(),
+        get: vi.fn<() => unknown[]>(() => []),
+        add: vi.fn<(filePath: string) => void>(),
+        remove: vi.fn<(filePath: string) => void>(),
+        clear: vi.fn<() => void>(),
     },
 }));
 
@@ -405,8 +499,10 @@ describe("main.js - Electron Main Process", () => {
         }
     });
 
-    describe("Module Import and Basic Tests", () => {
+    describe("module import and basic tests", () => {
         it("should import main.js without errors", async () => {
+            expect.hasAssertions();
+
             const mainModule = await importMainModule();
 
             expect(Object.keys(mainModule).sort()).toEqual(
@@ -417,6 +513,8 @@ describe("main.js - Electron Main Process", () => {
         });
 
         it("should handle test environment initialization", async () => {
+            expect.hasAssertions();
+
             const mainModule = await importMainModule();
             const loadHandler = mockWindow.webContents.on.mock.calls.find(
                 ([eventName]) => eventName === "did-finish-load"
@@ -428,6 +526,8 @@ describe("main.js - Electron Main Process", () => {
         });
 
         it("should handle missing electron gracefully", async () => {
+            expect.hasAssertions();
+
             // Clear the hoisted mock to trigger error path
             delete testGlobals.__electronHoistedMock;
 
@@ -438,6 +538,8 @@ describe("main.js - Electron Main Process", () => {
         });
 
         it("should handle state management during early sync path", async () => {
+            expect.hasAssertions();
+
             const mainModule = await importMainModule();
 
             mainModule.setAppState("loadedFitFilePath", "/activities/test.fit");
@@ -450,6 +552,8 @@ describe("main.js - Electron Main Process", () => {
         });
 
         it("should complete early sync path when window exists", async () => {
+            expect.hasAssertions();
+
             // Mock an existing window scenario
             mockElectron.BrowserWindow.getAllWindows.mockReturnValue([
                 mockWindow,
@@ -464,8 +568,10 @@ describe("main.js - Electron Main Process", () => {
         });
     });
 
-    describe("Error Handling", () => {
+    describe("error handling", () => {
         it("should handle initialization errors gracefully", async () => {
+            expect.hasAssertions();
+
             // Mock an initialization error
             mockElectron.app.whenReady.mockImplementation(() => {
                 throw new Error("Initialization failed");
@@ -478,6 +584,8 @@ describe("main.js - Electron Main Process", () => {
         });
 
         it("should handle window enumeration errors", async () => {
+            expect.hasAssertions();
+
             // Mock window enumeration error
             mockElectron.BrowserWindow.getAllWindows.mockImplementation(() => {
                 throw new Error("Window enumeration failed");
@@ -491,6 +599,8 @@ describe("main.js - Electron Main Process", () => {
         });
 
         it("should handle auto-updater setup errors", async () => {
+            expect.hasAssertions();
+
             const mainModule = await importMainModule();
             const warnSpy = vi
                 .spyOn(console, "warn")
@@ -506,6 +616,8 @@ describe("main.js - Electron Main Process", () => {
         });
 
         it("should handle stopping when no Gyazo server exists", async () => {
+            expect.hasAssertions();
+
             const mainModule = await importMainModule();
 
             await expect(mainModule.stopGyazoOAuthServer()).resolves.toEqual({
@@ -516,8 +628,10 @@ describe("main.js - Electron Main Process", () => {
         });
     });
 
-    describe("Development Features", () => {
+    describe("development features", () => {
         it("should not expose development helpers in test environment", async () => {
+            expect.hasAssertions();
+
             const mainModule = await importMainModule();
 
             // Development helpers should not be available in test environment
@@ -526,6 +640,8 @@ describe("main.js - Electron Main Process", () => {
         });
 
         it("should handle development flag", async () => {
+            expect.hasAssertions();
+
             // Mock command line arguments
             const originalArgv = process.argv;
             process.argv = [
@@ -549,8 +665,10 @@ describe("main.js - Electron Main Process", () => {
         });
     });
 
-    describe("Platform Compatibility", () => {
+    describe("platform compatibility", () => {
         it("should handle different platforms", async () => {
+            expect.hasAssertions();
+
             const mainModule = await importMainModule();
             const warnSpy = vi
                 .spyOn(console, "warn")
@@ -584,6 +702,8 @@ describe("main.js - Electron Main Process", () => {
         });
 
         it("should handle file operations", async () => {
+            expect.hasAssertions();
+
             await importMainModule();
             const fileReadHandler = getRegisteredIpcHandler("file:read");
 
@@ -594,8 +714,10 @@ describe("main.js - Electron Main Process", () => {
         });
     });
 
-    describe("Gyazo OAuth Server", () => {
+    describe("gyazo OAuth server", () => {
         it("should handle missing Gyazo environment variables", async () => {
+            expect.hasAssertions();
+
             // Ensure no Gyazo environment variables
             delete process.env.GYAZO_CLIENT_ID;
             delete process.env.GYAZO_CLIENT_SECRET;
@@ -612,14 +734,18 @@ describe("main.js - Electron Main Process", () => {
         });
     });
 
-    describe("Security Features", () => {
+    describe("security features", () => {
         it("should handle web security setup", async () => {
+            expect.hasAssertions();
+
             await importMainModule();
             const requestHandler =
                 mockElectron.session.defaultSession.webRequest.onBeforeRequest
                     .mock.calls[0]?.[0];
-            const blockedCallback = vi.fn();
-            const allowedCallback = vi.fn();
+            const blockedCallback =
+                vi.fn<(response: Record<string, unknown>) => void>();
+            const allowedCallback =
+                vi.fn<(response: Record<string, unknown>) => void>();
 
             expect(requestHandler).toBeTypeOf("function");
             requestHandler(
@@ -635,6 +761,8 @@ describe("main.js - Electron Main Process", () => {
         });
 
         it("should handle URL validation", async () => {
+            expect.hasAssertions();
+
             await importMainModule();
             const openExternalHandler =
                 getRegisteredIpcHandler("shell:openExternal");
