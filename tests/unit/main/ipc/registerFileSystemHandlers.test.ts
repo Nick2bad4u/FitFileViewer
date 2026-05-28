@@ -1,7 +1,6 @@
-/**
- * @vitest-environment node
- */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+// @vitest-environment node
+import type { Mock } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { registerFileSystemHandlers } from "../../../../electron-app/main/ipc/registerFileSystemHandlers.js";
 import {
@@ -9,24 +8,67 @@ import {
     __resetForTests,
 } from "../../../../electron-app/main/security/fileAccessPolicy.js";
 
+type FileSystemInvokeChannel = "file:read";
+type FileSystemIpcHandler = (event: unknown, ...args: unknown[]) => unknown;
+type RegisterIpcHandle = (
+    channel: FileSystemInvokeChannel,
+    handler: FileSystemIpcHandler
+) => void;
+type ReadFileCallback = (error: Error | null, data?: unknown) => void;
+type FileSystemModule = {
+    readFile: Mock<(filePath: string, callback: ReadFileCallback) => void>;
+};
+type LogWithContext = (
+    level: "error" | "info" | "warn",
+    message: string,
+    context?: Record<string, unknown>
+) => void;
+
 describe("registerFileSystemHandlers", () => {
-    let registerIpcHandle;
-    let fs;
-    let logWithContext;
+    let registerIpcHandle: Mock<RegisterIpcHandle>;
+    let fileSystem: FileSystemModule;
+    let logWithContext: Mock<LogWithContext>;
 
     beforeEach(() => {
         __resetForTests?.();
-        registerIpcHandle = vi.fn();
-        logWithContext = vi.fn();
-        fs = {
-            readFile: vi.fn(),
+        registerIpcHandle = vi.fn<RegisterIpcHandle>();
+        logWithContext = vi.fn<LogWithContext>();
+        fileSystem = {
+            readFile:
+                vi.fn<(filePath: string, callback: ReadFileCallback) => void>(),
         };
     });
 
+    function registerDefaultHandlers(
+        fsOverride: FileSystemModule | Record<string, never> = fileSystem
+    ): void {
+        registerFileSystemHandlers({
+            registerIpcHandle,
+            fs: fsOverride,
+            logWithContext,
+        });
+    }
+
+    function getFileReadHandler(): FileSystemIpcHandler {
+        const handler = registerIpcHandle.mock.calls.find(
+            ([channel]) => channel === "file:read"
+        )?.[1];
+
+        expect(handler).toBeTypeOf("function");
+
+        if (typeof handler !== "function") {
+            throw new TypeError("file:read handler was not registered");
+        }
+
+        return handler;
+    }
+
     it("no-ops when registerIpcHandle is not a function", () => {
+        expect.hasAssertions();
+
         const result = registerFileSystemHandlers({
             registerIpcHandle: null,
-            fs,
+            fs: fileSystem,
             logWithContext,
         });
 
@@ -35,44 +77,53 @@ describe("registerFileSystemHandlers", () => {
     });
 
     it("registers file:read handler and resolves buffer slice on success", async () => {
-        registerFileSystemHandlers({ registerIpcHandle, fs, logWithContext });
+        expect.hasAssertions();
+
+        registerDefaultHandlers();
 
         expect(registerIpcHandle).toHaveBeenCalledWith(
             "file:read",
             expect.any(Function)
         );
 
-        const handler = registerIpcHandle.mock.calls[0][1];
+        const handler = getFileReadHandler();
         const mockBuffer = Buffer.from("hello-world");
-        fs.readFile.mockImplementation((_path, cb) => cb(null, mockBuffer));
+        fileSystem.readFile.mockImplementation((_path, callback) =>
+            callback(null, mockBuffer)
+        );
 
         const approvedPath = approveFilePath("C:/test.fit", { source: "test" });
         const result = await handler({}, approvedPath);
 
-        expect(fs.readFile).toHaveBeenCalledWith(
+        expect(fileSystem.readFile).toHaveBeenCalledWith(
             approvedPath,
             expect.any(Function)
         );
         expect(result).toBeInstanceOf(ArrayBuffer);
-        expect(Buffer.from(result).toString()).toBe("hello-world");
+        expect(Buffer.from(result as ArrayBuffer).toString()).toBe(
+            "hello-world"
+        );
         expect(logWithContext).not.toHaveBeenCalled();
     });
 
     it("rejects and logs when fs.readFile is unavailable", async () => {
-        const handlerRegister = vi.fn();
+        expect.hasAssertions();
+
+        const handlerRegister = vi.fn<RegisterIpcHandle>();
         registerFileSystemHandlers({
             registerIpcHandle: handlerRegister,
             fs: {},
             logWithContext,
         });
 
-        const handler = handlerRegister.mock.calls[0][1];
+        const handler = handlerRegister.mock.calls[0]?.[1];
+        expect(handler).toBeTypeOf("function");
 
         const approvedPath = approveFilePath("C:/missing.fit", {
             source: "test",
         });
 
-        await expect(handler({}, approvedPath)).rejects.toThrow(
+        await expect(handler?.({}, approvedPath)).rejects.toThrow(
             "Filesystem module unavailable"
         );
 
@@ -88,11 +139,15 @@ describe("registerFileSystemHandlers", () => {
     });
 
     it("rejects and logs when readFile errors", async () => {
-        const error = new Error("boom");
-        fs.readFile.mockImplementation((_path, cb) => cb(error));
+        expect.hasAssertions();
 
-        registerFileSystemHandlers({ registerIpcHandle, fs, logWithContext });
-        const handler = registerIpcHandle.mock.calls[0][1];
+        const error = new Error("boom");
+        fileSystem.readFile.mockImplementation((_path, callback) =>
+            callback(error)
+        );
+
+        registerDefaultHandlers();
+        const handler = getFileReadHandler();
 
         const approvedPath = approveFilePath("C:/bad.fit", { source: "test" });
 
@@ -110,8 +165,10 @@ describe("registerFileSystemHandlers", () => {
     });
 
     it("rejects unapproved paths", async () => {
-        registerFileSystemHandlers({ registerIpcHandle, fs, logWithContext });
-        const handler = registerIpcHandle.mock.calls[0][1];
+        expect.hasAssertions();
+
+        registerDefaultHandlers();
+        const handler = getFileReadHandler();
 
         await expect(handler({}, "C:/unapproved.fit")).rejects.toThrow(
             "File access denied"
@@ -119,8 +176,10 @@ describe("registerFileSystemHandlers", () => {
     });
 
     it("rejects invalid filePath inputs early", async () => {
-        registerFileSystemHandlers({ registerIpcHandle, fs, logWithContext });
-        const handler = registerIpcHandle.mock.calls[0][1];
+        expect.hasAssertions();
+
+        registerDefaultHandlers();
+        const handler = getFileReadHandler();
 
         await expect(handler({}, "   ")).rejects.toThrow(
             "Invalid file path provided"
@@ -129,7 +188,7 @@ describe("registerFileSystemHandlers", () => {
             "Invalid file path provided"
         );
 
-        expect(fs.readFile).not.toHaveBeenCalled();
+        expect(fileSystem.readFile).not.toHaveBeenCalled();
         expect(logWithContext).toHaveBeenCalledWith(
             "error",
             "Error in file:read:",
@@ -140,11 +199,14 @@ describe("registerFileSystemHandlers", () => {
     });
 
     it("rejects unexpected fs.readFile result types", async () => {
-        registerFileSystemHandlers({ registerIpcHandle, fs, logWithContext });
-        const handler = registerIpcHandle.mock.calls[0][1];
+        expect.hasAssertions();
 
-        // Simulate readFile returning a string (e.g., if encoding is accidentally provided)
-        fs.readFile.mockImplementation((_path, cb) => cb(null, "hello"));
+        registerDefaultHandlers();
+        const handler = getFileReadHandler();
+
+        fileSystem.readFile.mockImplementation((_path, callback) =>
+            callback(null, "hello")
+        );
 
         const approvedPath = approveFilePath("C:/weird.fit", {
             source: "test",
