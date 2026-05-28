@@ -6,7 +6,7 @@ let capturedTemplate: any[] | null = null;
 
 // Provide an Electron mock that always proxies to the hoisted global mock
 // This keeps behavior deterministic and avoids import-order pitfalls
-vi.mock("electron", () => {
+vi.mock(import("electron"), () => {
     const get = () => (globalThis as any).__electronHoistedMock || {};
     return new Proxy(
         {},
@@ -25,7 +25,7 @@ vi.mock("electron", () => {
 
 // Force fallback config store (in-memory) for determinism
 // Returning empty module makes new Conf(...) throw and fallback path used
-vi.mock("electron-conf", () => ({}) as any);
+vi.mock(import("electron-conf"), () => ({}) as any);
 
 // Recent files utilities will be mocked per-test via vi.doMock inside beforeEach/individual tests
 
@@ -40,7 +40,7 @@ describe("createAppMenu", () => {
         } catch {}
         // Default recent files mock for most tests (can be overridden in a specific test)
         vi.doMock(
-            "../../../electron-app/utils/files/recent/recentFiles",
+            import("../../../electron-app/utils/files/recent/recentFiles"),
             () => ({
                 loadRecentFiles: vi.fn(() => [
                     "C:/Users/Test/Documents/activity1.fit",
@@ -290,7 +290,7 @@ describe("createAppMenu", () => {
             (i: any) => i.label === "🕑 Open Recent"
         );
         const firstRecent = openRecent.submenu[0];
-        expect(typeof firstRecent.click).toBe("function");
+        expect(firstRecent.click).toBeTypeOf("function");
         firstRecent.click();
         expect(send).toHaveBeenCalledWith(
             "open-recent-file",
@@ -444,15 +444,15 @@ describe("createAppMenu", () => {
             (i: any) => i.label === "❗Report an Issue"
         );
         // Ensure items exist and are callable. Electron wiring for shell is mocked elsewhere and can be flaky; we assert structure.
-        expect(typeof docs.click).toBe("function");
-        expect(typeof repo.click).toBe("function");
-        expect(typeof issues.click).toBe("function");
+        expect(docs.click).toBeTypeOf("function");
+        expect(repo.click).toBeTypeOf("function");
+        expect(issues.click).toBeTypeOf("function");
         const about = help.submenu.find((i: any) => i.label === "ℹ️ About");
         const shortcuts = help.submenu.find(
             (i: any) => i.label === "⌨️ Keyboard Shortcuts"
         );
-        expect(typeof about.click).toBe("function");
-        expect(typeof shortcuts.click).toBe("function");
+        expect(about.click).toBeTypeOf("function");
+        expect(shortcuts.click).toBeTypeOf("function");
     });
 
     it("help > About and Keyboard Shortcuts items are present and clickable", () => {
@@ -466,8 +466,8 @@ describe("createAppMenu", () => {
         const shortcuts = help.submenu.find(
             (i: any) => i.label === "⌨️ Keyboard Shortcuts"
         );
-        expect(typeof about.click).toBe("function");
-        expect(typeof shortcuts.click).toBe("function");
+        expect(about.click).toBeTypeOf("function");
+        expect(shortcuts.click).toBeTypeOf("function");
         // Exercise click handlers and assert IPC
         about.click();
         shortcuts.click();
@@ -488,7 +488,7 @@ describe("createAppMenu", () => {
         const closeItem = fileMenu.submenu.find(
             (i: any) => i.label === "🚪 Close Window"
         );
-        expect(typeof closeItem.click).toBe("function");
+        expect(closeItem.click).toBeTypeOf("function");
     });
 
     // Note: macOS-specific App menu is covered indirectly via code paths; explicit darwin test can be flaky in CI mocks.
@@ -500,7 +500,7 @@ describe("createAppMenu", () => {
         vi.resetModules();
         // Also reset the default mock from beforeEach so it doesn't override
         vi.doMock(
-            "../../../electron-app/utils/files/recent/recentFiles",
+            import("../../../electron-app/utils/files/recent/recentFiles"),
             () => ({
                 loadRecentFiles: vi.fn(() => []),
                 getShortRecentName: vi.fn((p: string) =>
@@ -624,7 +624,7 @@ describe("createAppMenu", () => {
         );
         expect(revealItem.enabled).toBe(true);
         revealItem.click();
-        const revealSpy = (globalThis as any).__electronShellShowSpy as Mock;
+        const revealSpy = vi.mocked((globalThis as any).__electronShellShowSpy);
         expect(revealSpy).toHaveBeenCalledWith(filePath);
     });
 
@@ -646,8 +646,9 @@ describe("createAppMenu", () => {
             label: "📋 Copy File Path",
         });
         copyItem.click();
-        const clipboardSpy = (globalThis as any)
-            .__electronClipboardWriteSpy as Mock;
+        const clipboardSpy = vi.mocked(
+            (globalThis as any).__electronClipboardWriteSpy
+        );
         expect(clipboardSpy).toHaveBeenCalledWith(filePath);
         expect(send).toHaveBeenCalledWith(
             "show-notification",
@@ -751,10 +752,10 @@ describe("createAppMenu", () => {
         const white = hc.submenu.find((i: any) => i.label === "⬜ White");
         const yellow = hc.submenu.find((i: any) => i.label === "🟨 Yellow");
         const off = hc.submenu.find((i: any) => i.label === "🚫 Off");
-        expect(typeof black.click).toBe("function");
-        expect(typeof white.click).toBe("function");
-        expect(typeof yellow.click).toBe("function");
-        expect(typeof off.click).toBe("function");
+        expect(black.click).toBeTypeOf("function");
+        expect(white.click).toBeTypeOf("function");
+        expect(yellow.click).toBeTypeOf("function");
+        expect(off.click).toBeTypeOf("function");
         // Execute the guarded 'black' handler to assert IPC without depending on BrowserWindow mock
         black.click();
         expect(send).toHaveBeenCalledWith("set-high-contrast", "black");
@@ -779,7 +780,7 @@ describe("createAppMenu", () => {
             "🚫 Off",
         ]) {
             const item = hc.submenu.find((i: any) => i.label === lab);
-            expect(typeof item.click).toBe("function");
+            expect(item.click).toBeTypeOf("function");
         }
     });
 
@@ -799,9 +800,9 @@ describe("createAppMenu", () => {
         const issues = help.submenu.find(
             (i: any) => i.label === "❗Report an Issue"
         );
-        expect(typeof docs.click).toBe("function");
-        expect(typeof repo.click).toBe("function");
-        expect(typeof issues.click).toBe("function");
+        expect(docs.click).toBeTypeOf("function");
+        expect(repo.click).toBeTypeOf("function");
+        expect(issues.click).toBeTypeOf("function");
         // Exercise clicks to ensure the code paths are executed (shell is mocked globally)
         docs.click();
         repo.click();
@@ -825,8 +826,8 @@ describe("createAppMenu", () => {
         const shortcuts = help.submenu.find(
             (i: any) => i.label === "⌨️ Keyboard Shortcuts"
         );
-        expect(typeof about.click).toBe("function");
-        expect(typeof shortcuts.click).toBe("function");
+        expect(about.click).toBeTypeOf("function");
+        expect(shortcuts.click).toBeTypeOf("function");
     });
 
     it("file > Close Window item exists and is clickable", () => {
@@ -839,10 +840,10 @@ describe("createAppMenu", () => {
         const closeItem = fileMenu.submenu.find(
             (i: any) => i.label === "🚪 Close Window"
         );
-        expect(typeof closeItem.click).toBe("function");
+        expect(closeItem.click).toBeTypeOf("function");
     });
 
-    it("Restart and Update click sends IPC even if disabled", () => {
+    it("restart and Update click sends IPC even if disabled", () => {
         const createAppMenu = importCreateAppMenu();
         // No need to depend on a specific window's send spy because the handler
         // uses BrowserWindow.getFocusedWindow() first; instead assert via global IPC log
@@ -976,8 +977,9 @@ describe("createAppMenu", () => {
         createAppMenu({ webContents: { send: vi.fn() } } as any, "dark", null);
         const tpl = (globalThis as any).__lastBuiltMenuTemplate as any[];
         expect(Array.isArray(tpl)).toBe(true);
-        // Should have logged at least once for the missing Menu and once for fallback warning
-        expect(warnSpy).toHaveBeenCalled();
+        expect(warnSpy).toHaveBeenCalledWith(
+            "[createAppMenu] WARNING: Electron Menu API unavailable; template exposed for tests."
+        );
         warnSpy.mockRestore();
         (globalThis as any).__electronHoistedMock = originalMock;
     });
@@ -1000,7 +1002,7 @@ describe("createAppMenu - additional robust branches", () => {
             delete (globalThis as any).__FFV_createAppMenuExports;
         } catch {}
         vi.doMock(
-            "../../../electron-app/utils/files/recent/recentFiles",
+            import("../../../electron-app/utils/files/recent/recentFiles"),
             () => ({
                 loadRecentFiles: vi.fn(() => [
                     "C:/Users/Test/Documents/activity1.fit",
@@ -1129,7 +1131,7 @@ describe("createAppMenu - additional robust branches", () => {
             getFocusedWindow: () => winMock,
         };
         closeItem.click();
-        expect(winMock.close).toHaveBeenCalled();
+        expect(winMock.close).toHaveBeenCalledWith();
         expect(closeItem).toMatchObject({
             accelerator: "CmdOrCtrl+W",
             label: "🚪 Close Window",
@@ -1426,8 +1428,8 @@ describe("createAppMenu - additional robust branches", () => {
             delete require.cache[modulePath];
             // eslint-disable-next-line @typescript-eslint/no-var-requires
             const mod = require("../../../electron-app/utils/app/menu/createAppMenu.js");
-            expect(typeof mod.createAppMenu).toBe("function");
-            const defineMock = defineSpy as unknown as Mock;
+            expect(mod.createAppMenu).toBeTypeOf("function");
+            const defineMock = vi.mocked(defineSpy);
             const calls = defineMock.mock.calls as Array<
                 [
                     any,
@@ -1471,9 +1473,10 @@ describe("createAppMenu - additional robust branches", () => {
         const electronMock = (globalThis as any).__electronHoistedMock as {
             BrowserWindow: { getFocusedWindow: Mock };
         };
-        electronMock.BrowserWindow.getFocusedWindow = vi
-            .fn()
-            .mockReturnValue(fakeWindow);
+        vi.spyOn(
+            electronMock.BrowserWindow,
+            "getFocusedWindow"
+        ).mockReturnValue(fakeWindow);
 
         createAppMenu(fakeWindow as any, "dark", "C:/activities/sample.fit");
         const template =
