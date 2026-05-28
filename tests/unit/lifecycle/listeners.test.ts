@@ -1,15 +1,67 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Mock } from "vitest";
+import type { ElectronAPI } from "../../../electron-app/shared/preloadApi.js";
+import type {
+    FileOpeningStateRef,
+    SetupListenersOptions,
+} from "../../../electron-app/utils/app/lifecycle/listeners.js";
 
-vi.mock("../../../electron-app/utils/files/import/openFileSelector.js", () => ({
-    openFileSelector: vi.fn(),
-}));
+const openFileSelectorMock = vi.hoisted(() => vi.fn<() => void>());
 
-import { openFileSelector } from "../../../electron-app/utils/files/import/openFileSelector.js";
+vi.mock(
+    import("../../../electron-app/utils/files/import/openFileSelector.js"),
+    () => ({
+        openFileSelector: openFileSelectorMock,
+    })
+);
+
 import { setupListeners } from "../../../electron-app/utils/app/lifecycle/listeners.js";
 
-const openFileSelectorMock = vi.mocked(openFileSelector);
+type TestElectronAPI = {
+    addRecentFile: Mock<ElectronAPI["addRecentFile"]>;
+    onIpc: Mock<ElectronAPI["onIpc"]>;
+    onMenuOpenFile: Mock<ElectronAPI["onMenuOpenFile"]>;
+    onOpenRecentFile: Mock<ElectronAPI["onOpenRecentFile"]>;
+    parseFitFile: Mock<ElectronAPI["parseFitFile"]>;
+    readFile: Mock<ElectronAPI["readFile"]>;
+    recentFiles: Mock<() => Promise<null | string[]>>;
+    send: Mock<ElectronAPI["send"]>;
+};
+
+type TestGlobal = typeof globalThis & {
+    ChartUpdater?: {
+        updateCharts: Mock<(reason: string) => void>;
+    };
+    __ffvMenuForwardRegistry?: unknown;
+    electronAPI?: TestElectronAPI;
+    renderChartJS?: unknown;
+    showFitData?: unknown;
+};
+
+function getTestGlobal(): TestGlobal {
+    return globalThis as TestGlobal;
+}
+
+function getTestWindow(): Window & TestGlobal {
+    return window as Window & TestGlobal;
+}
+
+function getMenuOpenOverlayHandler(
+    electronAPI: TestElectronAPI
+): Parameters<ElectronAPI["onIpc"]>[1] {
+    const entry = electronAPI.onIpc.mock.calls.find(
+        ([channel]) => channel === "menu-open-overlay"
+    );
+    expect(entry).toEqual(["menu-open-overlay", expect.any(Function)]);
+
+    const handler = entry?.[1];
+    if (typeof handler !== "function") {
+        throw new TypeError("Expected menu-open-overlay handler");
+    }
+
+    return handler;
+}
 
 describe("utils/app/lifecycle/listeners.js", () => {
     beforeEach(() => {
@@ -22,13 +74,13 @@ describe("utils/app/lifecycle/listeners.js", () => {
         openFileSelectorMock.mockReset();
         openFileSelectorMock.mockImplementation(() => {});
         // Clean any previous window properties
-        Object.assign(window, {
+        Object.assign(getTestWindow(), {
             electronAPI: undefined,
             showFitData: undefined,
             ChartUpdater: undefined,
             renderChartJS: undefined,
         });
-        Object.assign(globalThis, {
+        Object.assign(getTestGlobal(), {
             __ffvMenuForwardRegistry: undefined,
             electronAPI: undefined,
             showFitData: undefined,
@@ -37,34 +89,49 @@ describe("utils/app/lifecycle/listeners.js", () => {
         });
     });
 
-    function mount(openRecentReturn: string[] | null = null) {
+    function mount(openRecentReturn: string[] | null = null): {
+        electronAPI: TestElectronAPI;
+        handleOpenFile: Mock<SetupListenersOptions["handleOpenFile"]>;
+        isOpeningFileRef: FileOpeningStateRef;
+        openFileBtn: HTMLButtonElement;
+        setLoading: Mock<SetupListenersOptions["setLoading"]>;
+        showNotification: Mock<SetupListenersOptions["showNotification"]>;
+    } {
         const openFileBtn = document.getElementById(
             "openFileBtn"
         ) as HTMLButtonElement;
-        const isOpeningFileRef = { current: false } as any;
-        const setLoading = vi.fn();
-        const showNotification = vi.fn((message: string, type: string) => {
-            document.body.dataset.lastNotification = `${type}:${message}`;
-        });
-        const handleOpenFile = vi.fn(({ isOpeningFileRef: ref }) => {
-            ref.current = true;
-            openFileBtn.dataset.opened = "true";
-        });
-        const showUpdateNotification = vi.fn();
-        const showAboutModal = vi.fn();
+        const isOpeningFileRef: FileOpeningStateRef = { current: false };
+        const setLoading = vi.fn<SetupListenersOptions["setLoading"]>();
+        const showNotification = vi
+            .fn<SetupListenersOptions["showNotification"]>()
+            .mockImplementation((message, type) => {
+                document.body.dataset.lastNotification = `${type}:${message}`;
+            });
+        const handleOpenFile = vi
+            .fn<SetupListenersOptions["handleOpenFile"]>()
+            .mockImplementation(({ isOpeningFileRef: ref }) => {
+                ref.current = true;
+                openFileBtn.dataset.opened = "true";
+            });
+        const showUpdateNotification =
+            vi.fn<SetupListenersOptions["showUpdateNotification"]>();
+        const showAboutModal = vi.fn<SetupListenersOptions["showAboutModal"]>();
 
-        const electronAPI = {
-            recentFiles: vi.fn(async () => openRecentReturn),
-            onMenuOpenFile: vi.fn(),
-            onOpenRecentFile: vi.fn(),
-            readFile: vi.fn(),
-            parseFitFile: vi.fn(),
-            addRecentFile: vi.fn(),
-            onIpc: vi.fn(),
-            send: vi.fn(),
-        } as any;
-        (window as any).electronAPI = electronAPI;
-        (globalThis as any).electronAPI = electronAPI;
+        const electronAPI: TestElectronAPI = {
+            recentFiles: vi
+                .fn<() => Promise<null | string[]>>()
+                .mockResolvedValue(openRecentReturn),
+            onMenuOpenFile: vi.fn<ElectronAPI["onMenuOpenFile"]>(),
+            onOpenRecentFile: vi.fn<ElectronAPI["onOpenRecentFile"]>(),
+            readFile: vi.fn<ElectronAPI["readFile"]>(),
+            parseFitFile: vi.fn<ElectronAPI["parseFitFile"]>(),
+            addRecentFile: vi.fn<ElectronAPI["addRecentFile"]>(),
+            onIpc: vi.fn<ElectronAPI["onIpc"]>(),
+            send: vi.fn<ElectronAPI["send"]>(),
+        };
+        Object.assign(getTestWindow(), { electronAPI });
+        Object.assign(getTestGlobal(), { electronAPI });
+
         setupListeners({
             openFileBtn,
             isOpeningFileRef,
@@ -74,7 +141,9 @@ describe("utils/app/lifecycle/listeners.js", () => {
             showUpdateNotification,
             showAboutModal,
         });
+
         return {
+            electronAPI,
             openFileBtn,
             isOpeningFileRef,
             setLoading,
@@ -84,6 +153,8 @@ describe("utils/app/lifecycle/listeners.js", () => {
     }
 
     it("clicking openFileBtn calls handleOpenFile with expected args", () => {
+        expect.hasAssertions();
+
         const {
             openFileBtn,
             handleOpenFile,
@@ -92,8 +163,7 @@ describe("utils/app/lifecycle/listeners.js", () => {
             showNotification,
         } = mount([]);
         openFileBtn.click();
-        expect(handleOpenFile).toHaveBeenCalledTimes(1);
-        expect(handleOpenFile).toHaveBeenCalledWith({
+        expect(handleOpenFile).toHaveBeenCalledExactlyOnceWith({
             isOpeningFileRef,
             openFileBtn,
             setLoading,
@@ -104,9 +174,11 @@ describe("utils/app/lifecycle/listeners.js", () => {
     });
 
     it("contextmenu with no electronAPI.recentFiles early-returns and shows info", async () => {
+        expect.hasAssertions();
+
         const { openFileBtn } = mount(null);
         // Remove electronAPI to simulate missing API
-        delete (window as any).electronAPI;
+        delete getTestWindow().electronAPI;
         const evt = new MouseEvent("contextmenu", {
             bubbles: true,
             cancelable: true,
@@ -114,20 +186,23 @@ describe("utils/app/lifecycle/listeners.js", () => {
             clientY: 10,
         });
         openFileBtn.dispatchEvent(evt);
-        // Nothing to assert – ensuring no throw. Menu shouldn't exist
         expect(document.getElementById("recent-files-menu")).toBeNull();
     });
 
     it("resize while chart tab active triggers ChartUpdater.updateCharts if available", async () => {
+        expect.hasAssertions();
+
         // create active chart tab
         const tab = document.createElement("div");
         tab.id = "tab-chart";
         tab.classList.add("active");
-        document.body.appendChild(tab);
-        const updateCharts = vi.fn((reason: string) => {
-            document.body.dataset.chartUpdateReason = reason;
-        });
-        (window as any).ChartUpdater = { updateCharts };
+        document.body.append(tab);
+        const updateCharts = vi
+            .fn<(reason: string) => void>()
+            .mockImplementation((reason) => {
+                document.body.dataset.chartUpdateReason = reason;
+            });
+        getTestWindow().ChartUpdater = { updateCharts };
 
         mount([]);
 
@@ -141,33 +216,27 @@ describe("utils/app/lifecycle/listeners.js", () => {
     });
 
     it("menu-open-overlay IPC triggers openFileSelector", async () => {
+        expect.hasAssertions();
+
         openFileSelectorMock.mockImplementationOnce(() => {
             document.body.dataset.overlaySelectorOpened = "true";
         });
-        const { showNotification } = mount([]);
-        const onIpcMock = (window as any).electronAPI.onIpc as Mock;
-        const entry = onIpcMock.mock.calls.find(
-            (args: any[]) => args[0] === "menu-open-overlay"
-        );
-        expect(entry).toEqual(["menu-open-overlay", expect.any(Function)]);
-        const handler = entry[1] as () => Promise<void>;
+        const { electronAPI, showNotification } = mount([]);
+        const handler = getMenuOpenOverlayHandler(electronAPI);
         await handler();
-        expect(openFileSelectorMock).toHaveBeenCalledTimes(1);
+        expect(openFileSelectorMock).toHaveBeenCalledOnce();
         expect(document.body.dataset.overlaySelectorOpened).toBe("true");
         expect(showNotification).not.toHaveBeenCalled();
     });
 
     it("menu-open-overlay handler reports errors", async () => {
+        expect.hasAssertions();
+
         openFileSelectorMock.mockImplementationOnce(() => {
             throw new Error("fail");
         });
-        const { showNotification } = mount([]);
-        const onIpcMock = (window as any).electronAPI.onIpc as Mock;
-        const entry = onIpcMock.mock.calls.find(
-            (args: any[]) => args[0] === "menu-open-overlay"
-        );
-        expect(entry).toEqual(["menu-open-overlay", expect.any(Function)]);
-        const handler = entry[1] as () => Promise<void>;
+        const { electronAPI, showNotification } = mount([]);
+        const handler = getMenuOpenOverlayHandler(electronAPI);
         await handler();
         expect(showNotification).toHaveBeenCalledWith(
             "Failed to open overlay selector.",
