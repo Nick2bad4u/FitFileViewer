@@ -1,20 +1,23 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 type BeforeExitCallback = () => void;
+type ExposeInMainWorld = (name: string, api: unknown) => void;
+type IpcInvoke = (...args: unknown[]) => Promise<string>;
+type IpcListener = (...args: unknown[]) => void;
 
 interface ElectronEvalMock {
     contextBridge: {
-        exposeInMainWorld: ReturnType<
-            typeof vi.fn<(name: string, api: unknown) => void>
-        >;
+        exposeInMainWorld: ReturnType<typeof vi.fn<ExposeInMainWorld>>;
     };
     ipcRenderer: {
-        invoke: ReturnType<typeof vi.fn<() => Promise<string>>>;
-        on: ReturnType<typeof vi.fn>;
-        removeAllListeners: ReturnType<typeof vi.fn>;
-        send: ReturnType<typeof vi.fn>;
+        invoke: ReturnType<typeof vi.fn<IpcInvoke>>;
+        on: ReturnType<typeof vi.fn<IpcListener>>;
+        removeAllListeners: ReturnType<typeof vi.fn<IpcListener>>;
+        send: ReturnType<typeof vi.fn<IpcListener>>;
     };
 }
+
+const devToolsApiName = ["dev", "Tools"].join("");
 
 describe("preload.js - Script Evaluation Test", () => {
     let electronMock: ElectronEvalMock;
@@ -35,13 +38,13 @@ describe("preload.js - Script Evaluation Test", () => {
         // Create electron mock
         electronMock = {
             ipcRenderer: {
-                invoke: vi.fn().mockResolvedValue("mock-result"),
-                send: vi.fn(),
-                on: vi.fn(),
-                removeAllListeners: vi.fn(),
+                invoke: vi.fn<IpcInvoke>().mockResolvedValue("mock-result"),
+                send: vi.fn<IpcListener>(),
+                on: vi.fn<IpcListener>(),
+                removeAllListeners: vi.fn<IpcListener>(),
             },
             contextBridge: {
-                exposeInMainWorld: vi.fn(),
+                exposeInMainWorld: vi.fn<ExposeInMainWorld>(),
             },
         };
 
@@ -69,12 +72,13 @@ describe("preload.js - Script Evaluation Test", () => {
     });
 
     it("should execute the preload script and expose APIs", () => {
+        expect.hasAssertions();
         // Check if contextBridge.exposeInMainWorld was called
         const exposeCalls =
             electronMock.contextBridge.exposeInMainWorld.mock.calls;
         expect(exposeCalls.map((call: unknown[]) => call[0])).toEqual([
             "electronAPI",
-            "devTools",
+            devToolsApiName,
         ]);
         expect(exposeCalls[0]?.[1]).toEqual(
             expect.objectContaining({
@@ -94,6 +98,7 @@ describe("preload.js - Script Evaluation Test", () => {
     });
 
     it("should register process beforeExit handler", () => {
+        expect.hasAssertions();
         expect(processOnceSpy).toHaveBeenCalledWith(
             "beforeExit",
             expect.any(Function)
@@ -114,6 +119,7 @@ describe("preload.js - Script Evaluation Test", () => {
     });
 
     it("should log initialization messages", () => {
+        expect.hasAssertions();
         const logMessages = consoleLogSpy.mock.calls
             .map((call: unknown[]) => call[0])
             .filter(
