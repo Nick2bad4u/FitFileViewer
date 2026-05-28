@@ -31,7 +31,8 @@ function loadPolicyWithRealpath(
     vi.resetModules();
     const require = createRequire(import.meta.url);
 
-    const nodeModules = require("../../../../electron-app/main/runtime/nodeModules.js") as NodeModulesRuntime;
+    const nodeModules =
+        require("../../../../electron-app/main/runtime/nodeModules.js") as NodeModulesRuntime;
 
     const realpathSync = Object.assign(
         ((filePath: string) => realpathImpl(filePath)) as (
@@ -46,9 +47,22 @@ function loadPolicyWithRealpath(
     nodeModules.fs = { realpathSync };
     nodeModules.path = path;
 
-    const policy = require("../../../../electron-app/main/security/fileAccessPolicy.js") as FileAccessPolicyModule;
+    const policy =
+        require("../../../../electron-app/main/security/fileAccessPolicy.js") as FileAccessPolicyModule;
     policy.__resetForTests?.();
     return policy;
+}
+
+function getApprovalSnapshot(
+    policy: FileAccessPolicyModule,
+    filePaths: string[]
+): Record<string, boolean> {
+    return Object.fromEntries(
+        filePaths.map((filePath) => [
+            filePath,
+            policy.isApprovedFilePath(filePath),
+        ])
+    );
 }
 
 describe("fileAccessPolicy", () => {
@@ -62,7 +76,9 @@ describe("fileAccessPolicy", () => {
         expect(() => mod.approveFilePath("file:///tmp/a.fit")).toThrow(
             /Invalid file path/iu
         );
-        expect(mod.isApprovedFilePath("file:///tmp/a.fit")).toBe(false);
+        expect(getApprovalSnapshot(mod, ["file:///tmp/a.fit"])).toStrictEqual({
+            "file:///tmp/a.fit": false,
+        });
     });
 
     it("rejects Windows extended-length/device path prefixes", async () => {
@@ -78,7 +94,12 @@ describe("fileAccessPolicy", () => {
         expect(() => mod.approveFilePath("\\\\.\\C:\\a.fit")).toThrow(
             /Invalid file path/iu
         );
-        expect(mod.isApprovedFilePath("\\\\.\\C:\\a.fit")).toBe(false);
+        expect(
+            getApprovalSnapshot(mod, ["\\\\?\\C:\\a.fit", "\\\\.\\C:\\a.fit"])
+        ).toStrictEqual({
+            "\\\\?\\C:\\a.fit": false,
+            "\\\\.\\C:\\a.fit": false,
+        });
     });
 
     it("uses realpath for approvals and invalidates if the symlink retargets", async () => {
@@ -88,11 +109,15 @@ describe("fileAccessPolicy", () => {
         const mod = loadPolicyWithRealpath(() => target);
 
         mod.approveFilePath("/tmp/link.fit");
-        expect(mod.isApprovedFilePath("/tmp/link.fit")).toBe(true);
+        expect(getApprovalSnapshot(mod, ["/tmp/link.fit"])).toStrictEqual({
+            "/tmp/link.fit": true,
+        });
 
         // Simulate the symlink now pointing elsewhere.
         target = "/real/b.fit";
-        expect(mod.isApprovedFilePath("/tmp/link.fit")).toBe(false);
+        expect(getApprovalSnapshot(mod, ["/tmp/link.fit"])).toStrictEqual({
+            "/tmp/link.fit": false,
+        });
     });
 
     it("caps the approval set to prevent unbounded growth", async () => {
@@ -110,8 +135,12 @@ describe("fileAccessPolicy", () => {
         }
 
         // Oldest entries should have been evicted.
-        expect(mod.isApprovedFilePath(first)).toBe(false);
         // Newest should remain.
-        expect(mod.isApprovedFilePath("/tmp/file-549.fit")).toBe(true);
+        expect(
+            getApprovalSnapshot(mod, [first, "/tmp/file-549.fit"])
+        ).toStrictEqual({
+            "/tmp/file-549.fit": true,
+            [first]: false,
+        });
     });
 });
