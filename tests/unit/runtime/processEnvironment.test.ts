@@ -20,6 +20,20 @@ function setGlobalProcess(value: unknown): void {
     });
 }
 
+function getNodeEnvironmentSnapshot(): {
+    isDevelopment: boolean;
+    isNodeTest: boolean;
+    isTest: boolean;
+    nodeEnv: string | undefined;
+} {
+    return {
+        isDevelopment: isDevelopmentEnvironment(),
+        isNodeTest: isNodeEnvironment("test"),
+        isTest: isTestEnvironment(),
+        nodeEnv: getProcessEnvironmentValue("NODE_ENV"),
+    };
+}
+
 describe("process environment runtime boundary", () => {
     afterEach(() => {
         if (originalProcessDescriptor) {
@@ -35,30 +49,46 @@ describe("process environment runtime boundary", () => {
     });
 
     it("returns undefined when process is missing", () => {
-        expect.assertions(4);
+        expect.assertions(1);
 
         setGlobalProcess(undefined);
 
-        expect(getProcessEnvironmentValue("NODE_ENV")).toBeUndefined();
-        expect(isNodeEnvironment("test")).toBe(false);
-        expect(isDevelopmentEnvironment()).toBe(false);
-        expect(isTestEnvironment()).toBe(false);
+        expect(getNodeEnvironmentSnapshot()).toStrictEqual({
+            isDevelopment: false,
+            isNodeTest: false,
+            isTest: false,
+            nodeEnv: undefined,
+        });
     });
 
-    it("returns undefined when process.env is missing or malformed", () => {
-        expect.assertions(2);
+    it("returns undefined when process.env is missing", () => {
+        expect.assertions(1);
 
         setGlobalProcess({});
 
-        expect(getProcessEnvironmentValue("NODE_ENV")).toBeUndefined();
+        expect(getNodeEnvironmentSnapshot()).toStrictEqual({
+            isDevelopment: false,
+            isNodeTest: false,
+            isTest: false,
+            nodeEnv: undefined,
+        });
+    });
+
+    it("returns undefined when process.env is malformed", () => {
+        expect.assertions(1);
 
         setGlobalProcess({ env: "test" });
 
-        expect(isTestEnvironment()).toBe(false);
+        expect(getNodeEnvironmentSnapshot()).toStrictEqual({
+            isDevelopment: false,
+            isNodeTest: false,
+            isTest: false,
+            nodeEnv: undefined,
+        });
     });
 
     it("reads string environment values only", () => {
-        expect.assertions(6);
+        expect.assertions(3);
 
         setGlobalProcess({
             env: {
@@ -67,14 +97,21 @@ describe("process environment runtime boundary", () => {
             },
         });
 
-        expect(getProcessEnvironmentValue("NODE_ENV")).toBe("development");
         expect(getProcessEnvironmentValue("FFV_DEBUG_MENU")).toBeUndefined();
-        expect(isNodeEnvironment("development")).toBe(true);
-        expect(isDevelopmentEnvironment()).toBe(true);
-        expect(isTestEnvironment()).toBe(false);
+        expect(getNodeEnvironmentSnapshot()).toStrictEqual({
+            isDevelopment: true,
+            isNodeTest: false,
+            isTest: false,
+            nodeEnv: "development",
+        });
 
         setGlobalProcess({ env: { NODE_ENV: "test" } });
 
-        expect(isTestEnvironment()).toBe(true);
+        expect(getNodeEnvironmentSnapshot()).toStrictEqual({
+            isDevelopment: false,
+            isNodeTest: true,
+            isTest: true,
+            nodeEnv: "test",
+        });
     });
 });
