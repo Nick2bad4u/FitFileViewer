@@ -82,6 +82,23 @@ describe("registerRecentFileHandlers", () => {
         return handler;
     }
 
+    function getRecentFileState(filePaths: string[] = []): {
+        added: string[];
+        approvals: Record<string, boolean>;
+        logs: LogEntry[];
+    } {
+        return {
+            added: [...added],
+            approvals: Object.fromEntries(
+                filePaths.map((filePath) => [
+                    filePath,
+                    isApprovedFilePath(filePath),
+                ])
+            ),
+            logs: [...logs],
+        };
+    }
+
     it("no-ops when registerIpcHandle is invalid", () => {
         expect.hasAssertions();
 
@@ -109,13 +126,18 @@ describe("registerRecentFileHandlers", () => {
         const result = await handler({}, 123);
 
         expect(result).toEqual(["C:/a.fit"]);
-        expect(added).toEqual([]);
-        expect(logs).toContainEqual({
-            context: {
-                filePath: 123,
-            },
-            level: "warn",
-            message: "Rejected recentFiles:add for invalid path",
+        expect(getRecentFileState()).toStrictEqual({
+            added: [],
+            approvals: {},
+            logs: [
+                {
+                    context: {
+                        filePath: 123,
+                    },
+                    level: "warn",
+                    message: "Rejected recentFiles:add for invalid path",
+                },
+            ],
         });
     });
 
@@ -129,13 +151,20 @@ describe("registerRecentFileHandlers", () => {
         await expect(handler({}, "C:/unapproved.fit")).resolves.toEqual([
             "C:/a.fit",
         ]);
-        expect(added).toEqual([]);
-        expect(logs).toContainEqual({
-            context: {
-                filePath: "C:/unapproved.fit",
+        expect(getRecentFileState(["C:/unapproved.fit"])).toStrictEqual({
+            added: [],
+            approvals: {
+                "C:/unapproved.fit": false,
             },
-            level: "warn",
-            message: "Rejected recentFiles:add for unapproved path",
+            logs: [
+                {
+                    context: {
+                        filePath: "C:/unapproved.fit",
+                    },
+                    level: "warn",
+                    message: "Rejected recentFiles:add for unapproved path",
+                },
+            ],
         });
     });
 
@@ -149,9 +178,14 @@ describe("registerRecentFileHandlers", () => {
         const handler = getHandler("recentFiles:add");
         const result = await handler({}, approved);
 
-        expect(added).toEqual([approved]);
         expect(result).toEqual(["C:/a.fit"]);
-        expect(logs).toEqual([]);
+        expect(getRecentFileState([approved])).toStrictEqual({
+            added: [approved],
+            approvals: {
+                [approved]: true,
+            },
+            logs: [],
+        });
     });
 
     it("recentFiles:get does not implicitly approve file reads", async () => {
@@ -166,7 +200,9 @@ describe("registerRecentFileHandlers", () => {
 
         const list = await getHandlerResult();
         expect(list).toEqual(["C:/a.fit"]);
-        expect(isApprovedFilePath("C:/a.fit")).toBe(false);
+        expect(getRecentFileState(["C:/a.fit"]).approvals).toStrictEqual({
+            "C:/a.fit": false,
+        });
     });
 
     it("recentFiles:approve approves only paths in the recent list", async () => {
@@ -179,12 +215,23 @@ describe("registerRecentFileHandlers", () => {
 
         const approveHandler = getHandler("recentFiles:approve");
 
-        await expect(approveHandler({}, "C:/not-in-list.fit")).resolves.toBe(
-            false
-        );
-        expect(isApprovedFilePath("C:/not-in-list.fit")).toBe(false);
+        const rejectedApproval = await approveHandler({}, "C:/not-in-list.fit");
+        expect(
+            getRecentFileState(["C:/not-in-list.fit"]).approvals
+        ).toStrictEqual({
+            "C:/not-in-list.fit": false,
+        });
 
-        await expect(approveHandler({}, "C:/a.fit")).resolves.toBe(true);
-        expect(isApprovedFilePath("C:/a.fit")).toBe(true);
+        const acceptedApproval = await approveHandler({}, "C:/a.fit");
+        expect(getRecentFileState(["C:/a.fit"]).approvals).toStrictEqual({
+            "C:/a.fit": true,
+        });
+        expect({
+            acceptedApproval,
+            rejectedApproval,
+        }).toStrictEqual({
+            acceptedApproval: true,
+            rejectedApproval: false,
+        });
     });
 });
