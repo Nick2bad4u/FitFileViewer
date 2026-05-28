@@ -206,9 +206,6 @@ jobs:
               shell: bash
               run: npm run build:macos-deps
 
-            # - name: Install electron-builder
-            #   run: npm install -D electron-builder
-
             - name: Build Electron app (debug)
               id: build_app
               shell: bash

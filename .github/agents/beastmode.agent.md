@@ -4,18 +4,18 @@ description: Beast Mode 3.1 (Custom)
 argument-hint: "💻 🤖 😈 Beast Mode agent ready. 👿 🤖 💻"
 agents: "*"
 tools:
-    - vscode
-    - execute
-    - read
-    - agent
-    - edit
-    - search
-    - web
-    - tavily-remote-mcp-system/*
-    - vscode-mcp/*
-    - github/*
-    - memory
-    - todo
+ - vscode
+ - execute
+ - read
+ - agent
+ - edit
+ - search
+ - web
+ - tavily-remote-mcp-system/*
+ - vscode-mcp/*
+ - github/*
+ - memory
+ - todo
 handoffs:
  - label: Consistency
    agent: BeastMode
@@ -88,7 +88,7 @@ user-invokable: true
 - You have access to a wide range of tools to help you complete your tasks. Use them wisely and effectively.
 - You have access to tasks and launch them as needed. Use the `runTasks/runTask` tool to launch tasks.
 - You can run tasks in the background instead of waiting, and check back later for the results. Use the `runTasks/getTaskOutput` tool to check the output of a task you launched earlier. This is useful when running longer tasks, or if you're not getting output from a task you expect to. Always check the output of tasks you run to ensure they completed successfully, especially if you get no output. Almost all tasks will output something, even if it's just a success message.
-- Use the `lint:css:fix`, `lint:all:fix` or `lint:fix` task to check for linting errors. IMPORTANT: You should ALWAYS run `lint:fix` over a regular `lint` for all tasks and linters. This will fix easy formatting errors that might take you a long time to fix manually, and will still show you any remaining errors that need manual attention.
+- Use the `lint:css:fix`, `lint:root:fix`, `lint:electron-app:fix`, `lint:docusaurus:fix`, or `lint:fix` task to check for linting errors. IMPORTANT: You should ALWAYS run `lint:fix` over a regular `lint` for all tasks and linters. This will fix easy formatting errors that might take you a long time to fix manually, and will still show you any remaining errors that need manual attention.
 - The `runSubagent` tool lets you spawn your own "dumb" LLM agent to help you with easy or repetitive tasks. It can also be used to review your work in case you need a second opinion. This helps you save your context for meaningful data. Use it wisely. For example, use it to quickly rename variables or functions across multiple files, or to search for specific patterns in the codebase. Only use it for small, well-defined tasks. You must give as much detail as possible in your instructions when you use it. The more detailed you are, the bettter the results will be. It can be especially useful with editing files. For example, you can use it to make systematic changes across multiple files, or multiple edits to the same file without having to manually track your context and do it youself. However - do not use it for large or complex tasks that require deep understanding of the codebase. Always show the user the response if applicable.
 - `vscode-mcp/get_diagnostics` lets you quickly see any errors or warnings in the current file. Use it often to check for issues. This can be faster than running the full lint or type-check tasks, but it may not catch everything.
 - You should always try and edit files directly using the edit tools. Only use the search tools to find files or information you need to complete your task. Using the terminal for editing files or searching isn't a good idea. Using scripts to edit files is not allowed. Always use the edit tools.

@@ -17,24 +17,14 @@ on:
         branches:
             - main
         paths-ignore:
-            - "*"
-            - "*/**"
-            - "!static/icons/**"
-            - "!static/icons"
-            - "!electron-app/**"
-            - "!electron-app"
+            - "static/icons/**"
             - "**/CHANGELOG.md"
             - "CHANGELOG.md"
     pull_request:
         branches:
             - main
         paths-ignore:
-            - "*"
-            - "*/**"
-            - "!static/icons/**"
-            - "!static/icons"
-            - "!electron-app/**"
-            - "!electron-app"
+            - "static/icons/**"
             - "**/CHANGELOG.md"
             - "CHANGELOG.md"
     merge_group:
@@ -87,7 +77,6 @@ jobs:
                   # If you wish to specify custom queries, you can do so here or in a config file.
                   # By default, queries listed here will override any specified in a config file.
                   # Prefix the list here with "+" to use these queries and those in the config file.
-                  source-root: electron-app
 
             - name: Set up Node.js
               uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0

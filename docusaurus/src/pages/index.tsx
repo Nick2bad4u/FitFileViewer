@@ -11,6 +11,26 @@ import clsx from "clsx";
 
 import styles from "./index.module.css";
 
+const packageJsonSnippet = `{
+  "name": "fitfileviewer-root",
+  "private": true,
+  "workspaces": [
+    "electron-app",
+    "docusaurus"
+  ],
+  "scripts": {
+    "start": "node scripts/start-electron.mjs --inspect=9229 --remote-debugging-port=9222",
+    "build": "node scripts/build-package.mjs",
+    "test": "node scripts/run-vitest.mjs --run --reporter=dot --silent --maxWorkers 1"
+  },
+  "devDependencies": {
+    "chart.js": "^4.5.1",
+    "electron": "^42.2.0",
+    "leaflet": "^1.9.4",
+    "vitest": "^4.1.7"
+  }
+}`;
+
 /**
  * Copies code to clipboard with fallback support.
  */
@@ -19,25 +39,6 @@ const handleCopyCode = (() => {
     let feedbackTimer: null | ReturnType<typeof setTimeout> = null;
 
     return async (): Promise<void> => {
-        const code = `{
-  "name": "fitfileviewer",
-  "version": "29.3.0",
-  "description": "Fit File Viewer - Cross-platform .fit file viewer",
-  "main": "main.js",
-  "scripts": {
-    "start": "electron .",
-    "build": "electron-builder",
-    "test": "vitest"
-  },
-  "dependencies": {
-    "@garmin/fitsdk": "^21.178.0",
-    "chart.js": "^4.5.1",
-    "electron": "^39.2.3",
-    "leaflet": "^1.9.4"
-  },
-  "license": "Unlicense"
-}`;
-
         // Try modern clipboard API first (browser environment only)
         if (
             typeof window !== "undefined" &&
@@ -45,7 +46,7 @@ const handleCopyCode = (() => {
             window.navigator.clipboard
         ) {
             try {
-                await window.navigator.clipboard.writeText(code);
+                await window.navigator.clipboard.writeText(packageJsonSnippet);
                 // Simple feedback
                 const button = document.activeElement;
                 if (button && button instanceof HTMLButtonElement) {
@@ -70,7 +71,7 @@ const handleCopyCode = (() => {
 
         // Fallback for older browsers or when navigator is not available
         const textArea = document.createElement("textarea");
-        textArea.value = code;
+        textArea.value = packageJsonSnippet;
         document.body.append(textArea);
         textArea.select();
         try {
@@ -364,7 +365,7 @@ const TechStack = (): JSX.Element => (
                                 </button>
                                 <a
                                     className={styles["view-button"]}
-                                    href="https://github.com/Nick2bad4u/FitFileViewer/blob/main/electron-app/package.json"
+                                    href="https://github.com/Nick2bad4u/FitFileViewer/blob/main/package.json"
                                     rel="noopener noreferrer"
                                     target="_blank"
                                 >
@@ -373,24 +374,7 @@ const TechStack = (): JSX.Element => (
                             </div>
                         </div>
                         <pre className={styles["code-content"]}>
-                            {`{
-  "name": "fitfileviewer",
-  "version": "29.3.0",
-  "description": "Fit File Viewer - Cross-platform .fit file viewer",
-  "main": "main.js",
-  "scripts": {
-    "start": "electron .",
-    "build": "electron-builder",
-    "test": "vitest"
-  },
-  "dependencies": {
-    "@garmin/fitsdk": "^21.178.0",
-    "chart.js": "^4.5.1",
-    "electron": "^39.2.3",
-    "leaflet": "^1.9.4"
-  },
-  "license": "Unlicense"
-}`}
+                            {packageJsonSnippet}
                         </pre>
                     </div>
                 </div>
