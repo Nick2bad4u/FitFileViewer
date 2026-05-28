@@ -13,7 +13,7 @@ describe("logWithContext", () => {
 
     it("logs a JSON string context and redacts secrets/tokens", async () => {
         const { logWithContext } =
-            await import("../../../../main/logging/logWithContext.js");
+            await import("../../../../electron-app/main/logging/logWithContext.js");
         const spy = vi.spyOn(console, "info").mockImplementation(() => void 0);
 
         logWithContext("info", "hello", {
@@ -36,7 +36,7 @@ describe("logWithContext", () => {
 
     it("stringifies Error objects without throwing", async () => {
         const { logWithContext } =
-            await import("../../../../main/logging/logWithContext.js");
+            await import("../../../../electron-app/main/logging/logWithContext.js");
         const spy = vi.spyOn(console, "error").mockImplementation(() => void 0);
 
         logWithContext("error", "boom", { error: new Error("nope") });
@@ -50,7 +50,7 @@ describe("logWithContext", () => {
 
     it("handles circular contexts", async () => {
         const { logWithContext } =
-            await import("../../../../main/logging/logWithContext.js");
+            await import("../../../../electron-app/main/logging/logWithContext.js");
         const spy = vi.spyOn(console, "warn").mockImplementation(() => void 0);
 
         const ctx: Record<string, unknown> = {};
@@ -65,7 +65,7 @@ describe("logWithContext", () => {
 
     it("falls back to console.log for unknown levels", async () => {
         const { logWithContext } =
-            await import("../../../../main/logging/logWithContext.js");
+            await import("../../../../electron-app/main/logging/logWithContext.js");
         const spy = vi.spyOn(console, "log").mockImplementation(() => void 0);
 
         logWithContext("not-a-level", "msg", { key: "value" });

@@ -10,7 +10,7 @@ type FileReadPayloadModule = {
 const require = createRequire(import.meta.url);
 
 const loadModule = (): FileReadPayloadModule =>
-    require("../../../../main/ipc/fileReadPayload.js") as FileReadPayloadModule;
+    require("../../../../electron-app/main/ipc/fileReadPayload.js") as FileReadPayloadModule;
 
 function createForeignArrayBuffer(bytes: number[]): ArrayBuffer {
     const frame = document.createElement("iframe");

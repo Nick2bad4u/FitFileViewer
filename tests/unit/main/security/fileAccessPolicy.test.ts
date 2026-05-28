@@ -15,7 +15,7 @@ function loadPolicyWithRealpath(realpathImpl: (p: string) => string) {
 
     /** @type {{ fs: any; path: typeof import("node:path") }} */
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const nodeModules = require("../../../../main/runtime/nodeModules.js");
+    const nodeModules = require("../../../../electron-app/main/runtime/nodeModules.js");
 
     const realpathSync = Object.assign(
         ((p: string) => realpathImpl(p)) as (p: string) => string,
@@ -29,7 +29,7 @@ function loadPolicyWithRealpath(realpathImpl: (p: string) => string) {
     nodeModules.path = path;
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const policy = require("../../../../main/security/fileAccessPolicy.js");
+    const policy = require("../../../../electron-app/main/security/fileAccessPolicy.js");
     policy.__resetForTests?.();
     return policy;
 }
@@ -37,7 +37,7 @@ function loadPolicyWithRealpath(realpathImpl: (p: string) => string) {
 describe("fileAccessPolicy", () => {
     it("rejects URI-like file paths", async () => {
         const mod =
-            await import("../../../../main/security/fileAccessPolicy.js");
+            await import("../../../../electron-app/main/security/fileAccessPolicy.js");
         mod.__resetForTests?.();
 
         expect(() => mod.approveFilePath("file:///tmp/a.fit")).toThrow(
@@ -48,7 +48,7 @@ describe("fileAccessPolicy", () => {
 
     it("rejects Windows extended-length/device path prefixes", async () => {
         const mod =
-            await import("../../../../main/security/fileAccessPolicy.js");
+            await import("../../../../electron-app/main/security/fileAccessPolicy.js");
         mod.__resetForTests?.();
 
         expect(() => mod.approveFilePath("\\\\?\\C:\\a.fit")).toThrow(

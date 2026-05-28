@@ -2,7 +2,7 @@
  * @vitest-environment node
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { registerClipboardHandlers } from "../../../../main/ipc/registerClipboardHandlers.js";
+import { registerClipboardHandlers } from "../../../../electron-app/main/ipc/registerClipboardHandlers.js";
 
 describe("registerClipboardHandlers", () => {
     /** @type {ReturnType<typeof vi.fn>} */

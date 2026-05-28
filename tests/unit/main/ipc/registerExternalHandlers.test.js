@@ -2,7 +2,7 @@
  * @vitest-environment node
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { registerExternalHandlers } from "../../../../main/ipc/registerExternalHandlers.js";
+import { registerExternalHandlers } from "../../../../electron-app/main/ipc/registerExternalHandlers.js";
 
 describe("registerExternalHandlers", () => {
     let mockRegisterIpcHandle;
@@ -51,7 +51,9 @@ describe("registerExternalHandlers", () => {
                 expect.any(Function)
             );
 
-            const registeredChannels = new Map(mockRegisterIpcHandle.mock.calls);
+            const registeredChannels = new Map(
+                mockRegisterIpcHandle.mock.calls
+            );
             expect(registeredChannels.get("shell:openExternal")).toBeTypeOf(
                 "function"
             );

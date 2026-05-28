@@ -6,10 +6,10 @@ const requireCjs = createRequire(import.meta.url);
 
 function clearMainRequireCache() {
     const electronAccessPath = requireCjs.resolve(
-        "../../../../main/runtime/electronAccess"
+        "../../../../electron-app/main/runtime/electronAccess"
     );
     const setupHandlersPath = requireCjs.resolve(
-        "../../../../main/app/setupApplicationEventHandlers"
+        "../../../../electron-app/main/app/setupApplicationEventHandlers"
     );
     delete requireCjs.cache[electronAccessPath];
     delete requireCjs.cache[setupHandlersPath];
@@ -31,7 +31,7 @@ describe("setupApplicationEventHandlers permission hardening", () => {
         try {
             // Ensure no stale override leaks into other suites.
             const electronAccess = requireCjs(
-                "../../../../main/runtime/electronAccess"
+                "../../../../electron-app/main/runtime/electronAccess"
             );
             electronAccess.setElectronOverride?.(null);
         } catch {
@@ -58,7 +58,7 @@ describe("setupApplicationEventHandlers permission hardening", () => {
         };
 
         const electronAccess = requireCjs(
-            "../../../../main/runtime/electronAccess"
+            "../../../../electron-app/main/runtime/electronAccess"
         );
         electronAccess.setElectronOverride({
             app: mockApp,
@@ -66,7 +66,7 @@ describe("setupApplicationEventHandlers permission hardening", () => {
         });
 
         const { setupApplicationEventHandlers } = requireCjs(
-            "../../../../main/app/setupApplicationEventHandlers"
+            "../../../../electron-app/main/app/setupApplicationEventHandlers"
         );
         setupApplicationEventHandlers();
 
@@ -116,7 +116,7 @@ describe("setupApplicationEventHandlers permission hardening", () => {
         const appEmitter = new MockApp();
 
         const electronAccess = requireCjs(
-            "../../../../main/runtime/electronAccess"
+            "../../../../electron-app/main/runtime/electronAccess"
         );
         electronAccess.setElectronOverride({
             app: appEmitter,
@@ -124,7 +124,7 @@ describe("setupApplicationEventHandlers permission hardening", () => {
         });
 
         const { setupApplicationEventHandlers } = requireCjs(
-            "../../../../main/app/setupApplicationEventHandlers"
+            "../../../../electron-app/main/app/setupApplicationEventHandlers"
         );
 
         setupApplicationEventHandlers();

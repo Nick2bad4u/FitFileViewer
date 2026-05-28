@@ -31,9 +31,9 @@ function loadModules(): {
     vi.resetModules();
     const require = createRequire(import.meta.url);
     const electronAccess =
-        require("../../../../main/runtime/electronAccess.js") as ElectronAccessModule;
+        require("../../../../electron-app/main/runtime/electronAccess.js") as ElectronAccessModule;
     const { setupBlockedRequests } =
-        require("../../../../main/security/setupBlockedRequests.js") as SetupBlockedRequestsModule;
+        require("../../../../electron-app/main/security/setupBlockedRequests.js") as SetupBlockedRequestsModule;
 
     return { electronAccess, setupBlockedRequests };
 }

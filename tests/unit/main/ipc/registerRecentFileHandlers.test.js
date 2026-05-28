@@ -7,8 +7,8 @@ import {
     approveFilePath,
     isApprovedFilePath,
     __resetForTests,
-} from "../../../../main/security/fileAccessPolicy.js";
-import { registerRecentFileHandlers } from "../../../../main/ipc/registerRecentFileHandlers.js";
+} from "../../../../electron-app/main/security/fileAccessPolicy.js";
+import { registerRecentFileHandlers } from "../../../../electron-app/main/ipc/registerRecentFileHandlers.js";
 
 describe("registerRecentFileHandlers", () => {
     /** @type {Map<string, Function>} */

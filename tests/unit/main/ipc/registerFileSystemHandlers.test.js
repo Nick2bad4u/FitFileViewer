@@ -3,11 +3,11 @@
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { registerFileSystemHandlers } from "../../../../main/ipc/registerFileSystemHandlers.js";
+import { registerFileSystemHandlers } from "../../../../electron-app/main/ipc/registerFileSystemHandlers.js";
 import {
     approveFilePath,
     __resetForTests,
-} from "../../../../main/security/fileAccessPolicy.js";
+} from "../../../../electron-app/main/security/fileAccessPolicy.js";
 
 describe("registerFileSystemHandlers", () => {
     let registerIpcHandle;

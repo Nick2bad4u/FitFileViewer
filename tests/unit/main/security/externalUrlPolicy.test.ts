@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { validateExternalUrl } from "../../../../main/security/externalUrlPolicy.js";
+import { validateExternalUrl } from "../../../../electron-app/main/security/externalUrlPolicy.js";
 
 describe("externalUrlPolicy.validateExternalUrl", () => {
     it("allows https and mailto URLs", () => {
@@ -34,15 +34,13 @@ describe("externalUrlPolicy.validateExternalUrl", () => {
         expect(() =>
             validateExternalUrl("https://example.com/has space")
         ).toThrow("Invalid URL provided");
-        expect(() =>
-            validateExternalUrl("https://example.com/\nfoo")
-        ).toThrow("Invalid URL provided");
+        expect(() => validateExternalUrl("https://example.com/\nfoo")).toThrow(
+            "Invalid URL provided"
+        );
     });
 
     it("rejects extremely long URLs", () => {
         const long = `https://example.com/${"a".repeat(5000)}`;
-        expect(() => validateExternalUrl(long)).toThrow(
-            "Invalid URL provided"
-        );
+        expect(() => validateExternalUrl(long)).toThrow("Invalid URL provided");
     });
 });

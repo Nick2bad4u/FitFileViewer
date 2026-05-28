@@ -9,7 +9,7 @@ type FitIpcPayloadModule = {
 const require = createRequire(import.meta.url);
 
 const loadModule = (): FitIpcPayloadModule =>
-    require("../../../../main/ipc/fitIpcPayload.js") as FitIpcPayloadModule;
+    require("../../../../electron-app/main/ipc/fitIpcPayload.js") as FitIpcPayloadModule;
 
 function createForeignArrayBuffer(bytes: number[]): ArrayBuffer {
     const frame = document.createElement("iframe");

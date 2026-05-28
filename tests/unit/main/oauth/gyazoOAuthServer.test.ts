@@ -72,20 +72,26 @@ describe("gyazoOAuthServer", () => {
 
         // Inject mocks for the CJS requires used by the module under test.
         injectCjsMock(
-            require.resolve("../../../../main/logging/logWithContext"),
+            require.resolve("../../../../electron-app/main/logging/logWithContext"),
             {
                 logWithContext: (...args: any[]) => mockLogWithContext(...args),
             }
         );
-        injectCjsMock(require.resolve("../../../../main/runtime/nodeModules"), {
-            httpRef: () => mockHttp,
-        });
-        injectCjsMock(require.resolve("../../../../main/state/appState"), {
-            getAppState: (key: string) => state.get(key),
-            setAppState: (key: string, value: any) => state.set(key, value),
-        });
         injectCjsMock(
-            require.resolve("../../../../main/window/windowValidation"),
+            require.resolve("../../../../electron-app/main/runtime/nodeModules"),
+            {
+                httpRef: () => mockHttp,
+            }
+        );
+        injectCjsMock(
+            require.resolve("../../../../electron-app/main/state/appState"),
+            {
+                getAppState: (key: string) => state.get(key),
+                setAppState: (key: string, value: any) => state.set(key, value),
+            }
+        );
+        injectCjsMock(
+            require.resolve("../../../../electron-app/main/window/windowValidation"),
             {
                 validateWindow: () => true,
             }
@@ -93,7 +99,7 @@ describe("gyazoOAuthServer", () => {
 
         // Ensure we reload the module under test with the new cache injections.
         const sutPath =
-            require.resolve("../../../../main/oauth/gyazoOAuthServer.js");
+            require.resolve("../../../../electron-app/main/oauth/gyazoOAuthServer.js");
         const cache = (require as unknown as { cache: Record<string, any> })
             .cache;
         delete cache[sutPath];
@@ -102,7 +108,7 @@ describe("gyazoOAuthServer", () => {
     it("starts server and applies safe headers (no CORS)", async () => {
         const {
             startGyazoOAuthServer,
-        } = require("../../../../main/oauth/gyazoOAuthServer.js");
+        } = require("../../../../electron-app/main/oauth/gyazoOAuthServer.js");
 
         const result = await startGyazoOAuthServer(3000);
         expect(result.success).toBe(true);
@@ -129,7 +135,7 @@ describe("gyazoOAuthServer", () => {
     it("rejects non-GET/HEAD methods", async () => {
         const {
             startGyazoOAuthServer,
-        } = require("../../../../main/oauth/gyazoOAuthServer.js");
+        } = require("../../../../electron-app/main/oauth/gyazoOAuthServer.js");
         await startGyazoOAuthServer(3000);
 
         const res = makeRes();
@@ -144,7 +150,7 @@ describe("gyazoOAuthServer", () => {
     it("escapes error parameter in HTML response", async () => {
         const {
             startGyazoOAuthServer,
-        } = require("../../../../main/oauth/gyazoOAuthServer.js");
+        } = require("../../../../electron-app/main/oauth/gyazoOAuthServer.js");
         await startGyazoOAuthServer(3000);
 
         const res = makeRes();
@@ -164,7 +170,7 @@ describe("gyazoOAuthServer", () => {
     it("sends callback payload to mainWindow when code/state are present", async () => {
         const {
             startGyazoOAuthServer,
-        } = require("../../../../main/oauth/gyazoOAuthServer.js");
+        } = require("../../../../electron-app/main/oauth/gyazoOAuthServer.js");
 
         const send = vi.fn();
         state.set("mainWindow", { webContents: { send } });
@@ -190,7 +196,7 @@ describe("gyazoOAuthServer", () => {
         const {
             startGyazoOAuthServer,
             stopGyazoOAuthServer,
-        } = require("../../../../main/oauth/gyazoOAuthServer.js");
+        } = require("../../../../electron-app/main/oauth/gyazoOAuthServer.js");
 
         await startGyazoOAuthServer(3000);
         // Force close to throw

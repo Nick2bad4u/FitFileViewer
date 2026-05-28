@@ -16,10 +16,10 @@ type FitIpcPayloadModule = {
 
 const cjsRequire = createRequire(import.meta.url);
 const fileReadPayload = cjsRequire(
-    "../../../../main/ipc/fileReadPayload.js"
+    "../../../../electron-app/main/ipc/fileReadPayload.js"
 ) as FileReadPayloadModule;
 const fitIpcPayload = cjsRequire(
-    "../../../../main/ipc/fitIpcPayload.js"
+    "../../../../electron-app/main/ipc/fitIpcPayload.js"
 ) as FitIpcPayloadModule;
 
 function bytesFromArrayBuffer(buffer: ArrayBuffer): number[] {

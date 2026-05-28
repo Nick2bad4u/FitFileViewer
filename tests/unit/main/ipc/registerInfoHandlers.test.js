@@ -28,7 +28,7 @@ describe("registerInfoHandlers", () => {
         });
 
         ({ registerInfoHandlers } =
-            await import("../../../../main/ipc/registerInfoHandlers.js"));
+            await import("../../../../electron-app/main/ipc/registerInfoHandlers.js"));
         registerIpcHandle = vi.fn();
         appRef = vi.fn().mockReturnValue({
             getVersion: vi.fn().mockReturnValue("1.2.3"),

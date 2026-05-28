@@ -362,7 +362,6 @@ electron-app/utils/
 ```text
 electron-app/tests/
 ├── unit/                            # App-coupled unit tests
-│   ├── main/                        # Main-process unit tests pending root migration
 │   └── utils/                       # Utility unit tests pending root migration
 │
 └── strictTests/                     # Strict testing scenarios
@@ -374,6 +373,7 @@ tests/unit/
 ├── charts/                          # Root-owned chart behavior tests
 ├── files/                           # Root-owned file import/export behavior tests
 ├── lifecycle/                       # Root-owned app lifecycle behavior tests
+├── main/                            # Root-owned main-process behavior tests
 ├── maps/                            # Root-owned map behavior tests
 ├── menu/                            # Root-owned application menu behavior tests
 ├── packaging/                       # Root-owned build/tooling tests

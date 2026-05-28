@@ -1,11 +1,11 @@
 // @vitest-environment node
 import { Buffer } from "node:buffer";
-import type { FitDecodeResult } from "../../../../shared/fit";
-import type { FitParserModule } from "../../../../shared/fitParser";
+import type { FitDecodeResult } from "../../../../electron-app/shared/fit";
+import type { FitParserModule } from "../../../../electron-app/shared/fitParser";
 import type {
     FitFileInvokeChannel,
     FitFileResponsePayload,
-} from "../../../../shared/ipc";
+} from "../../../../electron-app/shared/ipc";
 import type { Mock } from "vitest";
 import { describe, expect, it, vi } from "vitest";
 
@@ -50,7 +50,7 @@ async function createFitFileHandlerTestContext(): Promise<FitFileHandlerTestCont
     vi.resetModules();
 
     const { registerFitFileHandlers } =
-        (await import("../../../../main/ipc/registerFitFileHandlers.js")) as RegisterFitFileHandlersModule;
+        (await import("../../../../electron-app/main/ipc/registerFitFileHandlers.js")) as RegisterFitFileHandlersModule;
     const decodedResult: FitDecodeResult = { record: [] };
     const decodeFitFileMock = vi
         .fn<FitParserModule["decodeFitFile"]>()

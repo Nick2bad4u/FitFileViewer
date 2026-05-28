@@ -15,7 +15,7 @@ describe("setupApplicationEventHandlers file:// policy", () => {
 
         try {
             const { setElectronOverride } =
-                await import("../../../../main/runtime/electronAccess.js");
+                await import("../../../../electron-app/main/runtime/electronAccess.js");
             setElectronOverride(null);
         } catch {
             /* ignore */
@@ -48,11 +48,11 @@ describe("setupApplicationEventHandlers file:// policy", () => {
 
         // Ensure electronAccess uses the per-test override even if it's already loaded.
         const { setElectronOverride } =
-            await import("../../../../main/runtime/electronAccess.js");
+            await import("../../../../electron-app/main/runtime/electronAccess.js");
         setElectronOverride((globalThis as any).__electronHoistedMock);
 
         const { setupApplicationEventHandlers } =
-            await import("../../../../main/app/setupApplicationEventHandlers.js");
+            await import("../../../../electron-app/main/app/setupApplicationEventHandlers.js");
         setupApplicationEventHandlers();
 
         const webContentsCreatedHandler = handlers.get("web-contents-created");
@@ -131,11 +131,11 @@ describe("setupApplicationEventHandlers file:// policy", () => {
         };
 
         const { setElectronOverride } =
-            await import("../../../../main/runtime/electronAccess.js");
+            await import("../../../../electron-app/main/runtime/electronAccess.js");
         setElectronOverride((globalThis as any).__electronHoistedMock);
 
         const { setupApplicationEventHandlers } =
-            await import("../../../../main/app/setupApplicationEventHandlers.js");
+            await import("../../../../electron-app/main/app/setupApplicationEventHandlers.js");
         setupApplicationEventHandlers();
 
         const webContentsCreatedHandler = handlers.get("web-contents-created");

@@ -35,7 +35,7 @@ describe("setupAutoUpdater", () => {
 
         // Ensure the module under test is reloaded per test.
         const sutPath =
-            require.resolve("../../../../main/updater/setupAutoUpdater.js");
+            require.resolve("../../../../electron-app/main/updater/setupAutoUpdater.js");
         delete cache[sutPath];
     });
 
@@ -43,7 +43,7 @@ describe("setupAutoUpdater", () => {
         // Require the CJS module so it uses our require.cache injection.
         const {
             setupAutoUpdater,
-        } = require("../../../../main/updater/setupAutoUpdater.js");
+        } = require("../../../../electron-app/main/updater/setupAutoUpdater.js");
 
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         const mockWindow = {
@@ -64,7 +64,7 @@ describe("setupAutoUpdater", () => {
     it("redacts credentials when logging feedURL and does not crash with minimal updater surface", async () => {
         const {
             setupAutoUpdater,
-        } = require("../../../../main/updater/setupAutoUpdater.js");
+        } = require("../../../../electron-app/main/updater/setupAutoUpdater.js");
 
         const mockWindow = {
             isDestroyed: () => false,
