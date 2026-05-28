@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-FitFileViewer is centered on `electron-app/`, the Electron desktop app for opening, parsing, and visualizing `.fit` activity files. Main runtime entry points are `electron-app/main.js`, `preload.js`, `renderer.js`, and `main-ui.js`. Domain code belongs under `electron-app/utils/`; shared TypeScript contracts live in `electron-app/shared/`; app-coupled Vitest suites live in `electron-app/tests/`; root-owned Vitest suites and fixtures live in `tests/unit/`, `tests/integration/`, and `tests/fixtures/`; root-owned chart, file, lifecycle, main-process, map, menu, preload, rendering, runtime, tab, theming, utility, packaging, and shared behavior suites live under `tests/unit/`; root-owned Electron Playwright smoke tests live in `tests/playwright/`. App assets are in `static/app/`, `static/icons/`, and related UI folders. Documentation lives in `docs/` and the Docusaurus site in `docusaurus/`. Real sample activities are kept in `fit-test-files/`.
+FitFileViewer is centered on `electron-app/`, the Electron desktop app for opening, parsing, and visualizing `.fit` activity files. Main runtime entry points are `electron-app/main.js`, `preload.js`, `renderer.js`, and `main-ui.js`. Domain code belongs under `electron-app/utils/`; shared TypeScript contracts live in `electron-app/shared/`; Vitest suites and fixtures live in `tests/unit/`, `tests/integration/`, and `tests/fixtures/`. Chart, file, lifecycle, main-process, map, menu, preload, rendering, runtime, strict regression, tab, theming, utility, packaging, and shared behavior suites live under `tests/unit/`; Electron Playwright smoke tests live in `tests/playwright/`. App assets are in `static/app/`, `static/icons/`, and related UI folders. Documentation lives in `docs/` and the Docusaurus site in `docusaurus/`. Real sample activities are kept in `fit-test-files/`.
 
 ## Build, Test, and Development Commands
 
@@ -22,7 +22,7 @@ Use the existing CommonJS runtime style unless a file is already TypeScript or p
 
 ## Testing Guidelines
 
-Use Vitest for app tests. Prefer `*.test.ts` for new Vitest tests. Put app-coupled tests under the relevant `electron-app/tests/` area, but keep root-owned suites such as packaging and shared tab behavior under `tests/unit/` or `tests/integration/`. Place Electron Playwright smoke tests under `tests/playwright/`. Use `tests/fixtures/` for reusable Vitest fixtures and `fit-test-files/` for real FIT-file coverage. Run targeted tests while developing, then run `npm test` before opening a PR.
+Use Vitest for app tests. Prefer `*.test.ts` for new Vitest tests and place them under `tests/unit/` or `tests/integration/` as appropriate. Place Electron Playwright smoke tests under `tests/playwright/`. Use `tests/fixtures/` for reusable Vitest fixtures and `fit-test-files/` for real FIT-file coverage. Run targeted tests while developing, then run `npm test` before opening a PR.
 
 ## Commit & Pull Request Guidelines
 
