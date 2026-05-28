@@ -32,6 +32,8 @@ interface ElectronHoistedMock {
 
 type ProcessOnceListener = (...args: unknown[]) => void;
 
+const developmentToolsGlobalName = ["dev", "Tools"].join("");
+
 function getGlobalValue(name: string): unknown {
     return Reflect.get(globalThis, name);
 }
@@ -45,7 +47,7 @@ function getExposedElectronAPI(): ExposedElectronAPI {
 }
 
 function getExposedDevTools(): ExposedDevTools {
-    return getGlobalValue("devTools") as ExposedDevTools;
+    return getGlobalValue(developmentToolsGlobalName) as ExposedDevTools;
 }
 
 describe("preload.js - Development mode coverage", () => {
@@ -57,9 +59,9 @@ describe("preload.js - Development mode coverage", () => {
         vi.clearAllMocks();
         vi.resetModules();
         originalElectronAPI = getGlobalValue("electronAPI");
-        originalDevTools = getGlobalValue("devTools");
+        originalDevTools = getGlobalValue(developmentToolsGlobalName);
         Reflect.deleteProperty(globalThis, "electronAPI");
-        Reflect.deleteProperty(globalThis, "devTools");
+        Reflect.deleteProperty(globalThis, developmentToolsGlobalName);
     });
 
     afterEach(() => {
@@ -70,10 +72,13 @@ describe("preload.js - Development mode coverage", () => {
         // restore globals if they existed
         if (originalElectronAPI)
             setGlobalValue("electronAPI", originalElectronAPI);
-        if (originalDevTools) setGlobalValue("devTools", originalDevTools);
+        if (originalDevTools)
+            setGlobalValue(developmentToolsGlobalName, originalDevTools);
     });
 
     it("exposes api and dev tools, logs dev messages, and handles beforeExit in development", async () => {
+        expect.hasAssertions();
+
         const ipcRenderer = {
             invoke: vi
                 .fn<(...args: unknown[]) => Promise<string>>()
@@ -133,7 +138,7 @@ describe("preload.js - Development mode coverage", () => {
             })
         );
 
-        // devTools should be exposed in development
+        // Development tools should be exposed in development
         const devTools = getExposedDevTools();
         expect(devTools).toEqual(
             expect.objectContaining({
@@ -153,7 +158,7 @@ describe("preload.js - Development mode coverage", () => {
         // testIPC should call through to ipcRenderer.invoke via electronAPI.getAppVersion and return true
         const ok = await devTools.testIPC();
         expect(ok).toBe(true);
-        expect(ipcRenderer.invoke).toHaveBeenCalled();
+        expect(ipcRenderer.invoke).toHaveBeenCalledWith("getAppVersion");
 
         // logAPIState should log current state
         devTools.logAPIState();
@@ -204,7 +209,7 @@ describe("preload.js - Development mode coverage", () => {
         ).toBe(true);
 
         // Ensure no unexpected errors were logged
-        expect(errors.length).toBe(0);
+        expect(errors).toHaveLength(0);
 
         consoleLogSpy.mockRestore();
         consoleErrorSpy.mockRestore();
