@@ -14,15 +14,18 @@ const mockSubscribe = vi.fn(() => () => {});
 const mockShowNotification = vi.fn();
 
 // Setup mocks before importing the module
-vi.mock("../../../../utils/state/core/stateManager.js", () => ({
+vi.mock("../../../../electron-app/utils/state/core/stateManager.js", () => ({
     getState: mockGetState,
     setState: mockSetState,
     subscribe: mockSubscribe,
 }));
 
-vi.mock("../../../../utils/ui/notifications/showNotification.js", () => ({
-    showNotification: mockShowNotification,
-}));
+vi.mock(
+    "../../../../electron-app/utils/ui/notifications/showNotification.js",
+    () => ({
+        showNotification: mockShowNotification,
+    })
+);
 
 // Mock console methods
 global.console = {
@@ -107,7 +110,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
         // Import the module fresh for each test
         settingsStateManagerModule =
-            await import("../../../../utils/state/domain/settingsStateManager.js");
+            await import("../../../../electron-app/utils/state/domain/settingsStateManager.js");
         settingsStateManager = settingsStateManagerModule.settingsStateManager;
 
         // Reset initialization state

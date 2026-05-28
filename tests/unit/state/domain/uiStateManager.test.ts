@@ -12,7 +12,7 @@ import {
 } from "vitest";
 
 // Mock AppActions
-vi.mock("../../../../utils/app/lifecycle/appActions.js", () => ({
+vi.mock("../../../../electron-app/utils/app/lifecycle/appActions.js", () => ({
     AppActions: {
         switchTab: vi.fn(),
         switchTheme: vi.fn(),
@@ -22,12 +22,15 @@ vi.mock("../../../../utils/app/lifecycle/appActions.js", () => ({
 }));
 
 // Mock showNotification
-vi.mock("../../../../utils/ui/notifications/showNotification.js", () => ({
-    showNotification: vi.fn(),
-}));
+vi.mock(
+    "../../../../electron-app/utils/ui/notifications/showNotification.js",
+    () => ({
+        showNotification: vi.fn(),
+    })
+);
 
 // Mock state manager
-vi.mock("../../../../utils/state/core/stateManager.js", () => ({
+vi.mock("../../../../electron-app/utils/state/core/stateManager.js", () => ({
     getState: vi.fn(),
     setState: vi.fn(),
     subscribe: vi.fn(() => () => {}),
@@ -39,15 +42,15 @@ import {
     UIStateManager,
     uiStateManager,
     UIActions,
-} from "../../../../utils/state/domain/uiStateManager.js";
-import { AppActions } from "../../../../utils/app/lifecycle/appActions.js";
-import { showNotification } from "../../../../utils/ui/notifications/showNotification.js";
+} from "../../../../electron-app/utils/state/domain/uiStateManager.js";
+import { AppActions } from "../../../../electron-app/utils/app/lifecycle/appActions.js";
+import { showNotification } from "../../../../electron-app/utils/ui/notifications/showNotification.js";
 import {
     getState,
     setState,
     subscribe,
     updateState,
-} from "../../../../utils/state/core/stateManager.js";
+} from "../../../../electron-app/utils/state/core/stateManager.js";
 
 describe("UIStateManager - comprehensive coverage", () => {
     let addEventListenerSpy: any;

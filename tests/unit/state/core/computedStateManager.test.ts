@@ -107,13 +107,13 @@ describe("computedStateManager.js - comprehensive coverage", () => {
         };
 
         vi.doMock(
-            "../../../../utils/state/core/stateManager.js",
+            "../../../../electron-app/utils/state/core/stateManager.js",
             () => mockStateManager
         );
 
         // Import after mocking
         const module =
-            await import("../../../../utils/state/core/computedStateManager.js");
+            await import("../../../../electron-app/utils/state/core/computedStateManager.js");
         computedStateManager = module.computedStateManager;
         addComputed = module.addComputed;
         getComputed = module.getComputed;
