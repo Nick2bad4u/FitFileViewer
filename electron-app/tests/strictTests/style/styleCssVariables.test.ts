@@ -5,6 +5,7 @@
 
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import process from "node:process";
 import { describe, expect, it } from "vitest";
 
 /**
@@ -13,7 +14,7 @@ import { describe, expect, it } from "vitest";
  * @returns {string}
  */
 const loadStyleSheet = () => {
-    const stylePath = resolve(__dirname, "../../../style.css");
+    const stylePath = resolve(process.cwd(), "static/app/style.css");
     return readFileSync(stylePath, "utf-8");
 };
 
