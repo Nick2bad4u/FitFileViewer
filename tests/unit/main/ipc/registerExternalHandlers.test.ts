@@ -94,6 +94,16 @@ describe("registerExternalHandlers", () => {
         return handler;
     }
 
+    function getShellOpenSnapshot(): {
+        logCalls: unknown[][];
+        openExternalCalls: unknown[][];
+    } {
+        return {
+            logCalls: mockLogWithContext.mock.calls,
+            openExternalCalls: mockShell.openExternal.mock.calls,
+        };
+    }
+
     describe("registration", () => {
         it("registers all three IPC handlers when given valid registerIpcHandle", () => {
             expect.hasAssertions();
@@ -189,8 +199,16 @@ describe("registerExternalHandlers", () => {
             expect(mockShell.openExternal).toHaveBeenCalledWith(
                 "https://example.com"
             );
-            expect(result).toBe(true);
-            expect(mockLogWithContext).not.toHaveBeenCalled();
+            expect({
+                result,
+                shell: getShellOpenSnapshot(),
+            }).toStrictEqual({
+                result: true,
+                shell: {
+                    logCalls: [],
+                    openExternalCalls: [["https://example.com"]],
+                },
+            });
         });
 
         it("opens a valid mailto URL successfully", async () => {
@@ -205,8 +223,16 @@ describe("registerExternalHandlers", () => {
             expect(mockShell.openExternal).toHaveBeenCalledWith(
                 "mailto:test@example.com"
             );
-            expect(result).toBe(true);
-            expect(mockLogWithContext).not.toHaveBeenCalled();
+            expect({
+                result,
+                shell: getShellOpenSnapshot(),
+            }).toStrictEqual({
+                result: true,
+                shell: {
+                    logCalls: [],
+                    openExternalCalls: [["mailto:test@example.com"]],
+                },
+            });
         });
 
         it("throws error for invalid URL (null)", async () => {
@@ -400,7 +426,16 @@ describe("registerExternalHandlers", () => {
             const handler = getRegisteredHandler("shell:openExternal");
             const result = await handler({}, "https://example.com");
 
-            expect(result).toBe(true);
+            expect({
+                result,
+                shell: getShellOpenSnapshot(),
+            }).toStrictEqual({
+                result: true,
+                shell: {
+                    logCalls: [],
+                    openExternalCalls: [["https://example.com"]],
+                },
+            });
         });
     });
 
