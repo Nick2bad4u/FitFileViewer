@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { createMapThemeToggle } from "../../../../../utils/theming/specific/createMapThemeToggle.js";
+import { createMapThemeToggle } from "../../../../../electron-app/utils/theming/specific/createMapThemeToggle.js";
 
 type MapThemeToggleTestGlobal = typeof globalThis & {
     __ffvMapThemeToggleListenersController?: AbortController;

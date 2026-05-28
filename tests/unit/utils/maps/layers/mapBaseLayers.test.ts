@@ -51,7 +51,7 @@ describe("mapBaseLayers", () => {
     it("uses shim when global L is not present", async () => {
         delete (global as any).L;
         const mod =
-            await import("../../../../../utils/maps/layers/mapBaseLayers.js");
+            await import("../../../../../electron-app/utils/maps/layers/mapBaseLayers.js");
         const { baseLayers } = mod;
         expect(Object.keys(baseLayers)).toEqual(EXPECTED_LAYER_NAMES);
         expect(baseLayers.OpenStreetMap).toEqual({});
@@ -67,7 +67,7 @@ describe("mapBaseLayers", () => {
             maplibreGL: vi.fn(() => vectorLayer),
         };
         const mod =
-            await import("../../../../../utils/maps/layers/mapBaseLayers.js");
+            await import("../../../../../electron-app/utils/maps/layers/mapBaseLayers.js");
         const { baseLayers } = mod;
         expect(baseLayers.OpenStreetMap).toBe(rasterLayer);
         expect(baseLayers.CartoDB_DarkMatter).toBe(rasterLayer);
@@ -93,7 +93,7 @@ describe("mapBaseLayers", () => {
             tileLayer: "not-a-function",
         };
         const mod =
-            await import("../../../../../utils/maps/layers/mapBaseLayers.js");
+            await import("../../../../../electron-app/utils/maps/layers/mapBaseLayers.js");
         const { baseLayers } = mod;
         expect(baseLayers.OpenStreetMap).toEqual({});
         expect(baseLayers.OpenFreeMap_Bright).toEqual({});

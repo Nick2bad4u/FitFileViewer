@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getLapColor } from "../../../../../utils/maps/core/mapColors.js";
+import { getLapColor } from "../../../../../electron-app/utils/maps/core/mapColors.js";
 
 describe(getLapColor, () => {
     it("returns the all-laps color", () => {

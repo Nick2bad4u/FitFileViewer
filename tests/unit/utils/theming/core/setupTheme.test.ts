@@ -11,12 +11,12 @@ const stateManagerMocks = vi.hoisted(() => {
 });
 
 vi.mock(
-    "../../../../../utils/state/core/stateManager.js",
+    "../../../../../electron-app/utils/state/core/stateManager.js",
     () => stateManagerMocks
 );
 
 async function importSetupThemeModule() {
-    return import("../../../../../utils/theming/core/setupTheme.js");
+    return import("../../../../../electron-app/utils/theming/core/setupTheme.js");
 }
 
 describe("setupTheme", () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { ensureMapDocumentListenersInstalled } from "../../../../../utils/maps/core/mapDocumentListeners.js";
+import { ensureMapDocumentListenersInstalled } from "../../../../../electron-app/utils/maps/core/mapDocumentListeners.js";
 
 type MapDocumentListenerTestGlobal = typeof globalThis & {
     __ffvLayoutLayersControl?: () => void;

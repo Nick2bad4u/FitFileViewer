@@ -4,21 +4,30 @@ const getMapThemeSetting = vi.fn(() => true);
 const setMapThemeSetting = vi.fn();
 const showNotification = vi.fn();
 
-vi.mock("../../../../../utils/charts/theming/getThemeColors.js", () => ({
-    getThemeColors: () => ({
-        primary: "#123456",
-        surface: "#ffffff",
-    }),
-}));
+vi.mock(
+    "../../../../../electron-app/utils/charts/theming/getThemeColors.js",
+    () => ({
+        getThemeColors: () => ({
+            primary: "#123456",
+            surface: "#ffffff",
+        }),
+    })
+);
 
-vi.mock("../../../../../utils/state/domain/settingsStateManager.js", () => ({
-    getMapThemeSetting,
-    setMapThemeSetting,
-}));
+vi.mock(
+    "../../../../../electron-app/utils/state/domain/settingsStateManager.js",
+    () => ({
+        getMapThemeSetting,
+        setMapThemeSetting,
+    })
+);
 
-vi.mock("../../../../../utils/ui/notifications/showNotification.js", () => ({
-    showNotification,
-}));
+vi.mock(
+    "../../../../../electron-app/utils/ui/notifications/showNotification.js",
+    () => ({
+        showNotification,
+    })
+);
 
 function resetMapThemeToggleGlobals(): void {
     Reflect.deleteProperty(
@@ -55,7 +64,7 @@ describe("createMapThemeToggle environment handling", () => {
         vi.stubGlobal("process", undefined);
 
         const { createMapThemeToggle } =
-            await import("../../../../../utils/theming/specific/createMapThemeToggle.js");
+            await import("../../../../../electron-app/utils/theming/specific/createMapThemeToggle.js");
 
         const button = createMapThemeToggle();
 
@@ -76,7 +85,7 @@ describe("createMapThemeToggle environment handling", () => {
         vi.stubGlobal("process", {});
 
         const { createMapThemeToggle } =
-            await import("../../../../../utils/theming/specific/createMapThemeToggle.js");
+            await import("../../../../../electron-app/utils/theming/specific/createMapThemeToggle.js");
 
         const button = createMapThemeToggle();
 

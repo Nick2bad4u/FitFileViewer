@@ -1,7 +1,7 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 
 // Note: use relative path from this test folder to module under test
-import * as theme from "../../../../../utils/theming/core/theme.js";
+import * as theme from "../../../../../electron-app/utils/theming/core/theme.js";
 
 describe("utils/theming/core/theme.js - additional coverage", () => {
     const originalMatchMedia = globalThis.matchMedia as any;
