@@ -5,22 +5,32 @@
 import { describe, test, expect, vi, beforeEach } from "vitest";
 
 // Mock dependencies
-vi.mock("../../../../utils/charts/theming/chartOverlayColorPalette.js", () => ({
-    chartOverlayColorPalette: ["#ff0000", "#00ff00", "#0000ff"],
-}));
+vi.mock(
+    "../../../../electron-app/utils/charts/theming/chartOverlayColorPalette.js",
+    () => ({
+        chartOverlayColorPalette: [
+            "#ff0000",
+            "#00ff00",
+            "#0000ff",
+        ],
+    })
+);
 
-vi.mock("../../../../utils/files/import/getOverlayFileName.js", () => ({
-    getOverlayFileName: vi.fn((filePath: string | undefined) => {
-        if (typeof filePath === "string" && filePath) {
-            return filePath.split("/").pop();
-        }
-        return "test.fit";
-    }),
-}));
+vi.mock(
+    "../../../../electron-app/utils/files/import/getOverlayFileName.js",
+    () => ({
+        getOverlayFileName: vi.fn((filePath: string | undefined) => {
+            if (typeof filePath === "string" && filePath) {
+                return filePath.split("/").pop();
+            }
+            return "test.fit";
+        }),
+    })
+);
 
 // Import the module under test
 const mapDrawLapsModule =
-    await import("../../../../utils/maps/layers/mapDrawLaps.js");
+    await import("../../../../electron-app/utils/maps/layers/mapDrawLaps.js");
 const { drawOverlayForFitFile, mapDrawLaps } = mapDrawLapsModule;
 
 declare global {
@@ -681,9 +691,9 @@ describe("mapDrawLaps", () => {
             // Should behave same as "all" - creating a polyline
             expect(mockLeaflet.polyline).toHaveBeenCalled();
             expect((globalThis as any).window._mainPolyline).toBe(mockPolyline);
-            expect(
-                (globalThis as any).window._mainPolylineOriginalBounds
-            ).toBe(mockLatLngBounds);
+            expect((globalThis as any).window._mainPolylineOriginalBounds).toBe(
+                mockLatLngBounds
+            );
             expect(mockLeaflet.polyline).toHaveBeenCalledWith(
                 expect.any(Array),
                 expect.objectContaining({

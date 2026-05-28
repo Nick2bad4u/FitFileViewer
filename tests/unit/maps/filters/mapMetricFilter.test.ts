@@ -4,7 +4,7 @@ import {
     createMetricFilter,
     getMetricDefinition,
     MAP_FILTER_METRICS,
-} from "../../../../utils/maps/filters/mapMetricFilter.js";
+} from "../../../../electron-app/utils/maps/filters/mapMetricFilter.js";
 
 describe("createMetricFilter", () => {
     it("returns inactive result when disabled", () => {
