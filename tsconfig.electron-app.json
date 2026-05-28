@@ -34,11 +34,6 @@
                 "./electron-app/shared/*"
             ]
         },
-        "plugins": [
-            {
-                "name": "@styled/typescript-styled-plugin"
-            }
-        ],
         "pretty": true,
         "skipDefaultLibCheck": true,
         "sourceMap": true,
