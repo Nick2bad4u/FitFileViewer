@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { DragDropHandler } from "../../../utils/ui/dragDropHandler.js";
-import type { FitDecodeResult } from "../../../shared/fit";
+import { DragDropHandler } from "../../../electron-app/utils/ui/dragDropHandler.js";
+import type { FitDecodeResult } from "../../../electron-app/shared/fit";
 
 const mocks = vi.hoisted(() => ({
     addEventListenerWithCleanup:
@@ -27,13 +27,16 @@ const mocks = vi.hoisted(() => ({
     validateElement: vi.fn<(elementId: string) => HTMLElement | null>(),
 }));
 
-vi.mock(import("../../../utils/app/lifecycle/appActions.js"), () => ({
-    AppActions: {
-        setFileOpening: mocks.setFileOpening,
-    },
-}));
+vi.mock(
+    import("../../../electron-app/utils/app/lifecycle/appActions.js"),
+    () => ({
+        AppActions: {
+            setFileOpening: mocks.setFileOpening,
+        },
+    })
+);
 
-vi.mock(import("../../../utils/debug/stateDevTools.js"), () => ({
+vi.mock(import("../../../electron-app/utils/debug/stateDevTools.js"), () => ({
     performanceMonitor: {
         endTimer: mocks.endTimer,
         isEnabled: mocks.isEnabled,
@@ -41,31 +44,43 @@ vi.mock(import("../../../utils/debug/stateDevTools.js"), () => ({
     },
 }));
 
-vi.mock(import("../../../utils/rendering/core/showFitData.js"), () => ({
-    showFitData: mocks.showFitData,
-}));
+vi.mock(
+    import("../../../electron-app/utils/rendering/core/showFitData.js"),
+    () => ({
+        showFitData: mocks.showFitData,
+    })
+);
 
-vi.mock(import("../../../utils/state/core/stateManager.js"), () => ({
-    getState: mocks.getState,
-    setState: mocks.setState,
-}));
+vi.mock(
+    import("../../../electron-app/utils/state/core/stateManager.js"),
+    () => ({
+        getState: mocks.getState,
+        setState: mocks.setState,
+    })
+);
 
-vi.mock(import("../../../utils/state/domain/fitFileState.js"), () => ({
-    fitFileStateManager: {
-        handleFileLoadingError: mocks.handleFileLoadingError,
-        startFileLoading: mocks.startFileLoading,
-    },
-}));
+vi.mock(
+    import("../../../electron-app/utils/state/domain/fitFileState.js"),
+    () => ({
+        fitFileStateManager: {
+            handleFileLoadingError: mocks.handleFileLoadingError,
+            startFileLoading: mocks.startFileLoading,
+        },
+    })
+);
 
-vi.mock(import("../../../utils/ui/mainUiDomUtils.js"), () => ({
+vi.mock(import("../../../electron-app/utils/ui/mainUiDomUtils.js"), () => ({
     addEventListenerWithCleanup: mocks.addEventListenerWithCleanup,
     validateElectronAPI: mocks.validateElectronAPI,
     validateElement: mocks.validateElement,
 }));
 
-vi.mock(import("../../../utils/ui/notifications/showNotification.js"), () => ({
-    showNotification: mocks.showNotification,
-}));
+vi.mock(
+    import("../../../electron-app/utils/ui/notifications/showNotification.js"),
+    () => ({
+        showNotification: mocks.showNotification,
+    })
+);
 
 type DecodeFitFile = (buffer: ArrayBuffer) => Promise<FitDecodeResult>;
 

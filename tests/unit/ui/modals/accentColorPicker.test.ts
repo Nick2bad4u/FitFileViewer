@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
 
-import { openAccentColorPicker } from "../../../../ui/modals/accentColorPicker.js";
+import { openAccentColorPicker } from "../../../../electron-app/ui/modals/accentColorPicker.js";
 
 function requireElement<TElement extends Element>(
     selector: string,
