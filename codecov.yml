@@ -114,12 +114,8 @@ coverage:
         - "**/node_modules/**/*"
         - "vite.renderer.config.mjs"
         - "vitest.config.ts"
-        - "vitest.electron.config.ts"
-        - "vitest.shared.config.ts"
         - "tsconfig*.json"
         - "eslint.config.mjs"
-        - "tailwind.config.mjs"
-        - "postcss.config.mjs"
 
         # Test files (don't test the tests)
         - "**/*.test.*"

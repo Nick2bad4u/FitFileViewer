@@ -429,26 +429,29 @@ npm run build:win7
 
 ### Build Configuration
 
-```json
-// package.json build configuration
-{
- "build": {
-  "appId": "com.example.fitfileviewer",
-  "asar": true,
-  "win": {
-   "target": ["portable", "squirrel", "msi"],
-   "icon": "dist/icons/favicon-256x256.ico"
-  },
-  "mac": {
-   "target": ["dmg", "zip", "pkg"],
-   "icon": "dist/icons/favicon-512x512.icns"
-  },
-  "linux": {
-   "target": ["AppImage", "deb", "rpm", "snap"],
-   "icon": "dist/icons/favicon-256x256.png"
-  }
- }
-}
+Electron Builder settings live in the root `electron-builder.config.cjs`, and
+packaged file inclusion is loaded from `electron-builder.files.json`. Keep new
+packaging targets and artifact naming in the root config instead of adding a
+`build` block to `package.json`.
+
+```js
+// electron-builder.config.cjs
+const appPackageFiles = require("./electron-builder.files.json");
+
+module.exports = {
+ appId: "io.github.nick2bad4u.fitfileviewer",
+ asar: true,
+ files: appPackageFiles,
+ linux: {
+  target: ["AppImage", "deb", "rpm", "snap"],
+ },
+ mac: {
+  target: ["dmg", "zip", "pkg"],
+ },
+ win: {
+  target: ["nsis", "portable", "squirrel", "msi"],
+ },
+};
 ```
 
 ## Debugging & Troubleshooting

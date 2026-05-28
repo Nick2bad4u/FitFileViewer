@@ -362,16 +362,9 @@ electron-app/utils/
 ```text
 electron-app/tests/
 ├── unit/                            # App-coupled unit tests
-│   ├── utils/                       # Utility function tests
-│   │   ├── formatting/              # Formatting function tests
-│   │   ├── data/                    # Data processing tests
-│   │   ├── state/                   # State management tests
-│   │   └── ui/                      # UI component tests
-│   ├── integration/                 # Integration tests
-│   ├── performance/                 # Performance tests
-│   └── accessibility/               # A11y tests
+│   ├── main/                        # Main-process unit tests pending root migration
+│   └── utils/                       # Utility unit tests pending root migration
 │
-├── mocks/                           # Test mocks
 └── strictTests/                     # Strict testing scenarios
 
 tests/integration/

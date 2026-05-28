@@ -122,7 +122,9 @@ The preload script exposes a constrained API (all methods validate their argumen
 - Root `electron-builder` wrappers (`build`, `build:all`, `package`) handle
   packaging for Windows/Mac/Linux.
 - Auto-update events (`update-available`, `update-downloaded`, etc.) surface in both renderer UI and application menu items.
-- NSIS, Squirrel, AppImage, Debian, and other targets are preconfigured in `package.json`.
+- NSIS, Squirrel, AppImage, Debian, and other targets are preconfigured in the
+  root `electron-builder.config.cjs`; packaged file inclusion is centralized in
+  `electron-builder.files.json`.
 
 ## Logging & Diagnostics
 
