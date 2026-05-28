@@ -60,6 +60,10 @@ function makeCommandRecorder(diffStatus: number): {
     };
 }
 
+function getCommandArgs(calls: CommandCall[]): string[] {
+    return calls.map((call) => call.args.join(" "));
+}
+
 describe("commit-changelog-workflow script", () => {
     it("creates the changelog commit message", async () => {
         expect.assertions(1);
@@ -73,31 +77,37 @@ describe("commit-changelog-workflow script", () => {
     });
 
     it("configures git and skips commit when the changelog has no staged changes", async () => {
-        expect.assertions(4);
+        expect.assertions(2);
 
         const { commitChangelogWorkflow } =
             await importCommitChangelogWorkflow();
         const { calls, runCommand } = makeCommandRecorder(0);
         const messages: string[] = [];
 
-        expect(
-            commitChangelogWorkflow({
-                cwd: "repo",
-                log(message) {
-                    messages.push(message);
-                },
-                runCommand,
-                targetBranch: "main",
-                version: "30.0.0",
-            })
-        ).toBe(false);
-        expect(messages).toStrictEqual(["No changelog changes to commit"]);
-        expect(calls.map((call) => call.args.join(" "))).toStrictEqual([
-            "config user.name github-actions[bot]",
-            "config user.email 41898282+github-actions[bot]@users.noreply.github.com",
-            "add CHANGELOG.md",
-            "diff --staged --quiet",
-        ]);
+        const didCommit = commitChangelogWorkflow({
+            cwd: "repo",
+            log(message) {
+                messages.push(message);
+            },
+            runCommand,
+            targetBranch: "main",
+            version: "30.0.0",
+        });
+
+        expect({
+            commands: getCommandArgs(calls),
+            didCommit,
+            messages,
+        }).toStrictEqual({
+            commands: [
+                "config user.name github-actions[bot]",
+                "config user.email 41898282+github-actions[bot]@users.noreply.github.com",
+                "add CHANGELOG.md",
+                "diff --staged --quiet",
+            ],
+            didCommit: false,
+            messages: ["No changelog changes to commit"],
+        });
         expect(calls.map((call) => call.command)).toStrictEqual([
             "git",
             "git",
@@ -107,33 +117,39 @@ describe("commit-changelog-workflow script", () => {
     });
 
     it("commits and pushes staged changelog changes", async () => {
-        expect.assertions(4);
+        expect.assertions(1);
 
         const { commitChangelogWorkflow } =
             await importCommitChangelogWorkflow();
         const { calls, runCommand } = makeCommandRecorder(1);
         const messages: string[] = [];
 
-        expect(
-            commitChangelogWorkflow({
-                cwd: "repo",
-                log(message) {
-                    messages.push(message);
-                },
-                runCommand,
-                targetBranch: "release",
-                version: "30.0.0",
-            })
-        ).toBe(true);
-        expect(messages).toStrictEqual([
-            "Changelogs updated and pushed to repository",
-        ]);
-        expect(calls.map((call) => call.args.join(" "))).toContain(
-            "commit -m chore: update changelogs for v30.0.0 [skip ci]"
-        );
-        expect(calls.map((call) => call.args.join(" "))).toContain(
-            "push origin release"
-        );
+        const didCommit = commitChangelogWorkflow({
+            cwd: "repo",
+            log(message) {
+                messages.push(message);
+            },
+            runCommand,
+            targetBranch: "release",
+            version: "30.0.0",
+        });
+
+        expect({
+            commands: getCommandArgs(calls),
+            didCommit,
+            messages,
+        }).toStrictEqual({
+            commands: [
+                "config user.name github-actions[bot]",
+                "config user.email 41898282+github-actions[bot]@users.noreply.github.com",
+                "add CHANGELOG.md",
+                "diff --staged --quiet",
+                "commit -m chore: update changelogs for v30.0.0 [skip ci]",
+                "push origin release",
+            ],
+            didCommit: true,
+            messages: ["Changelogs updated and pushed to repository"],
+        });
     });
 
     it("parses CLI arguments and environment defaults", async () => {
