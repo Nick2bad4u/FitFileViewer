@@ -1,0 +1,211 @@
+/**
+ * @vitest-environment jsdom
+ */
+
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+    addClass,
+    clearElement,
+    focus,
+    getChecked,
+    getData,
+    getValue,
+    isHTMLElement,
+    on,
+    query,
+    queryAll,
+    removeClass,
+    requireElement,
+    setChecked,
+    setData,
+    setDisabled,
+    setStyle,
+    setText,
+    setValue,
+} from "../../../electron-app/utils/dom/index.js";
+
+describe("dom helpers", () => {
+    let container: HTMLDivElement;
+
+    beforeEach(() => {
+        container = document.createElement("div");
+        container.id = "test-container";
+        document.body.append(container);
+    });
+
+    afterEach(() => {
+        document.body.replaceChildren();
+        vi.restoreAllMocks();
+    });
+
+    it("identifies element nodes without accepting other values", () => {
+        expect(isHTMLElement(document.createElement("div"))).toBe(true);
+        expect(isHTMLElement(document.createTextNode("text"))).toBe(false);
+        expect(isHTMLElement(document)).toBe(false);
+        expect(isHTMLElement(null)).toBe(false);
+        expect(isHTMLElement({ nodeType: 1 })).toBe(true);
+    });
+
+    it("queries one or many matching elements within an optional root", () => {
+        const section = document.createElement("section"),
+            primaryButton = document.createElement("button"),
+            secondaryButton = document.createElement("button");
+        primaryButton.className = "action";
+        primaryButton.id = "primary";
+        primaryButton.textContent = "Primary";
+        secondaryButton.className = "action";
+        secondaryButton.textContent = "Secondary";
+        section.append(primaryButton, secondaryButton);
+        container.append(section);
+
+        expect(query("#primary", container)?.textContent).toBe("Primary");
+        expect(query(".missing", container)).toBeNull();
+        expect(queryAll(".action", container)).toHaveLength(2);
+        expect(queryAll(".missing", container)).toStrictEqual([]);
+    });
+
+    it("throws consistent errors for missing required elements and empty selectors", () => {
+        expect(() => query("")).toThrow(
+            'Failed to execute "querySelector" on "Document": The provided selector is empty.'
+        );
+        expect(() => queryAll("")).toThrow(
+            'Failed to execute "querySelectorAll" on "Document": The provided selector is empty.'
+        );
+        expect(() => requireElement(".missing", container)).toThrow(
+            "Required element not found: .missing"
+        );
+    });
+
+    it("returns required elements when present", () => {
+        const button = document.createElement("button");
+        button.className = "save";
+        container.append(button);
+
+        expect(requireElement(".save", container)).toBe(button);
+    });
+
+    it("sets text, classes, styles, and datasets on element inputs", () => {
+        const element = document.createElement("div");
+        container.append(element);
+
+        setText(element, "Ready");
+        addClass(element, "active");
+        setStyle(element, "background-color", "red");
+        setData(element, "activityId", 123);
+
+        expect(element.textContent).toBe("Ready");
+        expect(element.classList.contains("active")).toBe(true);
+        expect(element.style.backgroundColor).toBe("red");
+        expect(getData(element, "activityId")).toBe("123");
+
+        removeClass(element, "active");
+        clearElement(element);
+
+        expect(element.classList.contains("active")).toBe(false);
+        expect(element.childNodes).toHaveLength(0);
+    });
+
+    it("preserves existing text and value when nullable values are provided", () => {
+        const input = document.createElement("input");
+        const label = document.createElement("span");
+        input.value = "original";
+        label.textContent = "Original";
+
+        setValue(input, null);
+        setValue(input, undefined);
+        setText(label, null);
+        setText(label, undefined);
+
+        expect(input.value).toBe("original");
+        expect(label.textContent).toBe("Original");
+    });
+
+    it("sets form value, checked, and disabled state when supported", () => {
+        const input = document.createElement("input");
+        const checkbox = document.createElement("input");
+        const button = document.createElement("button");
+        checkbox.type = "checkbox";
+
+        setValue(input, 42);
+        setChecked(checkbox, "yes");
+        setDisabled(button, 1);
+
+        expect(getValue(input)).toBe("42");
+        expect(getChecked(checkbox)).toBe(true);
+        expect(button.disabled).toBe(true);
+
+        setChecked(checkbox, 0);
+        setDisabled(button, "");
+
+        expect(getChecked(checkbox)).toBe(false);
+        expect(button.disabled).toBe(false);
+    });
+
+    it("returns undefined for unsupported value, checked, and data reads", () => {
+        const div = document.createElement("div");
+
+        expect(getValue(div)).toBeUndefined();
+        expect(getChecked(div)).toBeUndefined();
+        expect(getData(null, "key")).toBeUndefined();
+    });
+
+    it("ignores invalid element inputs for mutating helpers", () => {
+        const bodyBefore = document.body.innerHTML;
+
+        expect(clearElement(null)).toBeUndefined();
+        expect(focus(null)).toBeUndefined();
+        expect(removeClass(null, "missing")).toBeUndefined();
+        expect(setChecked(null, true)).toBeUndefined();
+        expect(setData(null, "key", "value")).toBeUndefined();
+        expect(setDisabled(null, true)).toBeUndefined();
+        expect(setStyle(null, "color", "red")).toBeUndefined();
+        expect(setText(null, "value")).toBeUndefined();
+        expect(setValue(null, "value")).toBeUndefined();
+        expect(document.body.innerHTML).toBe(bodyBefore);
+    });
+
+    it("throws for empty class names before touching the element", () => {
+        const element = document.createElement("div");
+        element.className = "stable";
+
+        expect(() => addClass(element, "")).toThrow(
+            "Failed to execute 'add' on 'DOMTokenList': The token provided must not be empty."
+        );
+        expect(() => removeClass(element, "")).toThrow(
+            "Failed to execute 'remove' on 'DOMTokenList': The token provided must not be empty."
+        );
+        expect(element.className).toBe("stable");
+    });
+
+    it("attaches event listeners and returns cleanup callbacks", () => {
+        const button = document.createElement("button");
+        const handler = vi.fn<(event: Event) => void>();
+
+        const cleanup = on(button, "click", handler);
+        button.click();
+        cleanup?.();
+        button.click();
+
+        expect(handler).toHaveBeenCalledTimes(1);
+        expect(handler.mock.calls[0]?.[0]).toBeInstanceOf(MouseEvent);
+    });
+
+    it("returns undefined when attaching an event to invalid targets", () => {
+        const handler = vi.fn<(event: Event) => void>();
+
+        expect(on(null, "click", handler)).toBeUndefined();
+    });
+
+    it("focuses elements with a focus method and propagates focus failures", () => {
+        const input = document.createElement("input");
+        container.append(input);
+        focus(input);
+        expect(document.activeElement).toBe(input);
+
+        input.focus = () => {
+            throw new Error("Focus failed");
+        };
+
+        expect(() => focus(input)).toThrow("Focus failed");
+    });
+});
