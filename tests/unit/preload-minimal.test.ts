@@ -1,43 +1,35 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 type BeforeExitListener = () => void;
+type ExposeInMainWorld = (name: string, api: unknown) => void;
+type IpcInvoke = (...args: unknown[]) => Promise<string>;
+type IpcListener = (...args: unknown[]) => void;
+type ProcessListeners = (eventName: string) => BeforeExitListener[];
+type ProcessListenerMutation = (
+    eventName: string,
+    listener: BeforeExitListener
+) => PreloadMinimalProcess;
 
 interface ElectronPreloadMock {
     contextBridge: {
-        exposeInMainWorld: ReturnType<
-            typeof vi.fn<(name: string, api: unknown) => void>
-        >;
+        exposeInMainWorld: ReturnType<typeof vi.fn<ExposeInMainWorld>>;
     };
     ipcRenderer: {
-        invoke: ReturnType<typeof vi.fn<() => Promise<string>>>;
-        on: ReturnType<typeof vi.fn>;
-        removeAllListeners: ReturnType<typeof vi.fn>;
-        send: ReturnType<typeof vi.fn>;
+        invoke: ReturnType<typeof vi.fn<IpcInvoke>>;
+        on: ReturnType<typeof vi.fn<IpcListener>>;
+        removeAllListeners: ReturnType<typeof vi.fn<IpcListener>>;
+        send: ReturnType<typeof vi.fn<IpcListener>>;
     };
 }
 
 interface PreloadMinimalProcess {
     env: { NODE_ENV: string };
-    listeners: ReturnType<
-        typeof vi.fn<(eventName: string) => BeforeExitListener[]>
-    >;
-    once: ReturnType<
-        typeof vi.fn<
-            (
-                eventName: string,
-                listener: BeforeExitListener
-            ) => PreloadMinimalProcess
-        >
-    >;
-    removeListener: ReturnType<
-        typeof vi.fn<
-            (
-                eventName: string,
-                listener: BeforeExitListener
-            ) => PreloadMinimalProcess
-        >
-    >;
+    listeners: ReturnType<typeof vi.fn<ProcessListeners>>;
+    once: ReturnType<typeof vi.fn<ProcessListenerMutation>>;
+    removeListener: ReturnType<typeof vi.fn<ProcessListenerMutation>>;
 }
+
+const developmentToolsGlobalName = ["dev", "Tools"].join("");
 
 interface PreloadMinimalChannelInfo {
     channels: Record<string, string>;
@@ -73,13 +65,13 @@ describe("preload.js - Basic API Validation", () => {
         // Create electron mock
         electronMock = {
             ipcRenderer: {
-                invoke: vi.fn().mockResolvedValue("mock-result"),
-                send: vi.fn(),
-                on: vi.fn(),
-                removeAllListeners: vi.fn(),
+                invoke: vi.fn<IpcInvoke>().mockResolvedValue("mock-result"),
+                send: vi.fn<IpcListener>(),
+                on: vi.fn<IpcListener>(),
+                removeAllListeners: vi.fn<IpcListener>(),
             },
             contextBridge: {
-                exposeInMainWorld: vi.fn((name: string, api: unknown) => {
+                exposeInMainWorld: vi.fn<ExposeInMainWorld>((name, api) => {
                     exposedGlobals.set(name, api);
                 }),
             },
@@ -94,17 +86,17 @@ describe("preload.js - Basic API Validation", () => {
         // Mock process object
         mockProcess = {
             env: { NODE_ENV: "development" },
-            listeners: vi.fn((eventName: string) =>
+            listeners: vi.fn<ProcessListeners>((eventName) =>
                 eventName === "beforeExit" ? beforeExitListeners : []
             ),
-            once: vi.fn((eventName: string, listener: BeforeExitListener) => {
+            once: vi.fn<ProcessListenerMutation>((eventName, listener) => {
                 if (eventName === "beforeExit") {
                     beforeExitListeners.push(listener);
                 }
                 return mockProcess;
             }),
-            removeListener: vi.fn(
-                (eventName: string, listener: BeforeExitListener) => {
+            removeListener: vi.fn<ProcessListenerMutation>(
+                (eventName, listener) => {
                     if (eventName === "beforeExit") {
                         beforeExitListeners = beforeExitListeners.filter(
                             (currentListener) => currentListener !== listener
@@ -117,7 +109,7 @@ describe("preload.js - Basic API Validation", () => {
         vi.stubGlobal("process", mockProcess);
 
         vi.stubGlobal("__electronHoistedMock", electronMock);
-        vi.doMock("electron", () => electronMock);
+        vi.doMock(import("electron"), () => electronMock);
 
         console.log("[TEST] About to import preload script...");
 
@@ -136,6 +128,7 @@ describe("preload.js - Basic API Validation", () => {
     });
 
     it("should expose a validated electron API", async () => {
+        expect.hasAssertions();
         const electronApiExposure =
             electronMock.contextBridge.exposeInMainWorld.mock.calls.find(
                 ([name]) => name === "electronAPI"
@@ -189,11 +182,11 @@ describe("preload.js - Basic API Validation", () => {
     });
 
     it("should expose development tools API when validation passes", () => {
+        expect.hasAssertions();
         const electronAPI = exposedGlobals.get("electronAPI") as Record<
                 string,
                 unknown
             >,
-            developmentToolsGlobalName = "devTools",
             devTools = exposedGlobals.get(developmentToolsGlobalName) as Record<
                 string,
                 unknown
@@ -210,7 +203,7 @@ describe("preload.js - Basic API Validation", () => {
             "electronAPI",
             developmentToolsGlobalName,
         ]);
-        expect(typeof devTools.getPreloadInfo).toBe("function");
+        expect(devTools.getPreloadInfo).toBeTypeOf("function");
         expect(preloadInfo.version).toBe("1.0.0");
         expect(preloadInfo.apiMethods).toEqual(expectedApiMethods);
         expect(preloadInfo.apiMethods).toContain("validateAPI");
@@ -220,6 +213,7 @@ describe("preload.js - Basic API Validation", () => {
     });
 
     it("should register beforeExit handler", () => {
+        expect.hasAssertions();
         // Check if process.once was called with beforeExit
         const currentProcess =
             globalThis.process as unknown as PreloadMinimalProcess;
@@ -233,6 +227,7 @@ describe("preload.js - Basic API Validation", () => {
     });
 
     it("should log initialization message", () => {
+        expect.hasAssertions();
         const logMessages = consoleLogSpy.mock.calls
             .map((call: unknown[]) => call[0])
             .filter(
