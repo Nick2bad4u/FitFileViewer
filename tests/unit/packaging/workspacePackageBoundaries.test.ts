@@ -1,9 +1,17 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { appPackageRepositoryPath } from "../../../scripts/lib/workspaces.mjs";
+import {
+    appPackageRepositoryPath,
+    appWorkspaceRepositoryPath,
+    rootElectronAppTsconfigPath,
+    rootEslintConfigPath,
+    rootPrettierConfigPath,
+    rootRuntimeTsconfigPath,
+    rootVitestConfigPath,
+} from "../../../scripts/lib/workspaces.mjs";
 
 type PackageJson = {
     dependencies?: Record<string, string>;
@@ -19,6 +27,15 @@ function readPackageJson(relativePath: string): PackageJson {
     return JSON.parse(
         readFileSync(path.join(process.cwd(), relativePath), "utf8")
     ) as PackageJson;
+}
+
+function getFileExistence(relativePaths: string[]): Record<string, boolean> {
+    return Object.fromEntries(
+        relativePaths.map((relativePath) => [
+            relativePath,
+            existsSync(path.join(process.cwd(), relativePath)),
+        ])
+    );
 }
 
 describe("workspace package boundaries", () => {
@@ -81,5 +98,38 @@ describe("workspace package boundaries", () => {
         expect(appPackage.icon).toBe("dist/icons/favicon.ico");
         expect(appPackage.files).not.toContain("vendor/");
         expect(appPackage.files).not.toContain("node_modules/");
+    });
+
+    it("keeps Electron app tooling configuration centralized at the repository root", () => {
+        expect.assertions(2);
+
+        const rootToolingConfigs = [
+            rootEslintConfigPath,
+            rootPrettierConfigPath,
+            rootVitestConfigPath,
+            rootElectronAppTsconfigPath,
+            rootRuntimeTsconfigPath,
+        ];
+        const appLocalToolingConfigs = [
+            "eslint.config.mjs",
+            "prettier.config.mjs",
+            "vitest.config.ts",
+            "vitest.config.js",
+            "playwright.config.ts",
+            "stylelint.config.mjs",
+            "tsconfig.json",
+            "tsconfig.runtime.json",
+        ].map((configPath) => appWorkspaceRepositoryPath(configPath));
+
+        expect(getFileExistence(rootToolingConfigs)).toStrictEqual(
+            Object.fromEntries(
+                rootToolingConfigs.map((configPath) => [configPath, true])
+            )
+        );
+        expect(getFileExistence(appLocalToolingConfigs)).toStrictEqual(
+            Object.fromEntries(
+                appLocalToolingConfigs.map((configPath) => [configPath, false])
+            )
+        );
     });
 });
