@@ -1,39 +1,118 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 
 import { createRequire } from "node:module";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const require = createRequire(import.meta.url);
 
-const mockLogWithContext = vi.fn();
+type CjsCacheEntry = {
+    exports: unknown;
+    filename: string;
+    id: string;
+    loaded: boolean;
+};
 
-let requestHandler: ((req: any, res: any) => void) | null = null;
+type LogWithContext = (
+    level: string,
+    message: string,
+    context?: Record<string, unknown>
+) => void;
+
+type MockRequest = {
+    method?: string;
+    url?: string;
+};
+
+type MockResponse = ReturnType<typeof makeRes>;
+type RequestHandler = (req: MockRequest, res: MockResponse) => void;
+
+const mockLogWithContext = vi.fn<LogWithContext>();
+
+let requestHandler: RequestHandler | null = null;
 
 const mockServer = {
-    on: vi.fn(),
-    listen: vi.fn((_port: number, _host: string, cb: () => void) => cb()),
-    close: vi.fn((cb: () => void) => cb()),
+    on: vi.fn<(event: string, listener: (error: unknown) => void) => void>(),
+    listen: vi.fn<(port: number, host: string, cb: () => void) => void>(
+        (_port, _host, cb) => cb()
+    ),
+    close: vi.fn<(cb: () => void) => void>((cb) => cb()),
 };
 
 const mockHttp = {
-    createServer: vi.fn((handler: any) => {
-        requestHandler = handler;
-        return mockServer;
-    }),
+    createServer: vi.fn<(handler: RequestHandler) => typeof mockServer>(
+        (handler) => {
+            requestHandler = handler;
+            return mockServer;
+        }
+    ),
 };
 
-const state = new Map<string, any>();
+const state = new Map<string, unknown>();
 
-function injectCjsMock(modulePath: string, exportsObj: any) {
-    const cache = (require as unknown as { cache: Record<string, any> }).cache;
+function getRequireCache(): Record<string, CjsCacheEntry> {
+    return (require as unknown as { cache: Record<string, CjsCacheEntry> })
+        .cache;
+}
+
+function injectCjsMock(
+    modulePath: string,
+    exportsObj: Record<string, unknown>
+): void {
+    const cache = getRequireCache();
     cache[modulePath] = {
-        id: modulePath,
-        filename: modulePath,
-        loaded: true,
         exports: exportsObj,
-    } as any;
+        filename: modulePath,
+        id: modulePath,
+        loaded: true,
+    };
+}
+
+function requireGyazoOAuthServer(): {
+    startGyazoOAuthServer: (port?: number) => Promise<{
+        message: string;
+        port: number;
+        success: boolean;
+    }>;
+    stopGyazoOAuthServer: () => Promise<{
+        message: string;
+        success: boolean;
+    }>;
+} {
+    return require("../../../../electron-app/main/oauth/gyazoOAuthServer.js");
+}
+
+function withRequestHandler(): RequestHandler {
+    if (!requestHandler) {
+        throw new Error("OAuth request handler was not registered");
+    }
+    return requestHandler;
+}
+
+const mockSend = vi.fn<
+    (channel: string, payload: Record<string, string>) => void
+>();
+
+function getWindowLike(): { webContents: { send: typeof mockSend } } {
+    return { webContents: { send: mockSend } };
+}
+
+function resetMocks(): void {
+    state.clear();
+    requestHandler = null;
+    mockLogWithContext.mockClear();
+    mockHttp.createServer.mockClear();
+    mockServer.listen.mockClear();
+    mockServer.close.mockClear();
+    mockServer.on.mockClear();
+    mockSend.mockClear();
+
+    mockServer.listen.mockImplementation((_port, _host, cb) => cb());
+    mockServer.close.mockImplementation((cb) => cb());
+    mockServer.on.mockReturnValue(undefined);
+    mockHttp.createServer.mockImplementation((handler) => {
+        requestHandler = handler;
+        return mockServer;
+    });
 }
 
 function makeRes() {
@@ -46,13 +125,16 @@ function makeRes() {
         setHeader: (k: string, v: string) => {
             headers[k] = v;
         },
-        writeHead: vi.fn(
-            (statusCode: number, statusHeaders: Record<string, string>) => {
+        writeHead: vi.fn<
+            (
+                statusCode: number,
+                statusHeaders: Record<string, string>
+            ) => void
+        >((statusCode, statusHeaders) => {
                 res.statusCode = statusCode;
                 res.statusHeaders = statusHeaders;
-            }
-        ),
-        end: vi.fn((body?: unknown) => {
+            }),
+        end: vi.fn<(body?: unknown) => void>((body) => {
             res.body = body;
         }),
     };
@@ -62,19 +144,14 @@ function makeRes() {
 
 describe("gyazoOAuthServer", () => {
     beforeEach(() => {
-        state.clear();
-        requestHandler = null;
-        mockLogWithContext.mockClear();
-        mockHttp.createServer.mockClear();
-        mockServer.listen.mockClear();
-        mockServer.close.mockClear();
-        mockServer.on.mockClear();
+        resetMocks();
 
         // Inject mocks for the CJS requires used by the module under test.
         injectCjsMock(
             require.resolve("../../../../electron-app/main/logging/logWithContext"),
             {
-                logWithContext: (...args: any[]) => mockLogWithContext(...args),
+                logWithContext: (...args: Parameters<LogWithContext>) =>
+                    mockLogWithContext(...args),
             }
         );
         injectCjsMock(
@@ -87,7 +164,18 @@ describe("gyazoOAuthServer", () => {
             require.resolve("../../../../electron-app/main/state/appState"),
             {
                 getAppState: (key: string) => state.get(key),
-                setAppState: (key: string, value: any) => state.set(key, value),
+                setAppState: (key: string, value: unknown) =>
+                    state.set(key, value),
+            }
+        );
+        injectCjsMock(
+            require.resolve("../../../../electron-app/main/ipc/sendToRenderer"),
+            {
+                sendToRenderer: (
+                    win: { webContents?: { send?: typeof mockSend } } | null,
+                    channel: string,
+                    payload: Record<string, string>
+                ) => win?.webContents?.send?.(channel, payload),
             }
         );
         injectCjsMock(
@@ -100,16 +188,14 @@ describe("gyazoOAuthServer", () => {
         // Ensure we reload the module under test with the new cache injections.
         const sutPath =
             require.resolve("../../../../electron-app/main/oauth/gyazoOAuthServer.js");
-        const cache = (require as unknown as { cache: Record<string, any> })
-            .cache;
+        const cache = getRequireCache();
         delete cache[sutPath];
     });
 
     it("starts server and applies safe headers (no CORS)", async () => {
-        const {
-            startGyazoOAuthServer,
-        } = require("../../../../electron-app/main/oauth/gyazoOAuthServer.js");
+        expect.hasAssertions();
 
+        const { startGyazoOAuthServer } = requireGyazoOAuthServer();
         const result = await startGyazoOAuthServer(3000);
         expect(result.success).toBe(true);
         expect(mockServer.listen).toHaveBeenCalledWith(
@@ -120,7 +206,7 @@ describe("gyazoOAuthServer", () => {
         expect(requestHandler).toBeTypeOf("function");
 
         const res = makeRes();
-        requestHandler!({ method: "GET", url: "/not-found" }, res);
+        withRequestHandler()({ method: "GET", url: "/not-found" }, res);
 
         // Ensure standard headers exist and no Access-Control-* headers were set
         expect(res.headers["X-Content-Type-Options"]).toBe("nosniff");
@@ -133,13 +219,13 @@ describe("gyazoOAuthServer", () => {
     });
 
     it("rejects non-GET/HEAD methods", async () => {
-        const {
-            startGyazoOAuthServer,
-        } = require("../../../../electron-app/main/oauth/gyazoOAuthServer.js");
+        expect.hasAssertions();
+
+        const { startGyazoOAuthServer } = requireGyazoOAuthServer();
         await startGyazoOAuthServer(3000);
 
         const res = makeRes();
-        requestHandler!({ method: "POST", url: "/gyazo/callback" }, res);
+        withRequestHandler()({ method: "POST", url: "/gyazo/callback" }, res);
         expect(res.statusCode).toBe(405);
         expect(res.statusHeaders).toEqual({ "Content-Type": "text/plain" });
         expect(res.body).toBe("Method Not Allowed");
@@ -148,13 +234,13 @@ describe("gyazoOAuthServer", () => {
     });
 
     it("escapes error parameter in HTML response", async () => {
-        const {
-            startGyazoOAuthServer,
-        } = require("../../../../electron-app/main/oauth/gyazoOAuthServer.js");
+        expect.hasAssertions();
+
+        const { startGyazoOAuthServer } = requireGyazoOAuthServer();
         await startGyazoOAuthServer(3000);
 
         const res = makeRes();
-        requestHandler!(
+        withRequestHandler()(
             {
                 method: "GET",
                 url: "/gyazo/callback?error=%3Cscript%3Ealert(1)%3C%2Fscript%3E",
@@ -162,23 +248,21 @@ describe("gyazoOAuthServer", () => {
             res
         );
 
-        const html = String((res.end as any).mock.calls[0][0]);
+        const html = String(res.body);
         expect(html).toContain("&lt;script&gt;alert(1)&lt;/script&gt;");
         expect(html).not.toContain("<script>");
     });
 
     it("sends callback payload to mainWindow when code/state are present", async () => {
-        const {
-            startGyazoOAuthServer,
-        } = require("../../../../electron-app/main/oauth/gyazoOAuthServer.js");
+        expect.hasAssertions();
 
-        const send = vi.fn();
-        state.set("mainWindow", { webContents: { send } });
+        const { startGyazoOAuthServer } = requireGyazoOAuthServer();
+        state.set("mainWindow", getWindowLike());
 
         await startGyazoOAuthServer(3000);
 
         const res = makeRes();
-        requestHandler!(
+        withRequestHandler()(
             { method: "GET", url: "/gyazo/callback?code=abc&state=xyz" },
             res
         );
@@ -186,17 +270,19 @@ describe("gyazoOAuthServer", () => {
         expect(res.statusCode).toBe(200);
         expect(res.statusHeaders).toEqual({ "Content-Type": "text/html" });
         expect(String(res.body)).toContain("Authorization Successful");
-        expect(send).toHaveBeenCalledWith("gyazo-oauth-callback", {
+        expect(mockSend).toHaveBeenCalledWith("gyazo-oauth-callback", {
             code: "abc",
             state: "xyz",
         });
     });
 
     it("stop server clears state even if close throws", async () => {
+        expect.hasAssertions();
+
         const {
             startGyazoOAuthServer,
             stopGyazoOAuthServer,
-        } = require("../../../../electron-app/main/oauth/gyazoOAuthServer.js");
+        } = requireGyazoOAuthServer();
 
         await startGyazoOAuthServer(3000);
         // Force close to throw
