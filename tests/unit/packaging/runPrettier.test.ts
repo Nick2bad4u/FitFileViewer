@@ -21,7 +21,6 @@ import {
     rootRuntimeTsconfigPath,
     rootStylelintConfigPath,
     rootTypedocConfigPath,
-    rootVendorPath,
 } from "../../../scripts/lib/workspaces.mjs";
 
 type CommandRunner = (
@@ -32,7 +31,7 @@ type CommandRunner = (
 
 describe("run-prettier wrapper", () => {
     it("keeps root-owned formatting targets for app and workspace metadata", () => {
-        expect.assertions(17);
+        expect.assertions(16);
 
         expect(prettierTargets).toContain("package.json");
         expect(prettierTargets).toContain(appPackageRepositoryPath);
@@ -49,7 +48,6 @@ describe("run-prettier wrapper", () => {
         expect(prettierTargets).toContain("scripts/*.mjs");
         expect(prettierTargets).toContain("tests/fixtures/**/*.{js,ts}");
         expect(prettierTargets).toContain("tests/integration/**/*.ts");
-        expect(prettierTargets).toContain(`${rootVendorPath}/**/*.js`);
         expect(prettierTargets).not.toContain("electron-app/*.config.*");
     });
 

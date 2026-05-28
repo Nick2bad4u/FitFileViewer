@@ -54,7 +54,6 @@ type WorkspacesModule = {
     rootTabsTestsPath: string;
     rootTypedocConfigPath: string;
     rootUnitTestsPath: string;
-    rootVendorPath: string;
     rootViteRendererConfigPath: string;
     rootVitestConfigPath: string;
     scriptsPath: string;
@@ -132,7 +131,7 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes root config paths", async () => {
-        expect.assertions(12);
+        expect.assertions(11);
 
         const workspaces = await importWorkspaces();
 
@@ -153,7 +152,6 @@ describe("workspace path helpers", () => {
         );
         expect(workspaces.rootStylelintConfigPath).toBe("stylelint.config.mjs");
         expect(workspaces.rootTypedocConfigPath).toBe("typedoc.json");
-        expect(workspaces.rootVendorPath).toBe("vendor");
         expect(workspaces.rootViteRendererConfigPath).toBe(
             "vite.renderer.config.mjs"
         );
