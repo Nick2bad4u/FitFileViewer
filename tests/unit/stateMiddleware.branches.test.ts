@@ -2,7 +2,7 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import type {
     MiddlewareContext,
     MiddlewareDefinition,
-} from "../utils/state/core/stateMiddleware.js";
+} from "../../electron-app/utils/state/core/stateMiddleware.js";
 
 type StatePerformanceEntry = {
     duration: number;
@@ -19,7 +19,7 @@ function firstArguments(calls: unknown[][]): string[] {
 }
 
 // We will import fresh modules in some tests to control module-level flags
-import "../../tests/vitest/shims/nodeWebStorage";
+import "../vitest/shims/nodeWebStorage";
 describe("stateMiddleware additional branches", () => {
     afterEach(() => {
         vi.restoreAllMocks();
@@ -40,7 +40,8 @@ describe("stateMiddleware additional branches", () => {
             executeMiddleware,
             cleanupMiddleware,
             MIDDLEWARE_PHASES,
-        } = await import("../utils/state/core/stateMiddleware.js");
+        } =
+            await import("../../electron-app/utils/state/core/stateMiddleware.js");
 
         registerMiddleware(
             "slowMW",
@@ -86,7 +87,8 @@ describe("stateMiddleware additional branches", () => {
             executeMiddleware,
             cleanupMiddleware,
             MIDDLEWARE_PHASES,
-        } = await import("../utils/state/core/stateMiddleware.js");
+        } =
+            await import("../../electron-app/utils/state/core/stateMiddleware.js");
 
         // Middleware whose handler throws
         registerMiddleware(
@@ -138,7 +140,8 @@ describe("stateMiddleware additional branches", () => {
             executeMiddleware,
             cleanupMiddleware,
             MIDDLEWARE_PHASES,
-        } = await import("../utils/state/core/stateMiddleware.js");
+        } =
+            await import("../../electron-app/utils/state/core/stateMiddleware.js");
 
         registerMiddleware(
             "mutator",
@@ -177,7 +180,8 @@ describe("stateMiddleware additional branches", () => {
             cleanupMiddleware,
             MIDDLEWARE_PHASES,
             performanceMiddleware,
-        } = await import("../utils/state/core/stateMiddleware.js");
+        } =
+            await import("../../electron-app/utils/state/core/stateMiddleware.js");
 
         // Pre-seed global performance array with 100 entries
         const stateGlobal = globalThis as StatePerformanceGlobal;
@@ -220,7 +224,8 @@ describe("stateMiddleware additional branches", () => {
             cleanupMiddleware,
             MIDDLEWARE_PHASES,
             persistenceMiddleware,
-        } = await import("../utils/state/core/stateMiddleware.js");
+        } =
+            await import("../../electron-app/utils/state/core/stateMiddleware.js");
 
         registerMiddleware("persist", persistenceMiddleware, 10);
         const ctx: MiddlewareContext = {
@@ -248,7 +253,7 @@ describe("stateMiddleware additional branches", () => {
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
         const { registerMiddleware, cleanupMiddleware } =
-            await import("../utils/state/core/stateMiddleware.js");
+            await import("../../electron-app/utils/state/core/stateMiddleware.js");
 
         const duplicateMiddleware: MiddlewareDefinition = {
             beforeSet: (context) => context,
@@ -269,7 +274,7 @@ describe("stateMiddleware additional branches", () => {
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
         const { initializeDefaultMiddleware, cleanupMiddleware } =
-            await import("../utils/state/core/stateMiddleware.js");
+            await import("../../electron-app/utils/state/core/stateMiddleware.js");
 
         // First call should initialize and log messages
         initializeDefaultMiddleware();

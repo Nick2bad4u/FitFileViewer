@@ -1,34 +1,37 @@
 /**
  * @vitest-environment jsdom
  */
-import "../../tests/vitest/shims/nodeWebStorage";
+import "../vitest/shims/nodeWebStorage";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Mock the DOM elements and utilities that main-ui.js depends on
-vi.mock("../utils/theming/core/theme.js", () => ({
+vi.mock("../../electron-app/utils/theming/core/theme.js", () => ({
     applyTheme: vi.fn(),
     listenForThemeChange: vi.fn(),
     loadTheme: vi.fn(() => "dark"),
 }));
 
-vi.mock("../utils/rendering/core/showFitData.js", () => ({
+vi.mock("../../electron-app/utils/rendering/core/showFitData.js", () => ({
     showFitData: vi.fn(),
 }));
 
-vi.mock("../utils/formatting/converters/convertArrayBufferToBase64.js", () => ({
-    convertArrayBufferToBase64: vi.fn(),
-}));
+vi.mock(
+    "../../electron-app/utils/formatting/converters/convertArrayBufferToBase64.js",
+    () => ({
+        convertArrayBufferToBase64: vi.fn(),
+    })
+);
 
-vi.mock("../utils/ui/controls/addFullScreenButton.js", () => ({
+vi.mock("../../electron-app/utils/ui/controls/addFullScreenButton.js", () => ({
     setupDOMContentLoaded: vi.fn(),
     setupFullscreenListeners: vi.fn(),
 }));
 
-vi.mock("../utils/app/initialization/setupWindow.js", () => ({
+vi.mock("../../electron-app/utils/app/initialization/setupWindow.js", () => ({
     setupWindow: vi.fn(),
 }));
 
-vi.mock("../utils/app/lifecycle/resourceManager.js", () => ({
+vi.mock("../../electron-app/utils/app/lifecycle/resourceManager.js", () => ({
     resourceManager: {
         addShutdownHook: vi.fn(),
         cleanupAll: vi.fn(),
@@ -36,16 +39,16 @@ vi.mock("../utils/app/lifecycle/resourceManager.js", () => ({
     },
 }));
 
-vi.mock("../utils/charts/core/renderChartJS.js", () => ({
+vi.mock("../../electron-app/utils/charts/core/renderChartJS.js", () => ({
     renderChartJS: vi.fn(),
 }));
 
-vi.mock("../utils/state/core/stateManager.js", () => ({
+vi.mock("../../electron-app/utils/state/core/stateManager.js", () => ({
     getState: vi.fn(),
     setState: vi.fn(),
 }));
 
-vi.mock("../utils/state/domain/uiStateManager.js", () => ({
+vi.mock("../../electron-app/utils/state/domain/uiStateManager.js", () => ({
     UIActions: {
         TOGGLE_TAB: "UI_TOGGLE_TAB",
         SET_ACTIVE_TAB: "UI_SET_ACTIVE_TAB",
@@ -54,7 +57,7 @@ vi.mock("../utils/state/domain/uiStateManager.js", () => ({
     },
 }));
 
-vi.mock("../utils/app/lifecycle/appActions.js", () => ({
+vi.mock("../../electron-app/utils/app/lifecycle/appActions.js", () => ({
     AppActions: {
         APP_INITIALIZED: "APP_INITIALIZED",
         APP_ERROR: "APP_ERROR",
@@ -63,7 +66,7 @@ vi.mock("../utils/app/lifecycle/appActions.js", () => ({
     },
 }));
 
-vi.mock("../utils/state/domain/fitFileState.js", () => ({
+vi.mock("../../electron-app/utils/state/domain/fitFileState.js", () => ({
     fitFileStateManager: {
         updateLoadingProgress: vi.fn(),
         updateError: vi.fn(),
@@ -71,18 +74,21 @@ vi.mock("../utils/state/domain/fitFileState.js", () => ({
     },
 }));
 
-vi.mock("../utils/debug/stateDevTools.js", () => ({
+vi.mock("../../electron-app/utils/debug/stateDevTools.js", () => ({
     performanceMonitor: {
         mark: vi.fn(),
         measure: vi.fn(),
     },
 }));
 
-vi.mock("../utils/ui/notifications/showNotification.js", () => ({
-    showNotification: vi.fn(),
-}));
+vi.mock(
+    "../../electron-app/utils/ui/notifications/showNotification.js",
+    () => ({
+        showNotification: vi.fn(),
+    })
+);
 
-vi.mock("../utils/charts/core/chartTabIntegration.js", () => ({
+vi.mock("../../electron-app/utils/charts/core/chartTabIntegration.js", () => ({
     chartTabIntegration: {
         destroy: vi.fn(),
         getStatus: vi.fn(() => ({ initialized: true })),
@@ -91,13 +97,13 @@ vi.mock("../utils/charts/core/chartTabIntegration.js", () => ({
     },
 }));
 
-vi.mock("../utils/ui/dragDropHandler.js", () => ({
+vi.mock("../../electron-app/utils/ui/dragDropHandler.js", () => ({
     DragDropHandler: vi.fn(function MockDragDropHandler() {
         return { dispose: vi.fn() };
     }),
 }));
 
-vi.mock("../utils/ui/setupExternalLinkHandlers.js", () => ({
+vi.mock("../../electron-app/utils/ui/setupExternalLinkHandlers.js", () => ({
     setupExternalLinkHandlers: vi.fn(),
 }));
 
@@ -194,11 +200,11 @@ describe("main-ui.js - UI Controller and State Management", () => {
     });
 
     it("registers legacy globals and rejects invalid legacy FIT data", async () => {
-        await import("../main-ui.js");
+        await import("../../electron-app/main-ui.js");
         const { renderChartJS } =
-            await import("../utils/charts/core/renderChartJS.js");
+            await import("../../electron-app/utils/charts/core/renderChartJS.js");
         const { showFitData } =
-            await import("../utils/rendering/core/showFitData.js");
+            await import("../../electron-app/utils/rendering/core/showFitData.js");
         const renderChartJSMock = vi.mocked(renderChartJS);
         const showFitDataMock = vi.mocked(showFitData);
 
@@ -236,23 +242,23 @@ describe("main-ui.js - UI Controller and State Management", () => {
             sendThemeChanged,
         };
 
-        await import("../main-ui.js");
+        await import("../../electron-app/main-ui.js");
         const { setupWindow } =
-            await import("../utils/app/initialization/setupWindow.js");
+            await import("../../electron-app/utils/app/initialization/setupWindow.js");
         const { AppActions } =
-            await import("../utils/app/lifecycle/appActions.js");
+            await import("../../electron-app/utils/app/lifecycle/appActions.js");
         const { resourceManager } =
-            await import("../utils/app/lifecycle/resourceManager.js");
+            await import("../../electron-app/utils/app/lifecycle/resourceManager.js");
         const { chartTabIntegration } =
-            await import("../utils/charts/core/chartTabIntegration.js");
+            await import("../../electron-app/utils/charts/core/chartTabIntegration.js");
         const { applyTheme, listenForThemeChange, loadTheme } =
-            await import("../utils/theming/core/theme.js");
+            await import("../../electron-app/utils/theming/core/theme.js");
         const { setupFullscreenListeners } =
-            await import("../utils/ui/controls/addFullScreenButton.js");
+            await import("../../electron-app/utils/ui/controls/addFullScreenButton.js");
         const { DragDropHandler } =
-            await import("../utils/ui/dragDropHandler.js");
+            await import("../../electron-app/utils/ui/dragDropHandler.js");
         const { setupExternalLinkHandlers } =
-            await import("../utils/ui/setupExternalLinkHandlers.js");
+            await import("../../electron-app/utils/ui/setupExternalLinkHandlers.js");
         const applyThemeMock = vi.mocked(applyTheme);
         const dragDropHandlerMock = vi.mocked(DragDropHandler);
         const listenForThemeChangeMock = vi.mocked(listenForThemeChange);
