@@ -12,24 +12,23 @@ This document provides a high-level tour of the FitFileViewer codebase, covering
 
 ## Repository Layout
 
-| Path                        | Purpose                                                                                                                                                         |
-| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `electron-app/main.js`      | Electron main process entry point (window lifecycle, IPC, auto-updates, recent files)                                                                           |
-| `electron-app/preload.js`   | Secure bridge that exposes `electronAPI` to the renderer                                                                                                        |
-| `electron-app/renderer.js`  | Renderer bootstrap (state initialization, dependency wiring, DOM readiness)                                                                                     |
-| `electron-app/fitParser.js` | FIT file decoding with state & settings integration                                                                                                             |
-| `electron-app/utils/`       | Shared utilities (app lifecycle, charts, data, files, formatting, rendering, state, theming, UI)                                                                |
-| `electron-app/tests/`       | App-coupled legacy app/preload unit suites, utility unit suites, and strict regression suites                                                                   |
-| `tests/unit/`               | Root-owned Vitest suites for tooling, runtime/preload/main boundaries, chart/map/menu/lifecycle/file/theming/rendering/utility behavior, and shared UI behavior |
-| `tests/integration/`        | Root-owned Vitest integration suites                                                                                                                            |
-| `tests/fixtures/`           | Root-owned reusable Vitest fixtures                                                                                                                             |
-| `tests/playwright/`         | Root-owned Electron Playwright smoke tests                                                                                                                      |
-| `scripts/`                  | Root-owned build, coverage, and runtime packaging helpers                                                                                                       |
-| `docs/`                     | Product and engineering guides                                                                                                                                  |
-| `static/app/`               | Main HTML and CSS source assets copied into the app runtime bundle                                                                                              |
-| `static/ffv/`               | Embedded alternative FIT viewer source assets copied into the app runtime bundle                                                                                |
-| `static/icons/`             | Application icon source assets copied into the app runtime bundle                                                                                               |
-| `node_modules/`             | Third-party libraries managed via npm (Chart.js, Leaflet, MapLibre, DataTables, etc.)                                                                           |
+| Path                        | Purpose                                                                                                                                                                             |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `electron-app/main.js`      | Electron main process entry point (window lifecycle, IPC, auto-updates, recent files)                                                                                               |
+| `electron-app/preload.js`   | Secure bridge that exposes `electronAPI` to the renderer                                                                                                                            |
+| `electron-app/renderer.js`  | Renderer bootstrap (state initialization, dependency wiring, DOM readiness)                                                                                                         |
+| `electron-app/fitParser.js` | FIT file decoding with state & settings integration                                                                                                                                 |
+| `electron-app/utils/`       | Shared utilities (app lifecycle, charts, data, files, formatting, rendering, state, theming, UI)                                                                                    |
+| `tests/unit/`               | Root-owned Vitest suites for tooling, runtime/preload/main boundaries, strict regressions, chart/map/menu/lifecycle/file/theming/rendering/utility behavior, and shared UI behavior |
+| `tests/integration/`        | Root-owned Vitest integration suites                                                                                                                                                |
+| `tests/fixtures/`           | Root-owned reusable Vitest fixtures                                                                                                                                                 |
+| `tests/playwright/`         | Root-owned Electron Playwright smoke tests                                                                                                                                          |
+| `scripts/`                  | Root-owned build, coverage, and runtime packaging helpers                                                                                                                           |
+| `docs/`                     | Product and engineering guides                                                                                                                                                      |
+| `static/app/`               | Main HTML and CSS source assets copied into the app runtime bundle                                                                                                                  |
+| `static/ffv/`               | Embedded alternative FIT viewer source assets copied into the app runtime bundle                                                                                                    |
+| `static/icons/`             | Application icon source assets copied into the app runtime bundle                                                                                                                   |
+| `node_modules/`             | Third-party libraries managed via npm (Chart.js, Leaflet, MapLibre, DataTables, etc.)                                                                                               |
 
 ## Runtime Architecture
 
@@ -155,7 +154,7 @@ Refer to `preload.js` and `main.js` for the full set of channels and event names
   `tests/playwright/` suite, opens the packaged-like app shell, and verifies
   real FIT data across map, chart, data, and summary tabs.
 - **Coverage:** `npm run test:coverage` generates coverage data.
-- **Strict regression suites:** Under `electron-app/tests/strictTests/` to guard tricky DOM/Electron edge cases.
+- **Strict regression suites:** Under `tests/unit/strictTests/` to guard tricky DOM/Electron edge cases.
 - **Type checking & linting:** `typecheck`, `lint`, `lint:fix`, `prettier`, and associated `format:*` scripts.
 
 ## Build & Distribution

@@ -360,13 +360,6 @@ electron-app/utils/
 ### Test Organization
 
 ```text
-electron-app/tests/
-├── unit/                            # App-coupled unit tests
-│   ├── *.test.*                     # Legacy app/preload unit tests pending root migration
-│   └── utils/                       # Utility unit tests pending root migration
-│
-└── strictTests/                     # Strict testing scenarios
-
 tests/integration/
 └── tabs/                            # Root-owned tab integration tests
 
@@ -381,6 +374,7 @@ tests/unit/
 ├── preload/                         # Root-owned preload boundary tests
 ├── rendering/                       # Root-owned rendering helper and component tests
 ├── runtime/                         # Root-owned runtime boundary tests
+├── strictTests/                     # Root-owned strict DOM/Electron regression tests
 ├── tabs/                            # Root-owned shared tab behavior tests
 ├── theming/                         # Root-owned theming behavior tests
 └── utils/                           # Root-owned utility behavior tests

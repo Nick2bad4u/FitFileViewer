@@ -41,7 +41,6 @@ export default defineConfig({
                 "node_modules/**",
                 // Exclude built artifacts and generated output
                 "electron-app/dist/**",
-                "electron-app/tests/**",
                 "tests/**",
                 // Exclude any colocated test files under source folders
                 "**/*.test.*",
@@ -168,7 +167,6 @@ export default defineConfig({
         include: [
             "tests/integration/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
             "tests/unit/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
-            "electron-app/tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
             "electron-app/utils/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
         ],
         includeTaskLocation: true,

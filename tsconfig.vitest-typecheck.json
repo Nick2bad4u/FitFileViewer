@@ -18,12 +18,6 @@
         "tests/**/*.test-d.cts",
         "tests/**/*.spec-d.ts",
         "tests/**/*.spec-d.mts",
-        "tests/**/*.spec-d.cts",
-        "electron-app/tests/**/*.test-d.ts",
-        "electron-app/tests/**/*.test-d.mts",
-        "electron-app/tests/**/*.test-d.cts",
-        "electron-app/tests/**/*.spec-d.ts",
-        "electron-app/tests/**/*.spec-d.mts",
-        "electron-app/tests/**/*.spec-d.cts"
+        "tests/**/*.spec-d.cts"
     ]
 }

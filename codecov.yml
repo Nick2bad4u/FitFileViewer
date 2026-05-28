@@ -121,7 +121,6 @@ coverage:
         - "**/*.test.*"
         - "**/*.spec.*"
         - "**/test/**/*"
-        - "electron-app/tests/**/*"
         - "**/__tests__/**/*"
         - "**/tests/**/*"
 
@@ -183,7 +182,6 @@ flags:
         ignore:
             - "electron-app/**/*.test.*"
             - "electron-app/**/*.spec.*"
-            - "electron-app/tests/**/*"
             - "electron-app/main.js" # Entry point
         paths:
             - electron-app/

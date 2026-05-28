@@ -31,14 +31,16 @@ describe("typescript configuration policy", () => {
         expect(config.exclude ?? []).not.toContain("electron-app/electron");
     });
 
-    it("keeps Vitest declaration typecheck rooted in tests with app fallback", () => {
+    it("keeps Vitest declaration typecheck rooted in tests", () => {
         expect.assertions(4);
 
         const config = readTsconfig("tsconfig.vitest-typecheck.json");
 
         expect(config.include).toContain("tests/**/*.test-d.ts");
         expect(config.include).toContain("tests/**/*.spec-d.ts");
-        expect(config.include).toContain("electron-app/tests/**/*.test-d.ts");
+        expect(config.include).not.toContain(
+            "electron-app/tests/**/*.test-d.ts"
+        );
         expect(config.include).not.toContain("electron-app/index.d.ts");
     });
 });
