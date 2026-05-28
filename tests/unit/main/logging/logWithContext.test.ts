@@ -12,9 +12,11 @@ describe("logWithContext", () => {
     });
 
     it("logs a JSON string context and redacts secrets/tokens", async () => {
+        expect.hasAssertions();
+
         const { logWithContext } =
             await import("../../../../electron-app/main/logging/logWithContext.js");
-        const spy = vi.spyOn(console, "info").mockImplementation(() => void 0);
+        const spy = vi.spyOn(console, "info").mockReturnValue(undefined);
 
         logWithContext("info", "hello", {
             ok: "yes",
@@ -24,7 +26,7 @@ describe("logWithContext", () => {
             clientSecret: "shh",
         });
 
-        expect(spy).toHaveBeenCalledTimes(1);
+        expect(spy).toHaveBeenCalledOnce();
         const [msg, ctx] = spy.mock.calls[0];
         expect(String(msg)).toContain(
             "[2020-01-01T00:00:00.000Z] [main.js] hello"
@@ -35,13 +37,15 @@ describe("logWithContext", () => {
     });
 
     it("stringifies Error objects without throwing", async () => {
+        expect.hasAssertions();
+
         const { logWithContext } =
             await import("../../../../electron-app/main/logging/logWithContext.js");
-        const spy = vi.spyOn(console, "error").mockImplementation(() => void 0);
+        const spy = vi.spyOn(console, "error").mockReturnValue(undefined);
 
         logWithContext("error", "boom", { error: new Error("nope") });
 
-        expect(spy).toHaveBeenCalledTimes(1);
+        expect(spy).toHaveBeenCalledOnce();
         const [, ctx] = spy.mock.calls[0];
         // We include the stack only in tests; assert the stable parts.
         expect(String(ctx)).toMatch(/"name":"Error"/);
@@ -49,28 +53,32 @@ describe("logWithContext", () => {
     });
 
     it("handles circular contexts", async () => {
+        expect.hasAssertions();
+
         const { logWithContext } =
             await import("../../../../electron-app/main/logging/logWithContext.js");
-        const spy = vi.spyOn(console, "warn").mockImplementation(() => void 0);
+        const spy = vi.spyOn(console, "warn").mockReturnValue(undefined);
 
         const ctx: Record<string, unknown> = {};
         ctx.self = ctx;
 
         logWithContext("warn", "circ", ctx);
 
-        expect(spy).toHaveBeenCalledTimes(1);
+        expect(spy).toHaveBeenCalledOnce();
         const [, json] = spy.mock.calls[0];
         expect(json).toBe('{"self":"[Circular]"}');
     });
 
     it("falls back to console.log for unknown levels", async () => {
+        expect.hasAssertions();
+
         const { logWithContext } =
             await import("../../../../electron-app/main/logging/logWithContext.js");
-        const spy = vi.spyOn(console, "log").mockImplementation(() => void 0);
+        const spy = vi.spyOn(console, "log").mockReturnValue(undefined);
 
         logWithContext("not-a-level", "msg", { key: "value" });
 
-        expect(spy).toHaveBeenCalledTimes(1);
+        expect(spy).toHaveBeenCalledOnce();
         const [msg, ctx] = spy.mock.calls[0];
         expect(String(msg)).toBe("[2020-01-01T00:00:00.000Z] [main.js] msg");
         expect(ctx).toBe('{"key":"value"}');
