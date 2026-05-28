@@ -1,29 +1,66 @@
-/**
- * @vitest-environment jsdom
- */
+// @vitest-environment jsdom
 
+import type { ExportableChart } from "../../../../electron-app/utils/files/export/exportUtils.js";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Mock dependencies
 vi.mock(
-    "../../../../electron-app/utils/ui/notifications/showNotification.js",
+    import("../../../../electron-app/utils/ui/notifications/showNotification.js"),
     () => ({
-        showNotification: vi.fn(),
+        showNotification: vi.fn<(message: string, type: string) => void>(),
     })
 );
 
 vi.mock(
-    "../../../../electron-app/utils/ui/components/createSettingsHeader.js",
+    import("../../../../electron-app/utils/ui/components/createSettingsHeader.js"),
     () => ({
-        showChartSelectionModal: vi.fn(),
+        showChartSelectionModal:
+            vi.fn<
+                (
+                    actionType: string,
+                    singleCallback: ShareSingleChartCallback,
+                    combinedCallback: ShareCombinedChartsCallback
+                ) => void
+            >(),
     })
 );
+
+type ShareSingleChartCallback = (chart: ExportableChart) => Promise<void>;
+type ShareCombinedChartsCallback = (charts: ExportableChart[]) => Promise<void>;
+type CanvasContextStub = Pick<
+    CanvasRenderingContext2D,
+    | "beginPath"
+    | "clearRect"
+    | "closePath"
+    | "createImageData"
+    | "drawImage"
+    | "fill"
+    | "fillRect"
+    | "fillStyle"
+    | "getImageData"
+    | "lineTo"
+    | "moveTo"
+    | "putImageData"
+    | "restore"
+    | "save"
+    | "setTransform"
+    | "stroke"
+>;
+
+function createMockChart(width: number, height: number): ExportableChart {
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    return { canvas };
+}
 
 // Mock clipboard API
 Object.defineProperty(global, "navigator", {
     value: {
         clipboard: {
-            writeText: vi.fn().mockResolvedValue(undefined),
+            writeText: vi
+                .fn<(text: string) => Promise<void>>()
+                .mockResolvedValue(undefined),
         },
     },
     configurable: true,
@@ -48,11 +85,18 @@ describe("shareChartsAsURL with Imgur fallback", () => {
         }
         return clipboardText;
     };
-    const captureShareCallbacks = async () => {
-        let singleCallback: any;
-        let combinedCallback: any;
+    const captureShareCallbacks = async (): Promise<{
+        combinedCallback: ShareCombinedChartsCallback;
+        singleCallback: ShareSingleChartCallback;
+    }> => {
+        let singleCallback: ShareSingleChartCallback | undefined;
+        let combinedCallback: ShareCombinedChartsCallback | undefined;
         mockShowChartSelectionModal.mockImplementation(
-            (actionType: any, single: any, combined: any) => {
+            (
+                _actionType,
+                single: ShareSingleChartCallback,
+                combined: ShareCombinedChartsCallback
+            ) => {
                 singleCallback = single;
                 combinedCallback = combined;
             }
@@ -82,40 +126,46 @@ describe("shareChartsAsURL with Imgur fallback", () => {
         });
 
         // Mock canvas methods
-        HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
+        const canvasContextStub: CanvasContextStub = {
             fillStyle: "",
-            fillRect: vi.fn(),
-            drawImage: vi.fn(),
-            clearRect: vi.fn(),
-            getImageData: vi.fn(),
-            putImageData: vi.fn(),
-            createImageData: vi.fn(),
-            setTransform: vi.fn(),
-            save: vi.fn(),
-            restore: vi.fn(),
-            beginPath: vi.fn(),
-            moveTo: vi.fn(),
-            lineTo: vi.fn(),
-            closePath: vi.fn(),
-            stroke: vi.fn(),
-            fill: vi.fn(),
-        })) as any;
+            fillRect: vi.fn<CanvasRenderingContext2D["fillRect"]>(),
+            drawImage: vi.fn<CanvasRenderingContext2D["drawImage"]>(),
+            clearRect: vi.fn<CanvasRenderingContext2D["clearRect"]>(),
+            getImageData: vi.fn<CanvasRenderingContext2D["getImageData"]>(),
+            putImageData: vi.fn<CanvasRenderingContext2D["putImageData"]>(),
+            createImageData:
+                vi.fn<CanvasRenderingContext2D["createImageData"]>(),
+            setTransform: vi.fn<CanvasRenderingContext2D["setTransform"]>(),
+            save: vi.fn<CanvasRenderingContext2D["save"]>(),
+            restore: vi.fn<CanvasRenderingContext2D["restore"]>(),
+            beginPath: vi.fn<CanvasRenderingContext2D["beginPath"]>(),
+            moveTo: vi.fn<CanvasRenderingContext2D["moveTo"]>(),
+            lineTo: vi.fn<CanvasRenderingContext2D["lineTo"]>(),
+            closePath: vi.fn<CanvasRenderingContext2D["closePath"]>(),
+            stroke: vi.fn<CanvasRenderingContext2D["stroke"]>(),
+            fill: vi.fn<CanvasRenderingContext2D["fill"]>(),
+        };
+        vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(
+            canvasContextStub as CanvasRenderingContext2D
+        );
 
-        HTMLCanvasElement.prototype.toDataURL = vi.fn(function (
-            this: HTMLCanvasElement
-        ) {
-            return createPngDataUrl(this.width, this.height);
-        });
+        vi.spyOn(HTMLCanvasElement.prototype, "toDataURL").mockImplementation(
+            function (this: HTMLCanvasElement) {
+                return createPngDataUrl(this.width, this.height);
+            }
+        );
     });
 
     it("should call showChartSelectionModal when shareChartsAsURL is invoked", async () => {
+        expect.hasAssertions();
+
         // Arrange
         mockShowChartSelectionModal.mockImplementation(
-            (actionType: any, singleCallback: any, combinedCallback: any) => {
+            (actionType, singleCallback, combinedCallback) => {
                 // We'll test that the function is called with correct parameters
                 expect(actionType).toBe("share URL");
-                expect(typeof singleCallback).toBe("function");
-                expect(typeof combinedCallback).toBe("function");
+                expect(singleCallback).toBeTypeOf("function");
+                expect(combinedCallback).toBeTypeOf("function");
             }
         );
 
@@ -131,13 +181,10 @@ describe("shareChartsAsURL with Imgur fallback", () => {
     });
 
     it("should handle Imgur client ID not configured error with data URL fallback", async () => {
+        expect.hasAssertions();
+
         // Arrange
-        const mockChart = {
-            canvas: {
-                width: 800,
-                height: 400,
-            },
-        };
+        const mockChart = createMockChart(800, 400);
 
         // Mock getImgurConfig to return unconfigured client ID to trigger fallback
         vi.spyOn(exportUtils, "getImgurConfig").mockReturnValue({
@@ -165,10 +212,12 @@ describe("shareChartsAsURL with Imgur fallback", () => {
     });
 
     it("should handle combined charts with Imgur fallback", async () => {
+        expect.hasAssertions();
+
         // Arrange
         const mockCharts = [
-            { canvas: { width: 400, height: 300 } },
-            { canvas: { width: 400, height: 300 } },
+            createMockChart(400, 300),
+            createMockChart(400, 300),
         ];
 
         // Mock getImgurConfig to return unconfigured client ID to trigger fallback
@@ -197,6 +246,8 @@ describe("shareChartsAsURL with Imgur fallback", () => {
     });
 
     it("should handle empty charts array gracefully", async () => {
+        expect.hasAssertions();
+
         // Act
         const { combinedCallback } = await captureShareCallbacks();
         const result = await combinedCallback([]);
@@ -214,13 +265,10 @@ describe("shareChartsAsURL with Imgur fallback", () => {
     });
 
     it("should handle clipboard API errors gracefully", async () => {
+        expect.hasAssertions();
+
         // Arrange
-        const mockChart = {
-            canvas: {
-                width: 800,
-                height: 400,
-            },
-        };
+        const mockChart = createMockChart(800, 400);
 
         // Mock clipboard to reject
         mockWriteText.mockRejectedValue(new Error("Clipboard access denied"));
