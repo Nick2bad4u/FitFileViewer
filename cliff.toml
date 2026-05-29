@@ -149,7 +149,7 @@ commit_parsers = [
 # filter out the commits that are not matched by commit parsers
 filter_commits = false
 # sort the tags topologically
-topo_order = true
+topo_order = false
 # sort the commits inside sections by oldest/newest order
 # possible values: "oldest" (chronological order) or "newest" (reverse chronological order)
 sort_commits = "newest"
