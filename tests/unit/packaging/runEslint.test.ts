@@ -71,7 +71,7 @@ describe("run-eslint script", () => {
     });
 
     it("runs ESLint from the repository root and returns the process status", async () => {
-        expect.assertions(5);
+        expect.assertions(2);
 
         const { runEslintTarget } = await importRunEslint();
         const commandRunner = vi.fn<
@@ -82,7 +82,7 @@ describe("run-eslint script", () => {
             ) => { status: number }
         >(() => ({ status: 7 }));
 
-        expect(runEslintTarget("root", ["--fix"], commandRunner)).toBe(7);
+        const exitStatus = runEslintTarget("root", ["--fix"], commandRunner);
 
         const [
             command,
@@ -90,15 +90,39 @@ describe("run-eslint script", () => {
             options,
         ] = commandRunner.mock.calls[0] ?? [];
 
-        expect(command).toBe(process.execPath);
-        expect(args?.[0]).toMatch(/[\\/]eslint[\\/]bin[\\/]eslint\.js$/u);
-        expect(args).toContain(".cache/.eslintcache-root");
+        expect(commandRunner).toHaveBeenCalledOnce();
         expect({
-            ...options,
-            cwd: path.resolve(options?.cwd ?? ""),
+            command,
+            eslintCliPath: args?.[0],
+            exitStatus,
+            forwardedArgs: args?.slice(1),
+            options: {
+                ...options,
+                cwd: path.resolve(options?.cwd ?? ""),
+            },
         }).toStrictEqual({
-            cwd: path.resolve(process.cwd()),
-            stdio: "inherit",
+            command: process.execPath,
+            eslintCliPath: expect.stringMatching(
+                /[\\/]eslint[\\/]bin[\\/]eslint\.js$/u
+            ),
+            exitStatus: 7,
+            forwardedArgs: [
+                "--cache",
+                "--cache-strategy",
+                "content",
+                "--cache-location",
+                ".cache/.eslintcache-root",
+                "--fix",
+                ".",
+                "--ignore-pattern",
+                `${appWorkspaceName}/**`,
+                "--ignore-pattern",
+                `${docusaurusWorkspaceName}/**`,
+            ],
+            options: {
+                cwd: path.resolve(process.cwd()),
+                stdio: "inherit",
+            },
         });
     });
 });

@@ -81,13 +81,13 @@ describe("run-prettier wrapper", () => {
     });
 
     it("runs Prettier from the repository root", () => {
-        expect.assertions(5);
+        expect.assertions(2);
 
         const commandRunner = vi
             .fn<CommandRunner>()
             .mockReturnValue({ status: 3 });
 
-        expect(runPrettier(["--check"], commandRunner)).toBe(3);
+        const exitStatus = runPrettier(["--check"], commandRunner);
 
         const [
             command,
@@ -95,15 +95,35 @@ describe("run-prettier wrapper", () => {
             options,
         ] = commandRunner.mock.calls[0] ?? [];
 
-        expect(command).toBe(process.execPath);
-        expect(args?.[0]).toMatch(/[\\/]prettier[\\/]bin[\\/]prettier\.cjs$/u);
-        expect(args).toContain("--check");
+        expect(commandRunner).toHaveBeenCalledOnce();
         expect({
-            ...options,
-            cwd: path.resolve(options?.cwd ?? ""),
+            command,
+            exitStatus,
+            mode: args?.at(-1),
+            prettierCliPath: args?.[0],
+            targetSample: {
+                electronPackage: args?.includes(appPackageRepositoryPath),
+                rootPackage: args?.includes("package.json"),
+            },
+            options: {
+                ...options,
+                cwd: path.resolve(options?.cwd ?? ""),
+            },
         }).toStrictEqual({
-            cwd: path.resolve(process.cwd()),
-            stdio: "inherit",
+            command: process.execPath,
+            exitStatus: 3,
+            mode: "--check",
+            prettierCliPath: expect.stringMatching(
+                /[\\/]prettier[\\/]bin[\\/]prettier\.cjs$/u
+            ),
+            targetSample: {
+                electronPackage: true,
+                rootPackage: true,
+            },
+            options: {
+                cwd: path.resolve(process.cwd()),
+                stdio: "inherit",
+            },
         });
     });
 });
