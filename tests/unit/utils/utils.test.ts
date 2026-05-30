@@ -45,9 +45,11 @@ describe("utils global attachment and API", () => {
     });
 
     it("attaches utilities to window and exposes helpers", async () => {
+        expect.hasAssertions();
+
         // Simulate version available before import
         (globalThis as any).window.electronAPI = {
-            getAppVersion: vi.fn(async () => "9.9.9"),
+            getAppVersion: vi.fn<() => Promise<string>>(async () => "9.9.9"),
         };
 
         const mod = await importUtilsModule();
@@ -56,12 +58,10 @@ describe("utils global attachment and API", () => {
         await vi.runOnlyPendingTimersAsync();
 
         // Check a few utilities are attached on window
-        expect(typeof (globalThis as any).window.formatDistance).toBe(
+        expect((globalThis as any).window.formatDistance).toBeTypeOf(
             "function"
         );
-        expect(typeof (globalThis as any).window.renderSummary).toBe(
-            "function"
-        );
+        expect((globalThis as any).window.renderSummary).toBeTypeOf("function");
 
         // Dev helpers exposed
         const helpers = (globalThis as any).window.devUtilsHelpers;
@@ -74,11 +74,11 @@ describe("utils global attachment and API", () => {
                 "validateUtils",
             ].sort()
         );
-        expect(typeof helpers.cleanup).toBe("function");
-        expect(typeof helpers.getAttachmentResults).toBe("function");
+        expect(helpers.cleanup).toBeTypeOf("function");
+        expect(helpers.getAttachmentResults).toBeTypeOf("function");
         expect(helpers.logLevel).toBe("debug");
-        expect(typeof helpers.reattachUtils).toBe("function");
-        expect(typeof helpers.validateUtils).toBe("function");
+        expect(helpers.reattachUtils).toBeTypeOf("function");
+        expect(helpers.validateUtils).toBeTypeOf("function");
 
         // Version propagated
         const { UTILS_CONSTANTS, FitFileViewerUtils } = mod as any;
@@ -88,9 +88,16 @@ describe("utils global attachment and API", () => {
         // FitFileViewerUtils core API
         const available = FitFileViewerUtils.getAvailableUtils();
         expect(available).toStrictEqual(EXPECTED_AVAILABLE_UTILS);
-        expect(FitFileViewerUtils.isUtilAvailable("formatDistance")).toBe(true);
         const fn = FitFileViewerUtils.getUtil("formatDistance");
-        expect(typeof fn).toBe("function");
+        expect({
+            formatDistanceAvailable:
+                FitFileViewerUtils.isUtilAvailable("formatDistance"),
+            formatDistanceType: typeof fn,
+        }).toEqual({
+            formatDistanceAvailable: true,
+            formatDistanceType: "function",
+        });
+        expect(fn).toBeTypeOf("function");
 
         // safeExecute should call the function; pick a function with simple behavior
         const result = FitFileViewerUtils.safeExecute(
@@ -117,6 +124,8 @@ describe("utils global attachment and API", () => {
     });
 
     it("records collisions and cleanup removes globals", async () => {
+        expect.hasAssertions();
+
         // Place an existing conflicting function before import
         (globalThis as any).window.formatDistance = () => "old";
 
@@ -141,12 +150,14 @@ describe("utils global attachment and API", () => {
     });
 
     it("loads version via deferred electronAPI after import", async () => {
+        expect.hasAssertions();
+
         // Ensure no API at import time
         delete (globalThis as any).window.electronAPI;
         const mod = await importUtilsModule();
         // Now provide API which polling should pick up
         (globalThis as any).window.electronAPI = {
-            getAppVersion: vi.fn(async () => "7.7.7"),
+            getAppVersion: vi.fn<() => Promise<string>>(async () => "7.7.7"),
         };
         // Advance the polling interval in utils.js.
         await vi.advanceTimersByTimeAsync(100);
