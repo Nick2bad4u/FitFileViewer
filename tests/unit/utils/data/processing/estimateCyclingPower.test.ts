@@ -17,18 +17,30 @@ describe("estimateCyclingPower.js", () => {
     type FitMesg = Record<string, FitMesgValue>;
 
     it("hasPowerData should detect real power and enhanced_power", async () => {
+        expect.hasAssertions();
+
         const mod =
             await import("../../../../../electron-app/utils/data/processing/estimateCyclingPower.js");
         const { hasPowerData } = mod;
 
-        expect(hasPowerData([{ power: 0 }])).toBe(false);
-        expect(hasPowerData([{ enhanced_power: 0 }])).toBe(false);
-        expect(hasPowerData([{ power: 123 }])).toBe(true);
-        expect(hasPowerData([{ enhanced_power: 234 }])).toBe(true);
-        expect(hasPowerData([{ power: "250" }])).toBe(true);
+        expect([
+            hasPowerData([{ power: 0 }]),
+            hasPowerData([{ enhanced_power: 0 }]),
+            hasPowerData([{ power: 123 }]),
+            hasPowerData([{ enhanced_power: 234 }]),
+            hasPowerData([{ power: "250" }]),
+        ]).toEqual([
+            false,
+            false,
+            true,
+            true,
+            true,
+        ]);
     });
 
     it("applyEstimatedPowerToRecords should no-op when disabled", async () => {
+        expect.hasAssertions();
+
         const { applyEstimatedPowerToRecords } =
             await import("../../../../../electron-app/utils/data/processing/estimateCyclingPower.js");
 
@@ -63,12 +75,16 @@ describe("estimateCyclingPower.js", () => {
             },
         });
 
-        expect(res.applied).toBe(false);
-        expect(res.estimatedPowerW).toEqual([]);
+        expect(res).toMatchObject({
+            applied: false,
+            estimatedPowerW: [],
+        });
         expect(records[0].estimatedPower).toBeUndefined();
     });
 
     it("applyEstimatedPowerToRecords should no-op when recordMesgs empty", async () => {
+        expect.hasAssertions();
+
         const { applyEstimatedPowerToRecords } =
             await import("../../../../../electron-app/utils/data/processing/estimateCyclingPower.js");
 
@@ -88,11 +104,15 @@ describe("estimateCyclingPower.js", () => {
             },
         });
 
-        expect(res.applied).toBe(false);
-        expect(res.estimatedPowerW).toEqual([]);
+        expect(res).toMatchObject({
+            applied: false,
+            estimatedPowerW: [],
+        });
     });
 
     it("applyEstimatedPowerToRecords should not overwrite real power", async () => {
+        expect.hasAssertions();
+
         const { applyEstimatedPowerToRecords } =
             await import("../../../../../electron-app/utils/data/processing/estimateCyclingPower.js");
 
@@ -129,12 +149,16 @@ describe("estimateCyclingPower.js", () => {
             },
         });
 
-        expect(res.applied).toBe(false);
-        expect(res.estimatedPowerW).toEqual([]);
+        expect(res).toMatchObject({
+            applied: false,
+            estimatedPowerW: [],
+        });
         expect(records[0].estimatedPower).toBeUndefined();
     });
 
     it("applyEstimatedPowerToRecords should skip non-cycling sport when sport is known", async () => {
+        expect.hasAssertions();
+
         const { applyEstimatedPowerToRecords } =
             await import("../../../../../electron-app/utils/data/processing/estimateCyclingPower.js");
 
@@ -169,11 +193,15 @@ describe("estimateCyclingPower.js", () => {
             },
         });
 
-        expect(res.applied).toBe(false);
-        expect(res.estimatedPowerW).toEqual([]);
+        expect(res).toMatchObject({
+            applied: false,
+            estimatedPowerW: [],
+        });
     });
 
     it("applyEstimatedPowerToRecords should compute and attach estimatedPower using distance field", async () => {
+        expect.hasAssertions();
+
         const { applyEstimatedPowerToRecords } =
             await import("../../../../../electron-app/utils/data/processing/estimateCyclingPower.js");
 
@@ -215,20 +243,24 @@ describe("estimateCyclingPower.js", () => {
             },
         });
 
-        expect(res.applied).toBe(true);
+        expect(res).toMatchObject({ applied: true });
         expect(res.estimatedPowerW).toHaveLength(3);
 
         for (const [idx, r] of records.entries()) {
             const p = r.estimatedPower;
-            expect(typeof p).toBe("number");
-            expect(Number.isFinite(p as number)).toBe(true);
-            expect((p as number) >= 0).toBe(true);
-            expect((p as number) <= 500).toBe(true);
+            expect(p).toBeTypeOf("number");
+            expect({ finite: Number.isFinite(p as number) }).toEqual({
+                finite: true,
+            });
+            expect(p as number).toBeGreaterThanOrEqual(0);
+            expect(p as number).toBeLessThanOrEqual(500);
             expect(res.estimatedPowerW[idx]).toBe(p);
         }
     });
 
     it("produces plausible power for flat road at 36 km/h (sanity check)", async () => {
+        expect.hasAssertions();
+
         const { applyEstimatedPowerToRecords } =
             await import("../../../../../electron-app/utils/data/processing/estimateCyclingPower.js");
 
@@ -255,9 +287,15 @@ describe("estimateCyclingPower.js", () => {
             },
         });
 
-        expect(res.applied).toBe(true);
+        expect(res).toMatchObject({ applied: true });
         const p = records[1].estimatedPower as number;
-        expect(Number.isFinite(p)).toBe(true);
+        expect({
+            finite: Number.isFinite(p),
+            type: typeof p,
+        }).toEqual({
+            finite: true,
+            type: "number",
+        });
 
         // Expected ballpark is ~200-300 W for these parameters.
         // Keep the bounds wide to avoid false failures if constants are tweaked.
@@ -266,6 +304,8 @@ describe("estimateCyclingPower.js", () => {
     });
 
     it("uphill (positive grade) should require more power than flat at same speed", async () => {
+        expect.hasAssertions();
+
         const { applyEstimatedPowerToRecords } =
             await import("../../../../../electron-app/utils/data/processing/estimateCyclingPower.js");
 
@@ -307,12 +347,19 @@ describe("estimateCyclingPower.js", () => {
 
         const pFlat = flat[1].estimatedPower as number;
         const pUp = uphill[1].estimatedPower as number;
-        expect(Number.isFinite(pFlat)).toBe(true);
-        expect(Number.isFinite(pUp)).toBe(true);
+        expect({
+            flatFinite: Number.isFinite(pFlat),
+            uphillFinite: Number.isFinite(pUp),
+        }).toEqual({
+            flatFinite: true,
+            uphillFinite: true,
+        });
         expect(pUp).toBeGreaterThan(pFlat);
     });
 
     it("zero speed should yield ~0 estimated power", async () => {
+        expect.hasAssertions();
+
         const { applyEstimatedPowerToRecords } =
             await import("../../../../../electron-app/utils/data/processing/estimateCyclingPower.js");
 
@@ -337,11 +384,12 @@ describe("estimateCyclingPower.js", () => {
             },
         });
 
-        expect(records[0].estimatedPower).toBe(0);
-        expect(records[1].estimatedPower).toBe(0);
+        expect(records.map((record) => record.estimatedPower)).toEqual([0, 0]);
     });
 
     it("applyEstimatedPowerToRecords should fall back to GPS haversine when distance is missing", async () => {
+        expect.hasAssertions();
+
         const { applyEstimatedPowerToRecords } =
             await import("../../../../../electron-app/utils/data/processing/estimateCyclingPower.js");
 
@@ -381,12 +429,14 @@ describe("estimateCyclingPower.js", () => {
             },
         });
 
-        expect(res.applied).toBe(true);
+        expect(res).toMatchObject({ applied: true });
         expect(res.estimatedPowerW).toHaveLength(2);
-        expect(typeof records[0].estimatedPower).toBe("number");
+        expect(records[0].estimatedPower).toBeTypeOf("number");
     });
 
     it("should handle non-date timestamps and degree-based GPS values", async () => {
+        expect.hasAssertions();
+
         const { applyEstimatedPowerToRecords } =
             await import("../../../../../electron-app/utils/data/processing/estimateCyclingPower.js");
 
@@ -425,12 +475,18 @@ describe("estimateCyclingPower.js", () => {
             },
         });
 
-        expect(res.applied).toBe(true);
+        expect(res).toMatchObject({ applied: true });
         expect(res.estimatedPowerW).toHaveLength(2);
-        expect(Number.isFinite(res.estimatedPowerW[0])).toBe(true);
+        expect({
+            firstPowerFinite: Number.isFinite(res.estimatedPowerW[0]),
+        }).toEqual({
+            firstPowerFinite: true,
+        });
     });
 
     it("applyEstimatedPowerToRecords should fall back to speed integration when distance and GPS are missing", async () => {
+        expect.hasAssertions();
+
         const { applyEstimatedPowerToRecords } =
             await import("../../../../../electron-app/utils/data/processing/estimateCyclingPower.js");
 
@@ -456,12 +512,12 @@ describe("estimateCyclingPower.js", () => {
             },
         });
 
-        expect(res.applied).toBe(true);
+        expect(res).toMatchObject({ applied: true });
         expect(res.estimatedPowerW).toHaveLength(3);
         // Ensure values are finite and non-negative
         for (const p of res.estimatedPowerW) {
-            expect(Number.isFinite(p)).toBe(true);
-            expect(p >= 0).toBe(true);
+            expect({ finite: Number.isFinite(p) }).toEqual({ finite: true });
+            expect(p).toBeGreaterThanOrEqual(0);
         }
     });
 });
