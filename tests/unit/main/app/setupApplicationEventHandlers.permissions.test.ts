@@ -8,7 +8,9 @@ const requireCjs = createRequire(import.meta.url);
 type AppEventHandler = (...args: unknown[]) => void;
 type CheckPermissionHandler = (
     webContents: unknown,
-    permission: string
+    permission: string,
+    requestingOrigin?: string,
+    details?: PermissionDetailsLike
 ) => boolean;
 type ElectronOverrideGlobal = typeof globalThis & {
     __electronHoistedMock?: null;
@@ -33,6 +35,14 @@ type PermissionRequestHandler = (
     permission: string,
     callback: PermissionDecisionCallback
 ) => void;
+type PermissionDetailsLike =
+    | {
+          requestingOrigin?: string;
+          requestingURL?: string;
+          requestingUrl?: string;
+      }
+    | null
+    | undefined;
 type SetupHandlersModule = {
     setupApplicationEventHandlers: () => void;
 };
@@ -169,7 +179,18 @@ describe("setupApplicationEventHandlers permission hardening", () => {
             checkHandler,
             "permission check handler"
         );
-        expect(checkHandler("camera")).toBe(false);
+        expect({
+            cameraAllowed: checkHandler({}, "camera"),
+            geolocationAllowed: checkHandler(
+                {},
+                "geolocation",
+                "file:///app/index.html",
+                { requestingUrl: "file:///app/index.html" }
+            ),
+        }).toStrictEqual({
+            cameraAllowed: false,
+            geolocationAllowed: true,
+        });
     });
 
     it("replaces app listeners (no EventEmitter listener leaks)", async () => {

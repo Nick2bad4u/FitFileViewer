@@ -2,6 +2,7 @@
 
 import { createRequire } from "node:module";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { Mock } from "vitest";
 
 const require = createRequire(import.meta.url);
 
@@ -21,6 +22,9 @@ type AutoUpdaterLike = {
         listener: (...args: unknown[]) => void
     ) => void;
 };
+type AutoUpdaterOnMock = Mock<
+    (event: string, listener: (...args: unknown[]) => void) => void
+>;
 
 type MainWindowLike = {
     isDestroyed: () => boolean;
@@ -64,6 +68,7 @@ function createMainWindow(): MainWindowLike {
 
 describe("setupAutoUpdater", () => {
     beforeEach(() => {
+        mockElectronLog.transports.file.level = "";
         mockElectronLog.info.mockClear();
         mockElectronLog.error.mockClear();
 
@@ -112,19 +117,39 @@ describe("setupAutoUpdater", () => {
             on: vi.fn<
                 (event: string, listener: (...args: unknown[]) => void) => void
             >(),
-            removeListener: vi.fn<
-                (event: string, listener: (...args: unknown[]) => void) => void
-            >(),
+            removeListener:
+                vi.fn<
+                    (
+                        event: string,
+                        listener: (...args: unknown[]) => void
+                    ) => void
+                >(),
         };
 
         expect(() => setupAutoUpdater(mockWindow, autoUpdater)).not.toThrow();
-        expect(autoUpdater.autoDownload).toBe(true);
+        const registeredEvents = (
+            autoUpdater.on as AutoUpdaterOnMock
+        ).mock.calls
+            .map(([event]) => event)
+            .sort();
 
-        // electron-log receives the safe/redacted string
-        expect(mockElectronLog.info).toHaveBeenCalledWith(
-            expect.stringContaining(
-                "AutoUpdater feed URL: https://example.com/releases"
-            )
-        );
+        expect({
+            autoDownload: autoUpdater.autoDownload,
+            fileLogLevel: mockElectronLog.transports.file.level,
+            loggedFeedUrl: mockElectronLog.info.mock.calls[0]?.[0],
+            registeredEvents,
+        }).toStrictEqual({
+            autoDownload: true,
+            fileLogLevel: "info",
+            loggedFeedUrl: "AutoUpdater feed URL: https://example.com/releases",
+            registeredEvents: [
+                "checking-for-update",
+                "download-progress",
+                "error",
+                "update-available",
+                "update-downloaded",
+                "update-not-available",
+            ],
+        });
     });
 });
