@@ -254,7 +254,13 @@ describe("shareChartsAsURL with Imgur fallback", () => {
 
         // Assert
         expect(result).toBeUndefined();
-        expect(document.body.childElementCount).toBe(0);
+        expect({
+            clipboardWrites: mockWriteText.mock.calls.length,
+            documentChildren: document.body.childElementCount,
+        }).toEqual({
+            clipboardWrites: 0,
+            documentChildren: 0,
+        });
 
         expect(mockShowNotification).toHaveBeenCalledWith(
             "No charts available to share",
