@@ -20,7 +20,7 @@ type CommandRunner = (
 
 describe("run-docusaurus wrapper", () => {
     it("keeps the docs commands that require asset sync explicit", () => {
-        expect.assertions(4);
+        expect.assertions(2);
 
         expect(docusaurusCommandsThatSyncAssets).toStrictEqual([
             "build",
@@ -28,15 +28,19 @@ describe("run-docusaurus wrapper", () => {
             "serve",
             "start",
         ]);
-        expect(findDocusaurusCommand(["--verbose", "start"])).toBe("start");
-        expect(
-            shouldSyncStaticAssets([
+        expect({
+            clearSyncsAssets: shouldSyncStaticAssets(["clear"]),
+            detectedCommand: findDocusaurusCommand(["--verbose", "start"]),
+            startSyncsAssets: shouldSyncStaticAssets([
                 "start",
                 "--port",
                 "3000",
-            ])
-        ).toBe(true);
-        expect(shouldSyncStaticAssets(["clear"])).toBe(false);
+            ]),
+        }).toStrictEqual({
+            clearSyncsAssets: false,
+            detectedCommand: "start",
+            startSyncsAssets: true,
+        });
     });
 
     it("builds Docusaurus CLI arguments from the workspace installation", () => {
@@ -52,14 +56,20 @@ describe("run-docusaurus wrapper", () => {
     });
 
     it("syncs static assets before running build-like commands", () => {
-        expect.assertions(8);
+        expect.assertions(3);
 
         const commandRunner = vi
             .fn<CommandRunner>()
             .mockReturnValue({ status: 0 });
 
-        expect(runDocusaurus(["build"], commandRunner)).toBe(0);
-        expect(commandRunner).toHaveBeenCalledTimes(2);
+        const exitStatus = runDocusaurus(["build"], commandRunner);
+        expect({
+            commandCalls: commandRunner.mock.calls.length,
+            status: exitStatus,
+        }).toStrictEqual({
+            commandCalls: 2,
+            status: 0,
+        });
 
         const [
             syncCommand,
@@ -72,25 +82,41 @@ describe("run-docusaurus wrapper", () => {
             docsOptions,
         ] = commandRunner.mock.calls[1] ?? [];
 
-        expect(syncCommand).toBe(process.execPath);
-        expect(syncArgs).toStrictEqual([syncDocusaurusStaticAssetsScript]);
-        expect(path.resolve(syncOptions?.cwd ?? "")).toBe(process.cwd());
-        expect(docsCommand).toBe(process.execPath);
-        expect(docsArgs).toContain("build");
-        expect(path.resolve(docsOptions?.cwd ?? "")).toBe(
-            path.join(process.cwd(), "docusaurus")
-        );
+        expect({
+            command: syncCommand,
+            cwd: path.resolve(syncOptions?.cwd ?? ""),
+            args: syncArgs,
+        }).toStrictEqual({
+            command: process.execPath,
+            cwd: path.resolve(process.cwd()),
+            args: [syncDocusaurusStaticAssetsScript],
+        });
+        expect({
+            command: docsCommand,
+            cwd: path.resolve(docsOptions?.cwd ?? ""),
+            includesBuild: docsArgs?.includes("build"),
+        }).toStrictEqual({
+            command: process.execPath,
+            cwd: path.join(process.cwd(), "docusaurus"),
+            includesBuild: true,
+        });
     });
 
     it("runs non-build commands without syncing static assets", () => {
-        expect.assertions(4);
+        expect.assertions(2);
 
         const commandRunner = vi
             .fn<CommandRunner>()
             .mockReturnValue({ status: 0 });
 
-        expect(runDocusaurus(["clear"], commandRunner)).toBe(0);
-        expect(commandRunner).toHaveBeenCalledOnce();
+        const exitStatus = runDocusaurus(["clear"], commandRunner);
+        expect({
+            commandCalls: commandRunner.mock.calls.length,
+            status: exitStatus,
+        }).toStrictEqual({
+            commandCalls: 1,
+            status: 0,
+        });
 
         const [
             ,
@@ -98,21 +124,31 @@ describe("run-docusaurus wrapper", () => {
             options,
         ] = commandRunner.mock.calls[0] ?? [];
 
-        expect(args).toContain("clear");
-        expect(path.resolve(options?.cwd ?? "")).toBe(
-            path.join(process.cwd(), "docusaurus")
-        );
+        expect({
+            cwd: path.resolve(options?.cwd ?? ""),
+            includesClear: args?.includes("clear"),
+        }).toStrictEqual({
+            cwd: path.join(process.cwd(), "docusaurus"),
+            includesClear: true,
+        });
     });
 
     it("stops when static asset sync fails", () => {
-        expect.assertions(2);
+        expect.assertions(1);
 
         const commandRunner = vi
             .fn<CommandRunner>()
             .mockReturnValue({ status: 7 });
 
-        expect(runDocusaurus(["start"], commandRunner)).toBe(7);
-        expect(commandRunner).toHaveBeenCalledOnce();
+        const exitStatus = runDocusaurus(["start"], commandRunner);
+
+        expect({
+            commandCalls: commandRunner.mock.calls.length,
+            status: exitStatus,
+        }).toStrictEqual({
+            commandCalls: 1,
+            status: 7,
+        });
     });
 
     it("throws when Docusaurus cannot be started", () => {

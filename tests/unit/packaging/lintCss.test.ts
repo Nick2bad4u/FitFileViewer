@@ -19,10 +19,15 @@ type CommandRunner = (
 
 describe("lint-css wrapper", () => {
     it("keeps root-owned Stylelint targets for app styles", () => {
-        expect.assertions(2);
+        expect.assertions(1);
 
-        expect(stylelintTargets).toStrictEqual(["static/app/*.css"]);
-        expect(stylelintConfigPath).toBe(rootStylelintConfigPath);
+        expect({
+            stylelintConfigPath,
+            stylelintTargets,
+        }).toStrictEqual({
+            stylelintConfigPath: rootStylelintConfigPath,
+            stylelintTargets: ["static/app/*.css"],
+        });
     });
 
     it("builds Stylelint CLI arguments with root config and forwarded flags", () => {
@@ -46,13 +51,13 @@ describe("lint-css wrapper", () => {
     });
 
     it("runs Stylelint from the repository root", () => {
-        expect.assertions(5);
+        expect.assertions(2);
 
         const commandRunner = vi
             .fn<CommandRunner>()
             .mockReturnValue({ status: 4 });
 
-        expect(runStylelint(["--fix"], commandRunner)).toBe(4);
+        const exitStatus = runStylelint(["--fix"], commandRunner);
 
         const [
             command,
@@ -60,11 +65,20 @@ describe("lint-css wrapper", () => {
             options,
         ] = commandRunner.mock.calls[0] ?? [];
 
-        expect(command).toBe(process.execPath);
-        expect(args).toContain("--fix");
-        expect(args?.[0]).toMatch(
-            /[\\/]stylelint[\\/]bin[\\/]stylelint\.mjs$/u
-        );
+        expect({
+            command,
+            includesFix: args?.includes("--fix"),
+            status: exitStatus,
+            stylelintCliMatches:
+                /[\\/]stylelint[\\/]bin[\\/]stylelint\.mjs$/u.test(
+                    args?.[0] ?? ""
+                ),
+        }).toStrictEqual({
+            command: process.execPath,
+            includesFix: true,
+            status: 4,
+            stylelintCliMatches: true,
+        });
         expect({
             ...options,
             cwd: path.resolve(options?.cwd ?? ""),

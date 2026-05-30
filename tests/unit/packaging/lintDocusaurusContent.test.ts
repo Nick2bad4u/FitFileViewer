@@ -35,11 +35,11 @@ describe("lint-docusaurus-content script", () => {
     });
 
     it("runs markdownlint from the repository root", () => {
-        expect.assertions(5);
+        expect.assertions(3);
 
         const commandRunner = vi.fn<CommandRunner>(() => ({ status: 0 }));
 
-        expect(runLintDocusaurusContent(["--quiet"], commandRunner)).toBe(0);
+        const exitStatus = runLintDocusaurusContent(["--quiet"], commandRunner);
 
         const [
             command,
@@ -47,8 +47,15 @@ describe("lint-docusaurus-content script", () => {
             options,
         ] = commandRunner.mock.calls[0] ?? [];
 
-        expect(command).toBe(process.execPath);
-        expect(args).toStrictEqual(buildMarkdownlintArgs(["--quiet"]));
+        expect({
+            args,
+            command,
+            status: exitStatus,
+        }).toStrictEqual({
+            args: buildMarkdownlintArgs(["--quiet"]),
+            command: process.execPath,
+            status: 0,
+        });
         expect({
             ...options,
             cwd: path.resolve(options?.cwd ?? ""),
