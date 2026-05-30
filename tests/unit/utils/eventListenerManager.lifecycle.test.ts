@@ -13,36 +13,47 @@ describe("eventListenerManager listener lifecycle", () => {
     });
 
     it("adds and removes a listener, tracking count", () => {
-        const handler = vi.fn();
+        expect.hasAssertions();
+
+        const handler = vi.fn<(event: Event) => void>();
         const cleanup = addEventListenerWithCleanup(window, "click", handler);
-        expect(typeof cleanup).toBe("function");
-        expect(getListenerCount()).toBe(1);
+        expect(cleanup).toBeTypeOf("function");
+        expect({ listenerCount: getListenerCount() }).toStrictEqual({
+            listenerCount: 1,
+        });
 
         // Dispatch event
         const firstClick = new CustomEvent("click", {
             detail: "before-cleanup",
         });
         window.dispatchEvent(firstClick);
-        expect(handler).toHaveBeenCalledTimes(1);
+        expect(handler).toHaveBeenCalledOnce();
 
         // Remove
         cleanup();
-        expect(getListenerCount()).toBe(0);
         const secondClick = new CustomEvent("click", {
             detail: "after-cleanup",
         });
         window.dispatchEvent(secondClick);
-        expect(handler.mock.calls).toStrictEqual([[firstClick]]);
+        expect({
+            handlerCalls: handler.mock.calls,
+            listenerCount: getListenerCount(),
+        }).toStrictEqual({
+            handlerCalls: [[firstClick]],
+            listenerCount: 0,
+        });
     });
 
     it("returns no-op when given invalid element", () => {
+        expect.hasAssertions();
+
         const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
         const cleanup = addEventListenerWithCleanup(
             null as any,
             "click",
             (() => {}) as any
         );
-        expect(typeof cleanup).toBe("function");
+        expect(cleanup).toBeTypeOf("function");
         cleanup(); // should be safe no-op
         expect(warn).toHaveBeenCalledWith(
             "[EventListenerManager] Invalid element provided to addEventListenerWithCleanup"
@@ -50,13 +61,15 @@ describe("eventListenerManager listener lifecycle", () => {
     });
 
     it("returns no-op when given invalid handler", () => {
+        expect.hasAssertions();
+
         const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
         const cleanup = addEventListenerWithCleanup(
             window,
             "click",
             null as any
         );
-        expect(typeof cleanup).toBe("function");
+        expect(cleanup).toBeTypeOf("function");
         cleanup();
         expect(warn).toHaveBeenCalledWith(
             "[EventListenerManager] Invalid handler provided to addEventListenerWithCleanup"
@@ -64,24 +77,35 @@ describe("eventListenerManager listener lifecycle", () => {
     });
 
     it("cleanupEventListeners removes all tracked listeners and logs count", () => {
+        expect.hasAssertions();
+
         const log = vi.spyOn(console, "log").mockImplementation(() => {});
-        const h1 = vi.fn();
-        const h2 = vi.fn();
+        const h1 = vi.fn<(event: Event) => void>();
+        const h2 = vi.fn<(event: Event) => void>();
         addEventListenerWithCleanup(window, "focus", h1);
         addEventListenerWithCleanup(window, "blur", h2);
-        expect(getListenerCount()).toBe(2);
+        expect({ listenerCount: getListenerCount() }).toStrictEqual({
+            listenerCount: 2,
+        });
         cleanupEventListeners();
-        expect(getListenerCount()).toBe(0);
-        expect(log).toHaveBeenCalledWith(
-            "[EventListenerManager] Cleaned up 2 event listeners"
-        );
+        expect({
+            listenerCount: getListenerCount(),
+            logMessages: log.mock.calls.map(([message]) => message),
+        }).toStrictEqual({
+            listenerCount: 0,
+            logMessages: [
+                "[EventListenerManager] Cleaned up 2 event listeners",
+            ],
+        });
     });
 
     it("addDragDropListeners wires up provided handlers and supports cleanup", () => {
-        const onDragEnter = vi.fn();
-        const onDragLeave = vi.fn();
-        const onDragOver = vi.fn();
-        const onDrop = vi.fn();
+        expect.hasAssertions();
+
+        const onDragEnter = vi.fn<(event: DragEvent) => void>();
+        const onDragLeave = vi.fn<(event: DragEvent) => void>();
+        const onDragOver = vi.fn<(event: DragEvent) => void>();
+        const onDrop = vi.fn<(event: DragEvent) => void>();
         const cleanup = addDragDropListeners(
             { onDragEnter, onDragLeave, onDragOver, onDrop },
             window
@@ -100,6 +124,8 @@ describe("eventListenerManager listener lifecycle", () => {
         expect(onDrop).toHaveBeenCalledOnce();
 
         cleanup();
-        expect(getListenerCount()).toBe(0);
+        expect({ listenerCount: getListenerCount() }).toStrictEqual({
+            listenerCount: 0,
+        });
     });
 });
