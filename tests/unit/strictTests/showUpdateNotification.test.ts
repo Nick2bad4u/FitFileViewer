@@ -5,7 +5,7 @@ import { showUpdateNotification } from "../../../electron-app/utils/ui/notificat
 
 type UpdateNotificationTestWindow = Window & {
     electronAPI?: {
-        installUpdate: ReturnType<typeof vi.fn>;
+        installUpdate: ReturnType<typeof vi.fn<() => void>>;
     };
 };
 
@@ -37,6 +37,8 @@ describe("showUpdateNotification strict", () => {
     });
 
     it("renders basic info notification and auto-hides", () => {
+        expect.hasAssertions();
+
         const el = ensureNotificationDiv();
         const hideSpy = vi.spyOn(el.style, "display", "set");
 
@@ -52,11 +54,13 @@ describe("showUpdateNotification strict", () => {
     });
 
     it("creates action button and auto-hides when withAction=true", () => {
+        expect.hasAssertions();
+
         const el = ensureNotificationDiv();
 
         // Mock electronAPI.installUpdate to verify no crash upon click
         (window as UpdateNotificationTestWindow).electronAPI = {
-            installUpdate: vi.fn(),
+            installUpdate: vi.fn<() => void>(),
         };
 
         showUpdateNotification("Update ready", "success", 1500, true);
@@ -70,7 +74,7 @@ describe("showUpdateNotification strict", () => {
         btn?.dispatchEvent(new MouseEvent("click"));
         expect(
             (window as UpdateNotificationTestWindow).electronAPI?.installUpdate
-        ).toHaveBeenCalledTimes(1);
+        ).toHaveBeenCalledOnce();
 
         // Auto-hide still applies when withAction=true
         const hideSpy = vi.spyOn(el.style, "display", "set");
@@ -79,9 +83,11 @@ describe("showUpdateNotification strict", () => {
     });
 
     it("renders update-downloaded with two buttons and Later hides", () => {
+        expect.hasAssertions();
+
         const el = ensureNotificationDiv();
         (window as UpdateNotificationTestWindow).electronAPI = {
-            installUpdate: vi.fn(),
+            installUpdate: vi.fn<() => void>(),
         };
 
         showUpdateNotification(
@@ -92,7 +98,7 @@ describe("showUpdateNotification strict", () => {
         );
 
         const buttons = Array.from(el.querySelectorAll("button"));
-        expect(buttons.length).toBe(2);
+        expect(buttons).toHaveLength(2);
 
         const restart = buttons.find((b) => b.textContent?.includes("Restart"));
         const later = buttons.find((b) => b.textContent?.includes("Later"));
@@ -108,7 +114,7 @@ describe("showUpdateNotification strict", () => {
         restart?.dispatchEvent(new MouseEvent("click"));
         expect(
             (window as UpdateNotificationTestWindow).electronAPI?.installUpdate
-        ).toHaveBeenCalledTimes(1);
+        ).toHaveBeenCalledOnce();
 
         // Clicking Later hides the notification immediately
         const hideSpy = vi.spyOn(el.style, "display", "set");
@@ -117,11 +123,11 @@ describe("showUpdateNotification strict", () => {
     });
 
     it("logs a warning and no crash when electronAPI missing", () => {
+        expect.hasAssertions();
+
         const el = ensureNotificationDiv();
         const logSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-        const errorSpy = vi
-            .spyOn(console, "error")
-            .mockImplementation(() => undefined);
+        const errorSpy = vi.spyOn(console, "error").mockReturnValue(undefined);
 
         // withAction true will attempt installUpdate; missing API should warn
         showUpdateNotification("Try update", "info", 0, true);
@@ -131,7 +137,9 @@ describe("showUpdateNotification strict", () => {
         expect(btn).toBeInstanceOf(HTMLButtonElement);
         expect(btn?.textContent).toBe("Restart & Update");
         btn?.dispatchEvent(new MouseEvent("click"));
-        expect(logSpy).toHaveBeenCalled();
+        expect(logSpy).toHaveBeenCalledWith(
+            expect.stringContaining("electronAPI.installUpdate not available")
+        );
         expect(errorSpy).toHaveBeenCalledWith(
             expect.stringContaining(
                 "Cannot install update - electronAPI not available"
