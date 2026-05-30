@@ -13,7 +13,6 @@ electron-app/test-report.junit.xml
 electron-app/logs/
 
 # Ignore Change Logs
-**/CHANGELOG.md
 
 .github/PROMPTS/
 types/
