@@ -7,16 +7,22 @@ import {
 
 describe(PerformanceMonitor, () => {
     it("does not record timers while monitoring is disabled", () => {
-        expect.assertions(3);
+        expect.assertions(1);
 
         const monitor = new PerformanceMonitor();
 
         monitor.setEnabled(false);
         monitor.startTimer("disabled-operation");
 
-        expect(monitor.isEnabled()).toBe(false);
-        expect(monitor.getTimer("disabled-operation")).toBeNull();
-        expect(monitor.endTimer("disabled-operation")).toBeNull();
+        expect({
+            endResult: monitor.endTimer("disabled-operation"),
+            enabled: monitor.isEnabled(),
+            timer: monitor.getTimer("disabled-operation"),
+        }).toEqual({
+            endResult: null,
+            enabled: false,
+            timer: null,
+        });
     });
 
     it("records and ends timers while monitoring is enabled", () => {
