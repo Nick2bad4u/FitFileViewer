@@ -1,6 +1,4 @@
-/**
- * @vitest-environment jsdom
- */
+// @vitest-environment jsdom
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -39,6 +37,8 @@ describe("dom helpers", () => {
     });
 
     it("identifies element nodes without accepting other values", () => {
+        expect.hasAssertions();
+
         expect({
             documentNode: isHTMLElement(document),
             elementNode: isHTMLElement(document.createElement("div")),
@@ -55,6 +55,8 @@ describe("dom helpers", () => {
     });
 
     it("queries one or many matching elements within an optional root", () => {
+        expect.hasAssertions();
+
         const section = document.createElement("section"),
             primaryButton = document.createElement("button"),
             secondaryButton = document.createElement("button");
@@ -80,6 +82,8 @@ describe("dom helpers", () => {
     });
 
     it("throws consistent errors for missing required elements and empty selectors", () => {
+        expect.hasAssertions();
+
         expect(() => query("")).toThrow(
             'Failed to execute "querySelector" on "Document": The provided selector is empty.'
         );
@@ -92,6 +96,8 @@ describe("dom helpers", () => {
     });
 
     it("returns required elements when present", () => {
+        expect.hasAssertions();
+
         const button = document.createElement("button");
         button.className = "save";
         container.append(button);
@@ -100,6 +106,8 @@ describe("dom helpers", () => {
     });
 
     it("sets text, classes, styles, and datasets on element inputs", () => {
+        expect.hasAssertions();
+
         const element = document.createElement("div");
         container.append(element);
 
@@ -132,6 +140,8 @@ describe("dom helpers", () => {
     });
 
     it("preserves existing text and value when nullable values are provided", () => {
+        expect.hasAssertions();
+
         const input = document.createElement("input");
         const label = document.createElement("span");
         input.value = "original";
@@ -147,6 +157,8 @@ describe("dom helpers", () => {
     });
 
     it("sets form value, checked, and disabled state when supported", () => {
+        expect.hasAssertions();
+
         const input = document.createElement("input");
         const checkbox = document.createElement("input");
         const button = document.createElement("button");
@@ -178,6 +190,8 @@ describe("dom helpers", () => {
     });
 
     it("returns undefined for unsupported value, checked, and data reads", () => {
+        expect.hasAssertions();
+
         const div = document.createElement("div");
 
         expect(getValue(div)).toBeUndefined();
@@ -186,6 +200,8 @@ describe("dom helpers", () => {
     });
 
     it("ignores invalid element inputs for mutating helpers", () => {
+        expect.hasAssertions();
+
         const bodyBefore = document.body.innerHTML;
 
         expect(clearElement(null)).toBeUndefined();
@@ -201,6 +217,8 @@ describe("dom helpers", () => {
     });
 
     it("throws for empty class names before touching the element", () => {
+        expect.hasAssertions();
+
         const element = document.createElement("div");
         element.className = "stable";
 
@@ -214,6 +232,8 @@ describe("dom helpers", () => {
     });
 
     it("attaches event listeners and returns cleanup callbacks", () => {
+        expect.hasAssertions();
+
         const button = document.createElement("button");
         const handler = vi.fn<(event: Event) => void>();
 
@@ -222,17 +242,21 @@ describe("dom helpers", () => {
         cleanup?.();
         button.click();
 
-        expect(handler).toHaveBeenCalledTimes(1);
+        expect(handler).toHaveBeenCalledOnce();
         expect(handler.mock.calls[0]?.[0]).toBeInstanceOf(MouseEvent);
     });
 
     it("returns undefined when attaching an event to invalid targets", () => {
+        expect.hasAssertions();
+
         const handler = vi.fn<(event: Event) => void>();
 
         expect(on(null, "click", handler)).toBeUndefined();
     });
 
     it("focuses elements with a focus method and propagates focus failures", () => {
+        expect.hasAssertions();
+
         const input = document.createElement("input");
         container.append(input);
         focus(input);
