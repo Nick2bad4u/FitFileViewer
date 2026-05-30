@@ -54,7 +54,7 @@ describe("state manager core", () => {
 
         setState("nested.deep.value", 42);
 
-        expect(getState("nested.deep.value")).toBe(42);
+        expect(getState("nested.deep")).toStrictEqual({ value: 42 });
     });
 
     it("returns undefined for non-existent state paths", () => {
@@ -390,7 +390,11 @@ describe("state manager core", () => {
 
         const duration = performance.now() - start;
 
-        expect(getState("performance.test.99")).toBe(99);
+        expect(
+            getState<Record<string, number>>("performance.test")
+        ).toMatchObject({
+            "99": 99,
+        });
         expect(duration).toBeLessThan(1000);
     });
 
