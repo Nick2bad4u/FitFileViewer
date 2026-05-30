@@ -2,38 +2,64 @@ import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import path from "node:path";
 import process from "node:process";
+import { pathToFileURL } from "node:url";
 
 import { resolveCommandForPlatform } from "./lib/child-process.mjs";
 import { repositoryRoot } from "./lib/workspaces.mjs";
 
 const require = createRequire(import.meta.url);
 const ncuPackagePath = require.resolve("npm-check-updates/package.json");
-const ncuCliPath = path.join(path.dirname(ncuPackagePath), "build", "cli.js");
-const userArgs = process.argv.slice(2);
-const shouldShowHelp = userArgs.includes("--help") || userArgs.includes("-h");
-const shouldInstall = !shouldShowHelp && !userArgs.includes("--no-install");
-const ncuArgs = [
-    "-i",
-    "--workspaces",
-    "--root",
-    "--install",
-    "never",
-    ...userArgs.filter((arg) => arg !== "--no-install"),
-];
+export const ncuCliPath = path.join(
+    path.dirname(ncuPackagePath),
+    "build",
+    "cli.js"
+);
 
-const ncuResult = spawnSync(process.execPath, [ncuCliPath, ...ncuArgs], {
-    cwd: repositoryRoot,
-    stdio: "inherit",
-});
-
-if (ncuResult.error) {
-    throw ncuResult.error;
+export function buildNcuArgs(argv = process.argv.slice(2)) {
+    return [
+        "-i",
+        "--workspaces",
+        "--root",
+        "--install",
+        "never",
+        ...argv.filter((arg) => arg !== "--no-install"),
+    ];
 }
 
-if (ncuResult.status !== 0) {
-    process.exitCode = ncuResult.status ?? 1;
-} else if (shouldInstall) {
-    const installResult = spawnSync(
+export function shouldInstallUpdatedDependencies(argv = process.argv.slice(2)) {
+    return (
+        !argv.includes("--help") &&
+        !argv.includes("-h") &&
+        !argv.includes("--no-install")
+    );
+}
+
+export function runUpdateDeps(
+    argv = process.argv.slice(2),
+    commandRunner = spawnSync
+) {
+    const ncuResult = commandRunner(
+        process.execPath,
+        [ncuCliPath, ...buildNcuArgs(argv)],
+        {
+            cwd: repositoryRoot,
+            stdio: "inherit",
+        }
+    );
+
+    if (ncuResult.error) {
+        throw ncuResult.error;
+    }
+
+    if (ncuResult.status !== 0) {
+        return ncuResult.status ?? 1;
+    }
+
+    if (!shouldInstallUpdatedDependencies(argv)) {
+        return 0;
+    }
+
+    const installResult = commandRunner(
         resolveCommandForPlatform("npm"),
         ["install"],
         {
@@ -46,5 +72,12 @@ if (ncuResult.status !== 0) {
         throw installResult.error;
     }
 
-    process.exitCode = installResult.status ?? 1;
+    return installResult.status ?? 1;
+}
+
+if (
+    process.argv[1] &&
+    import.meta.url === pathToFileURL(process.argv[1]).href
+) {
+    process.exitCode = runUpdateDeps();
 }
