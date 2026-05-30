@@ -160,7 +160,13 @@ describe(initQuickColorSwitcher, () => {
                 getRequiredElement<HTMLButtonElement>('[data-color="#10b981"]')
                     .classList
             ).not.toContain("active");
-            expect(vi.getTimerCount()).toBe(1);
+            expect({
+                activeColor: redOption.dataset["color"],
+                pendingTimers: vi.getTimerCount(),
+            }).toEqual({
+                activeColor: "#ef4444",
+                pendingTimers: 1,
+            });
 
             vi.advanceTimersByTime(499);
 
