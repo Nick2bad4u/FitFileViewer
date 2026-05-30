@@ -1,21 +1,32 @@
 import { describe, expect, it } from "vitest";
 import { extractDeveloperFieldsList } from "../../../electron-app/utils/data/processing/extractDeveloperFieldsList.js";
 
-describe("extractDeveloperFieldsList", () => {
+describe(extractDeveloperFieldsList, () => {
     it("returns no fields for non-record-list input", () => {
-        for (const value of [
-            null,
-            undefined,
-            "records",
-            42,
-            {},
-            true,
-        ]) {
-            expect(extractDeveloperFieldsList(value)).toEqual([]);
-        }
+        expect.hasAssertions();
+
+        expect(
+            [
+                null,
+                undefined,
+                "records",
+                42,
+                {},
+                true,
+            ].map((value) => extractDeveloperFieldsList(value))
+        ).toEqual([
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+        ]);
     });
 
     it("extracts numeric scalar fields and array indices from developerFields JSON", () => {
+        expect.hasAssertions();
+
         const records = [
             { developerFields: '{"1": 100, "2": [10, "x", null]}' },
             { developerFields: '{"3": 0, "4": -12.5}' },
@@ -32,6 +43,8 @@ describe("extractDeveloperFieldsList", () => {
     });
 
     it("handles invalid-input developerFields payloads by ignoring them", () => {
+        expect.hasAssertions();
+
         const records = [
             null,
             { developerFields: "" },
@@ -46,6 +59,8 @@ describe("extractDeveloperFieldsList", () => {
     });
 
     it("ignores non-numeric scalar values while preserving array index fields", () => {
+        expect.hasAssertions();
+
         const records = [
             {
                 developerFields: JSON.stringify({
@@ -73,6 +88,8 @@ describe("extractDeveloperFieldsList", () => {
     });
 
     it("deduplicates fields across records and sorts identifiers naturally", () => {
+        expect.hasAssertions();
+
         const records = [
             { developerFields: '{"10": 10, "2": [1, 2]}' },
             { developerFields: '{"2": [1, 2, 3], "1": 1, "10": 20}' },
