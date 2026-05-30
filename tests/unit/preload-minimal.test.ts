@@ -148,8 +148,13 @@ describe("preload.js - Basic API Validation", () => {
                 electronApiExposure?.[1] as PreloadMinimalElectronAPI,
             channelInfo = electronAPI.getChannelInfo();
 
-        expect(exposedGlobals.get("electronAPI")).toBe(electronAPI);
-        expect(electronAPI.validateAPI()).toBe(true);
+        expect({
+            exposedElectronAPI: exposedGlobals.get("electronAPI"),
+            validationResult: electronAPI.validateAPI(),
+        }).toEqual({
+            exposedElectronAPI: electronAPI,
+            validationResult: true,
+        });
         expect(channelInfo.channels).toMatchObject({
             APP_VERSION: "getAppVersion",
             DIALOG_OPEN_FILE: "dialog:openFile",
