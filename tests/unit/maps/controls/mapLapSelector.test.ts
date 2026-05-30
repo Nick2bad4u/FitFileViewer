@@ -54,14 +54,21 @@ function getSelectorState(select: HTMLSelectElement) {
 
 describe("mapLapSelector", () => {
     it("does not render a lap selector when lap data is missing", () => {
-        expect.assertions(2);
+        expect.assertions(1);
 
         const container = createContainer();
 
         addLapSelector({}, container, vi.fn<DrawLaps>());
 
-        expect(container.childElementCount).toBe(0);
-        expect(container.querySelectorAll("#lap-select")).toHaveLength(0);
+        expect({
+            childElementCount: container.childElementCount,
+            lapSelectIds: [...container.querySelectorAll("#lap-select")].map(
+                (element) => element.id
+            ),
+        }).toStrictEqual({
+            childElementCount: 0,
+            lapSelectIds: [],
+        });
 
         removeContainer(container);
     });

@@ -136,8 +136,10 @@ describe("mapFullscreenControl.js", () => {
 
         // Verify no controls were added
         expect(
-            document.querySelectorAll(".custom-fullscreen-control")
-        ).toHaveLength(0);
+            [...document.querySelectorAll(".custom-fullscreen-control")].map(
+                (element) => element.className
+            )
+        ).toStrictEqual([]);
     });
 
     it("should toggle fullscreen mode when button is clicked", () => {
@@ -272,7 +274,11 @@ describe("mapFullscreenControl.js", () => {
 
         addFullscreenControl(mockMap);
 
-        expect(mapControls.querySelectorAll("#fullscreen-btn")).toHaveLength(0);
+        expect(
+            [...mapControls.querySelectorAll("#fullscreen-btn")].map(
+                (element) => element.id
+            )
+        ).toStrictEqual([]);
         expect(mapDiv.querySelectorAll("#fullscreen-btn")).toHaveLength(1);
         const newButton = getFullscreenButton(mapDiv);
         expect(newButton).not.toBe(oldButton);
