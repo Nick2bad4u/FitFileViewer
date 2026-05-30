@@ -316,8 +316,10 @@ describe(renderLapZoneChart, () => {
 
         const chartCall = getChartCalls()[0];
         const chartConfig = chartCall[1];
-        expect(chartConfig.data.labels).toEqual([]);
-        expect(chartConfig.data.datasets).toHaveLength(0);
+        expect(chartConfig.data).toStrictEqual({
+            datasets: [],
+            labels: [],
+        });
     });
 
     it('should use power zone colors when title includes "power"', () => {
