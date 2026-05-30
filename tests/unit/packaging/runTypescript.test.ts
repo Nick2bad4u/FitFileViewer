@@ -55,7 +55,7 @@ describe("run-typescript wrapper", () => {
     });
 
     it("returns status 1 for unknown tasks without spawning tsc", () => {
-        expect.assertions(2);
+        expect.assertions(1);
 
         const commandRunner = vi
             .fn<CommandRunner>()
@@ -63,21 +63,27 @@ describe("run-typescript wrapper", () => {
         const consoleErrorSpy = vi
             .spyOn(console, "error")
             .mockReturnValue(undefined);
+        const status = runTypescriptTask(["missing"], commandRunner);
 
-        expect(runTypescriptTask(["missing"], commandRunner)).toBe(1);
-        expect(commandRunner).not.toHaveBeenCalled();
+        expect({
+            commandCalls: commandRunner.mock.calls.length,
+            status,
+        }).toStrictEqual({
+            commandCalls: 0,
+            status: 1,
+        });
 
         consoleErrorSpy.mockRestore();
     });
 
     it("runs TypeScript from the repository root", () => {
-        expect.assertions(5);
+        expect.hasAssertions();
 
         const commandRunner = vi
             .fn<CommandRunner>()
             .mockReturnValue({ status: 7 });
 
-        expect(runTypescriptTask(["runtime"], commandRunner)).toBe(7);
+        const status = runTypescriptTask(["runtime"], commandRunner);
 
         const [
             command,
@@ -85,7 +91,13 @@ describe("run-typescript wrapper", () => {
             options,
         ] = commandRunner.mock.calls[0] ?? [];
 
-        expect(command).toBe(process.execPath);
+        expect({
+            command,
+            status,
+        }).toStrictEqual({
+            command: process.execPath,
+            status: 7,
+        });
         expect(args?.[0]).toMatch(/[\\/]typescript[\\/]bin[\\/]tsc$/u);
         expect(args).toContain(rootRuntimeTsconfigPath);
         expect({

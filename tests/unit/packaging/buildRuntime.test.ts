@@ -38,16 +38,23 @@ describe("build-runtime script", () => {
     });
 
     it("returns zero when every build step succeeds", () => {
-        expect.assertions(5);
+        expect.hasAssertions();
 
         const commandRunner = vi
             .fn<CommandRunner>()
             .mockReturnValue({ status: 0 });
         const logger = vi.fn<(message: string) => void>();
 
-        expect(runBuildRuntime(commandRunner, logger)).toBe(0);
-        expect(commandRunner).toHaveBeenCalledTimes(buildRuntimeSteps.length);
-        expect(logger).toHaveBeenCalledTimes(buildRuntimeSteps.length);
+        const status = runBuildRuntime(commandRunner, logger);
+        expect({
+            commandCalls: commandRunner.mock.calls.length,
+            loggerCalls: logger.mock.calls.length,
+            status,
+        }).toStrictEqual({
+            commandCalls: buildRuntimeSteps.length,
+            loggerCalls: buildRuntimeSteps.length,
+            status: 0,
+        });
 
         const [
             command,
@@ -55,28 +62,36 @@ describe("build-runtime script", () => {
             options,
         ] = commandRunner.mock.calls[0] ?? [];
 
-        expect(command).toBe(process.execPath);
         expect({
+            command,
             ...options,
             cwd: path.resolve(options?.cwd ?? ""),
         }).toStrictEqual({
+            command: process.execPath,
             cwd: path.resolve(process.cwd()),
             stdio: "inherit",
         });
     });
 
     it("stops after the first failing build step", () => {
-        expect.assertions(3);
+        expect.assertions(1);
 
         const commandRunner = vi
             .fn<CommandRunner>()
             .mockReturnValueOnce({ status: 0 })
             .mockReturnValueOnce({ status: 9 });
         const logger = vi.fn<(message: string) => void>();
+        const status = runBuildRuntime(commandRunner, logger);
 
-        expect(runBuildRuntime(commandRunner, logger)).toBe(9);
-        expect(commandRunner).toHaveBeenCalledTimes(2);
-        expect(logger).toHaveBeenCalledTimes(2);
+        expect({
+            commandCalls: commandRunner.mock.calls.length,
+            loggerCalls: logger.mock.calls.length,
+            status,
+        }).toStrictEqual({
+            commandCalls: 2,
+            loggerCalls: 2,
+            status: 9,
+        });
     });
 
     it("throws when a build step runner reports a spawn error", () => {
