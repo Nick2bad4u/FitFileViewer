@@ -169,8 +169,13 @@ describe("utils/app/lifecycle/listeners.js", () => {
             setLoading,
             showNotification,
         });
-        expect(isOpeningFileRef.current).toBe(true);
-        expect(openFileBtn.dataset.opened).toBe("true");
+        expect({
+            isOpeningFile: isOpeningFileRef.current,
+            openedDatasetValue: openFileBtn.dataset.opened,
+        }).toEqual({
+            isOpeningFile: true,
+            openedDatasetValue: "true",
+        });
     });
 
     it("contextmenu with no electronAPI.recentFiles early-returns and shows info", async () => {
