@@ -3,15 +3,15 @@ import { convertValueToUserUnits } from "../../../electron-app/utils/formatting/
 import { getChartSetting } from "../../../electron-app/utils/state/domain/settingsStateManager.js";
 
 vi.mock(
-    "../../../electron-app/utils/state/domain/settingsStateManager.js",
+    import("../../../electron-app/utils/state/domain/settingsStateManager.js"),
     () => ({
-        getChartSetting: vi.fn(),
+        getChartSetting: vi.fn<(key: string) => unknown>(),
     })
 );
 
 const mockGetChartSetting = vi.mocked(getChartSetting);
 
-describe("convertValueToUserUnits", () => {
+describe(convertValueToUserUnits, () => {
     let errorSpy: ReturnType<typeof vi.spyOn>,
         warnSpy: ReturnType<typeof vi.spyOn>;
 
@@ -28,6 +28,8 @@ describe("convertValueToUserUnits", () => {
     });
 
     it("returns invalid values unchanged and warns", () => {
+        expect.hasAssertions();
+
         expect(convertValueToUserUnits("1000", "distance")).toBe("1000");
         expect(convertValueToUserUnits(Number.NaN, "distance")).toBeNaN();
 
@@ -43,8 +45,15 @@ describe("convertValueToUserUnits", () => {
     });
 
     it("returns numeric values unchanged for invalid field names", () => {
-        expect(convertValueToUserUnits(1000, "")).toBe(1000);
-        expect(convertValueToUserUnits(1000, null)).toBe(1000);
+        expect.hasAssertions();
+
+        expect({
+            emptyField: convertValueToUserUnits(1000, ""),
+            nullField: convertValueToUserUnits(1000, null),
+        }).toEqual({
+            emptyField: 1000,
+            nullField: 1000,
+        });
 
         expect(warnSpy).toHaveBeenCalledWith(
             "[convertValueToUserUnits] Invalid field name:",
@@ -58,6 +67,8 @@ describe("convertValueToUserUnits", () => {
     });
 
     it("converts distance and altitude fields with the distance setting", () => {
+        expect.hasAssertions();
+
         mockGetChartSetting.mockReturnValue("miles");
 
         expect(convertValueToUserUnits(1609.344, "distance")).toBeCloseTo(1);
@@ -70,14 +81,26 @@ describe("convertValueToUserUnits", () => {
     });
 
     it("falls back to kilometers for unknown distance settings", () => {
+        expect.hasAssertions();
+
         mockGetChartSetting.mockReturnValue("yards");
 
-        expect(convertValueToUserUnits(1000, "distance")).toBe(1);
+        expect({
+            distance: convertValueToUserUnits(1000, "distance"),
+        }).toEqual({
+            distance: 1,
+        });
     });
 
     it("converts speed using metric or imperial distance settings", () => {
+        expect.hasAssertions();
+
         mockGetChartSetting.mockReturnValue("kilometers");
-        expect(convertValueToUserUnits(10, "speed")).toBe(36);
+        expect({
+            metricSpeed: convertValueToUserUnits(10, "speed"),
+        }).toEqual({
+            metricSpeed: 36,
+        });
 
         mockGetChartSetting.mockReturnValue("feet");
         expect(convertValueToUserUnits(10, "enhancedSpeed")).toBeCloseTo(
@@ -86,26 +109,45 @@ describe("convertValueToUserUnits", () => {
     });
 
     it("converts temperature with the temperature setting", () => {
+        expect.hasAssertions();
+
         mockGetChartSetting.mockReturnValue("fahrenheit");
 
-        expect(convertValueToUserUnits(25, "temperature")).toBe(77);
+        expect({
+            temperature: convertValueToUserUnits(25, "temperature"),
+        }).toEqual({
+            temperature: 77,
+        });
         expect(mockGetChartSetting).toHaveBeenCalledWith("temperatureUnits");
     });
 
     it("returns unhandled fields unchanged without reading settings", () => {
-        expect(convertValueToUserUnits(250, "power")).toBe(250);
-        expect(convertValueToUserUnits(150, "heartRate")).toBe(150);
+        expect.hasAssertions();
+
+        expect({
+            heartRate: convertValueToUserUnits(150, "heartRate"),
+            power: convertValueToUserUnits(250, "power"),
+        }).toEqual({
+            heartRate: 150,
+            power: 250,
+        });
 
         expect(mockGetChartSetting).not.toHaveBeenCalled();
     });
 
     it("returns the original value when settings access throws", () => {
+        expect.hasAssertions();
+
         const settingsError = new Error("Settings unavailable");
         mockGetChartSetting.mockImplementation(() => {
             throw settingsError;
         });
 
-        expect(convertValueToUserUnits(1000, "distance")).toBe(1000);
+        expect({
+            distance: convertValueToUserUnits(1000, "distance"),
+        }).toEqual({
+            distance: 1000,
+        });
         expect(errorSpy).toHaveBeenCalledWith(
             "[convertValueToUserUnits] Conversion failed for field 'distance':",
             settingsError
