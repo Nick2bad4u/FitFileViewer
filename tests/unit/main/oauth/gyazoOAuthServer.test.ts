@@ -88,9 +88,8 @@ function withRequestHandler(): RequestHandler {
     return requestHandler;
 }
 
-const mockSend = vi.fn<
-    (channel: string, payload: Record<string, string>) => void
->();
+const mockSend =
+    vi.fn<(channel: string, payload: Record<string, string>) => void>();
 
 function getWindowLike(): { webContents: { send: typeof mockSend } } {
     return { webContents: { send: mockSend } };
@@ -126,20 +125,41 @@ function makeRes() {
             headers[k] = v;
         },
         writeHead: vi.fn<
-            (
-                statusCode: number,
-                statusHeaders: Record<string, string>
-            ) => void
+            (statusCode: number, statusHeaders: Record<string, string>) => void
         >((statusCode, statusHeaders) => {
-                res.statusCode = statusCode;
-                res.statusHeaders = statusHeaders;
-            }),
+            res.statusCode = statusCode;
+            res.statusHeaders = statusHeaders;
+        }),
         end: vi.fn<(body?: unknown) => void>((body) => {
             res.body = body;
         }),
     };
 
     return res;
+}
+
+function getResponseHeaderSnapshot(res: MockResponse): {
+    cacheControl: string | undefined;
+    corsHeaders: string[];
+    xContentTypeOptions: string | undefined;
+} {
+    return {
+        cacheControl: res.headers["Cache-Control"],
+        corsHeaders: Object.keys(res.headers).filter((header) =>
+            header.toLowerCase().startsWith("access-control-")
+        ),
+        xContentTypeOptions: res.headers["X-Content-Type-Options"],
+    };
+}
+
+function getServerStateSnapshot(): {
+    gyazoServer: unknown;
+    gyazoServerPort: unknown;
+} {
+    return {
+        gyazoServer: state.get("gyazoServer"),
+        gyazoServerPort: state.get("gyazoServerPort"),
+    };
 }
 
 describe("gyazoOAuthServer", () => {
@@ -197,7 +217,11 @@ describe("gyazoOAuthServer", () => {
 
         const { startGyazoOAuthServer } = requireGyazoOAuthServer();
         const result = await startGyazoOAuthServer(3000);
-        expect(result.success).toBe(true);
+        expect(result).toStrictEqual({
+            message: "OAuth callback server started on port 3000",
+            port: 3000,
+            success: true,
+        });
         expect(mockServer.listen).toHaveBeenCalledWith(
             3000,
             "localhost",
@@ -208,14 +232,11 @@ describe("gyazoOAuthServer", () => {
         const res = makeRes();
         withRequestHandler()({ method: "GET", url: "/not-found" }, res);
 
-        // Ensure standard headers exist and no Access-Control-* headers were set
-        expect(res.headers["X-Content-Type-Options"]).toBe("nosniff");
-        expect(res.headers["Cache-Control"]).toBe("no-store");
-        expect(
-            Object.keys(res.headers).some((k) =>
-                k.toLowerCase().startsWith("access-control-")
-            )
-        ).toBe(false);
+        expect(getResponseHeaderSnapshot(res)).toStrictEqual({
+            cacheControl: "no-store",
+            corsHeaders: [],
+            xContentTypeOptions: "nosniff",
+        });
     });
 
     it("rejects non-GET/HEAD methods", async () => {
@@ -279,10 +300,8 @@ describe("gyazoOAuthServer", () => {
     it("stop server clears state even if close throws", async () => {
         expect.hasAssertions();
 
-        const {
-            startGyazoOAuthServer,
-            stopGyazoOAuthServer,
-        } = requireGyazoOAuthServer();
+        const { startGyazoOAuthServer, stopGyazoOAuthServer } =
+            requireGyazoOAuthServer();
 
         await startGyazoOAuthServer(3000);
         // Force close to throw
@@ -291,8 +310,18 @@ describe("gyazoOAuthServer", () => {
         });
 
         const result = await stopGyazoOAuthServer();
-        expect(result.success).toBe(false);
-        expect(state.get("gyazoServer")).toBeNull();
-        expect(state.get("gyazoServerPort")).toBeNull();
+        expect({
+            result,
+            state: getServerStateSnapshot(),
+        }).toStrictEqual({
+            result: {
+                message: "Failed to stop OAuth callback server",
+                success: false,
+            },
+            state: {
+                gyazoServer: null,
+                gyazoServerPort: null,
+            },
+        });
     });
 });
