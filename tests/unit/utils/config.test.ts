@@ -12,10 +12,12 @@ import config, {
 
 describe("config/index.js", () => {
     it("exports shared constants as named values", () => {
-        expect.assertions(4);
+        expect.assertions(3);
 
-        expect(CONVERSION_FACTORS.METERS_PER_KILOMETER).toBe(1000);
-        expect(CONVERSION_FACTORS.METERS_PER_MILE).toBe(1609.344);
+        expect(CONVERSION_FACTORS).toMatchObject({
+            METERS_PER_KILOMETER: 1000,
+            METERS_PER_MILE: 1609.344,
+        });
         expect(TIME_UNITS.SECONDS).toBe("seconds");
         expect(FILE_CONSTANTS.SUPPORTED_EXTENSIONS).toStrictEqual([".fit"]);
     });
@@ -44,12 +46,15 @@ describe("config/index.js", () => {
     });
 
     it("returns the provided default for missing config paths", () => {
-        expect.assertions(2);
+        expect.assertions(1);
 
-        expect(getConfig("UI_CONSTANTS.DOES_NOT_EXIST", "fallback")).toBe(
-            "fallback"
-        );
-        expect(getConfig("MISSING_GROUP.VALUE", 42)).toBe(42);
+        expect({
+            missingGroup: getConfig("MISSING_GROUP.VALUE", 42),
+            missingValue: getConfig("UI_CONSTANTS.DOES_NOT_EXIST", "fallback"),
+        }).toEqual({
+            missingGroup: 42,
+            missingValue: "fallback",
+        });
     });
 
     it("validates the current configuration", () => {
