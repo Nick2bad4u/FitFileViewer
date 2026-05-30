@@ -31,6 +31,14 @@ type TimeInZoneTestGlobal = typeof globalThis & {
     powerZones?: ZoneData[];
 };
 
+type ConsoleMethod = (...args: unknown[]) => void;
+type BodyChildSnapshot = {
+    bodyChildTags: string[];
+};
+type ContainerChildSnapshot = {
+    childTags: string[];
+};
+
 function getTimeInZoneGlobal(): TimeInZoneTestGlobal {
     return globalThis as TimeInZoneTestGlobal;
 }
@@ -59,9 +67,9 @@ describe("renderTimeInZoneCharts.js - Time in Zone Composite Renderer", () => {
         globalThis.HTMLElement = dom.window.HTMLElement;
 
         globalThis.console = {
-            log: vi.fn(),
-            error: vi.fn(),
-            warn: vi.fn(),
+            log: vi.fn<ConsoleMethod>(),
+            error: vi.fn<ConsoleMethod>(),
+            warn: vi.fn<ConsoleMethod>(),
         } as unknown as Console;
 
         renderZoneChartMock = vi.fn<RenderZoneChart>(
@@ -89,20 +97,20 @@ describe("renderTimeInZoneCharts.js - Time in Zone Composite Renderer", () => {
         );
 
         vi.doMock(
-            "../../../electron-app/utils/ui/controls/createHRZoneControls.js",
+            import("../../../electron-app/utils/ui/controls/createHRZoneControls.js"),
             () => ({
                 getHRZoneVisibilitySettings: getHRZoneVisibilitySettingsMock,
             })
         );
         vi.doMock(
-            "../../../electron-app/utils/ui/controls/createPowerZoneControls.js",
+            import("../../../electron-app/utils/ui/controls/createPowerZoneControls.js"),
             () => ({
                 getPowerZoneVisibilitySettings:
                     getPowerZoneVisibilitySettingsMock,
             })
         );
         vi.doMock(
-            "../../../electron-app/utils/charts/rendering/renderZoneChart.js",
+            import("../../../electron-app/utils/charts/rendering/renderZoneChart.js"),
             () => ({
                 renderZoneChart: renderZoneChartMock,
             })
@@ -125,12 +133,22 @@ describe("renderTimeInZoneCharts.js - Time in Zone Composite Renderer", () => {
     });
 
     it("should return immediately when container is not provided", () => {
+        expect.hasAssertions();
+
         renderTimeInZoneCharts(null, {});
         expect(renderZoneChartMock).not.toHaveBeenCalled();
-        expect(document.body.childElementCount).toBe(0);
+        expect<BodyChildSnapshot>({
+            bodyChildTags: [...document.body.children].map(
+                (child) => child.tagName
+            ),
+        }).toStrictEqual({
+            bodyChildTags: [],
+        });
     });
 
     it("should render both HR and power zone charts when visible and data is present", () => {
+        expect.hasAssertions();
+
         const container = document.createElement("div");
         const hrZones = [
             { zone: 1, label: "Z1", time: 120 },
@@ -179,6 +197,8 @@ describe("renderTimeInZoneCharts.js - Time in Zone Composite Renderer", () => {
     });
 
     it("should honor visibility toggles and skip missing datasets", () => {
+        expect.hasAssertions();
+
         const container = document.createElement("div");
         const timeInZoneGlobal = getTimeInZoneGlobal();
         timeInZoneGlobal.heartRateZones = [{ zone: 1, label: "Z1", time: 120 }];
@@ -191,6 +211,10 @@ describe("renderTimeInZoneCharts.js - Time in Zone Composite Renderer", () => {
         renderTimeInZoneCharts(container, {});
 
         expect(renderZoneChartMock).not.toHaveBeenCalled();
-        expect(container.childElementCount).toBe(0);
+        expect<ContainerChildSnapshot>({
+            childTags: [...container.children].map((child) => child.tagName),
+        }).toStrictEqual({
+            childTags: [],
+        });
     });
 });
