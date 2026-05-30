@@ -39,6 +39,20 @@ function writeArtifact(root: string, relativePath: string): void {
     fs.writeFileSync(filePath, "latest");
 }
 
+function getPathStates(
+    root: string,
+    relativePaths: string[]
+): Record<string, "missing" | "present"> {
+    return Object.fromEntries(
+        relativePaths.map((relativePath) => [
+            relativePath,
+            fs.existsSync(path.join(root, relativePath))
+                ? "present"
+                : "missing",
+        ])
+    );
+}
+
 afterEach(() => {
     for (const temporaryRoot of temporaryRoots.splice(0)) {
         fs.rmSync(temporaryRoot, { force: true, recursive: true });
@@ -84,63 +98,54 @@ describe("rename-windows-latest-yml script", () => {
     });
 
     it("renames only Windows latest.yml files that exist", async () => {
-        expect.assertions(7);
+        expect.assertions(1);
 
         const { renameWindowsLatestYml } = await importRenameWindowsLatestYml();
         const artifactsRoot = makeTemporaryRoot();
+        const sourceIa32 = path.join("dist-windows-latest-ia32", "latest.yml");
+        const destinationIa32 = path.join(
+            "dist-windows-latest-ia32",
+            "latest-win32.yml"
+        );
+        const sourceX64Nsis = path.join(
+            "dist-windows-latest-x64",
+            "nsis-web",
+            "latest.yml"
+        );
+        const destinationX64Nsis = path.join(
+            "dist-windows-latest-x64",
+            "nsis-web",
+            "latest-nsis-web.yml"
+        );
 
-        writeArtifact(
-            artifactsRoot,
-            path.join("dist-windows-latest-ia32", "latest.yml")
-        );
-        writeArtifact(
-            artifactsRoot,
-            path.join("dist-windows-latest-x64", "nsis-web", "latest.yml")
-        );
+        writeArtifact(artifactsRoot, sourceIa32);
+        writeArtifact(artifactsRoot, sourceX64Nsis);
 
         const renamedFiles = renameWindowsLatestYml(artifactsRoot);
 
-        expect(renamedFiles).toHaveLength(2);
-        expect(
-            fs.existsSync(
-                path.join(
-                    artifactsRoot,
-                    "dist-windows-latest-ia32",
-                    "latest.yml"
-                )
-            )
-        ).toBe(false);
-        expect(
-            fs.existsSync(
-                path.join(
-                    artifactsRoot,
-                    "dist-windows-latest-ia32",
-                    "latest-win32.yml"
-                )
-            )
-        ).toBe(true);
-        expect(
-            fs.existsSync(
-                path.join(
-                    artifactsRoot,
-                    "dist-windows-latest-x64",
-                    "nsis-web",
-                    "latest.yml"
-                )
-            )
-        ).toBe(false);
-        expect(
-            fs.existsSync(
-                path.join(
-                    artifactsRoot,
-                    "dist-windows-latest-x64",
-                    "nsis-web",
-                    "latest-nsis-web.yml"
-                )
-            )
-        ).toBe(true);
-        expect(renamedFiles[0]?.to).toContain("latest-win32.yml");
-        expect(renamedFiles[1]?.to).toContain("latest-nsis-web.yml");
+        expect({
+            pathStates: getPathStates(artifactsRoot, [
+                sourceIa32,
+                destinationIa32,
+                sourceX64Nsis,
+                destinationX64Nsis,
+            ]),
+            renamedFiles: renamedFiles.map(({ from, to }) => ({
+                from: path.basename(from),
+                to: path.basename(to),
+            })),
+        }).toStrictEqual({
+            pathStates: {
+                [destinationIa32]: "present",
+                [destinationX64Nsis]: "present",
+                [sourceIa32]: "missing",
+                [sourceX64Nsis]: "missing",
+            },
+            renamedFiles: [
+                { from: "latest.yml", to: "latest-win32.yml" },
+                { from: "latest.yml", to: "latest-nsis-web.yml" },
+            ],
+        });
     });
 
     it("returns an empty result when no matching files exist", async () => {
