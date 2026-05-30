@@ -7,7 +7,7 @@ import {
 } from "../../../electron-app/utils/formatting/display/formatAntNames.js";
 
 vi.mock(
-    "../../../electron-app/utils/data/lookups/dataAntManufacturerIDs.js",
+    import("../../../electron-app/utils/data/lookups/dataAntManufacturerIDs.js"),
     () => ({
         dataAntManufacturerIDs: {
             1: "garmin",
@@ -20,7 +20,7 @@ vi.mock(
 );
 
 vi.mock(
-    "../../../electron-app/utils/data/lookups/dataAntProductIds.js",
+    import("../../../electron-app/utils/data/lookups/dataAntProductIds.js"),
     () => ({
         dataAntProductIds: {
             1: {
@@ -39,24 +39,54 @@ vi.mock(
 
 describe("formatAntNames", () => {
     it("looks up manufacturer names while preserving unknown IDs", () => {
-        expect(getManufacturerName(1)).toBe("garmin");
-        expect(getManufacturerName("001")).toBe("garmin");
-        expect(getManufacturerName(32)).toBe("wahoo_fitness");
-        expect(getManufacturerName(999)).toBe(999);
-        expect(getManufacturerName("unknown")).toBe("unknown");
-        expect(getManufacturerName(null)).toBe(null);
+        expect.hasAssertions();
+
+        expect(
+            [
+                1,
+                "001",
+                32,
+                999,
+                "unknown",
+                null,
+            ].map((manufacturerId) => getManufacturerName(manufacturerId))
+        ).toEqual([
+            "garmin",
+            "garmin",
+            "wahoo_fitness",
+            999,
+            "unknown",
+            null,
+        ]);
     });
 
     it("looks up product names while preserving unknown product IDs", () => {
-        expect(getProductName(1, 1036)).toBe("edge500");
-        expect(getProductName("1", "717")).toBe("edge_130");
-        expect(getProductName(2, 1)).toBe("kickr");
-        expect(getProductName(999, 1)).toBe(1);
-        expect(getProductName(1, 999)).toBe(999);
-        expect(getProductName("missing", "abc")).toBe("abc");
+        expect.hasAssertions();
+
+        expect(
+            [
+                [1, 1036],
+                ["1", "717"],
+                [2, 1],
+                [999, 1],
+                [1, 999],
+                ["missing", "abc"],
+            ].map(([manufacturerId, productId]) =>
+                getProductName(manufacturerId, productId)
+            )
+        ).toEqual([
+            "edge500",
+            "edge_130",
+            "kickr",
+            1,
+            999,
+            "abc",
+        ]);
     });
 
     it("combines manufacturer and product lookups", () => {
+        expect.hasAssertions();
+
         expect(getManufacturerAndProduct(1, 717)).toEqual({
             manufacturerName: "garmin",
             productName: "edge_130",
@@ -72,15 +102,31 @@ describe("formatAntNames", () => {
     });
 
     it("resolves manufacturer IDs from normalized names", () => {
-        expect(getManufacturerIdFromName("GARMIN")).toBe(1);
-        expect(getManufacturerIdFromName("wahoo_fitness")).toBe(32);
-        expect(getManufacturerIdFromName("wahoofitness")).toBe(32);
-        expect(getManufacturerIdFromName("faveroelectronics")).toBe(89);
-        expect(getManufacturerIdFromName("favero_electronics")).toBe(89);
+        expect.hasAssertions();
+
+        expect(
+            [
+                "GARMIN",
+                "wahoo_fitness",
+                "wahoofitness",
+                "faveroelectronics",
+                "favero_electronics",
+            ].map((manufacturerName) =>
+                getManufacturerIdFromName(manufacturerName)
+            )
+        ).toEqual([
+            1,
+            32,
+            32,
+            89,
+            89,
+        ]);
     });
 
     it("handles invalid-input manufacturer names with null results", () => {
-        for (const value of [
+        expect.hasAssertions();
+
+        const invalidNames = [
             null,
             undefined,
             123,
@@ -90,8 +136,20 @@ describe("formatAntNames", () => {
             "   ",
             "unknown",
             "garmin_extra",
-        ]) {
-            expect(getManufacturerIdFromName(value)).toBe(null);
-        }
+        ];
+
+        expect(
+            invalidNames.map((value) => getManufacturerIdFromName(value))
+        ).toEqual([
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+        ]);
     });
 });
