@@ -116,7 +116,7 @@ function registerTestMenuListeners(): {
 
 describe("menu keyboard shortcuts IPC listener", () => {
     it("imports the shortcuts modal module without injecting the legacy script", async () => {
-        expect.assertions(7);
+        expect.assertions(4);
 
         resetKeyboardShortcutsFixture();
 
@@ -134,16 +134,20 @@ describe("menu keyboard shortcuts IPC listener", () => {
                 "#keyboard-shortcuts-modal"
             );
 
-            expect(modal.style.display).toBe("flex");
-            expect([...modal.classList]).toContain("show");
-            expect(
-                document.querySelectorAll(".shortcuts-category")
-            ).toHaveLength(3);
-            expect(
-                document.head.querySelectorAll(
+            expect({
+                categoryCount: document.querySelectorAll(".shortcuts-category")
+                    .length,
+                legacyScriptCount: document.head.querySelectorAll(
                     'script[src="./utils/keyboardShortcutsModal.js"]'
-                )
-            ).toHaveLength(0);
+                ).length,
+                modalClasses: [...modal.classList],
+                modalDisplay: modal.style.display,
+            }).toStrictEqual({
+                categoryCount: 3,
+                legacyScriptCount: 0,
+                modalClasses: expect.arrayContaining(["show"]),
+                modalDisplay: "flex",
+            });
             expect(getTestGlobal().showKeyboardShortcutsModal).toBeTypeOf(
                 "function"
             );
