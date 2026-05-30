@@ -39,11 +39,19 @@ describe("dom helpers", () => {
     });
 
     it("identifies element nodes without accepting other values", () => {
-        expect(isHTMLElement(document.createElement("div"))).toBe(true);
-        expect(isHTMLElement(document.createTextNode("text"))).toBe(false);
-        expect(isHTMLElement(document)).toBe(false);
-        expect(isHTMLElement(null)).toBe(false);
-        expect(isHTMLElement({ nodeType: 1 })).toBe(true);
+        expect({
+            documentNode: isHTMLElement(document),
+            elementNode: isHTMLElement(document.createElement("div")),
+            nullValue: isHTMLElement(null),
+            textNode: isHTMLElement(document.createTextNode("text")),
+            typedNodeLikeObject: isHTMLElement({ nodeType: 1 }),
+        }).toStrictEqual({
+            documentNode: false,
+            elementNode: true,
+            nullValue: false,
+            textNode: false,
+            typedNodeLikeObject: true,
+        });
     });
 
     it("queries one or many matching elements within an optional root", () => {
@@ -60,8 +68,15 @@ describe("dom helpers", () => {
 
         expect(query("#primary", container)?.textContent).toBe("Primary");
         expect(query(".missing", container)).toBeNull();
-        expect(queryAll(".action", container)).toHaveLength(2);
-        expect(queryAll(".missing", container)).toStrictEqual([]);
+        expect({
+            actionTexts: queryAll(".action", container).map(
+                (element) => element.textContent
+            ),
+            missingCount: queryAll(".missing", container).length,
+        }).toStrictEqual({
+            actionTexts: ["Primary", "Secondary"],
+            missingCount: 0,
+        });
     });
 
     it("throws consistent errors for missing required elements and empty selectors", () => {
@@ -94,15 +109,26 @@ describe("dom helpers", () => {
         setData(element, "activityId", 123);
 
         expect(element.textContent).toBe("Ready");
-        expect(element.classList.contains("active")).toBe(true);
-        expect(element.style.backgroundColor).toBe("red");
-        expect(getData(element, "activityId")).toBe("123");
+        expect({
+            activityId: getData(element, "activityId"),
+            classes: [...element.classList],
+            style: element.style.backgroundColor,
+        }).toStrictEqual({
+            activityId: "123",
+            classes: ["active"],
+            style: "red",
+        });
 
         removeClass(element, "active");
         clearElement(element);
 
-        expect(element.classList.contains("active")).toBe(false);
-        expect(element.childNodes).toHaveLength(0);
+        expect({
+            childNodeCount: element.childNodes.length,
+            classes: [...element.classList],
+        }).toStrictEqual({
+            childNodeCount: 0,
+            classes: [],
+        });
     });
 
     it("preserves existing text and value when nullable values are provided", () => {
@@ -131,14 +157,24 @@ describe("dom helpers", () => {
         setDisabled(button, 1);
 
         expect(getValue(input)).toBe("42");
-        expect(getChecked(checkbox)).toBe(true);
-        expect(button.disabled).toBe(true);
+        expect({
+            buttonDisabled: button.disabled,
+            checkboxChecked: getChecked(checkbox),
+        }).toStrictEqual({
+            buttonDisabled: true,
+            checkboxChecked: true,
+        });
 
         setChecked(checkbox, 0);
         setDisabled(button, "");
 
-        expect(getChecked(checkbox)).toBe(false);
-        expect(button.disabled).toBe(false);
+        expect({
+            buttonDisabled: button.disabled,
+            checkboxChecked: getChecked(checkbox),
+        }).toStrictEqual({
+            buttonDisabled: false,
+            checkboxChecked: false,
+        });
     });
 
     it("returns undefined for unsupported value, checked, and data reads", () => {
