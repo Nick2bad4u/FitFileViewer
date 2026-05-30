@@ -4,7 +4,7 @@ import { logWithLevel } from "../../../electron-app/utils/logging/index.js";
 const fixedTimestamp = "2023-01-01T12:00:00.000Z";
 const expectedBase = `${fixedTimestamp} [FFV]`;
 
-describe("logWithLevel", () => {
+describe(logWithLevel, () => {
     let errorSpy: ReturnType<typeof vi.spyOn>;
     let infoSpy: ReturnType<typeof vi.spyOn>;
     let logSpy: ReturnType<typeof vi.spyOn>;
@@ -31,6 +31,8 @@ describe("logWithLevel", () => {
     });
 
     it("routes each supported level to the matching console method", () => {
+        expect.hasAssertions();
+
         expect(logWithLevel("info", "Loaded file")).toBeUndefined();
         expect(logWithLevel("warn", "Missing optional field")).toBeUndefined();
         expect(logWithLevel("error", "Failed to parse file")).toBeUndefined();
@@ -47,6 +49,8 @@ describe("logWithLevel", () => {
     });
 
     it("falls back to console.log for unknown levels", () => {
+        expect.hasAssertions();
+
         expect(logWithLevel("debug", "Renderer trace")).toBeUndefined();
 
         expect(logSpy).toHaveBeenCalledWith(`${expectedBase} Renderer trace`);
@@ -56,6 +60,8 @@ describe("logWithLevel", () => {
     });
 
     it("logs a shallow-cloned context payload only for non-empty plain objects", () => {
+        expect.hasAssertions();
+
         const context = { fileName: "activity.fit", records: 125 };
 
         logWithLevel("info", "Parsed FIT file", context);
@@ -92,6 +98,8 @@ describe("logWithLevel", () => {
     });
 
     it("skips context properties whose getters throw", () => {
+        expect.hasAssertions();
+
         const context = { keep: "value" };
         Object.defineProperty(context, "skip", {
             enumerable: true,
@@ -111,6 +119,8 @@ describe("logWithLevel", () => {
     });
 
     it("emits the minimal fallback line when logging setup fails", () => {
+        expect.hasAssertions();
+
         vi.spyOn(Object, "keys").mockImplementationOnce(() => {
             throw new Error("Object.keys failed");
         });
@@ -120,16 +130,20 @@ describe("logWithLevel", () => {
         expect(logSpy).toHaveBeenCalledWith(
             "[FFV][logWithLevel] Logging failure"
         );
-        expect(
-            (
+        expect({
+            objectKeysAllowThrow: (
                 globalThis as typeof globalThis & {
                     __vitest_object_keys_allow_throw?: boolean;
                 }
-            ).__vitest_object_keys_allow_throw
-        ).toBe(false);
+            ).__vitest_object_keys_allow_throw,
+        }).toEqual({
+            objectKeysAllowThrow: false,
+        });
     });
 
     it("does not throw when the selected console method fails", () => {
+        expect.hasAssertions();
+
         warnSpy.mockImplementationOnce(() => {
             throw new Error("console.warn failed");
         });
