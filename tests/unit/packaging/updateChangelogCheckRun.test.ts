@@ -131,29 +131,37 @@ describe("update-changelog-check-run script", () => {
     });
 
     it("creates a check run and writes CHECKID to the GitHub environment", async () => {
-        expect.assertions(5);
+        expect.assertions(1);
 
         const { createChangelogCheckRun } =
             await importUpdateChangelogCheckRun();
         const githubEnv = path.join(makeTemporaryRoot(), "github-env");
         const { calls, runCommand } = makeCommandRecorder('{"id":12345}');
 
-        expect(
-            createChangelogCheckRun({
-                githubEnv,
-                headSha: "abc123",
-                repository: "Nick2bad4u/FitFileViewer",
-                runCommand,
-            })
-        ).toBe(12345);
-        expect(fs.readFileSync(githubEnv, "utf8")).toBe("CHECKID=12345\n");
-        expect(calls).toHaveLength(1);
-        expect(calls[0]?.args).toContain(
-            "/repos/Nick2bad4u/FitFileViewer/check-runs"
-        );
-        expect(JSON.parse(calls[0]?.options.input ?? "{}")).toMatchObject({
-            head_sha: "abc123",
-            name: "Update ChangeLogs",
+        const checkId = createChangelogCheckRun({
+            githubEnv,
+            headSha: "abc123",
+            repository: "Nick2bad4u/FitFileViewer",
+            runCommand,
+        });
+
+        expect({
+            checkId,
+            commandCount: calls.length,
+            envFile: fs.readFileSync(githubEnv, "utf8"),
+            requestPath: calls[0]?.args.find((arg) =>
+                arg.includes("/check-runs")
+            ),
+            requestPayload: JSON.parse(calls[0]?.options.input ?? "{}"),
+        }).toStrictEqual({
+            checkId: 12345,
+            commandCount: 1,
+            envFile: "CHECKID=12345\n",
+            requestPath: "/repos/Nick2bad4u/FitFileViewer/check-runs",
+            requestPayload: expect.objectContaining({
+                head_sha: "abc123",
+                name: "Update ChangeLogs",
+            }),
         });
     });
 

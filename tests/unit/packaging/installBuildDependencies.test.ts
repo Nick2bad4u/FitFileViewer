@@ -99,27 +99,28 @@ describe("install-build-dependencies script", () => {
     });
 
     it("runs each command for the requested platform", async () => {
-        expect.assertions(3);
+        expect.assertions(1);
 
         const { installBuildDependencies } =
             await importInstallBuildDependencies();
         const calls: CommandCall[] = [];
 
-        expect(
-            installBuildDependencies({
-                platform: "Windows",
-                runCommand(command, args, options) {
-                    calls.push({ args, command, options });
-                },
-            })
-        ).toBe(2);
-        expect(calls.map((call) => call.command)).toStrictEqual([
-            "choco",
-            "choco",
-        ]);
-        expect(calls.every((call) => call.options.stdio === "inherit")).toBe(
-            true
-        );
+        const installedCommandCount = installBuildDependencies({
+            platform: "Windows",
+            runCommand(command, args, options) {
+                calls.push({ args, command, options });
+            },
+        });
+
+        expect({
+            commands: calls.map((call) => call.command),
+            installedCommandCount,
+            stdioModes: calls.map((call) => call.options.stdio),
+        }).toStrictEqual({
+            commands: ["choco", "choco"],
+            installedCommandCount: 2,
+            stdioModes: ["inherit", "inherit"],
+        });
     });
 
     it("parses CLI arguments and environment defaults", async () => {

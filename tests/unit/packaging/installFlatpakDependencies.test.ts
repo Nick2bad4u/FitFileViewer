@@ -60,27 +60,39 @@ describe("install-flatpak-dependencies script", () => {
     });
 
     it("runs each command with inherited stdio", async () => {
-        expect.assertions(3);
+        expect.assertions(1);
 
         const { installFlatpakDependencies } =
             await importInstallFlatpakDependencies();
         const calls: CommandCall[] = [];
 
-        expect(
-            installFlatpakDependencies((command, args, options) => {
+        const installedCommandCount = installFlatpakDependencies(
+            (command, args, options) => {
                 calls.push({ args, command, options });
-            })
-        ).toBe(5);
-        expect(calls.map((call) => call.command)).toStrictEqual([
-            "sudo",
-            "sudo",
-            "flatpak",
-            "flatpak",
-            "flatpak",
-        ]);
-        expect(calls.every((call) => call.options.stdio === "inherit")).toBe(
-            true
+            }
         );
+
+        expect({
+            commands: calls.map((call) => call.command),
+            installedCommandCount,
+            stdioModes: calls.map((call) => call.options.stdio),
+        }).toStrictEqual({
+            commands: [
+                "sudo",
+                "sudo",
+                "flatpak",
+                "flatpak",
+                "flatpak",
+            ],
+            installedCommandCount: 5,
+            stdioModes: [
+                "inherit",
+                "inherit",
+                "inherit",
+                "inherit",
+                "inherit",
+            ],
+        });
     });
 
     it("parses help and rejects unknown options", async () => {

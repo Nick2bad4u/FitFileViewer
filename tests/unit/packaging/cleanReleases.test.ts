@@ -121,17 +121,22 @@ describe("clean-releases script", () => {
     });
 
     it("validates release records before planning deletion", async () => {
-        expect.assertions(2);
+        expect.assertions(1);
 
         const { defaultKeepLast, isValidRelease } = await importCleanReleases();
 
-        expect(defaultKeepLast).toBe(5);
-        expect(getReleaseValidity(isValidRelease)).toStrictEqual({
-            invalidDate: false,
-            missingPublishedAt: false,
-            missingTagName: false,
-            nullRelease: false,
-            validRelease: true,
+        expect({
+            defaultKeepLast,
+            releaseValidity: getReleaseValidity(isValidRelease),
+        }).toStrictEqual({
+            defaultKeepLast: 5,
+            releaseValidity: {
+                invalidDate: false,
+                missingPublishedAt: false,
+                missingTagName: false,
+                nullRelease: false,
+                validRelease: true,
+            },
         });
     });
 });
