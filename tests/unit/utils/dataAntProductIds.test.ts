@@ -80,10 +80,14 @@ const getProduct = (
 
 describe("data ant product ID lookup", () => {
     it("exports nested manufacturer product maps", () => {
+        expect.hasAssertions();
+
         const entries = Object.entries(dataAntProductIds);
 
         expect(dataAntProductIds).toBeTypeOf("object");
-        expect(Array.isArray(dataAntProductIds)).toBe(false);
+        expect({ isArray: Array.isArray(dataAntProductIds) }).toEqual({
+            isArray: false,
+        });
         expect(entries).toHaveLength(5);
         expect(productLookup["1"]).toBeTypeOf("object");
         expect(productLookup["32"]).toBeTypeOf("object");
@@ -91,29 +95,33 @@ describe("data ant product ID lookup", () => {
     });
 
     it("uses positive integer string keys and non-empty product names", () => {
-        const productEntries = Object.entries(dataAntProductIds);
-        const assertionCount =
-            productEntries.length * 4 +
-            productEntries.reduce(
-                (total, [, products]) =>
-                    total + Object.keys(products).length * 5,
-                0
-            );
+        expect.hasAssertions();
 
-        expect.assertions(assertionCount);
+        const productEntries = Object.entries(dataAntProductIds);
 
         for (const [manufacturerId, products] of productEntries) {
             const numericManufacturerId = Number(manufacturerId);
 
-            expect(Number.isInteger(numericManufacturerId)).toBe(true);
+            expect({
+                isArray: Array.isArray(products),
+                manufacturerIdIsInteger: Number.isInteger(
+                    numericManufacturerId
+                ),
+            }).toEqual({
+                isArray: false,
+                manufacturerIdIsInteger: true,
+            });
             expect(numericManufacturerId).toBeGreaterThanOrEqual(1);
             expect(products).toBeTypeOf("object");
-            expect(Array.isArray(products)).toBe(false);
 
             for (const [productId, productName] of Object.entries(products)) {
                 const numericProductId = Number(productId);
 
-                expect(Number.isInteger(numericProductId)).toBe(true);
+                expect({
+                    productIdIsInteger: Number.isInteger(numericProductId),
+                }).toEqual({
+                    productIdIsInteger: true,
+                });
                 expect(numericProductId).toBeGreaterThanOrEqual(1);
                 expect(productName).toBeTypeOf("string");
                 expect(productName.trim()).toBe(productName);
@@ -123,7 +131,7 @@ describe("data ant product ID lookup", () => {
     });
 
     it("keeps representative product mappings stable", () => {
-        expect.assertions(knownProductMappings.length + 1);
+        expect.hasAssertions();
 
         expect(
             new Set(
@@ -144,7 +152,7 @@ describe("data ant product ID lookup", () => {
     });
 
     it("rejects unsupported manufacturer or product IDs", () => {
-        expect.assertions(invalidLookups.length);
+        expect.hasAssertions();
 
         for (const [manufacturerId, productId] of invalidLookups) {
             expect(getProduct(manufacturerId, productId)).toBeUndefined();
@@ -152,6 +160,8 @@ describe("data ant product ID lookup", () => {
     });
 
     it("supports string and integer-equivalent numeric access consistently", () => {
+        expect.hasAssertions();
+
         expect(getProduct(1, 1036)).toBe("edge500");
         expect(getProduct("1", "1036")).toBe("edge500");
         expect(getProduct(1.0, 1036.0)).toBe("edge500");
@@ -159,11 +169,11 @@ describe("data ant product ID lookup", () => {
     });
 
     it("keeps product names in formatter-safe display keys", () => {
+        expect.hasAssertions();
+
         const productNames = Object.values(dataAntProductIds).flatMap(
             (products) => Object.values(products)
         );
-
-        expect.assertions(productNames.length * 4);
 
         for (const productName of productNames) {
             expect(productName).toMatch(/^[a-zA-Z0-9_ +()-]+$/);
@@ -174,6 +184,8 @@ describe("data ant product ID lookup", () => {
     });
 
     it("is enumerable for reverse lookup formatting", () => {
+        expect.hasAssertions();
+
         const productEntries = Object.entries(productLookup["1"] ?? {});
         const edge500Entry = productEntries.find(
             ([, productName]) => productName === "edge500"
@@ -182,7 +194,7 @@ describe("data ant product ID lookup", () => {
         expect(productEntries).toHaveLength(458);
         expect(edge500Entry).toEqual(["1036", "edge500"]);
         expect(
-            productEntries.some(([, productName]) => productName === "missing")
-        ).toBe(false);
+            productEntries.map(([, productName]) => productName)
+        ).not.toContain("missing");
     });
 });
