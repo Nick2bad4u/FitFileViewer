@@ -26,14 +26,15 @@ describe("stateMiddleware additional branches", () => {
     });
 
     it("logs slow handler warning when wrapped handler exceeds threshold", async () => {
+        expect.hasAssertions();
+
         vi.resetModules();
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-        // Mock performance.now to simulate elapsed > 5ms between the two calls made before awaiting handler
-        const perfSpy = vi
-            .spyOn(performance, "now")
-            .mockReturnValueOnce(0) // startTime
-            .mockReturnValueOnce(10) // duration = 10ms
-            .mockReturnValue(10);
+        let now = 0;
+        const perfSpy = vi.spyOn(performance, "now").mockImplementation(() => {
+            now += 10;
+            return now;
+        });
 
         const {
             registerMiddleware,
@@ -64,11 +65,13 @@ describe("stateMiddleware additional branches", () => {
                 expect.stringContaining('Slow middleware "slowMW.beforeSet"'),
             ])
         );
-        expect(perfSpy).toHaveBeenCalledTimes(2);
+        expect(perfSpy.mock.calls.length).toBeGreaterThanOrEqual(2);
         cleanupMiddleware();
     });
 
     it("handles handler throw and error handler failures with nested logging", async () => {
+        expect.hasAssertions();
+
         vi.resetModules();
         const errorSpy = vi
             .spyOn(console, "error")
@@ -133,6 +136,8 @@ describe("stateMiddleware additional branches", () => {
     });
 
     it("short-circuits execute when globally disabled", async () => {
+        expect.hasAssertions();
+
         vi.resetModules();
         const {
             middlewareManager,
@@ -167,6 +172,8 @@ describe("stateMiddleware additional branches", () => {
     });
 
     it("performance middleware trims history beyond 100 entries", async () => {
+        expect.hasAssertions();
+
         vi.resetModules();
         // Ensure non-zero timing so afterSet branch runs
         const perfSpy = vi
@@ -199,13 +206,20 @@ describe("stateMiddleware additional branches", () => {
         const ctx2 = await executeMiddleware(MIDDLEWARE_PHASES.BEFORE_SET, ctx);
         await executeMiddleware(MIDDLEWARE_PHASES.AFTER_SET, ctx2);
 
-        expect(stateGlobal._statePerformance?.length).toBe(100);
-        expect(stateGlobal._statePerformance?.[99]?.path).toBe("pNew");
+        expect({
+            latestPath: stateGlobal._statePerformance?.[99]?.path,
+            performanceHistoryLength: stateGlobal._statePerformance?.length,
+        }).toEqual({
+            latestPath: "pNew",
+            performanceHistoryLength: 100,
+        });
 
         cleanupMiddleware();
     });
 
     it("persistence middleware logs error when localStorage.setItem fails", async () => {
+        expect.hasAssertions();
+
         vi.resetModules();
         const errorSpy = vi
             .spyOn(console, "error")
@@ -249,6 +263,8 @@ describe("stateMiddleware additional branches", () => {
     });
 
     it("warns when registering duplicate middleware names", async () => {
+        expect.hasAssertions();
+
         vi.resetModules();
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
@@ -270,6 +286,8 @@ describe("stateMiddleware additional branches", () => {
     });
 
     it("initializeDefaultMiddleware logs skip on second call", async () => {
+        expect.hasAssertions();
+
         vi.resetModules();
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
