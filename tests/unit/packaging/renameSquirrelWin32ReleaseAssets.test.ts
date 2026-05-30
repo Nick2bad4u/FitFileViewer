@@ -41,6 +41,20 @@ function writeFile(root: string, relativePath: string): string {
     return filePath;
 }
 
+function getPathStates(
+    root: string,
+    relativePaths: string[]
+): Record<string, "missing" | "present"> {
+    return Object.fromEntries(
+        relativePaths.map((relativePath) => [
+            relativePath,
+            fs.existsSync(path.join(root, relativePath))
+                ? "present"
+                : "missing",
+        ])
+    );
+}
+
 afterEach(() => {
     for (const temporaryRoot of temporaryRoots.splice(0)) {
         fs.rmSync(temporaryRoot, { force: true, recursive: true });
@@ -64,46 +78,49 @@ describe("rename-squirrel-win32-release-assets script", () => {
     });
 
     it("renames Squirrel win32 nupkg and RELEASES files", async () => {
-        expect.assertions(8);
+        expect.assertions(1);
 
         const { renameSquirrelWin32ReleaseAssets } =
             await importRenameSquirrelWin32ReleaseAssets();
         const squirrelDirectory = makeTemporaryRoot();
+        const sourceNupkg = "fitfileviewer-30.0.0-full.nupkg";
+        const destinationNupkg = "fitfileviewer-30.0.0-win32-full.nupkg";
+        const sourceReleases = "RELEASES";
+        const destinationReleases = "RELEASES-win32";
+        const ignoredLog = "debug.log";
 
-        writeFile(squirrelDirectory, "fitfileviewer-30.0.0-full.nupkg");
-        writeFile(squirrelDirectory, "RELEASES");
-        writeFile(squirrelDirectory, "debug.log");
+        writeFile(squirrelDirectory, sourceNupkg);
+        writeFile(squirrelDirectory, sourceReleases);
+        writeFile(squirrelDirectory, ignoredLog);
 
         const renamedFiles =
             renameSquirrelWin32ReleaseAssets(squirrelDirectory);
 
-        expect(renamedFiles).toHaveLength(2);
-        expect(
-            fs.existsSync(
-                path.join(squirrelDirectory, "fitfileviewer-30.0.0-full.nupkg")
-            )
-        ).toBe(false);
-        expect(
-            fs.existsSync(
-                path.join(
-                    squirrelDirectory,
-                    "fitfileviewer-30.0.0-win32-full.nupkg"
-                )
-            )
-        ).toBe(true);
-        expect(fs.existsSync(path.join(squirrelDirectory, "RELEASES"))).toBe(
-            false
-        );
-        expect(
-            fs.existsSync(path.join(squirrelDirectory, "RELEASES-win32"))
-        ).toBe(true);
-        expect(fs.existsSync(path.join(squirrelDirectory, "debug.log"))).toBe(
-            true
-        );
-        expect(renamedFiles[0]?.to).toContain(
-            "fitfileviewer-30.0.0-win32-full.nupkg"
-        );
-        expect(renamedFiles[1]?.to).toContain("RELEASES-win32");
+        expect({
+            pathStates: getPathStates(squirrelDirectory, [
+                sourceNupkg,
+                destinationNupkg,
+                sourceReleases,
+                destinationReleases,
+                ignoredLog,
+            ]),
+            renamedFiles: renamedFiles.map(({ from, to }) => ({
+                from: path.basename(from),
+                to: path.basename(to),
+            })),
+        }).toStrictEqual({
+            pathStates: {
+                [destinationNupkg]: "present",
+                [destinationReleases]: "present",
+                [ignoredLog]: "present",
+                [sourceNupkg]: "missing",
+                [sourceReleases]: "missing",
+            },
+            renamedFiles: [
+                { from: sourceNupkg, to: destinationNupkg },
+                { from: sourceReleases, to: destinationReleases },
+            ],
+        });
     });
 
     it("returns an empty result when the Squirrel directory is missing", async () => {
@@ -121,29 +138,30 @@ describe("rename-squirrel-win32-release-assets script", () => {
     });
 
     it("does not rename already-normalized assets", async () => {
-        expect.assertions(3);
+        expect.assertions(1);
 
         const { renameSquirrelWin32ReleaseAssets } =
             await importRenameSquirrelWin32ReleaseAssets();
         const squirrelDirectory = makeTemporaryRoot();
+        const normalizedNupkg = "fitfileviewer-30.0.0-win32-full.nupkg";
+        const normalizedReleases = "RELEASES-win32";
 
-        writeFile(squirrelDirectory, "fitfileviewer-30.0.0-win32-full.nupkg");
-        writeFile(squirrelDirectory, "RELEASES-win32");
+        writeFile(squirrelDirectory, normalizedNupkg);
+        writeFile(squirrelDirectory, normalizedReleases);
 
-        expect(
-            renameSquirrelWin32ReleaseAssets(squirrelDirectory)
-        ).toStrictEqual([]);
-        expect(
-            fs.existsSync(
-                path.join(
-                    squirrelDirectory,
-                    "fitfileviewer-30.0.0-win32-full.nupkg"
-                )
-            )
-        ).toBe(true);
-        expect(
-            fs.existsSync(path.join(squirrelDirectory, "RELEASES-win32"))
-        ).toBe(true);
+        expect({
+            pathStates: getPathStates(squirrelDirectory, [
+                normalizedNupkg,
+                normalizedReleases,
+            ]),
+            renamedFiles: renameSquirrelWin32ReleaseAssets(squirrelDirectory),
+        }).toStrictEqual({
+            pathStates: {
+                [normalizedNupkg]: "present",
+                [normalizedReleases]: "present",
+            },
+            renamedFiles: [],
+        });
     });
 
     it("parses the Squirrel directory argument", async () => {
