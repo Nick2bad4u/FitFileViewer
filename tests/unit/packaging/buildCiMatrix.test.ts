@@ -190,7 +190,7 @@ describe("build-ci-matrix script", () => {
     });
 
     it("runs runtime build before electron-builder for non-retry builds", async () => {
-        expect.assertions(2);
+        expect.assertions(1);
 
         const { buildCiMatrix } = await importBuildCiMatrix();
         const commands: string[] = [];
@@ -209,24 +209,26 @@ describe("build-ci-matrix script", () => {
             }
         );
 
-        expect(exitCode).toBe(0);
-        expect(commands).toStrictEqual([
-            expect.stringMatching(/npm(?:\.cmd)? run build:runtime-ts/u),
-            [
-                process.execPath,
-                repositoryScriptPath("run-electron-builder.mjs"),
-                "--win",
-                "--publish",
-                "never",
-            ].join(" "),
-        ]);
+        expect({ commands, exitCode }).toStrictEqual({
+            commands: [
+                expect.stringMatching(/npm(?:\.cmd)? run build:runtime-ts/u),
+                [
+                    process.execPath,
+                    repositoryScriptPath("run-electron-builder.mjs"),
+                    "--win",
+                    "--publish",
+                    "never",
+                ].join(" "),
+            ],
+            exitCode: 0,
+        });
     });
 
     it("stops before electron-builder when runtime build fails", async () => {
-        expect.assertions(2);
+        expect.assertions(1);
 
         const { buildCiMatrix } = await importBuildCiMatrix();
-        let commandCount = 0;
+        const commands: string[] = [];
 
         const exitCode = buildCiMatrix(
             {
@@ -235,19 +237,23 @@ describe("build-ci-matrix script", () => {
                 runnerOs: "Windows",
             },
             {
-                runCommand() {
-                    commandCount += 1;
+                runCommand(command, args) {
+                    commands.push([command, ...args].join(" "));
                     return 2;
                 },
             }
         );
 
-        expect(exitCode).toBe(2);
-        expect(commandCount).toBe(1);
+        expect({ commands, exitCode }).toStrictEqual({
+            commands: [
+                expect.stringMatching(/npm(?:\.cmd)? run build:runtime-ts/u),
+            ],
+            exitCode: 2,
+        });
     });
 
     it("cleans release output and retries macOS electron-builder failures", async () => {
-        expect.assertions(4);
+        expect.assertions(1);
 
         const { retryElectronBuilder } = await importBuildCiMatrix();
         const removedDirectories: string[] = [];
@@ -277,17 +283,21 @@ describe("build-ci-matrix script", () => {
             }
         );
 
-        expect(exitCode).toBe(0);
-        expect(removedDirectories).toStrictEqual([
-            rootReleaseDistPath,
-            rootReleaseDistPath,
-        ]);
-        expect(sleepDelays).toStrictEqual([15]);
-        expect(exitCodes).toStrictEqual([]);
+        expect({
+            exitCode,
+            remainingExitCodes: exitCodes,
+            removedDirectories,
+            sleepDelays,
+        }).toStrictEqual({
+            exitCode: 0,
+            remainingExitCodes: [],
+            removedDirectories: [rootReleaseDistPath, rootReleaseDistPath],
+            sleepDelays: [15],
+        });
     });
 
     it("returns the final macOS builder failure after the last retry", async () => {
-        expect.assertions(2);
+        expect.assertions(1);
 
         const { retryElectronBuilder } = await importBuildCiMatrix();
         const logMessages: string[] = [];
@@ -313,9 +323,12 @@ describe("build-ci-matrix script", () => {
             }
         );
 
-        expect(exitCode).toBe(7);
-        expect(logMessages.at(-1)).toBe(
-            "Command failed after 2 attempts (exit code 7)."
+        expect({ exitCode, finalLogMessage: logMessages.at(-1) }).toStrictEqual(
+            {
+                exitCode: 7,
+                finalLogMessage:
+                    "Command failed after 2 attempts (exit code 7).",
+            }
         );
     });
 
