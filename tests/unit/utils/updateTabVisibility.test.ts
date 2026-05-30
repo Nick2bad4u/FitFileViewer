@@ -1,13 +1,30 @@
-/**
- * @vitest-environment jsdom
- */
+// @vitest-environment jsdom
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+type StateGetter = (path: string) => unknown;
+type StateSetter = (path: string, value: unknown, metadata?: unknown) => void;
+type StateSubscriber = (
+    path: string,
+    callback: (value: unknown) => void
+) => () => void;
+type InvalidateSizeOptions = {
+    animate: boolean;
+    pan: boolean;
+};
+type InvalidateSize = (options?: InvalidateSizeOptions) => void;
+
+const EXPECTED_INVALIDATE_SIZE_OPTIONS = {
+    animate: false,
+    pan: false,
+} as const;
+
+// The dynamic import mock form is unstable for this mixed JS/TS module graph.
+// eslint-disable-next-line vitest/prefer-import-in-mock
 vi.mock("../../../electron-app/utils/state/core/stateManager.js", () => ({
-    getState: vi.fn(),
-    setState: vi.fn(),
-    subscribe: vi.fn(() => () => {}),
+    getState: vi.fn<StateGetter>(),
+    setState: vi.fn<StateSetter>(),
+    subscribe: vi.fn<StateSubscriber>(() => () => {}),
 }));
 
 import {
@@ -25,11 +42,11 @@ import {
 
 type GlobalWithMap = typeof globalThis & {
     _leafletMapInstance?: {
-        invalidateSize: ReturnType<typeof vi.fn>;
+        invalidateSize: ReturnType<typeof vi.fn<InvalidateSize>>;
     } | null;
     _miniMapControl?: {
         _miniMap?: {
-            invalidateSize: ReturnType<typeof vi.fn>;
+            invalidateSize: ReturnType<typeof vi.fn<InvalidateSize>>;
         } | null;
     } | null;
 };
@@ -81,7 +98,7 @@ function getSubscription(path: string): (value: unknown) => void {
     return callback;
 }
 
-describe("updateTabVisibility", () => {
+describe(updateTabVisibility, () => {
     let warnSpy: ReturnType<typeof vi.spyOn>;
 
     beforeEach(() => {
@@ -101,18 +118,28 @@ describe("updateTabVisibility", () => {
     });
 
     it("hides every tracked content section when no target is provided", () => {
+        expect.hasAssertions();
+
         updateTabVisibility(null);
 
         for (const id of contentIds) {
             const element = getContentElement(id);
-            expect(element.style.display).toBe("none");
-            expect(element.getAttribute("aria-hidden")).toBe("true");
-            expect(element.classList.contains("active")).toBe(false);
+            expect({
+                ariaHidden: element.getAttribute("aria-hidden"),
+                display: element.style.display,
+                isActive: element.classList.contains("active"),
+            }).toEqual({
+                ariaHidden: "true",
+                display: "none",
+                isActive: false,
+            });
         }
         expect(mockSetState).not.toHaveBeenCalled();
     });
 
     it("shows only the requested content section and stores the active content name", () => {
+        expect.hasAssertions();
+
         updateTabVisibility("content_summary");
 
         expect(getContentElement("content_summary").style.display).toBe("flex");
@@ -128,6 +155,8 @@ describe("updateTabVisibility", () => {
     });
 
     it("maps chart tab names to the chartjs content element", () => {
+        expect.hasAssertions();
+
         showTabContent("chart");
 
         expect(getContentElement("content_chartjs").style.display).toBe("flex");
@@ -139,6 +168,8 @@ describe("updateTabVisibility", () => {
     });
 
     it("accepts alternate content id shapes when a canonical element exists", () => {
+        expect.hasAssertions();
+
         updateTabVisibility("summary_content");
 
         expect(getContentElement("content_summary").style.display).toBe("flex");
@@ -150,6 +181,8 @@ describe("updateTabVisibility", () => {
     });
 
     it("warns for missing tracked content sections while updating existing sections", () => {
+        expect.hasAssertions();
+
         getContentElement("content_summary").remove();
 
         updateTabVisibility("content_map");
@@ -163,6 +196,8 @@ describe("updateTabVisibility", () => {
     });
 
     it("keeps all tracked sections hidden for unknown content ids but stores derived content names", () => {
+        expect.hasAssertions();
+
         updateTabVisibility("content_missing");
 
         for (const id of contentIds) {
@@ -176,6 +211,8 @@ describe("updateTabVisibility", () => {
     });
 
     it("reads visible content from state", () => {
+        expect.hasAssertions();
+
         mockGetState.mockReturnValue("map");
 
         expect(getVisibleTabContent()).toBe("map");
@@ -186,6 +223,8 @@ describe("updateTabVisibility", () => {
     });
 
     it("registers active-tab and global-data subscriptions", () => {
+        expect.hasAssertions();
+
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
         initializeTabVisibilityState();
@@ -208,6 +247,8 @@ describe("updateTabVisibility", () => {
     });
 
     it("shows content when the active-tab subscription receives a string tab name", () => {
+        expect.hasAssertions();
+
         initializeTabVisibilityState();
 
         getSubscription("ui.activeTab")("map");
@@ -221,6 +262,8 @@ describe("updateTabVisibility", () => {
     });
 
     it("does not show content when the active-tab subscription receives a non-string value", () => {
+        expect.hasAssertions();
+
         initializeTabVisibilityState();
 
         getSubscription("ui.activeTab")(null);
@@ -232,6 +275,8 @@ describe("updateTabVisibility", () => {
     });
 
     it("hides all content through the helper", () => {
+        expect.hasAssertions();
+
         updateTabVisibility("content_summary");
         hideAllTabContent();
 
@@ -241,20 +286,26 @@ describe("updateTabVisibility", () => {
     });
 
     it("refreshes Leaflet map layout when showing the map tab", () => {
+        expect.hasAssertions();
+
         vi.useFakeTimers();
         const globals = globalThis as GlobalWithMap;
-        globals._leafletMapInstance = { invalidateSize: vi.fn() };
+        globals._leafletMapInstance = {
+            invalidateSize: vi.fn<InvalidateSize>(),
+        };
         globals._miniMapControl = {
-            _miniMap: { invalidateSize: vi.fn() },
+            _miniMap: { invalidateSize: vi.fn<InvalidateSize>() },
         };
 
         updateTabVisibility("content_map");
         vi.runAllTimers();
 
         expect(getContentElement("content_map").style.display).toBe("flex");
-        expect(globals._leafletMapInstance.invalidateSize).toHaveBeenCalled();
+        expect(globals._leafletMapInstance.invalidateSize).toHaveBeenCalledWith(
+            EXPECTED_INVALIDATE_SIZE_OPTIONS
+        );
         expect(
             globals._miniMapControl._miniMap?.invalidateSize
-        ).toHaveBeenCalled();
+        ).toHaveBeenCalledWith();
     });
 });
