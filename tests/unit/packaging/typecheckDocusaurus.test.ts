@@ -19,7 +19,7 @@ type CommandRunner = (
 
 describe("typecheck-docusaurus script", () => {
     it("builds Docusaurus TypeScript args from the root-owned project", () => {
-        expect.assertions(3);
+        expect.assertions(2);
 
         expect(
             buildDocusaurusTypecheckArgs(["--pretty", "false"])
@@ -30,20 +30,25 @@ describe("typecheck-docusaurus script", () => {
             "--pretty",
             "false",
         ]);
-        expect(docusaurusTypecheckProject).toBe(rootDocusaurusTsconfigPath);
-        expect(docusaurusTypeScriptCliPath).toMatch(
-            /[\\/]typescript[\\/]bin[\\/]tsc$/u
-        );
+        expect({
+            docusaurusTypecheckProject,
+            typescriptCliPathMatches: /[\\/]typescript[\\/]bin[\\/]tsc$/u.test(
+                docusaurusTypeScriptCliPath
+            ),
+        }).toStrictEqual({
+            docusaurusTypecheckProject: rootDocusaurusTsconfigPath,
+            typescriptCliPathMatches: true,
+        });
     });
 
     it("runs Docusaurus typecheck from the repository root", () => {
-        expect.assertions(4);
+        expect.assertions(2);
 
         const commandRunner = vi
             .fn<CommandRunner>()
             .mockReturnValue({ status: 0 });
 
-        expect(runDocusaurusTypecheck(["--noEmit"], commandRunner)).toBe(0);
+        const exitStatus = runDocusaurusTypecheck(["--noEmit"], commandRunner);
 
         const [
             command,
@@ -51,8 +56,15 @@ describe("typecheck-docusaurus script", () => {
             options,
         ] = commandRunner.mock.calls[0] ?? [];
 
-        expect(command).toBe(process.execPath);
-        expect(args).toStrictEqual(buildDocusaurusTypecheckArgs(["--noEmit"]));
+        expect({
+            args,
+            command,
+            status: exitStatus,
+        }).toStrictEqual({
+            args: buildDocusaurusTypecheckArgs(["--noEmit"]),
+            command: process.execPath,
+            status: 0,
+        });
         expect({
             ...options,
             cwd: path.resolve(options?.cwd ?? ""),
@@ -69,7 +81,15 @@ describe("typecheck-docusaurus script", () => {
             .fn<CommandRunner>()
             .mockReturnValue({ status: 2 });
 
-        expect(runDocusaurusTypecheck([], commandRunner)).toBe(2);
+        const exitStatus = runDocusaurusTypecheck([], commandRunner);
+
+        expect({
+            commandCalls: commandRunner.mock.calls.length,
+            status: exitStatus,
+        }).toStrictEqual({
+            commandCalls: 1,
+            status: 2,
+        });
     });
 
     it("throws when TypeScript cannot be started", () => {

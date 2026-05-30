@@ -38,16 +38,23 @@ describe("start-electron script", () => {
     });
 
     it("returns zero when every startup step succeeds", () => {
-        expect.assertions(5);
+        expect.hasAssertions();
 
         const commandRunner = vi
             .fn<CommandRunner>()
             .mockReturnValue({ status: 0 });
         const logger = vi.fn<(message: string) => void>();
 
-        expect(startElectron([], commandRunner, logger)).toBe(0);
-        expect(commandRunner).toHaveBeenCalledTimes(2);
-        expect(logger).toHaveBeenCalledTimes(2);
+        const exitStatus = startElectron([], commandRunner, logger);
+        expect({
+            commandCalls: commandRunner.mock.calls.length,
+            loggerCalls: logger.mock.calls.length,
+            status: exitStatus,
+        }).toStrictEqual({
+            commandCalls: 2,
+            loggerCalls: 2,
+            status: 0,
+        });
 
         const [
             command,
@@ -55,27 +62,35 @@ describe("start-electron script", () => {
             options,
         ] = commandRunner.mock.calls[0] ?? [];
 
-        expect(command).toBe(process.execPath);
         expect({
+            command,
             ...options,
             cwd: path.resolve(options?.cwd ?? ""),
         }).toStrictEqual({
+            command: process.execPath,
             cwd: path.resolve(process.cwd()),
             stdio: "inherit",
         });
     });
 
     it("stops after the first failing startup step", () => {
-        expect.assertions(3);
+        expect.assertions(1);
 
         const commandRunner = vi
             .fn<CommandRunner>()
             .mockReturnValueOnce({ status: 4 });
         const logger = vi.fn<(message: string) => void>();
+        const exitStatus = startElectron([], commandRunner, logger);
 
-        expect(startElectron([], commandRunner, logger)).toBe(4);
-        expect(commandRunner).toHaveBeenCalledOnce();
-        expect(logger).toHaveBeenCalledOnce();
+        expect({
+            commandCalls: commandRunner.mock.calls.length,
+            loggerCalls: logger.mock.calls.length,
+            status: exitStatus,
+        }).toStrictEqual({
+            commandCalls: 1,
+            loggerCalls: 1,
+            status: 4,
+        });
     });
 
     it("throws when a startup step runner reports a spawn error", () => {
