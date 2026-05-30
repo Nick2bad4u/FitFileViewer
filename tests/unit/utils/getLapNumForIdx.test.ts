@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getLapNumForIdx } from "../../../electron-app/utils/data/processing/getLapNumForIdx.js";
 
-describe("getLapNumForIdx", () => {
+describe(getLapNumForIdx, () => {
     let errorSpy: ReturnType<typeof vi.spyOn>;
     let warnSpy: ReturnType<typeof vi.spyOn>;
 
@@ -15,30 +15,46 @@ describe("getLapNumForIdx", () => {
     });
 
     it("returns the 1-based lap containing the requested record index", () => {
+        expect.hasAssertions();
+
         const laps = [
             { start_index: 0, end_index: 99 },
             { start_index: 100, end_index: 199 },
             { start_index: 300, end_index: 399 },
         ];
 
-        expect(getLapNumForIdx(0, laps)).toBe(1);
-        expect(getLapNumForIdx(99, laps)).toBe(1);
-        expect(getLapNumForIdx(100, laps)).toBe(2);
-        expect(getLapNumForIdx(150, laps)).toBe(2);
+        expect([
+            getLapNumForIdx(0, laps),
+            getLapNumForIdx(99, laps),
+            getLapNumForIdx(100, laps),
+            getLapNumForIdx(150, laps),
+            getLapNumForIdx(350, laps),
+        ]).toEqual([
+            1,
+            1,
+            2,
+            2,
+            3,
+        ]);
         expect(getLapNumForIdx(250, laps)).toBeNull();
-        expect(getLapNumForIdx(350, laps)).toBe(3);
     });
 
     it("returns the first matching lap for overlapping ranges", () => {
+        expect.hasAssertions();
+
         const laps = [
             { start_index: 0, end_index: 150 },
             { start_index: 100, end_index: 199 },
         ];
 
-        expect(getLapNumForIdx(125, laps)).toBe(1);
+        expect({ lapNumber: getLapNumForIdx(125, laps) }).toEqual({
+            lapNumber: 1,
+        });
     });
 
     it("warns and returns null for invalid inputs", () => {
+        expect.hasAssertions();
+
         const laps = [{ start_index: 0, end_index: 99 }];
 
         expect(getLapNumForIdx(-1, laps)).toBeNull();
@@ -55,6 +71,8 @@ describe("getLapNumForIdx", () => {
     });
 
     it("skips corrupt lap entries without blocking later valid laps", () => {
+        expect.hasAssertions();
+
         const laps = [
             null,
             { end_index: 99 },
@@ -63,7 +81,9 @@ describe("getLapNumForIdx", () => {
             { start_index: 200, end_index: 299 },
         ];
 
-        expect(getLapNumForIdx(250, laps)).toBe(5);
+        expect({ lapNumber: getLapNumForIdx(250, laps) }).toEqual({
+            lapNumber: 5,
+        });
 
         expect(warnSpy).toHaveBeenCalledWith(
             "[LapLookup] Lap at index 1 missing numeric start_index or end_index:",
@@ -80,6 +100,8 @@ describe("getLapNumForIdx", () => {
     });
 
     it("logs and returns null when lap property access throws", () => {
+        expect.hasAssertions();
+
         const laps = [
             {
                 get start_index() {
