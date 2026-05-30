@@ -30,7 +30,7 @@ function cleanupDomAndMocks(): void {
 
 describe(initUnifiedControlBar, () => {
     it("moves existing controls into one toolbar once the startup delay elapses", () => {
-        expect.assertions(8);
+        expect.assertions(7);
 
         vi.useFakeTimers();
 
@@ -65,11 +65,15 @@ describe(initUnifiedControlBar, () => {
 
             initUnifiedControlBar();
 
-            expect(document.querySelectorAll(".app-control-bar")).toHaveLength(
-                1
-            );
-
-            expect(originalColorParent.children).toHaveLength(0);
+            expect({
+                originalColorParentChildren:
+                    originalColorParent.children.length,
+                toolbarCount:
+                    document.querySelectorAll(".app-control-bar").length,
+            }).toEqual({
+                originalColorParentChildren: 0,
+                toolbarCount: 1,
+            });
         } finally {
             cleanupDomAndMocks();
         }
