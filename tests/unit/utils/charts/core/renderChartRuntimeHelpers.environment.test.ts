@@ -31,36 +31,56 @@ describe("render chart runtime environment helpers", () => {
     });
 
     it("treats missing process globals as a non-node environment", () => {
-        expect.assertions(3);
+        expect.hasAssertions();
 
         setGlobalProcess(undefined);
 
-        expect(isNodeEnv("test")).toBe(false);
-        expect(isTestEnvironment()).toBe(false);
-        expect(isDevelopmentEnvironment()).toBe(false);
+        expect({
+            isDevelopment: isDevelopmentEnvironment(),
+            isNodeTest: isNodeEnv("test"),
+            isTest: isTestEnvironment(),
+        }).toEqual({
+            isDevelopment: false,
+            isNodeTest: false,
+            isTest: false,
+        });
     });
 
     it("ignores malformed process.env values", () => {
-        expect.assertions(3);
+        expect.hasAssertions();
 
         setGlobalProcess({ env: undefined });
 
-        expect(isNodeEnv("test")).toBe(false);
-        expect(isTestEnvironment()).toBe(false);
-        expect(isDevelopmentEnvironment()).toBe(false);
+        expect({
+            isDevelopment: isDevelopmentEnvironment(),
+            isNodeTest: isNodeEnv("test"),
+            isTest: isTestEnvironment(),
+        }).toEqual({
+            isDevelopment: false,
+            isNodeTest: false,
+            isTest: false,
+        });
     });
 
     it("reads NODE_ENV only when it is a string", () => {
-        expect.assertions(4);
+        expect.hasAssertions();
 
         setGlobalProcess({ env: { NODE_ENV: "development" } });
 
-        expect(isNodeEnv("development")).toBe(true);
-        expect(isDevelopmentEnvironment()).toBe(true);
-        expect(isTestEnvironment()).toBe(false);
+        expect({
+            isDevelopment: isDevelopmentEnvironment(),
+            isNodeDevelopment: isNodeEnv("development"),
+            isTest: isTestEnvironment(),
+        }).toEqual({
+            isDevelopment: true,
+            isNodeDevelopment: true,
+            isTest: false,
+        });
 
         setGlobalProcess({ env: { NODE_ENV: 1 } });
 
-        expect(isNodeEnv("1")).toBe(false);
+        expect({ isNodeNumericEnv: isNodeEnv("1") }).toEqual({
+            isNodeNumericEnv: false,
+        });
     });
 });
