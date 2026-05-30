@@ -270,8 +270,10 @@ describe("tab state management integration", () => {
             expect(document.getElementById("tab-chart")).toBeNull();
             expect(mockState.getState("ui.activeTab")).toBe("chart");
             expect(
-                document.querySelectorAll(".tab-button.active")
-            ).toHaveLength(0);
+                [...document.querySelectorAll(".tab-button.active")].map(
+                    (tab) => tab.id
+                )
+            ).toStrictEqual([]);
         });
 
         it("should handle initialization without DOM elements", () => {
@@ -283,7 +285,9 @@ describe("tab state management integration", () => {
             setTabButtonsEnabled(false);
             setTabButtonsEnabled(true);
 
-            expect(document.body.childElementCount).toBe(0);
+            expect(
+                [...document.body.children].map((element) => element.tagName)
+            ).toStrictEqual([]);
             expect({
                 tabButtonsEnabled: mockState.getState("ui.tabButtonsEnabled"),
             }).toStrictEqual({
