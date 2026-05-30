@@ -85,7 +85,7 @@ describe("renderZoneChartNew", () => {
     });
 
     it("returns without rendering for invalid inputs", () => {
-        expect.assertions(2);
+        expect.assertions(1);
 
         setupContainer();
         renderZoneChart(null as unknown as HTMLElement, "Invalid", [], "zones");
@@ -96,8 +96,17 @@ describe("renderZoneChartNew", () => {
             "zones"
         );
 
-        expect(document.querySelectorAll("canvas")).toHaveLength(0);
-        expect(chartGlobal._chartjsInstances).toHaveLength(0);
+        expect({
+            chartInstanceTypes: chartGlobal._chartjsInstances?.map(
+                (chart) => typeof chart
+            ),
+            renderedCanvasIds: [...document.querySelectorAll("canvas")].map(
+                (canvas) => canvas.id
+            ),
+        }).toStrictEqual({
+            chartInstanceTypes: [],
+            renderedCanvasIds: [],
+        });
 
         teardown();
     });
