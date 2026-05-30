@@ -1,6 +1,4 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
@@ -13,6 +11,8 @@ const SAFE_COLOR_TOKEN_PATTERN =
 
 describe("sanitizeCssColorToken (property)", () => {
     it("never returns an unsafe token", () => {
+        expect.hasAssertions();
+
         expect(
             sanitizeCssColorToken('url("javascript:alert(1)")', FALLBACK_COLOR)
         ).toBe(FALLBACK_COLOR);
@@ -28,16 +28,18 @@ describe("sanitizeCssColorToken (property)", () => {
                 expect(out).toMatch(SAFE_COLOR_TOKEN_PATTERN);
 
                 // Must not be able to break out of attribute contexts or inject extra declarations
-                expect(/['"<>;\n\r\0]/u.test(out)).toBe(false);
+                expect(out).not.toMatch(/['"<>;\n\r\0]/u);
 
                 const lower = out.toLowerCase();
                 const isScriptScheme =
                     lower.startsWith("javascript") &&
                     lower.charAt("javascript".length) === ":";
-                expect(lower.includes("url(")).toBe(false);
-                expect(lower.includes("expression(")).toBe(false);
-                expect(lower.includes("@import")).toBe(false);
-                expect(isScriptScheme).toBe(false);
+                expect(lower).not.toContain("url(");
+                expect(lower).not.toContain("expression(");
+                expect(lower).not.toContain("@import");
+                expect({ isScriptScheme }).toEqual({
+                    isScriptScheme: false,
+                });
             }),
             {
                 // Keep this fast in CI while still exploring lots of edge cases.
