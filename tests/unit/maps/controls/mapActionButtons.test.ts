@@ -132,7 +132,7 @@ function installMapGlobals(): {
 
 describe("mapActionButtons", () => {
     it("wires active filename actions without stacking duplicate listeners", async () => {
-        expect.assertions(11);
+        expect.assertions(10);
 
         vi.useFakeTimers();
         vi.resetModules();
@@ -157,8 +157,14 @@ describe("mapActionButtons", () => {
 
             activeFileName.dispatchEvent(new MouseEvent("mouseenter"));
 
-            expect([...activeFileName.classList]).toContain("highlighted");
-            expect(getTestGlobal()._highlightedOverlayIdx).toBe(0);
+            expect({
+                highlightedClassPresent:
+                    activeFileName.classList.contains("highlighted"),
+                highlightedOverlayIndex: getTestGlobal()._highlightedOverlayIdx,
+            }).toEqual({
+                highlightedClassPresent: true,
+                highlightedOverlayIndex: 0,
+            });
 
             getTestGlobal()._setupActiveFileNameMapActions?.();
             getTestGlobal()._setupActiveFileNameMapActions?.();
