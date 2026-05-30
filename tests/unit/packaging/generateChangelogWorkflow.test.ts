@@ -105,7 +105,7 @@ describe("generate-changelog-workflow script", () => {
     });
 
     it("runs the changelog generator and logs the root changelog result", async () => {
-        expect.assertions(5);
+        expect.assertions(1);
 
         const { runChangelogWorkflow } =
             await importGenerateChangelogWorkflow();
@@ -126,15 +126,33 @@ describe("generate-changelog-workflow script", () => {
             },
         });
 
-        expect(exitCode).toBe(0);
-        expect(commands).toHaveLength(1);
-        expect(commands[0]?.args.at(-1)).toBe("--verbose");
-        expect(messages).toContain("All changelog generation completed.");
-        expect(messages).toContain("Found: CHANGELOG.md");
+        expect({
+            commands,
+            exitCode,
+            reportedCompletion: messages.includes(
+                "All changelog generation completed."
+            ),
+            reportedRootChangelog: messages.includes("Found: CHANGELOG.md"),
+        }).toStrictEqual({
+            commands: [
+                {
+                    args: [
+                        expect.stringMatching(
+                            /[\\/]scripts[\\/]generate-changelog\.mjs$/u
+                        ),
+                        "--verbose",
+                    ],
+                    command: process.execPath,
+                },
+            ],
+            exitCode: 0,
+            reportedCompletion: true,
+            reportedRootChangelog: true,
+        });
     });
 
     it("propagates a failed changelog generation status", async () => {
-        expect.assertions(2);
+        expect.assertions(1);
 
         const { runChangelogWorkflow } =
             await importGenerateChangelogWorkflow();
@@ -149,8 +167,13 @@ describe("generate-changelog-workflow script", () => {
                 },
             });
 
-            expect(exitCode).toBe(9);
-            expect(process.exitCode).toBe(9);
+            expect({
+                exitCode,
+                processExitCode: process.exitCode,
+            }).toStrictEqual({
+                exitCode: 9,
+                processExitCode: 9,
+            });
         } finally {
             process.exitCode = priorExitCode;
         }
