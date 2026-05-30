@@ -17,7 +17,7 @@ type CommandRunner = (
 
 describe("build-docs script", () => {
     it("builds the full docs pipeline through root-owned scripts", () => {
-        expect.assertions(7);
+        expect.assertions(3);
 
         const steps = buildDocsSteps([]);
 
@@ -26,21 +26,29 @@ describe("build-docs script", () => {
             "generate API categories",
             "build Docusaurus site",
         ]);
-        expect(steps[0]?.args).toEqual(
-            expect.arrayContaining(["--options", typedocConfigPath])
-        );
         expect(steps[0]?.args[0]).toMatch(/[\\/]typedoc[\\/]bin[\\/]typedoc$/u);
-        expect(path.resolve(steps[0]?.cwd ?? "")).toBe(process.cwd());
-        expect(steps[1]?.args).toStrictEqual([
-            path.join(process.cwd(), "scripts", "generate-api-categories.mjs"),
-        ]);
-        expect(path.resolve(steps[1]?.cwd ?? "")).toBe(
-            path.join(process.cwd(), "docusaurus")
-        );
-        expect(steps[2]?.args).toStrictEqual([
-            path.join(process.cwd(), "scripts", "run-docusaurus.mjs"),
-            "build",
-        ]);
+        expect({
+            step0Args: steps[0]?.args.slice(1),
+            step0Cwd: path.resolve(steps[0]?.cwd ?? ""),
+            step1Args: steps[1]?.args,
+            step1Cwd: path.resolve(steps[1]?.cwd ?? ""),
+            step2Args: steps[2]?.args,
+        }).toStrictEqual({
+            step0Args: ["--options", typedocConfigPath],
+            step0Cwd: path.resolve(process.cwd()),
+            step1Args: [
+                path.join(
+                    process.cwd(),
+                    "scripts",
+                    "generate-api-categories.mjs"
+                ),
+            ],
+            step1Cwd: path.join(process.cwd(), "docusaurus"),
+            step2Args: [
+                path.join(process.cwd(), "scripts", "run-docusaurus.mjs"),
+                "build",
+            ],
+        });
     });
 
     it("omits the Docusaurus site build for TypeDoc-only runs", () => {
@@ -52,16 +60,27 @@ describe("build-docs script", () => {
     });
 
     it("runs docs build steps in order", () => {
-        expect.assertions(4);
+        expect.assertions(2);
 
         const commandRunner = vi
             .fn<CommandRunner>()
             .mockReturnValue({ status: 0 });
         const logger = vi.fn<(message: string) => void>();
 
-        expect(runBuildDocs(["--typedoc-only"], commandRunner, logger)).toBe(0);
-        expect(commandRunner).toHaveBeenCalledTimes(2);
-        expect(logger).toHaveBeenCalledTimes(2);
+        const exitStatus = runBuildDocs(
+            ["--typedoc-only"],
+            commandRunner,
+            logger
+        );
+        expect({
+            commandCalls: commandRunner.mock.calls.length,
+            loggerCalls: logger.mock.calls.length,
+            status: exitStatus,
+        }).toStrictEqual({
+            commandCalls: 2,
+            loggerCalls: 2,
+            status: 0,
+        });
 
         const [
             command,
@@ -79,15 +98,21 @@ describe("build-docs script", () => {
     });
 
     it("stops after the first failing docs build step", () => {
-        expect.assertions(2);
+        expect.assertions(1);
 
         const commandRunner = vi
             .fn<CommandRunner>()
             .mockReturnValueOnce({ status: 0 })
             .mockReturnValueOnce({ status: 6 });
+        const exitStatus = runBuildDocs(["--typedoc-only"], commandRunner);
 
-        expect(runBuildDocs(["--typedoc-only"], commandRunner)).toBe(6);
-        expect(commandRunner).toHaveBeenCalledTimes(2);
+        expect({
+            commandCalls: commandRunner.mock.calls.length,
+            status: exitStatus,
+        }).toStrictEqual({
+            commandCalls: 2,
+            status: 6,
+        });
     });
 
     it("throws when a docs build step cannot be started", () => {
