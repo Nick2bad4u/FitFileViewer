@@ -67,7 +67,7 @@ describe("accentColorPicker", () => {
 
         resetButton.click();
 
-        expect(localStorage).toHaveLength(0);
+        expect(Object.keys(localStorage)).toStrictEqual([]);
         expect(
             document.documentElement.style.getPropertyValue("--color-accent")
         ).toBe("#3b82f6");
@@ -87,7 +87,13 @@ describe("accentColorPicker", () => {
         customText.dispatchEvent(new Event("input", { bubbles: true }));
 
         expect(localStorage.getItem("ffv-accent-color")).not.toBe("#12345");
-        expect(localStorage).toHaveLength(0);
+        expect({
+            storedAccent: localStorage.getItem("ffv-accent-color"),
+            storageKeys: Object.keys(localStorage),
+        }).toStrictEqual({
+            storedAccent: null,
+            storageKeys: [],
+        });
         expect(hex.textContent).toBe("#3B82F6");
     });
 

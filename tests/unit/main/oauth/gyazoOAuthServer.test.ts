@@ -247,8 +247,13 @@ describe("gyazoOAuthServer", () => {
 
         const res = makeRes();
         withRequestHandler()({ method: "POST", url: "/gyazo/callback" }, res);
-        expect(res.statusCode).toBe(405);
-        expect(res.statusHeaders).toEqual({ "Content-Type": "text/plain" });
+        expect({
+            statusCode: res.statusCode,
+            statusHeaders: res.statusHeaders,
+        }).toEqual({
+            statusCode: 405,
+            statusHeaders: { "Content-Type": "text/plain" },
+        });
         expect(res.body).toBe("Method Not Allowed");
         expect(res.writeHead).toHaveBeenCalledWith(405, expect.any(Object));
         expect(res.end).toHaveBeenCalledWith("Method Not Allowed");
@@ -288,8 +293,13 @@ describe("gyazoOAuthServer", () => {
             res
         );
 
-        expect(res.statusCode).toBe(200);
-        expect(res.statusHeaders).toEqual({ "Content-Type": "text/html" });
+        expect({
+            statusCode: res.statusCode,
+            statusHeaders: res.statusHeaders,
+        }).toEqual({
+            statusCode: 200,
+            statusHeaders: { "Content-Type": "text/html" },
+        });
         expect(String(res.body)).toContain("Authorization Successful");
         expect(mockSend).toHaveBeenCalledWith("gyazo-oauth-callback", {
             code: "abc",
