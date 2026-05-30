@@ -61,6 +61,15 @@ function makeTemporaryRoot(): string {
     return temporaryRoot;
 }
 
+function getPathStates(paths: string[]): Record<string, "missing" | "present"> {
+    return Object.fromEntries(
+        paths.map((filePath) => [
+            path.basename(filePath),
+            fs.existsSync(filePath) ? "present" : "missing",
+        ])
+    );
+}
+
 afterEach(() => {
     for (const temporaryRoot of temporaryRoots.splice(0)) {
         fs.rmSync(temporaryRoot, { force: true, recursive: true });
@@ -133,7 +142,17 @@ describe("publish-flatpak-release-assets script", () => {
             "inherit",
             "inherit",
         ]);
-        expect(fs.existsSync(sourceBundlePath)).toBe(false);
+        expect(
+            getPathStates([
+                sourceBundlePath,
+                paths.releaseBundlePath,
+                paths.releaseZipPath,
+            ])
+        ).toStrictEqual({
+            [path.basename(paths.releaseBundlePath)]: "present",
+            [path.basename(paths.releaseZipPath)]: "present",
+            [path.basename(sourceBundlePath)]: "missing",
+        });
         expect(fs.readFileSync(paths.releaseBundlePath, "utf8")).toBe("bundle");
         expect(fs.readFileSync(paths.releaseZipPath, "utf8")).toBe("zip");
     });

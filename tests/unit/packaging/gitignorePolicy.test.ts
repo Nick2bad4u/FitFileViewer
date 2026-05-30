@@ -54,15 +54,24 @@ describe("gitignore policy", () => {
         expect(scriptHelperTrace.stdout).toMatch(
             /\.gitignore:\d+:!scripts\/lib\/\*\*\s+scripts\/lib\/new-helper\.mjs/u
         );
-        expect(artifactTrace.status).toBe(0);
+        expect({
+            stderr: artifactTrace.stderr,
+            status: artifactTrace.status,
+        }).toStrictEqual({ stderr: "", status: 0 });
         expect(artifactTrace.stdout).toMatch(
             /\.gitignore:\d+:artifacts\/\s+artifacts\/file/u
         );
-        expect(releaseTrace.status).toBe(0);
+        expect({
+            stderr: releaseTrace.stderr,
+            status: releaseTrace.status,
+        }).toStrictEqual({ stderr: "", status: 0 });
         expect(releaseTrace.stdout).toMatch(
             /\.gitignore:\d+:release-dist\/\s+release-dist\/file/u
         );
-        expect(htmlTrace.status).toBe(0);
+        expect({
+            stderr: htmlTrace.stderr,
+            status: htmlTrace.status,
+        }).toStrictEqual({ stderr: "", status: 0 });
         expect(htmlTrace.stdout).toMatch(
             /\.gitignore:\d+:html\/\s+html\/index\.html/u
         );
