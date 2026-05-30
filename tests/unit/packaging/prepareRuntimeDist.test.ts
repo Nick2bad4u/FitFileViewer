@@ -78,6 +78,20 @@ function makeTemporaryApp(): {
     return { appDir, distDir: path.join(appDir, "dist"), staticDir };
 }
 
+function getPathStates(
+    root: string,
+    relativePaths: string[]
+): Record<string, "missing" | "present"> {
+    return Object.fromEntries(
+        relativePaths.map((relativePath) => [
+            relativePath,
+            fs.existsSync(path.join(root, relativePath))
+                ? "present"
+                : "missing",
+        ])
+    );
+}
+
 afterEach(() => {
     for (const temporaryRoot of temporaryRoots.splice(0)) {
         fs.rmSync(temporaryRoot, { force: true, recursive: true });
@@ -86,7 +100,7 @@ afterEach(() => {
 
 describe("prepare-runtime-dist script", () => {
     it("copies static app assets into dist so electron-builder only needs dist/**", async () => {
-        expect.assertions(5);
+        expect.assertions(3);
 
         const { directoryCopies, fileCopies, prepareRuntimeDist } =
             await importPrepareRuntimeDist();
@@ -119,23 +133,17 @@ describe("prepare-runtime-dist script", () => {
             },
         ]);
         expect(
-            fs.existsSync(
-                path.join(distDir, appAlternativeFitViewPath, "index.html")
-            )
-        ).toBe(true);
-        expect(
-            fs.existsSync(
-                path.join(
-                    distDir,
-                    appAlternativeFitViewPath,
-                    "assets",
-                    "app.js"
-                )
-            )
-        ).toBe(true);
-        expect(
-            fs.existsSync(path.join(distDir, appIconsPath, "favicon.ico"))
-        ).toBe(true);
+            getPathStates(distDir, [
+                path.join(appAlternativeFitViewPath, "index.html"),
+                path.join(appAlternativeFitViewPath, "assets", "app.js"),
+                path.join(appIconsPath, "favicon.ico"),
+            ])
+        ).toStrictEqual({
+            [path.join(appAlternativeFitViewPath, "assets", "app.js")]:
+                "present",
+            [path.join(appAlternativeFitViewPath, "index.html")]: "present",
+            [path.join(appIconsPath, "favicon.ico")]: "present",
+        });
     });
 
     it("rejects dist paths outside the app directory", async () => {
