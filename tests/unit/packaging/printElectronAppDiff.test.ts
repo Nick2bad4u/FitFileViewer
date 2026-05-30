@@ -87,7 +87,7 @@ describe("print-electron-app-diff script", () => {
     });
 
     it("prints the electron-app diff between the selected ref and HEAD", async () => {
-        expect.assertions(3);
+        expect.assertions(1);
 
         const { defaultDiffPath, printElectronAppDiff } =
             await importPrintElectronAppDiff();
@@ -118,21 +118,23 @@ describe("print-electron-app-diff script", () => {
             }
         );
 
-        expect(exitCode).toBe(0);
-        expect(calls).toStrictEqual([
-            "git fetch --tags --force",
-            "git describe --tags --match v* --abbrev=0",
-            `git diff --name-status v30.0.0 -- ${defaultDiffPath}`,
-        ]);
-        expect(logs).toStrictEqual([
-            "--- GIT DIFF OUTPUT (since last tag) ---",
-            "M\telectron-app/main.ts",
-            "--- END GIT DIFF OUTPUT ---",
-        ]);
+        expect({ calls, exitCode, logs }).toStrictEqual({
+            calls: [
+                "git fetch --tags --force",
+                "git describe --tags --match v* --abbrev=0",
+                `git diff --name-status v30.0.0 -- ${defaultDiffPath}`,
+            ],
+            exitCode: 0,
+            logs: [
+                "--- GIT DIFF OUTPUT (since last tag) ---",
+                "M\telectron-app/main.ts",
+                "--- END GIT DIFF OUTPUT ---",
+            ],
+        });
     });
 
     it("returns the fetch failure status without diffing", async () => {
-        expect.assertions(3);
+        expect.assertions(1);
 
         const { printElectronAppDiff } = await importPrintElectronAppDiff();
         const calls: string[] = [];
@@ -154,12 +156,11 @@ describe("print-electron-app-diff script", () => {
             }
         );
 
-        expect(exitCode).toBe(2);
-        expect(calls).toStrictEqual(["git fetch --tags --force"]);
-        expect(logs).toStrictEqual([
-            "--- GIT DIFF OUTPUT (since last tag) ---",
-            "fetch failed",
-        ]);
+        expect({ calls, exitCode, logs }).toStrictEqual({
+            calls: ["git fetch --tags --force"],
+            exitCode: 2,
+            logs: ["--- GIT DIFF OUTPUT (since last tag) ---", "fetch failed"],
+        });
     });
 
     it("parses diff path and tag pattern arguments", async () => {
