@@ -1,45 +1,95 @@
-import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { JSDOM } from "jsdom";
 
+type StateSetter = (path: string, value: unknown, metadata?: unknown) => void;
+type StateGetter = (path: string) => unknown;
+type StateSubscriber = (
+    path: string,
+    callback: (value: unknown) => void
+) => () => void;
+type ActiveTabCallback = (value: string) => void;
+type QuerySelectorAll = Document["querySelectorAll"];
+
+type StateManagerMocks = {
+    getState: ReturnType<typeof vi.fn<StateGetter>>;
+    setState: ReturnType<typeof vi.fn<StateSetter>>;
+    subscribe: ReturnType<typeof vi.fn<StateSubscriber>>;
+};
+
 describe("updateActiveTab defensive DOM handling", () => {
-    let mockWindow: any;
-    let mockDocument: any;
-    let mockSubscribe: any;
-    let mockSetState: any;
-    let mockGetState: any;
+    let mockWindow: Window;
+    let mockDocument: Document;
+    let stateManagerMocks: StateManagerMocks;
 
     beforeEach(() => {
         const dom = new JSDOM("<!DOCTYPE html><html><body></body></html>");
-        mockWindow = dom.window;
+        mockWindow = dom.window as unknown as Window;
         mockDocument = dom.window.document;
 
-        (global as any).window = mockWindow;
-        (global as any).document = mockDocument;
+        vi.stubGlobal("window", mockWindow);
+        vi.stubGlobal("document", mockDocument);
 
         // Mock stateManager to capture the subscribe callback
-        mockSubscribe = vi.fn();
-        mockSetState = vi.fn();
-        mockGetState = vi.fn(() => "summary");
+        stateManagerMocks = {
+            getState: vi.fn<StateGetter>(() => "summary"),
+            setState: vi.fn<StateSetter>(),
+            subscribe: vi.fn<StateSubscriber>(),
+        };
 
         vi.doMock(
-            "../../../electron-app/utils/state/core/stateManager.js",
+            import("../../../electron-app/utils/state/core/stateManager.js"),
             () => ({
-                setState: mockSetState,
-                getState: mockGetState,
-                subscribe: mockSubscribe,
+                getState: stateManagerMocks.getState,
+                setState: stateManagerMocks.setState,
+                subscribe: stateManagerMocks.subscribe,
             })
         );
     });
 
     afterEach(() => {
+        vi.unstubAllGlobals();
         vi.clearAllMocks();
         vi.resetModules();
     });
 
+    async function initializeActiveTabState(): Promise<void> {
+        const updateActiveTabModule =
+            await import("../../../electron-app/utils/ui/tabs/updateActiveTab.js");
+
+        updateActiveTabModule.initializeActiveTabState();
+    }
+
+    function getActiveTabSubscription(): ActiveTabCallback {
+        const subscriptionCall = stateManagerMocks.subscribe.mock.calls.find(
+            ([path]) => path === "ui.activeTab"
+        );
+
+        if (!subscriptionCall) {
+            throw new Error(
+                "Expected ui.activeTab subscription to be registered"
+            );
+        }
+
+        const [, callback] = subscriptionCall;
+
+        if (typeof callback !== "function") {
+            throw new TypeError("Expected ui.activeTab subscription callback");
+        }
+
+        return callback as ActiveTabCallback;
+    }
+
+    function mockTabButtons(
+        buttons: Array<unknown>
+    ): ReturnType<typeof vi.spyOn<QuerySelectorAll>> {
+        return vi
+            .spyOn(mockDocument, "querySelectorAll")
+            .mockReturnValue(buttons as unknown as NodeListOf<Element>);
+    }
+
     describe("state subscription callback", () => {
-        test("warns for missing or malformed tab buttons", async () => {
-            const { initializeActiveTabState } =
-                await import("../../../electron-app/utils/ui/tabs/updateActiveTab.js");
+        it("warns for missing or malformed tab buttons", async () => {
+            expect.hasAssertions();
 
             // Mock console.warn to capture warnings
             const warnSpy = vi
@@ -47,19 +97,14 @@ describe("updateActiveTab defensive DOM handling", () => {
                 .mockImplementation(() => {});
 
             // Initialize the state management to set up subscriptions
-            initializeActiveTabState();
+            await initializeActiveTabState();
 
             // Get the subscription callback that was registered
-            expect(mockSubscribe).toHaveBeenCalled();
-            const subscriptionCall = mockSubscribe.mock.calls.find(
-                (call: any[]) => call[0] === "ui.activeTab"
-            );
-            expect(subscriptionCall).toEqual([
+            expect(stateManagerMocks.subscribe).toHaveBeenCalledWith(
                 "ui.activeTab",
-                expect.any(Function),
-            ]);
-
-            const stateCallback = subscriptionCall[1];
+                expect.any(Function)
+            );
+            const stateCallback = getActiveTabSubscription();
 
             // Clear DOM to ensure no tab buttons exist
             mockDocument.body.innerHTML = "";
@@ -71,7 +116,7 @@ describe("updateActiveTab defensive DOM handling", () => {
             expect(warnSpy).toHaveBeenCalledWith(
                 "updateTabButtonsFromState: No tab buttons found in DOM."
             );
-            expect(mockDocument.body.childElementCount).toBe(0);
+            expect(mockDocument.body.innerHTML).toBe("");
 
             // Create a malformed element that will trigger the defensive check
             const mockButton = {
@@ -80,8 +125,7 @@ describe("updateActiveTab defensive DOM handling", () => {
             };
 
             // Mock querySelectorAll to return our malformed element
-            const originalQuerySelectorAll = mockDocument.querySelectorAll;
-            mockDocument.querySelectorAll = vi.fn(() => [mockButton]);
+            const querySelectorAllSpy = mockTabButtons([mockButton]);
 
             // Trigger the state callback again
             stateCallback("summary");
@@ -96,31 +140,26 @@ describe("updateActiveTab defensive DOM handling", () => {
             ).not.toBeInstanceOf(mockWindow.HTMLElement);
 
             // Restore original querySelectorAll
-            mockDocument.querySelectorAll = originalQuerySelectorAll;
+            querySelectorAllSpy.mockRestore();
 
             warnSpy.mockRestore();
         });
 
-        test("should handle null button elements in state callback", async () => {
-            const { initializeActiveTabState } =
-                await import("../../../electron-app/utils/ui/tabs/updateActiveTab.js");
+        it("handles null button elements in state callback", async () => {
+            expect.hasAssertions();
 
             const warnSpy = vi
                 .spyOn(console, "warn")
                 .mockImplementation(() => {});
 
             // Initialize the state management
-            initializeActiveTabState();
+            await initializeActiveTabState();
 
             // Get the subscription callback
-            const subscriptionCall = mockSubscribe.mock.calls.find(
-                (call: any[]) => call[0] === "ui.activeTab"
-            );
-            const stateCallback = subscriptionCall[1];
+            const stateCallback = getActiveTabSubscription();
 
             // Mock querySelectorAll to return an array with null elements
-            const originalQuerySelectorAll = mockDocument.querySelectorAll;
-            mockDocument.querySelectorAll = vi.fn(() => [null, undefined]);
+            const querySelectorAllSpy = mockTabButtons([null, undefined]);
 
             // Trigger the state callback
             stateCallback("summary");
@@ -139,27 +178,23 @@ describe("updateActiveTab defensive DOM handling", () => {
             ).not.toBeInstanceOf(mockWindow.HTMLElement);
 
             // Restore original querySelectorAll
-            mockDocument.querySelectorAll = originalQuerySelectorAll;
+            querySelectorAllSpy.mockRestore();
 
             warnSpy.mockRestore();
         });
 
-        test("should handle buttons without classList property in state callback", async () => {
-            const { initializeActiveTabState } =
-                await import("../../../electron-app/utils/ui/tabs/updateActiveTab.js");
+        it("handles buttons without classList property in state callback", async () => {
+            expect.hasAssertions();
 
             const warnSpy = vi
                 .spyOn(console, "warn")
                 .mockImplementation(() => {});
 
             // Initialize the state management
-            initializeActiveTabState();
+            await initializeActiveTabState();
 
             // Get the subscription callback
-            const subscriptionCall = mockSubscribe.mock.calls.find(
-                (call: any[]) => call[0] === "ui.activeTab"
-            );
-            const stateCallback = subscriptionCall[1];
+            const stateCallback = getActiveTabSubscription();
 
             // Create a button-like object without classList
             const buttonWithoutClassList = {
@@ -168,8 +203,7 @@ describe("updateActiveTab defensive DOM handling", () => {
             };
 
             // Mock querySelectorAll to return this malformed button
-            const originalQuerySelectorAll = mockDocument.querySelectorAll;
-            mockDocument.querySelectorAll = vi.fn(() => [
+            const querySelectorAllSpy = mockTabButtons([
                 buttonWithoutClassList,
             ]);
 
@@ -186,7 +220,7 @@ describe("updateActiveTab defensive DOM handling", () => {
             ).not.toBeInstanceOf(mockWindow.HTMLElement);
 
             // Restore original querySelectorAll
-            mockDocument.querySelectorAll = originalQuerySelectorAll;
+            querySelectorAllSpy.mockRestore();
 
             warnSpy.mockRestore();
         });
