@@ -17,20 +17,16 @@ function createNotificationFixture(): HTMLDivElement {
 }
 
 describe("showNotification.js - resolveShown error handling", () => {
-    const originalWarn = console.warn;
-    const originalError = console.error;
-    const originalRAF = window.requestAnimationFrame;
-
     beforeEach(() => {
         vi.useFakeTimers();
         vi.restoreAllMocks();
-        console.warn = vi.fn();
-        console.error = vi.fn();
+        vi.spyOn(console, "warn").mockImplementation(() => {});
+        vi.spyOn(console, "error").mockImplementation(() => {});
         // Mock requestAnimationFrame to execute immediately
-        window.requestAnimationFrame = (cb) => {
+        vi.spyOn(window, "requestAnimationFrame").mockImplementation((cb) => {
             cb(0);
             return 0;
-        };
+        });
         createNotificationFixture();
         __testResetNotifications();
     });
@@ -39,13 +35,13 @@ describe("showNotification.js - resolveShown error handling", () => {
         __testResetNotifications();
         vi.runOnlyPendingTimers();
         vi.useRealTimers();
-        console.warn = originalWarn;
-        console.error = originalError;
-        window.requestAnimationFrame = originalRAF;
+        vi.restoreAllMocks();
         document.body.replaceChildren();
     });
 
     it("clears resolveShown and logs the error when the shown resolver throws", async () => {
+        expect.hasAssertions();
+
         const resolveShownError = new Error("resolveShown failure");
         const throwingResolve = vi.fn<() => void>(() => {
             throw resolveShownError;
@@ -69,15 +65,21 @@ describe("showNotification.js - resolveShown error handling", () => {
 
         const notificationElement = document.getElementById("notification");
         expect(notificationElement).toBeInstanceOf(HTMLDivElement);
-        expect(notificationElement?.style.display).toBe("flex");
-        expect(notificationElement?.className).toBe("notification info show");
-        expect(
-            notificationElement?.querySelector(".notification-message")
-                ?.textContent
-        ).toBe("Throwing resolveShown");
-        expect(notificationQueue).toHaveLength(0);
+        expect({
+            className: notificationElement?.className,
+            display: notificationElement?.style.display,
+            message: notificationElement?.querySelector(".notification-message")
+                ?.textContent,
+            queueSize: notificationQueue.length,
+            resolveShown: notification.resolveShown,
+        }).toEqual({
+            className: "notification info show",
+            display: "flex",
+            message: "Throwing resolveShown",
+            queueSize: 0,
+            resolveShown: undefined,
+        });
         expect(throwingResolve).toHaveBeenCalledOnce();
-        expect(notification.resolveShown).toBeUndefined();
         expect(console.error).toHaveBeenCalledTimes(2);
         expect(console.error).toHaveBeenNthCalledWith(
             1,
