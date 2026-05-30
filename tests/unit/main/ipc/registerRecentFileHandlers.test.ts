@@ -114,7 +114,13 @@ describe("registerRecentFileHandlers", () => {
             logWithContext: () => void 0,
         });
 
-        expect(handlers.size).toBe(0);
+        expect({
+            handlerChannels: [...handlers.keys()],
+            handlerCount: handlers.size,
+        }).toEqual({
+            handlerChannels: [],
+            handlerCount: 0,
+        });
     });
 
     it("rejects invalid filePath types", async () => {
