@@ -55,14 +55,19 @@ const getManufacturer = (manufacturerId: unknown): string | undefined =>
 
 describe("data ant manufacturer ID lookup", () => {
     it("exports an immutable numeric lookup table", () => {
-        expect.assertions(7);
+        expect.hasAssertions();
 
         const entries = Object.entries(dataAntManufacturerIDs);
         const keys = Object.keys(dataAntManufacturerIDs);
 
         expect(dataAntManufacturerIDs).toBeTypeOf("object");
-        expect(Array.isArray(dataAntManufacturerIDs)).toBe(false);
-        expect(Object.isFrozen(dataAntManufacturerIDs)).toBe(true);
+        expect({
+            isArray: Array.isArray(dataAntManufacturerIDs),
+            isFrozen: Object.isFrozen(dataAntManufacturerIDs),
+        }).toEqual({
+            isArray: false,
+            isFrozen: true,
+        });
         expect(entries).toHaveLength(232);
         expect(keys.slice(0, 3)).toEqual([
             "1",
@@ -74,14 +79,16 @@ describe("data ant manufacturer ID lookup", () => {
     });
 
     it("uses positive integer string keys and non-empty manufacturer keys", () => {
-        const entries = Object.entries(dataAntManufacturerIDs);
+        expect.hasAssertions();
 
-        expect.assertions(entries.length * 5);
+        const entries = Object.entries(dataAntManufacturerIDs);
 
         for (const [key, value] of entries) {
             const numericKey = Number(key);
 
-            expect(Number.isInteger(numericKey)).toBe(true);
+            expect({ isInteger: Number.isInteger(numericKey) }).toEqual({
+                isInteger: true,
+            });
             expect(numericKey).toBeGreaterThanOrEqual(1);
             expect(value).toBeTypeOf("string");
             expect(value.trim()).toBe(value);
@@ -90,7 +97,7 @@ describe("data ant manufacturer ID lookup", () => {
     });
 
     it("keeps canonical ANT and FIT manufacturer mappings stable", () => {
-        expect.assertions(knownManufacturerMappings.length + 1);
+        expect.hasAssertions();
 
         expect(new Set(knownManufacturerMappings.map(([id]) => id)).size).toBe(
             knownManufacturerMappings.length
@@ -105,23 +112,28 @@ describe("data ant manufacturer ID lookup", () => {
     });
 
     it("rejects unsupported lookup keys without falling back to a manufacturer", () => {
-        expect.assertions(invalidLookupKeys.length * 2);
+        expect.hasAssertions();
 
         for (const [, manufacturerId] of invalidLookupKeys) {
-            expect(
-                Object.hasOwn(manufacturerLookup, String(manufacturerId))
-            ).toBe(false);
+            expect({
+                hasManufacturer: Object.hasOwn(
+                    manufacturerLookup,
+                    String(manufacturerId)
+                ),
+            }).toEqual({
+                hasManufacturer: false,
+            });
             expect(getManufacturer(manufacturerId)).toBeUndefined();
         }
     });
 
     it("keeps names in the canonical adapter-safe format", () => {
+        expect.hasAssertions();
+
         const values = Object.values(dataAntManufacturerIDs);
         const lowercaseNames = values.filter(
             (value) => value === value.toLowerCase()
         );
-
-        expect.assertions(1 + values.length * 5);
 
         expect(lowercaseNames).toHaveLength(230);
 
@@ -144,8 +156,8 @@ describe("data ant manufacturer ID lookup", () => {
 
         expect(keys).toHaveLength(uniqueKeys.size);
         expect(values).toHaveLength(uniqueValues.size);
-        expect(uniqueKeys.has("0")).toBe(false);
-        expect(uniqueValues.has("unknown")).toBe(false);
+        expect([...uniqueKeys]).not.toContain("0");
+        expect([...uniqueValues]).not.toContain("unknown");
     });
 
     it("supports string and integer-equivalent numeric access consistently", () => {
@@ -159,7 +171,7 @@ describe("data ant manufacturer ID lookup", () => {
     });
 
     it("is enumerable for formatter reverse lookups", () => {
-        expect.assertions(6);
+        expect.hasAssertions();
 
         const entries = Object.entries(dataAntManufacturerIDs);
         const garminEntry = entries.find(([, name]) => name === "garmin");
@@ -168,15 +180,21 @@ describe("data ant manufacturer ID lookup", () => {
         expect(entries).toHaveLength(232);
         expect(garminEntry).toEqual(["1", "garmin"]);
         expect(wahooEntry).toEqual(["32", "wahoo_fitness"]);
-        expect(entries.some(([, name]) => name === "not_a_manufacturer")).toBe(
-            false
-        );
-        expect(entries.every(([key]) => Number.isInteger(Number(key)))).toBe(
-            true
-        );
-        expect(entries.every(([, value]) => typeof value === "string")).toBe(
-            true
-        );
+        expect({
+            allKeysInteger: entries.every(([key]) =>
+                Number.isInteger(Number(key))
+            ),
+            allValuesString: entries.every(
+                ([, value]) => typeof value === "string"
+            ),
+            unknownManufacturerPresent: entries.some(
+                ([, name]) => name === "not_a_manufacturer"
+            ),
+        }).toEqual({
+            allKeysInteger: true,
+            allValuesString: true,
+            unknownManufacturerPresent: false,
+        });
     });
 
     it("prevents accidental mutation of the canonical table", () => {
