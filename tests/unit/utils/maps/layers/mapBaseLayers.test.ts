@@ -37,7 +37,9 @@ const EXPECTED_LAYER_NAMES = [
 ];
 
 describe("mapBaseLayers", () => {
-    let originalL: any;
+    type MockLayer = { readonly kind: string };
+
+    let originalL: unknown;
 
     beforeEach(() => {
         originalL = (global as any).L;
@@ -49,22 +51,26 @@ describe("mapBaseLayers", () => {
     });
 
     it("uses shim when global L is not present", async () => {
+        expect.hasAssertions();
+
         delete (global as any).L;
         const mod =
             await import("../../../../../electron-app/utils/maps/layers/mapBaseLayers.js");
         const { baseLayers } = mod;
         expect(Object.keys(baseLayers)).toEqual(EXPECTED_LAYER_NAMES);
-        expect(baseLayers.OpenStreetMap).toEqual({});
-        expect(baseLayers.CartoDB_Positron).toEqual({});
-        expect(baseLayers.OpenFreeMap_Dark).toEqual({});
+        expect(baseLayers.OpenStreetMap).toStrictEqual({});
+        expect(baseLayers.CartoDB_Positron).toStrictEqual({});
+        expect(baseLayers.OpenFreeMap_Dark).toStrictEqual({});
     });
 
     it("calls L.tileLayer and L.maplibreGL when present", async () => {
+        expect.hasAssertions();
+
         const rasterLayer = { kind: "raster" };
         const vectorLayer = { kind: "vector" };
         (global as any).L = {
-            tileLayer: vi.fn(() => rasterLayer),
-            maplibreGL: vi.fn(() => vectorLayer),
+            maplibreGL: vi.fn<() => MockLayer>(() => vectorLayer),
+            tileLayer: vi.fn<() => MockLayer>(() => rasterLayer),
         };
         const mod =
             await import("../../../../../electron-app/utils/maps/layers/mapBaseLayers.js");
@@ -87,7 +93,9 @@ describe("mapBaseLayers", () => {
     });
 
     it("falls back to the shim when global L lacks tileLayer", async () => {
-        const maplibreGL = vi.fn(() => ({ kind: "unused" }));
+        expect.hasAssertions();
+
+        const maplibreGL = vi.fn<() => MockLayer>(() => ({ kind: "unused" }));
         (global as any).L = {
             maplibreGL,
             tileLayer: "not-a-function",
@@ -95,8 +103,8 @@ describe("mapBaseLayers", () => {
         const mod =
             await import("../../../../../electron-app/utils/maps/layers/mapBaseLayers.js");
         const { baseLayers } = mod;
-        expect(baseLayers.OpenStreetMap).toEqual({});
-        expect(baseLayers.OpenFreeMap_Bright).toEqual({});
+        expect(baseLayers.OpenStreetMap).toStrictEqual({});
+        expect(baseLayers.OpenFreeMap_Bright).toStrictEqual({});
         expect(maplibreGL).not.toHaveBeenCalled();
     });
 });
