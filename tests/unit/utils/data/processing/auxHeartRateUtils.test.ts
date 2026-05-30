@@ -8,38 +8,56 @@ import {
 
 describe("auxHeartRateUtils", () => {
     it("detects explicit auxHeartRate fields", () => {
+        expect.hasAssertions();
+
         const recordMesgs = [{ auxHeartRate: 120 }, { auxHeartRate: 125 }];
 
         const resolution = resolveAuxHeartRateResolution(recordMesgs, []);
-        expect(resolution.source).toBe("recordKey");
-        expect(resolution.fieldKey).toBe("auxHeartRate");
+        expect(resolution).toMatchObject({
+            fieldKey: "auxHeartRate",
+            source: "recordKey",
+        });
 
         const value = getAuxHeartRateValue(recordMesgs[0], {
             recordMesgs,
             resolution,
         });
-        expect(value).toBe(120);
+        expect({ value }).toEqual({ value: 120 });
     });
 
     it("normalizes snake_case aux_heart_rate fields", () => {
+        expect.hasAssertions();
+
         const recordMesgs = [{ aux_heart_rate: 118 }, { aux_heart_rate: 122 }];
 
         const result = applyAuxHeartRateToRecords({ recordMesgs });
-        expect(result.applied).toBe(true);
-        expect(recordMesgs[0].auxHeartRate).toBe(118);
-        expect(recordMesgs[1].auxHeartRate).toBe(122);
+        expect({
+            applied: result.applied,
+            auxHeartRates: recordMesgs.map((record) => record.auxHeartRate),
+        }).toEqual({
+            applied: true,
+            auxHeartRates: [118, 122],
+        });
     });
 
     it("detects numbered heart_rate fields as auxiliary", () => {
+        expect.hasAssertions();
+
         const recordMesgs = [{ heart_rate_2: 140 }, { heart_rate_2: 141 }];
 
         const result = applyAuxHeartRateToRecords({ recordMesgs });
-        expect(result.applied).toBe(true);
-        expect(recordMesgs[0].auxHeartRate).toBe(140);
-        expect(recordMesgs[1].auxHeartRate).toBe(141);
+        expect({
+            applied: result.applied,
+            auxHeartRates: recordMesgs.map((record) => record.auxHeartRate),
+        }).toEqual({
+            applied: true,
+            auxHeartRates: [140, 141],
+        });
     });
 
     it("maps developer fields when descriptions indicate auxiliary HR", () => {
+        expect.hasAssertions();
+
         const recordMesgs = [
             { developerFields: '{"7": 155}' },
             { developerFields: '{"7": 160}' },
@@ -58,14 +76,20 @@ describe("auxHeartRateUtils", () => {
             recordMesgs,
         });
 
-        expect(result.applied).toBe(true);
-        expect(recordMesgs[0].auxHeartRate).toBe(155);
-        expect(recordMesgs[1].auxHeartRate).toBe(160);
+        expect({
+            applied: result.applied,
+            auxHeartRates: recordMesgs.map((record) => record.auxHeartRate),
+        }).toEqual({
+            applied: true,
+            auxHeartRates: [155, 160],
+        });
     });
 
     it("falls back to row inspection when record context is missing", () => {
+        expect.hasAssertions();
+
         const row = { heart_rate_2: 149 };
         const value = getAuxHeartRateValue(row);
-        expect(value).toBe(149);
+        expect({ value }).toEqual({ value: 149 });
     });
 });
