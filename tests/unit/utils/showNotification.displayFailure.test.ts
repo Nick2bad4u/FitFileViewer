@@ -7,14 +7,11 @@ import {
 } from "../../../electron-app/utils/ui/notifications/showNotification.js";
 
 describe("showNotification display failure handling", () => {
-    const originalError = console.error;
-    const originalWarn = console.warn;
-
     beforeEach(() => {
         vi.useFakeTimers();
         vi.restoreAllMocks();
-        console.error = vi.fn();
-        console.warn = vi.fn();
+        vi.spyOn(console, "error").mockImplementation(() => {});
+        vi.spyOn(console, "warn").mockImplementation(() => {});
 
         const notificationElement = document.createElement("div");
         notificationElement.id = "notification";
@@ -27,12 +24,13 @@ describe("showNotification display failure handling", () => {
         clearAllNotifications();
         vi.runOnlyPendingTimers();
         vi.useRealTimers();
-        console.error = originalError;
-        console.warn = originalWarn;
+        vi.restoreAllMocks();
         document.body.replaceChildren();
     });
 
     it("resolves the caller promise and clears queue state when display fails", async () => {
+        expect.hasAssertions();
+
         const notificationElement =
             document.querySelector<HTMLElement>("#notification");
         expect(notificationElement!.id).toBe("notification");
@@ -67,12 +65,21 @@ describe("showNotification display failure handling", () => {
         expect(notificationElement!.getAttribute("aria-label")).toBe(
             "Information: Display failure"
         );
-        expect(notificationElement!.classList.contains("show")).toBe(false);
-        expect(notificationQueue).toHaveLength(0);
-        expect(isShowingNotification).toBe(false);
+        expect({
+            isShowingNotification,
+            queueSize: notificationQueue.length,
+            visibleClassPresent:
+                notificationElement!.classList.contains("show"),
+        }).toEqual({
+            isShowingNotification: false,
+            queueSize: 0,
+            visibleClassPresent: false,
+        });
     });
 
     it("rejects invalid messages without rendering notification content", async () => {
+        expect.hasAssertions();
+
         const notificationElement =
             document.querySelector<HTMLElement>("#notification");
         expect(notificationElement!.id).toBe("notification");
@@ -84,10 +91,18 @@ describe("showNotification display failure handling", () => {
             "showNotification: Invalid message provided"
         );
         expect(console.error).not.toHaveBeenCalled();
-        expect(notificationElement!.children).toHaveLength(0);
-        expect(notificationElement!.className).toBe("notification");
-        expect(notificationElement!.style.display).toBe("none");
-        expect(notificationQueue).toHaveLength(0);
-        expect(isShowingNotification).toBe(false);
+        expect({
+            childCount: notificationElement!.childElementCount,
+            className: notificationElement!.className,
+            display: notificationElement!.style.display,
+            isShowingNotification,
+            queueSize: notificationQueue.length,
+        }).toEqual({
+            childCount: 0,
+            className: "notification",
+            display: "none",
+            isShowingNotification: false,
+            queueSize: 0,
+        });
     });
 });
