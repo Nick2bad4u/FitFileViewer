@@ -17,8 +17,13 @@ describe(createMetricFilter, () => {
             metric: "speed",
             percent: 10,
         });
-        expect(result.isActive).toBe(false);
-        expect(result.selectedCount).toBe(0);
+        expect({
+            isActive: result.isActive,
+            selectedCount: result.selectedCount,
+        }).toStrictEqual({
+            isActive: false,
+            selectedCount: 0,
+        });
     });
 
     it("selects the correct number of entries for the requested percentile", () => {
@@ -36,11 +41,19 @@ describe(createMetricFilter, () => {
             metric: "speed",
             percent: 40,
         });
-        expect(result.isActive).toBe(true);
-        expect(result.reason).toBeNull();
-        expect(result.selectedCount).toBe(2);
-        expect(result.threshold).toBe(13);
-        expect([...result.allowedIndices]).toEqual([4, 3]);
+        expect({
+            allowedIndices: [...result.allowedIndices],
+            isActive: result.isActive,
+            reason: result.reason,
+            selectedCount: result.selectedCount,
+            threshold: result.threshold,
+        }).toStrictEqual({
+            allowedIndices: [4, 3],
+            isActive: true,
+            reason: null,
+            selectedCount: 2,
+            threshold: 13,
+        });
     });
 
     it("supports custom value extractors for derived datasets", () => {
@@ -98,9 +111,15 @@ describe(createMetricFilter, () => {
                 },
             }
         );
-        expect(result.isActive).toBe(true);
-        expect(result.selectedCount).toBe(2);
-        expect(result.orderedIndices).toEqual([2, 1]);
+        expect({
+            isActive: result.isActive,
+            orderedIndices: result.orderedIndices,
+            selectedCount: result.selectedCount,
+        }).toStrictEqual({
+            isActive: true,
+            orderedIndices: [2, 1],
+            selectedCount: 2,
+        });
     });
 
     it("returns a reason when metric data is missing", () => {
@@ -112,8 +131,13 @@ describe(createMetricFilter, () => {
             metric: "cadence",
             percent: 20,
         });
-        expect(result.isActive).toBe(false);
-        expect(result.reason).toMatch(/no valid cadence/i);
+        expect({
+            isActive: result.isActive,
+            reason: result.reason,
+        }).toStrictEqual({
+            isActive: false,
+            reason: expect.stringMatching(/no valid cadence/i),
+        });
     });
 });
 
@@ -143,13 +167,22 @@ describe("createMetricFilter range mode", () => {
             minValue: 3,
             mode: "valueRange",
         });
-        expect(result.isActive).toBe(true);
-        expect(result.mode).toBe("valueRange");
-        expect(result.selectedCount).toBe(2);
-        expect([...result.allowedIndices]).toEqual([2, 1]);
+        expect({
+            allowedIndices: [...result.allowedIndices],
+            appliedMax: result.appliedMax,
+            appliedMin: result.appliedMin,
+            isActive: result.isActive,
+            mode: result.mode,
+            selectedCount: result.selectedCount,
+        }).toStrictEqual({
+            allowedIndices: [2, 1],
+            appliedMax: 6,
+            appliedMin: 3,
+            isActive: true,
+            mode: "valueRange",
+            selectedCount: 2,
+        });
         expect([...result.allowedIndices]).not.toContain(0);
-        expect(result.appliedMin).toBe(3);
-        expect(result.appliedMax).toBe(6);
     });
 
     it("returns a reason when the range excludes all data", () => {
@@ -163,9 +196,15 @@ describe("createMetricFilter range mode", () => {
             minValue: 120,
             mode: "valueRange",
         });
-        expect(result.isActive).toBe(false);
-        expect(result.selectedCount).toBe(0);
-        expect(result.reason).toMatch(/no data points/i);
+        expect({
+            isActive: result.isActive,
+            reason: result.reason,
+            selectedCount: result.selectedCount,
+        }).toStrictEqual({
+            isActive: false,
+            reason: expect.stringMatching(/no data points/i),
+            selectedCount: 0,
+        });
     });
 });
 
@@ -190,8 +229,13 @@ describe(computeMetricStatistics, () => {
         expect(stats?.min).toBeCloseTo(1.5);
         expect(stats?.max).toBeCloseTo(3.75);
         expect(stats?.average).toBeCloseTo((1.5 + 2.25 + 3.75) / 3);
-        expect(stats?.count).toBe(3);
-        expect(stats?.count).not.toBe(0);
+        expect({
+            count: stats?.count,
+            hasSamples: (stats?.count ?? 0) > 0,
+        }).toStrictEqual({
+            count: 3,
+            hasSamples: true,
+        });
         expect(stats?.step).toBeGreaterThan(0);
     });
 
