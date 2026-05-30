@@ -112,17 +112,15 @@ describe("run-vitest wrapper", () => {
     });
 
     it("runs Vitest from the repository root", () => {
-        expect.assertions(10);
+        expect.assertions(2);
 
         const commandRunner = vi.fn<CommandRunner>(() => ({ status: 0 }));
 
-        expect(
-            runVitest(
-                ["--run", "--suite=integration"],
-                commandRunner,
-                () => false
-            )
-        ).toBe(0);
+        const runStatus = runVitest(
+            ["--run", "--suite=integration"],
+            commandRunner,
+            () => false
+        );
         expect(commandRunner).toHaveBeenCalledTimes(2);
 
         const [
@@ -136,23 +134,49 @@ describe("run-vitest wrapper", () => {
             vitestOptions,
         ] = commandRunner.mock.calls[1];
 
-        expect(buildCommand).toBe(process.execPath);
-        expect(buildArgs).toStrictEqual([
-            repositoryScriptPath("build-runtime.mjs"),
-        ]);
-        expect(path.resolve(buildOptions.cwd)).toBe(process.cwd());
-        expect(buildOptions.stdio).toBe("inherit");
-        expect(vitestCommand).toBe(process.execPath);
-        expect(vitestArgs).toEqual(
-            expect.arrayContaining([
-                "--max-old-space-size=8192",
-                expect.stringContaining(path.join("vitest", "vitest.mjs")),
-                "--config",
-                rootVitestConfigPath,
-                rootIntegrationTestsPath,
-            ])
-        );
-        expect(path.resolve(vitestOptions.cwd)).toBe(process.cwd());
-        expect(vitestOptions.stdio).toBe("inherit");
+        expect({
+            build: {
+                args: buildArgs,
+                command: buildCommand,
+                options: {
+                    ...buildOptions,
+                    cwd: path.resolve(buildOptions.cwd),
+                },
+            },
+            runStatus,
+            vitest: {
+                args: vitestArgs,
+                command: vitestCommand,
+                options: {
+                    ...vitestOptions,
+                    cwd: path.resolve(vitestOptions.cwd),
+                },
+            },
+        }).toStrictEqual({
+            build: {
+                args: [repositoryScriptPath("build-runtime.mjs")],
+                command: process.execPath,
+                options: {
+                    cwd: process.cwd(),
+                    stdio: "inherit",
+                },
+            },
+            runStatus: 0,
+            vitest: {
+                args: [
+                    "--max-old-space-size=8192",
+                    expect.stringMatching(/[\\/]vitest[\\/]vitest\.mjs$/u),
+                    "--config",
+                    rootVitestConfigPath,
+                    "--run",
+                    rootIntegrationTestsPath,
+                ],
+                command: process.execPath,
+                options: {
+                    cwd: process.cwd(),
+                    stdio: "inherit",
+                },
+            },
+        });
     });
 });
