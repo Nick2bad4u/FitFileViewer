@@ -27,19 +27,27 @@ async function importViteRendererConfig(): Promise<ViteRendererConfigModule> {
 
 describe("renderer Vite config", () => {
     it("roots renderer bundling in the repository while outputting into the app dist", async () => {
-        expect.assertions(8);
+        expect.assertions(2);
 
         const { default: config } = await importViteRendererConfig();
 
-        expect(config.root).toBe(repositoryRoot);
         expect(config.root).not.toBe("electron-app");
-        expect(config.publicDir).toBe(false);
-        expect(config.build?.emptyOutDir).toBe(false);
-        expect(config.build?.outDir).toBe("electron-app/dist/renderer");
-        expect(config.build?.lib?.entry).toBe(
-            "electron-app/renderer/vendorGlobals.ts"
-        );
-        expect(config.build?.lib?.fileName?.()).toBe("vendor-globals.js");
-        expect(config.resolve?.alias).toBeUndefined();
+        expect({
+            emptyOutDir: config.build?.emptyOutDir,
+            entry: config.build?.lib?.entry,
+            fileName: config.build?.lib?.fileName?.(),
+            outDir: config.build?.outDir,
+            publicDir: config.publicDir,
+            resolveAlias: config.resolve?.alias,
+            root: config.root,
+        }).toStrictEqual({
+            emptyOutDir: false,
+            entry: "electron-app/renderer/vendorGlobals.ts",
+            fileName: "vendor-globals.js",
+            outDir: "electron-app/dist/renderer",
+            publicDir: false,
+            resolveAlias: undefined,
+            root: repositoryRoot,
+        });
     });
 });
