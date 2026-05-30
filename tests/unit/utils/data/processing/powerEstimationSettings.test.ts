@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mockGet = vi.fn();
-const mockSet = vi.fn();
-
 type StoredValue = boolean | number;
 
+const mockGet = vi.fn<(key: string) => StoredValue | undefined>(),
+    mockSet = vi.fn<(key: string, value: StoredValue) => void>();
+
 vi.mock(
-    "../../../../../electron-app/utils/state/domain/settingsStateManager.js",
+    import("../../../../../electron-app/utils/state/domain/settingsStateManager.js"),
     () => ({
         getPowerEstimationSetting: (key: string) => mockGet(key),
         setPowerEstimationSetting: (key: string, value: StoredValue) =>
@@ -20,6 +20,8 @@ describe("powerEstimationSettings.js", () => {
     });
 
     it("getPowerEstimationSettings should return defaults when storage is empty", async () => {
+        expect.hasAssertions();
+
         mockGet.mockReturnValue(undefined);
 
         const { getPowerEstimationSettings } =
@@ -27,18 +29,22 @@ describe("powerEstimationSettings.js", () => {
 
         const s = getPowerEstimationSettings();
 
-        expect(s.enabled).toBe(true);
-        expect(s.riderWeightKg).toBe(75);
-        expect(s.bikeWeightKg).toBe(10);
-        expect(s.crr).toBe(0.004);
-        expect(s.cda).toBe(0.32);
-        expect(s.drivetrainEfficiency).toBe(0.97);
-        expect(s.windSpeedMps).toBe(0);
-        expect(s.gradeWindowMeters).toBe(35);
-        expect(s.maxPowerW).toBe(2000);
+        expect(s).toEqual({
+            bikeWeightKg: 10,
+            cda: 0.32,
+            crr: 0.004,
+            drivetrainEfficiency: 0.97,
+            enabled: true,
+            gradeWindowMeters: 35,
+            maxPowerW: 2000,
+            riderWeightKg: 75,
+            windSpeedMps: 0,
+        });
     });
 
     it("getPowerEstimationSettings should respect stored values and handle invalid types", async () => {
+        expect.hasAssertions();
+
         mockGet.mockImplementation((key: string) => {
             if (key === "enabled") return false;
             if (key === "riderWeightKg") return 82;
@@ -57,20 +63,29 @@ describe("powerEstimationSettings.js", () => {
 
         const s = getPowerEstimationSettings();
 
-        expect(s.enabled).toBe(false);
-        expect(s.riderWeightKg).toBe(82);
-        // invalid type -> fallback
-        expect(s.bikeWeightKg).toBe(10);
-        expect(s.crr).toBe(0.006);
-        expect(s.cda).toBe(0.29);
-        expect(s.drivetrainEfficiency).toBe(0.95);
-        expect(s.windSpeedMps).toBe(1.5);
-        expect(s.gradeWindowMeters).toBe(50);
-        expect(s.maxPowerW).toBe(1800);
+        expect(s).toEqual({
+            bikeWeightKg: 10,
+            cda: 0.29,
+            crr: 0.006,
+            drivetrainEfficiency: 0.95,
+            enabled: false,
+            gradeWindowMeters: 50,
+            maxPowerW: 1800,
+            riderWeightKg: 82,
+            windSpeedMps: 1.5,
+        });
     });
 
     it("setPowerEstimationSettings should persist all keys", async () => {
-        const { setPowerEstimationSettings } =
+        expect.hasAssertions();
+
+        const storedSettings = new Map<string, StoredValue>();
+        mockSet.mockImplementation((key, value) => {
+            storedSettings.set(key, value);
+        });
+        mockGet.mockImplementation((key) => storedSettings.get(key));
+
+        const { getPowerEstimationSettings, setPowerEstimationSettings } =
             await import("../../../../../electron-app/utils/data/processing/powerEstimationSettings.js");
 
         setPowerEstimationSettings({
@@ -85,6 +100,17 @@ describe("powerEstimationSettings.js", () => {
             maxPowerW: 1500,
         });
 
+        expect(getPowerEstimationSettings()).toEqual({
+            bikeWeightKg: 12,
+            cda: 0.31,
+            crr: 0.005,
+            drivetrainEfficiency: 0.96,
+            enabled: true,
+            gradeWindowMeters: 40,
+            maxPowerW: 1500,
+            riderWeightKg: 90,
+            windSpeedMps: 2,
+        });
         expect(mockSet).toHaveBeenCalledWith("enabled", true);
         expect(mockSet).toHaveBeenCalledWith("riderWeightKg", 90);
         expect(mockSet).toHaveBeenCalledWith("bikeWeightKg", 12);
@@ -96,6 +122,6 @@ describe("powerEstimationSettings.js", () => {
         expect(mockSet).toHaveBeenCalledWith("maxPowerW", 1500);
 
         // Ensure exactly these keys were written.
-        expect(mockSet.mock.calls.length).toBe(9);
+        expect(mockSet).toHaveBeenCalledTimes(9);
     });
 });
