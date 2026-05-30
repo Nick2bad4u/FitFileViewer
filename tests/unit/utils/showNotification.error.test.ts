@@ -41,20 +41,16 @@ function captureWindowErrors(): {
 }
 
 describe("showNotification.js - error handling coverage", () => {
-    const originalWarn = console.warn;
-    const originalError = console.error;
-    const originalRAF = window.requestAnimationFrame;
-
     beforeEach(() => {
         vi.useFakeTimers();
         vi.restoreAllMocks();
-        console.warn = vi.fn();
-        console.error = vi.fn();
+        vi.spyOn(console, "warn").mockImplementation(() => {});
+        vi.spyOn(console, "error").mockImplementation(() => {});
         // Mock requestAnimationFrame to execute immediately
-        window.requestAnimationFrame = (cb) => {
+        vi.spyOn(window, "requestAnimationFrame").mockImplementation((cb) => {
             cb(0);
             return 0;
-        };
+        });
         createNotificationFixture();
         __testResetNotifications();
     });
@@ -62,14 +58,14 @@ describe("showNotification.js - error handling coverage", () => {
     afterEach(() => {
         vi.runOnlyPendingTimers();
         vi.useRealTimers();
-        console.warn = originalWarn;
-        console.error = originalError;
-        window.requestAnimationFrame = originalRAF;
+        vi.restoreAllMocks();
         document.body.replaceChildren();
         clearAllNotifications();
     });
 
     it("handles errors when resolveShown throws", async () => {
+        expect.hasAssertions();
+
         // Craft a queued notification with a resolveShown that throws
         const throwingResolve = vi.fn<() => void>(() => {
             throw new Error("resolveShown failure");
@@ -98,8 +94,13 @@ describe("showNotification.js - error handling coverage", () => {
         expect(
             element?.querySelector(".notification-message")?.textContent
         ).toBe("Throwing resolveShown");
-        expect(notificationQueue).toHaveLength(0);
-        expect(notification.resolveShown).toBeUndefined();
+        expect({
+            queueSize: notificationQueue.length,
+            resolveShown: notification.resolveShown,
+        }).toEqual({
+            queueSize: 0,
+            resolveShown: undefined,
+        });
 
         // Error should be logged and queue processing should not crash
         expect(console.error).toHaveBeenCalledWith(
@@ -109,6 +110,8 @@ describe("showNotification.js - error handling coverage", () => {
     });
 
     it("handles errors during displayNotification process", async () => {
+        expect.hasAssertions();
+
         // Create a spy that makes buildNotificationContent throw
         const mockError = new Error("Simulated error in displayNotification");
         vi.spyOn(document, "createElement").mockImplementationOnce(() => {
@@ -122,9 +125,15 @@ describe("showNotification.js - error handling coverage", () => {
 
         const element = document.getElementById("notification");
         expect(element).toBeInstanceOf(HTMLDivElement);
-        expect(element?.style.display).toBe("none");
-        expect(element?.childElementCount).toBe(0);
-        expect(notificationQueue).toHaveLength(0);
+        expect({
+            childCount: element?.childElementCount,
+            display: element?.style.display,
+            queueSize: notificationQueue.length,
+        }).toEqual({
+            childCount: 0,
+            display: "none",
+            queueSize: 0,
+        });
 
         // Error should be caught and logged
         expect(console.error).toHaveBeenCalledWith(
@@ -136,6 +145,8 @@ describe("showNotification.js - error handling coverage", () => {
     });
 
     it("handles errors in notification click handlers", async () => {
+        expect.hasAssertions();
+
         // Create a notification with an onClick handler that throws
         const errorHandler = vi.fn<() => void>().mockImplementation(() => {
             throw new Error("Error in click handler");
@@ -152,17 +163,25 @@ describe("showNotification.js - error handling coverage", () => {
         captured.stop();
 
         expect(errorHandler).toHaveBeenCalledOnce();
-        expect(captured.errors).toHaveLength(1);
-        expect(captured.errors[0]?.message).toBe("Error in click handler");
-        expect(el.style.cursor).toBe("pointer");
-        expect(el.style.display).toBe("flex");
-        expect(el.classList.contains("show")).toBe(true);
+        expect({
+            capturedMessages: captured.errors.map((error) => error.message),
+            cursor: el.style.cursor,
+            display: el.style.display,
+            visibleClassPresent: el.classList.contains("show"),
+        }).toEqual({
+            capturedMessages: ["Error in click handler"],
+            cursor: "pointer",
+            display: "flex",
+            visibleClassPresent: true,
+        });
         expect(el.querySelector(".notification-close")).toBeInstanceOf(
             HTMLButtonElement
         );
     });
 
     it("handles errors in action button click handlers", async () => {
+        expect.hasAssertions();
+
         // Create action with handler that throws
         const errorActionHandler = vi
             .fn<() => void>()
@@ -188,10 +207,15 @@ describe("showNotification.js - error handling coverage", () => {
         captured.stop();
 
         expect(errorActionHandler).toHaveBeenCalledOnce();
-        expect(captured.errors).toHaveLength(1);
-        expect(captured.errors[0]?.message).toBe("Error in action handler");
-        expect(el.style.display).toBe("flex");
-        expect(el.classList.contains("show")).toBe(true);
+        expect({
+            capturedMessages: captured.errors.map((error) => error.message),
+            display: el.style.display,
+            visibleClassPresent: el.classList.contains("show"),
+        }).toEqual({
+            capturedMessages: ["Error in action handler"],
+            display: "flex",
+            visibleClassPresent: true,
+        });
         expect(el.querySelector(".notification-message")?.textContent).toBe(
             "Action error test"
         );
