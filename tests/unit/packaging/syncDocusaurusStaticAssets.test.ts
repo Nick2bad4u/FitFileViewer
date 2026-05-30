@@ -27,6 +27,20 @@ function writePlaceholder(root: string, relativePath: string): void {
     fs.writeFileSync(targetPath, relativePath);
 }
 
+function getPathStates(
+    root: string,
+    relativePaths: string[]
+): Record<string, "missing" | "present"> {
+    return Object.fromEntries(
+        relativePaths.map((relativePath) => [
+            relativePath,
+            fs.existsSync(path.join(root, relativePath))
+                ? "present"
+                : "missing",
+        ])
+    );
+}
+
 afterEach(() => {
     for (const temporaryRoot of temporaryRoots.splice(0)) {
         fs.rmSync(temporaryRoot, { force: true, recursive: true });
@@ -72,10 +86,26 @@ describe("sync-docusaurus-static-assets script", () => {
     });
 
     it("copies the canonical favicon and screenshots into Docusaurus static output", () => {
-        expect.assertions(6);
+        expect.assertions(1);
 
         const temporaryRoot = makeTemporaryRoot();
         const logger = vi.fn<(message: string) => void>();
+        const screenshotTargets = screenshotNames.map((screenshotName) =>
+            path.join(
+                "docusaurus",
+                "static",
+                "img",
+                "screenshots",
+                screenshotName
+            )
+        );
+        const syncedTargets = [
+            path.join("docusaurus", "static", "favicon.ico"),
+            ...screenshotTargets,
+        ];
+        const expectedPathStates = Object.fromEntries(
+            syncedTargets.map((target) => [target, "present"])
+        );
 
         writePlaceholder(
             temporaryRoot,
@@ -89,31 +119,24 @@ describe("sync-docusaurus-static-assets script", () => {
             );
         }
 
-        expect(syncDocusaurusStaticAssets(temporaryRoot, logger)).toBe(4);
-        expect(logger).toHaveBeenCalledWith(
-            "[sync-docusaurus-static-assets] Synced 4 static assets."
-        );
-        expect(
-            fs.readFileSync(
+        const syncedCount = syncDocusaurusStaticAssets(temporaryRoot, logger);
+
+        expect({
+            faviconContent: fs.readFileSync(
                 path.join(temporaryRoot, "docusaurus", "static", "favicon.ico"),
                 "utf8"
-            )
-        ).toBe(path.join("static", "icons", "favicon.ico"));
-
-        for (const screenshotName of screenshotNames) {
-            expect(
-                fs.existsSync(
-                    path.join(
-                        temporaryRoot,
-                        "docusaurus",
-                        "static",
-                        "img",
-                        "screenshots",
-                        screenshotName
-                    )
-                )
-            ).toBe(true);
-        }
+            ),
+            logMessages: logger.mock.calls.map(([message]) => message),
+            pathStates: getPathStates(temporaryRoot, syncedTargets),
+            syncedCount,
+        }).toStrictEqual({
+            faviconContent: path.join("static", "icons", "favicon.ico"),
+            logMessages: [
+                "[sync-docusaurus-static-assets] Synced 4 static assets.",
+            ],
+            pathStates: expectedPathStates,
+            syncedCount: 4,
+        });
     });
 
     it("throws when a canonical screenshot is missing", () => {
