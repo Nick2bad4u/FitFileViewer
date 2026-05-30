@@ -50,6 +50,20 @@ function writeArtifact(
     fs.writeFileSync(filePath, content);
 }
 
+function getPathStates(
+    root: string,
+    relativePaths: string[]
+): Record<string, "missing" | "present"> {
+    return Object.fromEntries(
+        relativePaths.map((relativePath) => [
+            relativePath,
+            fs.existsSync(path.join(root, relativePath))
+                ? "present"
+                : "missing",
+        ])
+    );
+}
+
 afterEach(() => {
     for (const temporaryRoot of temporaryRoots.splice(0)) {
         fs.rmSync(temporaryRoot, { force: true, recursive: true });
@@ -100,7 +114,7 @@ describe("organize-distributables script", () => {
     });
 
     it("copies distributables and selected updater directories into release-dist", async () => {
-        expect.assertions(9);
+        expect.assertions(1);
 
         const { artifactSubdirectories, organizeDistributables } =
             await importOrganizeDistributables();
@@ -141,91 +155,110 @@ describe("organize-distributables script", () => {
             outputDirectory,
         });
 
-        expect(artifactSubdirectories).toContain("nsis-web");
-        expect(result.processedArtifacts).toHaveLength(1);
-        expect(result.copiedFiles).toHaveLength(3);
-        expect(result.copiedDirectories).toHaveLength(1);
-        expect(
-            fs.existsSync(
-                path.join(outputDirectory, "windows-latest-x64", "debug.log")
-            )
-        ).toBe(false);
-        expect(
-            fs.existsSync(
+        expect({
+            copiedDirectoryNames: result.copiedDirectories.map(({ to }) =>
+                path.basename(to)
+            ),
+            copiedFileNames: result.copiedFiles.map(({ to }) =>
+                path.basename(to)
+            ),
+            pathStates: getPathStates(outputDirectory, [
+                path.join("windows-latest-x64", "debug.log"),
+                path.join("windows-latest-x64", "Fit-File-Viewer-nsis-x64.exe"),
+                path.join("windows-latest-x64", "latest.yml"),
                 path.join(
-                    outputDirectory,
-                    "windows-latest-x64",
-                    "Fit-File-Viewer-nsis-x64.exe"
-                )
-            )
-        ).toBe(true);
-        expect(
-            fs.existsSync(
-                path.join(outputDirectory, "windows-latest-x64", "latest.yml")
-            )
-        ).toBe(true);
-        expect(
-            fs.existsSync(
-                path.join(
-                    outputDirectory,
                     "windows-latest-x64",
                     "nsis-web",
                     "latest-nsis-web.yml"
-                )
-            )
-        ).toBe(true);
-        expect(result.copiedDirectories[0]?.to).toContain("nsis-web");
+                ),
+            ]),
+            processedArtifactCount: result.processedArtifacts.length,
+            selectedUpdaterDirectories: artifactSubdirectories,
+        }).toStrictEqual({
+            copiedDirectoryNames: ["nsis-web"],
+            copiedFileNames: [
+                "Fit-File-Viewer-nsis-x64.exe",
+                "fitfileviewer-30.0.0-x64.nsis.7z",
+                "latest.yml",
+            ],
+            pathStates: {
+                [path.join(
+                    "windows-latest-x64",
+                    "Fit-File-Viewer-nsis-x64.exe"
+                )]: "present",
+                [path.join("windows-latest-x64", "debug.log")]: "missing",
+                [path.join("windows-latest-x64", "latest.yml")]: "present",
+                [path.join(
+                    "windows-latest-x64",
+                    "nsis-web",
+                    "latest-nsis-web.yml"
+                )]: "present",
+            },
+            processedArtifactCount: 1,
+            selectedUpdaterDirectories: [
+                "nsis-web",
+                "squirrel-windows",
+                "squirrel-windows-ia32",
+            ],
+        });
     });
 
     it("renames mac latest metadata and removes generic latest-mac copies", async () => {
-        expect.assertions(4);
+        expect.assertions(1);
 
         const { organizeDistributables } = await importOrganizeDistributables();
         const temporaryRoot = makeTemporaryRoot();
         const artifactsDirectory = path.join(temporaryRoot, "artifacts");
         const outputDirectory = path.join(temporaryRoot, "release-dist");
         const latestMacSource = path.join(
-            artifactsDirectory,
             "dist-macos-latest-arm64",
             "latest-mac.yml"
         );
-
-        writeArtifact(
-            artifactsDirectory,
-            path.join("dist-macos-latest-arm64", "latest-mac.yml"),
-            "latest-mac"
+        const latestMacOutput = path.join(
+            "macos-latest-arm64",
+            "latest-mac.yml"
         );
+        const renamedLatestMacOutput = path.join(
+            "macos-latest-arm64",
+            "latest-macos-latest-arm64.yml"
+        );
+
+        writeArtifact(artifactsDirectory, latestMacSource, "latest-mac");
 
         const result = organizeDistributables({
             artifactsDirectory,
             outputDirectory,
         });
 
-        expect(fs.existsSync(latestMacSource)).toBe(false);
-        expect(
-            fs.existsSync(
-                path.join(
-                    outputDirectory,
-                    "macos-latest-arm64",
-                    "latest-mac.yml"
-                )
-            )
-        ).toBe(false);
-        expect(
-            fs.readFileSync(
-                path.join(
-                    outputDirectory,
-                    "macos-latest-arm64",
-                    "latest-macos-latest-arm64.yml"
-                ),
+        expect({
+            copiedFileNames: result.copiedFiles.map(({ to }) =>
+                path.basename(to)
+            ),
+            outputPathStates: getPathStates(outputDirectory, [
+                latestMacOutput,
+                renamedLatestMacOutput,
+            ]),
+            renamedLatestMacContent: fs.readFileSync(
+                path.join(outputDirectory, renamedLatestMacOutput),
                 "utf8"
-            )
-        ).toBe("latest-mac");
-        expect(
-            result.copiedFiles.some((file) =>
-                file.to.includes("latest-macos-latest-arm64.yml")
-            )
-        ).toBe(true);
+            ),
+            sourcePathStates: getPathStates(artifactsDirectory, [
+                latestMacSource,
+            ]),
+        }).toStrictEqual({
+            copiedFileNames: [
+                "latest-mac.yml",
+                "latest-macos-latest-arm64.yml",
+            ],
+            outputPathStates: {
+                [latestMacOutput]: "missing",
+                [renamedLatestMacOutput]: "present",
+            },
+            renamedLatestMacContent: "latest-mac",
+            sourcePathStates: {
+                [latestMacSource]: "missing",
+            },
+        });
     });
 
     it("returns an empty result when the artifacts directory is missing", async () => {
