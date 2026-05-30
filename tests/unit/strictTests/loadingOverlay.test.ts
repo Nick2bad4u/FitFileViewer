@@ -1,26 +1,37 @@
-/**
- * @vitest-environment jsdom
- */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+// @vitest-environment jsdom
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock theme colors to keep DOM deterministic
-vi.mock("../../../electron-app/utils/charts/theming/getThemeColors.js", () => ({
-    getThemeColors: vi.fn(() => ({
-        background: "#000000",
-        textPrimary: "#ffffff",
-        textSecondary: "#aaaaaa",
-        border: "#222222",
-        primary: "#00ff00",
-    })),
-}));
+vi.mock(
+    import("../../../electron-app/utils/charts/theming/getThemeColors.js"),
+    () => ({
+        getThemeColors: vi.fn<
+            () => {
+                background: string;
+                border: string;
+                primary: string;
+                textPrimary: string;
+                textSecondary: string;
+            }
+        >(() => ({
+            background: "#000000",
+            border: "#222222",
+            primary: "#00ff00",
+            textPrimary: "#ffffff",
+            textSecondary: "#aaaaaa",
+        })),
+    })
+);
 
-describe("LoadingOverlay strict", () => {
+describe("loading overlay strict", () => {
     beforeEach(() => {
         document.body.innerHTML = "";
         vi.restoreAllMocks();
     });
 
     it("creates overlay on first show with text and filename", async () => {
+        expect.hasAssertions();
+
         const { LoadingOverlay } =
             await import("../../../electron-app/utils/ui/components/LoadingOverlay.js");
 
@@ -38,6 +49,8 @@ describe("LoadingOverlay strict", () => {
     });
 
     it("reuses existing overlay and updates text only", async () => {
+        expect.hasAssertions();
+
         const { LoadingOverlay } =
             await import("../../../electron-app/utils/ui/components/LoadingOverlay.js");
 
@@ -62,6 +75,8 @@ describe("LoadingOverlay strict", () => {
     });
 
     it("hide removes the overlay from DOM", async () => {
+        expect.hasAssertions();
+
         const { LoadingOverlay } =
             await import("../../../electron-app/utils/ui/components/LoadingOverlay.js");
 
@@ -71,8 +86,11 @@ describe("LoadingOverlay strict", () => {
         ).toHaveLength(1);
 
         LoadingOverlay.hide();
-        expect(
-            document.querySelectorAll("#fitfile-loading-overlay")
-        ).toHaveLength(0);
+        expect({
+            overlayCount: document.querySelectorAll("#fitfile-loading-overlay")
+                .length,
+        }).toEqual({
+            overlayCount: 0,
+        });
     });
 });
