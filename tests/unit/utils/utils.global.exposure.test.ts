@@ -50,7 +50,12 @@ async function importFresh() {
 
 // Small helper to wait for next macrotask so setTimeout(..., 0) fires
 function nextTick(): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, 0));
+    return new Promise((resolve) => {
+        const timeout = setTimeout(() => {
+            clearTimeout(timeout);
+            resolve();
+        }, 0);
+    });
 }
 
 // Ensure clean window between tests
@@ -81,6 +86,8 @@ describe("utils.js – global exposure and helpers", () => {
     });
 
     it("exposes FitFileViewerUtils and attaches utilities to window", async () => {
+        expect.hasAssertions();
+
         const mod = await importFresh();
         // Wait for attachUtilitiesToWindow (setTimeout(..., 0))
         await nextTick();
@@ -100,16 +107,16 @@ describe("utils.js – global exposure and helpers", () => {
         expect(Object.keys(w.FitFileViewerUtils).sort()).toStrictEqual(
             [...EXPECTED_FIT_FILE_VIEWER_UTIL_KEYS].sort()
         );
-        expect(typeof w.FitFileViewerUtils.cleanup).toBe("function");
-        expect(typeof w.FitFileViewerUtils.getAvailableUtils).toBe("function");
-        expect(typeof w.FitFileViewerUtils.getUtil).toBe("function");
-        expect(typeof w.FitFileViewerUtils.isUtilAvailable).toBe("function");
+        expect(w.FitFileViewerUtils.cleanup).toBeTypeOf("function");
+        expect(w.FitFileViewerUtils.getAvailableUtils).toBeTypeOf("function");
+        expect(w.FitFileViewerUtils.getUtil).toBeTypeOf("function");
+        expect(w.FitFileViewerUtils.isUtilAvailable).toBeTypeOf("function");
         expect(w.FitFileViewerUtils.namespace).toBe("FitFileViewer");
-        expect(typeof w.FitFileViewerUtils.safeExecute).toBe("function");
+        expect(w.FitFileViewerUtils.safeExecute).toBeTypeOf("function");
         expect(Object.keys(w.FitFileViewerUtils.utils)).toStrictEqual(
             EXPECTED_AVAILABLE_UTILS
         );
-        expect(typeof w.FitFileViewerUtils.validateAllUtils).toBe("function");
+        expect(w.FitFileViewerUtils.validateAllUtils).toBeTypeOf("function");
         expect(w.FitFileViewerUtils.version).toBe("unknown");
 
         // setTimeout callback should have attached the individual utilities on window
@@ -124,16 +131,25 @@ describe("utils.js – global exposure and helpers", () => {
             "renderSummary",
             "updateActiveTab",
         ]) {
-            expect(typeof w[key]).toBe("function");
-            expect(w.FitFileViewerUtils.isUtilAvailable(key)).toBe(true);
+            expect({
+                available: w.FitFileViewerUtils.isUtilAvailable(key),
+                type: typeof w[key],
+            }).toEqual({
+                available: true,
+                type: "function",
+            });
         }
     });
 
     it("loads version from electron API when available", async () => {
+        expect.hasAssertions();
+
         // Provide an electronAPI before importing module so init path picks it up immediately
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (window as any).electronAPI = {
-            getAppVersion: vi.fn().mockResolvedValue("9.9.9"),
+            getAppVersion: vi
+                .fn<() => Promise<string>>()
+                .mockResolvedValue("9.9.9"),
         };
 
         const mod = await importFresh();
@@ -157,12 +173,14 @@ describe("utils.js – global exposure and helpers", () => {
         const w: any = window as any;
         expect(w.FitFileViewerUtils.version).toBe("9.9.9");
         // Ensure electronAPI was queried
-        expect((window as any).electronAPI.getAppVersion).toHaveBeenCalledTimes(
-            1
-        );
+        expect(
+            (window as any).electronAPI.getAppVersion
+        ).toHaveBeenCalledOnce();
     });
 
     it("safeExecute throws for unknown utility and succeeds for known one", async () => {
+        expect.hasAssertions();
+
         const mod = await importFresh();
         await nextTick();
 
@@ -180,6 +198,8 @@ describe("utils.js – global exposure and helpers", () => {
     });
 
     it("exposes dev helpers in development and records collisions", async () => {
+        expect.hasAssertions();
+
         // Force development mode so dev helpers are exposed (evaluated at module init)
         vi.stubEnv("NODE_ENV", "development");
 
@@ -203,11 +223,11 @@ describe("utils.js – global exposure and helpers", () => {
                 "validateUtils",
             ].sort()
         );
-        expect(typeof w.devUtilsHelpers.cleanup).toBe("function");
-        expect(typeof w.devUtilsHelpers.getAttachmentResults).toBe("function");
+        expect(w.devUtilsHelpers.cleanup).toBeTypeOf("function");
+        expect(w.devUtilsHelpers.getAttachmentResults).toBeTypeOf("function");
         expect(w.devUtilsHelpers.logLevel).toBe("debug");
-        expect(typeof w.devUtilsHelpers.reattachUtils).toBe("function");
-        expect(typeof w.devUtilsHelpers.validateUtils).toBe("function");
+        expect(w.devUtilsHelpers.reattachUtils).toBeTypeOf("function");
+        expect(w.devUtilsHelpers.validateUtils).toBeTypeOf("function");
 
         const results = w.devUtilsHelpers.getAttachmentResults();
         expect(results.collisions).toStrictEqual([
@@ -227,12 +247,14 @@ describe("utils.js – global exposure and helpers", () => {
     });
 
     it("cleanup removes attached global utilities", async () => {
+        expect.hasAssertions();
+
         await importFresh();
         await nextTick();
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const w: any = window as any;
-        expect(typeof w.formatDistance).toBe("function");
+        expect(w.formatDistance).toBeTypeOf("function");
 
         // Remove everything
         w.FitFileViewerUtils.cleanup();
