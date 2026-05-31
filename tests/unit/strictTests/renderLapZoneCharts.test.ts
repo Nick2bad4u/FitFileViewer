@@ -10,35 +10,35 @@ import {
 import { renderLapZoneCharts } from "../../../electron-app/utils/charts/rendering/renderLapZoneCharts.js";
 
 // Mock dependencies
-vi.mock("../../../electron-app/utils/theming/core/theme.js", () => ({
-    getThemeConfig: vi.fn(),
+vi.mock(import("../../../electron-app/utils/theming/core/theme.js"), () => ({
+    getThemeConfig: vi.fn<() => unknown>(),
 }));
 
 vi.mock(
-    "../../../electron-app/utils/charts/rendering/renderLapZoneChart.js",
+    import("../../../electron-app/utils/charts/rendering/renderLapZoneChart.js"),
     () => ({
-        renderLapZoneChart: vi.fn(),
+        renderLapZoneChart: vi.fn<ChartRenderFunction>(),
     })
 );
 
 vi.mock(
-    "../../../electron-app/utils/data/zones/renderSingleHRZoneBar.js",
+    import("../../../electron-app/utils/data/zones/renderSingleHRZoneBar.js"),
     () => ({
-        renderSingleHRZoneBar: vi.fn(),
+        renderSingleHRZoneBar: vi.fn<ChartRenderFunction>(),
     })
 );
 
 vi.mock(
-    "../../../electron-app/utils/data/zones/renderSinglePowerZoneBar.js",
+    import("../../../electron-app/utils/data/zones/renderSinglePowerZoneBar.js"),
     () => ({
-        renderSinglePowerZoneBar: vi.fn(),
+        renderSinglePowerZoneBar: vi.fn<ChartRenderFunction>(),
     })
 );
 
 vi.mock(
-    "../../../electron-app/utils/data/zones/chartZoneColorUtils.js",
+    import("../../../electron-app/utils/data/zones/chartZoneColorUtils.js"),
     () => ({
-        getZoneColor: vi.fn(),
+        getZoneColor: vi.fn<(type: string, index: number) => string>(),
     })
 );
 
@@ -51,13 +51,12 @@ import { getZoneColor } from "../../../electron-app/utils/data/zones/chartZoneCo
 
 type ThemeConfigMock = Mock<() => unknown>;
 type GetZoneColorMock = Mock<(type: string, index: number) => string>;
-type ChartRenderMock = Mock<
-    (
-        canvas: HTMLCanvasElement,
-        data: readonly unknown[],
-        options: { title: string }
-    ) => unknown
->;
+type ChartRenderFunction = (
+    canvas: HTMLCanvasElement,
+    data: readonly unknown[],
+    options: { title: string }
+) => unknown;
+type ChartRenderMock = Mock<ChartRenderFunction>;
 
 const getThemeConfigMock = getThemeConfig as unknown as ThemeConfigMock;
 const getZoneColorMock = getZoneColor as unknown as GetZoneColorMock;
@@ -67,11 +66,11 @@ const renderSingleHRZoneBarMock =
 const renderSinglePowerZoneBarMock =
     renderSinglePowerZoneBar as unknown as ChartRenderMock;
 
-describe("renderLapZoneCharts", () => {
+describe(renderLapZoneCharts, () => {
     let container: HTMLElement;
     let mockConsoleLog: ReturnType<typeof vi.spyOn>;
     let mockConsoleError: ReturnType<typeof vi.spyOn>;
-    let mockShowNotification: ReturnType<typeof vi.fn>;
+    let mockShowNotification: Mock<(message: string, type: string) => void>;
 
     beforeEach(() => {
         // Setup DOM
@@ -95,7 +94,7 @@ describe("renderLapZoneCharts", () => {
             .mockImplementation(() => {});
 
         // Mock notification
-        mockShowNotification = vi.fn();
+        mockShowNotification = vi.fn<(message: string, type: string) => void>();
         window.showNotification = mockShowNotification;
 
         // Reset mocks
@@ -110,8 +109,10 @@ describe("renderLapZoneCharts", () => {
     const getCanvasIds = (): string[] =>
         [...container.querySelectorAll("canvas")].map((canvas) => canvas.id);
 
-    describe("Parameter Validation", () => {
+    describe("parameter validation", () => {
         it("should handle null container gracefully", () => {
+            expect.hasAssertions();
+
             expect(() => renderLapZoneCharts(null)).not.toThrow();
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] renderLapZoneCharts called"
@@ -127,6 +128,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should handle undefined container gracefully", () => {
+            expect.hasAssertions();
+
             expect(() => renderLapZoneCharts(undefined)).not.toThrow();
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] renderLapZoneCharts called"
@@ -142,6 +145,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should accept valid container", () => {
+            expect.hasAssertions();
+
             renderLapZoneCharts(container);
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] renderLapZoneCharts called"
@@ -156,6 +161,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should handle empty options object", () => {
+            expect.hasAssertions();
+
             renderLapZoneCharts(container, {});
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] renderLapZoneCharts called"
@@ -170,6 +177,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should handle null options", () => {
+            expect.hasAssertions();
+
             renderLapZoneCharts(container, null);
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] renderLapZoneCharts called"
@@ -184,8 +193,10 @@ describe("renderLapZoneCharts", () => {
         });
     });
 
-    describe("Global Data Validation", () => {
+    describe("global data validation", () => {
         it("should return early when window.globalData is missing", () => {
+            expect.hasAssertions();
+
             delete window.globalData;
             renderLapZoneCharts(container);
             expect(mockConsoleLog).toHaveBeenCalledWith(
@@ -201,6 +212,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should return early when timeInZoneMesgs is missing", () => {
+            expect.hasAssertions();
+
             window.globalData = {};
             renderLapZoneCharts(container);
             expect(mockConsoleLog).toHaveBeenCalledWith(
@@ -216,6 +229,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should return early when timeInZoneMesgs is null", () => {
+            expect.hasAssertions();
+
             window.globalData = { timeInZoneMesgs: null };
             renderLapZoneCharts(container);
             expect(mockConsoleLog).toHaveBeenCalledWith(
@@ -231,6 +246,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should return early when timeInZoneMesgs is empty array", () => {
+            expect.hasAssertions();
+
             window.globalData = { timeInZoneMesgs: [] };
             renderLapZoneCharts(container);
             expect(mockConsoleLog).toHaveBeenCalledWith(
@@ -250,8 +267,10 @@ describe("renderLapZoneCharts", () => {
         });
     });
 
-    describe("Lap Zone Filtering", () => {
+    describe("lap zone filtering", () => {
         it("should filter messages with referenceMesg === 'lap'", () => {
+            expect.hasAssertions();
+
             window.globalData.timeInZoneMesgs = [
                 { referenceMesg: "session", timeInHrZone: "[0,10,20]" },
                 { referenceMesg: "lap", timeInHrZone: "[0,15,25]" },
@@ -280,6 +299,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should return early when no lap-specific zone data found", () => {
+            expect.hasAssertions();
+
             window.globalData.timeInZoneMesgs = [
                 { referenceMesg: "session", timeInHrZone: "[0,10,20]" },
                 { referenceMesg: "activity", timeInHrZone: "[0,8,12]" },
@@ -299,7 +320,7 @@ describe("renderLapZoneCharts", () => {
         });
     });
 
-    describe("Safe Array Parsing", () => {
+    describe("safe array parsing", () => {
         beforeEach(() => {
             getThemeConfigMock.mockReturnValue({
                 colors: { bgPrimary: "#ffffff", shadow: "none" },
@@ -320,6 +341,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should parse valid JSON array strings", () => {
+            expect.hasAssertions();
+
             renderLapZoneCharts(container);
             expect(mockConsoleError).not.toHaveBeenCalled();
             expect(getCanvasIds()).toEqual([
@@ -331,6 +354,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should handle array inputs directly", () => {
+            expect.hasAssertions();
+
             window.globalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
@@ -353,6 +378,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should handle null values", () => {
+            expect.hasAssertions();
+
             window.globalData.timeInZoneMesgs = [
                 { referenceMesg: "lap", timeInHrZone: null, referenceIndex: 1 },
             ];
@@ -369,6 +396,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should handle invalid JSON strings", () => {
+            expect.hasAssertions();
+
             window.globalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
@@ -389,6 +418,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should handle non-string non-array values", () => {
+            expect.hasAssertions();
+
             window.globalData.timeInZoneMesgs = [
                 { referenceMesg: "lap", timeInHrZone: 123, referenceIndex: 1 },
             ];
@@ -405,7 +436,7 @@ describe("renderLapZoneCharts", () => {
         });
     });
 
-    describe("Zone Data Processing", () => {
+    describe("zone data processing", () => {
         beforeEach(() => {
             getZoneColorMock.mockImplementation(
                 (type: string, index: number) => `${type}-zone-${index}`
@@ -413,6 +444,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should process HR zone data correctly", () => {
+            expect.hasAssertions();
+
             window.globalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
@@ -438,6 +471,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should process Power zone data correctly", () => {
+            expect.hasAssertions();
+
             window.globalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
@@ -462,6 +497,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should skip zone 0 (rest zone) in processing", () => {
+            expect.hasAssertions();
+
             window.globalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
@@ -487,6 +524,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should handle multiple laps", () => {
+            expect.hasAssertions();
+
             window.globalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
@@ -516,8 +555,10 @@ describe("renderLapZoneCharts", () => {
         });
     });
 
-    describe("Meaningful Zone Filtering", () => {
+    describe("meaningful zone filtering", () => {
         it("should filter out zones with zero values across all laps", () => {
+            expect.hasAssertions();
+
             window.globalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
@@ -545,6 +586,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should include zones with data from any lap", () => {
+            expect.hasAssertions();
+
             window.globalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
@@ -574,6 +617,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should handle empty zone data after filtering", () => {
+            expect.hasAssertions();
+
             window.globalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
@@ -597,7 +642,7 @@ describe("renderLapZoneCharts", () => {
         });
     });
 
-    describe("Canvas Creation and Styling", () => {
+    describe("canvas creation and styling", () => {
         beforeEach(() => {
             getThemeConfigMock.mockReturnValue({
                 name: "test-theme",
@@ -617,6 +662,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should create canvas with correct ID for HR stacked chart", () => {
+            expect.hasAssertions();
+
             renderLapZoneCharts(container);
             const canvas = container.querySelector(
                 "#chartjs-canvas-lap-hr-zones"
@@ -629,6 +676,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should apply correct styling to HR stacked canvas", () => {
+            expect.hasAssertions();
+
             renderLapZoneCharts(container);
             const canvas = container.querySelector(
                 "#chartjs-canvas-lap-hr-zones"
@@ -642,6 +691,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should create canvas for Power stacked chart", () => {
+            expect.hasAssertions();
+
             window.globalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
@@ -659,6 +710,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should create canvas for HR individual chart", () => {
+            expect.hasAssertions();
+
             renderLapZoneCharts(container);
             const canvas = container.querySelector(
                 "#chartjs-canvas-single-lap-hr"
@@ -668,6 +721,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should create canvas for Power individual chart", () => {
+            expect.hasAssertions();
+
             window.globalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
@@ -685,7 +740,7 @@ describe("renderLapZoneCharts", () => {
         });
     });
 
-    describe("Chart Rendering", () => {
+    describe("chart rendering", () => {
         beforeEach(() => {
             getThemeConfigMock.mockReturnValue({
                 name: "test-theme",
@@ -715,6 +770,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should call renderLapZoneChart for HR stacked chart", () => {
+            expect.hasAssertions();
+
             renderLapZoneCharts(container);
 
             // Verify renderLapZoneChart was called for HR chart
@@ -740,6 +797,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should call renderLapZoneChart for Power stacked chart", () => {
+            expect.hasAssertions();
+
             renderLapZoneCharts(container);
             expect(renderLapZoneChart).toHaveBeenCalledWith(
                 expect.any(HTMLCanvasElement),
@@ -752,6 +811,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should call renderSingleHRZoneBar for HR individual chart", () => {
+            expect.hasAssertions();
+
             renderLapZoneCharts(container);
             expect(renderSingleHRZoneBar).toHaveBeenCalledWith(
                 expect.any(HTMLCanvasElement),
@@ -764,6 +825,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should call renderSinglePowerZoneBar for Power individual chart", () => {
+            expect.hasAssertions();
+
             renderLapZoneCharts(container);
             expect(renderSinglePowerZoneBar).toHaveBeenCalledWith(
                 expect.any(HTMLCanvasElement),
@@ -776,7 +839,7 @@ describe("renderLapZoneCharts", () => {
         });
     });
 
-    describe("Chart Instance Management", () => {
+    describe("chart instance management", () => {
         beforeEach(() => {
             getThemeConfigMock.mockReturnValue({
                 colors: { bgPrimary: "#ffffff", shadow: "none" },
@@ -797,6 +860,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should initialize window._chartjsInstances array if not exists", () => {
+            expect.hasAssertions();
+
             delete window._chartjsInstances;
             renderLapZoneCharts(container);
             expect(window._chartjsInstances).toBeInstanceOf(Array);
@@ -807,6 +872,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should add chart instances to global array", () => {
+            expect.hasAssertions();
+
             window._chartjsInstances = [];
             renderLapZoneCharts(container);
             expect(window._chartjsInstances).toEqual([
@@ -816,6 +883,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should handle null chart returns", () => {
+            expect.hasAssertions();
+
             renderLapZoneChartMock.mockReturnValue(null);
             renderSingleHRZoneBarMock.mockReturnValue(null);
 
@@ -831,8 +900,10 @@ describe("renderLapZoneCharts", () => {
         });
     });
 
-    describe("Error Handling", () => {
+    describe("error handling", () => {
         it("should catch and log errors", () => {
+            expect.hasAssertions();
+
             // Force an error by making getThemeConfig throw
             getThemeConfigMock.mockImplementation(() => {
                 throw new Error("Theme config error");
@@ -861,6 +932,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should show notification on error", () => {
+            expect.hasAssertions();
+
             getThemeConfigMock.mockImplementation(() => {
                 throw new Error("Test error");
             });
@@ -888,6 +961,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should continue execution when showNotification is not available", () => {
+            expect.hasAssertions();
+
             delete window.showNotification;
             getThemeConfigMock.mockImplementation(() => {
                 throw new Error("Test error");
@@ -916,7 +991,7 @@ describe("renderLapZoneCharts", () => {
         });
     });
 
-    describe("Visibility Settings", () => {
+    describe("visibility settings", () => {
         beforeEach(() => {
             getThemeConfigMock.mockReturnValue({
                 colors: { bgPrimary: "#ffffff", shadow: "none" },
@@ -937,12 +1012,16 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should use default visibility settings when none provided", () => {
+            expect.hasAssertions();
+
             renderLapZoneCharts(container);
             // Should create all 4 canvases by default
             expect(container.querySelectorAll("canvas")).toHaveLength(4);
         });
 
         it("should respect custom visibility settings", () => {
+            expect.hasAssertions();
+
             const options = {
                 visibilitySettings: {
                     hrStackedVisible: true,
@@ -964,6 +1043,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should skip charts when visibility is false", () => {
+            expect.hasAssertions();
+
             const options = {
                 visibilitySettings: {
                     hrStackedVisible: false,
@@ -979,6 +1060,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should skip charts when no data available", () => {
+            expect.hasAssertions();
+
             window.globalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
@@ -993,7 +1076,7 @@ describe("renderLapZoneCharts", () => {
         });
     });
 
-    describe("Theme Integration", () => {
+    describe("theme integration", () => {
         beforeEach(() => {
             window.globalData.timeInZoneMesgs = [
                 {
@@ -1005,9 +1088,11 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should call getThemeConfig", () => {
+            expect.hasAssertions();
+
             getThemeConfigMock.mockReturnValue({ name: "test-theme" });
             renderLapZoneCharts(container);
-            expect(getThemeConfig).toHaveBeenCalled();
+            expect(getThemeConfig).toHaveBeenCalledWith();
             expect(getCanvasIds()).toEqual([
                 "chartjs-canvas-lap-hr-zones",
                 "chartjs-canvas-single-lap-hr",
@@ -1015,6 +1100,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should log theme config name when available", () => {
+            expect.hasAssertions();
+
             getThemeConfigMock.mockReturnValue({ name: "dark-theme" });
             renderLapZoneCharts(container);
             expect(mockConsoleLog).toHaveBeenCalledWith(
@@ -1028,6 +1115,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should handle missing theme config gracefully", () => {
+            expect.hasAssertions();
+
             getThemeConfigMock.mockReturnValue(null);
             renderLapZoneCharts(container);
             expect(mockConsoleError).not.toHaveBeenCalled();
@@ -1038,6 +1127,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should handle invalid theme config gracefully", () => {
+            expect.hasAssertions();
+
             getThemeConfigMock.mockReturnValue("invalid");
             renderLapZoneCharts(container);
             expect(mockConsoleError).not.toHaveBeenCalled();
@@ -1048,6 +1139,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should apply theme colors to canvas styling", () => {
+            expect.hasAssertions();
+
             getThemeConfigMock.mockReturnValue({
                 colors: {
                     bgPrimary: "#123456",
@@ -1065,7 +1158,7 @@ describe("renderLapZoneCharts", () => {
         });
     });
 
-    describe("Session Zone Data Handling", () => {
+    describe("session zone data handling", () => {
         beforeEach(() => {
             getThemeConfigMock.mockReturnValue({
                 colors: { bgPrimary: "#ffffff", shadow: "none" },
@@ -1073,6 +1166,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should use window.heartRateZones for HR individual chart when available", () => {
+            expect.hasAssertions();
+
             window.heartRateZones = [
                 { label: "Zone 1", value: 100, color: "red" },
                 { label: "Zone 2", value: 200, color: "blue" },
@@ -1095,6 +1190,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should convert time property to value for HR zones", () => {
+            expect.hasAssertions();
+
             window.heartRateZones = [
                 { label: "Zone 1", time: 100, color: "red" },
                 { label: "Zone 2", time: 200, color: "blue" },
@@ -1126,6 +1223,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should aggregate HR zone data from laps when session data not available", () => {
+            expect.hasAssertions();
+
             delete window.heartRateZones;
             getZoneColorMock.mockImplementation(
                 (type: string, index: number) => `${type}-zone-${index}`
@@ -1167,6 +1266,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should use window.powerZones for Power individual chart when available", () => {
+            expect.hasAssertions();
+
             window.powerZones = [
                 { label: "Zone 1", value: 50, color: "green" },
                 { label: "Zone 2", value: 150, color: "yellow" },
@@ -1189,6 +1290,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should aggregate Power zone data from laps when session data not available", () => {
+            expect.hasAssertions();
+
             delete window.powerZones;
             getZoneColorMock.mockImplementation(
                 (type: string, index: number) => `${type}-zone-${index}`
@@ -1232,8 +1335,10 @@ describe("renderLapZoneCharts", () => {
         });
     });
 
-    describe("Integration Tests", () => {
+    describe("integration tests", () => {
         it("should render complete lap zone charts with all data types", () => {
+            expect.hasAssertions();
+
             getThemeConfigMock.mockReturnValue({
                 name: "integration-theme",
                 colors: {
@@ -1274,8 +1379,8 @@ describe("renderLapZoneCharts", () => {
 
             // Should have called all rendering functions
             expect(renderLapZoneChart).toHaveBeenCalledTimes(2); // HR and Power stacked
-            expect(renderSingleHRZoneBar).toHaveBeenCalledTimes(1);
-            expect(renderSinglePowerZoneBar).toHaveBeenCalledTimes(1);
+            expect(renderSingleHRZoneBar).toHaveBeenCalledOnce();
+            expect(renderSinglePowerZoneBar).toHaveBeenCalledOnce();
 
             // Should have logged success
             expect(mockConsoleLog).toHaveBeenCalledWith(
@@ -1291,6 +1396,8 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should handle minimal data scenario", () => {
+            expect.hasAssertions();
+
             getThemeConfigMock.mockReturnValue({
                 colors: { bgPrimary: "#ffffff", shadow: "none" },
             });
