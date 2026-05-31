@@ -99,7 +99,7 @@ describe("registerClipboardHandlers", () => {
     }
 
     it("registers clipboard handlers", () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         const handlers = captureClipboardHandlers();
 
@@ -128,7 +128,7 @@ describe("registerClipboardHandlers", () => {
     });
 
     it("does nothing when registerIpcHandle is not a function", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const result = registerClipboardHandlers({
             registerIpcHandle: null,
@@ -143,7 +143,7 @@ describe("registerClipboardHandlers", () => {
     });
 
     it("clipboard:writeText writes to clipboard", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         registerClipboardHandlers({
             registerIpcHandle: mockRegisterIpcHandle,
@@ -168,7 +168,7 @@ describe("registerClipboardHandlers", () => {
     });
 
     it("clipboard:writeText returns false when clipboard is unavailable", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         mockClipboardRef.mockReturnValue(null);
 
@@ -195,7 +195,7 @@ describe("registerClipboardHandlers", () => {
     });
 
     it("clipboard:writePngDataUrl writes image to clipboard", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         registerClipboardHandlers({
             registerIpcHandle: mockRegisterIpcHandle,
@@ -225,7 +225,7 @@ describe("registerClipboardHandlers", () => {
     });
 
     it("clipboard:writePngDataUrl returns false for non-png data URLs", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         registerClipboardHandlers({
             registerIpcHandle: mockRegisterIpcHandle,
