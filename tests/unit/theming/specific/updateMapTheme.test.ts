@@ -1,16 +1,12 @@
-/**
- * @file Tests for updateMapTheme utility
- *
- *   Comprehensive test suite covering map theme updates, event handling, and side
- *   effects for the updateMapTheme module.
- */
+// Tests for updateMapTheme utility.
+// Comprehensive coverage for map theme updates, event handling, and side effects.
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock the dependency
-const mockGetMapThemeInverted = vi.fn();
+const mockGetMapThemeInverted = vi.hoisted(() => vi.fn<() => boolean>());
 vi.mock(
-    "../../../../electron-app/utils/theming/specific/createMapThemeToggle.js",
+    import("../../../../electron-app/utils/theming/specific/createMapThemeToggle.js"),
     () => ({
         getMapThemeInverted: mockGetMapThemeInverted,
         MAP_THEME_EVENTS: {
@@ -30,8 +26,8 @@ const {
 describe("updateMapTheme - comprehensive coverage", () => {
     const DARK_TILE_FILTER =
         "invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1)";
-    let consoleLogSpy: any;
-    let consoleErrorSpy: any;
+    let consoleLogSpy: ReturnType<typeof vi.spyOn>;
+    let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 
     /**
      * Sets up a minimal Leaflet-like DOM structure. The dark-map theme filter
@@ -72,6 +68,8 @@ describe("updateMapTheme - comprehensive coverage", () => {
 
     describe("updateMapTheme function", () => {
         it("should apply dark theme filter when map should be dark", () => {
+            expect.hasAssertions();
+
             // Setup
             mockGetMapThemeInverted.mockReturnValue(true);
             const { mapElement, tilePane } = setupLeafletDom();
@@ -80,7 +78,7 @@ describe("updateMapTheme - comprehensive coverage", () => {
             updateMapTheme();
 
             // Verify
-            expect(mockGetMapThemeInverted).toHaveBeenCalled();
+            expect(mockGetMapThemeInverted).toHaveBeenCalledWith();
             // Container must never be filtered (controls/tooltips live in the map container).
             expect(mapElement.style.filter).toBe("none");
             // Tiles are filtered to create a dark basemap.
@@ -91,6 +89,8 @@ describe("updateMapTheme - comprehensive coverage", () => {
         });
 
         it("should remove filter when map should be light", () => {
+            expect.hasAssertions();
+
             // Setup
             mockGetMapThemeInverted.mockReturnValue(false);
             const { mapElement, tilePane } = setupLeafletDom();
@@ -99,7 +99,7 @@ describe("updateMapTheme - comprehensive coverage", () => {
             updateMapTheme();
 
             // Verify
-            expect(mockGetMapThemeInverted).toHaveBeenCalled();
+            expect(mockGetMapThemeInverted).toHaveBeenCalledWith();
             expect(mapElement.style.filter).toBe("none");
             expect(tilePane.style.filter).toBe("none");
             expect(consoleLogSpy).toHaveBeenCalledWith(
@@ -108,6 +108,8 @@ describe("updateMapTheme - comprehensive coverage", () => {
         });
 
         it("should handle missing map element gracefully", () => {
+            expect.hasAssertions();
+
             // Setup - no map element in DOM
             mockGetMapThemeInverted.mockReturnValue(true);
 
@@ -115,13 +117,15 @@ describe("updateMapTheme - comprehensive coverage", () => {
             updateMapTheme();
 
             // Verify
-            expect(mockGetMapThemeInverted).toHaveBeenCalled();
+            expect(mockGetMapThemeInverted).toHaveBeenCalledWith();
             expect(consoleLogSpy).not.toHaveBeenCalled();
             expect(consoleErrorSpy).not.toHaveBeenCalled();
             expect(document.querySelector("#leaflet-map")).toBeNull();
         });
 
         it("should handle errors in getMapThemeInverted", () => {
+            expect.hasAssertions();
+
             // Setup
             const testError = new Error("Theme preference error");
             mockGetMapThemeInverted.mockImplementation(() => {
@@ -146,11 +150,14 @@ describe("updateMapTheme - comprehensive coverage", () => {
         });
 
         it("should handle DOM query errors", () => {
+            expect.hasAssertions();
+
             // Setup - mock querySelector to throw
-            const originalQuerySelector = document.querySelector;
-            document.querySelector = vi.fn().mockImplementation(() => {
-                throw new Error("DOM query error");
-            });
+            const querySelectorSpy = vi
+                .spyOn(document, "querySelector")
+                .mockImplementation((): never => {
+                    throw new Error("DOM query error");
+                });
             mockGetMapThemeInverted.mockReturnValue(true);
 
             try {
@@ -166,13 +173,15 @@ describe("updateMapTheme - comprehensive coverage", () => {
                 );
             } finally {
                 // Restore original querySelector
-                document.querySelector = originalQuerySelector;
+                querySelectorSpy.mockRestore();
             }
         });
     });
 
-    describe("Listener Installation", () => {
+    describe("listener installation", () => {
         it("should install listeners when requested", () => {
+            expect.hasAssertions();
+
             const addSpy = vi.spyOn(document, "addEventListener");
             mockGetMapThemeInverted.mockReturnValue(true);
             const { tilePane } = setupLeafletDom();
@@ -197,6 +206,8 @@ describe("updateMapTheme - comprehensive coverage", () => {
         });
 
         it("should be idempotent (no duplicate installs)", () => {
+            expect.hasAssertions();
+
             const addSpy = vi.spyOn(document, "addEventListener");
 
             installUpdateMapThemeListeners();
@@ -215,8 +226,10 @@ describe("updateMapTheme - comprehensive coverage", () => {
         });
     });
 
-    describe("Event Handling", () => {
+    describe("event handling", () => {
         it("should respond to themechange events", () => {
+            expect.hasAssertions();
+
             // Setup
             mockGetMapThemeInverted.mockReturnValue(true);
             const { mapElement, tilePane } = setupLeafletDom();
@@ -240,6 +253,8 @@ describe("updateMapTheme - comprehensive coverage", () => {
         });
 
         it("should respond to mapThemeChanged events", () => {
+            expect.hasAssertions();
+
             // Setup
             mockGetMapThemeInverted.mockReturnValue(false);
             const { mapElement, tilePane } = setupLeafletDom();
@@ -259,8 +274,10 @@ describe("updateMapTheme - comprehensive coverage", () => {
         });
     });
 
-    describe("Cleanup Handling", () => {
+    describe("cleanup handling", () => {
         it("should abort event listeners on beforeunload", () => {
+            expect.hasAssertions();
+
             mockGetMapThemeInverted.mockReturnValue(true);
             const { tilePane } = setupLeafletDom();
 
@@ -275,6 +292,8 @@ describe("updateMapTheme - comprehensive coverage", () => {
         });
 
         it("should handle cleanup when no listeners exist", () => {
+            expect.hasAssertions();
+
             // Execute - this should not throw
             const beforeUnloadEvent = new Event("beforeunload");
             expect(() => {
@@ -283,8 +302,10 @@ describe("updateMapTheme - comprehensive coverage", () => {
         });
     });
 
-    describe("Integration Scenarios", () => {
+    describe("integration scenarios", () => {
         it("should handle complete theme update workflow", () => {
+            expect.hasAssertions();
+
             // Setup
             mockGetMapThemeInverted.mockReturnValue(false);
             const { mapElement, tilePane } = setupLeafletDom();
@@ -308,6 +329,8 @@ describe("updateMapTheme - comprehensive coverage", () => {
         });
 
         it("should maintain state consistency across multiple calls", () => {
+            expect.hasAssertions();
+
             // Setup
             const { mapElement, tilePane } = setupLeafletDom();
             const snapshots: Array<{
