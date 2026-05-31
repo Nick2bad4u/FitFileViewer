@@ -13,19 +13,34 @@ import {
     setState,
     subscribe,
 } from "../../../../../electron-app/utils/state/core/stateManager.js";
+import type {
+    StateListener,
+    StateUpdateOptions,
+} from "../../../../../electron-app/utils/state/core/stateManager.js";
 
-vi.mock("../../../../../electron-app/utils/state/core/stateManager.js", () => ({
-    getState: vi.fn(),
-    setState: vi.fn(),
-    subscribe: vi.fn(() => () => {}),
-}));
+type GetState = <T = unknown>(path?: string) => T | undefined;
+type SetState = (
+    path: string,
+    value: unknown,
+    options?: StateUpdateOptions
+) => void;
+type Subscribe = (path: string, callback: StateListener) => () => void;
+
+vi.mock(
+    import("../../../../../electron-app/utils/state/core/stateManager.js"),
+    () => ({
+        getState: vi.fn<GetState>(),
+        setState: vi.fn<SetState>(),
+        subscribe: vi.fn<Subscribe>(() => () => {}),
+    })
+);
 
 const mockGetState = vi.mocked(getState);
 const mockSetState = vi.mocked(setState);
 const mockSubscribe = vi.mocked(subscribe);
 
 const mockConsoleLog = vi.spyOn(console, "log").mockImplementation(() => {});
-const mockGetComputedStyle = vi.fn();
+const mockGetComputedStyle = vi.fn<(element: Element) => CSSStyleDeclaration>();
 
 let mockToggleButton: HTMLButtonElement;
 let mockWrapper: HTMLDivElement;
@@ -53,7 +68,7 @@ function setWrapperOffsetParent(value: Element | null) {
     });
 }
 
-describe("updateControlsState", () => {
+describe(updateControlsState, () => {
     beforeEach(() => {
         vi.clearAllMocks();
         document.body.replaceChildren();
@@ -76,8 +91,10 @@ describe("updateControlsState", () => {
         installControlsDom();
     });
 
-    describe("initializeControlsState", () => {
+    describe(initializeControlsState, () => {
         it("should set up state subscription and initialize state", () => {
+            expect.hasAssertions();
+
             initializeControlsState();
 
             expect(mockSubscribe).toHaveBeenCalledWith(
@@ -88,14 +105,15 @@ describe("updateControlsState", () => {
         });
 
         it("should update DOM when state changes to visible", () => {
+            expect.hasAssertions();
+
             initializeControlsState();
 
-            const subscriptionCallback = mockSubscribe.mock.calls[0]?.[1];
-            expect(typeof subscriptionCallback).toBe("function");
+            const subscriptionCallback = mockSubscribe.mock
+                .calls[0]?.[1] as StateListener;
+            expect(subscriptionCallback).toBeTypeOf("function");
 
-            if (typeof subscriptionCallback === "function") {
-                subscriptionCallback(true);
-            }
+            subscriptionCallback(true, false, "charts.controlsVisible");
 
             expect(mockWrapper.style.display).toBe("block");
             expect(mockToggleButton.textContent).toBe("▼ Hide Controls");
@@ -103,14 +121,15 @@ describe("updateControlsState", () => {
         });
 
         it("should update DOM when state changes to hidden", () => {
+            expect.hasAssertions();
+
             initializeControlsState();
 
-            const subscriptionCallback = mockSubscribe.mock.calls[0]?.[1];
-            expect(typeof subscriptionCallback).toBe("function");
+            const subscriptionCallback = mockSubscribe.mock
+                .calls[0]?.[1] as StateListener;
+            expect(subscriptionCallback).toBeTypeOf("function");
 
-            if (typeof subscriptionCallback === "function") {
-                subscriptionCallback(false);
-            }
+            subscriptionCallback(false, true, "charts.controlsVisible");
 
             expect(mockWrapper.style.display).toBe("none");
             expect(mockToggleButton.textContent).toBe("▶ Show Controls");
@@ -120,15 +139,22 @@ describe("updateControlsState", () => {
         });
 
         it("should handle missing DOM elements gracefully", () => {
+            expect.hasAssertions();
+
             document.body.replaceChildren();
 
             expect(() => initializeControlsState()).not.toThrow();
-            expect(mockSubscribe).toHaveBeenCalled();
+            expect(mockSubscribe).toHaveBeenCalledWith(
+                "charts.controlsVisible",
+                expect.any(Function)
+            );
         });
     });
 
-    describe("toggleChartControls", () => {
+    describe(toggleChartControls, () => {
         it("should toggle state from false to true", () => {
+            expect.hasAssertions();
+
             mockGetState.mockReturnValue(false);
 
             toggleChartControls();
@@ -145,6 +171,8 @@ describe("updateControlsState", () => {
         });
 
         it("should toggle state from true to false", () => {
+            expect.hasAssertions();
+
             mockGetState.mockReturnValue(true);
 
             toggleChartControls();
@@ -161,6 +189,8 @@ describe("updateControlsState", () => {
         });
 
         it("should handle undefined state", () => {
+            expect.hasAssertions();
+
             mockGetState.mockReturnValue(undefined);
 
             toggleChartControls();
@@ -176,8 +206,10 @@ describe("updateControlsState", () => {
         });
     });
 
-    describe("updateControlsState", () => {
+    describe(updateControlsState, () => {
         it("should return early if toggle button is missing", () => {
+            expect.hasAssertions();
+
             mockToggleButton.remove();
 
             updateControlsState();
@@ -187,6 +219,8 @@ describe("updateControlsState", () => {
         });
 
         it("should return early if wrapper is missing", () => {
+            expect.hasAssertions();
+
             mockWrapper.remove();
 
             updateControlsState();
@@ -196,6 +230,8 @@ describe("updateControlsState", () => {
         });
 
         it("should detect visible controls and update state accordingly", () => {
+            expect.hasAssertions();
+
             mockWrapper.style.display = "block";
             setWrapperOffsetParent(document.body);
 
@@ -216,6 +252,8 @@ describe("updateControlsState", () => {
         });
 
         it("should detect hidden controls (style.display = none) and update state", () => {
+            expect.hasAssertions();
+
             mockWrapper.style.display = "none";
             setWrapperOffsetParent(document.body);
 
@@ -238,6 +276,8 @@ describe("updateControlsState", () => {
         });
 
         it("should detect hidden controls (computed style = none) and update state", () => {
+            expect.hasAssertions();
+
             mockWrapper.style.display = "block";
             setWrapperOffsetParent(document.body);
             mockGetComputedStyle.mockReturnValue({
@@ -263,6 +303,8 @@ describe("updateControlsState", () => {
         });
 
         it("should detect hidden controls (no offsetParent) and update state", () => {
+            expect.hasAssertions();
+
             mockWrapper.style.display = "block";
             setWrapperOffsetParent(null);
 
@@ -285,6 +327,8 @@ describe("updateControlsState", () => {
         });
 
         it("should call getComputedStyle correctly", () => {
+            expect.hasAssertions();
+
             mockWrapper.style.display = "block";
             setWrapperOffsetParent(document.body);
 
