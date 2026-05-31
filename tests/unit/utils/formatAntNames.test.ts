@@ -39,7 +39,7 @@ vi.mock(
 
 describe("formatAntNames", () => {
     it("looks up manufacturer names while preserving unknown IDs", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         expect(
             [
@@ -61,7 +61,7 @@ describe("formatAntNames", () => {
     });
 
     it("looks up product names while preserving unknown product IDs", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         expect(
             [
@@ -85,7 +85,7 @@ describe("formatAntNames", () => {
     });
 
     it("combines manufacturer and product lookups", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         expect(getManufacturerAndProduct(1, 717)).toEqual({
             manufacturerName: "garmin",
@@ -102,7 +102,7 @@ describe("formatAntNames", () => {
     });
 
     it("resolves manufacturer IDs from normalized names", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         expect(
             [
@@ -124,7 +124,7 @@ describe("formatAntNames", () => {
     });
 
     it("handles invalid-input manufacturer names with null results", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const invalidNames = [
             null,
