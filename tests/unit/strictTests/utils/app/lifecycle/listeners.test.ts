@@ -1,20 +1,41 @@
 // @ts-nocheck
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { Mock } from "vitest";
+
+type AddRecentFileMock = (filePath: string) => Promise<void>;
+type CopyTableAsCsvMock = () => string;
+type CreateObjectUrlMock = (object: Blob | MediaSource) => string;
+type HandleOpenFileMock = (options: unknown) => Promise<void> | void;
+type KeyboardShortcutsModalMock = () => void;
+type OpenFileSelectorMock = () => Promise<void>;
+type ParseFitFileMock = (buffer: ArrayBuffer) => Promise<any>;
+type ReadFileMock = (filePath: string) => Promise<ArrayBuffer>;
+type RecentFilesMock = () => Promise<string[]>;
+type RevokeObjectUrlMock = (url: string) => void;
+type SetLoadingMock = (isLoading: boolean) => void;
+type ShowAboutModalMock = () => void;
+type ShowFitDataMock = (data: unknown, filePath: string) => void;
+type ShowNotificationMock = (
+    message: string,
+    type?: string,
+    duration?: number
+) => void;
+type ShowUpdateNotificationMock = (...args: unknown[]) => void;
 
 const dependencyMocks = vi.hoisted(() => ({
-    keyboardShortcutsModal: vi.fn(),
-    openFileSelector: vi.fn(),
+    keyboardShortcutsModal: vi.fn<KeyboardShortcutsModalMock>(),
+    openFileSelector: vi.fn<OpenFileSelectorMock>(),
 }));
 
 vi.mock(
-    "../../../../../../electron-app/utils/files/import/openFileSelector.js",
+    import("../../../../../../electron-app/utils/files/import/openFileSelector.js"),
     () => ({
         openFileSelector: dependencyMocks.openFileSelector,
     })
 );
 
 vi.mock(
-    "../../../../../../electron-app/utils/ui/modals/keyboardShortcutsModal.js",
+    import("../../../../../../electron-app/utils/ui/modals/keyboardShortcutsModal.js"),
     () => ({
         showKeyboardShortcutsModal: dependencyMocks.keyboardShortcutsModal,
     })
@@ -24,9 +45,6 @@ const openFileSelectorMock = dependencyMocks.openFileSelector;
 
 // Import the module under test
 import { setupListeners } from "../../../../../../electron-app/utils/app/lifecycle/listeners.js";
-
-// Mock getRecentFiles function
-const getRecentFiles = vi.fn();
 
 type IpcHandler = (...args: any[]) => any;
 
@@ -43,8 +61,8 @@ declare global {
 }
 
 function installURLMocks() {
-    const createObjectURL = vi.fn(() => "blob:mock");
-    const revokeObjectURL = vi.fn();
+    const createObjectURL = vi.fn<CreateObjectUrlMock>(() => "blob:mock");
+    const revokeObjectURL = vi.fn<RevokeObjectUrlMock>();
     vi.stubGlobal("URL", {
         createObjectURL,
         revokeObjectURL,
@@ -117,15 +135,15 @@ function createFitMessages() {
 describe("setupListeners (utils/app/lifecycle/listeners)", () => {
     let openFileBtn: HTMLButtonElement;
     let electronAPI: any;
-    let setLoading: ReturnType<typeof vi.fn>;
-    let showNotification: ReturnType<typeof vi.fn>;
-    let handleOpenFile: ReturnType<typeof vi.fn>;
-    let showUpdateNotification: ReturnType<typeof vi.fn>;
-    let showAboutModal: ReturnType<typeof vi.fn>;
+    let setLoading: Mock<SetLoadingMock>;
+    let showNotification: Mock<ShowNotificationMock>;
+    let handleOpenFile: Mock<HandleOpenFileMock>;
+    let showUpdateNotification: Mock<ShowUpdateNotificationMock>;
+    let showAboutModal: Mock<ShowAboutModalMock>;
 
     beforeEach(() => {
         openFileSelectorMock.mockReset();
-        openFileSelectorMock.mockImplementation(() => {});
+        openFileSelectorMock.mockResolvedValue(undefined);
         Reflect.deleteProperty(globalThis, "__ffvMenuForwardRegistry");
         Reflect.deleteProperty(window, "__ffvMenuForwardRegistry");
         document.body.innerHTML = "";
@@ -144,11 +162,11 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             configurable: true,
         });
 
-        setLoading = vi.fn();
-        showNotification = vi.fn();
-        handleOpenFile = vi.fn();
-        showUpdateNotification = vi.fn();
-        showAboutModal = vi.fn();
+        setLoading = vi.fn<SetLoadingMock>();
+        showNotification = vi.fn<ShowNotificationMock>();
+        handleOpenFile = vi.fn<HandleOpenFileMock>();
+        showUpdateNotification = vi.fn<ShowUpdateNotificationMock>();
+        showAboutModal = vi.fn<ShowAboutModalMock>();
         ensureContainers();
     });
 
@@ -197,6 +215,8 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
     });
 
     it("wires openFile click to handleOpenFile", async () => {
+        expect.hasAssertions();
+
         const isOpeningFileRef = { current: false };
 
         setupListeners({
@@ -211,8 +231,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         openFileBtn.click();
         expect(openFileBtn.id).toBe("open-file-btn");
-        expect(handleOpenFile).toHaveBeenCalledTimes(1);
-        expect(handleOpenFile).toHaveBeenCalledWith({
+        expect(handleOpenFile).toHaveBeenCalledExactlyOnceWith({
             isOpeningFileRef,
             openFileBtn,
             setLoading,
@@ -221,6 +240,8 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
     });
 
     it("contextmenu: no recentFiles available -> no action", async () => {
+        expect.hasAssertions();
+
         // Remove recentFiles so early return triggers
         window.electronAPI.recentFiles = undefined;
 
@@ -243,7 +264,9 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
     });
 
     it("contextmenu: empty recent files -> shows info notification", async () => {
-        window.electronAPI.recentFiles = vi.fn().mockResolvedValue([]);
+        expect.hasAssertions();
+
+        vi.mocked(window.electronAPI.recentFiles).mockResolvedValue([]);
 
         setupListeners({
             openFileBtn,
@@ -270,15 +293,17 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
     });
 
     it("contextmenu: renders items and clicking loads file and updates recent", async () => {
+        expect.hasAssertions();
+
         const files = ["C:/Users/Test/one.fit", "C:/Users/Test/two.fit"];
-        electronAPI.recentFiles = vi.fn().mockResolvedValue(files);
+        vi.mocked(electronAPI.recentFiles).mockResolvedValue(files);
 
         const arrayBuf = new ArrayBuffer(8);
-        electronAPI.readFile = vi.fn().mockResolvedValue(arrayBuf);
+        vi.mocked(electronAPI.readFile).mockResolvedValue(arrayBuf);
         const parseResult = { data: createFitMessages() };
-        electronAPI.parseFitFile = vi.fn().mockResolvedValue(parseResult);
-        electronAPI.addRecentFile = vi.fn().mockResolvedValue(undefined);
-        const showFitData = vi.fn();
+        vi.mocked(electronAPI.parseFitFile).mockResolvedValue(parseResult);
+        vi.mocked(electronAPI.addRecentFile).mockResolvedValue(undefined);
+        const showFitData = vi.fn<ShowFitDataMock>();
 
         // Synchronize showFitData between window and globalThis scopes using property descriptor pattern
         Object.defineProperty(window, "showFitData", {
@@ -325,7 +350,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         ) as HTMLDivElement;
         expect(menu).toBeInstanceOf(HTMLDivElement);
         const items = Array.from(menu.querySelectorAll("div"));
-        expect(items.length).toBe(files.length);
+        expect(items).toHaveLength(files.length);
 
         // Click the second item properly using dispatchEvent instead of direct onclick call
         const second = items[1] as HTMLDivElement;
@@ -335,7 +360,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         // readFile and parseFitFile should be called and then addRecentFile
         await vi.waitFor(() => {
             expect(electronAPI.readFile).toHaveBeenCalledWith(files[1]);
-            expect(electronAPI.parseFitFile).toHaveBeenCalledTimes(1);
+            expect(electronAPI.parseFitFile).toHaveBeenCalledOnce();
             expect(electronAPI.addRecentFile).toHaveBeenCalledWith(files[1]);
             expect(showFitData).toHaveBeenCalledWith(
                 parseResult.data,
@@ -350,13 +375,17 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
     });
 
     it("window resize triggers ChartUpdater.updateCharts when tab active", async () => {
+        expect.hasAssertions();
+
         // Prepare active tab
         const tab = document.createElement("div");
         tab.id = "tab-chart";
         tab.classList.add("active");
         document.body.appendChild(tab);
 
-        window.ChartUpdater = { updateCharts: vi.fn() };
+        window.ChartUpdater = {
+            updateCharts: vi.fn<(reason?: string) => void>(),
+        };
 
         setupListeners({
             openFileBtn,
@@ -382,7 +411,9 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         );
     });
 
-    it("IPC: decoder-options-changed without cached file -> only info notification", async () => {
+    it("ipc: decoder-options-changed without cached file -> only info notification", async () => {
+        expect.hasAssertions();
+
         setupListeners({
             openFileBtn,
             isOpeningFileRef: { current: false },
@@ -404,13 +435,15 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         expect(window.electronAPI.readFile).not.toHaveBeenCalled();
     });
 
-    it("IPC: decoder-options-changed reloads cached file and calls showFitData", async () => {
+    it("ipc: decoder-options-changed reloads cached file and calls showFitData", async () => {
+        expect.hasAssertions();
+
         const arrayBuf = new ArrayBuffer(16);
         window.globalData = { cachedFilePath: "C:/tmp/sample.fit" } as any;
-        window.electronAPI.readFile = vi.fn().mockResolvedValue(arrayBuf);
+        vi.mocked(window.electronAPI.readFile).mockResolvedValue(arrayBuf);
         const parsed = createFitMessages();
-        window.electronAPI.parseFitFile = vi.fn().mockResolvedValue(parsed);
-        const showFitData = vi.fn();
+        vi.mocked(window.electronAPI.parseFitFile).mockResolvedValue(parsed);
+        const showFitData = vi.fn<ShowFitDataMock>();
         Object.defineProperty(globalThis, "showFitData", {
             value: showFitData,
             writable: true,
@@ -455,10 +488,17 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         expect(openFileBtn.disabled).toBe(false);
     });
 
-    it("IPC: export-file csv creates and clicks download link", async () => {
+    it("ipc: export-file csv creates and clicks download link", async () => {
+        expect.hasAssertions();
+
         installURLMocks();
         const csv = "a,b\n1,2";
-        (window as any).copyTableAsCSV = vi.fn(() => csv);
+        const copyTableAsCsv = vi.fn<CopyTableAsCsvMock>(() => csv);
+        Object.defineProperty(window, "copyTableAsCSV", {
+            configurable: true,
+            value: copyTableAsCsv,
+            writable: true,
+        });
 
         setupListeners({
             openFileBtn,
@@ -472,7 +512,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         // Spy on anchor creation and click
         const createEl = document.createElement.bind(document);
-        const clickSpy = vi.fn();
+        const clickSpy = vi.fn<() => void>();
         vi.spyOn(document, "createElement").mockImplementation((tag: any) => {
             const el = createEl(tag);
             if (tag === "a") {
@@ -490,14 +530,19 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             "C:/tmp/out.csv"
         );
 
-        expect((window as any).copyTableAsCSV).toHaveBeenCalled();
-        expect(clickSpy).toHaveBeenCalledTimes(1);
+        expect(copyTableAsCsv).toHaveBeenCalledExactlyOnceWith({
+            container: expect.any(HTMLDivElement),
+            data: window.globalData,
+        });
+        expect(clickSpy).toHaveBeenCalledOnce();
         expect(document.querySelector("a[download]")).toBeInstanceOf(
             HTMLAnchorElement
         );
     });
 
-    it("IPC: export-file gpx with coords triggers download, otherwise shows informative notices", async () => {
+    it("ipc: export-file gpx with coords triggers download, otherwise shows informative notices", async () => {
+        expect.hasAssertions();
+
         installURLMocks();
 
         setupListeners({
@@ -511,10 +556,10 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         });
 
         // Feature flag present
-        (window as any).createExportGPXButton = () => {};
+        (window as any).createExportGPXButton = (): void => {};
 
         // Case 1: valid coords -> click happens
-        const clickSpy = vi.fn();
+        const clickSpy = vi.fn<() => void>();
         const createEl = document.createElement.bind(document);
         vi.spyOn(document, "createElement").mockImplementation((tag: any) => {
             const el = createEl(tag);
@@ -538,8 +583,8 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             {} as any,
             "C:/tmp/out.gpx"
         );
-        expect(window.globalData.recordMesgs.length).toBe(2);
-        expect(clickSpy).toHaveBeenCalledTimes(1);
+        expect(window.globalData.recordMesgs).toHaveLength(2);
+        expect(clickSpy).toHaveBeenCalledOnce();
 
         // Case 2: no valid coords
         clickSpy.mockReset();
@@ -571,7 +616,9 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         );
     });
 
-    it("IPC: show-notification forwards to showNotification", async () => {
+    it("ipc: show-notification forwards to showNotification", async () => {
+        expect.hasAssertions();
+
         setupListeners({
             openFileBtn,
             isOpeningFileRef: { current: false },
@@ -587,8 +634,10 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         expect(showNotification).toHaveBeenCalledWith("Hello", "info", 3000);
     });
 
-    it("IPC: menu print and forward sends", async () => {
-        const printSpy = vi.fn();
+    it("ipc: menu print and forward sends", async () => {
+        expect.hasAssertions();
+
+        const printSpy = vi.fn<() => void>();
         // @ts-ignore
         window.print = printSpy;
 
@@ -604,7 +653,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         window.electronAPI.emit("menu-print");
         expect(openFileBtn.isConnected).toBe(true);
-        expect(printSpy).toHaveBeenCalled();
+        expect(printSpy).toHaveBeenCalledWith();
 
         window.electronAPI.emit("menu-check-for-updates");
         window.electronAPI.emit("menu-save-as");
@@ -616,7 +665,9 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         expect(window.electronAPI.send).toHaveBeenCalledWith("menu-export");
     });
 
-    it("IPC: menu-open-overlay triggers openFileSelector", async () => {
+    it("ipc: menu-open-overlay triggers openFileSelector", async () => {
+        expect.hasAssertions();
+
         setupListeners({
             openFileBtn,
             isOpeningFileRef: { current: false },
@@ -629,11 +680,13 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         await window.electronAPI.emit("menu-open-overlay");
         expect(openFileBtn.disabled).toBe(false);
-        expect(openFileSelectorMock).toHaveBeenCalledTimes(1);
+        expect(openFileSelectorMock).toHaveBeenCalledOnce();
         expect(showNotification).not.toHaveBeenCalled();
     });
 
-    it("IPC: menu-open-overlay surfaces errors", async () => {
+    it("ipc: menu-open-overlay surfaces errors", async () => {
+        expect.hasAssertions();
+
         openFileSelectorMock.mockRejectedValueOnce(new Error("fail"));
 
         setupListeners({
@@ -655,7 +708,9 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         );
     });
 
-    it("IPC: menu-about and keyboard-shortcuts flows", async () => {
+    it("ipc: menu-about and keyboard-shortcuts flows", async () => {
+        expect.hasAssertions();
+
         setupListeners({
             openFileBtn,
             isOpeningFileRef: { current: false },
@@ -669,21 +724,26 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         // menu-about calls showAboutModal with no args
         window.electronAPI.emit("menu-about");
         expect(openFileBtn.isConnected).toBe(true);
-        expect(showAboutModal).toHaveBeenCalled();
+        expect(showAboutModal).toHaveBeenCalledWith();
 
         await window.electronAPI.emit("menu-keyboard-shortcuts");
 
-        expect(dependencyMocks.keyboardShortcutsModal).toHaveBeenCalled();
+        expect(dependencyMocks.keyboardShortcutsModal).toHaveBeenCalledWith();
 
         // Second time: provide function so it calls directly
-        (globalThis as any).showKeyboardShortcutsModal = vi.fn();
+        const showKeyboardShortcutsModal = vi.fn<KeyboardShortcutsModalMock>();
+        Object.defineProperty(globalThis, "showKeyboardShortcutsModal", {
+            configurable: true,
+            value: showKeyboardShortcutsModal,
+            writable: true,
+        });
         window.electronAPI.emit("menu-keyboard-shortcuts");
-        expect(
-            (globalThis as any).showKeyboardShortcutsModal
-        ).toHaveBeenCalled();
+        expect(showKeyboardShortcutsModal).toHaveBeenCalledWith();
     });
 
-    it("Updater events forward to showUpdateNotification", async () => {
+    it("updater events forward to showUpdateNotification", async () => {
+        expect.hasAssertions();
+
         setupListeners({
             openFileBtn,
             isOpeningFileRef: { current: false },
