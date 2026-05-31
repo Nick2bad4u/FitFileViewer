@@ -72,7 +72,7 @@ describe("preload edge cases", () => {
     });
 
     it("does not expose when validateAPI fails and logs errors", async () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         process.env.NODE_ENV = "development";
 
@@ -124,7 +124,7 @@ describe("preload edge cases", () => {
     });
 
     it("event handlers: transform works and callback errors are caught", async () => {
-        expect.hasAssertions();
+        expect.assertions(7);
 
         const ipcRenderer: IpcRendererMock = {
             invoke: vi
@@ -187,7 +187,7 @@ describe("preload edge cases", () => {
     });
 
     it("injectMenu returns false on invalid parameters and logs error", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const ipcRenderer: IpcRendererMock = {
             invoke: vi
@@ -230,7 +230,7 @@ describe("preload edge cases", () => {
     });
 
     it("onUpdateEvent registers only when eventName and callback are valid", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const ipcRenderer: IpcRendererMock = {
             invoke: vi.fn<(...args: unknown[]) => Promise<unknown>>(),

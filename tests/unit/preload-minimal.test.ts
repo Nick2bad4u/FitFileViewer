@@ -128,7 +128,7 @@ describe("preload.js - Basic API Validation", () => {
     });
 
     it("should expose a validated electron API", async () => {
-        expect.hasAssertions();
+        expect.assertions(10);
         const electronApiExposure =
             electronMock.contextBridge.exposeInMainWorld.mock.calls.find(
                 ([name]) => name === "electronAPI"
@@ -187,7 +187,7 @@ describe("preload.js - Basic API Validation", () => {
     });
 
     it("should expose development tools API when validation passes", () => {
-        expect.hasAssertions();
+        expect.assertions(8);
         const electronAPI = exposedGlobals.get("electronAPI") as Record<
                 string,
                 unknown
@@ -218,7 +218,7 @@ describe("preload.js - Basic API Validation", () => {
     });
 
     it("should register beforeExit handler", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
         // Check if process.once was called with beforeExit
         const currentProcess =
             globalThis.process as unknown as PreloadMinimalProcess;
@@ -232,7 +232,7 @@ describe("preload.js - Basic API Validation", () => {
     });
 
     it("should log initialization message", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
         const logMessages = consoleLogSpy.mock.calls
             .map((call: unknown[]) => call[0])
             .filter(
