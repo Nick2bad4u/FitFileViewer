@@ -10,8 +10,6 @@ type WorkspacesModule = {
     appIconsPath: string;
     appIndexHtmlPath: string;
     appLeafletMeasureLitePath: string;
-    appPackagePath: string;
-    appPackageRepositoryPath: string;
     appRendererVendorGlobalsEntryPath: string;
     appStyleCssPath: string;
     appTypesPath: string;
@@ -53,6 +51,8 @@ type WorkspacesModule = {
     rootFlatpakRepoPath: string;
     rootFlatpakZipPath: string;
     rootPackageJsonPath: string;
+    rootPackagePath: string;
+    rootPackageRepositoryPath: string;
     rootPlaywrightConfigPath: string;
     rootIntegrationTestsPath: string;
     rootPrettierConfigPath: string;
@@ -93,10 +93,10 @@ describe("workspace path helpers", () => {
             path.join(process.cwd(), "docusaurus")
         );
         expect(workspaces.appDistPath).toBe(path.join("electron-app", "dist"));
-        expect(workspaces.appPackagePath).toBe(
+        expect(workspaces.rootPackagePath).toBe(
             path.join(process.cwd(), "package.json")
         );
-        expect(workspaces.appPackageRepositoryPath).toBe("package.json");
+        expect(workspaces.rootPackageRepositoryPath).toBe("package.json");
         expect(workspaces.appTypesPath).toBe(
             path.join("electron-app", "types")
         );

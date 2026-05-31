@@ -7,6 +7,8 @@ export const appSourceDirectoryName = "electron-app";
 export const docusaurusWorkspaceName = "docusaurus";
 export const rootArtifactsPath = "artifacts";
 export const rootPackageJsonPath = "package.json";
+export const rootPackagePath = repositoryPath(rootPackageJsonPath);
+export const rootPackageRepositoryPath = rootPackageJsonPath;
 export const rootPlaywrightConfigPath = "playwright.config.ts";
 export const rootDocusaurusTsconfigPath = "tsconfig.docusaurus.json";
 export const rootElectronBuilderConfigPath = "electron-builder.config.cjs";
@@ -52,8 +54,6 @@ export const appLeafletMeasureLitePath = appSourceRepositoryPath(
     "renderer",
     "leafletMeasureLite.js"
 );
-export const appPackagePath = repositoryPath(rootPackageJsonPath);
-export const appPackageRepositoryPath = rootPackageJsonPath;
 export const appRendererVendorGlobalsEntryPath = appSourceRepositoryPath(
     "renderer",
     "vendorGlobals.ts"

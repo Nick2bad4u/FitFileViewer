@@ -4,11 +4,11 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
-    appPackageRepositoryPath,
     appSourceRepositoryPath,
     docusaurusPackageRepositoryPath,
     rootElectronAppTsconfigPath,
     rootEslintConfigPath,
+    rootPackageRepositoryPath,
     rootPrettierConfigPath,
     rootRuntimeTsconfigPath,
     rootVitestConfigPath,
@@ -87,7 +87,7 @@ describe("workspace package boundaries", () => {
     it("keeps the root app package as the runtime app manifest", () => {
         expect.assertions(13);
 
-        const appPackage = readPackageJson(appPackageRepositoryPath);
+        const appPackage = readPackageJson(rootPackageRepositoryPath);
 
         expect({ private: appPackage.private }).toStrictEqual({
             private: true,
