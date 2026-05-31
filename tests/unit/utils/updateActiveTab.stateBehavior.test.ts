@@ -467,12 +467,18 @@ describe("updateActiveTab state behavior", () => {
         it("should set up state subscription", () => {
             appendTabElements([
                 { id: "tab-summary", text: "Summary" },
-                { id: "tab-chart", text: "Chart" },
+                { active: true, id: "tab-chart", text: "Chart" },
             ]);
 
-            const result = initializeActiveTabState();
+            initializeActiveTabState();
+            getSubscriptionCallback()("summary");
 
-            expect(result).toBeUndefined();
+            expect(
+                getRequiredElement("tab-summary").classList.contains("active")
+            ).toBe(true);
+            expect(
+                getRequiredElement("tab-chart").classList.contains("active")
+            ).toBe(false);
             expect(mockSubscribe).toHaveBeenCalledWith(
                 "ui.activeTab",
                 expect.any(Function)
@@ -550,9 +556,7 @@ describe("updateActiveTab state behavior", () => {
             placeholder.textContent = "No tab buttons";
             testContainer.appendChild(placeholder);
 
-            const result = initializeActiveTabState();
-
-            expect(result).toBeUndefined();
+            initializeActiveTabState();
             expect(testContainer.querySelectorAll(".tab-button")).toHaveLength(
                 0
             );
@@ -654,7 +658,7 @@ describe("updateActiveTab state behavior", () => {
                 { id: "", text: "Empty ID" },
             ]);
 
-            expect(initializeActiveTabState()).toBeUndefined();
+            initializeActiveTabState();
             expect(mockSubscribe).toHaveBeenCalledWith(
                 "ui.activeTab",
                 expect.any(Function)

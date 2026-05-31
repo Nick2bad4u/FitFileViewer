@@ -145,7 +145,7 @@ describe("tabStateManager regressions", () => {
                 .spyOn(console, "log")
                 .mockImplementation(() => {});
 
-            expect(tabStateManager.cleanup()).toBeUndefined();
+            tabStateManager.cleanup();
             expect(consoleSpy).toHaveBeenCalledWith(
                 "[TabStateManager] cleanup invoked"
             );
@@ -172,10 +172,8 @@ describe("tabStateManager regressions", () => {
                 ["ui.activeTab", expect.any(Function)],
                 ["globalData", expect.any(Function)],
             ]);
-            expect([manager.cleanup(), manager.cleanup()]).toStrictEqual([
-                undefined,
-                undefined,
-            ]);
+            manager.cleanup();
+            manager.cleanup();
             expect(unsubscribeActive).toHaveBeenCalledOnce();
             expect(unsubscribeData).toHaveBeenCalledOnce();
             expect(consoleSpy).toHaveBeenCalledWith(
