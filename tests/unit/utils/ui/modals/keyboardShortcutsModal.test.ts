@@ -5,11 +5,13 @@ type ModalExports = {
     closeKeyboardShortcutsModal: () => void;
 };
 
-const rafMock = vi.fn((callback: FrameRequestCallback) => {
-        callback(0);
-        return 1;
-    }),
-    cancelRafMock = vi.fn();
+const rafMock = vi.fn<(callback: FrameRequestCallback) => number>(
+        (callback) => {
+            callback(0);
+            return 1;
+        }
+    ),
+    cancelRafMock = vi.fn<(handle: number) => void>();
 
 vi.stubGlobal("requestAnimationFrame", rafMock);
 vi.stubGlobal("cancelAnimationFrame", cancelRafMock);
@@ -72,6 +74,8 @@ describe("keyboardShortcutsModal", () => {
     });
 
     it("creates and displays the modal when triggered", async () => {
+        expect.hasAssertions();
+
         const { showKeyboardShortcutsModal } = await loadModal();
         const trigger = document.createElement("button");
         trigger.textContent = "open";
@@ -80,7 +84,9 @@ describe("keyboardShortcutsModal", () => {
 
         vi.useFakeTimers();
 
-        (globalThis as any).electronAPI = { openExternal: vi.fn() };
+        (globalThis as any).electronAPI = {
+            openExternal: vi.fn<(url: string) => void>(),
+        };
 
         showKeyboardShortcutsModal();
 
@@ -107,11 +113,13 @@ describe("keyboardShortcutsModal", () => {
         expect(document.activeElement).toBe(closeBtn);
         expect(document.body.style.overflow).toBe("hidden");
         expect(
-            document.querySelectorAll("#keyboard-shortcuts-modal-styles").length
-        ).toBe(1);
+            document.querySelectorAll("#keyboard-shortcuts-modal-styles")
+        ).toHaveLength(1);
     });
 
     it("closes modal with animation and restores focus", async () => {
+        expect.hasAssertions();
+
         const { showKeyboardShortcutsModal, closeKeyboardShortcutsModal } =
             await loadModal();
         vi.useFakeTimers();
@@ -152,6 +160,8 @@ describe("keyboardShortcutsModal", () => {
     });
 
     it("closes when Escape is pressed", async () => {
+        expect.hasAssertions();
+
         const { showKeyboardShortcutsModal } = await loadModal();
         vi.useFakeTimers();
 
@@ -181,6 +191,8 @@ describe("keyboardShortcutsModal", () => {
     });
 
     it("traps focus within the modal", async () => {
+        expect.hasAssertions();
+
         const { showKeyboardShortcutsModal } = await loadModal();
         vi.useFakeTimers();
 
@@ -223,10 +235,12 @@ describe("keyboardShortcutsModal", () => {
     });
 
     it("opens external links via electron API", async () => {
+        expect.hasAssertions();
+
         const { showKeyboardShortcutsModal } = await loadModal();
         vi.useFakeTimers();
 
-        const openExternal = vi.fn();
+        const openExternal = vi.fn<(url: string) => void>();
         (globalThis as any).electronAPI = { openExternal };
 
         showKeyboardShortcutsModal();
