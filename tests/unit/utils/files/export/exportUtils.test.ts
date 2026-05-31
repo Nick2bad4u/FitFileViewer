@@ -8,31 +8,137 @@ import {
     exportUtils,
     __setTestDeps,
 } from "../../../../../electron-app/utils/files/export/exportUtils.js";
+import type { ExportableChart } from "../../../../../electron-app/utils/files/export/exportUtils.js";
+
+type AddCombinedCsvZip = Parameters<typeof exportUtils.addCombinedCSVToZip>[0];
+type ChartDataPoint = Parameters<typeof exportUtils.exportChartDataAsCSV>[0][0];
+type CreateObjectUrl = (object: Blob | MediaSource) => string;
+type DetectCurrentTheme = () => "light";
+type DownloadFile = (url: string, filename?: string) => Promise<void> | void;
+type ElectronIpcUnsubscribe = () => void;
+type MockAnchorElement = {
+    click: ReturnType<typeof vi.fn<() => void>>;
+    download: string;
+    href: string;
+    remove: ReturnType<typeof vi.fn<() => void>>;
+    style: Record<string, string>;
+};
+type MockCanvasContext = {
+    drawImage: ReturnType<typeof vi.fn<(...args: unknown[]) => void>>;
+    fillRect: ReturnType<typeof vi.fn<(...args: unknown[]) => void>>;
+    fillStyle: string;
+};
+type MockCanvasElement = {
+    getContext: ReturnType<typeof vi.fn<() => MockCanvasContext>>;
+    height: number;
+    toBlob: ReturnType<typeof vi.fn<(callback: BlobCallback) => void>>;
+    width: number;
+};
+type MockCreatedElement = MockAnchorElement | MockCanvasElement;
+type MockFetchResponse = {
+    json?: () => Promise<Record<string, string>>;
+    ok: boolean;
+    status?: number;
+    text?: () => Promise<string>;
+};
+type MockZip = AddCombinedCsvZip & {
+    file: ReturnType<
+        typeof vi.fn<
+            (
+                name: string,
+                data: Blob | string,
+                options?: { base64?: boolean }
+            ) => AddCombinedCsvZip
+        >
+    >;
+};
+type OnIpc = (
+    channel: string,
+    listener: (...args: unknown[]) => void
+) => ElectronIpcUnsubscribe;
+type SaveFile = (path: string, data: Blob | string) => Promise<void> | void;
+type ShowNotification = (
+    message: string,
+    type?: string,
+    duration?: number,
+    options?: unknown
+) => Promise<void> | void;
+type StartGyazoServer = () => Promise<{ message?: string; success: boolean }>;
 
 // Mock dependencies
-const mockShowNotification = vi.fn();
-const mockDetectCurrentTheme = vi.fn().mockReturnValue("light");
+const mockShowNotification = vi.fn<ShowNotification>();
+const mockDetectCurrentTheme = vi
+    .fn<DetectCurrentTheme>()
+    .mockReturnValue("light");
 const mockElectronAPI = {
-    startGyazoServer: vi.fn(),
-    stopGyazoServer: vi.fn(),
+    startGyazoServer: vi.fn<StartGyazoServer>(),
+    stopGyazoServer: vi.fn<() => Promise<void> | void>(),
     // authenticateWithGyazo registers an IPC listener and expects an unsubscribe function.
-    onIpc: vi.fn(() => () => {}),
-    saveFile: vi.fn(),
-    copyToClipboard: vi.fn(),
-    downloadFile: vi.fn(),
+    onIpc: vi.fn<OnIpc>(() => () => {}),
+    saveFile: vi.fn<SaveFile>(),
+    copyToClipboard: vi.fn<(value: string) => Promise<void> | void>(),
+    downloadFile: vi.fn<DownloadFile>(),
 };
 
 // Mock JSZip
-const mockJSZip = vi.fn(() => ({
-    file: vi.fn(),
-    generateAsync: vi.fn().mockResolvedValue(
-        new Uint8Array([
-            1,
-            2,
-            3,
-        ])
-    ),
+const mockJSZip = vi.fn<() => AddCombinedCsvZip>(() => ({
+    file: vi.fn<
+        (
+            name: string,
+            data: Blob | string,
+            options?: { base64?: boolean }
+        ) => AddCombinedCsvZip
+    >(),
+    generateAsync: vi
+        .fn<(options: { type: "blob" }) => Promise<Blob>>()
+        .mockResolvedValue(new Blob(["zip"])),
 }));
+
+function createCanvasContextMock(): MockCanvasContext {
+    return {
+        fillStyle: "",
+        fillRect: vi.fn<(...args: unknown[]) => void>(),
+        drawImage: vi.fn<(...args: unknown[]) => void>(),
+    };
+}
+
+function createMockCanvas(): MockCanvasElement {
+    return {
+        width: 800,
+        height: 600,
+        getContext: vi.fn<() => MockCanvasContext>(createCanvasContextMock),
+        toBlob: vi.fn<(callback: BlobCallback) => void>((callback) => {
+            callback(new Blob(["test"], { type: "image/png" }));
+        }),
+    };
+}
+
+function createMockLink(): MockAnchorElement {
+    return {
+        href: "",
+        download: "",
+        click: vi.fn<() => void>(),
+        style: {},
+        remove: vi.fn<() => void>(),
+    };
+}
+
+function createMockZip(): MockZip {
+    const zip = {
+        file: vi.fn<
+            (
+                name: string,
+                data: Blob | string,
+                options?: { base64?: boolean }
+            ) => AddCombinedCsvZip
+        >(),
+        generateAsync: vi
+            .fn<(options: { type: "blob" }) => Promise<Blob>>()
+            .mockResolvedValue(new Blob(["zip"])),
+    } as MockZip;
+    zip.file.mockReturnValue(zip);
+    return zip;
+}
 
 // Mock Chart.js instances
 const createMockChart = (
@@ -40,20 +146,9 @@ const createMockChart = (
     data = [
         { x: 1, y: 10 },
         { x: 2, y: 20 },
-    ]
-) => ({
-    canvas: {
-        toBlob: vi.fn((callback) =>
-            callback(new Blob(["test"], { type: "image/png" }))
-        ),
-        width: 800,
-        height: 600,
-        getContext: vi.fn(() => ({
-            fillStyle: "",
-            fillRect: vi.fn(),
-            drawImage: vi.fn(),
-        })),
-    },
+    ] satisfies ChartDataPoint[]
+): ExportableChart => ({
+    canvas: createMockCanvas() as unknown as HTMLCanvasElement,
     data: {
         datasets: [
             {
@@ -66,77 +161,78 @@ const createMockChart = (
         responsive: true,
     },
     toBase64Image: vi
-        .fn()
+        .fn<
+            (
+                type?: string,
+                quality?: number,
+                backgroundColor?: string
+            ) => string
+        >()
         .mockReturnValue(
             "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
         ),
-    update: vi.fn(),
-    destroy: vi.fn(),
+    update: vi.fn<() => void>(),
+    destroy: vi.fn<() => void>(),
 });
 
 // Mock localStorage
 const mockLocalStorage = {
-    getItem: vi.fn(),
-    setItem: vi.fn(),
-    removeItem: vi.fn(),
-    clear: vi.fn(),
+    getItem: vi.fn<(key: string) => null | string>(),
+    setItem: vi.fn<(key: string, value: string) => void>(),
+    removeItem: vi.fn<(key: string) => void>(),
+    clear: vi.fn<() => void>(),
 };
 
 // Mock fetch
-const mockFetch = vi.fn();
+const mockFetch =
+    vi.fn<
+        (
+            input: RequestInfo | URL,
+            init?: RequestInit
+        ) => Promise<MockFetchResponse>
+    >();
 
-// Mock document.createElement
-const mockCreateElement = vi.fn((tagName) => {
+function createElementForTag(tagName: string): MockCreatedElement {
     if (tagName === "canvas") {
-        return {
-            width: 800,
-            height: 600,
-            getContext: vi.fn(() => ({
-                fillStyle: "",
-                fillRect: vi.fn(),
-                drawImage: vi.fn(),
-            })),
-            toBlob: vi.fn((callback) =>
-                callback(new Blob(["test"], { type: "image/png" }))
-            ),
-        };
+        return createMockCanvas();
     }
     if (tagName === "a") {
-        return {
-            href: "",
-            download: "",
-            click: vi.fn(),
-            style: {},
-            remove: vi.fn(),
-        };
+        return createMockLink();
     }
-    return {
-        href: "",
-        download: "",
-        click: vi.fn(),
-        style: {},
-        remove: vi.fn(),
-    };
-});
+    return createMockLink();
+}
+
+// Mock document.createElement
+const mockCreateElement =
+    vi.fn<(tagName: string) => MockCreatedElement>(createElementForTag);
 
 // Mock URL.createObjectURL and revokeObjectURL
 const mockURL = {
-    createObjectURL: vi.fn().mockReturnValue("blob:mock-url"),
-    revokeObjectURL: vi.fn(),
+    createObjectURL: vi.fn<CreateObjectUrl>().mockReturnValue("blob:mock-url"),
+    revokeObjectURL: vi.fn<(url: string) => void>(),
 };
 
 // Mock document with body append method and querySelector
 const mockDocument = {
     createElement: mockCreateElement,
     body: {
-        append: vi.fn(),
+        append: vi.fn<(...nodes: unknown[]) => void>(),
     },
-    querySelector: vi.fn(() => ({
+    querySelector: vi.fn<
+        (selectors: string) => null | {
+            classList: {
+                add: ReturnType<typeof vi.fn<(...tokens: string[]) => void>>;
+                remove: ReturnType<typeof vi.fn<(...tokens: string[]) => void>>;
+            };
+            style: { display: string };
+            textContent: string;
+        }
+    >(() => ({
         style: { display: "" },
         textContent: "",
         classList: {
-            add: vi.fn(),
-            remove: vi.fn(),
+            add: vi.fn<(...tokens: string[]) => void>(),
+            remove: vi.fn<(...tokens: string[]) => void>(),
         },
     })),
 };
@@ -144,6 +240,9 @@ const mockDocument = {
 describe("exportUtils", () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        mockCreateElement.mockImplementation(createElementForTag);
+        mockLocalStorage.getItem.mockReturnValue(null);
+        mockURL.createObjectURL.mockReturnValue("blob:mock-url");
 
         // Setup global mocks
         Object.defineProperty(globalThis, "electronAPI", {
@@ -195,9 +294,9 @@ describe("exportUtils", () => {
 
     describe("addCombinedCSVToZip", () => {
         it("should add combined CSV data to ZIP archive", async () => {
-            const mockZip = {
-                file: vi.fn(),
-            };
+            expect.hasAssertions();
+
+            const mockZip = createMockZip();
 
             const charts = [
                 createMockChart("Speed", [
@@ -224,9 +323,9 @@ describe("exportUtils", () => {
         });
 
         it("should handle empty charts array", async () => {
-            const mockZip = {
-                file: vi.fn(),
-            };
+            expect.hasAssertions();
+
+            const mockZip = createMockZip();
 
             await exportUtils.addCombinedCSVToZip(mockZip, []);
 
@@ -239,9 +338,9 @@ describe("exportUtils", () => {
         });
 
         it("should handle charts with no data", async () => {
-            const mockZip = {
-                file: vi.fn(),
-            };
+            expect.hasAssertions();
+
+            const mockZip = createMockZip();
 
             const charts = [
                 createMockChart("Speed", []),
@@ -259,12 +358,12 @@ describe("exportUtils", () => {
         });
 
         it("should ignore invalid charts input without adding a file", async () => {
+            expect.hasAssertions();
+
             const consoleErrorSpy = vi
                 .spyOn(console, "error")
                 .mockImplementation(() => {});
-            const mockZip = {
-                file: vi.fn(),
-            };
+            const mockZip = createMockZip();
 
             await expect(
                 exportUtils.addCombinedCSVToZip(
@@ -287,6 +386,8 @@ describe("exportUtils", () => {
 
     describe("authenticateWithGyazo", () => {
         it("should handle authentication failure when server fails to start", async () => {
+            expect.hasAssertions();
+
             mockElectronAPI.startGyazoServer.mockResolvedValue({
                 success: false,
                 message: "Server failed to start",
@@ -298,6 +399,8 @@ describe("exportUtils", () => {
         });
 
         it("should handle missing Gyazo credentials", async () => {
+            expect.hasAssertions();
+
             // Mock localStorage to return null for credentials (but getGyazoConfig has defaults)
             // So we need to simulate a server start failure scenario instead
             mockElectronAPI.startGyazoServer.mockResolvedValue({
@@ -313,15 +416,12 @@ describe("exportUtils", () => {
 
     describe("downloadChartAsPNG", () => {
         it("should download chart as PNG file", async () => {
-            const chart = createMockChart();
-            const mockLink = {
-                href: "",
-                download: "",
-                click: vi.fn(),
-                remove: vi.fn(),
-            };
+            expect.hasAssertions();
 
-            (global.document.createElement as any).mockReturnValue(mockLink);
+            const chart = createMockChart();
+            const mockLink = createMockLink();
+
+            mockCreateElement.mockReturnValue(mockLink);
 
             await exportUtils.downloadChartAsPNG(chart);
 
@@ -331,12 +431,14 @@ describe("exportUtils", () => {
                 "#ffffff"
             );
             expect(global.document.createElement).toHaveBeenCalledWith("a");
-            expect(mockLink.click).toHaveBeenCalled();
+            expect(mockLink.click).toHaveBeenCalledWith();
             expect(mockLink.download).toBe("chart.png");
             expect(mockLink.href).toMatch(/^data:image\/png;base64,/);
         });
 
         it("should handle chart without toBase64Image method", async () => {
+            expect.hasAssertions();
+
             const chart = { data: { datasets: [] } }; // Chart without toBase64Image
 
             await expect(
@@ -353,6 +455,8 @@ describe("exportUtils", () => {
 
     describe("exportChartDataAsCSV", () => {
         it("should export chart data as CSV using DOM download", async () => {
+            expect.hasAssertions();
+
             const chartData = [
                 { x: 1000, y: 25 },
                 { x: 2000, y: 30 },
@@ -360,20 +464,17 @@ describe("exportUtils", () => {
             ];
             const fieldName = "Speed";
 
-            const mockLink = {
-                href: "",
-                download: "",
-                click: vi.fn(),
-                remove: vi.fn(),
-            };
+            const mockLink = createMockLink();
 
-            (global.document.createElement as any).mockReturnValue(mockLink);
+            mockCreateElement.mockReturnValue(mockLink);
 
             await exportUtils.exportChartDataAsCSV(chartData, fieldName);
 
             expect(global.document.createElement).toHaveBeenCalledWith("a");
-            expect(global.URL.createObjectURL).toHaveBeenCalled();
-            expect(mockLink.click).toHaveBeenCalled();
+            expect(global.URL.createObjectURL).toHaveBeenCalledWith(
+                expect.any(Blob)
+            );
+            expect(mockLink.click).toHaveBeenCalledWith();
             expect(mockLink.download).toBe("chart-data.csv");
             const csvBlob = mockURL.createObjectURL.mock.calls.at(-1)?.[0];
             expect(csvBlob).toBeInstanceOf(Blob);
@@ -383,22 +484,19 @@ describe("exportUtils", () => {
         });
 
         it("should handle empty data", async () => {
+            expect.hasAssertions();
+
             const chartData: Array<{ x: string; y: number }> = [];
             const fieldName = "Empty";
 
-            const mockLink = {
-                href: "",
-                download: "",
-                click: vi.fn(),
-                remove: vi.fn(),
-            };
+            const mockLink = createMockLink();
 
-            (global.document.createElement as any).mockReturnValue(mockLink);
+            mockCreateElement.mockReturnValue(mockLink);
 
             await exportUtils.exportChartDataAsCSV(chartData, fieldName);
 
             expect(global.document.createElement).toHaveBeenCalledWith("a");
-            expect(mockLink.click).toHaveBeenCalled();
+            expect(mockLink.click).toHaveBeenCalledWith();
             expect(mockLink.download).toBe("chart-data.csv");
             const csvBlob = mockURL.createObjectURL.mock.calls.at(-1)?.[0];
             expect(csvBlob).toBeInstanceOf(Blob);
@@ -408,13 +506,10 @@ describe("exportUtils", () => {
         });
 
         it("should leave the link inactive when CSV export cannot create an object URL", async () => {
-            const mockLink = {
-                href: "",
-                download: "",
-                click: vi.fn(),
-                remove: vi.fn(),
-            };
-            (global.document.createElement as any).mockReturnValue(mockLink);
+            expect.hasAssertions();
+
+            const mockLink = createMockLink();
+            mockCreateElement.mockReturnValue(mockLink);
             mockURL.createObjectURL.mockImplementationOnce(() => {
                 throw new Error("object URL failed");
             });
@@ -431,26 +526,25 @@ describe("exportUtils", () => {
 
     describe("exportChartDataAsJSON", () => {
         it("should export chart data as JSON using DOM download", async () => {
+            expect.hasAssertions();
+
             const chartData = [
                 { x: 1000, y: 25 },
                 { x: 2000, y: 30 },
             ];
             const fieldName = "Speed";
 
-            const mockLink = {
-                href: "",
-                download: "",
-                click: vi.fn(),
-                remove: vi.fn(),
-            };
+            const mockLink = createMockLink();
 
-            (global.document.createElement as any).mockReturnValue(mockLink);
+            mockCreateElement.mockReturnValue(mockLink);
 
             await exportUtils.exportChartDataAsJSON(chartData, fieldName);
 
             expect(global.document.createElement).toHaveBeenCalledWith("a");
-            expect(global.URL.createObjectURL).toHaveBeenCalled();
-            expect(mockLink.click).toHaveBeenCalled();
+            expect(global.URL.createObjectURL).toHaveBeenCalledWith(
+                expect.any(Blob)
+            );
+            expect(mockLink.click).toHaveBeenCalledWith();
             expect(mockLink.download).toBe("chart-data.json");
             const jsonBlob = mockURL.createObjectURL.mock.calls.at(-1)?.[0];
             expect(jsonBlob).toBeInstanceOf(Blob);
@@ -464,13 +558,10 @@ describe("exportUtils", () => {
         });
 
         it("should leave the link inactive when JSON export cannot create an object URL", async () => {
-            const mockLink = {
-                href: "",
-                download: "",
-                click: vi.fn(),
-                remove: vi.fn(),
-            };
-            (global.document.createElement as any).mockReturnValue(mockLink);
+            expect.hasAssertions();
+
+            const mockLink = createMockLink();
+            mockCreateElement.mockReturnValue(mockLink);
             mockURL.createObjectURL.mockImplementationOnce(() => {
                 throw new Error("object URL failed");
             });
@@ -487,6 +578,8 @@ describe("exportUtils", () => {
 
     describe("getGyazoConfig", () => {
         it("should return complete Gyazo configuration with stored credentials", () => {
+            expect.hasAssertions();
+
             mockLocalStorage.getItem.mockImplementation((key: string) => {
                 if (key === "gyazo_client_id") return "stored-client-id";
                 if (key === "gyazo_client_secret")
@@ -521,6 +614,8 @@ describe("exportUtils", () => {
         });
 
         it("should return default configuration when no credentials stored", () => {
+            expect.hasAssertions();
+
             mockLocalStorage.getItem.mockReturnValue(null);
 
             const config = exportUtils.getGyazoConfig();
@@ -545,8 +640,8 @@ describe("exportUtils", () => {
             );
 
             // Should have default clientId and clientSecret (not null/empty)
-            expect(typeof (config as any).clientId).toBe("string");
-            expect(typeof (config as any).clientSecret).toBe("string");
+            expect((config as any).clientId).toBeTypeOf("string");
+            expect((config as any).clientSecret).toBeTypeOf("string");
             expect((config as any).clientId.length).toBeGreaterThan(0);
             expect((config as any).clientSecret.length).toBeGreaterThan(0);
         });
@@ -554,6 +649,8 @@ describe("exportUtils", () => {
 
     describe("uploadToGyazo", () => {
         it("should upload base64 image to Gyazo", async () => {
+            expect.hasAssertions();
+
             // NOTE: Must be valid base64 (no '-' characters) because production code uses atob.
             const base64Image = "data:image/png;base64,dGVzdA=="; // "test"
 
@@ -562,10 +659,12 @@ describe("exportUtils", () => {
 
             mockFetch.mockResolvedValueOnce({
                 ok: true,
-                json: vi.fn().mockResolvedValue({
-                    url: "https://gyazo.com/uploaded",
-                    permalink_url: "https://gyazo.com/uploaded",
-                }),
+                json: vi
+                    .fn<() => Promise<Record<string, string>>>()
+                    .mockResolvedValue({
+                        url: "https://gyazo.com/uploaded",
+                        permalink_url: "https://gyazo.com/uploaded",
+                    }),
             });
 
             const result = await exportUtils.uploadToGyazo(base64Image);
@@ -582,6 +681,8 @@ describe("exportUtils", () => {
         });
 
         it("should handle upload failure", async () => {
+            expect.hasAssertions();
+
             // NOTE: Must be valid base64 (no '-' characters) because production code uses atob.
             const base64Image = "data:image/png;base64,dGVzdA=="; // "test"
 
@@ -591,7 +692,9 @@ describe("exportUtils", () => {
             mockFetch.mockResolvedValueOnce({
                 ok: false,
                 status: 500,
-                text: vi.fn().mockResolvedValue("Internal Server Error"),
+                text: vi
+                    .fn<() => Promise<string>>()
+                    .mockResolvedValue("Internal Server Error"),
             });
 
             await expect(
