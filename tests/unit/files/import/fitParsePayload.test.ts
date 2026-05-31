@@ -21,11 +21,17 @@ describe("fitParsePayload", () => {
         };
 
         expect(unwrapFitParseMessages(messages)).toBe(messages);
-        expect(getFitMessagesSessionCount(messages)).toBe(1);
+        expect({
+            sessionCount: getFitMessagesSessionCount(messages),
+            sessionRows: getFitMessageRows(messages, "sessions"),
+        }).toStrictEqual({
+            sessionCount: messages.sessions?.length,
+            sessionRows: messages.sessions,
+        });
     });
 
     it("reads named FIT message row collections with Garmin and legacy aliases", () => {
-        expect.assertions(4);
+        expect.assertions(3);
 
         const messages: FitMessages = {
             recordMesgs: [{ distance: 1000 }],
@@ -36,8 +42,13 @@ describe("fitParsePayload", () => {
             messages.recordMesgs
         );
         expect(getFitMessageRows(messages, "missingMesgs")).toStrictEqual([]);
-        expect(getFitMessagesSessionCount(messages)).toBe(1);
-        expect(getFitMessagesSessionCount({ session: [{}] })).toBe(1);
+        expect({
+            legacySessionCount: getFitMessagesSessionCount({ session: [{}] }),
+            sessionMesgsCount: getFitMessagesSessionCount(messages),
+        }).toStrictEqual({
+            legacySessionCount: 1,
+            sessionMesgsCount: messages.sessionMesgs?.length,
+        });
     });
 
     it("unwraps legacy success envelopes that contain FIT messages", () => {

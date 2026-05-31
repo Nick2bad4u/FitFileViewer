@@ -114,7 +114,13 @@ describe("masterStateManager introspection", () => {
 
             // Test history access
             const history = masterStateManager.getHistory();
-            expect(Array.isArray(history)).toBe(true);
+            expect({
+                entries: history,
+                isArray: Array.isArray(history),
+            }).toStrictEqual({
+                entries: [],
+                isArray: true,
+            });
         });
 
         it("should provide getSubscriptions method", () => {
@@ -159,14 +165,15 @@ describe("masterStateManager introspection", () => {
             const newHistory = masterStateManager
                 .getHistory()
                 .slice(initialHistoryLength) as StateHistorySnapshot[];
-            expect(
-                newHistory.map(({ newValue, oldValue, path, source }) => ({
+            const historyWithoutTimestamps = newHistory.map(
+                ({ newValue, oldValue, path, source }) => ({
                     newValue,
                     oldValue,
                     path,
                     source,
-                }))
-            ).toStrictEqual([
+                })
+            );
+            expect(historyWithoutTimestamps).toStrictEqual([
                 {
                     newValue: 1,
                     oldValue: undefined,
@@ -186,8 +193,16 @@ describe("masterStateManager introspection", () => {
                     source: "unknown",
                 },
             ]);
-            expect(newHistory.every(({ timestamp }) => timestamp > 0)).toBe(
-                true
+            expect(
+                newHistory.map(({ path, timestamp }) => ({
+                    hasTimestamp: timestamp > 0,
+                    path,
+                }))
+            ).toStrictEqual(
+                historyWithoutTimestamps.map(({ path }) => ({
+                    hasTimestamp: true,
+                    path,
+                }))
             );
         });
 
@@ -205,7 +220,7 @@ describe("masterStateManager introspection", () => {
             setState("test.subscription", "triggered");
 
             // Check subscription was called
-            expect(callCount).toBe(1);
+            expect({ callCount }).toStrictEqual({ callCount: 1 });
 
             // Check subscriptions list through masterStateManager
             const subscriptions =
@@ -217,7 +232,11 @@ describe("masterStateManager introspection", () => {
                 listenerCount: 1,
             });
             expect(subscriptions.paths).toContain("test.subscription");
-            expect(subscriptions.totalListeners).toBe(1);
+            expect({
+                totalListeners: subscriptions.totalListeners,
+            }).toStrictEqual({
+                totalListeners: 1,
+            });
 
             // Clean up
             unsubscribe();
