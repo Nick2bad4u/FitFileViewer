@@ -1,11 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const getMapThemeSetting = vi.fn(() => true);
-const setMapThemeSetting = vi.fn();
-const showNotification = vi.fn();
+const getMapThemeSetting = vi.fn<() => boolean>(() => true);
+const setMapThemeSetting = vi.fn<(inverted: boolean) => unknown>();
+const showNotification = vi.fn<
+    (message: string, type: string) => Promise<void>
+>(async () => {});
 
 vi.mock(
-    "../../../../../electron-app/utils/charts/theming/getThemeColors.js",
+    import("../../../../../electron-app/utils/charts/theming/getThemeColors.js"),
     () => ({
         getThemeColors: () => ({
             primary: "#123456",
@@ -15,7 +17,7 @@ vi.mock(
 );
 
 vi.mock(
-    "../../../../../electron-app/utils/state/domain/settingsStateManager.js",
+    import("../../../../../electron-app/utils/state/domain/settingsStateManager.js"),
     () => ({
         getMapThemeSetting,
         setMapThemeSetting,
@@ -23,7 +25,7 @@ vi.mock(
 );
 
 vi.mock(
-    "../../../../../electron-app/utils/ui/notifications/showNotification.js",
+    import("../../../../../electron-app/utils/ui/notifications/showNotification.js"),
     () => ({
         showNotification,
     })
