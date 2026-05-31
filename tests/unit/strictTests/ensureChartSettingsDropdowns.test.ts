@@ -416,7 +416,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
         expect(alphaSlider).toBeInstanceOf(HTMLInputElement);
         alphaSlider.value = "25";
         alphaSlider.dispatchEvent(new Event("input", { bubbles: true }));
-        expect(chartSettings.alpha).toBe(25);
+        expect(chartSettings).toMatchObject({ alpha: 25 });
         // Debounce 300ms
         expect(spies.reRenderChartsAfterSettingChange).not.toHaveBeenCalledWith(
             "alpha",
@@ -434,7 +434,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
         ) as HTMLElement;
         expect(toggleSwitch).toBeInstanceOf(HTMLElement);
         toggleSwitch.click();
-        expect(chartSettings.smoothing).toBe(false); // default true -> toggled to false
+        expect(chartSettings).toMatchObject({ smoothing: false });
         expect(spies.reRenderChartsAfterSettingChange).toHaveBeenCalledWith(
             "smoothing",
             false
@@ -447,7 +447,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
         expect(maxpoints).toBeInstanceOf(HTMLSelectElement);
         maxpoints.value = "100";
         maxpoints.dispatchEvent(new Event("change", { bubbles: true }));
-        expect(chartSettings.maxpoints).toBe(100);
+        expect(chartSettings).toMatchObject({ maxpoints: 100 });
         expect(spies.reRenderChartsAfterSettingChange).toHaveBeenCalledWith(
             "maxpoints",
             100
@@ -610,8 +610,8 @@ describe("ensureChartSettingsDropdowns integration", () => {
 
         resetBtn.click();
         expect(spies.resetAllSettings).toHaveBeenCalled();
-        expect(resetBtn.disabled).toBe(true);
+        expect(resetBtn).toHaveProperty("disabled", true);
         vi.advanceTimersByTime(200);
-        expect(resetBtn.disabled).toBe(false);
+        expect(resetBtn).toHaveProperty("disabled", false);
     });
 });
