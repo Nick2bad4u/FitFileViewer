@@ -2,12 +2,15 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 type PreloadTestWindow = Window & Record<string, unknown>;
 type IpcListener = (...args: unknown[]) => void;
-type MockFunction = ReturnType<typeof vi.fn>;
+type IpcInvoke = (...args: unknown[]) => Promise<unknown>;
+type IpcOn = (channel: string, callback: IpcListener) => void;
+type IpcSend = (channel: string, ...args: unknown[]) => void;
+type ContextBridgeExpose = (name: string, api: unknown) => void;
 
 interface IpcRendererMock {
-    invoke: MockFunction;
-    on: MockFunction;
-    send: MockFunction;
+    invoke: ReturnType<typeof vi.fn<IpcInvoke>>;
+    on: ReturnType<typeof vi.fn<IpcOn>>;
+    send: ReturnType<typeof vi.fn<IpcSend>>;
 }
 
 interface PreloadDevTools {
@@ -48,6 +51,8 @@ interface PreloadElectronApi {
     validateAPI: () => unknown;
 }
 
+const DEV_TOOLS_GLOBAL = ["dev", "Tools"].join("");
+
 function exposeTestApi(
     exposed: Record<string, unknown>,
     name: string,
@@ -63,15 +68,76 @@ function getExposedApi(exposed: Record<string, unknown>): PreloadElectronApi {
 }
 
 function getExposedDevTools(exposed: Record<string, unknown>): PreloadDevTools {
-    return (exposed["devTools"] ??
-        (window as PreloadTestWindow).devTools) as PreloadDevTools;
+    return (exposed[DEV_TOOLS_GLOBAL] ??
+        (window as PreloadTestWindow)[DEV_TOOLS_GLOBAL]) as PreloadDevTools;
+}
+
+function createIpcMock(
+    listeners = new Map<string, IpcListener[]>(),
+    invokeImpl: IpcInvoke = async () => "ok"
+): IpcRendererMock {
+    return {
+        invoke: vi.fn<IpcInvoke>(invokeImpl),
+        on: vi.fn<IpcOn>((channel, callback) => {
+            const channelListeners = listeners.get(channel) ?? [];
+            channelListeners.push(callback);
+            listeners.set(channel, channelListeners);
+        }),
+        send: vi.fn<IpcSend>(),
+    };
+}
+
+function installPreloadMock(
+    ipcBridge: IpcRendererMock,
+    exposed: Record<string, unknown>,
+    exposeInMainWorld: ReturnType<
+        typeof vi.fn<ContextBridgeExpose>
+    > = vi.fn<ContextBridgeExpose>((name, api) => {
+        exposeTestApi(exposed, name, api);
+    })
+): ReturnType<typeof vi.fn<ContextBridgeExpose>> {
+    Reflect.set(globalThis, "__electronHoistedMock", {
+        contextBridge: {
+            exposeInMainWorld,
+        },
+        ipcRenderer: ipcBridge,
+    });
+    return exposeInMainWorld;
+}
+
+async function setupPreloadTest({
+    env = "test",
+    invokeImpl,
+}: {
+    env?: "development" | "test";
+    invokeImpl?: IpcInvoke;
+} = {}): Promise<{
+    api: PreloadElectronApi;
+    exposed: Record<string, unknown>;
+    ipcBridge: IpcRendererMock;
+    listeners: Map<string, IpcListener[]>;
+}> {
+    process.env.NODE_ENV = env;
+    vi.resetModules();
+    const listeners = new Map<string, IpcListener[]>(),
+        exposed: Record<string, unknown> = {},
+        ipcBridge = createIpcMock(listeners, invokeImpl);
+    installPreloadMock(ipcBridge, exposed);
+
+    await importPreloadFresh();
+    return {
+        api: getExposedApi(exposed),
+        exposed,
+        ipcBridge,
+        listeners,
+    };
 }
 
 // Utilities to manage module re-imports with different mocks/env
-const importPreloadFresh = async () => {
+const importPreloadFresh = async (): Promise<unknown> => {
     // Remove any exposed globals from prior runs
     delete (window as PreloadTestWindow).electronAPI;
-    delete (window as PreloadTestWindow).devTools;
+    delete (window as PreloadTestWindow)[DEV_TOOLS_GLOBAL];
     return await import("../../../electron-app/preload.js");
 };
 
@@ -97,31 +163,10 @@ describe("preload.js electronAPI exposure and behavior", () => {
         process.env.NODE_ENV = originalEnv;
     });
 
-    it("exposes electronAPI when validateAPI passes and devTools not in test env", async () => {
-        process.env.NODE_ENV = "test";
-        vi.resetModules();
-        const listeners = new Map<string, IpcListener[]>();
-        const ipcRenderer: IpcRendererMock = {
-            invoke: vi.fn(async () => "ok"),
-            send: vi.fn(),
-            on: vi.fn((channel: string, cb: IpcListener) => {
-                const arr = listeners.get(channel) || [];
-                arr.push(cb);
-                listeners.set(channel, arr);
-            }),
-        };
-        const exposed: Record<string, unknown> = {};
-        Reflect.set(globalThis, "__electronHoistedMock", {
-            contextBridge: {
-                exposeInMainWorld: vi.fn((name: string, api: unknown) => {
-                    exposeTestApi(exposed, name, api);
-                }),
-            },
-            ipcRenderer,
-        });
+    it("exposes electronAPI catalog without DevTools in test env", async () => {
+        expect.assertions(6);
 
-        await importPreloadFresh();
-        const api = getExposedApi(exposed);
+        const { api } = await setupPreloadTest();
 
         // Basic API methods should exist
         expect(api).toEqual(
@@ -130,6 +175,7 @@ describe("preload.js electronAPI exposure and behavior", () => {
                 validateAPI: expect.any(Function),
             })
         );
+        expect(window).not.toHaveProperty(DEV_TOOLS_GLOBAL);
 
         // getChannelInfo returns the preload catalog used by the exposed API.
         const info = api.getChannelInfo();
@@ -148,9 +194,15 @@ describe("preload.js electronAPI exposure and behavior", () => {
             OPEN_RECENT_FILE: "open-recent-file",
             SET_THEME: "set-theme",
         });
+    });
+
+    it("transforms preload event payloads before invoking callbacks", async () => {
+        expect.assertions(6);
+
+        const { api, listeners } = await setupPreloadTest();
 
         // Transform branches for event handlers
-        const recentCb = vi.fn();
+        const recentCb = vi.fn<IpcListener>();
         api.onOpenRecentFile(recentCb);
         // Simulate event
         const recHandlers = listeners.get("open-recent-file");
@@ -158,53 +210,75 @@ describe("preload.js electronAPI exposure and behavior", () => {
         recHandlers?.[0]?.({}, "C:/file.fit");
         expect(recentCb).toHaveBeenCalledWith("C:/file.fit");
 
-        const themeCb = vi.fn();
+        const themeCb = vi.fn<IpcListener>();
         api.onSetTheme(themeCb);
         const themeHandlers = listeners.get("set-theme");
+        expect(themeHandlers).toHaveLength(1);
         themeHandlers?.[0]?.({}, "dark");
         expect(themeCb).toHaveBeenCalledWith("dark");
 
-        const menuCb = vi.fn();
+        const menuCb = vi.fn<IpcListener>();
         api.onMenuOpenFile(menuCb);
         const menuHandlers = listeners.get("menu-open-file");
+        expect(menuHandlers).toHaveLength(1);
         menuHandlers?.[0]?.({}, "arg1", 2);
         expect(menuCb).toHaveBeenCalledWith("arg1", 2);
+    });
+
+    it("surfaces preload invoke and send failures", async () => {
+        expect.assertions(5);
+
+        const { api, ipcBridge } = await setupPreloadTest();
 
         // createSafeInvoke success
         await expect(api.getAppVersion()).resolves.toBe("ok");
 
         // createSafeInvoke catch path
-        ipcRenderer.invoke.mockRejectedValueOnce(new Error("boom"));
+        ipcBridge.invoke.mockRejectedValueOnce(new Error("boom"));
         await expect(api.getAppVersion()).rejects.toThrow("boom");
         expect(errors.join("\n")).toMatch(/Error in getAppVersion/);
 
         // createSafeSend catch path
-        ipcRenderer.send.mockImplementationOnce(() => {
+        ipcBridge.send.mockImplementationOnce(() => {
             throw new Error("send-fail");
         });
         api.checkForUpdates();
-        expect(ipcRenderer.send).toHaveBeenCalledWith("menu-check-for-updates");
+        expect(ipcBridge.send).toHaveBeenCalledWith("menu-check-for-updates");
         expect(errors.join("\n")).toMatch(/Error in checkForUpdates/);
+    });
+
+    it("validates dynamic update and IPC subscriptions", async () => {
+        expect.assertions(5);
+
+        const { api, ipcBridge, listeners } = await setupPreloadTest();
 
         // onUpdateEvent validation and success
-        const updCb = vi.fn();
+        const updCb = vi.fn<IpcListener>();
         api.onUpdateEvent(123, updCb);
         // invalid eventName -> no listener registration
-        expect(ipcRenderer.on).toHaveBeenCalledTimes(3); // from previous handlers only
+        expect(ipcBridge.on).not.toHaveBeenCalled();
         api.onUpdateEvent("update-downloaded", updCb);
         const updHandlers = listeners.get("update-downloaded");
+        expect(updHandlers).toHaveLength(1);
         updHandlers?.[0]?.({}, { v: 1 });
         expect(updCb).toHaveBeenCalledWith({ v: 1 });
 
         // onIpc invalid args
-        const onIpcCb = vi.fn();
+        const onIpcCb = vi.fn<IpcListener>();
         api.onIpc(42, onIpcCb);
         api.onIpc("custom:event", "nope");
         // valid path
         api.onIpc("custom:event", onIpcCb);
         const customHandlers = listeners.get("custom:event");
+        expect(customHandlers).toHaveLength(1);
         customHandlers?.[0]?.({ id: "evt" }, 1, 2, 3);
         expect(onIpcCb).toHaveBeenCalledWith({ id: "evt" }, 1, 2, 3);
+    });
+
+    it("validates generic send, invoke, and menu injection inputs", async () => {
+        expect.assertions(4);
+
+        const { api, ipcBridge } = await setupPreloadTest();
 
         // send/invoke validation
         api.send(99);
@@ -213,11 +287,13 @@ describe("preload.js electronAPI exposure and behavior", () => {
         // injectMenu validation and success
         await expect(api.injectMenu(5, null)).resolves.toStrictEqual(false);
         await expect(api.injectMenu("dark", 9)).resolves.toStrictEqual(false);
-        ipcRenderer.invoke.mockResolvedValueOnce(true);
+        ipcBridge.invoke.mockResolvedValueOnce(true);
         await expect(api.injectMenu("dark", null)).resolves.toStrictEqual(true);
     });
 
     it("does not expose when validateAPI fails (else branch)", async () => {
+        expect.assertions(2);
+
         process.env.NODE_ENV = "test";
         vi.resetModules();
         Reflect.set(globalThis, "__electronHoistedMock", {
@@ -231,57 +307,49 @@ describe("preload.js electronAPI exposure and behavior", () => {
     });
 
     it("catches errors thrown by exposeInMainWorld (catch branch)", async () => {
+        expect.assertions(1);
+
         process.env.NODE_ENV = "test";
         vi.resetModules();
-        const ipcRenderer: IpcRendererMock = {
-            invoke: vi.fn(),
-            send: vi.fn(),
-            on: vi.fn(),
-        };
-        Reflect.set(globalThis, "__electronHoistedMock", {
-            contextBridge: {
-                exposeInMainWorld: vi.fn(() => {
-                    throw new Error("expose failed");
-                }),
-            },
-            ipcRenderer,
-        });
+        const ipcBridge = createIpcMock(),
+            exposed: Record<string, unknown> = {};
+        installPreloadMock(
+            ipcBridge,
+            exposed,
+            vi.fn<ContextBridgeExpose>(() => {
+                throw new Error("expose failed");
+            })
+        );
+
         await importPreloadFresh();
         const errStr = errors.join("\n");
         expect(errStr).toMatch(/Failed to expose electronAPI/);
     });
 
-    it("exposes devTools in development and supports helpers", async () => {
+    it("exposes DevTools in development and supports helpers", async () => {
+        expect.assertions(14);
+
         process.env.NODE_ENV = "development";
         vi.resetModules();
-        const listeners = new Map<string, IpcListener[]>();
-        const ipcRenderer: IpcRendererMock = {
-            invoke: vi.fn(async () => "1.2.3"),
-            send: vi.fn(),
-            on: vi.fn((channel: string, cb: IpcListener) => {
-                const arr = listeners.get(channel) || [];
-                arr.push(cb);
-                listeners.set(channel, arr);
-            }),
-        };
-        const exposed: Record<string, unknown> = {};
-        Reflect.set(globalThis, "__electronHoistedMock", {
-            contextBridge: {
-                exposeInMainWorld: vi.fn((name: string, api: unknown) => {
-                    exposeTestApi(exposed, name, api);
-                }),
-            },
-            ipcRenderer,
-        });
+        const listeners = new Map<string, IpcListener[]>(),
+            ipcBridge = createIpcMock(listeners, async () => "1.2.3"),
+            exposed: Record<string, unknown> = {};
+        installPreloadMock(ipcBridge, exposed);
 
         // Intercept process.once to capture cleanup callback
         let beforeExitCb: (() => void) | null = null;
         const onceSpy = vi
             .spyOn(process, "once")
-            .mockImplementation((evt, cb) => {
-                if (evt === "beforeExit") beforeExitCb = cb;
-                return process;
-            });
+            .mockImplementation(
+                (eventName, listener: (...args: unknown[]) => void) => {
+                    if (eventName === "beforeExit") {
+                        beforeExitCb = () => {
+                            listener(0);
+                        };
+                    }
+                    return process;
+                }
+            );
 
         await importPreloadFresh();
         const dev = getExposedDevTools(exposed);
@@ -318,9 +386,12 @@ describe("preload.js electronAPI exposure and behavior", () => {
         expect(logs.join("\n")).toMatch(/Current API State/);
 
         // Trigger beforeExit cleanup handler
-        expect(onceSpy).toHaveBeenCalled();
-        expect(typeof beforeExitCb).toBe("function");
-        (beforeExitCb as unknown as () => void)();
+        expect(onceSpy).toHaveBeenCalledWith(
+            "beforeExit",
+            expect.any(Function)
+        );
+        expect(beforeExitCb).toBeTypeOf("function");
+        (beforeExitCb as () => void)();
         expect(logs.join("\n")).toMatch(/Process exiting, performing cleanup/);
     });
 });
