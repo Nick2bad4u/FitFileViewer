@@ -19,6 +19,8 @@ describe("createPowerZoneControlsSimple", () => {
     });
 
     it("returns existing controls when already present", () => {
+        expect.hasAssertions();
+
         const existing = document.createElement("div");
         existing.id = "power-zone-controls";
         document.body.append(existing);
@@ -32,6 +34,8 @@ describe("createPowerZoneControlsSimple", () => {
     });
 
     it("creates controls section with collapse toggle and persists state", () => {
+        expect.hasAssertions();
+
         const parent = document.createElement("div");
         document.body.append(parent);
 
@@ -65,6 +69,8 @@ describe("createPowerZoneControlsSimple", () => {
     });
 
     it("applies hover styles when the section is hovered", () => {
+        expect.hasAssertions();
+
         const parent = document.createElement("div");
         document.body.append(parent);
 
@@ -80,6 +86,8 @@ describe("createPowerZoneControlsSimple", () => {
     });
 
     it("initializes in collapsed state when stored preference exists", () => {
+        expect.hasAssertions();
+
         localStorage.setItem("power-zone-controls-collapsed", "true");
 
         const parent = document.createElement("div");
@@ -97,6 +105,8 @@ describe("createPowerZoneControlsSimple", () => {
     });
 
     it("moves power zone controls into dedicated section and adjusts spacing", () => {
+        expect.hasAssertions();
+
         const parent = document.createElement("div");
         document.body.append(parent);
         const controls = createPowerZoneControls(parent);
@@ -132,18 +142,21 @@ describe("createPowerZoneControlsSimple", () => {
     });
 
     it("warns when the power zone content container is missing", () => {
+        expect.hasAssertions();
+
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
         movePowerZoneControlsToSection();
 
-        expect(warnSpy).toHaveBeenCalledTimes(1);
-        expect(warnSpy).toHaveBeenCalledWith(
+        expect(warnSpy).toHaveBeenCalledExactlyOnceWith(
             "[PowerZoneControls] Power zone content container not found"
         );
         expect(document.querySelector("#power-zone-content")).toBeNull();
     });
 
     it("does not log when no power zone toggles exist", () => {
+        expect.hasAssertions();
+
         const parent = document.createElement("div");
         document.body.append(parent);
         createPowerZoneControls(parent);
@@ -159,6 +172,8 @@ describe("createPowerZoneControlsSimple", () => {
     });
 
     it("updates controls visibility based on data availability", () => {
+        expect.hasAssertions();
+
         const parent = document.createElement("div");
         document.body.append(parent);
         const controls = createPowerZoneControls(parent);
@@ -173,6 +188,8 @@ describe("createPowerZoneControlsSimple", () => {
     });
 
     it("reads power zone visibility preference from chart settings", () => {
+        expect.hasAssertions();
+
         const initialSettings = getPowerZoneVisibilitySettings() as {
             doughnutVisible: boolean;
         };
