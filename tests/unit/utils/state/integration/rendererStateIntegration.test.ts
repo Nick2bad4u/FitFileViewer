@@ -1,34 +1,40 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
-const switchTabMock = vi.fn();
-const loadFileMock = vi.fn();
-const renderChartMock = vi.fn();
-const renderMapMock = vi.fn();
-const renderTableMock = vi.fn();
-const switchThemeMock = vi.fn();
-
-const hasDataMock = vi.fn();
-const isTabActiveMock = vi.fn();
-const areChartsRenderedMock = vi.fn();
-const isMapRenderedMock = vi.fn();
-const areTablesRenderedMock = vi.fn();
-
-const toggleChartControlsMock = vi.fn();
-
-const getStateMock = vi.fn();
-const setStateMock = vi.fn();
-const subscribeMock = vi.fn();
-
-const initializeCompleteStateSystemMock = vi.fn();
-
 type SubscriptionHandler = (value: unknown) => void;
+type Unsubscribe = () => void;
+
+const switchTabMock = vi.fn<(tab: string) => void>();
+const loadFileMock = vi.fn<(data: unknown, filePath: string) => void>();
+const renderChartMock = vi.fn<() => void>();
+const renderMapMock = vi.fn<() => void>();
+const renderTableMock = vi.fn<() => void>();
+const switchThemeMock = vi.fn<(theme: string) => void>();
+
+const hasDataMock = vi.fn<() => boolean>();
+const isTabActiveMock = vi.fn<(tab: string) => boolean>();
+const areChartsRenderedMock = vi.fn<() => boolean>();
+const isMapRenderedMock = vi.fn<() => boolean>();
+const areTablesRenderedMock = vi.fn<() => boolean>();
+
+const toggleChartControlsMock = vi.fn<() => void>();
+
+const getStateMock = vi.fn<(key: string) => unknown>();
+const setStateMock =
+    vi.fn<(key: string, value: unknown, options?: unknown) => void>();
+const subscribeMock =
+    vi.fn<(key: string, handler: SubscriptionHandler) => Unsubscribe>();
+
+const initializeCompleteStateSystemMock = vi.fn<() => void>();
 
 let subscriptionHandlers: Map<string, SubscriptionHandler[]>;
-let unsubscribeRegistry: Map<SubscriptionHandler, ReturnType<typeof vi.fn>>;
+let unsubscribeRegistry: Map<
+    SubscriptionHandler,
+    ReturnType<typeof vi.fn<Unsubscribe>>
+>;
 let stateStore: Map<string, unknown>;
 
 vi.mock(
-    "../../../../../electron-app/utils/app/lifecycle/appActions.js",
+    import("../../../../../electron-app/utils/app/lifecycle/appActions.js"),
     () => ({
         AppActions: {
             switchTab: switchTabMock,
@@ -48,14 +54,17 @@ vi.mock(
     })
 );
 
-vi.mock("../../../../../electron-app/utils/state/core/stateManager.js", () => ({
-    getState: getStateMock,
-    setState: setStateMock,
-    subscribe: subscribeMock,
-}));
+vi.mock(
+    import("../../../../../electron-app/utils/state/core/stateManager.js"),
+    () => ({
+        getState: getStateMock,
+        setState: setStateMock,
+        subscribe: subscribeMock,
+    })
+);
 
 vi.mock(
-    "../../../../../electron-app/utils/state/domain/uiStateManager.js",
+    import("../../../../../electron-app/utils/state/domain/uiStateManager.js"),
     () => ({
         UIActions: {
             toggleChartControls: toggleChartControlsMock,
@@ -64,7 +73,7 @@ vi.mock(
 );
 
 vi.mock(
-    "../../../../../electron-app/utils/state/integration/stateIntegration.js",
+    import("../../../../../electron-app/utils/state/integration/stateIntegration.js"),
     () => ({
         initializeCompleteStateSystem: initializeCompleteStateSystemMock,
     })
@@ -76,6 +85,14 @@ async function importTarget() {
 
 function getHandlers(key: string): SubscriptionHandler[] {
     return subscriptionHandlers.get(key) ?? [];
+}
+
+function requireValue<T>(value: T | undefined, message: string): T {
+    if (value === undefined) {
+        throw new Error(message);
+    }
+
+    return value;
 }
 
 beforeEach(() => {
@@ -97,7 +114,7 @@ beforeEach(() => {
             handlers.push(handler);
             subscriptionHandlers.set(key, handlers);
 
-            const unsubscribe = vi.fn(() => {
+            const unsubscribe = vi.fn<Unsubscribe>(() => {
                 const currentHandlers = subscriptionHandlers.get(key);
                 if (!currentHandlers) {
                     return;
@@ -139,6 +156,8 @@ afterEach(() => {
 
 describe("rendererStateIntegration", () => {
     it("exampleStateUsage interacts with state, actions, and subscriptions", async () => {
+        expect.hasAssertions();
+
         vi.useFakeTimers();
         stateStore.set("ui.activeTab", "summary");
         stateStore.set("ui.theme", "light");
@@ -171,24 +190,24 @@ describe("rendererStateIntegration", () => {
             { records: [] },
             "path/to/file.fit"
         );
-        expect(toggleChartControlsMock).toHaveBeenCalled();
-        expect(hasDataMock).toHaveBeenCalled();
+        expect(toggleChartControlsMock).toHaveBeenCalledWith();
+        expect(hasDataMock).toHaveBeenCalledWith();
         expect(isTabActiveMock).toHaveBeenCalledWith("chart");
 
         const handlers = getHandlers("ui.activeTab");
-        expect(handlers.length).toBe(1);
-        const unsubscribe = unsubscribeRegistry.get(handlers[0]);
-        if (!unsubscribe) {
-            throw new Error(
-                "Expected unsubscribe handler for exampleStateUsage subscription"
-            );
-        }
+        expect(handlers).toHaveLength(1);
+        const unsubscribe = requireValue(
+            unsubscribeRegistry.get(handlers[0]!),
+            "Expected unsubscribe handler for exampleStateUsage subscription"
+        );
 
         vi.advanceTimersByTime(5000);
-        expect(unsubscribe).toHaveBeenCalled();
+        expect(unsubscribe).toHaveBeenCalledWith();
     });
 
     it("initializeRendererWithNewStateSystem wires subscriptions and responds to changes", async () => {
+        expect.hasAssertions();
+
         const tabContentSummary = document.createElement("div");
         tabContentSummary.className = "tab-content";
         tabContentSummary.dataset.tabContent = "summary";
@@ -215,21 +234,26 @@ describe("rendererStateIntegration", () => {
             | ((data: unknown, path: string) => void)
             | undefined;
         (globalThis as any).electronAPI = {
-            onFileOpened: vi.fn(
-                (handler: (data: unknown, path: string) => void) => {
-                    fileOpenCallback = handler;
-                }
-            ),
+            onFileOpened: vi.fn<
+                (handler: (data: unknown, path: string) => void) => void
+            >((handler: (data: unknown, path: string) => void) => {
+                fileOpenCallback = handler;
+            }),
         };
 
         const module = await importTarget();
 
         module.initializeRendererWithNewStateSystem();
 
-        expect(initializeCompleteStateSystemMock).toHaveBeenCalled();
-        expect((globalThis as any).electronAPI.onFileOpened).toHaveBeenCalled();
+        expect(initializeCompleteStateSystemMock).toHaveBeenCalledWith();
+        expect(
+            (globalThis as any).electronAPI.onFileOpened
+        ).toHaveBeenCalledWith(expect.any(Function));
 
-        fileOpenCallback?.({ foo: "bar" }, "sample.fit");
+        requireValue(
+            fileOpenCallback,
+            "Expected file-open callback to be registered"
+        )({ foo: "bar" }, "sample.fit");
         expect(loadFileMock).toHaveBeenCalledWith({ foo: "bar" }, "sample.fit");
 
         tabButton.click();
@@ -239,17 +263,19 @@ describe("rendererStateIntegration", () => {
         expect(switchThemeMock).toHaveBeenCalledWith("dark");
 
         const activeTabHandlers = getHandlers("ui.activeTab");
-        expect(activeTabHandlers.length).toBeGreaterThanOrEqual(2);
         const [componentHandler, reactiveHandler] = activeTabHandlers;
-        if (!componentHandler || !reactiveHandler) {
-            throw new Error(
-                "Expected component and reactive handlers for ui.activeTab"
-            );
-        }
+        const requiredComponentHandler = requireValue(
+            componentHandler,
+            "Expected component handler for ui.activeTab"
+        );
+        const requiredReactiveHandler = requireValue(
+            reactiveHandler,
+            "Expected reactive handler for ui.activeTab"
+        );
 
         switchTabMock.mockClear();
         hasDataMock.mockReturnValue(false);
-        componentHandler("map");
+        requiredComponentHandler("map");
         expect(switchTabMock).toHaveBeenCalledWith("summary");
 
         hasDataMock.mockReturnValue(true);
@@ -259,7 +285,7 @@ describe("rendererStateIntegration", () => {
         areTablesRenderedMock.mockReturnValue(false);
 
         setStateMock.mockClear();
-        componentHandler("map");
+        requiredComponentHandler("map");
         expect(setStateMock).toHaveBeenCalledWith(
             "isLoading",
             true,
@@ -272,7 +298,7 @@ describe("rendererStateIntegration", () => {
         );
 
         setStateMock.mockClear();
-        componentHandler("chart");
+        requiredComponentHandler("chart");
         expect(setStateMock).toHaveBeenCalledWith(
             "isLoading",
             true,
@@ -285,7 +311,7 @@ describe("rendererStateIntegration", () => {
         );
 
         setStateMock.mockClear();
-        componentHandler("table");
+        requiredComponentHandler("table");
         expect(setStateMock).toHaveBeenCalledWith(
             "isLoading",
             true,
@@ -297,36 +323,38 @@ describe("rendererStateIntegration", () => {
             expect.objectContaining({ source: "loadTableTab" })
         );
 
-        reactiveHandler("chart");
-        expect(tabContentSummary.style.display).toBe("none");
-        expect(tabContentChart.style.display).toBe("block");
+        requiredReactiveHandler("chart");
+        expect({
+            chartDisplay: tabContentChart.style.display,
+            summaryDisplay: tabContentSummary.style.display,
+        }).toEqual({
+            chartDisplay: "block",
+            summaryDisplay: "none",
+        });
 
         const themeHandlers = getHandlers("ui.theme");
-        expect(themeHandlers.length).toBeGreaterThan(0);
-        const themeHandler = themeHandlers[0];
-        if (!themeHandler) {
-            throw new Error("Expected theme handler");
-        }
+        const themeHandler = requireValue(
+            themeHandlers[0],
+            "Expected theme handler"
+        );
         themeHandler("dark");
         expect(document.documentElement.dataset.theme).toBe("dark");
 
         const controlsHandlers = getHandlers("charts.controlsVisible");
-        expect(controlsHandlers.length).toBeGreaterThan(0);
-        const controlsHandler = controlsHandlers[0];
-        if (!controlsHandler) {
-            throw new Error("Expected controls visibility handler");
-        }
+        const controlsHandler = requireValue(
+            controlsHandlers[0],
+            "Expected controls visibility handler"
+        );
         controlsHandler(true);
         expect(settingsWrapper.style.display).toBe("block");
         controlsHandler(false);
         expect(settingsWrapper.style.display).toBe("none");
 
         const globalHandlers = getHandlers("globalData");
-        expect(globalHandlers.length).toBeGreaterThan(0);
-        const globalHandler = globalHandlers[0];
-        if (!globalHandler) {
-            throw new Error("Expected globalData handler");
-        }
+        const globalHandler = requireValue(
+            globalHandlers[0],
+            "Expected globalData handler"
+        );
         setStateMock.mockClear();
         areChartsRenderedMock.mockClear();
         stateStore.set("ui.activeTab", "chart");
@@ -355,26 +383,26 @@ describe("rendererStateIntegration", () => {
                 silent: true,
             })
         );
-        expect(areChartsRenderedMock).toHaveBeenCalledTimes(1);
+        expect(areChartsRenderedMock).toHaveBeenCalledOnce();
 
         const chartRenderedHandlers = getHandlers("charts.isRendered");
-        expect(chartRenderedHandlers.length).toBeGreaterThan(0);
-        const chartRenderedHandler = chartRenderedHandlers[0];
-        if (!chartRenderedHandler) {
-            throw new Error("Expected charts.isRendered handler");
-        }
+        const chartRenderedHandler = requireValue(
+            chartRenderedHandlers[0],
+            "Expected charts.isRendered handler"
+        );
         chartRenderedHandler(true);
 
         const loadingHandlers = getHandlers("isLoading");
-        expect(loadingHandlers.length).toBeGreaterThan(0);
-        const loadingHandler = loadingHandlers[0];
-        if (!loadingHandler) {
-            throw new Error("Expected isLoading handler");
-        }
+        const loadingHandler = requireValue(
+            loadingHandlers[0],
+            "Expected isLoading handler"
+        );
         loadingHandler(true);
     });
 
     it("migrateExistingRenderer provides guidance without throwing", async () => {
+        expect.hasAssertions();
+
         const module = await importTarget();
         expect(() => module.migrateExistingRenderer()).not.toThrow();
     });
