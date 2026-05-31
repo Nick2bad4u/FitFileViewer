@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Use jsdom timers to control debounce/timeouts
 vi.useFakeTimers();
@@ -18,6 +18,7 @@ type EnsureDropdownsTestWindow = Window &
         _chartjsInstances?: ChartInstanceMock[];
         globalData?: unknown;
     };
+type MockVoidFn = (...args: unknown[]) => void;
 
 function getTestWindow(): EnsureDropdownsTestWindow {
     return window as EnsureDropdownsTestWindow;
@@ -31,21 +32,27 @@ function isObjectRecord(value: unknown): value is Record<string, unknown> {
 const h = vi.hoisted(() => {
     const chartSettings: Record<string, unknown> = {};
     const fieldVisibility: Record<string, string> = {};
-    const getChartSetting = vi.fn((key: string) => chartSettings[key]);
-    const setChartSetting = vi.fn((key: string, value: unknown) => {
-        chartSettings[key] = value;
-        return true;
-    });
-    const getChartFieldVisibility = vi.fn(
+    const getChartSetting = vi.fn<(key: string) => unknown>(
+        (key) => chartSettings[key]
+    );
+    const setChartSetting = vi.fn<(key: string, value: unknown) => boolean>(
+        (key, value) => {
+            chartSettings[key] = value;
+            return true;
+        }
+    );
+    const getChartFieldVisibility = vi.fn<
+        (field: string, fallback?: string) => string
+    >(
         (field: string, fallback = "visible") =>
             fieldVisibility[field] ?? fallback
     );
-    const setChartFieldVisibility = vi.fn(
-        (field: string, visibility: string) => {
-            fieldVisibility[field] = visibility;
-            return { [field]: visibility };
-        }
-    );
+    const setChartFieldVisibility = vi.fn<
+        (field: string, visibility: string) => Record<string, string>
+    >((field: string, visibility: string) => {
+        fieldVisibility[field] = visibility;
+        return { [field]: visibility };
+    });
 
     return {
         state: {} as Record<string, unknown>,
@@ -56,19 +63,19 @@ const h = vi.hoisted(() => {
         getChartFieldVisibility,
         setChartFieldVisibility,
         spies: {
-            applySettingsPanelStyles: vi.fn(),
-            createPowerZoneControls: vi.fn(),
-            movePowerZoneControlsToSection: vi.fn(),
-            createHRZoneControls: vi.fn(),
-            moveHRZoneControlsToSection: vi.fn(),
-            setupChartStatusUpdates: vi.fn(),
-            updateControlsState: vi.fn(),
-            reRenderChartsAfterSettingChange: vi.fn(),
-            resetAllSettings: vi.fn().mockReturnValue(true),
-            showNotification: vi.fn(),
-            renderChartJS: vi.fn(),
-            debouncedRender: vi.fn(),
-            updateAllChartStatusIndicators: vi.fn(),
+            applySettingsPanelStyles: vi.fn<MockVoidFn>(),
+            createPowerZoneControls: vi.fn<MockVoidFn>(),
+            movePowerZoneControlsToSection: vi.fn<MockVoidFn>(),
+            createHRZoneControls: vi.fn<MockVoidFn>(),
+            moveHRZoneControlsToSection: vi.fn<MockVoidFn>(),
+            setupChartStatusUpdates: vi.fn<MockVoidFn>(),
+            updateControlsState: vi.fn<MockVoidFn>(),
+            reRenderChartsAfterSettingChange: vi.fn<MockVoidFn>(),
+            resetAllSettings: vi.fn<() => boolean>().mockReturnValue(true),
+            showNotification: vi.fn<MockVoidFn>(),
+            renderChartJS: vi.fn<MockVoidFn>(),
+            debouncedRender: vi.fn<MockVoidFn>(),
+            updateAllChartStatusIndicators: vi.fn<MockVoidFn>(),
         },
     };
 });
@@ -79,21 +86,24 @@ const fieldVisibility = h.fieldVisibility;
 const spies = h.spies as typeof h.spies;
 
 // Mocks for modules used by ensure/create* modules. Must be declared before imports.
-vi.mock("../../../electron-app/utils/state/core/stateManager.js", () => ({
-    getState: (key: string) => state[key],
-    setState: (key: string, value: unknown) => {
-        state[key] = value;
-    },
-    updateState: (ns: string, patch: Record<string, unknown>) => {
-        state[ns] = {
-            ...(isObjectRecord(state[ns]) ? state[ns] : {}),
-            ...patch,
-        };
-    },
-}));
+vi.mock(
+    import("../../../electron-app/utils/state/core/stateManager.js"),
+    () => ({
+        getState: (key: string) => state[key],
+        setState: (key: string, value: unknown) => {
+            state[key] = value;
+        },
+        updateState: (ns: string, patch: Record<string, unknown>) => {
+            state[ns] = {
+                ...(isObjectRecord(state[ns]) ? state[ns] : {}),
+                ...patch,
+            };
+        },
+    })
+);
 
 vi.mock(
-    "../../../electron-app/utils/state/domain/settingsStateManager.js",
+    import("../../../electron-app/utils/state/domain/settingsStateManager.js"),
     () => ({
         getChartSetting: h.getChartSetting,
         setChartSetting: h.setChartSetting,
@@ -103,7 +113,7 @@ vi.mock(
 );
 
 vi.mock(
-    "../../../electron-app/utils/rendering/helpers/updateControlsState.js",
+    import("../../../electron-app/utils/rendering/helpers/updateControlsState.js"),
     () => ({
         updateControlsState: h.spies.updateControlsState,
     })
@@ -112,7 +122,7 @@ vi.mock(
 // Use the real createSettingsHeader module to ensure internal imports (like exportUtils) use our mocks above.
 
 vi.mock(
-    "../../../electron-app/utils/charts/components/chartStatusIndicator.js",
+    import("../../../electron-app/utils/charts/components/chartStatusIndicator.js"),
     () => ({
         createChartStatusIndicator: () => {
             const el = document.createElement("div");
@@ -126,7 +136,7 @@ vi.mock(
 
 // Mock power and HR zone control modules used during initialization
 vi.mock(
-    "../../../electron-app/utils/ui/controls/createPowerZoneControls.js",
+    import("../../../electron-app/utils/ui/controls/createPowerZoneControls.js"),
     () => ({
         createPowerZoneControls: h.spies.createPowerZoneControls,
         movePowerZoneControlsToSection: h.spies.movePowerZoneControlsToSection,
@@ -134,7 +144,7 @@ vi.mock(
 );
 
 vi.mock(
-    "../../../electron-app/utils/ui/controls/createHRZoneControls.js",
+    import("../../../electron-app/utils/ui/controls/createHRZoneControls.js"),
     () => ({
         createHRZoneControls: h.spies.createHRZoneControls,
         moveHRZoneControlsToSection: h.spies.moveHRZoneControlsToSection,
@@ -142,7 +152,7 @@ vi.mock(
 );
 
 vi.mock(
-    "../../../electron-app/utils/app/initialization/getCurrentSettings.js",
+    import("../../../electron-app/utils/app/initialization/getCurrentSettings.js"),
     () => ({
         getCurrentSettings: () => ({ from: "getCurrentSettings" }),
         getDefaultSettings: () => ({ defaultSettings: true }),
@@ -153,7 +163,7 @@ vi.mock(
 );
 
 vi.mock(
-    "../../../electron-app/utils/charts/plugins/chartOptionsConfig.js",
+    import("../../../electron-app/utils/charts/plugins/chartOptionsConfig.js"),
     () => ({
         chartOptionsConfig: [
             {
@@ -186,47 +196,56 @@ vi.mock(
     })
 );
 
-vi.mock("../../../electron-app/utils/files/export/exportUtils.js", () => ({
-    exportUtils: {
-        isValidChart: (chart: unknown) => Boolean(chart),
-        downloadChartAsPNG: vi.fn(),
-        createCombinedChartsImage: vi.fn(),
-        copyChartToClipboard: vi.fn(),
-        copyCombinedChartsToClipboard: vi.fn(),
-        exportChartDataAsCSV: vi.fn(),
-        exportCombinedChartsDataAsCSV: vi.fn(),
-        exportChartDataAsJSON: vi.fn(),
-        printChart: vi.fn(),
-        printCombinedCharts: vi.fn(),
-        exportAllAsZip: vi.fn(),
-        shareChartsAsURL: vi.fn(),
-        isGyazoAuthenticated: () => true,
-        showGyazoAccountManager: vi.fn(),
-        shareChartsToGyazo: vi.fn(),
-    },
-}));
+vi.mock(
+    import("../../../electron-app/utils/files/export/exportUtils.js"),
+    () => ({
+        exportUtils: {
+            isValidChart: (chart: unknown) => Boolean(chart),
+            downloadChartAsPNG: vi.fn<MockVoidFn>(),
+            createCombinedChartsImage: vi.fn<MockVoidFn>(),
+            copyChartToClipboard: vi.fn<MockVoidFn>(),
+            copyCombinedChartsToClipboard: vi.fn<MockVoidFn>(),
+            exportChartDataAsCSV: vi.fn<MockVoidFn>(),
+            exportCombinedChartsDataAsCSV: vi.fn<MockVoidFn>(),
+            exportChartDataAsJSON: vi.fn<MockVoidFn>(),
+            printChart: vi.fn<MockVoidFn>(),
+            printCombinedCharts: vi.fn<MockVoidFn>(),
+            exportAllAsZip: vi.fn<MockVoidFn>(),
+            shareChartsAsURL: vi.fn<MockVoidFn>(),
+            isGyazoAuthenticated: () => true,
+            showGyazoAccountManager: vi.fn<MockVoidFn>(),
+            shareChartsToGyazo: vi.fn<MockVoidFn>(),
+        },
+    })
+);
 
 vi.mock(
-    "../../../electron-app/utils/ui/notifications/showNotification.js",
+    import("../../../electron-app/utils/ui/notifications/showNotification.js"),
     () => ({
         showNotification: h.spies.showNotification,
     })
 );
 
-vi.mock("../../../electron-app/utils/theming/core/theme.js", () => ({
+vi.mock(import("../../../electron-app/utils/theming/core/theme.js"), () => ({
     getThemeConfig: () => ({ colors: { primaryAlpha: "#123456" } }),
 }));
 
-vi.mock("../../../electron-app/utils/charts/core/renderChartJS.js", () => ({
-    renderChartJS: h.spies.renderChartJS,
-}));
-
-vi.mock("../../../electron-app/utils/charts/core/chartStateManager.js", () => ({
-    chartStateManager: { debouncedRender: h.spies.debouncedRender },
-}));
+vi.mock(
+    import("../../../electron-app/utils/charts/core/renderChartJS.js"),
+    () => ({
+        renderChartJS: h.spies.renderChartJS,
+    })
+);
 
 vi.mock(
-    "../../../electron-app/utils/data/processing/extractDeveloperFieldsList.js",
+    import("../../../electron-app/utils/charts/core/chartStateManager.js"),
+    () => ({
+        chartStateManager: { debouncedRender: h.spies.debouncedRender },
+    })
+);
+
+vi.mock(
+    import("../../../electron-app/utils/data/processing/extractDeveloperFieldsList.js"),
     () => ({
         extractDeveloperFieldsList: () => ["dev_field1"],
     })
@@ -353,12 +372,16 @@ afterEach(() => {
 
 describe("ensureChartSettingsDropdowns integration", () => {
     it("returns default settings when container missing", () => {
+        expect.hasAssertions();
+
         setupDOM(false);
         const result = ensureChartSettingsDropdowns("chartjs-chart-container");
         expect(result).toEqual({ defaultSettings: true });
     });
 
     it("creates panel, toggle button, and sections; moves zone controls after timeout", async () => {
+        expect.hasAssertions();
+
         setupDOM(true);
         seedGlobalData();
 
@@ -389,20 +412,22 @@ describe("ensureChartSettingsDropdowns integration", () => {
         );
 
         // Setup hooks called
-        expect(spies.createPowerZoneControls).toHaveBeenCalled();
-        expect(spies.createHRZoneControls).toHaveBeenCalled();
-        expect(spies.setupChartStatusUpdates).toHaveBeenCalled();
+        expect(spies.createPowerZoneControls).toHaveBeenCalledWith(wrapper);
+        expect(spies.createHRZoneControls).toHaveBeenCalledWith(wrapper);
+        expect(spies.setupChartStatusUpdates).toHaveBeenCalledWith();
 
         // move zone controls after timers
         vi.advanceTimersByTime(120);
-        expect(spies.movePowerZoneControlsToSection).toHaveBeenCalled();
-        expect(spies.moveHRZoneControlsToSection).toHaveBeenCalled();
+        expect(spies.movePowerZoneControlsToSection).toHaveBeenCalledWith();
+        expect(spies.moveHRZoneControlsToSection).toHaveBeenCalledWith();
 
         // state sync called
-        expect(spies.updateControlsState).toHaveBeenCalled();
+        expect(spies.updateControlsState).toHaveBeenCalledWith();
     });
 
     it("range/toggle/select controls update settings and trigger re-render (debounced)", () => {
+        expect.hasAssertions();
+
         setupDOM(true);
         seedGlobalData();
         ensureChartSettingsDropdowns("chartjs-chart-container");
@@ -455,6 +480,8 @@ describe("ensureChartSettingsDropdowns integration", () => {
     });
 
     it("field toggle hides/shows and triggers state render and status updates; color picker updates", () => {
+        expect.hasAssertions();
+
         setupDOM(true);
         seedGlobalData();
         ensureChartSettingsDropdowns("chartjs-chart-container");
@@ -475,9 +502,11 @@ describe("ensureChartSettingsDropdowns integration", () => {
         speedCheckbox.checked = false;
         speedCheckbox.dispatchEvent(new Event("change", { bubbles: true }));
         expect(getChartFieldVisibility("speed")).toBe("hidden");
-        expect(spies.debouncedRender).toHaveBeenCalled();
+        expect(spies.debouncedRender).toHaveBeenCalledWith(
+            "Field toggle: speed"
+        );
         vi.advanceTimersByTime(100);
-        expect(spies.updateAllChartStatusIndicators).toHaveBeenCalled();
+        expect(spies.updateAllChartStatusIndicators).toHaveBeenCalledWith();
 
         // Change color
         speedColor.value = "#abcdef";
@@ -500,6 +529,8 @@ describe("ensureChartSettingsDropdowns integration", () => {
     });
 
     it("toggle all buttons update all fields and notify", () => {
+        expect.hasAssertions();
+
         setupDOM(true);
         seedGlobalData();
 
@@ -525,7 +556,9 @@ describe("ensureChartSettingsDropdowns integration", () => {
         // spot check a couple of keys
         expect(getChartFieldVisibility("speed")).toBe("visible");
         expect(getChartFieldVisibility("heartRate")).toBe("visible");
-        expect(spies.debouncedRender).toHaveBeenCalled();
+        expect(spies.debouncedRender).toHaveBeenCalledWith(
+            "All fields enabled"
+        );
 
         disableAll.click();
         expect(spies.showNotification).toHaveBeenCalledWith(
@@ -536,10 +569,12 @@ describe("ensureChartSettingsDropdowns integration", () => {
         expect(getChartFieldVisibility("heartRate")).toBe("hidden");
 
         // dispatched custom event for bulk change
-        expect(dispatchSpy).toHaveBeenCalled();
+        expect(dispatchSpy).toHaveBeenCalledWith(expect.any(CustomEvent));
     });
 
     it("export section: no charts warns; with charts opens modal and calls export utils", () => {
+        expect.hasAssertions();
+
         setupDOM(true);
         seedGlobalData();
         ensureChartSettingsDropdowns("chartjs-chart-container");
@@ -583,7 +618,10 @@ describe("ensureChartSettingsDropdowns integration", () => {
 
         // Click first chart -> downloadChartAsPNG called
         (chartButtons[0] as HTMLButtonElement).click();
-        expect(exportUtils.downloadChartAsPNG).toHaveBeenCalled();
+        expect(exportUtils.downloadChartAsPNG).toHaveBeenCalledWith(
+            expect.any(Object),
+            "field-1-chart.png"
+        );
 
         // Reopen and click combined
         savePngBtn.click();
@@ -594,10 +632,15 @@ describe("ensureChartSettingsDropdowns integration", () => {
         ) as HTMLButtonElement;
         expect(combinedBtn).toBeInstanceOf(HTMLButtonElement);
         combinedBtn.click();
-        expect(exportUtils.createCombinedChartsImage).toHaveBeenCalled();
+        expect(exportUtils.createCombinedChartsImage).toHaveBeenCalledWith(
+            expect.any(Array),
+            "combined-charts.png"
+        );
     });
 
     it("settings header reset button calls reset and re-enables after delay", () => {
+        expect.hasAssertions();
+
         setupDOM(true);
         seedGlobalData();
         ensureChartSettingsDropdowns("chartjs-chart-container");
@@ -609,7 +652,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
         expect(resetBtn).toBeInstanceOf(HTMLButtonElement);
 
         resetBtn.click();
-        expect(spies.resetAllSettings).toHaveBeenCalled();
+        expect(spies.resetAllSettings).toHaveBeenCalledWith();
         expect(resetBtn).toHaveProperty("disabled", true);
         vi.advanceTimersByTime(200);
         expect(resetBtn).toHaveProperty("disabled", false);
