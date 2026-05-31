@@ -1,14 +1,24 @@
-import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { JSDOM } from "jsdom";
 
 describe("updateTabVisibility globalData state subscription", () => {
-    let mockWindow: any;
-    let mockDocument: any;
-    let mockSubscribe: any;
-    let mockSetState: any;
-    let mockGetState: any;
+    let mockWindow: Window;
+    let mockDocument: Document;
+    let mockSubscribe: ReturnType<
+        typeof vi.fn<(path: string, callback: (data: unknown) => void) => void>
+    >;
+    let mockSetState: ReturnType<
+        typeof vi.fn<
+            (
+                key: string,
+                value: unknown,
+                options?: Record<string, unknown>
+            ) => void
+        >
+    >;
+    let mockGetState: ReturnType<typeof vi.fn<(key: string) => unknown>>;
     let currentActiveTab: string;
-    let currentGlobalData: any;
+    let currentGlobalData: unknown;
     let currentIsLoading: boolean;
 
     beforeEach(() => {
@@ -20,16 +30,23 @@ describe("updateTabVisibility globalData state subscription", () => {
         (global as any).document = mockDocument;
 
         // Mock stateManager to capture the subscribe callback
-        mockSubscribe = vi.fn();
+        mockSubscribe =
+            vi.fn<(path: string, callback: (data: unknown) => void) => void>();
         currentActiveTab = "chart";
         currentGlobalData = null;
         currentIsLoading = false;
-        mockSetState = vi.fn((key: string, value: unknown) => {
+        mockSetState = vi.fn<
+            (
+                key: string,
+                value: unknown,
+                options?: Record<string, unknown>
+            ) => void
+        >((key: string, value: unknown, _options?: Record<string, unknown>) => {
             if (key === "ui.activeTab") {
                 currentActiveTab = String(value);
             }
         });
-        mockGetState = vi.fn((key: string) => {
+        mockGetState = vi.fn<(key: string) => unknown>((key) => {
             if (key === "ui.activeTab") return currentActiveTab;
             if (key === "globalData") return currentGlobalData;
             if (key === "isLoading") return currentIsLoading;
@@ -39,7 +56,7 @@ describe("updateTabVisibility globalData state subscription", () => {
         vi.useFakeTimers();
 
         vi.doMock(
-            "../../../electron-app/utils/state/core/stateManager.js",
+            import("../../../electron-app/utils/state/core/stateManager.js"),
             () => ({
                 setState: mockSetState,
                 getState: mockGetState,
@@ -55,7 +72,9 @@ describe("updateTabVisibility globalData state subscription", () => {
     });
 
     describe("globalData subscription", () => {
-        test("switches to summary when data is cleared from another tab", async () => {
+        it("switches to summary when data is cleared from another tab", async () => {
+            expect.hasAssertions();
+
             const { initializeTabVisibilityState } =
                 await import("../../../electron-app/utils/ui/tabs/updateTabVisibility.js");
 
@@ -73,12 +92,15 @@ describe("updateTabVisibility globalData state subscription", () => {
             );
 
             // Get the subscription callback for globalData
-            expect(mockSubscribe).toHaveBeenCalled();
+            expect(mockSubscribe).toHaveBeenCalledWith(
+                "globalData",
+                expect.any(Function)
+            );
             const globalDataSubscription = mockSubscribe.mock.calls.find(
                 (call: any[]) => call[0] === "globalData"
             );
             expect(globalDataSubscription?.[0]).toBe("globalData");
-            expect(typeof globalDataSubscription?.[1]).toBe("function");
+            expect(globalDataSubscription?.[1]).toBeTypeOf("function");
 
             const globalDataCallback = globalDataSubscription[1] as (
                 data: unknown
@@ -109,12 +131,14 @@ describe("updateTabVisibility globalData state subscription", () => {
             globalDataCallback(undefined);
             vi.advanceTimersByTime(260);
 
-            expect(mockSetState).toHaveBeenCalledTimes(1);
+            expect(mockSetState).toHaveBeenCalledOnce();
 
             consoleSpy.mockRestore();
         });
 
-        test("should not switch to summary when current tab is already summary", async () => {
+        it("should not switch to summary when current tab is already summary", async () => {
+            expect.hasAssertions();
+
             const { initializeTabVisibilityState } =
                 await import("../../../electron-app/utils/ui/tabs/updateTabVisibility.js");
 
@@ -141,7 +165,9 @@ describe("updateTabVisibility globalData state subscription", () => {
             expect(currentActiveTab).toBe("summary");
         });
 
-        test("should not switch when data exists", async () => {
+        it("should not switch when data exists", async () => {
+            expect.hasAssertions();
+
             const { initializeTabVisibilityState } =
                 await import("../../../electron-app/utils/ui/tabs/updateTabVisibility.js");
 
@@ -168,7 +194,9 @@ describe("updateTabVisibility globalData state subscription", () => {
             expect(currentActiveTab).toBe("chart");
         });
 
-        test("should handle edge case data values", async () => {
+        it("should handle edge case data values", async () => {
+            expect.hasAssertions();
+
             const { initializeTabVisibilityState } =
                 await import("../../../electron-app/utils/ui/tabs/updateTabVisibility.js");
 
@@ -214,7 +242,7 @@ describe("updateTabVisibility globalData state subscription", () => {
             currentGlobalData = undefined;
             globalDataCallback(undefined);
             vi.advanceTimersByTime(260);
-            expect(mockSetState).toHaveBeenCalledTimes(1);
+            expect(mockSetState).toHaveBeenCalledOnce();
         });
     });
 });
