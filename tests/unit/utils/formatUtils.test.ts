@@ -7,7 +7,7 @@ describe(formatArray, () => {
     });
 
     it("formats numeric arrays and comma-separated strings", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         expect(
             formatArray([
@@ -24,7 +24,7 @@ describe(formatArray, () => {
     });
 
     it("returns unsupported inputs unchanged", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const objectValue = { value: 1 };
 
@@ -38,7 +38,7 @@ describe(formatArray, () => {
     });
 
     it("handles invalid-input values strictly by default", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         expect(() => formatArray(["bad", 2.5])).toThrow("Invalid number: bad");
         expect(() => formatArray("1.23,bad,4.56")).toThrow(
@@ -48,7 +48,7 @@ describe(formatArray, () => {
     });
 
     it("keeps invalid-input values when strict validation is disabled", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
@@ -79,7 +79,7 @@ describe(formatArray, () => {
     });
 
     it("logs and rethrows formatting errors", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const errorSpy = vi
             .spyOn(console, "error")
