@@ -3,7 +3,7 @@ import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import {
-    appWorkspaceName,
+    appSourceDirectoryName,
     docusaurusWorkspaceName,
     rootEslintConfigPath,
 } from "../../../scripts/lib/workspaces.mjs";
@@ -40,7 +40,7 @@ describe("run-eslint script", () => {
             "--fix",
             ".",
             "--ignore-pattern",
-            `${appWorkspaceName}/**`,
+            `${appSourceDirectoryName}/**`,
             "--ignore-pattern",
             `${docusaurusWorkspaceName}/**`,
         ]);
@@ -53,7 +53,7 @@ describe("run-eslint script", () => {
             "content",
             "--cache-location",
             ".cache/.eslintcache-electron",
-            appWorkspaceName,
+            appSourceDirectoryName,
         ]);
         expect(buildEslintArgs("docusaurus")).toStrictEqual([
             "--config",
@@ -115,7 +115,7 @@ describe("run-eslint script", () => {
                 "--fix",
                 ".",
                 "--ignore-pattern",
-                `${appWorkspaceName}/**`,
+                `${appSourceDirectoryName}/**`,
                 "--ignore-pattern",
                 `${docusaurusWorkspaceName}/**`,
             ],

@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 
 import {
     appPackageRepositoryPath,
-    appWorkspaceRepositoryPath,
+    appSourceRepositoryPath,
     docusaurusPackageRepositoryPath,
     rootElectronAppTsconfigPath,
     rootEslintConfigPath,
@@ -188,7 +188,7 @@ describe("workspace package boundaries", () => {
             "stylelint.config.mjs",
             "tsconfig.json",
             "tsconfig.runtime.json",
-        ].map((configPath) => appWorkspaceRepositoryPath(configPath));
+        ].map((configPath) => appSourceRepositoryPath(configPath));
 
         expect(getFileExistence(rootToolingConfigs)).toStrictEqual(
             Object.fromEntries(

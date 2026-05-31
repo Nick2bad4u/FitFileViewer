@@ -11,9 +11,9 @@ import {
     afterAll as vitestAfterAll,
 } from "vitest";
 
-import { appWorkspacePath } from "../../scripts/lib/workspaces.mjs";
+import { appSourcePath } from "../../scripts/lib/workspaces.mjs";
 
-const electronAppRoot = appWorkspacePath;
+const electronAppRoot = appSourcePath;
 const electronAppDist = path.join(electronAppRoot, "dist");
 const generatedRuntimeDirs = new Set([
     "main",

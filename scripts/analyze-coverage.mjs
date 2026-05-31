@@ -10,7 +10,7 @@ import process from "node:process";
 import { pathToFileURL } from "node:url";
 
 import {
-    appWorkspaceAbsolutePath,
+    appSourceAbsolutePath,
     repositoryPath,
     repositoryRoot,
 } from "./lib/workspaces.mjs";
@@ -237,7 +237,7 @@ function ellipsize(text, maxLength) {
 }
 
 export function createCoverageCandidatePaths({
-    appCoverageDirectory = appWorkspaceAbsolutePath("coverage"),
+    appCoverageDirectory = appSourceAbsolutePath("coverage"),
     environmentCoverageDirectory = getEnvironmentValue("VITEST_COVERAGE_DIR"),
     rootCoverageDirectory = repositoryPath("coverage"),
     temporaryDirectory = os.tmpdir(),

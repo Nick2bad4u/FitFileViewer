@@ -2,12 +2,9 @@ import { spawnSync } from "node:child_process";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
-import {
-    appWorkspaceRepositoryPath,
-    repositoryRoot,
-} from "./lib/workspaces.mjs";
+import { appSourceRepositoryPath, repositoryRoot } from "./lib/workspaces.mjs";
 
-export const defaultDiffPath = `${appWorkspaceRepositoryPath()}/`;
+export const defaultDiffPath = `${appSourceRepositoryPath()}/`;
 export const defaultTagPattern = "v*";
 
 if (

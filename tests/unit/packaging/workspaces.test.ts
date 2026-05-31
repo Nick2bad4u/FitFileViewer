@@ -15,11 +15,11 @@ type WorkspacesModule = {
     appRendererVendorGlobalsEntryPath: string;
     appStyleCssPath: string;
     appTypesPath: string;
-    appWorkspaceAbsolutePath: (...segments: string[]) => string;
-    appWorkspaceName: string;
-    appWorkspacePath: string;
-    appWorkspaceRepositoryPath: (...segments: string[]) => string;
-    appWorkspaceRelativePath: (...segments: string[]) => string;
+    appSourceAbsolutePath: (...segments: string[]) => string;
+    appSourceDirectoryName: string;
+    appSourcePath: string;
+    appSourceRepositoryPath: (...segments: string[]) => string;
+    appSourceRelativePath: (...segments: string[]) => string;
     docusaurusPackagePath: string;
     docusaurusPackageRepositoryPath: string;
     docusaurusWorkspaceAbsolutePath: (...segments: string[]) => string;
@@ -68,7 +68,6 @@ type WorkspacesModule = {
     rootVitestConfigPath: string;
     rootVitestTypecheckTsconfigPath: string;
     scriptsPath: string;
-    appWorkspaceRelativeToRepositoryRootPath: (...segments: string[]) => string;
 };
 
 async function importWorkspaces(): Promise<WorkspacesModule> {
@@ -76,7 +75,7 @@ async function importWorkspaces(): Promise<WorkspacesModule> {
 }
 
 describe("workspace path helpers", () => {
-    it("centralizes the app workspace root paths", async () => {
+    it("centralizes the app source root paths", async () => {
         expect.assertions(15);
 
         const workspaces = await importWorkspaces();
@@ -85,8 +84,8 @@ describe("workspace path helpers", () => {
         expect(workspaces.repositoryRoot).not.toBe(
             path.join(process.cwd(), "electron-app")
         );
-        expect(workspaces.appWorkspaceName).toBe("electron-app");
-        expect(workspaces.appWorkspacePath).toBe(
+        expect(workspaces.appSourceDirectoryName).toBe("electron-app");
+        expect(workspaces.appSourcePath).toBe(
             path.join(process.cwd(), "electron-app")
         );
         expect(workspaces.docusaurusWorkspaceName).toBe("docusaurus");
@@ -101,10 +100,10 @@ describe("workspace path helpers", () => {
         expect(workspaces.appTypesPath).toBe(
             path.join("electron-app", "types")
         );
-        expect(workspaces.appWorkspaceRepositoryPath("package.json")).toBe(
-            "electron-app/package.json"
+        expect(workspaces.appSourceRepositoryPath("main.ts")).toBe(
+            "electron-app/main.ts"
         );
-        expect(workspaces.appWorkspaceAbsolutePath("dist")).toBe(
+        expect(workspaces.appSourceAbsolutePath("dist")).toBe(
             path.join(process.cwd(), "electron-app", "dist")
         );
         expect(workspaces.scriptsPath).toBe(
@@ -197,7 +196,7 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes root generated output and test paths", async () => {
-        expect.assertions(11);
+        expect.assertions(10);
 
         const workspaces = await importWorkspaces();
 
@@ -222,11 +221,6 @@ describe("workspace path helpers", () => {
                 "squirrel-windows-ia32"
             )
         );
-        expect(
-            workspaces.appWorkspaceRelativeToRepositoryRootPath(
-                workspaces.rootElectronBuilderConfigPath
-            )
-        ).toBe("../electron-builder.config.cjs");
     });
 
     it("centralizes the Docusaurus workspace root and package paths", async () => {

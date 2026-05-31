@@ -5,7 +5,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
-    appWorkspacePath,
+    appSourcePath,
     repositoryPath,
     rootElectronBuilderConfigPath,
     rootReleaseDistPath,
@@ -13,7 +13,7 @@ import {
 
 const requireFromTest = createRequire(import.meta.url);
 const repositoryRoot = process.cwd();
-const electronAppRoot = appWorkspacePath;
+const electronAppRoot = appSourcePath;
 
 type ElectronBuilderConfig = {
     directories: {
@@ -91,7 +91,7 @@ describe("electron-builder file list", () => {
         );
     });
 
-    it("keeps app package markdown out of the app workspace", () => {
+    it("keeps app package markdown out of the app source directory", () => {
         expect.assertions(1);
 
         expect(findMarkdownFiles(electronAppRoot)).toStrictEqual([]);

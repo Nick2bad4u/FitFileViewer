@@ -5,7 +5,7 @@ import process from "node:process";
 import { pathToFileURL } from "node:url";
 
 import {
-    appWorkspaceName,
+    appSourceDirectoryName,
     docusaurusWorkspaceName,
     repositoryRoot,
     rootEslintConfigPath,
@@ -26,7 +26,7 @@ export const eslintTargets = Object.freeze({
     },
     electronApp: {
         cacheLocation: ".cache/.eslintcache-electron",
-        paths: [appWorkspaceName],
+        paths: [appSourceDirectoryName],
         prefixArgs: [
             "--config",
             rootEslintConfigPath,
@@ -38,7 +38,7 @@ export const eslintTargets = Object.freeze({
         paths: [
             ".",
             "--ignore-pattern",
-            `${appWorkspaceName}/**`,
+            `${appSourceDirectoryName}/**`,
             "--ignore-pattern",
             `${docusaurusWorkspaceName}/**`,
         ],

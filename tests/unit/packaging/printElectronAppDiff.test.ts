@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { appWorkspaceRepositoryPath } from "../../../scripts/lib/workspaces.mjs";
+import { appSourceRepositoryPath } from "../../../scripts/lib/workspaces.mjs";
 
 type CommandResult = {
     status: number;
@@ -176,12 +176,12 @@ describe("print-electron-app-diff script", () => {
         });
         expect(
             parseArgs([
-                `--diff-path=${appWorkspaceRepositoryPath("utils")}`,
+                `--diff-path=${appSourceRepositoryPath("utils")}`,
                 "--tag-pattern",
                 "v3*",
             ])
         ).toStrictEqual({
-            diffPath: appWorkspaceRepositoryPath("utils"),
+            diffPath: appSourceRepositoryPath("utils"),
             help: false,
             tagPattern: "v3*",
         });

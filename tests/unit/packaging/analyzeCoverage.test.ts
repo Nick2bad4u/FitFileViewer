@@ -9,7 +9,7 @@ import {
     parseCoverageData,
 } from "../../../scripts/analyze-coverage.mjs";
 import {
-    appWorkspaceAbsolutePath,
+    appSourceAbsolutePath,
     repositoryPath,
     repositoryRoot,
 } from "../../../scripts/lib/workspaces.mjs";
@@ -33,7 +33,7 @@ describe("analyze-coverage script", () => {
             repositoryPath("coverage", "coverage-final.json")
         );
         expect(candidates[3]).toBe(
-            appWorkspaceAbsolutePath("coverage", "coverage-final.json")
+            appSourceAbsolutePath("coverage", "coverage-final.json")
         );
     });
 
@@ -44,7 +44,7 @@ describe("analyze-coverage script", () => {
             "coverage",
             "missing-coverage-final.json"
         );
-        const existingCoveragePath = appWorkspaceAbsolutePath(
+        const existingCoveragePath = appSourceAbsolutePath(
             "coverage",
             "coverage-final.json"
         );

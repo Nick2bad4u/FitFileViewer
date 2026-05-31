@@ -39,7 +39,7 @@ describe("run-typescript wrapper", () => {
         ]);
     });
 
-    it("builds declaration output arguments for the app workspace", () => {
+    it("builds declaration output arguments for the app source directory", () => {
         expect.assertions(1);
 
         expect(buildTypescriptArgs("declarations").slice(1)).toStrictEqual([

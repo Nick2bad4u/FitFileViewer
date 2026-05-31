@@ -59,7 +59,7 @@ describe("run-electron script", () => {
         expect(withDefaultAppPath(electronArgs)).toStrictEqual(["custom-app"]);
     });
 
-    it("does not append the app workspace for Electron help commands", async () => {
+    it("does not append the app source directory for Electron help commands", async () => {
         expect.assertions(2);
 
         const { withDefaultAppPath } = await importRunElectron();

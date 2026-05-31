@@ -6,7 +6,7 @@ import process from "node:process";
 import { pathToFileURL } from "node:url";
 
 import {
-    appWorkspaceAbsolutePath,
+    appSourceAbsolutePath,
     repositoryRoot,
     repositoryScriptPath,
     rootIntegrationTestsPath,
@@ -25,7 +25,7 @@ const require = createRequire(import.meta.url);
 const vitestPackagePath = require.resolve("vitest/package.json");
 const vitestCliPath = path.join(path.dirname(vitestPackagePath), "vitest.mjs");
 const suitePathMarker = "\0ffv-suite-paths\0";
-const runtimeDistSentinelPath = appWorkspaceAbsolutePath("dist", "preload.js");
+const runtimeDistSentinelPath = appSourceAbsolutePath("dist", "preload.js");
 const vitestOptionsWithValues = new Set([
     "--config",
     "--environment",

@@ -3,7 +3,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 export const repositoryRoot = resolveRepositoryRoot();
-export const appWorkspaceName = "electron-app";
+export const appSourceDirectoryName = "electron-app";
 export const docusaurusWorkspaceName = "docusaurus";
 export const rootArtifactsPath = "artifacts";
 export const rootPackageJsonPath = "package.json";
@@ -34,27 +34,27 @@ export const rootTabsTestsPath = path.posix.join(rootUnitTestsPath, "tabs");
 export const rootViteRendererConfigPath = "vite.renderer.config.mjs";
 export const rootVitestConfigPath = "vitest.config.ts";
 export const rootVitestTypecheckTsconfigPath = "tsconfig.vitest-typecheck.json";
-export const appWorkspacePath = path.join(repositoryRoot, appWorkspaceName);
+export const appSourcePath = path.join(repositoryRoot, appSourceDirectoryName);
 export const docusaurusWorkspacePath = path.join(
     repositoryRoot,
     docusaurusWorkspaceName
 );
 export const appAlternativeFitViewPath = "ffv";
-export const appDistPath = appWorkspaceRelativePath("dist");
-export const appDistRendererRepositoryPath = appWorkspaceRepositoryPath(
+export const appDistPath = appSourceRelativePath("dist");
+export const appDistRendererRepositoryPath = appSourceRepositoryPath(
     "dist",
     "renderer"
 );
 export const appElevProfileCssPath = "elevProfile.css";
 export const appIconsPath = "icons";
 export const appIndexHtmlPath = "index.html";
-export const appLeafletMeasureLitePath = appWorkspaceRepositoryPath(
+export const appLeafletMeasureLitePath = appSourceRepositoryPath(
     "renderer",
     "leafletMeasureLite.js"
 );
 export const appPackagePath = repositoryPath(rootPackageJsonPath);
 export const appPackageRepositoryPath = rootPackageJsonPath;
-export const appRendererVendorGlobalsEntryPath = appWorkspaceRepositoryPath(
+export const appRendererVendorGlobalsEntryPath = appSourceRepositoryPath(
     "renderer",
     "vendorGlobals.ts"
 );
@@ -62,7 +62,7 @@ export const rendererVendorGlobalsBundleName = "vendor-globals";
 export const rendererVendorGlobalsScriptFileName = `${rendererVendorGlobalsBundleName}.js`;
 export const rendererVendorGlobalsStyleFileName = `${rendererVendorGlobalsBundleName}.css`;
 export const appStyleCssPath = "style.css";
-export const appTypesPath = appWorkspaceRelativePath("types");
+export const appTypesPath = appSourceRelativePath("types");
 export const docusaurusPackagePath =
     docusaurusWorkspaceAbsolutePath("package.json");
 export const docusaurusPackageRepositoryPath =
@@ -90,16 +90,16 @@ export const rootAppStyleCssPath = path.posix.join(
 );
 export const scriptsPath = path.join(repositoryRoot, "scripts");
 
-export function appWorkspaceRelativePath(...segments) {
-    return path.join(appWorkspaceName, ...segments);
+export function appSourceRelativePath(...segments) {
+    return path.join(appSourceDirectoryName, ...segments);
 }
 
-export function appWorkspaceAbsolutePath(...segments) {
-    return path.join(appWorkspacePath, ...segments);
+export function appSourceAbsolutePath(...segments) {
+    return path.join(appSourcePath, ...segments);
 }
 
-export function appWorkspaceRepositoryPath(...segments) {
-    return path.posix.join(appWorkspaceName, ...segments);
+export function appSourceRepositoryPath(...segments) {
+    return path.posix.join(appSourceDirectoryName, ...segments);
 }
 
 export function docusaurusWorkspaceAbsolutePath(...segments) {
@@ -124,10 +124,6 @@ export function repositoryPath(...segments) {
 
 export function rootReleaseDistRelativePath(...segments) {
     return path.join(rootReleaseDistPath, ...segments);
-}
-
-export function appWorkspaceRelativeToRepositoryRootPath(...segments) {
-    return path.posix.join("..", ...segments);
 }
 
 function resolveRepositoryRoot() {

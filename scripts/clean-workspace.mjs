@@ -4,7 +4,7 @@ import process from "node:process";
 import { pathToFileURL } from "node:url";
 
 import {
-    appWorkspaceRelativePath,
+    appSourceRelativePath,
     docusaurusWorkspaceRelativePath,
     repositoryRoot,
     rootArtifactsPath,
@@ -51,13 +51,13 @@ export const cleanupTargets = [
     "playwright-report",
     rootReleaseDistPath,
     "test-results",
-    appWorkspaceRelativePath("coverage"),
-    appWorkspaceRelativePath("dist"),
-    appWorkspaceRelativePath("html"),
-    appWorkspaceRelativePath("logs"),
-    appWorkspaceRelativePath("release"),
-    appWorkspaceRelativePath("temp-win7"),
-    appWorkspaceRelativePath("types"),
+    appSourceRelativePath("coverage"),
+    appSourceRelativePath("dist"),
+    appSourceRelativePath("html"),
+    appSourceRelativePath("logs"),
+    appSourceRelativePath("release"),
+    appSourceRelativePath("temp-win7"),
+    appSourceRelativePath("types"),
 ];
 
 export function cleanWorkspace(
