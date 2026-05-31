@@ -175,7 +175,23 @@ describe("preload API diagnostics", () => {
             },
         ] as const;
 
-        expect(validDiagnostics.validateAPI()).toBe(true);
+        expect({
+            isValid: validDiagnostics.validateAPI(),
+            metadata: validDiagnostics.getChannelInfo(),
+        }).toStrictEqual({
+            isValid: true,
+            metadata: {
+                channels: {
+                    APP_VERSION: "getAppVersion",
+                    THEME_GET: "theme:get",
+                },
+                events: {
+                    MENU_OPEN_FILE: "menu-open-file",
+                },
+                totalChannels: 2,
+                totalEvents: 1,
+            },
+        });
         expect(preloadLog).not.toHaveBeenCalled();
 
         for (const invalidCase of invalidCases) {
@@ -203,7 +219,11 @@ describe("preload API diagnostics", () => {
             isDevelopment: true,
         });
 
-        expect(diagnostics.validateAPI()).toBe(true);
+        expect({
+            isValid: diagnostics.validateAPI(),
+        }).toStrictEqual({
+            isValid: true,
+        });
         expect(preloadLog).toHaveBeenCalledWith(
             "info",
             "[preload.js] API Validation:",
@@ -240,7 +260,11 @@ describe("preload API diagnostics", () => {
             preloadLog,
         });
 
-        expect(diagnostics.validateAPI()).toBe(false);
+        expect({
+            isValid: diagnostics.validateAPI(),
+        }).toStrictEqual({
+            isValid: false,
+        });
         expect(preloadLog).toHaveBeenCalledWith(
             "error",
             "[preload.js] API validation failed:",

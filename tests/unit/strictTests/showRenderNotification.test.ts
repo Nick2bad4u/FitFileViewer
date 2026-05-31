@@ -80,7 +80,14 @@ describe("showRenderNotification strict", () => {
             expect({
                 shouldShow: showRenderNotification(1, 0),
             }).toStrictEqual({ shouldShow: true });
-            expect(chartStateMock.previousChartState.chartCount).toBe(1);
+            expect({
+                chartCount: chartStateMock.previousChartState.chartCount,
+                fieldsRendered:
+                    chartStateMock.previousChartState.fieldsRendered,
+            }).toStrictEqual({
+                chartCount: 1,
+                fieldsRendered: [],
+            });
         } finally {
             logSpy.mockRestore();
             nowSpy.mockRestore();
@@ -140,7 +147,18 @@ describe("showRenderNotification strict", () => {
             expect({
                 shouldShow: showRenderNotification(9, 3),
             }).toStrictEqual({ shouldShow: true });
-            expect(chartStateMock.previousChartState.chartCount).toBe(9);
+            expect({
+                chartCount: chartStateMock.previousChartState.chartCount,
+                fieldsRendered:
+                    chartStateMock.previousChartState.fieldsRendered,
+            }).toStrictEqual({
+                chartCount: 9,
+                fieldsRendered: [
+                    true,
+                    true,
+                    true,
+                ],
+            });
         } finally {
             logSpy.mockRestore();
             nowSpy.mockRestore();
@@ -170,7 +188,11 @@ describe("showRenderNotification strict", () => {
 
             expect(outcome).toStrictEqual({ shouldShow: false });
             expect(outcome).not.toStrictEqual({ shouldShow: true });
-            expect(chartStateMock.previousChartState.chartCount).toBe(6);
+            expect({
+                chartCount: chartStateMock.previousChartState.chartCount,
+            }).toStrictEqual({
+                chartCount: 6,
+            });
             expect(
                 chartStateMock.previousChartState.fieldsRendered
             ).toHaveLength(4);
