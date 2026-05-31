@@ -148,7 +148,7 @@ describe("process environment runtime boundary", () => {
     });
 
     it("reads string environment values only", () => {
-        expect.assertions(3);
+        expect.assertions(2);
 
         setGlobalProcess({
             env: {
@@ -157,12 +157,17 @@ describe("process environment runtime boundary", () => {
             },
         });
 
-        expect(getProcessEnvironmentValue("FFV_DEBUG_MENU")).toBeUndefined();
-        expect(getNodeEnvironmentSnapshot()).toStrictEqual({
-            isDevelopment: true,
-            isNodeTest: false,
-            isTest: false,
-            nodeEnv: "development",
+        expect({
+            debugMenu: getProcessEnvironmentValue("FFV_DEBUG_MENU"),
+            snapshot: getNodeEnvironmentSnapshot(),
+        }).toStrictEqual({
+            debugMenu: undefined,
+            snapshot: {
+                isDevelopment: true,
+                isNodeTest: false,
+                isTest: false,
+                nodeEnv: "development",
+            },
         });
 
         setGlobalProcess({ env: { NODE_ENV: "test" } });

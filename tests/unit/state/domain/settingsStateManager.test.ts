@@ -264,20 +264,38 @@ describe("settingsStateManager.js - simplified coverage", () => {
             });
 
             it("should return undefined for missing object setting key", () => {
+                expect.assertions(1);
                 const result = settingsStateManager.getSetting(
                     "ui",
                     "missingKey"
                 );
 
-                expect(result).toBeUndefined();
+                expect({
+                    keyCalls: mockLocalStorage.key.mock.calls,
+                    result,
+                    storageKey: mockLocalStorage.getItem.mock.calls.at(-1)?.[0],
+                }).toStrictEqual({
+                    keyCalls: [],
+                    result: undefined,
+                    storageKey: "ui_missingKey",
+                });
             });
 
             it("should return default for unknown category", () => {
+                expect.assertions(1);
                 const result = settingsStateManager.getSetting(
                     "unknown" as any
                 );
 
-                expect(result).toBeUndefined();
+                expect({
+                    result,
+                    warning: vi.mocked(console.warn).mock.calls.at(-1),
+                }).toStrictEqual({
+                    result: undefined,
+                    warning: [
+                        "[SettingsState] Unknown setting category: unknown",
+                    ],
+                });
             });
         });
 
@@ -612,7 +630,13 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
                 const result = getChartSetting("missingKey");
 
-                expect(result).toBeUndefined();
+                expect({
+                    result,
+                    storageKey: mockLocalStorage.getItem.mock.calls.at(-1)?.[0],
+                }).toStrictEqual({
+                    result: undefined,
+                    storageKey: "chartjs_missingKey",
+                });
             });
         });
 
