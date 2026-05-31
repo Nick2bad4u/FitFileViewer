@@ -12,7 +12,7 @@ import {
 
 describe("performanceUtils", () => {
     it("batches queued items by max item count", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         vi.useFakeTimers();
         const processedBatches: number[][] = [];
@@ -48,7 +48,7 @@ describe("performanceUtils", () => {
     });
 
     it("batches queued items after max wait", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         vi.useFakeTimers();
         const processedBatches: string[][] = [];
@@ -75,7 +75,7 @@ describe("performanceUtils", () => {
     });
 
     it("debounces trailing calls and supports flush and cancel", () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         vi.useFakeTimers();
         const values: string[] = [];
@@ -103,7 +103,7 @@ describe("performanceUtils", () => {
     });
 
     it("supports leading debounce calls", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         vi.useFakeTimers();
         const values: number[] = [];
@@ -132,7 +132,7 @@ describe("performanceUtils", () => {
     });
 
     it("memoizes by generated keys and exposes clearable cache", () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         const invokedCounts: number[] = [];
         const memoized = memoize(
@@ -155,7 +155,7 @@ describe("performanceUtils", () => {
     });
 
     it("marks optimized event handlers with passive metadata", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         vi.useFakeTimers();
         const events: Event[] = [];
@@ -188,7 +188,7 @@ describe("performanceUtils", () => {
     });
 
     it("throttles calls on the leading edge and replays the trailing value", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         vi.useFakeTimers();
         const values: string[] = [];
@@ -214,7 +214,7 @@ describe("performanceUtils", () => {
     });
 
     it("uses native idle callbacks when available", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const nativeCancel = vi.fn<(id: number) => void>();
         const nativeRequest = vi.fn<
@@ -243,7 +243,7 @@ describe("performanceUtils", () => {
     });
 
     it("falls back to timers for idle callbacks", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         vi.useFakeTimers();
         vi.stubGlobal("requestIdleCallback", undefined);
