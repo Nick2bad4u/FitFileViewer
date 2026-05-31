@@ -123,7 +123,13 @@ describe("preload main-state API", () => {
 
         const invalidSetResult = await api.setMainState("", "value");
 
-        expect(invalidSetResult).toBe(false);
+        expect({
+            invalidSetResult,
+            invokeCalls: invoke.mock.calls,
+        }).toStrictEqual({
+            invalidSetResult: false,
+            invokeCalls: [],
+        });
         expect(invoke).not.toHaveBeenCalled();
 
         invoke.mockResolvedValueOnce(true);
@@ -135,7 +141,22 @@ describe("preload main-state API", () => {
             }
         );
 
-        expect(validSetResult).toBe(true);
+        expect({
+            invokeCalls: invoke.mock.calls,
+            validSetResult,
+        }).toStrictEqual({
+            invokeCalls: [
+                [
+                    "main-state:set",
+                    "loadedFitFilePath",
+                    "activity.fit",
+                    {
+                        source: "test",
+                    },
+                ],
+            ],
+            validSetResult: true,
+        });
     });
 
     it("delegates main-state listener lifecycle through the bridge", async () => {
@@ -153,7 +174,11 @@ describe("preload main-state API", () => {
         const unsubscribeResult = await unsubscribe();
 
         expect(unsubscribe).toBeTypeOf("function");
-        expect(unsubscribeResult).toBe(true);
+        expect({
+            unsubscribeResult,
+        }).toStrictEqual({
+            unsubscribeResult: true,
+        });
         expect(listenToMainState).toHaveBeenCalledWith(
             "loadedFitFilePath",
             callback
@@ -177,7 +202,11 @@ describe("preload main-state API", () => {
         );
         const unsubscribeResult = await unsubscribe();
 
-        expect(unsubscribeResult).toBe(false);
+        expect({
+            unsubscribeResult,
+        }).toStrictEqual({
+            unsubscribeResult: false,
+        });
         expect(listenToMainState).toHaveBeenCalledOnce();
         expect(unlistenFromMainState).not.toHaveBeenCalled();
     });
