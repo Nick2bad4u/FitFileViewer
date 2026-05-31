@@ -15,6 +15,9 @@ const globalRef = globalThis as TestGlobal;
 
 const pendingTimers = new Set<ReturnType<typeof setTimeout>>();
 
+type FetchCall = Parameters<typeof fetch>;
+type TimeoutCall = Parameters<typeof setTimeout>;
+
 function delay(delayMs: number): Promise<void> {
     return new Promise((resolve) => {
         const timer = setTimeout(() => {
@@ -35,7 +38,7 @@ describe("async concurrency limiter", () => {
     });
 
     it("limits concurrent factories and preserves result order", async () => {
-        expect.assertions(3);
+        expect.assertions(2);
 
         const limit = pLimitCompat(2);
         let activeCount = 0;
@@ -62,8 +65,13 @@ describe("async concurrency limiter", () => {
             2,
             3,
         ]);
-        expect(maxActiveCount).toBe(2);
-        expect(activeCount).toBe(0);
+        expect({
+            activeCount,
+            maxActiveCount,
+        }).toMatchObject({
+            activeCount: 0,
+            maxActiveCount: 2,
+        });
     });
 
     it("falls back to serial execution for invalid concurrency", async () => {
@@ -87,7 +95,7 @@ describe("async concurrency limiter", () => {
             1,
             2,
         ]);
-        expect(maxActiveCount).toBe(1);
+        expect({ maxActiveCount }).toMatchObject({ maxActiveCount: 1 });
     });
 
     it("continues queued work after a rejected factory", async () => {
@@ -126,23 +134,17 @@ describe("network utilities", () => {
             fetchWithTimeout("https://example.test", 100)
         ).resolves.toBe(response);
 
-        expect(fetchSpy).toHaveBeenCalledTimes(1);
-        const fetchCall = fetchSpy.mock.calls.at(0);
-        if (fetchCall === undefined) {
-            throw new Error("fetch was not called");
-        }
+        expect(fetchSpy).toHaveBeenCalledOnce();
+        const fetchCall = fetchSpy.mock.calls[0] as FetchCall;
         const [url, init] = fetchCall;
         expect(url).toBe("https://example.test");
         expect(init?.signal).toBeInstanceOf(AbortSignal);
-        expect(init?.signal?.aborted).toBe(false);
+        expect(init?.signal).toHaveProperty("aborted", false);
 
-        const timeoutCall = timeoutSpy.mock.calls.at(0);
-        if (timeoutCall === undefined) {
-            throw new Error("setTimeout was not called");
-        }
-        const [timeoutHandler, timeoutDelay] = timeoutCall;
-        expect(typeof timeoutHandler).toBe("function");
-        expect(timeoutDelay).toBe(100);
+        expect(timeoutSpy).toHaveBeenCalledWith(expect.any(Function), 100);
+        const timeoutCall = timeoutSpy.mock.calls[0] as TimeoutCall;
+        const [timeoutHandler] = timeoutCall;
+        expect(timeoutHandler).toBeTypeOf("function");
         expect(clearSpy).toHaveBeenCalledWith(expect.anything());
     });
 
@@ -175,12 +177,9 @@ describe("network utilities", () => {
         await vi.advanceTimersByTimeAsync(1);
         expect(abortEvents).toStrictEqual(["abort"]);
 
-        const fetchCall = fetchSpy.mock.calls.at(0);
-        if (fetchCall === undefined) {
-            throw new Error("fetch was not called");
-        }
+        const fetchCall = fetchSpy.mock.calls[0] as FetchCall;
         expect(fetchCall[0]).toBe("https://example.test/slow");
-        expect(fetchCall[1]?.signal?.aborted).toBe(true);
+        expect(fetchCall[1]?.signal).toHaveProperty("aborted", true);
     });
 
     it("detects abort errors and rejects unrelated values", () => {
