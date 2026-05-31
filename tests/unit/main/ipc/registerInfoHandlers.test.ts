@@ -161,7 +161,7 @@ describe("registerInfoHandlers", () => {
     });
 
     it("provides app/platform metadata and map/theme defaults", async () => {
-        expect.hasAssertions();
+        expect.assertions(18);
 
         const handlers = getHandlers();
         const licenseJson = { license: "Unlicense" };
@@ -200,7 +200,7 @@ describe("registerInfoHandlers", () => {
     });
 
     it("returns 'Unknown' and logs when license read fails", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const handlers = getHandlers();
         fs.readFileSync.mockImplementation(() => {
@@ -221,7 +221,7 @@ describe("registerInfoHandlers", () => {
     });
 
     it("normalizes corrupted persisted theme/map-tab values", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         mockConfGet = vi.fn<(key: string, fallback: unknown) => unknown>(
             (key, fallback) => {
