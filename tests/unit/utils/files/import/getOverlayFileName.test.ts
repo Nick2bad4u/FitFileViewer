@@ -10,6 +10,8 @@ describe("getOverlayFileName", () => {
     });
 
     it("throws on invalid index types", async () => {
+        expect.hasAssertions();
+
         const { getOverlayFileName } = await importGetOverlayFileName();
         expect(() => getOverlayFileName(-1 as any)).toThrow(
             "Index must be a non-negative integer"
@@ -19,10 +21,14 @@ describe("getOverlayFileName", () => {
     });
 
     it("returns empty string when loadedFitFiles is not an array", async () => {
+        expect.hasAssertions();
+
         vi.doMock(
-            "../../../../../electron-app/utils/state/core/stateManager.js",
+            import("../../../../../electron-app/utils/state/core/stateManager.js"),
             () => ({
-                getState: vi.fn(() => ({ nope: true })),
+                getState: vi.fn<(path?: string) => unknown>(() => ({
+                    nope: true,
+                })),
             })
         );
         const { getOverlayFileName } = await importGetOverlayFileName();
@@ -30,10 +36,12 @@ describe("getOverlayFileName", () => {
     });
 
     it("returns empty string when item missing or invalid filePath", async () => {
+        expect.hasAssertions();
+
         vi.doMock(
-            "../../../../../electron-app/utils/state/core/stateManager.js",
+            import("../../../../../electron-app/utils/state/core/stateManager.js"),
             () => ({
-                getState: vi.fn(() => [
+                getState: vi.fn<(path?: string) => unknown>(() => [
                     {},
                     { filePath: 123 },
                     { filePath: "   " },
@@ -47,10 +55,14 @@ describe("getOverlayFileName", () => {
     });
 
     it("returns filePath when present", async () => {
+        expect.hasAssertions();
+
         vi.doMock(
-            "../../../../../electron-app/utils/state/core/stateManager.js",
+            import("../../../../../electron-app/utils/state/core/stateManager.js"),
             () => ({
-                getState: vi.fn(() => [{ filePath: "C:/data/ride.fit" }]),
+                getState: vi.fn<(path?: string) => unknown>(() => [
+                    { filePath: "C:/data/ride.fit" },
+                ]),
             })
         );
         const { getOverlayFileName } = await importGetOverlayFileName();
@@ -58,10 +70,12 @@ describe("getOverlayFileName", () => {
     });
 
     it("handles getState throwing and returns empty string", async () => {
+        expect.hasAssertions();
+
         vi.doMock(
-            "../../../../../electron-app/utils/state/core/stateManager.js",
+            import("../../../../../electron-app/utils/state/core/stateManager.js"),
             () => ({
-                getState: vi.fn(() => {
+                getState: vi.fn<(path?: string) => unknown>(() => {
                     throw new Error("boom");
                 }),
             })
