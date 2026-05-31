@@ -83,7 +83,7 @@ async function createFitFileHandlerTestContext(): Promise<FitFileHandlerTestCont
 
 describe("registerFitFileHandlers", () => {
     it("no-ops when registerIpcHandle is invalid", async () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const {
             ensureFitParserStateIntegration,
@@ -92,14 +92,16 @@ describe("registerFitFileHandlers", () => {
             registerIpcHandle,
         } = await createFitFileHandlerTestContext();
 
-        const result = registerFitFileHandlers({
-            ensureFitParserStateIntegration,
-            logWithContext,
-            registerIpcHandle: undefined,
-        });
+        expect(() => {
+            registerFitFileHandlers({
+                ensureFitParserStateIntegration,
+                logWithContext,
+                registerIpcHandle: undefined,
+            });
+        }).not.toThrow();
 
-        expect(result).toBeUndefined();
         expect(registerIpcHandle).not.toHaveBeenCalled();
+        expect(ensureFitParserStateIntegration).not.toHaveBeenCalled();
     });
 
     it("registers both fit handlers and decodes buffer payloads", async () => {
