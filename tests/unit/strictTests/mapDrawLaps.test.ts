@@ -59,45 +59,64 @@ type MapDrawWindow = Window &
     };
 
 type MapDrawOptions = Parameters<typeof mapDrawLaps>[1];
+type FormatTooltipDataFn = (
+    pointIndex: number,
+    row: unknown,
+    lapNumber: number
+) => string;
+type GetLapColorFn = () => string;
+type GetLapNumForIdxFn = (pointIndex: number) => number;
 
 function createBounds(): BoundsStub {
     const bounds = {
-        clone: vi.fn(() => bounds),
-        extend: vi.fn(() => bounds),
+        clone: vi.fn<() => BoundsStub>(() => bounds),
+        extend: vi.fn<(bounds: unknown) => BoundsStub>(() => bounds),
     };
     return bounds;
 }
 
 function createLayer(bounds = createBounds()): LayerStub {
     const layer = {
-        addTo: vi.fn(() => layer),
-        bindPopup: vi.fn(() => layer),
-        bindTooltip: vi.fn(() => layer),
-        bringToFront: vi.fn(() => layer),
-        getBounds: vi.fn(() => bounds),
-        getElement: vi.fn(() => null),
-        on: vi.fn(() => layer),
+        addTo: vi.fn<(target: unknown) => LayerStub>(() => layer),
+        bindPopup: vi.fn<(content: string) => LayerStub>(() => layer),
+        bindTooltip: vi.fn<(content: string, options?: unknown) => LayerStub>(
+            () => layer
+        ),
+        bringToFront: vi.fn<() => LayerStub>(() => layer),
+        getBounds: vi.fn<() => BoundsStub>(() => bounds),
+        getElement: vi.fn<() => null>(() => null),
+        on: vi.fn<(eventName: string, listener: () => void) => LayerStub>(
+            () => layer
+        ),
         options: {},
-        setStyle: vi.fn(() => layer),
+        setStyle: vi.fn<(options: unknown) => LayerStub>(() => layer),
     };
     return layer;
 }
 
 function createLayerTarget(): LayerTargetStub {
     const target = {
-        addTo: vi.fn(() => target),
-        clearLayers: vi.fn(),
+        addTo: vi.fn<(target: unknown) => LayerTargetStub>(() => target),
+        clearLayers: vi.fn<() => void>(),
     };
     return target;
 }
 
 function createLeafletStub(): LeafletStub {
     return {
-        circleMarker: vi.fn(() => createLayer()),
-        featureGroup: vi.fn(() => createLayerTarget()),
-        latLngBounds: vi.fn(() => createBounds()),
-        marker: vi.fn(() => createLayer()),
-        polyline: vi.fn(() => createLayer()),
+        circleMarker: vi.fn<
+            (latLng: [number, number], options?: unknown) => LayerStub
+        >(() => createLayer()),
+        featureGroup: vi.fn<() => LayerTargetStub>(() => createLayerTarget()),
+        latLngBounds: vi.fn<(latLngs: unknown) => BoundsStub>(() =>
+            createBounds()
+        ),
+        marker: vi.fn<
+            (latLng: [number, number], options?: unknown) => LayerStub
+        >(() => createLayer()),
+        polyline: vi.fn<
+            (latLngs: [number, number][], options?: unknown) => LayerStub
+        >(() => createLayer()),
     };
 }
 
@@ -108,9 +127,9 @@ function createMapStub() {
             clientWidth: 640,
             offsetParent: {},
         },
-        fitBounds: vi.fn(),
-        hasLayer: vi.fn(() => false),
-        invalidateSize: vi.fn(),
+        fitBounds: vi.fn<(bounds: unknown, options?: unknown) => void>(),
+        hasLayer: vi.fn<(layer: unknown) => boolean>(() => false),
+        invalidateSize: vi.fn<() => void>(),
     };
 }
 
@@ -119,12 +138,12 @@ function createOptions(
     mapContainer: HTMLElement
 ): MapDrawOptions {
     return {
-        formatTooltipData: vi.fn(
+        formatTooltipData: vi.fn<FormatTooltipDataFn>(
             (pointIndex: number, _row: unknown, lapNumber: number) =>
                 `point ${pointIndex} lap ${lapNumber}`
         ),
-        getLapColor: vi.fn(() => "#00aaff"),
-        getLapNumForIdx: vi.fn((pointIndex: number) =>
+        getLapColor: vi.fn<GetLapColorFn>(() => "#00aaff"),
+        getLapNumForIdx: vi.fn<GetLapNumForIdxFn>((pointIndex: number) =>
             pointIndex === 0 ? 1 : 2
         ),
         map: map as unknown as MapDrawOptions["map"],
@@ -146,7 +165,7 @@ function setWindowData(
     return mapWindow;
 }
 
-describe("mapDrawLaps", () => {
+describe(mapDrawLaps, () => {
     beforeEach(() => {
         vi.useFakeTimers();
         const mapContainer = document.createElement("div");
@@ -161,6 +180,8 @@ describe("mapDrawLaps", () => {
     });
 
     it("draws all valid coordinate records and registers point markers", () => {
+        expect.hasAssertions();
+
         const leaflet = createLeafletStub();
         (globalThis as typeof globalThis & { L?: LeafletStub }).L = leaflet;
         (window as MapDrawWindow).L = leaflet;
@@ -186,11 +207,10 @@ describe("mapDrawLaps", () => {
         });
         const map = createMapStub();
         const mapContainer = document.getElementById("map-container");
-        if (!mapContainer) {
-            throw new Error("Expected map container fixture");
-        }
+        expect(mapContainer).toBeInstanceOf(HTMLElement);
+        const mapContainerElement = mapContainer as HTMLElement;
 
-        mapDrawLaps("all", createOptions(map, mapContainer));
+        mapDrawLaps("all", createOptions(map, mapContainerElement));
 
         expect(leaflet.polyline).toHaveBeenCalledWith(
             [
@@ -218,6 +238,8 @@ describe("mapDrawLaps", () => {
     });
 
     it("renders a no-location message and skips drawing when records lack coordinates", () => {
+        expect.hasAssertions();
+
         const leaflet = createLeafletStub();
         (globalThis as typeof globalThis & { L?: LeafletStub }).L = leaflet;
         (window as MapDrawWindow).L = leaflet;
@@ -230,16 +252,15 @@ describe("mapDrawLaps", () => {
         });
         const map = createMapStub();
         const mapContainer = document.getElementById("map-container");
-        if (!mapContainer) {
-            throw new Error("Expected map container fixture");
-        }
+        expect(mapContainer).toBeInstanceOf(HTMLElement);
+        const mapContainerElement = mapContainer as HTMLElement;
 
-        mapDrawLaps("all", createOptions(map, mapContainer));
+        mapDrawLaps("all", createOptions(map, mapContainerElement));
 
-        expect(mapContainer.textContent).toContain(
+        expect(mapContainerElement.textContent).toContain(
             "No location data available to display map."
         );
-        expect(mapContainer.textContent).toContain("recordMesgs: 2");
+        expect(mapContainerElement.textContent).toContain("recordMesgs: 2");
         expect(leaflet.polyline).not.toHaveBeenCalled();
         expect(map.fitBounds).not.toHaveBeenCalled();
     });
