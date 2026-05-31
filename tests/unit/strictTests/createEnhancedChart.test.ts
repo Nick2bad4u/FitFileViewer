@@ -1272,8 +1272,10 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
     });
 
-    describe("Display Options", () => {
+    describe("display options", () => {
         it("should hide legend when showLegend is false", () => {
+            expect.hasAssertions();
+
             const canvas = document.createElement("canvas");
             const options = {
                 field: "speed",
@@ -1303,6 +1305,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should hide title when showTitle is false", () => {
+            expect.hasAssertions();
+
             const canvas = document.createElement("canvas");
             const options = {
                 field: "speed",
@@ -1329,6 +1333,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should set title text with field label and unit symbol", () => {
+            expect.hasAssertions();
+
             const canvas = document.createElement("canvas");
             const fieldLabels = { speed: "Velocity" };
             const options = {
@@ -1356,8 +1362,10 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
     });
 
-    describe("Canvas Styling", () => {
+    describe("canvas styling", () => {
         it("should apply canvas styling", () => {
+            expect.hasAssertions();
+
             const canvas = document.createElement("canvas");
             const options = {
                 field: "speed",
@@ -1387,9 +1395,10 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
     });
 
-    describe("Error Handling", () => {
+    describe("error handling", () => {
         it("should handle Chart constructor throwing error", () => {
-            // Test error handling structure
+            expect.hasAssertions();
+
             Chart.mockImplementationOnce(() => {
                 throw new Error("Chart creation failed");
             });
@@ -1415,9 +1424,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             const result = createEnhancedChart(canvas, options);
 
-            // Test that error is handled gracefully
             expect(result).toBeNull();
-            // Test that console.error was called (we can verify this because we mocked console)
             expect(console.error).toHaveBeenCalledWith(
                 "[ChartJS] Error creating chart for speed:",
                 expect.any(Error)
@@ -1425,6 +1432,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should return null and log when chart creation fails", () => {
+            expect.hasAssertions();
+
             Chart.mockImplementationOnce(() => {
                 throw new Error("Chart creation failed");
             });
@@ -1458,8 +1467,10 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
     });
 
-    describe("Edge Cases", () => {
+    describe("edge cases", () => {
         it("should handle empty chartData", () => {
+            expect.hasAssertions();
+
             const canvas = document.createElement("canvas");
             const options = {
                 field: "speed",
@@ -1488,6 +1499,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should handle maximum smoothing value", () => {
+            expect.hasAssertions();
+
             const canvas = document.createElement("canvas");
             const options = {
                 field: "speed",
@@ -1510,10 +1523,12 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             createEnhancedChart(canvas, options);
 
             const dataset = Chart.mock.calls[0][1].data.datasets[0];
-            expect(dataset.tension).toBe(1.0); // 100 / 100
+            expect(dataset.tension).toBe(1.0);
         });
 
         it("should handle field with no label or custom color", () => {
+            expect.hasAssertions();
+
             const canvas = document.createElement("canvas");
             const options = {
                 field: "unknownField",
