@@ -55,7 +55,7 @@ describe("update-release-job-summary script", () => {
                 "",
                 "See above for the full build matrix results.",
                 "---",
-                "- **Version bump and tagging** performed for electron-app.",
+                "- **Version bump and tagging** performed for the root app package.",
                 "- **Builds executed** for multiple OS and architectures.",
                 "- **Build artifacts uploaded** for each platform.",
                 "- **Release created** if build and version bump succeeded.",

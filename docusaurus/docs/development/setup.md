@@ -61,7 +61,7 @@ cd FitFileViewer
 ### 2. Install Dependencies
 
 ```bash
-# Install all workspace dependencies
+# Install root app tooling and docs workspace dependencies
 npm install
 ```
 

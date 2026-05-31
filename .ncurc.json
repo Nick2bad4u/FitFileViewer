@@ -21,7 +21,7 @@
     ],
     "deprecated": true,
     "doctor": false,
-    "doctorInstall": "npm run install --force",
+    "doctorInstall": "npm install",
     "doctorTest": "npm run test",
     "enginesNode": false,
     "errorLevel": 1,

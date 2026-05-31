@@ -138,6 +138,37 @@ describe("workspace package boundaries", () => {
         expect(docusaurusPackage.private).toBe(true);
     });
 
+    it("keeps public package snippets aligned with the root app manifest", () => {
+        expect.assertions(5);
+
+        const rootPackage = readPackageJson("package.json");
+        const homepageSource = readFileSync(
+            path.join(process.cwd(), "docusaurus", "src", "pages", "index.tsx"),
+            "utf8"
+        );
+
+        expect(homepageSource).toContain(`"name": "${rootPackage.name}"`);
+        expect(homepageSource).toContain(`"main": "${rootPackage.main}"`);
+        expect(homepageSource).toContain('"docusaurus"');
+        expect(homepageSource).not.toContain("fitfileviewer-root");
+        expect(homepageSource).not.toContain('"electron-app",');
+    });
+
+    it("keeps dependency update configuration rooted at the app package", () => {
+        expect.assertions(1);
+
+        const ncuConfig = JSON.parse(
+            readFileSync(path.join(process.cwd(), ".ncurc.json"), "utf8")
+        ) as Record<string, unknown>;
+
+        expect(ncuConfig).toMatchObject({
+            doctorInstall: "npm install",
+            packageFile: "./package.json",
+            root: true,
+            workspaces: true,
+        });
+    });
+
     it("keeps Electron app tooling configuration centralized at the repository root", () => {
         expect.assertions(2);
 

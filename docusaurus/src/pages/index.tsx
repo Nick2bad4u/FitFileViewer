@@ -12,18 +12,26 @@ import clsx from "clsx";
 import styles from "./index.module.css";
 
 const packageJsonSnippet = `{
-  "name": "fitfileviewer-root",
+  "name": "fitfileviewer",
   "private": true,
   "workspaces": [
-    "electron-app",
     "docusaurus"
   ],
+  "main": "electron-app/dist/main.js",
   "scripts": {
     "start": "node scripts/start-electron.mjs --inspect=9229 --remote-debugging-port=9222",
     "build": "node scripts/build-package.mjs",
     "test": "node scripts/run-vitest.mjs --run --reporter=dot --silent --maxWorkers 1"
   },
+  "dependencies": {
+    "@garmin/fitsdk": "^21.205.0",
+    "electron-conf": "^1.3.0",
+    "electron-log": "^5.4.4",
+    "electron-updater": "^6.8.3",
+    "zod": "^4.4.3"
+  },
   "devDependencies": {
+    "@vitest/ui": "^4.1.7",
     "chart.js": "^4.5.1",
     "electron": "^42.2.0",
     "leaflet": "^1.9.4",
