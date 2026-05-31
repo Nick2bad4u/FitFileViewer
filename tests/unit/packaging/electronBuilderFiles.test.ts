@@ -9,6 +9,7 @@ import {
     repositoryPath,
     rootElectronBuilderConfigPath,
     rootReleaseDistPath,
+    rootWin7ReleaseDistPath,
 } from "../../../scripts/lib/workspaces.mjs";
 
 const requireFromTest = createRequire(import.meta.url);
@@ -73,9 +74,7 @@ describe("electron-builder file list", () => {
             sharedFileList
         );
         expect(win7Build.rootPackageFiles).toStrictEqual(sharedFileList);
-        expect(win7Build.outputDir).toBe(
-            repositoryPath(rootReleaseDistPath, "win7")
-        );
+        expect(win7Build.outputDir).toBe(rootWin7ReleaseDistPath);
     });
 
     it("rejects invalid package file lists", async () => {

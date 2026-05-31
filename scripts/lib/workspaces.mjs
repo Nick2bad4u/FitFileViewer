@@ -26,6 +26,11 @@ export const rootFlatpakRepoPath = "flatpak-repo";
 export const rootFlatpakZipPath = `${rootFlatpakBundlePath}.zip`;
 export const rootPrettierConfigPath = "prettier.config.mjs";
 export const rootReleaseDistPath = "release-dist";
+export const rootReleaseDistAbsolutePath = repositoryPath(rootReleaseDistPath);
+export const rootWin7ReleaseDistPath = repositoryPath(
+    rootReleaseDistPath,
+    "win7"
+);
 export const rootRuntimeTsconfigPath = "tsconfig.runtime.json";
 export const rootRuntimeTsconfigAbsolutePath = repositoryPath(
     rootRuntimeTsconfigPath

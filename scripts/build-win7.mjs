@@ -5,16 +5,12 @@ import { createRequire } from "node:module";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
-import {
-    repositoryPath,
-    repositoryRoot,
-    rootReleaseDistPath,
-} from "./lib/workspaces.mjs";
+import { repositoryRoot, rootWin7ReleaseDistPath } from "./lib/workspaces.mjs";
 import { resolveCommandForPlatform } from "./lib/child-process.mjs";
 
 const require = createRequire(import.meta.url);
 const electronBuilderConfig = require("../electron-builder.config.cjs");
-export const outputDir = repositoryPath(rootReleaseDistPath, "win7");
+export const outputDir = rootWin7ReleaseDistPath;
 const WIN7_ELECTRON_VERSION = "22.3.27";
 export const rootPackageFiles = readElectronBuilderFiles();
 

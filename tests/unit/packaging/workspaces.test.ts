@@ -57,6 +57,7 @@ type WorkspacesModule = {
     rootIntegrationTestsPath: string;
     rootPrettierConfigPath: string;
     rootReleaseDistPath: string;
+    rootReleaseDistAbsolutePath: string;
     rootReleaseDistRelativePath: (...segments: string[]) => string;
     rootRuntimeTsconfigAbsolutePath: string;
     rootRuntimeTsconfigPath: string;
@@ -68,6 +69,7 @@ type WorkspacesModule = {
     rootViteRendererConfigPath: string;
     rootVitestConfigPath: string;
     rootVitestTypecheckTsconfigPath: string;
+    rootWin7ReleaseDistPath: string;
     scriptsPath: string;
 };
 
@@ -200,7 +202,7 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes root generated output and test paths", async () => {
-        expect.assertions(10);
+        expect.assertions(12);
 
         const workspaces = await importWorkspaces();
 
@@ -210,6 +212,12 @@ describe("workspace path helpers", () => {
         expect(workspaces.rootFlatpakRepoPath).toBe("flatpak-repo");
         expect(workspaces.rootFlatpakZipPath).toBe("FitFileViewer.flatpak.zip");
         expect(workspaces.rootReleaseDistPath).toBe("release-dist");
+        expect(workspaces.rootReleaseDistAbsolutePath).toBe(
+            path.join(process.cwd(), "release-dist")
+        );
+        expect(workspaces.rootWin7ReleaseDistPath).toBe(
+            path.join(process.cwd(), "release-dist", "win7")
+        );
         expect(workspaces.rootIntegrationTestsPath).toBe("tests/integration");
         expect(workspaces.rootUnitTestsPath).toBe("tests/unit");
         expect(workspaces.rootTabsTestsPath).toBe("tests/unit/tabs");
