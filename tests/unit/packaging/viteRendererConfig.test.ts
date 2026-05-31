@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { repositoryRoot } from "../../../scripts/lib/workspaces.mjs";
+import {
+    appDistRendererRepositoryPath,
+    appRendererVendorGlobalsEntryPath,
+    rendererVendorGlobalsScriptFileName,
+    repositoryRoot,
+} from "../../../scripts/lib/workspaces.mjs";
 
 type ViteRendererConfigModule = {
     default: {
@@ -42,9 +47,9 @@ describe("renderer Vite config", () => {
             root: config.root,
         }).toStrictEqual({
             emptyOutDir: false,
-            entry: "electron-app/renderer/vendorGlobals.ts",
-            fileName: "vendor-globals.js",
-            outDir: "electron-app/dist/renderer",
+            entry: appRendererVendorGlobalsEntryPath,
+            fileName: rendererVendorGlobalsScriptFileName,
+            outDir: appDistRendererRepositoryPath,
             publicDir: false,
             resolveAlias: undefined,
             root: repositoryRoot,

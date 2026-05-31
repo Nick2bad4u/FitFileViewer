@@ -1,27 +1,36 @@
 import { defineConfig } from "vite";
 
-import { repositoryRoot } from "./scripts/lib/workspaces.mjs";
+import {
+    appDistRendererRepositoryPath,
+    appRendererVendorGlobalsEntryPath,
+    rendererVendorGlobalsBundleName,
+    rendererVendorGlobalsScriptFileName,
+    rendererVendorGlobalsStyleFileName,
+    repositoryRoot,
+} from "./scripts/lib/workspaces.mjs";
 
 export default defineConfig({
     build: {
         emptyOutDir: false,
         lib: {
-            cssFileName: "vendor-globals",
-            entry: "electron-app/renderer/vendorGlobals.ts",
-            fileName: () => "vendor-globals.js",
+            cssFileName: rendererVendorGlobalsBundleName,
+            entry: appRendererVendorGlobalsEntryPath,
+            fileName: () => rendererVendorGlobalsScriptFileName,
             formats: ["es"],
         },
         minify: false,
-        outDir: "electron-app/dist/renderer",
+        outDir: appDistRendererRepositoryPath,
         rollupOptions: {
             output: {
                 assetFileNames(assetInfo) {
-                    return assetInfo.names.includes("vendor-globals.css")
+                    return assetInfo.names.includes(
+                        rendererVendorGlobalsStyleFileName
+                    )
                         ? "[name][extname]"
                         : "assets/[name][extname]";
                 },
                 chunkFileNames: "chunks/[name]-[hash].js",
-                entryFileNames: "vendor-globals.js",
+                entryFileNames: rendererVendorGlobalsScriptFileName,
             },
         },
         sourcemap: false,

@@ -5,12 +5,14 @@ import { describe, expect, it } from "vitest";
 type WorkspacesModule = {
     appAlternativeFitViewPath: string;
     appDistPath: string;
+    appDistRendererRepositoryPath: string;
     appElevProfileCssPath: string;
     appIconsPath: string;
     appIndexHtmlPath: string;
     appLeafletMeasureLitePath: string;
     appPackagePath: string;
     appPackageRepositoryPath: string;
+    appRendererVendorGlobalsEntryPath: string;
     appStyleCssPath: string;
     appTypesPath: string;
     appWorkspaceAbsolutePath: (...segments: string[]) => string;
@@ -28,6 +30,9 @@ type WorkspacesModule = {
     repositoryRoot: string;
     repositoryPath: (...segments: string[]) => string;
     repositoryScriptPath: (...segments: string[]) => string;
+    rendererVendorGlobalsBundleName: string;
+    rendererVendorGlobalsScriptFileName: string;
+    rendererVendorGlobalsStyleFileName: string;
     rootElectronAppBaseTsconfigPath: string;
     rootElectronAppEslintTsconfigPath: string;
     rootAlternativeFitViewPath: string;
@@ -116,16 +121,31 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes app runtime asset paths", async () => {
-        expect.assertions(13);
+        expect.assertions(18);
 
         const workspaces = await importWorkspaces();
 
         expect(workspaces.appAlternativeFitViewPath).toBe("ffv");
+        expect(workspaces.appDistRendererRepositoryPath).toBe(
+            "electron-app/dist/renderer"
+        );
         expect(workspaces.appElevProfileCssPath).toBe("elevProfile.css");
         expect(workspaces.appIconsPath).toBe("icons");
         expect(workspaces.appIndexHtmlPath).toBe("index.html");
         expect(workspaces.appLeafletMeasureLitePath).toBe(
             "electron-app/renderer/leafletMeasureLite.js"
+        );
+        expect(workspaces.appRendererVendorGlobalsEntryPath).toBe(
+            "electron-app/renderer/vendorGlobals.ts"
+        );
+        expect(workspaces.rendererVendorGlobalsBundleName).toBe(
+            "vendor-globals"
+        );
+        expect(workspaces.rendererVendorGlobalsScriptFileName).toBe(
+            "vendor-globals.js"
+        );
+        expect(workspaces.rendererVendorGlobalsStyleFileName).toBe(
+            "vendor-globals.css"
         );
         expect(workspaces.rootStaticAssetsPath).toBe("static");
         expect(workspaces.rootAlternativeFitViewPath).toBe("static/ffv");

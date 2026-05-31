@@ -41,6 +41,10 @@ export const docusaurusWorkspacePath = path.join(
 );
 export const appAlternativeFitViewPath = "ffv";
 export const appDistPath = appWorkspaceRelativePath("dist");
+export const appDistRendererRepositoryPath = appWorkspaceRepositoryPath(
+    "dist",
+    "renderer"
+);
 export const appElevProfileCssPath = "elevProfile.css";
 export const appIconsPath = "icons";
 export const appIndexHtmlPath = "index.html";
@@ -51,6 +55,13 @@ export const appLeafletMeasureLitePath = appWorkspaceRepositoryPath(
 export const appPackagePath = appWorkspaceAbsolutePath("package.json");
 export const appPackageRepositoryPath =
     appWorkspaceRepositoryPath("package.json");
+export const appRendererVendorGlobalsEntryPath = appWorkspaceRepositoryPath(
+    "renderer",
+    "vendorGlobals.ts"
+);
+export const rendererVendorGlobalsBundleName = "vendor-globals";
+export const rendererVendorGlobalsScriptFileName = `${rendererVendorGlobalsBundleName}.js`;
+export const rendererVendorGlobalsStyleFileName = `${rendererVendorGlobalsBundleName}.css`;
 export const appStyleCssPath = "style.css";
 export const appTypesPath = appWorkspaceRelativePath("types");
 export const docusaurusPackagePath =
