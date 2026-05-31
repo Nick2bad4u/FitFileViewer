@@ -88,7 +88,7 @@ describe("mapFullscreenControl.js", () => {
     });
 
     it("should add fullscreen control to the map", () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         addFullscreenControl(mockMap);
 
@@ -120,7 +120,7 @@ describe("mapFullscreenControl.js", () => {
     });
 
     it("should do nothing when map container is not found", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         // Remove the map div
         mapDiv.remove();
@@ -143,7 +143,7 @@ describe("mapFullscreenControl.js", () => {
     });
 
     it("should toggle fullscreen mode when button is clicked", () => {
-        expect.hasAssertions();
+        expect.assertions(8);
 
         addFullscreenControl(mockMap);
 
@@ -205,7 +205,7 @@ describe("mapFullscreenControl.js", () => {
     });
 
     it("should handle fullscreenchange event", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         // Mock the invalidateSize directly rather than working with timers
         mockMap.invalidateSize.mockClear();
@@ -262,7 +262,7 @@ describe("mapFullscreenControl.js", () => {
     });
 
     it("should create new fullscreen button even when an old one exists", () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         const mapControls = document.createElement("div");
         mapControls.id = "map-controls";
@@ -289,7 +289,7 @@ describe("mapFullscreenControl.js", () => {
     });
 
     it("should skip map invalidation when the container is detached", () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         addFullscreenControl(mockMap);
         const button = getFullscreenButton();
