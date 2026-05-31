@@ -1,4 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+type EventHandler = (...args: unknown[]) => void;
 
 // Utilities to import renderer fresh with mocks and a clean DOM
 const importRendererFresh = async () => {
@@ -39,101 +41,121 @@ const importRendererFresh = async () => {
     });
 
     // Provide a stub electronAPI before import so the renderer registers immediately
-    const listeners = new Map<string, Function[]>();
+    const listeners = new Map<string, EventHandler[]>();
     const api: any = {
         __devMode: true,
-        onMenuAction: (cb: any) => {
+        onMenuAction: (cb: EventHandler) => {
             const arr = listeners.get("menu") || [];
             arr.push(cb);
             listeners.set("menu", arr);
         },
-        onThemeChanged: (cb: any) => {
+        onThemeChanged: (cb: EventHandler) => {
             const arr = listeners.get("theme") || [];
             arr.push(cb);
             listeners.set("theme", arr);
         },
         isDevelopment: () => Promise.resolve(true),
-        recentFiles: vi.fn(async () => []),
-        checkForUpdates: vi.fn(),
+        recentFiles: vi.fn<() => Promise<unknown[]>>(async () => []),
+        checkForUpdates: vi.fn<() => void>(),
     };
     (window as any).electronAPI = api;
 
     // Manual mocks for all modules dynamically resolved via ensureCoreModules()
-    const showNotification = vi.fn();
-    const handleOpenFile = vi.fn();
-    const setupTheme = vi.fn();
-    const showUpdateNotification = vi.fn();
-    const setupListeners = vi.fn();
-    const showAboutModal = vi.fn();
-    const applyTheme = vi.fn();
-    const listenForThemeChange = vi.fn();
+    const showNotification = vi.fn<(...args: unknown[]) => void>();
+    const handleOpenFile = vi.fn<(...args: unknown[]) => void>();
+    const setupTheme = vi.fn<(...args: unknown[]) => void>();
+    const showUpdateNotification = vi.fn<(...args: unknown[]) => void>();
+    const setupListeners = vi.fn<(...args: unknown[]) => void>();
+    const showAboutModal = vi.fn<(...args: unknown[]) => void>();
+    const applyTheme = vi.fn<(...args: unknown[]) => void>();
+    const listenForThemeChange = vi.fn<(...args: unknown[]) => void>();
 
     const msm = {
-        initialize: vi.fn(async () => void 0),
+        initialize: vi
+            .fn<() => Promise<undefined>>()
+            .mockResolvedValue(undefined),
         isInitialized: true,
-        getState: vi.fn(() => ({
+        getState: vi.fn<() => unknown>(() => ({
             app: {
                 initialized: true,
                 isOpeningFile: false,
                 startTime: Date.now(),
             },
         })),
-        getHistory: vi.fn(() => []),
-        getSubscriptions: vi.fn(() => []),
-        cleanup: vi.fn(() => void 0),
+        getHistory: vi.fn<() => unknown[]>(() => []),
+        getSubscriptions: vi.fn<() => unknown[]>(() => []),
+        cleanup: vi.fn<() => void>(),
     };
-    const AppActions = { setInitialized: vi.fn(), setFileOpening: vi.fn() };
-    const getAppDomainState = vi.fn(() => Date.now());
-    const subscribeAppDomain = vi.fn();
+    const AppActions = {
+        setInitialized: vi.fn<(initialized: boolean) => void>(),
+        setFileOpening: vi.fn<(isOpening: boolean) => void>(),
+    };
+    const getAppDomainState = vi.fn<() => number>(() => Date.now());
+    const subscribeAppDomain = vi.fn<(...args: unknown[]) => void>();
 
     // NOTE: renderer.js expects the exact '../../../electron-app/utils/...' ids to match resolveExactManualMock
     vi.doMock(
-        "../../../electron-app/utils/ui/notifications/showNotification.js",
+        import("../../../electron-app/utils/ui/notifications/showNotification.js"),
         () => ({
             showNotification,
         })
     );
     vi.doMock(
-        "../../../electron-app/utils/files/import/handleOpenFile.js",
+        import("../../../electron-app/utils/files/import/handleOpenFile.js"),
         () => ({
             handleOpenFile,
         })
     );
-    vi.doMock("../../../electron-app/utils/theming/core/setupTheme.js", () => ({
-        setupTheme,
-    }));
     vi.doMock(
-        "../../../electron-app/utils/ui/notifications/showUpdateNotification.js",
+        import("../../../electron-app/utils/theming/core/setupTheme.js"),
+        () => ({
+            setupTheme,
+        })
+    );
+    vi.doMock(
+        import("../../../electron-app/utils/ui/notifications/showUpdateNotification.js"),
         () => ({
             showUpdateNotification,
         })
     );
-    vi.doMock("../../../electron-app/utils/app/lifecycle/listeners.js", () => ({
-        setupListeners,
-    }));
-    vi.doMock("../../../electron-app/utils/ui/modals/aboutModal.js", () => ({
-        showAboutModal,
-    }));
-    vi.doMock("../../../electron-app/utils/theming/core/theme.js", () => ({
-        applyTheme,
-        listenForThemeChange,
-    }));
     vi.doMock(
-        "../../../electron-app/utils/state/core/masterStateManager.js",
+        import("../../../electron-app/utils/app/lifecycle/listeners.js"),
+        () => ({
+            setupListeners,
+        })
+    );
+    vi.doMock(
+        import("../../../electron-app/utils/ui/modals/aboutModal.js"),
+        () => ({
+            showAboutModal,
+        })
+    );
+    vi.doMock(
+        import("../../../electron-app/utils/theming/core/theme.js"),
+        () => ({
+            applyTheme,
+            listenForThemeChange,
+        })
+    );
+    vi.doMock(
+        import("../../../electron-app/utils/state/core/masterStateManager.js"),
         () => ({
             masterStateManager: msm,
         })
     );
     vi.doMock(
-        "../../../electron-app/utils/app/lifecycle/appActions.js",
+        import("../../../electron-app/utils/app/lifecycle/appActions.js"),
         () => ({
             AppActions,
         })
     );
-    vi.doMock("../../../electron-app/utils/state/domain/appState.js", () => ({
-        getState: getAppDomainState,
-        subscribe: subscribeAppDomain,
-    }));
+    vi.doMock(
+        import("../../../electron-app/utils/state/domain/appState.js"),
+        () => ({
+            getState: getAppDomainState,
+            subscribe: subscribeAppDomain,
+        })
+    );
 
     // Import the renderer entry (this triggers initialization immediately)
     const mod = await import("../../../../electron-app/renderer.js");
@@ -174,12 +196,12 @@ describe("renderer.js strict behavior", () => {
     beforeEach(() => {
         errors = [];
         logs = [];
-        vi.spyOn(console, "error").mockImplementation((...args: any[]) =>
-            errors.push(args.join(" "))
-        );
-        vi.spyOn(console, "log").mockImplementation((...args: any[]) =>
-            logs.push(args.join(" "))
-        );
+        vi.spyOn(console, "error").mockImplementation((...args: unknown[]) => {
+            errors.push(args.join(" "));
+        });
+        vi.spyOn(console, "log").mockImplementation((...args: unknown[]) => {
+            logs.push(args.join(" "));
+        });
         // Default to modern fake timers so we can flush microtasks/intervals deterministically
         vi.useFakeTimers();
     });
@@ -193,6 +215,8 @@ describe("renderer.js strict behavior", () => {
     });
 
     it("initializes modules, wires electronAPI, and handles file input + theme/menu events", async () => {
+        expect.hasAssertions();
+
         const { api, listeners, spies } = await importRendererFresh();
 
         // Give some time for async initialization to complete (use microtask queue)
@@ -234,12 +258,15 @@ describe("renderer.js strict behavior", () => {
     });
 
     it("handles global error events and shows notifications", async () => {
+        expect.hasAssertions();
+
         const { spies } = await importRendererFresh();
         // Ensure global error handlers are attached via full initialization
         const dev: any = (window as any).__renderer_dev;
-        if (dev && typeof dev.reinitialize === "function") {
-            await dev.reinitialize();
-        }
+        expect(dev).toEqual(
+            expect.objectContaining({ reinitialize: expect.any(Function) })
+        );
+        await dev.reinitialize();
         // Give any queued work a chance to attach listeners
         await Promise.resolve();
         vi.runOnlyPendingTimers();
@@ -267,6 +294,8 @@ describe("renderer.js strict behavior", () => {
     });
 
     it("exposes dev helpers and performance metrics in development", async () => {
+        expect.hasAssertions();
+
         await importRendererFresh();
         const dev = (window as any).__renderer_dev;
         expect(dev).toMatchObject({
