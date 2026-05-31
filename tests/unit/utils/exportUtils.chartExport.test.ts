@@ -254,6 +254,16 @@ function clearElectronApi(): void {
     delete testGlobal.electronAPI;
 }
 
+function expectCanvasSize(
+    canvas: HTMLCanvasElement,
+    size: { height: number; width: number }
+): void {
+    expect({
+        height: canvas.height,
+        width: canvas.width,
+    }).toStrictEqual(size);
+}
+
 function setupDomHarness(): {
     chartFixture: ChartFixture;
     queueCanvas: (...fixtures: CanvasFixture[]) => void;
@@ -542,7 +552,7 @@ describe("exportUtils chart export helpers", () => {
         });
 
         it("creates combined image for single chart", async () => {
-            expect.assertions(6);
+            expect.assertions(5);
 
             const { chartFixture, queueCanvas, queueLink } = setupDomHarness();
             const combinedCanvas = createCanvasFixture(
@@ -558,8 +568,10 @@ describe("exportUtils chart export helpers", () => {
                 exportUtils.createCombinedChartsImage([chartFixture.chart])
             ).resolves.toBeUndefined();
 
-            expect(combinedCanvas.canvas.width).toBe(800);
-            expect(combinedCanvas.canvas.height).toBe(400);
+            expectCanvasSize(combinedCanvas.canvas, {
+                height: 400,
+                width: 800,
+            });
             expect(linkFixture.link.download).toBe("combined-charts.png");
             expect(linkFixture.link.href).toBe(
                 "data:image/png;base64,Y29tYmluZWQ="
@@ -568,7 +580,7 @@ describe("exportUtils chart export helpers", () => {
         });
 
         it("creates combined image for multiple charts", async () => {
-            expect.assertions(4);
+            expect.assertions(3);
 
             const { chartFixture, queueCanvas, queueLink } = setupDomHarness();
             const combinedCanvas = createCanvasFixture(
@@ -595,8 +607,10 @@ describe("exportUtils chart export helpers", () => {
                 ])
             ).resolves.toBeUndefined();
 
-            expect(combinedCanvas.canvas.width).toBe(1620);
-            expect(combinedCanvas.canvas.height).toBe(820);
+            expectCanvasSize(combinedCanvas.canvas, {
+                height: 820,
+                width: 1620,
+            });
             expect(linkFixture.link.href).toBe(
                 "data:image/png;base64,Y29tYmluZWQ="
             );
@@ -725,7 +739,7 @@ describe("exportUtils chart export helpers", () => {
         });
 
         it("copies combined charts through the Electron bridge", async () => {
-            expect.assertions(5);
+            expect.assertions(4);
 
             const { chartFixture, queueCanvas } = setupDomHarness();
             const combinedCanvas = createCanvasFixture(
@@ -747,8 +761,10 @@ describe("exportUtils chart export helpers", () => {
             expect(
                 testGlobal.electronAPI.writeClipboardPngDataUrl
             ).toHaveBeenCalledWith("data:image/png;base64,Y29tYmluZWQ=");
-            expect(combinedCanvas.canvas.width).toBe(800);
-            expect(combinedCanvas.canvas.height).toBe(400);
+            expectCanvasSize(combinedCanvas.canvas, {
+                height: 400,
+                width: 800,
+            });
             expect(dependencyMocks.showNotification).toHaveBeenCalledWith(
                 "Combined charts copied to clipboard",
                 "success"
