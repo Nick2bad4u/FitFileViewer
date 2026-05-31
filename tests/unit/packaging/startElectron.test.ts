@@ -38,7 +38,7 @@ describe("start-electron script", () => {
     });
 
     it("returns zero when every startup step succeeds", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const commandRunner = vi
             .fn<CommandRunner>()

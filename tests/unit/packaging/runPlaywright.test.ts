@@ -48,7 +48,7 @@ describe("run-playwright script", () => {
     });
 
     it("returns zero when every Playwright step succeeds", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const commandRunner = vi
             .fn<CommandRunner>()

@@ -77,7 +77,7 @@ describe("run-typescript wrapper", () => {
     });
 
     it("runs TypeScript from the repository root", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const commandRunner = vi
             .fn<CommandRunner>()
