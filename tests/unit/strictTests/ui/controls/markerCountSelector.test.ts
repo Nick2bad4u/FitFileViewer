@@ -5,15 +5,17 @@ type MarkerCountWindow = Window & {
 };
 
 vi.mock(
-    "../../../../../electron-app/utils/charts/theming/getThemeColors.js",
+    import("../../../../../electron-app/utils/charts/theming/getThemeColors.js"),
     () => ({
         getThemeColors: () => ({ primary: "#000", surface: "#fff" }),
     })
 );
 vi.mock(
-    "../../../../../electron-app/utils/ui/notifications/showNotification.js",
+    import("../../../../../electron-app/utils/ui/notifications/showNotification.js"),
     () => ({
-        showNotification: vi.fn(async () => {}),
+        showNotification: vi.fn<
+            (message: string, type?: string) => Promise<void>
+        >(async () => {}),
     })
 );
 
@@ -24,9 +26,11 @@ describe("createMarkerCountSelector", () => {
     });
 
     it("initializes with default and invokes onChange on select change", async () => {
+        expect.hasAssertions();
+
         const { createMarkerCountSelector } =
             await import("../../../../../electron-app/utils/ui/controls/createMarkerCountSelector.js");
-        const onChange = vi.fn();
+        const onChange = vi.fn<(count: number) => void>();
         const el = createMarkerCountSelector(onChange);
 
         const select = el.querySelector("select")! as HTMLSelectElement;
@@ -39,6 +43,8 @@ describe("createMarkerCountSelector", () => {
     });
 
     it("falls back to the default for invalid marker count values", async () => {
+        expect.hasAssertions();
+
         const markerWindow = window as MarkerCountWindow;
         markerWindow.mapMarkerCount = 999;
 
@@ -54,6 +60,8 @@ describe("createMarkerCountSelector", () => {
     });
 
     it("supports wheel to change selection up/down", async () => {
+        expect.hasAssertions();
+
         const { createMarkerCountSelector } =
             await import("../../../../../electron-app/utils/ui/controls/createMarkerCountSelector.js");
         const el = createMarkerCountSelector();

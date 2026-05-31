@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 
 vi.mock(
-    "../../../../../electron-app/utils/charts/theming/getThemeColors.js",
+    import("../../../../../electron-app/utils/charts/theming/getThemeColors.js"),
     () => ({
         getThemeColors: () => ({ primary: "#000" }),
     })
@@ -9,11 +9,13 @@ vi.mock(
 
 describe("createAddFitFileToMapButton", () => {
     it("invokes openFileSelector on click and handles error by notifying", async () => {
+        expect.hasAssertions();
+
         const notif =
             await import("../../../../../electron-app/utils/ui/notifications/showNotification.js");
         const notifSpy = vi
             .spyOn(notif, "showNotification")
-            .mockResolvedValue(void 0 as any);
+            .mockResolvedValue(undefined);
 
         const files =
             await import("../../../../../electron-app/utils/files/import/openFileSelector.js");
@@ -31,16 +33,23 @@ describe("createAddFitFileToMapButton", () => {
         expect(btn.disabled).toBe(true);
 
         state.setState("globalData", { recordMesgs: [{}] });
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await vi.waitFor(() => {
+            expect(btn.disabled).toBe(false);
+        });
 
         btn.click();
-        await new Promise((resolve) => setTimeout(resolve, 0));
-        expect(openSpy).toHaveBeenCalled();
+        await vi.waitFor(() => {
+            expect(openSpy).toHaveBeenCalledWith();
+        });
 
         // Error path
         openSpy.mockRejectedValue(new Error("fail"));
         btn.click();
-        await new Promise((resolve) => setTimeout(resolve, 0));
-        expect(notifSpy).toHaveBeenCalled();
+        await vi.waitFor(() => {
+            expect(notifSpy).toHaveBeenCalledWith(
+                "Failed to open file selector",
+                "error"
+            );
+        });
     });
 });

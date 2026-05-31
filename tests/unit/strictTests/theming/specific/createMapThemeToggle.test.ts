@@ -3,13 +3,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { showNotification } from "../../../../../electron-app/utils/ui/notifications/showNotification.js";
 
 vi.mock(
-    "../../../../../electron-app/utils/ui/notifications/showNotification.js",
+    import("../../../../../electron-app/utils/ui/notifications/showNotification.js"),
     () => ({
-        showNotification: vi.fn(),
+        showNotification:
+            vi.fn<(message: string, type?: string) => Promise<void>>(),
     })
 );
 vi.mock(
-    "../../../../../electron-app/utils/charts/theming/getThemeColors.js",
+    import("../../../../../electron-app/utils/charts/theming/getThemeColors.js"),
     () => ({
         getThemeColors: () => ({ surface: "#fff", primary: "#000" }),
     })
@@ -47,6 +48,8 @@ describe("createMapThemeToggle", () => {
     });
 
     it("get/set preference defaults to dark, persists changes, and dispatches details", async () => {
+        expect.hasAssertions();
+
         const eventController = new AbortController();
         const eventSpy = vi.fn<(event: Event) => void>();
         const { getMapThemeInverted, setMapThemeInverted } =
@@ -63,7 +66,7 @@ describe("createMapThemeToggle", () => {
         expect(getMapThemeInverted()).toBe(false);
         expect(localStorage.getItem("ffv-map-theme-inverted")).toBe("false");
         expect(localStorage.getItem("ffv-map-theme-inverted")).not.toBe("true");
-        expect(eventSpy).toHaveBeenCalledTimes(1);
+        expect(eventSpy).toHaveBeenCalledOnce();
         expect(eventSpy.mock.calls[0]?.[0]).toMatchObject({
             detail: { inverted: false },
             type: "mapThemeChanged",
@@ -73,6 +76,8 @@ describe("createMapThemeToggle", () => {
     });
 
     it("creates button and toggles state with click", async () => {
+        expect.hasAssertions();
+
         const appGlobal = globalThis as MapThemeToggleGlobal;
         const eventController = new AbortController();
         const eventSpy = vi.fn<(event: Event) => void>();
@@ -90,7 +95,10 @@ describe("createMapThemeToggle", () => {
             "M17 12.5A7.5 7.5 0 1 1 10 2.5a6 6 0 0 0 7 10z"
         );
 
-        appGlobal.updateMapTheme = vi.fn();
+        appGlobal.updateMapTheme = () => {};
+        const updateMapThemeSpy = vi
+            .spyOn(appGlobal, "updateMapTheme")
+            .mockImplementation();
         document.addEventListener(MAP_THEME_EVENTS.CHANGED, eventSpy, {
             signal: eventController.signal,
         });
@@ -103,12 +111,12 @@ describe("createMapThemeToggle", () => {
         expect(btn.querySelector("svg circle")).toMatchObject({
             namespaceURI: "http://www.w3.org/2000/svg",
         });
-        expect(eventSpy).toHaveBeenCalledTimes(1);
+        expect(eventSpy).toHaveBeenCalledOnce();
         expect(eventSpy.mock.calls[0]?.[0]).toMatchObject({
             detail: { inverted: false },
             type: MAP_THEME_EVENTS.CHANGED,
         });
-        expect(appGlobal.updateMapTheme).toHaveBeenCalledTimes(1);
+        expect(updateMapThemeSpy).toHaveBeenCalledOnce();
         expect(showNotification).toHaveBeenCalledWith(
             "Map theme set to light",
             "success"
@@ -118,6 +126,8 @@ describe("createMapThemeToggle", () => {
     });
 
     it("renders the persisted light preference without active dark-map affordances", async () => {
+        expect.hasAssertions();
+
         const { createMapThemeToggle, setMapThemeInverted } =
             await importCreateMapThemeToggle();
 

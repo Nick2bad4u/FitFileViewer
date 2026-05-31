@@ -32,14 +32,19 @@ describe("enhanceCreditsSection", () => {
         vi.stubGlobal("cancelAnimationFrame", vi.fn());
         vi.stubGlobal(
             "ResizeObserver",
-            vi.fn().mockImplementation(function ResizeObserverMock(
-                callback: ResizeObserverCallback
-            ) {
-                return {
-                    disconnect: vi.fn(),
-                    observe: () => callback([], {} as ResizeObserver),
-                } as ResizeObserver;
-            })
+            vi
+                .fn<(callback: ResizeObserverCallback) => ResizeObserver>()
+                .mockImplementation(function ResizeObserverMock(callback) {
+                    const observer = {
+                        disconnect: vi.fn<() => void>(),
+                        observe: () => {
+                            callback([], observer);
+                        },
+                        unobserve: vi.fn<() => void>(),
+                    } as ResizeObserver;
+
+                    return observer;
+                })
         );
     });
 
@@ -77,6 +82,8 @@ describe("enhanceCreditsSection", () => {
     });
 
     it("applies marquee class and custom properties when content overflows", () => {
+        expect.hasAssertions();
+
         const { footer, section } = renderCreditsFixture(
             "Some lengthy credits text that should overflow the container width significantly.",
             "200px"
@@ -106,6 +113,8 @@ describe("enhanceCreditsSection", () => {
     });
 
     it("does not apply marquee styling when content fits the container", () => {
+        expect.hasAssertions();
+
         const { footer, section } = renderCreditsFixture("Short text", "500px");
 
         Object.defineProperty(section, "clientWidth", {
