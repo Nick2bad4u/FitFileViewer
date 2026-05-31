@@ -507,14 +507,21 @@ describe("main-ui.js core flows", () => {
     it("processDroppedFile handles valid and invalid files and toggles loading", async () => {
         await importMainUI();
         const handler = getDragDropHandler();
+        const notifications: string[] = [];
+        showNotification.mockImplementation((message: string, type: string) => {
+            notifications.push(`${type}:${message}`);
+        });
 
-        await expect(
-            handler.processDroppedFile({ name: "notes.txt" })
-        ).resolves.toBeUndefined();
+        await handler.processDroppedFile({ name: "notes.txt" });
+        expect(notifications).toContain(
+            "warning:Only .fit files are supported. Please drop a valid .fit file."
+        );
         expect(showNotification).toHaveBeenCalledWith(
             "Only .fit files are supported. Please drop a valid .fit file.",
             "warning"
         );
+        expect(AppActions.setFileOpening).not.toHaveBeenCalled();
+        expect(fitFileStateManager.startFileLoading).not.toHaveBeenCalled();
 
         const readSpy = vi
             .spyOn(handler, "readFileAsArrayBuffer")
@@ -531,9 +538,7 @@ describe("main-ui.js core flows", () => {
             name: "activity.fit",
             path: "C:/rides/activity.fit",
         };
-        await expect(
-            handler.processDroppedFile(absoluteFile)
-        ).resolves.toBeUndefined();
+        await handler.processDroppedFile(absoluteFile);
         expect(api.decodeFitFile).toHaveBeenCalled();
         expect(sendAltSpy).toHaveBeenCalled();
         expect(fitFileStateManager.startFileLoading).toHaveBeenLastCalledWith(
@@ -544,31 +549,34 @@ describe("main-ui.js core flows", () => {
             "C:/rides/activity.fit"
         );
         expect(AppActions.setFileOpening).toHaveBeenLastCalledWith(false);
+        expect(notifications).toContain(
+            'success:File "activity.fit" loaded successfully'
+        );
         expect(showNotification).toHaveBeenCalledWith(
             'File "activity.fit" loaded successfully',
             "success"
         );
 
         api.decodeFitFile.mockResolvedValue({ error: "bad file" });
-        await expect(
-            handler.processDroppedFile({
-                name: "bad.fit",
-                path: "C:/rides/bad.fit",
-            })
-        ).resolves.toBeUndefined();
+        await handler.processDroppedFile({
+            name: "bad.fit",
+            path: "C:/rides/bad.fit",
+        });
         expect(showNotification).toHaveBeenCalledWith(
             "Failed to load FIT file",
             "error"
         );
+        expect(notifications).toContain("error:Failed to load FIT file");
+        expect(fitFileStateManager.handleFileLoadingError).toHaveBeenCalledWith(
+            expect.objectContaining({ message: "bad file" })
+        );
 
         const err = new Error("boom");
         api.decodeFitFile.mockRejectedValue(err);
-        await expect(
-            handler.processDroppedFile({
-                name: "oops.fit",
-                path: "C:/rides/oops.fit",
-            })
-        ).resolves.toBeUndefined();
+        await handler.processDroppedFile({
+            name: "oops.fit",
+            path: "C:/rides/oops.fit",
+        });
         expect(fitFileStateManager.handleFileLoadingError).toHaveBeenCalledWith(
             err
         );
@@ -659,7 +667,9 @@ describe("main-ui.js core flows", () => {
         mockState["charts.isRendered"] = true;
         mockState["ui.dragCounter"] = 3;
         const devCleanup = getWindowFunction<() => void>("devCleanup");
-        expect(devCleanup()).toBeUndefined();
+        devCleanup();
+        expect(AppActions.clearData).toHaveBeenCalledTimes(1);
+        expect(chartTabIntegration.destroy).toHaveBeenCalledTimes(1);
         expect(mockState).toMatchObject({
             "charts.isRendered": false,
             "ui.dragCounter": 0,
