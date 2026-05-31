@@ -118,7 +118,7 @@ describe(updateTabVisibility, () => {
     });
 
     it("hides every tracked content section when no target is provided", () => {
-        expect.hasAssertions();
+        expect.assertions(8);
 
         updateTabVisibility(null);
 
@@ -138,7 +138,7 @@ describe(updateTabVisibility, () => {
     });
 
     it("shows only the requested content section and stores the active content name", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         updateTabVisibility("content_summary");
 
@@ -155,7 +155,7 @@ describe(updateTabVisibility, () => {
     });
 
     it("maps chart tab names to the chartjs content element", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         showTabContent("chart");
 
@@ -168,7 +168,7 @@ describe(updateTabVisibility, () => {
     });
 
     it("accepts alternate content id shapes when a canonical element exists", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         updateTabVisibility("summary_content");
 
@@ -181,7 +181,7 @@ describe(updateTabVisibility, () => {
     });
 
     it("warns for missing tracked content sections while updating existing sections", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         getContentElement("content_summary").remove();
 
@@ -196,7 +196,7 @@ describe(updateTabVisibility, () => {
     });
 
     it("keeps all tracked sections hidden for unknown content ids but stores derived content names", () => {
-        expect.hasAssertions();
+        expect.assertions(8);
 
         updateTabVisibility("content_missing");
 
@@ -211,7 +211,7 @@ describe(updateTabVisibility, () => {
     });
 
     it("reads visible content from state", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         mockGetState.mockReturnValue("map");
 
@@ -223,7 +223,7 @@ describe(updateTabVisibility, () => {
     });
 
     it("registers active-tab and global-data subscriptions", () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
@@ -247,7 +247,7 @@ describe(updateTabVisibility, () => {
     });
 
     it("shows content when the active-tab subscription receives a string tab name", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         initializeTabVisibilityState();
 
@@ -262,7 +262,7 @@ describe(updateTabVisibility, () => {
     });
 
     it("does not show content when the active-tab subscription receives a non-string value", () => {
-        expect.hasAssertions();
+        expect.assertions(8);
 
         initializeTabVisibilityState();
 
@@ -275,7 +275,7 @@ describe(updateTabVisibility, () => {
     });
 
     it("hides all content through the helper", () => {
-        expect.hasAssertions();
+        expect.assertions(7);
 
         updateTabVisibility("content_summary");
         hideAllTabContent();
@@ -286,7 +286,7 @@ describe(updateTabVisibility, () => {
     });
 
     it("refreshes Leaflet map layout when showing the map tab", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         vi.useFakeTimers();
         const globals = globalThis as GlobalWithMap;
