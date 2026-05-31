@@ -31,7 +31,7 @@ describe(logWithLevel, () => {
     });
 
     it("routes each supported level to the matching console method", () => {
-        expect.hasAssertions();
+        expect.assertions(8);
 
         expect(logWithLevel("info", "Loaded file")).toBeUndefined();
         expect(logWithLevel("warn", "Missing optional field")).toBeUndefined();
@@ -49,7 +49,7 @@ describe(logWithLevel, () => {
     });
 
     it("falls back to console.log for unknown levels", () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         expect(logWithLevel("debug", "Renderer trace")).toBeUndefined();
 
@@ -60,7 +60,7 @@ describe(logWithLevel, () => {
     });
 
     it("logs a shallow-cloned context payload only for non-empty plain objects", () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         const context = { fileName: "activity.fit", records: 125 };
 
@@ -98,7 +98,7 @@ describe(logWithLevel, () => {
     });
 
     it("skips context properties whose getters throw", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const context = { keep: "value" };
         Object.defineProperty(context, "skip", {
@@ -119,7 +119,7 @@ describe(logWithLevel, () => {
     });
 
     it("emits the minimal fallback line when logging setup fails", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         vi.spyOn(Object, "keys").mockImplementationOnce(() => {
             throw new Error("Object.keys failed");
@@ -142,7 +142,7 @@ describe(logWithLevel, () => {
     });
 
     it("does not throw when the selected console method fails", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         warnSpy.mockImplementationOnce(() => {
             throw new Error("console.warn failed");
