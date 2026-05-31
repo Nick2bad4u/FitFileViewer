@@ -21,6 +21,10 @@ npm run docs:start
 
 The site will be available at <http://localhost:3000/>
 
+For the full contributor setup, see
+[`docs/development/setup.md`](docs/development/setup.md). For build and release
+details, see [`docs/development/build-release.md`](docs/development/build-release.md).
+
 ## 🏗️ Building
 
 ### Production Build (with TypeDoc API docs)
@@ -104,7 +108,7 @@ docusaurus/
 │   └── img/                 # Images
 ├── docusaurus.config.ts     # Site configuration
 ├── sidebars.ts              # Sidebar configuration
-└── package.json             # Dependencies
+└── package.json             # Docusaurus workspace dependencies
 ```
 
 ## Adding Documentation

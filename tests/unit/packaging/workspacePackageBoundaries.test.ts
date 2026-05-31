@@ -169,6 +169,24 @@ describe("workspace package boundaries", () => {
         });
     });
 
+    it("keeps Docusaurus setup guidance in maintained docs pages", () => {
+        expect.assertions(3);
+
+        const docusaurusReadme = readFileSync(
+            path.join(process.cwd(), "docusaurus", "README.md"),
+            "utf8"
+        );
+
+        expect(
+            getFileExistence(["docusaurus/CHECKLIST.md", "docusaurus/SETUP.md"])
+        ).toStrictEqual({
+            "docusaurus/CHECKLIST.md": false,
+            "docusaurus/SETUP.md": false,
+        });
+        expect(docusaurusReadme).toContain("docs/development/setup.md");
+        expect(docusaurusReadme).toContain("docs/development/build-release.md");
+    });
+
     it("keeps Electron app tooling configuration centralized at the repository root", () => {
         expect.assertions(2);
 
