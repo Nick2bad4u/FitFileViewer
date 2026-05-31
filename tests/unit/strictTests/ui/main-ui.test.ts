@@ -442,7 +442,7 @@ describe("main-ui.js core flows", () => {
         expect(gearSpy).toHaveBeenCalled();
         expect(tabSpy).toHaveBeenCalledTimes(1);
         expect(gear.dataset.selectorOpenCount).toBe("1");
-        expect(summaryTab.classList.contains("active")).toBe(true);
+        expect(summaryTab.className).toMatch(/\bactive\b/);
 
         getCurrentElectronAPI().emit("open-summary-column-selector");
         vi.advanceTimersByTime(150);
@@ -585,8 +585,14 @@ describe("main-ui.js core flows", () => {
             bubbles: true,
             cancelable: true,
         });
-        expect(link.dispatchEvent(clickEvent)).toBe(false);
-        expect(clickEvent.defaultPrevented).toBe(true);
+        const mouseDispatchResult = link.dispatchEvent(clickEvent);
+        expect({
+            defaultPrevented: clickEvent.defaultPrevented,
+            dispatchResult: mouseDispatchResult,
+        }).toStrictEqual({
+            defaultPrevented: true,
+            dispatchResult: false,
+        });
         expect(getCurrentElectronAPI().openExternal).toHaveBeenCalledWith(
             "https://example.com/"
         );
@@ -596,8 +602,14 @@ describe("main-ui.js core flows", () => {
             cancelable: true,
             key: "Enter",
         });
-        expect(link.dispatchEvent(evt)).toBe(false);
-        expect(evt.defaultPrevented).toBe(true);
+        const keyboardDispatchResult = link.dispatchEvent(evt);
+        expect({
+            defaultPrevented: evt.defaultPrevented,
+            dispatchResult: keyboardDispatchResult,
+        }).toStrictEqual({
+            defaultPrevented: true,
+            dispatchResult: false,
+        });
         expect(getCurrentElectronAPI().openExternal).toHaveBeenCalledTimes(2);
     });
 
@@ -615,8 +627,14 @@ describe("main-ui.js core flows", () => {
             bubbles: true,
             cancelable: true,
         });
-        expect(link.dispatchEvent(clickEvent)).toBe(false);
-        expect(clickEvent.defaultPrevented).toBe(true);
+        const dispatchResult = link.dispatchEvent(clickEvent);
+        expect({
+            defaultPrevented: clickEvent.defaultPrevented,
+            dispatchResult,
+        }).toStrictEqual({
+            defaultPrevented: true,
+            dispatchResult: false,
+        });
 
         await Promise.resolve();
 
@@ -642,7 +660,9 @@ describe("main-ui.js core flows", () => {
         mockState["ui.dragCounter"] = 3;
         const devCleanup = getWindowFunction<() => void>("devCleanup");
         expect(devCleanup()).toBeUndefined();
-        expect(mockState["charts.isRendered"]).toBe(false);
-        expect(mockState["ui.dragCounter"]).toBe(0);
+        expect(mockState).toMatchObject({
+            "charts.isRendered": false,
+            "ui.dragCounter": 0,
+        });
     });
 });
