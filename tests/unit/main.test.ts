@@ -534,7 +534,7 @@ describe("main.js - Electron Main Process", () => {
             const mainModule = await importMainModule();
 
             expect(mainModule.CONSTANTS.DEFAULT_THEME).toBe("dark");
-            expect(mainModule.isWindowUsable(null)).toBe(false);
+            expect(mainModule.isWindowUsable(null)).toStrictEqual(false);
         });
 
         it("should handle state management during early sync path", async () => {
@@ -562,9 +562,9 @@ describe("main.js - Electron Main Process", () => {
             const mainModule = await importMainModule();
 
             expect(mainModule.getAppState("mainWindow")).toBe(mockWindow);
-            expect(mainModule.validateWindow(mockWindow, "unit test")).toBe(
-                true
-            );
+            expect(
+                mainModule.validateWindow(mockWindow, "unit test")
+            ).toStrictEqual(true);
         });
     });
 
@@ -579,7 +579,7 @@ describe("main.js - Electron Main Process", () => {
 
             const mainModule = await importMainModule();
 
-            expect(mainModule.isWindowUsable(mockWindow)).toBe(true);
+            expect(mainModule.isWindowUsable(mockWindow)).toStrictEqual(true);
             expect(mainModule.getAppState("mainWindow")).toBe(mockWindow);
         });
 
@@ -595,7 +595,9 @@ describe("main.js - Electron Main Process", () => {
             const fallbackWindow = mainModule.getAppState("mainWindow");
 
             expect(fallbackWindow).not.toBe(mockWindow);
-            expect(mainModule.isWindowUsable(fallbackWindow)).toBe(true);
+            expect(mainModule.isWindowUsable(fallbackWindow)).toStrictEqual(
+                true
+            );
         });
 
         it("should handle auto-updater setup errors", async () => {
@@ -609,7 +611,7 @@ describe("main.js - Electron Main Process", () => {
 
             mainModule.setupAutoUpdater(mockWindow, invalidUpdater);
 
-            expect(invalidUpdater.autoDownload).toBe(false);
+            expect(invalidUpdater).toMatchObject({ autoDownload: false });
             expect(warnSpy).toHaveBeenCalledWith(
                 "Cannot setup auto-updater: autoUpdater.on is not a function"
             );
@@ -689,7 +691,7 @@ describe("main.js - Electron Main Process", () => {
             ]);
             expect(
                 mainModule.validateWindow(destroyedWindow, "destroyed window")
-            ).toBe(false);
+            ).toStrictEqual(false);
             expect(warnSpy.mock.calls[0]?.[0]).toContain(
                 "Window validation failed during destroyed window"
             );
@@ -773,7 +775,7 @@ describe("main.js - Electron Main Process", () => {
             );
             await expect(
                 openExternalHandler({}, "https://example.com")
-            ).resolves.toBe(true);
+            ).resolves.toStrictEqual(true);
             expect(mockElectron.shell.openExternal).toHaveBeenCalledWith(
                 "https://example.com"
             );
