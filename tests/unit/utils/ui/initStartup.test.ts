@@ -1,11 +1,24 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const initializerMocks = vi.hoisted(() => ({
-    initFilenameAutoScroll: vi.fn<() => void>(),
-    initFitBrowserFeatureGate: vi.fn<() => void>(),
-    initQuickColorSwitcher: vi.fn<() => void>(),
-    initUnifiedControlBar: vi.fn<() => void>(),
-}));
+const initializerMocks = vi.hoisted(() => {
+    const startupCalls: string[] = [];
+
+    return {
+        initFilenameAutoScroll: vi.fn<() => void>(() => {
+            startupCalls.push("filenameAutoScroll");
+        }),
+        initFitBrowserFeatureGate: vi.fn<() => void>(() => {
+            startupCalls.push("fitBrowserFeatureGate");
+        }),
+        initQuickColorSwitcher: vi.fn<() => void>(() => {
+            startupCalls.push("quickColorSwitcher");
+        }),
+        initUnifiedControlBar: vi.fn<() => void>(() => {
+            startupCalls.push("unifiedControlBar");
+        }),
+        startupCalls,
+    };
+});
 
 vi.mock(
     import("../../../../electron-app/utils/ui/browser/initFitBrowserFeatureGate.js"),
@@ -33,11 +46,25 @@ const { runStartupInitializers } =
     await import("../../../../electron-app/utils/ui/initStartup.js");
 
 describe("initStartup", () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        initializerMocks.startupCalls.length = 0;
+    });
+
     it("runs startup initializers on DOMContentLoaded", () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
-        expect(runStartupInitializers()).toBeUndefined();
+        runStartupInitializers();
 
+        expect(initializerMocks.startupCalls).toEqual([
+            "quickColorSwitcher",
+            "unifiedControlBar",
+            "filenameAutoScroll",
+            "fitBrowserFeatureGate",
+        ]);
+        expect(initializerMocks.startupCalls).not.toContain(
+            "unknownInitializer"
+        );
         expect(initializerMocks.initQuickColorSwitcher).toHaveBeenCalledOnce();
         expect(initializerMocks.initUnifiedControlBar).toHaveBeenCalledOnce();
         expect(initializerMocks.initFilenameAutoScroll).toHaveBeenCalledOnce();
