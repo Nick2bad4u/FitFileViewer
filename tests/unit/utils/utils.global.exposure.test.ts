@@ -86,7 +86,7 @@ describe("utils.js – global exposure and helpers", () => {
     });
 
     it("exposes FitFileViewerUtils and attaches utilities to window", async () => {
-        expect.hasAssertions();
+        expect.assertions(17);
 
         const mod = await importFresh();
         // Wait for attachUtilitiesToWindow (setTimeout(..., 0))
@@ -142,7 +142,7 @@ describe("utils.js – global exposure and helpers", () => {
     });
 
     it("loads version from electron API when available", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         // Provide an electronAPI before importing module so init path picks it up immediately
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -179,7 +179,7 @@ describe("utils.js – global exposure and helpers", () => {
     });
 
     it("safeExecute throws for unknown utility and succeeds for known one", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const mod = await importFresh();
         await nextTick();
@@ -198,7 +198,7 @@ describe("utils.js – global exposure and helpers", () => {
     });
 
     it("exposes dev helpers in development and records collisions", async () => {
-        expect.hasAssertions();
+        expect.assertions(10);
 
         // Force development mode so dev helpers are exposed (evaluated at module init)
         vi.stubEnv("NODE_ENV", "development");
@@ -247,7 +247,7 @@ describe("utils.js – global exposure and helpers", () => {
     });
 
     it("cleanup removes attached global utilities", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         await importFresh();
         await nextTick();

@@ -153,7 +153,7 @@ describe("tab disabled attribute bug investigation", () => {
     });
 
     it("should properly remove disabled attribute through direct DOM manipulation", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         // Manually add disabled attribute like it appears in the real app
         mockButtons.forEach((button) => {
@@ -215,7 +215,7 @@ describe("tab disabled attribute bug investigation", () => {
     });
 
     it("should detect if multiple systems are setting disabled attributes", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const attributeChanges: {
             target: string;
@@ -312,7 +312,7 @@ describe("tab disabled attribute bug investigation", () => {
     });
 
     it("should test with the exact same DOM structure as real app", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         // Create button with exact same attributes as the bug report
         document.body.replaceChildren(createAltFitButton());
@@ -357,7 +357,7 @@ describe("tab disabled attribute bug investigation", () => {
     });
 
     it("should simulate the real app enabling process with timing", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         // Start with disabled buttons
         mockButtons.forEach((button) => {
