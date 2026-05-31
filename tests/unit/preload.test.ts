@@ -6,6 +6,7 @@ type MockFunction = ReturnType<typeof vi.fn>;
 type MockWithCalls = { mock: { calls: unknown[][] } };
 type IpcListener = (...args: unknown[]) => void;
 type Unsubscribe = (() => void) | undefined;
+type VoidMockHandler = (...args: unknown[]) => void;
 
 interface ElectronMock {
     contextBridge: {
@@ -23,7 +24,9 @@ interface MockProcess {
     env: {
         NODE_ENV: string;
     };
+    listeners: MockFunction;
     once: MockFunction;
+    removeListener: MockFunction;
 }
 
 interface ChannelInfo {
@@ -89,6 +92,9 @@ type PreloadTestGlobal = typeof globalThis & {
 
 type ExposeCall = [string, unknown];
 type BeforeExitCall = ["beforeExit", () => void];
+
+const ELECTRON_API_NAME = "electronAPI";
+const DEVTOOLS_API_NAME = "devTools"; // eslint-disable-line case-police/string-check -- preload exposes this exact camelCase API name.
 
 const EXPECTED_PRELOAD_CHANNELS = {
     APP_VERSION: "getAppVersion",
@@ -297,12 +303,12 @@ describe("preload.js - Comprehensive API Testing", () => {
     }
 
     function getElectronAPI(): PreloadElectronAPI {
-        return (findExposedCall("electronAPI")?.[1] ??
+        return (findExposedCall(ELECTRON_API_NAME)?.[1] ??
             getPreloadGlobal().electronAPI) as PreloadElectronAPI;
     }
 
     function getDevTools(): PreloadDevTools {
-        return (findExposedCall("devTools")?.[1] ??
+        return (findExposedCall(DEVTOOLS_API_NAME)?.[1] ??
             getPreloadGlobal().devTools) as PreloadDevTools;
     }
 
@@ -321,14 +327,16 @@ describe("preload.js - Comprehensive API Testing", () => {
         // Create comprehensive electron mock
         electronMock = {
             ipcRenderer: {
-                invoke: vi.fn().mockImplementation(resolveIpcInvoke),
-                send: vi.fn(),
-                on: vi.fn(),
-                removeAllListeners: vi.fn(),
+                invoke: vi
+                    .fn<typeof resolveIpcInvoke>()
+                    .mockImplementation(resolveIpcInvoke),
+                send: vi.fn<VoidMockHandler>(),
+                on: vi.fn<VoidMockHandler>(),
+                removeAllListeners: vi.fn<VoidMockHandler>(),
             },
             contextBridge: {
                 exposeInMainWorld: vi
-                    .fn()
+                    .fn<(apiName: string, api: unknown) => void>()
                     .mockImplementation((apiName: string, api: unknown) => {
                         // Actually expose the API to the global object for tests
                         getPreloadGlobal()[apiName] = api;
@@ -342,18 +350,49 @@ describe("preload.js - Comprehensive API Testing", () => {
         consoleErrorSpy = vi.spyOn(console, "error");
 
         // Mock process object
+        const beforeExitListeners: VoidMockHandler[] = [];
         mockProcess = {
             env: { NODE_ENV: "development" },
-            once: vi.fn(),
+            listeners: vi
+                .fn<(eventName: string) => VoidMockHandler[]>()
+                .mockImplementation((eventName: string) =>
+                    eventName === "beforeExit" ? [...beforeExitListeners] : []
+                ),
+            once: vi
+                .fn<(eventName: string, listener: VoidMockHandler) => void>()
+                .mockImplementation(
+                    (eventName: string, listener: VoidMockHandler) => {
+                        if (eventName === "beforeExit") {
+                            beforeExitListeners.push(listener);
+                        }
+                    }
+                ),
+            removeListener: vi
+                .fn<(eventName: string, listener: VoidMockHandler) => void>()
+                .mockImplementation(
+                    (eventName: string, listener: VoidMockHandler) => {
+                        if (eventName !== "beforeExit") {
+                            return;
+                        }
+
+                        const listenerIndex =
+                            beforeExitListeners.indexOf(listener);
+                        if (listenerIndex >= 0) {
+                            beforeExitListeners.splice(listenerIndex, 1);
+                        }
+                    }
+                ),
         };
         vi.stubGlobal("process", mockProcess);
 
         // Load and execute preload script
         const preloadCode = readPreloadDistCode();
 
-        const mockRequire = vi.fn().mockImplementation((module: string) => {
-            return resolvePreloadScriptRequire(module, electronMock);
-        });
+        const mockRequire = vi
+            .fn<(module: string) => unknown>()
+            .mockImplementation((module: string) =>
+                resolvePreloadScriptRequire(module, electronMock)
+            );
 
         // eslint-disable-next-line no-new-func -- preload.js is a CommonJS side-effect script executed with controlled test doubles.
         const scriptFunc = new Function(
@@ -373,9 +412,9 @@ describe("preload.js - Comprehensive API Testing", () => {
 
     describe("API Exposure", () => {
         it("should expose electronAPI to main world", () => {
-            const exposedCall = findExposedCall("electronAPI");
+            const exposedCall = findExposedCall(ELECTRON_API_NAME);
 
-            expect(exposedCall?.[0]).toBe("electronAPI");
+            expect(exposedCall?.[0]).toBe(ELECTRON_API_NAME);
             expect(
                 Object.keys(exposedCall?.[1] as Record<string, unknown>)
             ).toEqual(EXPECTED_ELECTRON_API_METHODS);
@@ -384,10 +423,10 @@ describe("preload.js - Comprehensive API Testing", () => {
             );
         });
 
-        it("should expose devTools to main world", () => {
-            const exposedCall = findExposedCall("devTools");
+        it("should expose developer tools to main world", () => {
+            const exposedCall = findExposedCall(DEVTOOLS_API_NAME);
 
-            expect(exposedCall?.[0]).toBe("devTools");
+            expect(exposedCall?.[0]).toBe(DEVTOOLS_API_NAME);
             expect(
                 Object.keys(exposedCall?.[1] as Record<string, unknown>)
             ).toEqual(EXPECTED_DEVTOOLS_METHODS);
@@ -401,7 +440,7 @@ describe("preload.js - Comprehensive API Testing", () => {
                 getMockCalls(electronMock.contextBridge.exposeInMainWorld).map(
                     ([apiName]) => apiName
                 )
-            ).toEqual(["electronAPI", "devTools"]);
+            ).toEqual([ELECTRON_API_NAME, DEVTOOLS_API_NAME]);
             expect(
                 getMockCalls(electronMock.contextBridge.exposeInMainWorld).map(
                     ([apiName]) => apiName
@@ -570,7 +609,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should handle onIpc correctly", () => {
-            const callback = vi.fn();
+            const callback = vi.fn<IpcListener>();
             const unsubscribe = electronAPI.onIpc("test-channel", callback);
             expect(electronMock.ipcRenderer.on).toHaveBeenCalledWith(
                 "test-channel",
@@ -653,7 +692,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should register onMenuOpenFile handler", () => {
-            const callback = vi.fn();
+            const callback = vi.fn<IpcListener>();
             const unsubscribe = electronAPI.onMenuOpenFile(callback);
             expect(electronMock.ipcRenderer.on).toHaveBeenCalledWith(
                 "menu-open-file",
@@ -663,7 +702,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should register onMenuOpenOverlay handler", () => {
-            const callback = vi.fn();
+            const callback = vi.fn<IpcListener>();
             const unsubscribe = electronAPI.onMenuOpenOverlay(callback);
             expect(electronMock.ipcRenderer.on).toHaveBeenCalledWith(
                 "menu-open-overlay",
@@ -673,7 +712,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should register onOpenRecentFile handler", () => {
-            const callback = vi.fn();
+            const callback = vi.fn<IpcListener>();
             const unsubscribe = electronAPI.onOpenRecentFile(callback);
             expect(electronMock.ipcRenderer.on).toHaveBeenCalledWith(
                 "open-recent-file",
@@ -683,7 +722,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should register onSetTheme handler", () => {
-            const callback = vi.fn();
+            const callback = vi.fn<IpcListener>();
             const unsubscribe = electronAPI.onSetTheme(callback);
             expect(electronMock.ipcRenderer.on).toHaveBeenCalledWith(
                 "set-theme",
@@ -693,7 +732,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should register onUpdateEvent handler", () => {
-            const callback = vi.fn();
+            const callback = vi.fn<IpcListener>();
             const unsubscribe = electronAPI.onUpdateEvent(
                 "update-event",
                 callback
@@ -706,7 +745,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should register onOpenSummaryColumnSelector handler", () => {
-            const callback = vi.fn();
+            const callback = vi.fn<IpcListener>();
             const unsubscribe =
                 electronAPI.onOpenSummaryColumnSelector(callback);
             expect(electronMock.ipcRenderer.on).toHaveBeenCalledWith(
@@ -771,8 +810,8 @@ describe("preload.js - Comprehensive API Testing", () => {
     });
 
     describe("Development Tools", () => {
-        it("should expose devTools in development mode", () => {
-            const devToolsCall = findExposedCall("devTools");
+        it("should expose developer tools in development mode", () => {
+            const devToolsCall = findExposedCall(DEVTOOLS_API_NAME);
 
             expect(devToolsCall?.[1]).toMatchObject({
                 getPreloadInfo: expect.any(Function),
@@ -891,7 +930,7 @@ describe("preload.js - Comprehensive API Testing", () => {
     });
 
     // Additional Tests for 100% Coverage
-    describe("Validation Functions", () => {
+    describe("validation function edge cases", () => {
         it("should test validateCallback with invalid inputs", () => {
             // Access validation functions through existing API
             const api = getElectronAPI();
@@ -1054,7 +1093,7 @@ describe("preload.js - Comprehensive API Testing", () => {
             });
             expect(typeof api.onIpc).toBe("function");
 
-            const callback = vi.fn();
+            const callback = vi.fn<IpcListener>();
             const unsubscribe = api.onIpc("test-channel", callback);
             expect(electronMock.ipcRenderer.on).toHaveBeenCalledWith(
                 "test-channel",
@@ -1070,7 +1109,7 @@ describe("preload.js - Comprehensive API Testing", () => {
             });
             expect(typeof api.onUpdateEvent).toBe("function");
 
-            const callback = vi.fn();
+            const callback = vi.fn<IpcListener>();
             const eventName = "test-event";
             const unsubscribe = api.onUpdateEvent(eventName, callback);
             expect(electronMock.ipcRenderer.on).toHaveBeenCalledWith(
@@ -1206,7 +1245,7 @@ describe("preload.js - Comprehensive API Testing", () => {
 
         it("should test validateCallback through onIpc method", () => {
             // Test valid callback
-            const validCallback = vi.fn();
+            const validCallback = vi.fn<IpcListener>();
             expect(
                 typeof electronAPI.onIpc("test-channel", validCallback)
             ).toBe("function");
@@ -1405,7 +1444,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should test onUpdateEvent method", () => {
-            const callback = vi.fn();
+            const callback = vi.fn<IpcListener>();
 
             const availableUnsubscribe = electronAPI.onUpdateEvent(
                 "update-available",
@@ -1508,7 +1547,10 @@ describe("preload.js - Comprehensive API Testing", () => {
         it("should handle empty and special string values", async () => {
             const emptySendResult = electronAPI.send("", "data");
             const whitespaceSendResult = electronAPI.send("   ", "data");
-            const emptyListenerResult = electronAPI.onIpc("", vi.fn());
+            const emptyListenerResult = electronAPI.onIpc(
+                "",
+                vi.fn<IpcListener>()
+            );
 
             expect({ returnValue: emptySendResult }).toStrictEqual({
                 returnValue: undefined,
@@ -1556,7 +1598,7 @@ describe("preload.js - Comprehensive API Testing", () => {
                     null: null,
                     undefined: undefined,
                 },
-                functions: vi.fn(),
+                functions: vi.fn<VoidMockHandler>(),
                 date: new Date(),
             };
 
