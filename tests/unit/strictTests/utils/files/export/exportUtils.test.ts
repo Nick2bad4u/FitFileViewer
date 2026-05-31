@@ -4,30 +4,83 @@ function loadExportUtils() {
     return import("../../../../../../electron-app/utils/files/export/exportUtils.js");
 }
 
+type ClipboardWrite = (data: ClipboardItem[]) => Promise<void>;
+type ClipboardWriteText = (data: string) => Promise<void>;
+type CreateObjectUrl = (object: Blob | MediaSource) => string;
+type DetectCurrentTheme = () => "light";
+type ExportableChartLike = {
+    canvas?: { height: number; width: number };
+    config?: { type?: string };
+    data?: {
+        datasets?: Array<{
+            data?: Array<{ x: number; y: number }>;
+            label?: string;
+        }>;
+    };
+    toBase64Image?: (
+        type?: string,
+        quality?: number,
+        backgroundColor?: string
+    ) => string;
+};
+type ManualMockModule = {
+    detectCurrentTheme?: ReturnType<typeof vi.fn<DetectCurrentTheme>>;
+    showNotification?: ReturnType<typeof vi.fn<ShowNotification>>;
+};
+type ShowNotification = (
+    message: string,
+    type?: string,
+    duration?: number,
+    options?: unknown
+) => Promise<void> | void;
+type TestGlobal = typeof globalThis & {
+    __vitest_manual_mocks__?: Map<string, ManualMockModule>;
+    ClipboardItem?: new (items: Record<string, Blob>) => Record<string, Blob>;
+    navigator: Navigator & {
+        clipboard?: {
+            write: ReturnType<typeof vi.fn<ClipboardWrite>>;
+            writeText: ReturnType<typeof vi.fn<ClipboardWriteText>>;
+        };
+    };
+    window: Window &
+        typeof globalThis & {
+            JSZip?: typeof FakeZip;
+        };
+};
+type ToBase64Image = NonNullable<ExportableChartLike["toBase64Image"]>;
+
+const testGlobal = globalThis as TestGlobal;
+
 // Minimal DOM and API shims for canvas, URL, and clipboard
 function installCanvasMocks() {
     // Basic 2D context mock with methods used by exportUtils
     const ctx = {
         fillStyle: "#fff",
-        drawImage: vi.fn(),
-        fillRect: vi.fn(),
-        getImageData: vi.fn(() => ({ data: new Uint8ClampedArray(4) })),
-        putImageData: vi.fn(),
+        drawImage: vi.fn<(...args: unknown[]) => void>(),
+        fillRect: vi.fn<(...args: unknown[]) => void>(),
+        getImageData: vi
+            .fn<() => { data: Uint8ClampedArray }>()
+            .mockReturnValue({ data: new Uint8ClampedArray(4) }),
+        putImageData: vi.fn<(...args: unknown[]) => void>(),
     } as unknown as CanvasRenderingContext2D;
 
-    vi.spyOn(
+    const getContextSpy = vi.spyOn(
         HTMLCanvasElement.prototype as any,
         "getContext"
-    ).mockImplementation((...args: any[]) => {
-        const type = args[0];
-        if (type === "2d") return ctx as any;
-        return null;
-    });
+    ) as unknown as {
+        mockImplementation: (
+            implementation: (
+                contextId: string
+            ) => CanvasRenderingContext2D | null
+        ) => void;
+    };
+    getContextSpy.mockImplementation((contextId: string) =>
+        contextId === "2d" ? ctx : null
+    );
 
-    vi.spyOn(
-        HTMLCanvasElement.prototype as any,
-        "toDataURL"
-    ).mockImplementation(() => "data:image/png;base64,AAA");
+    vi.spyOn(HTMLCanvasElement.prototype as any, "toDataURL").mockReturnValue(
+        "data:image/png;base64,AAA"
+    );
     // toBlob callback pattern
     vi.spyOn(HTMLCanvasElement.prototype as any, "toBlob").mockImplementation(
         (...args: any[]) => {
@@ -48,14 +101,18 @@ function installURLMocks() {
                 super(input ?? "https://localhost/mock", base);
             }
 
-            static createObjectURL = vi.fn(() => "blob:url");
-            static revokeObjectURL = vi.fn();
+            static createObjectURL = vi
+                .fn<CreateObjectUrl>()
+                .mockReturnValue("blob:url");
+            static revokeObjectURL = vi.fn<(url: string) => void>();
         }
 
         vi.stubGlobal("URL", URLMock as unknown as typeof URL);
     } else {
-        const createObjectURL = vi.fn(() => "blob:url");
-        const revokeObjectURL = vi.fn();
+        const createObjectURL = vi
+            .fn<CreateObjectUrl>()
+            .mockReturnValue("blob:url");
+        const revokeObjectURL = vi.fn<(url: string) => void>();
         const URLMock = function URLMock(this: any, input?: string) {
             if (!(this instanceof URLMock)) {
                 return new (URLMock as any)(input);
@@ -69,11 +126,10 @@ function installURLMocks() {
 }
 
 function installClipboardMock() {
-    const nav = ((globalThis as any).navigator =
-        (globalThis as any).navigator || {});
+    const nav = (testGlobal.navigator ||= {} as TestGlobal["navigator"]);
     const clip = {
-        write: vi.fn().mockResolvedValue(undefined),
-        writeText: vi.fn().mockResolvedValue(undefined),
+        write: vi.fn<ClipboardWrite>().mockResolvedValue(undefined),
+        writeText: vi.fn<ClipboardWriteText>().mockResolvedValue(undefined),
     };
     try {
         Object.defineProperty(nav, "clipboard", {
@@ -82,43 +138,106 @@ function installClipboardMock() {
         });
     } catch {
         // fallback assignment if defineProperty fails
-        (nav as any).clipboard = clip as any;
+        nav.clipboard = clip;
     }
     // ClipboardItem is used when writing image blobs; provide a simple shim
-    (globalThis as any).ClipboardItem = function (items: any) {
+    testGlobal.ClipboardItem = function ClipboardItemMock(
+        items: Record<string, Blob>
+    ) {
         return items;
-    } as any;
+    };
+}
+
+class FakeZip {
+    public files: Record<string, Blob | string> = {};
+    file(name: string, data: Blob | string, _opts?: { base64?: boolean }) {
+        this.files[name] = data;
+    }
+    async generateAsync(_opts: { type: "blob" }) {
+        return new Blob(["zip"], { type: "application/zip" });
+    }
 }
 
 function installJSZipMock() {
-    class FakeZip {
-        public files: Record<string, any> = {};
-        file(name: string, data: any, _opts?: any) {
-            this.files[name] = data;
-        }
-        async generateAsync(_opts: any) {
-            return new Blob(["zip"], { type: "application/zip" });
-        }
-    }
-    (globalThis as any).window =
-        (globalThis as any).window || (globalThis as any);
-    (globalThis as any).window.JSZip = FakeZip as any;
+    testGlobal.window = testGlobal.window || testGlobal;
+    testGlobal.window.JSZip = FakeZip;
     return FakeZip;
+}
+
+function getNotificationMock(): ReturnType<typeof vi.fn<ShowNotification>> {
+    const notificationModule = testGlobal.__vitest_manual_mocks__?.get(
+        "/utils/ui/notifications/showNotification.js"
+    );
+    if (!notificationModule?.showNotification) {
+        throw new Error("Missing showNotification mock");
+    }
+    return notificationModule.showNotification;
+}
+
+function createChart(
+    label = "A",
+    data = [{ x: 1, y: 10 }]
+): ExportableChartLike {
+    return {
+        canvas: { width: 400, height: 200 },
+        data: { datasets: [{ label, data }] },
+        config: { type: "line" },
+        toBase64Image: vi
+            .fn<ToBase64Image>()
+            .mockReturnValue("data:image/png;base64,AAA"),
+    };
+}
+
+function createFetchResponse({
+    json,
+    ok = true,
+    status = 200,
+    statusText = "OK",
+    text,
+}: {
+    json?: Record<string, unknown>;
+    ok?: boolean;
+    status?: number;
+    statusText?: string;
+    text?: string;
+}) {
+    return {
+        headers: new Map([["content-type", "application/json"]]),
+        json: vi
+            .fn<() => Promise<Record<string, unknown>>>()
+            .mockResolvedValue(json ?? {}),
+        ok,
+        status,
+        statusText,
+        text: vi.fn<() => Promise<string>>().mockResolvedValue(text ?? ""),
+    };
+}
+
+function stubFetchWithResponse(response: unknown) {
+    const fetchMock = vi
+        .fn<
+            (input: RequestInfo | URL, init?: RequestInit) => Promise<unknown>
+        >()
+        .mockResolvedValue(response);
+    vi.stubGlobal("fetch", fetchMock);
+    return fetchMock;
 }
 
 function createPrintWindowMock() {
     const printDocument = document.implementation.createHTMLDocument("");
 
     return {
-        close: vi.fn(),
+        close: vi.fn<() => void>(),
         document: printDocument,
-        focus: vi.fn(),
+        focus: vi.fn<() => void>(),
         opener: {} as unknown,
-        print: vi.fn(),
-        setTimeout: vi.fn((callback: () => void) => {
-            callback();
-            return 1;
-        }),
+        print: vi.fn<() => void>(),
+        setTimeout: vi
+            .fn<(callback: () => void) => number>()
+            .mockImplementation((callback) => {
+                callback();
+                return 1;
+            }),
     } as unknown as Window;
 }
 
@@ -129,13 +248,15 @@ describe("exportUtils core flows", () => {
         vi.restoreAllMocks();
         vi.resetModules();
         // Provide manual mock registry for exportUtils suffix resolver
-        const reg = new Map<string, any>();
-        (globalThis as any).__vitest_manual_mocks__ = reg;
+        const reg = new Map<string, ManualMockModule>();
+        testGlobal.__vitest_manual_mocks__ = reg;
         reg.set("/utils/ui/notifications/showNotification.js", {
-            showNotification: vi.fn(),
+            showNotification: vi.fn<ShowNotification>(),
         });
         reg.set("/utils/charts/theming/chartThemeUtils.js", {
-            detectCurrentTheme: vi.fn(() => "light"),
+            detectCurrentTheme: vi
+                .fn<DetectCurrentTheme>()
+                .mockReturnValue("light"),
         });
         installCanvasMocks();
         installURLMocks();
@@ -149,6 +270,8 @@ describe("exportUtils core flows", () => {
     });
 
     it("isValidChart validates presence of canvas and dimensions", async () => {
+        expect.hasAssertions();
+
         const { exportUtils } = await loadExportUtils();
         expect(exportUtils.isValidChart(null as any)).toBe(false);
 
@@ -163,6 +286,8 @@ describe("exportUtils core flows", () => {
     });
 
     it("getExportThemeBackground honors explicit theme and auto fallback", async () => {
+        expect.hasAssertions();
+
         const { exportUtils, __setTestDeps } = await loadExportUtils();
         // Explicit
         localStorage.setItem("chartjs_exportTheme", "dark");
@@ -200,19 +325,22 @@ describe("exportUtils core flows", () => {
     });
 
     it("downloadChartAsPNG triggers link click and notification", async () => {
+        expect.hasAssertions();
+
         const { exportUtils, __setTestDeps } = await loadExportUtils();
-        const note = vi.fn();
+        const note = vi.fn<ShowNotification>();
         __setTestDeps({ showNotification: note } as any);
 
-        const chart: any = {
-            canvas: { width: 320, height: 200 },
-            toBase64Image: vi.fn(() => "data:image/png;base64,AAA"),
-        };
+        const chart = createChart();
 
         // Run
         await exportUtils.downloadChartAsPNG(chart, "out.png");
 
-        expect(chart.toBase64Image).toHaveBeenCalled();
+        expect(chart.toBase64Image).toHaveBeenCalledWith(
+            "image/png",
+            1,
+            "#ffffff"
+        );
         // Assert a link was created and removed
         const link = document.querySelector(
             "a[download='out.png']"
@@ -225,25 +353,29 @@ describe("exportUtils core flows", () => {
     });
 
     it("copyChartToClipboard writes PNG blob and notifies", async () => {
+        expect.hasAssertions();
+
         const { exportUtils, __setTestDeps } = await loadExportUtils();
-        const note = vi.fn();
+        const note = vi.fn<ShowNotification>();
         __setTestDeps({ showNotification: note } as any);
 
-        const chart: any = {
-            canvas: { width: 320, height: 200 },
-            toBase64Image: vi.fn(() => "data:image/png;base64,AAA"),
-        };
+        const chart = createChart();
 
         const result = await exportUtils.copyChartToClipboard(chart);
         // the toBlob callback is async; wait until clipboard.write is observed
         await vi.waitFor(() => {
-            expect((navigator.clipboard as any).write).toHaveBeenCalledTimes(1);
+            expect((navigator.clipboard as any).write).toHaveBeenCalledOnce();
         });
         expect(result).toBeUndefined();
-        expect(note).toHaveBeenCalled();
+        expect(note).toHaveBeenCalledWith(
+            "Chart copied to clipboard",
+            "success"
+        );
     });
 
     it("exportChartDataAsCSV creates a blob link and notifies", async () => {
+        expect.hasAssertions();
+
         const { exportUtils } = await loadExportUtils();
 
         const data = [
@@ -259,12 +391,7 @@ describe("exportUtils core flows", () => {
         // Link removed after click
         const link = document.querySelector("a[download='file.csv']");
         expect(link).toBeNull();
-        const reg = (globalThis as any).__vitest_manual_mocks__ as Map<
-            string,
-            any
-        >;
-        const notify = reg.get("/utils/ui/notifications/showNotification.js")
-            .showNotification as any;
+        const notify = getNotificationMock();
         expect(notify).toHaveBeenCalledWith(
             "Data exported as file.csv",
             "success"
@@ -272,6 +399,8 @@ describe("exportUtils core flows", () => {
     });
 
     it("exportChartDataAsJSON creates a blob link and notifies", async () => {
+        expect.hasAssertions();
+
         const { exportUtils } = await loadExportUtils();
 
         const data = [
@@ -286,12 +415,7 @@ describe("exportUtils core flows", () => {
         );
         const link = document.querySelector("a[download='file.json']");
         expect(link).toBeNull();
-        const reg = (globalThis as any).__vitest_manual_mocks__ as Map<
-            string,
-            any
-        >;
-        const notify = reg.get("/utils/ui/notifications/showNotification.js")
-            .showNotification as any;
+        const notify = getNotificationMock();
         expect(notify).toHaveBeenCalledWith(
             "Data exported as file.json",
             "success"
@@ -299,6 +423,8 @@ describe("exportUtils core flows", () => {
     });
 
     it("exportCombinedChartsDataAsCSV merges timestamps across charts", async () => {
+        expect.hasAssertions();
+
         const { exportUtils } = await loadExportUtils();
 
         const chartA: any = {
@@ -336,12 +462,7 @@ describe("exportUtils core flows", () => {
         );
         const link = document.querySelector("a[download='combined.csv']");
         expect(link).toBeNull();
-        const reg = (globalThis as any).__vitest_manual_mocks__ as Map<
-            string,
-            any
-        >;
-        const notify = reg.get("/utils/ui/notifications/showNotification.js")
-            .showNotification as any;
+        const notify = getNotificationMock();
         expect(notify).toHaveBeenCalledWith(
             "Combined data exported as combined.csv",
             "success"
@@ -349,6 +470,8 @@ describe("exportUtils core flows", () => {
     });
 
     it("uploadToImgur throws when client id is not configured", async () => {
+        expect.hasAssertions();
+
         // Set to the unconfigured value that should trigger the error
         localStorage.setItem("imgur_client_id", "YOUR_IMGUR_CLIENT_ID");
         const { exportUtils } = await loadExportUtils();
@@ -358,8 +481,10 @@ describe("exportUtils core flows", () => {
     });
 
     it("createCombinedChartsImage stitches canvases and notifies", async () => {
+        expect.hasAssertions();
+
         const { exportUtils, __setTestDeps } = await loadExportUtils();
-        const note = vi.fn();
+        const note = vi.fn<ShowNotification>();
         __setTestDeps({ showNotification: note } as any);
 
         const chartA: any = { canvas: { width: 400, height: 200 } };
@@ -381,8 +506,10 @@ describe("exportUtils core flows", () => {
     });
 
     it("copyCombinedChartsToClipboard writes blob and notifies", async () => {
+        expect.hasAssertions();
+
         const { exportUtils, __setTestDeps } = await loadExportUtils();
-        const note = vi.fn();
+        const note = vi.fn<ShowNotification>();
         __setTestDeps({ showNotification: note } as any);
 
         const chartA: any = { canvas: { width: 400, height: 200 } };
@@ -393,7 +520,7 @@ describe("exportUtils core flows", () => {
             chartB,
         ]);
         await vi.waitFor(() => {
-            expect((navigator.clipboard as any).write).toHaveBeenCalledTimes(1);
+            expect((navigator.clipboard as any).write).toHaveBeenCalledOnce();
         });
         expect(result).toBeUndefined();
         expect(note).toHaveBeenCalledWith(
@@ -403,6 +530,8 @@ describe("exportUtils core flows", () => {
     });
 
     it("addCombinedCSVToZip creates combined-data.csv with union timestamps", async () => {
+        expect.hasAssertions();
+
         const { exportUtils } = await loadExportUtils();
         const zip: any = {
             entries: {} as Record<string, string>,
@@ -445,13 +574,10 @@ describe("exportUtils core flows", () => {
     });
 
     it("exportAllAsZip writes images and data then notifies", async () => {
+        expect.hasAssertions();
+
         const { exportUtils } = await loadExportUtils();
-        const reg = (globalThis as any).__vitest_manual_mocks__ as Map<
-            string,
-            any
-        >;
-        const notify = reg.get("/utils/ui/notifications/showNotification.js")
-            .showNotification as any;
+        const notify = getNotificationMock();
 
         const chartA: any = {
             canvas: { width: 400, height: 200 },
@@ -469,17 +595,17 @@ describe("exportUtils core flows", () => {
         // assert notification fired
         expect(result).toBeUndefined();
         expect(link).toBeNull();
-        expect(notify).toHaveBeenCalled();
+        expect(notify).toHaveBeenCalledWith(
+            "ZIP file with 2 charts exported",
+            "success"
+        );
     });
 
     it("printChart opens window and notifies", async () => {
+        expect.hasAssertions();
+
         const { exportUtils } = await loadExportUtils();
-        const reg = (globalThis as any).__vitest_manual_mocks__ as Map<
-            string,
-            any
-        >;
-        const notify = reg.get("/utils/ui/notifications/showNotification.js")
-            .showNotification as any;
+        const notify = getNotificationMock();
 
         const fakeWin = createPrintWindowMock();
         const openSpy = vi.spyOn(window, "open").mockReturnValue(fakeWin);
@@ -491,18 +617,19 @@ describe("exportUtils core flows", () => {
         expect(printImage?.getAttribute("src")).toBe(
             "data:image/png;base64,AAA"
         );
-        expect(openSpy).toHaveBeenCalled();
+        expect(openSpy).toHaveBeenCalledWith(
+            "",
+            "_blank",
+            "noopener,noreferrer"
+        );
         expect(notify).toHaveBeenCalledWith("Chart sent to printer", "success");
     });
 
     it("printCombinedCharts opens window and notifies", async () => {
+        expect.hasAssertions();
+
         const { exportUtils } = await loadExportUtils();
-        const reg = (globalThis as any).__vitest_manual_mocks__ as Map<
-            string,
-            any
-        >;
-        const notify = reg.get("/utils/ui/notifications/showNotification.js")
-            .showNotification as any;
+        const notify = getNotificationMock();
 
         const fakeWin = createPrintWindowMock();
         vi.spyOn(window, "open").mockReturnValue(fakeWin);
@@ -525,12 +652,14 @@ describe("exportUtils core flows", () => {
     });
 
     // Additional tests for improved coverage
-    describe("Imgur Integration", () => {
+    describe("imgur Integration", () => {
         beforeEach(() => {
             localStorage.clear();
         });
 
         it("getImgurConfig retrieves stored Imgur configuration", async () => {
+            expect.hasAssertions();
+
             const { exportUtils } = await loadExportUtils();
 
             // No config stored - returns default config
@@ -548,6 +677,8 @@ describe("exportUtils core flows", () => {
         });
 
         it("setImgurConfig stores Imgur client ID", async () => {
+            expect.hasAssertions();
+
             const { exportUtils } = await loadExportUtils();
 
             exportUtils.setImgurConfig("new-client-456");
@@ -557,6 +688,8 @@ describe("exportUtils core flows", () => {
         });
 
         it("clearImgurConfig removes stored configuration", async () => {
+            expect.hasAssertions();
+
             const { exportUtils } = await loadExportUtils();
 
             localStorage.setItem("imgur_client_id", "test-client");
@@ -565,6 +698,8 @@ describe("exportUtils core flows", () => {
         });
 
         it("isImgurConfigured checks if client ID is set", async () => {
+            expect.hasAssertions();
+
             const { exportUtils } = await loadExportUtils();
 
             // With default client ID, it's considered configured
@@ -589,6 +724,8 @@ describe("exportUtils core flows", () => {
         });
 
         it("uploadToImgur throws error when not configured", async () => {
+            expect.hasAssertions();
+
             const { exportUtils } = await loadExportUtils();
 
             // Set to the only unconfigured value
@@ -600,24 +737,20 @@ describe("exportUtils core flows", () => {
         });
 
         it("uploadToImgur makes API call when configured", async () => {
+            expect.hasAssertions();
+
             const { exportUtils } = await loadExportUtils();
 
             localStorage.setItem("imgur_client_id", "test-client-id");
 
-            // Mock fetch with proper headers support
-            const mockHeaders = new Map([["content-type", "application/json"]]);
-            const mockResponse = {
-                ok: true,
-                status: 200,
-                statusText: "OK",
-                headers: mockHeaders,
-                json: vi.fn().mockResolvedValue({
+            const mockResponse = createFetchResponse({
+                json: {
                     success: true,
                     data: { link: "https://imgur.com/test.png" },
-                }),
-            };
+                },
+            });
 
-            vi.stubGlobal("fetch", vi.fn().mockResolvedValue(mockResponse));
+            stubFetchWithResponse(mockResponse);
 
             const result = await exportUtils.uploadToImgur(
                 "data:image/png;base64,ABC123"
@@ -644,19 +777,19 @@ describe("exportUtils core flows", () => {
         });
 
         it("uploadToImgur handles API errors", async () => {
+            expect.hasAssertions();
+
             const { exportUtils } = await loadExportUtils();
 
             localStorage.setItem("imgur_client_id", "test-client-id");
 
-            const mockHeaders = new Map([["content-type", "application/json"]]);
-            const mockResponse = {
+            const mockResponse = createFetchResponse({
                 ok: false,
                 status: 400,
                 statusText: "Bad Request",
-                headers: mockHeaders,
-                text: vi.fn().mockResolvedValue("Bad request details"),
-            };
-            vi.stubGlobal("fetch", vi.fn().mockResolvedValue(mockResponse));
+                text: "Bad request details",
+            });
+            stubFetchWithResponse(mockResponse);
 
             await expect(
                 exportUtils.uploadToImgur("data:image/png;base64,ABC123")
@@ -666,13 +799,22 @@ describe("exportUtils core flows", () => {
         });
 
         it("uploadToImgur handles network errors", async () => {
+            expect.hasAssertions();
+
             const { exportUtils } = await loadExportUtils();
 
             localStorage.setItem("imgur_client_id", "test-client-id");
 
             vi.stubGlobal(
                 "fetch",
-                vi.fn().mockRejectedValue(new Error("Network error"))
+                vi
+                    .fn<
+                        (
+                            input: RequestInfo | URL,
+                            init?: RequestInit
+                        ) => Promise<never>
+                    >()
+                    .mockRejectedValue(new Error("Network error"))
             );
 
             await expect(
@@ -681,12 +823,14 @@ describe("exportUtils core flows", () => {
         });
     });
 
-    describe("Gyazo Integration", () => {
+    describe("gyazo Integration", () => {
         beforeEach(() => {
             localStorage.clear();
         });
 
         it("getGyazoConfig retrieves stored configuration", async () => {
+            expect.hasAssertions();
+
             const { exportUtils } = await loadExportUtils();
 
             // No config - returns default config with obfuscated credentials
@@ -714,6 +858,8 @@ describe("exportUtils core flows", () => {
         });
 
         it("setGyazoConfig stores credentials", async () => {
+            expect.hasAssertions();
+
             const { exportUtils } = await loadExportUtils();
 
             exportUtils.setGyazoConfig("client-123", "secret-456");
@@ -724,6 +870,8 @@ describe("exportUtils core flows", () => {
         });
 
         it("clearGyazoConfig removes all stored data", async () => {
+            expect.hasAssertions();
+
             const { exportUtils } = await loadExportUtils();
 
             localStorage.setItem("gyazo_client_id", "test");
@@ -738,6 +886,8 @@ describe("exportUtils core flows", () => {
         });
 
         it("getGyazoAccessToken retrieves stored token", async () => {
+            expect.hasAssertions();
+
             const { exportUtils } = await loadExportUtils();
 
             expect(exportUtils.getGyazoAccessToken()).toBeNull();
@@ -747,6 +897,8 @@ describe("exportUtils core flows", () => {
         });
 
         it("setGyazoAccessToken stores token", async () => {
+            expect.hasAssertions();
+
             const { exportUtils } = await loadExportUtils();
 
             exportUtils.setGyazoAccessToken("new-token");
@@ -756,6 +908,8 @@ describe("exportUtils core flows", () => {
         });
 
         it("clearGyazoAccessToken removes token", async () => {
+            expect.hasAssertions();
+
             const { exportUtils } = await loadExportUtils();
 
             localStorage.setItem("gyazo_access_token", "test-token");
@@ -764,6 +918,8 @@ describe("exportUtils core flows", () => {
         });
 
         it("isGyazoAuthenticated checks token presence", async () => {
+            expect.hasAssertions();
+
             const { exportUtils } = await loadExportUtils();
 
             expect(exportUtils.isGyazoAuthenticated()).toBe(false);
@@ -773,19 +929,28 @@ describe("exportUtils core flows", () => {
         });
 
         it("uploadToGyazo makes authenticated API call", async () => {
+            expect.hasAssertions();
+
             const { exportUtils } = await loadExportUtils();
 
             localStorage.setItem("gyazo_access_token", "test-token");
 
             // uploadToGyazo no longer fetches the data URL (CSP-safe conversion is done locally).
             // Only the Gyazo API upload request is performed.
-            const mockFetch = vi.fn().mockResolvedValue({
-                ok: true,
-                json: () =>
-                    Promise.resolve({
-                        url: "https://gyazo.com/test.png",
-                    }),
-            });
+            const mockFetch = vi
+                .fn<
+                    (
+                        input: RequestInfo | URL,
+                        init?: RequestInit
+                    ) => Promise<unknown>
+                >()
+                .mockResolvedValue({
+                    ok: true,
+                    json: () =>
+                        Promise.resolve({
+                            url: "https://gyazo.com/test.png",
+                        }),
+                });
 
             vi.stubGlobal("fetch", mockFetch);
 
@@ -793,7 +958,7 @@ describe("exportUtils core flows", () => {
                 "data:image/png;base64,ABC123"
             );
 
-            expect(fetch).toHaveBeenCalledTimes(1);
+            expect(fetch).toHaveBeenCalledOnce();
             expect(fetch).toHaveBeenNthCalledWith(
                 1,
                 "https://upload.gyazo.com/api/upload",
@@ -807,6 +972,8 @@ describe("exportUtils core flows", () => {
         });
 
         it("uploadToGyazo throws when not authenticated", async () => {
+            expect.hasAssertions();
+
             const { exportUtils } = await loadExportUtils();
 
             // Provide credentials so uploadToGyazo attempts OAuth flow.
@@ -822,6 +989,8 @@ describe("exportUtils core flows", () => {
         });
 
         it("exchangeGyazoCodeForToken makes token exchange request", async () => {
+            expect.hasAssertions();
+
             const { exportUtils } = await loadExportUtils();
 
             localStorage.setItem("gyazo_client_id", "test-client");
@@ -829,11 +998,13 @@ describe("exportUtils core flows", () => {
 
             const mockResponse = {
                 ok: true,
-                json: vi.fn().mockResolvedValue({
-                    access_token: "new-token",
-                }),
+                json: vi
+                    .fn<() => Promise<{ access_token: string }>>()
+                    .mockResolvedValue({
+                        access_token: "new-token",
+                    }),
             };
-            vi.stubGlobal("fetch", vi.fn().mockResolvedValue(mockResponse));
+            stubFetchWithResponse(mockResponse);
 
             const result = await exportUtils.exchangeGyazoCodeForToken(
                 "auth-code",
