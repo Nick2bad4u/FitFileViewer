@@ -1,6 +1,4 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 import { describe, it, expect } from "vitest";
 
 interface WindowStateSnapshot {
@@ -12,6 +10,8 @@ interface WindowStateSnapshot {
 
 describe("windowStateUtils strict tests (pure functions)", () => {
     it("validateWindowState accepts well-formed objects", async () => {
+        expect.hasAssertions();
+
         const mod = await import("../../../electron-app/windowStateUtils.js");
         const validStates = [
             { width: 1200, height: 800 },
@@ -24,6 +24,8 @@ describe("windowStateUtils strict tests (pure functions)", () => {
     });
 
     it("validateWindowState rejects malformed objects", async () => {
+        expect.hasAssertions();
+
         const mod = await import("../../../electron-app/windowStateUtils.js");
         const invalidStates = [
             null,
@@ -43,6 +45,8 @@ describe("windowStateUtils strict tests (pure functions)", () => {
     });
 
     it("sanitizeWindowState enforces minimum sizes and preserves coordinates", async () => {
+        expect.hasAssertions();
+
         const mod = await import("../../../electron-app/windowStateUtils.js");
         const s1 = mod.sanitizeWindowState({ width: 300, height: 200 });
         expect(s1.width).toBeGreaterThanOrEqual(800);
