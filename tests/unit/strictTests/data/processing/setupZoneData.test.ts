@@ -1,21 +1,34 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+interface TestZone {
+    color?: string;
+    label?: string;
+    time?: number;
+    zone?: number;
+}
+
+type ZoneKind = "hr" | "power";
+type FitWindow = Window & {
+    heartRateZones?: TestZone[];
+    powerZones?: TestZone[];
+};
+
 vi.mock(
-    "../../../../../electron-app/utils/ui/controls/createPowerZoneControls.js",
+    import("../../../../../electron-app/utils/ui/controls/createPowerZoneControls.js"),
     () => ({
-        updatePowerZoneControlsVisibility: vi.fn(),
+        updatePowerZoneControlsVisibility: vi.fn<() => void>(),
     })
 );
 vi.mock(
-    "../../../../../electron-app/utils/ui/controls/createHRZoneControls.js",
+    import("../../../../../electron-app/utils/ui/controls/createHRZoneControls.js"),
     () => ({
-        updateHRZoneControlsVisibility: vi.fn(),
+        updateHRZoneControlsVisibility: vi.fn<() => void>(),
     })
 );
 vi.mock(
-    "../../../../../electron-app/utils/data/zones/chartZoneColorUtils.js",
+    import("../../../../../electron-app/utils/data/zones/chartZoneColorUtils.js"),
     () => ({
-        applyZoneColors: (zones: any[], kind: string) =>
+        applyZoneColors: (zones: TestZone[], kind: ZoneKind) =>
             zones.map((z) => ({
                 ...z,
                 color: kind === "hr" ? "#f00" : "#00f",
@@ -30,23 +43,31 @@ async function importSetupZoneData(): Promise<SetupZoneDataModule> {
     return import("../../../../../electron-app/utils/data/processing/setupZoneData.js");
 }
 
+function getFitWindow(): FitWindow {
+    return globalThis.window as FitWindow;
+}
+
 describe("setupZoneData", () => {
     beforeEach(() => {
-        (globalThis as any).window.heartRateZones = [];
-        (globalThis as any).window.powerZones = [];
+        getFitWindow().heartRateZones = [];
+        getFitWindow().powerZones = [];
         vi.resetModules();
     });
 
     it("returns existing globals when no data", async () => {
-        (globalThis as any).window.heartRateZones = [{ zone: 1, time: 10 }];
+        expect.hasAssertions();
+
+        getFitWindow().heartRateZones = [{ zone: 1, time: 10 }];
         const { setupZoneData } = await importSetupZoneData();
-        const res = setupZoneData(null as any);
+        const res = setupZoneData(null);
         expect(res.hasHRZoneData).toBe(true);
         expect(res.hasPowerZoneData).toBe(false);
-        expect(res.heartRateZones.length).toBe(1);
+        expect(res.heartRateZones).toHaveLength(1);
     });
 
     it("uses timeInZoneMesgs session aggregate", async () => {
+        expect.hasAssertions();
+
         const { setupZoneData } = await importSetupZoneData();
         const res = setupZoneData({
             timeInZoneMesgs: [
@@ -65,23 +86,23 @@ describe("setupZoneData", () => {
                     ],
                 },
             ],
-        } as any);
+        });
         expect(res.hasHRZoneData).toBe(true);
         expect(res.hasPowerZoneData).toBe(true);
-        expect(res.heartRateZones.map((z: any) => z.zone)).toEqual([1, 3]);
-        expect(res.powerZones.map((z: any) => z.zone)).toEqual([2]);
-        expect(
-            (globalThis as any).window.heartRateZones.length
-        ).toBeGreaterThan(0);
+        expect(res.heartRateZones.map((z) => z.zone)).toEqual([1, 3]);
+        expect(res.powerZones.map((z) => z.zone)).toEqual([2]);
+        expect(getFitWindow().heartRateZones?.length).toBeGreaterThan(0);
     });
 
     it("falls back to sessionMesgs when no timeInZoneMesgs", async () => {
+        expect.hasAssertions();
+
         const { setupZoneData } = await importSetupZoneData();
         const res = setupZoneData({
             sessionMesgs: [
                 { time_in_hr_zone: [0, 2], time_in_power_zone: [0, 7] },
             ],
-        } as any);
+        });
         expect(res.hasHRZoneData).toBe(true);
         expect(res.hasPowerZoneData).toBe(true);
         expect(res.heartRateZones[0]).toMatchObject({ zone: 1, time: 2 });
@@ -89,6 +110,8 @@ describe("setupZoneData", () => {
     });
 
     it("aggregates from lapMesgs as last resort", async () => {
+        expect.hasAssertions();
+
         const { setupZoneData } = await importSetupZoneData();
         const res = setupZoneData({
             lapMesgs: [
@@ -117,10 +140,10 @@ describe("setupZoneData", () => {
                     ],
                 },
             ],
-        } as any);
+        });
         expect(res.hasHRZoneData).toBe(true);
         expect(res.hasPowerZoneData).toBe(true);
-        expect(res.heartRateZones.map((z: any) => z.time)).toEqual([4]); // zone1: 1+3
-        expect(res.powerZones.map((z: any) => z.zone)).toEqual([1, 2]);
+        expect(res.heartRateZones.map((z) => z.time)).toEqual([4]);
+        expect(res.powerZones.map((z) => z.zone)).toEqual([1, 2]);
     });
 });
