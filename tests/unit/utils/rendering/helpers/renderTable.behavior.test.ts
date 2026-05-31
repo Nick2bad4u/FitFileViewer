@@ -23,10 +23,14 @@ describe("renderTable behavior", () => {
             },
         };
         // Stub clipboard
-        (global.navigator as any).clipboard = { writeText: vi.fn() };
+        (global.navigator as any).clipboard = {
+            writeText: vi.fn<(data: string) => Promise<void>>(),
+        };
     });
 
     it("renders headers, summary row from sessionMesgs, and lap rows with timestamp/startTime override", async () => {
+        expect.hasAssertions();
+
         const container = document.querySelector("#host") as HTMLElement;
         const gearBtn = document.createElement("button");
         const data = {
@@ -65,7 +69,7 @@ describe("renderTable behavior", () => {
             "other",
             "timestamp",
         ];
-        const setVisibleColumns = vi.fn();
+        const setVisibleColumns = vi.fn<(columns: string[]) => void>();
 
         renderTable({
             container,
@@ -106,6 +110,8 @@ describe("renderTable behavior", () => {
     });
 
     it("filter selection persists on container and wheel changes selection triggering re-render", async () => {
+        expect.hasAssertions();
+
         const container = document.querySelector("#host") as any;
         const gearBtn = document.createElement("button");
         const data = {
@@ -116,7 +122,7 @@ describe("renderTable behavior", () => {
             ],
         } as any;
         const visibleColumns: string[] = [];
-        const setVisibleColumns = vi.fn();
+        const setVisibleColumns = vi.fn<(columns: string[]) => void>();
 
         renderTable({
             container,
@@ -144,7 +150,9 @@ describe("renderTable behavior", () => {
         expect(newSelect.value).toMatch(/^(Summary|Lap [1-3])$/);
     });
 
-    it("Copy as CSV writes expected header and at least one row", async () => {
+    it("copy as CSV writes expected header and at least one row", async () => {
+        expect.hasAssertions();
+
         const container = document.querySelector("#host") as HTMLElement;
         const gearBtn = document.createElement("button");
         const data = {
@@ -158,7 +166,7 @@ describe("renderTable behavior", () => {
             "total_ascent_ft",
             "total_descent_ft",
         ];
-        const setVisibleColumns = vi.fn();
+        const setVisibleColumns = vi.fn<(columns: string[]) => void>();
         renderTable({
             container,
             data,
@@ -173,7 +181,7 @@ describe("renderTable behavior", () => {
         expect(copyBtn.textContent).toBe("Copy as CSV");
         copyBtn.click();
         const written = vi.mocked((navigator as any).clipboard.writeText);
-        expect(written).toHaveBeenCalled();
+        expect(written).toHaveBeenCalledWith(expect.any(String));
         const csv = written.mock.calls[0][0] as string;
         const [header, firstLine] = csv.split("\n");
         expect(header.split(",")).toEqual(["Type", ...visibleColumns]);
