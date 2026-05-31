@@ -114,6 +114,16 @@ function getLatestChartConfig(): ChartConfig {
     return config;
 }
 
+function getRenderState(container: HTMLElement): {
+    chartCalls: number;
+    childCount: number;
+} {
+    return {
+        chartCalls: getEventMessagesWindow().Chart?.mock.calls.length ?? 0,
+        childCount: container.children.length,
+    };
+}
+
 // Mock all external dependencies
 vi.mock("../../../electron-app/utils/theming/core/theme.js", () => ({
     getThemeConfig: vi.fn(() => ({
@@ -249,7 +259,10 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
             renderEventMessagesChart(container, {}, new Date());
 
-            expect(container.children.length).toBe(0);
+            expect(getRenderState(container)).toStrictEqual({
+                chartCalls: 0,
+                childCount: 0,
+            });
             expect(window.Chart).not.toHaveBeenCalled();
         });
 
@@ -259,7 +272,10 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
             renderEventMessagesChart(container, {}, new Date());
 
-            expect(container.children.length).toBe(0);
+            expect(getRenderState(container)).toStrictEqual({
+                chartCalls: 0,
+                childCount: 0,
+            });
             expect(window.Chart).not.toHaveBeenCalled();
         });
 
@@ -269,7 +285,10 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
             renderEventMessagesChart(container, {}, new Date());
 
-            expect(container.children.length).toBe(0);
+            expect(getRenderState(container)).toStrictEqual({
+                chartCalls: 0,
+                childCount: 0,
+            });
             expect(window.Chart).not.toHaveBeenCalled();
         });
 
@@ -290,7 +309,10 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
             renderEventMessagesChart(container, {}, new Date());
 
-            expect(container.children.length).toBe(0);
+            expect(getRenderState(container)).toStrictEqual({
+                chartCalls: 0,
+                childCount: 0,
+            });
             expect(window.Chart).not.toHaveBeenCalled();
         });
 
@@ -337,10 +359,12 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             const chartConfig = getLatestChartConfig();
             const data = chartConfig.data.datasets[0].data;
 
-            // First event should have x: 0 (same as start time)
-            expect(data[0].x).toBe(0);
-            // Second event should have x: 300 (5 minutes later)
-            expect(data[1].x).toBe(300);
+            expect(
+                data.slice(0, 2).map(({ event, x, y }) => ({ event, x, y }))
+            ).toStrictEqual([
+                { event: "Start Event", x: 0, y: 1 },
+                { event: "Lap Event", x: 300, y: 1 },
+            ]);
         });
 
         test("should handle number timestamps in seconds", () => {
@@ -358,8 +382,12 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             const chartConfig = getLatestChartConfig();
             const data = chartConfig.data.datasets[0].data;
 
-            expect(data[0].x).toBe(0);
-            expect(data[1].x).toBe(300);
+            expect(
+                data.map(({ event, x, y }) => ({ event, x, y }))
+            ).toStrictEqual([
+                { event: "Event 1", x: 0, y: 1 },
+                { event: "Event 2", x: 300, y: 1 },
+            ]);
         });
 
         test("should handle number timestamps in milliseconds", () => {
@@ -377,8 +405,12 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             const chartConfig = getLatestChartConfig();
             const data = chartConfig.data.datasets[0].data;
 
-            expect(data[0].x).toBe(0);
-            expect(data[1].x).toBe(300);
+            expect(
+                data.map(({ event, x, y }) => ({ event, x, y }))
+            ).toStrictEqual([
+                { event: "Event 1", x: 0, y: 1 },
+                { event: "Event 2", x: 300, y: 1 },
+            ]);
         });
 
         test("should handle mixed timestamp formats", () => {
@@ -400,8 +432,13 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             const chartConfig = getLatestChartConfig();
             const data = chartConfig.data.datasets[0].data;
 
-            expect(data).toHaveLength(3);
-            expect(data[0].x).toBe(0);
+            expect(
+                data.map(({ event, x, y }) => ({ event, x, y }))
+            ).toStrictEqual([
+                { event: "Event 1", x: 0, y: 1 },
+                { event: "Event 2", x: 3600, y: 1 },
+                { event: "Event 3", x: 3600, y: 1 },
+            ]);
         });
 
         test("should fallback to x:0 for invalid timestamp formats", () => {
@@ -420,10 +457,13 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             const chartConfig = getLatestChartConfig();
             const data = chartConfig.data.datasets[0].data;
 
-            expect(data).toHaveLength(3);
-            data.forEach((point) => {
-                expect(point.x).toBe(0);
-            });
+            expect(
+                data.map(({ event, x, y }) => ({ event, x, y }))
+            ).toStrictEqual([
+                { event: "Event 1", x: 0, y: 1 },
+                { event: "Event 2", x: 0, y: 1 },
+                { event: "Event 3", x: 0, y: 1 },
+            ]);
         });
 
         test("should handle invalid startTime gracefully", () => {
@@ -435,10 +475,13 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             const chartConfig = getLatestChartConfig();
             const data = chartConfig.data.datasets[0].data;
 
-            expect(data).toHaveLength(3);
-            data.forEach((point) => {
-                expect(point.x).toBe(0);
-            });
+            expect(
+                data.map(({ event, x, y }) => ({ event, x, y }))
+            ).toStrictEqual([
+                { event: "Start Event", x: 0, y: 1 },
+                { event: "Lap Event", x: 0, y: 1 },
+                { event: "Timer Event", x: 0, y: 1 },
+            ]);
         });
     });
 
@@ -465,10 +508,17 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             const chartConfig = getLatestChartConfig();
             const dataset = chartConfig.data.datasets[0];
 
-            expect(dataset.backgroundColor).toBe("#ff5722CC"); // Custom color from localStorage
-            expect(dataset.borderColor).toBe("#ff5722");
-            expect(dataset.pointRadius).toBe(6);
-            expect(dataset.pointHoverRadius).toBe(8);
+            expect({
+                backgroundColor: dataset.backgroundColor,
+                borderColor: dataset.borderColor,
+                pointHoverRadius: dataset.pointHoverRadius,
+                pointRadius: dataset.pointRadius,
+            }).toStrictEqual({
+                backgroundColor: "#ff5722CC",
+                borderColor: "#ff5722",
+                pointHoverRadius: 8,
+                pointRadius: 6,
+            });
         });
 
         test("should use default color when no custom color setting is available", () => {
@@ -501,9 +551,15 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
             const chartConfig = getLatestChartConfig();
 
-            expect(chartConfig.options.plugins.legend.display).toBe(true);
-            expect(chartConfig.options.plugins.title.display).toBe(true);
-            expect(chartConfig.options.scales.x.grid.display).toBe(true);
+            expect({
+                legend: chartConfig.options.plugins.legend.display,
+                title: chartConfig.options.plugins.title.display,
+                xGrid: chartConfig.options.scales.x.grid.display,
+            }).toStrictEqual({
+                legend: true,
+                title: true,
+                xGrid: true,
+            });
             expect(chartConfig.options.plugins.zoom).toEqual({
                 zoom: { enabled: true },
             });
@@ -521,9 +577,15 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
             const chartConfig = getLatestChartConfig();
 
-            expect(chartConfig.options.plugins.legend.display).toBe(false);
-            expect(chartConfig.options.plugins.title.display).toBe(false);
-            expect(chartConfig.options.scales.x.grid.display).toBe(false);
+            expect({
+                legend: chartConfig.options.plugins.legend.display,
+                title: chartConfig.options.plugins.title.display,
+                xGrid: chartConfig.options.scales.x.grid.display,
+            }).toStrictEqual({
+                legend: false,
+                title: false,
+                xGrid: false,
+            });
         });
 
         test("should set correct axis titles and configuration", () => {
@@ -533,10 +595,17 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
             const chartConfig = getLatestChartConfig();
 
-            expect(chartConfig.options.scales.x.type).toBe("linear");
-            expect(chartConfig.options.scales.x.display).toBe(true);
-            expect(chartConfig.options.scales.x.title.text).toBe("Time (s)");
-            expect(chartConfig.options.scales.y.display).toBe(false);
+            expect({
+                xDisplay: chartConfig.options.scales.x.display,
+                xTitle: chartConfig.options.scales.x.title.text,
+                xType: chartConfig.options.scales.x.type,
+                yDisplay: chartConfig.options.scales.y.display,
+            }).toStrictEqual({
+                xDisplay: true,
+                xTitle: "Time (s)",
+                xType: "linear",
+                yDisplay: false,
+            });
         });
 
         test("should configure responsive and aspect ratio options", () => {
@@ -546,8 +615,13 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
             const chartConfig = getLatestChartConfig();
 
-            expect(chartConfig.options.responsive).toBe(true);
-            expect(chartConfig.options.maintainAspectRatio).toBe(false);
+            expect({
+                maintainAspectRatio: chartConfig.options.maintainAspectRatio,
+                responsive: chartConfig.options.responsive,
+            }).toStrictEqual({
+                maintainAspectRatio: false,
+                responsive: true,
+            });
         });
     });
 
@@ -569,8 +643,13 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
             renderEventMessagesChart(container, {}, new Date());
 
-            expect(container.children.length).toBe(1);
-            expect(container.children[0].tagName).toBe("CANVAS");
+            expect({
+                childCount: container.children.length,
+                tagName: container.children[0]?.tagName,
+            }).toStrictEqual({
+                childCount: 1,
+                tagName: "CANVAS",
+            });
             expect(container.children[0]).not.toBeInstanceOf(HTMLDivElement);
         });
 
@@ -601,8 +680,8 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
             renderEventMessagesChart(container, {}, new Date());
 
-            expect(window._chartjsInstances).toEqual([mockChart]);
-            expect(window._chartjsInstances).not.toHaveLength(0);
+            expect(window._chartjsInstances).toStrictEqual([mockChart]);
+            expect(window._chartjsInstances).not.toContain(undefined);
         });
 
         test("should call updateChartAnimations with correct parameters", async () => {
@@ -629,11 +708,19 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             const chartConfig = getLatestChartConfig();
             const tooltip = chartConfig.options.plugins.tooltip;
 
-            expect(tooltip.backgroundColor).toBe("#f8f9fa");
-            expect(tooltip.titleColor).toBe("#000000");
-            expect(tooltip.bodyColor).toBe("#000000");
-            expect(tooltip.borderColor).toBe("#dee2e6");
-            expect(tooltip.borderWidth).toBe(1);
+            expect({
+                backgroundColor: tooltip.backgroundColor,
+                bodyColor: tooltip.bodyColor,
+                borderColor: tooltip.borderColor,
+                borderWidth: tooltip.borderWidth,
+                titleColor: tooltip.titleColor,
+            }).toStrictEqual({
+                backgroundColor: "#f8f9fa",
+                bodyColor: "#000000",
+                borderColor: "#dee2e6",
+                borderWidth: 1,
+                titleColor: "#000000",
+            });
         });
 
         test("should format tooltip label correctly", () => {
@@ -694,11 +781,11 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
             const chartConfig = getLatestChartConfig();
 
-            expect(chartConfig.plugins).toContain("chartBackgroundColorPlugin");
-            expect(chartConfig.plugins).not.toHaveLength(0);
-            expect(chartConfig.plugins[0]).toEqual({
-                id: "chartZoomResetPlugin",
-            });
+            expect(chartConfig.plugins).toStrictEqual([
+                { id: "chartZoomResetPlugin" },
+                "chartBackgroundColorPlugin",
+            ]);
+            expect(chartConfig.plugins).not.toContain("zoomReset");
         });
 
         test("should configure chartBackgroundColorPlugin with theme colors", () => {
@@ -752,11 +839,11 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
             const container = document.createElement("div");
 
-            expect(
+            expect(() =>
                 renderEventMessagesChart(container, {}, new Date())
-            ).toBeUndefined();
+            ).not.toThrow();
             expect(window.Chart).toHaveBeenCalledTimes(1);
-            expect(window._chartjsInstances).toEqual([]);
+            expect(window._chartjsInstances).toStrictEqual([]);
             expect(mockConsoleError).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering event messages chart:",
                 expect.any(Error)
@@ -772,10 +859,13 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
             const container = document.createElement("div");
 
-            expect(
+            expect(() =>
                 renderEventMessagesChart(container, {}, new Date())
-            ).toBeUndefined();
-            expect(container.children.length).toBe(0);
+            ).not.toThrow();
+            expect(getRenderState(container)).toStrictEqual({
+                chartCalls: 0,
+                childCount: 0,
+            });
             expect(window.Chart).not.toHaveBeenCalled();
             expect(mockConsoleError).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering event messages chart:",
@@ -791,7 +881,10 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
             renderEventMessagesChart(container, {}, new Date());
 
-            expect(container.children.length).toBe(0);
+            expect(getRenderState(container)).toStrictEqual({
+                chartCalls: 0,
+                childCount: 0,
+            });
             expect(window.Chart).not.toHaveBeenCalled();
         });
 
@@ -803,11 +896,11 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             getEventMessagesWindow().Chart = mockChartConstructor as ChartMock;
             const container = document.createElement("div");
 
-            expect(
+            expect(() =>
                 renderEventMessagesChart(container, {}, new Date())
-            ).toBeUndefined();
+            ).not.toThrow();
             expect(mockChartConstructor).toHaveBeenCalled();
-            expect(window._chartjsInstances).toEqual([]);
+            expect(window._chartjsInstances).toStrictEqual([]);
             expect(mockConsoleError).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering event messages chart:",
                 expect.any(Error)
@@ -835,13 +928,13 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         });
 
         test("should handle missing container gracefully", () => {
-            expect(
+            expect(() =>
                 renderEventMessagesChart(
                     null as unknown as HTMLElement,
                     {},
                     new Date()
                 )
-            ).toBeUndefined();
+            ).not.toThrow();
             expect(window.Chart).not.toHaveBeenCalled();
             expect(mockConsoleError).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering event messages chart:",
@@ -852,16 +945,19 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         test("should handle undefined options object", () => {
             const container = document.createElement("div");
 
-            expect(
+            expect(() =>
                 renderEventMessagesChart(
                     container,
                     undefined as unknown as Record<string, unknown>,
                     new Date()
                 )
-            ).toBeUndefined();
-            expect(container.children.length).toBe(1);
+            ).not.toThrow();
+            expect(getRenderState(container)).toStrictEqual({
+                chartCalls: 1,
+                childCount: 1,
+            });
             expect(window.Chart).toHaveBeenCalledTimes(1);
-            expect(window._chartjsInstances).toEqual([mockChart]);
+            expect(window._chartjsInstances).toStrictEqual([mockChart]);
         });
 
         test("should handle very large timestamp values", () => {
