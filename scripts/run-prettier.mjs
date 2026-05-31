@@ -4,24 +4,33 @@ import process from "node:process";
 import { pathToFileURL } from "node:url";
 
 import {
+    appLeafletMeasureLitePath,
     appPackageRepositoryPath,
     docusaurusPackageRepositoryPath,
     repositoryRoot,
     rootDocusaurusTsconfigPath,
+    rootElectronAppBaseTsconfigPath,
+    rootElectronAppEslintTsconfigPath,
     rootElectronBuilderConfigPath,
     rootElectronAppTsconfigPath,
+    rootEslintTsconfigPath,
     rootEslintConfigPath,
+    rootPackageJsonPath,
+    rootPlaywrightConfigPath,
     rootPrettierConfigPath,
     rootRuntimeTsconfigPath,
     rootStylelintConfigPath,
     rootTypedocConfigPath,
+    rootViteRendererConfigPath,
+    rootVitestConfigPath,
+    rootVitestTypecheckTsconfigPath,
 } from "./lib/workspaces.mjs";
 
 const require = createRequire(import.meta.url);
 const prettierCliPath = require.resolve("prettier/bin/prettier.cjs");
 
 export const prettierTargets = [
-    "package.json",
+    rootPackageJsonPath,
     appPackageRepositoryPath,
     docusaurusPackageRepositoryPath,
     "docusaurus/docusaurus.config.ts",
@@ -40,16 +49,16 @@ export const prettierTargets = [
     rootStylelintConfigPath,
     ".remarkrc.mjs",
     rootEslintConfigPath,
-    "playwright.config.ts",
-    "vite.renderer.config.mjs",
-    "vitest.config.ts",
-    "tsconfig.eslint.json",
-    "tsconfig.electron-app.base.json",
+    rootPlaywrightConfigPath,
+    rootViteRendererConfigPath,
+    rootVitestConfigPath,
+    rootEslintTsconfigPath,
+    rootElectronAppBaseTsconfigPath,
     rootElectronAppTsconfigPath,
     rootRuntimeTsconfigPath,
     rootDocusaurusTsconfigPath,
-    "tsconfig.vitest-typecheck.json",
-    "tsconfig.electron-app.eslint.json",
+    rootVitestTypecheckTsconfigPath,
+    rootElectronAppEslintTsconfigPath,
     "*.yml",
     "*.yaml",
     ".github/*.yml",
@@ -60,7 +69,7 @@ export const prettierTargets = [
     "tests/unit/**/*.ts",
     "tests/playwright/**/*.ts",
     "tests/vitest/**/*.{cjs,mjs,ts}",
-    "electron-app/renderer/leafletMeasureLite.js",
+    appLeafletMeasureLitePath,
 ];
 
 export const prettierOptions = [

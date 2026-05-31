@@ -8,6 +8,7 @@ import {
     runPlaywright,
     runPlaywrightSteps,
 } from "../../../scripts/run-playwright.mjs";
+import { rootPlaywrightConfigPath } from "../../../scripts/lib/workspaces.mjs";
 
 type CommandRunner = (
     command: string,
@@ -36,7 +37,7 @@ describe("run-playwright script", () => {
             playwrightCliPath,
             "test",
             "--config",
-            "playwright.config.ts",
+            rootPlaywrightConfigPath,
             "--headed",
             "--project",
             "electron",

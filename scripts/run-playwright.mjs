@@ -4,7 +4,11 @@ import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
-import { repositoryRoot, repositoryScriptPath } from "./lib/workspaces.mjs";
+import {
+    repositoryRoot,
+    repositoryScriptPath,
+    rootPlaywrightConfigPath,
+} from "./lib/workspaces.mjs";
 
 const require = createRequire(import.meta.url);
 const playwrightPackagePath = require.resolve("@playwright/test/package.json");
@@ -24,7 +28,7 @@ export function runPlaywrightSteps(argv = process.argv.slice(2)) {
                 playwrightCliPath,
                 "test",
                 "--config",
-                "playwright.config.ts",
+                rootPlaywrightConfigPath,
                 ...argv,
             ],
             label: "run playwright",

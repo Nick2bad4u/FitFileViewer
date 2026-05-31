@@ -8,6 +8,7 @@ type WorkspacesModule = {
     appElevProfileCssPath: string;
     appIconsPath: string;
     appIndexHtmlPath: string;
+    appLeafletMeasureLitePath: string;
     appPackagePath: string;
     appPackageRepositoryPath: string;
     appStyleCssPath: string;
@@ -27,6 +28,8 @@ type WorkspacesModule = {
     repositoryRoot: string;
     repositoryPath: (...segments: string[]) => string;
     repositoryScriptPath: (...segments: string[]) => string;
+    rootElectronAppBaseTsconfigPath: string;
+    rootElectronAppEslintTsconfigPath: string;
     rootAlternativeFitViewPath: string;
     rootAppElevProfileCssPath: string;
     rootAppIconsPath: string;
@@ -37,12 +40,15 @@ type WorkspacesModule = {
     rootArtifactsPath: string;
     rootDocusaurusTsconfigPath: string;
     rootElectronAppTsconfigPath: string;
+    rootEslintTsconfigPath: string;
     rootEslintConfigPath: string;
     rootFlatpakBuildPath: string;
     rootFlatpakBundlePath: string;
     rootFlatpakManifestPath: string;
     rootFlatpakRepoPath: string;
     rootFlatpakZipPath: string;
+    rootPackageJsonPath: string;
+    rootPlaywrightConfigPath: string;
     rootIntegrationTestsPath: string;
     rootPrettierConfigPath: string;
     rootReleaseDistPath: string;
@@ -55,6 +61,7 @@ type WorkspacesModule = {
     rootUnitTestsPath: string;
     rootViteRendererConfigPath: string;
     rootVitestConfigPath: string;
+    rootVitestTypecheckTsconfigPath: string;
     scriptsPath: string;
     appWorkspaceRelativeToRepositoryRootPath: (...segments: string[]) => string;
 };
@@ -109,7 +116,7 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes app runtime asset paths", async () => {
-        expect.assertions(12);
+        expect.assertions(13);
 
         const workspaces = await importWorkspaces();
 
@@ -117,6 +124,9 @@ describe("workspace path helpers", () => {
         expect(workspaces.appElevProfileCssPath).toBe("elevProfile.css");
         expect(workspaces.appIconsPath).toBe("icons");
         expect(workspaces.appIndexHtmlPath).toBe("index.html");
+        expect(workspaces.appLeafletMeasureLitePath).toBe(
+            "electron-app/renderer/leafletMeasureLite.js"
+        );
         expect(workspaces.rootStaticAssetsPath).toBe("static");
         expect(workspaces.rootAlternativeFitViewPath).toBe("static/ffv");
         expect(workspaces.rootAppStaticPath).toBe("static/app");
@@ -130,18 +140,29 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes root config paths", async () => {
-        expect.assertions(10);
+        expect.assertions(16);
 
         const workspaces = await importWorkspaces();
 
+        expect(workspaces.rootPackageJsonPath).toBe("package.json");
         expect(workspaces.rootElectronBuilderConfigPath).toBe(
             "electron-builder.config.cjs"
+        );
+        expect(workspaces.rootElectronAppBaseTsconfigPath).toBe(
+            "tsconfig.electron-app.base.json"
+        );
+        expect(workspaces.rootElectronAppEslintTsconfigPath).toBe(
+            "tsconfig.electron-app.eslint.json"
         );
         expect(workspaces.rootElectronAppTsconfigPath).toBe(
             "tsconfig.electron-app.json"
         );
+        expect(workspaces.rootEslintTsconfigPath).toBe("tsconfig.eslint.json");
         expect(workspaces.rootEslintConfigPath).toBe("eslint.config.mjs");
         expect(workspaces.rootFlatpakManifestPath).toBe("flatpak-build.yml");
+        expect(workspaces.rootPlaywrightConfigPath).toBe(
+            "playwright.config.ts"
+        );
         expect(workspaces.rootPrettierConfigPath).toBe("prettier.config.mjs");
         expect(workspaces.rootRuntimeTsconfigPath).toBe(
             "tsconfig.runtime.json"
@@ -152,6 +173,9 @@ describe("workspace path helpers", () => {
             "vite.renderer.config.mjs"
         );
         expect(workspaces.rootVitestConfigPath).toBe("vitest.config.ts");
+        expect(workspaces.rootVitestTypecheckTsconfigPath).toBe(
+            "tsconfig.vitest-typecheck.json"
+        );
     });
 
     it("centralizes root generated output and test paths", async () => {

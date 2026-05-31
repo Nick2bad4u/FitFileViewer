@@ -10,16 +10,25 @@ import {
     runPrettier,
 } from "../../../scripts/run-prettier.mjs";
 import {
+    appLeafletMeasureLitePath,
     appPackageRepositoryPath,
     docusaurusPackageRepositoryPath,
     rootDocusaurusTsconfigPath,
+    rootElectronAppBaseTsconfigPath,
+    rootElectronAppEslintTsconfigPath,
     rootElectronBuilderConfigPath,
     rootElectronAppTsconfigPath,
+    rootEslintTsconfigPath,
     rootEslintConfigPath,
+    rootPackageJsonPath,
+    rootPlaywrightConfigPath,
     rootPrettierConfigPath,
     rootRuntimeTsconfigPath,
     rootStylelintConfigPath,
     rootTypedocConfigPath,
+    rootViteRendererConfigPath,
+    rootVitestConfigPath,
+    rootVitestTypecheckTsconfigPath,
 } from "../../../scripts/lib/workspaces.mjs";
 
 type CommandRunner = (
@@ -30,23 +39,44 @@ type CommandRunner = (
 
 describe("run-prettier wrapper", () => {
     it("keeps root-owned formatting targets for app and workspace metadata", () => {
-        expect.assertions(15);
+        expect.assertions(1);
 
-        expect(prettierTargets).toContain("package.json");
-        expect(prettierTargets).toContain(appPackageRepositoryPath);
-        expect(prettierTargets).toContain(docusaurusPackageRepositoryPath);
-        expect(prettierTargets).toContain(rootPrettierConfigPath);
-        expect(prettierTargets).toContain(rootEslintConfigPath);
-        expect(prettierTargets).toContain(rootStylelintConfigPath);
-        expect(prettierTargets).toContain(rootTypedocConfigPath);
-        expect(prettierTargets).toContain(rootElectronBuilderConfigPath);
-        expect(prettierTargets).toContain(rootElectronAppTsconfigPath);
-        expect(prettierTargets).toContain(rootRuntimeTsconfigPath);
-        expect(prettierTargets).toContain(rootDocusaurusTsconfigPath);
-        expect(prettierTargets).toContain("scripts/*.mjs");
-        expect(prettierTargets).toContain("tests/fixtures/**/*.{js,ts}");
-        expect(prettierTargets).toContain("tests/integration/**/*.ts");
-        expect(prettierTargets).not.toContain("electron-app/*.config.*");
+        const requiredTargets = [
+            rootPackageJsonPath,
+            appPackageRepositoryPath,
+            docusaurusPackageRepositoryPath,
+            rootPrettierConfigPath,
+            rootEslintConfigPath,
+            rootStylelintConfigPath,
+            rootTypedocConfigPath,
+            rootElectronBuilderConfigPath,
+            rootElectronAppBaseTsconfigPath,
+            rootElectronAppEslintTsconfigPath,
+            rootElectronAppTsconfigPath,
+            rootEslintTsconfigPath,
+            rootRuntimeTsconfigPath,
+            rootDocusaurusTsconfigPath,
+            rootPlaywrightConfigPath,
+            rootViteRendererConfigPath,
+            rootVitestConfigPath,
+            rootVitestTypecheckTsconfigPath,
+            appLeafletMeasureLitePath,
+            "scripts/*.mjs",
+            "tests/fixtures/**/*.{js,ts}",
+            "tests/integration/**/*.ts",
+        ];
+
+        expect({
+            missingTargets: requiredTargets.filter(
+                (target) => !prettierTargets.includes(target)
+            ),
+            obsoleteTargets: prettierTargets.filter(
+                (target) => target === "electron-app/*.config.*"
+            ),
+        }).toStrictEqual({
+            missingTargets: [],
+            obsoleteTargets: [],
+        });
     });
 
     it("builds default check arguments with cached formatting options", () => {
@@ -55,7 +85,7 @@ describe("run-prettier wrapper", () => {
         const args = buildPrettierArgs([]);
 
         expect(args[0]).toMatch(/[\\/]prettier[\\/]bin[\\/]prettier\.cjs$/u);
-        expect(args).toContain("package.json");
+        expect(args).toContain(rootPackageJsonPath);
         expect(args).toEqual(expect.arrayContaining(prettierOptions));
         expect(args.at(-1)).toBe("--check");
     });
@@ -66,7 +96,7 @@ describe("run-prettier wrapper", () => {
         const args = buildPrettierArgs(["--write", "scripts/run-prettier.mjs"]);
 
         expect(args).toContain("scripts/run-prettier.mjs");
-        expect(args).not.toContain("package.json");
+        expect(args).not.toContain(rootPackageJsonPath);
         expect(args.at(-1)).toBe("--write");
     });
 
@@ -101,7 +131,7 @@ describe("run-prettier wrapper", () => {
             prettierCliPath: args?.[0],
             targetSample: {
                 electronPackage: args?.includes(appPackageRepositoryPath),
-                rootPackage: args?.includes("package.json"),
+                rootPackage: args?.includes(rootPackageJsonPath),
             },
             options: {
                 ...options,

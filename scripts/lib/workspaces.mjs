@@ -6,9 +6,16 @@ export const repositoryRoot = resolveRepositoryRoot();
 export const appWorkspaceName = "electron-app";
 export const docusaurusWorkspaceName = "docusaurus";
 export const rootArtifactsPath = "artifacts";
+export const rootPackageJsonPath = "package.json";
+export const rootPlaywrightConfigPath = "playwright.config.ts";
 export const rootDocusaurusTsconfigPath = "tsconfig.docusaurus.json";
 export const rootElectronBuilderConfigPath = "electron-builder.config.cjs";
+export const rootElectronAppBaseTsconfigPath =
+    "tsconfig.electron-app.base.json";
+export const rootElectronAppEslintTsconfigPath =
+    "tsconfig.electron-app.eslint.json";
 export const rootElectronAppTsconfigPath = "tsconfig.electron-app.json";
+export const rootEslintTsconfigPath = "tsconfig.eslint.json";
 export const rootEslintConfigPath = "eslint.config.mjs";
 export const rootFlatpakBuildPath = "flatpak-build-dir";
 export const rootFlatpakBundlePath = "FitFileViewer.flatpak";
@@ -26,6 +33,7 @@ export const rootUnitTestsPath = path.posix.join("tests", "unit");
 export const rootTabsTestsPath = path.posix.join(rootUnitTestsPath, "tabs");
 export const rootViteRendererConfigPath = "vite.renderer.config.mjs";
 export const rootVitestConfigPath = "vitest.config.ts";
+export const rootVitestTypecheckTsconfigPath = "tsconfig.vitest-typecheck.json";
 export const appWorkspacePath = path.join(repositoryRoot, appWorkspaceName);
 export const docusaurusWorkspacePath = path.join(
     repositoryRoot,
@@ -36,6 +44,10 @@ export const appDistPath = appWorkspaceRelativePath("dist");
 export const appElevProfileCssPath = "elevProfile.css";
 export const appIconsPath = "icons";
 export const appIndexHtmlPath = "index.html";
+export const appLeafletMeasureLitePath = appWorkspaceRepositoryPath(
+    "renderer",
+    "leafletMeasureLite.js"
+);
 export const appPackagePath = appWorkspaceAbsolutePath("package.json");
 export const appPackageRepositoryPath =
     appWorkspaceRepositoryPath("package.json");
