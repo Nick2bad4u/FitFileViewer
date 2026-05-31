@@ -161,7 +161,11 @@ describe("error handling utilities", () => {
                 }
             );
 
-            expect(syncValue()).toBe(42);
+            expect({
+                syncFallback: syncValue(),
+            }).toStrictEqual({
+                syncFallback: 42,
+            });
             await expect(asyncValue()).resolves.toBe("async fallback");
         });
 
@@ -185,7 +189,7 @@ describe("error handling utilities", () => {
 
     describe("validation helpers", () => {
         it("normalizes values from validators", () => {
-            expect.assertions(3);
+            expect.assertions(1);
 
             const result = validateInput(
                 "  Morning Ride  ",
@@ -198,13 +202,19 @@ describe("error handling utilities", () => {
                 "title"
             );
 
-            expect(result.isValid).toBe(true);
-            expect(result.errors).toStrictEqual([]);
-            expect(result.validatedValue).toBe("Morning Ride");
+            expect({
+                errors: result.errors,
+                isValid: result.isValid,
+                validatedValue: result.validatedValue,
+            }).toStrictEqual({
+                errors: [],
+                isValid: true,
+                validatedValue: "Morning Ride",
+            });
         });
 
         it("collects boolean, object, and thrown validation failures", () => {
-            expect.assertions(3);
+            expect.assertions(2);
 
             const result = validateInput(
                 Number.NaN,
@@ -219,12 +229,17 @@ describe("error handling utilities", () => {
                 "speed"
             );
 
-            expect(result.isValid).toBe(false);
-            expect(result.errors).toStrictEqual([
-                "speed must be a finite number",
-                "Invalid speed",
-                "Validation error for speed: custom check failed",
-            ]);
+            expect({
+                errors: result.errors,
+                isValid: result.isValid,
+            }).toStrictEqual({
+                errors: [
+                    "speed must be a finite number",
+                    "Invalid speed",
+                    "Validation error for speed: custom check failed",
+                ],
+                isValid: false,
+            });
             expect(result.errors).not.toContain("speed is required");
         });
     });
