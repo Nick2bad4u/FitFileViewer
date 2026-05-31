@@ -1086,8 +1086,10 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
     });
 
-    describe("Animation Configuration", () => {
+    describe("animation configuration", () => {
         it("should configure no animation when animationStyle is none", () => {
+            expect.hasAssertions();
+
             const canvas = document.createElement("canvas");
             const options = {
                 field: "speed",
@@ -1115,6 +1117,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should configure fast animation", () => {
+            expect.hasAssertions();
+
             const canvas = document.createElement("canvas");
             const options = {
                 field: "speed",
@@ -1142,6 +1146,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should configure slow animation", () => {
+            expect.hasAssertions();
+
             const canvas = document.createElement("canvas");
             const options = {
                 field: "speed",
@@ -1168,6 +1174,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should configure normal animation", () => {
+            expect.hasAssertions();
+
             const canvas = document.createElement("canvas");
             const options = {
                 field: "speed",
@@ -1193,8 +1201,12 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             expect(config.options.animation.duration).toStrictEqual(1000);
         });
 
-        it("should call updateChartAnimations when animation is enabled", () => {
-            // Test that animation configuration is properly set up
+        it("should call updateChartAnimations when animation is enabled", async () => {
+            expect.hasAssertions();
+
+            const { updateChartAnimations } =
+                await import("../../../electron-app/utils/charts/core/updateChartAnimations.js");
+
             const canvas = document.createElement("canvas");
             const options = {
                 field: "speed",
@@ -1216,14 +1228,19 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             const result = createEnhancedChart(canvas, options);
 
-            // Test that chart was created successfully and animation config is set
             expect(result).toBe(chartInstanceMock);
             const config = Chart.mock.calls[Chart.mock.calls.length - 1][1];
-            expect(config.options.animation.duration).toStrictEqual(1000); // normal animation
+            expect(config.options.animation.duration).toStrictEqual(1000);
             expect(config.options.animation.easing).toBe("linear");
+            expect(updateChartAnimations).toHaveBeenCalledWith(
+                chartInstanceMock,
+                "speed"
+            );
         });
 
         it("should not call updateChartAnimations when animation is disabled", async () => {
+            expect.hasAssertions();
+
             const { updateChartAnimations } =
                 await import("../../../electron-app/utils/charts/core/updateChartAnimations.js");
 
