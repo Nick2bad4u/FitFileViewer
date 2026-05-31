@@ -4,7 +4,6 @@ import process from "node:process";
 import { pathToFileURL } from "node:url";
 
 import {
-    appCoveragePath,
     appSourceRelativePath,
     docusaurusWorkspaceRelativePath,
     repositoryRoot,
@@ -16,6 +15,8 @@ import {
     rootFlatpakZipPath,
     rootReleaseDistPath,
 } from "./lib/workspaces.mjs";
+
+const legacyAppCoveragePath = appSourceRelativePath(rootCoveragePath);
 
 export const cleanupTargets = [
     ".cache",
@@ -53,7 +54,7 @@ export const cleanupTargets = [
     "playwright-report",
     rootReleaseDistPath,
     "test-results",
-    appCoveragePath,
+    legacyAppCoveragePath,
     appSourceRelativePath("dist"),
     appSourceRelativePath("html"),
     appSourceRelativePath("logs"),

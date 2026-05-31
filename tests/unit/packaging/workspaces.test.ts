@@ -4,8 +4,6 @@ import { describe, expect, it } from "vitest";
 
 type WorkspacesModule = {
     appAlternativeFitViewPath: string;
-    appCoverageAbsolutePath: string;
-    appCoveragePath: string;
     appDistPath: string;
     appDistRendererRepositoryPath: string;
     appElevProfileCssPath: string;
@@ -192,17 +190,11 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes app runtime asset paths", async () => {
-        expect.assertions(20);
+        expect.assertions(18);
 
         const workspaces = await importWorkspaces();
 
         expect(workspaces.appAlternativeFitViewPath).toBe("ffv");
-        expect(workspaces.appCoveragePath).toBe(
-            path.join("electron-app", "coverage")
-        );
-        expect(workspaces.appCoverageAbsolutePath).toBe(
-            path.join(process.cwd(), "electron-app", "coverage")
-        );
         expect(workspaces.appDistRendererRepositoryPath).toBe(
             "electron-app/dist/renderer"
         );

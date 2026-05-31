@@ -9,10 +9,7 @@ import {
     findSourceDir,
     normalizeCoverage,
 } from "../../../scripts/normalize-coverage-lcov.mjs";
-import {
-    appCoverageAbsolutePath,
-    rootCoverageAbsolutePath,
-} from "../../../scripts/lib/workspaces.mjs";
+import { rootCoverageAbsolutePath } from "../../../scripts/lib/workspaces.mjs";
 
 const temporaryRoots: string[] = [];
 
@@ -32,12 +29,11 @@ afterEach(() => {
 });
 
 describe("normalize-coverage-lcov script", () => {
-    it("builds candidate directories from env, temp, root, and legacy app coverage paths", () => {
-        expect.assertions(4);
+    it("builds candidate directories from env, temp, and root coverage paths", () => {
+        expect.assertions(3);
 
         const candidates = createCoverageCandidateDirs({
             environmentCoverageDir: "custom-coverage",
-            legacyDirectory: appCoverageAbsolutePath,
             temporaryDirectory: "tmp-root",
             targetDirectory: rootCoverageAbsolutePath,
         });
@@ -47,7 +43,6 @@ describe("normalize-coverage-lcov script", () => {
             path.join("tmp-root", "ffv-vitest-coverage")
         );
         expect(candidates[2]).toBe(rootCoverageAbsolutePath);
-        expect(candidates[3]).toBe(appCoverageAbsolutePath);
     });
 
     it("finds the first candidate containing coverage output", () => {

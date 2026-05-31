@@ -52,8 +52,6 @@ export const docusaurusWorkspacePath = path.join(
     docusaurusWorkspaceName
 );
 export const appAlternativeFitViewPath = "ffv";
-export const appCoveragePath = appSourceRelativePath(rootCoveragePath);
-export const appCoverageAbsolutePath = appSourceAbsolutePath(rootCoveragePath);
 export const appDistPath = appSourceRelativePath("dist");
 export const appDistRendererRepositoryPath = appSourceRepositoryPath(
     "dist",

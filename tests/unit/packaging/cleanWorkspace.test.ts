@@ -5,7 +5,6 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
-    appCoveragePath,
     appDistPath,
     appTypesPath,
     appSourceRelativePath,
@@ -79,7 +78,7 @@ describe("clean-workspace script", () => {
                 rootCoveragePath,
                 "html",
                 rootReleaseDistPath,
-                appCoveragePath,
+                appSourceRelativePath(rootCoveragePath),
                 appDistPath,
                 appSourceRelativePath("html"),
                 appTypesPath,

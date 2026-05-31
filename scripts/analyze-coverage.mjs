@@ -9,11 +9,7 @@ import * as path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
-import {
-    appCoverageAbsolutePath,
-    rootCoverageAbsolutePath,
-    repositoryRoot,
-} from "./lib/workspaces.mjs";
+import { rootCoverageAbsolutePath, repositoryRoot } from "./lib/workspaces.mjs";
 
 /** @typedef {"csv" | "json" | "table"} OutputFormat */
 /** @typedef {(text: string) => string} Colorize */
@@ -237,7 +233,6 @@ function ellipsize(text, maxLength) {
 }
 
 export function createCoverageCandidatePaths({
-    appCoverageDirectory = appCoverageAbsolutePath,
     environmentCoverageDirectory = getEnvironmentValue("VITEST_COVERAGE_DIR"),
     rootCoverageDirectory = rootCoverageAbsolutePath,
     temporaryDirectory = os.tmpdir(),
@@ -252,7 +247,6 @@ export function createCoverageCandidatePaths({
             COVERAGE_FILE_NAME
         ),
         path.join(rootCoverageDirectory, COVERAGE_FILE_NAME),
-        path.join(appCoverageDirectory, COVERAGE_FILE_NAME),
     ].filter((candidatePath) => candidatePath !== undefined);
 }
 
@@ -277,7 +271,7 @@ export async function findCoveragePath({
     }
 
     throw new Error(
-        "coverage-final.json not found. Checked VITEST_COVERAGE_DIR, OS temp ffv-vitest-coverage, root coverage, and electron-app/coverage."
+        "coverage-final.json not found. Checked VITEST_COVERAGE_DIR, OS temp ffv-vitest-coverage, and root coverage."
     );
 }
 

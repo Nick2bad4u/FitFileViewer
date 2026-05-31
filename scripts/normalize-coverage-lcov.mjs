@@ -4,18 +4,12 @@ import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
-import {
-    appCoverageAbsolutePath,
-    rootCoverageAbsolutePath,
-    repositoryRoot,
-} from "./lib/workspaces.mjs";
+import { rootCoverageAbsolutePath, repositoryRoot } from "./lib/workspaces.mjs";
 
 export const coverageTargetDir = rootCoverageAbsolutePath;
-export const legacyAppCoverageDir = appCoverageAbsolutePath;
 
 export function createCoverageCandidateDirs({
     environmentCoverageDir = process.env.VITEST_COVERAGE_DIR,
-    legacyDirectory = legacyAppCoverageDir,
     temporaryDirectory = os.tmpdir(),
     targetDirectory = coverageTargetDir,
 } = {}) {
@@ -23,7 +17,6 @@ export function createCoverageCandidateDirs({
         environmentCoverageDir ? path.resolve(environmentCoverageDir) : null,
         path.join(temporaryDirectory, "ffv-vitest-coverage"),
         targetDirectory,
-        legacyDirectory,
     ].filter(Boolean);
 }
 

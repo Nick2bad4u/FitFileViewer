@@ -9,14 +9,13 @@ import {
     parseCoverageData,
 } from "../../../scripts/analyze-coverage.mjs";
 import {
-    appCoverageAbsolutePath,
     repositoryRoot,
     rootCoverageAbsolutePath,
 } from "../../../scripts/lib/workspaces.mjs";
 
 describe("analyze-coverage script", () => {
     it("builds coverage file candidates from root-owned workspace paths", () => {
-        expect.assertions(4);
+        expect.assertions(3);
 
         const candidates = createCoverageCandidatePaths({
             environmentCoverageDirectory: "custom-coverage",
@@ -32,9 +31,6 @@ describe("analyze-coverage script", () => {
         expect(candidates[2]).toBe(
             path.join(rootCoverageAbsolutePath, "coverage-final.json")
         );
-        expect(candidates[3]).toBe(
-            path.join(appCoverageAbsolutePath, "coverage-final.json")
-        );
     });
 
     it("returns the first existing coverage file candidate", async () => {
@@ -45,7 +41,7 @@ describe("analyze-coverage script", () => {
             "missing-coverage-final.json"
         );
         const existingCoveragePath = path.join(
-            appCoverageAbsolutePath,
+            rootCoverageAbsolutePath,
             "coverage-final.json"
         );
 
@@ -67,7 +63,7 @@ describe("analyze-coverage script", () => {
                 pathExistsFunction: async () => false,
             })
         ).rejects.toThrow(
-            "coverage-final.json not found. Checked VITEST_COVERAGE_DIR, OS temp ffv-vitest-coverage, root coverage, and electron-app/coverage."
+            "coverage-final.json not found. Checked VITEST_COVERAGE_DIR, OS temp ffv-vitest-coverage, and root coverage."
         );
     });
 
