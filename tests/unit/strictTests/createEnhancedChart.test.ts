@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Mock } from "vitest";
 import { JSDOM } from "jsdom";
 
@@ -68,17 +68,26 @@ interface ChartInstanceMock {
 
 interface LocalStorageMock {
     clear: Mock<() => void>;
-    getItem: Mock<() => string | null>;
-    removeItem: Mock<() => void>;
-    setItem: Mock<() => void>;
+    getItem: Mock<(key: string) => string | null>;
+    removeItem: Mock<(key: string) => void>;
+    setItem: Mock<(key: string, value: string) => void>;
 }
 
 type ChartConstructorMock = Mock<
     (canvas: HTMLCanvasElement, config: ChartConfig) => ChartInstanceMock
 >;
 
+type ConsoleMethod = (...data: unknown[]) => void;
 type CreateEnhancedChart =
     typeof import("../../../electron-app/utils/charts/components/createEnhancedChart.js").createEnhancedChart;
+type DetectCurrentTheme = () => "dark" | "light";
+type ConvertTimeUnits = (value: number, units: string) => number;
+type FormatTime = (value: number) => string;
+type FormatTooltipWithUnits = (value: number, field: string) => string;
+type GetUnitSymbol = (field: string) => string;
+type HexToRgba = (hex: string, alpha: number) => string;
+type GetFieldColor = (field: string) => string;
+type UpdateChartAnimations = (...args: unknown[]) => void;
 
 type CreateEnhancedChartTestGlobal = typeof globalThis & {
     Chart?: unknown;
@@ -93,9 +102,9 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
     beforeEach(async () => {
         // Setup console first
         globalThis.console = {
-            log: vi.fn(),
-            error: vi.fn(),
-            warn: vi.fn(),
+            error: vi.fn<ConsoleMethod>(),
+            log: vi.fn<ConsoleMethod>(),
+            warn: vi.fn<ConsoleMethod>(),
         } as unknown as Console;
 
         // Setup JSDOM environment
@@ -112,10 +121,10 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
         // Mock localStorage
         mockLocalStorage = {
-            getItem: vi.fn(),
-            setItem: vi.fn(),
-            removeItem: vi.fn(),
-            clear: vi.fn(),
+            clear: vi.fn<() => void>(),
+            getItem: vi.fn<(key: string) => string | null>(),
+            removeItem: vi.fn<(key: string) => void>(),
+            setItem: vi.fn<(key: string, value: string) => void>(),
         };
         globalThis.localStorage = mockLocalStorage as unknown as Storage;
 
@@ -124,17 +133,22 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             data: { datasets: [] },
             options: {},
             config: {},
-            destroy: vi.fn(),
-            update: vi.fn(),
-            resize: vi.fn(),
-            reset: vi.fn(),
-            render: vi.fn(),
-            stop: vi.fn(),
-            clear: vi.fn(),
-            toBase64Image: vi.fn(),
+            clear: vi.fn<() => void>(),
+            destroy: vi.fn<() => void>(),
+            render: vi.fn<() => void>(),
+            reset: vi.fn<() => void>(),
+            resize: vi.fn<() => void>(),
+            stop: vi.fn<() => void>(),
+            toBase64Image: vi.fn<() => unknown>(),
+            update: vi.fn<() => void>(),
         };
 
-        Chart = vi.fn(function ChartConstructor() {
+        Chart = vi.fn<
+            (
+                canvas: HTMLCanvasElement,
+                config: ChartConfig
+            ) => ChartInstanceMock
+        >(function ChartConstructor() {
             return chartInstanceMock;
         });
         window.Chart = Chart as unknown as typeof window.Chart;
@@ -142,16 +156,16 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
         // Mock all dependencies
         vi.doMock(
-            "../../../electron-app/utils/charts/theming/chartThemeUtils.js",
+            import("../../../electron-app/utils/charts/theming/chartThemeUtils.js"),
             () => ({
-                detectCurrentTheme: vi.fn(() => "light"),
+                detectCurrentTheme: vi.fn<DetectCurrentTheme>(() => "light"),
             })
         );
 
         vi.doMock(
-            "../../../electron-app/utils/formatting/converters/convertTimeUnits.js",
+            import("../../../electron-app/utils/formatting/converters/convertTimeUnits.js"),
             () => ({
-                convertTimeUnits: vi.fn((value, units) => {
+                convertTimeUnits: vi.fn<ConvertTimeUnits>((value, units) => {
                     if (units === "hours") return value / 3600;
                     if (units === "minutes") return value / 60;
                     return value;
@@ -160,9 +174,9 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         );
 
         vi.doMock(
-            "../../../electron-app/utils/formatting/formatters/formatTime.js",
+            import("../../../electron-app/utils/formatting/formatters/formatTime.js"),
             () => ({
-                formatTime: vi.fn(
+                formatTime: vi.fn<FormatTime>(
                     (value) =>
                         `${Math.floor(value / 60)}:${(value % 60).toString().padStart(2, "0")}`
                 ),
@@ -170,18 +184,18 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         );
 
         vi.doMock(
-            "../../../electron-app/utils/formatting/display/formatTooltipWithUnits.js",
+            import("../../../electron-app/utils/formatting/display/formatTooltipWithUnits.js"),
             () => ({
-                formatTooltipWithUnits: vi.fn(
+                formatTooltipWithUnits: vi.fn<FormatTooltipWithUnits>(
                     (value, field) => `${value.toFixed(2)} ${field}`
                 ),
             })
         );
 
         vi.doMock(
-            "../../../electron-app/utils/data/lookups/getUnitSymbol.js",
+            import("../../../electron-app/utils/data/lookups/getUnitSymbol.js"),
             () => ({
-                getUnitSymbol: vi.fn((field) => {
+                getUnitSymbol: vi.fn<GetUnitSymbol>((field) => {
                     const symbols: { [key: string]: string } = {
                         distance: "km",
                         speed: "km/h",
@@ -197,44 +211,46 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         );
 
         vi.doMock(
-            "../../../electron-app/utils/charts/core/renderChartJS.js",
+            import("../../../electron-app/utils/charts/core/renderChartJS.js"),
             () => ({
-                hexToRgba: vi.fn((hex, alpha) => `rgba(255, 0, 0, ${alpha})`),
+                hexToRgba: vi.fn<HexToRgba>(
+                    (_hex, alpha) => `rgba(255, 0, 0, ${alpha})`
+                ),
             })
         );
 
         vi.doMock(
-            "../../../electron-app/utils/charts/theming/getFieldColor.js",
+            import("../../../electron-app/utils/charts/theming/getFieldColor.js"),
             () => ({
-                getFieldColor: vi.fn(() => "#ff0000"),
+                getFieldColor: vi.fn<GetFieldColor>(() => "#ff0000"),
             })
         );
 
         vi.doMock(
-            "../../../electron-app/utils/charts/plugins/chartZoomResetPlugin.js",
+            import("../../../electron-app/utils/charts/plugins/chartZoomResetPlugin.js"),
             () => ({
                 chartZoomResetPlugin: { id: "zoomReset" },
             })
         );
 
         vi.doMock(
-            "../../../electron-app/utils/charts/plugins/chartBackgroundColorPlugin.js",
+            import("../../../electron-app/utils/charts/plugins/chartBackgroundColorPlugin.js"),
             () => ({
                 chartBackgroundColorPlugin: { id: "backgroundColor" },
             })
         );
 
         vi.doMock(
-            "../../../electron-app/utils/ui/notifications/showNotification.js",
+            import("../../../electron-app/utils/ui/notifications/showNotification.js"),
             () => ({
-                showNotification: vi.fn(),
+                showNotification: vi.fn<ConsoleMethod>(),
             })
         );
 
         vi.doMock(
-            "../../../electron-app/utils/charts/core/updateChartAnimations.js",
+            import("../../../electron-app/utils/charts/core/updateChartAnimations.js"),
             () => ({
-                updateChartAnimations: vi.fn(),
+                updateChartAnimations: vi.fn<UpdateChartAnimations>(),
             })
         );
 
@@ -257,8 +273,10 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         delete (globalThis as CreateEnhancedChartTestGlobal).Chart;
     });
 
-    describe("Basic Chart Creation", () => {
+    describe("basic chart creation", () => {
         it("should create a basic line chart with default options", () => {
+            expect.hasAssertions();
+
             const canvas = document.createElement("canvas");
             const options = {
                 field: "speed",
@@ -284,13 +302,17 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             const result = createEnhancedChart(canvas, options);
 
             expect(result).toBe(chartInstanceMock);
-            expect(Chart).toHaveBeenCalled();
-            expect(Chart.mock.calls[0][0]).toBe(canvas);
+            expect(Chart).toHaveBeenCalledWith(
+                canvas,
+                expect.objectContaining({ type: "line" })
+            );
             expect(Chart.mock.calls[0][1].type).toBe("line");
             expect(Chart.mock.calls[0][1].type).not.toBe("bar");
         });
 
         it("should create a bar chart when chartType is bar", () => {
+            expect.hasAssertions();
+
             const canvas = document.createElement("canvas");
             const options = {
                 field: "power",
@@ -320,6 +342,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should create a scatter chart when chartType is scatter", () => {
+            expect.hasAssertions();
+
             const canvas = document.createElement("canvas");
             const options = {
                 field: "heartRate",
@@ -349,6 +373,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should create an area chart (line type with area styling)", () => {
+            expect.hasAssertions();
+
             const canvas = document.createElement("canvas");
             const options = {
                 field: "altitude",
