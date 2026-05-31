@@ -133,7 +133,7 @@ describe("renderTimeInZoneCharts.js - Time in Zone Composite Renderer", () => {
     });
 
     it("should return immediately when container is not provided", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         renderTimeInZoneCharts(null, {});
         expect(renderZoneChartMock).not.toHaveBeenCalled();
@@ -147,7 +147,7 @@ describe("renderTimeInZoneCharts.js - Time in Zone Composite Renderer", () => {
     });
 
     it("should render both HR and power zone charts when visible and data is present", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const container = document.createElement("div");
         const hrZones = [
@@ -197,7 +197,7 @@ describe("renderTimeInZoneCharts.js - Time in Zone Composite Renderer", () => {
     });
 
     it("should honor visibility toggles and skip missing datasets", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const container = document.createElement("div");
         const timeInZoneGlobal = getTimeInZoneGlobal();

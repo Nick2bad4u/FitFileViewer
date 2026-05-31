@@ -108,7 +108,7 @@ describe("tab button state integration", () => {
     });
 
     it("enables all tab buttons after FIT data is loaded", async () => {
-        expect.hasAssertions();
+        expect.assertions(9);
 
         const { setTabButtonsEnabled, initializeTabButtonState } =
             await import("../../../electron-app/utils/ui/controls/enableTabButtons.js");
@@ -161,7 +161,7 @@ describe("tab button state integration", () => {
     }, 15000);
 
     it("does not re-add disabled attributes across repeated enable calls", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const { setTabButtonsEnabled, initializeTabButtonState } =
             await import("../../../electron-app/utils/ui/controls/enableTabButtons.js");
@@ -255,7 +255,7 @@ describe("tab button state integration", () => {
     }, 15000);
 
     it("preserves enabled state after rapid startup toggles", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const { setTabButtonsEnabled, initializeTabButtonState } =
             await import("../../../electron-app/utils/ui/controls/enableTabButtons.js");
