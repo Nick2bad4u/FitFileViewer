@@ -152,7 +152,13 @@ describe("setupListeners", () => {
 
         const dispatchResult = openButton.dispatchEvent(clickEvent);
 
-        expect(dispatchResult).toBe(true);
+        expect({
+            defaultPrevented: clickEvent.defaultPrevented,
+            dispatchResult,
+        }).toStrictEqual({
+            defaultPrevented: false,
+            dispatchResult: true,
+        });
         expect(openButton.dataset.openHandled).toBe("true");
         expect(handleOpenFile).toHaveBeenCalledOnce();
         expect(handleOpenFile).toHaveBeenCalledWith(
@@ -171,10 +177,16 @@ describe("setupListeners", () => {
         });
         await openButton.dispatchEvent(event);
         await Promise.resolve();
-        expect(event.defaultPrevented).toBe(true);
-        expect(
-            document.body.querySelectorAll("#recent-files-menu")
-        ).toHaveLength(0);
+        expect({
+            defaultPrevented: event.defaultPrevented,
+            recentMenuIds: Array.from(
+                document.body.querySelectorAll("#recent-files-menu"),
+                (element) => element.id
+            ),
+        }).toStrictEqual({
+            defaultPrevented: true,
+            recentMenuIds: [],
+        });
         expect(showNotification).toHaveBeenCalledWith(
             "No recent files found.",
             "info",
@@ -223,7 +235,11 @@ describe("setupListeners", () => {
 
         expect(setLoading).toHaveBeenCalledWith(true);
         expect(setLoading).toHaveBeenCalledWith(false);
-        expect(openButton.disabled).toBe(false);
+        expect({
+            openButtonDisabled: openButton.disabled,
+        }).toStrictEqual({
+            openButtonDisabled: false,
+        });
         expect(globalAny.showFitData).toHaveBeenCalledWith(
             expect.anything(),
             "C:/rides/demo.fit"
@@ -282,9 +298,9 @@ describe("setupListeners", () => {
         menu.dispatchEvent(
             new KeyboardEvent("keydown", { key: "Escape", bubbles: true })
         );
-        expect(
-            document.body.querySelectorAll("#recent-files-menu")
-        ).toHaveLength(0);
+        expect([
+            ...document.body.querySelectorAll("#recent-files-menu"),
+        ]).toStrictEqual([]);
 
         electronAPI.recentFiles.mockResolvedValueOnce(["C:/rides/a.fit"]);
         await openButton.dispatchEvent(event);
@@ -298,7 +314,16 @@ describe("setupListeners", () => {
         document.body.dispatchEvent(
             new MouseEvent("mousedown", { bubbles: true })
         );
-        expect(document.body.contains(reopenedMenu)).toBe(false);
+        expect({
+            reopenedMenuParent: reopenedMenu.parentElement,
+            recentMenuIds: Array.from(
+                document.body.querySelectorAll("#recent-files-menu"),
+                (element) => element.id
+            ),
+        }).toStrictEqual({
+            recentMenuIds: [],
+            reopenedMenuParent: null,
+        });
         vi.useRealTimers();
 
         // prevent unused variable warning for secondClick mock
@@ -310,7 +335,7 @@ describe("setupListeners", () => {
             ipcHandlers.get("menu-save-as"),
             "menu-save-as"
         );
-        expect(ipcHandlers.has("menu-save-as")).toBe(true);
+        expect([...ipcHandlers.keys()]).toContain("menu-save-as");
         saveAsHandler({}, undefined);
         expect(electronAPI.send).toHaveBeenCalledWith("menu-save-as");
 
@@ -318,7 +343,7 @@ describe("setupListeners", () => {
             ipcHandlers.get("menu-export"),
             "menu-export"
         );
-        expect(ipcHandlers.has("menu-export")).toBe(true);
+        expect([...ipcHandlers.keys()]).toContain("menu-export");
         exportHandler({}, undefined);
         expect(electronAPI.send).toHaveBeenCalledWith("menu-export");
     });
@@ -330,7 +355,11 @@ describe("setupListeners", () => {
         await handler("C:/rides/other.fit");
         expect(setLoading).toHaveBeenNthCalledWith(1, true);
         expect(setLoading).toHaveBeenLastCalledWith(false);
-        expect(openButton.disabled).toBe(false);
+        expect({
+            openButtonDisabled: openButton.disabled,
+        }).toStrictEqual({
+            openButtonDisabled: false,
+        });
         expect(globalAny.showFitData).toHaveBeenCalledWith(
             { recordMesgs: [] },
             "C:/rides/other.fit"
@@ -374,8 +403,11 @@ describe("setupListeners", () => {
         vi.runAllTimers();
         expect(revokeSpy).toHaveBeenCalledWith("blob:ffv");
         expect(
-            document.body.querySelectorAll('a[download="export.csv"]')
-        ).toHaveLength(0);
+            Array.from(
+                document.body.querySelectorAll('a[download="export.csv"]'),
+                (element) => element.getAttribute("download")
+            )
+        ).toStrictEqual([]);
         vi.useRealTimers();
     });
 
@@ -392,8 +424,11 @@ describe("setupListeners", () => {
             3000
         );
         expect(
-            document.body.querySelectorAll('a[download$=".gpx"]')
-        ).toHaveLength(0);
+            Array.from(
+                document.body.querySelectorAll('a[download$=".gpx"]'),
+                (element) => element.getAttribute("download")
+            )
+        ).toStrictEqual([]);
     });
 
     it("builds GPX export when records exist", async () => {
@@ -425,14 +460,17 @@ describe("setupListeners", () => {
             document.body.querySelector<HTMLAnchorElement>("a[download]"),
             "GPX download anchor"
         );
-        expect(anchor?.download.endsWith(".gpx")).toBe(true);
+        expect(anchor.download).toMatch(/\.gpx$/u);
         expect(anchor.download).toBe("activity.gpx");
         expect(anchor.href).toBe("blob:gpx");
         vi.runAllTimers();
         expect(revokeSpy).toHaveBeenCalledWith("blob:gpx");
         expect(
-            document.body.querySelectorAll('a[download="activity.gpx"]')
-        ).toHaveLength(0);
+            Array.from(
+                document.body.querySelectorAll('a[download="activity.gpx"]'),
+                (element) => element.getAttribute("download")
+            )
+        ).toStrictEqual([]);
         vi.useRealTimers();
     });
 
@@ -447,7 +485,7 @@ describe("setupListeners", () => {
         ];
         for (const event of events) {
             const handler = requireHandler(updateHandlers.get(event), event);
-            expect(updateHandlers.has(event)).toBe(true);
+            expect([...updateHandlers.keys()]).toContain(event);
             handler(
                 event === "update-download-progress" ? { percent: 42.2 } : "err"
             );
@@ -489,7 +527,9 @@ describe("setupListeners", () => {
             updateHandlers.get("update-download-progress"),
             "update-download-progress"
         );
-        expect(updateHandlers.has("update-download-progress")).toBe(true);
+        expect([...updateHandlers.keys()]).toContain(
+            "update-download-progress"
+        );
         handler(null);
         expect(showUpdateNotification).toHaveBeenCalledWith(
             "Downloading update: progress information unavailable.",
@@ -503,9 +543,12 @@ describe("setupListeners", () => {
         const setContrast = ipcHandlers.get("set-high-contrast");
         document.body.className = "";
         setFont?.(undefined, "large");
-        expect(document.body.classList.contains("font-large")).toBe(true);
+        expect([...document.body.classList]).toStrictEqual(["font-large"]);
         setContrast?.(undefined, "black");
-        expect(document.body.classList.contains("high-contrast")).toBe(true);
+        expect([...document.body.classList]).toStrictEqual([
+            "font-large",
+            "high-contrast",
+        ]);
         setContrast?.(undefined, "white");
         expect(document.body.classList.contains("high-contrast-white")).toBe(
             true
@@ -526,7 +569,7 @@ describe("setupListeners", () => {
             ipcHandlers.get("menu-check-for-updates"),
             "menu-check-for-updates"
         );
-        expect(ipcHandlers.has("menu-check-for-updates")).toBe(true);
+        expect([...ipcHandlers.keys()]).toContain("menu-check-for-updates");
         checkUpdatesHandler();
         expect(electronAPI.send).toHaveBeenCalledWith("menu-check-for-updates");
     });
@@ -536,7 +579,7 @@ describe("setupListeners", () => {
             ipcHandlers.get("show-notification"),
             "show-notification"
         );
-        expect(ipcHandlers.has("show-notification")).toBe(true);
+        expect([...ipcHandlers.keys()]).toContain("show-notification");
         handler(undefined, "Hello from IPC");
         handler(undefined, " ");
         expect(showNotification).toHaveBeenCalledWith(
@@ -567,7 +610,7 @@ describe("setupListeners", () => {
             ipcHandlers.get("menu-keyboard-shortcuts"),
             "menu-keyboard-shortcuts"
         );
-        expect(ipcHandlers.has("menu-keyboard-shortcuts")).toBe(true);
+        expect([...ipcHandlers.keys()]).toContain("menu-keyboard-shortcuts");
 
         const createdScripts: HTMLScriptElement[] = [];
         const originalCreateElement = document.createElement.bind(document);
@@ -587,7 +630,7 @@ describe("setupListeners", () => {
 
         await shortcutsHandler();
 
-        expect(createdScripts).toHaveLength(0);
+        expect(createdScripts).toStrictEqual([]);
         expect(showAboutModal).not.toHaveBeenCalled();
     });
 
