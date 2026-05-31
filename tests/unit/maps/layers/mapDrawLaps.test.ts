@@ -12,9 +12,7 @@ function mockFn<T extends MockFunction = MockFunction>(
 
 // Mock dependencies
 vi.mock(
-    import(
-        "../../../../electron-app/utils/charts/theming/chartOverlayColorPalette.js"
-    ),
+    import("../../../../electron-app/utils/charts/theming/chartOverlayColorPalette.js"),
     () => ({
         chartOverlayColorPalette: [
             "#ff0000",
@@ -385,59 +383,95 @@ describe("mapDrawLaps", () => {
         it("should use active file from loadedFitFiles when idx differs", () => {
             expect.hasAssertions();
 
-            // Remove the complex overlay logic and just test basic functionality
+            const mapContainer = document.createElement("div");
+
             mapDrawLaps(0, {
                 map: mockMap,
                 baseLayers: {},
                 markerClusterGroup: mockMarkerClusterGroup,
                 startIcon: mockMarker,
                 endIcon: mockMarker,
-                mapContainer: document.createElement("div"),
+                mapContainer,
                 getLapColor: mockFn(),
                 formatTooltipData: mockFn(),
                 getLapNumForIdx: mockFn(),
             });
 
-            // The function should execute without error and not clear overlays
-            expect((globalThis as any)._overlayPolylines).toEqual({});
+            expect({
+                mapMessage: mapContainer.textContent,
+                overlayPolylineKeys: Object.keys(
+                    (globalThis as any)._overlayPolylines
+                ),
+                polylineCalls: mockLeaflet.polyline.mock.calls.length,
+            }).toStrictEqual({
+                mapMessage:
+                    "No location data available to display map.Lap: 0recordMesgs: 0lapMesgs: 0",
+                overlayPolylineKeys: [],
+                polylineCalls: 0,
+            });
         });
 
         it("should store overlay polyline when created", () => {
             expect.hasAssertions();
 
-            // Just test that the function executes and clears state
+            const mapContainer = document.createElement("div");
+
             mapDrawLaps(0, {
                 map: mockMap,
                 baseLayers: {},
                 markerClusterGroup: mockMarkerClusterGroup,
                 startIcon: mockMarker,
                 endIcon: mockMarker,
-                mapContainer: document.createElement("div"),
+                mapContainer,
                 getLapColor: mockFn(),
                 formatTooltipData: mockFn(),
                 getLapNumForIdx: mockFn(),
             });
 
-            expect((globalThis as any)._overlayPolylines).toEqual({});
+            expect({
+                mapMessage: mapContainer.textContent,
+                overlayPolylineKeys: Object.keys(
+                    (globalThis as any)._overlayPolylines
+                ),
+                polylineCalls: mockLeaflet.polyline.mock.calls.length,
+            }).toStrictEqual({
+                mapMessage:
+                    "No location data available to display map.Lap: 0recordMesgs: 0lapMesgs: 0",
+                overlayPolylineKeys: [],
+                polylineCalls: 0,
+            });
         });
 
         it("should update overlay highlights when function exists", () => {
             expect.hasAssertions();
 
-            // Just test that the function executes without calling highlights
+            const mapContainer = document.createElement("div");
+
             mapDrawLaps(0, {
                 map: mockMap,
                 baseLayers: {},
                 markerClusterGroup: mockMarkerClusterGroup,
                 startIcon: mockMarker,
                 endIcon: mockMarker,
-                mapContainer: document.createElement("div"),
+                mapContainer,
                 getLapColor: mockFn(),
                 formatTooltipData: mockFn(),
                 getLapNumForIdx: mockFn(),
             });
 
-            expect((globalThis as any)._overlayPolylines).toEqual({});
+            expect({
+                highlightedOverlayIndex: (globalThis as any)
+                    ._highlightedOverlayIdx,
+                overlayHighlightType: typeof (globalThis as any)
+                    .updateOverlayHighlights,
+                overlayPolylineKeys: Object.keys(
+                    (globalThis as any)._overlayPolylines
+                ),
+            }).toStrictEqual({
+                highlightedOverlayIndex: -1,
+                overlayHighlightType: "function",
+                overlayPolylineKeys: [],
+            });
         });
 
         it('should handle lapIdx="all" with valid GPS data', () => {
