@@ -2,7 +2,7 @@
     "name": "fitfileviewer",
     "displayName": "Fit File Viewer",
     "version": "29.9.0",
-    "private": false,
+    "private": true,
     "description": "Fit File Viewer is a cross-platform application for parsing, visualizing, and analyzing .fit files using charts, maps, tables, and other data visualization tools for Garmin and fitness activities.",
     "categories": [
         "Visualization",
@@ -173,9 +173,6 @@
         "ia32",
         "x64"
     ],
-    "publishConfig": {
-        "registry": "https://registry.npmjs.org/"
-    },
     "icon": "dist/icons/favicon.ico",
     "appid": "io.github.nick2bad4u.fitfileviewer",
     "companyName": "Nick2bad4u",

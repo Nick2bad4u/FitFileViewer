@@ -19,6 +19,8 @@ type PackageJson = {
     exports?: Record<string, string>;
     files?: string[];
     icon?: string;
+    private?: boolean;
+    publishConfig?: Record<string, unknown>;
     scripts?: Record<string, string>;
     workspaces?: string[];
 };
@@ -73,11 +75,15 @@ describe("workspace package boundaries", () => {
         );
     });
 
-    it("keeps the Electron app package limited to runtime publish metadata", () => {
-        expect.assertions(8);
+    it("keeps the Electron app package limited to runtime app metadata", () => {
+        expect.assertions(10);
 
         const appPackage = readPackageJson(appPackageRepositoryPath);
 
+        expect({ private: appPackage.private }).toStrictEqual({
+            private: true,
+        });
+        expect(appPackage).not.toHaveProperty("publishConfig");
         expect(appPackage.scripts ?? {}).toStrictEqual({});
         expect(appPackage).not.toHaveProperty("devDependencies");
         expect(Object.keys(appPackage.dependencies ?? {}).sort()).toStrictEqual(
