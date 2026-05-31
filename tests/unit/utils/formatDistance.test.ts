@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { formatDistance } from "../../../electron-app/utils/formatting/formatters/formatDistance.js";
 
-describe("formatDistance", () => {
+describe(formatDistance, () => {
     it("formats positive meters as kilometers and miles", () => {
+        expect.hasAssertions();
+
         expect(formatDistance(1000)).toBe("1.00 km / 0.62 mi");
         expect(formatDistance(5000)).toBe("5.00 km / 3.11 mi");
         expect(formatDistance(1609.344)).toBe("1.61 km / 1.00 mi");
@@ -10,6 +12,8 @@ describe("formatDistance", () => {
     });
 
     it("handles invalid-input distances by returning an empty string", () => {
+        expect.hasAssertions();
+
         for (const value of [
             null,
             undefined,

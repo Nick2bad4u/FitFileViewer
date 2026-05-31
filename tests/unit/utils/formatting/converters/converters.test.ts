@@ -3,6 +3,8 @@ import * as converters from "../../../../../electron-app/utils/formatting/conver
 
 describe("converter barrel exports", () => {
     it("re-exports only the public converter API", () => {
+        expect.hasAssertions();
+
         expect(Object.keys(converters).sort()).toStrictEqual(
             [
                 "DISTANCE_UNITS",
@@ -36,6 +38,8 @@ describe("converter barrel exports", () => {
     });
 
     it("routes representative conversions through the barrel exports", () => {
+        expect.hasAssertions();
+
         expect(
             converters.convertDistanceUnits(
                 1609.344,
@@ -65,6 +69,8 @@ describe("converter barrel exports", () => {
     });
 
     it("preserves converter validation through the barrel exports", () => {
+        expect.hasAssertions();
+
         expect(() => converters.convertMpsToKmh("10")).toThrow(TypeError);
     });
 });

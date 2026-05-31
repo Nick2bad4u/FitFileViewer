@@ -17,6 +17,8 @@ const expectedFormatterExports = [
 
 describe("formatters barrel", () => {
     it("exports the stable formatter API surface", () => {
+        expect.hasAssertions();
+
         expect(Object.keys(formatters).sort()).toEqual(
             [...expectedFormatterExports].sort()
         );
@@ -27,6 +29,8 @@ describe("formatters barrel", () => {
     });
 
     it("routes representative formatter calls through the barrel exports", () => {
+        expect.hasAssertions();
+
         expect(formatters.formatDistance(1000)).toBe("1.00 km / 0.62 mi");
         expect(formatters.formatDuration(90)).toBe("1 min 30 sec");
         expect(formatters.formatWeight(70)).toBe("70 kg (154 lbs)");
@@ -34,6 +38,8 @@ describe("formatters barrel", () => {
     });
 
     it("does not expose removed legacy formatter names", () => {
+        expect.hasAssertions();
+
         expect(formatters).not.toHaveProperty("formatPace");
     });
 });
