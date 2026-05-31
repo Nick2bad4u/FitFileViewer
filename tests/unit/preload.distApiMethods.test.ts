@@ -665,17 +665,16 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should validate parameters in onUpdateEvent", () => {
-            expect.assertions(2);
+            expect.assertions(3);
             const { exposedAPI, mockConsole } = createPreloadEnvironment();
             const callback = vi.fn<IpcListener>();
 
-            // Try with invalid event name
-            const result = exposedAPI.onUpdateEvent(123, callback);
+            expect(() => exposedAPI.onUpdateEvent(123, callback)).not.toThrow();
 
             expect(mockConsole.error).toHaveBeenCalledWith(
                 "[preload.js] onUpdateEvent: eventName must be a string"
             );
-            expect(result).toBeUndefined();
+            expect(mockIpcRenderer.on).not.toHaveBeenCalled();
         });
     });
 

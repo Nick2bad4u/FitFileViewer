@@ -596,14 +596,22 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
         describe("getChartSetting", () => {
             it("should delegate to settingsStateManager.getSetting", () => {
+                expect.assertions(1);
                 const { getChartSetting } = settingsStateManagerModule;
-                mockLocalStorage.data["chart_testKey"] = '"chartValue"';
-                mockLocalStorage.keys = ["chart_testKey"];
+                mockLocalStorage.data["chartjs_testKey"] = '"chartValue"';
+                mockLocalStorage.keys = ["chartjs_testKey"];
 
                 const result = getChartSetting("testKey");
 
-                // The function calls getSetting('chart', 'testKey') which looks for specific keys
-                // With the localStorage mock setup, it may not find the key due to iteration logic
+                expect(result).toBe("chartValue");
+            });
+
+            it("should return undefined for missing chart setting keys", () => {
+                expect.assertions(1);
+                const { getChartSetting } = settingsStateManagerModule;
+
+                const result = getChartSetting("missingKey");
+
                 expect(result).toBeUndefined();
             });
         });

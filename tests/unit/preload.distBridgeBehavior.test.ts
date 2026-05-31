@@ -1091,11 +1091,9 @@ describe("preload.js dist bridge behavior", () => {
 
             exposedAPI.onMenuOpenFile(errorCallback);
 
-            // Simulate event being triggered
             const registeredCallback = mockIpcRenderer.on.mock.calls[0][1];
-            const callbackResult = registeredCallback({}, "test-data");
 
-            expect(callbackResult).toBeUndefined();
+            expect(() => registeredCallback({}, "test-data")).not.toThrow();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] Error in onMenuOpenFile callback:",
                 expect.any(Error)
@@ -1109,12 +1107,12 @@ describe("preload.js dist bridge behavior", () => {
 
             exposedAPI.onOpenRecentFile(callback);
 
-            // Simulate event being triggered
             const registeredCallback = mockIpcRenderer.on.mock.calls[0][1];
             const event = {};
-            const callbackResult = registeredCallback(event, "test-file-path");
 
-            expect(callbackResult).toBeUndefined();
+            expect(() =>
+                registeredCallback(event, "test-file-path")
+            ).not.toThrow();
             expect(callback).toHaveBeenCalledWith("test-file-path");
             expect(callback).not.toHaveBeenCalledWith(event, "test-file-path");
         });
@@ -1127,11 +1125,9 @@ describe("preload.js dist bridge behavior", () => {
 
             exposedAPI.onUpdateEvent("test-event", errorCallback);
 
-            // Simulate event being triggered
             const registeredCallback = mockIpcRenderer.on.mock.calls[0][1];
-            const callbackResult = registeredCallback({}, "test-data");
 
-            expect(callbackResult).toBeUndefined();
+            expect(() => registeredCallback({}, "test-data")).not.toThrow();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] Error in onUpdateEvent(test-event) callback:",
                 expect.any(Error)
