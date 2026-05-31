@@ -17,6 +17,22 @@ function createSummaryContainer(): HTMLDivElement {
     return container;
 }
 
+type RenderTableArgs = {
+    container: HTMLElement | null;
+    data: unknown;
+    gearBtn: HTMLButtonElement;
+    setVisibleColumns: (columns: string[]) => void;
+    visibleColumns: string[];
+};
+
+type ShowColModalArgs = {
+    allKeys: string[];
+    data: unknown;
+    renderTable: () => void;
+    setVisibleColumns: (columns: string[]) => void;
+    visibleColumns: string[];
+};
+
 describe("renderSummary - modal and renderTable wiring", () => {
     beforeEach(() => {
         createSummaryContainer();
@@ -27,14 +43,24 @@ describe("renderSummary - modal and renderTable wiring", () => {
     });
 
     it("invokes renderTable and exercises showColModal callbacks", async () => {
-        const renderTable = vi.fn();
-        const loadColPrefs = vi.fn((_key: string, all: string[]) => all);
-        const getStorageKey = vi.fn(() => "summaryColSel_testkey");
-        const getGlobalStorageKey = vi.fn(() => "summaryColSel_global_default");
-        const orderSummaryColumnsNamedFirst = vi.fn((cols: string[]) => cols);
+        expect.hasAssertions();
+
+        const renderTable = vi.fn<(args: RenderTableArgs) => void>();
+        const loadColPrefs = vi.fn<(key: string, all: string[]) => string[]>(
+            (_key, all) => all
+        );
+        const getStorageKey = vi.fn<() => string>(
+            () => "summaryColSel_testkey"
+        );
+        const getGlobalStorageKey = vi.fn<() => string>(
+            () => "summaryColSel_global_default"
+        );
+        const orderSummaryColumnsNamedFirst = vi.fn<
+            (columns: string[]) => string[]
+        >((cols) => cols);
 
         // Intercept showColModal to immediately call the provided renderTable closure and setVisibleColumns
-        const showColModal = vi.fn((opts: any) => {
+        const showColModal = vi.fn<(opts: ShowColModalArgs) => void>((opts) => {
             // Call internal renderTable closure
             opts.renderTable();
             // Exercise setVisibleColumns
@@ -64,7 +90,7 @@ describe("renderSummary - modal and renderTable wiring", () => {
         renderSummary(data);
 
         // First renderTable call for initial render
-        expect(renderTable).toHaveBeenCalledTimes(1);
+        expect(renderTable).toHaveBeenCalledOnce();
         // Access the gear button passed into renderTable and simulate user click
         const firstArgs = renderTable.mock.calls[0][0];
         expect(firstArgs).toEqual({
@@ -102,17 +128,20 @@ describe("renderSummary - modal and renderTable wiring", () => {
     });
 
     it("returns without rendering when the summary container is missing", async () => {
+        expect.hasAssertions();
+
         document.body.replaceChildren();
-        const renderTable = vi.fn();
+        const renderTable = vi.fn<(args: RenderTableArgs) => void>();
         vi.doMock(HELPERS, () => ({
-            getGlobalStorageKey: vi.fn(),
-            getStorageKey: vi.fn(),
-            loadColPrefs: vi.fn(),
-            orderSummaryColumnsNamedFirst: vi.fn(),
+            getGlobalStorageKey: vi.fn<() => string>(),
+            getStorageKey: vi.fn<() => string>(),
+            loadColPrefs: vi.fn<(key: string, all: string[]) => string[]>(),
+            orderSummaryColumnsNamedFirst:
+                vi.fn<(columns: string[]) => string[]>(),
             renderTable,
         }));
         vi.doMock(MODAL, () => ({
-            showColModal: vi.fn(),
+            showColModal: vi.fn<(opts: ShowColModalArgs) => void>(),
         }));
 
         const { renderSummary } = await importRenderSummaryModule();
