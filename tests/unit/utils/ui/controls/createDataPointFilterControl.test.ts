@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import {
     afterEach,
     beforeAll,
@@ -9,42 +7,73 @@ import {
     it,
     vi,
 } from "vitest";
+import type {
+    MapDataPointFilterConfig,
+    MetricFilterResult,
+} from "../../../../../electron-app/utils/maps/filters/mapMetricFilter.js";
+
+type StateHelpersModule =
+    typeof import("../../../../../electron-app/utils/ui/controls/dataPointFilterControl/stateHelpers.js");
+type MetricsPreviewModule =
+    typeof import("../../../../../electron-app/utils/ui/controls/dataPointFilterControl/metricsPreview.js");
+type ShowNotificationModule =
+    typeof import("../../../../../electron-app/utils/ui/notifications/showNotification.js");
+
+type FilterChangePayload = {
+    action: "apply" | "clear";
+    config: MapDataPointFilterConfig;
+    result?: Partial<MetricFilterResult>;
+};
+
+type FilterChangeHandler = (payload: FilterChangePayload) => void;
 
 vi.mock(
-    "../../../../../electron-app/utils/ui/controls/dataPointFilterControl/stateHelpers.js",
+    import("../../../../../electron-app/utils/ui/controls/dataPointFilterControl/stateHelpers.js"),
     async () => {
-        const actual = await vi.importActual<any>(
+        const actual = await vi.importActual<StateHelpersModule>(
             "../../../../../electron-app/utils/ui/controls/dataPointFilterControl/stateHelpers.js"
         );
         return {
             ...actual,
-            computeRangeState: vi.fn(actual.computeRangeState),
-            resolveInitialConfig: vi.fn(actual.resolveInitialConfig),
-            updateGlobalFilter: vi.fn((config) =>
-                actual.updateGlobalFilter(config)
+            computeRangeState: vi.fn<typeof actual.computeRangeState>(
+                actual.computeRangeState
+            ),
+            resolveInitialConfig: vi.fn<typeof actual.resolveInitialConfig>(
+                actual.resolveInitialConfig
+            ),
+            updateGlobalFilter: vi.fn<typeof actual.updateGlobalFilter>(
+                (config) => {
+                    actual.updateGlobalFilter(config);
+                }
             ),
         };
     }
 );
 
 vi.mock(
-    "../../../../../electron-app/utils/ui/controls/dataPointFilterControl/metricsPreview.js",
+    import("../../../../../electron-app/utils/ui/controls/dataPointFilterControl/metricsPreview.js"),
     async () => {
-        const actual = await vi.importActual<any>(
+        const actual = await vi.importActual<MetricsPreviewModule>(
             "../../../../../electron-app/utils/ui/controls/dataPointFilterControl/metricsPreview.js"
         );
         return {
             ...actual,
-            buildSummaryText: vi.fn(actual.buildSummaryText),
-            previewFilterResult: vi.fn(() => null),
+            buildSummaryText: vi.fn<typeof actual.buildSummaryText>(
+                actual.buildSummaryText
+            ),
+            previewFilterResult: vi.fn<typeof actual.previewFilterResult>(
+                () => null
+            ),
         };
     }
 );
 
 vi.mock(
-    "../../../../../electron-app/utils/ui/notifications/showNotification.js",
+    import("../../../../../electron-app/utils/ui/notifications/showNotification.js"),
     () => ({
-        showNotification: vi.fn(),
+        showNotification: vi.fn<ShowNotificationModule["showNotification"]>(
+            async () => {}
+        ),
     })
 );
 
@@ -61,18 +90,22 @@ import {
     previewFilterResult,
 } from "../../../../../electron-app/utils/ui/controls/dataPointFilterControl/metricsPreview.js";
 
-let actualStateHelpers: any;
-let actualMetricsPreview: any;
+let actualStateHelpers: StateHelpersModule;
+let actualMetricsPreview: MetricsPreviewModule;
 let originalRAF: typeof globalThis.requestAnimationFrame;
 let originalCancelRAF: typeof globalThis.cancelAnimationFrame;
 let originalQueueMicrotask: typeof globalThis.queueMicrotask;
 let rafId = 0;
 
+function createOnChangeMock() {
+    return vi.fn<FilterChangeHandler>();
+}
+
 beforeAll(async () => {
-    actualStateHelpers = await vi.importActual(
+    actualStateHelpers = await vi.importActual<StateHelpersModule>(
         "../../../../../electron-app/utils/ui/controls/dataPointFilterControl/stateHelpers.js"
     );
-    actualMetricsPreview = await vi.importActual(
+    actualMetricsPreview = await vi.importActual<MetricsPreviewModule>(
         "../../../../../electron-app/utils/ui/controls/dataPointFilterControl/metricsPreview.js"
     );
 });
@@ -87,7 +120,7 @@ beforeEach(() => {
         actualStateHelpers.updateGlobalFilter(config)
     );
     buildSummaryText.mockImplementation(actualMetricsPreview.buildSummaryText);
-    previewFilterResult.mockImplementation(() => null);
+    previewFilterResult.mockReturnValue(null);
     (showNotification as any).mockReset?.();
 
     document.body.innerHTML = "";
@@ -116,12 +149,16 @@ beforeEach(() => {
     originalRAF = globalThis.requestAnimationFrame;
     originalCancelRAF = globalThis.cancelAnimationFrame;
     rafId = 0;
-    globalThis.requestAnimationFrame = vi.fn((cb: FrameRequestCallback) => {
-        rafId += 1;
-        cb(16);
-        return rafId;
-    });
-    globalThis.cancelAnimationFrame = vi.fn();
+    vi.spyOn(globalThis, "requestAnimationFrame").mockImplementation(
+        (cb: FrameRequestCallback) => {
+            rafId += 1;
+            cb(16);
+            return rafId;
+        }
+    );
+    vi.spyOn(globalThis, "cancelAnimationFrame").mockImplementation(
+        (_handle: number): void => {}
+    );
 });
 
 afterEach(() => {
@@ -152,8 +189,10 @@ function requireElement<T extends Element>(
     return element;
 }
 
-describe("createDataPointFilterControl", () => {
+describe(createDataPointFilterControl, () => {
     it("uses persisted configuration to seed summary without overwriting", async () => {
+        expect.hasAssertions();
+
         globalThis.mapDataPointFilter = {
             enabled: true,
             metric: "power",
@@ -183,8 +222,10 @@ describe("createDataPointFilterControl", () => {
     });
 
     it("initializes defaults and updates global filter when none persisted", () => {
+        expect.hasAssertions();
+
         const container = appendControl(createDataPointFilterControl());
-        expect(updateGlobalFilter).toHaveBeenCalledTimes(1);
+        expect(updateGlobalFilter).toHaveBeenCalledOnce();
         const initialConfig = updateGlobalFilter.mock.calls[0][0];
         expect(initialConfig.metric).toBe("speed");
         expect(initialConfig.mode).toBe("topPercent");
@@ -199,6 +240,8 @@ describe("createDataPointFilterControl", () => {
     });
 
     it("opens and closes the panel via toggle and outside clicks", async () => {
+        expect.hasAssertions();
+
         const container = appendControl(createDataPointFilterControl());
         openPanel(container);
         await Promise.resolve();
@@ -228,6 +271,8 @@ describe("createDataPointFilterControl", () => {
     });
 
     it("applies top percent filters successfully", async () => {
+        expect.hasAssertions();
+
         previewFilterResult.mockReturnValueOnce({
             isActive: true,
             metric: "speed",
@@ -239,7 +284,7 @@ describe("createDataPointFilterControl", () => {
             totalCandidates: 10,
         });
         buildSummaryText.mockReturnValueOnce("Top summary");
-        const onChange = vi.fn();
+        const onChange = createOnChangeMock();
 
         const container = appendControl(createDataPointFilterControl(onChange));
         openPanel(container);
@@ -290,6 +335,8 @@ describe("createDataPointFilterControl", () => {
     });
 
     it("handles top percent previews that cannot be applied", async () => {
+        expect.hasAssertions();
+
         previewFilterResult.mockReturnValueOnce({
             isActive: false,
             metric: "speed",
@@ -299,7 +346,7 @@ describe("createDataPointFilterControl", () => {
             selectedCount: 0,
             totalCandidates: 0,
         });
-        const onChange = vi.fn();
+        const onChange = createOnChangeMock();
 
         const container = appendControl(createDataPointFilterControl(onChange));
         openPanel(container);
@@ -333,6 +380,8 @@ describe("createDataPointFilterControl", () => {
     });
 
     it("clears top percent filters when the preview returns no points or reason", async () => {
+        expect.hasAssertions();
+
         previewFilterResult.mockReturnValueOnce({
             isActive: true,
             metric: "power",
@@ -345,7 +394,7 @@ describe("createDataPointFilterControl", () => {
         });
         buildSummaryText.mockReturnValueOnce("Summary should not be used");
 
-        const onChange = vi.fn();
+        const onChange = createOnChangeMock();
 
         const container = appendControl(createDataPointFilterControl(onChange));
         openPanel(container);
@@ -379,7 +428,9 @@ describe("createDataPointFilterControl", () => {
     });
 
     it("applies value range filters using range stats", async () => {
-        computeRangeState.mockImplementation(() => ({
+        expect.hasAssertions();
+
+        computeRangeState.mockReturnValue({
             rangeValues: { min: 200, max: 500 },
             sliderValues: { min: "200", max: "500" },
             stats: {
@@ -390,7 +441,7 @@ describe("createDataPointFilterControl", () => {
                 min: 150,
                 step: 1,
             },
-        }));
+        });
         previewFilterResult.mockReturnValueOnce({
             appliedMax: 480,
             appliedMin: 220,
@@ -404,7 +455,7 @@ describe("createDataPointFilterControl", () => {
             totalCandidates: 60,
         });
         buildSummaryText.mockReturnValueOnce("Range summary");
-        const onChange = vi.fn();
+        const onChange = createOnChangeMock();
 
         const container = appendControl(createDataPointFilterControl(onChange));
         openPanel(container);
@@ -447,7 +498,9 @@ describe("createDataPointFilterControl", () => {
     });
 
     it("clears range filters when preview returns an issue", async () => {
-        computeRangeState.mockImplementation(() => ({
+        expect.hasAssertions();
+
+        computeRangeState.mockReturnValue({
             rangeValues: { min: 100, max: 200 },
             sliderValues: { min: "100", max: "200" },
             stats: {
@@ -458,7 +511,7 @@ describe("createDataPointFilterControl", () => {
                 min: 50,
                 step: 0.5,
             },
-        }));
+        });
         previewFilterResult.mockReturnValueOnce({
             isActive: true,
             metric: "temperature",
@@ -467,7 +520,7 @@ describe("createDataPointFilterControl", () => {
             selectedCount: 0,
             totalCandidates: 0,
         });
-        const onChange = vi.fn();
+        const onChange = createOnChangeMock();
 
         const container = appendControl(createDataPointFilterControl(onChange));
         openPanel(container);
@@ -510,11 +563,13 @@ describe("createDataPointFilterControl", () => {
     });
 
     it("stops value range application when range stats are unavailable", async () => {
-        computeRangeState.mockImplementation(() => ({
+        expect.hasAssertions();
+
+        computeRangeState.mockReturnValue({
             stats: null,
             rangeValues: null,
             sliderValues: null,
-        }));
+        });
 
         const container = appendControl(createDataPointFilterControl());
         openPanel(container);
@@ -529,19 +584,27 @@ describe("createDataPointFilterControl", () => {
         const applyButton = document.body.querySelector<HTMLButtonElement>(
             ".data-point-filter-control__apply"
         );
+        const summary = document.body.querySelector<HTMLParagraphElement>(
+            ".data-point-filter-control__summary"
+        );
         showNotification.mockClear();
         const callsBefore = updateGlobalFilter.mock.calls.length;
         applyButton!.click();
 
+        expect(summary?.textContent).toBe(
+            "Highlight the most intense sections of your ride."
+        );
         expect(showNotification).toHaveBeenCalledWith(
             "No data points available for that metric.",
             "info"
         );
-        expect(updateGlobalFilter.mock.calls.length).toBe(callsBefore);
+        expect(updateGlobalFilter).toHaveBeenCalledTimes(callsBefore);
     });
 
     it("disables value range filters when the preview returns no points or reason", async () => {
-        computeRangeState.mockImplementation(() => ({
+        expect.hasAssertions();
+
+        computeRangeState.mockReturnValue({
             rangeValues: { min: 100, max: 400 },
             sliderValues: { min: "100", max: "400" },
             stats: {
@@ -552,7 +615,7 @@ describe("createDataPointFilterControl", () => {
                 min: 100,
                 step: 1,
             },
-        }));
+        });
 
         previewFilterResult.mockReturnValueOnce({
             isActive: true,
@@ -596,7 +659,9 @@ describe("createDataPointFilterControl", () => {
     });
 
     it("uses metric stats when cached range values are undefined", async () => {
-        computeRangeState.mockImplementation(() => ({
+        expect.hasAssertions();
+
+        computeRangeState.mockReturnValue({
             rangeValues: { min: undefined, max: undefined },
             sliderValues: { min: "150", max: "600" },
             stats: {
@@ -607,7 +672,7 @@ describe("createDataPointFilterControl", () => {
                 min: 150,
                 step: 1,
             },
-        }));
+        });
         previewFilterResult.mockReturnValueOnce({
             isActive: true,
             metric: "power",
@@ -651,7 +716,9 @@ describe("createDataPointFilterControl", () => {
     });
 
     it("resets filter state appropriately for both modes", async () => {
-        computeRangeState.mockImplementation(() => ({
+        expect.hasAssertions();
+
+        computeRangeState.mockReturnValue({
             rangeValues: { min: 10, max: 20 },
             sliderValues: { min: "10", max: "20" },
             stats: {
@@ -662,8 +729,8 @@ describe("createDataPointFilterControl", () => {
                 min: 5,
                 step: 1,
             },
-        }));
-        const onChange = vi.fn();
+        });
+        const onChange = createOnChangeMock();
 
         const container = appendControl(createDataPointFilterControl(onChange));
         openPanel(container);
@@ -713,7 +780,9 @@ describe("createDataPointFilterControl", () => {
     });
 
     it("synchronizes range sliders and toggles mode when user adjusts values", async () => {
-        computeRangeState.mockImplementation(() => ({
+        expect.hasAssertions();
+
+        computeRangeState.mockReturnValue({
             rangeValues: { min: 100, max: 200 },
             sliderValues: { min: "100", max: "200" },
             stats: {
@@ -724,7 +793,7 @@ describe("createDataPointFilterControl", () => {
                 min: 50,
                 step: 1,
             },
-        }));
+        });
 
         const container = appendControl(createDataPointFilterControl());
         openPanel(container);
@@ -768,7 +837,9 @@ describe("createDataPointFilterControl", () => {
     });
 
     it("falls back to Promise microtasks when queueMicrotask is unavailable", async () => {
-        computeRangeState.mockImplementation(() => ({
+        expect.hasAssertions();
+
+        computeRangeState.mockReturnValue({
             rangeValues: { min: 110, max: 190 },
             sliderValues: { min: "110", max: "190" },
             stats: {
@@ -779,7 +850,7 @@ describe("createDataPointFilterControl", () => {
                 min: 90,
                 step: 5,
             },
-        }));
+        });
 
         const originalMicrotask = globalThis.queueMicrotask;
         // Simulate environments (older Safari/Electron) that lack queueMicrotask.
@@ -817,13 +888,15 @@ describe("createDataPointFilterControl", () => {
     });
 
     it("promotes slider interaction to value range mode when starting in top-percent", async () => {
+        expect.hasAssertions();
+
         globalThis.mapDataPointFilter = {
             enabled: true,
             metric: "power",
             mode: "topPercent",
             percent: 15,
         };
-        computeRangeState.mockImplementation(() => ({
+        computeRangeState.mockReturnValue({
             rangeValues: { min: 120, max: 340 },
             sliderValues: { min: "120", max: "340" },
             stats: {
@@ -834,7 +907,7 @@ describe("createDataPointFilterControl", () => {
                 min: 80,
                 step: 1,
             },
-        }));
+        });
 
         const container = appendControl(createDataPointFilterControl());
         openPanel(container);
@@ -872,6 +945,8 @@ describe("createDataPointFilterControl", () => {
     });
 
     it("clamps percent input values on change events", async () => {
+        expect.hasAssertions();
+
         const container = appendControl(createDataPointFilterControl());
         openPanel(container);
         await Promise.resolve();
@@ -898,7 +973,9 @@ describe("createDataPointFilterControl", () => {
     });
 
     it("applies value-range filters using preview-adjusted bounds", async () => {
-        computeRangeState.mockImplementation(() => ({
+        expect.hasAssertions();
+
+        computeRangeState.mockReturnValue({
             rangeValues: { min: 140, max: 320 },
             sliderValues: { min: "140", max: "320" },
             stats: {
@@ -909,8 +986,8 @@ describe("createDataPointFilterControl", () => {
                 min: 80,
                 step: 5,
             },
-        }));
-        previewFilterResult.mockImplementationOnce(() => ({
+        });
+        previewFilterResult.mockReturnValueOnce({
             appliedMax: 310,
             appliedMin: 160,
             isActive: true,
@@ -921,10 +998,8 @@ describe("createDataPointFilterControl", () => {
             reason: null,
             selectedCount: 12,
             totalCandidates: 50,
-        }));
-        buildSummaryText.mockImplementationOnce(
-            () => "Power between 160 and 310"
-        );
+        });
+        buildSummaryText.mockReturnValueOnce("Power between 160 and 310");
 
         const container = appendControl(createDataPointFilterControl());
         openPanel(container);
@@ -970,7 +1045,9 @@ describe("createDataPointFilterControl", () => {
     });
 
     it("applies value-range filters falling back to computed stats when sliders untouched", async () => {
-        computeRangeState.mockImplementation(() => ({
+        expect.hasAssertions();
+
+        computeRangeState.mockReturnValue({
             rangeValues: { min: undefined, max: undefined },
             sliderValues: { min: "90", max: "210" },
             stats: {
@@ -981,8 +1058,8 @@ describe("createDataPointFilterControl", () => {
                 min: 90,
                 step: 1,
             },
-        }));
-        previewFilterResult.mockImplementationOnce(() => ({
+        });
+        previewFilterResult.mockReturnValueOnce({
             applied: true,
             appliedMax: undefined,
             appliedMin: undefined,
@@ -994,10 +1071,8 @@ describe("createDataPointFilterControl", () => {
             reason: null,
             selectedCount: 20,
             totalCandidates: 40,
-        }));
-        buildSummaryText.mockImplementationOnce(
-            () => "Cadence between 90 and 210"
-        );
+        });
+        buildSummaryText.mockReturnValueOnce("Cadence between 90 and 210");
 
         const container = appendControl(createDataPointFilterControl());
         openPanel(container);
@@ -1030,6 +1105,8 @@ describe("createDataPointFilterControl", () => {
     });
 
     it("recomputes range stats on metric change without preserving selection", async () => {
+        expect.hasAssertions();
+
         const metricCalls: Array<{
             metric: string;
             current: unknown;
@@ -1080,11 +1157,13 @@ describe("createDataPointFilterControl", () => {
     });
 
     it("disables range controls when stats are unavailable", async () => {
-        computeRangeState.mockImplementation(() => ({
+        expect.hasAssertions();
+
+        computeRangeState.mockReturnValue({
             stats: null,
             rangeValues: null,
             sliderValues: null,
-        }));
+        });
 
         const container = appendControl(createDataPointFilterControl());
         openPanel(container);
@@ -1111,17 +1190,18 @@ describe("createDataPointFilterControl", () => {
         minSlider?.dispatchEvent(new Event("input", { bubbles: true }));
         maxSlider?.dispatchEvent(new Event("change", { bubbles: true }));
         await Promise.resolve();
-        expect(updateGlobalFilter).toHaveBeenCalledTimes(1);
+        expect(updateGlobalFilter).toHaveBeenCalledOnce();
     });
 
     it("handles non-numeric slider input gracefully", async () => {
+        expect.hasAssertions();
+
         const clampMock = vi
             .spyOn(stateHelpersModule, "clampRangeValue")
-            .mockImplementation(
-                /** @type {any} */ (value, stats) =>
-                    actualStateHelpers.clampRangeValue(value, stats)
+            .mockImplementation((value, stats) =>
+                actualStateHelpers.clampRangeValue(value, stats)
             );
-        computeRangeState.mockImplementation(() => ({
+        computeRangeState.mockReturnValue({
             rangeValues: { min: 175, max: 300 },
             sliderValues: { min: "175", max: "300" },
             stats: {
@@ -1132,7 +1212,7 @@ describe("createDataPointFilterControl", () => {
                 min: 175,
                 step: 1,
             },
-        }));
+        });
 
         const container = appendControl(createDataPointFilterControl());
         openPanel(container);
@@ -1193,7 +1273,9 @@ describe("createDataPointFilterControl", () => {
     });
 
     it("aligns the minimum slider when the maximum slider dips below it", async () => {
-        computeRangeState.mockImplementation(() => ({
+        expect.hasAssertions();
+
+        computeRangeState.mockReturnValue({
             rangeValues: { min: 90, max: 140 },
             sliderValues: { min: "90", max: "140" },
             stats: {
@@ -1204,7 +1286,7 @@ describe("createDataPointFilterControl", () => {
                 min: 60,
                 step: 1,
             },
-        }));
+        });
 
         const container = appendControl(createDataPointFilterControl());
         openPanel(container);
@@ -1232,7 +1314,9 @@ describe("createDataPointFilterControl", () => {
     });
 
     it("toggling the top percent radio hides range controls", async () => {
-        computeRangeState.mockImplementation(() => ({
+        expect.hasAssertions();
+
+        computeRangeState.mockReturnValue({
             rangeValues: { min: 10, max: 20 },
             sliderValues: { min: "10", max: "20" },
             stats: {
@@ -1243,7 +1327,7 @@ describe("createDataPointFilterControl", () => {
                 min: 5,
                 step: 1,
             },
-        }));
+        });
 
         const container = appendControl(createDataPointFilterControl());
         openPanel(container);
@@ -1274,6 +1358,8 @@ describe("createDataPointFilterControl", () => {
     });
 
     it("ignores viewport scroll events once the panel is closed", async () => {
+        expect.hasAssertions();
+
         const container = appendControl(createDataPointFilterControl());
         openPanel(container);
         await Promise.resolve();
@@ -1292,10 +1378,12 @@ describe("createDataPointFilterControl", () => {
         const callsAfterClose = rafMock.mock.calls.length;
         window.dispatchEvent(new Event("scroll", { bubbles: true }));
         await Promise.resolve();
-        expect(rafMock.mock.calls.length).toBe(callsAfterClose);
+        expect(rafMock).toHaveBeenCalledTimes(callsAfterClose);
     });
 
     it("repositions the panel based on viewport constraints", async () => {
+        expect.hasAssertions();
+
         const container = appendControl(createDataPointFilterControl());
         const toggle = container.querySelector<HTMLButtonElement>(
             ".data-point-filter-control__toggle"
@@ -1362,6 +1450,8 @@ describe("createDataPointFilterControl", () => {
     });
 
     it("clamps the panel arrow offset when positioned near viewport edges", async () => {
+        expect.hasAssertions();
+
         const originalWidth = window.innerWidth;
         const originalHeight = window.innerHeight;
 
@@ -1457,6 +1547,8 @@ describe("createDataPointFilterControl", () => {
     });
 
     it("skips repositioning when the panel reports zero dimensions", async () => {
+        expect.hasAssertions();
+
         const container = appendControl(createDataPointFilterControl());
         const toggle = container.querySelector<HTMLButtonElement>(
             ".data-point-filter-control__toggle"
@@ -1504,6 +1596,8 @@ describe("createDataPointFilterControl", () => {
     });
 
     it("refreshes summary from cached results and handles escape key", async () => {
+        expect.hasAssertions();
+
         const container = appendControl(createDataPointFilterControl());
         openPanel(container);
         await Promise.resolve();
@@ -1564,6 +1658,8 @@ describe("createDataPointFilterControl", () => {
     });
 
     it("falls back to candidate values and default coverage in cached summaries", async () => {
+        expect.hasAssertions();
+
         const container = appendControl(createDataPointFilterControl());
         openPanel(container);
         await Promise.resolve();
@@ -1605,6 +1701,8 @@ describe("createDataPointFilterControl", () => {
     });
 
     it("preserves summaries when filter stays active and swallows refresh errors", async () => {
+        expect.hasAssertions();
+
         const container = appendControl(createDataPointFilterControl());
         openPanel(container);
         await Promise.resolve();
