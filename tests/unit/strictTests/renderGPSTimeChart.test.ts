@@ -148,53 +148,64 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
             .HTMLElement as unknown as typeof HTMLElement;
 
         getGPSTimeGlobal().console = {
-            log: vi.fn(),
-            error: vi.fn(),
-            warn: vi.fn(),
+            log: vi.fn<(...data: unknown[]) => void>(),
+            error: vi.fn<(...data: unknown[]) => void>(),
+            warn: vi.fn<(...data: unknown[]) => void>(),
         } as unknown as Console;
 
         mockLocalStorage = {
-            getItem: vi.fn(() => null),
-            setItem: vi.fn(),
-            removeItem: vi.fn(),
-            clear: vi.fn(),
+            getItem: vi.fn<() => null>(() => null),
+            setItem: vi.fn<(key: string, value: string) => void>(),
+            removeItem: vi.fn<(key: string) => void>(),
+            clear: vi.fn<() => void>(),
         };
         getGPSTimeGlobal().localStorage = mockLocalStorage;
 
         chartInstanceMock = {
-            destroy: vi.fn(),
-            update: vi.fn(),
+            destroy: vi.fn<() => void>(),
+            update: vi.fn<() => void>(),
         };
 
-        Chart = vi.fn(function ChartConstructor() {
+        Chart = vi.fn<() => ChartInstanceMock>(function ChartConstructor() {
             return chartInstanceMock;
         }) as ChartConstructorMock;
         getGPSTimeGlobal().Chart = Chart;
         getGPSTimeGlobal()._chartjsInstances = [];
 
-        createChartCanvasMock = vi.fn(() => document.createElement("canvas"));
-        getThemeConfigMock = vi.fn(() => ({ colors: MOCK_COLORS }));
+        createChartCanvasMock = vi.fn<() => HTMLCanvasElement>(() =>
+            document.createElement("canvas")
+        );
+        getThemeConfigMock = vi.fn<() => { colors: typeof MOCK_COLORS }>(
+            () => ({
+                colors: MOCK_COLORS,
+            })
+        );
         mockChartSettingsManager = {
-            getFieldVisibility: vi.fn(() => "visible"),
+            getFieldVisibility: vi.fn<() => "hidden" | "visible">(
+                () => "visible"
+            ),
         };
 
         vi.doMock(
-            "../../../electron-app/utils/charts/core/renderChartJS.js",
+            import("../../../electron-app/utils/charts/core/renderChartJS.js"),
             () => ({
                 chartSettingsManager: mockChartSettingsManager,
             })
         );
-        vi.doMock("../../../electron-app/utils/theming/core/theme.js", () => ({
-            getThemeConfig: getThemeConfigMock,
-        }));
         vi.doMock(
-            "../../../electron-app/utils/charts/components/createChartCanvas.js",
+            import("../../../electron-app/utils/theming/core/theme.js"),
+            () => ({
+                getThemeConfig: getThemeConfigMock,
+            })
+        );
+        vi.doMock(
+            import("../../../electron-app/utils/charts/components/createChartCanvas.js"),
             () => ({
                 createChartCanvas: createChartCanvasMock,
             })
         );
         vi.doMock(
-            "../../../electron-app/utils/charts/plugins/chartZoomResetPlugin.js",
+            import("../../../electron-app/utils/charts/plugins/chartZoomResetPlugin.js"),
             () => ({
                 chartZoomResetPlugin: { id: "zoom-reset" },
             })
@@ -218,6 +229,8 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
     });
 
     it("should exit early when GPS or timestamp data is missing", () => {
+        expect.assertions(2);
+
         const container = document.createElement("div");
         const data = [
             { positionLat: null, positionLong: null, timestamp: null },
@@ -226,10 +239,12 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
         renderGPSTimeChart(container, data, { maxPoints: "all" });
 
         expect(Chart).not.toHaveBeenCalled();
-        expect(container.children.length).toBe(0);
+        expect(Array.from(container.children)).toStrictEqual([]);
     });
 
     it("should respect field visibility from settings manager", () => {
+        expect.assertions(2);
+
         const container = document.createElement("div");
         const data = [
             {
@@ -244,10 +259,12 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
         renderGPSTimeChart(container, data, { maxPoints: "all" });
 
         expect(Chart).not.toHaveBeenCalled();
-        expect(container.childElementCount).toBe(0);
+        expect(Array.from(container.children)).toStrictEqual([]);
     });
 
     it("should convert GPS semicircles to degrees, limit points, and configure chart options", () => {
+        expect.assertions(16);
+
         const container = document.createElement("div");
         const data = [
             {
@@ -278,7 +295,7 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
         renderGPSTimeChart(container, data, options);
 
         expect(createChartCanvasMock).toHaveBeenCalledWith("gps-time", 0);
-        expect(Chart).toHaveBeenCalledTimes(1);
+        expect(Chart).toHaveBeenCalledOnce();
 
         const config = getLatestChartConfig();
         const latitudeDataset = config.data.datasets[0];
@@ -286,15 +303,19 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
 
         expect(latitudeDataset.data).toHaveLength(2);
         expect(longitudeDataset.data).toHaveLength(2);
-        expect(latitudeDataset.pointRadius).toBe(2);
-        expect(config.options.plugins.legend.display).toBe(false);
-        expect(config.options.scales.x.grid.display).toBe(false);
+        expect(latitudeDataset).toMatchObject({ pointRadius: 2 });
+        expect(config.options.plugins.legend).toMatchObject({
+            display: false,
+        });
+        expect(config.options.scales.x.grid).toMatchObject({
+            display: false,
+        });
 
         const firstLatPoint = latitudeDataset.data[0];
         const secondLatPoint = latitudeDataset.data[1];
         expect(firstLatPoint.y).toBeCloseTo(0, 6);
         expect(secondLatPoint.y).toBeCloseTo(-90, 6);
-        expect(secondLatPoint.pointIndex).toBe(2);
+        expect(secondLatPoint).toMatchObject({ pointIndex: 2 });
         expect(secondLatPoint.elapsedSeconds).toBeCloseTo(2.5, 5);
 
         const tooltipLabel = config.options.plugins.tooltip.callbacks.label({
