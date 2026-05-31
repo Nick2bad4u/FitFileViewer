@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -16,6 +16,15 @@ const rootAppShellAssetPaths = [
 
 function readRepositoryFile(relativePath: string): string {
     return readFileSync(path.join(process.cwd(), relativePath), "utf8");
+}
+
+function getDirectoryFileNames(relativePath: string): string[] {
+    return readdirSync(path.join(process.cwd(), relativePath), {
+        withFileTypes: true,
+    })
+        .filter((entry) => entry.isFile())
+        .map((entry) => entry.name)
+        .sort();
 }
 
 function getHtmlRelativeAssetReferences(relativePath: string): string[] {
@@ -134,5 +143,24 @@ describe("root app shell asset references", () => {
                 )
             )
         ).toBe(false);
+    });
+
+    it("keeps root static icons limited to packaged and shell-referenced assets", () => {
+        expect.assertions(1);
+
+        expect(getDirectoryFileNames("static/icons")).toStrictEqual([
+            "apple-touch-icon.png",
+            "favicon-256x256.ico",
+            "favicon-256x256.png",
+            "favicon-512x512.icns",
+            "favicon-96x96.png",
+            "favicon.ico",
+            "favicon.svg",
+            "harry.png",
+            "mascot-kitty.png",
+            "site.webmanifest",
+            "web-app-manifest-192x192.png",
+            "web-app-manifest-512x512.png",
+        ]);
     });
 });
