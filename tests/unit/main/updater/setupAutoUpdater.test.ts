@@ -89,7 +89,7 @@ describe("setupAutoUpdater", () => {
     });
 
     it("does not throw when autoUpdater is explicitly unavailable", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         // Require the CJS module so it uses our require.cache injection.
         const { setupAutoUpdater } = requireSetupAutoUpdater();
@@ -97,16 +97,23 @@ describe("setupAutoUpdater", () => {
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         const mockWindow = createMainWindow();
 
-        expect(() => setupAutoUpdater(mockWindow, null)).not.toThrow();
-        expect(warnSpy).toHaveBeenCalledWith(
-            expect.stringContaining("autoUpdater is unavailable")
-        );
+        const setupResult = setupAutoUpdater(mockWindow, null);
+
+        expect({
+            setupResult,
+            warnings: warnSpy.mock.calls,
+        }).toStrictEqual({
+            setupResult: undefined,
+            warnings: [
+                ["Cannot setup auto-updater: autoUpdater is unavailable"],
+            ],
+        });
 
         warnSpy.mockRestore();
     });
 
     it("redacts credentials when logging feedURL and does not crash with minimal updater surface", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const { setupAutoUpdater } = requireSetupAutoUpdater();
         const mockWindow = createMainWindow();
@@ -126,7 +133,7 @@ describe("setupAutoUpdater", () => {
                 >(),
         };
 
-        expect(() => setupAutoUpdater(mockWindow, autoUpdater)).not.toThrow();
+        const setupResult = setupAutoUpdater(mockWindow, autoUpdater);
         const registeredEvents = (
             autoUpdater.on as AutoUpdaterOnMock
         ).mock.calls
@@ -138,6 +145,7 @@ describe("setupAutoUpdater", () => {
             fileLogLevel: mockElectronLog.transports.file.level,
             loggedFeedUrl: mockElectronLog.info.mock.calls[0]?.[0],
             registeredEvents,
+            setupResult,
         }).toStrictEqual({
             autoDownload: true,
             fileLogLevel: "info",
@@ -150,6 +158,7 @@ describe("setupAutoUpdater", () => {
                 "update-downloaded",
                 "update-not-available",
             ],
+            setupResult: undefined,
         });
     });
 });
