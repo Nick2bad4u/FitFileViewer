@@ -344,7 +344,7 @@ describe("state manager core", () => {
 
         resetStateManager();
 
-        expect(setState("", "value")).toBeUndefined();
+        expect(() => setState("", "value")).not.toThrow();
         expect(getRootState().ui.activeTab).toBe("summary");
     });
 
@@ -356,7 +356,7 @@ describe("state manager core", () => {
         const circular: CircularState = { prop: "value" };
         circular.self = circular;
 
-        expect(setState("circular", circular)).toBeUndefined();
+        expect(() => setState("circular", circular)).not.toThrow();
 
         const result = getState<CircularState>("circular");
 
@@ -420,7 +420,7 @@ describe("state manager core", () => {
             unsubscribe();
         });
 
-        expect(setState("cleanup.test", "value2")).toBeUndefined();
+        expect(() => setState("cleanup.test", "value2")).not.toThrow();
         expect(getSubscriptions().paths).not.toContain("cleanup.test");
     });
 
@@ -635,7 +635,7 @@ describe("state manager core", () => {
 
         resetState("temp.path");
 
-        expect(unsubscribe()).toBeUndefined();
+        expect(() => unsubscribe()).not.toThrow();
         expect(getSubscriptions().paths).not.toContain("temp.path");
     });
 
