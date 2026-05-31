@@ -81,7 +81,7 @@ describe("updateActiveTab.js - environment fallbacks", () => {
         const ok = updateActiveTab("tab-summary");
 
         // Assert
-        expect(ok).toBe(true);
+        expect(ok).toStrictEqual(true);
         expect(effSetState).toHaveBeenCalledWith("ui.activeTab", "summary", {
             source: "updateActiveTab",
         });
@@ -119,7 +119,7 @@ describe("updateActiveTab.js - environment fallbacks", () => {
 
         const ok = updateActiveTab("tab-chart");
 
-        expect(ok).toBe(true);
+        expect(ok).toStrictEqual(true);
         expect(setState).toHaveBeenCalledWith("ui.activeTab", "chart", {
             source: "updateActiveTab",
         });
@@ -127,7 +127,7 @@ describe("updateActiveTab.js - environment fallbacks", () => {
         const el = (
             globalThis as any
         ).__vitest_effective_document__.getElementById("tab-chart");
-        expect(el.classList.contains("active")).toBe(true);
+        expect(Array.from(el.classList)).toContain("active");
     });
 
     it("uses window.document when document is undefined (window fallback)", async () => {
@@ -158,14 +158,14 @@ describe("updateActiveTab.js - environment fallbacks", () => {
             await import("../../../electron-app/utils/ui/tabs/updateActiveTab.js");
         const ok = updateActiveTab("tab-win");
 
-        expect(ok).toBe(true);
+        expect(ok).toStrictEqual(true);
         expect(setState).toHaveBeenCalledWith("ui.activeTab", "win", {
             source: "updateActiveTab",
         });
         const el = (globalThis as any).window.document.getElementById(
             "tab-win"
         );
-        expect(el.classList.contains("active")).toBe(true);
+        expect(Array.from(el.classList)).toContain("active");
     });
 
     it("subscribes and updates aria-selected via state callback (valid path)", async () => {
@@ -214,16 +214,16 @@ describe("updateActiveTab.js - environment fallbacks", () => {
 
         // Assert: aria-selected and classes reflect state
         expect(
-            document.getElementById("tab-summary")?.classList.contains("active")
-        ).toBe(false);
+            Array.from(document.getElementById("tab-summary")?.classList ?? [])
+        ).not.toContain("active");
         expect(
             document
                 .getElementById("tab-summary")
                 ?.getAttribute("aria-selected")
         ).toBe("false");
         expect(
-            document.getElementById("tab-data")?.classList.contains("active")
-        ).toBe(true);
+            Array.from(document.getElementById("tab-data")?.classList ?? [])
+        ).toContain("active");
         expect(
             document.getElementById("tab-data")?.getAttribute("aria-selected")
         ).toBe("true");
@@ -255,7 +255,7 @@ describe("updateActiveTab.js - environment fallbacks", () => {
 
         tabMapButton.click();
         expect(setState).not.toHaveBeenCalled();
-        expect(tabMapButton.classList.contains("active")).toBe(false);
+        expect(Array.from(tabMapButton.classList)).not.toContain("active");
         expect(tabMapButton.getAttribute("aria-selected")).toBeNull();
     });
 });
