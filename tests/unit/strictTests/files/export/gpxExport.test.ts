@@ -8,6 +8,8 @@ import {
 
 describe("gpxExport", () => {
     it("returns null when the input list is empty or lacks coordinates", () => {
+        expect.hasAssertions();
+
         expect(buildGpxFromRecords(null as unknown as any[])).toBeNull();
         expect(buildGpxFromRecords([])).toBeNull();
         expect(
@@ -19,6 +21,8 @@ describe("gpxExport", () => {
     });
 
     it("generates a GPX 1.1 document with metadata and extensions", () => {
+        expect.hasAssertions();
+
         const timestamp = new Date("2024-05-01T15:30:00Z");
         const records = [
             {
@@ -39,19 +43,22 @@ describe("gpxExport", () => {
         ];
 
         const gpx = buildGpxFromRecords(records, { trackName: "Sample Ride" });
-        expect(typeof gpx).toBe("string");
-        if (!gpx) {
-            throw new Error("Expected GPX string to be generated");
-        }
-        expect(gpx).toMatch(/^<\?xml version="1\.0" encoding="UTF-8"\?>/u);
-        expect(gpx).toContain('version="1.1"');
-        expect(gpx).toContain('xmlns="http://www.topografix.com/GPX/1/1"');
-        expect(gpx).toContain(
+        expect(gpx).toBeTypeOf("string");
+        const gpxDocument = gpx as string;
+
+        expect(gpxDocument).toMatch(
+            /^<\?xml version="1\.0" encoding="UTF-8"\?>/u
+        );
+        expect(gpxDocument).toContain('version="1.1"');
+        expect(gpxDocument).toContain(
+            'xmlns="http://www.topografix.com/GPX/1/1"'
+        );
+        expect(gpxDocument).toContain(
             'xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1"'
         );
 
         const parser = new XMLParser({ ignoreAttributes: false });
-        const parsed = parser.parse(gpx);
+        const parsed = parser.parse(gpxDocument);
 
         expect(parsed.gpx["@_creator"]).toBe("FitFileViewer");
         expect(parsed.gpx.trk.name).toBe("Sample Ride");
@@ -91,6 +98,8 @@ describe("gpxExport", () => {
     });
 
     it("resolves track names from loaded fit file metadata", () => {
+        expect.hasAssertions();
+
         const loaded = [
             { displayName: "Morning Loop", filePath: "C:/rides/morning.fit" },
             { filePath: "C:/rides/extra.fit" },

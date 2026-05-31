@@ -1,17 +1,20 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+type DownloadChartFn = (chart: unknown, filename: string) => void;
+type NotificationFn = (message: string, type: string) => void;
+
 vi.mock(
-    "../../../../../electron-app/utils/files/export/exportUtils.js",
+    import("../../../../../electron-app/utils/files/export/exportUtils.js"),
     () => ({
         exportUtils: {
-            downloadChartAsPNG: vi.fn(),
+            downloadChartAsPNG: vi.fn<DownloadChartFn>(),
         },
     })
 );
 vi.mock(
-    "../../../../../electron-app/utils/ui/notifications/showNotification.js",
+    import("../../../../../electron-app/utils/ui/notifications/showNotification.js"),
     () => ({
-        showNotification: vi.fn(),
+        showNotification: vi.fn<NotificationFn>(),
     })
 );
 
@@ -26,6 +29,8 @@ describe("exportAllCharts", () => {
     });
 
     it("warns when no charts", async () => {
+        expect.hasAssertions();
+
         const { exportUtils } =
             await import("../../../../../electron-app/utils/files/export/exportUtils.js");
         const notif =
@@ -43,6 +48,8 @@ describe("exportAllCharts", () => {
     });
 
     it("warns when the chart registry is invalid", async () => {
+        expect.hasAssertions();
+
         const { exportUtils } =
             await import("../../../../../electron-app/utils/files/export/exportUtils.js");
         const notif =
@@ -63,6 +70,8 @@ describe("exportAllCharts", () => {
     });
 
     it("exports each chart and shows success", async () => {
+        expect.hasAssertions();
+
         const { exportUtils } =
             await import("../../../../../electron-app/utils/files/export/exportUtils.js");
         const notif =
@@ -98,15 +107,15 @@ describe("exportAllCharts", () => {
     });
 
     it("handles errors gracefully and notifies", async () => {
+        expect.hasAssertions();
+
         const { exportUtils } =
             await import("../../../../../electron-app/utils/files/export/exportUtils.js");
         const notif =
             await import("../../../../../electron-app/utils/ui/notifications/showNotification.js");
-        const errorSpy = vi
-            .spyOn(console, "error")
-            .mockImplementation(() => undefined);
+        const errorSpy = vi.spyOn(console, "error").mockReturnValue(undefined);
         const exportError = new Error("boom");
-        (exportUtils.downloadChartAsPNG as any).mockImplementation(() => {
+        vi.mocked(exportUtils.downloadChartAsPNG).mockImplementation(() => {
             throw exportError;
         });
         (window as any)._chartjsInstances = [
