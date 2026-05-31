@@ -54,7 +54,7 @@ describe("showNotification queue edge cases", () => {
         expect(console.warn).toHaveBeenCalledWith(
             "Notification element not found. Unable to display notification."
         );
-        expect(notificationQueue).toHaveLength(0);
+        expect(notificationQueue).toStrictEqual([]);
         expect(document.getElementById("notification")).toBeNull();
     });
 
@@ -78,8 +78,8 @@ describe("showNotification queue edge cases", () => {
             "Error displaying notification:",
             expect.objectContaining({ message: "Simulated error" })
         );
-        expect(notificationQueue).toHaveLength(0);
-        expect(isShowingNotification).toBe(false);
+        expect(notificationQueue).toStrictEqual([]);
+        expect(isShowingNotification).toStrictEqual(false);
     });
 
     it("clears existing hideTimeout when displaying new notification", async () => {
@@ -97,7 +97,7 @@ describe("showNotification queue edge cases", () => {
         await p;
         expect(mockClearTimeout).toHaveBeenCalledWith(123);
         expect(notificationEl?.style.display).toBe("flex");
-        expect(notificationEl?.hideTimeout).not.toBe(123);
+        expect(notificationEl?.hideTimeout).not.toStrictEqual(123);
     });
 
     it("handles all notification types through the notify object", async () => {
@@ -245,18 +245,18 @@ describe("showNotification queue edge cases", () => {
             "Error displaying notification:",
             expect.objectContaining({ message: "resolveShown error" })
         );
-        expect(notificationQueue).toHaveLength(0);
-        expect(isShowingNotification).toBe(false);
+        expect(notificationQueue).toStrictEqual([]);
+        expect(isShowingNotification).toStrictEqual(false);
     });
 
     it("processes empty queue without errors", async () => {
         // Ensure queue is empty
         clearAllNotifications();
-        expect(notificationQueue.length).toBe(0);
+        expect(notificationQueue).toStrictEqual([]);
 
         // Should not throw or cause issues
         await processNotificationQueue();
-        expect(isShowingNotification).toBe(false);
+        expect(isShowingNotification).toStrictEqual(false);
     });
 
     it("handles multiple notifications in queue properly", async () => {
