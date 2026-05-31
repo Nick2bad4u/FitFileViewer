@@ -70,7 +70,7 @@ describe("masterStateManager introspection", () => {
 
     describe("introspection methods", () => {
         it("should provide getState method", () => {
-            expect.hasAssertions();
+            expect.assertions(7);
 
             expect(masterStateManager.getState).toBeTypeOf("function");
 
@@ -108,7 +108,7 @@ describe("masterStateManager introspection", () => {
         });
 
         it("should provide getHistory method", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             expect(masterStateManager.getHistory).toBeTypeOf("function");
 
@@ -124,7 +124,7 @@ describe("masterStateManager introspection", () => {
         });
 
         it("should provide getSubscriptions method", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             expect(masterStateManager.getSubscriptions).toBeTypeOf("function");
 
@@ -140,7 +140,7 @@ describe("masterStateManager introspection", () => {
 
     describe("state management integration", () => {
         it("should get state changes through masterStateManager", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             // Set a test value using direct stateManager
             setState("test.value", "hello world");
@@ -152,7 +152,7 @@ describe("masterStateManager introspection", () => {
         });
 
         it("should track state history through masterStateManager", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const initialHistoryLength = masterStateManager.getHistory().length;
 
@@ -207,7 +207,7 @@ describe("masterStateManager introspection", () => {
         });
 
         it("should access subscriptions through masterStateManager", () => {
-            expect.hasAssertions();
+            expect.assertions(5);
 
             let callCount = 0;
 
@@ -249,7 +249,7 @@ describe("masterStateManager introspection", () => {
 
     describe("initialization status", () => {
         it("should provide initialization status", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             expect(masterStateManager.getInitializationStatus).toBeTypeOf(
                 "function"

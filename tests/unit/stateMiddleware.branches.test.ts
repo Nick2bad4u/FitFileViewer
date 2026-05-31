@@ -26,7 +26,7 @@ describe("stateMiddleware additional branches", () => {
     });
 
     it("logs slow handler warning when wrapped handler exceeds threshold", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         vi.resetModules();
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
@@ -70,7 +70,7 @@ describe("stateMiddleware additional branches", () => {
     });
 
     it("handles handler throw and error handler failures with nested logging", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         vi.resetModules();
         const errorSpy = vi
@@ -136,7 +136,7 @@ describe("stateMiddleware additional branches", () => {
     });
 
     it("short-circuits execute when globally disabled", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         vi.resetModules();
         const {
@@ -172,7 +172,7 @@ describe("stateMiddleware additional branches", () => {
     });
 
     it("performance middleware trims history beyond 100 entries", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         vi.resetModules();
         // Ensure non-zero timing so afterSet branch runs
@@ -218,7 +218,7 @@ describe("stateMiddleware additional branches", () => {
     });
 
     it("persistence middleware logs error when localStorage.setItem fails", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         vi.resetModules();
         const errorSpy = vi
@@ -263,7 +263,7 @@ describe("stateMiddleware additional branches", () => {
     });
 
     it("warns when registering duplicate middleware names", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         vi.resetModules();
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
@@ -286,7 +286,7 @@ describe("stateMiddleware additional branches", () => {
     });
 
     it("initializeDefaultMiddleware logs skip on second call", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         vi.resetModules();
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});

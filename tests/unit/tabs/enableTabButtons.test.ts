@@ -49,7 +49,7 @@ describe("enable tab buttons", () => {
 
     describe("setTabButtonsEnabled function", () => {
         it("should disable all tab buttons when called with false", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             setTabButtonsEnabled(false);
 
@@ -95,7 +95,7 @@ describe("enable tab buttons", () => {
         });
 
         it("should enable all tab buttons when called with true", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             // First disable them
             setTabButtonsEnabled(false);
@@ -132,7 +132,7 @@ describe("enable tab buttons", () => {
         });
 
         it("should handle empty DOM gracefully", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             cleanupDOM();
 
@@ -152,7 +152,7 @@ describe("enable tab buttons", () => {
         });
 
         it("should work with mixed button states", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const tabButtons = document.querySelectorAll(".tab-button");
 
@@ -193,7 +193,7 @@ describe("enable tab buttons", () => {
         });
 
         it("should preserve other classes when enabling/disabling", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const firstButton = getRequiredTabButton();
             firstButton.classList.add("custom-class", "another-class");
@@ -218,7 +218,7 @@ describe("enable tab buttons", () => {
         });
 
         it("should log operations for debugging", () => {
-            expect.hasAssertions();
+            expect.assertions(5);
 
             const consoleSpy = vi
                 .spyOn(console, "log")
@@ -270,9 +270,7 @@ describe("enable tab buttons", () => {
 
     describe("tab button state consistency", () => {
         it("should maintain consistent disabled state across all methods", () => {
-            expect.hasAssertions();
-
-            const tabButtons = document.querySelectorAll(".tab-button");
+            expect.assertions(1);
 
             setTabButtonsEnabled(false);
 
@@ -305,7 +303,7 @@ describe("enable tab buttons", () => {
         });
 
         it("should handle rapid enable/disable cycles", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             for (let i = 0; i < 10; i++) {
                 setTabButtonsEnabled(i % 2 === 0);
