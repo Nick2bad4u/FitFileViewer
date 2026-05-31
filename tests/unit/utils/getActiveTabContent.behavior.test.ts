@@ -2,23 +2,21 @@ import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { getActiveTabContent } from "../../../electron-app/utils/rendering/helpers/getActiveTabContent.js";
 
 describe("getActiveTabContent behavior", () => {
-    const originalWarn = console.warn;
-    const originalError = console.error;
-
     beforeEach(() => {
         document.body.innerHTML = "";
         vi.restoreAllMocks();
-        console.warn = vi.fn();
-        console.error = vi.fn();
+        vi.spyOn(console, "warn").mockImplementation(() => {});
+        vi.spyOn(console, "error").mockImplementation(() => {});
     });
 
     afterEach(() => {
-        console.warn = originalWarn;
-        console.error = originalError;
+        vi.restoreAllMocks();
         document.body.innerHTML = "";
     });
 
     it("returns the first visible .tab-content element", () => {
+        expect.assertions(4);
+
         const c1 = document.createElement("div");
         c1.className = "tab-content";
         c1.style.display = "none";
@@ -39,6 +37,8 @@ describe("getActiveTabContent behavior", () => {
     });
 
     it("returns null when no .tab-content elements are present and warns", () => {
+        expect.assertions(2);
+
         const result = getActiveTabContent();
         expect(result).toBeNull();
         expect(console.warn).toHaveBeenCalledWith(
@@ -47,6 +47,8 @@ describe("getActiveTabContent behavior", () => {
     });
 
     it("returns null when none are visible (display not 'block')", () => {
+        expect.assertions(3);
+
         for (let i = 0; i < 3; i++) {
             const d = document.createElement("div");
             d.className = "tab-content";
@@ -61,6 +63,8 @@ describe("getActiveTabContent behavior", () => {
     });
 
     it("returns .tab-content.active when visible via CSS class (no inline display)", () => {
+        expect.assertions(2);
+
         const inactive = document.createElement("div");
         inactive.className = "tab-content";
 
@@ -76,6 +80,8 @@ describe("getActiveTabContent behavior", () => {
     });
 
     it("derives active content from .tab-button.active id when needed", () => {
+        expect.assertions(2);
+
         const btn = document.createElement("button");
         btn.id = "tab_summary";
         btn.className = "tab-button active";
@@ -92,6 +98,8 @@ describe("getActiveTabContent behavior", () => {
     });
 
     it("handles querySelectorAll throwing and returns null", () => {
+        expect.assertions(2);
+
         const spy = vi
             .spyOn(document, "querySelectorAll")
             .mockImplementation(() => {

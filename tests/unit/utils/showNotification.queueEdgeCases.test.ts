@@ -15,20 +15,16 @@ import {
 type NotifyMethod = "error" | "info" | "success" | "warning";
 
 describe("showNotification queue edge cases", () => {
-    const originalWarn = console.warn;
-    const originalError = console.error;
-    const originalRAF = window.requestAnimationFrame;
-
     beforeEach(() => {
         vi.useFakeTimers();
         vi.restoreAllMocks();
-        console.warn = vi.fn();
-        console.error = vi.fn();
+        vi.spyOn(console, "warn").mockImplementation(() => {});
+        vi.spyOn(console, "error").mockImplementation(() => {});
         // Mock requestAnimationFrame to execute immediately
-        window.requestAnimationFrame = (cb) => {
+        vi.spyOn(window, "requestAnimationFrame").mockImplementation((cb) => {
             cb(0);
             return 0;
-        };
+        });
         const notificationElement = document.createElement("div");
         notificationElement.id = "notification";
         notificationElement.className = "notification";
@@ -41,13 +37,13 @@ describe("showNotification queue edge cases", () => {
     afterEach(() => {
         vi.runOnlyPendingTimers();
         vi.useRealTimers();
-        console.warn = originalWarn;
-        console.error = originalError;
-        window.requestAnimationFrame = originalRAF;
+        vi.restoreAllMocks();
         document.body.replaceChildren();
     });
 
     it("handles missing notification element gracefully", async () => {
+        expect.assertions(3);
+
         document.body.replaceChildren(); // Remove notification element
         const p = showNotification("Test");
         await p;
@@ -59,6 +55,8 @@ describe("showNotification queue edge cases", () => {
     });
 
     it("handles errors during displayNotification process", async () => {
+        expect.assertions(3);
+
         // Create a notification element that throws when the display pipeline adds its class.
         vi.spyOn(document, "querySelector").mockImplementationOnce(() => {
             const mockEl = document.createElement("div");
@@ -83,15 +81,16 @@ describe("showNotification queue edge cases", () => {
     });
 
     it("clears existing hideTimeout when displaying new notification", async () => {
+        expect.assertions(4);
+
         const mockClearTimeout = vi.spyOn(window, "clearTimeout");
         const notificationEl = document.getElementById(
             "notification"
         ) as NotificationElement | null;
 
+        expect(notificationEl).toBeInstanceOf(HTMLDivElement);
         // Manually set a hideTimeout on the element
-        if (notificationEl) {
-            notificationEl.hideTimeout = 123;
-        }
+        notificationEl!.hideTimeout = 123;
 
         const p = showNotification("Testing clearTimeout");
         await p;
@@ -101,6 +100,8 @@ describe("showNotification queue edge cases", () => {
     });
 
     it("handles all notification types through the notify object", async () => {
+        expect.assertions(8);
+
         const typeTests: Array<{
             readonly duration: number;
             readonly method: NotifyMethod;
@@ -126,6 +127,8 @@ describe("showNotification queue edge cases", () => {
     });
 
     it("handles mouseover and mouseout events on close button", async () => {
+        expect.assertions(4);
+
         const p = notify.persistent("Hover test");
         await p;
         const closeBtn = document.querySelector(
@@ -146,6 +149,8 @@ describe("showNotification queue edge cases", () => {
     });
 
     it("handles action button without onClick handler", async () => {
+        expect.assertions(3);
+
         const p = notify.withActions("No action", "info", [
             { text: "No handler" },
         ]);
@@ -164,7 +169,9 @@ describe("showNotification queue edge cases", () => {
     });
 
     it("handles notification click on non-HTMLElement target", async () => {
-        const onClick = vi.fn();
+        expect.assertions(3);
+
+        const onClick = vi.fn<() => void>();
         const p = showNotification("Click test", "info", undefined, {
             onClick,
             persistent: true,
@@ -186,7 +193,9 @@ describe("showNotification queue edge cases", () => {
     });
 
     it("handles click target inside notification actions area", async () => {
-        const onClick = vi.fn();
+        expect.assertions(2);
+
+        const onClick = vi.fn<() => void>();
         const p = showNotification("Action area test", "info", undefined, {
             onClick,
             persistent: true,
@@ -224,6 +233,8 @@ describe("showNotification queue edge cases", () => {
     });
 
     it("handles error when resolveShown throws", async () => {
+        expect.assertions(3);
+
         const notification: QueuedNotification = {
             message: "Error test",
             type: "info",
@@ -250,6 +261,8 @@ describe("showNotification queue edge cases", () => {
     });
 
     it("processes empty queue without errors", async () => {
+        expect.assertions(2);
+
         // Ensure queue is empty
         clearAllNotifications();
         expect(notificationQueue).toStrictEqual([]);
@@ -260,6 +273,8 @@ describe("showNotification queue edge cases", () => {
     });
 
     it("handles multiple notifications in queue properly", async () => {
+        expect.assertions(7);
+
         // Queue multiple notifications
         showNotification("First", "info", 100);
         showNotification("Second", "success", 100);
