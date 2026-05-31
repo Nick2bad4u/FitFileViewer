@@ -1,50 +1,72 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
+type Cleanup = () => void;
+type SetupTheme = (
+    applyTheme: (theme: string) => void,
+    listenForThemeChange?: (callback: (theme: unknown) => void) => void
+) => Promise<"auto" | "dark" | "light">;
+type ShowNotification = (
+    message: string,
+    type: "error" | "success",
+    duration: number
+) => void;
+type SwitchToTab = (tab: string) => void;
+
 const chartStateManagerMock = {
-        cleanup: vi.fn(),
+        cleanup: vi.fn<Cleanup>(),
     },
     chartTabIntegrationMock = {
-        cleanup: vi.fn(),
-        initialize: vi.fn(),
+        cleanup: vi.fn<Cleanup>(),
+        initialize: vi.fn<Cleanup>(),
     },
     tabStateManagerMock = {
-        cleanup: vi.fn(),
-        switchToTab: vi.fn(),
+        cleanup: vi.fn<Cleanup>(),
+        switchToTab: vi.fn<SwitchToTab>(),
     },
-    setupThemeMock = vi.fn(),
-    showNotificationMock = vi.fn(),
-    applyThemeMock = vi.fn(),
-    listenForThemeChangeMock = vi.fn();
+    setupThemeMock = vi.fn<SetupTheme>(),
+    showNotificationMock = vi.fn<ShowNotification>(),
+    applyThemeMock = vi.fn<(theme: string) => void>(),
+    listenForThemeChangeMock =
+        vi.fn<(callback: (theme: unknown) => void) => void>();
 
 vi.mock(
-    "../../../../../electron-app/utils/charts/core/chartStateManager.js",
+    import("../../../../../electron-app/utils/charts/core/chartStateManager.js"),
     () => ({
         chartStateManager: chartStateManagerMock,
     })
 );
 
 vi.mock(
-    "../../../../../electron-app/utils/charts/core/chartTabIntegration.js",
+    import("../../../../../electron-app/utils/charts/core/chartTabIntegration.js"),
     () => ({
         chartTabIntegration: chartTabIntegrationMock,
     })
 );
 
-vi.mock("../../../../../electron-app/utils/ui/tabs/tabStateManager.js", () => ({
-    tabStateManager: tabStateManagerMock,
-}));
-
-vi.mock("../../../../../electron-app/utils/theming/core/setupTheme.js", () => ({
-    setupTheme: setupThemeMock,
-}));
-
-vi.mock("../../../../../electron-app/utils/theming/core/theme.js", () => ({
-    applyTheme: applyThemeMock,
-    listenForThemeChange: listenForThemeChangeMock,
-}));
+vi.mock(
+    import("../../../../../electron-app/utils/ui/tabs/tabStateManager.js"),
+    () => ({
+        tabStateManager: tabStateManagerMock,
+    })
+);
 
 vi.mock(
-    "../../../../../electron-app/utils/ui/notifications/showNotification.js",
+    import("../../../../../electron-app/utils/theming/core/setupTheme.js"),
+    () => ({
+        setupTheme: setupThemeMock,
+    })
+);
+
+vi.mock(
+    import("../../../../../electron-app/utils/theming/core/theme.js"),
+    () => ({
+        applyTheme: applyThemeMock,
+        listenForThemeChange: listenForThemeChangeMock,
+    })
+);
+
+vi.mock(
+    import("../../../../../electron-app/utils/ui/notifications/showNotification.js"),
     () => ({
         showNotification: showNotificationMock,
     })
@@ -75,9 +97,9 @@ describe("setupWindow", () => {
         const { cleanup } = await loadModule();
 
         expect(() => cleanup()).not.toThrow();
-        expect(chartStateManagerMock.cleanup).toHaveBeenCalledTimes(1);
-        expect(tabStateManagerMock.cleanup).toHaveBeenCalledTimes(1);
-        expect(chartTabIntegrationMock.cleanup).toHaveBeenCalledTimes(1);
+        expect(chartStateManagerMock.cleanup).toHaveBeenCalledOnce();
+        expect(tabStateManagerMock.cleanup).toHaveBeenCalledOnce();
+        expect(chartTabIntegrationMock.cleanup).toHaveBeenCalledOnce();
         expect(logSpy).toHaveBeenCalledWith("[setupWindow] Cleanup completed");
 
         logSpy.mockRestore();
