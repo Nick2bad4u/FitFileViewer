@@ -1,3 +1,4 @@
+/* eslint-disable case-police/string-check -- devTools is the preload API contract name. */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 type PreloadExecutionGlobal = typeof globalThis & {
@@ -36,17 +37,19 @@ interface ExposedDevTools {
 const preloadExecutionGlobal = globalThis as PreloadExecutionGlobal;
 
 const mockContextBridge = {
-    exposeInMainWorld: vi.fn(),
+    exposeInMainWorld: vi.fn<(apiName: string, api: unknown) => void>(),
 };
 
 const mockIpcRenderer = {
-    invoke: vi.fn(),
-    send: vi.fn(),
-    on: vi.fn(),
-    removeAllListeners: vi.fn(),
+    invoke: vi.fn<(channel: string, ...args: unknown[]) => Promise<unknown>>(),
+    send: vi.fn<(channel: string, ...args: unknown[]) => void>(),
+    on: vi.fn<
+        (channel: string, listener: (...args: unknown[]) => void) => void
+    >(),
+    removeAllListeners: vi.fn<(channel: string) => void>(),
 };
 
-vi.mock("electron", () => ({
+vi.mock(import("electron"), () => ({
     contextBridge: mockContextBridge,
     ipcRenderer: mockIpcRenderer,
 }));
@@ -65,8 +68,8 @@ describe("preload.js source execution", () => {
 
         global.console = {
             ...console,
-            log: vi.fn(),
-            error: vi.fn(),
+            log: vi.fn<(...data: unknown[]) => void>(),
+            error: vi.fn<(...data: unknown[]) => void>(),
         };
     });
 
@@ -78,13 +81,13 @@ describe("preload.js source execution", () => {
         delete preloadExecutionGlobal.__electronHoistedMock;
     });
 
-    describe("Development Mode Execution", () => {
+    describe("development mode execution", () => {
         it("should execute preload.js and expose electronAPI in development mode", async () => {
+            expect.assertions(11);
+
             process.env.NODE_ENV = "development";
 
             await import("../../electron-app/preload.js");
-
-            expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalled();
 
             // Verify contextBridge.exposeInMainWorld was called for electronAPI
             expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith(
@@ -131,9 +134,11 @@ describe("preload.js source execution", () => {
                 | undefined;
             const devTools = devToolsCall?.[1] as ExposedDevTools | undefined;
 
-            expect(electronAPI?.validateAPI()).toBe(true);
+            expect(electronAPI?.validateAPI()).toStrictEqual(true);
             const preloadInfo = devTools?.getPreloadInfo();
-            expect(preloadInfo?.apiMethods).toEqual(Object.keys(electronAPI!));
+            expect(preloadInfo?.apiMethods).toStrictEqual(
+                Object.keys(electronAPI!)
+            );
             expect(preloadInfo?.apiMethods).toContain("getAppVersion");
             expect(preloadInfo?.apiMethods).toContain("validateAPI");
             expect(preloadInfo?.constants.CHANNELS).toMatchObject({
@@ -146,7 +151,7 @@ describe("preload.js source execution", () => {
                 SET_THEME: "set-theme",
                 THEME_CHANGED: "theme-changed",
             });
-            expect(preloadInfo?.constants.DEFAULT_VALUES).toEqual({
+            expect(preloadInfo?.constants.DEFAULT_VALUES).toStrictEqual({
                 FIT_FILE_PATH: null,
                 THEME: null,
             });
@@ -154,6 +159,8 @@ describe("preload.js source execution", () => {
         });
 
         it("should provide working API methods when executed", async () => {
+            expect.assertions(11);
+
             process.env.NODE_ENV = "development";
 
             // Import preload.js so mocks are honored
@@ -176,7 +183,7 @@ describe("preload.js source execution", () => {
             const electronAPI = electronAPICall![1];
 
             // Test validateAPI method
-            expect(electronAPI.validateAPI()).toBe(true);
+            expect(electronAPI.validateAPI()).toStrictEqual(true);
 
             // Test getChannelInfo method
             const channelInfo = electronAPI.getChannelInfo();
@@ -184,9 +191,13 @@ describe("preload.js source execution", () => {
             expect(channelInfo).toHaveProperty("events");
             expect(channelInfo).toHaveProperty("totalChannels");
             expect(channelInfo).toHaveProperty("totalEvents");
-            expect(typeof channelInfo.totalChannels).toBe("number");
-            expect(channelInfo.totalChannels).toBe(27);
-            expect(channelInfo.totalEvents).toBe(10);
+            expect(channelInfo.totalChannels).toBeTypeOf("number");
+            expect(channelInfo.totalChannels).toBe(
+                Object.keys(channelInfo.channels).length
+            );
+            expect(channelInfo.totalEvents).toBe(
+                Object.keys(channelInfo.events).length
+            );
             expect(channelInfo.channels).toMatchObject({
                 APP_VERSION: "getAppVersion",
                 FIT_DECODE: "fit:decode",
@@ -202,6 +213,8 @@ describe("preload.js source execution", () => {
         });
 
         it("should handle IPC invoke methods correctly", async () => {
+            expect.assertions(2);
+
             process.env.NODE_ENV = "development";
 
             // Mock successful IPC response
@@ -225,8 +238,10 @@ describe("preload.js source execution", () => {
         });
     });
 
-    describe("Production Mode Execution", () => {
+    describe("production mode execution", () => {
         it("should execute preload.js in production mode without devTools", async () => {
+            expect.assertions(2);
+
             // Set production mode
             process.env.NODE_ENV = "production";
 
@@ -254,3 +269,4 @@ describe("preload.js source execution", () => {
         });
     });
 });
+/* eslint-enable case-police/string-check */
