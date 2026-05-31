@@ -96,45 +96,44 @@ describe("handleOpenFile Module", () => {
 
     describe("logWithContext", () => {
         it("should log info messages", () => {
-            const result = handleOpenFileModule.logWithContext("info message");
+            expect.assertions(2);
 
-            expect(result).toBeUndefined();
+            expect(() =>
+                handleOpenFileModule.logWithContext("info message")
+            ).not.toThrow();
             expect(console.info).toHaveBeenCalledWith(
                 expect.stringContaining("HandleOpenFile: info message")
             );
         });
 
         it("should log warning messages", () => {
-            const result = handleOpenFileModule.logWithContext(
-                "warn message",
-                "warn"
-            );
+            expect.assertions(2);
 
-            expect(result).toBeUndefined();
+            expect(() =>
+                handleOpenFileModule.logWithContext("warn message", "warn")
+            ).not.toThrow();
             expect(console.warn).toHaveBeenCalledWith(
                 expect.stringContaining("HandleOpenFile: warn message")
             );
         });
 
         it("should log error messages", () => {
-            const result = handleOpenFileModule.logWithContext(
-                "error message",
-                "error"
-            );
+            expect.assertions(2);
 
-            expect(result).toBeUndefined();
+            expect(() =>
+                handleOpenFileModule.logWithContext("error message", "error")
+            ).not.toThrow();
             expect(console.error).toHaveBeenCalledWith(
                 expect.stringContaining("HandleOpenFile: error message")
             );
         });
 
         it("normalizes an unknown log level to info", () => {
-            const result = handleOpenFileModule.logWithContext(
-                "fallback message",
-                "trace"
-            );
+            expect.assertions(3);
 
-            expect(result).toBeUndefined();
+            expect(() =>
+                handleOpenFileModule.logWithContext("fallback message", "trace")
+            ).not.toThrow();
             expect(console.info).toHaveBeenCalledWith(
                 expect.stringContaining("HandleOpenFile: fallback message")
             );
