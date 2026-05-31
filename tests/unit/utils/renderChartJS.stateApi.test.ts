@@ -11,6 +11,58 @@ const globalMockState = {
     subscriptions: new Map<string, any>(),
 };
 
+function getMockStateValue(path: string) {
+    if (globalMockState.data.has(path)) {
+        return globalMockState.data.get(path);
+    }
+
+    if (path === "charts.isRendered") return false;
+    if (path === "charts.isRendering") return false;
+    if (path === "charts.controlsVisible") return true;
+    if (path === "charts.selectedChart") return "elevation";
+    if (path === "charts.renderTime") return null;
+    if (path === "charts.renderedCount") return 0;
+    if (path === "charts.chartData") return null;
+    if (path === "charts.chartOptions") return null;
+    if (path === "globalData") return null;
+    if (path === "performance.chartHistory") return [];
+    if (path === "charts.visibleFields") return [];
+    if (path && path.startsWith("performance.tracking.")) {
+        return {
+            operation: "test",
+            startTime: Date.now(),
+            status: "running",
+        };
+    }
+
+    return null;
+}
+
+function setMockStateValue(path: string, value: any) {
+    globalMockState.data.set(path, value);
+}
+
+function updateMockStateValue(path: string, value: any) {
+    const existing = globalMockState.data.get(path);
+    const nextValue =
+        existing &&
+        typeof existing === "object" &&
+        !Array.isArray(existing) &&
+        value &&
+        typeof value === "object" &&
+        !Array.isArray(value)
+            ? { ...existing, ...value }
+            : value;
+
+    globalMockState.data.set(path, nextValue);
+
+    if (value && typeof value === "object" && !Array.isArray(value)) {
+        for (const [key, entryValue] of Object.entries(value)) {
+            globalMockState.data.set(`${path}.${key}`, entryValue);
+        }
+    }
+}
+
 // Ensure window has necessary methods mocked
 if (typeof window !== "undefined") {
     if (!window.addEventListener) {
@@ -23,29 +75,13 @@ if (typeof window !== "undefined") {
 
 // Define a simple mock version of stateManager instead of using complex globalMockState reference
 vi.mock("../../../electron-app/utils/state/core/stateManager.js", () => ({
-    getState: vi.fn((path: string) => {
-        if (path === "charts.isRendered") return false;
-        if (path === "charts.isRendering") return false;
-        if (path === "charts.controlsVisible") return true;
-        if (path === "charts.selectedChart") return "elevation";
-        if (path === "charts.renderTime") return null;
-        if (path === "charts.renderedCount") return 0;
-        if (path === "charts.chartData") return null;
-        if (path === "charts.chartOptions") return null;
-        if (path === "globalData") return null;
-        if (path === "performance.chartHistory") return [];
-        if (path === "charts.visibleFields") return [];
-        if (path && path.startsWith("performance.tracking.")) {
-            return {
-                operation: "test",
-                startTime: Date.now(),
-                status: "running",
-            };
-        }
-        return null;
-    }),
-    setState: vi.fn((path: string, value: any) => {}),
-    updateState: vi.fn((path: string, value: any) => {}),
+    getState: vi.fn((path: string) => getMockStateValue(path)),
+    setState: vi.fn((path: string, value: any) =>
+        setMockStateValue(path, value)
+    ),
+    updateState: vi.fn((path: string, value: any) =>
+        updateMockStateValue(path, value)
+    ),
     subscribe: vi.fn(() => () => {}),
 }));
 
@@ -297,7 +333,6 @@ describe("renderChartJS.js state API", () => {
 
     describe("getChartStatus function - Status Information Retrieval", () => {
         test("should return chart status object", () => {
-            // Set up mock state
             globalMockState.data.set("charts.isRendered", true);
             globalMockState.data.set("charts.isRendering", false);
             globalMockState.data.set("charts.controlsVisible", true);
@@ -316,18 +351,17 @@ describe("renderChartJS.js state API", () => {
             const status = getChartStatus();
 
             expect(status).toEqual({
-                isRendered: false,
+                isRendered: true,
                 isRendering: false,
-                hasData: null,
+                hasData: false,
                 controlsVisible: true,
-                selectedChart: "elevation",
-                renderedCount: 0,
-                lastRenderTime: null,
-                performance: null,
+                selectedChart: "power",
+                renderedCount: 8,
+                lastRenderTime: 1234567890,
+                performance: 150,
                 renderableFields: [],
                 chartOptions: null,
             });
-            expect(status.isRendered).not.toStrictEqual(true);
         });
 
         test("should return default values when state is empty", () => {
@@ -351,10 +385,10 @@ describe("renderChartJS.js state API", () => {
         });
 
         test("should correctly detect hasData with various data states", () => {
-            // Test with null data - our mock will always return null for hasData
             expect((getChartStatus() as any).hasData).toBeNull();
 
-            // Skip other tests as they rely on globalMockState which isn't working as expected
+            globalMockState.data.set("globalData", { recordMesgs: [{}] });
+            expect((getChartStatus() as any).hasData).toBe(true);
         });
     });
 
@@ -389,12 +423,19 @@ describe("renderChartJS.js state API", () => {
 });
 
 describe("chartActions object - State Actions", () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        globalMockState.data.clear();
+        globalMockState.subscriptions.clear();
+    });
+
     test("should correctly start rendering process", async () => {
         const { setState } =
             await import("../../../electron-app/utils/state/core/stateManager.js");
 
-        expect(chartActions.startRendering()).toBeUndefined();
+        chartActions.startRendering();
 
+        expect(chartState.isRendering).toBe(true);
         expect(setState).toHaveBeenCalledWith("charts.isRendering", true, {
             silent: false,
             source: "chartActions.startRendering",
@@ -412,8 +453,14 @@ describe("chartActions object - State Actions", () => {
         const { AppActions } =
             await import("../../../electron-app/utils/app/lifecycle/appActions.js");
 
-        expect(chartActions.completeRendering(true, 5, 250)).toBeUndefined();
+        chartActions.completeRendering(true, 5, 250);
 
+        expect(getChartStatus()).toMatchObject({
+            isRendered: true,
+            isRendering: false,
+            performance: 250,
+            renderedCount: 5,
+        });
         expect(updateState).toHaveBeenCalledWith(
             "charts",
             {
@@ -447,8 +494,14 @@ describe("chartActions object - State Actions", () => {
         const { AppActions } =
             await import("../../../electron-app/utils/app/lifecycle/appActions.js");
 
-        expect(chartActions.completeRendering(false, 0, 100)).toBeUndefined();
+        chartActions.completeRendering(false, 0, 100);
 
+        expect(getChartStatus()).toMatchObject({
+            isRendered: false,
+            isRendering: false,
+            performance: null,
+            renderedCount: 0,
+        });
         expect(updateState).toHaveBeenCalledWith(
             "charts",
             {
@@ -471,6 +524,12 @@ describe("chartActions object - State Actions", () => {
 });
 
 describe("Integration and Error Handling", () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        globalMockState.data.clear();
+        globalMockState.subscriptions.clear();
+    });
+
     test("should read chart status without throwing when state is undefined", async () => {
         expect(getChartStatus()).toEqual({
             chartOptions: null,
