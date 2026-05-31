@@ -2,9 +2,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // Mock copyTableAsCSV to observe calls
 vi.mock(
-    "../../../../../electron-app/utils/files/export/copyTableAsCSV.js",
+    import("../../../../../electron-app/utils/files/export/copyTableAsCSV.js"),
     () => ({
-        copyTableAsCSV: vi.fn(),
+        copyTableAsCSV: vi.fn<(table: unknown) => Promise<void>>(),
     })
 );
 
@@ -44,6 +44,8 @@ describe("renderTable", () => {
     });
 
     it("renders section, toggles visibility, and copies CSV via helper", async () => {
+        expect.hasAssertions();
+
         const { renderTable } = await loadModule();
         const root = document.getElementById("root")!;
         const tableLike = createTableLike();
@@ -71,10 +73,12 @@ describe("renderTable", () => {
         copyBtn.click();
         const { copyTableAsCSV } =
             await import("../../../../../electron-app/utils/files/export/copyTableAsCSV.js");
-        expect(copyTableAsCSV).toHaveBeenCalledTimes(1);
+        expect(copyTableAsCSV).toHaveBeenCalledOnce();
     });
 
     it("falls back gracefully when jQuery is absent", async () => {
+        expect.hasAssertions();
+
         const { renderTable } = await loadModule();
         const root = document.getElementById("root")!;
         await renderTable(root, "No jQ", createTableLike(), 2);
@@ -93,6 +97,8 @@ describe("renderTable", () => {
     });
 
     it("sanitizes injected markup from table HTML", async () => {
+        expect.hasAssertions();
+
         const { renderTable } = await loadModule();
         const root = document.getElementById("root")!;
 
@@ -112,6 +118,8 @@ describe("renderTable", () => {
     });
 
     it("initializes DataTable when jQuery+DataTables present, destroying prior instance", async () => {
+        expect.hasAssertions();
+
         const calls: Array<{
             selector: string;
             opts?: any;

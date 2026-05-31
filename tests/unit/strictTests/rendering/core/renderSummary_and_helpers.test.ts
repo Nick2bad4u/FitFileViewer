@@ -59,6 +59,8 @@ describe("renderSummary helpers + renderSummary", () => {
     });
 
     it("getStorageKey prefers window.globalData.cachedFilePath then data.cachedFilePath then activeFitFileName", async () => {
+        expect.hasAssertions();
+
         const { getStorageKey } = await importHelpers();
         const summaryWindow = getSummaryWindow();
 
@@ -81,6 +83,8 @@ describe("renderSummary helpers + renderSummary", () => {
     });
 
     it("save/load column preferences roundtrip", async () => {
+        expect.hasAssertions();
+
         const { saveColPrefs, loadColPrefs } = await importHelpers();
         const key = "summaryColSel_test";
         const cols = [
@@ -96,6 +100,8 @@ describe("renderSummary helpers + renderSummary", () => {
     });
 
     it("renderSummary renders header, gear button opens modal, and table rows filter", async () => {
+        expect.hasAssertions();
+
         const { renderSummary } = await importRenderSummary();
         const data: SummaryRenderData = {
             sessionMesgs: [{ total_ascent: 100, total_descent: 80 }],
