@@ -146,13 +146,13 @@ describe("mapMeasureTool.js", () => {
         expect(button.innerHTML).toContain("Cancel");
 
         // Check if button is temporarily disabled
-        expect(button.disabled).toBe(true);
+        expect(button).toHaveProperty("disabled", true);
 
         // Advance timers to enable the button again
         vi.advanceTimersByTime(2000);
 
         // Button should be enabled again
-        expect(button.disabled).toBe(false);
+        expect(button).toHaveProperty("disabled", false);
     });
 
     it("should handle map clicks in measurement mode", () => {
@@ -266,7 +266,7 @@ describe("mapMeasureTool.js", () => {
 
         // Button should be reset
         expect(getMeasureButtonLabel(button)).toBe("Measure");
-        expect(addedLayers).toHaveLength(0);
+        expect(addedLayers).toStrictEqual([]);
     });
 
     it("should disable and re-enable measurement mode when button is clicked twice", () => {
@@ -307,7 +307,7 @@ describe("mapMeasureTool.js", () => {
         )[1];
 
         expect(clickHandler({ latlng: { lat: 0, lng: 0 } })).toBeUndefined();
-        expect(addedLayers).toHaveLength(0);
+        expect(addedLayers).toStrictEqual([]);
         expect(mockMap.addLayer).not.toHaveBeenCalled();
     });
 
@@ -367,7 +367,7 @@ describe("mapMeasureTool.js", () => {
 
         // Now verify that removeLayer was called, indicating measurements were cleared
         expect(mockMap.removeLayer).toHaveBeenCalledTimes(4);
-        expect(addedLayers).toHaveLength(0);
+        expect(addedLayers).toStrictEqual([]);
     });
 });
 /* eslint-enable vitest/no-conditional-in-test */
