@@ -24,6 +24,19 @@ function getRequiredTabButton(): HTMLElement {
     return firstButton;
 }
 
+function getTabButtonSnapshots() {
+    return Array.from(
+        document.querySelectorAll<HTMLButtonElement>(".tab-button"),
+        (button) => ({
+            ariaDisabled: button.getAttribute("aria-disabled"),
+            classes: [...button.classList],
+            disabled: button.disabled,
+            hasDisabledAttribute: button.hasAttribute("disabled"),
+            id: button.id,
+        })
+    );
+}
+
 describe("enable tab buttons", () => {
     beforeEach(() => {
         createMockTabButtons();
@@ -40,15 +53,45 @@ describe("enable tab buttons", () => {
 
             setTabButtonsEnabled(false);
 
-            const tabButtons = document.querySelectorAll(".tab-button");
-            tabButtons.forEach((button) => {
-                const htmlButton = button as HTMLButtonElement;
-                expect(htmlButton.disabled).toBe(true);
-                expect(htmlButton.classList.contains("tab-disabled")).toBe(
-                    true
-                );
-                expect(htmlButton.getAttribute("aria-disabled")).toBe("true");
-            });
+            expect(getTabButtonSnapshots()).toMatchObject([
+                {
+                    ariaDisabled: "true",
+                    classes: expect.arrayContaining([
+                        "active",
+                        "tab-button",
+                        "tab-disabled",
+                    ]),
+                    disabled: true,
+                    id: "tab-summary",
+                },
+                {
+                    ariaDisabled: "true",
+                    classes: expect.arrayContaining([
+                        "tab-button",
+                        "tab-disabled",
+                    ]),
+                    disabled: true,
+                    id: "tab-chart",
+                },
+                {
+                    ariaDisabled: "true",
+                    classes: expect.arrayContaining([
+                        "tab-button",
+                        "tab-disabled",
+                    ]),
+                    disabled: true,
+                    id: "tab-map",
+                },
+                {
+                    ariaDisabled: "true",
+                    classes: expect.arrayContaining([
+                        "tab-button",
+                        "tab-disabled",
+                    ]),
+                    disabled: true,
+                    id: "tab-table",
+                },
+            ]);
         });
 
         it("should enable all tab buttons when called with true", () => {
@@ -60,15 +103,32 @@ describe("enable tab buttons", () => {
             // Then enable them
             setTabButtonsEnabled(true);
 
-            const tabButtons = document.querySelectorAll(".tab-button");
-            tabButtons.forEach((button) => {
-                const htmlButton = button as HTMLButtonElement;
-                expect(htmlButton.disabled).toBe(false);
-                expect(htmlButton.classList.contains("tab-disabled")).toBe(
-                    false
-                );
-                expect(htmlButton.getAttribute("aria-disabled")).toBe("false");
-            });
+            expect(getTabButtonSnapshots()).toMatchObject([
+                {
+                    ariaDisabled: "false",
+                    classes: ["tab-button", "active"],
+                    disabled: false,
+                    id: "tab-summary",
+                },
+                {
+                    ariaDisabled: "false",
+                    classes: ["tab-button"],
+                    disabled: false,
+                    id: "tab-chart",
+                },
+                {
+                    ariaDisabled: "false",
+                    classes: ["tab-button"],
+                    disabled: false,
+                    id: "tab-map",
+                },
+                {
+                    ariaDisabled: "false",
+                    classes: ["tab-button"],
+                    disabled: false,
+                    id: "tab-table",
+                },
+            ]);
         });
 
         it("should handle empty DOM gracefully", () => {
@@ -82,8 +142,13 @@ describe("enable tab buttons", () => {
             expect(document.querySelector(".tab-button")).not.toBeInstanceOf(
                 HTMLButtonElement
             );
-            expect(document.body.childElementCount).toBe(0);
-            expect(getState("ui.tabButtonsEnabled")).toBe(true);
+            expect({
+                bodyChildren: Array.from(document.body.children),
+                tabButtonsEnabled: getState("ui.tabButtonsEnabled"),
+            }).toStrictEqual({
+                bodyChildren: [],
+                tabButtonsEnabled: true,
+            });
         });
 
         it("should work with mixed button states", () => {
@@ -99,14 +164,32 @@ describe("enable tab buttons", () => {
             // Enable all
             setTabButtonsEnabled(true);
 
-            tabButtons.forEach((button) => {
-                const htmlButton = button as HTMLButtonElement;
-                expect(htmlButton.disabled).toBe(false);
-                expect(htmlButton.classList.contains("tab-disabled")).toBe(
-                    false
-                );
-                expect(htmlButton.getAttribute("aria-disabled")).toBe("false");
-            });
+            expect(getTabButtonSnapshots()).toMatchObject([
+                {
+                    ariaDisabled: "false",
+                    classes: ["tab-button", "active"],
+                    disabled: false,
+                    id: "tab-summary",
+                },
+                {
+                    ariaDisabled: "false",
+                    classes: ["tab-button"],
+                    disabled: false,
+                    id: "tab-chart",
+                },
+                {
+                    ariaDisabled: "false",
+                    classes: ["tab-button"],
+                    disabled: false,
+                    id: "tab-map",
+                },
+                {
+                    ariaDisabled: "false",
+                    classes: ["tab-button"],
+                    disabled: false,
+                    id: "tab-table",
+                },
+            ]);
         });
 
         it("should preserve other classes when enabling/disabling", () => {
@@ -116,9 +199,13 @@ describe("enable tab buttons", () => {
             firstButton.classList.add("custom-class", "another-class");
 
             setTabButtonsEnabled(false);
-            expect(firstButton.classList.contains("custom-class")).toBe(true);
-            expect(firstButton.classList.contains("another-class")).toBe(true);
-            expect(firstButton.classList.contains("tab-disabled")).toBe(true);
+            expect([...firstButton.classList]).toStrictEqual([
+                "tab-button",
+                "active",
+                "custom-class",
+                "another-class",
+                "tab-disabled",
+            ]);
 
             setTabButtonsEnabled(true);
             expect([...firstButton.classList]).toStrictEqual([
@@ -127,7 +214,6 @@ describe("enable tab buttons", () => {
                 "custom-class",
                 "another-class",
             ]);
-            expect(firstButton.classList.contains("tab-disabled")).toBe(false);
             expect(firstButton.getAttribute("aria-disabled")).toBe("false");
         });
 
@@ -141,12 +227,28 @@ describe("enable tab buttons", () => {
             setTabButtonsEnabled(false);
             setTabButtonsEnabled(true);
 
-            const tabButtons = document.querySelectorAll(".tab-button");
-            tabButtons.forEach((button) => {
-                const htmlButton = button as HTMLButtonElement;
-                expect(htmlButton.disabled).toBe(false);
-                expect(htmlButton.getAttribute("aria-disabled")).toBe("false");
-            });
+            expect(getTabButtonSnapshots()).toMatchObject([
+                {
+                    ariaDisabled: "false",
+                    disabled: false,
+                    id: "tab-summary",
+                },
+                {
+                    ariaDisabled: "false",
+                    disabled: false,
+                    id: "tab-chart",
+                },
+                {
+                    ariaDisabled: "false",
+                    disabled: false,
+                    id: "tab-map",
+                },
+                {
+                    ariaDisabled: "false",
+                    disabled: false,
+                    id: "tab-table",
+                },
+            ]);
 
             // Should have logged the operations - check for the actual log messages
             expect(consoleSpy).toHaveBeenCalledWith(
@@ -174,16 +276,32 @@ describe("enable tab buttons", () => {
 
             setTabButtonsEnabled(false);
 
-            tabButtons.forEach((button) => {
-                const htmlButton = button as HTMLButtonElement;
-
-                // All three methods should be in sync
-                expect(htmlButton.disabled).toBe(true);
-                expect(htmlButton.hasAttribute("disabled")).toBe(true);
-                expect(htmlButton.classList.contains("tab-disabled")).toBe(
-                    true
-                );
-            });
+            expect(getTabButtonSnapshots()).toMatchObject([
+                {
+                    classes: expect.arrayContaining(["tab-disabled"]),
+                    disabled: true,
+                    hasDisabledAttribute: true,
+                    id: "tab-summary",
+                },
+                {
+                    classes: expect.arrayContaining(["tab-disabled"]),
+                    disabled: true,
+                    hasDisabledAttribute: true,
+                    id: "tab-chart",
+                },
+                {
+                    classes: expect.arrayContaining(["tab-disabled"]),
+                    disabled: true,
+                    hasDisabledAttribute: true,
+                    id: "tab-map",
+                },
+                {
+                    classes: expect.arrayContaining(["tab-disabled"]),
+                    disabled: true,
+                    hasDisabledAttribute: true,
+                    id: "tab-table",
+                },
+            ]);
         });
 
         it("should handle rapid enable/disable cycles", () => {
@@ -194,12 +312,15 @@ describe("enable tab buttons", () => {
             }
 
             // Final state should be disabled (i=9, 9%2=1, so setTabButtonsEnabled(false) was last call)
-            const tabButtons = document.querySelectorAll(".tab-button");
-            tabButtons.forEach((button) => {
-                const htmlButton = button as HTMLButtonElement;
-                expect(htmlButton.disabled).toBe(true); // Changed to true since last call was false
-                expect(htmlButton.classList).not.toContain("active-disabled");
-            });
+            expect(getTabButtonSnapshots()).toMatchObject([
+                { disabled: true, id: "tab-summary" },
+                { disabled: true, id: "tab-chart" },
+                { disabled: true, id: "tab-map" },
+                { disabled: true, id: "tab-table" },
+            ]);
+            expect(
+                getTabButtonSnapshots().flatMap((snapshot) => snapshot.classes)
+            ).not.toContain("active-disabled");
         });
     });
 });
