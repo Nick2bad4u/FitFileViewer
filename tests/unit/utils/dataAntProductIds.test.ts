@@ -80,7 +80,7 @@ const getProduct = (
 
 describe("data ant product ID lookup", () => {
     it("exports nested manufacturer product maps", () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         const entries = Object.entries(dataAntProductIds);
 
@@ -95,7 +95,7 @@ describe("data ant product ID lookup", () => {
     });
 
     it("uses positive integer string keys and non-empty product names", () => {
-        expect.hasAssertions();
+        expect.assertions(2425);
 
         const productEntries = Object.entries(dataAntProductIds);
 
@@ -131,7 +131,7 @@ describe("data ant product ID lookup", () => {
     });
 
     it("keeps representative product mappings stable", () => {
-        expect.hasAssertions();
+        expect.assertions(11);
 
         expect(
             new Set(
@@ -152,7 +152,7 @@ describe("data ant product ID lookup", () => {
     });
 
     it("rejects unsupported manufacturer or product IDs", () => {
-        expect.hasAssertions();
+        expect.assertions(8);
 
         for (const [manufacturerId, productId] of invalidLookups) {
             expect(getProduct(manufacturerId, productId)).toBeUndefined();
@@ -160,7 +160,7 @@ describe("data ant product ID lookup", () => {
     });
 
     it("supports string and integer-equivalent numeric access consistently", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         expect(getProduct(1, 1036)).toBe("edge500");
         expect(getProduct("1", "1036")).toBe("edge500");
@@ -169,7 +169,7 @@ describe("data ant product ID lookup", () => {
     });
 
     it("keeps product names in formatter-safe display keys", () => {
-        expect.hasAssertions();
+        expect.assertions(1928);
 
         const productNames = Object.values(dataAntProductIds).flatMap(
             (products) => Object.values(products)
@@ -184,7 +184,7 @@ describe("data ant product ID lookup", () => {
     });
 
     it("is enumerable for reverse lookup formatting", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const productEntries = Object.entries(productLookup["1"] ?? {});
         const edge500Entry = productEntries.find(

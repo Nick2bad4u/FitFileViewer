@@ -55,7 +55,7 @@ const getManufacturer = (manufacturerId: unknown): string | undefined =>
 
 describe("data ant manufacturer ID lookup", () => {
     it("exports an immutable numeric lookup table", () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         const entries = Object.entries(dataAntManufacturerIDs);
         const keys = Object.keys(dataAntManufacturerIDs);
@@ -79,7 +79,7 @@ describe("data ant manufacturer ID lookup", () => {
     });
 
     it("uses positive integer string keys and non-empty manufacturer keys", () => {
-        expect.hasAssertions();
+        expect.assertions(1160);
 
         const entries = Object.entries(dataAntManufacturerIDs);
 
@@ -97,7 +97,7 @@ describe("data ant manufacturer ID lookup", () => {
     });
 
     it("keeps canonical ANT and FIT manufacturer mappings stable", () => {
-        expect.hasAssertions();
+        expect.assertions(27);
 
         expect(new Set(knownManufacturerMappings.map(([id]) => id)).size).toBe(
             knownManufacturerMappings.length
@@ -112,7 +112,7 @@ describe("data ant manufacturer ID lookup", () => {
     });
 
     it("rejects unsupported lookup keys without falling back to a manufacturer", () => {
-        expect.hasAssertions();
+        expect.assertions(24);
 
         for (const [, manufacturerId] of invalidLookupKeys) {
             expect({
@@ -128,7 +128,7 @@ describe("data ant manufacturer ID lookup", () => {
     });
 
     it("keeps names in the canonical adapter-safe format", () => {
-        expect.hasAssertions();
+        expect.assertions(1161);
 
         const values = Object.values(dataAntManufacturerIDs);
         const lowercaseNames = values.filter(
@@ -171,7 +171,7 @@ describe("data ant manufacturer ID lookup", () => {
     });
 
     it("is enumerable for formatter reverse lookups", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const entries = Object.entries(dataAntManufacturerIDs);
         const garminEntry = entries.find(([, name]) => name === "garmin");
