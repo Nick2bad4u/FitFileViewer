@@ -8,7 +8,7 @@ import {
 
 describe("auxHeartRateUtils", () => {
     it("detects explicit auxHeartRate fields", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const recordMesgs = [{ auxHeartRate: 120 }, { auxHeartRate: 125 }];
 
@@ -26,7 +26,7 @@ describe("auxHeartRateUtils", () => {
     });
 
     it("normalizes snake_case aux_heart_rate fields", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const recordMesgs = [{ aux_heart_rate: 118 }, { aux_heart_rate: 122 }];
 
@@ -41,7 +41,7 @@ describe("auxHeartRateUtils", () => {
     });
 
     it("detects numbered heart_rate fields as auxiliary", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const recordMesgs = [{ heart_rate_2: 140 }, { heart_rate_2: 141 }];
 
@@ -56,7 +56,7 @@ describe("auxHeartRateUtils", () => {
     });
 
     it("maps developer fields when descriptions indicate auxiliary HR", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const recordMesgs = [
             { developerFields: '{"7": 155}' },
@@ -86,7 +86,7 @@ describe("auxHeartRateUtils", () => {
     });
 
     it("falls back to row inspection when record context is missing", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const row = { heart_rate_2: 149 };
         const value = getAuxHeartRateValue(row);

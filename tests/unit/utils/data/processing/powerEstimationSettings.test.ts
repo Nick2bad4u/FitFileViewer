@@ -20,7 +20,7 @@ describe("powerEstimationSettings.js", () => {
     });
 
     it("getPowerEstimationSettings should return defaults when storage is empty", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         mockGet.mockReturnValue(undefined);
 
@@ -43,7 +43,7 @@ describe("powerEstimationSettings.js", () => {
     });
 
     it("getPowerEstimationSettings should respect stored values and handle invalid types", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         mockGet.mockImplementation((key: string) => {
             if (key === "enabled") return false;
@@ -77,7 +77,7 @@ describe("powerEstimationSettings.js", () => {
     });
 
     it("setPowerEstimationSettings should persist all keys", async () => {
-        expect.hasAssertions();
+        expect.assertions(11);
 
         const storedSettings = new Map<string, StoredValue>();
         mockSet.mockImplementation((key, value) => {
