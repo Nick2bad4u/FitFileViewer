@@ -220,9 +220,24 @@ describe("setupApplicationEventHandlers permission hardening", () => {
         const activateCount2 = appEmitter.listenerCount("activate");
         const wccCount2 = appEmitter.listenerCount("web-contents-created");
 
-        expect(activateCount1).toBe(1);
-        expect(wccCount1).toBe(1);
-        expect(activateCount2).toBe(1);
-        expect(wccCount2).toBe(1);
+        expect({
+            afterFirstSetup: {
+                activate: activateCount1,
+                webContentsCreated: wccCount1,
+            },
+            afterSecondSetup: {
+                activate: activateCount2,
+                webContentsCreated: wccCount2,
+            },
+        }).toStrictEqual({
+            afterFirstSetup: {
+                activate: 1,
+                webContentsCreated: 1,
+            },
+            afterSecondSetup: {
+                activate: 1,
+                webContentsCreated: 1,
+            },
+        });
     });
 });
