@@ -31,7 +31,7 @@ describe("render chart runtime environment helpers", () => {
     });
 
     it("treats missing process globals as a non-node environment", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         setGlobalProcess(undefined);
 
@@ -47,7 +47,7 @@ describe("render chart runtime environment helpers", () => {
     });
 
     it("ignores malformed process.env values", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         setGlobalProcess({ env: undefined });
 
@@ -63,7 +63,7 @@ describe("render chart runtime environment helpers", () => {
     });
 
     it("reads NODE_ENV only when it is a string", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         setGlobalProcess({ env: { NODE_ENV: "development" } });
 

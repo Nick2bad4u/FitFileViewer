@@ -51,7 +51,7 @@ describe("mapBaseLayers", () => {
     });
 
     it("uses shim when global L is not present", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         delete (global as any).L;
         const mod =
@@ -64,7 +64,7 @@ describe("mapBaseLayers", () => {
     });
 
     it("calls L.tileLayer and L.maplibreGL when present", async () => {
-        expect.hasAssertions();
+        expect.assertions(7);
 
         const rasterLayer = { kind: "raster" };
         const vectorLayer = { kind: "vector" };
@@ -93,7 +93,7 @@ describe("mapBaseLayers", () => {
     });
 
     it("falls back to the shim when global L lacks tileLayer", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const maplibreGL = vi.fn<() => MockLayer>(() => ({ kind: "unused" }));
         (global as any).L = {
