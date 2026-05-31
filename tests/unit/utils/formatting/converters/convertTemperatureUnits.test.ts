@@ -4,12 +4,14 @@ import {
     TEMPERATURE_UNITS,
 } from "../../../../../electron-app/utils/formatting/converters/convertTemperatureUnits.js";
 
-describe("convertTemperatureUnits", () => {
+describe(convertTemperatureUnits, () => {
     afterEach(() => {
         vi.restoreAllMocks();
     });
 
     it("converts Celsius to the requested temperature unit", () => {
+        expect.hasAssertions();
+
         expect(convertTemperatureUnits(25, TEMPERATURE_UNITS.CELSIUS)).toBe(25);
         expect(convertTemperatureUnits(0, TEMPERATURE_UNITS.FAHRENHEIT)).toBe(
             32
@@ -26,6 +28,8 @@ describe("convertTemperatureUnits", () => {
     });
 
     it("handles invalid-input temperatures by throwing TypeError", () => {
+        expect.hasAssertions();
+
         for (const value of [
             null,
             undefined,
@@ -42,6 +46,8 @@ describe("convertTemperatureUnits", () => {
     });
 
     it("warns and returns Celsius unchanged for unknown units", () => {
+        expect.hasAssertions();
+
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
         expect(convertTemperatureUnits(25, "kelvin")).toBe(25);

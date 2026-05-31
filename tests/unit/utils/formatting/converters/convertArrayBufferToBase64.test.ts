@@ -16,7 +16,7 @@ function patternedBuffer(length: number): ArrayBuffer {
     return buffer;
 }
 
-describe("convertArrayBufferToBase64", () => {
+describe(convertArrayBufferToBase64, () => {
     it.each([
         [[], ""],
         [[65], "QQ=="],
@@ -77,12 +77,16 @@ describe("convertArrayBufferToBase64", () => {
             "DhAgAAAAAAAuRklUAAA=",
         ],
     ])("encodes %j as %s", (bytes, expected) => {
+        expect.hasAssertions();
+
         expect(convertArrayBufferToBase64(bufferFromBytes(bytes))).toBe(
             expected
         );
     });
 
     it("throws for invalid-input values", () => {
+        expect.hasAssertions();
+
         const cases: Array<[unknown, string]> = [
             [null, "object"],
             [undefined, "undefined"],
@@ -108,6 +112,8 @@ describe("convertArrayBufferToBase64", () => {
     });
 
     it("matches browser base64 encoding for text bytes", () => {
+        expect.hasAssertions();
+
         const text = "Hello, World!";
         const bytes = Array.from(text, (character) => character.charCodeAt(0));
 
@@ -117,11 +123,13 @@ describe("convertArrayBufferToBase64", () => {
     });
 
     it("uses chunked encoding for buffers larger than the 32KB argument limit", () => {
+        expect.hasAssertions();
+
         const buffer = patternedBuffer(0x80_00 + 1000);
         const result = convertArrayBufferToBase64(buffer);
 
         expect(result).toMatch(/^[A-Za-z0-9+/]*={0,2}$/u);
-        expect(result.length).toBe(Math.ceil(buffer.byteLength / 3) * 4);
+        expect(result).toHaveLength(Math.ceil(buffer.byteLength / 3) * 4);
         expect(result).toBe(Buffer.from(buffer).toString("base64"));
     });
 });

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { convertMpsToKmh } from "../../../../../electron-app/utils/formatting/converters/convertMpsToKmh.js";
 
-describe("convertMpsToKmh", () => {
+describe(convertMpsToKmh, () => {
     afterEach(() => {
         vi.restoreAllMocks();
     });
@@ -16,6 +16,8 @@ describe("convertMpsToKmh", () => {
         [28, 100.8],
         [1_000_000, 3_600_000],
     ])("converts %d m/s to %d km/h", (mps, expected) => {
+        expect.hasAssertions();
+
         expect(convertMpsToKmh(mps)).toBeCloseTo(expected, 10);
     });
 
@@ -28,12 +30,16 @@ describe("convertMpsToKmh", () => {
         [[], "object"],
         [Number.NaN, "number"],
     ])("rejects %s input", (value, type) => {
+        expect.hasAssertions();
+
         expect(() => convertMpsToKmh(value)).toThrow(
             `Expected mps to be a number, received ${type}`
         );
     });
 
     it("warns but still converts negative speeds", () => {
+        expect.hasAssertions();
+
         const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
 
         expect(convertMpsToKmh(-5)).toBe(-18);
@@ -51,6 +57,8 @@ describe("convertMpsToKmh", () => {
     });
 
     it("preserves special numeric values and floating point precision", () => {
+        expect.hasAssertions();
+
         expect(convertMpsToKmh(Infinity)).toBe(Infinity);
         expect(convertMpsToKmh(0.0001)).toBeCloseTo(0.00036, 10);
         expect(convertMpsToKmh(1 / 3)).toBeCloseTo((1 / 3) * 3.6, 10);

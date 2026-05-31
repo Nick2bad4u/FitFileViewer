@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { convertMpsToMph } from "../../../../../electron-app/utils/formatting/converters/convertMpsToMph.js";
 
-describe("convertMpsToMph", () => {
+describe(convertMpsToMph, () => {
     afterEach(() => {
         vi.restoreAllMocks();
     });
@@ -16,6 +16,8 @@ describe("convertMpsToMph", () => {
         [29.06, 65.005_360_16],
         [1_000_000, 2_236_936],
     ])("converts %d m/s to %d mph", (mps, expected) => {
+        expect.hasAssertions();
+
         expect(convertMpsToMph(mps)).toBeCloseTo(expected, 10);
     });
 
@@ -28,12 +30,16 @@ describe("convertMpsToMph", () => {
         [[], "object"],
         [Number.NaN, "number"],
     ])("rejects %s input", (value, type) => {
+        expect.hasAssertions();
+
         expect(() => convertMpsToMph(value)).toThrow(
             `Expected mps to be a number, received ${type}`
         );
     });
 
     it("warns but still converts negative speeds", () => {
+        expect.hasAssertions();
+
         const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
 
         expect(convertMpsToMph(-5)).toBeCloseTo(-11.184_68, 10);
@@ -51,6 +57,8 @@ describe("convertMpsToMph", () => {
     });
 
     it("preserves special numeric values and floating point precision", () => {
+        expect.hasAssertions();
+
         expect(convertMpsToMph(Infinity)).toBe(Infinity);
         expect(convertMpsToMph(0.0001)).toBeCloseTo(0.000_223_693_6, 10);
         expect(convertMpsToMph(1 / 3)).toBeCloseTo((1 / 3) * 2.236_936, 10);

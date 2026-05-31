@@ -4,12 +4,14 @@ import {
     TIME_UNITS,
 } from "../../../../../electron-app/utils/formatting/converters/convertTimeUnits.js";
 
-describe("convertTimeUnits", () => {
+describe(convertTimeUnits, () => {
     afterEach(() => {
         vi.restoreAllMocks();
     });
 
     it("converts seconds to each supported time unit", () => {
+        expect.hasAssertions();
+
         expect(convertTimeUnits(3600, TIME_UNITS.SECONDS)).toBe(3600);
         expect(convertTimeUnits(90, TIME_UNITS.MINUTES)).toBe(1.5);
         expect(convertTimeUnits(5400, TIME_UNITS.HOURS)).toBe(1.5);
@@ -17,6 +19,8 @@ describe("convertTimeUnits", () => {
     });
 
     it("preserves signed and infinite numeric values", () => {
+        expect.hasAssertions();
+
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
         expect(convertTimeUnits(-3600, TIME_UNITS.HOURS)).toBe(-1);
@@ -29,6 +33,8 @@ describe("convertTimeUnits", () => {
     });
 
     it("handles invalid-input seconds by throwing TypeError", () => {
+        expect.hasAssertions();
+
         for (const value of [
             null,
             undefined,
@@ -45,6 +51,8 @@ describe("convertTimeUnits", () => {
     });
 
     it("warns and returns seconds unchanged for unknown units", () => {
+        expect.hasAssertions();
+
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
         expect(convertTimeUnits(3600, "days")).toBe(3600);

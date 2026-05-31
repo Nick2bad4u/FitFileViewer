@@ -4,12 +4,14 @@ import {
     DISTANCE_UNITS,
 } from "../../../../../electron-app/utils/formatting/converters/convertDistanceUnits.js";
 
-describe("convertDistanceUnits", () => {
+describe(convertDistanceUnits, () => {
     afterEach(() => {
         vi.restoreAllMocks();
     });
 
     it("converts meters to each supported distance unit", () => {
+        expect.hasAssertions();
+
         expect(convertDistanceUnits(1000, DISTANCE_UNITS.METERS)).toBe(1000);
         expect(convertDistanceUnits(1000, DISTANCE_UNITS.KILOMETERS)).toBe(1);
         expect(convertDistanceUnits(1, DISTANCE_UNITS.FEET)).toBeCloseTo(
@@ -22,6 +24,8 @@ describe("convertDistanceUnits", () => {
     });
 
     it("preserves signed and infinite numeric values", () => {
+        expect.hasAssertions();
+
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
         expect(convertDistanceUnits(-2500, DISTANCE_UNITS.KILOMETERS)).toBe(
@@ -38,6 +42,8 @@ describe("convertDistanceUnits", () => {
     });
 
     it("handles invalid-input meters by throwing TypeError", () => {
+        expect.hasAssertions();
+
         for (const value of [
             null,
             undefined,
@@ -54,6 +60,8 @@ describe("convertDistanceUnits", () => {
     });
 
     it("warns and returns meters unchanged for unknown units", () => {
+        expect.hasAssertions();
+
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
         expect(convertDistanceUnits(1000, "yards")).toBe(1000);
