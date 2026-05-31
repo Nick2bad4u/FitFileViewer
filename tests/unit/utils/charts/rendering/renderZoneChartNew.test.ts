@@ -1,52 +1,61 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
-const createChartCanvasMock = vi.fn();
-const detectCurrentThemeMock = vi.fn();
-const getThemeConfigMock = vi.fn();
-const getZoneTypeFromFieldMock = vi.fn();
-const getChartZoneColorsMock = vi.fn();
-const formatTimeMock = vi.fn();
+type ChartConfig = Record<string, any>;
+type ChartInstance = { data: unknown; destroy: () => void };
+type ThemeName = "dark" | "light";
+
+const createChartCanvasMock =
+    vi.fn<(chartId: string, index: number) => HTMLCanvasElement>();
+const detectCurrentThemeMock = vi.fn<() => ThemeName>();
+const getThemeConfigMock = vi.fn<() => Record<string, unknown>>();
+const getZoneTypeFromFieldMock = vi.fn<(field: string) => string>();
+const getChartZoneColorsMock =
+    vi.fn<(zoneType: string, zoneCount: number) => string[]>();
+const formatTimeMock =
+    vi.fn<(value: unknown, includeSeconds?: boolean) => string>();
 
 const chartBackgroundColorPluginStub = { id: "background-plugin" };
 
 vi.mock(
-    "../../../../../electron-app/utils/charts/components/createChartCanvas.js",
+    import("../../../../../electron-app/utils/charts/components/createChartCanvas.js"),
     () => ({
-        createChartCanvas: (...args: any[]) => createChartCanvasMock(...args),
+        createChartCanvas: createChartCanvasMock,
     })
 );
 
 vi.mock(
-    "../../../../../electron-app/utils/charts/plugins/chartBackgroundColorPlugin.js",
+    import("../../../../../electron-app/utils/charts/plugins/chartBackgroundColorPlugin.js"),
     () => ({
         chartBackgroundColorPlugin: chartBackgroundColorPluginStub,
     })
 );
 
 vi.mock(
-    "../../../../../electron-app/utils/charts/theming/chartThemeUtils.js",
+    import("../../../../../electron-app/utils/charts/theming/chartThemeUtils.js"),
     () => ({
-        detectCurrentTheme: (...args: any[]) => detectCurrentThemeMock(...args),
+        detectCurrentTheme: detectCurrentThemeMock,
     })
 );
 
 vi.mock(
-    "../../../../../electron-app/utils/data/zones/chartZoneColorUtils.js",
+    import("../../../../../electron-app/utils/data/zones/chartZoneColorUtils.js"),
     () => ({
-        getChartZoneColors: (...args: any[]) => getChartZoneColorsMock(...args),
-        getZoneTypeFromField: (...args: any[]) =>
-            getZoneTypeFromFieldMock(...args),
+        getChartZoneColors: getChartZoneColorsMock,
+        getZoneTypeFromField: getZoneTypeFromFieldMock,
     })
 );
 
-vi.mock("../../../../../electron-app/utils/theming/core/theme.js", () => ({
-    getThemeConfig: (...args: any[]) => getThemeConfigMock(...args),
-}));
+vi.mock(
+    import("../../../../../electron-app/utils/theming/core/theme.js"),
+    () => ({
+        getThemeConfig: getThemeConfigMock,
+    })
+);
 
 vi.mock(
-    "../../../../../electron-app/utils/formatting/formatters/formatTime.js",
+    import("../../../../../electron-app/utils/formatting/formatters/formatTime.js"),
     () => ({
-        formatTime: (...args: any[]) => formatTimeMock(...args),
+        formatTime: formatTimeMock,
     })
 );
 
@@ -66,7 +75,11 @@ function lightenColor(hex: string, delta: number) {
     return `rgba(${r}, ${g}, ${b}, 0.9)`;
 }
 
-let chartConstructorMock: ReturnType<typeof vi.fn>;
+let chartConstructorMock: ReturnType<
+    typeof vi.fn<
+        (canvas: HTMLCanvasElement, config: ChartConfig) => ChartInstance
+    >
+>;
 let chartCalls: Array<{ canvas: HTMLCanvasElement; config: any }>;
 
 beforeEach(() => {
@@ -76,7 +89,7 @@ beforeEach(() => {
     createChartCanvasMock.mockImplementation((id: string) => {
         const canvas = document.createElement("canvas");
         canvas.dataset.chartId = id;
-        canvas.getContext = vi.fn();
+        vi.spyOn(canvas, "getContext").mockReturnValue(null);
         return canvas as HTMLCanvasElement;
     });
 
@@ -99,12 +112,11 @@ beforeEach(() => {
     ]);
     formatTimeMock.mockImplementation((value: unknown) => `formatted-${value}`);
 
-    chartConstructorMock = vi.fn().mockImplementation(function Chart(
-        canvas: HTMLCanvasElement,
-        config: any
-    ) {
+    chartConstructorMock = vi.fn<
+        (canvas: HTMLCanvasElement, config: ChartConfig) => ChartInstance
+    >(function Chart(canvas: HTMLCanvasElement, config: ChartConfig) {
         chartCalls.push({ canvas, config });
-        return { destroy: vi.fn(), data: config.data };
+        return { data: config["data"], destroy: vi.fn<() => void>() };
     });
     (globalThis as any).Chart = chartConstructorMock;
     delete (globalThis as any)._chartjsInstances;
@@ -120,6 +132,8 @@ afterEach(() => {
 
 describe("renderZoneChartNew", () => {
     it("returns early when container is invalid or zone data is empty", async () => {
+        expect.hasAssertions();
+
         const { renderZoneChart } = await loadModule();
 
         renderZoneChart(
@@ -141,6 +155,8 @@ describe("renderZoneChartNew", () => {
     });
 
     it("creates a doughnut chart using provided zone colors and updates legend + tooltips", async () => {
+        expect.hasAssertions();
+
         const { renderZoneChart } = await loadModule();
 
         const container = document.createElement("div");
@@ -156,15 +172,7 @@ describe("renderZoneChartNew", () => {
         expect(renderedCanvas?.dataset.chartId).toBe("hr-zone-chart");
         expect(renderedCanvas?.style.borderRadius).toBe("12px");
 
-        // Debug: check if Chart was called
-        console.log(
-            "Chart constructor called:",
-            chartConstructorMock.mock.calls.length
-        );
-        console.log("chartCalls array length:", chartCalls.length);
-        console.log("globalThis.Chart is:", typeof (globalThis as any).Chart);
-
-        expect(chartConstructorMock).toHaveBeenCalledTimes(1);
+        expect(chartConstructorMock).toHaveBeenCalledOnce();
 
         expect(chartCalls.length).toBeGreaterThan(0);
         const { canvas, config } = chartCalls[0]!;
@@ -205,6 +213,8 @@ describe("renderZoneChartNew", () => {
     });
 
     it("creates a bar chart using zone type colors and applies theme-aware settings", async () => {
+        expect.hasAssertions();
+
         detectCurrentThemeMock.mockReturnValue("dark");
         getThemeConfigMock.mockReturnValue({
             colors: {
@@ -235,7 +245,7 @@ describe("renderZoneChartNew", () => {
             "power-zone-chart",
             0
         );
-        expect(chartConstructorMock).toHaveBeenCalledTimes(1);
+        expect(chartConstructorMock).toHaveBeenCalledOnce();
 
         expect(chartCalls.length).toBeGreaterThan(0);
         const { config } = chartCalls[0]!;
@@ -269,6 +279,8 @@ describe("renderZoneChartNew", () => {
     });
 
     it("logs an error when chart creation fails", async () => {
+        expect.hasAssertions();
+
         chartConstructorMock.mockImplementation(() => {
             throw new Error("chart boom");
         });
