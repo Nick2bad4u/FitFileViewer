@@ -1,9 +1,21 @@
-/**
- * @vitest-environment jsdom
- */
+// @vitest-environment jsdom
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { JSDOM } from "jsdom";
+
+type StateSetOptions = {
+    source: string;
+};
+type GetState = (path?: string) => unknown;
+type SetState = (
+    path: string,
+    value: unknown,
+    options?: StateSetOptions
+) => void;
+type Subscribe = (
+    path: string,
+    callback: (newValue: unknown, oldValue?: unknown, path?: string) => void
+) => unknown;
 
 // Utility to cleanly reset modules between environment permutations
 const resetAll = async () => {
@@ -53,14 +65,16 @@ describe("updateActiveTab.js - environment fallbacks", () => {
     });
 
     it("uses __vitest_effective_stateManager__ when module functions are unavailable", async () => {
+        expect.hasAssertions();
+
         // Arrange a normal JSDOM document for DOM operations
         document.body.replaceChildren();
         appendTabButton({ id: "tab-summary", label: "Summary" });
 
         // Provide a global effective state manager (distinct spies)
-        const effSetState = vi.fn();
-        const effGetState = vi.fn().mockReturnValue("summary");
-        const effSubscribe = vi.fn();
+        const effSetState = vi.fn<SetState>();
+        const effGetState = vi.fn<GetState>().mockReturnValue("summary");
+        const effSubscribe = vi.fn<Subscribe>();
         (globalThis as any).__vitest_effective_stateManager__ = {
             setState: effSetState,
             getState: effGetState,
@@ -70,7 +84,7 @@ describe("updateActiveTab.js - environment fallbacks", () => {
         // Mock the module path used within updateActiveTab.js to export no functions,
         // forcing getStateMgr() to pick up the global effective state manager.
         vi.doMock(
-            "../../../electron-app/utils/state/core/stateManager.js",
+            import("../../../electron-app/utils/state/core/stateManager.js"),
             () => ({})
         );
 
@@ -89,6 +103,8 @@ describe("updateActiveTab.js - environment fallbacks", () => {
     });
 
     it("falls back to __vitest_effective_document__ when document/window are unavailable/invalid", async () => {
+        expect.hasAssertions();
+
         // Create a separate JSDOM to act as the effective document
         const effDom = new JSDOM(
             '<!doctype html><html><body><button id="tab-chart" class="tab-button">Chart</button></body></html>'
@@ -102,11 +118,11 @@ describe("updateActiveTab.js - environment fallbacks", () => {
         (globalThis as any).window = undefined;
 
         // Provide a minimal viable state manager to satisfy calls
-        const setState = vi.fn();
-        const getState = vi.fn().mockReturnValue("chart");
-        const subscribe = vi.fn();
+        const setState = vi.fn<SetState>();
+        const getState = vi.fn<GetState>().mockReturnValue("chart");
+        const subscribe = vi.fn<Subscribe>();
         vi.doMock(
-            "../../../electron-app/utils/state/core/stateManager.js",
+            import("../../../electron-app/utils/state/core/stateManager.js"),
             () => ({
                 setState,
                 getState,
@@ -131,6 +147,8 @@ describe("updateActiveTab.js - environment fallbacks", () => {
     });
 
     it("uses window.document when document is undefined (window fallback)", async () => {
+        expect.hasAssertions();
+
         // Prepare a fresh JSDOM to simulate window.document while document is undefined
         const dom = new JSDOM(
             '<!doctype html><html><body><button id="tab-win" class="tab-button">Win</button></body></html>'
@@ -142,11 +160,11 @@ describe("updateActiveTab.js - environment fallbacks", () => {
             document: dom.window.document,
         } as unknown as Window;
 
-        const setState = vi.fn();
-        const getState = vi.fn().mockReturnValue("win");
-        const subscribe = vi.fn();
+        const setState = vi.fn<SetState>();
+        const getState = vi.fn<GetState>().mockReturnValue("win");
+        const subscribe = vi.fn<Subscribe>();
         vi.doMock(
-            "../../../electron-app/utils/state/core/stateManager.js",
+            import("../../../electron-app/utils/state/core/stateManager.js"),
             () => ({
                 setState,
                 getState,
@@ -169,6 +187,8 @@ describe("updateActiveTab.js - environment fallbacks", () => {
     });
 
     it("subscribes and updates aria-selected via state callback (valid path)", async () => {
+        expect.hasAssertions();
+
         // Standard DOM with two buttons
         document.body.replaceChildren();
         appendTabButton({
@@ -182,11 +202,11 @@ describe("updateActiveTab.js - environment fallbacks", () => {
             label: "Data",
         });
 
-        const setState = vi.fn();
-        const getState = vi.fn().mockReturnValue("summary");
-        const subscribe = vi.fn();
+        const setState = vi.fn<SetState>();
+        const getState = vi.fn<GetState>().mockReturnValue("summary");
+        const subscribe = vi.fn<Subscribe>();
         vi.doMock(
-            "../../../electron-app/utils/state/core/stateManager.js",
+            import("../../../electron-app/utils/state/core/stateManager.js"),
             () => ({
                 setState,
                 getState,
@@ -204,10 +224,10 @@ describe("updateActiveTab.js - environment fallbacks", () => {
             expect.any(Function)
         );
         const call = subscribe.mock.calls.find(
-            (c: any[]) => c[0] === "ui.activeTab"
+            ([path]) => path === "ui.activeTab"
         );
         expect(call).toEqual(["ui.activeTab", expect.any(Function)]);
-        const cb = call[1] as (val: string) => void;
+        const cb = call?.[1] as (val: string) => void;
 
         // Act: make "data" active via state
         cb("data");
@@ -230,6 +250,8 @@ describe("updateActiveTab.js - environment fallbacks", () => {
     });
 
     it('ignores clicks on aria-disabled="true" buttons (no disabled/class)', async () => {
+        expect.hasAssertions();
+
         document.body.replaceChildren();
         const tabMapButton = appendTabButton({
             ariaDisabled: "true",
@@ -237,11 +259,11 @@ describe("updateActiveTab.js - environment fallbacks", () => {
             label: "Map",
         });
 
-        const setState = vi.fn();
-        const getState = vi.fn().mockReturnValue("summary");
-        const subscribe = vi.fn();
+        const setState = vi.fn<SetState>();
+        const getState = vi.fn<GetState>().mockReturnValue("summary");
+        const subscribe = vi.fn<Subscribe>();
         vi.doMock(
-            "../../../electron-app/utils/state/core/stateManager.js",
+            import("../../../electron-app/utils/state/core/stateManager.js"),
             () => ({
                 setState,
                 getState,
