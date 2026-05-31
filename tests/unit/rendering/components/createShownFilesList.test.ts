@@ -1,13 +1,20 @@
 /**
- * @file Comprehensive tests for createShownFilesList.js Tests DOM creation,
- *   theme handling, color accessibility, file management, interactive features,
- *   tooltip system, and Leaflet map integration.
+ * Comprehensive tests for createShownFilesList.js covering DOM creation, theme
+ * handling, color accessibility, file management, interactive features, tooltip
+ * behavior, and Leaflet map integration.
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
+type MockComputedStyle = { color: string };
+type ThemeColors = {
+    border: string;
+    surface: string;
+    text: string;
+};
+
 // Mock dependencies
-const mockGetThemeColors = vi.fn();
+const mockGetThemeColors = vi.fn<() => Partial<ThemeColors>>();
 const mockChartOverlayColorPalette = [
     "#1976d2",
     "#388e3c",
@@ -63,14 +70,24 @@ describe("createShownFilesList", () => {
         // Mock getComputedStyle using vi.stubGlobal
         vi.stubGlobal(
             "getComputedStyle",
-            vi.fn().mockReturnValue({
-                color: "rgb(255, 255, 255)",
-                backgroundColor: "rgb(255, 255, 255)",
-                getPropertyValue: vi.fn((prop: string) => {
-                    if (prop === "color") return "rgb(255, 255, 255)";
-                    return "";
-                }),
-            })
+            vi
+                .fn<
+                    () => {
+                        backgroundColor: string;
+                        color: string;
+                        getPropertyValue: (property: string) => string;
+                    }
+                >()
+                .mockReturnValue({
+                    color: "rgb(255, 255, 255)",
+                    backgroundColor: "rgb(255, 255, 255)",
+                    getPropertyValue: vi.fn<(property: string) => string>(
+                        (prop) => {
+                            if (prop === "color") return "rgb(255, 255, 255)";
+                            return "";
+                        }
+                    ),
+                })
         );
 
         // Reset mock functions and re-establish default return values
@@ -90,13 +107,15 @@ describe("createShownFilesList", () => {
         windowMock._leafletMapInstance = null;
         windowMock._highlightedOverlayIdx = null;
         windowMock._overlayTooltipTimeout = null;
-        windowMock.updateOverlayHighlights = vi.fn();
-        windowMock.renderMap = vi.fn();
-        windowMock.updateShownFilesList = vi.fn(); // Make it a spy
+        Object.assign(windowMock, {
+            renderMap: vi.fn<() => void>(),
+            updateOverlayHighlights: vi.fn<() => void>(),
+            updateShownFilesList: vi.fn<() => void>(),
+        });
         windowMock.L = {
             CircleMarker: class MockCircleMarker {
                 constructor(public options: any) {}
-                bringToFront = vi.fn();
+                bringToFront = vi.fn<() => void>();
             },
         };
 
@@ -113,6 +132,7 @@ describe("createShownFilesList", () => {
 
     describe("basic DOM Creation", () => {
         it("creates container element with correct properties", () => {
+            expect.hasAssertions();
             const container = createShownFilesList();
 
             expect(container).toBeInstanceOf(HTMLElement);
@@ -133,6 +153,7 @@ describe("createShownFilesList", () => {
         });
 
         it("sets initial HTML content with proper structure", () => {
+            expect.hasAssertions();
             const container = createShownFilesList();
 
             expect(container.innerHTML).toContain(
@@ -152,6 +173,7 @@ describe("createShownFilesList", () => {
         });
 
         it("applies theme styles on creation", () => {
+            expect.hasAssertions();
             // Clear previous calls and set up fresh mock
             mockGetThemeColors.mockClear();
             mockGetThemeColors.mockReturnValue({
@@ -181,6 +203,7 @@ describe("createShownFilesList", () => {
         });
 
         it("handles missing theme properties with defaults", () => {
+            expect.hasAssertions();
             // Clear previous calls and set up fresh mock
             mockGetThemeColors.mockClear();
             mockGetThemeColors.mockReturnValue({
@@ -207,6 +230,7 @@ describe("createShownFilesList", () => {
         });
 
         it("sets up theme change event listener", () => {
+            expect.hasAssertions();
             const addEventListenerSpy = vi.spyOn(
                 document.body,
                 "addEventListener"
@@ -226,6 +250,7 @@ describe("createShownFilesList", () => {
         });
 
         it("initially hides container when no overlays exist", () => {
+            expect.hasAssertions();
             (global.window as any).loadedFitFiles = [];
 
             const container = createShownFilesList();
@@ -234,6 +259,7 @@ describe("createShownFilesList", () => {
         });
 
         it("initially hides container when only main file exists", () => {
+            expect.hasAssertions();
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
             ];
@@ -244,6 +270,7 @@ describe("createShownFilesList", () => {
         });
 
         it("shows container when multiple files exist", () => {
+            expect.hasAssertions();
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
                 { data: {}, filePath: "overlay.fit" },
@@ -262,6 +289,7 @@ describe("createShownFilesList", () => {
         });
 
         it("handles hex color parsing correctly", () => {
+            expect.hasAssertions();
             // Enable dark theme to trigger getComputedStyle call
             document.body.classList.add("theme-dark");
 
@@ -273,7 +301,7 @@ describe("createShownFilesList", () => {
 
             // Mock getComputedStyle for color testing
             const mockGetComputedStyle = vi
-                .fn()
+                .fn<() => MockComputedStyle>()
                 .mockReturnValue({ color: "rgb(25, 118, 210)" });
             vi.stubGlobal("getComputedStyle", mockGetComputedStyle);
 
@@ -284,10 +312,13 @@ describe("createShownFilesList", () => {
             expect(firstItem).toBeInstanceOf(HTMLLIElement);
             expect(firstItem?.textContent).toContain("overlay.fit");
             // Verify that color accessibility was checked
-            expect(mockGetComputedStyle).toHaveBeenCalled();
+            expect(mockGetComputedStyle).toHaveBeenCalledWith(
+                expect.any(HTMLSpanElement)
+            );
         });
 
         it("handles RGB color parsing correctly", () => {
+            expect.hasAssertions();
             // Enable dark theme to trigger getComputedStyle call
             document.body.classList.add("theme-dark");
 
@@ -297,7 +328,7 @@ describe("createShownFilesList", () => {
             ];
 
             const mockGetComputedStyle = vi
-                .fn()
+                .fn<() => MockComputedStyle>()
                 .mockReturnValue({ color: "rgb(255, 255, 255)" });
             vi.stubGlobal("getComputedStyle", mockGetComputedStyle);
 
@@ -308,17 +339,20 @@ describe("createShownFilesList", () => {
             expect(firstItem).toBeInstanceOf(HTMLLIElement);
             expect(firstItem?.style.color).not.toBe("");
             expect(firstItem?.style.filter).toContain("invert");
-            expect(mockGetComputedStyle).toHaveBeenCalled();
+            expect(mockGetComputedStyle).toHaveBeenCalledWith(
+                expect.any(HTMLSpanElement)
+            );
         });
 
         it("handles invalid color formats gracefully", () => {
+            expect.hasAssertions();
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
                 { data: {}, filePath: "overlay.fit" },
             ];
 
             const mockGetComputedStyle = vi
-                .fn()
+                .fn<() => MockComputedStyle>()
                 .mockReturnValue({ color: "invalid-color" });
             Object.defineProperty(window, "getComputedStyle", {
                 value: mockGetComputedStyle,
@@ -331,6 +365,7 @@ describe("createShownFilesList", () => {
         });
 
         it("calculates luminance correctly for contrast ratios", () => {
+            expect.hasAssertions();
             // Test by setting up contrasting colors
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
@@ -338,7 +373,7 @@ describe("createShownFilesList", () => {
             ];
 
             const mockGetComputedStyle = vi
-                .fn()
+                .fn<() => MockComputedStyle>()
                 .mockReturnValue({ color: "rgb(0, 0, 0)" });
             Object.defineProperty(window, "getComputedStyle", {
                 value: mockGetComputedStyle,
@@ -355,6 +390,7 @@ describe("createShownFilesList", () => {
         });
 
         it("handles dark theme filter simulation", () => {
+            expect.hasAssertions();
             document.body.classList.add("theme-dark");
 
             (global.window as any).loadedFitFiles = [
@@ -363,8 +399,8 @@ describe("createShownFilesList", () => {
             ];
 
             // Mock DOM manipulation to avoid Node type issues
-            const mockAppendChild = vi.fn();
-            const mockRemoveChild = vi.fn();
+            const mockAppendChild = vi.fn<(node: Node) => Node>((node) => node);
+            const mockRemoveChild = vi.fn<(node: Node) => Node>((node) => node);
 
             vi.spyOn(document.body, "appendChild").mockImplementation(
                 mockAppendChild
@@ -374,7 +410,7 @@ describe("createShownFilesList", () => {
             );
 
             const mockGetComputedStyle = vi
-                .fn()
+                .fn<() => MockComputedStyle>()
                 .mockReturnValue({ color: "rgb(100, 150, 200)" });
             Object.defineProperty(window, "getComputedStyle", {
                 value: mockGetComputedStyle,
@@ -391,6 +427,7 @@ describe("createShownFilesList", () => {
         });
 
         it("meets WCAG AA contrast requirements", () => {
+            expect.hasAssertions();
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
                 { data: {}, filePath: "overlay.fit" },
@@ -398,7 +435,7 @@ describe("createShownFilesList", () => {
 
             // High contrast colors should pass
             const mockGetComputedStyle = vi
-                .fn()
+                .fn<() => MockComputedStyle>()
                 .mockReturnValue({ color: "rgb(255, 255, 255)" });
             Object.defineProperty(window, "getComputedStyle", {
                 value: mockGetComputedStyle,
@@ -413,6 +450,7 @@ describe("createShownFilesList", () => {
         });
 
         it("handles 3-character hex colors", () => {
+            expect.hasAssertions();
             mockChartOverlayColorPalette[0] = "#abc";
 
             (global.window as any).loadedFitFiles = [
@@ -426,6 +464,7 @@ describe("createShownFilesList", () => {
         });
 
         it("handles 6-character hex colors", () => {
+            expect.hasAssertions();
             mockChartOverlayColorPalette[0] = "#aabbcc";
 
             (global.window as any).loadedFitFiles = [
@@ -449,6 +488,7 @@ describe("createShownFilesList", () => {
         });
 
         it("skips main file and shows only overlays", () => {
+            expect.hasAssertions();
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
 
@@ -459,6 +499,7 @@ describe("createShownFilesList", () => {
         });
 
         it("applies color palette cycling", () => {
+            expect.hasAssertions();
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
 
@@ -486,6 +527,7 @@ describe("createShownFilesList", () => {
         });
 
         it("creates list items with correct structure", () => {
+            expect.hasAssertions();
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
 
@@ -499,6 +541,7 @@ describe("createShownFilesList", () => {
         });
 
         it("creates remove buttons for each overlay", () => {
+            expect.hasAssertions();
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
 
@@ -515,6 +558,7 @@ describe("createShownFilesList", () => {
         });
 
         it("applies dark theme styling when enabled", () => {
+            expect.hasAssertions();
             document.body.classList.add("theme-dark");
 
             const container = createShownFilesList();
@@ -531,6 +575,7 @@ describe("createShownFilesList", () => {
         });
 
         it("applies light theme styling when enabled", () => {
+            expect.hasAssertions();
             document.body.classList.remove("theme-dark");
 
             const container = createShownFilesList();
@@ -546,6 +591,7 @@ describe("createShownFilesList", () => {
         });
 
         it("handles missing file paths gracefully", () => {
+            expect.hasAssertions();
             (global.window as any).loadedFitFiles = [
                 { data: {} }, // No filePath
                 { data: {}, filePath: undefined },
@@ -565,6 +611,7 @@ describe("createShownFilesList", () => {
         });
 
         it("clears existing list before updating", () => {
+            expect.hasAssertions();
             const container = createShownFilesList();
 
             // First update
@@ -587,6 +634,7 @@ describe("createShownFilesList", () => {
         });
 
         it("hides container when no overlays exist", () => {
+            expect.hasAssertions();
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
             ];
@@ -598,6 +646,7 @@ describe("createShownFilesList", () => {
         });
 
         it("shows container when overlays exist", () => {
+            expect.hasAssertions();
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
 
@@ -615,13 +664,14 @@ describe("createShownFilesList", () => {
         });
 
         it("removes individual overlay when remove button clicked", () => {
+            expect.hasAssertions();
             const container = createShownFilesList();
 
             // Mock updateShownFilesList as a spy after it's created
             const originalUpdateShownFilesList = (global.window as any)
                 .updateShownFilesList;
             const spyUpdateShownFilesList = vi
-                .fn()
+                .fn<() => void>()
                 .mockImplementation(originalUpdateShownFilesList);
             (global.window as any).updateShownFilesList =
                 spyUpdateShownFilesList;
@@ -644,6 +694,7 @@ describe("createShownFilesList", () => {
         });
 
         it("prevents event propagation on remove button click", () => {
+            expect.hasAssertions();
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
 
@@ -661,6 +712,7 @@ describe("createShownFilesList", () => {
         });
 
         it("shows remove button on hover", () => {
+            expect.hasAssertions();
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
 
@@ -677,6 +729,7 @@ describe("createShownFilesList", () => {
         });
 
         it("hides remove button on mouse leave", () => {
+            expect.hasAssertions();
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
 
@@ -694,6 +747,7 @@ describe("createShownFilesList", () => {
         });
 
         it("cleans up tooltips after removal", () => {
+            expect.hasAssertions();
             vi.useFakeTimers();
 
             const container = createShownFilesList();
@@ -720,6 +774,7 @@ describe("createShownFilesList", () => {
         });
 
         it("handles missing loadedFitFiles gracefully", () => {
+            expect.hasAssertions();
             (global.window as any).loadedFitFiles = null;
 
             const container = createShownFilesList();
@@ -741,6 +796,7 @@ describe("createShownFilesList", () => {
         });
 
         it("creates clear all button when overlays exist", () => {
+            expect.hasAssertions();
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
 
@@ -753,6 +809,7 @@ describe("createShownFilesList", () => {
         });
 
         it("styles clear all button correctly", () => {
+            expect.hasAssertions();
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
 
@@ -772,6 +829,7 @@ describe("createShownFilesList", () => {
         });
 
         it("removes all overlays when clear all clicked", () => {
+            expect.hasAssertions();
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
 
@@ -786,6 +844,7 @@ describe("createShownFilesList", () => {
         });
 
         it("prevents event propagation on clear all click", () => {
+            expect.hasAssertions();
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
 
@@ -802,6 +861,7 @@ describe("createShownFilesList", () => {
         });
 
         it("cleans up tooltips after clearing all", async () => {
+            expect.hasAssertions();
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
 
@@ -822,6 +882,7 @@ describe("createShownFilesList", () => {
         });
 
         it("does not create duplicate clear all buttons", () => {
+            expect.hasAssertions();
             const container = createShownFilesList();
 
             // Update multiple times
@@ -836,6 +897,7 @@ describe("createShownFilesList", () => {
         });
 
         it("does not create clear all button when no overlays exist", () => {
+            expect.hasAssertions();
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
             ];
@@ -860,6 +922,7 @@ describe("createShownFilesList", () => {
         });
 
         it("handles list item click events", () => {
+            expect.hasAssertions();
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
 
@@ -877,6 +940,7 @@ describe("createShownFilesList", () => {
         });
 
         it("handles mouse enter events on list items", () => {
+            expect.hasAssertions();
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
 
@@ -894,6 +958,7 @@ describe("createShownFilesList", () => {
         });
 
         it("handles mouse leave events on list items", () => {
+            expect.hasAssertions();
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
 
@@ -910,6 +975,7 @@ describe("createShownFilesList", () => {
         });
 
         it("clears tooltip timeout on mouse leave", () => {
+            expect.hasAssertions();
             vi.useFakeTimers();
 
             const container = createShownFilesList();
@@ -930,6 +996,7 @@ describe("createShownFilesList", () => {
         });
 
         it("cleans up tooltip removers on mouse leave", () => {
+            expect.hasAssertions();
             vi.useFakeTimers();
 
             const container = createShownFilesList();
@@ -962,6 +1029,7 @@ describe("createShownFilesList", () => {
         });
 
         it("creates tooltip after delay on mouse enter", () => {
+            expect.hasAssertions();
             vi.useFakeTimers();
 
             const container = createShownFilesList();
@@ -984,6 +1052,7 @@ describe("createShownFilesList", () => {
         });
 
         it("positions tooltip correctly", () => {
+            expect.hasAssertions();
             vi.useFakeTimers();
 
             const container = createShownFilesList();
@@ -1010,6 +1079,7 @@ describe("createShownFilesList", () => {
         });
 
         it("styles tooltip for dark theme", () => {
+            expect.hasAssertions();
             vi.useFakeTimers();
             document.body.classList.add("theme-dark");
 
@@ -1041,6 +1111,7 @@ describe("createShownFilesList", () => {
         });
 
         it("styles tooltip for light theme", () => {
+            expect.hasAssertions();
             vi.useFakeTimers();
             document.body.classList.remove("theme-dark");
 
@@ -1070,6 +1141,7 @@ describe("createShownFilesList", () => {
         });
 
         it("shows accessibility warning in tooltip when needed", () => {
+            expect.hasAssertions();
             vi.useFakeTimers();
 
             // Enable dark theme to use dark background
@@ -1084,7 +1156,7 @@ describe("createShownFilesList", () => {
             // Mock low contrast colors to trigger warning
             // Dark theme bg is "rgb(30,34,40)", so use a similar dark color for poor contrast
             const mockGetComputedStyle = vi
-                .fn()
+                .fn<() => MockComputedStyle>()
                 .mockReturnValue({ color: "rgb(40, 44, 50)" });
             Object.defineProperty(window, "getComputedStyle", {
                 value: mockGetComputedStyle,
@@ -1112,6 +1184,7 @@ describe("createShownFilesList", () => {
         });
 
         it("handles tooltip positioning near screen edges", () => {
+            expect.hasAssertions();
             vi.useFakeTimers();
 
             // Mock window dimensions
@@ -1155,6 +1228,7 @@ describe("createShownFilesList", () => {
         });
 
         it("removes existing tooltips before creating new ones", () => {
+            expect.hasAssertions();
             vi.useFakeTimers();
 
             const container = createShownFilesList();
@@ -1181,6 +1255,7 @@ describe("createShownFilesList", () => {
         });
 
         it("only shows tooltip if still highlighted", () => {
+            expect.hasAssertions();
             vi.useFakeTimers();
 
             const container = createShownFilesList();
@@ -1210,20 +1285,24 @@ describe("createShownFilesList", () => {
 
         beforeEach(() => {
             mockPolyline = {
-                bringToFront: vi.fn(),
-                getElement: vi.fn().mockReturnValue({
-                    style: {
-                        transition: "",
-                        filter: "",
-                    },
-                }),
-                getBounds: vi.fn().mockReturnValue({}),
+                bringToFront: vi.fn<() => void>(),
+                getElement: vi
+                    .fn<() => { style: Record<string, string> }>()
+                    .mockReturnValue({
+                        style: {
+                            transition: "",
+                            filter: "",
+                        },
+                    }),
+                getBounds: vi
+                    .fn<() => Record<string, never>>()
+                    .mockReturnValue({}),
                 options: { color: "#1976d2" },
                 _map: {
                     _layers: {
                         marker1: {
                             options: { color: "#1976d2" },
-                            bringToFront: vi.fn(),
+                            bringToFront: vi.fn<() => void>(),
                         },
                     },
                 },
@@ -1231,7 +1310,7 @@ describe("createShownFilesList", () => {
 
             (global.window as any)._overlayPolylines = [null, mockPolyline];
             (global.window as any)._leafletMapInstance = {
-                fitBounds: vi.fn(),
+                fitBounds: vi.fn<(bounds: unknown, options: unknown) => void>(),
             };
 
             (global.window as any).loadedFitFiles = [
@@ -1241,6 +1320,7 @@ describe("createShownFilesList", () => {
         });
 
         it("brings polyline to front on click", () => {
+            expect.hasAssertions();
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
 
@@ -1256,6 +1336,7 @@ describe("createShownFilesList", () => {
         });
 
         it("brings matching markers to front", () => {
+            expect.hasAssertions();
             // Create CircleMarker instance
             const mockMarker = new (global.window as any).L.CircleMarker({
                 color: "#1976d2",
@@ -1278,6 +1359,7 @@ describe("createShownFilesList", () => {
         });
 
         it("applies visual effects to polyline element", () => {
+            expect.hasAssertions();
             vi.useFakeTimers();
 
             const container = createShownFilesList();
@@ -1305,6 +1387,7 @@ describe("createShownFilesList", () => {
         });
 
         it("fits map bounds to polyline", () => {
+            expect.hasAssertions();
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
 
@@ -1324,6 +1407,7 @@ describe("createShownFilesList", () => {
         });
 
         it("handles missing polyline gracefully", () => {
+            expect.hasAssertions();
             (global.window as any)._overlayPolylines = [];
 
             const container = createShownFilesList();
@@ -1338,6 +1422,7 @@ describe("createShownFilesList", () => {
         });
 
         it("handles missing map instance gracefully", () => {
+            expect.hasAssertions();
             (global.window as any)._leafletMapInstance = null;
 
             const container = createShownFilesList();
@@ -1352,6 +1437,7 @@ describe("createShownFilesList", () => {
         });
 
         it("handles polyline without getElement method", () => {
+            expect.hasAssertions();
             mockPolyline.getElement = null;
 
             const container = createShownFilesList();
@@ -1366,6 +1452,7 @@ describe("createShownFilesList", () => {
         });
 
         it("handles polyline without getBounds method", () => {
+            expect.hasAssertions();
             mockPolyline.getBounds = null;
 
             const container = createShownFilesList();
@@ -1382,6 +1469,7 @@ describe("createShownFilesList", () => {
 
     describe("edge Cases and Error Handling", () => {
         it("handles missing ul element gracefully", () => {
+            expect.hasAssertions();
             const container = createShownFilesList();
             container.innerHTML = ""; // Remove the ul
 
@@ -1391,6 +1479,7 @@ describe("createShownFilesList", () => {
         });
 
         it("handles theme change during operation", () => {
+            expect.hasAssertions();
             const container = createShownFilesList();
 
             // Clear previous calls and set up fresh mock
@@ -1418,6 +1507,7 @@ describe("createShownFilesList", () => {
         });
 
         it("handles empty loadedFitFiles array", () => {
+            expect.hasAssertions();
             (global.window as any).loadedFitFiles = [];
 
             const container = createShownFilesList();
@@ -1430,6 +1520,7 @@ describe("createShownFilesList", () => {
         });
 
         it("handles null loadedFitFiles", () => {
+            expect.hasAssertions();
             (global.window as any).loadedFitFiles = null;
 
             const container = createShownFilesList();
@@ -1442,6 +1533,7 @@ describe("createShownFilesList", () => {
         });
 
         it("handles undefined loadedFitFiles", () => {
+            expect.hasAssertions();
             (global.window as any).loadedFitFiles = undefined;
 
             const container = createShownFilesList();
@@ -1454,6 +1546,7 @@ describe("createShownFilesList", () => {
         });
 
         it("handles missing color palette gracefully", () => {
+            expect.hasAssertions();
             mockChartOverlayColorPalette.length = 0;
 
             (global.window as any).loadedFitFiles = [
@@ -1469,6 +1562,7 @@ describe("createShownFilesList", () => {
         });
 
         it("prevents memory leaks by aborting event listeners", () => {
+            expect.hasAssertions();
             const addEventListenerSpy = vi.spyOn(window, "addEventListener");
 
             const container = createShownFilesList();
@@ -1514,6 +1608,7 @@ describe("createShownFilesList", () => {
         });
 
         it("handles concurrent tooltip operations", () => {
+            expect.hasAssertions();
             vi.useFakeTimers();
 
             const container = createShownFilesList();
@@ -1550,6 +1645,7 @@ describe("createShownFilesList", () => {
 
     describe("theme Integration", () => {
         it("responds to dynamic theme changes", () => {
+            expect.hasAssertions();
             const container = createShownFilesList();
 
             // Clear previous calls and change theme colors
@@ -1576,6 +1672,7 @@ describe("createShownFilesList", () => {
         });
 
         it("handles partial theme color objects", () => {
+            expect.hasAssertions();
             const container = createShownFilesList();
 
             // Clear previous calls and set up theme
@@ -1602,6 +1699,7 @@ describe("createShownFilesList", () => {
         });
 
         it("maintains theme state across updates", () => {
+            expect.hasAssertions();
             const container = createShownFilesList();
 
             // Clear previous calls and set up theme
