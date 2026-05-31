@@ -1,4 +1,36 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+type TestWindowGlobal = Window &
+    typeof globalThis & {
+        globalData?: {
+            cachedFilePath: string;
+        };
+    };
+
+function requireElement<T extends Element>(
+    element: Element | null,
+    constructor: new (...args: any[]) => T,
+    message: string
+): T {
+    expect(element).toBeInstanceOf(constructor);
+    if (!(element instanceof constructor)) {
+        throw new Error(message);
+    }
+
+    return element;
+}
+
+function findButton(
+    buttons: HTMLButtonElement[],
+    label: string
+): HTMLButtonElement {
+    const button = buttons.find((b) => (b.textContent || "").trim() === label);
+    return requireElement(
+        button ?? null,
+        HTMLButtonElement,
+        `Expected ${label} button to render`
+    );
+}
 
 describe("summaryColModal - file override persistence", () => {
     beforeEach(() => {
@@ -7,7 +39,7 @@ describe("summaryColModal - file override persistence", () => {
         vi.resetModules();
         vi.restoreAllMocks();
         // Provide a stable file path for getStorageKey
-        (globalThis.window as any).globalData = {
+        (globalThis.window as TestWindowGlobal).globalData = {
             cachedFilePath: "C:/tmp/activity.fit",
         };
     });
@@ -15,10 +47,12 @@ describe("summaryColModal - file override persistence", () => {
     afterEach(() => {
         document.body.innerHTML = "";
         localStorage.clear();
-        (globalThis.window as any).globalData = undefined;
+        (globalThis.window as TestWindowGlobal).globalData = undefined;
     });
 
     it("clears per-file override when reset to default", async () => {
+        expect.hasAssertions();
+
         const {
             getStorageKey,
             getGlobalStorageKey,
@@ -37,7 +71,7 @@ describe("summaryColModal - file override persistence", () => {
         ];
 
         const fileKey = getStorageKey(
-            (globalThis.window as any).globalData,
+            (globalThis.window as TestWindowGlobal).globalData,
             allKeys
         );
         const globalKey = getGlobalStorageKey();
@@ -55,10 +89,10 @@ describe("summaryColModal - file override persistence", () => {
 
         // Start modal showing the currently active file override selection.
         let visible = [...fileOverride];
-        const setVisibleColumns = vi.fn((cols: string[]) => {
+        const setVisibleColumns = vi.fn<(cols: string[]) => void>((cols) => {
             visible = [...cols];
         });
-        const renderTable = vi.fn();
+        const renderTable = vi.fn<() => void>();
 
         showColModal({
             allKeys,
@@ -68,11 +102,11 @@ describe("summaryColModal - file override persistence", () => {
             visibleColumns: visible,
         });
 
-        const overlay = document.querySelector(".summary-col-modal-overlay");
-        expect(overlay).toBeInstanceOf(HTMLElement);
-        if (!(overlay instanceof HTMLElement)) {
-            throw new Error("Expected summary column modal overlay to render");
-        }
+        const overlay = requireElement(
+            document.querySelector(".summary-col-modal-overlay"),
+            HTMLElement,
+            "Expected summary column modal overlay to render"
+        );
 
         const buttons = Array.from(
             overlay.querySelectorAll<HTMLButtonElement>("button")
@@ -89,26 +123,14 @@ describe("summaryColModal - file override persistence", () => {
         ]);
 
         // Turn off file override by resetting this file back to the baseline (global default when set).
-        const resetBtn = buttons.find(
-            (b) => (b.textContent || "").trim() === "Reset to Default"
-        );
-        expect(resetBtn).toBeInstanceOf(HTMLButtonElement);
-        if (!(resetBtn instanceof HTMLButtonElement)) {
-            throw new Error("Expected reset button to render");
-        }
+        const resetBtn = findButton(buttons, "Reset to Default");
         resetBtn.click();
 
         // Sanity: selection now matches global default.
         expect(visible).toEqual(globalDefault);
 
         // Close modal.
-        const closeBtn = buttons.find(
-            (b) => (b.textContent || "").trim() === "Close"
-        );
-        expect(closeBtn).toBeInstanceOf(HTMLButtonElement);
-        if (!(closeBtn instanceof HTMLButtonElement)) {
-            throw new Error("Expected close button to render");
-        }
+        const closeBtn = findButton(buttons, "Close");
         closeBtn.click();
 
         // File key should stay cleared, not recreated.
