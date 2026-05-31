@@ -196,7 +196,7 @@ describe(renderLapZoneChart, () => {
     });
 
     it("should return null when Chart.js is missing", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         delete (globalThis as LapZoneChartTestGlobal).Chart;
 
@@ -210,7 +210,7 @@ describe(renderLapZoneChart, () => {
     });
 
     it("should return null when canvas is missing", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const view = renderLapZoneChart(
             null as unknown as HTMLCanvasElement,
@@ -225,7 +225,7 @@ describe(renderLapZoneChart, () => {
     });
 
     it("should return null when lapZoneData is not an array", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const view = renderLapZoneChart(
             mockCanvas,
@@ -240,7 +240,7 @@ describe(renderLapZoneChart, () => {
     });
 
     it("should create a Chart.js chart with correct configuration", () => {
-        expect.hasAssertions();
+        expect.assertions(12);
 
         const lapZoneData = [
             {
@@ -307,7 +307,7 @@ describe(renderLapZoneChart, () => {
     });
 
     it("should handle empty lap zone data", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const view = renderLapZoneChart(mockCanvas, [], {});
 
@@ -323,7 +323,7 @@ describe(renderLapZoneChart, () => {
     });
 
     it('should use power zone colors when title includes "power"', () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const lapZoneData = [
             {
@@ -351,7 +351,7 @@ describe(renderLapZoneChart, () => {
     });
 
     it("should use HR zone colors by default", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const lapZoneData = [
             {
@@ -377,7 +377,7 @@ describe(renderLapZoneChart, () => {
     });
 
     it("should sort zones by their numeric index", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const lapZoneData = [
             {
@@ -402,7 +402,7 @@ describe(renderLapZoneChart, () => {
     });
 
     it("should handle missing zone data for some laps", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const lapZoneData = [
             {
@@ -432,7 +432,7 @@ describe(renderLapZoneChart, () => {
     });
 
     it("tooltip callbacks compute total footer and label string", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const lapZoneData = [
             {
