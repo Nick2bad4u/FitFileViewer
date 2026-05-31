@@ -194,10 +194,15 @@ describe("shareChartsAsURL with Imgur fallback", () => {
 
         // Act
         const { singleCallback } = await captureShareCallbacks();
-        const result = await singleCallback(mockChart);
+        let thrownError: unknown = null;
+        try {
+            await singleCallback(mockChart);
+        } catch (error) {
+            thrownError = error;
+        }
 
         // Assert
-        expect(result).toBeUndefined();
+        expect(thrownError).toBeNull();
         expect(getLastClipboardText()).toBe(createPngDataUrl(800, 400));
         expect(document.body.querySelector("textarea")).toBeNull();
 
@@ -228,10 +233,15 @@ describe("shareChartsAsURL with Imgur fallback", () => {
 
         // Act
         const { combinedCallback } = await captureShareCallbacks();
-        const result = await combinedCallback(mockCharts);
+        let thrownError: unknown = null;
+        try {
+            await combinedCallback(mockCharts);
+        } catch (error) {
+            thrownError = error;
+        }
 
         // Assert
-        expect(result).toBeUndefined();
+        expect(thrownError).toBeNull();
         expect(getLastClipboardText()).toBe(createPngDataUrl(1620, 400));
         expect(document.body.querySelector("textarea")).toBeNull();
 
@@ -250,10 +260,15 @@ describe("shareChartsAsURL with Imgur fallback", () => {
 
         // Act
         const { combinedCallback } = await captureShareCallbacks();
-        const result = await combinedCallback([]);
+        let thrownError: unknown = null;
+        try {
+            await combinedCallback([]);
+        } catch (error) {
+            thrownError = error;
+        }
 
         // Assert
-        expect(result).toBeUndefined();
+        expect(thrownError).toBeNull();
         expect({
             clipboardWrites: mockWriteText.mock.calls.length,
             documentChildren: document.body.childElementCount,
@@ -284,10 +299,15 @@ describe("shareChartsAsURL with Imgur fallback", () => {
 
         // Act
         const { singleCallback } = await captureShareCallbacks();
-        const result = await singleCallback(mockChart);
+        let thrownError: unknown = null;
+        try {
+            await singleCallback(mockChart);
+        } catch (error) {
+            thrownError = error;
+        }
 
         // Assert
-        expect(result).toBeUndefined();
+        expect(thrownError).toBeNull();
         expect(getLastClipboardText()).toBe("https://i.imgur.com/chart.png");
 
         // Clipboard permissions are often denied in Electron/file contexts; sharing should still complete.
