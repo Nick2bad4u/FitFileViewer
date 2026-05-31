@@ -286,7 +286,7 @@ describe("main-ui.js - UI Controller and State Management", () => {
     });
 
     it("registers legacy globals and rejects invalid legacy FIT data", async () => {
-        expect.hasAssertions();
+        expect.assertions(7);
 
         await import("../../electron-app/main-ui.js");
         const mainUiGlobal = getMainUiTestGlobal();
@@ -309,7 +309,7 @@ describe("main-ui.js - UI Controller and State Management", () => {
     });
 
     it("initializes UI side effects when loaded", async () => {
-        expect.hasAssertions();
+        expect.assertions(17);
 
         const onIpc =
             vi.fn<NonNullable<MainUiTestGlobal["electronAPI"]>["onIpc"]>();

@@ -72,7 +72,7 @@ describe("preload.js - Script Evaluation Test", () => {
     });
 
     it("should execute the preload script and expose APIs", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
         // Check if contextBridge.exposeInMainWorld was called
         const exposeCalls =
             electronMock.contextBridge.exposeInMainWorld.mock.calls;
@@ -98,7 +98,7 @@ describe("preload.js - Script Evaluation Test", () => {
     });
 
     it("should register process beforeExit handler", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
         expect(processOnceSpy).toHaveBeenCalledWith(
             "beforeExit",
             expect.any(Function)
@@ -119,7 +119,7 @@ describe("preload.js - Script Evaluation Test", () => {
     });
 
     it("should log initialization messages", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
         const logMessages = consoleLogSpy.mock.calls
             .map((call: unknown[]) => call[0])
             .filter(
