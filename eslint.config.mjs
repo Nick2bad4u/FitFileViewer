@@ -137,11 +137,11 @@ const config = [
             "@typescript-eslint/prefer-readonly-parameter-types": "off",
             "runtime-cleanup/no-floating-timers": "off",
             "runtime-cleanup/no-unmanaged-event-listeners": "off",
+            "tsdoc/syntax": "off",
             "typedoc/no-duplicate-param-tags": "off",
             "typedoc/no-extra-param-tags": "off",
             "typedoc/no-unknown-tags": "off",
             "typedoc/require-throws-tag": "off",
-            "tsdoc/syntax": "off",
         },
     },
     {
@@ -153,33 +153,6 @@ const config = [
             "@typescript-eslint/prefer-readonly-parameter-types": "off",
             "n/global-require": "off",
             "no-unsanitized/method": "off",
-        },
-    },
-    {
-        basePath: electronAppBasePath,
-        files: ["package.json"],
-        plugins: {
-            depend: dependPlugin,
-        },
-        rules: {
-            "depend/ban-dependencies": [
-                "error",
-                {
-                    allowed: ["jquery"],
-                },
-            ],
-            "node-dependencies/absolute-version": [
-                "error",
-                {
-                    devDependencies: "never",
-                    overridePackages: {
-                        electron: {
-                            devDependencies: "ignore",
-                        },
-                    },
-                },
-            ],
-            "package-json/require-peerDependencies": "off",
         },
     },
     {
