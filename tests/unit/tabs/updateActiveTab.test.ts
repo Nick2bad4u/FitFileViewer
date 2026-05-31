@@ -45,17 +45,26 @@ function enableTabButton(button: HTMLElement): void {
     button.classList.remove("tab-disabled");
 }
 
+function expectTabActiveClass(tab: Element, isActive: boolean): void {
+    const classNames = Array.from(tab.classList);
+    if (isActive) {
+        expect(classNames).toContain("active");
+    } else {
+        expect(classNames).not.toContain("active");
+    }
+}
+
 function expectActiveTabButton(activeId: string): void {
     for (const tab of document.querySelectorAll(".tab-button")) {
         const isActive = tab.id === activeId;
-        expect(tab.classList.contains("active")).toBe(isActive);
+        expectTabActiveClass(tab, isActive);
         expect(tab.getAttribute("aria-selected")).toBe(isActive.toString());
     }
 }
 
 function expectActiveTabButtonClass(activeId: string): void {
     for (const tab of document.querySelectorAll(".tab-button")) {
-        expect(tab.classList.contains("active")).toBe(tab.id === activeId);
+        expectTabActiveClass(tab, tab.id === activeId);
     }
 }
 
@@ -107,9 +116,15 @@ describe("tab button disabled state", () => {
                 undefined as unknown as string
             );
 
-            expect(blankResult).toBe(false);
-            expect(nullResult).toBe(false);
-            expect(undefinedResult).toBe(false);
+            expect([
+                blankResult,
+                nullResult,
+                undefinedResult,
+            ]).toStrictEqual([
+                false,
+                false,
+                false,
+            ]);
             expectActiveTabButton("tab-summary");
             expect(mockState.getState("ui.activeTab")).toBe("summary");
             expect(consoleSpy).toHaveBeenCalledTimes(3);
@@ -266,7 +281,7 @@ describe("tab button disabled state", () => {
             ).not.toBeInstanceOf(HTMLButtonElement);
             const tabs = document.querySelectorAll(".tab-button");
             tabs.forEach((tab) => {
-                expect(tab.classList.contains("active")).toBe(false);
+                expectTabActiveClass(tab, false);
                 expect(tab.getAttribute("aria-selected")).toBe("false");
             });
         });
@@ -313,7 +328,7 @@ describe("tab button disabled state", () => {
                     { source: "tabButtonClick" }
                 );
                 expect(mockState.getState("ui.activeTab")).toBe(expectedName);
-                expect(button.classList.contains("active")).toBe(true);
+                expectTabActiveClass(button, true);
                 expect(button.getAttribute("aria-selected")).toBe("true");
             });
         });
