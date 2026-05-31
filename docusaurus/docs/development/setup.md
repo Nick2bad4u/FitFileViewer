@@ -87,14 +87,13 @@ This will:
 
 ```
 FitFileViewer/
-├── electron-app/          # Electron runtime source and package metadata
+├── electron-app/          # Electron runtime source
 │   ├── main.ts           # Main process
 │   ├── renderer.ts       # Renderer process
 │   ├── preload.ts        # Preload script
 │   ├── main-ui.ts        # UI management
 │   ├── fitParser.ts      # FIT parsing
 │   ├── utils/            # Runtime utility modules
-│   └── package.json      # Publish metadata and runtime dependencies
 ├── scripts/               # Root-owned build, lint, test, and release wrappers
 ├── static/                # Root-owned static assets copied into runtime dist
 ├── tests/                 # Root-owned Vitest and Playwright tests

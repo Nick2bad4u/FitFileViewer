@@ -320,7 +320,7 @@ electron-app/utils/
 
 ```text
 /
-├── package.json                     # Root workspace scripts and shared tooling dependencies
+├── package.json                     # Root app manifest, scripts, tooling, and runtime dependencies
 ├── node_modules/                    # Root workspace dependencies
 ├── playwright.config.ts             # Root-owned Electron Playwright configuration
 ├── vite.renderer.config.mjs         # Root-owned renderer compatibility bundle configuration
@@ -338,10 +338,6 @@ electron-app/utils/
 │   ├── normalize-coverage-lcov.mjs  # Root-owned coverage path normalization helper
 │   └── prepare-runtime-dist.mjs     # Root-owned runtime package asset helper
 └── electron-app/
-    ├── package.json                 # Electron app metadata and publish/package manifest
-    │   ├── App identity, keywords, license, and publish metadata
-    │   ├── Runtime dependencies shipped with the Electron app
-    │   └── npm package export/file allowlists
     └── global.d.ts                  # Shared renderer/main global type declarations
 ```
 

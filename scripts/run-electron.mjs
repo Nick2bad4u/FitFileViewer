@@ -4,13 +4,13 @@ import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
-import { appWorkspaceName, repositoryRoot } from "./lib/workspaces.mjs";
+import { repositoryRoot } from "./lib/workspaces.mjs";
 
 const require = createRequire(
     pathToFileURL(path.join(repositoryRoot, "scripts", "run-electron.mjs")).href
 );
 const electronCliPath = require.resolve("electron/cli.js");
-export const defaultAppPath = appWorkspaceName;
+export const defaultAppPath = ".";
 
 export function parseArgs(argv) {
     const electronArgs = [];

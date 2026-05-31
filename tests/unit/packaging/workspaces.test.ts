@@ -95,11 +95,9 @@ describe("workspace path helpers", () => {
         );
         expect(workspaces.appDistPath).toBe(path.join("electron-app", "dist"));
         expect(workspaces.appPackagePath).toBe(
-            path.join(process.cwd(), "electron-app", "package.json")
+            path.join(process.cwd(), "package.json")
         );
-        expect(workspaces.appPackageRepositoryPath).toBe(
-            "electron-app/package.json"
-        );
+        expect(workspaces.appPackageRepositoryPath).toBe("package.json");
         expect(workspaces.appTypesPath).toBe(
             path.join("electron-app", "types")
         );

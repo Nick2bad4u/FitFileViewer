@@ -5,12 +5,12 @@ import process from "node:process";
 import { pathToFileURL } from "node:url";
 
 import {
-    appWorkspaceName,
     repositoryRoot as defaultRepositoryRoot,
+    rootPackageJsonPath,
 } from "./lib/workspaces.mjs";
 import { resolveCommandForPlatform } from "./lib/child-process.mjs";
 
-export const defaultWorkspace = appWorkspaceName;
+export const defaultWorkspace = undefined;
 
 if (
     process.argv[1] &&
@@ -36,7 +36,7 @@ if (
 export function bumpAppVersion(options = {}) {
     const workspace = options.workspace ?? defaultWorkspace;
     const repositoryRoot = options.repositoryRoot ?? defaultRepositoryRoot;
-    const packagePath = getWorkspacePackagePath(repositoryRoot, workspace);
+    const packagePath = getPackagePath(repositoryRoot, workspace);
     const packageJson = readPackageJson(packagePath);
     const currentVersion = packageJson.version;
     const newVersion = calculateNextVersion(currentVersion);
@@ -72,13 +72,22 @@ export function calculateNextVersion(version) {
 }
 
 export function createNpmVersionArgs(workspace, version) {
+    const args = [
+        "version",
+        "--no-git-tag-version",
+        "--ignore-scripts",
+        version,
+    ];
+
+    if (!workspace || workspace === "." || workspace === "root") {
+        return args;
+    }
+
     return [
         "version",
         "--workspace",
         workspace,
-        "--no-git-tag-version",
-        "--ignore-scripts",
-        version,
+        ...args.slice(1),
     ];
 }
 
@@ -87,7 +96,7 @@ export function parseArgs(args) {
         dryRun: false,
         githubOutput: false,
         help: false,
-        workspace: defaultWorkspace,
+        workspace: undefined,
     };
 
     for (let index = 0; index < args.length; index += 1) {
@@ -148,7 +157,11 @@ export function writeGithubOutput(
     fs.appendFileSync(outputPath, `new_version=${newVersion}\n`);
 }
 
-function getWorkspacePackagePath(repositoryRoot, workspace) {
+function getPackagePath(repositoryRoot, workspace) {
+    if (!workspace || workspace === "." || workspace === "root") {
+        return path.join(repositoryRoot, rootPackageJsonPath);
+    }
+
     return path.join(repositoryRoot, workspace, "package.json");
 }
 
@@ -176,7 +189,7 @@ function printUsage() {
     console.log(`Usage: node scripts/bump-app-version.mjs [options]
 
 Options:
-  --workspace <name>  Workspace package to bump. Defaults to electron-app.
+  --workspace <name>  Workspace package to bump. Defaults to the root app package.
   --github-output    Append new_version to GITHUB_OUTPUT for GitHub Actions.
   --dry-run          Compute the next version without updating package files.
   -h, --help         Show this help text.`);

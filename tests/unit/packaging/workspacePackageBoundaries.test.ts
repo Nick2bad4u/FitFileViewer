@@ -21,9 +21,11 @@ type PackageJson = {
     exports?: Record<string, string>;
     files?: string[];
     icon?: string;
+    main?: string;
     private?: boolean;
     publishConfig?: Record<string, unknown>;
     scripts?: Record<string, string>;
+    types?: string;
     workspaces?: string[];
 };
 
@@ -48,10 +50,7 @@ describe("workspace package boundaries", () => {
 
         const rootPackage = readPackageJson("package.json");
 
-        expect(rootPackage.workspaces).toStrictEqual([
-            "electron-app",
-            "docusaurus",
-        ]);
+        expect(rootPackage.workspaces).toStrictEqual(["docusaurus"]);
         expect(rootPackage.scripts).toMatchObject({
             "lint:electron-app":
                 "node scripts/run-eslint.mjs electronApp && node scripts/run-typescript.mjs typecheck",
@@ -67,7 +66,15 @@ describe("workspace package boundaries", () => {
             "stylelint-config-nick2bad4u": expect.any(String),
             vitest: expect.any(String),
         });
-        expect(rootPackage.dependencies ?? {}).toStrictEqual({});
+        expect(
+            Object.keys(rootPackage.dependencies ?? {}).sort()
+        ).toStrictEqual([
+            "@garmin/fitsdk",
+            "electron-conf",
+            "electron-log",
+            "electron-updater",
+            "zod",
+        ]);
         expect(rootPackage.devDependencies).not.toHaveProperty("@actions/core");
         expect(rootPackage.devDependencies).not.toHaveProperty(
             "eslint-plugin-unicorn"
@@ -77,8 +84,8 @@ describe("workspace package boundaries", () => {
         );
     });
 
-    it("keeps the Electron app package limited to runtime app metadata", () => {
-        expect.assertions(10);
+    it("keeps the root app package as the runtime app manifest", () => {
+        expect.assertions(13);
 
         const appPackage = readPackageJson(appPackageRepositoryPath);
 
@@ -86,8 +93,8 @@ describe("workspace package boundaries", () => {
             private: true,
         });
         expect(appPackage).not.toHaveProperty("publishConfig");
-        expect(appPackage.scripts ?? {}).toStrictEqual({});
-        expect(appPackage).not.toHaveProperty("devDependencies");
+        expect(appPackage.scripts).toHaveProperty("build:runtime-ts");
+        expect(appPackage.devDependencies).toHaveProperty("vitest");
         expect(Object.keys(appPackage.dependencies ?? {}).sort()).toStrictEqual(
             [
                 "@garmin/fitsdk",
@@ -98,14 +105,21 @@ describe("workspace package boundaries", () => {
             ]
         );
         expect(appPackage.files).toStrictEqual([
-            "dist/",
-            "global.d.ts",
+            "electron-app/dist/",
+            "electron-app/global.d.ts",
             "package.json",
         ]);
-        expect(appPackage.exports?.["./index.html"]).toBe("./dist/index.html");
-        expect(appPackage.icon).toBe("dist/icons/favicon.ico");
+        expect(appPackage.exports?.["./index.html"]).toBe(
+            "./electron-app/dist/index.html"
+        );
+        expect(appPackage.main).toBe("electron-app/dist/main.js");
+        expect(appPackage.types).toBe("electron-app/global.d.ts");
+        expect(appPackage.icon).toBe("electron-app/dist/icons/favicon.ico");
         expect(appPackage.files).not.toContain("vendor/");
         expect(appPackage.files).not.toContain("node_modules/");
+        expect(getFileExistence(["electron-app/package.json"])).toStrictEqual({
+            "electron-app/package.json": false,
+        });
     });
 
     it("keeps private workspace runtime policy centralized at the root", () => {

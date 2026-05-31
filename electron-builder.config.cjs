@@ -20,11 +20,9 @@
 
 const { version: electronVersion } = require("electron/package.json");
 
-const appPackage = /** @type {AppPackage} */ (
-    require("./electron-app/package.json")
-);
+const appPackage = /** @type {AppPackage} */ (require("./package.json"));
 
-const appPackageFiles = ["dist/**", "package.json"];
+const appPackageFiles = ["electron-app/dist/**", "package.json"];
 
 /**
  * @param {string} exportName
@@ -59,7 +57,7 @@ module.exports = {
     electronVersion,
     icon: appPackage.icon,
     directories: {
-        output: "../release-dist",
+        output: "release-dist",
     },
     files: appPackageFiles,
     appId: appPackage.appid,

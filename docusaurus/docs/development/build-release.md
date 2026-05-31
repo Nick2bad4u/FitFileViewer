@@ -56,10 +56,10 @@ Packaging is configured from the repository root:
 
 - `electron-builder.config.cjs` owns Electron Builder targets, artifact names,
   publish settings, and platform options.
-- `electron-builder.files.json` keeps packaged files limited to runtime output
-  and app package metadata.
-- `electron-app/package.json` remains the app package manifest for version,
-  runtime dependencies, exports, and publish metadata.
+- The root `package.json` is the app manifest for version, runtime
+  dependencies, exports, and publish metadata.
+- Packaged file inclusion is limited to root package metadata and
+  `electron-app/dist/` runtime output.
 
 ```javascript
 // electron-builder.config.cjs

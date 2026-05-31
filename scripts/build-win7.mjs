@@ -6,7 +6,6 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 import {
-    appWorkspacePath,
     repositoryPath,
     repositoryRoot,
     rootReleaseDistPath,
@@ -15,7 +14,6 @@ import { resolveCommandForPlatform } from "./lib/child-process.mjs";
 
 const require = createRequire(import.meta.url);
 const electronBuilderConfig = require("../electron-builder.config.cjs");
-const electronAppDir = appWorkspacePath;
 export const outputDir = repositoryPath(rootReleaseDistPath, "win7");
 const WIN7_ELECTRON_VERSION = "22.3.27";
 export const appPackageFiles = readElectronBuilderFiles();
@@ -107,7 +105,7 @@ async function run() {
         runNpmScript("build:runtime-ts");
 
         await build({
-            projectDir: electronAppDir,
+            projectDir: repositoryRoot,
             targets: Platform.WINDOWS.createTarget(["portable"], Arch.ia32),
             config: {
                 electronVersion: WIN7_ELECTRON_VERSION,

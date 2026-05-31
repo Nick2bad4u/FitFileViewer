@@ -35,11 +35,10 @@ function toDistPath(exportPath: string): string {
 }
 
 describe("electron-builder config", () => {
-    it("uses the Electron app package as the app identity source", () => {
+    it("uses the root app package as the app identity source", () => {
         expect.assertions(9);
 
-        const appPackage =
-            require("../../../electron-app/package.json") as AppPackage;
+        const appPackage = require("../../../package.json") as AppPackage;
         const builderConfig =
             require("../../../electron-builder.config.cjs") as ElectronBuilderConfig;
         const [maintainer] = appPackage.maintainers;

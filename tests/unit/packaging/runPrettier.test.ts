@@ -11,7 +11,6 @@ import {
 } from "../../../scripts/run-prettier.mjs";
 import {
     appLeafletMeasureLitePath,
-    appPackageRepositoryPath,
     docusaurusPackageRepositoryPath,
     rootDocusaurusTsconfigPath,
     rootElectronAppBaseTsconfigPath,
@@ -43,7 +42,6 @@ describe("run-prettier wrapper", () => {
 
         const requiredTargets = [
             rootPackageJsonPath,
-            appPackageRepositoryPath,
             docusaurusPackageRepositoryPath,
             rootPrettierConfigPath,
             rootEslintConfigPath,
@@ -130,7 +128,6 @@ describe("run-prettier wrapper", () => {
             mode: args?.at(-1),
             prettierCliPath: args?.[0],
             targetSample: {
-                electronPackage: args?.includes(appPackageRepositoryPath),
                 rootPackage: args?.includes(rootPackageJsonPath),
             },
             options: {
@@ -145,7 +142,6 @@ describe("run-prettier wrapper", () => {
                 /[\\/]prettier[\\/]bin[\\/]prettier\.cjs$/u
             ),
             targetSample: {
-                electronPackage: true,
                 rootPackage: true,
             },
             options: {

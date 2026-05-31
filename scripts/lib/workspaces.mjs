@@ -52,9 +52,8 @@ export const appLeafletMeasureLitePath = appWorkspaceRepositoryPath(
     "renderer",
     "leafletMeasureLite.js"
 );
-export const appPackagePath = appWorkspaceAbsolutePath("package.json");
-export const appPackageRepositoryPath =
-    appWorkspaceRepositoryPath("package.json");
+export const appPackagePath = repositoryPath(rootPackageJsonPath);
+export const appPackageRepositoryPath = rootPackageJsonPath;
 export const appRendererVendorGlobalsEntryPath = appWorkspaceRepositoryPath(
     "renderer",
     "vendorGlobals.ts"

@@ -5,7 +5,6 @@ import { pathToFileURL } from "node:url";
 
 import {
     appLeafletMeasureLitePath,
-    appPackageRepositoryPath,
     docusaurusPackageRepositoryPath,
     repositoryRoot,
     rootDocusaurusTsconfigPath,
@@ -31,7 +30,6 @@ const prettierCliPath = require.resolve("prettier/bin/prettier.cjs");
 
 export const prettierTargets = [
     rootPackageJsonPath,
-    appPackageRepositoryPath,
     docusaurusPackageRepositoryPath,
     "docusaurus/docusaurus.config.ts",
     "docusaurus/sidebars.ts",

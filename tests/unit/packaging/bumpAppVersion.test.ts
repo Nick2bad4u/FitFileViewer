@@ -18,16 +18,19 @@ type BumpAppVersionModule = {
         currentVersion: string;
         newVersion: string;
         packagePath: string;
-        workspace: string;
+        workspace: string | undefined;
     };
     calculateNextVersion: (version: string) => string;
-    createNpmVersionArgs: (workspace: string, version: string) => string[];
-    defaultWorkspace: string;
+    createNpmVersionArgs: (
+        workspace: string | undefined,
+        version: string
+    ) => string[];
+    defaultWorkspace: string | undefined;
     parseArgs: (args: string[]) => {
         dryRun: boolean;
         githubOutput: boolean;
         help: boolean;
-        workspace: string;
+        workspace: string | undefined;
     };
     writeGithubOutput: (newVersion: string, outputPath?: string) => void;
 };
@@ -42,11 +45,9 @@ function makeTemporaryRoot(version: string): string {
     const temporaryRoot = fs.mkdtempSync(
         path.join(os.tmpdir(), "ffv-bump-app-version-")
     );
-    const workspaceRoot = path.join(temporaryRoot, "electron-app");
 
-    fs.mkdirSync(workspaceRoot, { recursive: true });
     fs.writeFileSync(
-        path.join(workspaceRoot, "package.json"),
+        path.join(temporaryRoot, "package.json"),
         `${JSON.stringify({ name: "fitfileviewer", version }, null, 4)}\n`
     );
     temporaryRoots.push(temporaryRoot);
@@ -81,15 +82,13 @@ describe("bump-app-version script", () => {
         );
     });
 
-    it("builds the npm workspace version command used by release automation", async () => {
+    it("builds the root npm version command used by release automation", async () => {
         expect.assertions(1);
 
         const { createNpmVersionArgs } = await importBumpAppVersion();
 
-        expect(createNpmVersionArgs("electron-app", "30.0.0")).toStrictEqual([
+        expect(createNpmVersionArgs(undefined, "30.0.0")).toStrictEqual([
             "version",
-            "--workspace",
-            "electron-app",
             "--no-git-tag-version",
             "--ignore-scripts",
             "30.0.0",
@@ -101,17 +100,15 @@ describe("bump-app-version script", () => {
 
         const { parseArgs } = await importBumpAppVersion();
 
-        expect(
-            parseArgs(["--github-output", "--workspace=electron-app"])
-        ).toStrictEqual({
+        expect(parseArgs(["--github-output"])).toStrictEqual({
             dryRun: false,
             githubOutput: true,
             help: false,
-            workspace: "electron-app",
+            workspace: undefined,
         });
     });
 
-    it("computes the next version from the selected workspace package", async () => {
+    it("computes the next version from the root app package", async () => {
         expect.assertions(4);
 
         const { bumpAppVersion } = await importBumpAppVersion();
@@ -119,14 +116,13 @@ describe("bump-app-version script", () => {
         const result = bumpAppVersion({
             dryRun: true,
             repositoryRoot: temporaryRoot,
-            workspace: "electron-app",
         });
 
         expect(result.currentVersion).toBe("29.9.0");
         expect(result.newVersion).toBe("30.0.0");
-        expect(result.workspace).toBe("electron-app");
+        expect(result.workspace).toBeUndefined();
         expect(result.packagePath).toBe(
-            path.join(temporaryRoot, "electron-app", "package.json")
+            path.join(temporaryRoot, "package.json")
         );
     });
 
@@ -147,7 +143,6 @@ describe("bump-app-version script", () => {
         const result = bumpAppVersion({
             commandRunner,
             repositoryRoot: temporaryRoot,
-            workspace: "electron-app",
         });
 
         expect(result.newVersion).toBe("30.0.0");

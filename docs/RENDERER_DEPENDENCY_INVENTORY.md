@@ -16,7 +16,7 @@ compatibility bundle:
   `renderer/vendor-globals.css`.
 - `scripts/prepare-runtime-dist.mjs` no longer copies a `vendor/` tree into
   `electron-app/dist/`.
-- `electron-app/package.json` no longer includes a `vendor/` tree in the npm
+- The root `package.json` no longer includes a `vendor/` tree in the npm
   package file list.
 - Renderer modules consume browser libraries through globals such as
   `Chart`, `L`, `JSZip`, `DOMPurify`, `screenfull`, and DataTables/jQuery.
@@ -135,10 +135,11 @@ The root `electron-builder.config.cjs` `files` list is the source of truth for
 the Electron Builder package surface. The Windows 7 build helper reads the same
 list from that config. Electron Builder packages only:
 
-- `dist/`
+- `electron-app/dist/`
 - `package.json`
 
-The runtime build copies these app assets into `dist/` before packaging:
+The runtime build copies these app assets into `electron-app/dist/` before
+packaging:
 
 - `elevProfile.css` from `static/app/elevProfile.css`
 - `ffv/` from `static/ffv/`
