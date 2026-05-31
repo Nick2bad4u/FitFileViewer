@@ -2,9 +2,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getChartSetting } from "../../../electron-app/utils/state/domain/settingsStateManager.js";
 
 vi.mock(
-    "../../../electron-app/utils/state/domain/settingsStateManager.js",
+    import("../../../electron-app/utils/state/domain/settingsStateManager.js"),
     () => ({
-        getChartSetting: vi.fn(),
+        getChartSetting: vi.fn<(key: string) => unknown>(),
     })
 );
 
@@ -12,7 +12,7 @@ import { formatTime } from "../../../electron-app/utils/formatting/formatters/fo
 
 const mockedGetChartSetting = vi.mocked(getChartSetting);
 
-describe("formatTime", () => {
+describe(formatTime, () => {
     beforeEach(() => {
         vi.clearAllMocks();
         mockedGetChartSetting.mockReturnValue(undefined);
@@ -23,6 +23,8 @@ describe("formatTime", () => {
     });
 
     it("formats seconds as clock strings by default", () => {
+        expect.hasAssertions();
+
         expect(formatTime(0)).toBe("0:00");
         expect(formatTime(5)).toBe("0:05");
         expect(formatTime(90)).toBe("1:30");
@@ -33,6 +35,8 @@ describe("formatTime", () => {
     });
 
     it("formats user-unit settings for seconds, minutes, and hours", () => {
+        expect.hasAssertions();
+
         mockedGetChartSetting.mockReturnValue("seconds");
         expect(formatTime(90, true)).toBe("1:30");
 
@@ -48,11 +52,15 @@ describe("formatTime", () => {
     });
 
     it("does not read user settings when user units are disabled", () => {
+        expect.hasAssertions();
+
         expect(formatTime(90, false)).toBe("1:30");
         expect(mockedGetChartSetting).not.toHaveBeenCalled();
     });
 
     it("handles invalid-input values with warnings and the fallback time", () => {
+        expect.hasAssertions();
+
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
         for (const value of [
@@ -85,6 +93,8 @@ describe("formatTime", () => {
     });
 
     it("logs and returns the fallback time when formatting fails", () => {
+        expect.hasAssertions();
+
         const errorSpy = vi
             .spyOn(console, "error")
             .mockImplementation(() => {});
