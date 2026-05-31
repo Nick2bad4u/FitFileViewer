@@ -5,8 +5,8 @@ import { pathToFileURL } from "node:url";
 
 import {
     repositoryRoot,
-    repositoryScriptPath,
     rootReleaseDistPath,
+    runElectronBuilderScriptPath,
 } from "./lib/workspaces.mjs";
 
 export const defaultInitialRetryDelaySeconds = 15;
@@ -393,7 +393,7 @@ function runCommandSync(command, args) {
 
 function runElectronBuilder(builderArgs, { runCommand }) {
     return runCommand(process.execPath, [
-        repositoryScriptPath("run-electron-builder.mjs"),
+        runElectronBuilderScriptPath,
         ...builderArgs,
     ]);
 }

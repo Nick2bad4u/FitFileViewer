@@ -20,6 +20,7 @@ type WorkspacesModule = {
     appSourcePath: string;
     appSourceRepositoryPath: (...segments: string[]) => string;
     appSourceRelativePath: (...segments: string[]) => string;
+    buildRuntimeScriptPath: string;
     docusaurusPackagePath: string;
     docusaurusPackageRepositoryPath: string;
     docusaurusWorkspaceAbsolutePath: (...segments: string[]) => string;
@@ -27,6 +28,7 @@ type WorkspacesModule = {
     docusaurusWorkspacePath: string;
     docusaurusWorkspaceRepositoryPath: (...segments: string[]) => string;
     docusaurusWorkspaceRelativePath: (...segments: string[]) => string;
+    generateApiCategoriesScriptPath: string;
     repositoryRoot: string;
     repositoryPath: (...segments: string[]) => string;
     repositoryScriptPath: (...segments: string[]) => string;
@@ -74,6 +76,9 @@ type WorkspacesModule = {
     rootVitestConfigPath: string;
     rootVitestTypecheckTsconfigPath: string;
     rootWin7ReleaseDistPath: string;
+    runDocusaurusScriptPath: string;
+    runElectronBuilderScriptPath: string;
+    runElectronScriptPath: string;
     scriptsPath: string;
 };
 
@@ -83,7 +88,7 @@ async function importWorkspaces(): Promise<WorkspacesModule> {
 
 describe("workspace path helpers", () => {
     it("centralizes the app source root paths", async () => {
-        expect.assertions(15);
+        expect.assertions(20);
 
         const workspaces = await importWorkspaces();
 
@@ -118,6 +123,21 @@ describe("workspace path helpers", () => {
         );
         expect(workspaces.repositoryScriptPath("build-runtime.mjs")).toBe(
             path.join(process.cwd(), "scripts", "build-runtime.mjs")
+        );
+        expect(workspaces.buildRuntimeScriptPath).toBe(
+            path.join(process.cwd(), "scripts", "build-runtime.mjs")
+        );
+        expect(workspaces.generateApiCategoriesScriptPath).toBe(
+            path.join(process.cwd(), "scripts", "generate-api-categories.mjs")
+        );
+        expect(workspaces.runDocusaurusScriptPath).toBe(
+            path.join(process.cwd(), "scripts", "run-docusaurus.mjs")
+        );
+        expect(workspaces.runElectronBuilderScriptPath).toBe(
+            path.join(process.cwd(), "scripts", "run-electron-builder.mjs")
+        );
+        expect(workspaces.runElectronScriptPath).toBe(
+            path.join(process.cwd(), "scripts", "run-electron.mjs")
         );
         expect(
             workspaces.repositoryPath(workspaces.rootFlatpakManifestPath)

@@ -7,8 +7,8 @@ import { pathToFileURL } from "node:url";
 
 import {
     appSourceAbsolutePath,
+    buildRuntimeScriptPath,
     repositoryRoot,
-    repositoryScriptPath,
     rootIntegrationTestsPath,
     rootTabsTestsPath,
     rootUnitTestsPath,
@@ -130,14 +130,10 @@ export function ensureRuntimeDist(
         return 0;
     }
 
-    const result = commandRunner(
-        process.execPath,
-        [repositoryScriptPath("build-runtime.mjs")],
-        {
-            cwd: repositoryRoot,
-            stdio: "inherit",
-        }
-    );
+    const result = commandRunner(process.execPath, [buildRuntimeScriptPath], {
+        cwd: repositoryRoot,
+        stdio: "inherit",
+    });
 
     if (result.error) {
         throw result.error;

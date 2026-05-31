@@ -5,8 +5,8 @@ import process from "node:process";
 import { pathToFileURL } from "node:url";
 
 import {
+    buildRuntimeScriptPath,
     repositoryRoot,
-    repositoryScriptPath,
     rootPlaywrightConfigPath,
 } from "./lib/workspaces.mjs";
 
@@ -20,7 +20,7 @@ export const playwrightCliPath = path.join(
 export function runPlaywrightSteps(argv = process.argv.slice(2)) {
     return [
         {
-            args: [repositoryScriptPath("build-runtime.mjs")],
+            args: [buildRuntimeScriptPath],
             label: "build runtime",
         },
         {

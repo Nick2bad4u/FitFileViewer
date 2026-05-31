@@ -2,16 +2,20 @@ import { spawnSync } from "node:child_process";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
-import { repositoryRoot, repositoryScriptPath } from "./lib/workspaces.mjs";
+import {
+    buildRuntimeScriptPath,
+    repositoryRoot,
+    runElectronBuilderScriptPath,
+} from "./lib/workspaces.mjs";
 
 export function buildPackageSteps(argv = process.argv.slice(2)) {
     return [
         {
-            args: [repositoryScriptPath("build-runtime.mjs")],
+            args: [buildRuntimeScriptPath],
             label: "build runtime",
         },
         {
-            args: [repositoryScriptPath("run-electron-builder.mjs"), ...argv],
+            args: [runElectronBuilderScriptPath, ...argv],
             label: "run electron-builder",
         },
     ];

@@ -101,6 +101,16 @@ export const rootAppStyleCssPath = path.posix.join(
     appStyleCssPath
 );
 export const scriptsPath = path.join(repositoryRoot, "scripts");
+export const buildRuntimeScriptPath = repositoryScriptPath("build-runtime.mjs");
+export const generateApiCategoriesScriptPath = repositoryScriptPath(
+    "generate-api-categories.mjs"
+);
+export const runDocusaurusScriptPath =
+    repositoryScriptPath("run-docusaurus.mjs");
+export const runElectronBuilderScriptPath = repositoryScriptPath(
+    "run-electron-builder.mjs"
+);
+export const runElectronScriptPath = repositoryScriptPath("run-electron.mjs");
 
 export function appSourceRelativePath(...segments) {
     return path.join(appSourceDirectoryName, ...segments);

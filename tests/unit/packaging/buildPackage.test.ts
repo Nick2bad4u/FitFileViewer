@@ -7,6 +7,10 @@ import {
     buildPackageSteps,
     runBuildPackage,
 } from "../../../scripts/build-package.mjs";
+import {
+    buildRuntimeScriptPath,
+    runElectronBuilderScriptPath,
+} from "../../../scripts/lib/workspaces.mjs";
 
 type CommandRunner = (
     command: string,
@@ -29,9 +33,9 @@ describe("build-package script", () => {
             "run electron-builder",
         ]);
         expect(steps.map((step) => step.args)).toStrictEqual([
-            [path.join(process.cwd(), "scripts", "build-runtime.mjs")],
+            [buildRuntimeScriptPath],
             [
-                path.join(process.cwd(), "scripts", "run-electron-builder.mjs"),
+                runElectronBuilderScriptPath,
                 "--node-env",
                 "production",
                 "--dir",

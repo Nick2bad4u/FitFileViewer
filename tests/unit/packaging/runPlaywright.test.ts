@@ -8,7 +8,10 @@ import {
     runPlaywright,
     runPlaywrightSteps,
 } from "../../../scripts/run-playwright.mjs";
-import { rootPlaywrightConfigPath } from "../../../scripts/lib/workspaces.mjs";
+import {
+    buildRuntimeScriptPath,
+    rootPlaywrightConfigPath,
+} from "../../../scripts/lib/workspaces.mjs";
 
 type CommandRunner = (
     command: string,
@@ -30,9 +33,7 @@ describe("run-playwright script", () => {
             "build runtime",
             "run playwright",
         ]);
-        expect(steps[0]?.args).toStrictEqual([
-            path.join(process.cwd(), "scripts", "build-runtime.mjs"),
-        ]);
+        expect(steps[0]?.args).toStrictEqual([buildRuntimeScriptPath]);
         expect(steps[1]?.args).toStrictEqual([
             playwrightCliPath,
             "test",

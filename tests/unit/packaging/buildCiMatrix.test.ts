@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
-    repositoryScriptPath,
     rootReleaseDistPath,
+    runElectronBuilderScriptPath,
 } from "../../../scripts/lib/workspaces.mjs";
 
 type BuildCiMatrixModule = {
@@ -214,7 +214,7 @@ describe("build-ci-matrix script", () => {
                 expect.stringMatching(/npm(?:\.cmd)? run build:runtime-ts/u),
                 [
                     process.execPath,
-                    repositoryScriptPath("run-electron-builder.mjs"),
+                    runElectronBuilderScriptPath,
                     "--win",
                     "--publish",
                     "never",

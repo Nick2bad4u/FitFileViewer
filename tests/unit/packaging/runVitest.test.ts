@@ -4,7 +4,7 @@ import process from "node:process";
 import { describe, expect, it, vi } from "vitest";
 
 import {
-    repositoryScriptPath,
+    buildRuntimeScriptPath,
     rootIntegrationTestsPath,
     rootTabsTestsPath,
     rootUnitTestsPath,
@@ -154,7 +154,7 @@ describe("run-vitest wrapper", () => {
             },
         }).toStrictEqual({
             build: {
-                args: [repositoryScriptPath("build-runtime.mjs")],
+                args: [buildRuntimeScriptPath],
                 command: process.execPath,
                 options: {
                     cwd: process.cwd(),

@@ -6,8 +6,9 @@ import { pathToFileURL } from "node:url";
 
 import {
     docusaurusWorkspacePath,
+    generateApiCategoriesScriptPath,
     repositoryRoot,
-    repositoryScriptPath,
+    runDocusaurusScriptPath,
     rootTypedocConfigPath,
 } from "./lib/workspaces.mjs";
 
@@ -35,7 +36,7 @@ export function buildDocsSteps(argv = process.argv.slice(2)) {
             label: "generate API docs",
         },
         {
-            args: [repositoryScriptPath("generate-api-categories.mjs")],
+            args: [generateApiCategoriesScriptPath],
             cwd: docusaurusWorkspacePath,
             label: "generate API categories",
         },
@@ -43,10 +44,7 @@ export function buildDocsSteps(argv = process.argv.slice(2)) {
             ? []
             : [
                   {
-                      args: [
-                          repositoryScriptPath("run-docusaurus.mjs"),
-                          "build",
-                      ],
+                      args: [runDocusaurusScriptPath, "build"],
                       cwd: repositoryRoot,
                       label: "build Docusaurus site",
                   },

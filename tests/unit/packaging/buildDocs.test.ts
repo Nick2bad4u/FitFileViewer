@@ -8,6 +8,11 @@ import {
     runBuildDocs,
     typedocConfigPath,
 } from "../../../scripts/build-docs.mjs";
+import {
+    docusaurusWorkspacePath,
+    generateApiCategoriesScriptPath,
+    runDocusaurusScriptPath,
+} from "../../../scripts/lib/workspaces.mjs";
 
 type CommandRunner = (
     command: string,
@@ -36,18 +41,9 @@ describe("build-docs script", () => {
         }).toStrictEqual({
             step0Args: ["--options", typedocConfigPath],
             step0Cwd: path.resolve(process.cwd()),
-            step1Args: [
-                path.join(
-                    process.cwd(),
-                    "scripts",
-                    "generate-api-categories.mjs"
-                ),
-            ],
-            step1Cwd: path.join(process.cwd(), "docusaurus"),
-            step2Args: [
-                path.join(process.cwd(), "scripts", "run-docusaurus.mjs"),
-                "build",
-            ],
+            step1Args: [generateApiCategoriesScriptPath],
+            step1Cwd: docusaurusWorkspacePath,
+            step2Args: [runDocusaurusScriptPath, "build"],
         });
     });
 

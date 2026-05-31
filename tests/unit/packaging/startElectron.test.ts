@@ -7,6 +7,10 @@ import {
     startElectron,
     startElectronSteps,
 } from "../../../scripts/start-electron.mjs";
+import {
+    buildRuntimeScriptPath,
+    runElectronScriptPath,
+} from "../../../scripts/lib/workspaces.mjs";
 
 type CommandRunner = (
     command: string,
@@ -28,9 +32,9 @@ describe("start-electron script", () => {
             "launch electron",
         ]);
         expect(steps.map((step) => step.args)).toStrictEqual([
-            [path.join(process.cwd(), "scripts", "build-runtime.mjs")],
+            [buildRuntimeScriptPath],
             [
-                path.join(process.cwd(), "scripts", "run-electron.mjs"),
+                runElectronScriptPath,
                 "--inspect=9229",
                 "--remote-debugging-port=9222",
             ],
