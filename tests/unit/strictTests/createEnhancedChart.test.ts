@@ -404,8 +404,10 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
     });
 
-    describe("Dataset Configuration", () => {
+    describe("dataset configuration", () => {
         it("should configure dataset with custom colors", () => {
+            expect.hasAssertions();
+
             const canvas = document.createElement("canvas");
             const customColors = { speed: "#00ff00" };
             const options = {
@@ -436,6 +438,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should configure dataset with field labels", () => {
+            expect.hasAssertions();
+
             const canvas = document.createElement("canvas");
             const fieldLabels = { speed: "Speed (Enhanced)" };
             const options = {
@@ -463,6 +467,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should configure point display based on showPoints option", () => {
+            expect.hasAssertions();
+
             const canvas = document.createElement("canvas");
             const options = {
                 field: "speed",
@@ -490,6 +496,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should configure fill based on showFill option", () => {
+            expect.hasAssertions();
+
             const canvas = document.createElement("canvas");
             const options = {
                 field: "speed",
