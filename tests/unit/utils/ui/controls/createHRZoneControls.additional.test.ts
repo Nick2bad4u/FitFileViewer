@@ -2,18 +2,18 @@ import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import { setChartFieldVisibility } from "../../../../../electron-app/utils/state/domain/settingsStateManager.js";
 
 const inlineSelectorMock = vi.hoisted(() => ({
-    createInlineZoneColorSelector: vi.fn(
-        (prefix: string, container: HTMLElement): HTMLElement | null => {
-            const button = document.createElement("button");
-            button.dataset.zonePrefix = prefix;
-            container.append(button);
-            return button;
-        }
-    ),
+    createInlineZoneColorSelector: vi.fn<
+        (prefix: string, container: HTMLElement) => HTMLElement | null
+    >((prefix: string, container: HTMLElement): HTMLElement | null => {
+        const button = document.createElement("button");
+        button.dataset.zonePrefix = prefix;
+        container.append(button);
+        return button;
+    }),
 }));
 
 vi.mock(
-    "../../../../../electron-app/utils/ui/controls/createInlineZoneColorSelector.js",
+    import("../../../../../electron-app/utils/ui/controls/createInlineZoneColorSelector.js"),
     () => inlineSelectorMock
 );
 
@@ -46,6 +46,8 @@ describe("createHRZoneControls additional coverage", () => {
     });
 
     it("returns existing controls without creating a new section", async () => {
+        expect.hasAssertions();
+
         const existing = document.createElement("div");
         existing.id = "hr-zone-controls";
         const root = document.getElementById("root")!;
@@ -53,10 +55,12 @@ describe("createHRZoneControls additional coverage", () => {
         const { createHRZoneControls } = await loadModule();
         const result = createHRZoneControls(root);
         expect(result).toBe(existing);
-        expect(root.querySelectorAll("#hr-zone-controls").length).toBe(1);
+        expect(root.querySelectorAll("#hr-zone-controls")).toHaveLength(1);
     });
 
     it("honors persisted collapse state and updates hover styles", async () => {
+        expect.hasAssertions();
+
         localStorage.setItem("hr-zone-controls-collapsed", "true");
         const { createHRZoneControls } = await loadModule();
         const root = document.getElementById("root")!;
@@ -81,6 +85,8 @@ describe("createHRZoneControls additional coverage", () => {
     });
 
     it("getHRZoneVisibilitySettings reflects stored visibility flags", async () => {
+        expect.hasAssertions();
+
         setChartFieldVisibility("hr_zone_doughnut", "hidden");
         setChartFieldVisibility("hr_lap_zone_stacked", "hidden");
         const { getHRZoneVisibilitySettings } = await loadModule();
@@ -93,12 +99,16 @@ describe("createHRZoneControls additional coverage", () => {
     });
 
     it("updateHRZoneControlsVisibility gracefully handles missing section", async () => {
+        expect.hasAssertions();
+
         const { updateHRZoneControlsVisibility } = await loadModule();
         document.body.replaceChildren();
         expect(() => updateHRZoneControlsVisibility(true)).not.toThrow();
     });
 
     it("warns when hr-zone-content is missing", async () => {
+        expect.hasAssertions();
+
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         const { moveHRZoneControlsToSection } = await loadModule();
         const fields = document.getElementById("fields")!;
@@ -121,6 +131,8 @@ describe("createHRZoneControls additional coverage", () => {
     });
 
     it("moves controls, adds spacing, and appends unified color picker", async () => {
+        expect.hasAssertions();
+
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         const { createHRZoneControls, moveHRZoneControlsToSection } =
             await loadModule();
@@ -142,10 +154,10 @@ describe("createHRZoneControls additional coverage", () => {
             fields.append(wrapper);
         }
         moveHRZoneControlsToSection();
-        expect(document.getElementById("fields")!.children.length).toBe(0);
+        expect(document.getElementById("fields")!.children).toHaveLength(0);
         expect(
-            content.querySelectorAll("button[id^='field-toggle']").length
-        ).toBe(3);
+            content.querySelectorAll("button[id^='field-toggle']")
+        ).toHaveLength(3);
         const children = Array.from(content.children) as HTMLElement[];
         expect(children).toHaveLength(5);
         expect(children[1].style.marginTop).toBe("12px");
@@ -165,8 +177,10 @@ describe("createHRZoneControls additional coverage", () => {
     });
 
     it("skips appending color picker when inline selector returns null", async () => {
-        inlineSelectorMock.createInlineZoneColorSelector.mockImplementationOnce(
-            () => null
+        expect.hasAssertions();
+
+        inlineSelectorMock.createInlineZoneColorSelector.mockReturnValueOnce(
+            null
         );
         const { createHRZoneControls, moveHRZoneControlsToSection } =
             await loadModule();
@@ -181,7 +195,7 @@ describe("createHRZoneControls additional coverage", () => {
         wrapper.append(toggle);
         document.getElementById("fields")!.append(wrapper);
         moveHRZoneControlsToSection();
-        expect(content.children.length).toBe(1);
+        expect(content.children).toHaveLength(1);
         expect(
             content.querySelector("[data-zone-prefix='hr_zone']")
         ).toBeNull();
