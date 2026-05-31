@@ -7,6 +7,8 @@ import {
 
 describe("eventListenerManager.strict branches", () => {
     it("warns if aborting an event listener throws during cleanup", () => {
+        expect.hasAssertions();
+
         const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
         const el = document.createElement("div");
         const abortSpy = vi
