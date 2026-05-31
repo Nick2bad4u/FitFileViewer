@@ -112,22 +112,32 @@ describe("renderLapZoneCharts", () => {
 
     describe("Parameter Validation", () => {
         it("should handle null container gracefully", () => {
-            expect(renderLapZoneCharts(null)).toBeUndefined();
+            expect(() => renderLapZoneCharts(null)).not.toThrow();
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] renderLapZoneCharts called"
             );
-            expect(container.querySelectorAll("canvas")).toHaveLength(0);
-            expect(window._chartjsInstances).toEqual([]);
+            expect({
+                canvasIds: getCanvasIds(),
+                chartInstances: window._chartjsInstances ?? [],
+            }).toStrictEqual({
+                canvasIds: [],
+                chartInstances: [],
+            });
             expect(mockShowNotification).not.toHaveBeenCalled();
         });
 
         it("should handle undefined container gracefully", () => {
-            expect(renderLapZoneCharts(undefined)).toBeUndefined();
+            expect(() => renderLapZoneCharts(undefined)).not.toThrow();
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] renderLapZoneCharts called"
             );
-            expect(container.querySelectorAll("canvas")).toHaveLength(0);
-            expect(window._chartjsInstances).toEqual([]);
+            expect({
+                canvasIds: getCanvasIds(),
+                chartInstances: window._chartjsInstances ?? [],
+            }).toStrictEqual({
+                canvasIds: [],
+                chartInstances: [],
+            });
             expect(mockShowNotification).not.toHaveBeenCalled();
         });
 
@@ -136,8 +146,13 @@ describe("renderLapZoneCharts", () => {
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] renderLapZoneCharts called"
             );
-            expect(container.querySelectorAll("canvas")).toHaveLength(0);
-            expect(window._chartjsInstances).toEqual([]);
+            expect({
+                canvasIds: getCanvasIds(),
+                chartInstances: window._chartjsInstances ?? [],
+            }).toStrictEqual({
+                canvasIds: [],
+                chartInstances: [],
+            });
         });
 
         it("should handle empty options object", () => {
@@ -145,8 +160,13 @@ describe("renderLapZoneCharts", () => {
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] renderLapZoneCharts called"
             );
-            expect(container.querySelectorAll("canvas")).toHaveLength(0);
-            expect(window._chartjsInstances).toEqual([]);
+            expect({
+                canvasIds: getCanvasIds(),
+                chartInstances: window._chartjsInstances ?? [],
+            }).toStrictEqual({
+                canvasIds: [],
+                chartInstances: [],
+            });
         });
 
         it("should handle null options", () => {
@@ -154,8 +174,13 @@ describe("renderLapZoneCharts", () => {
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] renderLapZoneCharts called"
             );
-            expect(container.querySelectorAll("canvas")).toHaveLength(0);
-            expect(window._chartjsInstances).toEqual([]);
+            expect({
+                canvasIds: getCanvasIds(),
+                chartInstances: window._chartjsInstances ?? [],
+            }).toStrictEqual({
+                canvasIds: [],
+                chartInstances: [],
+            });
         });
     });
 
@@ -166,8 +191,13 @@ describe("renderLapZoneCharts", () => {
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] No timeInZoneMesgs available for lap zone charts"
             );
-            expect(container.querySelectorAll("canvas")).toHaveLength(0);
-            expect(window._chartjsInstances).toEqual([]);
+            expect({
+                canvasIds: getCanvasIds(),
+                chartInstances: window._chartjsInstances ?? [],
+            }).toStrictEqual({
+                canvasIds: [],
+                chartInstances: [],
+            });
         });
 
         it("should return early when timeInZoneMesgs is missing", () => {
@@ -176,8 +206,13 @@ describe("renderLapZoneCharts", () => {
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] No timeInZoneMesgs available for lap zone charts"
             );
-            expect(container.querySelectorAll("canvas")).toHaveLength(0);
-            expect(window._chartjsInstances).toEqual([]);
+            expect({
+                canvasIds: getCanvasIds(),
+                chartInstances: window._chartjsInstances ?? [],
+            }).toStrictEqual({
+                canvasIds: [],
+                chartInstances: [],
+            });
         });
 
         it("should return early when timeInZoneMesgs is null", () => {
@@ -186,8 +221,13 @@ describe("renderLapZoneCharts", () => {
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] No timeInZoneMesgs available for lap zone charts"
             );
-            expect(container.querySelectorAll("canvas")).toHaveLength(0);
-            expect(window._chartjsInstances).toEqual([]);
+            expect({
+                canvasIds: getCanvasIds(),
+                chartInstances: window._chartjsInstances ?? [],
+            }).toStrictEqual({
+                canvasIds: [],
+                chartInstances: [],
+            });
         });
 
         it("should return early when timeInZoneMesgs is empty array", () => {
@@ -200,8 +240,13 @@ describe("renderLapZoneCharts", () => {
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] No lap-specific zone data found"
             );
-            expect(container.querySelectorAll("canvas")).toHaveLength(0);
-            expect(window._chartjsInstances).toEqual([]);
+            expect({
+                canvasIds: getCanvasIds(),
+                chartInstances: window._chartjsInstances ?? [],
+            }).toStrictEqual({
+                canvasIds: [],
+                chartInstances: [],
+            });
         });
     });
 
@@ -244,8 +289,13 @@ describe("renderLapZoneCharts", () => {
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] No lap-specific zone data found"
             );
-            expect(container.querySelectorAll("canvas")).toHaveLength(0);
-            expect(window._chartjsInstances).toEqual([]);
+            expect({
+                canvasIds: getCanvasIds(),
+                chartInstances: window._chartjsInstances ?? [],
+            }).toStrictEqual({
+                canvasIds: [],
+                chartInstances: [],
+            });
         });
     });
 
@@ -309,8 +359,13 @@ describe("renderLapZoneCharts", () => {
 
             renderLapZoneCharts(container);
             expect(mockConsoleError).not.toHaveBeenCalled();
-            expect(container.querySelectorAll("canvas")).toHaveLength(0);
-            expect(window._chartjsInstances).toEqual([]);
+            expect({
+                canvasIds: getCanvasIds(),
+                chartInstances: window._chartjsInstances ?? [],
+            }).toStrictEqual({
+                canvasIds: [],
+                chartInstances: [],
+            });
         });
 
         it("should handle invalid JSON strings", () => {
@@ -324,8 +379,13 @@ describe("renderLapZoneCharts", () => {
 
             renderLapZoneCharts(container);
             expect(mockConsoleError).not.toHaveBeenCalled();
-            expect(container.querySelectorAll("canvas")).toHaveLength(0);
-            expect(window._chartjsInstances).toEqual([]);
+            expect({
+                canvasIds: getCanvasIds(),
+                chartInstances: window._chartjsInstances ?? [],
+            }).toStrictEqual({
+                canvasIds: [],
+                chartInstances: [],
+            });
         });
 
         it("should handle non-string non-array values", () => {
@@ -335,8 +395,13 @@ describe("renderLapZoneCharts", () => {
 
             renderLapZoneCharts(container);
             expect(mockConsoleError).not.toHaveBeenCalled();
-            expect(container.querySelectorAll("canvas")).toHaveLength(0);
-            expect(window._chartjsInstances).toEqual([]);
+            expect({
+                canvasIds: getCanvasIds(),
+                chartInstances: window._chartjsInstances ?? [],
+            }).toStrictEqual({
+                canvasIds: [],
+                chartInstances: [],
+            });
         });
     });
 
@@ -522,8 +587,13 @@ describe("renderLapZoneCharts", () => {
                 "[ChartJS] HR Zone filtering - meaningfulHRZones:",
                 []
             );
-            expect(container.querySelectorAll("canvas")).toHaveLength(0);
-            expect(window._chartjsInstances).toEqual([]);
+            expect({
+                canvasIds: getCanvasIds(),
+                chartInstances: window._chartjsInstances ?? [],
+            }).toStrictEqual({
+                canvasIds: [],
+                chartInstances: [],
+            });
         });
     });
 
@@ -661,7 +731,7 @@ describe("renderLapZoneCharts", () => {
             ] = hrCalls[0];
             expect(canvas).toBeInstanceOf(window.HTMLCanvasElement);
             expect(canvas.id).toBe("chartjs-canvas-lap-hr-zones");
-            expect(Array.isArray(data)).toBe(true);
+            expect(data).toBeInstanceOf(Array);
             expect(options.title).toBe("HR Zone by Lap (Stacked)");
             expect(window._chartjsInstances).toContainEqual({
                 id: "mock-chart",
@@ -729,7 +799,7 @@ describe("renderLapZoneCharts", () => {
         it("should initialize window._chartjsInstances array if not exists", () => {
             delete window._chartjsInstances;
             renderLapZoneCharts(container);
-            expect(Array.isArray(window._chartjsInstances)).toBe(true);
+            expect(window._chartjsInstances).toBeInstanceOf(Array);
             expect(window._chartjsInstances).toEqual([
                 { id: "mock-chart" },
                 { id: "mock-hr-bar" },
@@ -752,7 +822,7 @@ describe("renderLapZoneCharts", () => {
             window._chartjsInstances = [];
             renderLapZoneCharts(container);
             // Should not add null values to the array
-            expect(window._chartjsInstances.length).toBe(0);
+            expect(window._chartjsInstances).toStrictEqual([]);
             expect(getCanvasIds()).toEqual([
                 "chartjs-canvas-lap-hr-zones",
                 "chartjs-canvas-single-lap-hr",
@@ -781,8 +851,13 @@ describe("renderLapZoneCharts", () => {
                 "[ChartJS] Error rendering lap zone charts:",
                 expect.any(Error)
             );
-            expect(container.querySelectorAll("canvas")).toHaveLength(0);
-            expect(window._chartjsInstances).toEqual([]);
+            expect({
+                canvasIds: getCanvasIds(),
+                chartInstances: window._chartjsInstances ?? [],
+            }).toStrictEqual({
+                canvasIds: [],
+                chartInstances: [],
+            });
         });
 
         it("should show notification on error", () => {
@@ -803,8 +878,13 @@ describe("renderLapZoneCharts", () => {
                 "Failed to render lap zone charts",
                 "error"
             );
-            expect(container.querySelectorAll("canvas")).toHaveLength(0);
-            expect(window._chartjsInstances).toEqual([]);
+            expect({
+                canvasIds: getCanvasIds(),
+                chartInstances: window._chartjsInstances ?? [],
+            }).toStrictEqual({
+                canvasIds: [],
+                chartInstances: [],
+            });
         });
 
         it("should continue execution when showNotification is not available", () => {
@@ -821,13 +901,18 @@ describe("renderLapZoneCharts", () => {
                 },
             ];
 
-            expect(renderLapZoneCharts(container)).toBeUndefined();
+            expect(() => renderLapZoneCharts(container)).not.toThrow();
             expect(mockConsoleError).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering lap zone charts:",
                 expect.any(Error)
             );
-            expect(container.querySelectorAll("canvas")).toHaveLength(0);
-            expect(window._chartjsInstances).toEqual([]);
+            expect({
+                canvasIds: getCanvasIds(),
+                chartInstances: window._chartjsInstances ?? [],
+            }).toStrictEqual({
+                canvasIds: [],
+                chartInstances: [],
+            });
         });
     });
 
@@ -889,7 +974,7 @@ describe("renderLapZoneCharts", () => {
             };
 
             renderLapZoneCharts(container, options);
-            expect(container.querySelectorAll("canvas")).toHaveLength(0);
+            expect(getCanvasIds()).toStrictEqual([]);
             expect(renderLapZoneChart).not.toHaveBeenCalled();
         });
 
@@ -904,7 +989,7 @@ describe("renderLapZoneCharts", () => {
 
             renderLapZoneCharts(container);
             // All zones are zero, so no meaningful data - no charts should be created
-            expect(container.querySelectorAll("canvas")).toHaveLength(0);
+            expect(getCanvasIds()).toStrictEqual([]);
         });
     });
 
