@@ -243,14 +243,24 @@ describe("workspace package boundaries", () => {
             rootRuntimeTsconfigPath,
         ];
         const appLocalToolingConfigs = [
+            ".eslintrc",
+            ".eslintrc.cjs",
+            ".eslintrc.js",
+            ".eslintrc.json",
+            ".prettierrc",
+            ".prettierrc.cjs",
+            ".prettierrc.js",
+            ".prettierrc.json",
             "eslint.config.mjs",
-            "prettier.config.mjs",
-            "vitest.config.ts",
-            "vitest.config.js",
+            "package-lock.json",
+            "package.json",
             "playwright.config.ts",
+            "prettier.config.mjs",
             "stylelint.config.mjs",
             "tsconfig.json",
             "tsconfig.runtime.json",
+            "vitest.config.js",
+            "vitest.config.ts",
         ].map((configPath) => appSourceRepositoryPath(configPath));
 
         expect(getFileExistence(rootToolingConfigs)).toStrictEqual(
