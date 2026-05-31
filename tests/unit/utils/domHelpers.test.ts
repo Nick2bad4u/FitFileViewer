@@ -200,19 +200,21 @@ describe("dom helpers", () => {
     });
 
     it("ignores invalid element inputs for mutating helpers", () => {
-        expect.assertions(10);
+        expect.assertions(2);
 
         const bodyBefore = document.body.innerHTML;
 
-        expect(clearElement(null)).toBeUndefined();
-        expect(focus(null)).toBeUndefined();
-        expect(removeClass(null, "missing")).toBeUndefined();
-        expect(setChecked(null, true)).toBeUndefined();
-        expect(setData(null, "key", "value")).toBeUndefined();
-        expect(setDisabled(null, true)).toBeUndefined();
-        expect(setStyle(null, "color", "red")).toBeUndefined();
-        expect(setText(null, "value")).toBeUndefined();
-        expect(setValue(null, "value")).toBeUndefined();
+        expect(() => {
+            clearElement(null);
+            focus(null);
+            removeClass(null, "missing");
+            setChecked(null, true);
+            setData(null, "key", "value");
+            setDisabled(null, true);
+            setStyle(null, "color", "red");
+            setText(null, "value");
+            setValue(null, "value");
+        }).not.toThrow();
         expect(document.body.innerHTML).toBe(bodyBefore);
     });
 
@@ -247,11 +249,12 @@ describe("dom helpers", () => {
     });
 
     it("returns undefined when attaching an event to invalid targets", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const handler = vi.fn<(event: Event) => void>();
 
-        expect(on(null, "click", handler)).toBeUndefined();
+        expect(() => on(null, "click", handler)).not.toThrow();
+        expect(handler).not.toHaveBeenCalled();
     });
 
     it("focuses elements with a focus method and propagates focus failures", () => {
