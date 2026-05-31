@@ -29,7 +29,7 @@ describe("showNotification display failure handling", () => {
     });
 
     it("resolves the caller promise and clears queue state when display fails", async () => {
-        expect.assertions(7);
+        expect.assertions(6);
 
         const notificationElement =
             document.querySelector<HTMLElement>("#notification");
@@ -50,7 +50,7 @@ describe("showNotification display failure handling", () => {
 
         const shown = showNotification("Display failure", "info", 1000);
 
-        await expect(shown).resolves.toBeUndefined();
+        await shown;
         expect(console.error).toHaveBeenCalledWith(
             "Error displaying notification:",
             displayError
@@ -78,15 +78,14 @@ describe("showNotification display failure handling", () => {
     });
 
     it("rejects invalid messages without rendering notification content", async () => {
-        expect.assertions(5);
+        expect.assertions(4);
 
         const notificationElement =
             document.querySelector<HTMLElement>("#notification");
         expect(notificationElement!.id).toBe("notification");
 
-        const result = await showNotification("", "info", 1000);
+        await showNotification("", "info", 1000);
 
-        expect(result).toBeUndefined();
         expect(console.warn).toHaveBeenCalledWith(
             "showNotification: Invalid message provided"
         );

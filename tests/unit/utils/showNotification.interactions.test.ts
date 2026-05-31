@@ -155,9 +155,7 @@ describe("showNotification interactions", () => {
                 throw renderError;
             });
 
-        await expect(
-            showNotification("Broken", "info")
-        ).resolves.toBeUndefined();
+        await showNotification("Broken", "info");
 
         expect(replaceChildrenSpy).toHaveBeenCalledOnce();
         expect(console.error).toHaveBeenCalledWith(

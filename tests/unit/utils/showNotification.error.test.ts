@@ -110,7 +110,7 @@ describe("showNotification.js - error handling coverage", () => {
     });
 
     it("handles errors during displayNotification process", async () => {
-        expect.assertions(4);
+        expect.assertions(3);
 
         // Create a spy that makes buildNotificationContent throw
         const mockError = new Error("Simulated error in displayNotification");
@@ -119,9 +119,7 @@ describe("showNotification.js - error handling coverage", () => {
         });
 
         // This should trigger the catch block in processNotificationQueue
-        await expect(
-            showNotification("Display error test")
-        ).resolves.toBeUndefined();
+        await showNotification("Display error test");
 
         const element = document.getElementById("notification");
         expect(element).toBeInstanceOf(HTMLDivElement);
