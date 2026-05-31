@@ -237,7 +237,7 @@ describe("preload.js dist bridge behavior", () => {
 
     describe("module loading and initialization", () => {
         it("should initialize preload dependencies and lifecycle hooks", () => {
-            expect.hasAssertions();
+            expect.assertions(6);
             const { mockProcess, mockRequire } = executePreloadScript();
 
             expect(mockRequire).toHaveBeenCalledWith("electron");
@@ -263,7 +263,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("should expose electronAPI to main world", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             executePreloadScript();
 
             expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith(
@@ -278,7 +278,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("should validate API before exposing", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             executePreloadScript();
 
             expect(exposedAPI.validateAPI).toBeTypeOf("function");
@@ -286,7 +286,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("should not expose API if validation fails", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
             // Mock contextBridge to be undefined to trigger validation failure
             mockContextBridge = undefined;
 
@@ -315,7 +315,7 @@ describe("preload.js dist bridge behavior", () => {
 
     describe("development mode features", () => {
         it("should expose development tools in development mode", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             executePreloadScript({ NODE_ENV: "development" });
 
             expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith(
@@ -330,7 +330,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("should not expose development tools in production mode", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             executePreloadScript({ NODE_ENV: "production" });
 
             // Should only have one call for electronAPI, not development tools.
@@ -341,7 +341,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("development tools should provide utilities", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
             executePreloadScript({ NODE_ENV: "development" });
 
             expect(exposedDevTools).toMatchObject({
@@ -352,7 +352,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("getPreloadInfo should return preload information", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             executePreloadScript({ NODE_ENV: "development" });
 
             const preloadInfo = exposedDevTools.getPreloadInfo();
@@ -374,7 +374,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("testIPC should test IPC communication", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             mockIpcRenderer.invoke.mockResolvedValue("1.0.0");
             executePreloadScript({ NODE_ENV: "development" });
 
@@ -387,7 +387,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("testIPC should handle IPC failures", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             mockIpcRenderer.invoke.mockRejectedValue(new Error("IPC failed"));
             executePreloadScript({ NODE_ENV: "development" });
 
@@ -403,7 +403,7 @@ describe("preload.js dist bridge behavior", () => {
 
     describe("api structure and methods", () => {
         it("should have all expected API methods", () => {
-            expect.hasAssertions();
+            expect.assertions(32);
             executePreloadScript();
 
             const expectedMethods = [
@@ -447,7 +447,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("getChannelInfo should return channel information", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
             executePreloadScript();
 
             const channelInfo = exposedAPI.getChannelInfo();
@@ -461,7 +461,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("validateAPI should perform comprehensive validation", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             executePreloadScript();
 
             expect(exposedAPI.validateAPI()).toStrictEqual(true);
@@ -474,7 +474,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("getChannelInfo should not include unknown channels", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             executePreloadScript();
 
             const channelInfo = exposedAPI.getChannelInfo();
@@ -490,7 +490,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("addRecentFile should invoke correct channel", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const filePath = "/path/to/file.fit";
             const result = await exposedAPI.addRecentFile(filePath);
 
@@ -502,7 +502,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("decodeFitFile should invoke correct channel", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const arrayBuffer = new ArrayBuffer(8);
             const result = await exposedAPI.decodeFitFile(arrayBuffer);
 
@@ -514,7 +514,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("getAppVersion should invoke correct channel", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const result = await exposedAPI.getAppVersion();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
@@ -524,7 +524,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("getChromeVersion should invoke correct channel", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const result = await exposedAPI.getChromeVersion();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
@@ -534,7 +534,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("getElectronVersion should invoke correct channel", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const result = await exposedAPI.getElectronVersion();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
@@ -544,7 +544,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("getLicenseInfo should invoke correct channel", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const result = await exposedAPI.getLicenseInfo();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
@@ -554,7 +554,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("getNodeVersion should invoke correct channel", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const result = await exposedAPI.getNodeVersion();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
@@ -564,7 +564,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("getPlatformInfo should invoke correct channel", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const result = await exposedAPI.getPlatformInfo();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
@@ -574,7 +574,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("getTheme should invoke correct channel", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const result = await exposedAPI.getTheme();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("theme:get");
@@ -582,7 +582,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("openExternal should invoke correct channel", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const url = "https://example.com";
             const result = await exposedAPI.openExternal(url);
 
@@ -594,7 +594,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("openFile should invoke correct channel", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const result = await exposedAPI.openFile();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
@@ -604,7 +604,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("openFileDialog should invoke correct channel", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const result = await exposedAPI.openFileDialog();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
@@ -614,7 +614,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("parseFitFile should invoke correct channel", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const arrayBuffer = new ArrayBuffer(8);
             const result = await exposedAPI.parseFitFile(arrayBuffer);
 
@@ -626,7 +626,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("readFile should invoke correct channel", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const filePath = "/path/to/file.fit";
             const result = await exposedAPI.readFile(filePath);
 
@@ -638,7 +638,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("recentFiles should invoke correct channel", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const result = await exposedAPI.recentFiles();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
@@ -648,7 +648,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("startGyazoServer should invoke correct channel", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const port = 3000;
             const result = await exposedAPI.startGyazoServer(port);
 
@@ -660,7 +660,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("stopGyazoServer should invoke correct channel", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const result = await exposedAPI.stopGyazoServer();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
@@ -670,7 +670,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("getTheme should surface IPC rejection", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const error = new Error("theme unavailable");
             mockIpcRenderer.invoke.mockRejectedValue(error);
 
@@ -690,7 +690,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("checkForUpdates should send correct event", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const result = exposedAPI.checkForUpdates();
 
             expect(mockIpcRenderer.send).toHaveBeenCalledWith(
@@ -700,7 +700,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("installUpdate should send correct event", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const result = exposedAPI.installUpdate();
 
             expect(mockIpcRenderer.send).toHaveBeenCalledWith("install-update");
@@ -708,7 +708,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("sendThemeChanged should send correct event", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const theme = "dark";
             const result = exposedAPI.sendThemeChanged(theme);
 
@@ -720,7 +720,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("setFullScreen should send correct event", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const flag = true;
             const result = exposedAPI.setFullScreen(flag);
 
@@ -732,7 +732,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("checkForUpdates should report send failures", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const error = new Error("update check unavailable");
             mockIpcRenderer.send.mockImplementation(() => {
                 throw error;
@@ -754,7 +754,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("onMenuOpenFile should register event handler", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const callback = vi.fn<IpcListener>();
             const unsubscribe = exposedAPI.onMenuOpenFile(callback);
 
@@ -766,7 +766,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("onMenuOpenOverlay should register event handler", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const callback = vi.fn<IpcListener>();
             const unsubscribe = exposedAPI.onMenuOpenOverlay(callback);
 
@@ -778,7 +778,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("onOpenRecentFile should register event handler", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const callback = vi.fn<IpcListener>();
             const unsubscribe = exposedAPI.onOpenRecentFile(callback);
 
@@ -790,7 +790,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("onOpenSummaryColumnSelector should register event handler", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const callback = vi.fn<IpcListener>();
             const unsubscribe =
                 exposedAPI.onOpenSummaryColumnSelector(callback);
@@ -803,7 +803,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("onSetTheme should register event handler", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const callback = vi.fn<IpcListener>();
             const unsubscribe = exposedAPI.onSetTheme(callback);
 
@@ -815,7 +815,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("onUpdateEvent should register event handler", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const eventName = "update-available";
             const callback = vi.fn<IpcListener>();
             const unsubscribe = exposedAPI.onUpdateEvent(eventName, callback);
@@ -828,7 +828,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("onIpc should register generic event handler", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const channel = "custom-channel";
             const callback = vi.fn<IpcListener>();
             const unsubscribe = exposedAPI.onIpc(channel, callback);
@@ -841,7 +841,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("onMenuOpenFile should reject invalid callbacks", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             const unsubscribe = exposedAPI.onMenuOpenFile("not-a-function");
 
             expect(unsubscribe).toBeTypeOf("function");
@@ -858,7 +858,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("invoke should call ipcRenderer.invoke", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const channel = "test-channel";
             const args = ["arg1", "arg2"];
             const result = await exposedAPI.invoke(channel, ...args);
@@ -871,7 +871,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("send should call ipcRenderer.send", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const channel = "test-channel";
             const args = ["arg1", "arg2"];
             const result = exposedAPI.send(channel, ...args);
@@ -881,7 +881,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("send should reject invalid channels", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             const result = exposedAPI.send(123);
 
             expect(result).toBeUndefined();
@@ -898,7 +898,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("injectMenu should validate parameters and invoke channel", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const theme = "dark";
             const fitFilePath = "/path/to/file.fit";
 
@@ -913,7 +913,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("injectMenu should handle default parameters", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const result = await exposedAPI.injectMenu();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
@@ -925,7 +925,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("injectMenu should validate theme parameter", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             const invalidTheme = 123; // Not a string or null
 
             await expect(
@@ -938,7 +938,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("injectMenu should validate fitFilePath parameter", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             const invalidPath = 123; // Not a string or null
 
             await expect(
@@ -957,7 +957,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("should handle IPC invoke errors", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const error = new Error("IPC error");
             mockIpcRenderer.invoke.mockRejectedValue(error);
 
@@ -971,7 +971,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("should handle IPC send errors", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const error = new Error("Send error");
             mockIpcRenderer.send.mockImplementation(() => {
                 throw error;
@@ -987,7 +987,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("should handle event registration errors", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const error = new Error("Event error");
             mockIpcRenderer.on.mockImplementation(() => {
                 throw error;
@@ -1003,7 +1003,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("should validate callback in event handlers", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             const unsubscribe = exposedAPI.onMenuOpenFile("not-a-function");
 
             expect(unsubscribe).toBeTypeOf("function");
@@ -1014,7 +1014,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("should validate callback in onUpdateEvent", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             const unsubscribe = exposedAPI.onUpdateEvent(
                 "test-event",
                 "not-a-function"
@@ -1028,7 +1028,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("should validate eventName in onUpdateEvent", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             const unsubscribe = exposedAPI.onUpdateEvent(
                 123,
                 vi.fn<IpcListener>()
@@ -1042,7 +1042,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("should validate channel in generic methods", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             await expect(exposedAPI.invoke(123)).rejects.toThrow(
                 "Invalid channel for invoke"
             );
@@ -1052,7 +1052,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("should validate channel in send method", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             const result = exposedAPI.send(123);
 
             expect(result).toBeUndefined();
@@ -1063,7 +1063,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("should validate channel in onIpc method", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             const unsubscribe = exposedAPI.onIpc(123, vi.fn<IpcListener>());
 
             expect(unsubscribe).toBeUndefined();
@@ -1074,7 +1074,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("should validate callback in onIpc method", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             const unsubscribe = exposedAPI.onIpc(
                 "test-channel",
                 "not-a-function"
@@ -1094,7 +1094,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("should handle errors in event callbacks", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             const errorCallback = vi.fn<IpcListener>(() => {
                 throw new Error("Callback error");
             });
@@ -1114,7 +1114,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("should handle errors in transform callbacks", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             const callback = vi.fn<IpcListener>();
 
             exposedAPI.onOpenRecentFile(callback);
@@ -1130,7 +1130,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("should handle errors in onUpdateEvent callbacks", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             const errorCallback = vi.fn<IpcListener>(() => {
                 throw new Error("Update callback error");
             });
@@ -1152,7 +1152,7 @@ describe("preload.js dist bridge behavior", () => {
 
     describe("process lifecycle", () => {
         it("should register beforeExit handler", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             const mockProcess = createMockProcess({
                 NODE_ENV: "development",
             });
@@ -1180,7 +1180,7 @@ describe("preload.js dist bridge behavior", () => {
 
     describe("constants and configuration", () => {
         it("should expose channel information correctly", () => {
-            expect.hasAssertions();
+            expect.assertions(11);
             executePreloadScript();
 
             const channelInfo = exposedAPI.getChannelInfo();
@@ -1210,7 +1210,7 @@ describe("preload.js dist bridge behavior", () => {
 
     describe("development vs production behavior", () => {
         it("should log in development mode", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             executePreloadScript({ NODE_ENV: "development" });
 
             expect(consoleSpy.log).toHaveBeenCalledWith(
@@ -1222,7 +1222,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("should not log in production mode", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             executePreloadScript({ NODE_ENV: "production" });
 
             expect(consoleSpy.log).not.toHaveBeenCalledWith(
@@ -1234,7 +1234,7 @@ describe("preload.js dist bridge behavior", () => {
 
     describe("edge cases and robustness", () => {
         it("should handle module loading failures gracefully", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
             const mockRequire = vi.fn<RequireModule>(() => {
                 throw new Error("Module loading failed");
             });
@@ -1249,7 +1249,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("should handle contextBridge exposure failures", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             mockContextBridge.exposeInMainWorld.mockImplementation(() => {
                 throw new Error("Exposure failed");
             });
@@ -1264,7 +1264,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("should handle development tools exposure failures in development", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             mockContextBridge.exposeInMainWorld.mockImplementation(
                 (name: string) => {
                     if (name === developmentToolsGlobalName) {
