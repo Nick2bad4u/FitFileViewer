@@ -612,9 +612,9 @@ describe("UIStateManager - comprehensive coverage", () => {
         it("should handle string notification parameter", () => {
             const manager = new UIStateManager();
 
-            manager.showNotification("Test message");
-
-            expect(manager.showNotification("Test message")).toBeUndefined();
+            expect(() =>
+                manager.showNotification("Test message")
+            ).not.toThrow();
             expect(vi.mocked(showNotification)).toHaveBeenCalledWith(
                 "Test message",
                 "info",
@@ -638,9 +638,7 @@ describe("UIStateManager - comprehensive coverage", () => {
                 duration: 5000,
             };
 
-            manager.showNotification(notification);
-
-            expect(manager.showNotification(notification)).toBeUndefined();
+            expect(() => manager.showNotification(notification)).not.toThrow();
             expect(vi.mocked(showNotification)).toHaveBeenCalledWith(
                 "Error occurred",
                 "error",
@@ -660,9 +658,7 @@ describe("UIStateManager - comprehensive coverage", () => {
             const manager = new UIStateManager();
             const notification = { message: "Test" };
 
-            manager.showNotification(notification);
-
-            expect(manager.showNotification(notification)).toBeUndefined();
+            expect(() => manager.showNotification(notification)).not.toThrow();
             expect(vi.mocked(showNotification)).toHaveBeenCalledWith(
                 "Test",
                 "info",
@@ -676,9 +672,7 @@ describe("UIStateManager - comprehensive coverage", () => {
                 .spyOn(console, "warn")
                 .mockImplementation(() => {});
 
-            manager.showNotification(null);
-
-            expect(manager.showNotification(null)).toBeUndefined();
+            expect(() => manager.showNotification(null)).not.toThrow();
             expect(consoleSpy).toHaveBeenCalledWith(
                 "[UIStateManager] Invalid notification parameter:",
                 null
@@ -695,9 +689,9 @@ describe("UIStateManager - comprehensive coverage", () => {
                 throw new Error("Notification failed");
             });
 
-            manager.showNotification("Test message");
-
-            expect(manager.showNotification("Test message")).toBeUndefined();
+            expect(() =>
+                manager.showNotification("Test message")
+            ).not.toThrow();
             expect(consoleLogSpy).toHaveBeenCalledWith(
                 "[Notification INFO] Test message"
             );
@@ -717,12 +711,12 @@ describe("UIStateManager - comprehensive coverage", () => {
                 type: "error",
             });
 
-            expect(
+            expect(() =>
                 manager.showNotification({
                     message: "Error message",
                     type: "error",
                 })
-            ).toBeUndefined();
+            ).not.toThrow();
             expect(consoleWarnSpy).toHaveBeenCalledWith("ERROR: Error message");
         });
     });
@@ -1078,48 +1072,38 @@ describe("UIStateManager - comprehensive coverage", () => {
         });
 
         it("should provide UIActions.setTheme convenience function", () => {
-            UIActions.setTheme("dark");
-
+            expect(() => UIActions.setTheme("dark")).not.toThrow();
             expect(vi.mocked(AppActions.switchTheme)).toHaveBeenCalledWith(
                 "dark"
             );
-            expect(UIActions.setTheme("dark")).toBeUndefined();
         });
 
         it("should provide UIActions.showTab convenience function", () => {
-            UIActions.showTab("charts");
-
+            expect(() => UIActions.showTab("charts")).not.toThrow();
             expect(vi.mocked(AppActions.switchTab)).toHaveBeenCalledWith(
                 "charts"
             );
-            expect(UIActions.showTab("charts")).toBeUndefined();
         });
 
         it("should provide UIActions.toggleChartControls convenience function", () => {
-            UIActions.toggleChartControls();
-
+            expect(() => UIActions.toggleChartControls()).not.toThrow();
             expect(
                 vi.mocked(AppActions.toggleChartControls)
             ).toHaveBeenCalled();
-            expect(UIActions.toggleChartControls()).toBeUndefined();
         });
 
         it("should provide UIActions.toggleMeasurementMode convenience function", () => {
-            UIActions.toggleMeasurementMode();
-
+            expect(() => UIActions.toggleMeasurementMode()).not.toThrow();
             expect(
                 vi.mocked(AppActions.toggleMeasurementMode)
             ).toHaveBeenCalled();
-            expect(UIActions.toggleMeasurementMode()).toBeUndefined();
         });
 
         it("should provide UIActions.toggleSidebar convenience function", () => {
             const toggleSidebarSpy = vi.spyOn(uiStateManager, "toggleSidebar");
 
-            UIActions.toggleSidebar(true);
-
+            expect(() => UIActions.toggleSidebar(true)).not.toThrow();
             expect(toggleSidebarSpy).toHaveBeenCalledWith(true);
-            expect(UIActions.toggleSidebar(true)).toBeUndefined();
         });
 
         it("should provide UIActions.updateWindowState convenience function", () => {
@@ -1128,10 +1112,8 @@ describe("UIStateManager - comprehensive coverage", () => {
                 "updateWindowStateFromDOM"
             );
 
-            UIActions.updateWindowState();
-
+            expect(() => UIActions.updateWindowState()).not.toThrow();
             expect(updateWindowStateSpy).toHaveBeenCalled();
-            expect(UIActions.updateWindowState()).toBeUndefined();
         });
     });
 });
