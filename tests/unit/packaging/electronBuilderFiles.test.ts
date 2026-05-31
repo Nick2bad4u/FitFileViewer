@@ -91,11 +91,9 @@ describe("electron-builder file list", () => {
         );
     });
 
-    it("keeps app package markdown limited to package metadata", () => {
+    it("keeps app package markdown out of the app workspace", () => {
         expect.assertions(1);
 
-        expect(findMarkdownFiles(electronAppRoot)).toStrictEqual([
-            "electron-app/LICENSE.md",
-        ]);
+        expect(findMarkdownFiles(electronAppRoot)).toStrictEqual([]);
     });
 });
