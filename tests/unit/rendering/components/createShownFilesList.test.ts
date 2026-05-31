@@ -30,6 +30,28 @@ vi.mock(
     })
 );
 
+function getOverlayItems(container: HTMLElement): HTMLLIElement[] {
+    return Array.from(
+        container.querySelectorAll<HTMLLIElement>("#shown-files-ul li")
+    );
+}
+
+function getOverlayText(container: HTMLElement): string[] {
+    return getOverlayItems(container).map((item) =>
+        String(item.textContent ?? "").trim()
+    );
+}
+
+function getOverlayState(): {
+    highlightedOverlayIdx: null | number;
+    overlayTooltipTimeout: unknown;
+} {
+    return {
+        highlightedOverlayIdx: (global.window as any)._highlightedOverlayIdx,
+        overlayTooltipTimeout: (global.window as any)._overlayTooltipTimeout,
+    };
+}
+
 describe("createShownFilesList", () => {
     let createShownFilesList: () => HTMLElement;
 
@@ -94,10 +116,9 @@ describe("createShownFilesList", () => {
             const container = createShownFilesList();
 
             expect(container).toBeInstanceOf(HTMLElement);
-            expect(container.classList.contains("shown-files-list")).toBe(true);
-            expect(
-                container.classList.contains("map-controls-secondary-card")
-            ).toBe(true);
+            expect(container.className).toBe(
+                "shown-files-list map-controls-secondary-card"
+            );
 
             // Check that critical properties are set - jsdom may not preserve all styles
             expect(container.style.maxWidth).toBe("fit-content");
@@ -144,10 +165,9 @@ describe("createShownFilesList", () => {
             // Instead of checking if mock was called, verify the container was created with theme styles
             // The container should have proper styling applied
             expect(container).toBeInstanceOf(HTMLElement);
-            expect(container.classList.contains("shown-files-list")).toBe(true);
-            expect(
-                container.classList.contains("map-controls-secondary-card")
-            ).toBe(true);
+            expect(container.className).toBe(
+                "shown-files-list map-controls-secondary-card"
+            );
 
             // Container should have styling applied (theme is applied automatically)
             expect(container.style.margin).toBe("0px");
@@ -173,10 +193,9 @@ describe("createShownFilesList", () => {
 
             // Instead of checking if mock was called, verify container behavior
             expect(container).toBeInstanceOf(HTMLElement);
-            expect(container.classList.contains("shown-files-list")).toBe(true);
-            expect(
-                container.classList.contains("map-controls-secondary-card")
-            ).toBe(true);
+            expect(container.className).toBe(
+                "shown-files-list map-controls-secondary-card"
+            );
 
             // Container should have default styling and structure
             expect(container.style.margin).toBe("0px");
@@ -330,7 +349,9 @@ describe("createShownFilesList", () => {
 
             const ul = container.querySelector("#shown-files-ul");
             expect(ul).toBeInstanceOf(HTMLUListElement);
-            expect(ul?.children.length).toBe(1);
+            expect(getOverlayText(container)).toStrictEqual([
+                "File: overlay.fit×",
+            ]);
         });
 
         it("handles dark theme filter simulation", () => {
@@ -431,10 +452,10 @@ describe("createShownFilesList", () => {
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
 
-            const ul = container.querySelector("#shown-files-ul");
-            const items = ul?.querySelectorAll("li");
-
-            expect(items?.length).toBe(2); // Only overlay files
+            expect(getOverlayText(container)).toStrictEqual([
+                "File: overlay1.fit×",
+                "File: overlay2.fit×",
+            ]);
         });
 
         it("applies color palette cycling", () => {
@@ -444,8 +465,15 @@ describe("createShownFilesList", () => {
             const ul = container.querySelector("#shown-files-ul");
             const items = ul?.querySelectorAll("li");
 
-            expect(items?.length).toBe(2);
-            expect(items?.[0]?.getAttribute("data-overlay-index")).toBe("1");
+            expect(
+                Array.from(items ?? [], (item) => ({
+                    overlayIndex: item.getAttribute("data-overlay-index"),
+                    text: String(item.textContent ?? "").trim(),
+                }))
+            ).toStrictEqual([
+                { overlayIndex: "1", text: "File: overlay1.fit×" },
+                { overlayIndex: "2", text: "File: overlay2.fit×" },
+            ]);
             expect(
                 (items?.[0] as HTMLElement | undefined)?.style.color
             ).not.toBe("");
@@ -530,9 +558,10 @@ describe("createShownFilesList", () => {
                 (global.window as any).updateShownFilesList();
             }).not.toThrow();
 
-            const ul = container.querySelector("#shown-files-ul");
-            const items = ul?.querySelectorAll("li");
-            expect(items?.length).toBe(2); // Two overlay items
+            expect(getOverlayText(container)).toStrictEqual([
+                "File: (unknown)×",
+                "File: overlay.fit×",
+            ]);
         });
 
         it("clears existing list before updating", () => {
@@ -540,8 +569,10 @@ describe("createShownFilesList", () => {
 
             // First update
             (global.window as any).updateShownFilesList();
-            let ul = container.querySelector("#shown-files-ul");
-            expect(ul?.children.length).toBe(2);
+            expect(getOverlayText(container)).toStrictEqual([
+                "File: overlay1.fit×",
+                "File: overlay2.fit×",
+            ]);
 
             // Change files and update again
             (global.window as any).loadedFitFiles = [
@@ -550,8 +581,9 @@ describe("createShownFilesList", () => {
             ];
             (global.window as any).updateShownFilesList();
 
-            ul = container.querySelector("#shown-files-ul");
-            expect(ul?.children.length).toBe(1); // Only one overlay now
+            expect(getOverlayText(container)).toStrictEqual([
+                "File: different.fit×",
+            ]);
         });
 
         it("hides container when no overlays exist", () => {
@@ -695,7 +727,7 @@ describe("createShownFilesList", () => {
 
             // Should not throw when trying to remove
             const ul = container.querySelector("#shown-files-ul");
-            expect(ul?.children.length).toBe(0);
+            expect(Array.from(ul?.children ?? [])).toStrictEqual([]);
         });
     });
 
@@ -750,9 +782,7 @@ describe("createShownFilesList", () => {
 
             expect((global.window as any).loadedFitFiles).toHaveLength(1); // Only main file left
             expect((global.window as any).renderMap).toHaveBeenCalledWith();
-            expect(
-                container.querySelectorAll("#shown-files-ul li")
-            ).toHaveLength(0);
+            expect(getOverlayItems(container)).toStrictEqual([]);
         });
 
         it("prevents event propagation on clear all click", () => {
@@ -838,7 +868,9 @@ describe("createShownFilesList", () => {
 
             firstItem.click();
 
-            expect((global.window as any)._highlightedOverlayIdx).toBe(1);
+            expect(getOverlayState()).toMatchObject({
+                highlightedOverlayIdx: 1,
+            });
             expect(
                 (global.window as any).updateOverlayHighlights
             ).toHaveBeenCalledWith();
@@ -854,7 +886,9 @@ describe("createShownFilesList", () => {
 
             firstItem.dispatchEvent(new MouseEvent("mouseenter"));
 
-            expect((global.window as any)._highlightedOverlayIdx).toBe(1);
+            expect(getOverlayState()).toMatchObject({
+                highlightedOverlayIdx: 1,
+            });
             expect(removeBtn.style.opacity).toBe("1");
             expect(removeBtn.style.opacity).not.toBe("0");
         });
@@ -869,7 +903,9 @@ describe("createShownFilesList", () => {
 
             firstItem.dispatchEvent(new MouseEvent("mouseleave"));
 
-            expect((global.window as any)._highlightedOverlayIdx).toBe(null);
+            expect(getOverlayState()).toMatchObject({
+                highlightedOverlayIdx: null,
+            });
             expect(removeBtn.style.opacity).toBe("0");
         });
 
@@ -886,7 +922,9 @@ describe("createShownFilesList", () => {
             firstItem.dispatchEvent(new MouseEvent("mouseenter"));
             firstItem.dispatchEvent(new MouseEvent("mouseleave"));
 
-            expect((global.window as any)._overlayTooltipTimeout).toBe(null);
+            expect(getOverlayState()).toMatchObject({
+                overlayTooltipTimeout: null,
+            });
 
             vi.useRealTimers();
         });
@@ -1211,7 +1249,9 @@ describe("createShownFilesList", () => {
 
             firstItem.click();
 
-            expect((global.window as any)._highlightedOverlayIdx).toBe(1);
+            expect(getOverlayState()).toMatchObject({
+                highlightedOverlayIdx: 1,
+            });
             expect(mockPolyline.bringToFront).toHaveBeenCalledWith();
         });
 
@@ -1230,7 +1270,9 @@ describe("createShownFilesList", () => {
 
             firstItem.click();
 
-            expect((global.window as any)._highlightedOverlayIdx).toBe(1);
+            expect(getOverlayState()).toMatchObject({
+                highlightedOverlayIdx: 1,
+            });
             expect(mockPolyline.bringToFront).toHaveBeenCalledWith();
             expect(mockMarker.bringToFront).toHaveBeenCalledWith();
         });
@@ -1271,7 +1313,9 @@ describe("createShownFilesList", () => {
 
             firstItem.click();
 
-            expect((global.window as any)._highlightedOverlayIdx).toBe(1);
+            expect(getOverlayState()).toMatchObject({
+                highlightedOverlayIdx: 1,
+            });
             expect(
                 (global.window as any)._leafletMapInstance.fitBounds
             ).toHaveBeenCalledWith(mockPolyline.getBounds(), {
@@ -1363,10 +1407,9 @@ describe("createShownFilesList", () => {
 
             // Instead of checking mock calls, verify the container exists and can handle theme changes
             expect(container).toBeInstanceOf(HTMLElement);
-            expect(container.classList.contains("shown-files-list")).toBe(true);
-            expect(
-                container.classList.contains("map-controls-secondary-card")
-            ).toBe(true);
+            expect(container.className).toBe(
+                "shown-files-list map-controls-secondary-card"
+            );
 
             // The event handler should be set up without throwing errors
             expect(() => {
@@ -1452,12 +1495,20 @@ describe("createShownFilesList", () => {
                 | AddEventListenerOptions
                 | undefined;
             expect(mouseMoveOptions?.signal).toBeInstanceOf(AbortSignal);
-            expect(mouseMoveOptions?.signal?.aborted).toBe(false);
+            expect({
+                aborted: mouseMoveOptions?.signal?.aborted,
+            }).toStrictEqual({
+                aborted: false,
+            });
 
             // Trigger cleanup
             firstItem.dispatchEvent(new MouseEvent("mouseleave"));
 
-            expect(mouseMoveOptions?.signal?.aborted).toBe(true);
+            expect({
+                aborted: mouseMoveOptions?.signal?.aborted,
+            }).toStrictEqual({
+                aborted: true,
+            });
 
             vi.useRealTimers();
         });
@@ -1514,10 +1565,9 @@ describe("createShownFilesList", () => {
 
             // Instead of checking mock calls, verify functionality
             expect(container).toBeInstanceOf(HTMLElement);
-            expect(container.classList.contains("shown-files-list")).toBe(true);
-            expect(
-                container.classList.contains("map-controls-secondary-card")
-            ).toBe(true);
+            expect(container.className).toBe(
+                "shown-files-list map-controls-secondary-card"
+            );
 
             // Theme change should not throw errors
             expect(() => {
@@ -1540,10 +1590,9 @@ describe("createShownFilesList", () => {
 
             // Instead of checking mock calls, verify functionality
             expect(container).toBeInstanceOf(HTMLElement);
-            expect(container.classList.contains("shown-files-list")).toBe(true);
-            expect(
-                container.classList.contains("map-controls-secondary-card")
-            ).toBe(true);
+            expect(container.className).toBe(
+                "shown-files-list map-controls-secondary-card"
+            );
 
             // Theme system should handle partial objects without errors
             expect(() => {
@@ -1574,19 +1623,22 @@ describe("createShownFilesList", () => {
 
             // Instead of checking mock calls, verify functionality
             expect(container).toBeInstanceOf(HTMLElement);
-            expect(container.classList.contains("shown-files-list")).toBe(true);
-            expect(
-                container.classList.contains("map-controls-secondary-card")
-            ).toBe(true);
+            expect(container.className).toBe(
+                "shown-files-list map-controls-secondary-card"
+            );
 
             // Should handle theme persistence without errors
             expect(() => {
                 (global.window as any).updateShownFilesList();
             }).not.toThrow();
             const borderStyle = container.style.border;
-            expect(
-                borderStyle === "" || borderStyle.startsWith("1px solid")
-            ).toBe(true);
+            expect({
+                isEmpty: borderStyle === "",
+                startsWithSolidBorder: borderStyle.startsWith("1px solid"),
+            }).not.toStrictEqual({
+                isEmpty: false,
+                startsWithSolidBorder: false,
+            });
         });
     });
 });
