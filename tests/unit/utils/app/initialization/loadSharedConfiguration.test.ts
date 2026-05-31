@@ -1,41 +1,49 @@
-/**
- * @vitest-environment jsdom
- */
+// @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+type ChartFieldVisibility = "hidden" | "visible";
+type DebouncedRender = (reason: string) => void;
+type RenderChart = () => void;
+type SetChartFieldVisibility = (
+    field: string,
+    visibility: ChartFieldVisibility
+) => void;
+type SetChartSetting = (key: string, value: unknown) => void;
+type ShowNotification = (message: string, type: "success" | "warning") => void;
+
 // Mock dependencies
-const mockRenderChartJS = vi.fn();
-const mockShowNotification = vi.fn();
+const mockRenderChartJS = vi.fn<RenderChart>();
+const mockShowNotification = vi.fn<ShowNotification>();
 const mockChartStateManager = {
-    debouncedRender: vi.fn(),
+    debouncedRender: vi.fn<DebouncedRender>(),
 };
-const mockSetChartSetting = vi.fn();
-const mockSetChartFieldVisibility = vi.fn();
+const mockSetChartSetting = vi.fn<SetChartSetting>();
+const mockSetChartFieldVisibility = vi.fn<SetChartFieldVisibility>();
 
 // Mock modules
 vi.mock(
-    "../../../../../electron-app/utils/charts/core/renderChartJS.js",
+    import("../../../../../electron-app/utils/charts/core/renderChartJS.js"),
     () => ({
         renderChartJS: mockRenderChartJS,
     })
 );
 
 vi.mock(
-    "../../../../../electron-app/utils/ui/notifications/showNotification.js",
+    import("../../../../../electron-app/utils/ui/notifications/showNotification.js"),
     () => ({
         showNotification: mockShowNotification,
     })
 );
 
 vi.mock(
-    "../../../../../electron-app/utils/charts/core/chartStateManager.js",
+    import("../../../../../electron-app/utils/charts/core/chartStateManager.js"),
     () => ({
         chartStateManager: mockChartStateManager,
     })
 );
 
 vi.mock(
-    "../../../../../electron-app/utils/state/domain/settingsStateManager.js",
+    import("../../../../../electron-app/utils/state/domain/settingsStateManager.js"),
     () => ({
         setChartSetting: mockSetChartSetting,
         setChartFieldVisibility: mockSetChartFieldVisibility,
@@ -43,13 +51,14 @@ vi.mock(
 );
 
 describe("loadSharedConfiguration.js", () => {
-    let originalConsoleError: any;
+    let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
     let mockLocalStorage: { [key: string]: string } = {};
 
     beforeEach(() => {
         vi.resetAllMocks();
-        originalConsoleError = console.error;
-        console.error = vi.fn();
+        consoleErrorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
 
         mockSetChartSetting.mockClear();
         mockSetChartFieldVisibility.mockClear();
@@ -60,12 +69,18 @@ describe("loadSharedConfiguration.js", () => {
         mockLocalStorage = {};
         Object.defineProperty(window, "localStorage", {
             value: {
-                getItem: vi.fn((key) => mockLocalStorage[key] || null),
-                setItem: vi.fn((key, value) => {
-                    mockLocalStorage[key] = String(value);
+                getItem: vi.fn<(key: string) => string | null>(
+                    (key) => mockLocalStorage[key] || null
+                ),
+                setItem: vi.fn<(key: string, value: string) => void>(
+                    (key, value) => {
+                        mockLocalStorage[key] = String(value);
+                    }
+                ),
+                removeItem: vi.fn<(key: string) => void>((key) => {
+                    delete mockLocalStorage[key];
                 }),
-                removeItem: vi.fn((key) => delete mockLocalStorage[key]),
-                clear: vi.fn(() => {
+                clear: vi.fn<() => void>(() => {
                     mockLocalStorage = {};
                 }),
             },
@@ -77,7 +92,7 @@ describe("loadSharedConfiguration.js", () => {
     });
 
     afterEach(() => {
-        console.error = originalConsoleError;
+        consoleErrorSpy.mockRestore();
         vi.useRealTimers();
     });
 
@@ -110,23 +125,25 @@ describe("loadSharedConfiguration.js", () => {
         });
 
         // Re-setup mocks for this specific test
-        const localChartStateManager = { debouncedRender: vi.fn() };
+        const localChartStateManager = {
+            debouncedRender: vi.fn<DebouncedRender>(),
+        };
         vi.doMock(
-            "../../../../../electron-app/utils/charts/core/chartStateManager.js",
+            import("../../../../../electron-app/utils/charts/core/chartStateManager.js"),
             () => ({
                 chartStateManager: localChartStateManager,
             })
         );
 
         vi.doMock(
-            "../../../../../electron-app/utils/charts/core/renderChartJS.js",
+            import("../../../../../electron-app/utils/charts/core/renderChartJS.js"),
             () => ({
                 renderChartJS: mockRenderChartJS,
             })
         );
 
         vi.doMock(
-            "../../../../../electron-app/utils/ui/notifications/showNotification.js",
+            import("../../../../../electron-app/utils/ui/notifications/showNotification.js"),
             () => ({
                 showNotification: mockShowNotification,
             })
@@ -184,7 +201,7 @@ describe("loadSharedConfiguration.js", () => {
 
         // Ensure chartStateManager import resolves to undefined
         vi.doMock(
-            "../../../../../electron-app/utils/charts/core/chartStateManager.js",
+            import("../../../../../electron-app/utils/charts/core/chartStateManager.js"),
             () => ({
                 chartStateManager: undefined,
             })
@@ -192,7 +209,7 @@ describe("loadSharedConfiguration.js", () => {
 
         // Keep renderChartJS mock to observe fallback
         vi.doMock(
-            "../../../../../electron-app/utils/charts/core/renderChartJS.js",
+            import("../../../../../electron-app/utils/charts/core/renderChartJS.js"),
             () => ({
                 renderChartJS: mockRenderChartJS,
             })
@@ -204,7 +221,7 @@ describe("loadSharedConfiguration.js", () => {
         expect(() => loadSharedConfiguration()).not.toThrow();
         // Advance timers to trigger fallback render
         vi.advanceTimersByTime(120);
-        expect(mockRenderChartJS).toHaveBeenCalled();
+        expect(mockRenderChartJS).toHaveBeenCalledWith();
     });
 
     // Adding a simpler test instead that verifies settings are updated correctly
@@ -217,7 +234,7 @@ describe("loadSharedConfiguration.js", () => {
 
         // Mock showNotification
         vi.doMock(
-            "../../../../../electron-app/utils/ui/notifications/showNotification.js",
+            import("../../../../../electron-app/utils/ui/notifications/showNotification.js"),
             () => ({
                 showNotification: mockShowNotification,
             })
@@ -294,7 +311,10 @@ describe("loadSharedConfiguration.js", () => {
         expect(() => loadSharedConfiguration()).not.toThrow();
 
         // Error should be logged
-        expect(console.error).toHaveBeenCalled();
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+            "Error loading shared configuration:",
+            expect.any(Error)
+        );
 
         // Warning notification should be shown
         expect(mockShowNotification).toHaveBeenCalledWith(
@@ -309,7 +329,7 @@ describe("loadSharedConfiguration.js", () => {
         // Set up a situation that will cause an error
         // Mock URLSearchParams to throw an error
         const originalURLSearchParams = global.URLSearchParams;
-        global.URLSearchParams = vi.fn(() => {
+        global.URLSearchParams = vi.fn<typeof URLSearchParams>(() => {
             throw new Error("Mock URLSearchParams error");
         }) as any;
 
@@ -321,7 +341,10 @@ describe("loadSharedConfiguration.js", () => {
         expect(() => loadSharedConfiguration()).not.toThrow();
 
         // Error should be logged
-        expect(console.error).toHaveBeenCalled();
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+            "Error loading shared configuration:",
+            expect.any(Error)
+        );
 
         // Warning notification should be shown
         expect(mockShowNotification).toHaveBeenCalledWith(
