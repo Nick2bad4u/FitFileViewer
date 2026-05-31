@@ -452,7 +452,7 @@ describe("main.js strict handlers and events", () => {
             .at(-1);
         expect(updaterCheck?.[0]).toBe("menu-check-for-updates");
         updater.checkForUpdates.mockClear();
-        expect(updaterCheck?.[1]({})).toBeUndefined();
+        updaterCheck?.[1]({});
         expect(updater.checkForUpdates).toHaveBeenCalledTimes(1);
 
         // install-update triggers quitAndInstall; simulate linux dialog path
@@ -464,7 +464,7 @@ describe("main.js strict handlers and events", () => {
                 .at(-1);
             expect(install?.[0]).toBe("install-update");
             updater.quitAndInstall.mockClear();
-            expect(install?.[1]({})).toBeUndefined();
+            install?.[1]({});
             expect(updater.quitAndInstall).toHaveBeenCalledTimes(1);
             expect(mockDialog.showMessageBox).not.toHaveBeenCalled();
         } finally {
