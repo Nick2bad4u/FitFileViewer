@@ -109,7 +109,7 @@ describe("bump-app-version script", () => {
     });
 
     it("computes the next version from the root app package", async () => {
-        expect.assertions(4);
+        expect.assertions(1);
 
         const { bumpAppVersion } = await importBumpAppVersion();
         const temporaryRoot = makeTemporaryRoot("29.9.0");
@@ -118,12 +118,12 @@ describe("bump-app-version script", () => {
             repositoryRoot: temporaryRoot,
         });
 
-        expect(result.currentVersion).toBe("29.9.0");
-        expect(result.newVersion).toBe("30.0.0");
-        expect(result.workspace).toBeUndefined();
-        expect(result.packagePath).toBe(
-            path.join(temporaryRoot, "package.json")
-        );
+        expect(result).toStrictEqual({
+            currentVersion: "29.9.0",
+            newVersion: "30.0.0",
+            packagePath: path.join(temporaryRoot, "package.json"),
+            workspace: undefined,
+        });
     });
 
     it("runs npm version without shelling through Windows command parsing", async () => {

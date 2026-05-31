@@ -192,8 +192,8 @@ describe(setupTabButton, () => {
         secondButton.click();
 
         expect(handler).not.toHaveBeenCalled();
-        expect(firstButton._setupTabButtonCleanup).toBeUndefined();
-        expect(secondButton._setupTabButtonCleanup).toBeUndefined();
+        expect(firstButton).not.toHaveProperty("_setupTabButtonCleanup");
+        expect(secondButton).not.toHaveProperty("_setupTabButtonCleanup");
         expect([
             ...(setupTabButtonWithCache.cache?.keys() ?? []),
         ]).toStrictEqual([]);
@@ -206,6 +206,6 @@ describe(setupTabButton, () => {
 
         expect(() => clearTabButtonCache()).not.toThrow();
 
-        expect(setupTabButtonWithCache.cache).toBeUndefined();
+        expect(setupTabButtonWithCache).toHaveProperty("cache", undefined);
     });
 });
