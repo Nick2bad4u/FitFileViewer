@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { getErrorInfo } from "../../../electron-app/utils/logging/index.js";
 
-describe("getErrorInfo", () => {
+describe(getErrorInfo, () => {
     it("extracts message and stack from native errors", () => {
+        expect.hasAssertions();
+
         const result = getErrorInfo(new TypeError("Invalid FIT payload"));
 
         expect(result).toEqual({
@@ -12,6 +14,8 @@ describe("getErrorInfo", () => {
     });
 
     it("extracts string message and stack fields from error-like objects", () => {
+        expect.hasAssertions();
+
         expect(
             getErrorInfo({
                 message: "ENOENT: no such file or directory",
@@ -25,6 +29,8 @@ describe("getErrorInfo", () => {
     });
 
     it("falls back to object stringification for missing or non-string messages", () => {
+        expect.hasAssertions();
+
         expect(getErrorInfo({ stack: "Stack without message" })).toEqual({
             message: "[object Object]",
             stack: "Stack without message",
@@ -39,6 +45,8 @@ describe("getErrorInfo", () => {
     });
 
     it("stringifies primitive thrown values", () => {
+        expect.hasAssertions();
+
         const expectedMessages = new Map<unknown, string>([
             ["Simple string error", "Simple string error"],
             [404, "404"],
@@ -54,6 +62,8 @@ describe("getErrorInfo", () => {
     });
 
     it("does not leak unrelated properties into the normalized result", () => {
+        expect.hasAssertions();
+
         const result = getErrorInfo({
             message: "Request failed",
             stack: "Network stack",
