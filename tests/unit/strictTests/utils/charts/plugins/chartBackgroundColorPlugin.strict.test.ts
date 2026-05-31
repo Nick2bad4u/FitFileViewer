@@ -1,65 +1,81 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { Mock } from "vitest";
 import { chartBackgroundColorPlugin } from "../../../../../../electron-app/utils/charts/plugins/chartBackgroundColorPlugin.js";
+import type { ChartBackgroundColorChart } from "../../../../../../electron-app/utils/charts/plugins/chartBackgroundColorPlugin.js";
 
-function createMockCtx() {
+type FillRectMock = (
+    x: number,
+    y: number,
+    width: number,
+    height: number
+) => void;
+type MockCanvasContext = CanvasRenderingContext2D & {
+    _fillStyle?: string;
+    fillRect: Mock<FillRectMock>;
+    restore: Mock<() => void>;
+    save: Mock<() => void>;
+};
+
+function createMockCtx(): MockCanvasContext {
     return {
-        save: vi.fn(),
-        restore: vi.fn(),
-        fillRect: vi.fn(),
+        save: vi.fn<() => void>(),
+        restore: vi.fn<() => void>(),
+        fillRect: vi.fn<FillRectMock>(),
         set fillStyle(val: string) {
-            // store on this for assertion
-            // @ts-ignore
             this._fillStyle = val;
         },
         get fillStyle() {
-            // @ts-ignore
             return this._fillStyle;
         },
-    } as unknown as CanvasRenderingContext2D;
+    } as MockCanvasContext;
 }
 
 describe("chartBackgroundColorPlugin.beforeDraw", () => {
-    const origWarn = console.warn;
     beforeEach(() => {
         vi.restoreAllMocks();
     });
-    afterEach(() => {
-        console.warn = origWarn;
-    });
 
     it("warns and skips when ctx is missing", () => {
+        expect.hasAssertions();
+
         const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
         const canvas = document.createElement("canvas");
-        const chart: any = { canvas };
-        // @ts-expect-no-error
-        const result = chartBackgroundColorPlugin.beforeDraw(chart, {} as any);
+        const chart: ChartBackgroundColorChart = { canvas };
+        const result = chartBackgroundColorPlugin.beforeDraw(chart, {});
         expect(result).toBeUndefined();
         expect("ctx" in chart).toBe(false);
-        expect(warn).toHaveBeenCalled();
+        expect(warn).toHaveBeenCalledWith(
+            "[chartBackgroundColorPlugin] Chart context (ctx) is undefined. Skipping background draw."
+        );
     });
 
     it("uses options.backgroundColor when provided and draws full canvas", () => {
+        expect.hasAssertions();
+
         const canvas = document.createElement("canvas");
         canvas.width = 200;
         canvas.height = 100;
         const ctx = createMockCtx();
-        const chart: any = { canvas, ctx, options: {} };
+        const chart: ChartBackgroundColorChart = { canvas, ctx, options: {} };
 
         chartBackgroundColorPlugin.beforeDraw(chart, {
             backgroundColor: "#ff0000",
         });
 
-        // @ts-ignore
-        expect((ctx as any)._fillStyle).toBe("#ff0000");
-        expect((ctx as any).fillRect).toHaveBeenCalledWith(0, 0, 200, 100);
+        expect(ctx.save).toHaveBeenCalledWith();
+        expect(ctx._fillStyle).toBe("#ff0000");
+        expect(ctx.fillRect).toHaveBeenCalledWith(0, 0, 200, 100);
+        expect(ctx.restore).toHaveBeenCalledWith();
     });
 
     it("falls back to plugin config then CSS variable when no option passed", () => {
+        expect.hasAssertions();
+
         const canvas = document.createElement("canvas");
         canvas.width = 50;
         canvas.height = 20;
         const ctx = createMockCtx();
-        const chart: any = {
+        const chart: ChartBackgroundColorChart = {
             canvas,
             ctx,
             options: {
@@ -73,16 +89,15 @@ describe("chartBackgroundColorPlugin.beforeDraw", () => {
 
         // With plugin config
         chartBackgroundColorPlugin.beforeDraw(chart);
-        // @ts-ignore
-        expect((ctx as any)._fillStyle).toBe("#00ff00");
+        expect(ctx._fillStyle).toBe("#00ff00");
 
         // Remove plugin config to force CSS variable fallback
-        // @ts-ignore
-        delete chart.options.plugins.chartBackgroundColorPlugin.backgroundColor;
+        delete chart.options?.plugins?.chartBackgroundColorPlugin
+            ?.backgroundColor;
         // Set CSS custom property
         canvas.style.setProperty("--bg-primary", "#123456");
         chartBackgroundColorPlugin.beforeDraw(chart);
-        // @ts-ignore
-        expect((ctx as any)._fillStyle).toBe("#123456");
+        expect(ctx._fillStyle).toBe("#123456");
+        expect(ctx.fillRect).toHaveBeenCalledTimes(2);
     });
 });
