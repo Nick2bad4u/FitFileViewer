@@ -45,7 +45,7 @@ describe("utils global attachment and API", () => {
     });
 
     it("attaches utilities to window and exposes helpers", async () => {
-        expect.hasAssertions();
+        expect.assertions(16);
 
         // Simulate version available before import
         (globalThis as any).window.electronAPI = {
@@ -124,7 +124,7 @@ describe("utils global attachment and API", () => {
     });
 
     it("records collisions and cleanup removes globals", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         // Place an existing conflicting function before import
         (globalThis as any).window.formatDistance = () => "old";
@@ -150,7 +150,7 @@ describe("utils global attachment and API", () => {
     });
 
     it("loads version via deferred electronAPI after import", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         // Ensure no API at import time
         delete (globalThis as any).window.electronAPI;
