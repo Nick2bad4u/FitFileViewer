@@ -12,6 +12,8 @@ across the workspace:
 - `npm run lint:electron-app` applies the same shared ESLint config to
   `electron-app` through the root `eslint.config.mjs`, then runs the root
   TypeScript typecheck.
+- `node scripts/run-eslint.mjs <path>` lints an explicit existing file or
+  directory with the root `eslint.config.mjs`.
 - `npm run prettier` checks the root-owned Prettier target list.
 - `npm run prettier -- README.md` checks a specific path through the root
   Prettier wrapper; use `npm run prettier:fix -- <path>` to write fixes.

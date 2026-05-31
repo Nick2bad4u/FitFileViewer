@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import process from "node:process";
@@ -46,8 +47,24 @@ export const eslintTargets = Object.freeze({
     },
 });
 
+function buildAdHocPathTarget(targetName) {
+    if (
+        typeof targetName !== "string" ||
+        !existsSync(path.resolve(repositoryRoot, targetName))
+    ) {
+        return;
+    }
+
+    return {
+        cacheLocation: ".cache/.eslintcache-ad-hoc",
+        paths: [targetName],
+        prefixArgs: ["--config", rootEslintConfigPath],
+    };
+}
+
 export function buildEslintArgs(targetName, userArgs = []) {
-    const target = eslintTargets[targetName];
+    const target =
+        eslintTargets[targetName] ?? buildAdHocPathTarget(targetName);
     if (!target) {
         throw new Error(`Unknown ESLint target: ${targetName}`);
     }
