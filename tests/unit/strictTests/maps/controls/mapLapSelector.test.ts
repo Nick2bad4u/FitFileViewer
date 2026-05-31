@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
+type LapSelection = "all" | string[];
+type DrawLapsFn = (selection: LapSelection) => void;
+
 async function loadModule() {
     return await import("../../../../../electron-app/utils/maps/controls/mapLapSelector.js");
 }
@@ -19,10 +22,14 @@ describe("mapLapSelector", () => {
     });
 
     it("adds control and handles single vs multi select changes", async () => {
+        expect.hasAssertions();
+
         const { addLapSelector } = await loadModule();
         const container = document.getElementById("container")!;
-        const draws: any[] = [];
-        const drawFn = vi.fn((sel: any) => draws.push(sel));
+        const draws: LapSelection[] = [];
+        const drawFn = vi.fn<DrawLapsFn>((selection) => {
+            draws.push(selection);
+        });
 
         addLapSelector(null as any, container, drawFn);
         const select = container.querySelector(
@@ -62,9 +69,11 @@ describe("mapLapSelector", () => {
     });
 
     it("does not add control when lap data is missing", async () => {
+        expect.hasAssertions();
+
         const { addLapSelector } = await loadModule();
         const container = document.getElementById("container")!;
-        const drawFn = vi.fn();
+        const drawFn = vi.fn<DrawLapsFn>();
 
         delete (window as any).globalData;
 
