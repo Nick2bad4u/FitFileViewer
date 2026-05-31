@@ -1,14 +1,19 @@
-/**
- * @vitest-environment jsdom
- */
+// @vitest-environment jsdom
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+type RenderTable = (
+    container: HTMLElement,
+    tableName: string,
+    table: { rows: Record<string, unknown>[] },
+    index: number
+) => void;
 
 // Mock renderTable so we can assert on calls and avoid heavy DOM ops
 vi.mock(
-    "../../../../../electron-app/utils/rendering/core/renderTable.js",
+    import("../../../../../electron-app/utils/rendering/core/renderTable.js"),
     () => ({
-        renderTable: vi.fn((container: HTMLElement, tableName: string) => {
+        renderTable: vi.fn<RenderTable>((container, tableName) => {
             const tableMarker = document.createElement("section");
             tableMarker.dataset.tableName = tableName;
             container.append(tableMarker);
@@ -19,15 +24,15 @@ vi.mock(
 import { renderTable } from "../../../../../electron-app/utils/rendering/core/renderTable.js";
 import { createTables } from "../../../../../electron-app/utils/rendering/components/createTables.js";
 
-const getContainer = () => {
+function getContainer(): HTMLDivElement {
     const container = document.createElement("div");
     container.id = "content-data";
     document.body.replaceChildren();
-    document.body.appendChild(container);
+    document.body.append(container);
     return container;
-};
+}
 
-describe("createTables", () => {
+describe(createTables, () => {
     beforeEach(() => {
         vi.clearAllMocks();
         // reset DOM
@@ -35,22 +40,24 @@ describe("createTables", () => {
     });
 
     it("renders tables without requiring Arquero", () => {
+        expect.hasAssertions();
+
         const container = getContainer();
         createTables({ recordMesgs: [{ a: 1 }] }, container);
-        expect(renderTable).toHaveBeenCalledTimes(1);
+        expect(renderTable).toHaveBeenCalledOnce();
         expect(
             container.querySelector("[data-table-name='recordMesgs']")
         ).toBeInstanceOf(HTMLElement);
     });
 
     it("returns early when container not found and no override provided", () => {
+        expect.hasAssertions();
+
         // Ensure DOM has no content-data element
         const other = document.createElement("div");
         other.id = "other";
         document.body.replaceChildren(other);
-        const errorSpy = vi
-            .spyOn(console, "error")
-            .mockImplementation(() => undefined);
+        const errorSpy = vi.spyOn(console, "error").mockReturnValue(undefined);
 
         createTables({ recordMesgs: [{ a: 1 }] });
         expect(renderTable).not.toHaveBeenCalled();
@@ -61,9 +68,12 @@ describe("createTables", () => {
                 'Container element with id "content_data" not found'
             )
         );
+        errorSpy.mockRestore();
     });
 
     it("renders only valid tables and in correct order (recordMesgs first)", () => {
+        expect.hasAssertions();
+
         const container = getContainer();
 
         // Mix of valid/invalid tables
@@ -111,6 +121,8 @@ describe("createTables", () => {
     });
 
     it("orders numeric-only table keys last", () => {
+        expect.hasAssertions();
+
         const container = getContainer();
 
         const dataFrames = {
@@ -137,20 +149,16 @@ describe("createTables", () => {
     });
 
     it("continues gracefully when renderTable throws for a table", () => {
+        expect.hasAssertions();
+
         const container = getContainer();
-        const errorSpy = vi
-            .spyOn(console, "error")
-            .mockImplementation(() => undefined);
+        const errorSpy = vi.spyOn(console, "error").mockReturnValue(undefined);
         vi.mocked(renderTable)
-            .mockImplementationOnce(() => {
-                // ok
-            })
+            .mockReturnValueOnce(undefined)
             .mockImplementationOnce(() => {
                 throw new Error("boom");
             })
-            .mockImplementationOnce(() => {
-                // ok
-            });
+            .mockReturnValueOnce(undefined);
 
         const dataFrames = {
             recordMesgs: [{ r: 1 }],
@@ -162,7 +170,7 @@ describe("createTables", () => {
 
         // renderTable is invoked for each eligible table; if one invocation throws,
         // createTables should catch and continue with the next tables.
-        expect(vi.mocked(renderTable).mock.calls.length).toBe(3);
+        expect(renderTable).toHaveBeenCalledTimes(3);
         expect(vi.mocked(renderTable).mock.calls[0]?.[1]).toBe("recordMesgs");
         expect(vi.mocked(renderTable).mock.calls[1]?.[1]).toBe("aTable");
         expect(vi.mocked(renderTable).mock.calls[2]?.[1]).toBe("bTable");
@@ -174,5 +182,6 @@ describe("createTables", () => {
             expect.stringContaining("Failed to render table for key: aTable"),
             expect.stringContaining("Error: boom")
         );
+        errorSpy.mockRestore();
     });
 });
