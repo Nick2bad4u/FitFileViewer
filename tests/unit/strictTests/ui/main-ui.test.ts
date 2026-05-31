@@ -446,7 +446,7 @@ describe("main-ui.js core flows", () => {
 
         getCurrentElectronAPI().emit("open-summary-column-selector");
         vi.advanceTimersByTime(150);
-        expect(summaryTab.dataset.clickedWhileActive).toBeUndefined();
+        expect(summaryTab.dataset).not.toHaveProperty("clickedWhileActive");
         expect(gear.dataset.selectorOpenCount).toBe("2");
         listenerController.abort();
     });

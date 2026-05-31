@@ -637,7 +637,7 @@ describe("main.js - Electron Main Process", () => {
             const mainModule = await importMainModule();
 
             // Development helpers should not be available in test environment
-            expect(testGlobals.devHelpers).toBeUndefined();
+            expect(testGlobals).not.toHaveProperty("devHelpers");
             expect(mainModule.getAppState("mainWindow")).toBe(mockWindow);
         });
 
@@ -728,7 +728,7 @@ describe("main.js - Electron Main Process", () => {
 
             expect(mainModule.startGyazoOAuthServer).toBeTypeOf("function");
             expect(mainModule.stopGyazoOAuthServer).toBeTypeOf("function");
-            expect(testGlobals.__ffvGyazoStartupTimer).toBeUndefined();
+            expect(testGlobals).not.toHaveProperty("__ffvGyazoStartupTimer");
             await expect(mainModule.stopGyazoOAuthServer()).resolves.toEqual({
                 message: "No server was running",
                 success: true,

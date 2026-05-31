@@ -693,7 +693,7 @@ describe("removeChartHoverEffects", () => {
 
         removeChartHoverEffects(mockContainer);
 
-        expect(mockCanvas.dataset.hoverEffectsAdded).toBeUndefined();
+        expect(mockCanvas.dataset).not.toHaveProperty("hoverEffectsAdded");
     });
 
     it("should handle empty wrapper collection", () => {
