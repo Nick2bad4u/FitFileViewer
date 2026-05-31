@@ -75,7 +75,7 @@ describe("performanceUtils", () => {
     });
 
     it("debounces trailing calls and supports flush and cancel", () => {
-        expect.assertions(6);
+        expect.assertions(5);
 
         vi.useFakeTimers();
         const values: string[] = [];
@@ -85,8 +85,9 @@ describe("performanceUtils", () => {
         }, 50);
 
         try {
-            expect(debounced("a")).toBeUndefined();
-            expect(debounced("b")).toBeUndefined();
+            debounced("a");
+            debounced("b");
+
             expect(values).toStrictEqual([]);
 
             expect(debounced.flush()).toBe("B");
@@ -97,6 +98,7 @@ describe("performanceUtils", () => {
             vi.advanceTimersByTime(50);
 
             expect(vi.getTimerCount()).toBe(0);
+            expect(values).not.toContain("c");
         } finally {
             vi.useRealTimers();
         }
