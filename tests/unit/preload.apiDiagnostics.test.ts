@@ -96,7 +96,7 @@ function createDiagnostics({
 
 describe("preload API diagnostics", () => {
     it("reports channel and event metadata", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const { diagnostics } = createDiagnostics();
         const channelInfo = diagnostics.getChannelInfo();

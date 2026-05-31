@@ -89,7 +89,7 @@ describe("updateActiveTab defensive DOM handling", () => {
 
     describe("state subscription callback", () => {
         it("warns for missing or malformed tab buttons", async () => {
-            expect.hasAssertions();
+            expect.assertions(5);
 
             // Mock console.warn to capture warnings
             const warnSpy = vi
@@ -146,7 +146,7 @@ describe("updateActiveTab defensive DOM handling", () => {
         });
 
         it("handles null button elements in state callback", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const warnSpy = vi
                 .spyOn(console, "warn")
@@ -184,7 +184,7 @@ describe("updateActiveTab defensive DOM handling", () => {
         });
 
         it("handles buttons without classList property in state callback", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const warnSpy = vi
                 .spyOn(console, "warn")

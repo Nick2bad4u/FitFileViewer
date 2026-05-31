@@ -61,7 +61,7 @@ describe("preload.js - Module Cache Injection Test", () => {
     });
 
     it("should execute preload.js with module cache injection", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         // Create a mock electron module
         const mockElectron = {

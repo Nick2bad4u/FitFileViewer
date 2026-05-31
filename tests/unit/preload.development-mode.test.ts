@@ -77,7 +77,7 @@ describe("preload.js - Development mode coverage", () => {
     });
 
     it("exposes api and dev tools, logs dev messages, and handles beforeExit in development", async () => {
-        expect.hasAssertions();
+        expect.assertions(17);
 
         const ipcRenderer = {
             invoke: vi
