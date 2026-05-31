@@ -90,7 +90,7 @@ describe("tab button disabled state", () => {
 
     describe("updateActiveTab function", () => {
         it("should update active tab when called programmatically", () => {
-            expect.hasAssertions();
+            expect.assertions(6);
 
             updateActiveTab("tab-chart");
 
@@ -104,7 +104,7 @@ describe("tab button disabled state", () => {
         });
 
         it("should handle invalid tab IDs gracefully", () => {
-            expect.hasAssertions();
+            expect.assertions(11);
 
             const consoleSpy = vi
                 .spyOn(console, "warn")
@@ -139,7 +139,7 @@ describe("tab button disabled state", () => {
         });
 
         it("should prevent clicks on buttons with disabled property", () => {
-            expect.hasAssertions();
+            expect.assertions(12);
 
             const chartTab = getRequiredButton("tab-chart");
             enableTabButton(chartTab);
@@ -165,7 +165,7 @@ describe("tab button disabled state", () => {
         });
 
         it("should prevent clicks on buttons with disabled attribute", () => {
-            expect.hasAssertions();
+            expect.assertions(11);
 
             const mapTab = getRequiredButton("tab-map");
             enableTabButton(mapTab);
@@ -189,7 +189,7 @@ describe("tab button disabled state", () => {
         });
 
         it("should prevent clicks on buttons with tab-disabled class", () => {
-            expect.hasAssertions();
+            expect.assertions(11);
 
             const tableTab = getRequiredButton("tab-table");
             enableTabButton(tableTab);
@@ -213,7 +213,7 @@ describe("tab button disabled state", () => {
         });
 
         it("should allow clicks on enabled buttons", () => {
-            expect.hasAssertions();
+            expect.assertions(10);
 
             const summaryTab = getRequiredButton("tab-summary");
             enableTabButton(summaryTab);
@@ -233,7 +233,7 @@ describe("tab button disabled state", () => {
         });
 
         it("should log disabled button clicks for debugging", () => {
-            expect.hasAssertions();
+            expect.assertions(10);
 
             const consoleSpy = vi
                 .spyOn(console, "log")
@@ -261,7 +261,7 @@ describe("tab button disabled state", () => {
         });
 
         it("should update DOM when state changes", () => {
-            expect.hasAssertions();
+            expect.assertions(9);
 
             // Change state programmatically
             mockState.setState("ui.activeTab", "chart");
@@ -271,7 +271,7 @@ describe("tab button disabled state", () => {
         });
 
         it("should handle state changes to non-existent tabs gracefully", () => {
-            expect.hasAssertions();
+            expect.assertions(10);
 
             mockState.setState("ui.activeTab", "nonexistent");
 
@@ -294,7 +294,7 @@ describe("tab button disabled state", () => {
         });
 
         it("should extract tab names from various ID patterns", () => {
-            expect.hasAssertions();
+            expect.assertions(16);
 
             // This tests the internal extractTabName function indirectly
             const testCases = [
@@ -334,7 +334,7 @@ describe("tab button disabled state", () => {
         });
 
         it("should ignore buttons without extractable tab names", () => {
-            expect.hasAssertions();
+            expect.assertions(12);
 
             const button = document.createElement("button");
             button.className = "tab-button";
