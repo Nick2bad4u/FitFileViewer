@@ -296,7 +296,13 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             renderAltitudeProfileChart(container, data, labels, options);
 
             expect(Chart).not.toHaveBeenCalled();
-            expect(container.children.length).toBe(0);
+            expect({
+                chartCalls: Chart.mock.calls.length,
+                childCount: container.children.length,
+            }).toStrictEqual({
+                chartCalls: 0,
+                childCount: 0,
+            });
         });
 
         it("should return early when field visibility is hidden (handled by chart state manager)", () => {
@@ -318,7 +324,13 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             renderAltitudeProfileChart(container, data, labels, options);
 
             expect(Chart).not.toHaveBeenCalled();
-            expect(container.children.length).toBe(0);
+            expect({
+                chartCalls: Chart.mock.calls.length,
+                childCount: container.children.length,
+            }).toStrictEqual({
+                chartCalls: 0,
+                childCount: 0,
+            });
         });
 
         it("should process data correctly with valid altitude values", () => {
@@ -388,7 +400,13 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             renderAltitudeProfileChart(container, data, labels, options);
 
             expect(Chart).not.toHaveBeenCalled();
-            expect(container.children.length).toBe(0);
+            expect({
+                chartCalls: Chart.mock.calls.length,
+                childCount: container.children.length,
+            }).toStrictEqual({
+                chartCalls: 0,
+                childCount: 0,
+            });
         });
 
         it("should handle mixed valid and invalid altitude values", () => {
@@ -468,7 +486,13 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             renderAltitudeProfileChart(container, data, labels, options);
 
             const chartData = getLatestChartConfig().data.datasets[0].data;
-            expect(chartData.length).toBe(5);
+            expect(chartData).toEqual([
+                { x: 0, y: 100 },
+                { x: 10, y: 110 },
+                { x: 20, y: 120 },
+                { x: 30, y: 130 },
+                { x: 40, y: 140 },
+            ]);
         });
 
         it("should handle data point limiting with exact step calculation", () => {
@@ -514,8 +538,13 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             const config = getLatestChartConfig();
             expect(config.type).toBe("line");
             expect(config.type).not.toBe("bar");
-            expect(config.options.responsive).toBe(true);
-            expect(config.options.maintainAspectRatio).toBe(false);
+            expect({
+                maintainAspectRatio: config.options.maintainAspectRatio,
+                responsive: config.options.responsive,
+            }).toStrictEqual({
+                maintainAspectRatio: false,
+                responsive: true,
+            });
         });
 
         it("should configure dataset with gradient fill and correct styling", () => {
@@ -532,14 +561,25 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             renderAltitudeProfileChart(container, data, labels, options);
 
             const dataset = getLatestChartConfig().data.datasets[0];
-            expect(dataset.label).toBe("Altitude Profile");
-            expect(dataset.backgroundColor).toBe("#00ff004D"); // Green with alpha
-            expect(dataset.borderColor).toBe("#00ff00");
-            expect(dataset.pointRadius).toBe(0);
-            expect(dataset.pointHoverRadius).toBe(4);
-            expect(dataset.borderWidth).toBe(2);
-            expect(dataset.fill).toBe("origin");
-            expect(dataset.tension).toBe(0.1);
+            expect({
+                backgroundColor: dataset.backgroundColor,
+                borderColor: dataset.borderColor,
+                borderWidth: dataset.borderWidth,
+                fill: dataset.fill,
+                label: dataset.label,
+                pointHoverRadius: dataset.pointHoverRadius,
+                pointRadius: dataset.pointRadius,
+                tension: dataset.tension,
+            }).toStrictEqual({
+                backgroundColor: "#00ff004D",
+                borderColor: "#00ff00",
+                borderWidth: 2,
+                fill: "origin",
+                label: "Altitude Profile",
+                pointHoverRadius: 4,
+                pointRadius: 0,
+                tension: 0.1,
+            });
         });
 
         it("should configure chart options based on provided options - all enabled", () => {
@@ -556,10 +596,17 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             renderAltitudeProfileChart(container, data, labels, options);
 
             const config = getLatestChartConfig();
-            expect(config.options.plugins.legend.display).toBe(true);
-            expect(config.options.plugins.title.display).toBe(true);
-            expect(config.options.scales.x.grid.display).toBe(true);
-            expect(config.options.scales.y.grid.display).toBe(true);
+            expect({
+                legendDisplay: config.options.plugins.legend.display,
+                titleDisplay: config.options.plugins.title.display,
+                xGridDisplay: config.options.scales.x.grid.display,
+                yGridDisplay: config.options.scales.y.grid.display,
+            }).toStrictEqual({
+                legendDisplay: true,
+                titleDisplay: true,
+                xGridDisplay: true,
+                yGridDisplay: true,
+            });
         });
 
         it("should configure chart options based on provided options - all disabled", () => {
@@ -576,10 +623,17 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             renderAltitudeProfileChart(container, data, labels, options);
 
             const config = getLatestChartConfig();
-            expect(config.options.plugins.legend.display).toBe(false);
-            expect(config.options.plugins.title.display).toBe(false);
-            expect(config.options.scales.x.grid.display).toBe(false);
-            expect(config.options.scales.y.grid.display).toBe(false);
+            expect({
+                legendDisplay: config.options.plugins.legend.display,
+                titleDisplay: config.options.plugins.title.display,
+                xGridDisplay: config.options.scales.x.grid.display,
+                yGridDisplay: config.options.scales.y.grid.display,
+            }).toStrictEqual({
+                legendDisplay: false,
+                titleDisplay: false,
+                xGridDisplay: false,
+                yGridDisplay: false,
+            });
         });
 
         it("should set correct axis titles and configuration", () => {
@@ -617,12 +671,21 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             const config = getLatestChartConfig();
             const zoom = config.options.plugins.zoom;
-            expect(zoom.pan.enabled).toBe(true);
-            expect(zoom.pan.mode).toBe("x");
-            expect(zoom.zoom.wheel.enabled).toBe(true);
-            expect(zoom.zoom.pinch.enabled).toBe(true);
-            expect(zoom.zoom.drag.enabled).toBe(true);
-            expect(zoom.zoom.mode).toBe("x");
+            expect({
+                dragEnabled: zoom.zoom.drag.enabled,
+                mode: zoom.zoom.mode,
+                panEnabled: zoom.pan.enabled,
+                panMode: zoom.pan.mode,
+                pinchEnabled: zoom.zoom.pinch.enabled,
+                wheelEnabled: zoom.zoom.wheel.enabled,
+            }).toStrictEqual({
+                dragEnabled: true,
+                mode: "x",
+                panEnabled: true,
+                panMode: "x",
+                pinchEnabled: true,
+                wheelEnabled: true,
+            });
         });
     });
 
@@ -644,7 +707,13 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             expect(canvas?.tagName.toLowerCase()).toBe("canvas");
             expect(canvas?.id).toBe("chart-altitude-profile-0");
             expect(canvas?.id).not.toBe("chart-altitude-0");
-            expect(canvas?.style.borderRadius).toBe("12px");
+            expect({
+                borderRadius: canvas?.style.borderRadius,
+                childCount: container.children.length,
+            }).toStrictEqual({
+                borderRadius: "12px",
+                childCount: 1,
+            });
             expect(canvas?.style.background).toMatch(
                 /(#ffffff|rgb\(255,\s*255,\s*255\))/
             );
@@ -661,12 +730,17 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
                 showGrid: true,
             };
 
-            expect(container.children.length).toBe(0);
+            expect(container.children.length).toStrictEqual(0);
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            expect(container.children.length).toBe(1);
-            expect(container.children[0].tagName.toLowerCase()).toBe("canvas");
+            expect({
+                childCount: container.children.length,
+                firstChildTag: container.children[0].tagName.toLowerCase(),
+            }).toStrictEqual({
+                childCount: 1,
+                firstChildTag: "canvas",
+            });
         });
 
         it("should apply theme-based canvas styling", () => {
@@ -704,10 +778,15 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
+            expect(getChartTestWindow()._chartjsInstances).not.toContain(
+                undefined
+            );
             expect(getChartTestWindow()._chartjsInstances).toContain(
                 chartInstanceMock
             );
-            expect(getChartTestWindow()._chartjsInstances).not.toHaveLength(0);
+            expect(getChartTestWindow()._chartjsInstances).toStrictEqual([
+                chartInstanceMock,
+            ]);
         });
 
         it("should initialize global instances array if it doesn't exist", () => {
@@ -769,12 +848,20 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             const config = getLatestChartConfig();
             const tooltip = config.options.plugins.tooltip;
-            expect(tooltip.backgroundColor).toBe("#f5f5f5");
-            expect(tooltip.titleColor).toBe("#000000");
-            expect(tooltip.bodyColor).toBe("#000000");
-            expect(tooltip.borderColor).toBe("#cccccc");
+            expect({
+                backgroundColor: tooltip.backgroundColor,
+                bodyColor: tooltip.bodyColor,
+                borderColor: tooltip.borderColor,
+                borderWidth: tooltip.borderWidth,
+                titleColor: tooltip.titleColor,
+            }).toStrictEqual({
+                backgroundColor: "#f5f5f5",
+                bodyColor: "#000000",
+                borderColor: "#cccccc",
+                borderWidth: 1,
+                titleColor: "#000000",
+            });
             expect(tooltip.borderColor).not.toBe(tooltip.backgroundColor);
-            expect(tooltip.borderWidth).toBe(1);
         });
 
         it("should format tooltip title correctly", () => {
@@ -879,10 +966,17 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             const config = getLatestChartConfig();
             const zoom = config.options.plugins.zoom;
-            expect(zoom.zoom.drag.backgroundColor).toBe("#0066cc33");
-            expect(zoom.zoom.drag.borderColor).toBe("#0066ccCC");
-            expect(zoom.zoom.drag.borderWidth).toBe(2);
-            expect(zoom.zoom.drag.modifierKey).toBe("shift");
+            expect({
+                backgroundColor: zoom.zoom.drag.backgroundColor,
+                borderColor: zoom.zoom.drag.borderColor,
+                borderWidth: zoom.zoom.drag.borderWidth,
+                modifierKey: zoom.zoom.drag.modifierKey,
+            }).toStrictEqual({
+                backgroundColor: "#0066cc33",
+                borderColor: "#0066ccCC",
+                borderWidth: 2,
+                modifierKey: "shift",
+            });
         });
     });
 
@@ -945,16 +1039,18 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
                 showGrid: true,
             };
 
-            expect(
+            expect(() =>
                 renderAltitudeProfileChart(container, data, labels, options)
-            ).toBeUndefined();
+            ).not.toThrow();
 
             expect(console.error).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering altitude profile chart:",
                 expect.any(Error)
             );
-            expect(getChartTestWindow()._chartjsInstances).toHaveLength(0);
-            expect(container.children).toHaveLength(1);
+            expect(getChartTestWindow()._chartjsInstances).toStrictEqual([]);
+            expect(
+                [...container.children].map((child) => child.tagName)
+            ).toEqual(["CANVAS"]);
         });
     });
 
@@ -973,7 +1069,13 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             renderAltitudeProfileChart(container, data, labels, options);
 
             expect(Chart).not.toHaveBeenCalled();
-            expect(container.children.length).toBe(0);
+            expect({
+                chartCalls: Chart.mock.calls.length,
+                childCount: container.children.length,
+            }).toStrictEqual({
+                chartCalls: 0,
+                childCount: 0,
+            });
         });
 
         it("should handle data with zero altitude values", () => {
@@ -1014,10 +1116,11 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             const chartData = getLatestChartConfig().data.datasets[0].data;
             // With step = Math.ceil(7/3) = 3, we get indices 0, 3, 6
-            expect(chartData.length).toBe(3);
-            expect(chartData[0]).toEqual({ x: 0, y: 100 });
-            expect(chartData[1]).toEqual({ x: 30, y: 130 });
-            expect(chartData[2]).toEqual({ x: 60, y: 160 });
+            expect(chartData).toEqual([
+                { x: 0, y: 100 },
+                { x: 30, y: 130 },
+                { x: 60, y: 160 },
+            ]);
         });
 
         it("should skip points without matching numeric labels", () => {
@@ -1035,7 +1138,6 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             const chartData = getLatestChartConfig().data.datasets[0].data;
             expect(chartData).toEqual([{ x: 0, y: 100 }]);
-            expect(chartData.length).toBe(1);
         });
 
         it("should handle negative altitude values", () => {
