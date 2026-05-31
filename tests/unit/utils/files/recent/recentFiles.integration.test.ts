@@ -33,7 +33,7 @@ describe("recentFiles integration coverage", () => {
             } as NodeModule;
         } catch {
             // If resolution fails, fall back to vitest mocking as a safeguard
-            vi.doMock("electron", () => exports as never);
+            vi.doMock(import("electron"), () => exports as never);
         }
     }
 
@@ -85,13 +85,15 @@ describe("recentFiles integration coverage", () => {
     }
 
     it("derives the storage path from electron userData", () => {
+        expect.hasAssertions();
+
         const userDataPath = fs.mkdtempSync(
             path.join(os.tmpdir(), "ffv-user-")
         );
         registerDir(userDataPath);
         setElectronMock({
             app: {
-                getPath: vi.fn(() => userDataPath),
+                getPath: vi.fn<(name: string) => string>(() => userDataPath),
             },
         });
         const recent = importRecentFiles();
@@ -106,6 +108,8 @@ describe("recentFiles integration coverage", () => {
     });
 
     it("creates a temp-backed recent file when electron app is unavailable", () => {
+        expect.hasAssertions();
+
         setElectronMock({});
         const exitHandlers: Array<() => void> = [];
         const processOn = vi
@@ -138,7 +142,11 @@ describe("recentFiles integration coverage", () => {
                 );
             });
         recent.saveRecentFiles([fitFilePath]);
-        expect(writeSpy).toHaveBeenCalled();
+        expect(writeSpy).toHaveBeenCalledWith(
+            expect.stringMatching(/fit-file-viewer-tests[\\/]+recent-files-/u),
+            JSON.stringify([fitFilePath]),
+            "utf8"
+        );
         const targetPath = path.normalize(String(writeSpy.mock.calls[0][0]));
         expect(targetPath).toMatch(/fit-file-viewer-tests[\\/]+recent-files-/);
         expect(JSON.parse(fs.readFileSync(targetPath, "utf8"))).toEqual([
@@ -153,6 +161,8 @@ describe("recentFiles integration coverage", () => {
     });
 
     it("saves and reloads recent files using the configured path", () => {
+        expect.hasAssertions();
+
         const tempDir = path.join(os.tmpdir(), "ffv-recent-integration");
         fs.mkdirSync(tempDir, { recursive: true });
         registerDir(tempDir);
@@ -174,6 +184,8 @@ describe("recentFiles integration coverage", () => {
     });
 
     it("logs and continues when temp directory creation fails", () => {
+        expect.hasAssertions();
+
         setElectronMock({});
         const originalExists = fs.existsSync;
         const existsSpy = vi
