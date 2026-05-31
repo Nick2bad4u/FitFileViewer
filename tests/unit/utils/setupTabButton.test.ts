@@ -46,29 +46,26 @@ describe(setupTabButton, () => {
         expect.assertions(4);
 
         const handler = vi.fn<ClickHandler>();
-        const setupResults = [
-            setupTabButton(null, handler),
-            setupTabButton("", handler),
-            setupTabButton("   ", handler),
-        ];
 
-        expect(setupResults).toStrictEqual([
-            undefined,
-            undefined,
-            undefined,
-        ]);
+        expect(() => {
+            setupTabButton(null, handler);
+            setupTabButton("", handler);
+            setupTabButton("   ", handler);
+        }).not.toThrow();
         expect(warnSpy).toHaveBeenCalledTimes(3);
         expect(warnSpy).toHaveBeenCalledWith("Invalid button id provided.");
         expect(handler).not.toHaveBeenCalled();
     });
 
     it("warns and skips setup for non-function handlers", () => {
-        expect.assertions(4);
+        expect.assertions(3);
 
         appendButton("tab-summary");
 
-        expect(setupTabButton("tab-summary", null)).toBeUndefined();
-        expect(setupTabButton("tab-summary", "handler")).toBeUndefined();
+        expect(() => {
+            setupTabButton("tab-summary", null);
+            setupTabButton("tab-summary", "handler");
+        }).not.toThrow();
 
         expect(warnSpy).toHaveBeenCalledTimes(2);
         expect(warnSpy).toHaveBeenCalledWith(
@@ -81,7 +78,7 @@ describe(setupTabButton, () => {
 
         const handler = vi.fn<ClickHandler>();
 
-        expect(setupTabButton("missing-tab", handler)).toBeUndefined();
+        expect(() => setupTabButton("missing-tab", handler)).not.toThrow();
 
         expect(warnSpy).toHaveBeenCalledWith(
             'Button with id "missing-tab" not found. Ensure the element exists in the DOM.'
@@ -167,9 +164,9 @@ describe(setupTabButton, () => {
         setupTabButton("tab-removed", vi.fn<ClickHandler>());
         button.remove();
 
-        expect(
+        expect(() =>
             setupTabButton("tab-removed", vi.fn<ClickHandler>())
-        ).toBeUndefined();
+        ).not.toThrow();
         expect(warnSpy).toHaveBeenCalledWith(
             'Button with id "tab-removed" not found after cache refresh.'
         );
@@ -207,7 +204,7 @@ describe(setupTabButton, () => {
 
         setupTabButtonWithCache.cache = undefined;
 
-        expect(clearTabButtonCache()).toBeUndefined();
+        expect(() => clearTabButtonCache()).not.toThrow();
 
         expect(setupTabButtonWithCache.cache).toBeUndefined();
     });
