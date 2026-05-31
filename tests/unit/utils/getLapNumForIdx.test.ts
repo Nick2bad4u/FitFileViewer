@@ -15,7 +15,7 @@ describe(getLapNumForIdx, () => {
     });
 
     it("returns the 1-based lap containing the requested record index", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const laps = [
             { start_index: 0, end_index: 99 },
@@ -40,7 +40,7 @@ describe(getLapNumForIdx, () => {
     });
 
     it("returns the first matching lap for overlapping ranges", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const laps = [
             { start_index: 0, end_index: 150 },
@@ -53,7 +53,7 @@ describe(getLapNumForIdx, () => {
     });
 
     it("warns and returns null for invalid inputs", () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         const laps = [{ start_index: 0, end_index: 99 }];
 
@@ -71,7 +71,7 @@ describe(getLapNumForIdx, () => {
     });
 
     it("skips corrupt lap entries without blocking later valid laps", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const laps = [
             null,
@@ -100,7 +100,7 @@ describe(getLapNumForIdx, () => {
     });
 
     it("logs and returns null when lap property access throws", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const laps = [
             {
