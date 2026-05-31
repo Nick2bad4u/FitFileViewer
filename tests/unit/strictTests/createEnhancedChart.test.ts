@@ -525,8 +525,10 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
     });
 
-    describe("Theme Configuration", () => {
+    describe("theme configuration", () => {
         it("should configure chart for light theme", async () => {
+            expect.hasAssertions();
+
             const { detectCurrentTheme } =
                 await import("../../../electron-app/utils/charts/theming/chartThemeUtils.js");
             vi.mocked(detectCurrentTheme).mockReturnValue("light");
@@ -562,8 +564,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should configure chart for dark theme", () => {
-            // For this test, we'll accept that the mock always returns light theme
-            // but we'll test that the theme configuration structure is correct
+            expect.hasAssertions();
+
             const canvas = document.createElement("canvas");
             const options = {
                 field: "speed",
@@ -586,23 +588,18 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             createEnhancedChart(canvas, options);
 
             const config = Chart.mock.calls[Chart.mock.calls.length - 1][1];
-            // Test that the color configuration exists and is properly structured
-            expect(config.options.plugins.legend.labels).toHaveProperty(
-                "color"
-            );
-            expect(config.options.plugins.title).toHaveProperty("color");
-            expect(config.options.plugins.tooltip).toHaveProperty(
-                "backgroundColor"
-            );
-            expect(config.options.plugins.tooltip).toHaveProperty("titleColor");
-            expect(config.options.plugins.tooltip).toHaveProperty("bodyColor");
-            expect(config.options.plugins.tooltip).toHaveProperty(
-                "borderColor"
-            );
+            expect(config.options.plugins.legend.labels.color).toBe("#fff");
+            expect(config.options.plugins.title.color).toBe("#fff");
+            expect(config.options.plugins.tooltip.backgroundColor).toBe("#222");
+            expect(config.options.plugins.tooltip.titleColor).toBe("#fff");
+            expect(config.options.plugins.tooltip.bodyColor).toBe("#fff");
+            expect(config.options.plugins.tooltip.borderColor).toBe("#555");
+            expect(config.options.plugins.tooltip.borderColor).not.toBe("#ddd");
         });
 
         it("should configure grid colors based on theme", () => {
-            // Test that grid colors are properly configured (structure test)
+            expect.hasAssertions();
+
             const canvas = document.createElement("canvas");
             const options = {
                 field: "speed",
@@ -625,12 +622,14 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             createEnhancedChart(canvas, options);
 
             const config = Chart.mock.calls[Chart.mock.calls.length - 1][1];
-            // Test that grid colors are configured
-            expect(config.options.scales.x.grid).toHaveProperty("color");
-            expect(config.options.scales.y.grid).toHaveProperty("color");
-            expect(config.options.scales.x.ticks).toHaveProperty("color");
-            expect(config.options.scales.y.ticks).toHaveProperty("color");
-            // Test that grid display is controlled by showGrid option
+            expect(config.options.scales.x.grid.color).toBe(
+                "rgba(255,255,255,0.1)"
+            );
+            expect(config.options.scales.y.grid.color).toBe(
+                "rgba(255,255,255,0.1)"
+            );
+            expect(config.options.scales.x.ticks.color).toBe("#fff");
+            expect(config.options.scales.y.ticks.color).toBe("#fff");
             expect(config.options.scales.x.grid.display).toStrictEqual(true);
             expect(config.options.scales.y.grid.display).toStrictEqual(true);
         });
