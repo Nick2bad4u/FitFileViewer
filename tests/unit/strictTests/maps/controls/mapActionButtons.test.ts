@@ -1,15 +1,26 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { showNotification } from "../../../../../electron-app/utils/ui/notifications/showNotification.js";
+type FitBoundsFn = (
+    bounds: unknown,
+    options: { padding: [number, number] }
+) => void;
+type GetCenterFn = () => { lat: number; lng: number };
+type GetZoomFn = () => number;
+type NotificationFn = (message: string, type: string) => void;
 
 vi.mock(
-    "../../../../../electron-app/utils/ui/notifications/showNotification.js",
+    import("../../../../../electron-app/utils/ui/notifications/showNotification.js"),
     () => ({
-        showNotification: vi.fn(),
+        showNotification: vi.fn<NotificationFn>(),
     })
 );
 
-const showNotificationMock = vi.mocked(showNotification);
+async function getShowNotificationMock() {
+    const notificationModule =
+        await import("../../../../../electron-app/utils/ui/notifications/showNotification.js");
+
+    return vi.mocked(notificationModule.showNotification);
+}
 
 function getActiveFileName(): HTMLElement {
     const activeFileName = document.getElementById("activeFileName");
@@ -38,7 +49,7 @@ describe("mapActionButtons", () => {
         });
         (window as any).L = undefined;
         vi.resetModules();
-        showNotificationMock.mockClear();
+        vi.clearAllMocks();
         vi.useFakeTimers();
     });
 
@@ -49,7 +60,10 @@ describe("mapActionButtons", () => {
     });
 
     it("attaches click listener and shows notification when map not ready", async () => {
+        expect.hasAssertions();
+
         await import("../../../../../electron-app/utils/maps/controls/mapActionButtons.js");
+        const showNotificationMock = await getShowNotificationMock();
         const name = getActiveFileName();
 
         expect(name.title).toBe("Click to center map on main file");
@@ -65,10 +79,12 @@ describe("mapActionButtons", () => {
     });
 
     it("centers map when main polyline and bounds exist", async () => {
+        expect.hasAssertions();
+
         // stub Leaflet structures and bounds
-        const fitBounds = vi.fn();
-        const getCenter = vi.fn(() => ({ lat: 1, lng: 2 }));
-        const getZoom = vi.fn(() => 10);
+        const fitBounds = vi.fn<FitBoundsFn>();
+        const getCenter = vi.fn<GetCenterFn>(() => ({ lat: 1, lng: 2 }));
+        const getZoom = vi.fn<GetZoomFn>(() => 10);
         (window as any)._leafletMapInstance = { fitBounds, getCenter, getZoom };
         const bounds = { isValid: () => true };
         (window as any)._mainPolylineOriginalBounds = bounds;
@@ -79,6 +95,7 @@ describe("mapActionButtons", () => {
         } as any;
         (window as any)._overlayPolylines = [poly];
         await import("../../../../../electron-app/utils/maps/controls/mapActionButtons.js");
+        const showNotificationMock = await getShowNotificationMock();
         const name = getActiveFileName();
 
         expect(name.style.cursor).toBe("pointer");

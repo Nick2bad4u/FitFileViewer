@@ -1,15 +1,28 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { showNotification } from "../../../../../electron-app/utils/ui/notifications/showNotification.js";
+type FitBoundsFn = (
+    bounds: unknown,
+    options: { padding: [number, number] }
+) => void;
+type GetCenterFn = () => { lat: number; lng: number };
+type GetZoomFn = () => number;
+type NotificationFn = (message: string, type: string) => void;
+type UpdateShownFilesListFn = (root?: HTMLElement) => void;
+type VoidFn = () => void;
 
 vi.mock(
-    "../../../../../electron-app/utils/ui/notifications/showNotification.js",
+    import("../../../../../electron-app/utils/ui/notifications/showNotification.js"),
     () => ({
-        showNotification: vi.fn(),
+        showNotification: vi.fn<NotificationFn>(),
     })
 );
 
-const showNotificationMock = vi.mocked(showNotification);
+async function getShowNotificationMock() {
+    const notificationModule =
+        await import("../../../../../electron-app/utils/ui/notifications/showNotification.js");
+
+    return vi.mocked(notificationModule.showNotification);
+}
 
 function getActiveFileName(): HTMLElement {
     const activeFileName = document.getElementById("activeFileName");
@@ -38,7 +51,7 @@ describe("mapActionButtons additional branches", () => {
         });
         (window as any).L = undefined;
         vi.resetModules();
-        showNotificationMock.mockClear();
+        vi.clearAllMocks();
         vi.useFakeTimers();
     });
 
@@ -49,11 +62,13 @@ describe("mapActionButtons additional branches", () => {
     });
 
     it("notifies when no valid bounds even with polyline", async () => {
-        const fitBounds = vi.fn();
+        expect.hasAssertions();
+
+        const fitBounds = vi.fn<FitBoundsFn>();
         (window as any)._leafletMapInstance = {
             fitBounds,
-            getCenter: vi.fn(),
-            getZoom: vi.fn(),
+            getCenter: vi.fn<GetCenterFn>(),
+            getZoom: vi.fn<GetZoomFn>(),
         };
         const poly = {
             options: { color: "#1976d2" },
@@ -63,6 +78,7 @@ describe("mapActionButtons additional branches", () => {
         (window as any)._overlayPolylines = [poly];
 
         await import("../../../../../electron-app/utils/maps/controls/mapActionButtons.js");
+        const showNotificationMock = await getShowNotificationMock();
         const name = getActiveFileName();
 
         expect(name.title).toBe("Click to center map on main file");
@@ -78,15 +94,17 @@ describe("mapActionButtons additional branches", () => {
     });
 
     it("brings matching color markers to front when L.CircleMarker exists", async () => {
-        const fitBounds = vi.fn();
-        const getCenter = vi.fn(() => ({ lat: 0, lng: 0 }));
-        const getZoom = vi.fn(() => 12);
+        expect.hasAssertions();
+
+        const fitBounds = vi.fn<FitBoundsFn>();
+        const getCenter = vi.fn<GetCenterFn>(() => ({ lat: 0, lng: 0 }));
+        const getZoom = vi.fn<GetZoomFn>(() => 12);
         (window as any)._leafletMapInstance = { fitBounds, getCenter, getZoom };
         const bounds = { isValid: () => true };
         (window as any)._mainPolylineOriginalBounds = bounds;
 
-        const bringToFrontMarker = vi.fn();
-        const skipMarker = vi.fn();
+        const bringToFrontMarker = vi.fn<VoidFn>();
+        const skipMarker = vi.fn<VoidFn>();
         const CircleMarker = function (this: any) {} as any;
         (window as any).L = { CircleMarker };
         const polylineElement = document.createElement("div");
@@ -108,7 +126,7 @@ describe("mapActionButtons additional branches", () => {
                     b: otherMarker,
                 },
             },
-            bringToFront: vi.fn(),
+            bringToFront: vi.fn<VoidFn>(),
             getBounds: () => bounds,
         } as any;
 
@@ -125,20 +143,28 @@ describe("mapActionButtons additional branches", () => {
     });
 
     it("reapplies setup after updateShownFilesList is called", async () => {
-        (window as any).updateShownFilesList = vi.fn((root?: HTMLElement) => {
-            const el = document.getElementById("activeFileName");
-            if (el) el.textContent = "changed.fit";
+        expect.hasAssertions();
+
+        (window as any).updateShownFilesList = () => undefined;
+        vi.spyOn(
+            window as any,
+            "updateShownFilesList"
+        ).mockImplementation<UpdateShownFilesListFn>(() => {
+            const activeFileName = document.getElementById("activeFileName");
+            if (activeFileName) {
+                activeFileName.textContent = "changed.fit";
+            }
         });
         await import("../../../../../electron-app/utils/maps/controls/mapActionButtons.js");
 
         (window as any).updateShownFilesList();
 
-        const fitBounds = vi.fn();
+        const fitBounds = vi.fn<FitBoundsFn>();
         const bounds = { isValid: () => true };
         (window as any)._leafletMapInstance = {
             fitBounds,
-            getCenter: vi.fn(),
-            getZoom: vi.fn(),
+            getCenter: vi.fn<GetCenterFn>(),
+            getZoom: vi.fn<GetZoomFn>(),
         };
         (window as any)._mainPolylineOriginalBounds = bounds;
         (window as any)._overlayPolylines = [
