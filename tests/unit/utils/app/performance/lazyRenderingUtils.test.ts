@@ -220,13 +220,13 @@ describe("lazy rendering utilities", () => {
 
             expect(requestId).toBe(42);
             expect({ callbackCount }).toStrictEqual({ callbackCount: 1 });
-            expect(requestIdleCallback).toHaveBeenCalledTimes(1);
+            expect(requestIdleCallback).toHaveBeenCalledOnce();
             const idleCall = requestIdleCallback.mock.calls.at(0);
             if (idleCall === undefined) {
                 throw new Error("requestIdleCallback was not called");
             }
             const [idleCallback, idleOptions] = idleCall;
-            expect(typeof idleCallback).toBe("function");
+            expect(idleCallback).toBeTypeOf("function");
             expect(idleOptions).toStrictEqual({ timeout: 123 });
         } finally {
             cleanupFixture();

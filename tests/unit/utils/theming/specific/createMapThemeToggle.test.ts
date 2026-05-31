@@ -29,7 +29,7 @@ describe("createMapThemeToggle renderer environment handling", () => {
         expect.assertions(4);
 
         vi.stubGlobal("process", undefined);
-        vi.spyOn(console, "debug").mockImplementation(() => undefined);
+        vi.spyOn(console, "debug").mockReturnValue(undefined);
 
         let toggle: HTMLElement | undefined;
 
@@ -46,7 +46,7 @@ describe("createMapThemeToggle renderer environment handling", () => {
         expect.assertions(3);
 
         vi.stubGlobal("process", {});
-        vi.spyOn(console, "debug").mockImplementation(() => undefined);
+        vi.spyOn(console, "debug").mockReturnValue(undefined);
 
         let toggle: HTMLElement | undefined;
 
