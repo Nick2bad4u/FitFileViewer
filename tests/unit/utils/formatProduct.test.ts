@@ -6,17 +6,19 @@ import {
 } from "../../../electron-app/utils/formatting/display/formatAntNames.js";
 
 vi.mock(
-    "../../../electron-app/utils/formatting/display/formatAntNames.js",
+    import("../../../electron-app/utils/formatting/display/formatAntNames.js"),
     () => ({
-        getManufacturerIdFromName: vi.fn(),
-        getProductName: vi.fn(),
+        getManufacturerIdFromName:
+            vi.fn<(manufacturerName: unknown) => number | null>(),
+        getProductName:
+            vi.fn<(manufacturerId: unknown, productId: unknown) => unknown>(),
     })
 );
 
 const mockedGetManufacturerIdFromName = vi.mocked(getManufacturerIdFromName);
 const mockedGetProductName = vi.mocked(getProductName);
 
-describe("formatProduct", () => {
+describe(formatProduct, () => {
     beforeEach(() => {
         vi.clearAllMocks();
 
@@ -37,6 +39,8 @@ describe("formatProduct", () => {
     });
 
     it("formats product lookup results from manufacturer IDs and names", () => {
+        expect.hasAssertions();
+
         expect(formatProduct(1, 1735)).toBe("Edge 520");
         expect(formatProduct("garmin", 1735)).toBe("Edge 520");
         expect(formatProduct("32", 1537)).toBe("Elemnt Bolt");
@@ -44,6 +48,8 @@ describe("formatProduct", () => {
     });
 
     it("formats snake-case lookup names and falls back to product IDs", () => {
+        expect.hasAssertions();
+
         mockedGetProductName.mockReturnValueOnce("heart_rate_monitor");
         expect(formatProduct(1, 123)).toBe("Heart Rate Monitor");
 
@@ -55,6 +61,8 @@ describe("formatProduct", () => {
     });
 
     it("handles invalid-input fallback cases", () => {
+        expect.hasAssertions();
+
         expect(formatProduct(null, 1735)).toBe("1735");
         expect(formatProduct(undefined, 1735)).toBe("1735");
         expect(formatProduct("", 1735)).toBe("1735");
@@ -65,6 +73,8 @@ describe("formatProduct", () => {
     });
 
     it("warns and falls back when lookup helpers fail", () => {
+        expect.hasAssertions();
+
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
         mockedGetManufacturerIdFromName.mockImplementationOnce(() => {
