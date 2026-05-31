@@ -85,8 +85,6 @@ describe("registerExternalHandlers", () => {
             ([registeredChannel]) => registeredChannel === channel
         )?.[1];
 
-        expect(handler).toBeTypeOf("function");
-
         if (typeof handler !== "function") {
             throw new TypeError(`${channel} handler was not registered`);
         }
@@ -106,7 +104,7 @@ describe("registerExternalHandlers", () => {
 
     describe("registration", () => {
         it("registers all three IPC handlers when given valid registerIpcHandle", () => {
-            expect.hasAssertions();
+            expect.assertions(8);
 
             registerDefaultHandlers();
 
@@ -144,34 +142,36 @@ describe("registerExternalHandlers", () => {
         });
 
         it("does not register handlers when registerIpcHandle is not a function", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
-            const result = registerExternalHandlers({
-                registerIpcHandle: null,
-                shellRef: mockShellRef,
-                startGyazoOAuthServer: mockStartGyazoOAuthServer,
-                stopGyazoOAuthServer: mockStopGyazoOAuthServer,
-                logWithContext: mockLogWithContext,
-            });
+            expect(() => {
+                registerExternalHandlers({
+                    registerIpcHandle: null,
+                    shellRef: mockShellRef,
+                    startGyazoOAuthServer: mockStartGyazoOAuthServer,
+                    stopGyazoOAuthServer: mockStopGyazoOAuthServer,
+                    logWithContext: mockLogWithContext,
+                });
+            }).not.toThrow();
 
-            expect(result).toBeUndefined();
             expect(mockShellRef).not.toHaveBeenCalled();
             expect(mockStartGyazoOAuthServer).not.toHaveBeenCalled();
             expect(mockStopGyazoOAuthServer).not.toHaveBeenCalled();
         });
 
         it("does not register handlers when registerIpcHandle is undefined", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
-            const result = registerExternalHandlers({
-                registerIpcHandle: undefined,
-                shellRef: mockShellRef,
-                startGyazoOAuthServer: mockStartGyazoOAuthServer,
-                stopGyazoOAuthServer: mockStopGyazoOAuthServer,
-                logWithContext: mockLogWithContext,
-            });
+            expect(() => {
+                registerExternalHandlers({
+                    registerIpcHandle: undefined,
+                    shellRef: mockShellRef,
+                    startGyazoOAuthServer: mockStartGyazoOAuthServer,
+                    stopGyazoOAuthServer: mockStopGyazoOAuthServer,
+                    logWithContext: mockLogWithContext,
+                });
+            }).not.toThrow();
 
-            expect(result).toBeUndefined();
             expect(mockShellRef).not.toHaveBeenCalled();
             expect(mockStartGyazoOAuthServer).not.toHaveBeenCalled();
             expect(mockStopGyazoOAuthServer).not.toHaveBeenCalled();
@@ -188,7 +188,7 @@ describe("registerExternalHandlers", () => {
         });
 
         it("opens a valid HTTPS URL successfully", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const result = await shellOpenExternalHandler(
                 {},
@@ -212,7 +212,7 @@ describe("registerExternalHandlers", () => {
         });
 
         it("opens a valid mailto URL successfully", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const result = await shellOpenExternalHandler(
                 {},
@@ -236,7 +236,7 @@ describe("registerExternalHandlers", () => {
         });
 
         it("throws error for invalid URL (null)", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             await expect(shellOpenExternalHandler({}, null)).rejects.toThrow(
                 "Invalid URL provided"
@@ -253,7 +253,7 @@ describe("registerExternalHandlers", () => {
         });
 
         it("throws error for invalid URL (undefined)", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             await expect(
                 shellOpenExternalHandler({}, undefined)
@@ -270,7 +270,7 @@ describe("registerExternalHandlers", () => {
         });
 
         it("throws error for invalid URL (not a string)", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             await expect(shellOpenExternalHandler({}, 123)).rejects.toThrow(
                 "Invalid URL provided"
@@ -280,7 +280,7 @@ describe("registerExternalHandlers", () => {
         });
 
         it("throws error for disallowed HTTP URL", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const disallowedUrl = new URL("https://example.com");
             disallowedUrl.protocol = "http:";
@@ -300,7 +300,7 @@ describe("registerExternalHandlers", () => {
         });
 
         it("throws error for disallowed URL (ftp://)", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const disallowedUrl = new URL("https://example.com");
             disallowedUrl.protocol = "ftp:";
@@ -320,7 +320,7 @@ describe("registerExternalHandlers", () => {
         });
 
         it("throws error for disallowed URL (file://)", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             await expect(
                 shellOpenExternalHandler({}, "file:///etc/passwd")
@@ -330,7 +330,7 @@ describe("registerExternalHandlers", () => {
         });
 
         it("throws error for disallowed URL (javascript://)", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             await expect(
                 shellOpenExternalHandler({}, "javascript:alert('xss')")
@@ -340,7 +340,7 @@ describe("registerExternalHandlers", () => {
         });
 
         it("throws error for credentialed URL (https://user:pass@)", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             await expect(
                 shellOpenExternalHandler({}, "https://user:pass@example.com")
@@ -349,7 +349,7 @@ describe("registerExternalHandlers", () => {
         });
 
         it("throws error when shellRef returns null", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockShellRef.mockReturnValue(null);
 
@@ -367,7 +367,7 @@ describe("registerExternalHandlers", () => {
         });
 
         it("throws error when shellRef returns undefined", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             mockShellRef.mockReturnValue(undefined);
 
@@ -377,7 +377,7 @@ describe("registerExternalHandlers", () => {
         });
 
         it("throws error when shell object has no openExternal method", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             mockShellRef.mockReturnValue({} as ExternalShell);
 
@@ -387,7 +387,7 @@ describe("registerExternalHandlers", () => {
         });
 
         it("throws error when shell.openExternal is not a function", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             mockShellRef.mockReturnValue({
                 openExternal: "not a function",
@@ -399,7 +399,7 @@ describe("registerExternalHandlers", () => {
         });
 
         it("propagates errors from shell.openExternal", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const testError = new Error("Shell error");
             mockShell.openExternal.mockRejectedValue(testError);
@@ -418,7 +418,7 @@ describe("registerExternalHandlers", () => {
         });
 
         it("works without logWithContext being provided", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             mockRegisterIpcHandle.mockClear();
             registerDefaultHandlers({ logWithContext: null });
@@ -448,7 +448,7 @@ describe("registerExternalHandlers", () => {
         });
 
         it("starts Gyazo server with default port 3000", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const result = await gyazoStartHandler({});
 
@@ -458,7 +458,7 @@ describe("registerExternalHandlers", () => {
         });
 
         it("starts Gyazo server with custom port", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const result = await gyazoStartHandler({}, 5000);
 
@@ -467,7 +467,7 @@ describe("registerExternalHandlers", () => {
         });
 
         it("rejects invalid port values", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             await expect(gyazoStartHandler({}, "not-a-number")).rejects.toThrow(
                 "Invalid port provided"
@@ -476,7 +476,7 @@ describe("registerExternalHandlers", () => {
         });
 
         it("rejects privileged ports (<1024)", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             await expect(gyazoStartHandler({}, 80)).rejects.toThrow(
                 "Invalid port provided"
@@ -485,7 +485,7 @@ describe("registerExternalHandlers", () => {
         });
 
         it("rejects when startGyazoOAuthServer is unavailable", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             mockRegisterIpcHandle.mockClear();
             registerDefaultHandlers({ startGyazoOAuthServer: null });
@@ -498,7 +498,7 @@ describe("registerExternalHandlers", () => {
         });
 
         it("handles errors from startGyazoOAuthServer", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const testError = new Error("Failed to start server");
             mockStartGyazoOAuthServer.mockRejectedValue(testError);
@@ -517,7 +517,7 @@ describe("registerExternalHandlers", () => {
         });
 
         it("works without logWithContext being provided", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             mockRegisterIpcHandle.mockClear();
             registerDefaultHandlers({ logWithContext: null });
@@ -538,7 +538,7 @@ describe("registerExternalHandlers", () => {
         });
 
         it("stops Gyazo server successfully", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const result = await gyazoStopHandler({});
 
@@ -548,7 +548,7 @@ describe("registerExternalHandlers", () => {
         });
 
         it("handles errors from stopGyazoOAuthServer", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const testError = new Error("Failed to stop server");
             mockStopGyazoOAuthServer.mockRejectedValue(testError);
@@ -567,7 +567,7 @@ describe("registerExternalHandlers", () => {
         });
 
         it("works without logWithContext being provided", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             mockRegisterIpcHandle.mockClear();
             registerDefaultHandlers({ logWithContext: null });
@@ -579,7 +579,7 @@ describe("registerExternalHandlers", () => {
         });
 
         it("rejects when stopGyazoOAuthServer is unavailable", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             mockRegisterIpcHandle.mockClear();
             registerDefaultHandlers({ stopGyazoOAuthServer: null });
@@ -594,7 +594,7 @@ describe("registerExternalHandlers", () => {
 
     describe("edge cases", () => {
         it("handles missing shellRef gracefully in openExternal", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             registerDefaultHandlers({ shellRef: undefined });
 
@@ -606,7 +606,7 @@ describe("registerExternalHandlers", () => {
         });
 
         it("handles all dependencies being null/undefined during registration", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             expect(() => {
                 registerDefaultHandlers({
