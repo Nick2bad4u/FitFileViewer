@@ -157,7 +157,7 @@ describe("shareChartsAsURL with Imgur fallback", () => {
     });
 
     it("should call showChartSelectionModal when shareChartsAsURL is invoked", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         // Arrange
         mockShowChartSelectionModal.mockImplementation(
@@ -181,7 +181,7 @@ describe("shareChartsAsURL with Imgur fallback", () => {
     });
 
     it("should handle Imgur client ID not configured error with data URL fallback", async () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         // Arrange
         const mockChart = createMockChart(800, 400);
@@ -212,7 +212,7 @@ describe("shareChartsAsURL with Imgur fallback", () => {
     });
 
     it("should handle combined charts with Imgur fallback", async () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         // Arrange
         const mockCharts = [
@@ -246,7 +246,7 @@ describe("shareChartsAsURL with Imgur fallback", () => {
     });
 
     it("should handle empty charts array gracefully", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         // Act
         const { combinedCallback } = await captureShareCallbacks();
@@ -271,7 +271,7 @@ describe("shareChartsAsURL with Imgur fallback", () => {
     });
 
     it("should handle clipboard API errors gracefully", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         // Arrange
         const mockChart = createMockChart(800, 400);
