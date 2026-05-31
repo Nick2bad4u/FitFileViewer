@@ -151,45 +151,37 @@ describe("preload.js - Development mode coverage", () => {
         // getPreloadInfo returns structure with constants and apiMethods
         const info = devTools.getPreloadInfo();
         expect(info).toHaveProperty("apiMethods");
-        expect(Array.isArray(info.apiMethods)).toBe(true);
+        expect(info.apiMethods).toBeInstanceOf(Array);
         expect(info).toHaveProperty("constants");
         expect(info.constants).toHaveProperty("CHANNELS");
 
         // testIPC should call through to ipcRenderer.invoke via electronAPI.getAppVersion and return true
         const ok = await devTools.testIPC();
-        expect(ok).toBe(true);
+        expect(ok).toStrictEqual(true);
         expect(ipcRenderer.invoke).toHaveBeenCalledWith("getAppVersion");
 
         // logAPIState should log current state
         devTools.logAPIState();
-        expect(
-            logs.some((args) => String(args[0]).includes("Current API State"))
-        ).toBe(true);
+        expect(logs.map((args) => String(args[0]))).toContainEqual(
+            expect.stringContaining("Current API State")
+        );
 
         // Should have logged successful exposure and API structure messages
-        expect(
-            logs.some((args) =>
-                String(args[0]).includes(
-                    "Successfully exposed electronAPI to main world"
-                )
+        expect(logs.map((args) => String(args[0]))).toContainEqual(
+            expect.stringContaining(
+                "Successfully exposed electronAPI to main world"
             )
-        ).toBe(true);
-        expect(
-            logs.some((args) => String(args[0]).includes("API Structure:"))
-        ).toBe(true);
+        );
+        expect(logs.map((args) => String(args[0]))).toContainEqual(
+            expect.stringContaining("API Structure:")
+        );
         // Development tools exposed and final init log
-        expect(
-            logs.some((args) =>
-                String(args[0]).includes("Development tools exposed")
-            )
-        ).toBe(true);
-        expect(
-            logs.some((args) =>
-                String(args[0]).includes(
-                    "Preload script initialized successfully"
-                )
-            )
-        ).toBe(true);
+        expect(logs.map((args) => String(args[0]))).toContainEqual(
+            expect.stringContaining("Development tools exposed")
+        );
+        expect(logs.map((args) => String(args[0]))).toContainEqual(
+            expect.stringContaining("Preload script initialized successfully")
+        );
 
         // Simulate beforeExit to hit cleanup log
         const beforeExit = onceCalls.find((c) => c.event === "beforeExit");
@@ -202,14 +194,12 @@ describe("preload.js - Development mode coverage", () => {
             event: "beforeExit",
         });
         beforeExit!.cb();
-        expect(
-            logs.some((args) =>
-                String(args[0]).includes("Process exiting, performing cleanup")
-            )
-        ).toBe(true);
+        expect(logs.map((args) => String(args[0]))).toContainEqual(
+            expect.stringContaining("Process exiting, performing cleanup")
+        );
 
         // Ensure no unexpected errors were logged
-        expect(errors).toHaveLength(0);
+        expect(errors).toStrictEqual([]);
 
         consoleLogSpy.mockRestore();
         consoleErrorSpy.mockRestore();
