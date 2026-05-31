@@ -91,7 +91,7 @@ describe("data ant product ID lookup", () => {
         expect(entries).toHaveLength(5);
         expect(productLookup["1"]).toBeTypeOf("object");
         expect(productLookup["32"]).toBeTypeOf("object");
-        expect(productLookup["99999"]).toBeUndefined();
+        expect(productLookup).not.toHaveProperty("99999");
     });
 
     it("uses positive integer string keys and non-empty product names", () => {
@@ -155,7 +155,21 @@ describe("data ant product ID lookup", () => {
         expect.assertions(8);
 
         for (const [manufacturerId, productId] of invalidLookups) {
-            expect(getProduct(manufacturerId, productId)).toBeUndefined();
+            const manufacturerKey = String(manufacturerId),
+                productKey = String(productId);
+
+            expect({
+                hasManufacturer: Object.hasOwn(productLookup, manufacturerKey),
+                hasProduct: Object.hasOwn(
+                    productLookup[manufacturerKey] ?? {},
+                    productKey
+                ),
+                product: getProduct(manufacturerId, productId),
+            }).toStrictEqual({
+                hasManufacturer: manufacturerKey === "1",
+                hasProduct: false,
+                product: undefined,
+            });
         }
     });
 
@@ -165,7 +179,13 @@ describe("data ant product ID lookup", () => {
         expect(getProduct(1, 1036)).toBe("edge500");
         expect(getProduct("1", "1036")).toBe("edge500");
         expect(getProduct(1.0, 1036.0)).toBe("edge500");
-        expect(getProduct("0001", "1036")).toBeUndefined();
+        expect({
+            hasManufacturer: Object.hasOwn(productLookup, "0001"),
+            product: getProduct("0001", "1036"),
+        }).toStrictEqual({
+            hasManufacturer: false,
+            product: undefined,
+        });
     });
 
     it("keeps product names in formatter-safe display keys", () => {

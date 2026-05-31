@@ -112,7 +112,7 @@ describe("data ant manufacturer ID lookup", () => {
     });
 
     it("rejects unsupported lookup keys without falling back to a manufacturer", () => {
-        expect.assertions(24);
+        expect.assertions(12);
 
         for (const [, manufacturerId] of invalidLookupKeys) {
             expect({
@@ -120,10 +120,11 @@ describe("data ant manufacturer ID lookup", () => {
                     manufacturerLookup,
                     String(manufacturerId)
                 ),
+                manufacturer: getManufacturer(manufacturerId),
             }).toEqual({
                 hasManufacturer: false,
+                manufacturer: undefined,
             });
-            expect(getManufacturer(manufacturerId)).toBeUndefined();
         }
     });
 
@@ -167,7 +168,13 @@ describe("data ant manufacturer ID lookup", () => {
         expect(getManufacturer(1)).toBe("garmin");
         expect(getManufacturer(1.0)).toBe("garmin");
         expect(getManufacturer("32")).toBe("wahoo_fitness");
-        expect(getManufacturer("0001")).toBeUndefined();
+        expect({
+            hasManufacturer: Object.hasOwn(manufacturerLookup, "0001"),
+            manufacturer: getManufacturer("0001"),
+        }).toStrictEqual({
+            hasManufacturer: false,
+            manufacturer: undefined,
+        });
     });
 
     it("is enumerable for formatter reverse lookups", () => {
