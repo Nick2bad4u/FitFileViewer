@@ -33,7 +33,7 @@ FitFileViewer/                          # Root directory
 
 ```text
 electron-app/
-├── main.js                           # Main Electron process (2,000+ lines)
+├── main.ts                           # Main Electron process source
 │   ├── App lifecycle management
 │   ├── Window creation & management
 │   ├── IPC handlers (50+ handlers)
@@ -42,20 +42,20 @@ electron-app/
 │   ├── Auto-updater integration
 │   └── Security configuration
 │
-├── renderer.js                       # Renderer process entry point
+├── renderer.ts                       # Renderer process source entry point
 │   ├── Module loading system
 │   ├── Error boundary setup
 │   ├── Theme initialization
 │   ├── Global event handlers
 │   └── Performance monitoring
 │
-├── preload.js                        # Security bridge
+├── preload.ts                        # Security bridge source bundled into dist/preload.js
 │   ├── Context bridge setup
 │   ├── IPC API exposure
 │   ├── Security validation
 │   └── Safe DOM access
 │
-└── main-ui.js                        # UI management
+└── main-ui.ts                        # UI management source
     ├── Tab system management
     ├── User interaction handlers
     ├── Dynamic UI updates
@@ -66,9 +66,9 @@ electron-app/
 
 ```text
 electron-app/
-├── fitParser.js                      # FIT file parsing (Garmin SDK integration)
-├── windowStateUtils.js               # Window state persistence
-└── utils.js                          # Legacy utilities (being phased out)
+├── fitParser.ts                      # FIT file parsing source (Garmin SDK integration)
+├── windowStateUtils.ts               # Window state persistence source
+└── utils.ts                          # Legacy utility source (being phased out)
 ```
 
 ## Utility Module Organization
@@ -472,14 +472,14 @@ Root Level Files:
 
 ### Critical Application Files
 
-| File                                      | Size/Complexity               | Primary Responsibility               |
-| ----------------------------------------- | ----------------------------- | ------------------------------------ |
-| `main.js`                                 | 2,000+ lines                  | Electron main process, app lifecycle |
-| `utils/config/index.js`                   | 500+ lines via `constants.js` | Centralized configuration            |
-| `utils/errors/index.js`                   | 400+ lines                    | Unified error handling               |
-| `utils/state/core/unifiedStateManager.js` | 300+ lines                    | State management facade              |
-| `fitParser.js`                            | 200+ lines                    | FIT file parsing logic               |
-| `main-ui.js`                              | 150+ lines                    | UI management and tabs               |
+| File                                      | Size/Complexity           | Primary Responsibility               |
+| ----------------------------------------- | ------------------------- | ------------------------------------ |
+| `main.ts`                                 | Main entry source         | Electron main process, app lifecycle |
+| `utils/config/index.ts`                   | Root-built runtime source | Centralized configuration            |
+| `utils/errors/index.ts`                   | Root-built runtime source | Unified error handling               |
+| `utils/state/core/unifiedStateManager.ts` | Root-built runtime source | State management facade              |
+| `fitParser.ts`                            | Parser source             | FIT file parsing logic               |
+| `main-ui.ts`                              | UI source                 | UI management and tabs               |
 
 ### Module Distribution
 

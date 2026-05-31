@@ -89,10 +89,10 @@ FitFileViewer is a cross-platform desktop Electron application for viewing and a
 
 | File          | Role             | Description                                            |
 | ------------- | ---------------- | ------------------------------------------------------ |
-| `main.js`     | Main Process     | Application lifecycle, window management, IPC handlers |
-| `renderer.js` | Renderer Process | UI initialization, module loading, error boundaries    |
-| `preload.js`  | Security Bridge  | Secure IPC communication, context isolation            |
-| `main-ui.js`  | UI Manager       | Tab management, user interactions                      |
+| `main.ts`     | Main Process     | Application lifecycle, window management, IPC handlers |
+| `renderer.ts` | Renderer Process | UI initialization, module loading, error boundaries    |
+| `preload.ts`  | Security Bridge  | Secure IPC communication, context isolation            |
+| `main-ui.ts`  | UI Manager       | Tab management, user interactions                      |
 
 ### 2. Utility Module System (50+ modules)
 
@@ -158,7 +158,7 @@ utils/
 ### Main Process Responsibilities
 
 ```javascript
-// main.js architecture
+// main.ts architecture
 const MainProcess = {
  lifecycle: {
   initialization: "App startup, window creation",
@@ -186,7 +186,7 @@ const MainProcess = {
 ### Renderer Process Architecture
 
 ```javascript
-// renderer.js + modules architecture
+// renderer.ts + modules architecture
 const RendererProcess = {
  initialization: {
   moduleLoading: "Dynamic utility loading",

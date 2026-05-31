@@ -14,10 +14,10 @@ This document provides a high-level tour of the FitFileViewer codebase, covering
 
 | Path                        | Purpose                                                                                                                                                                             |
 | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `electron-app/main.js`      | Electron main process entry point (window lifecycle, IPC, auto-updates, recent files)                                                                                               |
-| `electron-app/preload.js`   | Secure bridge that exposes `electronAPI` to the renderer                                                                                                                            |
-| `electron-app/renderer.js`  | Renderer bootstrap (state initialization, dependency wiring, DOM readiness)                                                                                                         |
-| `electron-app/fitParser.js` | FIT file decoding with state & settings integration                                                                                                                                 |
+| `electron-app/main.ts`      | Electron main process source entry point (window lifecycle, IPC, auto-updates, recent files)                                                                                        |
+| `electron-app/preload.ts`   | Secure bridge source that exposes `electronAPI` to the renderer                                                                                                                     |
+| `electron-app/renderer.ts`  | Renderer bootstrap source (state initialization, dependency wiring, DOM readiness)                                                                                                  |
+| `electron-app/fitParser.ts` | FIT file decoding source with state & settings integration                                                                                                                          |
 | `electron-app/utils/`       | Shared utilities (app lifecycle, charts, data, files, formatting, rendering, state, theming, UI)                                                                                    |
 | `tests/unit/`               | Root-owned Vitest suites for tooling, runtime/preload/main boundaries, strict regressions, chart/map/menu/lifecycle/file/theming/rendering/utility behavior, and shared UI behavior |
 | `tests/integration/`        | Root-owned Vitest integration suites                                                                                                                                                |
@@ -33,7 +33,7 @@ This document provides a high-level tour of the FitFileViewer codebase, covering
 ## Runtime Architecture
 
 ```text
-Launcher → main.js → BrowserWindow preload:preload.js → renderer renderer.js
+Launcher → main.ts → BrowserWindow preload:dist/preload.js → renderer dist/renderer.js
                        │                                    │
                        │ (IPC handlers, auto-update,        │ (State manager bootstrap,
                        │  recent files, menu, logging)      │  DOM hooks, UI modules)
@@ -41,9 +41,9 @@ Launcher → main.js → BrowserWindow preload:preload.js → renderer renderer.
                 utils/state/core/masterStateManager.js ◄──► utils/state/domain/
 ```
 
-1. **Main process (`main.js`)** builds application state, creates the BrowserWindow via `windowStateUtils`, instantiates menus, registers IPC handlers, and configures auto updates.
-2. **Preload (`preload.js`)** exposes a typed `electronAPI` surface (file dialogs, version info, recent files, FIT parsing, update events, theme events, etc.) using context isolation.
-3. **Renderer (`renderer.js`)** lazily resolves modules through `ensureCoreModules()`, initializes the master state manager, wires legacy compatibility proxies, registers DOM listeners, and orchestrates charts, maps, and notifications.
+1. **Main process (`main.ts`)** builds application state, creates the BrowserWindow via `windowStateUtils`, instantiates menus, registers IPC handlers, and configures auto updates.
+2. **Preload (`preload.ts`)** is bundled by the root build into `dist/preload.js` and exposes a typed `electronAPI` surface (file dialogs, version info, recent files, FIT parsing, update events, theme events, etc.) using context isolation.
+3. **Renderer (`renderer.ts`)** is compiled by the root runtime build, lazily resolves modules through `ensureCoreModules()`, initializes the master state manager, wires legacy compatibility proxies, registers DOM listeners, and orchestrates charts, maps, and notifications.
 4. **State management** is centralized in `utils/state/core/stateManager.js`, while domain-specific managers (e.g., `fitFileStateManager`, `uiStateManager`, `settingsStateManager`) sit under `utils/state/domain/`.
 
 ## Main Process Responsibilities
@@ -72,7 +72,8 @@ The preload script exposes a constrained API (all methods validate their argumen
 
 ## Renderer Initialization
 
-`renderer.js` performs the following sequence:
+`renderer.ts` performs the following sequence before being compiled into the
+runtime renderer output:
 
 1. **State manager boot:** `masterStateManager.initialize()` hydrates state, exposing proxies so legacy consumers still reference `appState`.
 2. **DOM validation:** Ensures critical containers (`#openFileBtn`, `#notification`, etc.) exist; warns if running in minimal test DOM.
@@ -97,7 +98,7 @@ The preload script exposes a constrained API (all methods validate their argumen
 
 1. **File selection:** Renderer triggers `electronAPI.openFile()`; main process updates recent files and reconstitutes menus.
 2. **Binary read:** `file:read` returns an ArrayBuffer via IPC.
-3. **Decode:** `fitParser.js` loads Garmin’s FIT SDK (`@garmin/fitsdk`), validates integrity, tracks progress via `fitFileStateManager`, and records metadata.
+3. **Decode:** `fitParser.ts` loads Garmin’s FIT SDK (`@garmin/fitsdk`), validates integrity, tracks progress via `fitFileStateManager`, and records metadata.
 4. **State updates:** Successful decodes update `globalData`, propagate to charts/maps/tables (`showFitData.js`), and notify the main menu.
 5. **Overlays:** `loadOverlayFiles.js` allows additional FIT files to be displayed side-by-side, reusing the decode pipeline and maintaining `loadedFitFiles`.
 
@@ -144,7 +145,8 @@ The preload script exposes a constrained API (all methods validate their argumen
 | `menu-open-file`, `open-recent-file`, `theme-changed`         | main → renderer | Menu-driven actions forwarded through preload event handlers |
 | Update events (`update-available`, `update-downloaded`, etc.) | main → renderer | Auto-updater status notifications                            |
 
-Refer to `preload.js` and `main.js` for the full set of channels and event names.
+Refer to `preload.ts`, `main.ts`, and `electron-app/shared/ipc.ts` for the full
+set of channels and event names.
 
 ## Testing & Quality
 

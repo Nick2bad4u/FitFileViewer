@@ -134,11 +134,11 @@ FitFileViewer uses Electron's multi-process architecture:
 
 ```
 electron-app/
-├── main.js           # Main process entry
-├── renderer.js       # Renderer process entry
-├── preload.js        # Security bridge
-├── main-ui.js        # UI management
-├── fitParser.js      # FIT file parsing
+├── main.ts           # Main process source entry
+├── renderer.ts       # Renderer process source entry
+├── preload.ts        # Security bridge source
+├── main-ui.ts        # UI management source
+├── fitParser.ts      # FIT file parsing source
 └── utils/            # Utility modules
     ├── formatting/   # Data formatters
     ├── maps/         # Map utilities
