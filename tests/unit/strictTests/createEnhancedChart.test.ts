@@ -635,8 +635,10 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
     });
 
-    describe("Plugin Configuration", () => {
+    describe("plugin configuration", () => {
         it("should include required plugins", () => {
+            expect.hasAssertions();
+
             const canvas = document.createElement("canvas");
             const options = {
                 field: "speed",
@@ -666,6 +668,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should configure zoom plugin", () => {
+            expect.hasAssertions();
+
             const canvas = document.createElement("canvas");
             const zoomPluginConfig = {
                 pan: { enabled: true },
@@ -696,7 +700,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should configure background color plugin based on theme", () => {
-            // Test that background color plugin is configured
+            expect.hasAssertions();
+
             const canvas = document.createElement("canvas");
             const options = {
                 field: "speed",
@@ -719,18 +724,21 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             createEnhancedChart(canvas, options);
 
             const config = Chart.mock.calls[Chart.mock.calls.length - 1][1];
-            // Test that background color plugin is configured with some background color
             expect(
                 config.options.plugins.chartBackgroundColorPlugin
             ).toHaveProperty("backgroundColor");
             expect(
-                typeof config.options.plugins.chartBackgroundColorPlugin
+                config.options.plugins.chartBackgroundColorPlugin
                     .backgroundColor
-            ).toBe("string");
+            ).toBeTypeOf("string");
             expect(
                 config.options.plugins.chartBackgroundColorPlugin
                     .backgroundColor
             ).toBe("#181c24");
+            expect(
+                config.options.plugins.chartBackgroundColorPlugin
+                    .backgroundColor
+            ).not.toBe("#ffffff");
         });
     });
 
