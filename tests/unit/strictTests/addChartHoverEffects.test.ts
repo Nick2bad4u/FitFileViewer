@@ -201,10 +201,9 @@ describe("addChartHoverEffects", () => {
             const logSpy = vi
                 .spyOn(console, "log")
                 .mockImplementation(() => {});
-            expect(
-                addChartHoverEffects(mockContainer, mockThemeConfig)
-            ).toBeUndefined();
+            addChartHoverEffects(mockContainer, mockThemeConfig);
 
+            expect(mockContainer.querySelector(".chart-wrapper")).toBeNull();
             expect(
                 mockContainer.querySelectorAll(".chart-wrapper")
             ).toStrictEqual([]);
@@ -840,9 +839,7 @@ describe("Edge Cases", () => {
             value: undefined,
         });
 
-        expect(
-            addChartHoverEffects(mockContainer, mockThemeConfig)
-        ).toBeUndefined();
+        addChartHoverEffects(mockContainer, mockThemeConfig);
 
         const wrapper = mockContainer.querySelector(".chart-wrapper");
         expect(wrapper).toBeInstanceOf(HTMLDivElement);
@@ -860,9 +857,7 @@ describe("Edge Cases", () => {
             .fn()
             .mockReturnValue([orphanCanvas]);
 
-        expect(
-            addChartHoverEffects(mockContainer, mockThemeConfig)
-        ).toBeUndefined();
+        addChartHoverEffects(mockContainer, mockThemeConfig);
 
         expect(orphanCanvas.dataset.hoverEffectsAdded).toBe("true");
         expect(orphanCanvas.parentElement?.className).toBe("chart-wrapper");
