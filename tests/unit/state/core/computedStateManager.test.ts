@@ -363,12 +363,14 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
             it("should warn and return undefined for non-existent keys", () => {
                 const result = computedStateManager.getComputed("nonExistent");
-                expect(result).toBeUndefined();
-                expect(console.warn).toHaveBeenCalledWith(
-                    expect.stringContaining(
-                        'Computed value "nonExistent" does not exist'
-                    )
-                );
+                expect({
+                    result,
+                    warning: vi.mocked(console.warn).mock.calls.at(-1)?.[0],
+                }).toStrictEqual({
+                    result: undefined,
+                    warning:
+                        '[ComputedState] Computed value "nonExistent" does not exist',
+                });
             });
         });
 
@@ -582,19 +584,33 @@ describe("computedStateManager.js - comprehensive coverage", () => {
     describe("Convenience functions", () => {
         describe("addComputed", () => {
             it("should delegate to computedStateManager.addComputed", () => {
+                expect.assertions(4);
                 const computeFn = () => "convenience-test";
                 const cleanup = addComputed("convenience", computeFn, ["dep"]);
 
                 expect(
                     computedStateManager.computedValues.has("convenience")
                 ).toStrictEqual(true);
-                expect(getComputed("missingConvenience")).toBeUndefined();
+                vi.mocked(console.warn).mockClear();
+                let result: unknown;
+                expect(() => {
+                    result = getComputed("missingConvenience");
+                }).not.toThrow();
+                expect({
+                    result,
+                    warning: vi.mocked(console.warn).mock.calls.at(-1)?.[0],
+                }).toStrictEqual({
+                    result: undefined,
+                    warning:
+                        '[ComputedState] Computed value "missingConvenience" does not exist',
+                });
                 expect(typeof cleanup).toBe("function");
             });
         });
 
         describe("getComputed", () => {
             it("should delegate to computedStateManager.getComputed", () => {
+                expect.assertions(3);
                 computedStateManager.addComputed(
                     "getTest",
                     () => "get-value",
@@ -602,7 +618,19 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 );
                 const result = getComputed("getTest");
                 expect(result).toBe("get-value");
-                expect(getComputed("missingGetTest")).toBeUndefined();
+                vi.mocked(console.warn).mockClear();
+                let missingResult: unknown;
+                expect(() => {
+                    missingResult = getComputed("missingGetTest");
+                }).not.toThrow();
+                expect({
+                    result: missingResult,
+                    warning: vi.mocked(console.warn).mock.calls.at(-1)?.[0],
+                }).toStrictEqual({
+                    result: undefined,
+                    warning:
+                        '[ComputedState] Computed value "missingGetTest" does not exist',
+                });
             });
         });
 
