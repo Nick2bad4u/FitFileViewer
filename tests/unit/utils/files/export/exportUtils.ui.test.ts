@@ -1,57 +1,110 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+type DetectCurrentTheme = () => "light";
+type ManualMockModule = {
+    detectCurrentTheme?: ReturnType<typeof vi.fn<DetectCurrentTheme>>;
+    showNotification?: ReturnType<typeof vi.fn<ShowNotification>>;
+};
+type ManualMockRegistry = Map<string, ManualMockModule>;
+type OAuthReject = (error: Error) => void;
+type OAuthResolve = (token: string) => void;
+type ShowNotification = (message: string, type: string) => void;
+type StopGyazoServer = () => Promise<void>;
+type TestGlobal = typeof globalThis & {
+    __vitest_manual_mocks__?: ManualMockRegistry;
+    confirm: (message?: string) => boolean;
+    electronAPI?: {
+        stopGyazoServer: ReturnType<typeof vi.fn<StopGyazoServer>>;
+    };
+};
 
 async function loadExportUtils() {
     return await import("../../../../../electron-app/utils/files/export/exportUtils.js");
 }
 
+function getManualMocks(): ManualMockRegistry {
+    return (globalThis as TestGlobal)
+        .__vitest_manual_mocks__ as ManualMockRegistry;
+}
+
+function getShowNotificationMock(): ReturnType<typeof vi.fn<ShowNotification>> {
+    const notify = getManualMocks().get(
+        "/utils/ui/notifications/showNotification.js"
+    )?.showNotification;
+    if (!notify) {
+        throw new Error("showNotification mock was not installed");
+    }
+    return notify;
+}
+
+function getStopGyazoServerMock(): ReturnType<typeof vi.fn<StopGyazoServer>> {
+    const stopGyazoServer = (globalThis as TestGlobal).electronAPI
+        ?.stopGyazoServer;
+    if (!stopGyazoServer) {
+        throw new Error("stopGyazoServer mock was not installed");
+    }
+    return stopGyazoServer;
+}
+
 function installBaseMocks() {
     // Minimal manual mock registry so exportUtils resolves showNotification/detectCurrentTheme
-    const reg = new Map<string, any>();
-    (globalThis as any).__vitest_manual_mocks__ = reg;
+    const reg: ManualMockRegistry = new Map();
+    (globalThis as TestGlobal).__vitest_manual_mocks__ = reg;
     reg.set("/utils/ui/notifications/showNotification.js", {
-        showNotification: vi.fn(),
+        showNotification: vi.fn<ShowNotification>(),
     });
     reg.set("/utils/charts/theming/chartThemeUtils.js", {
-        detectCurrentTheme: vi.fn(() => "light"),
+        detectCurrentTheme: vi
+            .fn<DetectCurrentTheme>()
+            .mockReturnValue("light"),
     });
 
     // Provide URL, Clipboard, and minimal canvas APIs used by exportUtils
-    const URLMock = function URLMock(this: any, input?: string, base?: string) {
+    const URLMock = function URLMock(
+        this: URL,
+        input?: string | URL,
+        base?: string | URL
+    ) {
         if (!(this instanceof URLMock)) {
-            return new (URLMock as any)(input, base);
+            return new URLMock(input, base);
         }
         this.href = input || "https://localhost/mock";
         this.protocol = "https:";
         this.host = "localhost";
         this.pathname = "/mock";
-    } as unknown as typeof URL;
-    (URLMock as any).createObjectURL = vi.fn(() => "blob:export");
-    (URLMock as any).revokeObjectURL = vi.fn();
+    } as unknown as typeof URL & {
+        createObjectURL: () => string;
+        revokeObjectURL: () => void;
+    };
+    URLMock.createObjectURL = () => "blob:export";
+    URLMock.revokeObjectURL = () => {};
     vi.stubGlobal("URL", URLMock);
 
     const ctx = {
         fillStyle: "#fff",
-        drawImage: vi.fn(),
-        fillRect: vi.fn(),
-        getImageData: vi.fn(() => ({ data: new Uint8ClampedArray(4) })),
-        putImageData: vi.fn(),
+        drawImage: vi.fn<(...args: unknown[]) => void>(),
+        fillRect: vi.fn<(...args: unknown[]) => void>(),
+        getImageData: vi.fn<() => ImageData>(
+            () => ({ data: new Uint8ClampedArray(4) }) as ImageData
+        ),
+        putImageData: vi.fn<(...args: unknown[]) => void>(),
     } as unknown as CanvasRenderingContext2D;
 
-    vi.spyOn(
-        HTMLCanvasElement.prototype as any,
-        "getContext"
-    ).mockImplementation((type: any) => {
-        if (type === "2d") return ctx as any;
-        return null;
-    });
-    vi.spyOn(
-        HTMLCanvasElement.prototype as any,
-        "toDataURL"
-    ).mockImplementation(() => "data:image/png;base64,AAA");
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation(
+        (type: string) => {
+            if (type === "2d") {
+                return ctx;
+            }
+            return null;
+        }
+    );
+    vi.spyOn(HTMLCanvasElement.prototype, "toDataURL").mockReturnValue(
+        "data:image/png;base64,AAA"
+    );
 }
 
 describe("exportUtils UI modals (Imgur & Gyazo)", () => {
-    beforeEach(() => {
+    beforeEach(function setupExportUiTest(): void {
         document.body.innerHTML = "";
         localStorage.clear();
         vi.restoreAllMocks();
@@ -59,11 +112,13 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         installBaseMocks();
     });
 
-    afterEach(() => {
+    afterEach(function cleanupExportUiTest(): void {
         document.body.innerHTML = "";
     });
 
-    it("Imgur account manager: save, setup guide, clear, close, ESC and click-outside", async () => {
+    it("imgur account manager: save, setup guide, clear, close, ESC and click-outside", async () => {
+        expect.hasAssertions();
+
         const { exportUtils } = await loadExportUtils();
 
         // Open settings modal
@@ -72,12 +127,7 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
             ?.parentElement as HTMLElement;
         expect(overlay1.tagName).toBe("DIV");
 
-        const reg = (globalThis as any).__vitest_manual_mocks__ as Map<
-            string,
-            any
-        >;
-        const notify = reg.get("/utils/ui/notifications/showNotification.js")
-            .showNotification as any;
+        const notify = getShowNotificationMock();
 
         // Save configuration
         const input = overlay1.querySelector(
@@ -155,7 +205,9 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         expect(overlay4.isConnected).toBe(false);
     });
 
-    it("Imgur account manager: does not inject stored clientId as HTML", async () => {
+    it("imgur account manager: does not inject stored clientId as HTML", async () => {
+        expect.hasAssertions();
+
         // Stored values are untrusted (localStorage can be manipulated).
         localStorage.setItem(
             "imgur_client_id",
@@ -180,7 +232,9 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         expect(overlay.innerHTML).not.toMatch(/onerror/i);
     });
 
-    it("Imgur update status toggles UI", async () => {
+    it("imgur update status toggles UI", async () => {
+        expect.hasAssertions();
+
         const { exportUtils } = await loadExportUtils();
         exportUtils.showImgurAccountManager();
         const modal = document.querySelector(
@@ -213,14 +267,11 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         modal.parentElement?.remove();
     });
 
-    it("Gyazo account manager: save creds, connect, disconnect, clear all, close, ESC and click-outside", async () => {
+    it("gyazo account manager: save creds, connect, disconnect, clear all, close, ESC and click-outside", async () => {
+        expect.hasAssertions();
+
         const { exportUtils } = await loadExportUtils();
-        const reg = (globalThis as any).__vitest_manual_mocks__ as Map<
-            string,
-            any
-        >;
-        const notify = reg.get("/utils/ui/notifications/showNotification.js")
-            .showNotification as any;
+        const notify = getShowNotificationMock();
 
         // Ensure not authenticated
         localStorage.removeItem("gyazo_access_token");
@@ -250,14 +301,14 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         // Connect (mock authenticateWithGyazo and ensure token stored)
         const spyAuth = vi
             .spyOn(exportUtils, "authenticateWithGyazo")
-            .mockImplementation(async () => {
+            .mockImplementation(async function authenticateWithGyazoMock() {
                 localStorage.setItem("gyazo_access_token", "tok");
-                return "tok" as any;
+                return "tok";
             });
         await (
             overlay1.querySelector("#gyazo-connect") as HTMLButtonElement
         ).click();
-        expect(spyAuth).toHaveBeenCalled();
+        expect(spyAuth).toHaveBeenCalledWith();
         // Status updated to connected (disconnect visible)
         expect(
             (overlay1.querySelector("#gyazo-disconnect") as HTMLElement).style
@@ -279,13 +330,13 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         );
 
         // Clear all data (confirm=true)
-        const oldConfirm = (globalThis as any).confirm;
-        (globalThis as any).confirm = () => true;
+        const oldConfirm = (globalThis as TestGlobal).confirm;
+        (globalThis as TestGlobal).confirm = () => true;
         (
             overlay1.querySelector("#clear-all-data") as HTMLButtonElement
         ).click();
         expect(overlay1.isConnected).toBe(false);
-        (globalThis as any).confirm = oldConfirm;
+        (globalThis as TestGlobal).confirm = oldConfirm;
 
         // Reopen then close button
         exportUtils.showGyazoAccountManager();
@@ -309,7 +360,9 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         expect(overlay4.isConnected).toBe(false);
     });
 
-    it("Gyazo account manager: does not inject stored credentials as HTML", async () => {
+    it("gyazo account manager: does not inject stored credentials as HTML", async () => {
+        expect.hasAssertions();
+
         localStorage.setItem(
             "gyazo_client_id",
             '"/><img src=x onerror=alert(1)>'
@@ -335,26 +388,23 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         expect(idInput.value).toBe('"/><img src=x onerror=alert(1)>');
         expect(secretInput.value).toBe('"/><img src=y onerror=alert(2)>');
 
-        expect(overlay.querySelectorAll("img").length).toBe(0);
+        expect(overlay.querySelectorAll("img")).toHaveLength(0);
         expect(overlay.innerHTML).not.toMatch(/onerror/i);
     });
 
     it("createGyazoAuthModal: manual mode completes with code and can cancel/esc/click-outside", async () => {
-        const { exportUtils } = await loadExportUtils();
-        const reg = (globalThis as any).__vitest_manual_mocks__ as Map<
-            string,
-            any
-        >;
-        const notify = reg.get("/utils/ui/notifications/showNotification.js")
-            .showNotification as any;
+        expect.hasAssertions();
 
-        const resolveSpy = vi.fn();
-        const rejectSpy = vi.fn();
+        const { exportUtils } = await loadExportUtils();
+        const notify = getShowNotificationMock();
+
+        const resolveSpy = vi.fn<OAuthResolve>();
+        const rejectSpy = vi.fn<OAuthReject>();
 
         // Mock exchange function to return token
         const spyExchange = vi
             .spyOn(exportUtils, "exchangeGyazoCodeForToken")
-            .mockResolvedValue({ access_token: "tok" } as any);
+            .mockResolvedValue({ access_token: "tok" });
 
         const overlay = exportUtils.createGyazoAuthModal(
             "https://auth",
@@ -375,7 +425,10 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         // Wait microtask queue
         await Promise.resolve();
 
-        expect(spyExchange).toHaveBeenCalled();
+        expect(spyExchange).toHaveBeenCalledWith(
+            "code123",
+            exportUtils.getGyazoConfig().redirectUri
+        );
         expect(localStorage.getItem("gyazo_access_token")).toBe("tok");
         expect(resolveSpy).toHaveBeenCalledWith("tok");
         expect(notify).toHaveBeenCalledWith(
@@ -384,8 +437,8 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         );
 
         // Recreate and test cancel
-        const resolve2 = vi.fn();
-        const reject2 = vi.fn();
+        const resolve2 = vi.fn<OAuthResolve>();
+        const reject2 = vi.fn<OAuthReject>();
         const overlay2 = exportUtils.createGyazoAuthModal(
             "https://auth",
             "state",
@@ -397,11 +450,13 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         (
             overlay2.querySelector("#gyazo-cancel-auth") as HTMLButtonElement
         ).click();
-        expect(reject2).toHaveBeenCalled();
+        expect(reject2).toHaveBeenCalledWith(
+            new Error("User cancelled authentication")
+        );
 
         // ESC
-        const resolve3 = vi.fn();
-        const reject3 = vi.fn();
+        const resolve3 = vi.fn<OAuthResolve>();
+        const reject3 = vi.fn<OAuthReject>();
         const overlay3 = exportUtils.createGyazoAuthModal(
             "https://auth",
             "state",
@@ -411,11 +466,13 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         );
         document.body.append(overlay3);
         document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
-        expect(reject3).toHaveBeenCalled();
+        expect(reject3).toHaveBeenCalledWith(
+            new Error("User cancelled authentication")
+        );
 
         // Click outside
-        const resolve4 = vi.fn();
-        const reject4 = vi.fn();
+        const resolve4 = vi.fn<OAuthResolve>();
+        const reject4 = vi.fn<OAuthReject>();
         const overlay4 = exportUtils.createGyazoAuthModal(
             "https://auth",
             "state",
@@ -425,65 +482,64 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         );
         document.body.append(overlay4);
         overlay4.click();
-        expect(reject4).toHaveBeenCalled();
+        expect(reject4).toHaveBeenCalledWith(
+            new Error("User cancelled authentication")
+        );
     });
 
     it("createGyazoAuthModal: server mode stops server on cancel/esc/click-outside", async () => {
+        expect.hasAssertions();
+
         const { exportUtils } = await loadExportUtils();
-        (globalThis as any).electronAPI = {
-            stopGyazoServer: vi.fn().mockResolvedValue(undefined),
+        (globalThis as TestGlobal).electronAPI = {
+            stopGyazoServer: vi
+                .fn<StopGyazoServer>()
+                .mockResolvedValue(undefined),
         };
 
         const overlay = exportUtils.createGyazoAuthModal(
             "https://auth",
             "state",
-            vi.fn(),
-            vi.fn(),
+            vi.fn<OAuthResolve>(),
+            vi.fn<OAuthReject>(),
             true
         );
         document.body.append(overlay);
         (
             overlay.querySelector("#gyazo-cancel-auth") as HTMLButtonElement
         ).click();
-        expect(
-            (globalThis as any).electronAPI.stopGyazoServer
-        ).toHaveBeenCalled();
+        const stopGyazoServer = getStopGyazoServerMock();
+        expect(stopGyazoServer).toHaveBeenCalledWith();
 
         // ESC
         const overlay2 = exportUtils.createGyazoAuthModal(
             "https://auth",
             "state",
-            vi.fn(),
-            vi.fn(),
+            vi.fn<OAuthResolve>(),
+            vi.fn<OAuthReject>(),
             true
         );
         document.body.append(overlay2);
-        const beforeEscCalls = (
-            (globalThis as any).electronAPI.stopGyazoServer as any
-        ).mock.calls.length;
+        const beforeEscCalls = stopGyazoServer.mock.calls.length;
         document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
         // ESC may trigger multiple listeners (from current and prior modals); ensure it increases by at least 1
-        expect(
-            ((globalThis as any).electronAPI.stopGyazoServer as any).mock.calls
-                .length
-        ).toBeGreaterThanOrEqual(beforeEscCalls + 1);
+        expect(stopGyazoServer.mock.calls.length).toBeGreaterThanOrEqual(
+            beforeEscCalls + 1
+        );
 
         // Click outside
         const overlay3 = exportUtils.createGyazoAuthModal(
             "https://auth",
             "state",
-            vi.fn(),
-            vi.fn(),
+            vi.fn<OAuthResolve>(),
+            vi.fn<OAuthReject>(),
             true
         );
         document.body.append(overlay3);
-        const beforeClickCalls = (
-            (globalThis as any).electronAPI.stopGyazoServer as any
-        ).mock.calls.length;
+        const beforeClickCalls = stopGyazoServer.mock.calls.length;
         overlay3.click();
-        expect(
-            ((globalThis as any).electronAPI.stopGyazoServer as any).mock.calls
-                .length
-        ).toBeGreaterThanOrEqual(beforeClickCalls + 1);
+        expect(stopGyazoServer.mock.calls.length).toBeGreaterThanOrEqual(
+            beforeClickCalls + 1
+        );
     });
 });
