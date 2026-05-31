@@ -221,8 +221,8 @@ describe(renderGPSTrackChart, () => {
                 [firstPoint, secondPoint] = dataset.data;
 
             expect(dataset.data).toHaveLength(2);
-            expect(firstPoint?.pointIndex).toBe(0);
-            expect(secondPoint?.pointIndex).toBe(3);
+            expect(firstPoint).toMatchObject({ pointIndex: 0 });
+            expect(secondPoint).toMatchObject({ pointIndex: 3 });
             expect(firstPoint?.y).toBeCloseTo((429_496_730 * 180) / 2 ** 31, 6);
             expect(firstPoint?.x).toBeCloseTo(
                 (-859_993_460 * 180) / 2 ** 31,
@@ -251,8 +251,8 @@ describe(renderGPSTrackChart, () => {
                 getSingleChartCall(chartCalls)[1].data.datasets[0].data;
 
             expect(points).toHaveLength(10);
-            expect(points[0]?.pointIndex).toBe(0);
-            expect(points.at(-1)?.pointIndex).toBe(45);
+            expect(points.at(0)).toMatchObject({ pointIndex: 0 });
+            expect(points.at(-1)).toMatchObject({ pointIndex: 45 });
         });
     });
 
@@ -297,7 +297,9 @@ describe(renderGPSTrackChart, () => {
 
             const chartConfig = getSingleChartCall(chartCalls)[1];
 
-            expect(chartConfig.data.datasets[0].pointRadius).toBe(1);
+            expect(chartConfig.data.datasets[0]).toMatchObject({
+                pointRadius: 1,
+            });
             expect([
                 chartConfig.options.plugins.legend.display,
                 chartConfig.options.plugins.title.display,
@@ -394,7 +396,7 @@ describe(renderGPSTrackChart, () => {
             delete runtimeGlobal.Chart;
             renderGPSTrackChart(container, defaultData, defaultOptions);
 
-            expect(chartCalls).toHaveLength(0);
+            expect(chartCalls).toStrictEqual([]);
             expect(container.children).toHaveLength(1);
             expect(container.firstElementChild?.tagName).toBe("CANVAS");
             expect(globalThis._chartjsInstances).toStrictEqual([]);
