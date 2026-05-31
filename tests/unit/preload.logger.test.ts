@@ -1,6 +1,6 @@
 import { createRequire } from "node:module";
 
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 interface PreloadLoggerModule {
     createPreloadLogger: (consoleRef?: {
@@ -21,48 +21,50 @@ const { createPreloadLogger } = requireFromTest(
 
 describe("preload logger", () => {
     it("routes info logs through console.log", () => {
-        expect.assertions(3);
+        expect.assertions(1);
 
+        const loggedEntries: unknown[][] = [];
         const consoleRef = {
-            log: vi.fn<(...args: unknown[]) => void>(),
+            log: (...args: unknown[]) => loggedEntries.push(args),
         };
         const preloadLog = createPreloadLogger(consoleRef);
 
-        const result = preloadLog("info", "message", { detail: true });
+        preloadLog("info", "message", { detail: true });
 
-        expect(result).toBeUndefined();
-        expect(consoleRef.log).toHaveBeenCalledWith("message", {
-            detail: true,
-        });
-        expect(consoleRef.log).not.toHaveBeenCalledWith("warn", "message");
+        expect(loggedEntries).toStrictEqual([["message", { detail: true }]]);
     });
 
     it("routes warnings and errors through matching console methods", () => {
-        expect.assertions(3);
+        expect.assertions(1);
 
+        const loggedEntries: Array<{ args: unknown[]; level: string }> = [];
         const consoleRef = {
-            error: vi.fn<(...args: unknown[]) => void>(),
-            warn: vi.fn<(...args: unknown[]) => void>(),
+            error: (...args: unknown[]) =>
+                loggedEntries.push({ args, level: "error" }),
+            warn: (...args: unknown[]) =>
+                loggedEntries.push({ args, level: "warn" }),
         };
         const preloadLog = createPreloadLogger(consoleRef);
 
-        const result = preloadLog("warn", "warning");
+        preloadLog("warn", "warning");
         preloadLog("error", "failure");
 
-        expect(result).toBeUndefined();
-        expect(consoleRef.warn).toHaveBeenCalledWith("warning");
-        expect(consoleRef.error).toHaveBeenCalledWith("failure");
+        expect(loggedEntries).toStrictEqual([
+            { args: ["warning"], level: "warn" },
+            { args: ["failure"], level: "error" },
+        ]);
     });
 
     it("ignores missing console methods without falling back to another level", () => {
-        expect.assertions(2);
+        expect.assertions(1);
 
+        const loggedEntries: unknown[][] = [];
         const consoleRef = {
-            log: vi.fn<(...args: unknown[]) => void>(),
+            log: (...args: unknown[]) => loggedEntries.push(args),
         };
         const preloadLog = createPreloadLogger(consoleRef);
 
-        expect(preloadLog("warn", "ignored")).toBeUndefined();
-        expect(consoleRef.log).not.toHaveBeenCalled();
+        preloadLog("warn", "ignored");
+        expect(loggedEntries).toStrictEqual([]);
     });
 });
