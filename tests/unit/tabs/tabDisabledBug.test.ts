@@ -123,6 +123,20 @@ function getAltFitButton(): HTMLButtonElement {
     return button;
 }
 
+function getButtonState(button: HTMLButtonElement) {
+    return {
+        ariaDisabled: button.getAttribute("aria-disabled"),
+        disabled: button.disabled,
+        hasDisabledAttribute: button.hasAttribute("disabled"),
+        id: button.id,
+        pointerEvents: button.style.pointerEvents,
+    };
+}
+
+function getButtonStates(buttons: HTMLButtonElement[]) {
+    return buttons.map((button) => getButtonState(button));
+}
+
 describe("tab disabled attribute bug investigation", () => {
     let mockButtons: HTMLButtonElement[] = [];
 
@@ -147,11 +161,28 @@ describe("tab disabled attribute bug investigation", () => {
             button.disabled = true;
         });
 
-        // Verify they're disabled
-        mockButtons.forEach((button) => {
-            expect(button.hasAttribute("disabled")).toBe(true);
-            expect(button.disabled).toBe(true);
-        });
+        expect(getButtonStates(mockButtons)).toMatchObject([
+            {
+                disabled: true,
+                hasDisabledAttribute: true,
+                id: "tab-summary",
+            },
+            {
+                disabled: true,
+                hasDisabledAttribute: true,
+                id: "tab-chart",
+            },
+            {
+                disabled: true,
+                hasDisabledAttribute: true,
+                id: "tab-map",
+            },
+            {
+                disabled: true,
+                hasDisabledAttribute: true,
+                id: "tab-table",
+            },
+        ]);
 
         // Try to remove the disabled attribute
         mockButtons.forEach((button) => {
@@ -159,11 +190,28 @@ describe("tab disabled attribute bug investigation", () => {
             button.removeAttribute("disabled");
         });
 
-        // Check if removal worked
-        mockButtons.forEach((button) => {
-            expect(button.disabled).toBe(false);
-            expect(button.hasAttribute("disabled")).toBe(false);
-        });
+        expect(getButtonStates(mockButtons)).toMatchObject([
+            {
+                disabled: false,
+                hasDisabledAttribute: false,
+                id: "tab-summary",
+            },
+            {
+                disabled: false,
+                hasDisabledAttribute: false,
+                id: "tab-chart",
+            },
+            {
+                disabled: false,
+                hasDisabledAttribute: false,
+                id: "tab-map",
+            },
+            {
+                disabled: false,
+                hasDisabledAttribute: false,
+                id: "tab-table",
+            },
+        ]);
     });
 
     it("should detect if multiple systems are setting disabled attributes", () => {
@@ -223,14 +271,44 @@ describe("tab disabled attribute bug investigation", () => {
                 change.newValue !== null && change.newValue !== undefined
         );
 
-        expect(Array.isArray(attributeChanges)).toBe(true);
-        expect(unexpectedChanges).toHaveLength(0);
+        expect({
+            changedTargets: new Set(
+                attributeChanges.map((change) => change.target)
+            ),
+            unexpectedChanges,
+        }).toStrictEqual({
+            changedTargets: new Set([
+                "tab-chart",
+                "tab-map",
+                "tab-summary",
+                "tab-table",
+            ]),
+            unexpectedChanges: [],
+        });
 
         // Verify final state
-        mockButtons.forEach((button) => {
-            expect(button.disabled).toBe(false);
-            expect(button.hasAttribute("disabled")).toBe(false);
-        });
+        expect(getButtonStates(mockButtons)).toMatchObject([
+            {
+                disabled: false,
+                hasDisabledAttribute: false,
+                id: "tab-summary",
+            },
+            {
+                disabled: false,
+                hasDisabledAttribute: false,
+                id: "tab-chart",
+            },
+            {
+                disabled: false,
+                hasDisabledAttribute: false,
+                id: "tab-map",
+            },
+            {
+                disabled: false,
+                hasDisabledAttribute: false,
+                id: "tab-table",
+            },
+        ]);
     });
 
     it("should test with the exact same DOM structure as real app", () => {
@@ -242,19 +320,39 @@ describe("tab disabled attribute bug investigation", () => {
         const button = getAltFitButton();
 
         // Verify initial problematic state
-        expect(button.hasAttribute("disabled")).toBe(true);
-        expect(button.getAttribute("disabled")).toBe("");
-        expect(button.getAttribute("aria-disabled")).toBe("false"); // Contradiction!
-        expect(button.style.pointerEvents).toBe("auto"); // Should be enabled styling
+        expect({
+            disabledAttribute: button.getAttribute("disabled"),
+            state: getButtonState(button),
+        }).toStrictEqual({
+            disabledAttribute: "",
+            state: {
+                ariaDisabled: "false",
+                disabled: true,
+                hasDisabledAttribute: true,
+                id: "tab-altfit",
+                pointerEvents: "auto",
+            },
+        });
 
         // Apply the fix
         setTabButtonsEnabled(true);
 
         // Verify fix works
-        expect(button.disabled).toBe(false);
-        expect(button.hasAttribute("disabled")).toBe(false);
-        expect(button.getAttribute("disabled")).not.toBe("");
-        expect(button.matches('[aria-disabled="false"]')).toBe(true);
+        expect({
+            disabledAttribute: button.getAttribute("disabled"),
+            matchesEnabledAria: button.matches('[aria-disabled="false"]'),
+            state: getButtonState(button),
+        }).toStrictEqual({
+            disabledAttribute: null,
+            matchesEnabledAria: true,
+            state: {
+                ariaDisabled: "false",
+                disabled: false,
+                hasDisabledAttribute: false,
+                id: "tab-altfit",
+                pointerEvents: "auto",
+            },
+        });
         expect(button.style.cssText).toContain("pointer-events: auto");
     });
 
@@ -282,11 +380,35 @@ describe("tab disabled attribute bug investigation", () => {
         });
 
         // Verify final state
-        mockButtons.forEach((button) => {
-            expect(button.disabled).toBe(false);
-            expect(button.hasAttribute("disabled")).toBe(false);
-            expect(button.getAttribute("aria-disabled")).toBe("false");
-            expect(button.style.pointerEvents).toBe("auto");
-        });
+        expect(getButtonStates(mockButtons)).toMatchObject([
+            {
+                ariaDisabled: "false",
+                disabled: false,
+                hasDisabledAttribute: false,
+                id: "tab-summary",
+                pointerEvents: "auto",
+            },
+            {
+                ariaDisabled: "false",
+                disabled: false,
+                hasDisabledAttribute: false,
+                id: "tab-chart",
+                pointerEvents: "auto",
+            },
+            {
+                ariaDisabled: "false",
+                disabled: false,
+                hasDisabledAttribute: false,
+                id: "tab-map",
+                pointerEvents: "auto",
+            },
+            {
+                ariaDisabled: "false",
+                disabled: false,
+                hasDisabledAttribute: false,
+                id: "tab-table",
+                pointerEvents: "auto",
+            },
+        ]);
     });
 });
