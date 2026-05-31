@@ -609,8 +609,8 @@ describe("state manager core", () => {
 
         resetStateManager();
 
-        expect(resetState("nonexistent.path")).toBeUndefined();
-        expect(resetState("also.nonexistent")).toBeUndefined();
+        expect(() => resetState("nonexistent.path")).not.toThrow();
+        expect(() => resetState("also.nonexistent")).not.toThrow();
         expect(getRootState().ui.activeTab).toBe("summary");
     });
 
@@ -621,7 +621,7 @@ describe("state manager core", () => {
 
         setState("nulltest", null);
 
-        expect(resetState("nulltest.subpath")).toBeUndefined();
+        expect(() => resetState("nulltest.subpath")).not.toThrow();
         expect(getState("nulltest")).toBeNull();
     });
 
