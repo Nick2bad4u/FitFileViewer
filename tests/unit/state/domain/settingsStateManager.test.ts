@@ -129,7 +129,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
     describe("SettingsStateManager class", () => {
         describe("constructor", () => {
             it("should initialize with empty state", () => {
-                expect(settingsStateManager.initialized).toBe(false);
+                expect(settingsStateManager.initialized).toStrictEqual(false);
                 expect(settingsStateManager.migrationVersion).toBe("1.0.0");
                 expect(settingsStateManager.subscribers).toBeInstanceOf(Map);
                 expect(
@@ -145,12 +145,19 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
                 settingsStateManager.cleanup();
 
-                expect(settingsStateManager.initialized).toBe(false);
-                expect(settingsStateManager.subscribers.size).toBe(0);
-                expect(settingsStateManager.subscribers.has("test")).toBe(
-                    false
+                expect({
+                    hasTestSubscriber:
+                        settingsStateManager.subscribers.has("test"),
+                    initialized: settingsStateManager.initialized,
+                    subscriberCount: settingsStateManager.subscribers.size,
+                }).toStrictEqual({
+                    hasTestSubscriber: false,
+                    initialized: false,
+                    subscriberCount: 0,
+                });
+                expect(settingsStateManager.initialized).not.toStrictEqual(
+                    true
                 );
-                expect(settingsStateManager.initialized).not.toBe(true);
             });
         });
 
@@ -190,7 +197,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
                 // No chart settings in localStorage
                 const result = settingsStateManager.getChartSettings();
 
-                expect(result).toEqual({});
+                expect(result).toStrictEqual({});
             });
         });
 
@@ -216,13 +223,13 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
                 const result = settingsStateManager.getSetting("mapTheme");
 
-                expect(result).toBe(false);
+                expect(result).toStrictEqual(false);
             });
 
             it("should return default for missing mapTheme", () => {
                 const result = settingsStateManager.getSetting("mapTheme");
 
-                expect(result).toBe(true); // default mapTheme
+                expect(result).toStrictEqual(true); // default mapTheme
             });
 
             it("should get ui object setting", () => {
@@ -281,7 +288,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
                     "light"
                 );
 
-                expect(result).toBe(true);
+                expect(result).toStrictEqual(true);
                 expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
                     "ffv-theme",
                     '"light"'
@@ -294,7 +301,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
                     false
                 );
 
-                expect(result).toBe(true);
+                expect(result).toStrictEqual(true);
                 expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
                     "ffv-map-theme-inverted",
                     "false"
@@ -311,7 +318,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
                 );
 
                 // Expect validation to fail since ui expects object but we're passing string
-                expect(result).toBe(false);
+                expect(result).toStrictEqual(false);
             });
 
             it("should handle invalid category", () => {
@@ -320,7 +327,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
                     "value"
                 );
 
-                expect(result).toBe(false);
+                expect(result).toStrictEqual(false);
             });
         });
 
@@ -330,7 +337,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
                 const result = settingsStateManager.resetSettings("theme");
 
-                expect(result).toBe(true);
+                expect(result).toStrictEqual(true);
                 expect(mockLocalStorage.removeItem).toHaveBeenCalledWith(
                     "ffv-theme"
                 );
@@ -343,7 +350,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
                 const result = settingsStateManager.resetSettings("ui");
 
-                expect(result).toBe(true);
+                expect(result).toStrictEqual(true);
                 expect(mockLocalStorage.removeItem).toHaveBeenCalledWith(
                     "ui_key1"
                 );
@@ -357,7 +364,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
                     "invalid" as any
                 );
 
-                expect(result).toBe(false);
+                expect(result).toStrictEqual(false);
             });
         });
 
@@ -365,9 +372,11 @@ describe("settingsStateManager.js - simplified coverage", () => {
             it("should initialize settings state manager", async () => {
                 await settingsStateManager.initialize();
 
-                expect(settingsStateManager.initialized).toBe(true);
+                expect(settingsStateManager.initialized).toStrictEqual(true);
                 expect(mockSetState).toHaveBeenCalled();
-                expect(settingsStateManager.initialized).not.toBe(false);
+                expect(settingsStateManager.initialized).not.toStrictEqual(
+                    false
+                );
             });
 
             it("should skip if already initialized", async () => {
@@ -375,7 +384,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
                 await settingsStateManager.initialize();
 
-                expect(settingsStateManager.initialized).toBe(true);
+                expect(settingsStateManager.initialized).toStrictEqual(true);
                 expect(mockSetState).not.toHaveBeenCalled();
             });
         });
@@ -434,7 +443,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
                 const result =
                     settingsStateManager.importSettings(settingsData);
 
-                expect(result).toBe(true);
+                expect(result).toStrictEqual(true);
                 expect(mockShowNotification).toHaveBeenCalledWith(
                     "Settings imported successfully",
                     "success"
@@ -444,7 +453,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
             it("should reject invalid settings data", () => {
                 const result = settingsStateManager.importSettings(null);
 
-                expect(result).toBe(false);
+                expect(result).toStrictEqual(false);
             });
         });
 
@@ -465,7 +474,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
                 );
                 expect(
                     settingsStateManager.storageSyncController.signal.aborted
-                ).toBe(false);
+                ).toStrictEqual(false);
 
                 const listener = getStorageEventListener();
 
@@ -547,7 +556,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
                 const result = setThemeSetting("light");
 
-                expect(result).toBe(true);
+                expect(result).toStrictEqual(true);
                 expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
                     "ffv-theme",
                     '"light"'
@@ -563,8 +572,8 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
                 const result = getMapThemeSetting();
 
-                expect(result).toBe(false);
-                expect(result).not.toBe(true);
+                expect(result).toStrictEqual(false);
+                expect(result).not.toStrictEqual(true);
             });
         });
 
@@ -574,7 +583,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
                 const result = setMapThemeSetting(false);
 
-                expect(result).toBe(true);
+                expect(result).toStrictEqual(true);
                 expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
                     "ffv-map-theme-inverted",
                     "false"
@@ -652,13 +661,13 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
                 const result = importAllSettings(settingsData);
 
-                expect(result).toBe(true);
+                expect(result).toStrictEqual(true);
             });
 
             it("should reject invalid all-settings payload", () => {
                 const { importAllSettings } = settingsStateManagerModule;
 
-                expect(importAllSettings(null)).toBe(false);
+                expect(importAllSettings(null)).toStrictEqual(false);
             });
         });
     });
