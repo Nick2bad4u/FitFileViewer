@@ -1016,6 +1016,8 @@ describe("preload.js - Comprehensive API Testing", () => {
     // Additional Tests for 100% Coverage
     describe("validation function edge cases", () => {
         it("should test validateCallback with invalid inputs", () => {
+            expect.assertions(9);
+
             // Access validation functions through existing API
             const api = getElectronAPI();
             expect(api).toMatchObject({
@@ -1045,6 +1047,8 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should test validateString with invalid inputs", () => {
+            expect.assertions(9);
+
             const api = getElectronAPI();
             expect(api).toMatchObject({
                 send: expect.any(Function),
@@ -1074,6 +1078,8 @@ describe("preload.js - Comprehensive API Testing", () => {
 
     describe("error handling in safe handlers", () => {
         it("should handle errors in safe invoke handler", async () => {
+            expect.assertions(2);
+
             const api = getElectronAPI();
             expect(api).toMatchObject({
                 invoke: expect.any(Function),
@@ -1094,6 +1100,8 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should handle errors in safe send handler", () => {
+            expect.assertions(3);
+
             const api = getElectronAPI();
             expect(api).toMatchObject({
                 send: expect.any(Function),
@@ -1120,6 +1128,8 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should handle errors in safe event handler", () => {
+            expect.assertions(2);
+
             const api = getElectronAPI();
             expect(api).toMatchObject({
                 onIpc: expect.any(Function),
@@ -1137,6 +1147,8 @@ describe("preload.js - Comprehensive API Testing", () => {
 
     describe("api method implementation tests", () => {
         it("should test send method implementation", () => {
+            expect.assertions(4);
+
             const api = getElectronAPI();
             expect(api).toMatchObject({
                 send: expect.any(Function),
@@ -1154,6 +1166,8 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should test invoke method implementation", async () => {
+            expect.assertions(4);
+
             const api = getElectronAPI();
             expect(api).toMatchObject({
                 invoke: expect.any(Function),
@@ -1171,6 +1185,8 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should test onIpc method implementation", () => {
+            expect.assertions(4);
+
             const api = getElectronAPI();
             expect(api).toMatchObject({
                 onIpc: expect.any(Function),
@@ -1187,6 +1203,8 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should test onUpdateEvent method implementation", () => {
+            expect.assertions(4);
+
             const api = getElectronAPI();
             expect(api).toMatchObject({
                 onUpdateEvent: expect.any(Function),
@@ -1204,6 +1222,8 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should test injectMenu method implementation", async () => {
+            expect.assertions(4);
+
             const api = getElectronAPI();
             expect(api).toMatchObject({
                 injectMenu: expect.any(Function),
@@ -1225,6 +1245,8 @@ describe("preload.js - Comprehensive API Testing", () => {
 
     describe("utility function tests", () => {
         it("should test getChannelInfo method", () => {
+            expect.assertions(4);
+
             const api = getElectronAPI();
             expect(api).toMatchObject({
                 getChannelInfo: expect.any(Function),
@@ -1244,6 +1266,8 @@ describe("preload.js - Comprehensive API Testing", () => {
 
     describe("development tools tests", () => {
         it("should test getPreloadInfo function in development", () => {
+            expect.assertions(2);
+
             const devTools = getDevTools();
             expect(devTools).toMatchObject({
                 getPreloadInfo: expect.any(Function),
@@ -1259,6 +1283,8 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should test testIPC function in development", async () => {
+            expect.assertions(3);
+
             const devTools = getDevTools();
             expect(devTools).toMatchObject({
                 testIPC: expect.any(Function),
@@ -1273,6 +1299,8 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should test logAPIState function in development", () => {
+            expect.assertions(4);
+
             const devTools = getDevTools();
             expect(devTools).toMatchObject({
                 logAPIState: expect.any(Function),
@@ -1299,6 +1327,8 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should expose all development tools in development mode", () => {
+            expect.assertions(4);
+
             const devTools = getDevTools();
             expect(devTools).toMatchObject({
                 getPreloadInfo: expect.any(Function),
@@ -1311,6 +1341,8 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should handle development mode environment variable correctly", () => {
+            expect.assertions(2);
+
             // Test that development tools are available when NODE_ENV is development
             expect(mockProcess.env.NODE_ENV).toBe("development");
             const devTools = getDevTools();
@@ -1328,6 +1360,8 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should test validateCallback through onIpc method", () => {
+            expect.assertions(11);
+
             // Test valid callback
             const validCallback = vi.fn<IpcListener>();
             expect(electronAPI.onIpc("test-channel", validCallback)).toBeTypeOf(
@@ -1371,6 +1405,8 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should test validateString through send method", () => {
+            expect.assertions(10);
+
             // Test valid string
             expect({
                 returnValue: electronAPI.send("valid-channel", "data"),
@@ -1407,6 +1443,8 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should reject invalid invoke channel types", async () => {
+            expect.assertions(2);
+
             await expect(electronAPI.invoke(123, "data")).rejects.toThrow(
                 "Invalid channel for invoke"
             );
@@ -1417,6 +1455,8 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should test invoke method with various parameters", async () => {
+            expect.assertions(4);
+
             // Test valid invoke
             await electronAPI.invoke("test-channel", "arg1", "arg2");
             expect(electronMock.ipcRenderer.invoke).toHaveBeenCalledWith(
@@ -1450,6 +1490,8 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should test send method functionality", () => {
+            expect.assertions(6);
+
             // Test send with data
             const firstResult = electronAPI.send("test-channel", {
                 test: "data",
@@ -1498,6 +1540,8 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should test getChannelInfo method", () => {
+            expect.assertions(2);
+
             const channelInfo = electronAPI.getChannelInfo();
 
             expect(channelInfo).toEqual({
@@ -1510,6 +1554,8 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should test injectMenu method", async () => {
+            expect.assertions(2);
+
             // injectMenu expects theme and fitFilePath parameters, not menu items
             const theme = "dark";
             const fitFilePath = "/test/path.fit";
@@ -1528,6 +1574,8 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should test onUpdateEvent method", () => {
+            expect.assertions(4);
+
             const callback = vi.fn<IpcListener>();
 
             const availableUnsubscribe = electronAPI.onUpdateEvent(
@@ -1562,6 +1610,8 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should handle null and undefined parameters", async () => {
+            expect.assertions(9);
+
             expect(electronAPI).toMatchObject({
                 invoke: expect.any(Function),
                 onIpc: expect.any(Function),
@@ -1597,6 +1647,8 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should handle invalid parameter types", async () => {
+            expect.assertions(18);
+
             expect(electronAPI).toMatchObject({
                 invoke: expect.any(Function),
                 onIpc: expect.any(Function),
@@ -1629,6 +1681,8 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should handle empty and special string values", async () => {
+            expect.assertions(6);
+
             const emptySendResult = electronAPI.send("", "data");
             const whitespaceSendResult = electronAPI.send("   ", "data");
             const emptyListenerResult = electronAPI.onIpc(
@@ -1660,6 +1714,8 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should handle process beforeExit event", () => {
+            expect.assertions(2);
+
             // We can't directly test process.emit, but we can verify the callback was registered
             // by checking if the beforeExit handler was set up in the existing tests
             const beforeExitCalls = getMockCalls(mockProcess.once).filter(
@@ -1671,6 +1727,8 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should handle complex data structures in send and invoke", async () => {
+            expect.assertions(2);
+
             const complexData = {
                 nested: {
                     array: [
