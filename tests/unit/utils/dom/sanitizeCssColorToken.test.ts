@@ -2,13 +2,17 @@ import { describe, expect, it } from "vitest";
 
 import { sanitizeCssColorToken } from "../../../../electron-app/utils/dom/index.js";
 
-describe("sanitizeCssColorToken", () => {
+describe(sanitizeCssColorToken, () => {
     it("returns fallback for non-string inputs", () => {
+        expect.hasAssertions();
+
         expect(sanitizeCssColorToken(undefined, "#123456")).toBe("#123456");
         expect(sanitizeCssColorToken(123, "#123456")).toBe("#123456");
     });
 
     it("accepts valid hex colors", () => {
+        expect.hasAssertions();
+
         expect(sanitizeCssColorToken("#fff", "#000")).toBe("#fff");
         expect(sanitizeCssColorToken("#ffff", "#000")).toBe("#ffff");
         expect(sanitizeCssColorToken("#112233", "#000")).toBe("#112233");
@@ -16,6 +20,8 @@ describe("sanitizeCssColorToken", () => {
     });
 
     it("accepts rgb/rgba and hsl/hsla in strict numeric forms", () => {
+        expect.hasAssertions();
+
         expect(sanitizeCssColorToken("rgb(1, 2, 3)", "#000")).toBe(
             "rgb(1, 2, 3)"
         );
@@ -31,12 +37,16 @@ describe("sanitizeCssColorToken", () => {
     });
 
     it("accepts CSS variable tokens", () => {
+        expect.hasAssertions();
+
         expect(sanitizeCssColorToken("var(--color-primary)", "#000")).toBe(
             "var(--color-primary)"
         );
     });
 
     it("accepts safe keywords", () => {
+        expect.hasAssertions();
+
         expect(sanitizeCssColorToken("transparent", "#000")).toBe(
             "transparent"
         );
@@ -46,6 +56,8 @@ describe("sanitizeCssColorToken", () => {
     });
 
     it("rejects CSS/attribute injection characters", () => {
+        expect.hasAssertions();
+
         expect(
             sanitizeCssColorToken("#fff; background:url(https://evil)", "#000")
         ).toBe("#000");
@@ -56,6 +68,8 @@ describe("sanitizeCssColorToken", () => {
     });
 
     it("rejects url()/expression()/@import primitives", () => {
+        expect.hasAssertions();
+
         expect(sanitizeCssColorToken("url(https://evil)", "#000")).toBe("#000");
         expect(sanitizeCssColorToken("expression(alert(1))", "#000")).toBe(
             "#000"
