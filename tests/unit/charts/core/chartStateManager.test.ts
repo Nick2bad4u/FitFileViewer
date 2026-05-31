@@ -156,9 +156,15 @@ describe("chartStateManager", () => {
             expect.hasAssertions();
 
             expect(chartStateManager).toBeInstanceOf(Object);
-            expect(chartStateManager.isInitialized).toBe(true);
-            expect(chartStateManager.renderDebounceTime).toBe(250);
-            expect(chartStateManager.renderDebounceTime).not.toBe(0);
+            expect({
+                isInitialized: chartStateManager.isInitialized,
+                renderDebounceTime: chartStateManager.renderDebounceTime,
+            }).toStrictEqual({
+                isInitialized: true,
+                renderDebounceTime: 250,
+            });
+            expect(chartStateManager.renderDebounceTime).toBeGreaterThan(0);
+            expect(chartStateManager.renderDebounceTime).not.toStrictEqual(0);
         });
 
         it("should have required methods", () => {
@@ -300,7 +306,7 @@ describe("chartStateManager", () => {
                 selectedChart: "power",
                 tabActive: true,
             });
-            expect(info.instanceCount).not.toBe(0);
+            expect(info.instanceCount).toBeGreaterThan(0);
         });
     });
 
@@ -312,8 +318,12 @@ describe("chartStateManager", () => {
 
             const isActive = chartStateManager.isChartTabActive();
 
-            expect(isActive).toBe(true);
-            expect(isActive).not.toBe(false);
+            expect({
+                isActive,
+            }).toStrictEqual({
+                isActive: true,
+            });
+            expect(isActive).not.toStrictEqual(false);
             expect(getState).toHaveBeenCalledWith("ui.activeTab");
         });
 
@@ -324,7 +334,11 @@ describe("chartStateManager", () => {
 
             const isActive = chartStateManager.isChartTabActive();
 
-            expect(isActive).toBe(true);
+            expect({
+                isActive,
+            }).toStrictEqual({
+                isActive: true,
+            });
         });
 
         it("should detect non-chart tab as inactive", () => {
@@ -334,7 +348,11 @@ describe("chartStateManager", () => {
 
             const isActive = chartStateManager.isChartTabActive();
 
-            expect(isActive).toBe(false);
+            expect({
+                isActive,
+            }).toStrictEqual({
+                isActive: false,
+            });
         });
     });
 
@@ -572,7 +590,7 @@ describe("chartStateManager", () => {
             mockCharts.forEach((chart) => {
                 expect(chart.destroy).toHaveBeenCalledWith();
             });
-            expect(testGlobal._chartjsInstances).toEqual([]);
+            expect(testGlobal._chartjsInstances).toStrictEqual([]);
             expect(testGlobal._chartjsInstances).not.toHaveLength(3);
         });
 
@@ -600,7 +618,7 @@ describe("chartStateManager", () => {
                 "[ChartStateManager] Error destroying chart 1:",
                 expect.any(Error)
             );
-            expect(testGlobal._chartjsInstances).toEqual([]);
+            expect(testGlobal._chartjsInstances).toStrictEqual([]);
 
             consoleWarnSpy.mockRestore();
         });
@@ -633,7 +651,11 @@ describe("chartStateManager", () => {
             expect(setState).toHaveBeenCalledWith("charts.isRendering", false, {
                 source: "ChartStateManager.performChartRender",
             });
-            expect(chartStateManager.isRendering).toBe(false);
+            expect({
+                isRendering: chartStateManager.isRendering,
+            }).toStrictEqual({
+                isRendering: false,
+            });
 
             destroyExistingChartsSpy.mockRestore();
         });
@@ -665,7 +687,11 @@ describe("chartStateManager", () => {
             expect(setState).toHaveBeenCalledWith("charts.isRendering", false, {
                 source: "ChartStateManager.performChartRender",
             });
-            expect(chartStateManager.isRendering).toBe(false);
+            expect({
+                isRendering: chartStateManager.isRendering,
+            }).toStrictEqual({
+                isRendering: false,
+            });
 
             consoleWarnSpy.mockRestore();
             isActiveSpy.mockRestore();
@@ -703,7 +729,11 @@ describe("chartStateManager", () => {
             expect(setState).toHaveBeenCalledWith("charts.isRendering", false, {
                 source: "ChartStateManager.performChartRender",
             });
-            expect(chartStateManager.isRendering).toBe(false);
+            expect({
+                isRendering: chartStateManager.isRendering,
+            }).toStrictEqual({
+                isRendering: false,
+            });
 
             consoleInfoSpy.mockRestore();
             consoleWarnSpy.mockRestore();
@@ -735,7 +765,11 @@ describe("chartStateManager", () => {
             expect(setState).toHaveBeenCalledWith("charts.isRendering", false, {
                 source: "ChartStateManager.performChartRender",
             });
-            expect(chartStateManager.isRendering).toBe(false);
+            expect({
+                isRendering: chartStateManager.isRendering,
+            }).toStrictEqual({
+                isRendering: false,
+            });
 
             consoleErrorSpy.mockRestore();
         });
@@ -757,7 +791,11 @@ describe("chartStateManager", () => {
             expect(setState).toHaveBeenCalledWith("charts.isRendering", false, {
                 source: "ChartStateManager.performChartRender",
             });
-            expect(chartStateManager.isRendering).toBe(false);
+            expect({
+                isRendering: chartStateManager.isRendering,
+            }).toStrictEqual({
+                isRendering: false,
+            });
 
             consoleWarnSpy.mockRestore();
         });
@@ -852,7 +890,11 @@ describe("chartStateManager", () => {
             expect.hasAssertions();
 
             expect(chartStateManager).toBeInstanceOf(Object);
-            expect(chartStateManager.isInitialized).toBe(true);
+            expect({
+                isInitialized: chartStateManager.isInitialized,
+            }).toStrictEqual({
+                isInitialized: true,
+            });
         });
 
         it("should create singleton behavior through global exposure when window is available", () => {
