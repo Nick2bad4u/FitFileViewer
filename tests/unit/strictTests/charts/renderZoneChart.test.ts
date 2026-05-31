@@ -4,6 +4,10 @@ async function loadModule() {
     return await import("../../../../electron-app/utils/charts/rendering/renderZoneChart.js");
 }
 
+function getChartInstances(): unknown[] {
+    return (window as any)._chartjsInstances as unknown[];
+}
+
 describe("renderZoneChart", () => {
     let originalChart: any;
     beforeEach(() => {
@@ -65,8 +69,8 @@ describe("renderZoneChart", () => {
         expect(canvas).toBeInstanceOf(HTMLCanvasElement);
         expect(canvas?.id).toBe("chart-hr_zone-0");
         expect((window as any).Chart).toHaveBeenCalled();
-        expect(Array.isArray((window as any)._chartjsInstances)).toBe(true);
-        expect((window as any)._chartjsInstances.length).toBe(1);
+        expect(getChartInstances()).toBeInstanceOf(Array);
+        expect(getChartInstances()).toHaveLength(1);
 
         const config = (window as any).Chart.mock.calls[0][1];
         expect(config.type).toBe("doughnut");
@@ -76,7 +80,7 @@ describe("renderZoneChart", () => {
             "#111111",
             "#222222",
         ]);
-        expect(config.options.plugins.legend.display).toBe(true);
+        expect(config.options.plugins.legend).toHaveProperty("display", true);
     });
 
     it("renders bar config when chartType=bar and uses zoneType colors fallback", async () => {
@@ -128,7 +132,7 @@ describe("renderZoneChart", () => {
             "#001111",
             "#002222",
         ]);
-        expect(config.options.plugins.legend.display).toBe(false);
+        expect(config.options.plugins.legend).toHaveProperty("display", false);
     });
 
     it("gracefully returns on invalid inputs", async () => {
@@ -149,8 +153,10 @@ describe("renderZoneChart", () => {
             "renderZoneChart: zoneData not array",
             null
         );
-        expect(document.querySelectorAll("canvas")).toHaveLength(0);
+        expect(Array.from(document.querySelectorAll("canvas"))).toStrictEqual(
+            []
+        );
         expect((window as any).Chart).not.toHaveBeenCalled();
-        expect((window as any)._chartjsInstances).toHaveLength(0);
+        expect(getChartInstances()).toStrictEqual([]);
     });
 });
