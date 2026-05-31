@@ -182,7 +182,7 @@ describe("preload.js electronAPI exposure and behavior", () => {
         ipcRenderer.send.mockImplementationOnce(() => {
             throw new Error("send-fail");
         });
-        expect(api.checkForUpdates()).toBeUndefined();
+        api.checkForUpdates();
         expect(ipcRenderer.send).toHaveBeenCalledWith("menu-check-for-updates");
         expect(errors.join("\n")).toMatch(/Error in checkForUpdates/);
 

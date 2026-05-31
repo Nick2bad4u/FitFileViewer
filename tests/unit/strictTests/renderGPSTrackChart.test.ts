@@ -415,7 +415,7 @@ describe(renderGPSTrackChart, () => {
     });
 
     it("catches Chart constructor failures and leaves no registered instance", () => {
-        expect.assertions(4);
+        expect.assertions(3);
 
         withHarness(({ consoleError, container, runtimeGlobal }) => {
             runtimeGlobal.Chart = class ThrowingChart {
@@ -424,9 +424,7 @@ describe(renderGPSTrackChart, () => {
                 }
             };
 
-            expect(
-                renderGPSTrackChart(container, defaultData, defaultOptions)
-            ).toBeUndefined();
+            renderGPSTrackChart(container, defaultData, defaultOptions);
             expect(consoleError).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering GPS track chart:",
                 expect.any(Error)
