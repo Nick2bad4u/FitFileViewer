@@ -742,8 +742,10 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
     });
 
-    describe("Tooltip Configuration", () => {
+    describe("tooltip configuration", () => {
         it("should configure tooltip title callback", () => {
+            expect.hasAssertions();
+
             const canvas = document.createElement("canvas");
             const options = {
                 field: "speed",
@@ -774,6 +776,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should format tooltip for distance fields with unit conversion", () => {
+            expect.hasAssertions();
+
             mockLocalStorage.getItem.mockReturnValue("kilometers");
 
             const canvas = document.createElement("canvas");
@@ -811,6 +815,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should format tooltip for temperature fields with fahrenheit conversion", () => {
+            expect.hasAssertions();
+
             mockLocalStorage.getItem.mockReturnValue("fahrenheit");
 
             const canvas = document.createElement("canvas");
@@ -848,6 +854,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should format tooltip for non-converted fields", () => {
+            expect.hasAssertions();
+
             const canvas = document.createElement("canvas");
             const options = {
                 field: "power",
