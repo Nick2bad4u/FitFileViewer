@@ -10,15 +10,17 @@ import {
     appIconsPath,
     appIndexHtmlPath,
     appStyleCssPath,
+    rootAlternativeFitViewPath,
+    rootAppElevProfileCssPath,
+    rootAppIconsPath,
+    rootAppIndexHtmlPath,
+    rootAppStyleCssPath,
     rootStaticAssetsPath,
 } from "../../../scripts/lib/workspaces.mjs";
-
-type RuntimeCopyRoot = "app" | "static";
 
 type RuntimeCopy = {
     destination: string;
     source: string;
-    sourceRoot: RuntimeCopyRoot;
 };
 
 type PrepareRuntimeDistModule = {
@@ -48,32 +50,37 @@ function makeTemporaryApp(): {
     temporaryRoots.push(temporaryRoot);
 
     const appDir = path.join(temporaryRoot, "electron-app");
-    const staticDir = path.join(temporaryRoot, rootStaticAssetsPath);
+    const staticDir = temporaryRoot;
 
-    fs.mkdirSync(path.join(staticDir, appAlternativeFitViewPath, "assets"), {
+    fs.mkdirSync(path.join(staticDir, rootAlternativeFitViewPath, "assets"), {
         recursive: true,
     });
     fs.mkdirSync(appDir, { recursive: true });
-    fs.mkdirSync(path.join(staticDir, "app"), { recursive: true });
-    fs.mkdirSync(path.join(staticDir, appIconsPath), { recursive: true });
+    fs.mkdirSync(path.join(staticDir, rootStaticAssetsPath, "app"), {
+        recursive: true,
+    });
+    fs.mkdirSync(path.join(staticDir, rootAppIconsPath), { recursive: true });
     fs.writeFileSync(
-        path.join(staticDir, "app", appIndexHtmlPath),
+        path.join(staticDir, rootAppIndexHtmlPath),
         "<html></html>"
     );
     fs.writeFileSync(
-        path.join(staticDir, appAlternativeFitViewPath, "index.html"),
+        path.join(staticDir, rootAlternativeFitViewPath, "index.html"),
         "<html></html>"
     );
     fs.writeFileSync(
-        path.join(staticDir, appAlternativeFitViewPath, "assets", "app.js"),
+        path.join(staticDir, rootAlternativeFitViewPath, "assets", "app.js"),
         "app"
     );
-    fs.writeFileSync(path.join(staticDir, appIconsPath, "favicon.ico"), "icon");
     fs.writeFileSync(
-        path.join(staticDir, "app", appElevProfileCssPath),
+        path.join(staticDir, rootAppIconsPath, "favicon.ico"),
+        "icon"
+    );
+    fs.writeFileSync(
+        path.join(staticDir, rootAppElevProfileCssPath),
         "profile"
     );
-    fs.writeFileSync(path.join(staticDir, "app", appStyleCssPath), "style");
+    fs.writeFileSync(path.join(staticDir, rootAppStyleCssPath), "style");
 
     return { appDir, distDir: path.join(appDir, "dist"), staticDir };
 }
@@ -111,25 +118,21 @@ describe("prepare-runtime-dist script", () => {
         expect(directoryCopies).toStrictEqual([
             {
                 destination: appAlternativeFitViewPath,
-                source: appAlternativeFitViewPath,
-                sourceRoot: "static",
+                source: rootAlternativeFitViewPath,
             },
             {
                 destination: appIconsPath,
-                source: appIconsPath,
-                sourceRoot: "static",
+                source: rootAppIconsPath,
             },
         ]);
         expect(fileCopies).toStrictEqual([
             {
                 destination: appElevProfileCssPath,
-                source: "app/elevProfile.css",
-                sourceRoot: "static",
+                source: rootAppElevProfileCssPath,
             },
             {
                 destination: appStyleCssPath,
-                source: "app/style.css",
-                sourceRoot: "static",
+                source: rootAppStyleCssPath,
             },
         ]);
         expect(
@@ -168,7 +171,7 @@ describe("prepare-runtime-dist script", () => {
         const { appDir, distDir, staticDir } = makeTemporaryApp();
 
         fs.writeFileSync(
-            path.join(staticDir, "app", appIndexHtmlPath),
+            path.join(staticDir, rootAppIndexHtmlPath),
             '<script src="./node_modules/leaflet/dist/leaflet.js"></script>'
         );
 
