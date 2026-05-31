@@ -1,10 +1,30 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+type ZoneFixture = {
+    label: string;
+    time: number;
+    zone: number;
+};
+
+type ZoneType = "hr" | "power";
+
+type InlineZoneSelectorElement = HTMLDivElement & {
+    _updateDisplay: () => void;
+};
+
+type ZoneSelectorWindow = typeof window & {
+    _chartjsInstances?: unknown[];
+    heartRateZones?: ZoneFixture[];
+    powerZones?: ZoneFixture[];
+};
+
 // Hoisted mocks to satisfy Vitest's hoisting of vi.mock
 const hoisted = vi.hoisted(() => {
-    const renderChartJS = vi.fn();
-    const showNotification = vi.fn();
-    const debouncedRender = vi.fn();
+    const renderChartJS = vi.fn<() => void>();
+    const showNotification = vi.fn<
+        (message: string, type?: string) => Promise<void>
+    >(async () => {});
+    const debouncedRender = vi.fn<(reason?: string) => void>();
 
     const DEFAULT_HR_ZONE_COLORS = [
         "#a",
@@ -20,62 +40,82 @@ const hoisted = vi.hoisted(() => {
     const storeChartSpecific: Record<string, string> = {};
     const storeGeneric: Record<string, string> = {};
     const schemeStore: Record<string, string> = {};
-    const getChartSpecificZoneColor = vi.fn(
+    const getChartSpecificZoneColor = vi.fn<
+        (field: string, idx: number) => string
+    >(
         (field: string, idx: number) =>
             storeChartSpecific[`${field}:${idx}`] || "#000000"
     );
-    const getStoredChartSpecificZoneColor = vi.fn(
+    const getStoredChartSpecificZoneColor = vi.fn<
+        (field: string, idx: number) => null | string
+    >(
         (field: string, idx: number) =>
             storeChartSpecific[`${field}:${idx}`] || null
     );
-    const getStoredZoneColor = vi.fn(
-        (type: string, idx: number) => storeGeneric[`${type}:${idx}`] || null
-    );
-    const saveChartSpecificZoneColor = vi.fn(
-        (field: string, idx: number, val: string) => {
-            storeChartSpecific[`${field}:${idx}`] = val;
-        }
-    );
-    const saveZoneColor = vi.fn((type: string, idx: number, val: string) => {
+    const getStoredZoneColor = vi.fn<
+        (type: string, idx: number) => null | string
+    >((type: string, idx: number) => storeGeneric[`${type}:${idx}`] || null);
+    const saveChartSpecificZoneColor = vi.fn<
+        (field: string, idx: number, val: string) => void
+    >((field: string, idx: number, val: string) => {
+        storeChartSpecific[`${field}:${idx}`] = val;
+    });
+    const saveZoneColor = vi.fn<
+        (type: string, idx: number, val: string) => void
+    >((type: string, idx: number, val: string) => {
         storeGeneric[`${type}:${idx}`] = val;
     });
-    const removeChartSpecificZoneColor = vi.fn((field: string, idx: number) => {
+    const removeChartSpecificZoneColor = vi.fn<
+        (field: string, idx: number) => void
+    >((field: string, idx: number) => {
         delete storeChartSpecific[`${field}:${idx}`];
     });
-    const removeZoneColor = vi.fn((type: string, idx: number) => {
-        delete storeGeneric[`${type}:${idx}`];
-    });
-    const getChartColorScheme = vi.fn(
+    const removeZoneColor = vi.fn<(type: string, idx: number) => void>(
+        (type: string, idx: number) => {
+            delete storeGeneric[`${type}:${idx}`];
+        }
+    );
+    const getChartColorScheme = vi.fn<(field: string) => string>(
         (field: string) => schemeStore[field] || "custom"
     );
-    const setChartColorScheme = vi.fn((field: string, scheme: string) => {
+    const setChartColorScheme = vi.fn<
+        (field: string, scheme: string) => string
+    >((field: string, scheme: string) => {
         schemeStore[field] = scheme;
         return scheme;
     });
-    const clearChartColorScheme = vi.fn((field: string) => {
-        delete schemeStore[field];
-        return true;
-    });
-    const resetChartSpecificZoneColors = vi.fn(
-        (field: string, count: number) => {
-            for (let i = 0; i < count; i++)
-                delete storeChartSpecific[`${field}:${i}`];
+    const clearChartColorScheme = vi.fn<(field: string) => boolean>(
+        (field: string) => {
+            delete schemeStore[field];
+            return true;
         }
     );
-    const resetZoneColors = vi.fn((type: string, count: number) => {
-        for (let i = 0; i < count; i++) delete storeGeneric[`${type}:${i}`];
+    const resetChartSpecificZoneColors = vi.fn<
+        (field: string, count: number) => void
+    >((field: string, count: number) => {
+        for (let i = 0; i < count; i++)
+            delete storeChartSpecific[`${field}:${i}`];
     });
-    const getChartZoneColors = vi.fn(
-        (zoneType: string, count: number, scheme: string) =>
-            Array.from({ length: count }, (_, i) => `#S-${scheme}-${i}`)
+    const resetZoneColors = vi.fn<(type: string, count: number) => void>(
+        (type: string, count: number) => {
+            for (let i = 0; i < count; i++) delete storeGeneric[`${type}:${i}`];
+        }
     );
-    const applyZoneColors = vi.fn((zones: any[], _type: string) => zones);
-    const getZoneTypeFromField = vi.fn((field: string) =>
-        field.includes("hr") ? "hr" : "power"
+    const getChartZoneColors = vi.fn<
+        (zoneType: string, count: number, scheme: string) => string[]
+    >((zoneType: string, count: number, scheme: string) =>
+        Array.from({ length: count }, (_, i) => `#S-${scheme}-${i}`)
+    );
+    const applyZoneColors = vi.fn<
+        (zones: ZoneFixture[], type: string) => ZoneFixture[]
+    >((zones: ZoneFixture[], _type: string) => zones);
+    const getZoneTypeFromField = vi.fn<(field: string) => ZoneType>(
+        (field: string) => (field.includes("hr") ? "hr" : "power")
     );
 
     // Cache invalidation helper used by the selector when switching schemes.
-    const clearCachedChartZoneColor = vi.fn();
+    const clearCachedChartZoneColor =
+        vi.fn<(field: string, idx: number) => void>();
 
     return {
         renderChartJS,
@@ -107,25 +147,25 @@ const hoisted = vi.hoisted(() => {
 
 // Use the real formatTime implementation to avoid hoisting/TDZ issues
 vi.mock(
-    "../../../../../electron-app/utils/charts/core/renderChartJS.js",
+    import("../../../../../electron-app/utils/charts/core/renderChartJS.js"),
     () => ({
         renderChartJS: hoisted.renderChartJS,
     })
 );
 vi.mock(
-    "../../../../../electron-app/utils/ui/notifications/showNotification.js",
+    import("../../../../../electron-app/utils/ui/notifications/showNotification.js"),
     () => ({
         showNotification: hoisted.showNotification,
     })
 );
 vi.mock(
-    "../../../../../electron-app/utils/charts/core/chartStateManager.js",
+    import("../../../../../electron-app/utils/charts/core/chartStateManager.js"),
     () => ({
         chartStateManager: { debouncedRender: hoisted.debouncedRender },
     })
 );
 vi.mock(
-    "../../../../../electron-app/utils/data/zones/chartZoneColorUtils.js",
+    import("../../../../../electron-app/utils/data/zones/chartZoneColorUtils.js"),
     () => ({
         DEFAULT_HR_ZONE_COLORS: hoisted.DEFAULT_HR_ZONE_COLORS,
         DEFAULT_POWER_ZONE_COLORS: hoisted.DEFAULT_POWER_ZONE_COLORS,
@@ -157,20 +197,21 @@ import {
     getCurrentColorScheme,
 } from "../../../../../electron-app/utils/ui/controls/createInlineZoneColorSelector.js";
 
-describe("createInlineZoneColorSelector", () => {
+describe(createInlineZoneColorSelector, () => {
     beforeEach(() => {
         vi.useFakeTimers();
         vi.clearAllMocks();
         document.body.innerHTML = "";
-        window._chartjsInstances = [] as any;
+        const zoneWindow = window as ZoneSelectorWindow;
+        zoneWindow._chartjsInstances = [];
         localStorage.clear();
         // Default zones on window
-        (window as any).heartRateZones = [
+        zoneWindow.heartRateZones = [
             { label: "Z1", zone: 1, time: 10 },
             { label: "Z2", zone: 2, time: 20 },
             { label: "Z3", zone: 3, time: 30 },
         ];
-        (window as any).powerZones = [
+        zoneWindow.powerZones = [
             { label: "P1", zone: 1, time: 5 },
             { label: "P2", zone: 2, time: 15 },
             { label: "P3", zone: 3, time: 25 },
@@ -184,24 +225,28 @@ describe("createInlineZoneColorSelector", () => {
     });
 
     it("creates HR zone selector and applies initial scheme when none customized", () => {
+        expect.hasAssertions();
+
         const container = document.createElement("div");
         document.body.appendChild(container);
         const el = createInlineZoneColorSelector("hr_zone", container);
         expect(el).toBeInstanceOf(HTMLDivElement);
         expect(el?.classList.contains("inline-zone-color-selector")).toBe(true);
-        expect(container.querySelectorAll(".zone-color-item").length).toBe(3);
+        expect(container.querySelectorAll(".zone-color-item")).toHaveLength(3);
         // Initial timers apply scheme if not custom
         vi.advanceTimersByTime(20);
         expect(hoisted.getZoneTypeFromField).toHaveBeenCalledWith("hr_zone");
     });
 
     it("creates Power zone selector and scheme change updates generic colors and triggers rerender", () => {
+        expect.hasAssertions();
+
         const container = document.createElement("div");
         document.body.appendChild(container);
         const el = createInlineZoneColorSelector(
             "power_zone",
             container
-        ) as any;
+        ) as InlineZoneSelectorElement;
         expect(el).toBeInstanceOf(HTMLDivElement);
         expect(el.classList.contains("inline-zone-color-selector")).toBe(true);
         // Change scheme from default custom to vibrant
@@ -209,15 +254,29 @@ describe("createInlineZoneColorSelector", () => {
         select.value = "vibrant";
         select.dispatchEvent(new Event("change"));
         // saveZoneColor called for each zone
-        expect(hoisted.saveZoneColor).toHaveBeenCalled();
-        expect(hoisted.debouncedRender).toHaveBeenCalled();
-        expect(hoisted.showNotification).toHaveBeenCalled();
+        expect(hoisted.saveZoneColor).toHaveBeenCalledWith(
+            "power",
+            0,
+            "#S-vibrant-0"
+        );
+        expect(hoisted.debouncedRender).toHaveBeenCalledWith(
+            "Zone scheme change: vibrant"
+        );
+        expect(hoisted.showNotification).toHaveBeenCalledWith(
+            "Applied Vibrant color scheme",
+            "success"
+        );
     });
 
     it("changing a color switches scheme to custom and updates storages and preview", () => {
+        expect.hasAssertions();
+
         const container = document.createElement("div");
         document.body.appendChild(container);
-        const el = createInlineZoneColorSelector("hr_zone", container) as any;
+        const el = createInlineZoneColorSelector(
+            "hr_zone",
+            container
+        ) as InlineZoneSelectorElement;
         expect(el).toBeInstanceOf(HTMLDivElement);
         expect(el.classList.contains("inline-zone-color-selector")).toBe(true);
         const item = container.querySelector(".zone-color-item") as HTMLElement;
@@ -246,13 +305,21 @@ describe("createInlineZoneColorSelector", () => {
     });
 
     it("reset button clears storages and triggers rerender and update of all selectors", () => {
+        expect.hasAssertions();
+
         const container = document.createElement("div");
         document.body.appendChild(container);
-        const el = createInlineZoneColorSelector("hr_zone", container) as any;
+        const el = createInlineZoneColorSelector(
+            "hr_zone",
+            container
+        ) as InlineZoneSelectorElement;
         expect(el).toBeInstanceOf(HTMLDivElement);
         expect(el.classList.contains("inline-zone-color-selector")).toBe(true);
         // Add a second selector to verify updateInlineZoneColorSelectors behavior
-        const el2 = createInlineZoneColorSelector("hr_zone", container) as any;
+        const el2 = createInlineZoneColorSelector(
+            "hr_zone",
+            container
+        ) as InlineZoneSelectorElement;
         expect(el2).toBeInstanceOf(HTMLDivElement);
         expect(el2.classList.contains("inline-zone-color-selector")).toBe(true);
         // Spy the _updateDisplay on both
@@ -262,30 +329,43 @@ describe("createInlineZoneColorSelector", () => {
         // Click reset
         const reset = container.querySelector("button") as HTMLButtonElement;
         reset.click();
-        expect(hoisted.resetChartSpecificZoneColors).toHaveBeenCalled();
-        expect(hoisted.resetZoneColors).toHaveBeenCalled();
-        expect(hoisted.debouncedRender).toHaveBeenCalled();
-        expect(upd1).toHaveBeenCalled();
-        expect(upd2).toHaveBeenCalled();
+        expect(hoisted.resetChartSpecificZoneColors).toHaveBeenCalledWith(
+            "hr_zone",
+            3
+        );
+        expect(hoisted.resetZoneColors).toHaveBeenCalledWith("hr", 3);
+        expect(hoisted.debouncedRender).toHaveBeenCalledWith(
+            "Zone colors reset for hr"
+        );
+        expect(upd1).toHaveBeenCalledWith();
+        expect(upd2).toHaveBeenCalledWith();
     });
 
     it("helpers: remove and update inline selectors, clearZoneColorData and getCurrentColorScheme", () => {
+        expect.hasAssertions();
+
         const container = document.createElement("div");
         document.body.appendChild(container);
-        const el = createInlineZoneColorSelector("hr_zone", container) as any;
+        const el = createInlineZoneColorSelector(
+            "hr_zone",
+            container
+        ) as InlineZoneSelectorElement;
         expect(el).toBeInstanceOf(HTMLDivElement);
         expect(el.classList.contains("inline-zone-color-selector")).toBe(true);
 
         // updateInlineZoneColorSelectors calls _updateDisplay
         const upd = vi.spyOn(el, "_updateDisplay");
         updateInlineZoneColorSelectors(container);
-        expect(upd).toHaveBeenCalled();
+        expect(upd).toHaveBeenCalledWith();
 
         // clear
         clearZoneColorData("hr_zone", 3);
         expect(hoisted.clearChartColorScheme).toHaveBeenCalledWith("hr_zone");
-        expect(hoisted.removeChartSpecificZoneColor).toHaveBeenCalled();
-        expect(hoisted.removeZoneColor).toHaveBeenCalled();
+        expect(hoisted.removeChartSpecificZoneColor).toHaveBeenCalledWith(
+            "hr_zone",
+            0
+        );
+        expect(hoisted.removeZoneColor).toHaveBeenCalledWith("hr", 0);
 
         // remove
         removeInlineZoneColorSelectors(container);
