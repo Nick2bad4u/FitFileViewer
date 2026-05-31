@@ -142,7 +142,7 @@ describe("windowStateUtils persistence behavior", () => {
     });
 
     it("getWindowState returns defaults when file missing", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const mod = await import("../../electron-app/windowStateUtils.js");
         const state = mod.getWindowState();
@@ -151,7 +151,7 @@ describe("windowStateUtils persistence behavior", () => {
     });
 
     it("getWindowState reads and sanitizes persisted state", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const fileData = JSON.stringify({
             width: 500,
@@ -174,7 +174,7 @@ describe("windowStateUtils persistence behavior", () => {
     });
 
     it("saveWindowState persists sanitized bounds", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const mod = await import("../../electron-app/windowStateUtils.js");
         // Pass a stub window directly to avoid constructor path
@@ -201,7 +201,7 @@ describe("windowStateUtils persistence behavior", () => {
     });
 
     it("createWindow attempts BrowserWindow construction (may throw in tests)", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const mod = await import("../../electron-app/windowStateUtils.js");
         expect(() => mod.createWindow()).toThrow(
@@ -210,7 +210,7 @@ describe("windowStateUtils persistence behavior", () => {
     });
 
     it("devHelpers are exposed only in development", async () => {
-        expect.hasAssertions();
+        expect.assertions(7);
 
         process.env.NODE_ENV = "development";
         try {

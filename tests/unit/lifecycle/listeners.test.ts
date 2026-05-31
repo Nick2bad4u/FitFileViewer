@@ -153,7 +153,7 @@ describe("utils/app/lifecycle/listeners.js", () => {
     }
 
     it("clicking openFileBtn calls handleOpenFile with expected args", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const {
             openFileBtn,
@@ -179,7 +179,7 @@ describe("utils/app/lifecycle/listeners.js", () => {
     });
 
     it("contextmenu with no electronAPI.recentFiles early-returns and shows info", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const { openFileBtn } = mount(null);
         // Remove electronAPI to simulate missing API
@@ -195,7 +195,7 @@ describe("utils/app/lifecycle/listeners.js", () => {
     });
 
     it("resize while chart tab active triggers ChartUpdater.updateCharts if available", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         // create active chart tab
         const tab = document.createElement("div");
@@ -221,7 +221,7 @@ describe("utils/app/lifecycle/listeners.js", () => {
     });
 
     it("menu-open-overlay IPC triggers openFileSelector", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         openFileSelectorMock.mockImplementationOnce(() => {
             document.body.dataset.overlaySelectorOpened = "true";
@@ -235,7 +235,7 @@ describe("utils/app/lifecycle/listeners.js", () => {
     });
 
     it("menu-open-overlay handler reports errors", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         openFileSelectorMock.mockImplementationOnce(() => {
             throw new Error("fail");
