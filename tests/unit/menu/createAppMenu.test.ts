@@ -185,9 +185,19 @@ describe("createAppMenu", () => {
 
         const tpl =
             capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
-        expect(Array.isArray(tpl)).toBe(true);
-        expect(tpl).toHaveLength(4);
         const labels = tpl.map((i: any) => i.label);
+        expect({
+            isArray: Array.isArray(tpl),
+            labels,
+        }).toStrictEqual({
+            isArray: true,
+            labels: [
+                "📁 File",
+                "👁️ View",
+                "⚙️ Settings",
+                "❓ Help",
+            ],
+        });
         expect(labels).toStrictEqual([
             "📁 File",
             "👁️ View",
@@ -225,20 +235,28 @@ describe("createAppMenu", () => {
         createAppMenu(fakeWin as any, "dark", "C:/path/to/file.fit");
         const tpl =
             capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
-        expect(Array.isArray(tpl)).toBe(true);
-        expect(tpl.map((i: any) => i.label)).toStrictEqual([
-            "📁 File",
-            "👁️ View",
-            "⚙️ Settings",
-            "❓ Help",
-        ]);
+        expect({
+            isArray: Array.isArray(tpl),
+            labels: tpl.map((i: any) => i.label),
+        }).toStrictEqual({
+            isArray: true,
+            labels: [
+                "📁 File",
+                "👁️ View",
+                "⚙️ Settings",
+                "❓ Help",
+            ],
+        });
         const settingsMenu = (tpl || []).find(
             (i: any) => i.label === "⚙️ Settings"
         );
         const summary = settingsMenu.submenu.find(
             (i: any) => i.label === "📊 Summary Columns..."
         );
-        expect(summary.enabled).toBe(true);
+        expect(summary).toMatchObject({
+            enabled: true,
+            label: "📊 Summary Columns...",
+        });
         summary.click();
         expect(send).toHaveBeenCalledWith("open-summary-column-selector");
     });
@@ -258,7 +276,10 @@ describe("createAppMenu", () => {
         const clearItem = openRecent.submenu.find(
             (i: any) => i.label === "🧹 Clear Recent Files"
         );
-        expect(clearItem.enabled).toBe(true);
+        expect(clearItem).toMatchObject({
+            enabled: true,
+            label: "🧹 Clear Recent Files",
+        });
         clearItem.click();
         expect(send).toHaveBeenCalledWith(
             "show-notification",
@@ -285,24 +306,35 @@ describe("createAppMenu", () => {
         ];
         for (const lab of labels) {
             const item = fileMenu.submenu.find((i: any) => i.label === lab);
-            expect(item.enabled).toBe(false);
+            expect(item).toMatchObject({
+                enabled: false,
+                label: lab,
+            });
         }
         const revealItem = fileMenu.submenu.find(
             (i: any) =>
                 typeof i.label === "string" && i.label.startsWith("📂 Reveal")
         );
-        expect(revealItem?.enabled).toBe(false);
+        expect(revealItem).toMatchObject({
+            enabled: false,
+        });
         const copyItem = fileMenu.submenu.find(
             (i: any) => i.label === "📋 Copy File Path"
         );
-        expect(copyItem.enabled).toBe(false);
+        expect(copyItem).toMatchObject({
+            enabled: false,
+            label: "📋 Copy File Path",
+        });
         const settingsMenu = (tpl || []).find(
             (i: any) => i.label === "⚙️ Settings"
         );
         const summary = settingsMenu.submenu.find(
             (i: any) => i.label === "📊 Summary Columns..."
         );
-        expect(summary.enabled).toBe(false);
+        expect(summary).toMatchObject({
+            enabled: false,
+            label: "📊 Summary Columns...",
+        });
     });
 
     it("clicking recent file sends open-recent-file with full path", () => {
@@ -345,8 +377,13 @@ describe("createAppMenu", () => {
         const light = themeMenu.submenu.find(
             (i: any) => i.label === "🌕 Light"
         );
-        expect(light.checked).toBe(true);
-        expect(dark.checked).toBe(false);
+        expect({
+            darkChecked: dark.checked,
+            lightChecked: light.checked,
+        }).toStrictEqual({
+            darkChecked: false,
+            lightChecked: true,
+        });
         // Click dark and expect event
         dark.click();
         expect(send).toHaveBeenCalledWith("set-theme", "dark");
@@ -374,7 +411,9 @@ describe("createAppMenu", () => {
         const includeUnknown = decoderMenu.submenu.find((i: any) =>
             String(i.label).includes("includeUnknownData")
         );
-        expect(includeUnknown.checked).toBe(true);
+        expect(includeUnknown).toMatchObject({
+            checked: true,
+        });
         includeUnknown.click({ checked: false });
         expect(send).toHaveBeenCalledWith(
             "decoder-options-changed",
@@ -408,7 +447,9 @@ describe("createAppMenu", () => {
         const refreshed = decoderMenu.submenu.find((i: any) =>
             String(i.label).includes("includeUnknownData")
         );
-        expect(refreshed.checked).toBe(false);
+        expect(refreshed).toMatchObject({
+            checked: false,
+        });
     });
 
     it("accessibility toggles send appropriate IPC messages", () => {
@@ -550,7 +591,18 @@ describe("createAppMenu", () => {
         createAppMenu(fakeWin as any, "dark", null);
         const tpl =
             capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
-        expect(Array.isArray(tpl)).toBe(true);
+        expect({
+            isArray: Array.isArray(tpl),
+            labels: (tpl || []).map((i: any) => i.label),
+        }).toStrictEqual({
+            isArray: true,
+            labels: [
+                "📁 File",
+                "👁️ View",
+                "⚙️ Settings",
+                "❓ Help",
+            ],
+        });
         const fileMenu = (tpl || []).find((i: any) => i.label === "📁 File");
         const openRecent = fileMenu.submenu.find(
             (i: any) => i.label === "🕑 Open Recent"
@@ -559,7 +611,10 @@ describe("createAppMenu", () => {
             (i: any) => i.label === "🧹 Clear Recent Files"
         );
         // The most reliable signal of an empty recent list is the Clear item being disabled
-        expect(clearItem.enabled).toBe(false);
+        expect(clearItem).toMatchObject({
+            enabled: false,
+            label: "🧹 Clear Recent Files",
+        });
     });
 
     it("file actions send appropriate IPC when enabled", () => {
@@ -643,7 +698,10 @@ describe("createAppMenu", () => {
         const overlayItem = fileMenu.submenu.find(
             (i: any) => i.label === "➕ Add FIT Files as Overlays..."
         );
-        expect(overlayItem.enabled).toBe(true);
+        expect(overlayItem).toMatchObject({
+            enabled: true,
+            label: "➕ Add FIT Files as Overlays...",
+        });
         overlayItem.click();
         expect(send).toHaveBeenCalledWith("menu-open-overlay");
     });
@@ -662,7 +720,9 @@ describe("createAppMenu", () => {
             (i: any) =>
                 typeof i.label === "string" && i.label.startsWith("📂 Reveal")
         );
-        expect(revealItem.enabled).toBe(true);
+        expect(revealItem).toMatchObject({
+            enabled: true,
+        });
         revealItem.click();
         const revealSpy = vi.mocked((globalThis as any).__electronShellShowSpy);
         expect(revealSpy).toHaveBeenCalledWith(filePath);
@@ -735,7 +795,10 @@ describe("createAppMenu", () => {
         const refreshedLight = refreshedThemeMenu.submenu.find(
             (i: any) => i.label === "🌕 Light"
         );
-        expect(refreshedLight.checked).toBe(false);
+        expect(refreshedLight).toMatchObject({
+            checked: false,
+            label: "🌕 Light",
+        });
     });
 
     it("all font sizes send set-font-size IPC", () => {
@@ -856,9 +919,13 @@ describe("createAppMenu", () => {
         const urls = ((globalThis as any).__shellOpenCalls || []).map(
             (c: any[]) => c[0]
         );
-        expect(urls.some((u: string) => /#readme/.test(u))).toBe(true);
-        expect(urls.some((u: string) => /FitFileViewer$/.test(u))).toBe(true);
-        expect(urls.some((u: string) => /issues$/.test(u))).toBe(true);
+        expect(urls).toEqual(
+            expect.arrayContaining([
+                expect.stringMatching(/#readme/u),
+                expect.stringMatching(/FitFileViewer$/u),
+                expect.stringMatching(/issues$/u),
+            ])
+        );
     });
 
     it("help > About and Keyboard Shortcuts are present and clickable", () => {
@@ -907,7 +974,10 @@ describe("createAppMenu", () => {
         const restart = help.submenu.find(
             (i: any) => i.id === "restart-update"
         );
-        expect(restart.enabled).toBe(false);
+        expect(restart).toMatchObject({
+            enabled: false,
+            id: "restart-update",
+        });
         // Call handler directly to exercise branch
         restart.click();
         const ipcCalls: any[][] = (globalThis as any).__ipcCalls || [];
@@ -928,13 +998,18 @@ describe("createAppMenu", () => {
         const fakeWin = { webContents: { send: createMock() } };
         createAppMenu(fakeWin as any, "dark", null);
         const tpl = (globalThis as any).__lastBuiltMenuTemplate as any[];
-        expect(Array.isArray(tpl)).toBe(true);
-        expect(tpl.map((item) => item.label)).toStrictEqual([
-            "📁 File",
-            "👁️ View",
-            "⚙️ Settings",
-            "❓ Help",
-        ]);
+        expect({
+            isArray: Array.isArray(tpl),
+            labels: tpl.map((item) => item.label),
+        }).toStrictEqual({
+            isArray: true,
+            labels: [
+                "📁 File",
+                "👁️ View",
+                "⚙️ Settings",
+                "❓ Help",
+            ],
+        });
         // restore
         (globalThis as any).__electronHoistedMock = originalMock;
     });
@@ -955,7 +1030,18 @@ describe("createAppMenu", () => {
             null
         );
         const tpl = (globalThis as any).__lastBuiltMenuTemplate as any[];
-        expect(Array.isArray(tpl)).toBe(true);
+        expect({
+            isArray: Array.isArray(tpl),
+            labels: tpl.map((item) => item.label),
+        }).toStrictEqual({
+            isArray: true,
+            labels: [
+                "📁 File",
+                "👁️ View",
+                "⚙️ Settings",
+                "❓ Help",
+            ],
+        });
         const fileMenu = tpl.find((i: any) => i.label === "📁 File");
         expect(fileMenu).toMatchObject({
             label: "📁 File",
@@ -1038,7 +1124,18 @@ describe("createAppMenu", () => {
             null
         );
         const tpl = (globalThis as any).__lastBuiltMenuTemplate as any[];
-        expect(Array.isArray(tpl)).toBe(true);
+        expect({
+            isArray: Array.isArray(tpl),
+            labels: tpl.map((item) => item.label),
+        }).toStrictEqual({
+            isArray: true,
+            labels: [
+                "📁 File",
+                "👁️ View",
+                "⚙️ Settings",
+                "❓ Help",
+            ],
+        });
         expect(warnSpy).toHaveBeenCalledWith(
             "[createAppMenu] WARNING: Electron Menu API unavailable; template exposed for tests."
         );
@@ -1226,9 +1323,13 @@ describe("createAppMenu - additional robust branches", () => {
         const calls: any[][] = (globalThis as any).__shellOpenCalls || [];
         // Validate that each expected URL appears at least once without relying on call order
         const urls = calls.map((c) => c[0]);
-        expect(urls.some((u) => /#readme/.test(u))).toBe(true);
-        expect(urls.some((u) => /FitFileViewer$/.test(u))).toBe(true);
-        expect(urls.some((u) => /issues$/.test(u))).toBe(true);
+        expect(urls).toEqual(
+            expect.arrayContaining([
+                expect.stringMatching(/#readme/u),
+                expect.stringMatching(/FitFileViewer$/u),
+                expect.stringMatching(/issues$/u),
+            ])
+        );
     });
 
     it("decoder options send IPC via BrowserWindow fallback when no mainWindow", () => {
@@ -1248,13 +1349,14 @@ describe("createAppMenu - additional robust branches", () => {
         );
         includeUnknown.click({ checked: false });
         const ipcCalls: any[][] = (globalThis as any).__ipcCalls || [];
-        const found = ipcCalls.some(
-            (c) =>
-                c[0] === "decoder-options-changed" &&
-                c[1] &&
-                c[1].includeUnknownData === false
+        expect(ipcCalls).toEqual(
+            expect.arrayContaining([
+                [
+                    "decoder-options-changed",
+                    expect.objectContaining({ includeUnknownData: false }),
+                ],
+            ])
         );
-        expect(found).toBe(true);
     });
 
     it("high contrast white/yellow/off send IPC via BrowserWindow fallback", () => {
@@ -1358,7 +1460,11 @@ describe("createAppMenu - additional robust branches", () => {
             "dark",
             null
         );
-        expect((globalThis as any).__lastBuiltMenuTemplate).toBeUndefined();
+        expect({
+            lastBuiltMenuTemplate: (globalThis as any).__lastBuiltMenuTemplate,
+        }).toStrictEqual({
+            lastBuiltMenuTemplate: undefined,
+        });
         expect(errorSpy).toHaveBeenCalledWith(
             "[createAppMenu] ERROR: Failed to set application menu:",
             err
@@ -1389,9 +1495,9 @@ describe("createAppMenu - additional robust branches", () => {
         about.click();
         const ipcCalls: any[][] = (globalThis as any).__ipcCalls || [];
         expect(ipcCalls).toStrictEqual([["menu-about"]]);
-        expect(
-            appMenu.submenu.some((i: any) => i.label === "Preferences...")
-        ).toBe(false);
+        expect(appMenu.submenu.map((i: any) => i.label)).not.toContain(
+            "Preferences..."
+        );
         // restore
         restoreProcessPlatform(desc);
         (globalThis as any).__electronHoistedMock = original;
@@ -1419,9 +1525,9 @@ describe("createAppMenu - additional robust branches", () => {
         about.click();
         const ipcCalls: any[][] = (globalThis as any).__ipcCalls || [];
         expect(ipcCalls).toStrictEqual([["menu-about"]]);
-        expect(
-            appMenu.submenu.some((i: any) => i.label === "Preferences...")
-        ).toBe(false);
+        expect(appMenu.submenu.map((i: any) => i.label)).not.toContain(
+            "Preferences..."
+        );
         restoreProcessPlatform(desc);
         (globalThis as any).__electronHoistedMock = original;
     });
@@ -1478,8 +1584,13 @@ describe("createAppMenu - additional robust branches", () => {
             (i: any) => i.label === "🌕 Light"
         );
         // getTheme returns 'dark' by default; ensure dark is checked
-        expect(dark.checked).toBe(true);
-        expect(light.checked).toBe(false);
+        expect({
+            darkChecked: dark.checked,
+            lightChecked: light.checked,
+        }).toStrictEqual({
+            darkChecked: true,
+            lightChecked: false,
+        });
     });
 
     it("falls back to assigning exports when defineProperty throws", () => {
