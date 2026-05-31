@@ -64,7 +64,7 @@ describe("showNotification.js - error handling coverage", () => {
     });
 
     it("handles errors when resolveShown throws", async () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         // Craft a queued notification with a resolveShown that throws
         const throwingResolve = vi.fn<() => void>(() => {
@@ -110,7 +110,7 @@ describe("showNotification.js - error handling coverage", () => {
     });
 
     it("handles errors during displayNotification process", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         // Create a spy that makes buildNotificationContent throw
         const mockError = new Error("Simulated error in displayNotification");
@@ -145,7 +145,7 @@ describe("showNotification.js - error handling coverage", () => {
     });
 
     it("handles errors in notification click handlers", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         // Create a notification with an onClick handler that throws
         const errorHandler = vi.fn<() => void>().mockImplementation(() => {
@@ -180,7 +180,7 @@ describe("showNotification.js - error handling coverage", () => {
     });
 
     it("handles errors in action button click handlers", async () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         // Create action with handler that throws
         const errorActionHandler = vi

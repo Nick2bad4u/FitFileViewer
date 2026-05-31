@@ -40,7 +40,7 @@ describe("showNotification.js - resolveShown error handling", () => {
     });
 
     it("clears resolveShown and logs the error when the shown resolver throws", async () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         const resolveShownError = new Error("resolveShown failure");
         const throwingResolve = vi.fn<() => void>(() => {

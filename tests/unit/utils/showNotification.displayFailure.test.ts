@@ -29,7 +29,7 @@ describe("showNotification display failure handling", () => {
     });
 
     it("resolves the caller promise and clears queue state when display fails", async () => {
-        expect.hasAssertions();
+        expect.assertions(7);
 
         const notificationElement =
             document.querySelector<HTMLElement>("#notification");
@@ -78,7 +78,7 @@ describe("showNotification display failure handling", () => {
     });
 
     it("rejects invalid messages without rendering notification content", async () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         const notificationElement =
             document.querySelector<HTMLElement>("#notification");
