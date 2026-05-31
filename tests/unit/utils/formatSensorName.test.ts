@@ -4,23 +4,24 @@ import { formatProduct } from "../../../electron-app/utils/formatting/formatters
 import { formatSensorName } from "../../../electron-app/utils/formatting/formatters/formatSensorName.js";
 
 vi.mock(
-    "../../../electron-app/utils/formatting/formatters/formatManufacturer.js",
+    import("../../../electron-app/utils/formatting/formatters/formatManufacturer.js"),
     () => ({
-        formatManufacturer: vi.fn(),
+        formatManufacturer: vi.fn<(manufacturer: unknown) => string>(),
     })
 );
 
 vi.mock(
-    "../../../electron-app/utils/formatting/formatters/formatProduct.js",
+    import("../../../electron-app/utils/formatting/formatters/formatProduct.js"),
     () => ({
-        formatProduct: vi.fn(),
+        formatProduct:
+            vi.fn<(manufacturer: unknown, productId: unknown) => string>(),
     })
 );
 
 const mockedFormatManufacturer = vi.mocked(formatManufacturer);
 const mockedFormatProduct = vi.mocked(formatProduct);
 
-describe("formatSensorName", () => {
+describe(formatSensorName, () => {
     beforeEach(() => {
         vi.clearAllMocks();
         mockedFormatManufacturer.mockReturnValue("Garmin");
@@ -28,6 +29,8 @@ describe("formatSensorName", () => {
     });
 
     it("formats manufacturer and product sensors without duplicate brands", () => {
+        expect.hasAssertions();
+
         expect(formatSensorName({ manufacturer: 1, product: 1735 })).toBe(
             "Garmin Edge 520"
         );
@@ -41,6 +44,8 @@ describe("formatSensorName", () => {
     });
 
     it("formats garmin product values without formatter dependencies", () => {
+        expect.hasAssertions();
+
         expect(formatSensorName({ garminProduct: "edge_520_plus" })).toBe(
             "Edge 520 Plus"
         );
@@ -49,12 +54,16 @@ describe("formatSensorName", () => {
     });
 
     it("formats manufacturer-only fallbacks without product lookups", () => {
+        expect.hasAssertions();
+
         expect(formatSensorName({ manufacturer: "garmin" })).toBe("Garmin");
         expect(mockedFormatManufacturer).toHaveBeenCalledWith("garmin");
         expect(mockedFormatProduct).not.toHaveBeenCalled();
     });
 
     it("prioritizes manufacturer and product over garmin product values", () => {
+        expect.hasAssertions();
+
         expect(
             formatSensorName({
                 garminProduct: "edge_520_plus",
@@ -65,6 +74,8 @@ describe("formatSensorName", () => {
     });
 
     it("handles invalid-input sensors with warnings", () => {
+        expect.hasAssertions();
+
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
         for (const sensor of [
@@ -87,6 +98,8 @@ describe("formatSensorName", () => {
     });
 
     it("logs and falls back when formatter dependencies fail", () => {
+        expect.hasAssertions();
+
         const errorSpy = vi
             .spyOn(console, "error")
             .mockImplementation(() => {});
