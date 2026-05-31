@@ -85,9 +85,14 @@ describe("fitParserIntegration runtime state adapters", () => {
 
         const { ensureFitParserStateIntegration } =
             await importIntegrationModule();
+        let thrownError: unknown = null;
 
-        await expect(
-            ensureFitParserStateIntegration()
-        ).resolves.toBeUndefined();
+        try {
+            await ensureFitParserStateIntegration();
+        } catch (error) {
+            thrownError = error;
+        }
+
+        expect(thrownError).toBeNull();
     });
 });
