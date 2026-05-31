@@ -178,7 +178,7 @@ describe("createAppMenu", () => {
     }
 
     it("builds a menu with File/View/Settings/Help and recent files", () => {
-        expect.hasAssertions();
+        expect.assertions(5);
         const createAppMenu = importCreateAppMenu();
         const fakeWin = { webContents: { send: createMock() } };
         createAppMenu(fakeWin as any, "dark", null);
@@ -228,7 +228,7 @@ describe("createAppMenu", () => {
     });
 
     it("enables Summary Columns when a file is loaded and triggers IPC on click", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
         const createAppMenu = importCreateAppMenu();
         const send = createMock();
         const fakeWin = { webContents: { send } };
@@ -262,7 +262,7 @@ describe("createAppMenu", () => {
     });
 
     it("clear recent files item sends notification and unload-fit-file", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
         const createAppMenu = importCreateAppMenu();
         const send = createMock();
         const fakeWin = { webContents: { send } };
@@ -290,7 +290,7 @@ describe("createAppMenu", () => {
     });
 
     it("disables file-dependent actions when no file is loaded", () => {
-        expect.hasAssertions();
+        expect.assertions(8);
         const createAppMenu = importCreateAppMenu();
         const fakeWin = { webContents: { send: createMock() } };
         createAppMenu(fakeWin as any, "dark", null);
@@ -338,7 +338,7 @@ describe("createAppMenu", () => {
     });
 
     it("clicking recent file sends open-recent-file with full path", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         const createAppMenu = importCreateAppMenu();
         const send = createMock();
         const fakeWin = { webContents: { send } };
@@ -359,7 +359,7 @@ describe("createAppMenu", () => {
     });
 
     it("theme radio items reflect selection and send set-theme on click", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
         const createAppMenu = importCreateAppMenu();
         const send = createMock();
         const fakeWin = { webContents: { send } };
@@ -393,7 +393,7 @@ describe("createAppMenu", () => {
     });
 
     it("decoder options toggle sends updated options", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         const createAppMenu = importCreateAppMenu();
         // Provide a fake window to ensure deterministic IPC path
         const send = createMock();
@@ -422,7 +422,7 @@ describe("createAppMenu", () => {
     });
 
     it("persists decoder options after toggling", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
         const createAppMenu = importCreateAppMenu();
         const fakeWin = { webContents: { send: createMock() } };
         createAppMenu(fakeWin as any, "dark", "C:/x.fit");
@@ -453,7 +453,7 @@ describe("createAppMenu", () => {
     });
 
     it("accessibility toggles send appropriate IPC messages", () => {
-        expect.hasAssertions();
+        expect.assertions(5);
         const createAppMenu = importCreateAppMenu();
         const send = createMock();
         const fakeWin = { webContents: { send } };
@@ -500,7 +500,7 @@ describe("createAppMenu", () => {
     });
 
     it("help menu contains external links and other items send IPC", () => {
-        expect.hasAssertions();
+        expect.assertions(5);
         const createAppMenu = importCreateAppMenu();
         const send = createMock();
         const fakeWin = { webContents: { send } };
@@ -530,7 +530,7 @@ describe("createAppMenu", () => {
     });
 
     it("help > About and Keyboard Shortcuts items are present and clickable", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
         const createAppMenu = importCreateAppMenu();
         const fakeWin = { webContents: { send: createMock() } };
         createAppMenu(fakeWin as any, "dark", null);
@@ -554,7 +554,7 @@ describe("createAppMenu", () => {
     });
 
     it("file > Close Window item is present and clickable", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
         const createAppMenu = importCreateAppMenu();
         const fakeWin = { webContents: { send: createMock() } };
         createAppMenu(fakeWin as any, "dark", null);
@@ -570,7 +570,7 @@ describe("createAppMenu", () => {
     // Note: macOS-specific App menu is covered indirectly via code paths; explicit darwin test can be flaky in CI mocks.
 
     it("disables Clear Recent Files when none exist (robust)", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         // Ensure determinism: force the recent files module to return an empty list and clear globals
         (globalThis as any).__mockRecentFiles = [];
         (globalThis as any).__lastBuiltMenuTemplate = undefined;
@@ -618,7 +618,7 @@ describe("createAppMenu", () => {
     });
 
     it("file actions send appropriate IPC when enabled", () => {
-        expect.hasAssertions();
+        expect.assertions(8);
         const createAppMenu = importCreateAppMenu();
         const send = createMock();
         const fakeWin = { webContents: { send } };
@@ -667,7 +667,7 @@ describe("createAppMenu", () => {
     });
 
     it("open file menu item sends menu-open-file", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         const createAppMenu = importCreateAppMenu();
         const send = createMock();
         const fakeWin = { webContents: { send } };
@@ -687,7 +687,7 @@ describe("createAppMenu", () => {
     });
 
     it("overlay menu item sends menu-open-overlay", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         const createAppMenu = importCreateAppMenu();
         const send = createMock();
         const fakeWin = { webContents: { send } };
@@ -707,7 +707,7 @@ describe("createAppMenu", () => {
     });
 
     it("reveal action calls shell.showItemInFolder when file loaded", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         const createAppMenu = importCreateAppMenu();
         const send = createMock();
         const fakeWin = { webContents: { send } };
@@ -729,7 +729,7 @@ describe("createAppMenu", () => {
     });
 
     it("copy file path writes to clipboard and notifies", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
         const createAppMenu = importCreateAppMenu();
         const send = createMock();
         const fakeWin = { webContents: { send } };
@@ -759,7 +759,7 @@ describe("createAppMenu", () => {
     });
 
     it("theme can toggle to light and sends set-theme", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
         const createAppMenu = importCreateAppMenu();
         const send = createMock();
         const fakeWin = { webContents: { send } };
@@ -802,7 +802,7 @@ describe("createAppMenu", () => {
     });
 
     it("all font sizes send set-font-size IPC", () => {
-        expect.hasAssertions();
+        expect.assertions(11);
         const createAppMenu = importCreateAppMenu();
         const send = createMock();
         const fakeWin = { webContents: { send } };
@@ -838,7 +838,7 @@ describe("createAppMenu", () => {
     });
 
     it("all high contrast options present; black option sends IPC", () => {
-        expect.hasAssertions();
+        expect.assertions(5);
         const createAppMenu = importCreateAppMenu();
         const send = createMock();
         const fakeWin = { webContents: { send } };
@@ -869,7 +869,7 @@ describe("createAppMenu", () => {
     });
 
     it("high contrast white/yellow/off items are present and clickable", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
         const createAppMenu = importCreateAppMenu();
         const fakeWin = { webContents: { send: createMock() } };
         createAppMenu(fakeWin as any, "dark", null);
@@ -893,7 +893,7 @@ describe("createAppMenu", () => {
     });
 
     it("help external links are present and have click handlers", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
         const createAppMenu = importCreateAppMenu();
         const fakeWin = { webContents: { send: createMock() } };
         createAppMenu(fakeWin as any, "dark", null);
@@ -929,7 +929,7 @@ describe("createAppMenu", () => {
     });
 
     it("help > About and Keyboard Shortcuts are present and clickable", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         const createAppMenu = importCreateAppMenu();
         const fakeWin = { webContents: { send: createMock() } };
         createAppMenu(fakeWin as any, "dark", null);
@@ -945,7 +945,7 @@ describe("createAppMenu", () => {
     });
 
     it("file > Close Window item exists and is clickable", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
         const createAppMenu = importCreateAppMenu();
         const fakeWin = { webContents: { send: createMock() } };
         createAppMenu(fakeWin as any, "dark", null);
@@ -959,7 +959,7 @@ describe("createAppMenu", () => {
     });
 
     it("restart and Update click sends IPC even if disabled", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         const createAppMenu = importCreateAppMenu();
         // No need to depend on a specific window's send spy because the handler
         // uses BrowserWindow.getFocusedWindow() first; instead assert via global IPC log
@@ -985,7 +985,7 @@ describe("createAppMenu", () => {
     });
 
     it("exposes template via global when Menu API is unavailable", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
         // Remove Menu API from hoisted mock to trigger fallback branch
         const originalMock = (globalThis as any).__electronHoistedMock;
         (globalThis as any).__electronHoistedMock = {
@@ -1015,7 +1015,7 @@ describe("createAppMenu", () => {
     });
 
     it("overwrites previously exposed template when Menu API is unavailable (else branch)", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         const originalMock = (globalThis as any).__electronHoistedMock;
         (globalThis as any).__electronHoistedMock = {
             ...originalMock,
@@ -1051,7 +1051,7 @@ describe("createAppMenu", () => {
     });
 
     it("logs menu labels when app is not packaged (debug branch)", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         // Spy on console.log and set app.isPackaged=false to execute debug logging path
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         const originalMock = (globalThis as any).__electronHoistedMock;
@@ -1087,7 +1087,7 @@ describe("createAppMenu", () => {
     });
 
     it("check for updates sends menu-check-for-updates", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         const createAppMenu = importCreateAppMenu();
         const send = createMock();
         const fakeWin = { webContents: { send } };
@@ -1108,7 +1108,7 @@ describe("createAppMenu", () => {
     });
 
     it("logs debug warning when Electron Menu is missing and exposes template", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         const originalMock = (globalThis as any).__electronHoistedMock;
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         // Remove Menu to force both early debug log and fallback exposure path
@@ -1274,7 +1274,7 @@ describe("createAppMenu - additional robust branches", () => {
     }
 
     it("invokes BrowserWindow.close() from File > Close Window", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         const createAppMenu = importCreateAppMenu();
         createAppMenu(undefined, "dark", null);
         const tpl =
@@ -1302,7 +1302,7 @@ describe("createAppMenu - additional robust branches", () => {
     });
 
     it("external help links call shell.openExternal with correct URLs", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
         const createAppMenu = importCreateAppMenu();
         createAppMenu(undefined, "dark", null);
         const tpl =
@@ -1333,7 +1333,7 @@ describe("createAppMenu - additional robust branches", () => {
     });
 
     it("decoder options send IPC via BrowserWindow fallback when no mainWindow", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
         const createAppMenu = importCreateAppMenu();
         createAppMenu(undefined, "dark", "C:/x.fit");
         const tpl =
@@ -1360,7 +1360,7 @@ describe("createAppMenu - additional robust branches", () => {
     });
 
     it("high contrast white/yellow/off send IPC via BrowserWindow fallback", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
         const createAppMenu = importCreateAppMenu();
         createAppMenu(undefined, "dark", null);
         const tpl =
@@ -1387,7 +1387,7 @@ describe("createAppMenu - additional robust branches", () => {
     });
 
     it("uses mainWindow fallback when BrowserWindow.getFocusedWindow returns null (About, Keyboard, High Contrast)", () => {
-        expect.hasAssertions();
+        expect.assertions(7);
         const createAppMenu = importCreateAppMenu();
         const send = createMock();
         const fakeWin = { webContents: { send } };
@@ -1438,7 +1438,7 @@ describe("createAppMenu - additional robust branches", () => {
     });
 
     it("logs error when Menu.buildFromTemplate throws", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         const original = (globalThis as any).__electronHoistedMock;
         const err = new Error("boom");
         (globalThis as any).__electronHoistedMock = {
@@ -1474,7 +1474,7 @@ describe("createAppMenu - additional robust branches", () => {
     });
 
     it("macOS App menu appears on darwin and items send IPC", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
         // Preserve original platform descriptor
         const desc = Object.getOwnPropertyDescriptor(process, "platform");
         Object.defineProperty(process, "platform", { value: "darwin" });
@@ -1504,7 +1504,7 @@ describe("createAppMenu - additional robust branches", () => {
     });
 
     it("macOS App menu label falls back to 'App' when app.name missing", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
         const desc = Object.getOwnPropertyDescriptor(process, "platform");
         Object.defineProperty(process, "platform", { value: "darwin" });
         const original = (globalThis as any).__electronHoistedMock;
@@ -1533,7 +1533,7 @@ describe("createAppMenu - additional robust branches", () => {
     });
 
     it("skips setting menu and warns when template is invalid (forced via Array.isArray stub)", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
         // Force the defensive branch: treat the valid template as invalid
         // so the function warns and returns early.
         const isArraySpy = vi.spyOn(Array, "isArray").mockReturnValue(false);
@@ -1564,7 +1564,7 @@ describe("createAppMenu - additional robust branches", () => {
     });
 
     it("uses default theme from getTheme when currentTheme is undefined", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
         const createAppMenu = importCreateAppMenu();
         createAppMenu(
             { webContents: { send: createMock() } } as any,
@@ -1594,7 +1594,7 @@ describe("createAppMenu - additional robust branches", () => {
     });
 
     it("falls back to assigning exports when defineProperty throws", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
         const originalDefineProperty = Object.defineProperty;
         const defineSpy = vi
             .spyOn(Object, "defineProperty")
@@ -1641,7 +1641,7 @@ describe("createAppMenu - additional robust branches", () => {
     });
 
     it("executes all menu click handlers without throwing", async () => {
-        expect.hasAssertions();
+        expect.assertions(7);
         const createAppMenu = importCreateAppMenu();
         const fakeWebContents = {
             send: createMock(),
