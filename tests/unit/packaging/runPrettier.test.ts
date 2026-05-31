@@ -59,6 +59,7 @@ describe("run-prettier wrapper", () => {
             rootVitestConfigPath,
             rootVitestTypecheckTsconfigPath,
             appLeafletMeasureLitePath,
+            ".pre-commit-config.yaml",
             "scripts/*.mjs",
             "tests/fixtures/**/*.{js,ts}",
             "tests/integration/**/*.ts",

@@ -3,10 +3,23 @@ repos:
       rev: v8.16.3
       hooks:
           - id: gitleaks
-    - repo: https://github.com/pre-commit/mirrors-eslint
-      rev: v8.38.0
+    - repo: local
       hooks:
-          - id: eslint
+          - id: root-eslint
+            name: root eslint
+            entry: node scripts/run-eslint.mjs root
+            language: system
+            pass_filenames: false
+          - id: electron-app-eslint
+            name: electron app eslint
+            entry: node scripts/run-eslint.mjs electronApp
+            language: system
+            pass_filenames: false
+          - id: docusaurus-eslint
+            name: docusaurus eslint
+            entry: node scripts/run-eslint.mjs docusaurus
+            language: system
+            pass_filenames: false
     - repo: https://github.com/pre-commit/pre-commit-hooks
       rev: v4.4.0
       hooks:

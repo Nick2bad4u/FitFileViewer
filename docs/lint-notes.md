@@ -18,6 +18,13 @@ across the workspace:
 - `npm run prettier -- README.md` checks a specific path through the root
   Prettier wrapper; use `npm run prettier:fix -- <path>` to write fixes.
 
+## Pre-commit linting
+
+The pre-commit configuration uses local hooks that call
+`node scripts/run-eslint.mjs` from the repository root. Do not reintroduce
+`pre-commit/mirrors-eslint`; that installs a separate ESLint copy and bypasses
+the root npm dependency tree, root ESLint cache policy, and shared config.
+
 ## Docusaurus lint scripts
 
 Run Docusaurus linting from the repository root:

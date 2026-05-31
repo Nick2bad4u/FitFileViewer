@@ -38,6 +38,7 @@ export const prettierTargets = [
     ".markdown-link-check.json",
     ".markdownlint.json",
     ".ncurc.json",
+    ".pre-commit-config.yaml",
     ".secretlintrc.cjs",
     "cliff.toml",
     "cspell.json",
