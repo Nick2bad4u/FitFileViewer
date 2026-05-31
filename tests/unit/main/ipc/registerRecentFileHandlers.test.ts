@@ -100,7 +100,7 @@ describe("registerRecentFileHandlers", () => {
     }
 
     it("no-ops when registerIpcHandle is invalid", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         registerRecentFileHandlers({
             registerIpcHandle: undefined as unknown as RegisterIpcHandle,
@@ -124,7 +124,7 @@ describe("registerRecentFileHandlers", () => {
     });
 
     it("rejects invalid filePath types", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         registerDefaultHandlers();
 
@@ -148,7 +148,7 @@ describe("registerRecentFileHandlers", () => {
     });
 
     it("rejects unapproved paths", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         registerDefaultHandlers();
 
@@ -175,7 +175,7 @@ describe("registerRecentFileHandlers", () => {
     });
 
     it("accepts approved paths and calls addRecentFile", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         registerDefaultHandlers();
 
@@ -195,7 +195,7 @@ describe("registerRecentFileHandlers", () => {
     });
 
     it("recentFiles:get does not implicitly approve file reads", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         registerDefaultHandlers({
             addRecentFile: () => void 0,
@@ -212,7 +212,7 @@ describe("registerRecentFileHandlers", () => {
     });
 
     it("recentFiles:approve approves only paths in the recent list", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         registerDefaultHandlers({
             addRecentFile: () => void 0,
