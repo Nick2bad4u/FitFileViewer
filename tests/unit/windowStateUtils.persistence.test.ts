@@ -1,22 +1,28 @@
-/**
- * @vitest-environment node
- */
-import { existsSync, readFileSync, unlinkSync } from "node:fs";
+// @vitest-environment node
+import { existsSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 const fallbackSettingsPath = join(process.cwd(), "window-state.json");
 
+type ExistsSyncMock = (path: string) => boolean;
+type ReadFileSyncMock = (path: string, encoding: BufferEncoding) => string;
+type WriteFileSyncMock = (path: string, data: string) => void;
+type MkdirSyncMock = (path: string, options?: unknown) => void;
+type UnlinkSyncMock = (path: string) => void;
+type WindowEventCallback = () => void;
+type WindowEventListenerMock = (
+    event: string,
+    callback: WindowEventCallback
+) => void;
+type VoidCallback = () => void;
+
 interface MockFs {
-    existsSync: ReturnType<typeof vi.fn<(path: string) => boolean>>;
-    mkdirSync: ReturnType<typeof vi.fn<() => void>>;
-    readFileSync: ReturnType<
-        typeof vi.fn<(path: string, encoding: string) => string>
-    >;
-    unlinkSync: ReturnType<typeof vi.fn<() => void>>;
-    writeFileSync: ReturnType<
-        typeof vi.fn<(path: string, data: string) => void>
-    >;
+    existsSync: ReturnType<typeof vi.fn<ExistsSyncMock>>;
+    mkdirSync: ReturnType<typeof vi.fn<MkdirSyncMock>>;
+    readFileSync: ReturnType<typeof vi.fn<ReadFileSyncMock>>;
+    unlinkSync: ReturnType<typeof vi.fn<UnlinkSyncMock>>;
+    writeFileSync: ReturnType<typeof vi.fn<WriteFileSyncMock>>;
 }
 
 interface MockApp {
@@ -33,12 +39,10 @@ interface MockWindowInstance {
     isMaximized: ReturnType<typeof vi.fn<() => boolean>>;
     isMinimized: ReturnType<typeof vi.fn<() => boolean>>;
     loadFile: ReturnType<typeof vi.fn<() => Promise<void>>>;
-    on: ReturnType<typeof vi.fn>;
-    once: ReturnType<
-        typeof vi.fn<(event: string, callback: () => void) => void>
-    >;
-    setMenuBarVisibility: ReturnType<typeof vi.fn>;
-    show: ReturnType<typeof vi.fn>;
+    on: ReturnType<typeof vi.fn<WindowEventListenerMock>>;
+    once: ReturnType<typeof vi.fn<WindowEventListenerMock>>;
+    setMenuBarVisibility: ReturnType<typeof vi.fn<VoidCallback>>;
+    show: ReturnType<typeof vi.fn<VoidCallback>>;
 }
 
 type BrowserWindowMock = new (options: unknown) => MockWindowInstance;
@@ -59,47 +63,58 @@ describe("windowStateUtils persistence behavior", () => {
     let mockFs: MockFs;
     let mockApp: MockApp;
     let mockBrowserWindow: BrowserWindowMock;
+    let mockedFileContent: string;
+    let mockedFileExists: boolean;
 
     beforeEach(() => {
         vi.resetModules();
         removeFallbackWindowState();
         // Mock fs behaviors
-        let fileExists = false;
-        let fileContent = "";
+        mockedFileExists = false;
+        mockedFileContent = "";
         mockFs = {
-            existsSync: vi.fn((p: string) => {
-                if (p.endsWith("window-state.json")) return fileExists;
+            existsSync: vi.fn<ExistsSyncMock>((p: string) => {
+                if (p.endsWith("window-state.json")) return mockedFileExists;
                 // For dir checks during save
                 return true;
             }),
-            readFileSync: vi.fn((_p: string, _enc: string) => fileContent),
-            writeFileSync: vi.fn((p: string, data: string) => {
-                fileExists = true;
-                fileContent = data;
+            readFileSync: vi.fn<ReadFileSyncMock>(
+                (_p: string, _enc: BufferEncoding) => mockedFileContent
+            ),
+            writeFileSync: vi.fn<WriteFileSyncMock>((_p, data: string) => {
+                mockedFileExists = true;
+                mockedFileContent = data;
             }),
-            mkdirSync: vi.fn(),
-            unlinkSync: vi.fn(() => {
-                fileExists = false;
-                fileContent = "";
+            mkdirSync: vi.fn<MkdirSyncMock>(),
+            unlinkSync: vi.fn<UnlinkSyncMock>(() => {
+                mockedFileExists = false;
+                mockedFileContent = "";
             }),
         };
 
         mockApp = {
-            getPath: vi.fn().mockReturnValue("/tmp/fitfileviewer"),
+            getPath: vi.fn<() => string>(() => "/tmp/fitfileviewer"),
         };
 
         const mockWinInstance = {
-            isDestroyed: vi.fn().mockReturnValue(false),
-            isMinimized: vi.fn().mockReturnValue(false),
-            isMaximized: vi.fn().mockReturnValue(false),
+            isDestroyed: vi.fn<() => boolean>(() => false),
+            isMinimized: vi.fn<() => boolean>(() => false),
+            isMaximized: vi.fn<() => boolean>(() => false),
             getBounds: vi
-                .fn()
+                .fn<
+                    () => {
+                        height: number;
+                        width: number;
+                        x: number;
+                        y: number;
+                    }
+                >()
                 .mockReturnValue({ width: 1000, height: 700, x: 10, y: 20 }),
-            on: vi.fn(),
-            once: vi.fn((_ev: string, cb: () => void) => cb()),
-            show: vi.fn(),
-            loadFile: vi.fn().mockResolvedValue(undefined),
-            setMenuBarVisibility: vi.fn(),
+            on: vi.fn<WindowEventListenerMock>(),
+            once: vi.fn<WindowEventListenerMock>((_ev, cb) => cb()),
+            show: vi.fn<VoidCallback>(),
+            loadFile: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+            setMenuBarVisibility: vi.fn<VoidCallback>(),
         };
         // Provide a constructable BrowserWindow mock
         function BrowserWindow(this: unknown, _opts: unknown) {
@@ -107,8 +122,8 @@ describe("windowStateUtils persistence behavior", () => {
         }
         mockBrowserWindow = BrowserWindow as unknown as BrowserWindowMock;
 
-        vi.doMock("node:fs", () => mockFs);
-        vi.doMock("electron", () => ({
+        vi.doMock(import("node:fs"), () => mockFs);
+        vi.doMock(import("electron"), () => ({
             app: mockApp,
             BrowserWindow: mockBrowserWindow,
         }));
@@ -127,6 +142,8 @@ describe("windowStateUtils persistence behavior", () => {
     });
 
     it("getWindowState returns defaults when file missing", async () => {
+        expect.hasAssertions();
+
         const mod = await import("../../electron-app/windowStateUtils.js");
         const state = mod.getWindowState();
         expect(state.width).toBe(defaultState.width);
@@ -134,43 +151,31 @@ describe("windowStateUtils persistence behavior", () => {
     });
 
     it("getWindowState reads and sanitizes persisted state", async () => {
-        // Arrange persisted file
-        // Re-mock fs with existing file and content
-        vi.resetModules();
+        expect.hasAssertions();
+
         const fileData = JSON.stringify({
             width: 500,
             height: 400,
             x: 5,
             y: 6,
         });
-        const fs2 = {
-            existsSync: vi
-                .fn()
-                .mockImplementation(
-                    (p: string) => p.endsWith("window-state.json") || true
-                ),
-            readFileSync: vi.fn().mockReturnValue(fileData),
-            writeFileSync: vi.fn(),
-            mkdirSync: vi.fn(),
-            unlinkSync: vi.fn(),
-        };
-        vi.doMock("node:fs", () => fs2);
-        const electron2 = {
-            app: { getPath: vi.fn().mockReturnValue("/tmp/fitfileviewer") },
-            BrowserWindow: vi.fn(),
-        };
-        vi.doMock("electron", () => electron2);
+        mockedFileExists = true;
+        mockedFileContent = fileData;
+        writeFileSync(fallbackSettingsPath, fileData);
 
         const mod = await import("../../electron-app/windowStateUtils.js");
         const state = mod.getWindowState();
-        expect(state.width).toBeGreaterThanOrEqual(800); // minWidth applied
-        expect(state.height).toBeGreaterThanOrEqual(600); // minHeight applied
-        // x/y should be preserved
-        // x/y may be optional; ensure no crash and type is object
-        expect(typeof state).toBe("object");
+        expect(state).toEqual({
+            height: 600,
+            width: 800,
+            x: 5,
+            y: 6,
+        });
     });
 
     it("saveWindowState persists sanitized bounds", async () => {
+        expect.hasAssertions();
+
         const mod = await import("../../electron-app/windowStateUtils.js");
         // Pass a stub window directly to avoid constructor path
         const win = {
@@ -181,16 +186,23 @@ describe("windowStateUtils persistence behavior", () => {
         } as unknown as Parameters<typeof mod.saveWindowState>[0];
 
         expect(mod.saveWindowState(win)).toBeUndefined();
-        expect(existsSync(fallbackSettingsPath)).toBe(true);
-        expect(JSON.parse(readFileSync(fallbackSettingsPath, "utf8"))).toEqual({
-            height: 700,
-            width: 1000,
-            x: 10,
-            y: 20,
+        expect({
+            savedState: JSON.parse(readFileSync(fallbackSettingsPath, "utf8")),
+            settingsPath: mod.settingsPath,
+        }).toEqual({
+            savedState: {
+                height: 700,
+                width: 1000,
+                x: 10,
+                y: 20,
+            },
+            settingsPath: fallbackSettingsPath,
         });
     });
 
     it("createWindow attempts BrowserWindow construction (may throw in tests)", async () => {
+        expect.hasAssertions();
+
         const mod = await import("../../electron-app/windowStateUtils.js");
         expect(() => mod.createWindow()).toThrow(
             "BrowserWindow is not a constructor"
@@ -198,6 +210,8 @@ describe("windowStateUtils persistence behavior", () => {
     });
 
     it("devHelpers are exposed only in development", async () => {
+        expect.hasAssertions();
+
         process.env.NODE_ENV = "development";
         try {
             const mod = await import("../../electron-app/windowStateUtils.js");
@@ -214,8 +228,13 @@ describe("windowStateUtils persistence behavior", () => {
             expect(info.settingsPath).toMatch(/[\\/]window-state\.json$/);
             expect(info.currentState).toEqual(defaultState);
 
-            expect(mod.devHelpers.resetState()).toBe(false);
-            expect(mockFs.unlinkSync).not.toHaveBeenCalled();
+            expect({
+                fallbackFileExists: existsSync(fallbackSettingsPath),
+                resetResult: mod.devHelpers.resetState(),
+            }).toEqual({
+                fallbackFileExists: false,
+                resetResult: false,
+            });
 
             expect(mod.devHelpers.validateSettings()).toEqual({
                 exists: false,
