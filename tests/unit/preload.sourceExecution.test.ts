@@ -261,11 +261,11 @@ describe("preload.js source execution", () => {
             ]);
 
             // Verify devTools was NOT exposed in production
-            const devToolsCall =
-                mockContextBridge.exposeInMainWorld.mock.calls.find(
-                    (call) => call[0] === "devTools"
-                );
-            expect(devToolsCall).toBeUndefined();
+            expect(
+                mockContextBridge.exposeInMainWorld.mock.calls.map(
+                    ([name]) => name
+                )
+            ).not.toContain("devTools");
         });
     });
 });

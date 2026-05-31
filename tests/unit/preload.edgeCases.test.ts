@@ -117,7 +117,7 @@ describe("preload edge cases", () => {
         );
 
         // And no exposeInMainWorld should have been called (since it's missing entirely)
-        expect(getGlobalValue("electronAPI")).toBeUndefined();
+        expect(globalThis).not.toHaveProperty("electronAPI");
 
         consoleErrorSpy.mockRestore();
         consoleLogSpy.mockRestore();

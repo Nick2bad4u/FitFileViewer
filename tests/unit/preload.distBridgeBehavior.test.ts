@@ -338,7 +338,11 @@ describe("preload.js dist bridge behavior", () => {
             expect(
                 mockContextBridge.exposeInMainWorld
             ).toHaveBeenCalledExactlyOnceWith("electronAPI", exposedAPI);
-            expect(exposedDevTools).toBeUndefined();
+            expect(
+                mockContextBridge.exposeInMainWorld.mock.calls.map(
+                    ([name]) => name
+                )
+            ).not.toContain(developmentToolsGlobalName);
         });
 
         it("development tools should provide utilities", () => {
@@ -1214,7 +1218,11 @@ describe("preload.js dist bridge behavior", () => {
             expect(consoleSpy.log).not.toHaveBeenCalledWith(
                 "[preload.js] Successfully exposed electronAPI to main world"
             );
-            expect(exposedDevTools).toBeUndefined();
+            expect(
+                mockContextBridge.exposeInMainWorld.mock.calls.map(
+                    ([name]) => name
+                )
+            ).not.toContain(developmentToolsGlobalName);
         });
     });
 
@@ -1235,22 +1243,24 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("should handle contextBridge exposure failures", () => {
-            expect.assertions(2);
+            expect.assertions(3);
             mockContextBridge.exposeInMainWorld.mockImplementation(() => {
                 throw new Error("Exposure failed");
             });
 
-            executePreloadScript();
+            expect(() => executePreloadScript()).not.toThrow();
 
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] Failed to expose electronAPI:",
                 expect.any(Error)
             );
-            expect(exposedAPI).toBeUndefined();
+            expect(consoleSpy.log).not.toHaveBeenCalledWith(
+                "[preload.js] Successfully exposed electronAPI to main world"
+            );
         });
 
         it("should handle development tools exposure failures in development", () => {
-            expect.assertions(2);
+            expect.assertions(3);
             mockContextBridge.exposeInMainWorld.mockImplementation(
                 (name: string) => {
                     if (name === developmentToolsGlobalName) {
@@ -1259,13 +1269,17 @@ describe("preload.js dist bridge behavior", () => {
                 }
             );
 
-            executePreloadScript({ NODE_ENV: "development" });
+            expect(() =>
+                executePreloadScript({ NODE_ENV: "development" })
+            ).not.toThrow();
 
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] Failed to expose development tools:",
                 expect.any(Error)
             );
-            expect(exposedDevTools).toBeUndefined();
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                "[preload.js] Successfully exposed electronAPI to main world"
+            );
         });
     });
 });

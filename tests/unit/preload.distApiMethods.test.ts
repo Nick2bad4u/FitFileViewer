@@ -878,7 +878,11 @@ describe("preload.js dist API methods", () => {
             expect(
                 mockContextBridge.exposeInMainWorld
             ).toHaveBeenCalledExactlyOnceWith("electronAPI", exposedAPI);
-            expect(devTools).toBeUndefined();
+            expect(
+                mockContextBridge.exposeInMainWorld.mock.calls.map(
+                    ([name]) => name
+                )
+            ).not.toContain(developmentToolsGlobalName);
         });
     });
 
