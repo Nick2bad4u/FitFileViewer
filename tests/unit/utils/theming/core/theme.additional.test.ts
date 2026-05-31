@@ -1,4 +1,4 @@
-import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // Note: use relative path from this test folder to module under test
 import * as theme from "../../../../../electron-app/utils/theming/core/theme.js";
@@ -27,13 +27,15 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
         (globalThis as any).getComputedStyle = originalGetComputedStyle;
     });
 
-    test("loadTheme returns saved value and falls back to dark on error", () => {
+    it("loadTheme returns saved value and falls back to dark on error", () => {
+        expect.hasAssertions();
+
         localStorage.setItem("ffv-theme", "light");
         expect(theme.loadTheme()).toBe("light");
 
         // simulate localStorage throwing
         const badStorage = {
-            getItem: vi.fn(() => {
+            getItem: vi.fn<() => string | null>(() => {
                 throw new Error("ls error");
             }),
         } as any;
@@ -46,9 +48,11 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
         }
     });
 
-    test("applyTheme adds/removes classes, persists, dispatches event, updates meta", () => {
+    it("applyTheme adds/removes classes, persists, dispatches event, updates meta", () => {
+        expect.hasAssertions();
+
         const listenerController = new AbortController();
-        const eventSpy = vi.fn();
+        const eventSpy = vi.fn<(event: Event) => void>();
         document.addEventListener("themechange", eventSpy, {
             signal: listenerController.signal,
         });
@@ -87,14 +91,18 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
         expect(meta2?.content).toBe("#f8fafc");
     });
 
-    test("applyTheme auto uses getSystemTheme result", () => {
+    it("applyTheme auto uses getSystemTheme result", () => {
+        expect.hasAssertions();
+
         // Configure environment so getSystemTheme() resolves to light
         (globalThis as any).matchMedia = () => ({ matches: false }) as any;
         theme.applyTheme(theme.THEME_MODES.AUTO, false);
         expect(document.body.classList.contains("theme-light")).toBe(true);
     });
 
-    test("getEffectiveTheme respects auto and explicit values", () => {
+    it("getEffectiveTheme respects auto and explicit values", () => {
+        expect.hasAssertions();
+
         const spy = vi.spyOn(theme, "getSystemTheme").mockReturnValue("dark");
         expect(theme.getEffectiveTheme("auto")).toBe("dark");
         expect(theme.getEffectiveTheme("light")).toBe("light");
@@ -104,7 +112,9 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
         spy.mockRestore();
     });
 
-    test("getSystemTheme uses matchMedia and falls back when unavailable", () => {
+    it("getSystemTheme uses matchMedia and falls back when unavailable", () => {
+        expect.hasAssertions();
+
         // with matchMedia
         (globalThis as any).matchMedia = (query: string) =>
             ({ matches: false }) as any;
@@ -115,7 +125,9 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
         expect(theme.getSystemTheme()).toBe("dark"); // fallback
     });
 
-    test("getThemeConfig reads CSS variables and provides fallbacks", () => {
+    it("getThemeConfig reads CSS variables and provides fallbacks", () => {
+        expect.hasAssertions();
+
         // Provide getComputedStyle that returns values for our CSS vars
         const styles = new Map<string, string>([
             ["--color-bg", "#ffffff"],
@@ -143,19 +155,27 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
         expect(cfg.colors.bg).toBe("#ffffff");
         expect(cfg.colors.fg).toBe("#111111");
         // ensure some computed fallback keys exist
-        expect(typeof cfg.colors.chartBackground).toBe("string");
+        expect(cfg.colors.chartBackground).toBeTypeOf("string");
         expect(Array.isArray(cfg.colors.zoneColors)).toBe(true);
     });
 
-    test("listenForSystemThemeChange returns undefined when matchMedia is unavailable", () => {
+    it("listenForSystemThemeChange returns undefined when matchMedia is unavailable", () => {
+        expect.hasAssertions();
+
         (globalThis as any).matchMedia = undefined;
         const cleanup = theme.listenForSystemThemeChange();
         expect(cleanup).toBeUndefined();
     });
 
-    test("listenForThemeChange hooks electronAPI and forwards theme", () => {
-        const onSetTheme = vi.fn((cb: (t: string) => void) => cb("light"));
-        const sendThemeChanged = vi.fn();
+    it("listenForThemeChange hooks electronAPI and forwards theme", () => {
+        expect.hasAssertions();
+
+        const onSetTheme = vi.fn<(callback: (theme: string) => void) => void>(
+            (callback) => {
+                callback("light");
+            }
+        );
+        const sendThemeChanged = vi.fn<(theme: string) => void>();
         (globalThis as any).electronAPI = { onSetTheme, sendThemeChanged };
 
         const observedThemes: string[] = [];
@@ -164,13 +184,15 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
             document.body.dataset["receivedTheme"] = nextTheme;
         };
         theme.listenForThemeChange(onThemeChange);
-        expect(onSetTheme).toHaveBeenCalled();
+        expect(onSetTheme).toHaveBeenCalledWith(expect.any(Function));
         expect(observedThemes).toEqual(["light"]);
         expect(document.body.dataset["receivedTheme"]).toBe("light");
         expect(sendThemeChanged).toHaveBeenCalledWith("light");
     });
 
-    test("toggleTheme flips between dark and light and updates DOM/storage", () => {
+    it("toggleTheme flips between dark and light and updates DOM/storage", () => {
+        expect.hasAssertions();
+
         localStorage.setItem("ffv-theme", "dark");
         theme.toggleTheme(false);
         // applyTheme should have persisted light and set class
@@ -178,7 +200,9 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
         expect(document.body.classList.contains("theme-light")).toBe(true);
     });
 
-    test("initializeTheme applies saved theme, sets up listener and injects CSS", () => {
+    it("initializeTheme applies saved theme, sets up listener and injects CSS", () => {
+        expect.hasAssertions();
+
         localStorage.setItem("ffv-theme", "dark");
         // Provide a minimal matchMedia impl so initializeTheme returns a cleanup function
         (globalThis as any).matchMedia = () =>
@@ -196,7 +220,7 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
         expect(styleEl).toBeInstanceOf(HTMLStyleElement);
         expect(styleEl?.textContent).toContain(".theme-transitioning");
         // Cleanup is function
-        expect(typeof cleanup).toBe("function");
+        expect(cleanup).toBeTypeOf("function");
 
         // Call cleanup to satisfy branch
         (cleanup as VoidFunction)();
