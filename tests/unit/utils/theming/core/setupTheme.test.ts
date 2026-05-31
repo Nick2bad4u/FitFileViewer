@@ -11,7 +11,7 @@ const stateManagerMocks = vi.hoisted(() => {
 });
 
 vi.mock(
-    "../../../../../electron-app/utils/state/core/stateManager.js",
+    import("../../../../../electron-app/utils/state/core/stateManager.js"),
     () => stateManagerMocks
 );
 
@@ -20,19 +20,17 @@ async function importSetupThemeModule() {
 }
 
 describe("setupTheme", () => {
-    const originalConsole = {
-        error: console.error,
-        warn: console.warn,
-        log: console.log,
-    };
+    let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
+    let consoleLogSpy: ReturnType<typeof vi.spyOn>;
+    let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
     let subscribeHandlers: Array<(theme: unknown) => void>;
     let externalListener: ((theme: unknown) => void) | null;
 
     beforeEach(() => {
         vi.resetModules();
         vi.clearAllMocks();
-        stateManagerMocks.getState.mockImplementation(() => undefined);
-        stateManagerMocks.setState.mockImplementation(() => undefined);
+        stateManagerMocks.getState.mockReturnValue(undefined);
+        stateManagerMocks.setState.mockReturnValue(undefined);
         subscribeHandlers = [];
         externalListener = null;
         stateManagerMocks.subscribe.mockImplementation((_key, handler) => {
@@ -40,28 +38,40 @@ describe("setupTheme", () => {
         });
         localStorage.clear();
         (globalThis as any).electronAPI = undefined;
-        console.error = vi.fn();
-        console.warn = vi.fn();
-        console.log = vi.fn();
+        consoleErrorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
+        consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+        consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     });
 
     afterEach(() => {
         (globalThis as any).electronAPI = undefined;
-        console.error = originalConsole.error;
-        console.warn = originalConsole.warn;
-        console.log = originalConsole.log;
+        consoleErrorSpy.mockRestore();
+        consoleLogSpy.mockRestore();
+        consoleWarnSpy.mockRestore();
     });
 
+    function requireValue<T>(value: T | null | undefined, message: string): T {
+        if (value === null || value === undefined) {
+            throw new Error(message);
+        }
+
+        return value;
+    }
+
     it("applies theme from main process and reacts to change events", async () => {
-        const applyTheme = vi.fn();
+        expect.hasAssertions();
+
+        const applyTheme = vi.fn<(theme: string) => void>();
         (globalThis as any).electronAPI = {
-            getTheme: vi.fn().mockResolvedValue("light"),
+            getTheme: vi.fn<() => Promise<string>>().mockResolvedValue("light"),
         };
-        const listenForThemeChange = vi.fn(
-            (callback: (theme: unknown) => void) => {
-                externalListener = callback;
-            }
-        );
+        const listenForThemeChange = vi.fn<
+            (callback: (theme: unknown) => void) => void
+        >((callback: (theme: unknown) => void) => {
+            externalListener = callback;
+        });
 
         const { setupTheme } = await importSetupThemeModule();
         const result = await setupTheme(applyTheme, listenForThemeChange);
@@ -82,10 +92,10 @@ describe("setupTheme", () => {
 
         // simulate external change notification
         expect(externalListener).toBeTypeOf("function");
-        const handleExternalThemeChange = externalListener;
-        if (handleExternalThemeChange === null) {
-            throw new Error("Theme change listener was not registered");
-        }
+        const handleExternalThemeChange = requireValue(
+            externalListener,
+            "Theme change listener was not registered"
+        );
         handleExternalThemeChange("dark");
         expect(applyTheme).toHaveBeenCalledWith("dark");
         expect(localStorage.getItem("ffv-theme")).toBe("dark");
@@ -104,9 +114,11 @@ describe("setupTheme", () => {
     });
 
     it("uses stored theme when main process returns default", async () => {
-        const applyTheme = vi.fn();
+        expect.hasAssertions();
+
+        const applyTheme = vi.fn<(theme: string) => void>();
         (globalThis as any).electronAPI = {
-            getTheme: vi.fn().mockResolvedValue("dark"),
+            getTheme: vi.fn<() => Promise<string>>().mockResolvedValue("dark"),
         };
         localStorage.setItem("ffv-theme", "light");
 
@@ -119,7 +131,9 @@ describe("setupTheme", () => {
     });
 
     it("defaults to stored theme when electron API is unavailable", async () => {
-        const applyTheme = vi.fn();
+        expect.hasAssertions();
+
+        const applyTheme = vi.fn<(theme: string) => void>();
         (globalThis as any).electronAPI = undefined;
         localStorage.setItem("ffv-theme", "light");
 
@@ -128,15 +142,17 @@ describe("setupTheme", () => {
 
         expect(result).toBe("light");
         expect(applyTheme).toHaveBeenCalledWith("light");
-        expect(console.warn).toHaveBeenCalledWith(
+        expect(consoleWarnSpy).toHaveBeenCalledWith(
             expect.stringContaining("getTheme not available")
         );
     });
 
     it("logs warning when localStorage access fails", async () => {
-        const applyTheme = vi.fn();
+        expect.hasAssertions();
+
+        const applyTheme = vi.fn<(theme: string) => void>();
         (globalThis as any).electronAPI = {
-            getTheme: vi.fn().mockResolvedValue("dark"),
+            getTheme: vi.fn<() => Promise<string>>().mockResolvedValue("dark"),
         };
         const storageProto = Object.getPrototypeOf(localStorage) as Storage;
         const getItemSpy = vi
@@ -151,7 +167,7 @@ describe("setupTheme", () => {
 
             expect(result).toBe("dark");
             expect(applyTheme).toHaveBeenCalledWith("dark");
-            expect(console.warn).toHaveBeenCalledWith(
+            expect(consoleWarnSpy).toHaveBeenCalledWith(
                 expect.stringContaining("Failed to read from localStorage")
             );
         } finally {
@@ -160,8 +176,10 @@ describe("setupTheme", () => {
     });
 
     it("returns default theme when applyTheme is invalid", async () => {
+        expect.hasAssertions();
+
         (globalThis as any).electronAPI = {
-            getTheme: vi.fn().mockResolvedValue("light"),
+            getTheme: vi.fn<() => Promise<string>>().mockResolvedValue("light"),
         };
 
         const { setupTheme } = await importSetupThemeModule();
@@ -170,6 +188,8 @@ describe("setupTheme", () => {
         );
 
         expect(result).toBe("dark");
-        expect(console.error).toHaveBeenCalled();
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+            "[ThemeSetup] Error during theme setup: applyTheme must be a function"
+        );
     });
 });
