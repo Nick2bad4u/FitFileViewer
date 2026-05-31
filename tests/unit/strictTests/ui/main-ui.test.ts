@@ -22,53 +22,61 @@ declare global {
 }
 
 // Hoisted module mocks for all imports used by main-ui.js
-const applyTheme = vi.fn();
+const applyTheme = vi.fn<(theme: string) => void>();
 let listenCb: ((t: string) => void) | null = null;
-const listenForThemeChange = vi.fn((cb: (t: string) => void) => {
+const listenForThemeChange = vi.fn<(cb: (t: string) => void) => void>((cb) => {
     listenCb = cb;
 });
-const loadTheme = vi.fn(() => "dark");
-vi.mock("../../../../electron-app/utils/theming/core/theme.js", () => ({
+const loadTheme = vi.fn<() => string>(() => "dark");
+vi.mock(import("../../../../electron-app/utils/theming/core/theme.js"), () => ({
     applyTheme,
     listenForThemeChange,
     loadTheme,
 }));
 
-const showFitData = vi.fn();
-vi.mock("../../../../electron-app/utils/rendering/core/showFitData.js", () => ({
-    showFitData,
-}));
-
-const convertArrayBufferToBase64 = vi.fn(() => "BASE64DATA");
+const showFitData = vi.fn<(data: unknown, filePath: string) => void>();
 vi.mock(
-    "../../../../electron-app/utils/formatting/converters/convertArrayBufferToBase64.js",
+    import("../../../../electron-app/utils/rendering/core/showFitData.js"),
+    () => ({
+        showFitData,
+    })
+);
+
+const convertArrayBufferToBase64 = vi.fn<(buffer: ArrayBuffer) => string>(
+    () => "BASE64DATA"
+);
+vi.mock(
+    import("../../../../electron-app/utils/formatting/converters/convertArrayBufferToBase64.js"),
     () => ({
         convertArrayBufferToBase64,
     })
 );
 
-const setupDOMContentLoaded = vi.fn();
-const setupFullscreenListeners = vi.fn();
+const setupDOMContentLoaded = vi.fn<() => void>();
+const setupFullscreenListeners = vi.fn<() => void>();
 vi.mock(
-    "../../../../electron-app/utils/ui/controls/addFullScreenButton.js",
+    import("../../../../electron-app/utils/ui/controls/addFullScreenButton.js"),
     () => ({
         setupDOMContentLoaded,
         setupFullscreenListeners,
     })
 );
 
-const setupWindow = vi.fn();
+const setupWindow = vi.fn<() => void>();
 vi.mock(
-    "../../../../electron-app/utils/app/initialization/setupWindow.js",
+    import("../../../../electron-app/utils/app/initialization/setupWindow.js"),
     () => ({
         setupWindow,
     })
 );
 
-const renderChartJS = vi.fn();
-vi.mock("../../../../electron-app/utils/charts/core/renderChartJS.js", () => ({
-    renderChartJS,
-}));
+const renderChartJS = vi.fn<() => void>();
+vi.mock(
+    import("../../../../electron-app/utils/charts/core/renderChartJS.js"),
+    () => ({
+        renderChartJS,
+    })
+);
 
 const DEFAULT_TITLE = "Fit File Viewer";
 const mockState: Record<string, unknown> = {
@@ -79,8 +87,8 @@ const mockState: Record<string, unknown> = {
     "ui.loadingIndicator": { active: false, progress: 0 },
     "ui.unloadButtonVisible": false,
 };
-const getState = vi.fn((key: string) => mockState[key]);
-const setState = vi.fn((key: string, value: unknown) => {
+const getState = vi.fn<(key: string) => unknown>((key) => mockState[key]);
+const setState = vi.fn<(key: string, value: unknown) => void>((key, value) => {
     mockState[key] = value;
     if (key === "ui.dropOverlay.visible") {
         const isVisible = Boolean(value);
@@ -168,60 +176,79 @@ const setState = vi.fn((key: string, value: unknown) => {
         }
     }
 });
-const subscribe = vi.fn();
-vi.mock("../../../../electron-app/utils/state/core/stateManager.js", () => ({
-    getState,
-    setState,
-    subscribe,
-}));
-
-const UIActions = { showTab: vi.fn(), setTheme: vi.fn() };
+const subscribe =
+    vi.fn<(key: string, callback: (value: unknown) => void) => void>();
 vi.mock(
-    "../../../../electron-app/utils/state/domain/uiStateManager.js",
+    import("../../../../electron-app/utils/state/core/stateManager.js"),
+    () => ({
+        getState,
+        setState,
+        subscribe,
+    })
+);
+
+const UIActions = {
+    setTheme: vi.fn<(theme: string) => void>(),
+    showTab: vi.fn<(tabId: string) => void>(),
+};
+vi.mock(
+    import("../../../../electron-app/utils/state/domain/uiStateManager.js"),
     () => ({ UIActions })
 );
 
-const AppActions = { setFileOpening: vi.fn(), clearData: vi.fn() };
-vi.mock("../../../../electron-app/utils/app/lifecycle/appActions.js", () => ({
-    AppActions,
-}));
+const AppActions = {
+    clearData: vi.fn<() => void>(),
+    setFileOpening: vi.fn<(isOpening: boolean) => void>(),
+};
+vi.mock(
+    import("../../../../electron-app/utils/app/lifecycle/appActions.js"),
+    () => ({
+        AppActions,
+    })
+);
 AppActions.clearData.mockImplementation(() => {
     fitFileStateManager.clearFileState();
 });
 
 const fitFileStateManager = {
-    startFileLoading: vi.fn(),
-    handleFileLoaded: vi.fn(),
-    handleFileLoadingError: vi.fn(),
-    clearFileState: vi.fn(),
+    clearFileState: vi.fn<() => void>(),
+    handleFileLoaded: vi.fn<(data: unknown, filePath: string) => void>(),
+    handleFileLoadingError: vi.fn<(error: unknown) => void>(),
+    startFileLoading: vi.fn<(filePath: string) => void>(),
 };
-vi.mock("../../../../electron-app/utils/state/domain/fitFileState.js", () => ({
-    fitFileStateManager,
-}));
+vi.mock(
+    import("../../../../electron-app/utils/state/domain/fitFileState.js"),
+    () => ({
+        fitFileStateManager,
+    })
+);
 
 const performanceMonitor = {
-    isEnabled: vi.fn(() => true),
-    startTimer: vi.fn(),
-    endTimer: vi.fn(),
+    endTimer: vi.fn<(label: string) => void>(),
+    isEnabled: vi.fn<() => boolean>(() => true),
+    startTimer: vi.fn<(label: string) => void>(),
 };
-vi.mock("../../../../electron-app/utils/debug/stateDevTools.js", () => ({
-    performanceMonitor,
-}));
-
-const showNotification = vi.fn();
 vi.mock(
-    "../../../../electron-app/utils/ui/notifications/showNotification.js",
+    import("../../../../electron-app/utils/debug/stateDevTools.js"),
+    () => ({
+        performanceMonitor,
+    })
+);
+
+const showNotification = vi.fn<(message: string, type: string) => void>();
+vi.mock(
+    import("../../../../electron-app/utils/ui/notifications/showNotification.js"),
     () => ({
         showNotification,
     })
 );
 
 const chartTabIntegration = {
-    destroy: vi.fn(),
-    getStatus: vi.fn(() => "ok"),
+    destroy: vi.fn<() => void>(),
+    getStatus: vi.fn<() => string>(() => "ok"),
 };
 vi.mock(
-    "../../../../electron-app/utils/charts/core/chartTabIntegration.js",
+    import("../../../../electron-app/utils/charts/core/chartTabIntegration.js"),
     () => ({
         chartTabIntegration,
     })
@@ -271,18 +298,22 @@ function installBaseDOM() {
 function installElectronAPI() {
     const ipc = new Map<string, IpcCallback>();
     const electronAPI = {
-        onIpc: vi.fn((channel: string, cb: IpcCallback) => {
-            ipc.set(channel, cb);
-        }),
+        decodeFitFile: vi.fn<(buffer: ArrayBuffer) => Promise<unknown>>(),
         emit: (channel: string, ...args: unknown[]) =>
             ipc.get(channel)?.(...args),
-        send: vi.fn(),
-        openExternal: vi.fn(() => Promise.reject(new Error("fail"))),
-        injectMenu: vi.fn(),
-        onSetTheme: vi.fn(),
-        sendThemeChanged: vi.fn(),
+        injectMenu: vi.fn<(theme: string, fitFilePath: string) => void>(),
+        onIpc: vi.fn<(channel: string, cb: IpcCallback) => void>(
+            (channel, cb) => {
+                ipc.set(channel, cb);
+            }
+        ),
         onOpenSummaryColumnSelector: undefined,
-        decodeFitFile: vi.fn(),
+        onSetTheme: vi.fn<(cb: (theme: string) => void) => void>(),
+        openExternal: vi.fn<(url: string) => Promise<void>>(() =>
+            Promise.reject(new Error("fail"))
+        ),
+        send: vi.fn<(channel: string, payload?: unknown) => void>(),
+        sendThemeChanged: vi.fn<(theme: string) => void>(),
     };
     Reflect.set(window, "electronAPI", electronAPI);
     Reflect.set(globalThis, "electronAPI", electronAPI);
@@ -338,7 +369,7 @@ function getWindowFunction<T extends (...args: never[]) => unknown>(
 
 // Basic globals
 const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
-const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
+const openSpy = vi.spyOn(window, "open").mockReturnValue(null);
 
 async function importMainUI() {
     // Import the module under test. Path is from this test file.
@@ -371,32 +402,33 @@ describe("main-ui.js core flows", () => {
     });
 
     it("applies the stored theme and handles theme-change callbacks", async () => {
-        expect.assertions(8);
+        expect.assertions(7);
 
         await importMainUI();
 
-        expect(loadTheme).toHaveBeenCalledTimes(1);
+        expect(loadTheme).toHaveBeenCalledOnce();
         expect(applyTheme).toHaveBeenCalledWith("dark");
-        expect(listenForThemeChange).toHaveBeenCalledTimes(1);
-        expect(typeof listenCb).toBe("function");
+        expect(listenForThemeChange).toHaveBeenCalledOnce();
+        expect(listenCb).toBeTypeOf("function");
 
         listenCb?.("light");
 
         expect(applyTheme).toHaveBeenLastCalledWith("light");
         expect(applyTheme).toHaveBeenCalledTimes(2);
-        expect(UIActions.setTheme).toHaveBeenCalledWith("light");
-        expect(UIActions.setTheme).toHaveBeenCalledTimes(1);
+        expect(UIActions.setTheme).toHaveBeenCalledExactlyOnceWith("light");
     });
 
     it("unloads file via button and emits IPC", async () => {
+        expect.hasAssertions();
+
         const api = installElectronAPI();
         await importMainUI();
 
         const btn = getRequiredElement("unloadFileBtn", HTMLButtonElement);
         btn.click();
         expect(api.send).toHaveBeenCalledWith("fit-file-loaded", null);
-        expect(AppActions.clearData).toHaveBeenCalledTimes(1);
-        expect(fitFileStateManager.clearFileState).toHaveBeenCalledTimes(1);
+        expect(AppActions.clearData).toHaveBeenCalledOnce();
+        expect(fitFileStateManager.clearFileState).toHaveBeenCalledOnce();
         expect(fitFileStateManager.handleFileLoaded).not.toHaveBeenCalled();
         expect(btn.style.display).toBe("none");
         expect(document.title).toBe(DEFAULT_TITLE);
@@ -406,6 +438,8 @@ describe("main-ui.js core flows", () => {
     });
 
     it("opens summary column selector from IPC and clicks gear after delay", async () => {
+        expect.hasAssertions();
+
         await importMainUI();
         const summaryTab = getRequiredElement("tab-summary", HTMLButtonElement);
         const gear = getRequiredSelector(
@@ -439,8 +473,8 @@ describe("main-ui.js core flows", () => {
         getCurrentElectronAPI().emit("open-summary-column-selector");
 
         vi.advanceTimersByTime(150);
-        expect(gearSpy).toHaveBeenCalled();
-        expect(tabSpy).toHaveBeenCalledTimes(1);
+        expect(gearSpy).toHaveBeenCalledWith();
+        expect(tabSpy).toHaveBeenCalledOnce();
         expect(gear.dataset.selectorOpenCount).toBe("1");
         expect(summaryTab.className).toMatch(/\bactive\b/);
 
@@ -452,9 +486,12 @@ describe("main-ui.js core flows", () => {
     });
 
     it("sends fit file to Alt FIT iframe with proper base64", async () => {
+        expect.hasAssertions();
+
         await importMainUI();
         const iframe = getRequiredElement("altfit-iframe", HTMLIFrameElement);
-        const postMessage = vi.fn();
+        const postMessage =
+            vi.fn<(message: unknown, targetOrigin: string) => void>();
         Object.defineProperty(iframe, "contentWindow", {
             value: { postMessage },
             configurable: true,
@@ -474,6 +511,8 @@ describe("main-ui.js core flows", () => {
     });
 
     it("drag and drop overlay shows/hides", async () => {
+        expect.hasAssertions();
+
         await importMainUI();
 
         const overlay = getRequiredElement("drop_overlay", HTMLElement);
@@ -505,6 +544,8 @@ describe("main-ui.js core flows", () => {
     });
 
     it("processDroppedFile handles valid and invalid files and toggles loading", async () => {
+        expect.hasAssertions();
+
         await importMainUI();
         const handler = getDragDropHandler();
         const notifications: string[] = [];
@@ -539,8 +580,8 @@ describe("main-ui.js core flows", () => {
             path: "C:/rides/activity.fit",
         };
         await handler.processDroppedFile(absoluteFile);
-        expect(api.decodeFitFile).toHaveBeenCalled();
-        expect(sendAltSpy).toHaveBeenCalled();
+        expect(api.decodeFitFile).toHaveBeenCalledWith(expect.any(ArrayBuffer));
+        expect(sendAltSpy).toHaveBeenCalledWith(expect.any(ArrayBuffer));
         expect(fitFileStateManager.startFileLoading).toHaveBeenLastCalledWith(
             "C:/rides/activity.fit"
         );
@@ -585,6 +626,8 @@ describe("main-ui.js core flows", () => {
     });
 
     it("external link handlers call electronAPI.openExternal", async () => {
+        expect.hasAssertions();
+
         await importMainUI();
         document.dispatchEvent(new Event("DOMContentLoaded"));
         const link = getRequiredElement("ext", HTMLAnchorElement);
@@ -622,10 +665,12 @@ describe("main-ui.js core flows", () => {
     });
 
     it("does not fall back to window.open when openExternal fails", async () => {
+        expect.hasAssertions();
+
         const api = installElectronAPI();
         api.openExternal.mockRejectedValueOnce(new Error("blocked"));
 
-        const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
+        const openSpy = vi.spyOn(window, "open").mockReturnValue(null);
 
         await importMainUI();
         document.dispatchEvent(new Event("DOMContentLoaded"));
@@ -646,7 +691,7 @@ describe("main-ui.js core flows", () => {
 
         await Promise.resolve();
 
-        expect(api.openExternal).toHaveBeenCalled();
+        expect(api.openExternal).toHaveBeenCalledWith("https://example.com/");
         expect(openSpy).not.toHaveBeenCalled();
         expect(showNotification).toHaveBeenCalledWith(
             "Failed to open link in your browser.",
@@ -655,6 +700,8 @@ describe("main-ui.js core flows", () => {
     });
 
     it("dev helpers injectMenu and devCleanup work", async () => {
+        expect.hasAssertions();
+
         const api = installElectronAPI();
         await importMainUI();
         const injectMenu =
@@ -668,8 +715,8 @@ describe("main-ui.js core flows", () => {
         mockState["ui.dragCounter"] = 3;
         const devCleanup = getWindowFunction<() => void>("devCleanup");
         devCleanup();
-        expect(AppActions.clearData).toHaveBeenCalledTimes(1);
-        expect(chartTabIntegration.destroy).toHaveBeenCalledTimes(1);
+        expect(AppActions.clearData).toHaveBeenCalledOnce();
+        expect(chartTabIntegration.destroy).toHaveBeenCalledOnce();
         expect(mockState).toMatchObject({
             "charts.isRendered": false,
             "ui.dragCounter": 0,
