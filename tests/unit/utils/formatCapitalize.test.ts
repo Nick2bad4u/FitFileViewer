@@ -6,7 +6,7 @@ import {
 
 describe(formatCapitalize, () => {
     it("capitalizes strings with lowercase-rest enabled by default", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         expect([
             formatCapitalize("hello"),
@@ -20,7 +20,7 @@ describe(formatCapitalize, () => {
     });
 
     it("can preserve the rest of the string casing", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         expect(formatCapitalize("fit FILE", { lowercaseRest: false })).toBe(
             "Fit FILE"
@@ -28,7 +28,7 @@ describe(formatCapitalize, () => {
     });
 
     it("handles invalid-input and falsy values by returning them unchanged", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         expect({
             emptyString: formatCapitalize(""),
@@ -46,7 +46,7 @@ describe(formatCapitalize, () => {
     });
 
     it("keeps the legacy null-options TypeError for string values", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         expect(() =>
             formatCapitalize("fit", null as unknown as FormatCapitalizeOptions)

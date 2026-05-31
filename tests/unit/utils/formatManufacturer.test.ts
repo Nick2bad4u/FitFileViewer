@@ -7,7 +7,7 @@ import {
 
 describe(formatManufacturer, () => {
     it("formats known manufacturer keys and IDs with display names", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         expect(formatManufacturer("garmin")).toBe("Garmin");
         expect(formatManufacturer("  wahoo  ")).toBe("Wahoo");
@@ -16,7 +16,7 @@ describe(formatManufacturer, () => {
     });
 
     it("handles invalid-input manufacturers with fallback values", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
@@ -33,7 +33,7 @@ describe(formatManufacturer, () => {
     });
 
     it("exposes mapping copies without mutating formatter lookup", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const mappings = getAllManufacturerMappings();
         mappings.garmin = "Mutated";
