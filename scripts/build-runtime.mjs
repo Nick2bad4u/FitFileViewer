@@ -10,6 +10,10 @@ export const buildRuntimeSteps = [
         label: "clean runtime dist",
     },
     {
+        args: [repositoryScriptPath("validate-runtime-tsconfig.mjs")],
+        label: "validate runtime TypeScript file list",
+    },
+    {
         args: [repositoryScriptPath("run-typescript.mjs"), "runtime"],
         label: "compile runtime TypeScript",
     },

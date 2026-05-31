@@ -21,6 +21,7 @@ describe("build-runtime script", () => {
 
         expect(buildRuntimeSteps.map((step) => step.label)).toStrictEqual([
             "clean runtime dist",
+            "validate runtime TypeScript file list",
             "compile runtime TypeScript",
             "bundle preload",
             "build renderer bundle",
@@ -29,6 +30,7 @@ describe("build-runtime script", () => {
         ]);
         expect(buildRuntimeSteps.map((step) => step.args)).toStrictEqual([
             [repositoryScriptPath("clean-runtime-dist.mjs")],
+            [repositoryScriptPath("validate-runtime-tsconfig.mjs")],
             [repositoryScriptPath("run-typescript.mjs"), "runtime"],
             [repositoryScriptPath("bundle-preload.mjs")],
             [repositoryScriptPath("build-renderer.mjs")],
