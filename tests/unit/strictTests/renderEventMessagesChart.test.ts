@@ -1,26 +1,13 @@
 /**
- * @version 1.0.0
+ * Comprehensive test suite for renderEventMessagesChart.js.
  *
- * @file Comprehensive test suite for renderEventMessagesChart.js
- *
- *   This test suite validates the event messages chart rendering functionality
- *   including:
- *
- *   - Data validation and processing for event messages
- *   - Timestamp conversion and relative time calculation
- *   - Chart.js integration with scatter plot configuration
- *   - Canvas creation and theme-based styling
- *   - Chart instance management and global registration
- *   - Tooltip configuration and event formatting
- *   - Plugin configuration (zoom, background color)
- *   - Scale configuration with time formatting
- *   - Error handling and edge cases
- *   - Various timestamp format support
- *
- * @author AI Assistant
+ * This test suite validates event message chart rendering, timestamp
+ * normalization, Chart.js integration, theming, tooltip formatting, plugin
+ * configuration, error handling, and timestamp edge cases.
  */
 
-import { describe, test, expect, beforeEach, vi, afterEach } from "vitest";
+import type { Mock } from "vitest";
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { renderEventMessagesChart } from "../../../electron-app/utils/charts/rendering/renderEventMessagesChart.js";
 import { getChartSetting } from "../../../electron-app/utils/state/domain/settingsStateManager.js";
 import { getThemeConfig } from "../../../electron-app/utils/theming/core/theme.js";
@@ -48,17 +35,23 @@ type ChartConfig = {
         [key: string]: unknown;
     };
     plugins?: unknown[];
+    type?: string;
     [key: string]: unknown;
 };
 
 type ChartInstanceMock = {
-    destroy: ReturnType<typeof vi.fn>;
+    destroy: Mock<() => void>;
     id: string;
-    resize: ReturnType<typeof vi.fn>;
-    update: ReturnType<typeof vi.fn>;
+    resize: Mock<() => void>;
+    update: Mock<() => void>;
 };
 
-type ChartMock = ReturnType<typeof vi.fn> & {
+type ChartConstructor = (
+    canvas: HTMLCanvasElement,
+    config: ChartConfig
+) => ChartInstanceMock;
+
+type ChartMock = Mock<ChartConstructor> & {
     mock: {
         calls: [HTMLCanvasElement, ChartConfig][];
     };
@@ -94,9 +87,9 @@ type EventMessagesGlobal = typeof globalThis & {
     window: EventMessagesWindow;
 };
 
-type ThemeConfigMock = typeof getThemeConfig & {
-    mockImplementation: ReturnType<typeof vi.fn>["mockImplementation"];
-};
+type ThemeConfig = ReturnType<typeof getThemeConfig>;
+type GetChartSettingMock = Mock<(key: string) => string | undefined>;
+type ThemeConfigMock = Mock<() => ThemeConfig>;
 
 function getEventMessagesGlobal(): EventMessagesGlobal {
     return globalThis as EventMessagesGlobal;
@@ -125,8 +118,8 @@ function getRenderState(container: HTMLElement): {
 }
 
 // Mock all external dependencies
-vi.mock("../../../electron-app/utils/theming/core/theme.js", () => ({
-    getThemeConfig: vi.fn(() => ({
+vi.mock(import("../../../electron-app/utils/theming/core/theme.js"), () => ({
+    getThemeConfig: vi.fn<() => ThemeConfig>(() => ({
         colors: {
             bgPrimary: "#ffffff",
             bgSecondary: "#f8f9fa",
@@ -140,9 +133,11 @@ vi.mock("../../../electron-app/utils/theming/core/theme.js", () => ({
 }));
 
 vi.mock(
-    "../../../electron-app/utils/charts/components/createChartCanvas.js",
+    import("../../../electron-app/utils/charts/components/createChartCanvas.js"),
     () => ({
-        createChartCanvas: vi.fn(() => {
+        createChartCanvas: vi.fn<
+            (field: string, index: number) => HTMLCanvasElement
+        >(() => {
             const canvas = document.createElement("canvas");
             canvas.id = "chart-events-0";
             return canvas;
@@ -151,28 +146,36 @@ vi.mock(
 );
 
 vi.mock(
-    "../../../electron-app/utils/formatting/formatters/formatTime.js",
+    import("../../../electron-app/utils/formatting/formatters/formatTime.js"),
     () => ({
-        formatTime: vi.fn((value, showSeconds) => {
-            if (showSeconds) return `${value}s`;
-            return `${Math.floor(value / 60)}:${(value % 60).toString().padStart(2, "0")}`;
-        }),
+        formatTime: vi.fn<(value: number, showSeconds?: boolean) => string>(
+            (value, showSeconds) => {
+                if (showSeconds) return `${value}s`;
+                return `${Math.floor(value / 60)}:${(value % 60).toString().padStart(2, "0")}`;
+            }
+        ),
     })
 );
 
 vi.mock(
-    "../../../electron-app/utils/charts/core/updateChartAnimations.js",
+    import("../../../electron-app/utils/charts/core/updateChartAnimations.js"),
     () => ({
-        updateChartAnimations: vi.fn(),
+        updateChartAnimations:
+            vi.fn<(chart: ChartInstanceMock, chartName: string) => void>(),
     })
 );
 
-vi.mock("../../../electron-app/utils/data/lookups/getUnitSymbol.js", () => ({
-    getUnitSymbol: vi.fn(() => "s"),
-}));
+vi.mock(
+    import("../../../electron-app/utils/data/lookups/getUnitSymbol.js"),
+    () => ({
+        getUnitSymbol: vi.fn<(field: string, type: string) => string>(
+            () => "s"
+        ),
+    })
+);
 
 vi.mock(
-    "../../../electron-app/utils/charts/plugins/chartZoomResetPlugin.js",
+    import("../../../electron-app/utils/charts/plugins/chartZoomResetPlugin.js"),
     () => ({
         chartZoomResetPlugin: { id: "chartZoomResetPlugin" },
     })
@@ -184,9 +187,9 @@ let mockConsoleError: ReturnType<typeof vi.spyOn>;
 
 // Mock chart settings to provide custom event color
 vi.mock(
-    "../../../electron-app/utils/state/domain/settingsStateManager.js",
+    import("../../../electron-app/utils/state/domain/settingsStateManager.js"),
     () => ({
-        getChartSetting: vi.fn((key: string) => {
+        getChartSetting: vi.fn<(key: string) => string | undefined>((key) => {
             if (key === "color_event_messages") return "#ff5722";
             return undefined;
         }),
@@ -200,14 +203,14 @@ beforeEach(() => {
     // Mock Chart.js
     mockChart = {
         id: "test-chart",
-        update: vi.fn(),
-        destroy: vi.fn(),
-        resize: vi.fn(),
+        update: vi.fn<() => void>(),
+        destroy: vi.fn<() => void>(),
+        resize: vi.fn<() => void>(),
     };
 
     // Ensure window and global.window reference the same object
     Object.assign(window, {
-        Chart: vi.fn(function ChartMock() {
+        Chart: vi.fn<ChartConstructor>(function ChartMock() {
             return mockChart;
         }),
         _chartjsInstances: [],
@@ -252,8 +255,10 @@ afterEach(() => {
 });
 
 describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
-    describe("Data Validation and Processing", () => {
-        test("should return early when eventMesgs is not available", () => {
+    describe("data validation and processing", () => {
+        it("should return early when eventMesgs is not available", () => {
+            expect.hasAssertions();
+
             getEventMessagesWindow().globalData = null;
             const container = document.createElement("div");
 
@@ -266,7 +271,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             expect(window.Chart).not.toHaveBeenCalled();
         });
 
-        test("should return early when eventMesgs is not an array", () => {
+        it("should return early when eventMesgs is not an array", () => {
+            expect.hasAssertions();
+
             getEventMessagesWindow().globalData = { eventMesgs: "invalid" };
             const container = document.createElement("div");
 
@@ -279,7 +286,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             expect(window.Chart).not.toHaveBeenCalled();
         });
 
-        test("should return early when eventMesgs array is empty", () => {
+        it("should return early when eventMesgs array is empty", () => {
+            expect.hasAssertions();
+
             window.globalData = { eventMesgs: [] };
             const container = document.createElement("div");
 
@@ -292,18 +301,25 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             expect(window.Chart).not.toHaveBeenCalled();
         });
 
-        test("should process event messages correctly with valid data", () => {
+        it("should process event messages correctly with valid data", () => {
+            expect.hasAssertions();
+
             const container = document.createElement("div");
             const startTime = new Date("2023-01-01T10:00:00Z");
 
             renderEventMessagesChart(container, {}, startTime);
 
-            expect(window.Chart).toHaveBeenCalled();
+            expect(window.Chart).toHaveBeenCalledWith(
+                expect.any(HTMLCanvasElement),
+                expect.any(Object)
+            );
             const chartConfig = getLatestChartConfig();
             expect(chartConfig.data.datasets[0].data).toHaveLength(3);
         });
 
-        test("should handle missing globalData gracefully", () => {
+        it("should handle missing globalData gracefully", () => {
+            expect.hasAssertions();
+
             delete window.globalData;
             const container = document.createElement("div");
 
@@ -316,7 +332,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             expect(window.Chart).not.toHaveBeenCalled();
         });
 
-        test("should extract event names from different fields", () => {
+        it("should extract event names from different fields", () => {
+            expect.hasAssertions();
+
             window.globalData = {
                 eventMesgs: [
                     {
@@ -349,8 +367,10 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         });
     });
 
-    describe("Timestamp Conversion and Processing", () => {
-        test("should handle Date object timestamps correctly", () => {
+    describe("timestamp conversion and processing", () => {
+        it("should handle Date object timestamps correctly", () => {
+            expect.hasAssertions();
+
             const container = document.createElement("div");
             const startTime = new Date("2023-01-01T10:00:00Z");
 
@@ -367,7 +387,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             ]);
         });
 
-        test("should handle number timestamps in seconds", () => {
+        it("should handle number timestamps in seconds", () => {
+            expect.hasAssertions();
+
             window.globalData = {
                 eventMesgs: [
                     { timestamp: 1672570800, event: "Event 1" }, // Unix timestamp in seconds
@@ -390,7 +412,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             ]);
         });
 
-        test("should handle number timestamps in milliseconds", () => {
+        it("should handle number timestamps in milliseconds", () => {
+            expect.hasAssertions();
+
             window.globalData = {
                 eventMesgs: [
                     { timestamp: 1672570800000, event: "Event 1" }, // Unix timestamp in milliseconds
@@ -413,7 +437,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             ]);
         });
 
-        test("should handle mixed timestamp formats", () => {
+        it("should handle mixed timestamp formats", () => {
+            expect.hasAssertions();
+
             window.globalData = {
                 eventMesgs: [
                     {
@@ -441,7 +467,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             ]);
         });
 
-        test("should fallback to x:0 for invalid timestamp formats", () => {
+        it("should fallback to x:0 for invalid timestamp formats", () => {
+            expect.hasAssertions();
+
             window.globalData = {
                 eventMesgs: [
                     { timestamp: "invalid", event: "Event 1" },
@@ -466,7 +494,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             ]);
         });
 
-        test("should handle invalid startTime gracefully", () => {
+        it("should handle invalid startTime gracefully", () => {
+            expect.hasAssertions();
+
             const container = document.createElement("div");
             const startTime = "invalid" as unknown as Date;
 
@@ -485,13 +515,18 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         });
     });
 
-    describe("Chart Configuration", () => {
-        test("should create scatter chart with correct type and configuration", () => {
+    describe("chart configuration", () => {
+        it("should create scatter chart with correct type and configuration", () => {
+            expect.hasAssertions();
+
             const container = document.createElement("div");
 
             renderEventMessagesChart(container, {}, new Date());
 
-            expect(window.Chart).toHaveBeenCalled();
+            expect(window.Chart).toHaveBeenCalledWith(
+                expect.any(HTMLCanvasElement),
+                expect.any(Object)
+            );
             const chartConfig = getLatestChartConfig();
 
             expect(chartConfig.type).toBe("scatter");
@@ -500,7 +535,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             expect(chartConfig.data.datasets[0].label).toBe("Events");
         });
 
-        test("should configure dataset with correct styling and colors", () => {
+        it("should configure dataset with correct styling and colors", () => {
+            expect.hasAssertions();
+
             const container = document.createElement("div");
 
             renderEventMessagesChart(container, {}, new Date());
@@ -521,10 +558,12 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             });
         });
 
-        test("should use default color when no custom color setting is available", () => {
+        it("should use default color when no custom color setting is available", () => {
+            expect.hasAssertions();
+
             // Override mocked getChartSetting so that no custom color is provided
-            (getChartSetting as unknown as vi.Mock).mockImplementationOnce(
-                () => undefined
+            (getChartSetting as GetChartSettingMock).mockReturnValueOnce(
+                undefined
             );
 
             const container = document.createElement("div");
@@ -538,7 +577,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             expect(dataset.borderColor).toBe("#9c27b0");
         });
 
-        test("should configure chart options based on provided options - all enabled", () => {
+        it("should configure chart options based on provided options - all enabled", () => {
+            expect.hasAssertions();
+
             const container = document.createElement("div");
             const options = {
                 showLegend: true,
@@ -565,7 +606,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             });
         });
 
-        test("should configure chart options based on provided options - all disabled", () => {
+        it("should configure chart options based on provided options - all disabled", () => {
+            expect.hasAssertions();
+
             const container = document.createElement("div");
             const options = {
                 showLegend: false,
@@ -588,7 +631,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             });
         });
 
-        test("should set correct axis titles and configuration", () => {
+        it("should set correct axis titles and configuration", () => {
+            expect.hasAssertions();
+
             const container = document.createElement("div");
 
             renderEventMessagesChart(container, {}, new Date());
@@ -608,7 +653,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             });
         });
 
-        test("should configure responsive and aspect ratio options", () => {
+        it("should configure responsive and aspect ratio options", () => {
+            expect.hasAssertions();
+
             const container = document.createElement("div");
 
             renderEventMessagesChart(container, {}, new Date());
@@ -625,8 +672,10 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         });
     });
 
-    describe("Canvas Creation and Styling", () => {
-        test("should create canvas with correct ID and styling", () => {
+    describe("canvas creation and styling", () => {
+        it("should create canvas with correct ID and styling", () => {
+            expect.hasAssertions();
+
             const container = document.createElement("div");
 
             renderEventMessagesChart(container, {}, new Date());
@@ -638,7 +687,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             expect(canvas?.style.boxShadow).toBe("0 2px 4px #00000020");
         });
 
-        test("should append canvas to container", () => {
+        it("should append canvas to container", () => {
+            expect.hasAssertions();
+
             const container = document.createElement("div");
 
             renderEventMessagesChart(container, {}, new Date());
@@ -653,7 +704,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             expect(container.children[0]).not.toBeInstanceOf(HTMLDivElement);
         });
 
-        test("should apply theme-based canvas styling", () => {
+        it("should apply theme-based canvas styling", () => {
+            expect.hasAssertions();
+
             const container = document.createElement("div");
 
             renderEventMessagesChart(container, {}, new Date());
@@ -664,8 +717,10 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         });
     });
 
-    describe("Chart Instance Management", () => {
-        test("should add chart instance to global instances array", () => {
+    describe("chart instance management", () => {
+        it("should add chart instance to global instances array", () => {
+            expect.hasAssertions();
+
             const container = document.createElement("div");
 
             renderEventMessagesChart(container, {}, new Date());
@@ -674,7 +729,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             expect(window._chartjsInstances?.[0]).toBe(mockChart);
         });
 
-        test("should initialize global instances array if it doesn't exist", () => {
+        it("should initialize global instances array if it doesn't exist", () => {
+            expect.hasAssertions();
+
             delete getEventMessagesWindow()._chartjsInstances;
             const container = document.createElement("div");
 
@@ -684,7 +741,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             expect(window._chartjsInstances).not.toContain(undefined);
         });
 
-        test("should call updateChartAnimations with correct parameters", async () => {
+        it("should call updateChartAnimations with correct parameters", async () => {
+            expect.hasAssertions();
+
             const { updateChartAnimations } =
                 await import("../../../electron-app/utils/charts/core/updateChartAnimations.js");
             const container = document.createElement("div");
@@ -699,8 +758,10 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         });
     });
 
-    describe("Tooltip Configuration", () => {
-        test("should configure tooltip with theme colors", () => {
+    describe("tooltip configuration", () => {
+        it("should configure tooltip with theme colors", () => {
+            expect.hasAssertions();
+
             const container = document.createElement("div");
 
             renderEventMessagesChart(container, {}, new Date());
@@ -723,7 +784,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             });
         });
 
-        test("should format tooltip label correctly", () => {
+        it("should format tooltip label correctly", () => {
+            expect.hasAssertions();
+
             const container = document.createElement("div");
 
             renderEventMessagesChart(container, {}, new Date());
@@ -741,7 +804,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             expect(result).not.toBe("Event");
         });
 
-        test("should handle missing event in tooltip", () => {
+        it("should handle missing event in tooltip", () => {
+            expect.hasAssertions();
+
             const container = document.createElement("div");
 
             renderEventMessagesChart(container, {}, new Date());
@@ -759,7 +824,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             expect(result).not.toBe("Test Event");
         });
 
-        test("should handle invalid-input tooltip context", () => {
+        it("should handle invalid-input tooltip context", () => {
+            expect.hasAssertions();
+
             const container = document.createElement("div");
 
             renderEventMessagesChart(container, {}, new Date());
@@ -773,8 +840,10 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         });
     });
 
-    describe("Plugin Configuration", () => {
-        test("should include chartZoomResetPlugin and chartBackgroundColorPlugin", () => {
+    describe("plugin configuration", () => {
+        it("should include chartZoomResetPlugin and chartBackgroundColorPlugin", () => {
+            expect.hasAssertions();
+
             const container = document.createElement("div");
 
             renderEventMessagesChart(container, {}, new Date());
@@ -788,7 +857,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             expect(chartConfig.plugins).not.toContain("zoomReset");
         });
 
-        test("should configure chartBackgroundColorPlugin with theme colors", () => {
+        it("should configure chartBackgroundColorPlugin with theme colors", () => {
+            expect.hasAssertions();
+
             const container = document.createElement("div");
 
             renderEventMessagesChart(container, {}, new Date());
@@ -801,8 +872,10 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         });
     });
 
-    describe("Scale Configuration", () => {
-        test("should configure x-axis with time formatting callback", async () => {
+    describe("scale configuration", () => {
+        it("should configure x-axis with time formatting callback", async () => {
+            expect.hasAssertions();
+
             const { formatTime } =
                 await import("../../../electron-app/utils/formatting/formatters/formatTime.js");
             const container = document.createElement("div");
@@ -818,7 +891,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             expect(result).not.toBe("");
         });
 
-        test("should configure x-axis ticks with theme colors", () => {
+        it("should configure x-axis ticks with theme colors", () => {
+            expect.hasAssertions();
+
             const container = document.createElement("div");
 
             renderEventMessagesChart(container, {}, new Date());
@@ -831,18 +906,22 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         });
     });
 
-    describe("Error Handling", () => {
-        test("should handle Chart.js constructor throwing error", () => {
-            getEventMessagesWindow().Chart = vi.fn(function ChartErrorMock() {
-                throw new Error("Chart creation failed");
-            }) as ChartMock;
+    describe("error handling", () => {
+        it("should handle Chart.js constructor throwing error", () => {
+            expect.hasAssertions();
+
+            getEventMessagesWindow().Chart = vi.fn<ChartConstructor>(
+                function ChartErrorMock() {
+                    throw new Error("Chart creation failed");
+                }
+            ) as ChartMock;
 
             const container = document.createElement("div");
 
             expect(() =>
                 renderEventMessagesChart(container, {}, new Date())
             ).not.toThrow();
-            expect(window.Chart).toHaveBeenCalledTimes(1);
+            expect(window.Chart).toHaveBeenCalledOnce();
             expect(window._chartjsInstances).toStrictEqual([]);
             expect(mockConsoleError).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering event messages chart:",
@@ -850,7 +929,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             );
         });
 
-        test("should handle errors gracefully without throwing", async () => {
+        it("should handle errors gracefully without throwing", async () => {
+            expect.hasAssertions();
+
             const { getThemeConfig } =
                 await import("../../../electron-app/utils/theming/core/theme.js");
             (getThemeConfig as ThemeConfigMock).mockImplementation(() => {
@@ -874,8 +955,10 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         });
     });
 
-    describe("Edge Cases", () => {
-        test("should handle empty event messages array", () => {
+    describe("edge cases", () => {
+        it("should handle empty event messages array", () => {
+            expect.hasAssertions();
+
             window.globalData = { eventMesgs: [] };
             const container = document.createElement("div");
 
@@ -888,18 +971,25 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             expect(window.Chart).not.toHaveBeenCalled();
         });
 
-        test("should handle null Chart.js instance", () => {
+        it("should handle null Chart.js instance", () => {
+            expect.hasAssertions();
+
             // Mock Chart constructor to throw an error or simulate failure
-            const mockChartConstructor = vi.fn(function ChartErrorMock() {
-                throw new Error("Chart construction failed");
-            });
+            const mockChartConstructor = vi.fn<ChartConstructor>(
+                function ChartErrorMock() {
+                    throw new Error("Chart construction failed");
+                }
+            );
             getEventMessagesWindow().Chart = mockChartConstructor as ChartMock;
             const container = document.createElement("div");
 
             expect(() =>
                 renderEventMessagesChart(container, {}, new Date())
             ).not.toThrow();
-            expect(mockChartConstructor).toHaveBeenCalled();
+            expect(mockChartConstructor).toHaveBeenCalledWith(
+                expect.any(HTMLCanvasElement),
+                expect.any(Object)
+            );
             expect(window._chartjsInstances).toStrictEqual([]);
             expect(mockConsoleError).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering event messages chart:",
@@ -907,7 +997,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             );
         });
 
-        test("should handle events with all timestamp variations", () => {
+        it("should handle events with all timestamp variations", () => {
+            expect.hasAssertions();
+
             window.globalData = {
                 eventMesgs: [
                     {
@@ -927,7 +1019,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             expect(chartConfig.data.datasets[0].data).toHaveLength(3);
         });
 
-        test("should handle missing container gracefully", () => {
+        it("should handle missing container gracefully", () => {
+            expect.hasAssertions();
+
             expect(() =>
                 renderEventMessagesChart(
                     null as unknown as HTMLElement,
@@ -942,7 +1036,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             );
         });
 
-        test("should handle undefined options object", () => {
+        it("should handle undefined options object", () => {
+            expect.hasAssertions();
+
             const container = document.createElement("div");
 
             expect(() =>
@@ -956,11 +1052,13 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
                 chartCalls: 1,
                 childCount: 1,
             });
-            expect(window.Chart).toHaveBeenCalledTimes(1);
+            expect(window.Chart).toHaveBeenCalledOnce();
             expect(window._chartjsInstances).toStrictEqual([mockChart]);
         });
 
-        test("should handle very large timestamp values", () => {
+        it("should handle very large timestamp values", () => {
+            expect.hasAssertions();
+
             window.globalData = {
                 eventMesgs: [
                     {
