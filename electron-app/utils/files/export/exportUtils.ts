@@ -2864,11 +2864,11 @@ body {
                     );
                     if (
                         getErrorMessage(error).includes(
-                            "Gyazo access token not configured"
+                            "Gyazo authentication required"
                         )
                     ) {
                         showNotification(
-                            "Gyazo access token not configured. Please update the exportUtils.uploadToGyazo function with your Gyazo access token.",
+                            "Gyazo authentication is required. Open Gyazo Settings, connect your account, and try again.",
                             "error"
                         );
                     } else {
@@ -2982,11 +2982,11 @@ body {
                     );
                     if (
                         getErrorMessage(error).includes(
-                            "Gyazo access token not configured"
+                            "Gyazo authentication required"
                         )
                     ) {
                         showNotification(
-                            "Gyazo access token not configured. Please update the exportUtils.uploadToGyazo function with your Gyazo access token.",
+                            "Gyazo authentication is required. Open Gyazo Settings, connect your account, and try again.",
                             "error"
                         );
                     } else {
@@ -3473,7 +3473,7 @@ body {
             clientSecretLabel
         );
         updateStep.append(
-            "Update the exportUtils.gyazoConfig in the source code:"
+            "Open Gyazo Settings, expand Advanced: Use Custom Credentials, then save both values:"
         );
         configExample.style.cssText = `
             background: var(--color-glass);
@@ -3484,13 +3484,11 @@ body {
             overflow-x: auto;
             color: var(--color-fg);
         `;
-        configExample.textContent = `gyazoConfig: {
-    clientId: 'YOUR_ACTUAL_CLIENT_ID',
-    clientSecret: 'YOUR_ACTUAL_CLIENT_SECRET',
-    // ... rest of config
-}`;
+        configExample.textContent = `Client ID: YOUR_ACTUAL_CLIENT_ID
+Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
         updateStep.append(configExample);
-        restartStep.textContent = "Restart the application";
+        restartStep.textContent =
+            "Disconnect and reconnect the Gyazo account after changing credentials";
         steps.append(visitStep, createStep, copyStep, updateStep, restartStep);
         securityNote.style.cssText = `
             background: var(--color-warning-bg);
