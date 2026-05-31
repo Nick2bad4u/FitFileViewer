@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { setupListeners } from "../../../../electron-app/utils/app/events.js";
+import type { SetupListenersOptions } from "../../../../electron-app/utils/app/lifecycle/listeners.js";
 
 const keyboardShortcutsModalMock = vi.hoisted(() => ({
     showKeyboardShortcutsModal: vi.fn<() => void>(),
@@ -14,15 +15,55 @@ vi.mock(
     })
 );
 
+type CopyTableAsCsv = (options: {
+    container: Element;
+    data: unknown;
+}) => string;
+type IpcHandler = (...args: unknown[]) => unknown;
+type LoadingCallback = SetupListenersOptions["setLoading"];
+type NotificationCallback = SetupListenersOptions["showNotification"];
+type ShowFitData = (data: unknown, filePath: string) => void;
+type ShowKeyboardShortcutsModal = () => void;
+type UpdateNotificationCallback =
+    SetupListenersOptions["showUpdateNotification"];
+
+type TestElectronAPI = {
+    addRecentFile: ReturnType<
+        typeof vi.fn<(filePath: string) => Promise<void>>
+    >;
+    onIpc: ReturnType<
+        typeof vi.fn<(channel: string, handler: IpcHandler) => () => void>
+    >;
+    onMenuOpenFile: ReturnType<typeof vi.fn<(handler: IpcHandler) => void>>;
+    onOpenRecentFile: ReturnType<typeof vi.fn<(handler: IpcHandler) => void>>;
+    onUpdateEvent: ReturnType<
+        typeof vi.fn<(event: string, handler: IpcHandler) => void>
+    >;
+    parseFitFile: ReturnType<
+        typeof vi.fn<(buffer: ArrayBuffer) => Promise<unknown>>
+    >;
+    readFile: ReturnType<
+        typeof vi.fn<(filePath: string) => Promise<ArrayBuffer>>
+    >;
+    recentFiles: ReturnType<typeof vi.fn<() => Promise<string[]>>>;
+    send: ReturnType<typeof vi.fn<(channel: string) => void>>;
+};
+
 type TestGlobals = typeof globalThis & {
-    electronAPI?: any;
-    showFitData?: ReturnType<typeof vi.fn>;
-    sendFitFileToAltFitReader?: ReturnType<typeof vi.fn>;
-    copyTableAsCSV?: ReturnType<typeof vi.fn>;
-    ChartUpdater?: { updateCharts: ReturnType<typeof vi.fn> };
-    globalData?: any;
-    loadedFitFiles?: any;
-    showKeyboardShortcutsModal?: ReturnType<typeof vi.fn>;
+    ChartUpdater?: {
+        updateCharts: ReturnType<typeof vi.fn<(reason?: string) => unknown>>;
+    };
+    copyTableAsCSV?: ReturnType<typeof vi.fn<CopyTableAsCsv>>;
+    electronAPI?: TestElectronAPI;
+    globalData?: unknown;
+    loadedFitFiles?: unknown[];
+    sendFitFileToAltFitReader?: ReturnType<
+        typeof vi.fn<(arrayBuffer: ArrayBuffer) => unknown>
+    >;
+    showFitData?: ReturnType<typeof vi.fn<ShowFitData>>;
+    showKeyboardShortcutsModal?: ReturnType<
+        typeof vi.fn<ShowKeyboardShortcutsModal>
+    >;
 };
 
 const globalAny = globalThis as TestGlobals;
@@ -38,7 +79,7 @@ function requireElement<T extends Element>(
     return element;
 }
 
-function requireHandler<T extends (...args: any[]) => unknown>(
+function requireHandler<T extends IpcHandler>(
     handler: T | null | undefined,
     channel: string
 ): T {
@@ -49,19 +90,36 @@ function requireHandler<T extends (...args: any[]) => unknown>(
     return handler;
 }
 
-describe("setupListeners", () => {
+function defineGlobalValue<K extends keyof TestGlobals>(
+    key: K,
+    value: TestGlobals[K]
+): void {
+    Object.defineProperty(globalAny, key, {
+        configurable: true,
+        value,
+        writable: true,
+    });
+}
+
+describe(setupListeners, () => {
     let openButton: HTMLButtonElement;
     let isOpeningFileRef: { current: boolean };
-    let setLoading: ReturnType<typeof vi.fn>;
-    let showNotification: ReturnType<typeof vi.fn>;
-    let handleOpenFile: ReturnType<typeof vi.fn>;
-    let showUpdateNotification: ReturnType<typeof vi.fn>;
-    let showAboutModal: ReturnType<typeof vi.fn>;
-    let electronAPI: any;
-    let ipcHandlers: Map<string, (...args: any[]) => unknown>;
-    let menuOpenHandler: ((...args: any[]) => unknown) | null;
-    let recentOpenHandler: ((...args: any[]) => unknown) | null;
-    let updateHandlers: Map<string, (...args: any[]) => unknown>;
+    let setLoading: ReturnType<typeof vi.fn<LoadingCallback>>;
+    let showNotification: ReturnType<typeof vi.fn<NotificationCallback>>;
+    let handleOpenFile: ReturnType<
+        typeof vi.fn<SetupListenersOptions["handleOpenFile"]>
+    >;
+    let showUpdateNotification: ReturnType<
+        typeof vi.fn<UpdateNotificationCallback>
+    >;
+    let showAboutModal: ReturnType<
+        typeof vi.fn<SetupListenersOptions["showAboutModal"]>
+    >;
+    let electronAPI: TestElectronAPI;
+    let ipcHandlers: Map<string, IpcHandler>;
+    let menuOpenHandler: IpcHandler | null;
+    let recentOpenHandler: IpcHandler | null;
+    let updateHandlers: Map<string, IpcHandler>;
 
     beforeEach(() => {
         vi.useRealTimers();
@@ -73,36 +131,40 @@ describe("setupListeners", () => {
         document.body.replaceChildren(open, contentSummary);
         openButton = document.getElementById("open") as HTMLButtonElement;
         isOpeningFileRef = { current: false };
-        setLoading = vi.fn();
-        showNotification = vi.fn();
-        handleOpenFile = vi.fn();
-        showUpdateNotification = vi.fn();
-        showAboutModal = vi.fn();
+        setLoading = vi.fn<LoadingCallback>();
+        showNotification = vi.fn<NotificationCallback>();
+        handleOpenFile = vi.fn<SetupListenersOptions["handleOpenFile"]>();
+        showUpdateNotification = vi.fn<UpdateNotificationCallback>();
+        showAboutModal = vi.fn<SetupListenersOptions["showAboutModal"]>();
         ipcHandlers = new Map();
         updateHandlers = new Map();
         menuOpenHandler = null;
         recentOpenHandler = null;
 
         electronAPI = {
-            onIpc: vi.fn(
-                (channel: string, handler: (...args: any[]) => unknown) => {
+            onIpc: vi.fn<(channel: string, handler: IpcHandler) => () => void>(
+                (channel, handler) => {
                     ipcHandlers.set(channel, handler);
-                    return () => ipcHandlers.delete(channel);
+                    return () => {
+                        ipcHandlers.delete(channel);
+                    };
                 }
             ),
-            send: vi.fn(),
-            recentFiles: vi.fn(),
-            readFile: vi.fn(),
-            parseFitFile: vi.fn(),
-            addRecentFile: vi.fn(),
-            onMenuOpenFile: vi.fn((handler) => {
+            send: vi.fn<(channel: string) => void>(),
+            recentFiles: vi.fn<() => Promise<string[]>>(),
+            readFile: vi.fn<(filePath: string) => Promise<ArrayBuffer>>(),
+            parseFitFile: vi.fn<(buffer: ArrayBuffer) => Promise<unknown>>(),
+            addRecentFile: vi.fn<(filePath: string) => Promise<void>>(),
+            onMenuOpenFile: vi.fn<(handler: IpcHandler) => void>((handler) => {
                 menuOpenHandler = handler;
             }),
-            onOpenRecentFile: vi.fn((handler) => {
-                recentOpenHandler = handler;
-            }),
-            onUpdateEvent: vi.fn(
-                (event: string, handler: (...args: any[]) => unknown) => {
+            onOpenRecentFile: vi.fn<(handler: IpcHandler) => void>(
+                (handler) => {
+                    recentOpenHandler = handler;
+                }
+            ),
+            onUpdateEvent: vi.fn<(event: string, handler: IpcHandler) => void>(
+                (event, handler) => {
                     updateHandlers.set(event, handler);
                 }
             ),
@@ -110,14 +172,19 @@ describe("setupListeners", () => {
 
         delete (globalAny as { __ffvMenuForwardRegistry?: Set<string> })
             .__ffvMenuForwardRegistry;
-        globalAny.electronAPI = electronAPI;
-        globalAny.showFitData = vi.fn();
-        globalAny.sendFitFileToAltFitReader = vi.fn();
-        globalAny.copyTableAsCSV = vi.fn();
-        globalAny.ChartUpdater = { updateCharts: vi.fn() };
-        globalAny.globalData = { recordMesgs: [] };
+        defineGlobalValue("electronAPI", electronAPI);
+        defineGlobalValue("showFitData", vi.fn<ShowFitData>());
+        defineGlobalValue(
+            "sendFitFileToAltFitReader",
+            vi.fn<(arrayBuffer: ArrayBuffer) => unknown>()
+        );
+        defineGlobalValue("copyTableAsCSV", vi.fn<CopyTableAsCsv>());
+        defineGlobalValue("ChartUpdater", {
+            updateCharts: vi.fn<(reason?: string) => unknown>(),
+        });
+        defineGlobalValue("globalData", { recordMesgs: [] });
         keyboardShortcutsModalMock.showKeyboardShortcutsModal.mockReset();
-        globalAny.loadedFitFiles = [];
+        defineGlobalValue("loadedFitFiles", []);
 
         setupListeners({
             openFileBtn: openButton,
@@ -145,6 +212,7 @@ describe("setupListeners", () => {
     });
 
     it("delegates open file clicks to the provided handler", () => {
+        expect.hasAssertions();
         handleOpenFile.mockImplementationOnce(({ openFileBtn }) => {
             openFileBtn.dataset.openHandled = "true";
         });
@@ -160,8 +228,7 @@ describe("setupListeners", () => {
             dispatchResult: true,
         });
         expect(openButton.dataset.openHandled).toBe("true");
-        expect(handleOpenFile).toHaveBeenCalledOnce();
-        expect(handleOpenFile).toHaveBeenCalledWith(
+        expect(handleOpenFile).toHaveBeenCalledExactlyOnceWith(
             expect.objectContaining({
                 isOpeningFileRef,
                 openFileBtn: openButton,
@@ -170,6 +237,7 @@ describe("setupListeners", () => {
     });
 
     it("shows info notification when no recent files exist", async () => {
+        expect.hasAssertions();
         electronAPI.recentFiles.mockResolvedValueOnce([]);
         const event = new MouseEvent("contextmenu", {
             bubbles: true,
@@ -195,6 +263,7 @@ describe("setupListeners", () => {
     });
 
     it("loads and opens a recent file from the context menu", async () => {
+        expect.hasAssertions();
         electronAPI.recentFiles.mockResolvedValueOnce(["C:/rides/demo.fit"]);
         const arrayBuffer = new ArrayBuffer(16);
         electronAPI.readFile.mockResolvedValueOnce(arrayBuffer);
@@ -231,7 +300,12 @@ describe("setupListeners", () => {
         );
 
         // Wait a tick for the async click handler to finish.
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await new Promise<void>((resolve) => {
+            const timeout = setTimeout(() => {
+                clearTimeout(timeout);
+                resolve();
+            }, 0);
+        });
 
         expect(setLoading).toHaveBeenCalledWith(true);
         expect(setLoading).toHaveBeenCalledWith(false);
@@ -250,6 +324,7 @@ describe("setupListeners", () => {
     });
 
     it("supports keyboard navigation and outside interactions in the recent files menu", async () => {
+        expect.hasAssertions();
         vi.useFakeTimers();
         electronAPI.recentFiles.mockResolvedValueOnce([
             "C:/rides/a.fit",
@@ -331,6 +406,7 @@ describe("setupListeners", () => {
     });
 
     it("handles menu forwarders by relaying to send", () => {
+        expect.hasAssertions();
         const saveAsHandler = requireHandler(
             ipcHandlers.get("menu-save-as"),
             "menu-save-as"
@@ -349,6 +425,7 @@ describe("setupListeners", () => {
     });
 
     it("responds to menu open recent file requests", async () => {
+        expect.hasAssertions();
         const handler = requireHandler(recentOpenHandler, "open recent file");
         electronAPI.readFile.mockResolvedValueOnce(new ArrayBuffer(8));
         electronAPI.parseFitFile.mockResolvedValueOnce({ recordMesgs: [] });
@@ -367,9 +444,11 @@ describe("setupListeners", () => {
     });
 
     it("exports CSV files using copyTableAsCSV", async () => {
+        expect.hasAssertions();
         vi.useFakeTimers();
         const csv = "header\nvalue";
-        globalAny.copyTableAsCSV = vi.fn(() => csv);
+        const copyTableAsCSV = vi.fn<CopyTableAsCsv>(() => csv);
+        defineGlobalValue("copyTableAsCSV", copyTableAsCSV);
         const summaryContainer = requireElement(
             document.getElementById("content-summary"),
             "Content summary"
@@ -412,6 +491,7 @@ describe("setupListeners", () => {
     });
 
     it("warns when GPX export has no data", async () => {
+        expect.hasAssertions();
         const exportHandler = requireHandler(
             ipcHandlers.get("export-file"),
             "export-file"
@@ -432,6 +512,7 @@ describe("setupListeners", () => {
     });
 
     it("builds GPX export when records exist", async () => {
+        expect.hasAssertions();
         vi.useFakeTimers();
         const exportHandler = requireHandler(
             ipcHandlers.get("export-file"),
@@ -475,6 +556,7 @@ describe("setupListeners", () => {
     });
 
     it("shows update notifications for auto-updater events", () => {
+        expect.hasAssertions();
         const events = [
             "update-checking",
             "update-available",
@@ -523,6 +605,7 @@ describe("setupListeners", () => {
     });
 
     it("reports updater progress when percent data is missing", () => {
+        expect.hasAssertions();
         const handler = requireHandler(
             updateHandlers.get("update-download-progress"),
             "update-download-progress"
@@ -539,6 +622,7 @@ describe("setupListeners", () => {
     });
 
     it("updates accessibility classes for font and contrast modes", () => {
+        expect.hasAssertions();
         const setFont = ipcHandlers.get("set-font-size");
         const setContrast = ipcHandlers.get("set-high-contrast");
         document.body.className = "";
@@ -560,10 +644,11 @@ describe("setupListeners", () => {
     });
 
     it("forwards print and update menu IPC events", () => {
+        expect.hasAssertions();
         const printSpy = vi.spyOn(window, "print").mockImplementation(() => {});
         const printHandler = ipcHandlers.get("menu-print");
         printHandler?.();
-        expect(printSpy).toHaveBeenCalled();
+        expect(printSpy).toHaveBeenCalledWith();
 
         const checkUpdatesHandler = requireHandler(
             ipcHandlers.get("menu-check-for-updates"),
@@ -575,6 +660,7 @@ describe("setupListeners", () => {
     });
 
     it("routes show-notification IPC messages through the notifier", () => {
+        expect.hasAssertions();
         const handler = requireHandler(
             ipcHandlers.get("show-notification"),
             "show-notification"
@@ -582,15 +668,15 @@ describe("setupListeners", () => {
         expect([...ipcHandlers.keys()]).toContain("show-notification");
         handler(undefined, "Hello from IPC");
         handler(undefined, " ");
-        expect(showNotification).toHaveBeenCalledWith(
+        expect(showNotification).toHaveBeenCalledExactlyOnceWith(
             "Hello from IPC",
             "info",
             3000
         );
-        expect(showNotification).toHaveBeenCalledTimes(1);
     });
 
     it("loads keyboard shortcuts module and invokes the modal presenter when available", async () => {
+        expect.hasAssertions();
         delete globalAny.showKeyboardShortcutsModal;
 
         const handler = ipcHandlers.get("menu-keyboard-shortcuts");
@@ -605,6 +691,7 @@ describe("setupListeners", () => {
     });
 
     it("does not use script tag injection for keyboard shortcuts", async () => {
+        expect.hasAssertions();
         delete globalAny.showKeyboardShortcutsModal;
         const shortcutsHandler = requireHandler(
             ipcHandlers.get("menu-keyboard-shortcuts"),
@@ -635,9 +722,16 @@ describe("setupListeners", () => {
     });
 
     it("invokes showKeyboardShortcutsModal when script already present", () => {
-        globalAny.showKeyboardShortcutsModal = vi.fn(() => {
-            document.body.dataset.shortcutsModal = "opened";
-        });
+        expect.hasAssertions();
+        const showKeyboardShortcutsModal = vi.fn<ShowKeyboardShortcutsModal>(
+            () => {
+                document.body.dataset.shortcutsModal = "opened";
+            }
+        );
+        defineGlobalValue(
+            "showKeyboardShortcutsModal",
+            showKeyboardShortcutsModal
+        );
         const handler = requireHandler(
             ipcHandlers.get("menu-keyboard-shortcuts"),
             "menu-keyboard-shortcuts"
