@@ -58,6 +58,7 @@ type WorkspacesModule = {
     rootPrettierConfigPath: string;
     rootReleaseDistPath: string;
     rootReleaseDistRelativePath: (...segments: string[]) => string;
+    rootRuntimeTsconfigAbsolutePath: string;
     rootRuntimeTsconfigPath: string;
     rootStaticAssetsPath: string;
     rootStylelintConfigPath: string;
@@ -157,7 +158,7 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes root config paths", async () => {
-        expect.assertions(16);
+        expect.assertions(17);
 
         const workspaces = await importWorkspaces();
 
@@ -183,6 +184,9 @@ describe("workspace path helpers", () => {
         expect(workspaces.rootPrettierConfigPath).toBe("prettier.config.mjs");
         expect(workspaces.rootRuntimeTsconfigPath).toBe(
             "tsconfig.runtime.json"
+        );
+        expect(workspaces.rootRuntimeTsconfigAbsolutePath).toBe(
+            path.join(process.cwd(), "tsconfig.runtime.json")
         );
         expect(workspaces.rootStylelintConfigPath).toBe("stylelint.config.mjs");
         expect(workspaces.rootTypedocConfigPath).toBe("typedoc.json");

@@ -27,6 +27,9 @@ export const rootFlatpakZipPath = `${rootFlatpakBundlePath}.zip`;
 export const rootPrettierConfigPath = "prettier.config.mjs";
 export const rootReleaseDistPath = "release-dist";
 export const rootRuntimeTsconfigPath = "tsconfig.runtime.json";
+export const rootRuntimeTsconfigAbsolutePath = repositoryPath(
+    rootRuntimeTsconfigPath
+);
 export const rootStaticAssetsPath = "static";
 export const rootStylelintConfigPath = "stylelint.config.mjs";
 export const rootIntegrationTestsPath = path.posix.join("tests", "integration");

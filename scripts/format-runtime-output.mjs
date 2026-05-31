@@ -4,12 +4,11 @@ import { pathToFileURL } from "node:url";
 import prettier from "prettier";
 
 import {
-    repositoryPath,
     repositoryRoot as defaultRepositoryRoot,
-    rootRuntimeTsconfigPath,
+    rootRuntimeTsconfigAbsolutePath,
 } from "./lib/workspaces.mjs";
 
-export const runtimeTsconfigPath = repositoryPath(rootRuntimeTsconfigPath);
+export const runtimeTsconfigPath = rootRuntimeTsconfigAbsolutePath;
 
 export function resolveOutputPath(
     tsconfig,

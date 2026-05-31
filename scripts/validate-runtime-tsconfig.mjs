@@ -5,13 +5,11 @@ import { pathToFileURL } from "node:url";
 
 import {
     repositoryRoot as defaultRepositoryRoot,
+    rootRuntimeTsconfigAbsolutePath,
     rootRuntimeTsconfigPath,
 } from "./lib/workspaces.mjs";
 
-export const runtimeTsconfigPath = path.join(
-    defaultRepositoryRoot,
-    rootRuntimeTsconfigPath
-);
+export const runtimeTsconfigPath = rootRuntimeTsconfigAbsolutePath;
 
 export function readRuntimeTsconfig({
     fileSystem = fs,
