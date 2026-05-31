@@ -49,6 +49,8 @@ interface RootStateSnapshot {
     };
 }
 
+type UnknownRecord = Record<string, unknown>;
+
 interface StateHistorySnapshot {
     newValue: unknown;
     oldValue: unknown;
@@ -102,9 +104,16 @@ describe("masterStateManager introspection", () => {
                 theme: "system",
                 unloadButtonVisible: false,
             });
-            expect(
-                masterStateManager.getState("missing.branch")
-            ).toBeUndefined();
+            expect({
+                hasMissingRoot: Object.hasOwn(
+                    initialState as unknown as UnknownRecord,
+                    "missing"
+                ),
+                missingBranch: masterStateManager.getState("missing.branch"),
+            }).toStrictEqual({
+                hasMissingRoot: false,
+                missingBranch: undefined,
+            });
         });
 
         it("should provide getHistory method", () => {
@@ -146,9 +155,17 @@ describe("masterStateManager introspection", () => {
             setState("test.value", "hello world");
 
             // Get it back through masterStateManager
-            const value = masterStateManager.getState("test.value");
-            expect(value).toBe("hello world");
-            expect(masterStateManager.getState("test.missing")).toBeUndefined();
+            const testState = masterStateManager.getState(
+                "test"
+            ) as UnknownRecord;
+            expect(testState).not.toHaveProperty("missing");
+            expect({
+                missingValue: masterStateManager.getState("test.missing"),
+                value: masterStateManager.getState("test.value"),
+            }).toStrictEqual({
+                missingValue: undefined,
+                value: "hello world",
+            });
         });
 
         it("should track state history through masterStateManager", () => {
@@ -240,10 +257,20 @@ describe("masterStateManager introspection", () => {
 
             // Clean up
             unsubscribe();
-            expect(
-                (masterStateManager.getSubscriptions() as SubscriptionSnapshot)
-                    .subscriptionDetails["test.subscription"]
-            ).toBeUndefined();
+            const subscriptionsAfterCleanup =
+                masterStateManager.getSubscriptions() as SubscriptionSnapshot;
+            expect({
+                hasSubscriptionDetail: Object.hasOwn(
+                    subscriptionsAfterCleanup.subscriptionDetails,
+                    "test.subscription"
+                ),
+                paths: subscriptionsAfterCleanup.paths,
+                totalListeners: subscriptionsAfterCleanup.totalListeners,
+            }).toStrictEqual({
+                hasSubscriptionDetail: false,
+                paths: [],
+                totalListeners: 0,
+            });
         });
     });
 
@@ -267,8 +294,8 @@ describe("masterStateManager introspection", () => {
                 },
             });
             expect(
-                (status as InitializationStatusSnapshot).systemState.missing
-            ).toBeUndefined();
+                (status as InitializationStatusSnapshot).systemState
+            ).not.toHaveProperty("missing");
         });
     });
 });

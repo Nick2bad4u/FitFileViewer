@@ -326,12 +326,16 @@ describe("mapDrawLaps", () => {
                 getLapNumForIdx: mockFn(),
             });
 
-            expect((globalThis as any)._overlayPolylines).toEqual({
-                existing: "data",
+            expect({
+                mainPolylineBounds: (globalThis as any).window
+                    ._mainPolylineOriginalBounds,
+                overlayPolylines: (globalThis as any)._overlayPolylines,
+            }).toStrictEqual({
+                mainPolylineBounds: undefined,
+                overlayPolylines: {
+                    existing: "data",
+                },
             });
-            expect(
-                (globalThis as any).window._mainPolylineOriginalBounds
-            ).toBeUndefined();
         });
 
         it("should not remove non-activity layers from map", () => {

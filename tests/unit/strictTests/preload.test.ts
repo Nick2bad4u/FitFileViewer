@@ -224,7 +224,7 @@ describe("preload.js electronAPI exposure and behavior", () => {
             // no contextBridge/ipcRenderer provided
         });
         await importPreloadFresh();
-        expect((window as PreloadTestWindow).electronAPI).toBeUndefined();
+        expect(window).not.toHaveProperty("electronAPI");
         expect(errors.join("\n")).toMatch(
             /API validation failed - not exposing/
         );

@@ -303,7 +303,15 @@ describe("preload.js dist bridge behavior", () => {
             expect(() =>
                 runPreloadScript(mockRequire, mockProcess, console)
             ).not.toThrow();
-            expect(exposedAPI).toBeUndefined();
+            expect({
+                exposedAPI,
+                hasContextBridge: mockContextBridge !== undefined,
+                listenerRegistrations: mockIpcRenderer.on.mock.calls.length,
+            }).toStrictEqual({
+                exposedAPI: undefined,
+                hasContextBridge: false,
+                listenerRegistrations: 0,
+            });
             expect(mockProcess.once).toHaveBeenCalledWith(
                 "beforeExit",
                 expect.any(Function)
@@ -1015,7 +1023,13 @@ describe("preload.js dist bridge behavior", () => {
                 "not-a-function"
             );
 
-            expect(unsubscribe).toBeUndefined();
+            expect({
+                listenerRegistrations: mockIpcRenderer.on.mock.calls.length,
+                unsubscribe,
+            }).toStrictEqual({
+                listenerRegistrations: 0,
+                unsubscribe: undefined,
+            });
             expect(mockIpcRenderer.on).not.toHaveBeenCalled();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] onUpdateEvent: callback must be a function"
@@ -1029,7 +1043,13 @@ describe("preload.js dist bridge behavior", () => {
                 vi.fn<IpcListener>()
             );
 
-            expect(unsubscribe).toBeUndefined();
+            expect({
+                listenerRegistrations: mockIpcRenderer.on.mock.calls.length,
+                unsubscribe,
+            }).toStrictEqual({
+                listenerRegistrations: 0,
+                unsubscribe: undefined,
+            });
             expect(mockIpcRenderer.on).not.toHaveBeenCalled();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] onUpdateEvent: eventName must be a string"
@@ -1060,7 +1080,13 @@ describe("preload.js dist bridge behavior", () => {
             expect.assertions(3);
             const unsubscribe = exposedAPI.onIpc(123, vi.fn<IpcListener>());
 
-            expect(unsubscribe).toBeUndefined();
+            expect({
+                listenerRegistrations: mockIpcRenderer.on.mock.calls.length,
+                unsubscribe,
+            }).toStrictEqual({
+                listenerRegistrations: 0,
+                unsubscribe: undefined,
+            });
             expect(mockIpcRenderer.on).not.toHaveBeenCalled();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] onIpc: channel must be a string"
@@ -1074,7 +1100,13 @@ describe("preload.js dist bridge behavior", () => {
                 "not-a-function"
             );
 
-            expect(unsubscribe).toBeUndefined();
+            expect({
+                listenerRegistrations: mockIpcRenderer.on.mock.calls.length,
+                unsubscribe,
+            }).toStrictEqual({
+                listenerRegistrations: 0,
+                unsubscribe: undefined,
+            });
             expect(mockIpcRenderer.on).not.toHaveBeenCalled();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] onIpc: callback must be a function"

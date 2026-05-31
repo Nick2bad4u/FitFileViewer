@@ -36,6 +36,10 @@ function getRootState(): AppStateShape {
     return getState<AppStateShape>("") as AppStateShape;
 }
 
+function getRootStateRecord(): Record<string, unknown> {
+    return getState<Record<string, unknown>>("") as Record<string, unknown>;
+}
+
 describe("state manager core", () => {
     it("sets and gets simple state values", () => {
         expect.assertions(1);
@@ -62,19 +66,36 @@ describe("state manager core", () => {
 
         resetStateManager();
 
-        expect(getState("nonexistent.path")).toBeUndefined();
+        expect({
+            hasNonexistentRoot: Object.hasOwn(
+                getRootStateRecord(),
+                "nonexistent"
+            ),
+            missingValue: getState("nonexistent.path"),
+        }).toStrictEqual({
+            hasNonexistentRoot: false,
+            missingValue: undefined,
+        });
     });
 
     it("handles null and undefined values", () => {
-        expect.assertions(2);
+        expect.assertions(1);
 
         resetStateManager();
 
         setState("test.null", null);
         setState("test.undefined", undefined);
 
-        expect(getState("test.null")).toBeNull();
-        expect(getState("test.undefined")).toBeUndefined();
+        const testState = getRootStateRecord().test as Record<string, unknown>;
+        expect({
+            hasUndefinedKey: Object.hasOwn(testState, "undefined"),
+            nullValue: getState("test.null"),
+            undefinedValue: getState("test.undefined"),
+        }).toStrictEqual({
+            hasUndefinedKey: true,
+            nullValue: null,
+            undefinedValue: undefined,
+        });
     });
 
     it("stores complex objects by reference", () => {
@@ -476,11 +497,25 @@ describe("state manager core", () => {
 
         resetState("reset.test.nested");
 
-        expect(getState("reset.test.nested")).toBeUndefined();
+        const resetStateBranch = getRootStateRecord().reset as
+            | Record<string, unknown>
+            | undefined;
+        const resetTestBranch = resetStateBranch?.test as
+            | Record<string, unknown>
+            | undefined;
+        expect({
+            hasNestedKey: resetTestBranch
+                ? Object.hasOwn(resetTestBranch, "nested")
+                : false,
+            resetValue: getState("reset.test.nested"),
+        }).toStrictEqual({
+            hasNestedKey: false,
+            resetValue: undefined,
+        });
     });
 
     it("resets the full state to defaults", () => {
-        expect.assertions(3);
+        expect.assertions(2);
 
         resetStateManager();
 
@@ -490,8 +525,15 @@ describe("state manager core", () => {
 
         resetState();
 
-        expect(getState("reset.global")).toBeUndefined();
-        expect(getRootState().ui.activeTab).toBe("summary");
+        expect({
+            activeTab: getRootState().ui.activeTab,
+            hasResetRoot: Object.hasOwn(getRootStateRecord(), "reset"),
+            resetValue: getState("reset.global"),
+        }).toStrictEqual({
+            activeTab: "summary",
+            hasResetRoot: false,
+            resetValue: undefined,
+        });
     });
 
     it("returns the root state for empty getState paths", () => {
@@ -507,7 +549,7 @@ describe("state manager core", () => {
     });
 
     it("warns and skips invalid final keys", () => {
-        expect.assertions(3);
+        expect.assertions(2);
 
         resetStateManager();
 
@@ -516,9 +558,19 @@ describe("state manager core", () => {
         setState("test.", "value");
         setState("test..invalid", "value");
 
-        expect(getState("test.")).toBeUndefined();
-        expect(getState("test..invalid")).toBeUndefined();
-        expect(consoleSpy).toHaveBeenCalledWith(
+        const testState = getRootStateRecord().test as Record<string, unknown>;
+        expect({
+            compressedInvalidValue: getState("test.invalid"),
+            emptyFinalValue: getState("test."),
+            emptySegmentValue: getState("test..invalid"),
+            hasCompressedInvalidKey: Object.hasOwn(testState, "invalid"),
+        }).toStrictEqual({
+            compressedInvalidValue: "value",
+            emptyFinalValue: undefined,
+            emptySegmentValue: undefined,
+            hasCompressedInvalidKey: true,
+        });
+        expect(consoleSpy).toHaveBeenCalledExactlyOnceWith(
             "[StateManager] Invalid final key for path",
             "test."
         );
@@ -582,26 +634,43 @@ describe("state manager core", () => {
     });
 
     it("returns undefined when traversal hits null or undefined branches", () => {
-        expect.assertions(2);
+        expect.assertions(1);
 
         resetStateManager();
 
         setState("nullpath", null);
         setState("undefpath", undefined);
 
-        expect(getState("nullpath.subpath")).toBeUndefined();
-        expect(getState("undefpath.subpath")).toBeUndefined();
+        expect({
+            hasUndefParent: Object.hasOwn(getRootStateRecord(), "undefpath"),
+            nullParent: getState("nullpath"),
+            nullSubpath: getState("nullpath.subpath"),
+            undefinedSubpath: getState("undefpath.subpath"),
+        }).toStrictEqual({
+            hasUndefParent: true,
+            nullParent: null,
+            nullSubpath: undefined,
+            undefinedSubpath: undefined,
+        });
     });
 
     it("handles defensive key checks for empty segments", () => {
-        expect.assertions(2);
+        expect.assertions(1);
 
         resetStateManager();
 
         setState("test..empty", "value");
 
-        expect(getState("test..empty")).toBeUndefined();
-        expect(getState("test.empty")).toBe("value");
+        const testState = getRootStateRecord().test as Record<string, unknown>;
+        expect({
+            compressedEmptyValue: getState("test.empty"),
+            emptySegmentValue: getState("test..empty"),
+            hasCompressedEmptyKey: Object.hasOwn(testState, "empty"),
+        }).toStrictEqual({
+            compressedEmptyValue: "value",
+            emptySegmentValue: undefined,
+            hasCompressedEmptyKey: true,
+        });
     });
 
     it("ignores reset requests for non-existent paths", () => {
