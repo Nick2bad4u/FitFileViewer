@@ -4,6 +4,13 @@ import {
     initializeChartStateManagement,
     refreshChartsIfNeeded,
 } from "../../../../../electron-app/utils/charts/core/renderChartStateManagement.js";
+import type { MiddlewareDefinition } from "../../../../../electron-app/utils/state/core/stateMiddleware.js";
+
+type ChartSummaryState = {
+    hasValidData: boolean;
+    isRendered: boolean;
+    renderableFields: string[];
+};
 
 describe("renderChartStateManagement", () => {
     afterEach(() => {
@@ -11,6 +18,8 @@ describe("renderChartStateManagement", () => {
     });
 
     it("initializes charts state, computed values, and render middleware", async () => {
+        expect.hasAssertions();
+
         const consoleLog = vi
             .spyOn(console, "log")
             .mockImplementation(() => {});
@@ -18,15 +27,17 @@ describe("renderChartStateManagement", () => {
             .spyOn(console, "error")
             .mockImplementation(() => {});
         const computedValues = new Map<string, () => unknown>();
-        const register = vi.fn();
-        const notify = vi.fn();
-        const updateState = vi.fn();
-        const getChartSummaryState = vi.fn(() => ({
+        const register =
+            vi.fn<(key: string, middleware: MiddlewareDefinition) => void>();
+        const notify = vi.fn<(message: string, type: string) => void>();
+        const updateState =
+            vi.fn<(path: string, value: unknown, options: unknown) => void>();
+        const getChartSummaryState = vi.fn<() => ChartSummaryState>(() => ({
             hasValidData: true,
             isRendered: false,
             renderableFields: ["heart_rate", "power"],
         }));
-        const getState = vi.fn((path: string) => {
+        const getState = vi.fn<(path: string) => unknown>((path) => {
             if (path === "globalData") {
                 return {
                     recordMesgs: [{ heart_rate: 120 }],
@@ -39,7 +50,9 @@ describe("renderChartStateManagement", () => {
         initializeChartStateManagement({
             getChartSummaryState,
             getComputedStateManager: () => ({
-                define: (key, compute) => computedValues.set(key, compute),
+                define: (key, compute) => {
+                    computedValues.set(key, compute);
+                },
             }),
             getState,
             middlewareManager: {
@@ -80,7 +93,7 @@ describe("renderChartStateManagement", () => {
             })
         );
 
-        const middleware = register.mock.calls[0]?.[1];
+        const middleware = register.mock.calls[0]?.[1] as MiddlewareDefinition;
         const context = { path: "charts", value: {} };
         expect(middleware.beforeSet(context)).toBe(context);
         expect(middleware.afterSet(context)).toBe(context);
@@ -88,7 +101,9 @@ describe("renderChartStateManagement", () => {
         await Promise.resolve();
 
         expect(notify).toHaveBeenCalledWith("Chart rendering failed", "error");
-        expect(consoleLog).toHaveBeenCalled();
+        expect(consoleLog).toHaveBeenCalledWith(
+            "[ChartJS] Chart state management initialized successfully"
+        );
         expect(consoleError).toHaveBeenCalledWith(
             "[ChartJS] Chart render action failed:",
             expect.any(Error),
@@ -97,8 +112,11 @@ describe("renderChartStateManagement", () => {
     });
 
     it("does not register duplicate chart render middleware", () => {
+        expect.hasAssertions();
+
         const computedValues = new Map<string, () => unknown>();
-        const register = vi.fn();
+        const register =
+            vi.fn<(key: string, middleware: MiddlewareDefinition) => void>();
 
         initializeChartStateManagement({
             getChartSummaryState: () => ({
@@ -107,15 +125,20 @@ describe("renderChartStateManagement", () => {
                 renderableFields: [],
             }),
             getComputedStateManager: () => ({
-                define: (key, compute) => computedValues.set(key, compute),
+                define: (key, compute) => {
+                    computedValues.set(key, compute);
+                },
             }),
             getState: () => undefined,
             middlewareManager: {
                 has: () => true,
                 register,
             },
-            notify: vi.fn(),
-            updateState: vi.fn(),
+            notify: vi.fn<(message: string, type: string) => void>(),
+            updateState:
+                vi.fn<
+                    (path: string, value: unknown, options: unknown) => void
+                >(),
         });
 
         expect(register).not.toHaveBeenCalled();
@@ -124,7 +147,9 @@ describe("renderChartStateManagement", () => {
     });
 
     it("requests refresh only when chart data is valid and rendering is idle", () => {
-        const requestRerender = vi.fn();
+        expect.hasAssertions();
+
+        const requestRerender = vi.fn<(reason: string) => void>();
 
         expect(
             refreshChartsIfNeeded({
