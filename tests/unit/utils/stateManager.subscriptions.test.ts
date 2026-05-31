@@ -1,6 +1,4 @@
-/**
- * @file State manager subscription behavior tests.
- */
+// State manager subscription behavior tests.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -14,8 +12,8 @@ import {
 
 describe("state manager subscriptions", () => {
     beforeEach(() => {
-        vi.spyOn(console, "log").mockImplementation(() => undefined);
-        vi.spyOn(console, "warn").mockImplementation(() => undefined);
+        vi.spyOn(console, "log").mockReturnValue(undefined);
+        vi.spyOn(console, "warn").mockReturnValue(undefined);
         __resetStateManagerForTests();
         clearStateHistory();
     });
@@ -26,7 +24,12 @@ describe("state manager subscriptions", () => {
     });
 
     it("sets nested state, notifies subscribers, and stops after unsubscribe", () => {
-        const listener = vi.fn();
+        expect.hasAssertions();
+
+        const listener =
+            vi.fn<
+                (newValue: unknown, oldValue: unknown, path: string) => void
+            >();
         const unsubscribe = subscribe("ui.activeTab", listener);
 
         setState("ui.activeTab", "map", {
@@ -56,6 +59,8 @@ describe("state manager subscriptions", () => {
     });
 
     it("warns and leaves state unchanged for an invalid path", () => {
+        expect.hasAssertions();
+
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
         setState("", "ignored", {
