@@ -316,7 +316,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             expect(Chart.mock.calls[0][1].type).toBe("bar");
             const dataset = Chart.mock.calls[0][1].data.datasets[0];
             expect(dataset.backgroundColor).toBe("#ff0000");
-            expect(dataset.borderWidth).toBe(1);
+            expect(dataset.borderWidth).toStrictEqual(1);
         });
 
         it("should create a scatter chart when chartType is scatter", () => {
@@ -344,8 +344,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             expect(result).toBe(chartInstanceMock);
             expect(Chart.mock.calls[0][1].type).toBe("scatter");
             const dataset = Chart.mock.calls[0][1].data.datasets[0];
-            expect(dataset.showLine).toBe(false);
-            expect(dataset.pointRadius).toBe(4);
+            expect(dataset.showLine).toStrictEqual(false);
+            expect(dataset.pointRadius).toStrictEqual(4);
         });
 
         it("should create an area chart (line type with area styling)", () => {
@@ -373,7 +373,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             expect(result).toBe(chartInstanceMock);
             expect(Chart.mock.calls[0][1].type).toBe("line");
             const dataset = Chart.mock.calls[0][1].data.datasets[0];
-            expect(dataset.fill).toBe(true);
+            expect(dataset.fill).toStrictEqual(true);
             expect(dataset.tension).toBe(0.5); // smoothing 50 / 100
         });
     });
@@ -459,8 +459,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             createEnhancedChart(canvas, options);
 
             const dataset = Chart.mock.calls[0][1].data.datasets[0];
-            expect(dataset.pointRadius).toBe(0);
-            expect(dataset.pointHoverRadius).toBe(5);
+            expect(dataset.pointRadius).toStrictEqual(0);
+            expect(dataset.pointHoverRadius).toStrictEqual(5);
         });
 
         it("should configure fill based on showFill option", () => {
@@ -486,7 +486,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             createEnhancedChart(canvas, options);
 
             const dataset = Chart.mock.calls[0][1].data.datasets[0];
-            expect(dataset.fill).toBe(true);
+            expect(dataset.fill).toStrictEqual(true);
             expect(dataset.backgroundColor).toBe("rgba(255, 0, 0, 0.2)");
         });
     });
@@ -597,8 +597,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             expect(config.options.scales.x.ticks).toHaveProperty("color");
             expect(config.options.scales.y.ticks).toHaveProperty("color");
             // Test that grid display is controlled by showGrid option
-            expect(config.options.scales.x.grid.display).toBe(true);
-            expect(config.options.scales.y.grid.display).toBe(true);
+            expect(config.options.scales.x.grid.display).toStrictEqual(true);
+            expect(config.options.scales.y.grid.display).toStrictEqual(true);
         });
     });
 
@@ -867,7 +867,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             const config = Chart.mock.calls[0][1];
             expect(config.options.scales.x.type).toBe("linear");
             expect(config.options.scales.x.title.text).toBe("Time (s)");
-            expect(config.options.scales.x.title.display).toBe(true);
+            expect(config.options.scales.x.title.display).toStrictEqual(true);
         });
 
         it("should configure y-axis with field-specific formatting", () => {
@@ -895,7 +895,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             const config = Chart.mock.calls[0][1];
             expect(config.options.scales.y.title.text).toBe("Speed (km/h)");
-            expect(config.options.scales.y.title.display).toBe(true);
+            expect(config.options.scales.y.title.display).toStrictEqual(true);
         });
 
         it("should format x-axis ticks for different time units", () => {
@@ -1017,9 +1017,11 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             createEnhancedChart(canvas, options);
 
             const config = Chart.mock.calls[0][1];
-            expect(config.options.scales.x.grid.display).toBe(false);
-            expect(config.options.scales.y.grid.display).toBe(false);
-            expect(config.options.scales.x.grid.display).not.toBe(true);
+            expect(config.options.scales.x.grid.display).toStrictEqual(false);
+            expect(config.options.scales.y.grid.display).toStrictEqual(false);
+            expect(config.options.scales.x.grid.display).not.toStrictEqual(
+                true
+            );
         });
     });
 
@@ -1047,7 +1049,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             createEnhancedChart(canvas, options);
 
             const config = Chart.mock.calls[0][1];
-            expect(config.options.animation.duration).toBe(0);
+            expect(config.options.animation.duration).toStrictEqual(0);
             expect(config.options.animation.easing).toBe("linear");
         });
 
@@ -1074,7 +1076,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             createEnhancedChart(canvas, options);
 
             const config = Chart.mock.calls[0][1];
-            expect(config.options.animation.duration).toBe(500);
+            expect(config.options.animation.duration).toStrictEqual(500);
             expect(config.options.animation.easing).toBe("easeInOut");
         });
 
@@ -1101,7 +1103,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             createEnhancedChart(canvas, options);
 
             const config = Chart.mock.calls[0][1];
-            expect(config.options.animation.duration).toBe(2000);
+            expect(config.options.animation.duration).toStrictEqual(2000);
         });
 
         it("should configure normal animation", () => {
@@ -1127,7 +1129,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             createEnhancedChart(canvas, options);
 
             const config = Chart.mock.calls[0][1];
-            expect(config.options.animation.duration).toBe(1000);
+            expect(config.options.animation.duration).toStrictEqual(1000);
         });
 
         it("should call updateChartAnimations when animation is enabled", () => {
@@ -1156,7 +1158,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             // Test that chart was created successfully and animation config is set
             expect(result).toBe(chartInstanceMock);
             const config = Chart.mock.calls[Chart.mock.calls.length - 1][1];
-            expect(config.options.animation.duration).toBe(1000); // normal animation
+            expect(config.options.animation.duration).toStrictEqual(1000); // normal animation
             expect(config.options.animation.easing).toBe("linear");
         });
 
@@ -1187,7 +1189,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             expect(result).toBe(chartInstanceMock);
             const config = Chart.mock.calls[0][1];
-            expect(config.options.animation.duration).toBe(0);
+            expect(config.options.animation.duration).toStrictEqual(0);
             expect(updateChartAnimations).not.toHaveBeenCalled();
         });
     });
@@ -1216,8 +1218,10 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             createEnhancedChart(canvas, options);
 
             const config = Chart.mock.calls[0][1];
-            expect(config.options.plugins.legend.display).toBe(false);
-            expect(config.options.plugins.title.display).not.toBe(false);
+            expect(config.options.plugins.legend.display).toStrictEqual(false);
+            expect(config.options.plugins.title.display).not.toStrictEqual(
+                false
+            );
         });
 
         it("should hide title when showTitle is false", () => {
@@ -1243,7 +1247,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             createEnhancedChart(canvas, options);
 
             const config = Chart.mock.calls[0][1];
-            expect(config.options.plugins.title.display).toBe(false);
+            expect(config.options.plugins.title.display).toStrictEqual(false);
         });
 
         it("should set title text with field label and unit symbol", () => {
@@ -1334,7 +1338,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             const result = createEnhancedChart(canvas, options);
 
             // Test that error is handled gracefully
-            expect(result).toBe(null);
+            expect(result).toBeNull();
             // Test that console.error was called (we can verify this because we mocked console)
             expect(console.error).toHaveBeenCalledWith(
                 "[ChartJS] Error creating chart for speed:",
@@ -1401,7 +1405,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             expect(result).toBe(chartInstanceMock);
             const dataset = Chart.mock.calls[0][1].data.datasets[0];
-            expect(dataset.data).toEqual([]);
+            expect(dataset.data).toStrictEqual([]);
             expect(dataset.data).not.toContainEqual({ x: 0, y: 10 });
         });
 
