@@ -171,8 +171,8 @@ function restorePerformanceMemory(): void {
 
 describe("stateIntegration.js - Essential Coverage", () => {
     it("exports the state integration public API", () => {
-        resetTestEnvironment();
         expect.assertions(7);
+        resetTestEnvironment();
 
         expect(stateIntegration.StateMigrationHelper).toBeTypeOf("function");
         expect(stateIntegration.initializeAppState).toBeTypeOf("function");
@@ -194,8 +194,8 @@ describe("stateIntegration.js - Essential Coverage", () => {
     });
 
     it("runs every migration and logs failures without aborting later migrations", async () => {
-        resetTestEnvironment();
         expect.assertions(6);
+        resetTestEnvironment();
 
         const firstMigration = vi.fn<() => void>();
         const failedMigration = vi.fn<() => void>(() => {
@@ -206,7 +206,7 @@ describe("stateIntegration.js - Essential Coverage", () => {
         );
         const consoleError = vi
             .spyOn(console, "error")
-            .mockImplementation(() => undefined);
+            .mockReturnValue(undefined);
         const helper = new stateIntegration.StateMigrationHelper();
 
         helper.addMigration(firstMigration);
@@ -228,8 +228,8 @@ describe("stateIntegration.js - Essential Coverage", () => {
     });
 
     it("migrates legacy chart controls to reactive state accessors", () => {
-        resetTestEnvironment();
         expect.assertions(4);
+        resetTestEnvironment();
 
         const testGlobal = globalThis as StateIntegrationTestGlobal;
         testGlobal.chartControlsState = { isVisible: true };
@@ -250,8 +250,8 @@ describe("stateIntegration.js - Essential Coverage", () => {
     });
 
     it("wraps rendererUtils global-data access through the state manager", () => {
-        resetTestEnvironment();
         expect.assertions(4);
+        resetTestEnvironment();
 
         const originalSetGlobalData = vi.fn<(data: unknown) => string>(
             () => "stored"
@@ -279,8 +279,8 @@ describe("stateIntegration.js - Essential Coverage", () => {
     });
 
     it("loads persisted UI state from localStorage", () => {
-        resetTestEnvironment();
         expect.assertions(4);
+        resetTestEnvironment();
 
         const storageFixture = createStorageFixture({
             [persistedStateKey]: JSON.stringify({
@@ -303,8 +303,8 @@ describe("stateIntegration.js - Essential Coverage", () => {
     });
 
     it("persists subscribed UI state changes after the debounce delay", () => {
-        resetTestEnvironment();
         expect.assertions(4);
+        resetTestEnvironment();
 
         vi.useFakeTimers();
         const storageFixture = createStorageFixture();
@@ -331,8 +331,8 @@ describe("stateIntegration.js - Essential Coverage", () => {
     });
 
     it("publishes memory usage while performance monitoring is enabled", () => {
-        resetTestEnvironment();
         expect.assertions(2);
+        resetTestEnvironment();
 
         vi.useFakeTimers();
         installPerformanceMemory({
@@ -359,8 +359,8 @@ describe("stateIntegration.js - Essential Coverage", () => {
     });
 
     it("initializes compatibility globals and development debug utilities", () => {
-        resetTestEnvironment();
         expect.assertions(8);
+        resetTestEnvironment();
 
         const testGlobal = globalThis as StateIntegrationTestGlobal;
         testGlobal.__DEVELOPMENT__ = true;
@@ -387,8 +387,8 @@ describe("stateIntegration.js - Essential Coverage", () => {
     });
 
     it("returns without side effects when optional integration globals are missing", () => {
-        resetTestEnvironment();
         expect.assertions(3);
+        resetTestEnvironment();
 
         expect(() =>
             stateIntegration.integrateWithRendererUtils()
