@@ -1,6 +1,4 @@
-/**
- * @vitest-environment jsdom
- */
+// @vitest-environment jsdom
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 
 // Type augmentation for globalThis
@@ -17,23 +15,35 @@ declare global {
     var electronAPI: any;
 }
 
+type StateSubscriber = (newValue?: unknown, oldValue?: unknown) => void;
+type StateUnsubscribe = () => void;
+
 // Setup comprehensive mocks
-vi.mock("../../../../../electron-app/utils/state/core/stateManager.js", () => ({
-    getState: vi.fn(),
-    setState: vi.fn(),
-    subscribe: vi.fn(() => () => {}),
-    initializeStateManager: vi.fn(),
-}));
 vi.mock(
-    "../../../../../electron-app/utils/state/domain/uiStateManager.js",
+    import("../../../../../electron-app/utils/state/core/stateManager.js"),
     () => ({
-        uiStateManager: { initialize: vi.fn() },
+        getState: vi.fn<(path: string) => unknown>(),
+        setState:
+            vi.fn<(path: string, value: unknown, options?: unknown) => void>(),
+        subscribe: vi.fn<
+            (path: string, callback: StateSubscriber) => StateUnsubscribe
+        >(() => () => {}),
+        initializeStateManager: vi.fn<() => void>(),
     })
 );
 vi.mock(
-    "../../../../../electron-app/utils/app/lifecycle/appActions.js",
+    import("../../../../../electron-app/utils/state/domain/uiStateManager.js"),
     () => ({
-        AppActions: { testAction: vi.fn(), anotherAction: vi.fn() },
+        uiStateManager: { initialize: vi.fn<() => void>() },
+    })
+);
+vi.mock(
+    import("../../../../../electron-app/utils/app/lifecycle/appActions.js"),
+    () => ({
+        AppActions: {
+            testAction: vi.fn<(...args: unknown[]) => unknown>(),
+            anotherAction: vi.fn<(...args: unknown[]) => unknown>(),
+        },
     })
 );
 
@@ -79,12 +89,12 @@ function expectDebugUtilitiesConfigured(): void {
 
 // Mock localStorage
 const mockLocalStorage = {
-    getItem: vi.fn(),
-    setItem: vi.fn(),
-    removeItem: vi.fn(),
-    clear: vi.fn(),
+    getItem: vi.fn<(key: string) => null | string>(),
+    setItem: vi.fn<(key: string, value: string) => void>(),
+    removeItem: vi.fn<(key: string) => void>(),
+    clear: vi.fn<() => void>(),
     length: 0,
-    key: vi.fn(),
+    key: vi.fn<(index: number) => null | string>(),
 } as any;
 
 // Mock performance.memory with proper type handling
@@ -94,22 +104,23 @@ const mockPerformance = {
         totalJSHeapSize: 512 * 1024 * 1024, // 512MB
         usedJSHeapSize: 256 * 1024 * 1024, // 256MB
     },
-    now: vi.fn(),
-    mark: vi.fn(),
-    measure: vi.fn(),
-    clearMarks: vi.fn(),
-    clearMeasures: vi.fn(),
-    getEntries: vi.fn(),
-    getEntriesByName: vi.fn(),
-    getEntriesByType: vi.fn(),
+    now: vi.fn<() => number>(),
+    mark: vi.fn<(markName: string) => void>(),
+    measure: vi.fn<(measureName: string) => void>(),
+    clearMarks: vi.fn<(markName?: string) => void>(),
+    clearMeasures: vi.fn<(measureName?: string) => void>(),
+    getEntries: vi.fn<() => PerformanceEntry[]>(),
+    getEntriesByName: vi.fn<(name: string) => PerformanceEntry[]>(),
+    getEntriesByType: vi.fn<(type: string) => PerformanceEntry[]>(),
     timeOrigin: 0,
-    toJSON: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
+    toJSON: vi.fn<() => unknown>(),
+    addEventListener: vi.fn<(type: string, listener: EventListener) => void>(),
+    removeEventListener:
+        vi.fn<(type: string, listener: EventListener) => void>(),
+    dispatchEvent: vi.fn<(event: Event) => boolean>(),
 } as any;
 
-describe("stateIntegration.js - Comprehensive Coverage", () => {
+describe("stateIntegration comprehensive coverage", () => {
     let originalLocalStorage: any;
     let originalPerformance: any;
 
@@ -160,8 +171,10 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         vi.useRealTimers();
     });
 
-    describe("StateMigrationHelper class", () => {
+    describe("stateMigrationHelper class", () => {
         it("should create instance and manage migrations correctly", async () => {
+            expect.hasAssertions();
+
             const { StateMigrationHelper } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
 
@@ -171,8 +184,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
             expect(helper.migrations).toEqual([]);
 
             // Test adding migrations
-            const migration1 = vi.fn();
-            const migration2 = vi.fn();
+            const migration1 = vi.fn<() => void>();
+            const migration2 = vi.fn<() => void>();
 
             helper.addMigration(migration1);
             helper.addMigration(migration2);
@@ -183,15 +196,17 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         });
 
         it("should run all migrations successfully", async () => {
+            expect.hasAssertions();
+
             const { StateMigrationHelper } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
 
             const helper = new StateMigrationHelper();
             const migrationEvents: string[] = [];
-            const migration1 = vi.fn(async () => {
+            const migration1 = vi.fn<() => Promise<void>>(async () => {
                 migrationEvents.push("first");
             });
-            const migration2 = vi.fn(async () => {
+            const migration2 = vi.fn<() => Promise<void>>(async () => {
                 migrationEvents.push("second");
             });
 
@@ -206,6 +221,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         });
 
         it("should continue after migration errors without throwing", async () => {
+            expect.hasAssertions();
+
             const { StateMigrationHelper } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
 
@@ -216,9 +233,9 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
             const helper = new StateMigrationHelper();
             const migrationEvents: string[] = [];
             const failingMigration = vi
-                .fn()
+                .fn<() => Promise<void>>()
                 .mockRejectedValue(new Error("Migration failed"));
-            const successMigration = vi.fn(async () => {
+            const successMigration = vi.fn<() => Promise<void>>(async () => {
                 migrationEvents.push("success");
             });
 
@@ -239,8 +256,10 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         });
     });
 
-    describe("Main initialization functions", () => {
+    describe("main initialization functions", () => {
         it("should initialize app state in production mode (smoke)", async () => {
+            expect.hasAssertions();
+
             setTestLocation({
                 hash: "",
                 hostname: "example.com",
@@ -278,6 +297,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         });
 
         it("should initialize app state in development mode (smoke)", async () => {
+            expect.hasAssertions();
+
             // Set development mode
             globalThis.__DEVELOPMENT__ = true;
 
@@ -304,6 +325,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         });
 
         it("should initialize complete state system (smoke)", async () => {
+            expect.hasAssertions();
+
             const { initializeCompleteStateSystem } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
 
@@ -332,13 +355,17 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         });
     });
 
-    describe("Integration functions", () => {
+    describe("integration functions", () => {
         it("should integrate with rendererUtils when available (smoke)", async () => {
+            expect.hasAssertions();
+
             const { integrateWithRendererUtils } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
 
-            const mockSetGlobalData = vi.fn();
-            const mockGetGlobalData = vi.fn().mockReturnValue({ test: "data" });
+            const mockSetGlobalData = vi.fn<(data: unknown) => void>();
+            const mockGetGlobalData = vi
+                .fn<() => unknown>()
+                .mockReturnValue({ test: "data" });
 
             globalThis.rendererUtils = {
                 setGlobalData: mockSetGlobalData,
@@ -384,6 +411,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         });
 
         it("should handle missing rendererUtils gracefully", async () => {
+            expect.hasAssertions();
+
             const { integrateWithRendererUtils } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
 
@@ -394,6 +423,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         });
 
         it("should migrate chartControlsState when available (smoke)", async () => {
+            expect.hasAssertions();
+
             const { migrateChartControlsState } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
 
@@ -437,6 +468,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         });
 
         it("should handle missing chartControlsState gracefully", async () => {
+            expect.hasAssertions();
+
             const { migrateChartControlsState } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
 
@@ -447,8 +480,10 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         });
     });
 
-    describe("Performance monitoring", () => {
+    describe("performance monitoring", () => {
         it("should set up performance monitoring with memory info (smoke)", async () => {
+            expect.hasAssertions();
+
             vi.useFakeTimers();
             (globalThis as any).performance = mockPerformance;
 
@@ -458,11 +493,11 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
             const consoleSpy = vi
                 .spyOn(console, "log")
                 .mockImplementation(() => {});
-            let subscribeCallback: any;
+            let subscribeCallback: StateSubscriber | undefined;
 
             mockStateManager.subscribe.mockImplementation((path, callback) => {
                 subscribeCallback = callback;
-                return vi.fn(); // unsubscribe function
+                return vi.fn<StateUnsubscribe>(); // unsubscribe function
             });
 
             setupStatePerformanceMonitoring();
@@ -502,6 +537,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         });
 
         it("should handle missing performance.memory gracefully", async () => {
+            expect.hasAssertions();
+
             vi.useFakeTimers();
             (globalThis as any).performance = mockPerformance;
 
@@ -527,8 +564,10 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         });
     });
 
-    describe("State persistence", () => {
+    describe("state persistence", () => {
         it("should set up state persistence and load existing state (smoke)", async () => {
+            expect.hasAssertions();
+
             vi.useFakeTimers();
 
             const savedState = {
@@ -600,6 +639,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         });
 
         it("should handle localStorage errors gracefully", async () => {
+            expect.hasAssertions();
+
             mockLocalStorage.getItem.mockImplementation(() => {
                 throw new Error("localStorage not available");
             });
@@ -623,6 +664,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         });
 
         it("should handle JSON parsing errors gracefully", async () => {
+            expect.hasAssertions();
+
             mockLocalStorage.getItem.mockReturnValue("invalid json");
 
             const { setupStatePersistence } =
@@ -644,8 +687,10 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         });
     });
 
-    describe("Utility functions", () => {
+    describe("utility functions", () => {
         it("should handle nested value operations correctly", async () => {
+            expect.hasAssertions();
+
             vi.useFakeTimers();
 
             const { setupStatePersistence } =
@@ -677,6 +722,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         });
 
         it("should detect development mode correctly - localhost", async () => {
+            expect.hasAssertions();
+
             // Mock window.location for localhost
             Object.defineProperty(globalThis, "location", {
                 value: {
@@ -701,6 +748,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         });
 
         it("should detect development mode correctly - dev flag", async () => {
+            expect.hasAssertions();
+
             globalThis.__DEVELOPMENT__ = true;
 
             const { initializeAppState } =
@@ -715,6 +764,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         });
 
         it("should detect development mode correctly - debug param", async () => {
+            expect.hasAssertions();
+
             Object.defineProperty(globalThis, "location", {
                 value: {
                     hostname: "example.com",
@@ -738,6 +789,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         });
 
         it("should handle development mode detection errors", async () => {
+            expect.hasAssertions();
+
             // Create a location object that throws on property access
             Object.defineProperty(globalThis, "location", {
                 get() {
@@ -756,8 +809,10 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         });
     });
 
-    describe("Backward compatibility", () => {
+    describe("backward compatibility", () => {
         it("should set up globalData property correctly (smoke)", async () => {
+            expect.hasAssertions();
+
             const { initializeAppState } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
 
@@ -777,6 +832,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         });
 
         it("should set up isChartRendered property correctly (smoke)", async () => {
+            expect.hasAssertions();
+
             const { initializeAppState } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
 
@@ -798,6 +855,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         });
 
         it("should set up AppState compatibility layer (smoke)", async () => {
+            expect.hasAssertions();
+
             const { initializeAppState } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
 
@@ -855,6 +914,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         });
 
         it("should not override existing properties", async () => {
+            expect.hasAssertions();
+
             // Set existing properties
             globalThis.globalData = { existing: "data" };
             globalThis.AppState = { existing: "appstate" };
@@ -870,8 +931,10 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         });
     });
 
-    describe("Debug utilities", () => {
+    describe("debug utilities", () => {
         it("should set up debug utilities in development mode", async () => {
+            expect.hasAssertions();
+
             globalThis.__DEVELOPMENT__ = true;
 
             const { initializeAppState } =
@@ -886,6 +949,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         });
 
         it("should expose debug utility functions and reject unknown actions", async () => {
+            expect.hasAssertions();
+
             globalThis.__DEVELOPMENT__ = true;
 
             const { initializeAppState } =
@@ -897,8 +962,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
             const warnSpy = vi
                 .spyOn(console, "warn")
                 .mockImplementation(() => {});
-            const unsubscribe = vi.fn();
-            let watchCallback: any;
+            const unsubscribe = vi.fn<StateUnsubscribe>();
+            let watchCallback: StateSubscriber | undefined;
 
             mockStateManager.getState.mockReturnValue({ id: 1 });
             mockStateManager.subscribe.mockImplementation((path, callback) => {
