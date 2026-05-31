@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import {
     appPackageRepositoryPath,
     appWorkspaceRepositoryPath,
+    docusaurusPackageRepositoryPath,
     rootElectronAppTsconfigPath,
     rootEslintConfigPath,
     rootPrettierConfigPath,
@@ -16,6 +17,7 @@ import {
 type PackageJson = {
     dependencies?: Record<string, string>;
     devDependencies?: Record<string, string>;
+    engines?: Record<string, string>;
     exports?: Record<string, string>;
     files?: string[];
     icon?: string;
@@ -104,6 +106,22 @@ describe("workspace package boundaries", () => {
         expect(appPackage.icon).toBe("dist/icons/favicon.ico");
         expect(appPackage.files).not.toContain("vendor/");
         expect(appPackage.files).not.toContain("node_modules/");
+    });
+
+    it("keeps private workspace runtime policy centralized at the root", () => {
+        expect.assertions(3);
+
+        const rootPackage = readPackageJson("package.json");
+        const docusaurusPackage = readPackageJson(
+            docusaurusPackageRepositoryPath
+        );
+
+        expect(rootPackage.engines).toStrictEqual({
+            node: ">=22.12.0",
+            npm: ">=11.15.0",
+        });
+        expect(docusaurusPackage).not.toHaveProperty("engines");
+        expect(docusaurusPackage.private).toBe(true);
     });
 
     it("keeps Electron app tooling configuration centralized at the repository root", () => {

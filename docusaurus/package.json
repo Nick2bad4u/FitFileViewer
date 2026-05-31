@@ -35,8 +35,5 @@
         "@docusaurus/types": "^3.10.1",
         "@types/react": "^19.2.13",
         "@types/react-dom": "^19.2.3"
-    },
-    "engines": {
-        "node": ">=20.0.0"
     }
 }
