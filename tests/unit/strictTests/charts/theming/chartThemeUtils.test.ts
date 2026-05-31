@@ -1,4 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import type { ChartTheme } from "../../../../../electron-app/utils/charts/theming/chartThemeUtils.js";
+
+type EffectiveTheme = ChartTheme | null | undefined;
 
 const themeModulePath =
     "../../../../../electron-app/utils/theming/core/theme.js";
@@ -7,22 +11,55 @@ async function importChartThemeUtils() {
     return import("../../../../../electron-app/utils/charts/theming/chartThemeUtils.js");
 }
 
-function setMatchMedia(dark: boolean | null) {
+function mockEffectiveTheme(theme: EffectiveTheme): void {
+    vi.doMock(themeModulePath, () => ({ getEffectiveTheme: () => theme }));
+}
+
+function mockThrowingEffectiveTheme(): void {
+    vi.doMock(themeModulePath, () => ({
+        getEffectiveTheme: () => {
+            throw new Error("boom");
+        },
+    }));
+}
+
+function setMatchMedia(dark: boolean | null): void {
     if (dark === null) {
-        // Remove matchMedia entirely
-        delete (window as any).matchMedia;
+        Object.defineProperty(window, "matchMedia", {
+            configurable: true,
+            value: undefined,
+        });
         return;
     }
-    (window as any).matchMedia = (query: string) => ({
-        matches: dark ?? false,
-        media: query,
-        onchange: null,
-        addListener: () => {},
-        removeListener: () => {},
-        addEventListener: () => {},
-        removeEventListener: () => {},
-        dispatchEvent: () => false,
+
+    Object.defineProperty(window, "matchMedia", {
+        configurable: true,
+        value: (query: string): MediaQueryList => ({
+            addEventListener: () => {},
+            addListener: () => {},
+            dispatchEvent: () => false,
+            matches: dark,
+            media: query,
+            onchange: null,
+            removeEventListener: () => {},
+            removeListener: () => {},
+        }),
     });
+}
+
+function mockLocalStorageGetItemFailure(): void {
+    vi.spyOn(localStorage, "getItem").mockImplementation(() => {
+        throw new Error("ls-fail");
+    });
+}
+
+function setSavedTheme(theme: string): void {
+    localStorage.setItem("ffv-theme", theme);
+}
+
+async function detectCurrentThemeFromModule(): Promise<ChartTheme> {
+    const { detectCurrentTheme } = await importChartThemeUtils();
+    return detectCurrentTheme();
 }
 
 describe("detectCurrentTheme", () => {
@@ -36,72 +73,88 @@ describe("detectCurrentTheme", () => {
     });
 
     it("returns dark when body has theme-dark class", async () => {
+        expect.hasAssertions();
+
         document.body.classList.add("theme-dark");
-        const { detectCurrentTheme } = await importChartThemeUtils();
-        expect(detectCurrentTheme()).toBe("dark");
+
+        await expect(detectCurrentThemeFromModule()).resolves.toBe("dark");
     });
 
     it("returns light when body has theme-light class", async () => {
+        expect.hasAssertions();
+
         document.body.classList.add("theme-light");
-        const { detectCurrentTheme } = await importChartThemeUtils();
-        expect(detectCurrentTheme()).toBe("light");
+
+        await expect(detectCurrentThemeFromModule()).resolves.toBe("light");
     });
 
     it("uses getEffectiveTheme when available", async () => {
-        vi.doMock(themeModulePath, () => ({ getEffectiveTheme: () => "dark" }));
-        const { detectCurrentTheme } = await importChartThemeUtils();
-        expect(detectCurrentTheme()).toBe("dark");
+        expect.hasAssertions();
+
+        mockEffectiveTheme("dark");
+
+        await expect(detectCurrentThemeFromModule()).resolves.toBe("dark");
     });
 
     it("falls back to localStorage when getEffectiveTheme throws", async () => {
-        vi.doMock(themeModulePath, () => ({
-            getEffectiveTheme: () => {
-                throw new Error("boom");
-            },
-        }));
-        localStorage.setItem("ffv-theme", "light");
-        const { detectCurrentTheme } = await importChartThemeUtils();
-        expect(detectCurrentTheme()).toBe("light");
+        expect.hasAssertions();
+
+        const consoleWarn = vi
+            .spyOn(console, "warn")
+            .mockImplementation(() => {});
+        mockThrowingEffectiveTheme();
+        setSavedTheme("light");
+
+        await expect(detectCurrentThemeFromModule()).resolves.toBe("light");
+        expect(consoleWarn).toHaveBeenCalledWith(
+            "[ChartThemeUtils] getEffectiveTheme failed:",
+            expect.any(Error)
+        );
     });
 
     it("resolves auto to system dark via matchMedia", async () => {
-        vi.doMock(themeModulePath, () => ({ getEffectiveTheme: () => null }));
-        localStorage.setItem("ffv-theme", "auto");
+        expect.hasAssertions();
+
+        mockEffectiveTheme(null);
+        setSavedTheme("auto");
         setMatchMedia(true);
-        const { detectCurrentTheme } = await importChartThemeUtils();
-        expect(detectCurrentTheme()).toBe("dark");
+
+        await expect(detectCurrentThemeFromModule()).resolves.toBe("dark");
     });
 
     it("resolves auto to system light via matchMedia false", async () => {
-        vi.doMock(themeModulePath, () => ({ getEffectiveTheme: () => null }));
-        localStorage.setItem("ffv-theme", "auto");
+        expect.hasAssertions();
+
+        mockEffectiveTheme(null);
+        setSavedTheme("auto");
         setMatchMedia(false);
-        const { detectCurrentTheme } = await importChartThemeUtils();
-        expect(detectCurrentTheme()).toBe("light");
+
+        await expect(detectCurrentThemeFromModule()).resolves.toBe("light");
     });
 
     it("uses system preference fallback when no storage and no classes", async () => {
-        vi.doMock(themeModulePath, () => ({
-            getEffectiveTheme: () => undefined,
-        }));
+        expect.hasAssertions();
+
+        mockEffectiveTheme(undefined);
         setMatchMedia(true);
-        const { detectCurrentTheme } = await importChartThemeUtils();
-        expect(detectCurrentTheme()).toBe("dark");
+
+        await expect(detectCurrentThemeFromModule()).resolves.toBe("dark");
     });
 
     it("final fallback returns light when everything else unavailable", async () => {
-        // Throw on localStorage access
-        const getItemSpy = vi
-            .spyOn(Storage.prototype, "getItem")
-            .mockImplementation(() => {
-                throw new Error("ls-fail");
-            });
-        vi.doMock(themeModulePath, () => ({
-            getEffectiveTheme: () => undefined,
-        }));
+        expect.hasAssertions();
+
+        const consoleWarn = vi
+            .spyOn(console, "warn")
+            .mockImplementation(() => {});
+        mockLocalStorageGetItemFailure();
+        mockEffectiveTheme(undefined);
         setMatchMedia(null);
-        const { detectCurrentTheme } = await importChartThemeUtils();
-        expect(detectCurrentTheme()).toBe("light");
-        getItemSpy.mockRestore();
+
+        await expect(detectCurrentThemeFromModule()).resolves.toBe("light");
+        expect(consoleWarn).toHaveBeenCalledWith(
+            "[ChartThemeUtils] localStorage access failed:",
+            expect.any(Error)
+        );
     });
 });
