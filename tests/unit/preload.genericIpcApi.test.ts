@@ -171,31 +171,40 @@ describe("generic preload IPC API", () => {
     });
 
     it("normalizes FIT file load notifications", () => {
-        expect.assertions(5);
+        expect.assertions(2);
 
         const { api, ipcMock, preloadLog } = createApi();
+        const loggedEntries: Array<{
+            details: unknown[];
+            level: string;
+            message: string;
+        }> = [];
+        const sentMessages: Array<[string, ...IpcRequestPayload[]]> = [];
+        ipcMock.send.mockImplementation((channel, ...args) => {
+            sentMessages.push([channel, ...args]);
+        });
+        preloadLog.mockImplementation((level, message, ...details) => {
+            loggedEntries.push({ details, level, message });
+        });
 
         api.notifyFitFileLoaded(" activity.fit ");
         api.notifyFitFileLoaded("");
         api.notifyFitFileLoaded(42 as never);
+        api.notifyFitFileLoaded(null);
 
-        expect(api.notifyFitFileLoaded(null)).toBeUndefined();
-
-        expect(ipcMock.send).toHaveBeenNthCalledWith(
-            1,
-            "fit-file-loaded",
-            " activity.fit "
-        );
-        expect(ipcMock.send).toHaveBeenNthCalledWith(
-            2,
-            "fit-file-loaded",
-            null
-        );
-        expect(ipcMock.send).toHaveBeenCalledTimes(3);
-        expect(preloadLog).toHaveBeenCalledWith(
-            "error",
-            "[preload.js] notifyFitFileLoaded: filePath must be a string or null"
-        );
+        expect(sentMessages).toStrictEqual([
+            ["fit-file-loaded", " activity.fit "],
+            ["fit-file-loaded", null],
+            ["fit-file-loaded", null],
+        ]);
+        expect(loggedEntries).toStrictEqual([
+            {
+                details: [],
+                level: "error",
+                message:
+                    "[preload.js] notifyFitFileLoaded: filePath must be a string or null",
+            },
+        ]);
     });
 
     it("wraps event callbacks and removes listeners through the shared remover", () => {
