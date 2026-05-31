@@ -3,9 +3,17 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // We'll mock stateManager with incomplete exports to force __vitest_effective_stateManager__ fallback
 
 type StateManagerShim = {
-    getState: ReturnType<typeof vi.fn>;
-    setState: ReturnType<typeof vi.fn>;
-    subscribe: ReturnType<typeof vi.fn>;
+    getState: ReturnType<typeof vi.fn<(path?: string) => unknown>>;
+    setState: ReturnType<
+        typeof vi.fn<
+            (
+                path: string,
+                value: unknown,
+                options?: Record<string, unknown>
+            ) => void
+        >
+    >;
+    subscribe: ReturnType<typeof vi.fn<(path: string) => () => void>>;
 };
 
 type GlobalWithStateManagerShim = typeof globalThis & {
@@ -46,12 +54,21 @@ describe("updateTabVisibility - additional branches", () => {
     });
 
     it("maps 'summary_content' pattern via extractTabNameFromContentId and sets activeTabContent", async () => {
+        expect.hasAssertions();
+
         // Provide working module exports so primary branch exercised
-        const setState = vi.fn();
-        const getState = vi.fn();
-        const subscribe = vi.fn();
+        const setState =
+            vi.fn<
+                (
+                    path: string,
+                    value: unknown,
+                    options?: Record<string, unknown>
+                ) => void
+            >();
+        const getState = vi.fn<(path?: string) => unknown>();
+        const subscribe = vi.fn<(path: string) => () => void>();
         vi.doMock(
-            "../../../electron-app/utils/state/core/stateManager.js",
+            import("../../../electron-app/utils/state/core/stateManager.js"),
             () => ({
                 setState,
                 getState,
@@ -79,11 +96,20 @@ describe("updateTabVisibility - additional branches", () => {
     });
 
     it("derives active content from an unknown content id without showing tracked content", async () => {
-        const setState = vi.fn();
-        const getState = vi.fn();
-        const subscribe = vi.fn();
+        expect.hasAssertions();
+
+        const setState =
+            vi.fn<
+                (
+                    path: string,
+                    value: unknown,
+                    options?: Record<string, unknown>
+                ) => void
+            >();
+        const getState = vi.fn<(path?: string) => unknown>();
+        const subscribe = vi.fn<(path: string) => () => void>();
         vi.doMock(
-            "../../../electron-app/utils/state/core/stateManager.js",
+            import("../../../electron-app/utils/state/core/stateManager.js"),
             () => ({
                 setState,
                 getState,
@@ -110,15 +136,24 @@ describe("updateTabVisibility - additional branches", () => {
     });
 
     it("falls back to __vitest_effective_stateManager__ when module exports are unavailable", async () => {
+        expect.hasAssertions();
+
         // Mock module with missing methods to fail the primary branch
         vi.doMock(
-            "../../../electron-app/utils/state/core/stateManager.js",
+            import("../../../electron-app/utils/state/core/stateManager.js"),
             () => ({})
         );
 
-        const effSet = vi.fn();
-        const effGet = vi.fn();
-        const effSub = vi.fn();
+        const effSet =
+            vi.fn<
+                (
+                    path: string,
+                    value: unknown,
+                    options?: Record<string, unknown>
+                ) => void
+            >();
+        const effGet = vi.fn<(path?: string) => unknown>();
+        const effSub = vi.fn<(path: string) => () => void>();
         const effectiveGlobals = globalThis as GlobalWithStateManagerShim;
         effectiveGlobals.__vitest_effective_stateManager__ = {
             setState: effSet,
