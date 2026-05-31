@@ -136,21 +136,28 @@ describe("registerInfoHandlers", () => {
     }
 
     it("no-ops when registerIpcHandle is missing", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
-        const registerWithoutIpc = (): void =>
-            registerInfoHandlers({
-                registerIpcHandle: null as unknown as RegisterIpcHandle,
-                appRef,
-                fs,
-                path,
-                CONSTANTS,
-                logWithContext,
-            });
+        const registerResult = registerInfoHandlers({
+            registerIpcHandle: null as unknown as RegisterIpcHandle,
+            appRef,
+            fs,
+            path,
+            CONSTANTS,
+            logWithContext,
+        });
 
-        expect(registerWithoutIpc).not.toThrow();
-        expect(registerWithoutIpc()).toBeUndefined();
-        expect(registerIpcHandle).not.toHaveBeenCalled();
+        expect({
+            appRefCalls: appRef.mock.calls.length,
+            logCalls: logWithContext.mock.calls,
+            registerIpcCalls: registerIpcHandle.mock.calls,
+            registerResult,
+        }).toStrictEqual({
+            appRefCalls: 0,
+            logCalls: [],
+            registerIpcCalls: [],
+            registerResult: undefined,
+        });
     });
 
     it("provides app/platform metadata and map/theme defaults", async () => {
