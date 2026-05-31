@@ -6,16 +6,26 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type {
+    getState as getStateSignature,
+    setState as setStateSignature,
+    subscribe as subscribeSignature,
+} from "../../../electron-app/utils/state/core/stateManager.js";
+import type { isHTMLElement as isHTMLElementSignature } from "../../../electron-app/utils/dom/index.js";
+
 // Mock the state manager
-vi.mock("../../../electron-app/utils/state/core/stateManager.js", () => ({
-    getState: vi.fn(),
-    setState: vi.fn(),
-    subscribe: vi.fn(() => () => {}),
-}));
+vi.mock(
+    import("../../../electron-app/utils/state/core/stateManager.js"),
+    () => ({
+        getState: vi.fn<typeof getStateSignature>(),
+        setState: vi.fn<typeof setStateSignature>(),
+        subscribe: vi.fn<typeof subscribeSignature>(() => () => {}),
+    })
+);
 
 // Mock DOM helpers
-vi.mock("../../../electron-app/utils/dom/index.js", () => ({
-    isHTMLElement: vi.fn(),
+vi.mock(import("../../../electron-app/utils/dom/index.js"), () => ({
+    isHTMLElement: vi.fn<typeof isHTMLElementSignature>(),
 }));
 
 import {
@@ -50,6 +60,15 @@ type TestButtonOptions = {
     readonly text?: string;
     readonly type?: "button" | "reset" | "submit";
 };
+
+type MutationObserverMock = Pick<MutationObserver, "disconnect" | "observe">;
+
+function createMutationObserverMock(): MutationObserverMock {
+    return {
+        disconnect: vi.fn<MutationObserver["disconnect"]>(),
+        observe: vi.fn<MutationObserver["observe"]>(),
+    };
+}
 
 function createTestButton({
     ariaSelected,
@@ -128,15 +147,18 @@ describe("enableTabButtons behavior", () => {
         // Mock window properties
         (global as any).window = {
             ...global.window,
-            getComputedStyle: vi.fn().mockReturnValue({
-                pointerEvents: "auto",
-                cursor: "pointer",
-                opacity: "1",
-            }),
-            MutationObserver: vi.fn().mockImplementation(() => ({
-                observe: vi.fn(),
-                disconnect: vi.fn(),
-            })),
+            getComputedStyle: vi
+                .fn<typeof globalThis.getComputedStyle>()
+                .mockReturnValue({
+                    pointerEvents: "auto",
+                    cursor: "pointer",
+                    opacity: "1",
+                } as CSSStyleDeclaration),
+            MutationObserver: vi
+                .fn<(callback: MutationCallback) => MutationObserver>()
+                .mockReturnValue(
+                    createMutationObserverMock() as MutationObserver
+                ),
         };
 
         // CRITICAL: Sync globalThis.window to match global.window for scope consistency
@@ -183,6 +205,7 @@ describe("enableTabButtons behavior", () => {
 
     describe("setTabButtonsEnabled function", () => {
         it("should disable all tab buttons except open file button", () => {
+            expect.hasAssertions();
             appendTabButtons([
                 { id: "openFileBtn", text: "Open File" },
                 { id: "tab-summary", text: "Summary" },
@@ -219,6 +242,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should enable all tab buttons except open file button", () => {
+            expect.hasAssertions();
             appendTabButtons([
                 { id: "openFileBtn", text: "Open File" },
                 { id: "tab-summary", disabled: true, text: "Summary" },
@@ -246,6 +270,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should handle multiple open file button ID variants", () => {
+            expect.hasAssertions();
             appendTabButtons([
                 { id: "open-file-btn", text: "Open File" },
                 {
@@ -273,6 +298,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should set window global state for debugging", () => {
+            expect.hasAssertions();
             appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
             // Debug scope relationships
@@ -313,6 +339,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should apply comprehensive styling when disabling", () => {
+            expect.hasAssertions();
             appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
             setTabButtonsEnabled(false);
@@ -330,6 +357,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should apply comprehensive styling when enabling", () => {
+            expect.hasAssertions();
             appendTabButtons([
                 {
                     id: "tab-test",
@@ -358,6 +386,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should handle elements that are not HTMLElements gracefully", () => {
+            expect.hasAssertions();
             appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
             // Mock isHTMLElement to return false
@@ -379,6 +408,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should handle nuclear option for stubborn disabled attributes", () => {
+            expect.hasAssertions();
             appendTabButtons([
                 { id: "tab-test", disabled: true, text: "Test" },
             ]);
@@ -391,7 +421,9 @@ describe("enableTabButtons behavior", () => {
                 return originalHasAttribute(attr);
             });
 
-            const mockParent = { replaceChild: vi.fn() } as any;
+            const mockParent = {
+                replaceChild: vi.fn<Node["replaceChild"]>(),
+            } as unknown as ParentNode;
             vi.spyOn(testBtn, "parentNode", "get").mockReturnValue(mockParent);
             vi.spyOn(testBtn, "cloneNode").mockReturnValue(testBtn);
 
@@ -407,6 +439,7 @@ describe("enableTabButtons behavior", () => {
 
     describe("initializeTabButtonState function", () => {
         it("should set up state subscription and initial disabled state", () => {
+            expect.hasAssertions();
             appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
             initializeTabButtonState();
@@ -428,6 +461,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should enable tabs when globalData is present", () => {
+            expect.hasAssertions();
             appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
             initializeTabButtonState();
@@ -453,6 +487,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should disable tabs when globalData is null/undefined", () => {
+            expect.hasAssertions();
             appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
             initializeTabButtonState();
@@ -477,12 +512,10 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should set up MutationObserver when window is available", () => {
+            expect.hasAssertions();
             appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
-            const mockObserver = {
-                observe: vi.fn(),
-                disconnect: vi.fn(),
-            };
+            const mockObserver = createMutationObserverMock();
 
             // Ensure clean state - the key is to ensure no existing observer
             delete (global as any).window.tabButtonObserver;
@@ -498,9 +531,10 @@ describe("enableTabButtons behavior", () => {
             const originalWindowMutationObserver =
                 global.window.MutationObserver;
             const MutationObserverSpy = vi
-                .fn()
-                .mockImplementation(function MutationObserverMock() {
-                    return mockObserver;
+                .fn<(callback: MutationCallback) => MutationObserver>()
+                .mockImplementation(function MutationObserverMock(callback) {
+                    void callback;
+                    return mockObserver as MutationObserver;
                 });
 
             // Mock both scopes to ensure the implementation finds our spy
@@ -516,24 +550,28 @@ describe("enableTabButtons behavior", () => {
             expect(MutationObserverSpy).toHaveBeenCalledWith(
                 expect.any(Function)
             );
-            expect(mockObserver.observe).toHaveBeenCalled();
+            expect(mockObserver.observe).toHaveBeenCalledWith(
+                getRequiredButton("tab-test"),
+                {
+                    attributeFilter: ["disabled"],
+                    attributes: true,
+                }
+            );
             expect((globalThis as any).tabButtonObserver).toBe(mockObserver);
         });
 
         it("should not create duplicate MutationObserver", () => {
+            expect.hasAssertions();
             appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
             // Set up existing observer
             const existingObserver = { existing: true };
             (globalThis as any).tabButtonObserver = existingObserver;
 
-            const mockObserver = {
-                observe: vi.fn(),
-                disconnect: vi.fn(),
-            };
-            global.window.MutationObserver = vi
-                .fn()
-                .mockReturnValue(mockObserver);
+            const mockObserver = createMutationObserverMock();
+            vi.spyOn(global.window, "MutationObserver").mockReturnValue(
+                mockObserver
+            );
 
             initializeTabButtonState();
 
@@ -546,6 +584,7 @@ describe("enableTabButtons behavior", () => {
 
     describe("areTabButtonsEnabled function", () => {
         it("should return current state value", () => {
+            expect.hasAssertions();
             mockGetState.mockReturnValue(true);
 
             const result = areTabButtonsEnabled();
@@ -555,6 +594,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should return false when state is falsy", () => {
+            expect.hasAssertions();
             mockGetState.mockReturnValue(null);
 
             const result = areTabButtonsEnabled();
@@ -566,6 +606,7 @@ describe("enableTabButtons behavior", () => {
 
     describe("debugTabButtons function", () => {
         it("should log debug information for all tab buttons", () => {
+            expect.hasAssertions();
             appendTabButtons([
                 { id: "openFileBtn", text: "Open File" },
                 { id: "tab-summary", text: "Summary" },
@@ -600,6 +641,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should handle buttons without IDs gracefully", () => {
+            expect.hasAssertions();
             appendTabButtons([{ text: "No ID" }]);
 
             expect(() => debugTabButtons()).not.toThrow();
@@ -612,6 +654,7 @@ describe("enableTabButtons behavior", () => {
 
     describe("forceEnableTabButtons function", () => {
         it("should aggressively enable all tab buttons", () => {
+            expect.hasAssertions();
             appendTabButtons([
                 { id: "openFileBtn", text: "Open File" },
                 {
@@ -645,6 +688,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should skip open file buttons", () => {
+            expect.hasAssertions();
             appendTabButtons([
                 { id: "openFileBtn", text: "Open File" },
                 { id: "tab-summary", text: "Summary" },
@@ -669,6 +713,7 @@ describe("enableTabButtons behavior", () => {
 
     describe("testTabButtonClicks function", () => {
         it("should add test click handlers to tab buttons", () => {
+            expect.hasAssertions();
             appendTabButtons([
                 { id: "openFileBtn", text: "Open File" },
                 { id: "tab-summary", text: "Summary" },
@@ -687,6 +732,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should skip open file buttons", () => {
+            expect.hasAssertions();
             appendTabButtons([{ id: "openFileBtn", text: "Open File" }]);
 
             expect(() => testTabButtonClicks()).not.toThrow();
@@ -696,6 +742,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should remove test handlers after timeout", () => {
+            expect.hasAssertions();
             vi.useFakeTimers();
 
             appendTabButtons([{ id: "tab-summary", text: "Summary" }]);
@@ -723,6 +770,7 @@ describe("enableTabButtons behavior", () => {
 
     describe("debugTabState function", () => {
         it("should log current tab states and application state", () => {
+            expect.hasAssertions();
             appendTabButtons([
                 {
                     id: "tab-summary",
@@ -763,6 +811,7 @@ describe("enableTabButtons behavior", () => {
 
     describe("forceFixTabButtons function", () => {
         it("should aggressively fix all tab button states", () => {
+            expect.hasAssertions();
             appendTabButtons([
                 { id: "openFileBtn", text: "Open File" },
                 {
@@ -803,6 +852,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should log before and after states", () => {
+            expect.hasAssertions();
             appendTabButtons([{ id: "tab-summary", text: "Summary" }]);
 
             forceFixTabButtons();
@@ -819,8 +869,9 @@ describe("enableTabButtons behavior", () => {
         });
     });
 
-    describe("Edge cases and error conditions", () => {
+    describe("edge cases and error conditions", () => {
         it("should handle empty DOM gracefully", () => {
+            expect.hasAssertions();
             testContainer.replaceChildren();
 
             expect(() => setTabButtonsEnabled(true)).not.toThrow();
@@ -830,6 +881,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should handle buttons without parent nodes in nuclear option", () => {
+            expect.hasAssertions();
             appendTabButtons([
                 { id: "tab-test", disabled: true, text: "Test" },
             ]);
@@ -844,9 +896,10 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should handle missing getComputedStyle", () => {
+            expect.hasAssertions();
             // Mock getComputedStyle to throw an error - need to mock globalThis.getComputedStyle
             const originalGetComputedStyle = globalThis.getComputedStyle;
-            globalThis.getComputedStyle = vi.fn().mockImplementation(() => {
+            vi.spyOn(globalThis, "getComputedStyle").mockImplementation(() => {
                 throw new Error("getComputedStyle not available");
             });
 
@@ -861,6 +914,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should handle undefined window object", () => {
+            expect.hasAssertions();
             const originalWindow = global.window;
             (global as any).window = undefined;
 
@@ -876,8 +930,9 @@ describe("enableTabButtons behavior", () => {
         });
     });
 
-    describe("Integration scenarios", () => {
+    describe("integration scenarios", () => {
         it("should handle complete enable/disable cycle", () => {
+            expect.hasAssertions();
             appendTabButtons([
                 { id: "tab-summary", text: "Summary" },
                 { id: "tab-chart", text: "Chart" },
@@ -925,6 +980,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should handle MutationObserver callback for unauthorized changes", () => {
+            expect.hasAssertions();
             appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
             // Ensure clean state first
@@ -940,13 +996,10 @@ describe("enableTabButtons behavior", () => {
 
             // Mock both global and window scope MutationObserver to capture callback
             const MockObserverClass = vi
-                .fn()
+                .fn<(callback: MutationCallback) => MutationObserver>()
                 .mockImplementation(function MutationObserverMock(callback) {
                     mutationCallback = callback;
-                    return {
-                        observe: vi.fn(),
-                        disconnect: vi.fn(),
-                    };
+                    return createMutationObserverMock() as MutationObserver;
                 });
 
             global.MutationObserver = MockObserverClass as any;
