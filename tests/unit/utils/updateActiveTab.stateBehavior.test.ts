@@ -1,14 +1,27 @@
-/**
- * @vitest-environment jsdom
- */
+// @vitest-environment jsdom
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("../../../electron-app/utils/state/core/stateManager.js", () => ({
-    getState: undefined,
-    setState: undefined,
-    subscribe: undefined,
-}));
+type StateSetOptions = {
+    source: string;
+};
+type GetState = (path?: string) => unknown;
+type SetState = (
+    path: string,
+    value: unknown,
+    options?: StateSetOptions
+) => void;
+type SubscriptionCallback = (newValue: unknown) => void;
+type Subscribe = (path: string, callback: SubscriptionCallback) => () => void;
+
+vi.mock(
+    import("../../../electron-app/utils/state/core/stateManager.js"),
+    () => ({
+        getState: undefined,
+        setState: undefined,
+        subscribe: undefined,
+    })
+);
 
 import {
     getActiveTab,
@@ -17,12 +30,11 @@ import {
 } from "../../../electron-app/utils/ui/tabs/updateActiveTab.js";
 
 const { mockGetState, mockSetState, mockSubscribe } = vi.hoisted(() => ({
-    mockGetState: vi.fn(),
-    mockSetState: vi.fn(),
-    mockSubscribe: vi.fn(),
+    mockGetState: vi.fn<GetState>(),
+    mockSetState: vi.fn<SetState>(),
+    mockSubscribe: vi.fn<Subscribe>(),
 }));
 
-type SubscriptionCallback = (newValue: unknown) => void;
 type TabElement = HTMLButtonElement | HTMLDivElement;
 
 type TabElementOptions = {
@@ -137,8 +149,10 @@ describe("updateActiveTab state behavior", () => {
         vi.resetAllMocks();
     });
 
-    describe("updateActiveTab", () => {
+    describe(updateActiveTab, () => {
         it("should keep the requested tab active when it is already selected", () => {
+            expect.hasAssertions();
+
             appendTabElements([
                 { active: true, id: "tab-summary", text: "Summary" },
                 { id: "tab-chart", text: "Chart" },
@@ -162,8 +176,7 @@ describe("updateActiveTab state behavior", () => {
                 },
                 updated: true,
             });
-            expect(mockSetState).toHaveBeenCalledOnce();
-            expect(mockSetState).toHaveBeenCalledWith(
+            expect(mockSetState).toHaveBeenCalledExactlyOnceWith(
                 "ui.activeTab",
                 "summary",
                 { source: "updateActiveTab" }
@@ -171,6 +184,8 @@ describe("updateActiveTab state behavior", () => {
         });
 
         it("should update tab classes correctly for standard tab pattern", () => {
+            expect.hasAssertions();
+
             appendTabElements([
                 { active: true, id: "tab-summary", text: "Summary" },
                 { id: "tab-chart", text: "Chart" },
@@ -209,6 +224,8 @@ describe("updateActiveTab state behavior", () => {
         });
 
         it("should handle all tab ID patterns correctly", () => {
+            expect.hasAssertions();
+
             appendTabElements([
                 { id: "tab-test1", text: "Tab Pattern" },
                 { id: "test2-tab", text: "Reverse Tab" },
@@ -259,6 +276,8 @@ describe("updateActiveTab state behavior", () => {
         });
 
         it("should remove active class from all tab buttons before setting new one", () => {
+            expect.hasAssertions();
+
             appendTabElements([
                 { active: true, id: "tab-summary", text: "Summary" },
                 { active: true, id: "tab-chart", text: "Chart" },
@@ -298,6 +317,8 @@ describe("updateActiveTab state behavior", () => {
         });
 
         it("should handle null/undefined/empty tab IDs gracefully", () => {
+            expect.hasAssertions();
+
             appendTabElement({ id: "tab-test", text: "Test" });
 
             const results = [
@@ -318,6 +339,8 @@ describe("updateActiveTab state behavior", () => {
         });
 
         it("should handle non-existent elements gracefully", () => {
+            expect.hasAssertions();
+
             appendTabElement({ id: "tab-exists", text: "Exists" });
 
             const updated = updateActiveTab("tab-nonexistent");
@@ -332,6 +355,8 @@ describe("updateActiveTab state behavior", () => {
         });
 
         it("should handle elements without classList", () => {
+            expect.hasAssertions();
+
             const mockElement = { classList: null, id: "tab-test" };
             const originalGetElementById =
                 Document.prototype.getElementById.bind(document);
@@ -353,6 +378,8 @@ describe("updateActiveTab state behavior", () => {
         });
 
         it("should not call setState when no target tab exists", () => {
+            expect.hasAssertions();
+
             const placeholder = document.createElement("div");
             placeholder.textContent = "No tab buttons";
             testContainer.appendChild(placeholder);
@@ -370,6 +397,8 @@ describe("updateActiveTab state behavior", () => {
         });
 
         it("should handle special characters in tab IDs", () => {
+            expect.hasAssertions();
+
             const specialId = "test-special_chars.with+symbols";
             appendTabElement({
                 id: `tab-${specialId}`,
@@ -392,6 +421,8 @@ describe("updateActiveTab state behavior", () => {
         });
 
         it("should work with large numbers of tab buttons", () => {
+            expect.hasAssertions();
+
             for (let index = 0; index < 100; index += 1) {
                 appendTabElement({
                     id: `tab-item${index}`,
@@ -418,8 +449,10 @@ describe("updateActiveTab state behavior", () => {
         });
     });
 
-    describe("getActiveTab", () => {
+    describe(getActiveTab, () => {
         it("should return state value when available", () => {
+            expect.hasAssertions();
+
             mockGetState.mockReturnValue("chart");
 
             expect(getActiveTab()).toBe("chart");
@@ -427,6 +460,8 @@ describe("updateActiveTab state behavior", () => {
         });
 
         it('should return default "summary" when state is null', () => {
+            expect.hasAssertions();
+
             mockGetState.mockReturnValue(null);
 
             expect(getActiveTab()).toBe("summary");
@@ -434,6 +469,8 @@ describe("updateActiveTab state behavior", () => {
         });
 
         it('should return default "summary" when state is undefined', () => {
+            expect.hasAssertions();
+
             mockGetState.mockReturnValue(undefined);
 
             expect(getActiveTab()).toBe("summary");
@@ -441,6 +478,8 @@ describe("updateActiveTab state behavior", () => {
         });
 
         it('should return default "summary" when state is empty string', () => {
+            expect.hasAssertions();
+
             mockGetState.mockReturnValue("");
 
             expect(getActiveTab()).toBe("summary");
@@ -448,6 +487,8 @@ describe("updateActiveTab state behavior", () => {
         });
 
         it("should handle state manager errors", () => {
+            expect.hasAssertions();
+
             mockGetState.mockImplementation(() => {
                 throw new Error("State error");
             });
@@ -456,6 +497,8 @@ describe("updateActiveTab state behavior", () => {
         });
 
         it("should call getState exactly once", () => {
+            expect.hasAssertions();
+
             mockGetState.mockReturnValue("data");
 
             expect(getActiveTab()).toBe("data");
@@ -463,8 +506,10 @@ describe("updateActiveTab state behavior", () => {
         });
     });
 
-    describe("initializeActiveTabState", () => {
+    describe(initializeActiveTabState, () => {
         it("should set up state subscription", () => {
+            expect.hasAssertions();
+
             appendTabElements([
                 { id: "tab-summary", text: "Summary" },
                 { active: true, id: "tab-chart", text: "Chart" },
@@ -486,6 +531,8 @@ describe("updateActiveTab state behavior", () => {
         });
 
         it("should set up click listeners on tab buttons", () => {
+            expect.hasAssertions();
+
             appendTabElements([
                 { id: "tab-summary", text: "Summary" },
                 { id: "tab-chart", text: "Chart" },
@@ -505,6 +552,8 @@ describe("updateActiveTab state behavior", () => {
         });
 
         it("should handle disabled buttons correctly", () => {
+            expect.hasAssertions();
+
             appendTabElements([
                 {
                     disabled: true,
@@ -542,6 +591,8 @@ describe("updateActiveTab state behavior", () => {
         });
 
         it("should handle buttons without IDs gracefully", () => {
+            expect.hasAssertions();
+
             const button = appendTabElement({ text: "No ID" });
 
             initializeActiveTabState();
@@ -552,6 +603,8 @@ describe("updateActiveTab state behavior", () => {
         });
 
         it("should work with no tab buttons present", () => {
+            expect.hasAssertions();
+
             const placeholder = document.createElement("div");
             placeholder.textContent = "No tab buttons";
             testContainer.appendChild(placeholder);
@@ -569,6 +622,8 @@ describe("updateActiveTab state behavior", () => {
 
     describe("state integration", () => {
         it("should handle state subscription callback", () => {
+            expect.hasAssertions();
+
             appendTabElements([
                 { id: "tab-summary", text: "Summary" },
                 { active: true, id: "tab-chart", text: "Chart" },
@@ -596,6 +651,8 @@ describe("updateActiveTab state behavior", () => {
         });
 
         it("should handle realistic user interaction flow", () => {
+            expect.hasAssertions();
+
             appendTabElements([
                 { active: true, id: "tab-summary", text: "Summary" },
                 { id: "tab-chart", text: "Chart" },
@@ -620,6 +677,8 @@ describe("updateActiveTab state behavior", () => {
         });
 
         it("should handle setState errors gracefully", () => {
+            expect.hasAssertions();
+
             appendTabElement({ id: "tab-summary", text: "Summary" });
             mockSetState.mockImplementation(() => {
                 throw new Error("State error");
@@ -639,6 +698,8 @@ describe("updateActiveTab state behavior", () => {
 
     describe("edge cases and error conditions", () => {
         it("should handle rapid successive calls", () => {
+            expect.hasAssertions();
+
             appendTabElement({ id: "tab-summary", text: "Summary" });
 
             for (let index = 0; index < 100; index += 1) {
@@ -652,6 +713,8 @@ describe("updateActiveTab state behavior", () => {
         });
 
         it("should handle malformed HTML gracefully", () => {
+            expect.hasAssertions();
+
             appendTabElements([
                 { id: "tab-test", text: "Test" },
                 { tagName: "div", text: "Not a button" },
@@ -671,6 +734,8 @@ describe("updateActiveTab state behavior", () => {
         });
 
         it("should handle missing extractTabName function gracefully", () => {
+            expect.hasAssertions();
+
             appendTabElement({ id: "malformed-id", text: "Test" });
 
             const updated = updateActiveTab("malformed-id");
@@ -689,6 +754,8 @@ describe("updateActiveTab state behavior", () => {
         });
 
         it("should handle document.querySelectorAll returning empty array", () => {
+            expect.hasAssertions();
+
             const placeholder = document.createElement("div");
             placeholder.textContent = "No tab buttons";
             testContainer.appendChild(placeholder);
