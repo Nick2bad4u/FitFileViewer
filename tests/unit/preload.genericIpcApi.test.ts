@@ -150,7 +150,7 @@ describe("generic preload IPC API", () => {
     });
 
     it("blocks non-allowlisted generic channels while enforcement is enabled", async () => {
-        expect.assertions(5);
+        expect.assertions(4);
 
         const { api, ipcMock, preloadLog } = createApi();
 
@@ -158,16 +158,27 @@ describe("generic preload IPC API", () => {
             "Channel not allowed for invoke"
         );
 
-        expect(api.onIpc("menu-about", vi.fn())).toBeUndefined();
-        expect(api.onUpdateEvent("update-downloaded", vi.fn())).toBeUndefined();
+        api.onIpc("menu-about", vi.fn());
+        api.onUpdateEvent("update-downloaded", vi.fn());
 
         api.send("fit-file-loaded", "activity.fit");
 
+        expect(ipcMock.on).not.toHaveBeenCalled();
         expect(ipcMock.send).not.toHaveBeenCalled();
-        expect(preloadLog).toHaveBeenCalledWith(
-            "warn",
-            "[preload.js] Blocked send() to non-allowlisted channel: fit-file-loaded"
-        );
+        expect(preloadLog.mock.calls).toStrictEqual([
+            [
+                "warn",
+                "[preload.js] Blocked onIpc() subscription to non-allowlisted channel: menu-about",
+            ],
+            [
+                "warn",
+                "[preload.js] Blocked onUpdateEvent() subscription to non-allowlisted event: update-downloaded",
+            ],
+            [
+                "warn",
+                "[preload.js] Blocked send() to non-allowlisted channel: fit-file-loaded",
+            ],
+        ]);
     });
 
     it("normalizes FIT file load notifications", () => {
