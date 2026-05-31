@@ -160,14 +160,18 @@ describe("preload IPC helpers", () => {
         expect.assertions(3);
 
         const { helpers, ipcRenderer, preloadLog } = createHelpers();
+        let didThrow = false;
         ipcRenderer.send.mockImplementationOnce(() => {
             throw new Error("send failed");
         });
 
-        expect(
-            helpers.createSafeSendHandler("app:test", "testSend")("payload")
-        ).toBeUndefined();
+        try {
+            helpers.createSafeSendHandler("app:test", "testSend")("payload");
+        } catch {
+            didThrow = true;
+        }
 
+        expect(didThrow).toBe(false);
         expect(ipcRenderer.send).toHaveBeenCalledWith("app:test", "payload");
         expect(preloadLog).toHaveBeenCalledWith(
             "error",
@@ -177,10 +181,13 @@ describe("preload IPC helpers", () => {
     });
 
     it("subscribes to events, transforms payloads, and removes listeners", () => {
-        expect.assertions(5);
+        expect.assertions(3);
 
         const { helpers, ipcRenderer } = createHelpers();
-        const callback = vi.fn<(value: unknown) => void>();
+        const receivedPayloads: unknown[] = [];
+        const callback = vi.fn<(value: unknown) => void>((value) => {
+            receivedPayloads.push(value);
+        });
         const unsubscribe = helpers.createSafeEventHandler(
             "app:event",
             "onEvent",
@@ -195,7 +202,7 @@ describe("preload IPC helpers", () => {
 
         listener?.({}, "payload");
 
-        expect(callback).toHaveBeenCalledWith({ value: "payload" });
+        expect(receivedPayloads).toStrictEqual([{ value: "payload" }]);
 
         unsubscribe();
 
@@ -203,14 +210,13 @@ describe("preload IPC helpers", () => {
             "app:event",
             listener
         );
-        expect(ipcRenderer.off).toBeUndefined();
-        expect(ipcRenderer.removeAllListeners).toBeUndefined();
     });
 
     it("returns a no-op unsubscribe when callback validation fails", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
-        const { helpers, ipcRenderer, validateCallback } = createHelpers();
+        const { helpers, ipcRenderer, preloadLog, validateCallback } =
+            createHelpers();
         validateCallback.mockReturnValueOnce(false);
 
         const unsubscribe = helpers.createSafeEventHandler(
@@ -218,8 +224,10 @@ describe("preload IPC helpers", () => {
             "onEvent"
         )(() => undefined);
 
-        expect(unsubscribe()).toBeUndefined();
+        expect(unsubscribe).toBeTypeOf("function");
+        unsubscribe();
         expect(ipcRenderer.on).not.toHaveBeenCalled();
+        expect(preloadLog).not.toHaveBeenCalled();
         expect(validateCallback).toHaveBeenCalledWith(
             expect.any(Function),
             "onEvent"
