@@ -215,7 +215,7 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
     });
 
     it("should warn and exit when container is invalid", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         renderZoneChart(null, "Invalid", [], "heart-rate-zones");
 
@@ -235,7 +235,7 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
     });
 
     it("should warn and exit when zone data is not an array", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const container = document.createElement("div");
         renderZoneChart(container, "Invalid", null, "heart-rate-zones");
@@ -253,7 +253,7 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
     });
 
     it("should render doughnut chart with colors provided in zone data", () => {
-        expect.hasAssertions();
+        expect.assertions(7);
 
         const container = document.createElement("div");
         const zoneData: ZoneData[] = [
@@ -295,7 +295,7 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
     });
 
     it("should fallback to computed zone colors and render bar chart when requested", () => {
-        expect.hasAssertions();
+        expect.assertions(7);
 
         const container = document.createElement("div");
         const zoneData: ZoneData[] = [

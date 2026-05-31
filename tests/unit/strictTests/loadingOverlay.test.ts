@@ -30,7 +30,7 @@ describe("loading overlay strict", () => {
     });
 
     it("creates overlay on first show with text and filename", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const { LoadingOverlay } =
             await import("../../../electron-app/utils/ui/components/LoadingOverlay.js");
@@ -49,7 +49,7 @@ describe("loading overlay strict", () => {
     });
 
     it("reuses existing overlay and updates text only", async () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         const { LoadingOverlay } =
             await import("../../../electron-app/utils/ui/components/LoadingOverlay.js");
@@ -75,7 +75,7 @@ describe("loading overlay strict", () => {
     });
 
     it("hide removes the overlay from DOM", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const { LoadingOverlay } =
             await import("../../../electron-app/utils/ui/components/LoadingOverlay.js");

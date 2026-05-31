@@ -37,7 +37,7 @@ describe("showUpdateNotification strict", () => {
     });
 
     it("renders basic info notification and auto-hides", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const el = ensureNotificationDiv();
         const hideSpy = vi.spyOn(el.style, "display", "set");
@@ -54,7 +54,7 @@ describe("showUpdateNotification strict", () => {
     });
 
     it("creates action button and auto-hides when withAction=true", () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         const el = ensureNotificationDiv();
 
@@ -83,7 +83,7 @@ describe("showUpdateNotification strict", () => {
     });
 
     it("renders update-downloaded with two buttons and Later hides", () => {
-        expect.hasAssertions();
+        expect.assertions(10);
 
         const el = ensureNotificationDiv();
         (window as UpdateNotificationTestWindow).electronAPI = {
@@ -123,7 +123,7 @@ describe("showUpdateNotification strict", () => {
     });
 
     it("logs a warning and no crash when electronAPI missing", () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         const el = ensureNotificationDiv();
         const logSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
