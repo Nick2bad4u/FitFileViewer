@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 // Minimal Arquero-like API used by the module
 (window as any).aq = {
@@ -25,6 +25,8 @@ describe("copyTableAsCSV", () => {
     });
 
     it("copies using modern Clipboard API and stringifies nested objects", async () => {
+        expect.hasAssertions();
+
         const nav = globalThis.navigator as any;
         let copiedText = "";
         nav.clipboard = {
@@ -50,6 +52,8 @@ describe("copyTableAsCSV", () => {
     });
 
     it("falls back when Clipboard API not available", async () => {
+        expect.hasAssertions();
+
         // Remove clipboard to force fallback
         const nav = globalThis.navigator as any;
         delete nav.clipboard;
@@ -72,9 +76,11 @@ describe("copyTableAsCSV", () => {
     });
 
     it("throws on invalid table input", async () => {
+        expect.hasAssertions();
+
         const { copyTableAsCSV } =
             await import("../../../../../electron-app/utils/files/export/copyTableAsCSV.js");
-        await expect(copyTableAsCSV(null as any)).rejects.toThrowError(
+        await expect(copyTableAsCSV(null as any)).rejects.toThrow(
             "Invalid table object: missing objects method"
         );
     });

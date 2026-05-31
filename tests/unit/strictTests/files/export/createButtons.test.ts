@@ -8,6 +8,11 @@ type GpxTestGlobal = typeof globalThis & {
         }[];
     };
 };
+type NotificationFn = (
+    message: string,
+    type?: string,
+    duration?: number
+) => Promise<undefined>;
 
 const gpxGlobal = globalThis as GpxTestGlobal;
 
@@ -28,7 +33,7 @@ function ensureObjectUrlApi(): void {
 }
 
 vi.mock(
-    "../../../../../electron-app/utils/charts/theming/getThemeColors.js",
+    import("../../../../../electron-app/utils/charts/theming/getThemeColors.js"),
     () => ({
         getThemeColors: () => ({
             primary: "#000",
@@ -38,9 +43,9 @@ vi.mock(
     })
 );
 vi.mock(
-    "../../../../../electron-app/utils/ui/notifications/showNotification.js",
+    import("../../../../../electron-app/utils/ui/notifications/showNotification.js"),
     () => ({
-        showNotification: vi.fn(),
+        showNotification: vi.fn<NotificationFn>(),
     })
 );
 
@@ -58,6 +63,8 @@ describe("export/print buttons", () => {
     });
 
     it("createPrintButton returns a button and handles click errors gracefully", async () => {
+        expect.hasAssertions();
+
         const { createPrintButton } =
             await import("../../../../../electron-app/utils/files/export/createPrintButton.js");
         const btn = createPrintButton();
@@ -65,34 +72,29 @@ describe("export/print buttons", () => {
         expect(btn.textContent).toBe("Print");
         expect(btn.getAttribute("aria-label")).toBe("Print or export map");
 
-        const origPrint = window.print;
         const show =
             await import("../../../../../electron-app/utils/ui/notifications/showNotification.js");
         const showSpy = vi.mocked(show.showNotification);
-        const errorSpy = vi
-            .spyOn(console, "error")
-            .mockImplementation(() => undefined);
+        const errorSpy = vi.spyOn(console, "error").mockReturnValue(undefined);
         showSpy.mockResolvedValue(undefined);
-        window.print = vi.fn(() => {
+        vi.spyOn(window, "print").mockImplementation(() => {
             throw new Error("print failed");
         });
 
-        try {
-            btn.click();
-            expect(showSpy).toHaveBeenCalledWith(
-                "Print failed. Please try again.",
-                "error"
-            );
-            expect(errorSpy).toHaveBeenCalledWith(
-                "[MapActions] Print failed:",
-                expect.any(Error)
-            );
-        } finally {
-            window.print = origPrint;
-        }
+        btn.click();
+        expect(showSpy).toHaveBeenCalledWith(
+            "Print failed. Please try again.",
+            "error"
+        );
+        expect(errorSpy).toHaveBeenCalledWith(
+            "[MapActions] Print failed:",
+            expect.any(Error)
+        );
     });
 
     it("createExportGPXButton notifies and skips download when recordMesgs are missing", async () => {
+        expect.hasAssertions();
+
         ensureObjectUrlApi();
         const { createExportGPXButton } =
             await import("../../../../../electron-app/utils/files/export/createExportGPXButton.js");
@@ -102,7 +104,7 @@ describe("export/print buttons", () => {
         const create = vi.spyOn(URL, "createObjectURL");
         const clickSpy = vi
             .spyOn(HTMLAnchorElement.prototype, "click")
-            .mockImplementation(() => undefined);
+            .mockReturnValue(undefined);
         showSpy.mockResolvedValue(undefined);
 
         const btn = createExportGPXButton();
@@ -119,13 +121,15 @@ describe("export/print buttons", () => {
     });
 
     it("createExportGPXButton builds and triggers a download when recordMesgs exist", async () => {
+        expect.hasAssertions();
+
         vi.useFakeTimers();
         ensureObjectUrlApi();
         const { createExportGPXButton } =
             await import("../../../../../electron-app/utils/files/export/createExportGPXButton.js");
         const revoke = vi
             .spyOn(URL, "revokeObjectURL")
-            .mockImplementation(() => undefined);
+            .mockReturnValue(undefined);
         const create = vi
             .spyOn(URL, "createObjectURL")
             .mockReturnValue("blob:url");
@@ -138,11 +142,11 @@ describe("export/print buttons", () => {
         const btn = createExportGPXButton();
         const clickSpy = vi
             .spyOn(HTMLAnchorElement.prototype, "click")
-            .mockImplementation(() => void 0);
+            .mockReturnValue(undefined);
 
         btn.click();
         expect(create).toHaveBeenCalledWith(expect.any(Blob));
-        expect(clickSpy).toHaveBeenCalled();
+        expect(clickSpy).toHaveBeenCalledWith();
         expect(clickSpy.mock.contexts).toHaveLength(1);
         const clickedAnchor = clickSpy.mock.contexts[0] as HTMLAnchorElement;
         expect(clickedAnchor.download).toBe("Exported_Track.gpx");
