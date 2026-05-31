@@ -108,14 +108,17 @@ describe("normalize-coverage-lcov script", () => {
     it("logs and skips normalization when no coverage directory exists", () => {
         expect.assertions(2);
 
+        const temporaryRoot = makeTemporaryRoot();
+        const targetCoverageDir = path.join(temporaryRoot, "coverage");
         const logger = vi.fn<(message: string) => void>();
 
-        expect(
-            normalizeCoverage({
-                candidateDirectories: [],
-                logger,
-            })
-        ).toBeUndefined();
+        normalizeCoverage({
+            candidateDirectories: [],
+            logger,
+            targetDirectory: targetCoverageDir,
+        });
+
+        expect(fs.existsSync(targetCoverageDir)).toBe(false);
         expect(logger).toHaveBeenCalledWith(
             "normalize-coverage-lcov: no coverage directory found. Skipping normalization."
         );

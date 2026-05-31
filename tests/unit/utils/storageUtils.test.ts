@@ -82,12 +82,12 @@ describe("storage utilities", () => {
             throw new Error("remove denied");
         });
 
-        expect(
+        expect(() =>
             safeStorageSetItem("key", "value", () => ({ setItem }))
-        ).toBeUndefined();
-        expect(
+        ).not.toThrow();
+        expect(() =>
             safeStorageRemoveItem("key", () => ({ removeItem }))
-        ).toBeUndefined();
+        ).not.toThrow();
         expect(setItem).toHaveBeenCalledWith("key", "value");
         expect(removeItem).toHaveBeenCalledWith("key");
     });

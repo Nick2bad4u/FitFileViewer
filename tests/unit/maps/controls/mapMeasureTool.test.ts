@@ -306,7 +306,8 @@ describe("mapMeasureTool.js", () => {
             (call) => call[0] === "click"
         )[1];
 
-        expect(clickHandler({ latlng: { lat: 0, lng: 0 } })).toBeUndefined();
+        clickHandler({ latlng: { lat: 0, lng: 0 } });
+
         expect(addedLayers).toStrictEqual([]);
         expect(mockMap.addLayer).not.toHaveBeenCalled();
     });

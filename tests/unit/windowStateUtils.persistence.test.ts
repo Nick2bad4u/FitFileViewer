@@ -185,7 +185,9 @@ describe("windowStateUtils persistence behavior", () => {
             getBounds: () => ({ width: 1000, height: 700, x: 10, y: 20 }),
         } as unknown as Parameters<typeof mod.saveWindowState>[0];
 
-        expect(mod.saveWindowState(win)).toBeUndefined();
+        mod.saveWindowState(win);
+
+        expect(existsSync(fallbackSettingsPath)).toBe(true);
         expect({
             savedState: JSON.parse(readFileSync(fallbackSettingsPath, "utf8")),
             settingsPath: mod.settingsPath,
