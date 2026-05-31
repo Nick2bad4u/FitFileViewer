@@ -1,77 +1,120 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { JSDOM } from "jsdom";
+
+type AddEventListener = typeof window.addEventListener;
+type CleanupIndicator = (indicator: HTMLElement) => void;
+type ConsoleError = typeof console.error;
+type CreateIndicator = (...args: unknown[]) => HTMLElement;
+type DefineProperty = typeof Object.defineProperty;
+type GetChartCounts = () => {
+    available: number;
+    categories: {
+        analysis: { available: number; total: number; visible: number };
+        gps: { available: number; total: number; visible: number };
+        metrics: { available: number; total: number; visible: number };
+        zones: { available: number; total: number; visible: number };
+    };
+    total: number;
+    visible: number;
+};
+type SetTimeoutMock = typeof setTimeout;
+type SubscribeToChartSettings = (listener: () => void) => () => void;
+type TestGlobal = typeof globalThis & {
+    addEventListener: AddEventListener;
+    customElements: CustomElementRegistry;
+    document: Document;
+    globalData?: unknown;
+    HTMLElement: typeof HTMLElement;
+    setTimeout: SetTimeoutMock;
+    window: Window & typeof globalThis;
+};
+
+function createMockElement(id: string): HTMLElement {
+    const element = document.createElement("div");
+    element.id = id;
+    return element;
+}
+
+function noop(): void {
+    return;
+}
+
+const chartCounts: ReturnType<GetChartCounts> = {
+    available: 9,
+    categories: {
+        analysis: { available: 2, total: 3, visible: 2 },
+        gps: { available: 0, total: 0, visible: 0 },
+        metrics: { available: 5, total: 5, visible: 4 },
+        zones: { available: 2, total: 2, visible: 1 },
+    },
+    total: 10,
+    visible: 7,
+};
 
 // Mock dependencies
 vi.mock(
-    "../../../../../electron-app/utils/charts/components/createChartStatusIndicator.js",
+    import("../../../../../electron-app/utils/charts/components/createChartStatusIndicator.js"),
     () => ({
-        createChartStatusIndicator: vi.fn().mockImplementation(() => {
-            const element = document.createElement("div");
-            element.id = "mock-chart-status-indicator";
-            return element;
-        }),
+        createChartStatusIndicator: vi
+            .fn<CreateIndicator>()
+            .mockImplementation((_counts?: unknown) =>
+                createMockElement("mock-chart-status-indicator")
+            ),
     })
 );
 
 vi.mock(
-    "../../../../../electron-app/utils/charts/components/createChartStatusIndicatorFromCounts.js",
+    import("../../../../../electron-app/utils/charts/components/createChartStatusIndicatorFromCounts.js"),
     () => ({
-        cleanupChartStatusIndicatorFromCounts: vi.fn(),
-        createChartStatusIndicatorFromCounts: vi.fn().mockImplementation(() => {
-            const element = document.createElement("div");
-            element.id = "mock-chart-status-indicator-from-counts";
-            return element;
-        }),
+        cleanupChartStatusIndicatorFromCounts: vi.fn<CleanupIndicator>(),
+        createChartStatusIndicatorFromCounts: vi
+            .fn<CreateIndicator>()
+            .mockImplementation((_counts?: unknown) =>
+                createMockElement("mock-chart-status-indicator-from-counts")
+            ),
     })
 );
 
 vi.mock(
-    "../../../../../electron-app/utils/charts/components/createGlobalChartStatusIndicator.js",
+    import("../../../../../electron-app/utils/charts/components/createGlobalChartStatusIndicator.js"),
     () => ({
-        createGlobalChartStatusIndicator: vi.fn().mockImplementation(() => {
-            const element = document.createElement("div");
-            element.id = "mock-global-chart-status-indicator";
-            document.body.appendChild(element);
-            return element;
-        }),
-    })
-);
-
-vi.mock(
-    "../../../../../electron-app/utils/charts/components/createGlobalChartStatusIndicatorFromCounts.js",
-    () => ({
-        cleanupGlobalChartStatusIndicatorFromCounts: vi.fn(),
-        createGlobalChartStatusIndicatorFromCounts: vi
-            .fn()
+        createGlobalChartStatusIndicator: vi
+            .fn<CreateIndicator>()
             .mockImplementation(() => {
-                const element = document.createElement("div");
-                element.id = "mock-global-chart-status-indicator-from-counts";
+                const element = createMockElement(
+                    "mock-global-chart-status-indicator"
+                );
+                document.body.append(element);
                 return element;
             }),
     })
 );
 
 vi.mock(
-    "../../../../../electron-app/utils/charts/core/getChartCounts.js",
+    import("../../../../../electron-app/utils/charts/components/createGlobalChartStatusIndicatorFromCounts.js"),
     () => ({
-        getChartCounts: vi.fn().mockReturnValue({
-            total: 10,
-            visible: 7,
-            available: 9,
-            categories: {
-                metrics: { total: 5, visible: 4, available: 5 },
-                analysis: { total: 3, visible: 2, available: 2 },
-                zones: { total: 2, visible: 1, available: 2 },
-                gps: { total: 0, visible: 0, available: 0 },
-            },
-        }),
+        cleanupGlobalChartStatusIndicatorFromCounts: vi.fn<CleanupIndicator>(),
+        createGlobalChartStatusIndicatorFromCounts: vi
+            .fn<CreateIndicator>()
+            .mockImplementation((_counts?: unknown) =>
+                createMockElement(
+                    "mock-global-chart-status-indicator-from-counts"
+                )
+            ),
     })
 );
 
 vi.mock(
-    "../../../../../electron-app/utils/state/domain/settingsStateManager.js",
+    import("../../../../../electron-app/utils/charts/core/getChartCounts.js"),
     () => ({
-        subscribeToChartSettings: vi.fn(() => () => {}),
+        getChartCounts: vi.fn<GetChartCounts>().mockReturnValue(chartCounts),
+    })
+);
+
+vi.mock(
+    import("../../../../../electron-app/utils/state/domain/settingsStateManager.js"),
+    () => ({
+        subscribeToChartSettings: vi.fn<SubscribeToChartSettings>(() => noop),
     })
 );
 
@@ -119,10 +162,11 @@ describe("chartStatusIndicator.js", () => {
             url: "http://localhost/",
         });
 
-        global.document = dom.window.document;
-        global.window = dom.window as any;
-        global.HTMLElement = dom.window.HTMLElement;
-        global.customElements = dom.window.customElements;
+        const testGlobal = globalThis as TestGlobal;
+        testGlobal.document = dom.window.document;
+        testGlobal.window = dom.window as Window & typeof globalThis;
+        testGlobal.HTMLElement = dom.window.HTMLElement;
+        testGlobal.customElements = dom.window.customElements;
 
         // Save original functions
         originalAddEventListener = window.addEventListener;
@@ -131,43 +175,52 @@ describe("chartStatusIndicator.js", () => {
         originalDefineProperty = Object.defineProperty;
 
         // Mock console.error
-        console.error = vi.fn();
+        vi.spyOn(console, "error").mockImplementation(noop);
 
         // Mock setTimeout to execute immediately
-        global.setTimeout = vi.fn((fn) => {
-            fn();
-            return 1;
-        }) as any;
+        testGlobal.setTimeout = vi.fn<SetTimeoutMock>((handler) => {
+            if (typeof handler === "function") {
+                handler();
+            }
+            return 1 as ReturnType<SetTimeoutMock>;
+        }) as SetTimeoutMock;
 
         // Mock addEventListener for both window and document
-        const mockWindowAddEventListener = vi.fn();
-        const mockDocumentAddEventListener = vi.fn();
+        const mockWindowAddEventListener = vi.fn<AddEventListener>();
+        const mockDocumentAddEventListener = vi.fn<AddEventListener>();
 
         window.addEventListener = mockWindowAddEventListener;
         document.addEventListener = mockDocumentAddEventListener;
 
         // Synchronize addEventListener between window and globalThis scopes using property descriptor pattern
         Object.defineProperty(globalThis, "addEventListener", {
+            configurable: true,
             value: mockWindowAddEventListener,
             writable: true,
-            configurable: true,
         });
 
         // Synchronize Object.defineProperty behavior for globalData property
         originalDefineProperty = Object.defineProperty;
-        Object.defineProperty = vi.fn((obj, prop, descriptor) => {
-            const result = originalDefineProperty.call(
-                Object,
-                obj,
-                prop,
-                descriptor
-            );
-            // When defineProperty is called on globalThis for globalData, also apply it to window
-            if (obj === globalThis && prop === "globalData") {
-                originalDefineProperty.call(Object, window, prop, descriptor);
+        Object.defineProperty = vi.fn<DefineProperty>(
+            (obj, prop, descriptor) => {
+                const result = originalDefineProperty.call(
+                    Object,
+                    obj,
+                    prop,
+                    descriptor
+                );
+                // When defineProperty is called on globalThis for globalData, also apply it to window
+                if (obj === globalThis && prop === "globalData") {
+                    originalDefineProperty.call(
+                        Object,
+                        window,
+                        prop,
+                        descriptor
+                    );
+                }
+                return result;
             }
-            return result;
-        }) as any;
+        ) as DefineProperty;
     });
 
     afterEach(() => {
@@ -185,6 +238,8 @@ describe("chartStatusIndicator.js", () => {
 
     describe("updateAllChartStatusIndicators", () => {
         it("should update both status indicators when they exist", async () => {
+            expect.hasAssertions();
+
             // Set up the DOM with both indicators
             const settingsIndicator = document.createElement("div");
             settingsIndicator.id = "chart-status-indicator";
@@ -226,6 +281,8 @@ describe("chartStatusIndicator.js", () => {
         });
 
         it("should create global indicator if it does not exist", async () => {
+            expect.hasAssertions();
+
             // Set up the DOM with only settings indicator
             const settingsIndicator = document.createElement("div");
             settingsIndicator.id = "chart-status-indicator";
@@ -243,7 +300,7 @@ describe("chartStatusIndicator.js", () => {
             updateAllChartStatusIndicators();
 
             // Assert that createGlobalChartStatusIndicator was called
-            expect(createGlobalChartStatusIndicator).toHaveBeenCalled();
+            expect(createGlobalChartStatusIndicator).toHaveBeenCalledWith();
             expect(getFirstElementId(settingsParent)).toBe(
                 "chart-status-indicator"
             );
@@ -253,6 +310,8 @@ describe("chartStatusIndicator.js", () => {
         });
 
         it("should handle errors gracefully", async () => {
+            expect.hasAssertions();
+
             // Import the module
             const { updateAllChartStatusIndicators } =
                 await import("../../../../../electron-app/utils/charts/components/chartStatusIndicator.js");
@@ -278,6 +337,8 @@ describe("chartStatusIndicator.js", () => {
 
     describe("updateChartStatusIndicator", () => {
         it("should update a specific chart status indicator when provided", async () => {
+            expect.hasAssertions();
+
             // Set up the DOM with an indicator
             const indicator = document.createElement("div");
             indicator.id = "custom-indicator";
@@ -295,7 +356,7 @@ describe("chartStatusIndicator.js", () => {
             updateChartStatusIndicator(indicator);
 
             // Assert that createChartStatusIndicator was called
-            expect(createChartStatusIndicator).toHaveBeenCalled();
+            expect(createChartStatusIndicator).toHaveBeenCalledWith();
             // We should assert that it was called, but we don't need to check the ID specifically
             // since the real implementation might not replace the ID
             expect(getFirstElementId(parent)).toBe("custom-indicator");
@@ -303,6 +364,8 @@ describe("chartStatusIndicator.js", () => {
         });
 
         it("should update the default indicator when none provided", async () => {
+            expect.hasAssertions();
+
             // Set up the DOM with the default indicator
             const indicator = document.createElement("div");
             indicator.id = "chart-status-indicator";
@@ -324,6 +387,8 @@ describe("chartStatusIndicator.js", () => {
         });
 
         it("should do nothing if no indicator exists", async () => {
+            expect.hasAssertions();
+
             // Import the module
             const { updateChartStatusIndicator } =
                 await import("../../../../../electron-app/utils/charts/components/chartStatusIndicator.js");
@@ -339,6 +404,8 @@ describe("chartStatusIndicator.js", () => {
         });
 
         it("should handle errors gracefully", async () => {
+            expect.hasAssertions();
+
             // Import the module
             const { updateChartStatusIndicator } =
                 await import("../../../../../electron-app/utils/charts/components/chartStatusIndicator.js");
@@ -371,6 +438,8 @@ describe("chartStatusIndicator.js", () => {
 
     describe("setupChartStatusUpdates", () => {
         it("should register all required event listeners", async () => {
+            expect.hasAssertions();
+
             // Import the module
             const { setupChartStatusUpdates } =
                 await import("../../../../../electron-app/utils/charts/components/chartStatusIndicator.js");
@@ -397,7 +466,7 @@ describe("chartStatusIndicator.js", () => {
                 vi.mocked(
                     globalIndicatorModule.createGlobalChartStatusIndicator
                 )
-            ).toHaveBeenCalled();
+            ).toHaveBeenCalledWith();
 
             // Verify globalData property was modified
             const descriptor = Object.getOwnPropertyDescriptor(
@@ -418,6 +487,8 @@ describe("chartStatusIndicator.js", () => {
         });
 
         it("should handle event listener callbacks correctly", async () => {
+            expect.hasAssertions();
+
             // Since we're getting weird spying issues, let's just test the event registration
             // without spying on the internal function call
 
@@ -440,7 +511,7 @@ describe("chartStatusIndicator.js", () => {
                 await import("../../../../../electron-app/utils/state/domain/settingsStateManager.js");
             expect(
                 vi.mocked(settingsStateManager.subscribeToChartSettings)
-            ).toHaveBeenCalled();
+            ).toHaveBeenCalledWith(expect.any(Function));
 
             // Test that the event handlers can be called without errors
             fieldToggleHandler({} as Event);
@@ -451,8 +522,10 @@ describe("chartStatusIndicator.js", () => {
         });
 
         it("should handle errors during setup gracefully", async () => {
+            expect.hasAssertions();
+
             // Mock addEventListener to throw an error - need to update both window and globalThis
-            const errorMock = vi.fn().mockImplementation(() => {
+            const errorMock = vi.fn<AddEventListener>(() => {
                 throw new Error("Test error");
             });
 
@@ -480,6 +553,8 @@ describe("chartStatusIndicator.js", () => {
         });
 
         it("should not redefine globalData property if already configured", async () => {
+            expect.hasAssertions();
+
             // Define a custom getter/setter for globalData
             Object.defineProperty(window, "globalData", {
                 get() {
