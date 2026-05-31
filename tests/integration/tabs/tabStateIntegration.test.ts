@@ -62,7 +62,7 @@ describe("tab state management integration", () => {
 
     describe("tab button lifecycle during file loading", () => {
         it("should disable tabs before file load and prevent clicks", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             // Initialize tab state management
             initializeActiveTabState();
@@ -99,7 +99,7 @@ describe("tab state management integration", () => {
         });
 
         it("should re-enable tabs after file load and allow clicks", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             // Initialize and disable tabs
             initializeActiveTabState();
@@ -133,7 +133,7 @@ describe("tab state management integration", () => {
         });
 
         it("should handle multiple enable/disable cycles correctly", () => {
-            expect.hasAssertions();
+            expect.assertions(15);
 
             initializeActiveTabState();
 
@@ -173,7 +173,7 @@ describe("tab state management integration", () => {
 
     describe("state synchronization between systems", () => {
         it("should maintain state consistency when tabs are disabled", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             initializeActiveTabState();
 
@@ -224,7 +224,7 @@ describe("tab state management integration", () => {
         });
 
         it("should handle rapid state changes during disabled state", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             initializeActiveTabState();
             setTabButtonsEnabled(false);
@@ -258,7 +258,7 @@ describe("tab state management integration", () => {
 
     describe("error handling and edge cases", () => {
         it("should handle missing tab elements gracefully", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             // Remove a tab button
             getRequiredTabButton("tab-chart").remove();
@@ -277,7 +277,7 @@ describe("tab state management integration", () => {
         });
 
         it("should handle initialization without DOM elements", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             cleanupDOM();
 
@@ -300,7 +300,7 @@ describe("tab state management integration", () => {
         });
 
         it("should handle state changes before initialization", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             // Change state before initializing
             mockState.setState("ui.activeTab", "chart");
@@ -322,7 +322,7 @@ describe("tab state management integration", () => {
         });
 
         it("should handle invalid tab names", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             initializeActiveTabState();
 
@@ -340,7 +340,7 @@ describe("tab state management integration", () => {
 
     describe("performance and memory", () => {
         it("should not leak event listeners on repeated initialization", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             // Initialize multiple times
             for (let i = 0; i < 10; i++) {
@@ -370,7 +370,7 @@ describe("tab state management integration", () => {
         });
 
         it("should handle high-frequency state changes", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             initializeActiveTabState();
 
