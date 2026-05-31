@@ -1,17 +1,17 @@
-/**
- * @vitest-environment jsdom
- */
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+// @vitest-environment jsdom
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+type MockChartCounts = ReturnType<typeof createMockChartCounts>;
 
 // Hoisted mock for getChartCounts
-const { mockGetChartCounts } = /** @type {any} */ vi.hoisted(() => ({
-    mockGetChartCounts: vi.fn(),
+const { mockGetChartCounts } = vi.hoisted(() => ({
+    mockGetChartCounts: vi.fn<() => MockChartCounts>(),
 }));
 
 vi.mock(
-    "../../../../../electron-app/utils/charts/core/getChartCounts.js",
+    import("../../../../../electron-app/utils/charts/core/getChartCounts.js"),
     () => ({
-        getChartCounts: () => mockGetChartCounts(),
+        getChartCounts: mockGetChartCounts,
     })
 );
 
@@ -31,17 +31,8 @@ function createMockChartCounts(available: number, visible: number) {
     };
 }
 
-describe("createGlobalChartStatusIndicator", () => {
-    /** @type {HTMLDivElement} */
-    let root;
-    /** @type {any} */
-    let origLog;
-    /** @type {any} */
-    let origInfo;
-    /** @type {any} */
-    let origWarn;
-    /** @type {any} */
-    let origError;
+describe(createGlobalChartStatusIndicator, () => {
+    let root: HTMLDivElement;
 
     beforeEach(() => {
         // DOM reset
@@ -60,54 +51,54 @@ describe("createGlobalChartStatusIndicator", () => {
         mockGetChartCounts.mockReturnValue(createMockChartCounts(3, 3));
 
         // Silence logs
-        origLog = console.log;
-        origInfo = console.info;
-        origWarn = console.warn;
-        origError = console.error;
-        console.log = vi.fn();
-        console.info = vi.fn();
-        console.warn = vi.fn();
-        console.error = vi.fn();
+        vi.spyOn(console, "error").mockImplementation(() => {});
+        vi.spyOn(console, "info").mockImplementation(() => {});
+        vi.spyOn(console, "log").mockImplementation(() => {});
+        vi.spyOn(console, "warn").mockImplementation(() => {});
     });
 
     afterEach(() => {
         document.body.innerHTML = "";
-        // Restore logs
-        console.log = /** @type {any} */ origLog;
-        console.info = /** @type {any} */ origInfo;
-        console.warn = /** @type {any} */ origWarn;
-        console.error = /** @type {any} */ origError;
         vi.resetAllMocks();
+        vi.restoreAllMocks();
     });
 
     it("returns null and warns when chart content container missing", () => {
+        expect.hasAssertions();
+
         // Remove content container
         document.getElementById("content-chartjs")?.remove();
 
         const result = createGlobalChartStatusIndicator();
         expect(result).toBeNull();
-        expect(console.warn).toHaveBeenCalled();
+        expect(console.warn).toHaveBeenCalledWith(
+            expect.stringContaining(
+                "[GlobalChartStatus] Chart tab content not found"
+            ),
+            { id: "content_chartjs" }
+        );
     });
 
     it("creates indicator for all-visible charts with 'Charts Ready' quick action", () => {
+        expect.hasAssertions();
+
         mockGetChartCounts.mockReturnValue(createMockChartCounts(4, 4));
         const indicator = createGlobalChartStatusIndicator();
         expect(indicator).toBeInstanceOf(HTMLElement);
 
         // Icon should be the ALL_VISIBLE emoji
-        const icon =
-            /** @type {HTMLElement | null} */ indicator &&
-            indicator.querySelector("span");
+        const icon = indicator?.querySelector<HTMLElement>("span");
         expect(icon?.textContent).toBe("✅");
 
         // Quick action should indicate charts are ready
         const quickAction =
-            /** @type {HTMLElement | null} */ indicator &&
-            indicator.querySelector("button");
+            indicator?.querySelector<HTMLButtonElement>("button");
         expect(quickAction?.textContent).toContain("Charts Ready");
     });
 
     it("creates indicator for some-hidden charts and opens settings on click", async () => {
+        expect.hasAssertions();
+
         // Provide settings wrapper and toggle button that handler manipulates
         const settingsWrapper = document.createElement("div");
         settingsWrapper.id = "chartjs-settings-wrapper";
@@ -130,6 +121,8 @@ describe("createGlobalChartStatusIndicator", () => {
     });
 
     it("creates indicator for no charts with 'Load FIT' quick action", () => {
+        expect.hasAssertions();
+
         mockGetChartCounts.mockReturnValue(createMockChartCounts(0, 0));
         const indicator = createGlobalChartStatusIndicator();
         const statusText = indicator?.querySelectorAll("span")[1];
@@ -140,14 +133,18 @@ describe("createGlobalChartStatusIndicator", () => {
     });
 
     it("reuses existing indicator when already present", () => {
+        expect.hasAssertions();
+
         const first = createGlobalChartStatusIndicator();
         const second = createGlobalChartStatusIndicator();
         expect(second).toBe(first);
         const all = document.querySelectorAll("#global-chart-status");
-        expect(all.length).toBe(1);
+        expect(all).toHaveLength(1);
     });
 
     it("inserts before chart container when present; warns when container missing", () => {
+        expect.hasAssertions();
+
         const chartContent = document.getElementById("content-chartjs");
         // Create chart container to be the reference node
         const chartContainer = document.createElement("div");
@@ -162,6 +159,11 @@ describe("createGlobalChartStatusIndicator", () => {
         document.getElementById("global-chart-status")?.remove();
         const indicator2 = createGlobalChartStatusIndicator();
         expect(indicator2).toBeInstanceOf(HTMLElement);
-        expect(console.warn).toHaveBeenCalled();
+        expect(console.warn).toHaveBeenCalledWith(
+            expect.stringContaining(
+                "[GlobalChartStatus] Chart container not found"
+            ),
+            { id: "chartjs_chart_container" }
+        );
     });
 });

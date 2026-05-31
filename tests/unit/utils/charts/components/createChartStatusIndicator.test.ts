@@ -1,28 +1,21 @@
-/**
- * @vitest-environment jsdom
- */
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+// @vitest-environment jsdom
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Hoisted mock for getChartCounts with rich category data
-const { mockGetChartCounts } = /** @type {any} */ vi.hoisted(() => ({
-    mockGetChartCounts: vi.fn(),
+const { mockGetChartCounts } = vi.hoisted(() => ({
+    mockGetChartCounts: vi.fn<() => unknown>(),
 }));
 
 vi.mock(
-    "../../../../../electron-app/utils/charts/core/getChartCounts.js",
+    import("../../../../../electron-app/utils/charts/core/getChartCounts.js"),
     () => ({
-        getChartCounts: () => mockGetChartCounts(),
+        getChartCounts: mockGetChartCounts,
     })
 );
 
 import { createChartStatusIndicator } from "../../../../../electron-app/utils/charts/components/createChartStatusIndicator.js";
 
-describe("createChartStatusIndicator", () => {
-    /** @type {any} */
-    let origError;
-    /** @type {any} */
-    let origWarn;
-
+describe(createChartStatusIndicator, () => {
     beforeEach(() => {
         document.body.innerHTML = "";
 
@@ -40,20 +33,19 @@ describe("createChartStatusIndicator", () => {
         });
 
         // Silence noise; keep error to assert in error case
-        origError = console.error;
-        origWarn = console.warn;
-        console.warn = vi.fn();
-        console.error = vi.fn();
+        vi.spyOn(console, "error").mockImplementation(() => {});
+        vi.spyOn(console, "warn").mockImplementation(() => {});
     });
 
     afterEach(() => {
         document.body.innerHTML = "";
-        console.error = /** @type {any} */ origError;
-        console.warn = /** @type {any} */ origWarn;
         vi.restoreAllMocks();
+        vi.useRealTimers();
     });
 
     it("creates an indicator for all-visible charts (✅) and appends breakdown to body", () => {
+        expect.hasAssertions();
+
         const indicator = createChartStatusIndicator();
         expect(indicator).toBeInstanceOf(HTMLElement);
         expect(indicator.id).toBe("chart-status-indicator");
@@ -77,6 +69,8 @@ describe("createChartStatusIndicator", () => {
     });
 
     it("shows warning (⚠️) when some charts are hidden and reveals breakdown on hover", () => {
+        expect.hasAssertions();
+
         mockGetChartCounts.mockReturnValue({
             available: 6,
             visible: 3,
@@ -93,9 +87,7 @@ describe("createChartStatusIndicator", () => {
         expect(icon?.textContent).toBe("⚠️");
 
         const breakdown =
-            /** @type {HTMLElement | null} */ document.querySelector(
-                ".status-breakdown"
-            );
+            document.querySelector<HTMLElement>(".status-breakdown");
 
         // Hover in
         indicator.dispatchEvent(new Event("mouseenter"));
@@ -114,12 +106,17 @@ describe("createChartStatusIndicator", () => {
     });
 
     it("click scrolls to fields section and briefly highlights it", () => {
+        expect.hasAssertions();
+
         // Provide a fields section target
         const fields = document.createElement("div");
         fields.className = "fields-section";
-        /** @type {(opts?: any) => void} */
-        // @ts-ignore
-        fields.scrollIntoView = vi.fn();
+        const scrollIntoView =
+            vi.fn<(options?: ScrollIntoViewOptions) => void>();
+        Object.defineProperty(fields, "scrollIntoView", {
+            configurable: true,
+            value: scrollIntoView,
+        });
         document.body.appendChild(fields);
 
         mockGetChartCounts.mockReturnValue({
@@ -137,10 +134,7 @@ describe("createChartStatusIndicator", () => {
         const indicator = createChartStatusIndicator();
         indicator.dispatchEvent(new Event("click"));
 
-        expect(/** @type {any} */ fields.scrollIntoView).toHaveBeenCalledTimes(
-            1
-        );
-        expect(/** @type {any} */ fields.scrollIntoView).toHaveBeenCalledWith({
+        expect(scrollIntoView).toHaveBeenCalledExactlyOnceWith({
             behavior: "smooth",
             block: "start",
         });
@@ -155,6 +149,8 @@ describe("createChartStatusIndicator", () => {
     });
 
     it("shows neutral message when no charts are available", () => {
+        expect.hasAssertions();
+
         mockGetChartCounts.mockReturnValue({
             available: 0,
             visible: 0,
@@ -170,15 +166,14 @@ describe("createChartStatusIndicator", () => {
         const icon = indicator.querySelector(".status-icon");
         expect(icon?.textContent).toBe("❌");
 
-        const statusText =
-            /** @type {HTMLElement | null} */ indicator.querySelector(
-                ".status-text"
-            );
+        const statusText = indicator.querySelector<HTMLElement>(".status-text");
         expect(statusText?.textContent).toBe("No charts available");
         expect(statusText?.style.color).toBe("var(--color-fg-muted)");
     });
 
     it("uses error state (❌) when visible > available (invalid input)", () => {
+        expect.hasAssertions();
+
         mockGetChartCounts.mockReturnValue({
             available: 1,
             visible: 2,
@@ -198,18 +193,25 @@ describe("createChartStatusIndicator", () => {
     });
 
     it("returns a fallback element and logs an error when rendering throws", () => {
+        expect.hasAssertions();
+
         mockGetChartCounts.mockImplementationOnce(() => {
             throw new Error("boom");
         });
 
         const indicator = createChartStatusIndicator();
-        expect(console.error).toHaveBeenCalled();
+        expect(console.error).toHaveBeenCalledWith(
+            "[ChartStatus] Error creating chart status indicator:",
+            expect.any(Error)
+        );
         expect(indicator).toBeInstanceOf(HTMLElement);
         expect(indicator.className).toBe("chart-status-indicator");
         expect(indicator.textContent).toBe("Chart status unavailable");
     });
 
     it("does not leak duplicate breakdown tooltips across re-renders", () => {
+        expect.hasAssertions();
+
         const first = createChartStatusIndicator();
         document.body.append(first);
         const firstBreakdown = document.querySelector(
@@ -217,8 +219,7 @@ describe("createChartStatusIndicator", () => {
         );
         expect(
             document.querySelectorAll("#chart-status-indicator-breakdown")
-                .length
-        ).toBe(1);
+        ).toHaveLength(1);
 
         const second = createChartStatusIndicator();
         document.body.append(second);
@@ -227,7 +228,7 @@ describe("createChartStatusIndicator", () => {
         const breakdowns = document.querySelectorAll(
             "#chart-status-indicator-breakdown"
         );
-        expect(breakdowns.length).toBe(1);
+        expect(breakdowns).toHaveLength(1);
         expect(breakdowns[0]).not.toBe(firstBreakdown);
     });
 });
