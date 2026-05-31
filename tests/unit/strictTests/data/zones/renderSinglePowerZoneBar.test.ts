@@ -1,35 +1,35 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock(
-    "../../../../../electron-app/utils/charts/theming/chartThemeUtils.js",
+    import("../../../../../electron-app/utils/charts/theming/chartThemeUtils.js"),
     () => ({
         detectCurrentTheme: () => "light",
     })
 );
 vi.mock(
-    "../../../../../electron-app/utils/data/lookups/getUnitSymbol.js",
+    import("../../../../../electron-app/utils/data/lookups/getUnitSymbol.js"),
     () => ({
-        getUnitSymbol: () => "s",
+        getUnitSymbol: (_field: string, _type?: string) => "s",
     })
 );
 vi.mock(
-    "../../../../../electron-app/utils/formatting/formatters/formatTime.js",
+    import("../../../../../electron-app/utils/formatting/formatters/formatTime.js"),
     () => ({
-        formatTime: (v: any) => `${v}s`,
+        formatTime: (value: number) => `${value}s`,
     })
 );
 vi.mock(
-    "../../../../../electron-app/utils/charts/plugins/chartZoomResetPlugin.js",
+    import("../../../../../electron-app/utils/charts/plugins/chartZoomResetPlugin.js"),
     () => ({
-        chartZoomResetPlugin: {},
+        chartZoomResetPlugin: { id: "zoomReset" },
     })
 );
 vi.mock(
-    "../../../../../electron-app/utils/charts/plugins/chartBackgroundColorPlugin.js",
-    () => ({ chartBackgroundColorPlugin: {} })
+    import("../../../../../electron-app/utils/charts/plugins/chartBackgroundColorPlugin.js"),
+    () => ({ chartBackgroundColorPlugin: { id: "backgroundColor" } })
 );
 vi.mock(
-    "../../../../../electron-app/utils/data/zones/chartZoneColorUtils.js",
+    import("../../../../../electron-app/utils/data/zones/chartZoneColorUtils.js"),
     () => ({
         getChartZoneColors: () => [
             "#f00",
@@ -39,23 +39,75 @@ vi.mock(
     })
 );
 
+interface TooltipContext {
+    readonly dataset: {
+        readonly label?: string;
+    };
+    readonly parsed: {
+        readonly y: number;
+    };
+}
+
+interface SingleZoneBarChartConfig {
+    readonly options: {
+        readonly plugins: {
+            readonly tooltip: {
+                readonly callbacks: {
+                    readonly label: (context: TooltipContext) => string;
+                };
+            };
+        };
+        readonly scales: {
+            readonly y: {
+                readonly ticks: {
+                    readonly callback: (value: number | string) => string;
+                };
+            };
+        };
+    };
+    readonly type: "bar";
+}
+
+interface ChartView {
+    readonly config: SingleZoneBarChartConfig;
+    readonly destroy: () => void;
+}
+
+type ChartConstructorMock = typeof vi.fn<
+    (canvas: HTMLCanvasElement, config: SingleZoneBarChartConfig) => ChartView
+>;
+
+interface RenderSinglePowerZoneBarTestGlobal {
+    Chart?: ChartConstructorMock;
+    showNotification?: (message: string, type: "error") => void;
+}
+
+const testGlobal = globalThis as typeof globalThis &
+    RenderSinglePowerZoneBarTestGlobal;
+
 describe("renderSinglePowerZoneBar", () => {
     beforeEach(() => {
         document.body.innerHTML = "";
+        delete testGlobal.Chart;
+        delete testGlobal.showNotification;
+        vi.resetModules();
     });
 
     it("renders chart when Chart is available", async () => {
+        expect.hasAssertions();
+
+        vi.spyOn(console, "log").mockReturnValue(undefined);
         const canvas = document.createElement("canvas");
         document.body.appendChild(canvas);
-        (window as any).Chart = vi.fn(function ChartMock(_, cfg) {
-            return { config: cfg, destroy: vi.fn() };
-        });
-
-        // Ensure globalThis can access the Chart mock
-        if (!(global as any).globalThis) {
-            (global as any).globalThis = global;
-        }
-        (global as any).globalThis.Chart = (window as any).Chart;
+        const Chart = vi.fn<
+            (
+                canvas: HTMLCanvasElement,
+                config: SingleZoneBarChartConfig
+            ) => ChartView
+        >(function ChartMock(_canvas, config) {
+            return { config, destroy: vi.fn<() => void>() };
+        }) as ChartConstructorMock;
+        testGlobal.Chart = Chart;
 
         const { renderSinglePowerZoneBar } =
             await import("../../../../../electron-app/utils/data/zones/renderSinglePowerZoneBar.js");
@@ -74,11 +126,12 @@ describe("renderSinglePowerZoneBar", () => {
                 destroy: expect.any(Function),
             })
         );
-        expect((window as any).Chart).toHaveBeenCalled();
+        expect(Chart).toHaveBeenCalledWith(
+            canvas,
+            expect.objectContaining({ type: "bar" })
+        );
 
-        // Exercise callbacks for coverage
-        const call = (window as any).Chart.mock.calls[0];
-        const cfg = call[1];
+        const cfg = Chart.mock.calls[0][1];
         const yTickCb = cfg.options.scales.y.ticks.callback;
         const tooltipCb = cfg.options.plugins.tooltip.callbacks.label;
         expect(yTickCb(30)).toBe("30s");
@@ -88,12 +141,25 @@ describe("renderSinglePowerZoneBar", () => {
     });
 
     it("handles errors gracefully when Chart.js missing", async () => {
-        delete (window as any).Chart;
+        expect.hasAssertions();
+
+        vi.spyOn(console, "error").mockReturnValue(undefined);
+        delete testGlobal.Chart;
         const { renderSinglePowerZoneBar } =
             await import("../../../../../electron-app/utils/data/zones/renderSinglePowerZoneBar.js");
-        (window as any).showNotification = vi.fn(async () => {});
-        const view = renderSinglePowerZoneBar(null as any, null as any);
+        const showNotification =
+            vi.fn<(message: string, type: "error") => void>();
+        testGlobal.showNotification = showNotification;
+
+        const view = renderSinglePowerZoneBar(
+            null as unknown as HTMLCanvasElement,
+            null as unknown as readonly unknown[]
+        );
+
         expect(view).toBeNull();
-        expect((window as any).showNotification).toHaveBeenCalled();
+        expect(showNotification).toHaveBeenCalledWith(
+            "Failed to render power zone bar",
+            "error"
+        );
     });
 });
