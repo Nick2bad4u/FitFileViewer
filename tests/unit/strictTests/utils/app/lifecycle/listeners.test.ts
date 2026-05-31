@@ -102,13 +102,13 @@ function createElectronAPIMock() {
             updateHandlers.get(event)?.(...args),
 
         // FS operations (can be overridden per test)
-        recentFiles: vi.fn<() => Promise<string[]>>(),
+        recentFiles: vi.fn<RecentFilesMock>(),
         approveRecentFile: vi
             .fn<(fp: string) => Promise<boolean>>()
             .mockResolvedValue(true),
-        readFile: vi.fn<(fp: string) => Promise<ArrayBuffer>>(),
-        parseFitFile: vi.fn<(buf: ArrayBuffer) => Promise<any>>(),
-        addRecentFile: vi.fn<(fp: string) => Promise<void>>(),
+        readFile: vi.fn<ReadFileMock>(),
+        parseFitFile: vi.fn<ParseFitFileMock>(),
+        addRecentFile: vi.fn<AddRecentFileMock>(),
 
         // Main process send
         send: vi.fn<(channel: string) => void>(),
@@ -806,7 +806,9 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         );
     });
 
-    it("Accessibility events toggle classes", async () => {
+    it("accessibility events toggle classes", async () => {
+        expect.hasAssertions();
+
         setupListeners({
             openFileBtn,
             isOpeningFileRef: { current: false },
@@ -834,16 +836,20 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         );
     });
 
-    it("Menu: onMenuOpenFile forwards to handleOpenFile; onOpenRecentFile loads and shows errors", async () => {
+    it("menu: onMenuOpenFile forwards to handleOpenFile; onOpenRecentFile loads and shows errors", async () => {
+        expect.hasAssertions();
+
         const isOpeningFileRef = { current: false };
 
         // For open recent path success
         const arrayBuf = new ArrayBuffer(32);
-        window.electronAPI.readFile = vi.fn().mockResolvedValue(arrayBuf);
-        window.electronAPI.parseFitFile = vi
-            .fn()
-            .mockResolvedValue(createFitMessages());
-        window.electronAPI.addRecentFile = vi.fn().mockResolvedValue(undefined);
+        vi.mocked(window.electronAPI.readFile).mockResolvedValue(arrayBuf);
+        vi.mocked(window.electronAPI.parseFitFile).mockResolvedValue(
+            createFitMessages()
+        );
+        vi.mocked(window.electronAPI.addRecentFile).mockResolvedValue(
+            undefined
+        );
 
         setupListeners({
             openFileBtn,
@@ -857,19 +863,27 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         // Trigger menu open file
         window.electronAPI.triggerMenuOpenFile();
-        expect(handleOpenFile).toHaveBeenCalledTimes(1);
+        expect(handleOpenFile).toHaveBeenCalledOnce();
 
         // Success case
         await window.electronAPI.triggerOpenRecentFile("C:/tmp/recent.fit");
         expect(window.electronAPI.approveRecentFile).toHaveBeenCalledWith(
             "C:/tmp/recent.fit"
         );
-        expect(window.electronAPI.readFile).toHaveBeenCalled();
-        expect(window.electronAPI.addRecentFile).toHaveBeenCalled();
+        expect(window.electronAPI.readFile).toHaveBeenCalledWith(
+            "C:/tmp/recent.fit"
+        );
+        expect(window.electronAPI.addRecentFile).toHaveBeenCalledWith(
+            "C:/tmp/recent.fit"
+        );
 
         // Denial case: approval fails -> do not read
-        window.electronAPI.approveRecentFile = vi.fn().mockResolvedValue(false);
-        window.electronAPI.readFile = vi.fn().mockResolvedValue(arrayBuf);
+        vi.mocked(window.electronAPI.approveRecentFile)
+            .mockReset()
+            .mockResolvedValue(false);
+        vi.mocked(window.electronAPI.readFile)
+            .mockClear()
+            .mockResolvedValue(arrayBuf);
         await window.electronAPI.triggerOpenRecentFile("C:/tmp/recent.fit");
         expect(window.electronAPI.readFile).not.toHaveBeenCalled();
         expect(showNotification).toHaveBeenCalledWith(
@@ -879,9 +893,11 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         );
 
         // Error case
-        window.electronAPI.approveRecentFile = vi.fn().mockResolvedValue(true);
-        window.electronAPI.parseFitFile = vi
-            .fn()
+        vi.mocked(window.electronAPI.approveRecentFile)
+            .mockReset()
+            .mockResolvedValue(true);
+        vi.mocked(window.electronAPI.parseFitFile)
+            .mockReset()
             .mockResolvedValue({ error: "bad" });
         await window.electronAPI.triggerOpenRecentFile("C:/tmp/recent.fit");
         expect(
@@ -892,19 +908,21 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
     });
 
     it("contextmenu: keyboard navigation works (ArrowDown, ArrowUp, Enter, Escape)", async () => {
+        expect.hasAssertions();
+
         const files = [
             "C:/Users/Test/one.fit",
             "C:/Users/Test/two.fit",
             "C:/Users/Test/three.fit",
         ];
-        electronAPI.recentFiles = vi.fn().mockResolvedValue(files);
+        vi.mocked(electronAPI.recentFiles).mockResolvedValue(files);
 
         const arrayBuf = new ArrayBuffer(8);
-        electronAPI.readFile = vi.fn().mockResolvedValue(arrayBuf);
+        vi.mocked(electronAPI.readFile).mockResolvedValue(arrayBuf);
         const parseResult = { data: createFitMessages() };
-        electronAPI.parseFitFile = vi.fn().mockResolvedValue(parseResult);
-        electronAPI.addRecentFile = vi.fn().mockResolvedValue(undefined);
-        const showFitData = vi.fn();
+        vi.mocked(electronAPI.parseFitFile).mockResolvedValue(parseResult);
+        vi.mocked(electronAPI.addRecentFile).mockResolvedValue(undefined);
+        const showFitData = vi.fn<ShowFitDataMock>();
 
         Object.defineProperty(window, "showFitData", {
             value: showFitData,
@@ -968,7 +986,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         // Wait for async operations
         await vi.waitFor(() => {
             expect(electronAPI.readFile).toHaveBeenCalledWith(files[0]);
-            expect(electronAPI.parseFitFile).toHaveBeenCalledTimes(1);
+            expect(electronAPI.parseFitFile).toHaveBeenCalledOnce();
             expect(electronAPI.addRecentFile).toHaveBeenCalledWith(files[0]);
             expect(showFitData).toHaveBeenCalledWith(
                 parseResult.data,
@@ -978,8 +996,10 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
     });
 
     it("contextmenu: Escape key closes menu", async () => {
+        expect.hasAssertions();
+
         const files = ["C:/Users/Test/one.fit"];
-        electronAPI.recentFiles = vi.fn().mockResolvedValue(files);
+        vi.mocked(electronAPI.recentFiles).mockResolvedValue(files);
 
         setupListeners({
             openFileBtn,
@@ -1018,8 +1038,10 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
     });
 
     it("contextmenu: mouse events on menu items (mouseenter, mouseleave)", async () => {
+        expect.hasAssertions();
+
         const files = ["C:/Users/Test/one.fit", "C:/Users/Test/two.fit"];
-        electronAPI.recentFiles = vi.fn().mockResolvedValue(files);
+        vi.mocked(electronAPI.recentFiles).mockResolvedValue(files);
 
         setupListeners({
             openFileBtn,
@@ -1046,7 +1068,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         ) as HTMLDivElement;
         expect(menu).toBeInstanceOf(HTMLDivElement);
         const items = Array.from(menu.querySelectorAll("div"));
-        expect(items.length).toBe(files.length);
+        expect(items).toHaveLength(files.length);
 
         const firstItem = items[0] as HTMLDivElement;
         const secondItem = items[1] as HTMLDivElement;
@@ -1068,8 +1090,10 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
     });
 
     it("contextmenu: clicking outside menu removes it", async () => {
+        expect.hasAssertions();
+
         const files = ["C:/Users/Test/one.fit"];
-        electronAPI.recentFiles = vi.fn().mockResolvedValue(files);
+        vi.mocked(electronAPI.recentFiles).mockResolvedValue(files);
 
         setupListeners({
             openFileBtn,
@@ -1115,11 +1139,13 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
     });
 
     it("contextmenu: handles recent file error during loading", async () => {
+        expect.hasAssertions();
+
         const files = ["C:/Users/Test/one.fit"];
-        electronAPI.recentFiles = vi.fn().mockResolvedValue(files);
-        electronAPI.readFile = vi
-            .fn()
-            .mockRejectedValue(new Error("File read error"));
+        vi.mocked(electronAPI.recentFiles).mockResolvedValue(files);
+        vi.mocked(electronAPI.readFile).mockRejectedValue(
+            new Error("File read error")
+        );
 
         setupListeners({
             openFileBtn,
@@ -1166,6 +1192,8 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
     });
 
     it("window resize: no chart tabs active -> no chart update", async () => {
+        expect.hasAssertions();
+
         // No chart tabs present or active
         setupListeners({
             openFileBtn,
@@ -1177,7 +1205,9 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        window.ChartUpdater = { updateCharts: vi.fn() };
+        window.ChartUpdater = {
+            updateCharts: vi.fn<(reason?: string) => void>(),
+        };
 
         vi.useFakeTimers();
         window.dispatchEvent(new Event("resize"));
@@ -1191,6 +1221,8 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
     });
 
     it("window resize: chart tab active with legacy renderChart fallback", async () => {
+        expect.hasAssertions();
+
         // Prepare active chart tab
         const tab = document.createElement("div");
         tab.id = "tab-chart";
@@ -1198,7 +1230,12 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         document.body.appendChild(tab);
 
         // Mock legacy renderChart fallback and ensure ChartUpdater and renderChartJS don't exist
-        (window as any).renderChart = vi.fn();
+        const renderChart = vi.fn<() => void>();
+        Object.defineProperty(window, "renderChart", {
+            configurable: true,
+            value: renderChart,
+            writable: true,
+        });
         (window as any).ChartUpdater = undefined;
         (window as any).renderChartJS = undefined;
 
@@ -1219,10 +1256,12 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         vi.useRealTimers();
 
         expect(tab.classList.contains("active")).toBe(true);
-        expect((window as any).renderChart).toHaveBeenCalled();
+        expect(renderChart).toHaveBeenCalledWith();
     });
 
     it("window resize: chartjs tab active with renderChartJS fallback", async () => {
+        expect.hasAssertions();
+
         // Prepare active chartjs tab
         const tab = document.createElement("div");
         tab.id = "tab-chartjs";
@@ -1230,7 +1269,12 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         document.body.appendChild(tab);
 
         // Mock renderChartJS fallback and ensure ChartUpdater doesn't exist
-        window.renderChartJS = vi.fn();
+        const renderChartJS = vi.fn<() => void>();
+        Object.defineProperty(window, "renderChartJS", {
+            configurable: true,
+            value: renderChartJS,
+            writable: true,
+        });
         (window as any).ChartUpdater = undefined;
 
         setupListeners({
@@ -1250,14 +1294,16 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         vi.useRealTimers();
 
         expect(tab.id).toBe("tab-chartjs");
-        expect(window.renderChartJS).toHaveBeenCalled();
+        expect(renderChartJS).toHaveBeenCalledWith();
     });
 
     it("decoder-options-changed: handles error during file reload", async () => {
+        expect.hasAssertions();
+
         window.globalData = { cachedFilePath: "C:/tmp/sample.fit" } as any;
-        electronAPI.readFile = vi
-            .fn()
-            .mockRejectedValue(new Error("File read failed"));
+        vi.mocked(electronAPI.readFile).mockRejectedValue(
+            new Error("File read failed")
+        );
 
         setupListeners({
             openFileBtn,
@@ -1285,6 +1331,8 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
     });
 
     it("export-file: handles unsupported file extensions", async () => {
+        expect.hasAssertions();
+
         setupListeners({
             openFileBtn,
             isOpeningFileRef: { current: false },
@@ -1301,11 +1349,13 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         await electronAPI.emit("export-file", {} as any, "C:/tmp/out.txt");
 
         // Should not call any notification or create download links
-        expect(document.querySelectorAll("a").length).toBe(0);
+        expect(document.querySelectorAll("a")).toHaveLength(0);
         expect(showNotification).not.toHaveBeenCalled();
     });
 
     it("export-file: csv without copyTableAsCSV function", async () => {
+        expect.hasAssertions();
+
         setupListeners({
             openFileBtn,
             isOpeningFileRef: { current: false },
@@ -1323,10 +1373,12 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         // Should not create download link without copyTableAsCSV
         const links = document.querySelectorAll("a");
-        expect(links.length).toBe(0);
+        expect(links).toHaveLength(0);
     });
 
     it("export-file: csv without summary container", async () => {
+        expect.hasAssertions();
+
         setupListeners({
             openFileBtn,
             isOpeningFileRef: { current: false },
@@ -1338,22 +1390,27 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         });
 
         window.globalData = { some: "data" } as any;
-        (window as any).copyTableAsCSV = vi.fn(() => "a,b\n1,2");
+        Object.defineProperty(window, "copyTableAsCSV", {
+            configurable: true,
+            value: vi.fn<CopyTableAsCsvMock>(() => "a,b\n1,2"),
+            writable: true,
+        });
 
         // Remove summary container
-        const existingContainer = document.querySelector("#content-summary");
-        if (existingContainer) {
-            existingContainer.remove();
-        }
+        document.querySelector("#content-summary")?.remove();
 
         await electronAPI.emit("export-file", {} as any, "C:/tmp/out.csv");
 
         // Should not create download link without container
         const links = document.querySelectorAll("a");
-        expect(links.length).toBe(0);
+        expect(links).toHaveLength(0);
     });
 
     it("export-file: gpx without createExportGPXButton function", async () => {
+        expect.hasAssertions();
+
+        installURLMocks();
+
         setupListeners({
             openFileBtn,
             isOpeningFileRef: { current: false },
@@ -1373,12 +1430,16 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         await electronAPI.emit("export-file", {} as any, "C:/tmp/out.gpx");
 
-        expect(window.globalData.recordMesgs.length).toBe(1);
+        expect(window.globalData.recordMesgs).toHaveLength(1);
         expect(showNotification).not.toHaveBeenCalled();
-        expect(global.URL.createObjectURL).toHaveBeenCalled();
+        expect(global.URL.createObjectURL).toHaveBeenCalledWith(
+            expect.any(Blob)
+        );
     });
 
     it("export-file: handles no globalData", async () => {
+        expect.hasAssertions();
+
         setupListeners({
             openFileBtn,
             isOpeningFileRef: { current: false },
@@ -1394,7 +1455,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         await electronAPI.emit("export-file", {} as any, "C:/tmp/out.csv");
 
         // Should return early without action
-        expect(document.querySelectorAll("a").length).toBe(0);
+        expect(document.querySelectorAll("a")).toHaveLength(0);
         expect(showNotification).not.toHaveBeenCalled();
     });
 
