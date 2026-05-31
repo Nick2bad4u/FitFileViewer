@@ -501,7 +501,7 @@ describe("main.js - Electron Main Process", () => {
 
     describe("module import and basic tests", () => {
         it("should import main.js without errors", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const mainModule = await importMainModule();
 
@@ -513,7 +513,7 @@ describe("main.js - Electron Main Process", () => {
         });
 
         it("should handle test environment initialization", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const mainModule = await importMainModule();
             const loadHandler = mockWindow.webContents.on.mock.calls.find(
@@ -526,7 +526,7 @@ describe("main.js - Electron Main Process", () => {
         });
 
         it("should handle missing electron gracefully", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             // Clear the hoisted mock to trigger error path
             delete testGlobals.__electronHoistedMock;
@@ -538,7 +538,7 @@ describe("main.js - Electron Main Process", () => {
         });
 
         it("should handle state management during early sync path", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const mainModule = await importMainModule();
 
@@ -552,7 +552,7 @@ describe("main.js - Electron Main Process", () => {
         });
 
         it("should complete early sync path when window exists", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             // Mock an existing window scenario
             mockElectron.BrowserWindow.getAllWindows.mockReturnValue([
@@ -570,7 +570,7 @@ describe("main.js - Electron Main Process", () => {
 
     describe("error handling", () => {
         it("should handle initialization errors gracefully", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             // Mock an initialization error
             mockElectron.app.whenReady.mockImplementation(() => {
@@ -584,7 +584,7 @@ describe("main.js - Electron Main Process", () => {
         });
 
         it("should handle window enumeration errors", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             // Mock window enumeration error
             mockElectron.BrowserWindow.getAllWindows.mockImplementation(() => {
@@ -601,7 +601,7 @@ describe("main.js - Electron Main Process", () => {
         });
 
         it("should handle auto-updater setup errors", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const mainModule = await importMainModule();
             const warnSpy = vi
@@ -618,7 +618,7 @@ describe("main.js - Electron Main Process", () => {
         });
 
         it("should handle stopping when no Gyazo server exists", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const mainModule = await importMainModule();
 
@@ -632,7 +632,7 @@ describe("main.js - Electron Main Process", () => {
 
     describe("development features", () => {
         it("should not expose development helpers in test environment", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const mainModule = await importMainModule();
 
@@ -642,7 +642,7 @@ describe("main.js - Electron Main Process", () => {
         });
 
         it("should handle development flag", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             // Mock command line arguments
             const originalArgv = process.argv;
@@ -669,7 +669,7 @@ describe("main.js - Electron Main Process", () => {
 
     describe("platform compatibility", () => {
         it("should handle different platforms", async () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             const mainModule = await importMainModule();
             const warnSpy = vi
@@ -704,7 +704,7 @@ describe("main.js - Electron Main Process", () => {
         });
 
         it("should handle file operations", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             await importMainModule();
             const fileReadHandler = getRegisteredIpcHandler("file:read");
@@ -718,7 +718,7 @@ describe("main.js - Electron Main Process", () => {
 
     describe("gyazo OAuth server", () => {
         it("should handle missing Gyazo environment variables", async () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             // Ensure no Gyazo environment variables
             delete process.env.GYAZO_CLIENT_ID;
@@ -738,7 +738,7 @@ describe("main.js - Electron Main Process", () => {
 
     describe("security features", () => {
         it("should handle web security setup", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             await importMainModule();
             const requestHandler =
@@ -763,7 +763,7 @@ describe("main.js - Electron Main Process", () => {
         });
 
         it("should handle URL validation", async () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             await importMainModule();
             const openExternalHandler =
