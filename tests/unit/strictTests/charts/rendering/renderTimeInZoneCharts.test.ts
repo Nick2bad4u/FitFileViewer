@@ -1,61 +1,152 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import type { ZoneData } from "../../../../../electron-app/utils/types/sharedChartTypes.js";
+
+interface RenderZoneChartOptions {
+    readonly chartType?: string;
+    readonly showLegend?: boolean;
+}
+
+interface TimeInZoneTestGlobal {
+    heartRateZones?: ZoneData[];
+    powerZones?: ZoneData[];
+}
+
+interface ZoneVisibilitySettings {
+    readonly doughnutVisible?: boolean;
+}
+
+type GetZoneVisibilitySettings = () => ZoneVisibilitySettings;
+
+type RenderZoneChart = (
+    container: HTMLElement,
+    title: string,
+    zoneData: ZoneData[],
+    chartId: string,
+    options?: RenderZoneChartOptions
+) => void;
+
+const visibilityMocks = vi.hoisted(() => ({
+    getHRZoneVisibilitySettings: vi.fn<GetZoneVisibilitySettings>(),
+    getPowerZoneVisibilitySettings: vi.fn<GetZoneVisibilitySettings>(),
+}));
 
 vi.mock(
-    "../../../../../electron-app/utils/ui/controls/createHRZoneControls.js",
+    import("../../../../../electron-app/utils/ui/controls/createHRZoneControls.js"),
     () => ({
-        getHRZoneVisibilitySettings: () => ({ doughnutVisible: true }),
+        getHRZoneVisibilitySettings:
+            visibilityMocks.getHRZoneVisibilitySettings,
     })
 );
 vi.mock(
-    "../../../../../electron-app/utils/ui/controls/createPowerZoneControls.js",
+    import("../../../../../electron-app/utils/ui/controls/createPowerZoneControls.js"),
     () => ({
-        getPowerZoneVisibilitySettings: () => ({ doughnutVisible: true }),
+        getPowerZoneVisibilitySettings:
+            visibilityMocks.getPowerZoneVisibilitySettings,
     })
 );
 vi.mock(
-    "../../../../../electron-app/utils/charts/rendering/renderZoneChart.js",
+    import("../../../../../electron-app/utils/charts/rendering/renderZoneChart.js"),
     () => ({
-        renderZoneChart: vi.fn((container: HTMLElement, _title, _zones, id) => {
-            const chart = document.createElement("div");
-            chart.dataset.chartId = id;
-            container.append(chart);
-        }),
+        renderZoneChart: vi.fn<RenderZoneChart>(
+            (container, _title, _zones, id) => {
+                const chart = document.createElement("div");
+                chart.dataset.chartId = id;
+                container.append(chart);
+            }
+        ),
     })
 );
 
 describe("renderTimeInZoneCharts", () => {
+    const chartGlobal = globalThis as typeof globalThis & TimeInZoneTestGlobal,
+        heartRateZones: ZoneData[] = [{ label: "Z1", time: 10 }],
+        powerZones: ZoneData[] = [{ label: "Z2", time: 20 }];
+
     beforeEach(() => {
-        (window as any).heartRateZones = [{ label: "Z1", total: 10 }];
-        (window as any).powerZones = [{ label: "Z2", total: 20 }];
+        vi.clearAllMocks();
+        visibilityMocks.getHRZoneVisibilitySettings.mockReturnValue({
+            doughnutVisible: true,
+        });
+        visibilityMocks.getPowerZoneVisibilitySettings.mockReturnValue({
+            doughnutVisible: true,
+        });
+        chartGlobal.heartRateZones = heartRateZones;
+        chartGlobal.powerZones = powerZones;
     });
 
     it("renders both HR and power when visible and data exists", async () => {
+        expect.hasAssertions();
+
         const { renderZoneChart } =
             await import("../../../../../electron-app/utils/charts/rendering/renderZoneChart.js");
         const { renderTimeInZoneCharts } =
             await import("../../../../../electron-app/utils/charts/rendering/renderTimeInZoneCharts.js");
         const container = document.createElement("div");
-        renderTimeInZoneCharts(container, { chartType: "doughnut" });
+        const options = { chartType: "doughnut" };
+        renderTimeInZoneCharts(container, options);
+
         expect(
             [...container.querySelectorAll("[data-chart-id]")].map((chart) =>
                 chart.getAttribute("data-chart-id")
             )
         ).toEqual(["heart-rate-zones", "power-zones"]);
         expect(renderZoneChart).toHaveBeenCalledTimes(2);
+        expect(renderZoneChart).toHaveBeenNthCalledWith(
+            1,
+            container,
+            "HR Zone Distribution (Doughnut)",
+            heartRateZones,
+            "heart-rate-zones",
+            options
+        );
+        expect(renderZoneChart).toHaveBeenNthCalledWith(
+            2,
+            container,
+            "Power Zone Distribution (Doughnut)",
+            powerZones,
+            "power-zones",
+            options
+        );
     });
 
-    it("skips when container missing and when visibility is false", async () => {
-        const controls =
-            await import("../../../../../electron-app/utils/ui/controls/createHRZoneControls.js");
-        vi.spyOn(controls, "getHRZoneVisibilitySettings").mockReturnValue({
-            doughnutVisible: false,
-        } as any);
+    it("skips rendering when the container is missing", async () => {
+        expect.hasAssertions();
+
         const { renderZoneChart } =
             await import("../../../../../electron-app/utils/charts/rendering/renderZoneChart.js");
         const { renderTimeInZoneCharts } =
             await import("../../../../../electron-app/utils/charts/rendering/renderTimeInZoneCharts.js");
-        renderTimeInZoneCharts(null as any);
-        expect(document.body.childElementCount).toBe(0);
+
+        expect(renderTimeInZoneCharts(null)).toBeUndefined();
         expect(renderZoneChart).not.toHaveBeenCalled();
+    });
+
+    it("respects per-zone visibility settings", async () => {
+        expect.hasAssertions();
+
+        visibilityMocks.getHRZoneVisibilitySettings.mockReturnValue({
+            doughnutVisible: false,
+        });
+        const { renderZoneChart } =
+            await import("../../../../../electron-app/utils/charts/rendering/renderZoneChart.js");
+        const { renderTimeInZoneCharts } =
+            await import("../../../../../electron-app/utils/charts/rendering/renderTimeInZoneCharts.js");
+        const container = document.createElement("div"),
+            options = { chartType: "doughnut" };
+        renderTimeInZoneCharts(container, options);
+
+        expect(
+            [...container.querySelectorAll("[data-chart-id]")].map((chart) =>
+                chart.getAttribute("data-chart-id")
+            )
+        ).toEqual(["power-zones"]);
+        expect(renderZoneChart).toHaveBeenCalledExactlyOnceWith(
+            container,
+            "Power Zone Distribution (Doughnut)",
+            powerZones,
+            "power-zones",
+            options
+        );
     });
 });
