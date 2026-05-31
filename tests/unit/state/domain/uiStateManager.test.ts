@@ -82,6 +82,24 @@ describe("UIStateManager - comprehensive coverage", () => {
         return element;
     }
 
+    function getClassState(...ids: string[]) {
+        return Object.fromEntries(
+            ids.map((id) => {
+                const element = document.getElementById(id);
+                return [id, element ? [...element.classList] : []];
+            })
+        );
+    }
+
+    function getElementClassState(elements: Record<string, Element | null>) {
+        return Object.fromEntries(
+            Object.entries(elements).map(([name, element]) => [
+                name,
+                element ? [...element.classList] : [],
+            ])
+        );
+    }
+
     function setupFixtureDom() {
         document.body.replaceChildren(
             createElementWithAttributes("div", { id: "main-content" }),
@@ -369,8 +387,15 @@ describe("UIStateManager - comprehensive coverage", () => {
 
             manager.applyTheme("dark");
 
-            expect(darkButton?.classList.contains("active")).toBe(true);
-            expect(lightButton?.classList.contains("active")).toBe(false);
+            expect(
+                getElementClassState({
+                    darkButton,
+                    lightButton,
+                })
+            ).toStrictEqual({
+                darkButton: ["active"],
+                lightButton: [],
+            });
         });
 
         it("should clean up system theme listener when switching to explicit theme", () => {
@@ -803,11 +828,15 @@ describe("UIStateManager - comprehensive coverage", () => {
 
                 manager.updateMeasurementModeUI(true);
 
-                expect(toggleBtn.classList.contains("active")).toBe(true);
-                expect(toggleBtn.textContent).toBe("Exit Measurement");
-                expect(
-                    mapContainer.classList.contains("measurement-mode")
-                ).toBe(true);
+                expect({
+                    mapContainerClasses: [...mapContainer.classList],
+                    toggleButtonClasses: [...toggleBtn.classList],
+                    toggleText: toggleBtn.textContent,
+                }).toStrictEqual({
+                    mapContainerClasses: ["measurement-mode"],
+                    toggleButtonClasses: ["active"],
+                    toggleText: "Exit Measurement",
+                });
             });
 
             it("should deactivate measurement mode UI", () => {
@@ -821,12 +850,19 @@ describe("UIStateManager - comprehensive coverage", () => {
 
                 manager.updateMeasurementModeUI(false);
 
-                expect(toggleBtn.classList.contains("active")).toBe(false);
-                expect(toggleBtn.textContent).toBe("Measure Distance");
-                expect(
-                    mapContainer.classList.contains("measurement-mode")
-                ).toBe(false);
-                expect(toggleBtn.classList.contains("active")).not.toBe(true);
+                expect({
+                    mapContainerClasses: [...mapContainer.classList],
+                    toggleButtonClasses: [...toggleBtn.classList],
+                    toggleText: toggleBtn.textContent,
+                }).toStrictEqual({
+                    mapContainerClasses: [],
+                    toggleButtonClasses: [],
+                    toggleText: "Measure Distance",
+                });
+                expect([...toggleBtn.classList]).not.toContain("active");
+                expect([...mapContainer.classList]).not.toContain(
+                    "measurement-mode"
+                );
             });
         });
 
@@ -842,11 +878,20 @@ describe("UIStateManager - comprehensive coverage", () => {
 
                 manager.updateTabButtons("charts");
 
-                expect(chartsButton.classList.contains("active")).toBe(true);
-                expect(chartsButton.getAttribute("aria-selected")).toBe("true");
-                expect(mapButton.classList.contains("active")).toBe(false);
-                expect(mapButton.getAttribute("aria-selected")).toBe("false");
-                expect(mapButton.classList.contains("active")).not.toBe(true);
+                expect({
+                    chartsButtonAriaSelected:
+                        chartsButton.getAttribute("aria-selected"),
+                    chartsButtonClasses: [...chartsButton.classList],
+                    mapButtonAriaSelected:
+                        mapButton.getAttribute("aria-selected"),
+                    mapButtonClasses: [...mapButton.classList],
+                }).toStrictEqual({
+                    chartsButtonAriaSelected: "true",
+                    chartsButtonClasses: ["active"],
+                    mapButtonAriaSelected: "false",
+                    mapButtonClasses: [],
+                });
+                expect([...mapButton.classList]).not.toContain("active");
             });
         });
 
@@ -885,16 +930,10 @@ describe("UIStateManager - comprehensive coverage", () => {
                     source: "UIStateManager.toggleSidebar",
                 }
             );
-            expect(
-                document
-                    .getElementById("sidebar")
-                    ?.classList.contains("collapsed")
-            ).toBe(true);
-            expect(
-                document
-                    .getElementById("main-content")
-                    ?.classList.contains("sidebar-collapsed")
-            ).not.toBe(false);
+            expect(getClassState("sidebar", "main-content")).toStrictEqual({
+                "main-content": ["sidebar-collapsed"],
+                sidebar: ["collapsed"],
+            });
         });
 
         it("should set sidebar to specific state", () => {
@@ -909,11 +948,30 @@ describe("UIStateManager - comprehensive coverage", () => {
                     source: "UIStateManager.toggleSidebar",
                 }
             );
-            expect(
-                document
-                    .getElementById("main-content")
-                    ?.classList.contains("sidebar-collapsed")
-            ).toBe(true);
+            expect(getClassState("main-content")).toStrictEqual({
+                "main-content": ["sidebar-collapsed"],
+            });
+        });
+
+        it("should expand sidebar when set to false", () => {
+            const manager = new UIStateManager();
+
+            manager.toggleSidebar(false);
+
+            expect(vi.mocked(setState)).toHaveBeenCalledWith(
+                "ui.sidebarCollapsed",
+                false,
+                {
+                    source: "UIStateManager.toggleSidebar",
+                }
+            );
+            expect(getClassState("sidebar", "main-content")).toStrictEqual({
+                "main-content": [],
+                sidebar: [],
+            });
+            expect([
+                ...(document.getElementById("main-content")?.classList ?? []),
+            ]).not.toContain("sidebar-collapsed");
         });
 
         it("should update sidebar DOM elements", () => {
@@ -925,10 +983,13 @@ describe("UIStateManager - comprehensive coverage", () => {
 
             manager.toggleSidebar(true);
 
-            expect(sidebar.classList.contains("collapsed")).toBe(true);
-            expect(mainContent.classList.contains("sidebar-collapsed")).toBe(
-                true
-            );
+            expect({
+                mainContentClasses: [...mainContent.classList],
+                sidebarClasses: [...sidebar.classList],
+            }).toStrictEqual({
+                mainContentClasses: ["sidebar-collapsed"],
+                sidebarClasses: ["collapsed"],
+            });
         });
     });
 
@@ -998,7 +1059,7 @@ describe("UIStateManager - comprehensive coverage", () => {
             manager.cleanup();
 
             expect(removeEventListener).toHaveBeenCalled();
-            expect(manager.eventListeners.size).toBe(0);
+            expect([...manager.eventListeners]).toStrictEqual([]);
             expect(manager.systemThemeListener).not.toBe(removeEventListener);
         });
 
@@ -1007,7 +1068,7 @@ describe("UIStateManager - comprehensive coverage", () => {
 
             manager.cleanup();
 
-            expect(manager.eventListeners.size).toBe(0);
+            expect([...manager.eventListeners]).toStrictEqual([]);
         });
     });
 
