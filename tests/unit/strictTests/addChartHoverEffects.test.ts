@@ -11,7 +11,36 @@ type ChartHoverTestGlobal = typeof globalThis & {
     getThemeConfig?: ReturnType<typeof vi.fn>;
 };
 
+type ChartWrapperState = {
+    canvasParentClass: string | undefined;
+    containerChildClasses: string[];
+    wrapperChildClasses: string[];
+    wrapperCount: number;
+};
+
 const chartHoverTestGlobal = globalThis as ChartHoverTestGlobal;
+
+function getWrapperState(
+    container: HTMLElement,
+    canvas: HTMLElement
+): ChartWrapperState {
+    const wrapper = container.querySelector(".chart-wrapper");
+
+    return {
+        canvasParentClass: canvas.parentElement?.className,
+        containerChildClasses: Array.from(container.children, (element) =>
+            element instanceof HTMLElement ? element.className : element.tagName
+        ),
+        wrapperChildClasses: wrapper
+            ? Array.from(wrapper.children, (element) =>
+                  element instanceof HTMLElement
+                      ? element.className
+                      : element.tagName
+              )
+            : [],
+        wrapperCount: container.querySelectorAll(".chart-wrapper").length,
+    };
+}
 
 // Mock getThemeConfig
 vi.mock("../../theming/core/theme.js", () => ({
@@ -178,7 +207,7 @@ describe("addChartHoverEffects", () => {
 
             expect(
                 mockContainer.querySelectorAll(".chart-wrapper")
-            ).toHaveLength(0);
+            ).toStrictEqual([]);
             expect(
                 document.querySelector("#chart-hover-effects-styles")
             ).toBeInstanceOf(HTMLStyleElement);
@@ -197,9 +226,26 @@ describe("addChartHoverEffects", () => {
             const wrapper = mockContainer.querySelector(
                 ".chart-wrapper"
             ) as HTMLElement;
-            expect(wrapper.tagName).toBe("DIV");
-            expect(wrapper.className).toBe("chart-wrapper");
-            expect(wrapper.contains(mockCanvas)).toBe(true);
+            expect({
+                canvasParentClass: mockCanvas.parentElement?.className,
+                wrapperChildTags: Array.from(
+                    wrapper.children,
+                    (element) => element.tagName
+                ),
+                wrapperClass: wrapper.className,
+                wrapperTag: wrapper.tagName,
+            }).toStrictEqual({
+                canvasParentClass: "chart-wrapper",
+                wrapperChildTags: [
+                    "CANVAS",
+                    "DIV",
+                    "DIV",
+                    "DIV",
+                    "BUTTON",
+                ],
+                wrapperClass: "chart-wrapper",
+                wrapperTag: "DIV",
+            });
         });
 
         it("should apply correct styles to wrapper", () => {
@@ -344,7 +390,7 @@ describe("addChartHoverEffects", () => {
                     el.style.animation.includes("ripple-effect")
                 );
             });
-            expect(ripples).toHaveLength(0);
+            expect(ripples).toStrictEqual([]);
             expect(ripples).not.toHaveLength(1);
         });
 
@@ -392,12 +438,18 @@ describe("addChartHoverEffects", () => {
 
             expect(
                 wrapper.classList.contains("chart-wrapper--overlay-fullscreen")
-            ).toBe(true);
-            expect(
-                document.body.classList.contains(
-                    "chart-overlay-fullscreen-active"
-                )
-            ).toBe(true);
+            ).toStrictEqual(true);
+            expect({
+                bodyClasses: [...document.body.classList],
+                wrapperClasses: [...wrapper.classList],
+            }).toStrictEqual({
+                bodyClasses: ["chart-overlay-fullscreen-active"],
+                wrapperClasses: [
+                    "chart-wrapper",
+                    "chart-wrapper--overlay-fullscreen",
+                    "chart-wrapper--fullscreen",
+                ],
+            });
         });
 
         it("should exit overlay fullscreen when chart fullscreen button is clicked again", async () => {
@@ -435,19 +487,18 @@ describe("addChartHoverEffects", () => {
 
             expect(
                 wrapper.classList.contains("chart-wrapper--overlay-fullscreen")
-            ).toBe(true);
+            ).toStrictEqual(true);
 
             fullscreenBtn.click();
             await new Promise((resolve) => setTimeout(resolve, 0));
 
-            expect(
-                wrapper.classList.contains("chart-wrapper--overlay-fullscreen")
-            ).toBe(false);
-            expect(
-                document.body.classList.contains(
-                    "chart-overlay-fullscreen-active"
-                )
-            ).toBe(false);
+            expect({
+                bodyClasses: [...document.body.classList],
+                wrapperClasses: [...wrapper.classList],
+            }).toStrictEqual({
+                bodyClasses: [],
+                wrapperClasses: ["chart-wrapper"],
+            });
         });
     });
 
@@ -501,7 +552,10 @@ describe("addChartHoverEffects", () => {
                 ".chart-wrapper"
             ) as HTMLElement;
             expect(wrapper.className).toBe("chart-wrapper");
-            expect(wrapper.contains(mockCanvas)).toBe(true);
+            expect(getWrapperState(mockContainer, mockCanvas)).toMatchObject({
+                canvasParentClass: "chart-wrapper",
+                wrapperCount: 1,
+            });
             // Theme colors are applied via cssText, just verify wrapper exists
         });
 
@@ -517,7 +571,10 @@ describe("addChartHoverEffects", () => {
             ) as HTMLElement;
             // Should use fallback values
             expect(wrapper.className).toBe("chart-wrapper");
-            expect(wrapper.contains(mockCanvas)).toBe(true);
+            expect(getWrapperState(mockContainer, mockCanvas)).toMatchObject({
+                canvasParentClass: "chart-wrapper",
+                wrapperCount: 1,
+            });
         });
     });
 
@@ -563,7 +620,12 @@ describe("removeChartHoverEffects", () => {
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         removeChartHoverEffects(null);
 
-        expect(mockContainer.contains(mockCanvas)).toBe(true);
+        expect(getWrapperState(mockContainer, mockCanvas)).toStrictEqual({
+            canvasParentClass: "",
+            containerChildClasses: ["chart-canvas"],
+            wrapperChildClasses: [],
+            wrapperCount: 0,
+        });
         expect(mockContainer.querySelectorAll(".chart-wrapper")).toHaveLength(
             0
         );
@@ -597,7 +659,13 @@ describe("removeChartHoverEffects", () => {
         expect(mockContainer.querySelectorAll(".chart-wrapper")).toHaveLength(
             0
         );
-        expect(mockContainer.contains(mockCanvas)).toBe(true);
+        expect(wrapper).toBeNull();
+        expect(getWrapperState(mockContainer, mockCanvas)).toStrictEqual({
+            canvasParentClass: "",
+            containerChildClasses: ["chart-canvas"],
+            wrapperChildClasses: [],
+            wrapperCount: 0,
+        });
     });
 
     it("should restore canvas styles", () => {
@@ -653,7 +721,12 @@ describe("removeChartHoverEffects", () => {
         expect(mockContainer.querySelectorAll(".chart-wrapper")).toHaveLength(
             0
         );
-        expect(mockContainer.contains(mockCanvas)).toBe(true);
+        expect(getWrapperState(mockContainer, mockCanvas)).toStrictEqual({
+            canvasParentClass: "",
+            containerChildClasses: ["chart-canvas"],
+            wrapperChildClasses: [],
+            wrapperCount: 0,
+        });
         expect(console.log).toHaveBeenCalledWith(
             "[ChartHoverEffects] Removed hover effects from 1 chart(s)"
         );
@@ -673,7 +746,9 @@ describe("addHoverEffectsToExistingCharts", () => {
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         addHoverEffectsToExistingCharts();
 
-        expect(document.querySelectorAll(".chart-wrapper")).toHaveLength(0);
+        expect([...document.querySelectorAll(".chart-wrapper")]).toStrictEqual(
+            []
+        );
         expect(mockConsoleLog).not.toHaveBeenCalled();
         expect(console.warn).toHaveBeenCalledWith(
             "[DevHelper] Chart container not found"
@@ -695,7 +770,14 @@ describe("addHoverEffectsToExistingCharts", () => {
 
         const wrapper = container.querySelector(".chart-wrapper");
         expect(container.querySelectorAll(".chart-wrapper")).toHaveLength(1);
-        expect(wrapper?.contains(canvas)).toBe(true);
+        expect({
+            canvasParentClass: canvas.parentElement?.className,
+            wrapperClass:
+                wrapper instanceof HTMLElement ? wrapper.className : null,
+        }).toStrictEqual({
+            canvasParentClass: "chart-wrapper",
+            wrapperClass: "chart-wrapper",
+        });
         expect(console.log).toHaveBeenCalledWith(
             "[DevHelper] Hover effects added to existing charts"
         );
@@ -718,7 +800,14 @@ describe("addHoverEffectsToExistingCharts", () => {
 
         const wrapper = container.querySelector(".chart-wrapper");
         expect(container.querySelectorAll(".chart-wrapper")).toHaveLength(1);
-        expect(wrapper?.contains(canvas)).toBe(true);
+        expect({
+            canvasParentClass: canvas.parentElement?.className,
+            wrapperClass:
+                wrapper instanceof HTMLElement ? wrapper.className : null,
+        }).toStrictEqual({
+            canvasParentClass: "chart-wrapper",
+            wrapperClass: "chart-wrapper",
+        });
         expect(chartHoverTestGlobal.getThemeConfig).toHaveBeenCalled();
         expect(console.log).toHaveBeenCalledWith(
             "[DevHelper] Hover effects added to existing charts"
@@ -757,7 +846,10 @@ describe("Edge Cases", () => {
 
         const wrapper = mockContainer.querySelector(".chart-wrapper");
         expect(wrapper).toBeInstanceOf(HTMLDivElement);
-        expect(wrapper?.contains(mockCanvas)).toBe(true);
+        expect(getWrapperState(mockContainer, mockCanvas)).toMatchObject({
+            canvasParentClass: "chart-wrapper",
+            wrapperCount: 1,
+        });
         expect(mockCanvas.style.height).toBe("400px");
     });
 
@@ -774,7 +866,13 @@ describe("Edge Cases", () => {
 
         expect(orphanCanvas.dataset.hoverEffectsAdded).toBe("true");
         expect(orphanCanvas.parentElement?.className).toBe("chart-wrapper");
-        expect(document.body.contains(orphanCanvas)).toBe(false);
+        expect({
+            bodyCanvasCount: document.body.querySelectorAll("canvas").length,
+            orphanParentClass: orphanCanvas.parentElement?.className,
+        }).toStrictEqual({
+            bodyCanvasCount: 1,
+            orphanParentClass: "chart-wrapper",
+        });
     });
 
     it("should handle wrapper creation failure gracefully", () => {
@@ -796,6 +894,14 @@ describe("Edge Cases", () => {
         addChartHoverEffects(mockContainer, mockThemeConfig);
 
         const wrappers = mockContainer.querySelectorAll(".chart-wrapper");
-        expect(wrappers.length).toBe(1); // Should not create duplicate wrappers
+        expect({
+            wrapperClasses: Array.from(wrappers, (wrapper) =>
+                wrapper instanceof HTMLElement ? wrapper.className : ""
+            ),
+            wrapperCount: wrappers.length,
+        }).toStrictEqual({
+            wrapperClasses: ["chart-wrapper"],
+            wrapperCount: 1,
+        });
     });
 });
