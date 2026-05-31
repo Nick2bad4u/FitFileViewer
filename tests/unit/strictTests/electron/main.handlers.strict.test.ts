@@ -325,7 +325,7 @@ describe("main.js strict handlers and events", () => {
         );
         expect(recentGet?.[0]).toBe("recentFiles:get");
         const recent = await recentGet?.[1]({});
-        expect(recent).toEqual([]);
+        expect(recent).toStrictEqual([]);
         // recentFiles:add
         const recentAdd = mockIpcMain.handle.mock.calls.find(
             (c: any[]) => c[0] === "recentFiles:add"
@@ -334,7 +334,9 @@ describe("main.js strict handlers and events", () => {
         mockMainWindow.webContents.executeJavaScript.mockResolvedValueOnce(
             "dark"
         );
-        await expect(recentAdd?.[1]({}, "D:/other.fit")).resolves.toEqual([]);
+        await expect(recentAdd?.[1]({}, "D:/other.fit")).resolves.toStrictEqual(
+            []
+        );
         // In test mode, menu creation is a no-op; verifying no throw is sufficient
     });
 

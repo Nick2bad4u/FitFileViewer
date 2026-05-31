@@ -263,7 +263,7 @@ describe("renderer.js strict behavior", () => {
         const matched = /(Critical error|Application error)/.test(notifCalls);
         const errorLogs = (console.error as any).mock.calls.flat().join(" ");
         const errorLogged = /Uncaught error/.test(errorLogs);
-        expect(matched || errorLogged).toBe(true);
+        expect([matched, errorLogged]).toContain(true);
     });
 
     it("exposes dev helpers and performance metrics in development", async () => {
@@ -305,7 +305,7 @@ describe("renderer.js strict behavior", () => {
             })
         );
         expect(
-            Object.keys(metrics).every((key) => !key.endsWith("_start"))
-        ).toBe(true);
+            Object.keys(metrics).filter((key) => key.endsWith("_start"))
+        ).toStrictEqual([]);
     });
 });
