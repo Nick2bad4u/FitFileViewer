@@ -136,10 +136,19 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 expect(computedStateManager.dependencies).toBeInstanceOf(Map);
                 expect(computedStateManager.subscriptions).toBeInstanceOf(Map);
                 expect(computedStateManager.isComputing).toBeInstanceOf(Set);
-                expect(computedStateManager.computedValues.size).toBe(0);
-                expect(
-                    computedStateManager.computedValues.has("missingComputed")
-                ).not.toBe(true);
+                expect(computedStateManager.computedValues).not.toBe(
+                    computedStateManager.dependencies
+                );
+                expect({
+                    computedCount: computedStateManager.computedValues.size,
+                    hasMissingComputed:
+                        computedStateManager.computedValues.has(
+                            "missingComputed"
+                        ),
+                }).toStrictEqual({
+                    computedCount: 0,
+                    hasMissingComputed: false,
+                });
             });
         });
 
@@ -156,7 +165,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
                 expect(
                     computedStateManager.computedValues.has("testComputed")
-                ).toBe(true);
+                ).toStrictEqual(true);
                 expect(
                     computedStateManager.dependencies.get("testComputed")
                 ).toEqual(["globalData"]);
@@ -222,8 +231,13 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 const computed =
                     computedStateManager.computedValues.get("status");
                 expect(computed.value).toBe("not-ready");
-                expect(computed.isValid).toBe(true);
-                expect(computed.error).toBe(null);
+                expect({
+                    error: computed.error,
+                    isValid: computed.isValid,
+                }).toStrictEqual({
+                    error: null,
+                    isValid: true,
+                });
             });
 
             it("should handle computation errors gracefully", () => {
@@ -235,7 +249,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 const computed =
                     computedStateManager.computedValues.get("errorTest");
                 expect(computed.error).toBeInstanceOf(Error);
-                expect(computed.isValid).toBe(false);
+                expect(computed.isValid).toStrictEqual(false);
                 expect(console.error).toHaveBeenCalledWith(
                     expect.stringContaining(
                         'Error computing value for "errorTest"'
@@ -369,8 +383,13 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
                 const computed =
                     computedStateManager.computedValues.get("invalidateTest");
-                expect(computed.isValid).toBe(false);
-                expect(computed.error).toBe(null);
+                expect({
+                    error: computed.error,
+                    isValid: computed.isValid,
+                }).toStrictEqual({
+                    error: null,
+                    isValid: false,
+                });
             });
 
             it("should handle invalidation of non-existent keys gracefully", () => {
@@ -400,15 +419,18 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
                 computedStateManager.removeComputed("removeTest");
 
-                expect(
-                    computedStateManager.computedValues.has("removeTest")
-                ).toBe(false);
-                expect(
-                    computedStateManager.dependencies.has("removeTest")
-                ).toBe(false);
-                expect(
-                    computedStateManager.subscriptions.has("removeTest")
-                ).toBe(false);
+                expect({
+                    hasComputed:
+                        computedStateManager.computedValues.has("removeTest"),
+                    hasDependency:
+                        computedStateManager.dependencies.has("removeTest"),
+                    hasSubscription:
+                        computedStateManager.subscriptions.has("removeTest"),
+                }).toStrictEqual({
+                    hasComputed: false,
+                    hasDependency: false,
+                    hasSubscription: false,
+                });
                 expect(unsubscribe).toHaveBeenCalled();
             });
 
@@ -479,7 +501,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 });
                 expect(
                     computedStateManager.computedValues.has("missing")
-                ).not.toBe(true);
+                ).not.toStrictEqual(true);
             });
         });
 
@@ -536,13 +558,23 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
                 computedStateManager.cleanup();
 
-                expect(computedStateManager.computedValues.size).toBe(0);
-                expect(computedStateManager.dependencies.size).toBe(0);
-                expect(computedStateManager.subscriptions.size).toBe(0);
-                expect(computedStateManager.isComputing.size).toBe(0);
+                expect({
+                    computedCount: computedStateManager.computedValues.size,
+                    dependencyCount: computedStateManager.dependencies.size,
+                    hasCleanupComputed:
+                        computedStateManager.computedValues.has("cleanup1"),
+                    isComputingCount: computedStateManager.isComputing.size,
+                    subscriptionCount: computedStateManager.subscriptions.size,
+                }).toStrictEqual({
+                    computedCount: 0,
+                    dependencyCount: 0,
+                    hasCleanupComputed: false,
+                    isComputingCount: 0,
+                    subscriptionCount: 0,
+                });
                 expect(
-                    computedStateManager.computedValues.has("cleanup1")
-                ).not.toBe(true);
+                    computedStateManager.computedValues.has("cleanup2")
+                ).not.toStrictEqual(true);
             });
         });
     });
@@ -555,7 +587,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
                 expect(
                     computedStateManager.computedValues.has("convenience")
-                ).toBe(true);
+                ).toStrictEqual(true);
                 expect(getComputed("missingConvenience")).toBeUndefined();
                 expect(typeof cleanup).toBe("function");
             });
@@ -584,7 +616,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 removeComputed("removeTest");
                 expect(
                     computedStateManager.computedValues.has("removeTest")
-                ).not.toBe(true);
+                ).not.toStrictEqual(true);
 
                 removeComputed("removeTest");
                 expect(console.warn).toHaveBeenCalledWith(
@@ -631,9 +663,9 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 ];
 
                 for (const key of expectedKeys) {
-                    expect(computedStateManager.computedValues.has(key)).toBe(
-                        true
-                    );
+                    expect(
+                        computedStateManager.computedValues.has(key)
+                    ).toStrictEqual(true);
                 }
             });
 
@@ -642,13 +674,13 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
                 // Test with empty globalData
                 let result = getComputed("isFileLoaded");
-                expect(result).toBe(false);
+                expect(result).toStrictEqual(false);
 
                 // Test with data
                 mockStateManager.setState("globalData", { records: ["data"] });
                 computedStateManager.invalidateComputed("isFileLoaded");
                 result = getComputed("isFileLoaded");
-                expect(result).toBe(true);
+                expect(result).toStrictEqual(true);
             });
 
             it("should compute isAppReady correctly", () => {
@@ -660,7 +692,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 });
                 computedStateManager.invalidateComputed("isAppReady");
                 const result = getComputed("isAppReady");
-                expect(result).toBe(true);
+                expect(result).toStrictEqual(true);
             });
 
             it("should compute hasChartData correctly", () => {
@@ -671,7 +703,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 });
                 computedStateManager.invalidateComputed("hasChartData");
                 const result = getComputed("hasChartData");
-                expect(result).toBe(true);
+                expect(result).toStrictEqual(true);
             });
 
             it("should compute hasMapData correctly", () => {
@@ -682,7 +714,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 });
                 computedStateManager.invalidateComputed("hasMapData");
                 const result = getComputed("hasMapData");
-                expect(result).toBe(true);
+                expect(result).toStrictEqual(true);
             });
 
             it("should compute summaryData correctly", () => {
@@ -737,7 +769,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 const result = getComputed("themeInfo");
 
                 expect(result.currentTheme).toBe("auto");
-                expect(result.isDarkTheme).toBe(true); // Based on mock matchMedia
+                expect(result.isDarkTheme).toStrictEqual(true); // Based on mock matchMedia
             });
         });
 
@@ -754,7 +786,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 expect(finalCount).toBeLessThan(initialCount);
                 expect(
                     computedStateManager.computedValues.has("isFileLoaded")
-                ).not.toBe(true);
+                ).not.toStrictEqual(true);
             });
         });
     });
@@ -782,7 +814,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
             expect(
                 computedStateManager.computedValues.get("reactive").isValid
-            ).toBe(false);
+            ).toStrictEqual(false);
             expect(getComputed("reactive")).toBe("updated");
             expect(
                 computedStateManager.dependencies.get("reactive")
@@ -832,7 +864,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             const computed =
                 computedStateManager.computedValues.get("errorState");
             expect(computed.error).toBeInstanceOf(Error);
-            expect(computed.isValid).toBe(false);
+            expect(computed.isValid).toStrictEqual(false);
         });
 
         it("should handle subscription setup errors", () => {
