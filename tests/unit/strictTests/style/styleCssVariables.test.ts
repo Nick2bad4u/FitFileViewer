@@ -1,18 +1,12 @@
-/**
- * @file Guards for core theme CSS variables and base body styles. Ensures theme
- *   variables exist so the UI does not render unstyled.
- */
+// Guards core theme CSS variables and base body styles so the UI does not
+// render unstyled.
 
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import process from "node:process";
 import { describe, expect, it } from "vitest";
 
-/**
- * Load the main stylesheet used by the renderer.
- *
- * @returns {string}
- */
+// Load the main stylesheet used by the renderer.
 const loadStyleSheet = () => {
     const stylePath = resolve(process.cwd(), "static/app/style.css");
     return readFileSync(stylePath, "utf-8");
@@ -20,6 +14,8 @@ const loadStyleSheet = () => {
 
 describe("style.css theme variables", () => {
     it("defines root theme variables before light overrides", () => {
+        expect.hasAssertions();
+
         const styleText = loadStyleSheet();
         const rootIndex = styleText.indexOf(":root");
         const lightIndex = styleText.indexOf("body.theme-light");
@@ -40,6 +36,8 @@ describe("style.css theme variables", () => {
     });
 
     it("includes light theme overrides and background styling", () => {
+        expect.hasAssertions();
+
         const styleText = loadStyleSheet();
         const lightIndex = styleText.indexOf("body.theme-light");
 
@@ -51,6 +49,8 @@ describe("style.css theme variables", () => {
     });
 
     it("defines base body styles and font size helpers", () => {
+        expect.hasAssertions();
+
         const styleText = loadStyleSheet();
         const bodyIndex = styleText.search(/(^|\n)body\s*\{/);
         const beforeIndex = styleText.indexOf("body::before");
