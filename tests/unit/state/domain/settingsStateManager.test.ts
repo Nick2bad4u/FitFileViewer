@@ -6,22 +6,29 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
 // Mock stateManager functions
-const mockGetState = vi.fn();
-const mockSetState = vi.fn();
-const mockSubscribe = vi.fn(() => () => {});
+const mockGetState = vi.fn<(path?: string) => unknown>();
+const mockSetState =
+    vi.fn<(path: string, value: unknown, options?: unknown) => void>();
+const mockSubscribe = vi.fn<
+    (path: string, callback: (value: unknown) => void) => () => void
+>(() => () => {});
 
 // Mock showNotification
-const mockShowNotification = vi.fn();
+const mockShowNotification =
+    vi.fn<(message: string, type?: string, duration?: number) => void>();
 
 // Setup mocks before importing the module
-vi.mock("../../../../electron-app/utils/state/core/stateManager.js", () => ({
-    getState: mockGetState,
-    setState: mockSetState,
-    subscribe: mockSubscribe,
-}));
+vi.mock(
+    import("../../../../electron-app/utils/state/core/stateManager.js"),
+    () => ({
+        getState: mockGetState,
+        setState: mockSetState,
+        subscribe: mockSubscribe,
+    })
+);
 
 vi.mock(
-    "../../../../electron-app/utils/ui/notifications/showNotification.js",
+    import("../../../../electron-app/utils/ui/notifications/showNotification.js"),
     () => ({
         showNotification: mockShowNotification,
     })
@@ -30,9 +37,9 @@ vi.mock(
 // Mock console methods
 global.console = {
     ...console,
-    log: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
+    log: vi.fn<(...data: unknown[]) => void>(),
+    warn: vi.fn<(...data: unknown[]) => void>(),
+    error: vi.fn<(...data: unknown[]) => void>(),
 };
 
 // Mock localStorage implementation that properly simulates the real localStorage API
@@ -40,24 +47,24 @@ const mockLocalStorage = {
     data: {} as Record<string, string>,
     keys: [] as string[],
 
-    getItem: vi.fn((key: string) => {
+    getItem: vi.fn<(key: string) => null | string>((key) => {
         return mockLocalStorage.data[key] || null;
     }),
-    setItem: vi.fn((key: string, value: string) => {
+    setItem: vi.fn<(key: string, value: string) => void>((key, value) => {
         mockLocalStorage.data[key] = value;
         if (!mockLocalStorage.keys.includes(key)) {
             mockLocalStorage.keys.push(key);
         }
     }),
-    removeItem: vi.fn((key: string) => {
+    removeItem: vi.fn<(key: string) => void>((key) => {
         delete mockLocalStorage.data[key];
         mockLocalStorage.keys = mockLocalStorage.keys.filter((k) => k !== key);
     }),
-    clear: vi.fn(() => {
+    clear: vi.fn<() => void>(() => {
         mockLocalStorage.data = {};
         mockLocalStorage.keys = [];
     }),
-    key: vi.fn((index: number) => {
+    key: vi.fn<(index: number) => null | string>((index) => {
         return mockLocalStorage.keys[index] || null;
     }),
     get length() {
@@ -72,7 +79,13 @@ Object.defineProperty(globalThis, "localStorage", {
 
 // Mock globalThis.addEventListener for storage events
 Object.defineProperty(globalThis, "addEventListener", {
-    value: vi.fn(),
+    value: vi.fn<
+        (
+            type: string,
+            listener: EventListenerOrEventListenerObject,
+            options?: AddEventListenerOptions | boolean
+        ) => void
+    >(),
     writable: true,
 });
 
@@ -126,9 +139,10 @@ describe("settingsStateManager.js - simplified coverage", () => {
         vi.clearAllMocks();
     });
 
-    describe("SettingsStateManager class", () => {
+    describe("settingsStateManager class", () => {
         describe("constructor", () => {
             it("should initialize with empty state", () => {
+                expect.hasAssertions();
                 expect(settingsStateManager.initialized).toStrictEqual(false);
                 expect(settingsStateManager.migrationVersion).toBe("1.0.0");
                 expect(settingsStateManager.subscribers).toBeInstanceOf(Map);
@@ -140,6 +154,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
         describe("cleanup", () => {
             it("should clear subscribers and reset initialized state", () => {
+                expect.hasAssertions();
                 settingsStateManager.initialized = true;
                 settingsStateManager.subscribers.set("test", "value");
 
@@ -163,6 +178,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
         describe("getChartSettings", () => {
             it("should return chart settings from localStorage", () => {
+                expect.hasAssertions();
                 // Set up localStorage data
                 mockLocalStorage.data["chartjs_setting1"] =
                     JSON.stringify("value1");
@@ -182,6 +198,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
             });
 
             it("should handle invalid JSON in chart settings", () => {
+                expect.hasAssertions();
                 // Set up localStorage data with invalid JSON
                 mockLocalStorage.data["chartjs_setting1"] = "invalid json";
                 mockLocalStorage.keys = ["chartjs_setting1"];
@@ -194,6 +211,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
             });
 
             it("should return empty object when no chart settings exist", () => {
+                expect.hasAssertions();
                 // No chart settings in localStorage
                 const result = settingsStateManager.getChartSettings();
 
@@ -203,6 +221,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
         describe("getSetting", () => {
             it("should get theme setting (raw value from localStorage)", () => {
+                expect.hasAssertions();
                 // Store JSON string as localStorage would after setSetting
                 mockLocalStorage.data["ffv-theme"] = '"light"';
 
@@ -213,12 +232,14 @@ describe("settingsStateManager.js - simplified coverage", () => {
             });
 
             it("should return default for missing theme", () => {
+                expect.hasAssertions();
                 const result = settingsStateManager.getSetting("theme");
 
                 expect(result).toBe("dark"); // default theme
             });
 
             it("should get boolean mapTheme setting", () => {
+                expect.hasAssertions();
                 mockLocalStorage.data["ffv-map-theme-inverted"] = "false";
 
                 const result = settingsStateManager.getSetting("mapTheme");
@@ -227,12 +248,14 @@ describe("settingsStateManager.js - simplified coverage", () => {
             });
 
             it("should return default for missing mapTheme", () => {
+                expect.hasAssertions();
                 const result = settingsStateManager.getSetting("mapTheme");
 
                 expect(result).toStrictEqual(true); // default mapTheme
             });
 
             it("should get ui object setting", () => {
+                expect.hasAssertions();
                 mockLocalStorage.data["ui_setting1"] = '"value1"';
                 mockLocalStorage.data["ui_setting2"] = '"value2"';
                 mockLocalStorage.keys = ["ui_setting1", "ui_setting2"];
@@ -249,6 +272,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
             });
 
             it("should get specific key from ui setting", () => {
+                expect.hasAssertions();
                 const keySpy = vi.spyOn(mockLocalStorage, "key");
 
                 mockLocalStorage.data["ui_specificKey"] = '"specificValue"';
@@ -301,6 +325,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
         describe("setSetting", () => {
             it("should set theme setting", () => {
+                expect.hasAssertions();
                 const result = settingsStateManager.setSetting(
                     "theme",
                     "light"
@@ -314,6 +339,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
             });
 
             it("should set mapTheme setting", () => {
+                expect.hasAssertions();
                 const result = settingsStateManager.setSetting(
                     "mapTheme",
                     false
@@ -327,6 +353,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
             });
 
             it("should set ui object setting with key", () => {
+                expect.hasAssertions();
                 // For object settings with validation, passing individual values might fail validation
                 // The actual function might not work as expected due to validation constraints
                 const result = settingsStateManager.setSetting(
@@ -340,6 +367,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
             });
 
             it("should handle invalid category", () => {
+                expect.hasAssertions();
                 const result = settingsStateManager.setSetting(
                     "invalid" as any,
                     "value"
@@ -351,6 +379,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
         describe("resetSettings", () => {
             it("should reset theme setting", () => {
+                expect.hasAssertions();
                 mockLocalStorage.data["ffv-theme"] = '"light"';
 
                 const result = settingsStateManager.resetSettings("theme");
@@ -362,6 +391,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
             });
 
             it("should reset ui object setting", () => {
+                expect.hasAssertions();
                 mockLocalStorage.data["ui_key1"] = '"value1"';
                 mockLocalStorage.data["ui_key2"] = '"value2"';
                 mockLocalStorage.keys = ["ui_key1", "ui_key2"];
@@ -378,6 +408,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
             });
 
             it("should handle invalid category", () => {
+                expect.hasAssertions();
                 const result = settingsStateManager.resetSettings(
                     "invalid" as any
                 );
@@ -388,16 +419,32 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
         describe("initialize", () => {
             it("should initialize settings state manager", async () => {
+                expect.hasAssertions();
                 await settingsStateManager.initialize();
 
                 expect(settingsStateManager.initialized).toStrictEqual(true);
-                expect(mockSetState).toHaveBeenCalled();
+                expect(mockSetState).toHaveBeenCalledWith(
+                    "settings",
+                    expect.objectContaining({
+                        chart: expect.any(Object),
+                        export: expect.any(Object),
+                        isLoading: false,
+                        lastModified: expect.any(Number),
+                        mapTheme: expect.any(Boolean),
+                        migrationVersion: "1.0.0",
+                        theme: expect.any(String),
+                        ui: expect.any(Object),
+                        units: expect.any(Object),
+                    }),
+                    { source: "SettingsStateManager.initialize" }
+                );
                 expect(settingsStateManager.initialized).not.toStrictEqual(
                     false
                 );
             });
 
             it("should skip if already initialized", async () => {
+                expect.hasAssertions();
                 settingsStateManager.initialized = true;
 
                 await settingsStateManager.initialize();
@@ -409,6 +456,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
         describe("exportSettings", () => {
             it("should export all settings", () => {
+                expect.hasAssertions();
                 const mockDate = 1234567890;
                 vi.useFakeTimers();
                 vi.setSystemTime(new Date(mockDate));
@@ -449,6 +497,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
         describe("importSettings", () => {
             it("should import valid settings data", () => {
+                expect.hasAssertions();
                 const settingsData = {
                     version: "1.0.0",
                     timestamp: Date.now(),
@@ -469,6 +518,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
             });
 
             it("should reject invalid settings data", () => {
+                expect.hasAssertions();
                 const result = settingsStateManager.importSettings(null);
 
                 expect(result).toStrictEqual(false);
@@ -477,6 +527,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
         describe("setupLocalStorageSync", () => {
             it("should set up storage event listener", () => {
+                expect.hasAssertions();
                 settingsStateManager.setupLocalStorageSync();
 
                 expect(mockSubscribe).toHaveBeenCalledWith(
@@ -515,6 +566,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
         describe("migrateFromLegacy", () => {
             it("should complete migration process", () => {
+                expect.hasAssertions();
                 mockLocalStorage.data["dark-theme"] = "true";
 
                 // Function should complete without throwing
@@ -524,6 +576,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
             });
 
             it("should handle case when new theme already exists", () => {
+                expect.hasAssertions();
                 mockLocalStorage.data["dark-theme"] = "true";
                 mockLocalStorage.data["ffv-theme"] = '"light"';
 
@@ -535,6 +588,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
         describe("migrateSettings", () => {
             it("should complete migration process", async () => {
+                expect.hasAssertions();
                 mockGetState.mockReturnValue("1.0.0");
 
                 // Function should complete without throwing
@@ -544,6 +598,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
             });
 
             it("should handle initial migration", async () => {
+                expect.hasAssertions();
                 mockGetState.mockReturnValue(null);
 
                 // Function should complete without throwing
@@ -554,9 +609,10 @@ describe("settingsStateManager.js - simplified coverage", () => {
         });
     });
 
-    describe("Convenience functions", () => {
+    describe("convenience functions", () => {
         describe("getThemeSetting", () => {
             it("should delegate to settingsStateManager.getSetting", () => {
+                expect.hasAssertions();
                 const { getThemeSetting } = settingsStateManagerModule;
                 mockLocalStorage.data["ffv-theme"] = '"light"';
 
@@ -570,6 +626,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
         describe("setThemeSetting", () => {
             it("should delegate to settingsStateManager.setSetting", () => {
+                expect.hasAssertions();
                 const { setThemeSetting } = settingsStateManagerModule;
 
                 const result = setThemeSetting("light");
@@ -585,6 +642,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
         describe("getMapThemeSetting", () => {
             it("should delegate to settingsStateManager.getSetting", () => {
+                expect.hasAssertions();
                 const { getMapThemeSetting } = settingsStateManagerModule;
                 mockLocalStorage.data["ffv-map-theme-inverted"] = "false";
 
@@ -597,6 +655,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
         describe("setMapThemeSetting", () => {
             it("should delegate to settingsStateManager.setSetting", () => {
+                expect.hasAssertions();
                 const { setMapThemeSetting } = settingsStateManagerModule;
 
                 const result = setMapThemeSetting(false);
@@ -642,6 +701,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
         describe("setChartSetting", () => {
             it("should delegate to settingsStateManager.setSetting", () => {
+                expect.hasAssertions();
                 const { setChartSetting } = settingsStateManagerModule;
 
                 // This might fail due to validation (chart expects object, but we're passing string)
@@ -649,25 +709,27 @@ describe("settingsStateManager.js - simplified coverage", () => {
                 const result = setChartSetting("testKey", "testValue");
 
                 // The result might be false due to validation failure
-                expect(typeof result).toBe("boolean");
-                expect(typeof result).not.toBe("string");
+                expect(result).toBeTypeOf("boolean");
+                expect(result).not.toBeTypeOf("string");
             });
         });
 
         describe("resetChartSettings", () => {
             it("should delegate to settingsStateManager.resetSettings", () => {
+                expect.hasAssertions();
                 const { resetChartSettings } = settingsStateManagerModule;
 
                 // Function should complete and return a boolean
                 const result = resetChartSettings();
 
-                expect(typeof result).toBe("boolean");
-                expect(typeof result).not.toBe("string");
+                expect(result).toBeTypeOf("boolean");
+                expect(result).not.toBeTypeOf("string");
             });
         });
 
         describe("exportAllSettings", () => {
             it("should delegate to settingsStateManager.exportSettings", () => {
+                expect.hasAssertions();
                 const { exportAllSettings } = settingsStateManagerModule;
 
                 const result = exportAllSettings();
@@ -684,6 +746,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
         describe("importAllSettings", () => {
             it("should delegate to settingsStateManager.importSettings", () => {
+                expect.hasAssertions();
                 const { importAllSettings } = settingsStateManagerModule;
                 const settingsData = {
                     version: "1.0.0",
@@ -697,6 +760,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
             });
 
             it("should reject invalid all-settings payload", () => {
+                expect.hasAssertions();
                 const { importAllSettings } = settingsStateManagerModule;
 
                 expect(importAllSettings(null)).toStrictEqual(false);
@@ -704,8 +768,9 @@ describe("settingsStateManager.js - simplified coverage", () => {
         });
     });
 
-    describe("Error handling", () => {
+    describe("error handling", () => {
         it("should handle localStorage errors gracefully", () => {
+            expect.hasAssertions();
             // Make localStorage.getItem throw an error
             (mockLocalStorage.getItem as any).mockImplementation(() => {
                 throw new Error("localStorage error");
@@ -717,6 +782,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
         });
 
         it("should handle state manager errors gracefully during initialization", async () => {
+            expect.hasAssertions();
             mockSetState.mockImplementation(() => {
                 throw new Error("State manager error");
             });
