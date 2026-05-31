@@ -40,7 +40,7 @@ describe("build-runtime script", () => {
     });
 
     it("returns zero when every build step succeeds", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const commandRunner = vi
             .fn<CommandRunner>()

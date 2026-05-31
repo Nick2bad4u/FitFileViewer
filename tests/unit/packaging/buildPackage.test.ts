@@ -40,7 +40,7 @@ describe("build-package script", () => {
     });
 
     it("returns zero when every package step succeeds", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const commandRunner = vi
             .fn<CommandRunner>()
