@@ -8,7 +8,7 @@ import {
     docusaurusPackagePath,
     docusaurusWorkspacePath,
     repositoryRoot,
-    repositoryScriptPath,
+    syncDocusaurusStaticAssetsScriptPath,
 } from "./lib/workspaces.mjs";
 
 const requireFromDocusaurus = createRequire(
@@ -29,9 +29,8 @@ export const docusaurusCommandsThatSyncAssets = [
     "serve",
     "start",
 ];
-export const syncDocusaurusStaticAssetsScript = repositoryScriptPath(
-    "sync-docusaurus-static-assets.mjs"
-);
+export const syncDocusaurusStaticAssetsScript =
+    syncDocusaurusStaticAssetsScriptPath;
 
 export function buildDocusaurusArgs(argv = process.argv.slice(2)) {
     return [docusaurusCliPath, ...argv];

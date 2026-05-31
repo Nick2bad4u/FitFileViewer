@@ -115,6 +115,9 @@ export const formatRuntimeOutputScriptPath = repositoryScriptPath(
 export const generateApiCategoriesScriptPath = repositoryScriptPath(
     "generate-api-categories.mjs"
 );
+export const generateChangelogScriptPath = repositoryScriptPath(
+    "generate-changelog.mjs"
+);
 export const prepareRuntimeDistScriptPath = repositoryScriptPath(
     "prepare-runtime-dist.mjs"
 );
@@ -126,6 +129,9 @@ export const runElectronBuilderScriptPath = repositoryScriptPath(
 export const runElectronScriptPath = repositoryScriptPath("run-electron.mjs");
 export const runTypescriptScriptPath =
     repositoryScriptPath("run-typescript.mjs");
+export const syncDocusaurusStaticAssetsScriptPath = repositoryScriptPath(
+    "sync-docusaurus-static-assets.mjs"
+);
 export const validateRuntimeTsconfigScriptPath = repositoryScriptPath(
     "validate-runtime-tsconfig.mjs"
 );

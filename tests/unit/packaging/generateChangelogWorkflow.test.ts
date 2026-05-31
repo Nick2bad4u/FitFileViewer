@@ -4,6 +4,8 @@ import path from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
+import { generateChangelogScriptPath } from "../../../scripts/lib/workspaces.mjs";
+
 type DirectoryEntry = {
     name: string;
     type: "directory" | "file";
@@ -136,12 +138,7 @@ describe("generate-changelog-workflow script", () => {
         }).toStrictEqual({
             commands: [
                 {
-                    args: [
-                        expect.stringMatching(
-                            /[\\/]scripts[\\/]generate-changelog\.mjs$/u
-                        ),
-                        "--verbose",
-                    ],
+                    args: [generateChangelogScriptPath, "--verbose"],
                     command: process.execPath,
                 },
             ],

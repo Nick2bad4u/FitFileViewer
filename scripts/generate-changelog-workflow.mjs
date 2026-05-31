@@ -4,9 +4,10 @@ import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
-import { repositoryRoot, repositoryScriptPath } from "./lib/workspaces.mjs";
-
-const generateChangelogScript = repositoryScriptPath("generate-changelog.mjs");
+import {
+    generateChangelogScriptPath,
+    repositoryRoot,
+} from "./lib/workspaces.mjs";
 
 if (
     process.argv[1] &&
@@ -107,7 +108,7 @@ export function runChangelogWorkflow(options = {}) {
 
     const result = runCommand(
         process.execPath,
-        [generateChangelogScript, ...(verbose ? ["--verbose"] : [])],
+        [generateChangelogScriptPath, ...(verbose ? ["--verbose"] : [])],
         { cwd, stdio: "inherit" }
     );
 

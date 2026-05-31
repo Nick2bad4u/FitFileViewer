@@ -33,6 +33,7 @@ type WorkspacesModule = {
     docusaurusWorkspaceRelativePath: (...segments: string[]) => string;
     formatRuntimeOutputScriptPath: string;
     generateApiCategoriesScriptPath: string;
+    generateChangelogScriptPath: string;
     prepareRuntimeDistScriptPath: string;
     repositoryRoot: string;
     repositoryPath: (...segments: string[]) => string;
@@ -86,6 +87,7 @@ type WorkspacesModule = {
     runElectronScriptPath: string;
     runTypescriptScriptPath: string;
     scriptsPath: string;
+    syncDocusaurusStaticAssetsScriptPath: string;
     validateRuntimeTsconfigScriptPath: string;
 };
 
@@ -131,7 +133,7 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes root script paths", async () => {
-        expect.assertions(14);
+        expect.assertions(16);
 
         const workspaces = await importWorkspaces();
 
@@ -168,6 +170,9 @@ describe("workspace path helpers", () => {
         expect(workspaces.generateApiCategoriesScriptPath).toBe(
             path.join(process.cwd(), "scripts", "generate-api-categories.mjs")
         );
+        expect(workspaces.generateChangelogScriptPath).toBe(
+            path.join(process.cwd(), "scripts", "generate-changelog.mjs")
+        );
         expect(workspaces.runDocusaurusScriptPath).toBe(
             path.join(process.cwd(), "scripts", "run-docusaurus.mjs")
         );
@@ -176,6 +181,13 @@ describe("workspace path helpers", () => {
         );
         expect(workspaces.runElectronScriptPath).toBe(
             path.join(process.cwd(), "scripts", "run-electron.mjs")
+        );
+        expect(workspaces.syncDocusaurusStaticAssetsScriptPath).toBe(
+            path.join(
+                process.cwd(),
+                "scripts",
+                "sync-docusaurus-static-assets.mjs"
+            )
         );
     });
 
