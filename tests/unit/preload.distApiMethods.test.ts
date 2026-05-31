@@ -178,7 +178,7 @@ describe("preload.js dist API methods", () => {
 
     describe("module Loading and Basic Structure", () => {
         it("should import and execute without errors", () => {
-            expect.hasAssertions();
+            expect.assertions(5);
             const { exposedAPI, mockProcess, mockRequire } =
                 createPreloadEnvironment();
 
@@ -199,7 +199,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should expose electronAPI to main world", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
 
             expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith(
@@ -210,7 +210,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should validate API before exposing", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
 
             expect(exposedAPI.validateAPI()).toStrictEqual(true);
@@ -223,7 +223,7 @@ describe("preload.js dist API methods", () => {
 
     describe("constants Structure", () => {
         it("should define all required channel constants", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
             expect(exposedAPI).toMatchObject({
                 getChannelInfo: expect.any(Function),
@@ -239,7 +239,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should include all expected channel names", () => {
-            expect.hasAssertions();
+            expect.assertions(27);
             const { exposedAPI } = createPreloadEnvironment();
             const channelInfo = exposedAPI.getChannelInfo();
 
@@ -251,7 +251,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should include all expected event names", () => {
-            expect.hasAssertions();
+            expect.assertions(10);
             const { exposedAPI } = createPreloadEnvironment();
             const channelInfo = exposedAPI.getChannelInfo();
 
@@ -265,14 +265,14 @@ describe("preload.js dist API methods", () => {
 
     describe("file Operations API", () => {
         it("should provide openFile method", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
             expect(exposedAPI.openFile).toBeTypeOf("function");
             expect(exposedAPI.openFileDialog).toBeTypeOf("function");
         });
 
         it("should handle openFile invocation", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
             const result = await exposedAPI.openFile();
 
@@ -283,7 +283,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should provide openFileDialog alias", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
             const result = await exposedAPI.openFileDialog();
 
@@ -294,7 +294,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should provide readFile method", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
             const result = await exposedAPI.readFile("test.fit");
 
@@ -306,7 +306,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should handle file operation errors gracefully", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
             mockIpcRenderer.invoke.mockRejectedValue(
                 new Error("File not found")
             );
@@ -321,7 +321,7 @@ describe("preload.js dist API methods", () => {
 
     describe("fIT File Operations API", () => {
         it("should provide parseFitFile method", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
             const arrayBuffer = new ArrayBuffer(8);
             const result = await exposedAPI.parseFitFile(arrayBuffer);
@@ -334,7 +334,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should provide decodeFitFile method", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
             const arrayBuffer = new ArrayBuffer(8);
             const result = await exposedAPI.decodeFitFile(arrayBuffer);
@@ -347,7 +347,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should handle FIT parsing errors", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
             mockIpcRenderer.invoke.mockRejectedValue(
                 new Error("Invalid FIT file")
             );
@@ -363,7 +363,7 @@ describe("preload.js dist API methods", () => {
 
     describe("recent Files Management", () => {
         it("should provide recentFiles method", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
             const result = await exposedAPI.recentFiles();
 
@@ -374,7 +374,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should provide addRecentFile method", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
             const result = await exposedAPI.addRecentFile("new.fit");
 
@@ -386,7 +386,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should propagate recent file retrieval errors", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
             mockIpcRenderer.invoke.mockRejectedValue(
                 new Error("recent files unavailable")
             );
@@ -401,7 +401,7 @@ describe("preload.js dist API methods", () => {
 
     describe("theme Management", () => {
         it("should provide getTheme method", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
             const result = await exposedAPI.getTheme();
 
@@ -410,7 +410,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should provide sendThemeChanged method", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
             const result = exposedAPI.sendThemeChanged("light");
 
@@ -424,7 +424,7 @@ describe("preload.js dist API methods", () => {
 
     describe("application Information API", () => {
         it("should provide version information methods", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
             const { exposedAPI } = createPreloadEnvironment();
 
             expect(exposedAPI.getAppVersion).toBeTypeOf("function");
@@ -434,7 +434,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should handle version retrieval", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
             const result = await exposedAPI.getAppVersion();
 
@@ -445,7 +445,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should provide getPlatformInfo method", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
             const result = await exposedAPI.getPlatformInfo();
 
@@ -456,7 +456,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should propagate version lookup failures", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
             mockIpcRenderer.invoke.mockRejectedValue(
                 new Error("version unavailable")
             );
@@ -471,7 +471,7 @@ describe("preload.js dist API methods", () => {
 
     describe("external Browser Operations", () => {
         it("should provide openExternal method", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
             const result = await exposedAPI.openExternal("https://example.com");
 
@@ -483,7 +483,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should handle external browser errors", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
             mockIpcRenderer.invoke.mockRejectedValue(
                 new Error("Cannot open URL")
             );
@@ -498,7 +498,7 @@ describe("preload.js dist API methods", () => {
 
     describe("gyazo OAuth Server Operations", () => {
         it("should provide startGyazoServer method", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
             const result = await exposedAPI.startGyazoServer(3000);
 
@@ -510,7 +510,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should provide stopGyazoServer method", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
             const result = await exposedAPI.stopGyazoServer();
 
@@ -521,7 +521,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should propagate Gyazo server startup failures", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
             mockIpcRenderer.invoke.mockRejectedValue(
                 new Error("port unavailable")
             );
@@ -536,7 +536,7 @@ describe("preload.js dist API methods", () => {
 
     describe("event Handler Registration", () => {
         it("should provide onMenuOpenFile method", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
             const callback = vi.fn<IpcListener>();
 
@@ -550,7 +550,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should provide onMenuOpenOverlay method", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
             const callback = vi.fn<IpcListener>();
 
@@ -564,7 +564,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should provide onOpenRecentFile method", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
             const callback = vi.fn<IpcListener>();
 
@@ -578,7 +578,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should provide onSetTheme method", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
             const callback = vi.fn<IpcListener>();
 
@@ -592,7 +592,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should validate callback functions in event handlers", () => {
-            expect.hasAssertions();
+            expect.assertions(5);
             const { exposedAPI, mockConsole } = createPreloadEnvironment();
 
             // Try to register with invalid callback
@@ -620,7 +620,7 @@ describe("preload.js dist API methods", () => {
 
     describe("auto-Updater Functions", () => {
         it("should provide onUpdateEvent method", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
             const callback = vi.fn<IpcListener>();
 
@@ -637,7 +637,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should provide checkForUpdates method", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
             const result = exposedAPI.checkForUpdates();
 
@@ -648,7 +648,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should provide installUpdate method", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
             const result = exposedAPI.installUpdate();
 
@@ -657,7 +657,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should provide setFullScreen method", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
             const result = exposedAPI.setFullScreen(true);
 
@@ -669,7 +669,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should validate parameters in onUpdateEvent", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { exposedAPI, mockConsole } = createPreloadEnvironment();
             const callback = vi.fn<IpcListener>();
 
@@ -685,7 +685,7 @@ describe("preload.js dist API methods", () => {
 
     describe("generic IPC Functions", () => {
         it("should provide onIpc method", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
             const callback = vi.fn<IpcListener>();
 
@@ -699,7 +699,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should provide send method", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
             const result = exposedAPI.send("custom-channel", "arg1", "arg2");
 
@@ -712,7 +712,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should provide invoke method", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
             const result = await exposedAPI.invoke("custom-channel", "arg1");
 
@@ -724,7 +724,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should validate channel parameter in generic IPC methods", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             const { exposedAPI, mockConsole } = createPreloadEnvironment();
 
             // Try with invalid channel (should trigger validateString error)
@@ -738,7 +738,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should handle invoke errors properly", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
             mockIpcRenderer.invoke.mockRejectedValue(new Error("IPC Error"));
 
             const { exposedAPI } = createPreloadEnvironment();
@@ -749,7 +749,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should reject invoke with invalid channel", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
             const { exposedAPI } = createPreloadEnvironment();
 
             await expect(exposedAPI.invoke(123)).rejects.toThrow(
@@ -760,7 +760,7 @@ describe("preload.js dist API methods", () => {
 
     describe("development Tools", () => {
         it("should provide injectMenu method", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
             const result = await exposedAPI.injectMenu(
                 "dark",
@@ -776,7 +776,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should handle injectMenu with default parameters", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
             const result = await exposedAPI.injectMenu();
 
@@ -789,7 +789,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should handle injectMenu errors gracefully", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             mockIpcRenderer.invoke.mockRejectedValue(
                 new Error("Inject failed")
             );
@@ -806,7 +806,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should reject invalid parameters in injectMenu", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             const { exposedAPI } = createPreloadEnvironment();
 
             await expect(exposedAPI.injectMenu(123)).resolves.toStrictEqual(
@@ -824,7 +824,7 @@ describe("preload.js dist API methods", () => {
 
     describe("debugging and Validation", () => {
         it("should provide validateAPI method", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
             expect(exposedAPI.validateAPI()).toStrictEqual(true);
             expect(exposedAPI.getChannelInfo()).toMatchObject({
@@ -836,7 +836,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should provide getChannelInfo with complete information", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
             const { exposedAPI } = createPreloadEnvironment();
             const channelInfo = exposedAPI.getChannelInfo();
 
@@ -851,7 +851,7 @@ describe("preload.js dist API methods", () => {
 
     describe("development Mode Features", () => {
         it("should expose development tools in development mode", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             const { devTools, exposedAPI } = createPreloadEnvironment({
                 NODE_ENV: "development",
             });
@@ -874,7 +874,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should not expose development tools in production mode", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { devTools, exposedAPI } = createPreloadEnvironment({
                 NODE_ENV: "production",
             });
@@ -889,7 +889,7 @@ describe("preload.js dist API methods", () => {
 
     describe("error Handling and Edge Cases", () => {
         it("should handle contextBridge exposure failures", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             // Create a new environment where contextBridge throws on exposure
             const env = { NODE_ENV: "test" };
             const mockRequire = vi.fn<RequireModule>((moduleName) =>
@@ -929,7 +929,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should handle send operation errors", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             mockIpcRenderer.send.mockImplementation(() => {
                 throw new Error("Send failed");
             });
@@ -957,7 +957,7 @@ describe("preload.js dist API methods", () => {
 
     describe("process Lifecycle", () => {
         it("should handle process exit cleanup", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { mockProcess } = createPreloadEnvironment();
 
             expect(mockProcess.once).toHaveBeenCalledWith(
@@ -968,7 +968,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should log successful initialization", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { devTools } = createPreloadEnvironment({
                 NODE_ENV: "development",
             });
