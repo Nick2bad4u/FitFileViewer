@@ -255,7 +255,13 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             renderSpeedVsDistanceChart(container, data, options);
 
             expect(Chart).not.toHaveBeenCalled();
-            expect(container.children.length).toBe(0);
+            expect({
+                chartCalls: Chart.mock.calls.length,
+                childCount: container.children.length,
+            }).toStrictEqual({
+                chartCalls: 0,
+                childCount: 0,
+            });
         });
 
         it("should return early when data has no distance values", () => {
@@ -276,7 +282,13 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             renderSpeedVsDistanceChart(container, data, options);
 
             expect(Chart).not.toHaveBeenCalled();
-            expect(container.children.length).toBe(0);
+            expect({
+                chartCalls: Chart.mock.calls.length,
+                childCount: container.children.length,
+            }).toStrictEqual({
+                chartCalls: 0,
+                childCount: 0,
+            });
         });
 
         it("should return early when field visibility is hidden", () => {
@@ -301,7 +313,13 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
 
             expect(visibilitySpy).toHaveBeenCalledWith("speed_vs_distance");
             expect(Chart).not.toHaveBeenCalled();
-            expect(container.children.length).toBe(0);
+            expect({
+                chartCalls: Chart.mock.calls.length,
+                childCount: container.children.length,
+            }).toStrictEqual({
+                chartCalls: 0,
+                childCount: 0,
+            });
         });
 
         it("should process data correctly with valid speed and distance values", () => {
@@ -380,7 +398,13 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             renderSpeedVsDistanceChart(container, data, options);
 
             expect(Chart).not.toHaveBeenCalled();
-            expect(container.children.length).toBe(0);
+            expect({
+                chartCalls: Chart.mock.calls.length,
+                childCount: container.children.length,
+            }).toStrictEqual({
+                chartCalls: 0,
+                childCount: 0,
+            });
         });
     });
 
@@ -408,7 +432,13 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             expect(
                 chartConfig.data.datasets[0].data.length
             ).toBeLessThanOrEqual(100);
-            expect(chartConfig.data.datasets[0].data).not.toHaveLength(0);
+            expect(chartConfig.data.datasets[0].data).not.toHaveLength(
+                data.length
+            );
+            expect(chartConfig.data.datasets[0].data).toContainEqual({
+                x: 0,
+                y: 18,
+            });
         });
 
         it("should not limit data when maxPoints is 'all'", () => {
@@ -431,7 +461,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
 
             expect(Chart).toHaveBeenCalled();
             const chartConfig = getLatestChartConfig();
-            expect(chartConfig.data.datasets[0].data.length).toBe(50);
+            expect(chartConfig.data.datasets[0].data).toHaveLength(50);
         });
 
         it("should handle data point limiting with exact step calculation", () => {
@@ -482,13 +512,20 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             expect(Chart).toHaveBeenCalled();
             const chartConfig = getLatestChartConfig();
             expect(chartConfig.type).toBe("scatter");
-            expect(chartConfig.data.datasets[0].label).toBe(
-                "Speed vs Distance"
-            );
-            expect(chartConfig.data.datasets[0].showLine).toBe(true);
-            expect(chartConfig.data.datasets[0].fill).toBe(false);
-            expect(chartConfig.data.datasets[0].tension).toBe(0.1);
-            expect(chartConfig.data.datasets[0].borderWidth).toBe(2);
+            expect(chartConfig.type).not.toBe("line");
+            expect({
+                borderWidth: chartConfig.data.datasets[0].borderWidth,
+                fill: chartConfig.data.datasets[0].fill,
+                label: chartConfig.data.datasets[0].label,
+                showLine: chartConfig.data.datasets[0].showLine,
+                tension: chartConfig.data.datasets[0].tension,
+            }).toStrictEqual({
+                borderWidth: 2,
+                fill: false,
+                label: "Speed vs Distance",
+                showLine: true,
+                tension: 0.1,
+            });
         });
 
         it("should configure chart options based on provided options - all enabled", () => {
@@ -507,15 +544,22 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             renderSpeedVsDistanceChart(container, data, options);
 
             const chartConfig = getLatestChartConfig();
-            expect(chartConfig.data.datasets[0].pointRadius).toBe(2);
-            expect(chartConfig.options.plugins.legend.display).toBe(true);
-            expect(chartConfig.options.plugins.legend.display).not.toBe(false);
-            expect(chartConfig.options.plugins.title.display).toBe(true);
+            expect({
+                legendDisplay: chartConfig.options.plugins.legend.display,
+                pointRadius: chartConfig.data.datasets[0].pointRadius,
+                titleDisplay: chartConfig.options.plugins.title.display,
+                xGridDisplay: chartConfig.options.scales.x.grid.display,
+                yGridDisplay: chartConfig.options.scales.y.grid.display,
+            }).toStrictEqual({
+                legendDisplay: true,
+                pointRadius: 2,
+                titleDisplay: true,
+                xGridDisplay: true,
+                yGridDisplay: true,
+            });
             expect(chartConfig.options.plugins.title.text).toBe(
                 "Speed vs Distance"
             );
-            expect(chartConfig.options.scales.x.grid.display).toBe(true);
-            expect(chartConfig.options.scales.y.grid.display).toBe(true);
         });
 
         it("should configure chart options based on provided options - all disabled", () => {
@@ -534,11 +578,19 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             renderSpeedVsDistanceChart(container, data, options);
 
             const chartConfig = getLatestChartConfig();
-            expect(chartConfig.data.datasets[0].pointRadius).toBe(1);
-            expect(chartConfig.options.plugins.legend.display).toBe(false);
-            expect(chartConfig.options.plugins.title.display).toBe(false);
-            expect(chartConfig.options.scales.x.grid.display).toBe(false);
-            expect(chartConfig.options.scales.y.grid.display).toBe(false);
+            expect({
+                legendDisplay: chartConfig.options.plugins.legend.display,
+                pointRadius: chartConfig.data.datasets[0].pointRadius,
+                titleDisplay: chartConfig.options.plugins.title.display,
+                xGridDisplay: chartConfig.options.scales.x.grid.display,
+                yGridDisplay: chartConfig.options.scales.y.grid.display,
+            }).toStrictEqual({
+                legendDisplay: false,
+                pointRadius: 1,
+                titleDisplay: false,
+                xGridDisplay: false,
+                yGridDisplay: false,
+            });
         });
 
         it("should set correct axis titles and configuration", () => {
@@ -557,16 +609,25 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             renderSpeedVsDistanceChart(container, data, options);
 
             const chartConfig = getLatestChartConfig();
-            expect(chartConfig.options.scales.x.type).toBe("linear");
-            expect(chartConfig.options.scales.x.display).toBe(true);
-            expect(chartConfig.options.scales.x.title.display).toBe(true);
+            expect({
+                xDisplay: chartConfig.options.scales.x.display,
+                xTitleDisplay: chartConfig.options.scales.x.title.display,
+                xType: chartConfig.options.scales.x.type,
+                yDisplay: chartConfig.options.scales.y.display,
+                yTitleDisplay: chartConfig.options.scales.y.title.display,
+                yType: chartConfig.options.scales.y.type,
+            }).toStrictEqual({
+                xDisplay: true,
+                xTitleDisplay: true,
+                xType: "linear",
+                yDisplay: true,
+                yTitleDisplay: true,
+                yType: "linear",
+            });
             expect(chartConfig.options.scales.x.title.text).toContain(
                 "Distance"
             );
 
-            expect(chartConfig.options.scales.y.type).toBe("linear");
-            expect(chartConfig.options.scales.y.display).toBe(true);
-            expect(chartConfig.options.scales.y.title.display).toBe(true);
             expect(chartConfig.options.scales.y.title.text).toContain("Speed");
         });
 
@@ -586,18 +647,23 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             renderSpeedVsDistanceChart(container, data, options);
 
             const chartConfig = getLatestChartConfig();
-            expect(chartConfig.options.plugins.zoom.pan.enabled).toBe(true);
-            expect(chartConfig.options.plugins.zoom.pan.mode).toBe("x");
-            expect(chartConfig.options.plugins.zoom.zoom.wheel.enabled).toBe(
-                true
-            );
-            expect(chartConfig.options.plugins.zoom.zoom.pinch.enabled).toBe(
-                true
-            );
-            expect(chartConfig.options.plugins.zoom.zoom.drag.enabled).toBe(
-                true
-            );
-            expect(chartConfig.options.plugins.zoom.zoom.mode).toBe("x");
+            expect({
+                dragEnabled: chartConfig.options.plugins.zoom.zoom.drag.enabled,
+                mode: chartConfig.options.plugins.zoom.zoom.mode,
+                panEnabled: chartConfig.options.plugins.zoom.pan.enabled,
+                panMode: chartConfig.options.plugins.zoom.pan.mode,
+                pinchEnabled:
+                    chartConfig.options.plugins.zoom.zoom.pinch.enabled,
+                wheelEnabled:
+                    chartConfig.options.plugins.zoom.zoom.wheel.enabled,
+            }).toStrictEqual({
+                dragEnabled: true,
+                mode: "x",
+                panEnabled: true,
+                panMode: "x",
+                pinchEnabled: true,
+                wheelEnabled: true,
+            });
             expect(chartConfig.options.plugins.zoom.limits.x.min).toBe(
                 "original"
             );
@@ -629,11 +695,19 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
 
             renderSpeedVsDistanceChart(container, data, options);
 
-            expect(container.children.length).toBe(1);
             const canvas = container.children[0] as HTMLCanvasElement;
-            expect(canvas.tagName).toBe("CANVAS");
-            expect(canvas.id).toBe("chart-speed-vs-distance-0"); // Actual format from createChartCanvas
-            expect(canvas.style.borderRadius).toBe("12px");
+            expect({
+                borderRadius: canvas.style.borderRadius,
+                childCount: container.children.length,
+                id: canvas.id,
+                tagName: canvas.tagName,
+            }).toStrictEqual({
+                borderRadius: "12px",
+                childCount: 1,
+                id: "chart-speed-vs-distance-0",
+                tagName: "CANVAS",
+            });
+            expect(canvas.id).not.toBe("chart-speed-distance-0");
         });
 
         it("should append canvas to container", () => {
@@ -651,8 +725,9 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
 
             renderSpeedVsDistanceChart(container, data, options);
 
-            expect(container.children.length).toBe(1);
-            expect(container.children).not.toHaveLength(0);
+            expect(
+                [...container.children].map((child) => child.tagName)
+            ).toEqual(["CANVAS"]);
             expect(container.children[0]).toBeInstanceOf(HTMLCanvasElement);
         });
     });
@@ -673,11 +748,12 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
 
             renderSpeedVsDistanceChart(container, data, options);
 
-            expect(getChartTestWindow()._chartjsInstances).toHaveLength(1);
-            expect(getChartTestWindow()._chartjsInstances).not.toHaveLength(0);
-            expect(getChartTestWindow()._chartjsInstances?.[0]).toBe(
-                chartInstanceMock
+            expect(getChartTestWindow()._chartjsInstances).not.toContain(
+                undefined
             );
+            expect(getChartTestWindow()._chartjsInstances).toStrictEqual([
+                chartInstanceMock,
+            ]);
         });
 
         it("should initialize global instances array if it doesn't exist", () => {
@@ -719,7 +795,9 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             expect(console.log).toHaveBeenCalledWith(
                 "[ChartJS] Speed vs Distance chart created successfully"
             );
-            expect(container.children).toHaveLength(1);
+            expect(
+                [...container.children].map((child) => child.tagName)
+            ).toEqual(["CANVAS"]);
         });
     });
 
@@ -746,8 +824,8 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
                 },
             });
             expect(
-                typeof chartConfig.options.plugins.tooltip.callbacks.label
-            ).toBe("function");
+                chartConfig.options.plugins.tooltip.callbacks.label
+            ).toBeTypeOf("function");
         });
 
         it("should format tooltip correctly with kilometers distance units", () => {
@@ -903,8 +981,10 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             renderSpeedVsDistanceChart(container, data, options);
 
             const chartConfig = getLatestChartConfig();
-            expect(chartConfig.plugins).toHaveLength(2);
-            expect(chartConfig.plugins).not.toHaveLength(0);
+            expect(chartConfig.plugins).toEqual([
+                expect.objectContaining({ id: "chartZoomResetPlugin" }),
+                expect.objectContaining({ id: "chartBackgroundColorPlugin" }),
+            ]);
         });
 
         it("should configure chartBackgroundColorPlugin with theme colors", () => {
@@ -946,17 +1026,19 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
                 showGrid: true,
             };
 
-            expect(
+            expect(() =>
                 renderSpeedVsDistanceChart(container, data, options)
-            ).toBeUndefined();
+            ).not.toThrow();
 
             expect(console.error).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering speed vs distance chart:",
                 expect.any(Error)
             );
             expect(Chart).toHaveBeenCalledOnce();
-            expect(getChartTestWindow()._chartjsInstances).toHaveLength(0);
-            expect(container.children).toHaveLength(1);
+            expect(getChartTestWindow()._chartjsInstances).toStrictEqual([]);
+            expect(
+                [...container.children].map((child) => child.tagName)
+            ).toEqual(["CANVAS"]);
         });
 
         it("should handle errors during canvas creation", () => {
@@ -979,17 +1061,19 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             const container = document.createElement("div");
             const data = [{ speed: 5.5, distance: 1000 }];
 
-            expect(
+            expect(() =>
                 renderSpeedVsDistanceChart(container, data, { maxPoints: 100 })
-            ).toBeUndefined();
+            ).not.toThrow();
 
             expect(consoleSpy).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering speed vs distance chart:",
                 expect.any(Error)
             );
             expect(mockChart).toHaveBeenCalledOnce();
-            expect(getChartTestWindow()._chartjsInstances).toHaveLength(0);
-            expect(container.children).toHaveLength(1);
+            expect(getChartTestWindow()._chartjsInstances).toStrictEqual([]);
+            expect(
+                [...container.children].map((child) => child.tagName)
+            ).toEqual(["CANVAS"]);
 
             consoleSpy.mockRestore();
         });
@@ -1006,20 +1090,20 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
                 showGrid: true,
             };
 
-            expect(
+            expect(() =>
                 renderSpeedVsDistanceChart(
                     null as unknown as HTMLElement,
                     data,
                     options
                 )
-            ).toBeUndefined();
+            ).not.toThrow();
 
             expect(console.error).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering speed vs distance chart:",
                 expect.any(Error)
             );
             expect(Chart).not.toHaveBeenCalled();
-            expect(getChartTestWindow()._chartjsInstances).toHaveLength(0);
+            expect(getChartTestWindow()._chartjsInstances).toStrictEqual([]);
         });
     });
 
@@ -1040,9 +1124,14 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             renderSpeedVsDistanceChart(container, data, options);
 
             const chartConfig = getLatestChartConfig();
-            expect(chartConfig.options.responsive).toBe(true);
-            expect(chartConfig.options.responsive).not.toBe(false);
-            expect(chartConfig.options.maintainAspectRatio).toBe(false);
+            expect({
+                maintainAspectRatio: chartConfig.options.maintainAspectRatio,
+                responsive: chartConfig.options.responsive,
+            }).toStrictEqual({
+                maintainAspectRatio: false,
+                responsive: true,
+            });
+            expect(chartConfig.options.responsive).not.toStrictEqual(false);
         });
     });
 
@@ -1063,7 +1152,13 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             renderSpeedVsDistanceChart(container, data, options);
 
             expect(Chart).not.toHaveBeenCalled();
-            expect(container.children.length).toBe(0);
+            expect({
+                chartCalls: Chart.mock.calls.length,
+                childCount: container.children.length,
+            }).toStrictEqual({
+                chartCalls: 0,
+                childCount: 0,
+            });
         });
 
         it("should handle data with zero values", () => {
