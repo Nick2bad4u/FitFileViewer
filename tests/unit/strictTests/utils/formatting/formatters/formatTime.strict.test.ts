@@ -1,14 +1,18 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-const getChartSettingMock = vi.fn();
+type GetChartSettingMock = (key: string) => unknown;
+
+const getChartSettingMock = vi.hoisted(() => vi.fn<GetChartSettingMock>());
 vi.mock(
-    "../../../../../../electron-app/utils/state/domain/settingsStateManager.js",
+    import("../../../../../../electron-app/utils/state/domain/settingsStateManager.js"),
     () => ({
         getChartSetting: getChartSettingMock,
     })
 );
 
-async function fresh() {
+async function fresh(): Promise<
+    typeof import("../../../../../../electron-app/utils/formatting/formatters/formatTime.js")
+> {
     vi.resetModules();
     return await import("../../../../../../electron-app/utils/formatting/formatters/formatTime.js");
 }
@@ -19,16 +23,41 @@ describe("formatTime.strict branches", () => {
         getChartSettingMock.mockReset();
     });
 
+    afterEach(() => {
+        vi.doUnmock(
+            "../../../../../../electron-app/utils/formatting/converters/convertTimeUnits.js"
+        );
+        vi.restoreAllMocks();
+    });
+
     it("returns '0:00' and warns for invalid input", async () => {
+        expect.hasAssertions();
+
         const { formatTime } = await fresh();
         const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-        expect(formatTime(NaN as any)).toBe("0:00");
-        expect(formatTime(undefined as any)).toBe("0:00");
+        expect(formatTime(NaN)).toBe("0:00");
+        expect(formatTime(undefined)).toBe("0:00");
         expect(formatTime(-5)).toBe("0:00");
-        expect(warn).toHaveBeenCalled();
+        expect(warn).toHaveBeenNthCalledWith(
+            1,
+            "[formatTime] Invalid seconds value:",
+            NaN
+        );
+        expect(warn).toHaveBeenNthCalledWith(
+            2,
+            "[formatTime] Invalid seconds value:",
+            undefined
+        );
+        expect(warn).toHaveBeenNthCalledWith(
+            3,
+            "[formatTime] Negative time value:",
+            -5
+        );
     });
 
     it("formats seconds as MM:SS and HH:MM:SS", async () => {
+        expect.hasAssertions();
+
         const { formatTime } = await fresh();
         expect(formatTime(59)).toBe("0:59");
         expect(formatTime(61)).toBe("1:01");
@@ -36,6 +65,8 @@ describe("formatTime.strict branches", () => {
     });
 
     it("uses user units via settings state", async () => {
+        expect.hasAssertions();
+
         getChartSettingMock.mockReturnValue("minutes");
         const { formatTime } = await fresh();
         expect(formatTime(90, true)).toBe("1.5m");
@@ -44,33 +75,42 @@ describe("formatTime.strict branches", () => {
     });
 
     it("uses stored time units when available", async () => {
+        expect.hasAssertions();
+
         getChartSettingMock.mockReturnValue("seconds");
         const { formatTime } = await fresh();
         expect(formatTime(61, true)).toBe("1:01");
     });
 
     it("logs error and returns fallback when settings access throws", async () => {
+        expect.hasAssertions();
+
         getChartSettingMock.mockImplementation(() => {
             throw new Error("boom");
         });
         const { formatTime } = await fresh();
         const err = vi.spyOn(console, "error").mockImplementation(() => {});
         expect(formatTime(10, true)).toBe("0:00");
-        expect(err).toHaveBeenCalled();
+        expect(err).toHaveBeenCalledWith(
+            "[formatTime] Time formatting failed:",
+            expect.any(Error)
+        );
     });
 
     it("logs error and returns fallback when converter throws", async () => {
+        expect.hasAssertions();
+
         vi.resetModules();
         // Mock the converter module to throw
         vi.doMock(
-            "../../../../../../electron-app/utils/formatting/converters/convertTimeUnits.js",
+            import("../../../../../../electron-app/utils/formatting/converters/convertTimeUnits.js"),
             () => ({
                 TIME_UNITS: {
                     SECONDS: "seconds",
                     MINUTES: "minutes",
                     HOURS: "hours",
                 },
-                convertTimeUnits: () => {
+                convertTimeUnits: (): never => {
                     throw new Error("convert fail");
                 },
             })
@@ -78,6 +118,13 @@ describe("formatTime.strict branches", () => {
         const { formatTime } = await fresh();
         const err = vi.spyOn(console, "error").mockImplementation(() => {});
         expect(formatTime(10, true)).toBe("0:00");
-        expect(err).toHaveBeenCalled();
+        expect(err).toHaveBeenCalledWith(
+            "[formatTime] Error in convertTimeUnits:",
+            expect.any(Error)
+        );
+        expect(err).toHaveBeenCalledWith(
+            "[formatTime] Time formatting failed:",
+            expect.any(Error)
+        );
     });
 });
