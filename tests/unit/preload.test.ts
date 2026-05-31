@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import fs from "fs";
-import path from "path";
 import { resolvePreloadScriptRequire } from "../vitest/helpers/preloadModuleMocks";
+import { readPreloadDistCode } from "../vitest/helpers/preloadDist";
 
 type MockFunction = ReturnType<typeof vi.fn>;
 type MockWithCalls = { mock: { calls: unknown[][] } };
@@ -350,11 +349,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         vi.stubGlobal("process", mockProcess);
 
         // Load and execute preload script
-        const preloadPath = path.resolve(
-            __dirname,
-            "../../electron-app/dist/preload.js"
-        );
-        const preloadCode = fs.readFileSync(preloadPath, "utf-8");
+        const preloadCode = readPreloadDistCode();
 
         const mockRequire = vi.fn().mockImplementation((module: string) => {
             return resolvePreloadScriptRequire(module, electronMock);

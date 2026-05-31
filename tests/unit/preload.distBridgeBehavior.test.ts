@@ -1,8 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { readFileSync } from "fs";
-import { join } from "path";
 import { resolvePreloadScriptRequire } from "../vitest/helpers/preloadModuleMocks";
+import { readPreloadDistCode } from "../vitest/helpers/preloadDist";
 
 interface ChannelInfo {
     channels: Record<string, unknown>;
@@ -147,10 +146,7 @@ describe("preload.js dist bridge behavior", () => {
         };
 
         // Load preload script source
-        preloadCode = readFileSync(
-            join(__dirname, "../../electron-app/dist/preload.js"),
-            "utf-8"
-        );
+        preloadCode = readPreloadDistCode();
     });
 
     afterEach(() => {
