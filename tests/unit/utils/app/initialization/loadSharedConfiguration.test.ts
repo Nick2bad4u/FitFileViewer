@@ -82,6 +82,8 @@ describe("loadSharedConfiguration.js", () => {
     });
 
     it("should load configuration from URL and update chart settings", async () => {
+        expect.assertions(8);
+
         // Reset modules to ensure we have a clean slate
         vi.resetModules();
 
@@ -135,8 +137,7 @@ describe("loadSharedConfiguration.js", () => {
             await import("../../../../../electron-app/utils/app/initialization/loadSharedConfiguration.js");
 
         // Call the function
-        const result = loadSharedConfiguration();
-        expect(result).toBeUndefined();
+        expect(() => loadSharedConfiguration()).not.toThrow();
 
         expect(mockSetChartFieldVisibility).toHaveBeenCalledWith(
             "heart_rate",
@@ -167,6 +168,8 @@ describe("loadSharedConfiguration.js", () => {
     });
 
     it("should use renderChartJS as fallback when chartStateManager is undefined", async () => {
+        expect.assertions(2);
+
         vi.resetModules();
 
         // Provide URL with minimal valid config
@@ -198,8 +201,7 @@ describe("loadSharedConfiguration.js", () => {
         const { loadSharedConfiguration } =
             await import("../../../../../electron-app/utils/app/initialization/loadSharedConfiguration.js");
 
-        const result = loadSharedConfiguration();
-        expect(result).toBeUndefined();
+        expect(() => loadSharedConfiguration()).not.toThrow();
         // Advance timers to trigger fallback render
         vi.advanceTimersByTime(120);
         expect(mockRenderChartJS).toHaveBeenCalled();
@@ -207,6 +209,8 @@ describe("loadSharedConfiguration.js", () => {
 
     // Adding a simpler test instead that verifies settings are updated correctly
     it("should handle basic configuration correctly", async () => {
+        expect.assertions(2);
+
         // Reset modules and localStorage
         vi.resetModules();
         mockLocalStorage = {};
@@ -235,13 +239,14 @@ describe("loadSharedConfiguration.js", () => {
             await import("../../../../../electron-app/utils/app/initialization/loadSharedConfiguration.js");
 
         // Call the function
-        const result = loadSharedConfiguration();
-        expect(result).toBeUndefined();
+        expect(() => loadSharedConfiguration()).not.toThrow();
 
         expect(mockSetChartSetting).toHaveBeenCalledWith("smoothing", 10);
     });
 
     it("should handle missing chartConfig parameter", async () => {
+        expect.assertions(6);
+
         // Set URL with no config parameter
         Object.defineProperty(window, "location", {
             value: {
@@ -255,8 +260,7 @@ describe("loadSharedConfiguration.js", () => {
             await import("../../../../../electron-app/utils/app/initialization/loadSharedConfiguration.js");
 
         // Call the function
-        const result = loadSharedConfiguration();
-        expect(result).toBeUndefined();
+        expect(() => loadSharedConfiguration()).not.toThrow();
 
         expect(mockSetChartSetting).not.toHaveBeenCalled();
         expect(mockSetChartFieldVisibility).not.toHaveBeenCalled();
@@ -271,6 +275,8 @@ describe("loadSharedConfiguration.js", () => {
     });
 
     it("should handle invalid JSON in chartConfig parameter", async () => {
+        expect.assertions(3);
+
         // Set URL with invalid base64 JSON
         const invalidBase64 = btoa("not-valid-json");
         Object.defineProperty(window, "location", {
@@ -285,8 +291,7 @@ describe("loadSharedConfiguration.js", () => {
             await import("../../../../../electron-app/utils/app/initialization/loadSharedConfiguration.js");
 
         // Call the function
-        const result = loadSharedConfiguration();
-        expect(result).toBeUndefined();
+        expect(() => loadSharedConfiguration()).not.toThrow();
 
         // Error should be logged
         expect(console.error).toHaveBeenCalled();
@@ -299,6 +304,8 @@ describe("loadSharedConfiguration.js", () => {
     });
 
     it("should handle other exceptions during processing", async () => {
+        expect.assertions(3);
+
         // Set up a situation that will cause an error
         // Mock URLSearchParams to throw an error
         const originalURLSearchParams = global.URLSearchParams;
@@ -311,8 +318,7 @@ describe("loadSharedConfiguration.js", () => {
             await import("../../../../../electron-app/utils/app/initialization/loadSharedConfiguration.js");
 
         // Call the function
-        const result = loadSharedConfiguration();
-        expect(result).toBeUndefined();
+        expect(() => loadSharedConfiguration()).not.toThrow();
 
         // Error should be logged
         expect(console.error).toHaveBeenCalled();
