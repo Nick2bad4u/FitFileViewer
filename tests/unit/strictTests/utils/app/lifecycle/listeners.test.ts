@@ -3,8 +3,21 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Mock } from "vitest";
 
 type AddRecentFileMock = (filePath: string) => Promise<void>;
+type AnchorClickMock = () => void;
+type AnchorRemoveMock = () => void;
+type AppendNodeMock = (node: Node) => void;
+type BlobMock = (
+    parts: any[],
+    options: any
+) => {
+    options: any;
+    parts: any[];
+    type: string;
+};
 type CopyTableAsCsvMock = () => string;
+type CreateExportGpxButtonMock = () => boolean;
 type CreateObjectUrlMock = (object: Blob | MediaSource) => string;
+type CreateTestAnchorMock = (tagName: string) => HTMLAnchorElement;
 type HandleOpenFileMock = (options: unknown) => Promise<void> | void;
 type KeyboardShortcutsModalMock = () => void;
 type OpenFileSelectorMock = () => Promise<void>;
@@ -12,6 +25,7 @@ type ParseFitFileMock = (buffer: ArrayBuffer) => Promise<any>;
 type ReadFileMock = (filePath: string) => Promise<ArrayBuffer>;
 type RecentFilesMock = () => Promise<string[]>;
 type RevokeObjectUrlMock = (url: string) => void;
+type SendFitFileToAltFitReaderMock = (buffer: ArrayBuffer) => void;
 type SetLoadingMock = (isLoading: boolean) => void;
 type ShowAboutModalMock = () => void;
 type ShowFitDataMock = (data: unknown, filePath: string) => void;
@@ -130,6 +144,17 @@ function ensureContainers() {
 
 function createFitMessages() {
     return { recordMesgs: [] };
+}
+
+function expectHtmlDivElement(
+    value: Element | null | undefined,
+    message: string
+): HTMLDivElement {
+    expect(value).toBeInstanceOf(HTMLDivElement);
+    if (!(value instanceof HTMLDivElement)) {
+        throw new TypeError(message);
+    }
+    return value;
 }
 
 describe("setupListeners (utils/app/lifecycle/listeners)", () => {
@@ -1460,6 +1485,8 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
     });
 
     it("show-notification: handles undefined showNotification function", async () => {
+        expect.hasAssertions();
+
         const originalShowNotification = showNotification;
         showNotification = undefined as any;
 
@@ -1482,11 +1509,13 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         showNotification = originalShowNotification;
     });
 
-    it("Menu: handles missing electronAPI properties gracefully", async () => {
+    it("menu: handles missing electronAPI properties gracefully", async () => {
+        expect.hasAssertions();
+
         // Create mock without some methods
         const limitedElectronAPI = {
-            onIpc: vi.fn(),
-            onUpdateEvent: vi.fn(),
+            onIpc: vi.fn<(channel: string, cb: IpcHandler) => void>(),
+            onUpdateEvent: vi.fn<(event: string, cb: IpcHandler) => void>(),
             // Missing onMenuOpenFile and onOpenRecentFile
         };
 
@@ -1528,7 +1557,9 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         });
     });
 
-    it("Menu: handles missing send method in electronAPI", async () => {
+    it("menu: handles missing send method in electronAPI", async () => {
+        expect.hasAssertions();
+
         const limitedElectronAPI = {
             ...electronAPI,
             send: undefined, // Remove send method
@@ -1577,8 +1608,10 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
     });
 
     it("recent files context menu: removes old menu if exists", async () => {
+        expect.hasAssertions();
+
         const files = ["C:/Users/Test/one.fit"];
-        electronAPI.recentFiles = vi.fn().mockResolvedValue(files);
+        vi.mocked(electronAPI.recentFiles).mockResolvedValue(files);
 
         setupListeners({
             openFileBtn,
@@ -1612,12 +1645,14 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         await Promise.resolve();
 
         const menus = document.querySelectorAll("#recent-files-menu");
-        expect(menus.length).toBe(1); // Only one menu should exist
+        expect(menus).toHaveLength(1); // Only one menu should exist
     });
 
     it("recent files context menu: contextmenu event is prevented on menu", async () => {
+        expect.hasAssertions();
+
         const files = ["C:/Users/Test/one.fit"];
-        electronAPI.recentFiles = vi.fn().mockResolvedValue(files);
+        vi.mocked(electronAPI.recentFiles).mockResolvedValue(files);
 
         setupListeners({
             openFileBtn,
@@ -1642,7 +1677,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         ) as HTMLDivElement;
         expect(menu).toBeInstanceOf(HTMLDivElement);
 
-        const preventDefault = vi.fn();
+        const preventDefault = vi.fn<() => void>();
         const contextMenuEvent = new MouseEvent("contextmenu", {
             bubbles: true,
         });
@@ -1651,20 +1686,23 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         });
 
         menu.dispatchEvent(contextMenuEvent);
-        expect(preventDefault).toHaveBeenCalled();
+        expect(preventDefault).toHaveBeenCalledWith();
     });
 
     it("recent files integration: calls sendFitFileToAltFitReader when available", async () => {
+        expect.hasAssertions();
+
         const files = ["C:/Users/Test/one.fit"];
-        electronAPI.recentFiles = vi.fn().mockResolvedValue(files);
+        vi.mocked(electronAPI.recentFiles).mockResolvedValue(files);
 
         const arrayBuf = new ArrayBuffer(8);
-        electronAPI.readFile = vi.fn().mockResolvedValue(arrayBuf);
+        vi.mocked(electronAPI.readFile).mockResolvedValue(arrayBuf);
         const parseResult = { data: createFitMessages() };
-        electronAPI.parseFitFile = vi.fn().mockResolvedValue(parseResult);
-        electronAPI.addRecentFile = vi.fn().mockResolvedValue(undefined);
-        const showFitData = vi.fn();
-        const sendFitFileToAltFitReader = vi.fn();
+        vi.mocked(electronAPI.parseFitFile).mockResolvedValue(parseResult);
+        vi.mocked(electronAPI.addRecentFile).mockResolvedValue(undefined);
+        const showFitData = vi.fn<ShowFitDataMock>();
+        const sendFitFileToAltFitReader =
+            vi.fn<SendFitFileToAltFitReaderMock>();
 
         Object.defineProperty(window, "showFitData", {
             value: showFitData,
@@ -1722,14 +1760,17 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
     });
 
     it("onOpenRecentFile integration: calls sendFitFileToAltFitReader when available", async () => {
-        const arrayBuf = new ArrayBuffer(32);
-        electronAPI.readFile = vi.fn().mockResolvedValue(arrayBuf);
-        electronAPI.parseFitFile = vi
-            .fn()
-            .mockResolvedValue(createFitMessages());
-        electronAPI.addRecentFile = vi.fn().mockResolvedValue(undefined);
+        expect.hasAssertions();
 
-        const sendFitFileToAltFitReader = vi.fn();
+        const arrayBuf = new ArrayBuffer(32);
+        vi.mocked(electronAPI.readFile).mockResolvedValue(arrayBuf);
+        vi.mocked(electronAPI.parseFitFile).mockResolvedValue(
+            createFitMessages()
+        );
+        vi.mocked(electronAPI.addRecentFile).mockResolvedValue(undefined);
+
+        const sendFitFileToAltFitReader =
+            vi.fn<SendFitFileToAltFitReaderMock>();
         Object.defineProperty(globalThis, "sendFitFileToAltFitReader", {
             value: sendFitFileToAltFitReader,
             writable: true,
@@ -1755,9 +1796,11 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
     });
 
     it("onOpenRecentFile: handles exception during file processing", async () => {
-        electronAPI.readFile = vi
-            .fn()
-            .mockRejectedValue(new Error("Network error"));
+        expect.hasAssertions();
+
+        vi.mocked(electronAPI.readFile).mockRejectedValue(
+            new Error("Network error")
+        );
 
         setupListeners({
             openFileBtn,
@@ -1784,17 +1827,30 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
     // Tests for specific uncovered lines to achieve 100% coverage
     it("contextmenu: calls sendFitFileToAltFitReader when available (line 105)", async () => {
+        expect.hasAssertions();
+
         const files = ["C:/Users/Test/one.fit"];
         const mockArrayBuffer = new ArrayBuffer(100);
-        electronAPI.recentFiles = vi.fn().mockResolvedValue(files);
-        electronAPI.readFile = vi.fn().mockResolvedValue(mockArrayBuffer);
-        electronAPI.parseFitFile = vi
-            .fn()
-            .mockResolvedValue(createFitMessages());
+        vi.mocked(electronAPI.recentFiles).mockResolvedValue(files);
+        vi.mocked(electronAPI.readFile).mockResolvedValue(mockArrayBuffer);
+        vi.mocked(electronAPI.parseFitFile).mockResolvedValue(
+            createFitMessages()
+        );
 
         // Mock the integration function
-        (globalThis as any).sendFitFileToAltFitReader = vi.fn();
-        (globalThis as any).showFitData = vi.fn();
+        const sendFitFileToAltFitReader =
+            vi.fn<SendFitFileToAltFitReaderMock>();
+        const showFitData = vi.fn<ShowFitDataMock>();
+        Object.defineProperty(globalThis, "sendFitFileToAltFitReader", {
+            configurable: true,
+            value: sendFitFileToAltFitReader,
+            writable: true,
+        });
+        Object.defineProperty(globalThis, "showFitData", {
+            configurable: true,
+            value: showFitData,
+            writable: true,
+        });
 
         setupListeners({
             openFileBtn,
@@ -1824,16 +1880,18 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         firstItem.click();
 
         await vi.waitFor(() => {
-            expect(
-                (globalThis as any).sendFitFileToAltFitReader
-            ).toHaveBeenCalledWith(mockArrayBuffer);
+            expect(sendFitFileToAltFitReader).toHaveBeenCalledWith(
+                mockArrayBuffer
+            );
         });
         expect(openFileBtn.disabled).toBe(false);
     });
 
     it("contextmenu: calling origOnClick during item click (lines 200-201)", async () => {
+        expect.hasAssertions();
+
         const files = ["C:/Users/Test/one.fit"];
-        electronAPI.recentFiles = vi.fn().mockResolvedValue(files);
+        vi.mocked(electronAPI.recentFiles).mockResolvedValue(files);
 
         setupListeners({
             openFileBtn,
@@ -1861,7 +1919,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         const firstItem = items[0] as HTMLDivElement;
 
         // Set original onclick handler before listener setup
-        const origOnClick = vi.fn();
+        const origOnClick = vi.fn<() => void>();
         firstItem.onclick = origOnClick;
 
         // Click the item to trigger both cleanup and origOnClick
@@ -1871,12 +1929,14 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         await Promise.resolve();
 
         expect(document.body.contains(firstItem)).toBe(false);
-        expect(origOnClick).toHaveBeenCalled();
+        expect(origOnClick).toHaveBeenCalledWith(expect.any(MouseEvent));
     });
 
     it("contextmenu: Escape key triggers cleanupMenu (lines 181-182)", async () => {
+        expect.hasAssertions();
+
         const files = ["C:/Users/Test/one.fit"];
-        electronAPI.recentFiles = vi.fn().mockResolvedValue(files);
+        vi.mocked(electronAPI.recentFiles).mockResolvedValue(files);
 
         setupListeners({
             openFileBtn,
@@ -1917,12 +1977,16 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
     });
 
     it("window resize: clearTimeout when timeout already exists (lines 218-219)", async () => {
+        expect.hasAssertions();
+
         const tab = document.createElement("div");
         tab.id = "tab-chart";
         tab.classList.add("active");
         document.body.appendChild(tab);
 
-        window.ChartUpdater = { updateCharts: vi.fn() };
+        window.ChartUpdater = {
+            updateCharts: vi.fn<(reason?: string) => void>(),
+        };
 
         setupListeners({
             openFileBtn,
@@ -1952,10 +2016,12 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
     });
 
     it("decoder-options-changed: catch block when file reload fails (line 279)", async () => {
+        expect.hasAssertions();
+
         window.globalData = { cachedFilePath: "test.fit" };
-        electronAPI.readFile = vi
-            .fn()
-            .mockRejectedValue(new Error("Read failed"));
+        vi.mocked(electronAPI.readFile).mockRejectedValue(
+            new Error("Read failed")
+        );
 
         setupListeners({
             openFileBtn,
@@ -1980,6 +2046,8 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
     });
 
     it("export-file: csv without copyTableAsCSV function (lines 317-318)", async () => {
+        expect.hasAssertions();
+
         setupListeners({
             openFileBtn,
             isOpeningFileRef: { current: false },
@@ -2006,15 +2074,22 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         await Promise.resolve();
 
         // The function should complete without error - no else clause means no notification
-        expect(document.querySelectorAll("a").length).toBe(0);
+        expect(document.querySelectorAll("a")).toHaveLength(0);
         expect(showNotification).not.toHaveBeenCalled();
     });
 
     it("export-file: gpx with valid coordinates for setTimeout cleanup (lines 350-351)", async () => {
+        expect.hasAssertions();
+
         // Mock createExportGPXButton to exist on globalThis
-        (globalThis as any).createExportGPXButton = vi
-            .fn()
-            .mockReturnValue(true);
+        const createExportGPXButton = vi.fn<CreateExportGpxButtonMock>(
+            () => true
+        );
+        Object.defineProperty(globalThis, "createExportGPXButton", {
+            configurable: true,
+            value: createExportGPXButton,
+            writable: true,
+        });
 
         // Create valid coordinate data in semicircle format
         // Coordinates in semicircles: lat/lng * 2^31 / 180
@@ -2037,12 +2112,23 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             ],
         };
 
-        // Mock URL methods
-        global.URL.createObjectURL = vi.fn().mockReturnValue("blob:test-url");
-        global.URL.revokeObjectURL = vi.fn();
+        const createObjectURL = vi.fn<CreateObjectUrlMock>(
+            () => "blob:test-url"
+        );
+        const revokeObjectURL = vi.fn<RevokeObjectUrlMock>();
+        Object.defineProperty(global.URL, "createObjectURL", {
+            configurable: true,
+            value: createObjectURL,
+            writable: true,
+        });
+        Object.defineProperty(global.URL, "revokeObjectURL", {
+            configurable: true,
+            value: revokeObjectURL,
+            writable: true,
+        });
 
         // Mock Blob constructor - must be a proper constructor function
-        (global as any).Blob = vi.fn().mockImplementation(function BlobMock(
+        const blobMock = vi.fn<BlobMock>(function BlobMock(
             parts: any[],
             options: any
         ) {
@@ -2052,16 +2138,33 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
                 type: options?.type || "",
             };
         });
+        Object.defineProperty(global, "Blob", {
+            configurable: true,
+            value: blobMock,
+            writable: true,
+        });
 
         // Mock document.body.append and createElement
         const mockAnchorElement = {
             href: "",
             download: "",
-            click: vi.fn(),
-            remove: vi.fn(),
-        };
-        document.createElement = vi.fn().mockReturnValue(mockAnchorElement);
-        document.body.append = vi.fn();
+            click: vi.fn<AnchorClickMock>(),
+            remove: vi.fn<AnchorRemoveMock>(),
+        } as unknown as HTMLAnchorElement;
+        const createElement = vi.fn<CreateTestAnchorMock>(
+            () => mockAnchorElement
+        );
+        Object.defineProperty(document, "createElement", {
+            configurable: true,
+            value: createElement,
+            writable: true,
+        });
+        const append = vi.fn<AppendNodeMock>();
+        Object.defineProperty(document.body, "append", {
+            configurable: true,
+            value: append,
+            writable: true,
+        });
 
         setupListeners({
             openFileBtn,
@@ -2082,22 +2185,28 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         await Promise.resolve();
 
         // Verify the download path was triggered first
-        expect((globalThis as any).globalData.recordMesgs.length).toBe(2);
-        expect(global.URL.createObjectURL).toHaveBeenCalled();
-        expect(mockAnchorElement.click).toHaveBeenCalled();
+        expect((globalThis as any).globalData.recordMesgs).toHaveLength(2);
+        expect(blobMock).toHaveBeenCalledWith(
+            [expect.stringContaining("<gpx")],
+            { type: "application/gpx+xml;charset=utf-8" }
+        );
+        expect(createObjectURL).toHaveBeenCalledWith(
+            blobMock.mock.results[0].value
+        );
+        expect(mockAnchorElement.click).toHaveBeenCalledWith();
 
         // Advance timers to trigger the setTimeout cleanup callback
         vi.advanceTimersByTime(100);
 
-        expect(global.URL.revokeObjectURL).toHaveBeenCalledWith(
-            "blob:test-url"
-        );
-        expect(mockAnchorElement.remove).toHaveBeenCalled();
+        expect(revokeObjectURL).toHaveBeenCalledWith("blob:test-url");
+        expect(mockAnchorElement.remove).toHaveBeenCalledWith();
 
         vi.useRealTimers();
     });
 
     it("menu events: handles keyboard shortcuts without script function (lines 402-409)", async () => {
+        expect.hasAssertions();
+
         // Remove any existing script function to trigger the error path
         delete (window as any).showKeyboardShortcutsModal;
 
@@ -2116,28 +2225,38 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         // Wait for script loading attempt and error handling
         await vi.waitFor(() => {
-            // The function should handle the missing script gracefully
-            expect(true).toBe(true); // Just ensure no crash
+            expect(
+                dependencyMocks.keyboardShortcutsModal
+            ).toHaveBeenCalledWith();
         });
+        expect((globalThis as any).showKeyboardShortcutsModal).toBe(
+            dependencyMocks.keyboardShortcutsModal
+        );
 
         // Second time - should go through already loaded path
         electronAPI.emit("menu-keyboard-shortcuts");
 
-        await Promise.resolve();
+        await vi.waitFor(() => {
+            expect(
+                dependencyMocks.keyboardShortcutsModal
+            ).toHaveBeenCalledTimes(2);
+        });
     });
 
     it(
         "error handling: parse error without details (line 105)",
         { timeout: 15000 },
         async () => {
+            expect.hasAssertions();
+
             // Mock recent files as strings (this test targets recent file click handler)
             const files = ["/path/to/test.fit"];
-            electronAPI.recentFiles = vi.fn(async () => files);
+            vi.mocked(electronAPI.recentFiles).mockResolvedValue(files);
 
-            electronAPI.readFile = vi
-                .fn()
-                .mockResolvedValue(new ArrayBuffer(8));
-            electronAPI.parseFitFile = vi.fn().mockResolvedValue({
+            vi.mocked(electronAPI.readFile).mockResolvedValue(
+                new ArrayBuffer(8)
+            );
+            vi.mocked(electronAPI.parseFitFile).mockResolvedValue({
                 error: "Parse error",
                 // No details property
             });
@@ -2185,11 +2304,10 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
             // Click the menu item to trigger the error path
             const menu = document.getElementById("recent-files-menu");
-            const menuItem = menu?.querySelector("div[role='menuitem']");
-            expect(menuItem).toBeInstanceOf(HTMLDivElement);
-            if (!(menuItem instanceof HTMLDivElement)) {
-                throw new TypeError("Expected recent file menu item.");
-            }
+            const menuItem = expectHtmlDivElement(
+                menu?.querySelector("div[role='menuitem']"),
+                "Expected recent file menu item."
+            );
             menuItem.click();
 
             await vi.waitFor(() => {
@@ -2201,9 +2319,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
             // Explicit cleanup of context menu to prevent interference with subsequent tests
             const cleanupMenu = document.querySelector("#recent-files-menu");
-            if (cleanupMenu) {
-                cleanupMenu.remove();
-            }
+            cleanupMenu?.remove();
         }
     );
 
@@ -2211,9 +2327,11 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         "context menu: cleanup on mousedown (lines 181-182)",
         { timeout: 15000 },
         async () => {
+            expect.hasAssertions();
+
             // Mock recent files as string array
             const files = ["/path/to/file1.fit"];
-            electronAPI.recentFiles = vi.fn().mockResolvedValue(files);
+            vi.mocked(electronAPI.recentFiles).mockResolvedValue(files);
 
             setupListeners({
                 openFileBtn,
@@ -2256,11 +2374,6 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             // Menu should be removed
             const removedMenu = document.getElementById("recent-files-menu");
             expect(removedMenu).toBeNull();
-
-            // Explicit cleanup to ensure no DOM pollution for subsequent tests
-            if (removedMenu) {
-                removedMenu.remove();
-            }
         }
     );
 
@@ -2268,9 +2381,11 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         "context menu: handles onclick function (lines 200-201)",
         { timeout: 15000 },
         async () => {
+            expect.hasAssertions();
+
             // Mock recent files
             const files = ["/path/to/file1.fit"];
-            electronAPI.recentFiles = vi.fn().mockResolvedValue(files);
+            vi.mocked(electronAPI.recentFiles).mockResolvedValue(files);
 
             setupListeners({
                 openFileBtn,
@@ -2303,14 +2418,13 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             // Find the menu item (first child div of the menu)
             const menu = document.getElementById("recent-files-menu");
             expect(menu).toBeInstanceOf(HTMLDivElement);
-            const menuItem = menu?.querySelector("div[role='menuitem']");
-            expect(menuItem).toBeInstanceOf(HTMLDivElement);
-            if (!(menuItem instanceof HTMLDivElement)) {
-                throw new TypeError("Expected recent file menu item.");
-            }
+            const menuItem = expectHtmlDivElement(
+                menu?.querySelector("div[role='menuitem']"),
+                "Expected recent file menu item."
+            );
 
             // Set a mock onclick function to test the original onclick call path
-            const mockOnclick = vi.fn();
+            const mockOnclick = vi.fn<() => void>();
             menuItem.onclick = mockOnclick;
 
             // Click the menu item
@@ -2323,19 +2437,21 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
             // Wait for the click handler to complete
             await vi.waitFor(() => {
-                expect(mockOnclick).toHaveBeenCalled();
+                expect(mockOnclick).toHaveBeenCalledWith(
+                    expect.any(MouseEvent)
+                );
             });
 
             // Explicit cleanup of context menu to prevent interference with subsequent tests
             const finalCleanupMenu =
                 document.querySelector("#recent-files-menu");
-            if (finalCleanupMenu) {
-                finalCleanupMenu.remove();
-            }
+            finalCleanupMenu?.remove();
         }
     );
 
     it("decoder options: error case (line 279)", async () => {
+        expect.hasAssertions();
+
         setupListeners({
             openFileBtn,
             isOpeningFileRef: { current: false },
@@ -2367,6 +2483,8 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
     });
 
     it("export CSV: missing copyTableAsCSV function (lines 317-318)", async () => {
+        expect.hasAssertions();
+
         setupListeners({
             openFileBtn,
             isOpeningFileRef: { current: false },
