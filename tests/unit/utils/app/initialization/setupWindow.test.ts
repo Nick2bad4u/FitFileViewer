@@ -69,12 +69,12 @@ describe("setupWindow", () => {
     });
 
     it("cleans up managers successfully", async () => {
+        expect.assertions(5);
+
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         const { cleanup } = await loadModule();
 
-        const result = cleanup();
-
-        expect(result).toBeUndefined();
+        expect(() => cleanup()).not.toThrow();
         expect(chartStateManagerMock.cleanup).toHaveBeenCalledTimes(1);
         expect(tabStateManagerMock.cleanup).toHaveBeenCalledTimes(1);
         expect(chartTabIntegrationMock.cleanup).toHaveBeenCalledTimes(1);
@@ -84,6 +84,8 @@ describe("setupWindow", () => {
     });
 
     it("logs error when cleanup fails", async () => {
+        expect.assertions(2);
+
         const error = new Error("boom");
         chartStateManagerMock.cleanup.mockImplementationOnce(() => {
             throw error;
@@ -93,9 +95,7 @@ describe("setupWindow", () => {
             .mockImplementation(() => {});
         const { cleanup } = await loadModule();
 
-        const result = cleanup();
-
-        expect(result).toBeUndefined();
+        expect(() => cleanup()).not.toThrow();
         expect(errorSpy).toHaveBeenCalledWith(
             "[setupWindow] Cleanup failed:",
             error
@@ -105,31 +105,80 @@ describe("setupWindow", () => {
     });
 
     it("initializes window successfully", async () => {
-        setupThemeMock.mockResolvedValueOnce("dark");
-        const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+        expect.assertions(1);
+
+        const lifecycleEvents: Array<{
+            args?: unknown[];
+            event: string;
+            usesApplyTheme?: boolean;
+            usesThemeListener?: boolean;
+        }> = [];
+        setupThemeMock.mockImplementationOnce(async (apply, listen) => {
+            lifecycleEvents.push({
+                event: "setupTheme",
+                usesApplyTheme: apply === applyThemeMock,
+                usesThemeListener: listen === listenForThemeChangeMock,
+            });
+            return "dark";
+        });
+        chartTabIntegrationMock.initialize.mockImplementationOnce(() => {
+            lifecycleEvents.push({ event: "chartTabIntegration.initialize" });
+        });
+        tabStateManagerMock.switchToTab.mockImplementationOnce((tab) => {
+            lifecycleEvents.push({
+                args: [tab],
+                event: "tabStateManager.switchToTab",
+            });
+        });
+        showNotificationMock.mockImplementationOnce((...args) => {
+            lifecycleEvents.push({ args, event: "showNotification" });
+        });
+        const logSpy = vi
+            .spyOn(console, "log")
+            .mockImplementation((...args) => {
+                lifecycleEvents.push({ args, event: "console.log" });
+            });
         const { setupWindow } = await loadModule();
 
-        await expect(setupWindow()).resolves.toBeUndefined();
+        await setupWindow();
 
-        expect(setupThemeMock).toHaveBeenCalledWith(
-            applyThemeMock,
-            listenForThemeChangeMock
-        );
-        expect(chartTabIntegrationMock.initialize).toHaveBeenCalledTimes(1);
-        expect(tabStateManagerMock.switchToTab).toHaveBeenCalledWith("summary");
-        expect(showNotificationMock).toHaveBeenCalledWith(
-            "Application initialized successfully",
-            "success",
-            2000
-        );
-        expect(logSpy).toHaveBeenCalledWith(
-            "[setupWindow] Modern initialization complete"
-        );
+        expect(lifecycleEvents).toStrictEqual([
+            {
+                args: [
+                    "[setupWindow] Initializing with modern state management...",
+                ],
+                event: "console.log",
+            },
+            {
+                event: "setupTheme",
+                usesApplyTheme: true,
+                usesThemeListener: true,
+            },
+            { event: "chartTabIntegration.initialize" },
+            {
+                args: ["summary"],
+                event: "tabStateManager.switchToTab",
+            },
+            {
+                args: [
+                    "Application initialized successfully",
+                    "success",
+                    2000,
+                ],
+                event: "showNotification",
+            },
+            {
+                args: ["[setupWindow] Modern initialization complete"],
+                event: "console.log",
+            },
+        ]);
 
         logSpy.mockRestore();
     });
 
     it("notifies and rethrows on initialization failure", async () => {
+        expect.assertions(5);
+
         const failure = new Error("setup failed");
         setupThemeMock.mockRejectedValueOnce(failure);
         const errorSpy = vi
