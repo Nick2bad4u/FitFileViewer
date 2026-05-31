@@ -28,7 +28,7 @@ describe(convertValueToUserUnits, () => {
     });
 
     it("returns invalid values unchanged and warns", () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         expect(convertValueToUserUnits("1000", "distance")).toBe("1000");
         expect(convertValueToUserUnits(Number.NaN, "distance")).toBeNaN();
@@ -45,7 +45,7 @@ describe(convertValueToUserUnits, () => {
     });
 
     it("returns numeric values unchanged for invalid field names", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         expect({
             emptyField: convertValueToUserUnits(1000, ""),
@@ -67,7 +67,7 @@ describe(convertValueToUserUnits, () => {
     });
 
     it("converts distance and altitude fields with the distance setting", () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         mockGetChartSetting.mockReturnValue("miles");
 
@@ -81,7 +81,7 @@ describe(convertValueToUserUnits, () => {
     });
 
     it("falls back to kilometers for unknown distance settings", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         mockGetChartSetting.mockReturnValue("yards");
 
@@ -93,7 +93,7 @@ describe(convertValueToUserUnits, () => {
     });
 
     it("converts speed using metric or imperial distance settings", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         mockGetChartSetting.mockReturnValue("kilometers");
         expect({
@@ -109,7 +109,7 @@ describe(convertValueToUserUnits, () => {
     });
 
     it("converts temperature with the temperature setting", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         mockGetChartSetting.mockReturnValue("fahrenheit");
 
@@ -122,7 +122,7 @@ describe(convertValueToUserUnits, () => {
     });
 
     it("returns unhandled fields unchanged without reading settings", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         expect({
             heartRate: convertValueToUserUnits(150, "heartRate"),
@@ -136,7 +136,7 @@ describe(convertValueToUserUnits, () => {
     });
 
     it("returns the original value when settings access throws", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const settingsError = new Error("Settings unavailable");
         mockGetChartSetting.mockImplementation(() => {
