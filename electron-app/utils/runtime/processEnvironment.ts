@@ -7,18 +7,26 @@
  * this helper instead.
  */
 export function getProcessEnvironmentValue(name: string): string | undefined {
-    const processValue = Reflect.get(globalThis, "process");
+    const processValue = getRuntimeProperty(globalThis, "process");
     if (typeof processValue !== "object" || processValue === null) {
         return undefined;
     }
 
-    const env = Reflect.get(processValue, "env");
+    const env = getRuntimeProperty(processValue, "env");
     if (typeof env !== "object" || env === null) {
         return undefined;
     }
 
-    const value = Reflect.get(env, name);
+    const value = getRuntimeProperty(env, name);
     return typeof value === "string" ? value : undefined;
+}
+
+function getRuntimeProperty(target: object, propertyKey: string): unknown {
+    try {
+        return Reflect.get(target, propertyKey);
+    } catch {
+        return undefined;
+    }
 }
 
 /**

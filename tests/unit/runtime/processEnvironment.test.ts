@@ -87,6 +87,66 @@ describe("process environment runtime boundary", () => {
         });
     });
 
+    it("returns undefined when the process accessor throws", () => {
+        expect.assertions(1);
+
+        Object.defineProperty(globalThis, "process", {
+            configurable: true,
+            get() {
+                throw new Error("process unavailable");
+            },
+        });
+
+        expect(getNodeEnvironmentSnapshot()).toStrictEqual({
+            isDevelopment: false,
+            isNodeTest: false,
+            isTest: false,
+            nodeEnv: undefined,
+        });
+    });
+
+    it("returns undefined when the process.env accessor throws", () => {
+        expect.assertions(1);
+
+        setGlobalProcess(
+            Object.defineProperty({}, "env", {
+                configurable: true,
+                get() {
+                    throw new Error("env unavailable");
+                },
+            })
+        );
+
+        expect(getNodeEnvironmentSnapshot()).toStrictEqual({
+            isDevelopment: false,
+            isNodeTest: false,
+            isTest: false,
+            nodeEnv: undefined,
+        });
+    });
+
+    it("returns undefined when an environment value accessor throws", () => {
+        expect.assertions(1);
+
+        setGlobalProcess({
+            env: new Proxy(
+                {},
+                {
+                    get() {
+                        throw new Error("value unavailable");
+                    },
+                }
+            ),
+        });
+
+        expect(getNodeEnvironmentSnapshot()).toStrictEqual({
+            isDevelopment: false,
+            isNodeTest: false,
+            isTest: false,
+            nodeEnv: undefined,
+        });
+    });
+
     it("reads string environment values only", () => {
         expect.assertions(3);
 
