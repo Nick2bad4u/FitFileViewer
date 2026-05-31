@@ -4,7 +4,7 @@ import { validateExternalUrl } from "../../../../electron-app/main/security/exte
 
 describe("externalUrlPolicy.validateExternalUrl", () => {
     it("allows https and mailto URLs", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         expect(validateExternalUrl("https://example.com")).toBe(
             "https://example.com"
@@ -15,7 +15,7 @@ describe("externalUrlPolicy.validateExternalUrl", () => {
     });
 
     it("rejects disallowed schemes", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         expect(() =>
             validateExternalUrl("http://localhost:3000/gyazo/callback")
@@ -29,7 +29,7 @@ describe("externalUrlPolicy.validateExternalUrl", () => {
     });
 
     it("rejects credentials in URLs", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         expect(() =>
             validateExternalUrl("https://user:pass@example.com")
@@ -37,7 +37,7 @@ describe("externalUrlPolicy.validateExternalUrl", () => {
     });
 
     it("rejects whitespace and control characters", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         expect(() =>
             validateExternalUrl("https://example.com/has space")
@@ -48,7 +48,7 @@ describe("externalUrlPolicy.validateExternalUrl", () => {
     });
 
     it("rejects extremely long URLs", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const long = `https://example.com/${"a".repeat(5000)}`;
         expect(() => validateExternalUrl(long)).toThrow("Invalid URL provided");

@@ -12,7 +12,7 @@ describe("logWithContext", () => {
     });
 
     it("logs a JSON string context and redacts secrets/tokens", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const { logWithContext } =
             await import("../../../../electron-app/main/logging/logWithContext.js");
@@ -37,7 +37,7 @@ describe("logWithContext", () => {
     });
 
     it("stringifies Error objects without throwing", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const { logWithContext } =
             await import("../../../../electron-app/main/logging/logWithContext.js");
@@ -53,7 +53,7 @@ describe("logWithContext", () => {
     });
 
     it("handles circular contexts", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const { logWithContext } =
             await import("../../../../electron-app/main/logging/logWithContext.js");
@@ -70,7 +70,7 @@ describe("logWithContext", () => {
     });
 
     it("falls back to console.log for unknown levels", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const { logWithContext } =
             await import("../../../../electron-app/main/logging/logWithContext.js");

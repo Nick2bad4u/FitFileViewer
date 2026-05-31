@@ -67,7 +67,7 @@ function getApprovalSnapshot(
 
 describe("fileAccessPolicy", () => {
     it("rejects URI-like file paths", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const mod =
             await import("../../../../electron-app/main/security/fileAccessPolicy.js");
@@ -82,7 +82,7 @@ describe("fileAccessPolicy", () => {
     });
 
     it("rejects Windows extended-length/device path prefixes", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const mod =
             await import("../../../../electron-app/main/security/fileAccessPolicy.js");
@@ -103,7 +103,7 @@ describe("fileAccessPolicy", () => {
     });
 
     it("uses realpath for approvals and invalidates if the symlink retargets", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         let target = "/real/a.fit";
         const mod = loadPolicyWithRealpath(() => target);
@@ -121,7 +121,7 @@ describe("fileAccessPolicy", () => {
     });
 
     it("caps the approval set to prevent unbounded growth", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const mod = loadPolicyWithRealpath(() => {
             throw new Error("ENOENT");
