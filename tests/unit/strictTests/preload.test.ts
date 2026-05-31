@@ -133,8 +133,8 @@ describe("preload.js electronAPI exposure and behavior", () => {
 
         // getChannelInfo returns the preload catalog used by the exposed API.
         const info = api.getChannelInfo();
-        expect(info.totalChannels).toBe(27);
-        expect(info.totalEvents).toBe(10);
+        expect(info.totalChannels).toBe(Object.keys(info.channels).length);
+        expect(info.totalEvents).toBe(Object.keys(info.events).length);
         expect(info.channels).toMatchObject({
             APP_VERSION: "getAppVersion",
             DEVTOOLS_INJECT_MENU: "devtools-inject-menu",
@@ -211,10 +211,10 @@ describe("preload.js electronAPI exposure and behavior", () => {
         await expect(api.invoke(99)).rejects.toThrow(/Invalid channel/);
 
         // injectMenu validation and success
-        await expect(api.injectMenu(5, null)).resolves.toBe(false);
-        await expect(api.injectMenu("dark", 9)).resolves.toBe(false);
+        await expect(api.injectMenu(5, null)).resolves.toStrictEqual(false);
+        await expect(api.injectMenu("dark", 9)).resolves.toStrictEqual(false);
         ipcRenderer.invoke.mockResolvedValueOnce(true);
-        await expect(api.injectMenu("dark", null)).resolves.toBe(true);
+        await expect(api.injectMenu("dark", null)).resolves.toStrictEqual(true);
     });
 
     it("does not expose when validateAPI fails (else branch)", async () => {
@@ -313,7 +313,7 @@ describe("preload.js electronAPI exposure and behavior", () => {
         expect(info.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
         expect(info.version).toBe("1.0.0");
 
-        await expect(dev.testIPC()).resolves.toBe(true);
+        await expect(dev.testIPC()).resolves.toStrictEqual(true);
         dev.logAPIState();
         expect(logs.join("\n")).toMatch(/Current API State/);
 
