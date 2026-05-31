@@ -8,7 +8,6 @@ export const docusaurusWorkspaceName = "docusaurus";
 export const rootArtifactsPath = "artifacts";
 export const rootDocusaurusTsconfigPath = "tsconfig.docusaurus.json";
 export const rootElectronBuilderConfigPath = "electron-builder.config.cjs";
-export const rootElectronBuilderFilesPath = "electron-builder.files.json";
 export const rootElectronAppTsconfigPath = "tsconfig.electron-app.json";
 export const rootEslintConfigPath = "eslint.config.mjs";
 export const rootFlatpakBuildPath = "flatpak-build-dir";

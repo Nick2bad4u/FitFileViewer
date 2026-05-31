@@ -34,7 +34,6 @@ type WorkspacesModule = {
     rootAppStaticPath: string;
     rootAppStyleCssPath: string;
     rootElectronBuilderConfigPath: string;
-    rootElectronBuilderFilesPath: string;
     rootArtifactsPath: string;
     rootDocusaurusTsconfigPath: string;
     rootElectronAppTsconfigPath: string;
@@ -131,15 +130,12 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes root config paths", async () => {
-        expect.assertions(11);
+        expect.assertions(10);
 
         const workspaces = await importWorkspaces();
 
         expect(workspaces.rootElectronBuilderConfigPath).toBe(
             "electron-builder.config.cjs"
-        );
-        expect(workspaces.rootElectronBuilderFilesPath).toBe(
-            "electron-builder.files.json"
         );
         expect(workspaces.rootElectronAppTsconfigPath).toBe(
             "tsconfig.electron-app.json"

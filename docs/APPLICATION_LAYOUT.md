@@ -327,8 +327,7 @@ electron-app/utils/
 ├── vitest.config.ts                 # Root-owned Vitest configuration for electron-app tests
 ├── tsconfig.vitest-typecheck.json   # Root-owned Vitest typecheck configuration
 ├── tsconfig.electron-app.eslint.json # Root-owned ESLint parser project for electron-app
-├── electron-builder.config.cjs      # Root-owned Electron Builder targets and file associations
-├── electron-builder.files.json      # Root-owned packaged file allowlist
+├── electron-builder.config.cjs      # Root-owned Electron Builder targets, file associations, and package allowlist
 ├── scripts/
 │   ├── analyze-coverage.mjs         # Root-owned coverage analysis helper
 │   ├── build-win7.mjs               # Root-owned Windows 7 compatibility build helper

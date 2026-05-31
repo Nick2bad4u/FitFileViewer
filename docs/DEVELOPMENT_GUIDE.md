@@ -430,13 +430,13 @@ npm run build:win7
 ### Build Configuration
 
 Electron Builder settings live in the root `electron-builder.config.cjs`, and
-packaged file inclusion is loaded from `electron-builder.files.json`. Keep new
-packaging targets and artifact naming in the root config instead of adding a
-`build` block to `package.json`.
+packaged file inclusion is declared there as `files`. Keep new packaging targets
+and artifact naming in the root config instead of adding a `build` block to
+`package.json`.
 
 ```js
 // electron-builder.config.cjs
-const appPackageFiles = require("./electron-builder.files.json");
+const appPackageFiles = ["dist/**", "package.json"];
 
 module.exports = {
  appId: "io.github.nick2bad4u.fitfileviewer",

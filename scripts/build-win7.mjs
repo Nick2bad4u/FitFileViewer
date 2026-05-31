@@ -1,6 +1,7 @@
 import { Arch, build, Platform } from "electron-builder";
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
+import { createRequire } from "node:module";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -8,21 +9,19 @@ import {
     appWorkspacePath,
     repositoryPath,
     repositoryRoot,
-    rootElectronBuilderFilesPath,
     rootReleaseDistPath,
 } from "./lib/workspaces.mjs";
 import { resolveCommandForPlatform } from "./lib/child-process.mjs";
 
+const require = createRequire(import.meta.url);
+const electronBuilderConfig = require("../electron-builder.config.cjs");
 const electronAppDir = appWorkspacePath;
 export const outputDir = repositoryPath(rootReleaseDistPath, "win7");
 const WIN7_ELECTRON_VERSION = "22.3.27";
 export const appPackageFiles = readElectronBuilderFiles();
 
-export function readElectronBuilderFiles() {
-    const fileListPath = repositoryPath(rootElectronBuilderFilesPath);
-    const parsed = JSON.parse(fs.readFileSync(fileListPath, "utf8"));
-
-    return parseElectronBuilderFiles(parsed);
+export function readElectronBuilderFiles(config = electronBuilderConfig) {
+    return parseElectronBuilderFiles(config.files);
 }
 
 export function parseElectronBuilderFiles(parsed) {
@@ -31,7 +30,7 @@ export function parseElectronBuilderFiles(parsed) {
         parsed.some((entry) => typeof entry !== "string")
     ) {
         throw new TypeError(
-            `${rootElectronBuilderFilesPath} must contain an array of file pattern strings`
+            "electron-builder config files must be an array of file pattern strings"
         );
     }
 

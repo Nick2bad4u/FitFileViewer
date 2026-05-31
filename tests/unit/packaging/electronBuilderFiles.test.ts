@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 
@@ -9,13 +9,11 @@ import {
     appWorkspacePath,
     repositoryPath,
     rootElectronBuilderConfigPath,
-    rootElectronBuilderFilesPath,
     rootReleaseDistPath,
 } from "../../../scripts/lib/workspaces.mjs";
 
 const requireFromTest = createRequire(import.meta.url);
 const repositoryRoot = process.cwd();
-const sharedFileListPath = repositoryPath(rootElectronBuilderFilesPath);
 const electronAppRoot = appWorkspacePath;
 
 type ElectronBuilderConfig = {
@@ -31,10 +29,6 @@ type Win7BuildModule = {
     parseElectronBuilderFiles: (parsed: unknown) => string[];
     readElectronBuilderFiles: () => string[];
 };
-
-function readSharedFileList(): string[] {
-    return JSON.parse(readFileSync(sharedFileListPath, "utf8")) as string[];
-}
 
 function findMarkdownFiles(directory: string): string[] {
     const entries = readdirSync(directory, { withFileTypes: true });
@@ -61,18 +55,17 @@ function findMarkdownFiles(directory: string): string[] {
 }
 
 describe("electron-builder file list", () => {
-    it("keeps normal and Win7 package surfaces aligned to the root file list", async () => {
-        expect.assertions(6);
+    it("keeps normal and Win7 package surfaces aligned to the root builder config", async () => {
+        expect.assertions(5);
 
-        const sharedFileList = readSharedFileList();
         const builderConfig = requireFromTest(
             repositoryPath(rootElectronBuilderConfigPath)
         ) as ElectronBuilderConfig;
         const win7Build =
             (await import("../../../scripts/build-win7.mjs")) as Win7BuildModule;
+        const sharedFileList = builderConfig.files;
 
         expect(sharedFileList).toStrictEqual(["dist/**", "package.json"]);
-        expect(builderConfig.files).toStrictEqual(sharedFileList);
         expect(builderConfig.directories.output).toBe(
             appWorkspaceRelativeToRepositoryRootPath(rootReleaseDistPath)
         );
@@ -94,7 +87,7 @@ describe("electron-builder file list", () => {
         expect(() => {
             win7Build.parseElectronBuilderFiles(["dist/**", 42]);
         }).toThrow(
-            `${rootElectronBuilderFilesPath} must contain an array of file pattern strings`
+            "electron-builder config files must be an array of file pattern strings"
         );
     });
 

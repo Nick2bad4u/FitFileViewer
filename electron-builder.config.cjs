@@ -23,7 +23,8 @@ const { version: electronVersion } = require("electron/package.json");
 const appPackage = /** @type {AppPackage} */ (
     require("./electron-app/package.json")
 );
-const appPackageFiles = require("./electron-builder.files.json");
+
+const appPackageFiles = ["dist/**", "package.json"];
 
 /**
  * @param {string} exportName
