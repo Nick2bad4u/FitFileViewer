@@ -6,14 +6,11 @@ import {
 } from "../../../electron-app/utils/ui/notifications/showNotification.js";
 
 describe("showNotification interactions", () => {
-    const originalWarn = console.warn;
-    const originalError = console.error;
-
     beforeEach(() => {
         vi.useFakeTimers();
         vi.restoreAllMocks();
-        console.warn = vi.fn();
-        console.error = vi.fn();
+        vi.spyOn(console, "warn").mockImplementation(() => {});
+        vi.spyOn(console, "error").mockImplementation(() => {});
         const notificationElement = document.createElement("div");
         notificationElement.id = "notification";
         notificationElement.className = "notification";
@@ -24,13 +21,14 @@ describe("showNotification interactions", () => {
     afterEach(() => {
         vi.runOnlyPendingTimers();
         vi.useRealTimers();
-        console.warn = originalWarn;
-        console.error = originalError;
+        vi.restoreAllMocks();
         document.body.replaceChildren();
         clearAllNotifications();
     });
 
     it("shows basic info notification and auto hides after default duration", async () => {
+        expect.assertions(4);
+
         const p = showNotification("Hello world", "info");
         // queue processed immediately; animation frame -> we just advance timers
         await p;
@@ -46,6 +44,8 @@ describe("showNotification interactions", () => {
     });
 
     it("supports persistent notification with close button", async () => {
+        expect.assertions(4);
+
         const p = notify.persistent("Stay", "warning");
         await p;
         const el = document.getElementById("notification")!;
@@ -62,7 +62,9 @@ describe("showNotification interactions", () => {
     });
 
     it("renders action buttons and fires callbacks, hiding after click", async () => {
-        const onAct = vi.fn();
+        expect.assertions(4);
+
+        const onAct = vi.fn<() => void>();
         const p = notify.withActions("Actions", "success", [
             { text: "Do", onClick: onAct },
         ]);
@@ -80,7 +82,9 @@ describe("showNotification interactions", () => {
     });
 
     it("invokes onClick for main notification click when not clicking an action button", async () => {
-        const onClick = vi.fn();
+        expect.assertions(2);
+
+        const onClick = vi.fn<() => void>();
         const p = showNotification("Clickable", "info", undefined, {
             onClick,
             persistent: true,
@@ -94,6 +98,8 @@ describe("showNotification interactions", () => {
     });
 
     it("handles invalid inputs and unknown type fallback", async () => {
+        expect.assertions(3);
+
         // invalid message
         await showNotification(null as any);
         expect(console.warn).toHaveBeenCalledWith(
@@ -112,6 +118,8 @@ describe("showNotification interactions", () => {
     });
 
     it("clearAllNotifications empties queue and hides current", async () => {
+        expect.assertions(2);
+
         await showNotification("One", "info", 10000); // long duration to keep visible
         const el = document.getElementById("notification")!;
         expect(el.style.display).toBe("flex");
@@ -121,6 +129,8 @@ describe("showNotification interactions", () => {
     });
 
     it("queues multiple notifications and shows sequentially", async () => {
+        expect.assertions(6);
+
         // two short notifications
         const p1 = showNotification("First", "success", 500);
         const p2 = showNotification("Second", "error", 500);
@@ -147,6 +157,8 @@ describe("showNotification interactions", () => {
     });
 
     it("resolves and logs when notification rendering throws", async () => {
+        expect.assertions(4);
+
         const el = document.getElementById("notification")!;
         const renderError = new Error("render failed");
         const replaceChildrenSpy = vi
