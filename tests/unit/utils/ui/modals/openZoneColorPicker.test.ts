@@ -1,13 +1,30 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
-const debouncedRenderMock = vi.fn();
-const applyZoneColorsMock = vi.fn();
-const getChartSpecificZoneColorMock = vi.fn();
-const removeChartSpecificZoneColorMock = vi.fn();
-const removeZoneColorMock = vi.fn();
-const saveChartSpecificZoneColorMock = vi.fn();
-const setChartColorSchemeMock = vi.fn();
-const showNotificationMock = vi.fn();
+type ZoneRecord = Record<string, unknown>;
+type ChartInstance = {
+    data?: {
+        datasets?: Array<{
+            backgroundColor?: string[];
+            label?: string;
+        }>;
+    };
+    update?: (mode?: string) => void;
+};
+
+const debouncedRenderMock = vi.fn<(reason: string) => void>();
+const applyZoneColorsMock =
+    vi.fn<(zones: ZoneRecord[], zoneType: string) => ZoneRecord[]>();
+const getChartSpecificZoneColorMock =
+    vi.fn<(field: string, index: number) => string>();
+const removeChartSpecificZoneColorMock =
+    vi.fn<(field: string, index: number) => void>();
+const removeZoneColorMock = vi.fn<(zoneType: string, index: number) => void>();
+const saveChartSpecificZoneColorMock =
+    vi.fn<(field: string, index: number, color: string) => void>();
+const setChartColorSchemeMock =
+    vi.fn<(field: string, scheme: string) => void>();
+const showNotificationMock =
+    vi.fn<(message: string, level: "error" | "success" | "warning") => void>();
 
 const chartStateManagerRef: {
     current: { debouncedRender: typeof debouncedRenderMock } | null;
@@ -16,7 +33,7 @@ const chartStateManagerRef: {
 };
 
 vi.mock(
-    "../../../../../electron-app/utils/charts/core/chartStateManager.js",
+    import("../../../../../electron-app/utils/charts/core/chartStateManager.js"),
     () => ({
         get chartStateManager() {
             return chartStateManagerRef.current;
@@ -25,7 +42,7 @@ vi.mock(
 );
 
 vi.mock(
-    "../../../../../electron-app/utils/data/zones/chartZoneColorUtils.js",
+    import("../../../../../electron-app/utils/data/zones/chartZoneColorUtils.js"),
     () => ({
         applyZoneColors: applyZoneColorsMock,
         DEFAULT_HR_ZONE_COLORS: [
@@ -51,14 +68,14 @@ vi.mock(
 );
 
 vi.mock(
-    "../../../../../electron-app/utils/formatting/formatters/formatTime.js",
+    import("../../../../../electron-app/utils/formatting/formatters/formatTime.js"),
     () => ({
-        formatTime: vi.fn(() => "00:30"),
+        formatTime: vi.fn<(value: unknown) => string>(() => "00:30"),
     })
 );
 
 vi.mock(
-    "../../../../../electron-app/utils/ui/notifications/showNotification.js",
+    import("../../../../../electron-app/utils/ui/notifications/showNotification.js"),
     () => ({
         showNotification: showNotificationMock,
     })
@@ -67,6 +84,22 @@ vi.mock(
 async function loadModule() {
     await vi.resetModules();
     return await import("../../../../../electron-app/utils/ui/modals/openZoneColorPicker.js");
+}
+
+function requireElement<T extends Element>(element: T | null, message: string) {
+    if (!element) {
+        throw new Error(message);
+    }
+
+    return element;
+}
+
+function requireValue<T>(value: T | null | undefined, message: string) {
+    if (value === null || value === undefined) {
+        throw new Error(message);
+    }
+
+    return value;
 }
 
 describe("openZoneColorPicker", () => {
@@ -115,6 +148,8 @@ describe("openZoneColorPicker", () => {
     });
 
     it("handles unknown zone field gracefully", async () => {
+        expect.hasAssertions();
+
         const { openZoneColorPicker } = await loadModule();
 
         openZoneColorPicker("unknown-field");
@@ -128,6 +163,8 @@ describe("openZoneColorPicker", () => {
     });
 
     it("warns when zone data is unavailable", async () => {
+        expect.hasAssertions();
+
         const { openZoneColorPicker } = await loadModule();
         (globalThis as any).heartRateZones = [];
 
@@ -142,6 +179,8 @@ describe("openZoneColorPicker", () => {
     });
 
     it("renders modal, updates colors, and applies changes for heart rate zones", async () => {
+        expect.hasAssertions();
+
         const settingsWrapper = document.createElement("div");
         settingsWrapper.id = "chartjs-settings-wrapper";
         const toggle = document.createElement("label");
@@ -157,9 +196,10 @@ describe("openZoneColorPicker", () => {
             { zone: 1, time: 60, label: "Zone 1" },
             { zone: 2, time: 90, label: "Zone 2" },
         ];
-        const inlineSelectorsMock = vi.fn();
-        const resetAllSettingsMock = vi.fn();
-        const globalNotificationMock = vi.fn();
+        const inlineSelectorsMock = vi.fn<(root: HTMLElement) => void>();
+        const resetAllSettingsMock = vi.fn<() => void>();
+        const globalNotificationMock =
+            vi.fn<(message: string, level: string) => void>();
         (globalThis as any).updateInlineZoneColorSelectors =
             inlineSelectorsMock;
         (globalThis as any).resetAllSettings = resetAllSettingsMock;
@@ -173,30 +213,35 @@ describe("openZoneColorPicker", () => {
             "#zone-color-picker-overlay"
         );
         expect(overlay).toBeInstanceOf(HTMLDivElement);
-        if (!overlay) {
-            throw new Error("Zone color picker overlay not rendered");
-        }
+        const renderedOverlay = requireElement(
+            overlay,
+            "Zone color picker overlay not rendered"
+        );
         expect(applyZoneColorsMock).toHaveBeenCalledWith(
             expect.any(Array),
             "heart rate"
         );
 
-        const colorInput = overlay.querySelector<HTMLInputElement>(
+        const colorInput = renderedOverlay.querySelector<HTMLInputElement>(
             'input[type="color"]'
         );
         expect(colorInput).toBeInstanceOf(HTMLInputElement);
-        if (!colorInput) {
-            throw new Error("Color input not rendered");
-        }
+        const renderedColorInput = requireElement(
+            colorInput,
+            "Color input not rendered"
+        );
         const colorPreview =
-            colorInput.previousElementSibling as HTMLDivElement | null;
+            renderedColorInput.previousElementSibling as HTMLDivElement | null;
         expect(colorPreview).toBeInstanceOf(HTMLDivElement);
-        if (!colorPreview) {
-            throw new Error("Color preview not rendered");
-        }
+        const renderedColorPreview = requireElement(
+            colorPreview,
+            "Color preview not rendered"
+        );
 
-        colorInput.value = "#123456";
-        colorInput.dispatchEvent(new Event("change", { bubbles: true }));
+        renderedColorInput.value = "#123456";
+        renderedColorInput.dispatchEvent(
+            new Event("change", { bubbles: true })
+        );
 
         expect(setChartColorSchemeMock).toHaveBeenCalledWith(
             "hr_zone",
@@ -207,20 +252,21 @@ describe("openZoneColorPicker", () => {
             0,
             "#123456"
         );
-        expect(colorPreview.style.background.toLowerCase()).toBe(
+        expect(renderedColorPreview.style.background.toLowerCase()).toBe(
             "rgb(18, 52, 86)"
         );
-        expect(inlineSelectorsMock).toHaveBeenCalled();
+        expect(inlineSelectorsMock).toHaveBeenCalledWith(document.body);
 
         const resetAllButton =
-            overlay.querySelector<HTMLButtonElement>(".reset-all-btn");
+            renderedOverlay.querySelector<HTMLButtonElement>(".reset-all-btn");
         expect(resetAllButton).toBeInstanceOf(HTMLButtonElement);
-        if (!resetAllButton) {
-            throw new Error("Reset all button not rendered");
-        }
+        const renderedResetAllButton = requireElement(
+            resetAllButton,
+            "Reset all button not rendered"
+        );
         const schemeCallCountBeforeReset =
             setChartColorSchemeMock.mock.calls.length;
-        resetAllButton.click();
+        renderedResetAllButton.click();
 
         const resetSchemeCalls = setChartColorSchemeMock.mock.calls.slice(
             schemeCallCountBeforeReset
@@ -232,7 +278,7 @@ describe("openZoneColorPicker", () => {
         );
         expect(removeZoneColorMock).toHaveBeenCalledWith("hr", 0);
         expect(checkbox.checked).toBe(true);
-        expect(resetAllSettingsMock).toHaveBeenCalled();
+        expect(resetAllSettingsMock).toHaveBeenCalledWith();
         expect(debouncedRenderMock).toHaveBeenCalledWith("Zone colors reset");
         expect(globalNotificationMock).toHaveBeenCalledWith(
             "Zone colors and settings reset to defaults",
@@ -240,23 +286,24 @@ describe("openZoneColorPicker", () => {
         );
 
         const applyButton = Array.from(
-            overlay.querySelectorAll<HTMLButtonElement>("button")
+            renderedOverlay.querySelectorAll<HTMLButtonElement>("button")
         ).find(
             (btn) =>
                 btn.textContent && btn.textContent.includes("Apply & Close")
         );
         expect(applyButton).toBeInstanceOf(HTMLButtonElement);
-        if (!applyButton) {
-            throw new Error("Apply button not rendered");
-        }
-        applyButton.click();
+        const renderedApplyButton = requireElement(
+            applyButton ?? null,
+            "Apply button not rendered"
+        );
+        renderedApplyButton.click();
 
         expect(debouncedRenderMock).toHaveBeenCalledWith("Zone colors applied");
         expect(showNotificationMock).toHaveBeenCalledWith(
             "Heart Rate zone colors updated",
             "success"
         );
-        expect(document.body.contains(overlay)).toBe(false);
+        expect(document.body.contains(renderedOverlay)).toBe(false);
     });
 });
 
@@ -270,8 +317,10 @@ describe("updateZoneColorPreview", () => {
     });
 
     it("updates matching heart rate chart without animation", async () => {
+        expect.hasAssertions();
+
         const module = await loadModule();
-        const updateMock = vi.fn();
+        const updateMock = vi.fn<(mode?: string) => void>();
         (globalThis as any)._chartjsInstances = [
             {
                 data: {
@@ -288,15 +337,20 @@ describe("updateZoneColorPreview", () => {
 
         module.updateZoneColorPreview("hr_zone", 0, "#fedcba");
 
-        const dataset = (globalThis as any)._chartjsInstances[0].data
-            .datasets[0];
+        const dataset = requireValue(
+            ((globalThis as any)._chartjsInstances as ChartInstance[])[0].data
+                ?.datasets?.[0],
+            "Heart rate chart dataset not found"
+        );
         expect(dataset.backgroundColor[0]).toBe("#fedcba");
         expect(updateMock).toHaveBeenCalledWith("none");
     });
 
     it("ignores non-matching datasets gracefully", async () => {
+        expect.hasAssertions();
+
         const module = await loadModule();
-        const updateMock = vi.fn();
+        const updateMock = vi.fn<(mode?: string) => void>();
         (globalThis as any)._chartjsInstances = [
             {
                 data: {
