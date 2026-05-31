@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 type IpcListener = (event: unknown, ...args: unknown[]) => void;
+type RecentFileCallback = (filePath: string) => void;
+type UpdateEventCallback = () => void;
 
 interface IpcRendererMock {
     invoke: ReturnType<typeof vi.fn<(...args: unknown[]) => Promise<unknown>>>;
@@ -34,8 +36,21 @@ function getExposedElectronAPI(): AdditionalPreloadElectronApi {
     return getGlobalValue("electronAPI") as AdditionalPreloadElectronApi;
 }
 
+function getRegisteredListener(
+    call: readonly [string, IpcListener] | undefined,
+    label: string
+): IpcListener {
+    const listener = call?.[1];
+    if (typeof listener !== "function") {
+        throw new TypeError(`Expected ${label} listener`);
+    }
+    return listener;
+}
+
 describe("preload edge cases", () => {
     const originalNodeEnv = process.env.NODE_ENV;
+    // eslint-disable-next-line case-police/string-check -- The preload API exposes this lower-camel global.
+    const devToolsGlobalName = "devTools";
 
     async function importPreloadWithMock(electronBridge: unknown) {
         Reflect.set(globalThis, "__electronHoistedMock", electronBridge);
@@ -51,12 +66,14 @@ describe("preload edge cases", () => {
         vi.restoreAllMocks();
         Reflect.deleteProperty(globalThis, "__electronHoistedMock");
         Reflect.deleteProperty(globalThis, "electronAPI");
-        Reflect.deleteProperty(globalThis, "devTools");
+        Reflect.deleteProperty(globalThis, devToolsGlobalName);
         process.env.NODE_ENV = originalNodeEnv;
         vi.resetModules();
     });
 
     it("does not expose when validateAPI fails and logs errors", async () => {
+        expect.hasAssertions();
+
         process.env.NODE_ENV = "development";
 
         const ipcRenderer: IpcRendererMock = {
@@ -107,6 +124,8 @@ describe("preload edge cases", () => {
     });
 
     it("event handlers: transform works and callback errors are caught", async () => {
+        expect.hasAssertions();
+
         const ipcRenderer: IpcRendererMock = {
             invoke: vi
                 .fn<(...args: unknown[]) => Promise<unknown>>()
@@ -128,26 +147,23 @@ describe("preload edge cases", () => {
         await importPreloadWithMock({ ipcRenderer, contextBridge });
 
         const api = getExposedElectronAPI();
-        expect(typeof api.onOpenRecentFile).toBe("function");
+        expect(api.onOpenRecentFile).toBeTypeOf("function");
 
         // Register onOpenRecentFile and capture wrapper
-        const cb = vi.fn();
+        const cb = vi.fn<RecentFileCallback>();
         api.onOpenRecentFile(cb);
         const call = ipcRenderer.on.mock.calls.find(
             ([channel]) => channel === "open-recent-file"
         );
         expect(call?.[0]).toBe("open-recent-file");
-        expect(typeof call?.[1]).toBe("function");
-        const wrapper = call?.[1];
-        if (typeof wrapper !== "function") {
-            throw new TypeError("Expected open-recent-file listener");
-        }
+        expect(call?.[1]).toBeTypeOf("function");
+        const wrapper = getRegisteredListener(call, "open-recent-file");
         // Simulate event dispatch
         wrapper({}, "C:/test.fit");
         expect(cb).toHaveBeenCalledWith("C:/test.fit");
 
         // Now cause the callback to throw and ensure it's caught and logged
-        const errCb = vi.fn(() => {
+        const errCb = vi.fn<RecentFileCallback>(() => {
             throw new Error("boom");
         });
         api.onOpenRecentFile(errCb);
@@ -156,18 +172,23 @@ describe("preload edge cases", () => {
                 channel === "open-recent-file" && listener !== wrapper
         );
         expect(call2?.[0]).toBe("open-recent-file");
-        expect(typeof call2?.[1]).toBe("function");
-        const wrapper2 = call2?.[1];
-        if (typeof wrapper2 !== "function") {
-            throw new TypeError("Expected second open-recent-file listener");
-        }
+        expect(call2?.[1]).toBeTypeOf("function");
+        const wrapper2 = getRegisteredListener(
+            call2,
+            "second open-recent-file"
+        );
         wrapper2({}, "C:/test2.fit");
-        expect(consoleErrorSpy).toHaveBeenCalled();
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+            "[preload.js] Error in onOpenRecentFile callback:",
+            expect.any(Error)
+        );
 
         consoleErrorSpy.mockRestore();
     });
 
     it("injectMenu returns false on invalid parameters and logs error", async () => {
+        expect.hasAssertions();
+
         const ipcRenderer: IpcRendererMock = {
             invoke: vi
                 .fn<(...args: unknown[]) => Promise<unknown>>()
@@ -189,17 +210,28 @@ describe("preload edge cases", () => {
         await importPreloadWithMock({ ipcRenderer, contextBridge });
 
         const api = getExposedElectronAPI();
-        expect(typeof api.injectMenu).toBe("function");
+        expect(api.injectMenu).toBeTypeOf("function");
 
         // theme undefined (invalid) and fitFilePath number (invalid) should both be rejected by validation and return false
         const res = await api.injectMenu(undefined, 123);
-        expect(res).toBe(false);
-        expect(consoleErrorSpy).toHaveBeenCalled();
+        expect({
+            result: res,
+            validationErrors: consoleErrorSpy.mock.calls.map(
+                ([message]) => message
+            ),
+        }).toEqual({
+            result: false,
+            validationErrors: [
+                "[preload.js] injectMenu: fitFilePath must be a string or null",
+            ],
+        });
 
         consoleErrorSpy.mockRestore();
     });
 
     it("onUpdateEvent registers only when eventName and callback are valid", async () => {
+        expect.hasAssertions();
+
         const ipcRenderer: IpcRendererMock = {
             invoke: vi.fn<(...args: unknown[]) => Promise<unknown>>(),
             send: vi.fn<(...args: unknown[]) => void>(),
@@ -222,13 +254,14 @@ describe("preload edge cases", () => {
             .mockImplementation(() => {});
 
         // Invalid eventName should be ignored
-        api.onUpdateEvent(null, () => {});
+        api.onUpdateEvent(null, vi.fn<UpdateEventCallback>());
         // Invalid callback should be ignored
         api.onUpdateEvent("evt", null);
         // Valid pair should register
-        api.onUpdateEvent("evt", () => {});
-        const after = ipcRenderer.on.mock.calls.length;
-        expect(after - before).toBe(1);
+        api.onUpdateEvent("evt", vi.fn<UpdateEventCallback>());
+        expect(
+            ipcRenderer.on.mock.calls.slice(before).map(([channel]) => channel)
+        ).toEqual(["evt"]);
 
         consoleErrorSpy.mockRestore();
     });
