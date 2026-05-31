@@ -410,7 +410,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         // process.removeAllListeners('unhandledRejection');
     });
 
-    describe("API Exposure", () => {
+    describe("api exposure", () => {
         it("should expose electronAPI to main world", () => {
             const exposedCall = findExposedCall(ELECTRON_API_NAME);
 
@@ -473,7 +473,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
     });
 
-    describe("API Method Functionality", () => {
+    describe("api method functionality", () => {
         let electronAPI: PreloadElectronAPI;
 
         beforeEach(() => {
@@ -684,7 +684,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
     });
 
-    describe("Event Handlers", () => {
+    describe("event handlers", () => {
         let electronAPI: PreloadElectronAPI;
 
         beforeEach(() => {
@@ -768,7 +768,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
     });
 
-    describe("CONSTANTS Exposure", () => {
+    describe("constants exposure", () => {
         let electronAPI: PreloadElectronAPI;
 
         beforeEach(() => {
@@ -809,7 +809,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
     });
 
-    describe("Development Tools", () => {
+    describe("development tools", () => {
         it("should expose developer tools in development mode", () => {
             const devToolsCall = findExposedCall(DEVTOOLS_API_NAME);
 
@@ -828,7 +828,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
     });
 
-    describe("Process Integration", () => {
+    describe("process integration", () => {
         it("should register beforeExit handler", () => {
             expect(mockProcess.once).toHaveBeenCalledWith(
                 "beforeExit",
@@ -867,7 +867,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
     });
 
-    describe("Validation & Logging", () => {
+    describe("validation and logging", () => {
         it("should log API validation results", () => {
             const validationLogs = getMockCalls(consoleLogSpy).filter((call) =>
                 firstArgumentIncludes(call, "[preload.js] API Validation:")
@@ -988,7 +988,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
     });
 
-    describe("Error Handling in Safe Handlers", () => {
+    describe("error handling in safe handlers", () => {
         it("should handle errors in safe invoke handler", async () => {
             const api = getElectronAPI();
             expect(api).toMatchObject({
@@ -1051,7 +1051,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
     });
 
-    describe("API Method Implementation Tests", () => {
+    describe("api method implementation tests", () => {
         it("should test send method implementation", () => {
             const api = getElectronAPI();
             expect(api).toMatchObject({
@@ -1139,7 +1139,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
     });
 
-    describe("Utility Function Tests", () => {
+    describe("utility function tests", () => {
         it("should test getChannelInfo method", () => {
             const api = getElectronAPI();
             expect(api).toMatchObject({
@@ -1158,7 +1158,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
     });
 
-    describe("Development Tools Tests", () => {
+    describe("development tools tests", () => {
         it("should test getPreloadInfo function in development", () => {
             const devTools = getDevTools();
             expect(devTools).toMatchObject({
@@ -1236,7 +1236,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
     });
 
-    describe("Validation Functions", () => {
+    describe("validation functions", () => {
         let electronAPI: PreloadElectronAPI;
 
         beforeEach(() => {
@@ -1406,7 +1406,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
     });
 
-    describe("API Method Testing", () => {
+    describe("api method testing", () => {
         let electronAPI: PreloadElectronAPI;
 
         beforeEach(() => {
@@ -1470,7 +1470,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
     });
 
-    describe("Edge Cases and Error Conditions", () => {
+    describe("edge cases and error conditions", () => {
         let electronAPI: PreloadElectronAPI;
 
         beforeEach(() => {
