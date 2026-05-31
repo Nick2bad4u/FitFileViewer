@@ -1,26 +1,26 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock the converters to simulate a conversion error
 vi.mock(
-    "../../../electron-app/utils/formatting/converters/convertMpsToKmh.js",
+    import("../../../electron-app/utils/formatting/converters/convertMpsToKmh.js"),
     () => ({
-        convertMpsToKmh: vi.fn(() => {
+        convertMpsToKmh: vi.fn<(mps: unknown) => number>(() => {
             throw new Error("kmh-convert-fail");
         }),
     })
 );
 
 vi.mock(
-    "../../../electron-app/utils/formatting/converters/convertMpsToMph.js",
+    import("../../../electron-app/utils/formatting/converters/convertMpsToMph.js"),
     () => ({
-        convertMpsToMph: vi.fn(() => 0),
+        convertMpsToMph: vi.fn<(mps: unknown) => number>(() => 0),
     })
 );
 
 describe("formatSpeedTooltip.js - conversion error branch", () => {
-    let consoleErrorSpy: any;
+    let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 
-    beforeEach(async () => {
+    beforeEach(() => {
         consoleErrorSpy = vi
             .spyOn(console, "error")
             .mockImplementation(() => {});
@@ -33,10 +33,15 @@ describe("formatSpeedTooltip.js - conversion error branch", () => {
     });
 
     it("returns safe default string when converter throws", async () => {
+        expect.hasAssertions();
+
         const { formatSpeedTooltip } =
             await import("../../../electron-app/utils/formatting/display/formatSpeedTooltip.js");
         const out = formatSpeedTooltip(5);
         expect(out).toBe("0.00 m/s (0.00 km/h, 0.00 mph)");
-        expect(consoleErrorSpy).toHaveBeenCalled();
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+            "[formatSpeedTooltip] Error formatting speed tooltip:",
+            expect.any(Error)
+        );
     });
 });
