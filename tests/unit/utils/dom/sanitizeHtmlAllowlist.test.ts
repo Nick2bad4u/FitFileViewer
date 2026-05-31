@@ -4,7 +4,7 @@ import { sanitizeHtmlAllowlist } from "../../../../electron-app/utils/dom/index.
 
 describe(sanitizeHtmlAllowlist, () => {
     it("removes disallowed tags and keeps their textContent", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const html = "<div>hello<img src=x onerror=alert(1)>world</div>";
         const fragment = sanitizeHtmlAllowlist(html, {
@@ -27,7 +27,7 @@ describe(sanitizeHtmlAllowlist, () => {
     });
 
     it("strips inline event handlers (on*) even when the tag is allowed", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const html = '<div id="x" onclick="alert(1)">hi</div>';
         const fragment = sanitizeHtmlAllowlist(html, {
@@ -45,7 +45,7 @@ describe(sanitizeHtmlAllowlist, () => {
     });
 
     it("strips href/src/xlink:href attributes defensively", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const html =
             '<div><a href="https://example.com" class="c">link</a></div>';
@@ -64,7 +64,7 @@ describe(sanitizeHtmlAllowlist, () => {
     });
 
     it("removes style attributes containing url() when stripUrlInStyle is enabled", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const html =
             '<div style="background-image:url(https://evil.example/x)">x</div>';
@@ -87,7 +87,7 @@ describe(sanitizeHtmlAllowlist, () => {
     });
 
     it("removes style attributes containing url() even when url is CSS-escaped", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         // u\72l == url
         const html =
@@ -111,7 +111,7 @@ describe(sanitizeHtmlAllowlist, () => {
     });
 
     it("removes style attributes containing @import even when escaped", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         // @\69mport == @import
         const html =
@@ -135,7 +135,7 @@ describe(sanitizeHtmlAllowlist, () => {
     });
 
     it("strips srcset defensively even when allowedAttributes includes it", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const html = '<img srcset="https://evil.example/x 1x" class="c">';
         const fragment = sanitizeHtmlAllowlist(html, {
@@ -153,7 +153,7 @@ describe(sanitizeHtmlAllowlist, () => {
     });
 
     it("removes forbidden tags (script/style/svg) even when the caller allowlists them", () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         const html =
             "<div>ok<script>alert(1)</script><style>body{color:red}</style><svg><circle /></svg>done</div>";
