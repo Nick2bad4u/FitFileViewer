@@ -161,10 +161,32 @@ describe("workspace package boundaries", () => {
             readFileSync(path.join(process.cwd(), ".ncurc.json"), "utf8")
         ) as Record<string, unknown>;
 
-        expect(ncuConfig).toMatchObject({
-            doctorInstall: "npm install",
+        expect(ncuConfig).toStrictEqual({
+            $schema:
+                "https://raw.githubusercontent.com/raineorshine/npm-check-updates/main/src/types/RunOptions.json",
+            cache: true,
+            cacheFile: ".cache/.ncu-cache.json",
+            concurrency: 8,
+            dep: [
+                "prod",
+                "dev",
+                "optional",
+                "peer",
+                "packageManager",
+            ],
+            deprecated: true,
+            format: [
+                "dep",
+                "time",
+                "homepage",
+                "ownerChanged",
+            ],
+            install: "never",
+            interactive: true,
             packageFile: "./package.json",
+            packageManager: "npm",
             root: true,
+            target: "latest",
             workspaces: true,
         });
     });
