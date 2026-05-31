@@ -3,21 +3,23 @@ import { getUnitSymbol } from "../../../electron-app/utils/data/lookups/getUnitS
 import { getChartSetting } from "../../../electron-app/utils/state/domain/settingsStateManager.js";
 
 vi.mock(
-    "../../../electron-app/utils/state/domain/settingsStateManager.js",
+    import("../../../electron-app/utils/state/domain/settingsStateManager.js"),
     () => ({
-        getChartSetting: vi.fn(),
+        getChartSetting: vi.fn<(key: string) => unknown>(),
     })
 );
 
 const mockedGetChartSetting = vi.mocked(getChartSetting);
 
-describe("getUnitSymbol", () => {
+describe(getUnitSymbol, () => {
     beforeEach(() => {
         mockedGetChartSetting.mockReset();
         vi.restoreAllMocks();
     });
 
     it("returns configured symbols for distance, temperature, speed, and time units", () => {
+        expect.hasAssertions();
+
         mockedGetChartSetting.mockImplementation((key) => {
             if (key === "distanceUnits") {
                 return "miles";
@@ -39,6 +41,8 @@ describe("getUnitSymbol", () => {
     });
 
     it("uses defaults when settings are missing", () => {
+        expect.hasAssertions();
+
         mockedGetChartSetting.mockReturnValue(undefined);
 
         expect(getUnitSymbol("distance")).toBe("km");
@@ -48,6 +52,8 @@ describe("getUnitSymbol", () => {
     });
 
     it("falls back for unknown configured unit values", () => {
+        expect.hasAssertions();
+
         mockedGetChartSetting.mockImplementation((key) => {
             if (key === "distanceUnits") {
                 return "lightyears";
@@ -67,6 +73,8 @@ describe("getUnitSymbol", () => {
     });
 
     it("returns fixed labels for known fitness fields", () => {
+        expect.hasAssertions();
+
         expect(
             new Map([
                 ["auxHeartRate", getUnitSymbol("auxHeartRate")],
@@ -95,6 +103,8 @@ describe("getUnitSymbol", () => {
     });
 
     it("returns an empty symbol and warns for invalid fields", () => {
+        expect.hasAssertions();
+
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
         expect(getUnitSymbol(null as never)).toBe("");
@@ -110,6 +120,8 @@ describe("getUnitSymbol", () => {
     });
 
     it("warns and uses defaults when settings lookup throws", () => {
+        expect.hasAssertions();
+
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         mockedGetChartSetting.mockImplementation(() => {
             throw new Error("settings unavailable");
@@ -124,6 +136,8 @@ describe("getUnitSymbol", () => {
     });
 
     it("logs and returns an empty symbol when validation logging fails", () => {
+        expect.hasAssertions();
+
         vi.spyOn(console, "warn").mockImplementationOnce(() => {
             throw new Error("console.warn failed");
         });
