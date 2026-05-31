@@ -13,7 +13,7 @@ describe("eventListenerManager listener lifecycle", () => {
     });
 
     it("adds and removes a listener, tracking count", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const handler = vi.fn<(event: Event) => void>();
         const cleanup = addEventListenerWithCleanup(window, "click", handler);
@@ -45,7 +45,7 @@ describe("eventListenerManager listener lifecycle", () => {
     });
 
     it("returns no-op when given invalid element", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
         const cleanup = addEventListenerWithCleanup(
@@ -61,7 +61,7 @@ describe("eventListenerManager listener lifecycle", () => {
     });
 
     it("returns no-op when given invalid handler", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
         const cleanup = addEventListenerWithCleanup(
@@ -77,7 +77,7 @@ describe("eventListenerManager listener lifecycle", () => {
     });
 
     it("cleanupEventListeners removes all tracked listeners and logs count", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const log = vi.spyOn(console, "log").mockImplementation(() => {});
         const h1 = vi.fn<(event: Event) => void>();
@@ -100,7 +100,7 @@ describe("eventListenerManager listener lifecycle", () => {
     });
 
     it("addDragDropListeners wires up provided handlers and supports cleanup", () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         const onDragEnter = vi.fn<(event: DragEvent) => void>();
         const onDragLeave = vi.fn<(event: DragEvent) => void>();
