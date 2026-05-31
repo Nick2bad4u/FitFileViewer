@@ -15,6 +15,8 @@ describe("logWithLevel.strict", () => {
     });
 
     it("logs at all levels with and without payload", async () => {
+        expect.hasAssertions();
+
         const { logWithLevel } = await fresh();
         const clog = vi.spyOn(console, "log").mockImplementation(() => {});
         const cinfo = vi.spyOn(console, "info").mockImplementation(() => {});
@@ -35,23 +37,28 @@ describe("logWithLevel.strict", () => {
         logWithLevel("warn", "w", {}); // empty object -> no payload
         expect(cwarn).toHaveBeenCalledWith(expect.stringContaining("[FFV] w"));
 
-        logWithLevel("error", "e", [1, 2] as any); // array -> not treated as object
+        logWithLevel("error", "e", [1, 2] as unknown as Record<
+            string,
+            unknown
+        >); // array -> not treated as object
         expect(cerr).toHaveBeenCalledWith(expect.stringContaining("[FFV] e"));
         expect(globalThis.__vitest_object_keys_allow_throw).toBe(false);
     });
 
     it("falls back to minimal line when Object.keys throws", async () => {
+        expect.hasAssertions();
+
         const { logWithLevel } = await fresh();
         const baseLog = vi.spyOn(console, "log").mockImplementation(() => {});
-        const ctx = { a: 1 } as any;
+        const ctx: Record<string, unknown> = { a: 1 };
         // Make Object.keys throw only for our specific context object
         const originalKeys = Object.keys;
-        const keysSpy = vi.spyOn(Object, "keys").mockImplementation(((
-            obj: any
-        ) => {
-            if (obj === ctx) throw new Error("keys fail");
-            return originalKeys(obj as any) as any;
-        }) as any);
+        const keysSpy = vi.spyOn(Object, "keys").mockImplementation((obj) => {
+            if (obj === ctx) {
+                throw new Error("keys fail");
+            }
+            return originalKeys(obj);
+        });
 
         expect(logWithLevel("info", "boom", ctx)).toBeUndefined();
         expect(baseLog).toHaveBeenCalledWith(
