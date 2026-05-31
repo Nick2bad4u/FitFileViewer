@@ -1,5 +1,21 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
+type UpdateElectronApi = {
+    installUpdate: () => void;
+};
+
+type UpdateWindow = Window & { electronAPI: UpdateElectronApi };
+
+const installUpdateApi = (): UpdateElectronApi => {
+    const api = {
+        installUpdate: vi.fn<() => void>(),
+    };
+
+    (window as UpdateWindow).electronAPI = api;
+
+    return api;
+};
+
 describe("showUpdateNotification", () => {
     beforeEach(() => {
         document.body.innerHTML = "";
@@ -7,6 +23,8 @@ describe("showUpdateNotification", () => {
     });
 
     it("returns early when notification element missing", async () => {
+        expect.hasAssertions();
+
         const mod =
             await import("../../../../../electron-app/utils/ui/notifications/showUpdateNotification.js");
         // Should not throw
@@ -16,10 +34,12 @@ describe("showUpdateNotification", () => {
     });
 
     it("renders message and update downloaded buttons; actions work", async () => {
+        expect.hasAssertions();
+
         const host = document.createElement("div");
         host.id = "notification";
         document.body.appendChild(host);
-        (window as any).electronAPI = { installUpdate: vi.fn() };
+        const api = installUpdateApi();
 
         const { showUpdateNotification } =
             await import("../../../../../electron-app/utils/ui/notifications/showUpdateNotification.js");
@@ -36,7 +56,7 @@ describe("showUpdateNotification", () => {
 
         // Click restart
         (buttons[0] as HTMLButtonElement).click();
-        expect((window as any).electronAPI.installUpdate).toHaveBeenCalled();
+        expect(api.installUpdate).toHaveBeenCalledWith();
 
         // Click later hides
         (buttons[1] as HTMLButtonElement).click();
@@ -44,10 +64,12 @@ describe("showUpdateNotification", () => {
     });
 
     it("auto hides when withAction is true (single button) using timers", async () => {
+        expect.hasAssertions();
+
         const host = document.createElement("div");
         host.id = "notification";
         document.body.appendChild(host);
-        (window as any).electronAPI = { installUpdate: vi.fn() };
+        installUpdateApi();
         vi.useFakeTimers();
 
         const { showUpdateNotification } =

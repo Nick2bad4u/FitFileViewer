@@ -1,41 +1,57 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+type AboutModalModules =
+    typeof import("../../../../../electron-app/utils/ui/modals/ensureAboutModal.js") &
+        typeof import("../../../../../electron-app/utils/ui/modals/aboutModal.js");
+
+type AboutElectronApi = {
+    getAppVersion: () => Promise<string>;
+    getChromeVersion: () => Promise<string>;
+    getElectronVersion: () => Promise<string>;
+    getLicenseInfo: () => Promise<string>;
+    getNodeVersion: () => Promise<string>;
+    getPlatformInfo: () => Promise<{ arch: string; platform: string }>;
+    openExternal: (url: string) => void;
+};
+
+type AboutWindow = Window & { electronAPI: AboutElectronApi };
+
 // Mock heavy side-effect modules before importing the subject under test
 vi.mock(
-    "../../../../../electron-app/utils/app/initialization/loadVersionInfo.js",
+    import("../../../../../electron-app/utils/app/initialization/loadVersionInfo.js"),
     () => ({
-        loadVersionInfo: vi.fn(async () => undefined),
+        loadVersionInfo: vi.fn<() => Promise<void>>(async () => undefined),
     })
 );
 
 vi.mock(
-    "../../../../../electron-app/utils/ui/modals/injectModalStyles.js",
+    import("../../../../../electron-app/utils/ui/modals/injectModalStyles.js"),
     () => ({
-        injectModalStyles: vi.fn(() => {
+        injectModalStyles: vi.fn<() => void>(() => {
             // No-op: avoid adding a massive style block in jsdom
         }),
     })
 );
 
 // Utilities to import after mocks
-const importModules = async () => {
+const importModules = async (): Promise<AboutModalModules> => {
     const ensureAboutModalMod =
         await import("../../../../../electron-app/utils/ui/modals/ensureAboutModal.js");
     const aboutModalMod =
         await import("../../../../../electron-app/utils/ui/modals/aboutModal.js");
-    return { ...ensureAboutModalMod, ...aboutModalMod } as any;
+    return { ...ensureAboutModalMod, ...aboutModalMod };
 };
 
 // Helpers
-const rafImmediate = () => {
+const rafImmediate = (): void => {
     // Execute RAF callbacks immediately to allow class toggles and transitions
-    (globalThis as any).requestAnimationFrame = (cb: (t: number) => void) => {
+    globalThis.requestAnimationFrame = (cb: FrameRequestCallback): number => {
         cb(0);
-        return 1 as any;
+        return 1;
     };
 };
 
-describe("About Modal - UI behaviors", () => {
+describe("about modal UI behaviors", () => {
     beforeEach(() => {
         vi.restoreAllMocks();
         vi.useFakeTimers();
@@ -47,29 +63,36 @@ describe("About Modal - UI behaviors", () => {
         document.body.appendChild(focusable);
         focusable.focus();
 
-        // Provide electronAPI mock for external links
-        (globalThis as any).window = globalThis.window ?? ({} as any);
-        (window as any).electronAPI = {
-            openExternal: vi.fn(),
-            getAppVersion: vi.fn(async () => "1.2.3"),
-            getElectronVersion: vi.fn(async () => "38.1.0"),
-            getNodeVersion: vi.fn(
+        const aboutWindow = window as AboutWindow;
+        aboutWindow.electronAPI = {
+            openExternal: vi.fn<(url: string) => void>(),
+            getAppVersion: vi.fn<() => Promise<string>>(async () => "1.2.3"),
+            getElectronVersion: vi.fn<() => Promise<string>>(
+                async () => "38.1.0"
+            ),
+            getNodeVersion: vi.fn<() => Promise<string>>(
                 async () => process.versions?.node ?? "18.0.0"
             ),
-            getChromeVersion: vi.fn(
+            getChromeVersion: vi.fn<() => Promise<string>>(
                 async () => process.versions?.chrome ?? "128.0.0"
             ),
-            getPlatformInfo: vi.fn(async () => ({
-                platform: "testOS",
+            getPlatformInfo: vi.fn<
+                () => Promise<{ arch: string; platform: string }>
+            >(async () => ({
                 arch: "x64",
+                platform: "testOS",
             })),
-            getLicenseInfo: vi.fn(async () => "Unlicense"),
+            getLicenseInfo: vi.fn<() => Promise<string>>(
+                async () => "Unlicense"
+            ),
         };
 
         rafImmediate();
     });
 
     it("ensures modal creation, shows with content, and closes via close button", async () => {
+        expect.hasAssertions();
+
         const { ensureAboutModal, showAboutModal } = await importModules();
 
         ensureAboutModal();
@@ -98,6 +121,8 @@ describe("About Modal - UI behaviors", () => {
     });
 
     it("renders features and system info together and loads version info", async () => {
+        expect.hasAssertions();
+
         const { ensureAboutModal, showAboutModal } = await importModules();
         const { loadVersionInfo } =
             await import("../../../../../electron-app/utils/app/initialization/loadVersionInfo.js");
@@ -120,6 +145,8 @@ describe("About Modal - UI behaviors", () => {
     });
 
     it("closes on Escape key via global handler", async () => {
+        expect.hasAssertions();
+
         const { ensureAboutModal, showAboutModal } = await importModules();
 
         ensureAboutModal();
@@ -140,7 +167,10 @@ describe("About Modal - UI behaviors", () => {
     });
 
     it("handles external links using electronAPI when available", async () => {
+        expect.hasAssertions();
+
         const { ensureAboutModal, showAboutModal } = await importModules();
+        const aboutWindow = window as AboutWindow;
 
         ensureAboutModal();
         showAboutModal();
@@ -151,16 +181,18 @@ describe("About Modal - UI behaviors", () => {
         expect(link).toBeInstanceOf(HTMLAnchorElement);
 
         link.click();
-        expect((window as any).electronAPI.openExternal).toHaveBeenCalledWith(
+        expect(aboutWindow.electronAPI.openExternal).toHaveBeenCalledWith(
             "https://electronjs.org/"
         );
     });
 
     it("does not create duplicate modal elements when ensured multiple times", async () => {
+        expect.hasAssertions();
+
         const { ensureAboutModal } = await importModules();
         ensureAboutModal();
         ensureAboutModal();
         const modals = document.querySelectorAll("#about-modal");
-        expect(modals.length).toBe(1);
+        expect(modals).toHaveLength(1);
     });
 });
