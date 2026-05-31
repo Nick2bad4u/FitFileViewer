@@ -1,15 +1,33 @@
-/**
- * @vitest-environment jsdom
- */
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+// @vitest-environment jsdom
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+type EventHandler = (...args: unknown[]) => void;
+type NodeCallback<T> = (error: Error | null, value: T) => void;
+type DialogOpenResult = { canceled: boolean; filePaths: string[] };
+type StateData = {
+    eventHandlers: Map<string, unknown>;
+    store: Map<string, unknown>;
+};
+type MainProcessStateMock = {
+    get: (key: string) => unknown;
+    set: (key: string, value: unknown) => void;
+    registerEventHandler: (
+        target: unknown,
+        eventName: string,
+        handler: EventHandler,
+        id: string
+    ) => void;
+    cleanupEventHandlers: () => void;
+    data: StateData;
+};
 
 // Simple emitter helper for autoUpdater
 class Emitter {
-    handlers: Record<string, Function[]> = {};
-    on(evt: string, fn: Function) {
+    handlers: Record<string, EventHandler[]> = {};
+    on(evt: string, fn: EventHandler) {
         (this.handlers[evt] ||= []).push(fn);
     }
-    emit(evt: string, ...args: any[]) {
+    emit(evt: string, ...args: unknown[]) {
         for (const fn of this.handlers[evt] || []) fn(...args);
     }
 }
@@ -27,19 +45,27 @@ let mockMenu: any;
 let mockShell: any;
 let createWindowMock: any;
 // Initialize with defaults to survive destructuring at require-time in main.js
-let mainProcessState: any = {
-    get: vi.fn(() => undefined),
-    set: vi.fn(() => undefined),
-    registerEventHandler: vi.fn(),
-    cleanupEventHandlers: vi.fn(),
-    data: { eventHandlers: new Map(), store: new Map() },
+let mainProcessState: MainProcessStateMock = {
+    get: vi.fn<(key: string) => unknown>(() => undefined),
+    set: vi.fn<(key: string, value: unknown) => void>(),
+    registerEventHandler:
+        vi.fn<
+            (
+                target: unknown,
+                eventName: string,
+                handler: EventHandler,
+                id: string
+            ) => void
+        >(),
+    cleanupEventHandlers: vi.fn<() => void>(),
+    data: { eventHandlers: new Map<string, unknown>(), store: new Map() },
 };
 let createAppMenu: any;
-let loadRecentFiles: any = vi.fn(() => ["a.fit", "b.fit"]);
-let addRecentFile: any = vi.fn();
+let loadRecentFiles: any = vi.fn<() => string[]>(() => ["a.fit", "b.fit"]);
+let addRecentFile: any = vi.fn<(filePath: string) => void>();
 
 // Hoisted mocks so main.js resolves them during import-time
-vi.mock("electron", () => ({
+vi.mock(import("electron"), () => ({
     get app() {
         return mockApp;
     },
@@ -84,25 +110,27 @@ vi.mock("electron", () => ({
 
 // electron-updater mock wired to shared emitter
 const mockLogger = {
-    info: vi.fn(),
-    error: vi.fn(),
-    warn: vi.fn(),
+    info: vi.fn<(...data: unknown[]) => void>(),
+    error: vi.fn<(...data: unknown[]) => void>(),
+    warn: vi.fn<(...data: unknown[]) => void>(),
     transports: { file: { level: "info" } },
 };
 const autoUpdater = {
-    on: vi.fn((evt: string, handler: Function) =>
+    on: vi.fn<(evt: string, handler: EventHandler) => void>((evt, handler) =>
         autoUpdaterEmitter.on(evt, handler)
     ),
     logger: mockLogger,
-    checkForUpdatesAndNotify: vi.fn().mockResolvedValue(undefined),
-    quitAndInstall: vi.fn(),
-    checkForUpdates: vi.fn(),
+    checkForUpdatesAndNotify: vi
+        .fn<() => Promise<undefined>>()
+        .mockResolvedValue(undefined),
+    quitAndInstall: vi.fn<() => void>(),
+    checkForUpdates: vi.fn<() => void>(),
 };
-vi.mock("electron-updater", () => ({ autoUpdater }));
+vi.mock(import("electron-updater"), () => ({ autoUpdater }));
 
 // Recent files helpers
 // Use the exact specifiers main.js uses so the mocks are applied
-vi.mock("./utils/files/recent/recentFiles", () => ({
+vi.mock(import("./utils/files/recent/recentFiles"), () => ({
     get loadRecentFiles() {
         return loadRecentFiles;
     },
@@ -112,28 +140,28 @@ vi.mock("./utils/files/recent/recentFiles", () => ({
 }));
 
 // windowStateUtils
-vi.mock("./windowStateUtils", () => ({
+vi.mock(import("./windowStateUtils"), () => ({
     get createWindow() {
         return createWindowMock;
     },
 }));
 
 // App menu creator
-vi.mock("./utils/app/menu/createAppMenu", () => ({
+vi.mock(import("./utils/app/menu/createAppMenu"), () => ({
     get createAppMenu() {
         return createAppMenu;
     },
 }));
 
 // Main process state manager
-vi.mock("./utils/state/integration/mainProcessStateManager", () => ({
+vi.mock(import("./utils/state/integration/mainProcessStateManager"), () => ({
     get mainProcessState() {
         return mainProcessState;
     },
 }));
 
 // electron-conf
-vi.mock("electron-conf", () => {
+vi.mock(import("electron-conf"), () => {
     class MockConf {
         store: Record<string, any> = {};
         get(key: string, def?: any) {
@@ -147,40 +175,49 @@ vi.mock("electron-conf", () => {
 });
 
 // fitParser
-vi.mock("./fitParser", () => ({
-    decodeFitFile: vi.fn(async () => ({ ok: true })),
+vi.mock(import("./fitParser"), () => ({
+    decodeFitFile: vi.fn<() => Promise<{ ok: true }>>(async () => ({
+        ok: true,
+    })),
 }));
 
 // fs mock for file:read
-vi.mock("fs", () => {
+vi.mock(import("fs"), () => {
     return {
-        readFile: (p: string, cb: Function) => cb(null, Buffer.from("abc")),
-        stat: vi.fn((p: string, cb: Function) => cb(null, { size: 3 })),
+        readFile: (_p: string, cb: NodeCallback<Buffer>): void =>
+            cb(null, Buffer.from("abc")),
+        stat: vi.fn<(p: string, cb: NodeCallback<{ size: number }>) => void>(
+            (_p, cb) => cb(null, { size: 3 })
+        ),
         promises: {
-            readFile: vi.fn(async () => Buffer.from("abc")),
+            readFile: vi.fn<() => Promise<Buffer>>(async () =>
+                Buffer.from("abc")
+            ),
         },
-        readFileSync: vi.fn(() => Buffer.from('{"license":"MIT"}')),
-        copyFileSync: vi.fn(),
+        readFileSync: vi.fn<() => Buffer>(() =>
+            Buffer.from('{"license":"MIT"}')
+        ),
+        copyFileSync: vi.fn<() => void>(),
     };
 });
 
 // path mock for license path resolution stability
-vi.mock("path", async (orig) => {
+vi.mock(import("path"), async (orig) => {
     const m = await (orig as any)();
     return { ...m, join: (...parts: string[]) => parts.join("/") };
 });
 
 describe("main.js strict handlers and events", () => {
-    let didFinishLoad: Function | null = null;
+    let didFinishLoad: EventHandler | null = null;
 
     beforeEach(() => {
         vi.resetModules();
         process.env.NODE_ENV = "test";
         // Silence logs for clarity
-        vi.spyOn(console, "log").mockImplementation(() => {});
-        vi.spyOn(console, "info").mockImplementation(() => {});
-        vi.spyOn(console, "warn").mockImplementation(() => {});
-        vi.spyOn(console, "error").mockImplementation(() => {});
+        vi.spyOn(console, "log").mockReturnValue(undefined);
+        vi.spyOn(console, "info").mockReturnValue(undefined);
+        vi.spyOn(console, "warn").mockReturnValue(undefined);
+        vi.spyOn(console, "error").mockReturnValue(undefined);
 
         // Recent files mocks
         loadRecentFiles.mockReset().mockReturnValue(["a.fit", "b.fit"]);
@@ -189,57 +226,82 @@ describe("main.js strict handlers and events", () => {
         // Main window and BrowserWindow surface
         didFinishLoad = null;
         mockMainWindow = {
-            isDestroyed: vi.fn(() => false),
-            setFullScreen: vi.fn(),
+            isDestroyed: vi.fn<() => boolean>(() => false),
+            setFullScreen: vi.fn<(enabled: boolean) => void>(),
             webContents: {
-                isDestroyed: vi.fn(() => false),
-                on: vi.fn((evt: string, handler: any) => {
-                    if (evt === "did-finish-load") didFinishLoad = handler;
-                }),
-                send: vi.fn(),
-                executeJavaScript: vi.fn().mockResolvedValue("dark"),
+                isDestroyed: vi.fn<() => boolean>(() => false),
+                on: vi.fn<(evt: string, handler: EventHandler) => void>(
+                    (evt, handler) => {
+                        if (evt === "did-finish-load") didFinishLoad = handler;
+                    }
+                ),
+                send: vi.fn<(channel: string, ...args: unknown[]) => void>(),
+                executeJavaScript: vi
+                    .fn<() => Promise<string>>()
+                    .mockResolvedValue("dark"),
             },
         };
         mockBrowserWindow = {
-            getAllWindows: vi.fn(() => [mockMainWindow]),
-            getFocusedWindow: vi.fn(() => mockMainWindow),
-            fromWebContents: vi.fn(() => mockMainWindow),
+            getAllWindows: vi.fn<() => unknown[]>(() => [mockMainWindow]),
+            getFocusedWindow: vi.fn<() => unknown>(() => mockMainWindow),
+            fromWebContents: vi.fn<() => unknown>(() => mockMainWindow),
         };
 
-        mockIpcMain = { on: vi.fn(), handle: vi.fn() };
+        mockIpcMain = {
+            on: vi.fn<(channel: string, listener: EventHandler) => void>(),
+            handle: vi.fn<(channel: string, handler: EventHandler) => void>(),
+        };
         mockDialog = {
-            showOpenDialog: vi.fn(),
-            showSaveDialog: vi.fn(),
-            showMessageBox: vi.fn(),
+            showOpenDialog: vi.fn<() => Promise<DialogOpenResult>>(),
+            showSaveDialog: vi.fn<() => Promise<DialogOpenResult>>(),
+            showMessageBox: vi.fn<() => Promise<unknown>>(),
         };
         mockMenu = {
-            getApplicationMenu: vi.fn(() => ({
-                getMenuItemById: vi.fn(() => ({ enabled: false })),
+            getApplicationMenu: vi.fn<() => unknown>(() => ({
+                getMenuItemById: vi.fn<() => { enabled: boolean }>(() => ({
+                    enabled: false,
+                })),
             })),
         };
-        mockShell = { openExternal: vi.fn().mockResolvedValue(undefined) };
-
-        mockApp = {
-            whenReady: vi.fn().mockResolvedValue(undefined),
-            on: vi.fn(),
-            quit: vi.fn(),
-            getVersion: vi.fn(() => "1.0.0"),
-            getAppPath: vi.fn(() => "/mock/app"),
+        mockShell = {
+            openExternal: vi
+                .fn<(url: string) => Promise<undefined>>()
+                .mockResolvedValue(undefined),
         };
 
-        createWindowMock = vi.fn(() => mockMainWindow);
-        createAppMenu = vi.fn();
+        mockApp = {
+            whenReady: vi
+                .fn<() => Promise<undefined>>()
+                .mockResolvedValue(undefined),
+            on: vi.fn<(channel: string, listener: EventHandler) => void>(),
+            quit: vi.fn<() => void>(),
+            getVersion: vi.fn<() => string>(() => "1.0.0"),
+            getAppPath: vi.fn<() => string>(() => "/mock/app"),
+        };
 
-        const stateData: any = { eventHandlers: new Map(), store: new Map() };
-        mainProcessState.get = vi.fn((k: string) => stateData.store.get(k));
-        mainProcessState.set = vi.fn((k: string, v: any) =>
-            stateData.store.set(k, v)
+        createWindowMock = vi.fn<() => unknown>(() => mockMainWindow);
+        createAppMenu = vi.fn<() => void>();
+
+        const stateData: StateData = {
+            eventHandlers: new Map(),
+            store: new Map(),
+        };
+        vi.spyOn(mainProcessState, "get").mockImplementation((k: string) =>
+            stateData.store.get(k)
         );
-        mainProcessState.registerEventHandler = vi.fn(
-            (t: any, e: string, h: Function, id: string) =>
-                stateData.eventHandlers.set(id, { t, e, h })
+        vi.spyOn(mainProcessState, "set").mockImplementation(
+            (k: string, v: unknown) => {
+                stateData.store.set(k, v);
+            }
         );
-        mainProcessState.cleanupEventHandlers = vi.fn();
+        vi.spyOn(mainProcessState, "registerEventHandler").mockImplementation(
+            (t: unknown, e: string, h: EventHandler, id: string) => {
+                stateData.eventHandlers.set(id, { t, e, h });
+            }
+        );
+        vi.spyOn(mainProcessState, "cleanupEventHandlers").mockReturnValue(
+            undefined
+        );
         mainProcessState.data = stateData;
     });
 
@@ -248,14 +310,16 @@ describe("main.js strict handlers and events", () => {
     });
 
     it("wires did-finish-load, auto-updater events, and IPC handlers", async () => {
+        expect.hasAssertions();
+
         await import("../../../../electron-app/main.js");
 
-        expect(typeof didFinishLoad).toBe("function");
-        await (didFinishLoad as any)();
+        expect(didFinishLoad).toBeTypeOf("function");
+        await didFinishLoad();
 
         // autoUpdater should be configured and check invoked
         const updater = (await import("electron-updater")).autoUpdater as any;
-        expect(updater.checkForUpdatesAndNotify).toHaveBeenCalled();
+        expect(updater.checkForUpdatesAndNotify).toHaveBeenCalledWith();
 
         // Simulate updater events -> renderer gets messages
         autoUpdaterEmitter.emit("checking-for-update");
@@ -285,11 +349,19 @@ describe("main.js strict handlers and events", () => {
         );
 
         // IPC handler registration happened
-        expect(mockIpcMain.handle).toHaveBeenCalled();
-        expect(mockIpcMain.on).toHaveBeenCalled();
+        expect(mockIpcMain.handle).toHaveBeenCalledWith(
+            "dialog:openFile",
+            expect.any(Function)
+        );
+        expect(mockIpcMain.on).toHaveBeenCalledWith(
+            "menu-check-for-updates",
+            expect.any(Function)
+        );
     });
 
     it("handles dialog:openFile flow and recentFiles handlers", async () => {
+        expect.hasAssertions();
+
         await import("../../../../electron-app/main.js");
 
         // Find the handler wired to dialog:openFile via ipcMain.handle calls
@@ -298,7 +370,7 @@ describe("main.js strict handlers and events", () => {
         );
         expect(call?.[0]).toBe("dialog:openFile");
         const openHandler = call?.[1];
-        expect(typeof openHandler).toBe("function");
+        expect(openHandler).toBeTypeOf("function");
 
         // Cancelled path
         mockDialog.showOpenDialog.mockResolvedValueOnce({
@@ -341,6 +413,8 @@ describe("main.js strict handlers and events", () => {
     });
 
     it("validates shell:openExternal and file:read/fit handlers", async () => {
+        expect.hasAssertions();
+
         await import("../../../../electron-app/main.js");
         const handleCalls = mockIpcMain.handle.mock.calls;
         const openExternal = handleCalls.find(
@@ -400,12 +474,14 @@ describe("main.js strict handlers and events", () => {
             { code: "ENOENT" }
         );
         const directFs = {
-            readFile: vi.fn((p: string, cb: Function) =>
-                cb(null, Buffer.from("should-not-read"))
+            readFile: vi.fn<(p: string, cb: NodeCallback<Buffer>) => void>(
+                (_p, cb) => cb(null, Buffer.from("should-not-read"))
             ),
-            stat: vi.fn((p: string, cb: Function) => cb(missingFileError)),
+            stat: vi.fn<(p: string, cb: NodeCallback<unknown>) => void>(
+                (_p, cb) => cb(missingFileError, undefined)
+            ),
         };
-        const directLog = vi.fn();
+        const directLog = vi.fn<(...args: unknown[]) => void>();
         let directFileRead: any;
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const {
@@ -442,6 +518,8 @@ describe("main.js strict handlers and events", () => {
     });
 
     it("menu events and fullscreen, security navigation guards", async () => {
+        expect.hasAssertions();
+
         await import("../../../../electron-app/main.js");
         const updater = (await import("electron-updater")).autoUpdater as any;
 
@@ -453,7 +531,7 @@ describe("main.js strict handlers and events", () => {
         expect(updaterCheck?.[0]).toBe("menu-check-for-updates");
         updater.checkForUpdates.mockClear();
         updaterCheck?.[1]({});
-        expect(updater.checkForUpdates).toHaveBeenCalledTimes(1);
+        expect(updater.checkForUpdates).toHaveBeenCalledOnce();
 
         // install-update triggers quitAndInstall; simulate linux dialog path
         const originalPlatform = process.platform;
@@ -465,7 +543,7 @@ describe("main.js strict handlers and events", () => {
             expect(install?.[0]).toBe("install-update");
             updater.quitAndInstall.mockClear();
             install?.[1]({});
-            expect(updater.quitAndInstall).toHaveBeenCalledTimes(1);
+            expect(updater.quitAndInstall).toHaveBeenCalledOnce();
             expect(mockDialog.showMessageBox).not.toHaveBeenCalled();
         } finally {
             Object.defineProperty(process, "platform", {
@@ -485,8 +563,8 @@ describe("main.js strict handlers and events", () => {
         );
         expect(appOnCall?.[0]).toBe("web-contents-created");
         const contents: any = {
-            on: vi.fn(),
-            setWindowOpenHandler: vi.fn(),
+            on: vi.fn<(eventName: string, handler: EventHandler) => void>(),
+            setWindowOpenHandler: vi.fn<(handler: EventHandler) => void>(),
         };
         appOnCall?.[1]({}, contents);
         expect(contents.on).toHaveBeenCalledWith(
@@ -497,10 +575,12 @@ describe("main.js strict handlers and events", () => {
             (c: any[]) => c[0] === "will-navigate"
         );
         expect(willNavigateCall?.[0]).toBe("will-navigate");
-        const ev = { preventDefault: vi.fn() } as any;
+        const ev = { preventDefault: vi.fn<() => void>() } as any;
         willNavigateCall?.[1](ev, "https://malicious.example.com");
-        expect(ev.preventDefault).toHaveBeenCalledTimes(1);
-        expect(contents.setWindowOpenHandler).toHaveBeenCalled();
+        expect(ev.preventDefault).toHaveBeenCalledOnce();
+        expect(contents.setWindowOpenHandler).toHaveBeenCalledWith(
+            expect.any(Function)
+        );
         const windowOpenHandler =
             contents.setWindowOpenHandler.mock.calls[0][0];
         expect(windowOpenHandler({ url: "https://bad.example.com" })).toEqual({
