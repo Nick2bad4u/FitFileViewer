@@ -200,9 +200,15 @@ describe("tabStateManager regressions", () => {
             const isDOMActive = summaryBtn.classList.contains("active");
             const stateActive = mockGetState("ui.activeTab");
 
-            expect(isDOMActive).toBe(true);
-            expect(stateActive).toBe("map");
-            expect(isDOMActive && stateActive === "summary").toBe(false);
+            expect({
+                isDOMActive,
+                stateActive,
+                summaryIsSynchronized: isDOMActive && stateActive === "summary",
+            }).toStrictEqual({
+                isDOMActive: true,
+                stateActive: "map",
+                summaryIsSynchronized: false,
+            });
         });
 
         it("documents async handler failures that require awaiting", async () => {
@@ -296,9 +302,7 @@ describe("tabStateManager regressions", () => {
                 undefined,
                 undefined,
             ]);
-            expect(
-                configs.every((config) => typeof config === "undefined")
-            ).toBe(true);
+            expect(new Set(configs)).toStrictEqual(new Set([undefined]));
         });
     });
 
@@ -351,10 +355,23 @@ describe("tabStateManager regressions", () => {
                 }
             };
 
-            expect(bgContainer.children.length).toBe(2);
+            expect(
+                Array.from(bgContainer.children, (child) => child.textContent)
+            ).toStrictEqual(["Item 1", "Item 2"]);
             moveContent();
-            expect(visibleContainer.children.length).toBe(2);
-            expect(bgContainer.children.length).toBe(0);
+            expect({
+                backgroundItems: Array.from(
+                    bgContainer.children,
+                    (child) => child.textContent
+                ),
+                visibleItems: Array.from(
+                    visibleContainer.children,
+                    (child) => child.textContent
+                ),
+            }).toStrictEqual({
+                backgroundItems: [],
+                visibleItems: ["Item 1", "Item 2"],
+            });
         });
     });
 
@@ -492,9 +509,11 @@ describe("tabStateManager regressions", () => {
 
             const validation = validateState();
 
-            expect(validation.isValid).toBe(false);
-            expect(validation.tabExists).toBe(false);
-            expect(validation.contentExists).toBe(false);
+            expect(validation).toStrictEqual({
+                contentExists: false,
+                isValid: false,
+                tabExists: false,
+            });
         });
     });
 });
