@@ -5,24 +5,30 @@ import {
     clearAllNotifications,
     processNotificationQueue,
     __testResetNotifications,
+    isShowingNotification,
+    notificationQueue,
+} from "../../../../../../electron-app/utils/ui/notifications/showNotification.js";
+import type {
+    NotificationElement,
+    QueuedNotification,
 } from "../../../../../../electron-app/utils/ui/notifications/showNotification.js";
 import * as notifMod from "../../../../../../electron-app/utils/ui/notifications/showNotification.js";
 
 describe("showNotification.js - branches (strict)", () => {
-    const originalWarn = console.warn;
-    const originalError = console.error;
     const originalRAF = window.requestAnimationFrame;
 
     beforeEach(() => {
         vi.useFakeTimers();
         vi.restoreAllMocks();
-        console.warn = vi.fn();
-        console.error = vi.fn();
-        window.requestAnimationFrame = (cb: FrameRequestCallback): number => {
-            cb(0);
-            // jsdom doesn't care about the return value; 0 is fine
-            return 0 as unknown as number;
-        };
+        vi.spyOn(console, "warn").mockReturnValue(undefined);
+        vi.spyOn(console, "error").mockReturnValue(undefined);
+        vi.spyOn(window, "requestAnimationFrame").mockImplementation(
+            (cb: FrameRequestCallback): number => {
+                cb(0);
+                // jsdom doesn't care about the return value; 0 is fine
+                return 0;
+            }
+        );
         const notificationElement = document.createElement("div");
         notificationElement.id = "notification";
         notificationElement.className = "notification";
@@ -38,8 +44,6 @@ describe("showNotification.js - branches (strict)", () => {
             // ignore when no pending timers
         }
         vi.useRealTimers();
-        console.warn = originalWarn;
-        console.error = originalError;
         window.requestAnimationFrame = originalRAF;
         document.body.replaceChildren();
         clearAllNotifications();
@@ -47,7 +51,9 @@ describe("showNotification.js - branches (strict)", () => {
     });
 
     it("falls back to 'info' when unknown type is provided and logs a warning", async () => {
-        const p = showNotification("Hello world", "unknown" as any, 100);
+        expect.hasAssertions();
+
+        const p = showNotification("Hello world", "unknown", 100);
         await p;
         const el = document.getElementById("notification")!;
         // Class should include 'info' after fallback
@@ -58,7 +64,9 @@ describe("showNotification.js - branches (strict)", () => {
     });
 
     it("returns early and warns on invalid message", async () => {
-        const res1 = showNotification(123 as any);
+        expect.hasAssertions();
+
+        const res1 = showNotification(123 as unknown as string);
         // async functions always return a Promise, even on early return
         expect(res1).toBeInstanceOf(Promise);
         await res1;
@@ -71,15 +79,19 @@ describe("showNotification.js - branches (strict)", () => {
         expect(res2).toBeInstanceOf(Promise);
         await res2;
         expect(
-            (console.warn as any).mock.calls.filter(
-                (c: any[]) =>
-                    c[0] === "showNotification: Invalid message provided"
-            ).length
+            vi
+                .mocked(console.warn)
+                .mock.calls.filter(
+                    (call) =>
+                        call[0] === "showNotification: Invalid message provided"
+                ).length
         ).toBeGreaterThanOrEqual(2);
     });
 
     it("triggers onClick when clicking outside actions and hides", async () => {
-        const onClick = vi.fn();
+        expect.hasAssertions();
+
+        const onClick = vi.fn<() => void>();
         const p = showNotification("Clickable", "info", undefined, {
             onClick,
             persistent: true,
@@ -88,13 +100,15 @@ describe("showNotification.js - branches (strict)", () => {
         const el = document.getElementById("notification")!;
         // Dispatch a click with target as the element itself (outside actions)
         el.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-        expect(onClick).toHaveBeenCalledTimes(1);
+        expect(onClick).toHaveBeenCalledOnce();
         // Hide runs with 300ms transition
         vi.advanceTimersByTime(300);
         expect(el.style.display).toBe("none");
     });
 
     it("close button click hides persistent notification", async () => {
+        expect.hasAssertions();
+
         const p = notify.persistent("Persistent one");
         await p;
         const el = document.getElementById("notification")!;
@@ -109,6 +123,8 @@ describe("showNotification.js - branches (strict)", () => {
     });
 
     it("omits icon element when options.icon is an empty string", async () => {
+        expect.hasAssertions();
+
         const p = showNotification("No icon please", "info", undefined, {
             icon: "",
         });
@@ -118,12 +134,16 @@ describe("showNotification.js - branches (strict)", () => {
     });
 
     it("action with onClick executes and clears hideTimeout before transition hides", async () => {
-        const onAction = vi.fn();
+        expect.hasAssertions();
+
+        const onAction = vi.fn<() => void>();
         const p = showNotification("With action", "info", 500, {
             actions: [{ text: "Do it", onClick: onAction }],
         });
         await p;
-        const el = document.getElementById("notification")! as any;
+        const el = document.getElementById(
+            "notification"
+        )! as NotificationElement;
         const spyClear = vi.spyOn(window, "clearTimeout");
         // Pre-set a timeout to ensure hideNotification clears it on click
         el.hideTimeout = 123 as unknown as ReturnType<typeof setTimeout>;
@@ -131,8 +151,8 @@ describe("showNotification.js - branches (strict)", () => {
             ".notification-actions button"
         ) as HTMLButtonElement;
         btn.click();
-        expect(onAction).toHaveBeenCalledTimes(1);
-        expect(spyClear).toHaveBeenCalled();
+        expect(onAction).toHaveBeenCalledOnce();
+        expect(spyClear).toHaveBeenCalledWith(123);
         vi.advanceTimersByTime(300);
         expect(
             (document.getElementById("notification") as HTMLElement).style
@@ -142,17 +162,22 @@ describe("showNotification.js - branches (strict)", () => {
     });
 
     it("processNotificationQueue handles empty queue without side effects", async () => {
+        expect.hasAssertions();
+
         __testResetNotifications();
         await processNotificationQueue();
-        const { isShowingNotification, notificationQueue } = notifMod as any;
         expect(isShowingNotification).toBe(false);
         expect(notificationQueue).toHaveLength(0);
     });
 
     it("uses the default type duration when none is provided (error => 6000ms)", async () => {
+        expect.hasAssertions();
+
         const p = showNotification("Default duration path", "error");
         await p; // visible
-        const el = document.getElementById("notification")! as any;
+        const el = document.getElementById(
+            "notification"
+        )! as NotificationElement;
         // Should be visible initially
         expect(el.style.display).toBe("flex");
         expect(el.classList.contains("show")).toBe(true);
@@ -181,7 +206,9 @@ describe("showNotification.js - branches (strict)", () => {
     });
 
     it("clicking an action button does not invoke container onClick", async () => {
-        const onContainerClick = vi.fn();
+        expect.hasAssertions();
+
+        const onContainerClick = vi.fn<() => void>();
         const p = showNotification("Action present", "info", undefined, {
             onClick: onContainerClick,
             actions: [{ text: "Act" }],
@@ -203,11 +230,13 @@ describe("showNotification.js - branches (strict)", () => {
     // exercises the same branch without relying on interleaved microtasks.
 
     it("processNotificationQueue returns early if already showing", async () => {
+        expect.hasAssertions();
+
         // Start one notification to set isShowingNotification = true inside the processor
         const p = showNotification("Now showing", "info", 1000);
         await p; // visible
         // Enqueue another item manually without starting a new processor
-        const fake = {
+        const fake: QueuedNotification = {
             message: "Queued",
             type: "info",
             duration: 100,
@@ -216,31 +245,32 @@ describe("showNotification.js - branches (strict)", () => {
             onClick: undefined,
             actions: [],
             timestamp: Date.now(),
-            resolveShown: () => {},
-        } as any;
-        const { notificationQueue } = notifMod as any;
+            resolveShown: vi.fn<() => void>(),
+        };
         const before = notificationQueue.length;
         notificationQueue.push(fake);
         // Call processor explicitly while first is still shown; should early return and not shift
         await processNotificationQueue();
-        expect(notificationQueue.length).toBe(before + 1);
+        expect(notificationQueue).toHaveLength(before + 1);
     });
 
     it("logs errors and resolves when display pipeline throws (build fails)", async () => {
+        expect.hasAssertions();
+
         // Make document.createElement throw on first call to trigger rejection from displayNotification
         const origCreate = document.createElement.bind(document);
         const spy = vi
             .spyOn(document, "createElement")
-            .mockImplementationOnce(() => {
+            .mockImplementationOnce((): never => {
                 throw new Error("createElement fail");
             })
-            .mockImplementation(origCreate as any);
+            .mockImplementation(origCreate);
 
         const p = showNotification("Boom", "info", 100);
         await p; // should resolve due to catch resolving resolveShown
 
         // At least one console.error call should include the prefix
-        const errorCalls = (console.error as any).mock.calls as any[];
+        const errorCalls = vi.mocked(console.error).mock.calls;
         expect(
             errorCalls.some((args) =>
                 String(args[0]).includes("Error displaying notification")
@@ -255,8 +285,8 @@ describe("showNotification.js - branches (strict)", () => {
                 ["Error displaying notification: createElement fail"],
             ])
         );
-        expect((notifMod as any).isShowingNotification).toBe(false);
-        expect((notifMod as any).notificationQueue).toHaveLength(0);
+        expect(notifMod.isShowingNotification).toBe(false);
+        expect(notifMod.notificationQueue).toHaveLength(0);
 
         // Restore explicitly to avoid cross-test effects
         spy.mockRestore();
