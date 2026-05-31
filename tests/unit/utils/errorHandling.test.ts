@@ -253,9 +253,7 @@ describe("error handling utilities", () => {
                 .mockReturnValue(undefined);
             const logSpy = vi.spyOn(console, "log").mockReturnValue(undefined);
 
-            const result = initializeErrorHandling();
-
-            expect(result).toBeUndefined();
+            expect(() => initializeErrorHandling()).not.toThrow();
             expect(listenerSpy).toHaveBeenCalledWith(
                 "error",
                 expect.any(Function),
@@ -282,9 +280,9 @@ describe("error handling utilities", () => {
                 recordError: vi.fn<(error: Error, operation: string) => void>(),
             };
 
-            const result = logError(error, { operation: "telemetry" });
-
-            expect(result).toBeUndefined();
+            expect(() =>
+                logError(error, { operation: "telemetry" })
+            ).not.toThrow();
             expect(errorSpy).toHaveBeenCalledWith(
                 expect.stringMatching(/^\[.+\] Error:$/u),
                 expect.objectContaining({
