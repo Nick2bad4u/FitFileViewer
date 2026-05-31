@@ -43,7 +43,7 @@ describe(setupTabButton, () => {
     }
 
     it("warns and skips setup for invalid button IDs", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const handler = vi.fn<ClickHandler>();
         const setupResults = [
@@ -63,7 +63,7 @@ describe(setupTabButton, () => {
     });
 
     it("warns and skips setup for non-function handlers", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         appendButton("tab-summary");
 
@@ -77,7 +77,7 @@ describe(setupTabButton, () => {
     });
 
     it("warns when the requested button does not exist", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const handler = vi.fn<ClickHandler>();
 
@@ -90,7 +90,7 @@ describe(setupTabButton, () => {
     });
 
     it("attaches one click handler and returns a cleanup function", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const button = appendButton("tab-chart"),
             handler = vi.fn<ClickHandler>();
@@ -106,7 +106,7 @@ describe(setupTabButton, () => {
     });
 
     it("replaces an existing handler for the same button", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const button = appendButton("tab-map"),
             firstHandler = vi.fn<ClickHandler>(),
@@ -122,7 +122,7 @@ describe(setupTabButton, () => {
     });
 
     it("caches button lookups while the cached element stays connected", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const button = appendButton("tab-data"),
             firstHandler = vi.fn<ClickHandler>(),
@@ -137,7 +137,7 @@ describe(setupTabButton, () => {
     });
 
     it("refreshes stale cached buttons when a DOM replacement exists", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const oldButton = appendButton("tab-replaced"),
             firstHandler = vi.fn<ClickHandler>(),
@@ -160,7 +160,7 @@ describe(setupTabButton, () => {
     });
 
     it("removes stale cache entries when a DOM replacement is missing", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const button = appendButton("tab-removed");
 
@@ -181,7 +181,7 @@ describe(setupTabButton, () => {
     });
 
     it("clears cached handlers and prevents later clicks from firing", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const firstButton = appendButton("tab-one"),
             secondButton = appendButton("tab-two"),
@@ -203,7 +203,7 @@ describe(setupTabButton, () => {
     });
 
     it("does nothing when clearing before cache initialization", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         setupTabButtonWithCache.cache = undefined;
 
