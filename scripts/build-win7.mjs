@@ -16,7 +16,7 @@ const require = createRequire(import.meta.url);
 const electronBuilderConfig = require("../electron-builder.config.cjs");
 export const outputDir = repositoryPath(rootReleaseDistPath, "win7");
 const WIN7_ELECTRON_VERSION = "22.3.27";
-export const appPackageFiles = readElectronBuilderFiles();
+export const rootPackageFiles = readElectronBuilderFiles();
 
 export function readElectronBuilderFiles(config = electronBuilderConfig) {
     return parseElectronBuilderFiles(config.files);
@@ -112,7 +112,7 @@ async function run() {
                 npmRebuild: false,
                 publish: null,
                 asar: false,
-                files: appPackageFiles,
+                files: rootPackageFiles,
                 directories: {
                     output: outputDir,
                 },

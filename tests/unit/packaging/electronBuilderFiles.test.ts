@@ -23,10 +23,10 @@ type ElectronBuilderConfig = {
 };
 
 type Win7BuildModule = {
-    appPackageFiles: string[];
     outputDir: string;
     parseElectronBuilderFiles: (parsed: unknown) => string[];
     readElectronBuilderFiles: () => string[];
+    rootPackageFiles: string[];
 };
 
 function findMarkdownFiles(directory: string): string[] {
@@ -72,7 +72,7 @@ describe("electron-builder file list", () => {
         expect(win7Build.readElectronBuilderFiles()).toStrictEqual(
             sharedFileList
         );
-        expect(win7Build.appPackageFiles).toStrictEqual(sharedFileList);
+        expect(win7Build.rootPackageFiles).toStrictEqual(sharedFileList);
         expect(win7Build.outputDir).toBe(
             repositoryPath(rootReleaseDistPath, "win7")
         );
