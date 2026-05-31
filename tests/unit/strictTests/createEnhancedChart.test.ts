@@ -890,8 +890,10 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
     });
 
-    describe("Scale Configuration", () => {
+    describe("scale configuration", () => {
         it("should configure x-axis with time formatting", () => {
+            expect.hasAssertions();
+
             const canvas = document.createElement("canvas");
             const options = {
                 field: "speed",
@@ -920,6 +922,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should configure y-axis with field-specific formatting", () => {
+            expect.hasAssertions();
+
             const canvas = document.createElement("canvas");
             const fieldLabels = { speed: "Speed" };
             const options = {
@@ -948,6 +952,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should format x-axis ticks for different time units", () => {
+            expect.hasAssertions();
+
             mockLocalStorage.getItem.mockReturnValue("minutes");
 
             const canvas = document.createElement("canvas");
@@ -980,6 +986,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should format x-axis ticks for hours", () => {
+            expect.hasAssertions();
+
             mockLocalStorage.getItem.mockReturnValue("hours");
 
             const canvas = document.createElement("canvas");
@@ -1012,6 +1020,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should format x-axis ticks for seconds using formatTime", () => {
+            expect.hasAssertions();
+
             mockLocalStorage.getItem.mockReturnValue("seconds");
 
             const canvas = document.createElement("canvas");
@@ -1044,6 +1054,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should hide grid when showGrid is false", () => {
+            expect.hasAssertions();
+
             const canvas = document.createElement("canvas");
             const options = {
                 field: "speed",
