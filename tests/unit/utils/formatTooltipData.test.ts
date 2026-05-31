@@ -2,13 +2,16 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getState } from "../../../electron-app/utils/state/core/stateManager.js";
 import { formatTooltipData } from "../../../electron-app/utils/formatting/display/formatTooltipData.js";
 
-vi.mock("../../../electron-app/utils/state/core/stateManager.js", () => ({
-    getState: vi.fn(),
-}));
+vi.mock(
+    import("../../../electron-app/utils/state/core/stateManager.js"),
+    () => ({
+        getState: vi.fn<(path?: string) => unknown>(),
+    })
+);
 
 const mockedGetState = vi.mocked(getState);
 
-describe("formatTooltipData", () => {
+describe(formatTooltipData, () => {
     beforeEach(() => {
         vi.clearAllMocks();
         mockedGetState.mockImplementation((path?: string) => {
@@ -20,6 +23,8 @@ describe("formatTooltipData", () => {
     });
 
     it("formats complete tooltip data with elapsed time and primary metrics", () => {
+        expect.hasAssertions();
+
         const result = formatTooltipData(
             50,
             {
@@ -48,6 +53,8 @@ describe("formatTooltipData", () => {
     });
 
     it("formats auxiliary heart rate and estimated power fallbacks", () => {
+        expect.hasAssertions();
+
         const result = formatTooltipData(
             7,
             {
@@ -64,6 +71,8 @@ describe("formatTooltipData", () => {
     });
 
     it("handles invalid-input row data with a fallback message", () => {
+        expect.hasAssertions();
+
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
         for (const row of [
@@ -81,6 +90,8 @@ describe("formatTooltipData", () => {
     });
 
     it("omits invalid-input metric values while preserving lap and index", () => {
+        expect.hasAssertions();
+
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
         const result = formatTooltipData(
@@ -109,6 +120,8 @@ describe("formatTooltipData", () => {
     });
 
     it("logs and returns an error message when formatting throws", () => {
+        expect.hasAssertions();
+
         const errorSpy = vi
             .spyOn(console, "error")
             .mockImplementation(() => {});
