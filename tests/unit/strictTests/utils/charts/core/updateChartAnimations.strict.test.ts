@@ -1,32 +1,50 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { updateChartAnimations } from "../../../../../../electron-app/utils/charts/core/updateChartAnimations.js";
 
-describe("updateChartAnimations", () => {
+type TestChart = {
+    config?: {
+        type?: string;
+    };
+    options: {
+        animation?: unknown;
+        animations?: Record<string, unknown>;
+    };
+};
+
+describe(updateChartAnimations, () => {
     beforeEach(() => {
         vi.restoreAllMocks();
     });
 
     it("returns null and warns on invalid chart", () => {
+        expect.hasAssertions();
+
         const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-        // @ts-expect-no-error
-        const res = updateChartAnimations(undefined as any, "line");
+        const res = updateChartAnimations(undefined, "line");
         expect(res).toBeNull();
-        expect(warn).toHaveBeenCalled();
+        expect(warn).toHaveBeenCalledWith(
+            "[ChartAnimations] Invalid chart instance provided"
+        );
     });
 
     it("returns null when options missing", () => {
+        expect.hasAssertions();
+
         const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-        // @ts-ignore
         const res = updateChartAnimations({}, "line");
         expect(res).toBeNull();
-        expect(warn).toHaveBeenCalled();
+        expect(warn).toHaveBeenCalledWith(
+            "[ChartAnimations] Chart instance missing options object"
+        );
     });
 
     it("configures base animation and type-specific for line charts", () => {
+        expect.hasAssertions();
+
         const consoleLog = vi
             .spyOn(console, "log")
             .mockImplementation(() => {});
-        const chart: any = { options: {}, config: { type: "line" } };
+        const chart: TestChart = { options: {}, config: { type: "line" } };
         const res = updateChartAnimations(chart, "Line Chart");
         expect(res).toBe(chart);
         expect(chart.options.animation).toEqual(
@@ -43,14 +61,18 @@ describe("updateChartAnimations", () => {
             from: 0,
             to: 0.4,
         });
-        expect(consoleLog).toHaveBeenCalled();
+        expect(consoleLog).toHaveBeenCalledWith(
+            "[ChartAnimations] Animation configuration updated for Line Chart chart"
+        );
     });
 
     it("configures bar chart color animations", () => {
+        expect.hasAssertions();
+
         const consoleLog = vi
             .spyOn(console, "log")
             .mockImplementation(() => {});
-        const chart: any = { options: {}, config: { type: "bar" } };
+        const chart: TestChart = { options: {}, config: { type: "bar" } };
         const res = updateChartAnimations(chart, "Bar Chart");
         expect(res).toBe(chart);
         expect(chart.options.animations.colors).toEqual({
@@ -63,8 +85,10 @@ describe("updateChartAnimations", () => {
     });
 
     it("configures doughnut chart rotate/scale animations", () => {
+        expect.hasAssertions();
+
         vi.spyOn(console, "log").mockImplementation(() => {});
-        const chart: any = { options: {}, config: { type: "doughnut" } };
+        const chart: TestChart = { options: {}, config: { type: "doughnut" } };
         const res = updateChartAnimations(chart, "Doughnut Chart");
         expect(res).toBe(chart);
         expect(chart.options.animations.animateRotate).toBe(true);
@@ -72,9 +96,11 @@ describe("updateChartAnimations", () => {
     });
 
     it("warns when chart type missing but still sets base animation", () => {
+        expect.hasAssertions();
+
         vi.spyOn(console, "log").mockImplementation(() => {});
         const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-        const chart: any = { options: {}, config: {} };
+        const chart: TestChart = { options: {}, config: {} };
         updateChartAnimations(chart, "Unknown");
         expect(chart.options.animation).toEqual(
             expect.objectContaining({
@@ -84,16 +110,19 @@ describe("updateChartAnimations", () => {
                 onProgress: expect.any(Function),
             })
         );
-        expect(warn).toHaveBeenCalled();
+        expect(warn).toHaveBeenCalledWith(
+            "[ChartAnimations] Chart config missing type property"
+        );
     });
 
     it("logs error and returns original chart if exception thrown", () => {
+        expect.hasAssertions();
+
         const errorSpy = vi
             .spyOn(console, "error")
             .mockImplementation(() => {});
-        const chart: any = { options: {} };
         // Force error by monkey-patching Object spread target via getter throwing
-        const badChart: any = {
+        const badChart = {
             options: {
                 get animation() {
                     throw new Error("boom");
@@ -102,6 +131,9 @@ describe("updateChartAnimations", () => {
         };
         const res = updateChartAnimations(badChart, "Any");
         expect(res).toBe(badChart);
-        expect(errorSpy).toHaveBeenCalled();
+        expect(errorSpy).toHaveBeenCalledWith(
+            "[ChartAnimations] Error updating chart animations:",
+            expect.any(Error)
+        );
     });
 });
