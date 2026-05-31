@@ -4,6 +4,8 @@ import { describe, expect, it } from "vitest";
 
 type WorkspacesModule = {
     appAlternativeFitViewPath: string;
+    appCoverageAbsolutePath: string;
+    appCoveragePath: string;
     appDistPath: string;
     appDistRendererRepositoryPath: string;
     appElevProfileCssPath: string;
@@ -41,6 +43,8 @@ type WorkspacesModule = {
     rootAppStyleCssPath: string;
     rootElectronBuilderConfigPath: string;
     rootArtifactsPath: string;
+    rootCoverageAbsolutePath: string;
+    rootCoveragePath: string;
     rootDocusaurusTsconfigPath: string;
     rootElectronAppTsconfigPath: string;
     rootEslintTsconfigPath: string;
@@ -121,11 +125,17 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes app runtime asset paths", async () => {
-        expect.assertions(18);
+        expect.assertions(20);
 
         const workspaces = await importWorkspaces();
 
         expect(workspaces.appAlternativeFitViewPath).toBe("ffv");
+        expect(workspaces.appCoveragePath).toBe(
+            path.join("electron-app", "coverage")
+        );
+        expect(workspaces.appCoverageAbsolutePath).toBe(
+            path.join(process.cwd(), "electron-app", "coverage")
+        );
         expect(workspaces.appDistRendererRepositoryPath).toBe(
             "electron-app/dist/renderer"
         );
@@ -202,11 +212,15 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes root generated output and test paths", async () => {
-        expect.assertions(12);
+        expect.assertions(14);
 
         const workspaces = await importWorkspaces();
 
         expect(workspaces.rootArtifactsPath).toBe("artifacts");
+        expect(workspaces.rootCoveragePath).toBe("coverage");
+        expect(workspaces.rootCoverageAbsolutePath).toBe(
+            path.join(process.cwd(), "coverage")
+        );
         expect(workspaces.rootFlatpakBuildPath).toBe("flatpak-build-dir");
         expect(workspaces.rootFlatpakBundlePath).toBe("FitFileViewer.flatpak");
         expect(workspaces.rootFlatpakRepoPath).toBe("flatpak-repo");

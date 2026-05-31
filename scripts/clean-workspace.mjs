@@ -4,10 +4,12 @@ import process from "node:process";
 import { pathToFileURL } from "node:url";
 
 import {
+    appCoveragePath,
     appSourceRelativePath,
     docusaurusWorkspaceRelativePath,
     repositoryRoot,
     rootArtifactsPath,
+    rootCoveragePath,
     rootFlatpakBuildPath,
     rootFlatpakBundlePath,
     rootFlatpakRepoPath,
@@ -46,12 +48,12 @@ export const cleanupTargets = [
     rootArtifactsPath,
     rootFlatpakBuildPath,
     rootFlatpakRepoPath,
-    "coverage",
+    rootCoveragePath,
     "html",
     "playwright-report",
     rootReleaseDistPath,
     "test-results",
-    appSourceRelativePath("coverage"),
+    appCoveragePath,
     appSourceRelativePath("dist"),
     appSourceRelativePath("html"),
     appSourceRelativePath("logs"),

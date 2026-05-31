@@ -6,6 +6,8 @@ export const repositoryRoot = resolveRepositoryRoot();
 export const appSourceDirectoryName = "electron-app";
 export const docusaurusWorkspaceName = "docusaurus";
 export const rootArtifactsPath = "artifacts";
+export const rootCoveragePath = "coverage";
+export const rootCoverageAbsolutePath = repositoryPath(rootCoveragePath);
 export const rootPackageJsonPath = "package.json";
 export const rootPackagePath = repositoryPath(rootPackageJsonPath);
 export const rootPackageRepositoryPath = rootPackageJsonPath;
@@ -50,6 +52,8 @@ export const docusaurusWorkspacePath = path.join(
     docusaurusWorkspaceName
 );
 export const appAlternativeFitViewPath = "ffv";
+export const appCoveragePath = appSourceRelativePath(rootCoveragePath);
+export const appCoverageAbsolutePath = appSourceAbsolutePath(rootCoveragePath);
 export const appDistPath = appSourceRelativePath("dist");
 export const appDistRendererRepositoryPath = appSourceRepositoryPath(
     "dist",

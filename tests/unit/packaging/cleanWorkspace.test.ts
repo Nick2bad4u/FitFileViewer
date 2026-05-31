@@ -5,11 +5,13 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
+    appCoveragePath,
     appDistPath,
     appTypesPath,
     appSourceRelativePath,
     docusaurusWorkspaceRelativePath,
     rootArtifactsPath,
+    rootCoveragePath,
     rootFlatpakBuildPath,
     rootFlatpakBundlePath,
     rootFlatpakRepoPath,
@@ -74,10 +76,10 @@ describe("clean-workspace script", () => {
                 rootArtifactsPath,
                 rootFlatpakBuildPath,
                 rootFlatpakRepoPath,
-                "coverage",
+                rootCoveragePath,
                 "html",
                 rootReleaseDistPath,
-                appSourceRelativePath("coverage"),
+                appCoveragePath,
                 appDistPath,
                 appSourceRelativePath("html"),
                 appTypesPath,

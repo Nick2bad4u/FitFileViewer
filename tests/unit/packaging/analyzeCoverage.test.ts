@@ -9,9 +9,9 @@ import {
     parseCoverageData,
 } from "../../../scripts/analyze-coverage.mjs";
 import {
-    appSourceAbsolutePath,
-    repositoryPath,
+    appCoverageAbsolutePath,
     repositoryRoot,
+    rootCoverageAbsolutePath,
 } from "../../../scripts/lib/workspaces.mjs";
 
 describe("analyze-coverage script", () => {
@@ -30,22 +30,22 @@ describe("analyze-coverage script", () => {
             path.join("tmp-root", "ffv-vitest-coverage", "coverage-final.json")
         );
         expect(candidates[2]).toBe(
-            repositoryPath("coverage", "coverage-final.json")
+            path.join(rootCoverageAbsolutePath, "coverage-final.json")
         );
         expect(candidates[3]).toBe(
-            appSourceAbsolutePath("coverage", "coverage-final.json")
+            path.join(appCoverageAbsolutePath, "coverage-final.json")
         );
     });
 
     it("returns the first existing coverage file candidate", async () => {
         expect.assertions(1);
 
-        const missingCoveragePath = repositoryPath(
-            "coverage",
+        const missingCoveragePath = path.join(
+            rootCoverageAbsolutePath,
             "missing-coverage-final.json"
         );
-        const existingCoveragePath = appSourceAbsolutePath(
-            "coverage",
+        const existingCoveragePath = path.join(
+            appCoverageAbsolutePath,
             "coverage-final.json"
         );
 

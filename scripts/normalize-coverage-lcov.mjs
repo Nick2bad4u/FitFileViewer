@@ -5,13 +5,13 @@ import process from "node:process";
 import { pathToFileURL } from "node:url";
 
 import {
-    appSourceAbsolutePath,
-    repositoryPath,
+    appCoverageAbsolutePath,
+    rootCoverageAbsolutePath,
     repositoryRoot,
 } from "./lib/workspaces.mjs";
 
-export const coverageTargetDir = repositoryPath("coverage");
-export const legacyAppCoverageDir = appSourceAbsolutePath("coverage");
+export const coverageTargetDir = rootCoverageAbsolutePath;
+export const legacyAppCoverageDir = appCoverageAbsolutePath;
 
 export function createCoverageCandidateDirs({
     environmentCoverageDir = process.env.VITEST_COVERAGE_DIR,
