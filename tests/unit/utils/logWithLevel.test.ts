@@ -3,21 +3,35 @@ import { logWithLevel } from "../../../electron-app/utils/logging/index.js";
 
 const fixedTimestamp = "2023-01-01T12:00:00.000Z";
 const expectedBase = `${fixedTimestamp} [FFV]`;
+type ConsoleEntry = {
+    args: unknown[];
+    level: "error" | "info" | "log" | "warn";
+};
 
 describe(logWithLevel, () => {
     let errorSpy: ReturnType<typeof vi.spyOn>;
     let infoSpy: ReturnType<typeof vi.spyOn>;
     let logSpy: ReturnType<typeof vi.spyOn>;
     let warnSpy: ReturnType<typeof vi.spyOn>;
+    let consoleEntries: ConsoleEntry[];
 
     beforeEach(() => {
         vi.useFakeTimers();
         vi.setSystemTime(new Date(fixedTimestamp));
 
-        errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-        infoSpy = vi.spyOn(console, "info").mockImplementation(() => {});
-        logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-        warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+        consoleEntries = [];
+        errorSpy = vi.spyOn(console, "error").mockImplementation((...args) => {
+            consoleEntries.push({ args, level: "error" });
+        });
+        infoSpy = vi.spyOn(console, "info").mockImplementation((...args) => {
+            consoleEntries.push({ args, level: "info" });
+        });
+        logSpy = vi.spyOn(console, "log").mockImplementation((...args) => {
+            consoleEntries.push({ args, level: "log" });
+        });
+        warnSpy = vi.spyOn(console, "warn").mockImplementation((...args) => {
+            consoleEntries.push({ args, level: "warn" });
+        });
     });
 
     afterEach(() => {
@@ -31,36 +45,39 @@ describe(logWithLevel, () => {
     });
 
     it("routes each supported level to the matching console method", () => {
-        expect.assertions(8);
+        expect.assertions(1);
 
-        expect(logWithLevel("info", "Loaded file")).toBeUndefined();
-        expect(logWithLevel("warn", "Missing optional field")).toBeUndefined();
-        expect(logWithLevel("error", "Failed to parse file")).toBeUndefined();
-        expect(logWithLevel("log", "Debug detail")).toBeUndefined();
+        logWithLevel("info", "Loaded file");
+        logWithLevel("warn", "Missing optional field");
+        logWithLevel("error", "Failed to parse file");
+        logWithLevel("log", "Debug detail");
 
-        expect(infoSpy).toHaveBeenCalledWith(`${expectedBase} Loaded file`);
-        expect(warnSpy).toHaveBeenCalledWith(
-            `${expectedBase} Missing optional field`
-        );
-        expect(errorSpy).toHaveBeenCalledWith(
-            `${expectedBase} Failed to parse file`
-        );
-        expect(logSpy).toHaveBeenCalledWith(`${expectedBase} Debug detail`);
+        expect(consoleEntries).toStrictEqual([
+            { args: [`${expectedBase} Loaded file`], level: "info" },
+            {
+                args: [`${expectedBase} Missing optional field`],
+                level: "warn",
+            },
+            {
+                args: [`${expectedBase} Failed to parse file`],
+                level: "error",
+            },
+            { args: [`${expectedBase} Debug detail`], level: "log" },
+        ]);
     });
 
     it("falls back to console.log for unknown levels", () => {
-        expect.assertions(5);
+        expect.assertions(1);
 
-        expect(logWithLevel("debug", "Renderer trace")).toBeUndefined();
+        logWithLevel("debug", "Renderer trace");
 
-        expect(logSpy).toHaveBeenCalledWith(`${expectedBase} Renderer trace`);
-        expect(infoSpy).not.toHaveBeenCalled();
-        expect(warnSpy).not.toHaveBeenCalled();
-        expect(errorSpy).not.toHaveBeenCalled();
+        expect(consoleEntries).toStrictEqual([
+            { args: [`${expectedBase} Renderer trace`], level: "log" },
+        ]);
     });
 
     it("logs a shallow-cloned context payload only for non-empty plain objects", () => {
-        expect.assertions(5);
+        expect.assertions(2);
 
         const context = { fileName: "activity.fit", records: 125 };
 
@@ -74,27 +91,22 @@ describe(logWithLevel, () => {
         ] as never);
         context.records = 250;
 
-        expect(infoSpy).toHaveBeenNthCalledWith(
-            1,
-            `${expectedBase} Parsed FIT file`,
+        expect(consoleEntries).toStrictEqual([
             {
-                fileName: "activity.fit",
-                records: 125,
-            }
-        );
-        expect(infoSpy.mock.calls[0]?.[1]).not.toBe(context);
-        expect(infoSpy).toHaveBeenNthCalledWith(
-            2,
-            `${expectedBase} No context`
-        );
-        expect(infoSpy).toHaveBeenNthCalledWith(
-            3,
-            `${expectedBase} Empty context`
-        );
-        expect(infoSpy).toHaveBeenNthCalledWith(
-            4,
-            `${expectedBase} Array context`
-        );
+                args: [
+                    `${expectedBase} Parsed FIT file`,
+                    {
+                        fileName: "activity.fit",
+                        records: 125,
+                    },
+                ],
+                level: "info",
+            },
+            { args: [`${expectedBase} No context`], level: "info" },
+            { args: [`${expectedBase} Empty context`], level: "info" },
+            { args: [`${expectedBase} Array context`], level: "info" },
+        ]);
+        expect(consoleEntries[0]?.args[1]).not.toBe(context);
     });
 
     it("skips context properties whose getters throw", () => {
@@ -108,14 +120,16 @@ describe(logWithLevel, () => {
             },
         });
 
-        expect(
-            logWithLevel("info", "Partial context", context)
-        ).toBeUndefined();
+        expect(() => {
+            logWithLevel("info", "Partial context", context);
+        }).not.toThrow();
 
-        expect(infoSpy).toHaveBeenCalledWith(
-            `${expectedBase} Partial context`,
-            { keep: "value" }
-        );
+        expect(consoleEntries).toStrictEqual([
+            {
+                args: [`${expectedBase} Partial context`, { keep: "value" }],
+                level: "info",
+            },
+        ]);
     });
 
     it("emits the minimal fallback line when logging setup fails", () => {
@@ -127,9 +141,12 @@ describe(logWithLevel, () => {
 
         logWithLevel("info", "Broken context", { key: "value" });
 
-        expect(logSpy).toHaveBeenCalledWith(
-            "[FFV][logWithLevel] Logging failure"
-        );
+        expect(consoleEntries).toStrictEqual([
+            {
+                args: ["[FFV][logWithLevel] Logging failure"],
+                level: "log",
+            },
+        ]);
         expect({
             objectKeysAllowThrow: (
                 globalThis as typeof globalThis & {
@@ -148,9 +165,14 @@ describe(logWithLevel, () => {
             throw new Error("console.warn failed");
         });
 
-        expect(logWithLevel("warn", "Fallback path")).toBeUndefined();
-        expect(logSpy).toHaveBeenCalledWith(
-            "[FFV][logWithLevel] Logging failure"
-        );
+        expect(() => {
+            logWithLevel("warn", "Fallback path");
+        }).not.toThrow();
+        expect(consoleEntries).toStrictEqual([
+            {
+                args: ["[FFV][logWithLevel] Logging failure"],
+                level: "log",
+            },
+        ]);
     });
 });
