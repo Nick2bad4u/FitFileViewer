@@ -1,9 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mockGetSettings = vi.fn();
-const mockSetSettings = vi.fn();
-const mockShowNotification = vi.fn();
-
 type PowerEstimationSettings = {
     enabled: boolean;
     riderWeightKg: number;
@@ -15,21 +11,25 @@ type PowerEstimationSettings = {
     gradeWindowMeters: number;
     maxPowerW: number;
 };
+type OnApply = () => void;
+type ShowNotification = (message: string, level: string) => void;
+
+const mockGetSettings = vi.fn<() => PowerEstimationSettings>();
+const mockSetSettings = vi.fn<(settings: PowerEstimationSettings) => void>();
+const mockShowNotification = vi.fn<ShowNotification>();
 
 vi.mock(
-    "../../../../../electron-app/utils/data/processing/powerEstimationSettings.js",
+    import("../../../../../electron-app/utils/data/processing/powerEstimationSettings.js"),
     () => ({
-        getPowerEstimationSettings: () => mockGetSettings(),
-        setPowerEstimationSettings: (s: PowerEstimationSettings) =>
-            mockSetSettings(s),
+        getPowerEstimationSettings: mockGetSettings,
+        setPowerEstimationSettings: mockSetSettings,
     })
 );
 
 vi.mock(
-    "../../../../../electron-app/utils/ui/notifications/showNotification.js",
+    import("../../../../../electron-app/utils/ui/notifications/showNotification.js"),
     () => ({
-        showNotification: (msg: string, level: string) =>
-            mockShowNotification(msg, level),
+        showNotification: mockShowNotification,
     })
 );
 
@@ -51,10 +51,12 @@ describe("openPowerEstimationSettingsModal.js", () => {
     });
 
     it("should render modal and close on Escape", async () => {
+        expect.hasAssertions();
+
         const { openPowerEstimationSettingsModal } =
             await import("../../../../../electron-app/utils/ui/modals/openPowerEstimationSettingsModal.js");
 
-        const onApply = vi.fn();
+        const onApply = vi.fn<OnApply>();
         openPowerEstimationSettingsModal({ hasRealPower: false, onApply });
 
         expect(document.body.textContent).toContain("Estimated Power");
@@ -64,22 +66,26 @@ describe("openPowerEstimationSettingsModal.js", () => {
     });
 
     it("should show real power note when hasRealPower is true", async () => {
+        expect.hasAssertions();
+
         const { openPowerEstimationSettingsModal } =
             await import("../../../../../electron-app/utils/ui/modals/openPowerEstimationSettingsModal.js");
 
         openPowerEstimationSettingsModal({
             hasRealPower: true,
-            onApply: vi.fn(),
+            onApply: vi.fn<OnApply>(),
         });
 
         expect(document.body.textContent).toContain("contains real power data");
     });
 
     it("should validate rider weight and prevent apply", async () => {
+        expect.hasAssertions();
+
         const { openPowerEstimationSettingsModal } =
             await import("../../../../../electron-app/utils/ui/modals/openPowerEstimationSettingsModal.js");
 
-        const onApply = vi.fn();
+        const onApply = vi.fn<OnApply>();
         openPowerEstimationSettingsModal({ hasRealPower: false, onApply });
 
         // The first number input in the grid is rider weight.
@@ -108,10 +114,12 @@ describe("openPowerEstimationSettingsModal.js", () => {
     });
 
     it("should persist settings and call onApply, then close", async () => {
+        expect.hasAssertions();
+
         const { openPowerEstimationSettingsModal } =
             await import("../../../../../electron-app/utils/ui/modals/openPowerEstimationSettingsModal.js");
 
-        const onApply = vi.fn();
+        const onApply = vi.fn<OnApply>();
         openPowerEstimationSettingsModal({ hasRealPower: false, onApply });
 
         const checkbox = document.querySelector<HTMLInputElement>(
@@ -133,23 +141,25 @@ describe("openPowerEstimationSettingsModal.js", () => {
         expect(applyBtn?.textContent).toBe("Apply");
         applyBtn?.click();
 
-        expect(mockSetSettings).toHaveBeenCalledTimes(1);
+        expect(mockSetSettings).toHaveBeenCalledOnce();
         const saved = mockSetSettings.mock
             .calls[0][0] as PowerEstimationSettings;
         expect(saved.enabled).toBe(false);
         expect(saved.riderWeightKg).toBe(80);
 
-        expect(onApply).toHaveBeenCalledTimes(1);
+        expect(onApply).toHaveBeenCalledOnce();
         expect(document.body.textContent).not.toContain("Estimated Power");
     });
 
     it("should close when clicking Cancel", async () => {
+        expect.hasAssertions();
+
         const { openPowerEstimationSettingsModal } =
             await import("../../../../../electron-app/utils/ui/modals/openPowerEstimationSettingsModal.js");
 
         openPowerEstimationSettingsModal({
             hasRealPower: false,
-            onApply: vi.fn(),
+            onApply: vi.fn<OnApply>(),
         });
 
         const cancelBtn = Array.from(
@@ -163,10 +173,12 @@ describe("openPowerEstimationSettingsModal.js", () => {
     });
 
     it("should validate non-numeric CRR input and prevent apply", async () => {
+        expect.hasAssertions();
+
         const { openPowerEstimationSettingsModal } =
             await import("../../../../../electron-app/utils/ui/modals/openPowerEstimationSettingsModal.js");
 
-        const onApply = vi.fn();
+        const onApply = vi.fn<OnApply>();
         openPowerEstimationSettingsModal({ hasRealPower: false, onApply });
 
         const inputs = Array.from(
@@ -192,12 +204,14 @@ describe("openPowerEstimationSettingsModal.js", () => {
     });
 
     it("should close when clicking outside modal (overlay)", async () => {
+        expect.hasAssertions();
+
         const { openPowerEstimationSettingsModal } =
             await import("../../../../../electron-app/utils/ui/modals/openPowerEstimationSettingsModal.js");
 
         openPowerEstimationSettingsModal({
             hasRealPower: false,
-            onApply: vi.fn(),
+            onApply: vi.fn<OnApply>(),
         });
         const overlay = document.body.querySelector("div");
         expect(overlay).toBeInstanceOf(HTMLDivElement);
@@ -207,6 +221,8 @@ describe("openPowerEstimationSettingsModal.js", () => {
     });
 
     it("should catch errors thrown by onApply and still close", async () => {
+        expect.hasAssertions();
+
         const { openPowerEstimationSettingsModal } =
             await import("../../../../../electron-app/utils/ui/modals/openPowerEstimationSettingsModal.js");
 
