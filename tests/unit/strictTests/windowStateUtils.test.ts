@@ -13,22 +13,33 @@ interface WindowStateSnapshot {
 describe("windowStateUtils strict tests (pure functions)", () => {
     it("validateWindowState accepts well-formed objects", async () => {
         const mod = await import("../../../electron-app/windowStateUtils.js");
-        expect(mod.validateWindowState({ width: 1200, height: 800 })).toBe(
-            true
-        );
+        const validStates = [
+            { width: 1200, height: 800 },
+            { width: 800, height: 600, x: 10, y: 20 },
+        ];
+
         expect(
-            mod.validateWindowState({ width: 800, height: 600, x: 10, y: 20 })
-        ).toBe(true);
+            validStates.map((state) => mod.validateWindowState(state))
+        ).toStrictEqual([true, true]);
     });
 
     it("validateWindowState rejects malformed objects", async () => {
         const mod = await import("../../../electron-app/windowStateUtils.js");
-        expect(mod.validateWindowState(null)).toBe(false);
-        expect(mod.validateWindowState({})).toBe(false);
-        expect(mod.validateWindowState({ width: -1, height: 0 })).toBe(false);
+        const invalidStates = [
+            null,
+            {},
+            { width: -1, height: 0 },
+            { width: 800, height: 600, x: "a" },
+        ];
+
         expect(
-            mod.validateWindowState({ width: 800, height: 600, x: "a" })
-        ).toBe(false);
+            invalidStates.map((state) => mod.validateWindowState(state))
+        ).toStrictEqual([
+            false,
+            false,
+            false,
+            false,
+        ]);
     });
 
     it("sanitizeWindowState enforces minimum sizes and preserves coordinates", async () => {
@@ -44,9 +55,11 @@ describe("windowStateUtils strict tests (pure functions)", () => {
             y: 6,
         };
         const s2 = mod.sanitizeWindowState(stateWithCoordinates);
-        expect(s2.width).toBe(900);
-        expect(s2.height).toBe(700);
-        expect(s2.x).toBe(5);
-        expect(s2.y).toBe(6);
+        expect(s2).toMatchObject({
+            height: 700,
+            width: 900,
+            x: 5,
+            y: 6,
+        });
     });
 });
