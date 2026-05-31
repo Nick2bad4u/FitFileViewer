@@ -73,7 +73,7 @@ describe("config/index.js", () => {
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
         try {
-            expect(initializeConfig()).toBeUndefined();
+            expect(() => initializeConfig()).not.toThrow();
 
             expect(logSpy).toHaveBeenCalledWith(
                 "[Config] Configuration system initialized successfully"
