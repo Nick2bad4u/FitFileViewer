@@ -64,20 +64,22 @@ describe("registerFileSystemHandlers", () => {
     }
 
     it("no-ops when registerIpcHandle is not a function", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
-        const result = registerFileSystemHandlers({
-            registerIpcHandle: null,
-            fs: fileSystem,
-            logWithContext,
-        });
+        expect(() => {
+            registerFileSystemHandlers({
+                registerIpcHandle: null,
+                fs: fileSystem,
+                logWithContext,
+            });
+        }).not.toThrow();
 
-        expect(result).toBeUndefined();
         expect(registerIpcHandle).not.toHaveBeenCalled();
+        expect(fileSystem.readFile).not.toHaveBeenCalled();
     });
 
     it("registers file:read handler and resolves buffer slice on success", async () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         registerDefaultHandlers();
 
@@ -107,7 +109,7 @@ describe("registerFileSystemHandlers", () => {
     });
 
     it("rejects and logs when fs.readFile is unavailable", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const handlerRegister = vi.fn<RegisterIpcHandle>();
         registerFileSystemHandlers({
@@ -139,7 +141,7 @@ describe("registerFileSystemHandlers", () => {
     });
 
     it("rejects and logs when readFile errors", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const error = new Error("boom");
         fileSystem.readFile.mockImplementation((_path, callback) =>
@@ -165,7 +167,7 @@ describe("registerFileSystemHandlers", () => {
     });
 
     it("rejects unapproved paths", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         registerDefaultHandlers();
         const handler = getFileReadHandler();
@@ -176,7 +178,7 @@ describe("registerFileSystemHandlers", () => {
     });
 
     it("rejects invalid filePath inputs early", async () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         registerDefaultHandlers();
         const handler = getFileReadHandler();
@@ -199,7 +201,7 @@ describe("registerFileSystemHandlers", () => {
     });
 
     it("rejects unexpected fs.readFile result types", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         registerDefaultHandlers();
         const handler = getFileReadHandler();
