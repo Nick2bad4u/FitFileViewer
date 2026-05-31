@@ -457,15 +457,13 @@ describe("exportUtils chart export helpers", () => {
 
     describe("downloadChartAsPNG function", () => {
         it("downloads chart with default filename", async () => {
-            expect.assertions(6);
+            expect.assertions(5);
 
             const { chartFixture, queueLink } = setupDomHarness();
             const linkFixture = createLinkFixture();
             queueLink(linkFixture);
 
-            await expect(
-                exportUtils.downloadChartAsPNG(chartFixture.chart)
-            ).resolves.toBeUndefined();
+            await exportUtils.downloadChartAsPNG(chartFixture.chart);
 
             expect(linkFixture.link.download).toBe("chart.png");
             expect(linkFixture.link.href).toBe(
@@ -484,18 +482,16 @@ describe("exportUtils chart export helpers", () => {
         });
 
         it("downloads chart with custom filename", async () => {
-            expect.assertions(3);
+            expect.assertions(2);
 
             const { chartFixture, queueLink } = setupDomHarness();
             const linkFixture = createLinkFixture();
             queueLink(linkFixture);
 
-            await expect(
-                exportUtils.downloadChartAsPNG(
-                    chartFixture.chart,
-                    "custom-chart.png"
-                )
-            ).resolves.toBeUndefined();
+            await exportUtils.downloadChartAsPNG(
+                chartFixture.chart,
+                "custom-chart.png"
+            );
 
             expect(linkFixture.link.download).toBe("custom-chart.png");
             expect(linkFixture.click).toHaveBeenCalledOnce();
@@ -509,10 +505,9 @@ describe("exportUtils chart export helpers", () => {
                 throw new Error("Canvas error");
             });
 
-            await expect(
-                exportUtils.downloadChartAsPNG(chartFixture.chart)
-            ).resolves.toBeUndefined();
+            await exportUtils.downloadChartAsPNG(chartFixture.chart);
 
+            expect(document.body.childElementCount).not.toBeGreaterThan(0);
             expect(dependencyMocks.showNotification).toHaveBeenCalledWith(
                 "Failed to export chart as PNG",
                 "error"
@@ -526,10 +521,9 @@ describe("exportUtils chart export helpers", () => {
 
             setupDomHarness();
 
-            await expect(
-                exportUtils.createCombinedChartsImage([])
-            ).resolves.toBeUndefined();
+            await exportUtils.createCombinedChartsImage([]);
 
+            expect(document.body.childElementCount).not.toBeGreaterThan(0);
             expect(dependencyMocks.showNotification).toHaveBeenCalledWith(
                 "Failed to create combined image",
                 "error"
@@ -541,10 +535,9 @@ describe("exportUtils chart export helpers", () => {
 
             setupDomHarness();
 
-            await expect(
-                exportUtils.createCombinedChartsImage(null)
-            ).resolves.toBeUndefined();
+            await exportUtils.createCombinedChartsImage(null);
 
+            expect(document.body.childElementCount).toBe(0);
             expect(dependencyMocks.showNotification).toHaveBeenCalledWith(
                 "Failed to create combined image",
                 "error"
@@ -552,7 +545,7 @@ describe("exportUtils chart export helpers", () => {
         });
 
         it("creates combined image for single chart", async () => {
-            expect.assertions(5);
+            expect.assertions(4);
 
             const { chartFixture, queueCanvas, queueLink } = setupDomHarness();
             const combinedCanvas = createCanvasFixture(
@@ -564,9 +557,7 @@ describe("exportUtils chart export helpers", () => {
             queueCanvas(combinedCanvas);
             queueLink(linkFixture);
 
-            await expect(
-                exportUtils.createCombinedChartsImage([chartFixture.chart])
-            ).resolves.toBeUndefined();
+            await exportUtils.createCombinedChartsImage([chartFixture.chart]);
 
             expectCanvasSize(combinedCanvas.canvas, {
                 height: 400,
@@ -580,7 +571,7 @@ describe("exportUtils chart export helpers", () => {
         });
 
         it("creates combined image for multiple charts", async () => {
-            expect.assertions(3);
+            expect.assertions(2);
 
             const { chartFixture, queueCanvas, queueLink } = setupDomHarness();
             const combinedCanvas = createCanvasFixture(
@@ -598,14 +589,12 @@ describe("exportUtils chart export helpers", () => {
             );
             queueLink(linkFixture);
 
-            await expect(
-                exportUtils.createCombinedChartsImage([
-                    chartFixture.chart,
-                    chartFixture.chart,
-                    chartFixture.chart,
-                    chartFixture.chart,
-                ])
-            ).resolves.toBeUndefined();
+            await exportUtils.createCombinedChartsImage([
+                chartFixture.chart,
+                chartFixture.chart,
+                chartFixture.chart,
+                chartFixture.chart,
+            ]);
 
             expectCanvasSize(combinedCanvas.canvas, {
                 height: 820,
@@ -624,10 +613,9 @@ describe("exportUtils chart export helpers", () => {
             combinedCanvas.getContext.mockReturnValue(null);
             queueCanvas(combinedCanvas);
 
-            await expect(
-                exportUtils.createCombinedChartsImage([chartFixture.chart])
-            ).resolves.toBeUndefined();
+            await exportUtils.createCombinedChartsImage([chartFixture.chart]);
 
+            expect(document.body.childElementCount).toBe(0);
             expect(dependencyMocks.showNotification).toHaveBeenCalledWith(
                 "Failed to create combined image",
                 "error"
@@ -647,10 +635,9 @@ describe("exportUtils chart export helpers", () => {
             queueCanvas(exportCanvas);
             installClipboard(writeClipboard);
 
-            await expect(
-                exportUtils.copyChartToClipboard(chartFixture.chart)
-            ).resolves.toBeUndefined();
+            await exportUtils.copyChartToClipboard(chartFixture.chart);
 
+            expect(exportCanvas.context.fillStyle).toBe("#ffffff");
             expect(writeClipboard).toHaveBeenCalledOnce();
             expect(exportCanvas.toDataURL).toHaveBeenCalledWith("image/png", 1);
             expect(dependencyMocks.showNotification).toHaveBeenCalledWith(
@@ -664,10 +651,9 @@ describe("exportUtils chart export helpers", () => {
 
             setupDomHarness();
 
-            await expect(
-                exportUtils.copyChartToClipboard(null)
-            ).resolves.toBeUndefined();
+            await exportUtils.copyChartToClipboard(null);
 
+            expect(document.body.childElementCount).toBe(0);
             expect(dependencyMocks.showNotification).toHaveBeenCalledWith(
                 expect.stringContaining("Failed to copy chart to clipboard"),
                 "error"
@@ -692,10 +678,9 @@ describe("exportUtils chart export helpers", () => {
             queueCanvas(exportCanvas);
             installClipboard(writeClipboard);
 
-            await expect(
-                exportUtils.copyChartToClipboard(chartFixture.chart)
-            ).resolves.toBeUndefined();
+            await exportUtils.copyChartToClipboard(chartFixture.chart);
 
+            expect(exportCanvas.context.fillStyle).toBe("#ffffff");
             expect(
                 testGlobal.electronAPI.writeClipboardPngDataUrl
             ).toHaveBeenCalledWith("data:image/png;base64,bW9jaw==");
@@ -713,10 +698,9 @@ describe("exportUtils chart export helpers", () => {
 
             setupDomHarness();
 
-            await expect(
-                exportUtils.copyCombinedChartsToClipboard([])
-            ).resolves.toBeUndefined();
+            await exportUtils.copyCombinedChartsToClipboard([]);
 
+            expect(document.body.childElementCount).not.toBeGreaterThan(0);
             expect(dependencyMocks.showNotification).toHaveBeenCalledWith(
                 "Failed to copy combined charts to clipboard",
                 "error"
@@ -728,10 +712,9 @@ describe("exportUtils chart export helpers", () => {
 
             setupDomHarness();
 
-            await expect(
-                exportUtils.copyCombinedChartsToClipboard(null)
-            ).resolves.toBeUndefined();
+            await exportUtils.copyCombinedChartsToClipboard(null);
 
+            expect(document.body.childElementCount).toBe(0);
             expect(dependencyMocks.showNotification).toHaveBeenCalledWith(
                 "Failed to copy combined charts to clipboard",
                 "error"
@@ -754,10 +737,11 @@ describe("exportUtils chart export helpers", () => {
             };
             queueCanvas(combinedCanvas, createCanvasFixture());
 
-            await expect(
-                exportUtils.copyCombinedChartsToClipboard([chartFixture.chart])
-            ).resolves.toBeUndefined();
+            await exportUtils.copyCombinedChartsToClipboard([
+                chartFixture.chart,
+            ]);
 
+            expect(combinedCanvas.context.fillStyle).toBe("#ffffff");
             expect(
                 testGlobal.electronAPI.writeClipboardPngDataUrl
             ).toHaveBeenCalledWith("data:image/png;base64,Y29tYmluZWQ=");
@@ -781,10 +765,9 @@ describe("exportUtils chart export helpers", () => {
             combinedCanvas.getContext.mockReturnValue(null);
             queueCanvas(combinedCanvas);
 
-            await expect(
-                exportUtils.createCombinedChartsImage([chartFixture.chart])
-            ).resolves.toBeUndefined();
+            await exportUtils.createCombinedChartsImage([chartFixture.chart]);
 
+            expect(document.body.childElementCount).toBe(0);
             expect(dependencyMocks.showNotification).toHaveBeenCalledWith(
                 "Failed to create combined image",
                 "error"
@@ -792,7 +775,7 @@ describe("exportUtils chart export helpers", () => {
         });
 
         it("skips fillRect for transparent background in combined charts", async () => {
-            expect.assertions(4);
+            expect.assertions(3);
 
             const { chartFixture, queueCanvas, queueLink } = setupDomHarness();
             const combinedCanvas = createCanvasFixture(
@@ -805,9 +788,7 @@ describe("exportUtils chart export helpers", () => {
             queueCanvas(combinedCanvas, createCanvasFixture());
             queueLink(linkFixture);
 
-            await expect(
-                exportUtils.createCombinedChartsImage([chartFixture.chart])
-            ).resolves.toBeUndefined();
+            await exportUtils.createCombinedChartsImage([chartFixture.chart]);
 
             expect(combinedCanvas.context.fillRect).not.toHaveBeenCalled();
             expect(linkFixture.link.href).toBe(
@@ -826,10 +807,9 @@ describe("exportUtils chart export helpers", () => {
                 options: {},
             };
 
-            await expect(
-                exportUtils.downloadChartAsPNG(invalidChart)
-            ).resolves.toBeUndefined();
+            await exportUtils.downloadChartAsPNG(invalidChart);
 
+            expect(document.body.childElementCount).toBe(0);
             expect(dependencyMocks.showNotification).toHaveBeenCalledWith(
                 "Failed to export chart as PNG",
                 "error"
