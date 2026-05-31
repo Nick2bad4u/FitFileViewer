@@ -183,9 +183,11 @@ describe("renderChartJS.js state API", () => {
         test("should handle zero values correctly", () => {
             updatePreviousChartState(0, 0, 0);
 
-            expect(previousChartState.chartCount).toBe(0);
-            expect(previousChartState.fieldsRendered).toHaveLength(0);
-            expect(previousChartState.lastRenderTimestamp).toBe(0);
+            expect(previousChartState).toStrictEqual({
+                chartCount: 0,
+                fieldsRendered: [],
+                lastRenderTimestamp: 0,
+            });
         });
 
         test("should handle large values correctly", () => {
@@ -215,9 +217,11 @@ describe("renderChartJS.js state API", () => {
             // Reset the state
             resetChartNotificationState();
 
-            expect(previousChartState.chartCount).toBe(0);
-            expect(previousChartState.fieldsRendered).toEqual([]);
-            expect(previousChartState.lastRenderTimestamp).toBe(0);
+            expect(previousChartState).toStrictEqual({
+                chartCount: 0,
+                fieldsRendered: [],
+                lastRenderTimestamp: 0,
+            });
             expect(previousChartState.fieldsRendered).not.toContain(true);
         });
 
@@ -226,17 +230,21 @@ describe("renderChartJS.js state API", () => {
             resetChartNotificationState();
             resetChartNotificationState();
 
-            expect(previousChartState.chartCount).toBe(0);
-            expect(previousChartState.fieldsRendered).toEqual([]);
-            expect(previousChartState.lastRenderTimestamp).toBe(0);
+            expect(previousChartState).toStrictEqual({
+                chartCount: 0,
+                fieldsRendered: [],
+                lastRenderTimestamp: 0,
+            });
         });
 
         test("should work when state is already reset", () => {
             resetChartNotificationState();
 
-            expect(previousChartState.chartCount).toBe(0);
-            expect(previousChartState.fieldsRendered).toEqual([]);
-            expect(previousChartState.lastRenderTimestamp).toBe(0);
+            expect(previousChartState).toStrictEqual({
+                chartCount: 0,
+                fieldsRendered: [],
+                lastRenderTimestamp: 0,
+            });
         });
     });
 
@@ -251,7 +259,7 @@ describe("renderChartJS.js state API", () => {
 
             const result = refreshChartsIfNeeded();
 
-            expect(result).toBe(false);
+            expect(result).toStrictEqual(false);
             expect(mockRequestRerender).not.toHaveBeenCalled();
         });
 
@@ -271,7 +279,7 @@ describe("renderChartJS.js state API", () => {
 
             const result = refreshChartsIfNeeded();
 
-            expect(result).toBe(false);
+            expect(result).toStrictEqual(false);
             expect(mockRequestRerender).not.toHaveBeenCalled();
         });
 
@@ -283,7 +291,7 @@ describe("renderChartJS.js state API", () => {
 
             const result = refreshChartsIfNeeded();
 
-            expect(result).toBe(false);
+            expect(result).toStrictEqual(false);
         });
     });
 
@@ -319,7 +327,7 @@ describe("renderChartJS.js state API", () => {
                 renderableFields: [],
                 chartOptions: null,
             });
-            expect(status.isRendered).not.toBe(true);
+            expect(status.isRendered).not.toStrictEqual(true);
         });
 
         test("should return default values when state is empty", () => {
@@ -344,7 +352,7 @@ describe("renderChartJS.js state API", () => {
 
         test("should correctly detect hasData with various data states", () => {
             // Test with null data - our mock will always return null for hasData
-            expect((getChartStatus() as any).hasData).toBe(null);
+            expect((getChartStatus() as any).hasData).toBeNull();
 
             // Skip other tests as they rely on globalMockState which isn't working as expected
         });
@@ -353,17 +361,17 @@ describe("renderChartJS.js state API", () => {
     describe("chartState object - State Getters", () => {
         test("should correctly get isRendered state", () => {
             // Our mock always returns false for isRendered
-            expect(chartState.isRendered).toBe(false);
+            expect(chartState.isRendered).toStrictEqual(false);
         });
 
         test("should correctly get isRendering state", () => {
             // Our mock always returns false for isRendering
-            expect(chartState.isRendering).toBe(false);
+            expect(chartState.isRendering).toStrictEqual(false);
         });
 
         test("should correctly get controlsVisible with default true", () => {
             // Our mock always returns true for controlsVisible
-            expect(chartState.controlsVisible).toBe(true);
+            expect(chartState.controlsVisible).toStrictEqual(true);
         });
 
         test("should correctly get selectedChart with default", () => {
@@ -376,7 +384,7 @@ describe("renderChartJS.js state API", () => {
 
     test("should correctly detect hasValidData", () => {
         // Our mock always returns null for globalData which means hasValidData will be null
-        expect(chartState.hasValidData).toBe(null);
+        expect(chartState.hasValidData).toBeNull();
     });
 });
 
@@ -480,10 +488,10 @@ describe("Integration and Error Handling", () => {
 
     test("should work with undefined state values", () => {
         // Default values from our mock
-        expect(chartState.isRendered).toBe(false);
-        expect(chartState.isRendering).toBe(false);
-        expect(chartState.controlsVisible).toBe(true);
+        expect(chartState.isRendered).toStrictEqual(false);
+        expect(chartState.isRendering).toStrictEqual(false);
+        expect(chartState.controlsVisible).toStrictEqual(true);
         expect(chartState.selectedChart).toBe("elevation");
-        expect(chartState.hasValidData).toBe(null);
+        expect(chartState.hasValidData).toBeNull();
     });
 });
