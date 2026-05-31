@@ -1,13 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import * as stateManager from "../../../../../electron-app/utils/state/core/stateManager.js";
+import type { StateListener } from "../../../../../electron-app/utils/state/core/stateManager.js";
 import * as rendererUtils from "../../../../../electron-app/utils/app/initialization/rendererUtils.js";
 import {
     FitFileSelectors,
     FitFileStateManager,
 } from "../../../../../electron-app/utils/state/domain/fitFileState.js";
 
-describe("FitFileStateManager - domain logic and selectors", () => {
+describe("fitFileStateManager - domain logic and selectors", () => {
     beforeEach(() => {
         // Reset DOM for progress updates
         document.body.replaceChildren();
@@ -20,6 +21,8 @@ describe("FitFileStateManager - domain logic and selectors", () => {
     });
 
     it("assessDataQuality handles missing/empty and computes coverage/flags", () => {
+        expect.hasAssertions();
+
         const mgr = new FitFileStateManager();
         // No data
         const q1 = mgr.assessDataQuality(undefined as any);
@@ -60,12 +63,12 @@ describe("FitFileStateManager - domain logic and selectors", () => {
     });
 
     it("extractors handle null/valid objects", () => {
+        expect.hasAssertions();
+
         const mgr = new FitFileStateManager();
         expect(mgr.extractActivityInfo(null as any)).toBeNull();
-        expect(mgr.extractDeviceInfo(/** @type any */ {})).toBeNull();
-        expect(
-            mgr.extractSessionInfo(/** @type any */ { sessionMesgs: [] })
-        ).toBeNull();
+        expect(mgr.extractDeviceInfo({} as any)).toBeNull();
+        expect(mgr.extractSessionInfo({ sessionMesgs: [] } as any)).toBeNull();
 
         const activity = mgr.extractActivityInfo({
             activities: [
@@ -126,6 +129,8 @@ describe("FitFileStateManager - domain logic and selectors", () => {
     });
 
     it("getRecordCount handles null and arrays", () => {
+        expect.hasAssertions();
+
         const mgr = new FitFileStateManager();
         expect(mgr.getRecordCount(null as any)).toBe(0);
         expect(mgr.getRecordCount({ recordMesgs: [] })).toBe(0);
@@ -143,6 +148,8 @@ describe("FitFileStateManager - domain logic and selectors", () => {
     });
 
     it("clearFileState sets all related paths and logs", () => {
+        expect.hasAssertions();
+
         const mgr = new FitFileStateManager();
         const spy = vi.spyOn(stateManager, "setState");
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
@@ -159,10 +166,14 @@ describe("FitFileStateManager - domain logic and selectors", () => {
             "fitFile.loadingError",
             "fitFile.processingError",
         ].forEach((p) => expect(calls).toContain(p));
-        expect(logSpy).toHaveBeenCalled();
+        expect(logSpy).toHaveBeenCalledWith(
+            "[FitFileState] File state cleared"
+        );
     });
 
     it("startFileLoading sets loading flags and current file", () => {
+        expect.hasAssertions();
+
         const mgr = new FitFileStateManager();
         const spy = vi.spyOn(stateManager, "setState");
         mgr.startFileLoading("C:/file.fit");
@@ -192,6 +203,8 @@ describe("FitFileStateManager - domain logic and selectors", () => {
     });
 
     it("handleFileLoaded updates domain + legacy slices and notifies", () => {
+        expect.hasAssertions();
+
         const mgr = new FitFileStateManager();
         const ss = vi.spyOn(stateManager, "setState");
         const gs = vi
@@ -207,7 +220,7 @@ describe("FitFileStateManager - domain logic and selectors", () => {
             .mockImplementation(() => {});
 
         const data = { recordMesgs: [{}] };
-        mgr.handleFileLoaded(/** @type any */ data, {
+        mgr.handleFileLoaded(data as any, {
             filePath: "C:/demo.fit",
         });
         gs.mockRestore();
@@ -269,21 +282,34 @@ describe("FitFileStateManager - domain logic and selectors", () => {
             "success",
             3000
         );
-        expect(stateManager.getState("fitFile.isLoading")).toBe(false);
-        expect(stateManager.getState("fitFile.loadingProgress")).toBe(100);
-        expect(stateManager.getState("fitFile.loadingError")).toBeNull();
-        expect(stateManager.getState("fitFile.rawData")).toBe(data);
-        expect(stateManager.getState("globalData")).toBe(data);
-        expect(stateManager.getState("currentFile")).toBe("C:/demo.fit");
-        expect(stateManager.getState("fitFile.currentFile")).toBe(
-            "C:/demo.fit"
-        );
-        expect(stateManager.getState("charts.isRendered")).toBe(false);
-        expect(stateManager.getState("map.isRendered")).toBe(false);
-        expect(stateManager.getState("tables.isRendered")).toBe(false);
+        expect({
+            chartsRendered: stateManager.getState("charts.isRendered"),
+            currentFile: stateManager.getState("currentFile"),
+            fitFileCurrentFile: stateManager.getState("fitFile.currentFile"),
+            globalData: stateManager.getState("globalData"),
+            isLoading: stateManager.getState("fitFile.isLoading"),
+            loadingError: stateManager.getState("fitFile.loadingError"),
+            loadingProgress: stateManager.getState("fitFile.loadingProgress"),
+            mapRendered: stateManager.getState("map.isRendered"),
+            rawData: stateManager.getState("fitFile.rawData"),
+            tablesRendered: stateManager.getState("tables.isRendered"),
+        }).toEqual({
+            chartsRendered: false,
+            currentFile: "C:/demo.fit",
+            fitFileCurrentFile: "C:/demo.fit",
+            globalData: data,
+            isLoading: false,
+            loadingError: null,
+            loadingProgress: 100,
+            mapRendered: false,
+            rawData: data,
+            tablesRendered: false,
+        });
     });
 
     it("handleFileLoadingError records error once and notifies", () => {
+        expect.hasAssertions();
+
         const mgr = new FitFileStateManager();
         const ss = vi.spyOn(stateManager, "setState");
         const notif = vi
@@ -305,10 +331,16 @@ describe("FitFileStateManager - domain logic and selectors", () => {
             "oops",
             expect.any(Object),
         ]);
-        expect(notif).toHaveBeenCalled();
+        expect(notif).toHaveBeenCalledWith(
+            "Failed to load FIT file: oops",
+            "error",
+            5000
+        );
     });
 
     it("handleFileLoadingError ignores nullish and duplicate normalized values", () => {
+        expect.hasAssertions();
+
         const mgr = new FitFileStateManager();
         const ss = vi.spyOn(stateManager, "setState");
         const notif = vi
@@ -349,6 +381,8 @@ describe("FitFileStateManager - domain logic and selectors", () => {
     });
 
     it("processFileData sets processedData; error path sets processingError", () => {
+        expect.hasAssertions();
+
         const mgr = new FitFileStateManager();
         mgr.processFileData({ recordMesgs: [{ heart_rate: 100 }] });
         const payload = stateManager.getState("fitFile.processedData");
@@ -383,12 +417,16 @@ describe("FitFileStateManager - domain logic and selectors", () => {
     });
 
     it("sets up subscriptions for processing, loading, and validation", () => {
-        const subscribeCalls: Array<{ path: string; cb: Function }> = [];
+        expect.hasAssertions();
+
+        const subscribeCalls: Array<{ cb: StateListener; path: string }> = [];
         const subSpy = vi
             .spyOn(stateManager, "subscribe")
-            .mockImplementation((path: string, cb: Function) => {
+            .mockImplementation((path: string, cb: StateListener) => {
                 subscribeCalls.push({ path, cb });
-                return () => {};
+                return () => {
+                    // no-op unsubscribe for test callback capture
+                };
             });
 
         const mgr = new FitFileStateManager();
@@ -408,24 +446,37 @@ describe("FitFileStateManager - domain logic and selectors", () => {
         const procSubs = subscribeCalls.filter((c) => c.path === "globalData");
         const pSpy = vi.spyOn(mgr, "processFileData");
         const vSpy = vi.spyOn(mgr, "validateFileData");
-        procSubs.forEach((s) => s.cb({ recordMesgs: [{}] }));
-        expect(pSpy).toHaveBeenCalled();
-        expect(vSpy).toHaveBeenCalled();
+        const recordPayload = { recordMesgs: [{}] };
+        for (const subscription of procSubs) {
+            subscription.cb(recordPayload, undefined, "globalData");
+        }
+        expect(pSpy).toHaveBeenCalledWith(recordPayload);
+        expect(vSpy).toHaveBeenCalledWith(recordPayload);
 
         // Trigger metrics update
         const mSpy = vi.spyOn(mgr, "updateFileMetrics");
         const fitSubs = subscribeCalls.filter(
             (c) => c.path === "fitFile.processedData"
         );
-        fitSubs.forEach((s) =>
-            s.cb({ recordCount: 2, dataQuality: { completeness: 75 } })
-        );
-        expect(mSpy).toHaveBeenCalled();
+        const processedPayload = {
+            dataQuality: { completeness: 75 },
+            recordCount: 2,
+        };
+        for (const subscription of fitSubs) {
+            subscription.cb(
+                processedPayload,
+                undefined,
+                "fitFile.processedData"
+            );
+        }
+        expect(mSpy).toHaveBeenCalledWith(processedPayload);
 
         subSpy.mockRestore();
     });
 
     it("updateFileMetrics merges metrics into state", () => {
+        expect.hasAssertions();
+
         const mgr = new FitFileStateManager();
         const uspy = vi.spyOn(stateManager, "updateState");
         mgr.updateFileMetrics({
@@ -464,6 +515,8 @@ describe("FitFileStateManager - domain logic and selectors", () => {
     });
 
     it("updateLoadingProgress updates ui.loadingIndicator state", () => {
+        expect.hasAssertions();
+
         const mgr = new FitFileStateManager();
         const uspy = vi.spyOn(stateManager, "updateState");
         mgr.updateLoadingProgress(30);
@@ -481,6 +534,8 @@ describe("FitFileStateManager - domain logic and selectors", () => {
     });
 
     it("validateFileData sets validation, shows error/warning/happy notifications", () => {
+        expect.hasAssertions();
+
         const mgr = new FitFileStateManager();
         const ss = vi.spyOn(stateManager, "setState");
         const notif = vi
@@ -534,7 +589,9 @@ describe("FitFileStateManager - domain logic and selectors", () => {
         );
     });
 
-    it("FitFileSelectors read values from state", () => {
+    it("fitFileSelectors read values from state", () => {
+        expect.hasAssertions();
+
         // Use real state manager setters
         stateManager.setState("fitFile.currentFile", "A", { source: "test" });
         stateManager.setState("fitFile.loadingError", "ERR", {
@@ -566,18 +623,39 @@ describe("FitFileStateManager - domain logic and selectors", () => {
         );
         stateManager.setState("fitFile.isLoading", true, { source: "test" });
 
-        expect(FitFileSelectors.getCurrentFile()).toBe("A");
-        expect(FitFileSelectors.getLoadingError()).toBe("ERR");
-        expect(FitFileSelectors.getLoadingProgress()).toBe(42);
-        expect(FitFileSelectors.getMetrics()).toEqual({ recordCount: 1 });
-        expect(FitFileSelectors.getProcessedData()).toEqual({
-            dataQuality: { hasGPS: true, hasHeartRate: false, hasPower: true },
+        expect({
+            currentFile: FitFileSelectors.getCurrentFile(),
+            loadingError: FitFileSelectors.getLoadingError(),
+            loadingProgress: FitFileSelectors.getLoadingProgress(),
+            metrics: FitFileSelectors.getMetrics(),
+            processedData: FitFileSelectors.getProcessedData(),
+            validation: FitFileSelectors.getValidation(),
+        }).toEqual({
+            currentFile: "A",
+            loadingError: "ERR",
+            loadingProgress: 42,
+            metrics: { recordCount: 1 },
+            processedData: {
+                dataQuality: {
+                    hasGPS: true,
+                    hasHeartRate: false,
+                    hasPower: true,
+                },
+            },
+            validation: { isValid: true },
         });
-        expect(FitFileSelectors.getValidation()).toEqual({ isValid: true });
-        expect(FitFileSelectors.hasGPS()).toBe(true);
-        expect(FitFileSelectors.hasHeartRate()).toBe(false);
-        expect(FitFileSelectors.hasPower()).toBe(true);
-        expect(FitFileSelectors.isFileValid()).toBe(true);
-        expect(FitFileSelectors.isLoading()).toBe(true);
+        expect({
+            hasGPS: FitFileSelectors.hasGPS(),
+            hasHeartRate: FitFileSelectors.hasHeartRate(),
+            hasPower: FitFileSelectors.hasPower(),
+            isFileValid: FitFileSelectors.isFileValid(),
+            isLoading: FitFileSelectors.isLoading(),
+        }).toEqual({
+            hasGPS: true,
+            hasHeartRate: false,
+            hasPower: true,
+            isFileValid: true,
+            isLoading: true,
+        });
     });
 });
