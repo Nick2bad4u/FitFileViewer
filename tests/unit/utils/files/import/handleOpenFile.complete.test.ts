@@ -1,35 +1,115 @@
-/**
- * @file Complete Tests for handleOpenFile module
- *
- * @vitest-environment jsdom
- */
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import type { FitDecodeResult } from "../../../../../electron-app/shared/fit";
+
+type StateManagerModule =
+    typeof import("../../../../../electron-app/utils/state/core/stateManager.js");
+type HandleOpenFileModule =
+    typeof import("../../../../../electron-app/utils/files/import/handleOpenFile.js");
+
+type NotificationType = "error" | "info" | "success" | "warning";
+type MockNotification = (
+    message: string,
+    type?: NotificationType,
+    duration?: number
+) => void;
+type MockElectronAPI = {
+    decodeFitFile: ReturnType<
+        typeof vi.fn<(buffer: ArrayBuffer) => Promise<FitDecodeResult>>
+    >;
+    openFile: ReturnType<typeof vi.fn<() => Promise<null | string | string[]>>>;
+    openFileDialog: ReturnType<typeof vi.fn<() => Promise<null | string>>>;
+    parseFitFile: ReturnType<
+        typeof vi.fn<(buffer: ArrayBuffer) => Promise<FitDecodeResult>>
+    >;
+    readFile: ReturnType<
+        typeof vi.fn<(filePath: string) => Promise<ArrayBuffer>>
+    >;
+    recentFiles: ReturnType<typeof vi.fn<() => Promise<string[]>>>;
+};
+type TestWindow = Window &
+    typeof globalThis & {
+        electronAPI?: Partial<MockElectronAPI>;
+        sendFitFileToAltFitReader?: (buffer: ArrayBuffer) => void;
+        showFitData?: (data: unknown, fileName?: string) => void;
+    };
+type TestOpenFileParams = {
+    isOpeningFileRef: { value: boolean };
+    openFileBtn: HTMLButtonElement;
+    setLoading: ReturnType<typeof vi.fn<(isLoading: boolean) => void>>;
+    showNotification: ReturnType<typeof vi.fn<MockNotification>>;
+};
 
 // Create direct mocks for stateManager with proper implementation
 const stateManagerMock = {
-    setState: vi.fn(),
-    getState: vi.fn(),
-    subscribe: vi.fn(() => () => {}),
-    clearAllListeners: vi.fn(),
-    resetState: vi.fn(),
-    __resetStateManagerForTests: vi.fn(),
-    __clearAllListenersForTests: vi.fn(),
+    setState: vi.fn<StateManagerModule["setState"]>(),
+    getState: vi.fn<StateManagerModule["getState"]>(),
+    subscribe: vi.fn<StateManagerModule["subscribe"]>(() => () => {}),
+    clearAllListeners: vi.fn<() => void>(),
+    resetState: vi.fn<() => void>(),
+    __resetStateManagerForTests: vi.fn<() => void>(),
+    __clearAllListenersForTests: vi.fn<() => void>(),
 };
 
 // Explicitly mock the stateManager module with a complete implementation
-vi.mock("../../../../../electron-app/utils/state/core/stateManager.js", () => ({
-    setState: stateManagerMock.setState,
-    getState: stateManagerMock.getState,
-    subscribe: stateManagerMock.subscribe,
-    clearAllListeners: stateManagerMock.clearAllListeners,
-    resetState: stateManagerMock.resetState,
-    __resetStateManagerForTests: stateManagerMock.__resetStateManagerForTests,
-    __clearAllListenersForTests: stateManagerMock.__clearAllListenersForTests,
-}));
+vi.mock(
+    import("../../../../../electron-app/utils/state/core/stateManager.js"),
+    () => ({
+        setState: stateManagerMock.setState,
+        getState: stateManagerMock.getState,
+        subscribe: stateManagerMock.subscribe,
+        clearAllListeners: stateManagerMock.clearAllListeners,
+        resetState: stateManagerMock.resetState,
+        __resetStateManagerForTests:
+            stateManagerMock.__resetStateManagerForTests,
+        __clearAllListenersForTests:
+            stateManagerMock.__clearAllListenersForTests,
+    })
+);
 
 // Variables to hold the imported module functions
-/** @type {any} */
-let handleOpenFileModule;
+let handleOpenFileModule: HandleOpenFileModule;
+
+function getTestWindow(): TestWindow {
+    return globalThis.window as TestWindow;
+}
+
+function getElectronAPI(): MockElectronAPI {
+    const { electronAPI } = getTestWindow();
+    if (!electronAPI) {
+        throw new Error("electronAPI was not configured for the test");
+    }
+    return electronAPI as MockElectronAPI;
+}
+
+function createElectronAPIMock(): MockElectronAPI {
+    const electronAPIMock = {
+        openFile: vi.fn<() => Promise<null | string | string[]>>(),
+        readFile: vi.fn<(filePath: string) => Promise<ArrayBuffer>>(),
+        parseFitFile:
+            vi.fn<(buffer: ArrayBuffer) => Promise<FitDecodeResult>>(),
+        openFileDialog: vi.fn<() => Promise<null | string>>(),
+        decodeFitFile:
+            vi.fn<(buffer: ArrayBuffer) => Promise<FitDecodeResult>>(),
+        recentFiles: vi.fn<() => Promise<string[]>>(),
+    };
+
+    electronAPIMock.openFile.mockResolvedValue(["test.fit"]);
+    electronAPIMock.readFile.mockResolvedValue(new ArrayBuffer(100));
+    electronAPIMock.parseFitFile.mockResolvedValue({
+        data: { sessions: [] },
+    });
+
+    return electronAPIMock;
+}
+
+function createOpenFileParams(): TestOpenFileParams {
+    return {
+        isOpeningFileRef: { value: false },
+        openFileBtn: document.createElement("button"),
+        setLoading: vi.fn<(isLoading: boolean) => void>(),
+        showNotification: vi.fn<MockNotification>(),
+    };
+}
 
 describe("handleOpenFile Module", () => {
     beforeEach(async () => {
@@ -48,46 +128,40 @@ describe("handleOpenFile Module", () => {
             env: { NODE_ENV: "development" },
         };
 
-        // Mock window.electronAPI with proper types
-        global.window = global.window || {};
-
-        // Create the electronAPI object with mock functions
-        const electronAPIMock = {
-            openFile: vi.fn(),
-            readFile: vi.fn(),
-            parseFitFile: vi.fn(),
-            openFileDialog: vi.fn(),
-            decodeFitFile: vi.fn(),
-            recentFiles: vi.fn(),
-        };
-
-        // Add mock implementations
-        electronAPIMock.openFile.mockResolvedValue(["test.fit"]);
-        electronAPIMock.readFile.mockResolvedValue(new ArrayBuffer(100));
-        electronAPIMock.parseFitFile.mockResolvedValue({
-            data: { sessions: [] },
-        });
+        const testWindow = getTestWindow();
 
         // Assign the mock to window.electronAPI
-        global.window.electronAPI = electronAPIMock;
+        testWindow.electronAPI = createElectronAPIMock();
 
         // Set up additional window functions
-        global.window.showFitData = vi.fn();
-        global.window.sendFitFileToAltFitReader = vi.fn();
+        testWindow.showFitData = (_data: unknown, _fileName?: string): void => {
+            // Stubbed for tests and spied on below.
+        };
+        testWindow.sendFitFileToAltFitReader = (_buffer: ArrayBuffer): void => {
+            // Stubbed for tests and spied on below.
+        };
+        vi.spyOn(testWindow, "showFitData").mockImplementation(
+            (_data: unknown, _fileName?: string): void => {}
+        );
+        vi.spyOn(testWindow, "sendFitFileToAltFitReader").mockImplementation(
+            (_buffer: ArrayBuffer): void => {}
+        );
 
         // Import the module under test
         handleOpenFileModule =
             await import("../../../../../electron-app/utils/files/import/handleOpenFile.js");
     });
 
-    describe("Module Exports", () => {
+    describe("module exports", () => {
         it("should export expected functions", () => {
-            expect(typeof handleOpenFileModule.handleOpenFile).toBe("function");
-            expect(typeof handleOpenFileModule.logWithContext).toBe("function");
-            expect(typeof handleOpenFileModule.validateElectronAPI).toBe(
+            expect.hasAssertions();
+
+            expect(handleOpenFileModule.handleOpenFile).toBeTypeOf("function");
+            expect(handleOpenFileModule.logWithContext).toBeTypeOf("function");
+            expect(handleOpenFileModule.validateElectronAPI).toBeTypeOf(
                 "function"
             );
-            expect(typeof handleOpenFileModule.updateUIState).toBe("function");
+            expect(handleOpenFileModule.updateUIState).toBeTypeOf("function");
             expect(handleOpenFileModule).not.toHaveProperty(
                 "missingExportForTest"
             );
@@ -141,10 +215,14 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should handle exceptions when logging fails", () => {
+            expect.hasAssertions();
+
             // Force console.log to throw an error
-            console.info = vi.fn().mockImplementationOnce(() => {
-                throw new Error("Logging error");
-            });
+            vi.spyOn(console, "info")
+                .mockImplementation((_message?: unknown): void => {})
+                .mockImplementationOnce((_message?: unknown): void => {
+                    throw new Error("Logging error");
+                });
 
             // This should not throw an error
             expect(() => {
@@ -155,35 +233,44 @@ describe("handleOpenFile Module", () => {
 
     describe("validateElectronAPI", () => {
         it("should return true when electronAPI is available", () => {
+            expect.hasAssertions();
+
             expect(handleOpenFileModule.validateElectronAPI()).toBe(true);
         });
 
         it("should return false when electronAPI is not available", () => {
-            const originalElectronAPI = global.window.electronAPI;
-            global.window.electronAPI = undefined;
+            expect.hasAssertions();
+
+            const originalElectronAPI = getTestWindow().electronAPI;
+            getTestWindow().electronAPI = undefined;
             expect(handleOpenFileModule.validateElectronAPI()).toBe(false);
-            global.window.electronAPI = originalElectronAPI;
+            getTestWindow().electronAPI = originalElectronAPI;
         });
 
         it("should return false when required methods are missing", () => {
-            const originalElectronAPI = global.window.electronAPI;
-            global.window.electronAPI = {
-                readFile: vi.fn(),
-                parseFitFile: vi.fn(),
+            expect.hasAssertions();
+
+            const originalElectronAPI = getTestWindow().electronAPI;
+            getTestWindow().electronAPI = {
+                readFile: vi.fn<(filePath: string) => Promise<ArrayBuffer>>(),
+                parseFitFile:
+                    vi.fn<(buffer: ArrayBuffer) => Promise<FitDecodeResult>>(),
             }; // Missing openFile
             expect(handleOpenFileModule.validateElectronAPI()).toBe(false);
-            global.window.electronAPI = originalElectronAPI;
+            getTestWindow().electronAPI = originalElectronAPI;
         });
     });
 
     describe("updateUIState", () => {
         it("should update UI elements with loading and file info", async () => {
+            expect.hasAssertions();
+
             // Reset stateManager mock
             stateManagerMock.setState.mockClear();
 
             const uiElements = {
                 openFileBtn: document.createElement("button"),
-                setLoading: vi.fn(),
+                setLoading: vi.fn<(isLoading: boolean) => void>(),
                 isOpeningFileRef: { value: false },
             };
 
@@ -197,12 +284,14 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should update UI elements with completed status", async () => {
+            expect.hasAssertions();
+
             // Reset stateManager mock
             stateManagerMock.setState.mockClear();
 
             const uiElements = {
                 openFileBtn: document.createElement("button"),
-                setLoading: vi.fn(),
+                setLoading: vi.fn<(isLoading: boolean) => void>(),
                 isOpeningFileRef: { value: true },
             };
 
@@ -216,6 +305,8 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should handle missing UI elements", () => {
+            expect.hasAssertions();
+
             // Reset stateManager mock
             stateManagerMock.setState.mockClear();
 
@@ -236,6 +327,8 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should handle errors when updating UI state", () => {
+            expect.hasAssertions();
+
             // Reset mocks
             stateManagerMock.setState.mockClear();
             console.error.mockClear();
@@ -270,42 +363,34 @@ describe("handleOpenFile Module", () => {
 
     describe("handleOpenFile", () => {
         it("should successfully handle a file open operation", async () => {
-            const mockParams = {
-                isOpeningFileRef: { value: false },
-                openFileBtn: document.createElement("button"),
-                setLoading: vi.fn(),
-                showNotification: vi.fn(),
-            };
+            expect.hasAssertions();
+
+            const mockParams = createOpenFileParams();
 
             // Mock successful file opening
-            global.window.electronAPI.openFile.mockResolvedValue("test.fit");
-            global.window.electronAPI.readFile.mockResolvedValue(
-                new ArrayBuffer(100)
-            );
-            global.window.electronAPI.parseFitFile.mockResolvedValue({
+            getElectronAPI().openFile.mockResolvedValue("test.fit");
+            getElectronAPI().readFile.mockResolvedValue(new ArrayBuffer(100));
+            getElectronAPI().parseFitFile.mockResolvedValue({
                 data: { sessions: [] },
             });
 
             const result =
                 await handleOpenFileModule.handleOpenFile(mockParams);
 
-            expect(global.window.electronAPI.openFile).toHaveBeenCalled();
-            expect(global.window.electronAPI.readFile).toHaveBeenCalledWith(
-                "test.fit"
+            expect(getElectronAPI().openFile).toHaveBeenCalledWith();
+            expect(getElectronAPI().readFile).toHaveBeenCalledWith("test.fit");
+            expect(getElectronAPI().parseFitFile).toHaveBeenCalledWith(
+                expect.any(ArrayBuffer)
             );
-            expect(global.window.electronAPI.parseFitFile).toHaveBeenCalled();
             expect(result).toBe(true);
         });
 
         it("should handle when user cancels file selection", async () => {
-            global.window.electronAPI.openFile.mockResolvedValue(null);
+            expect.hasAssertions();
 
-            const mockParams = {
-                isOpeningFileRef: { value: false },
-                openFileBtn: document.createElement("button"),
-                setLoading: vi.fn(),
-                showNotification: vi.fn(),
-            };
+            getElectronAPI().openFile.mockResolvedValue(null);
+
+            const mockParams = createOpenFileParams();
 
             const result =
                 await handleOpenFileModule.handleOpenFile(mockParams);
@@ -314,11 +399,13 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should prevent multiple file opening operations", async () => {
+            expect.hasAssertions();
+
             const mockParams = {
                 isOpeningFileRef: { value: true }, // Already opening a file
                 openFileBtn: document.createElement("button"),
-                setLoading: vi.fn(),
-                showNotification: vi.fn(),
+                setLoading: vi.fn<(isLoading: boolean) => void>(),
+                showNotification: vi.fn<MockNotification>(),
             };
 
             const result =
@@ -332,17 +419,12 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should handle empty files", async () => {
-            global.window.electronAPI.openFile.mockResolvedValue("test.fit");
-            global.window.electronAPI.readFile.mockResolvedValue(
-                new ArrayBuffer(0)
-            );
+            expect.hasAssertions();
 
-            const mockParams = {
-                isOpeningFileRef: { value: false },
-                openFileBtn: document.createElement("button"),
-                setLoading: vi.fn(),
-                showNotification: vi.fn(),
-            };
+            getElectronAPI().openFile.mockResolvedValue("test.fit");
+            getElectronAPI().readFile.mockResolvedValue(new ArrayBuffer(0));
+
+            const mockParams = createOpenFileParams();
 
             const result = await handleOpenFileModule.handleOpenFile(
                 mockParams,
@@ -357,16 +439,13 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should handle file open errors", async () => {
-            global.window.electronAPI.openFile.mockRejectedValue(
+            expect.hasAssertions();
+
+            getElectronAPI().openFile.mockRejectedValue(
                 new Error("Open error")
             );
 
-            const mockParams = {
-                isOpeningFileRef: { value: false },
-                openFileBtn: document.createElement("button"),
-                setLoading: vi.fn(),
-                showNotification: vi.fn(),
-            };
+            const mockParams = createOpenFileParams();
 
             const result =
                 await handleOpenFileModule.handleOpenFile(mockParams);
@@ -379,17 +458,14 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should handle file read errors", async () => {
-            global.window.electronAPI.openFile.mockResolvedValue("test.fit");
-            global.window.electronAPI.readFile.mockRejectedValue(
+            expect.hasAssertions();
+
+            getElectronAPI().openFile.mockResolvedValue("test.fit");
+            getElectronAPI().readFile.mockRejectedValue(
                 new Error("Read error")
             );
 
-            const mockParams = {
-                isOpeningFileRef: { value: false },
-                openFileBtn: document.createElement("button"),
-                setLoading: vi.fn(),
-                showNotification: vi.fn(),
-            };
+            const mockParams = createOpenFileParams();
 
             const result =
                 await handleOpenFileModule.handleOpenFile(mockParams);
@@ -402,20 +478,15 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should handle file parse errors", async () => {
-            global.window.electronAPI.openFile.mockResolvedValue("test.fit");
-            global.window.electronAPI.readFile.mockResolvedValue(
-                new ArrayBuffer(100)
-            );
-            global.window.electronAPI.parseFitFile.mockRejectedValue(
+            expect.hasAssertions();
+
+            getElectronAPI().openFile.mockResolvedValue("test.fit");
+            getElectronAPI().readFile.mockResolvedValue(new ArrayBuffer(100));
+            getElectronAPI().parseFitFile.mockRejectedValue(
                 new Error("Parse error")
             );
 
-            const mockParams = {
-                isOpeningFileRef: { value: false },
-                openFileBtn: document.createElement("button"),
-                setLoading: vi.fn(),
-                showNotification: vi.fn(),
-            };
+            const mockParams = createOpenFileParams();
 
             const result =
                 await handleOpenFileModule.handleOpenFile(mockParams);
@@ -428,21 +499,16 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should handle parse result errors", async () => {
-            global.window.electronAPI.openFile.mockResolvedValue("test.fit");
-            global.window.electronAPI.readFile.mockResolvedValue(
-                new ArrayBuffer(100)
-            );
-            global.window.electronAPI.parseFitFile.mockResolvedValue({
+            expect.hasAssertions();
+
+            getElectronAPI().openFile.mockResolvedValue("test.fit");
+            getElectronAPI().readFile.mockResolvedValue(new ArrayBuffer(100));
+            getElectronAPI().parseFitFile.mockResolvedValue({
                 error: "Parse error",
                 details: "Invalid file format",
             });
 
-            const mockParams = {
-                isOpeningFileRef: { value: false },
-                openFileBtn: document.createElement("button"),
-                setLoading: vi.fn(),
-                showNotification: vi.fn(),
-            };
+            const mockParams = createOpenFileParams();
 
             const result =
                 await handleOpenFileModule.handleOpenFile(mockParams);
@@ -455,25 +521,20 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should handle errors when displaying FIT data", async () => {
-            global.window.electronAPI.openFile.mockResolvedValue("test.fit");
-            global.window.electronAPI.readFile.mockResolvedValue(
-                new ArrayBuffer(100)
-            );
-            global.window.electronAPI.parseFitFile.mockResolvedValue({
+            expect.hasAssertions();
+
+            getElectronAPI().openFile.mockResolvedValue("test.fit");
+            getElectronAPI().readFile.mockResolvedValue(new ArrayBuffer(100));
+            getElectronAPI().parseFitFile.mockResolvedValue({
                 data: { sessions: [{ id: 1 }] },
             });
 
             // Make window.showFitData throw an error
-            global.window.showFitData = vi.fn().mockImplementation(() => {
+            vi.spyOn(getTestWindow(), "showFitData").mockImplementation(() => {
                 throw new Error("Display error");
             });
 
-            const mockParams = {
-                isOpeningFileRef: { value: false },
-                openFileBtn: document.createElement("button"),
-                setLoading: vi.fn(),
-                showNotification: vi.fn(),
-            };
+            const mockParams = createOpenFileParams();
 
             // Should still return true since the file was parsed successfully
             const result =
@@ -487,78 +548,64 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should handle file path array", async () => {
-            global.window.electronAPI.openFile.mockResolvedValue([
+            expect.hasAssertions();
+
+            getElectronAPI().openFile.mockResolvedValue([
                 "test.fit",
                 "second.fit",
             ]);
-            global.window.electronAPI.readFile.mockResolvedValue(
-                new ArrayBuffer(100)
-            );
-            global.window.electronAPI.parseFitFile.mockResolvedValue({
+            getElectronAPI().readFile.mockResolvedValue(new ArrayBuffer(100));
+            getElectronAPI().parseFitFile.mockResolvedValue({
                 data: { sessions: [{ id: 1 }] },
             });
 
-            const mockParams = {
-                isOpeningFileRef: { value: false },
-                openFileBtn: document.createElement("button"),
-                setLoading: vi.fn(),
-                showNotification: vi.fn(),
-            };
+            const mockParams = createOpenFileParams();
 
             const result =
                 await handleOpenFileModule.handleOpenFile(mockParams);
 
             expect(result).toBe(true);
-            expect(global.window.electronAPI.readFile).toHaveBeenCalledWith(
-                "test.fit"
-            );
+            expect(getElectronAPI().readFile).toHaveBeenCalledWith("test.fit");
         });
 
         it("should handle empty file path array", async () => {
-            global.window.electronAPI.openFile.mockResolvedValue([]);
+            expect.hasAssertions();
 
-            const mockParams = {
-                isOpeningFileRef: { value: false },
-                openFileBtn: document.createElement("button"),
-                setLoading: vi.fn(),
-                showNotification: vi.fn(),
-            };
+            getElectronAPI().openFile.mockResolvedValue([]);
+
+            const mockParams = createOpenFileParams();
 
             const result =
                 await handleOpenFileModule.handleOpenFile(mockParams);
 
             expect(result).toBe(false);
-            expect(mockParams.showNotification).toHaveBeenCalled();
-            expect(global.window.electronAPI.readFile).not.toHaveBeenCalled();
+            expect(mockParams.showNotification).toHaveBeenCalledWith(
+                "Error reading file: No file path provided",
+                "error"
+            );
+            expect(getElectronAPI().readFile).not.toHaveBeenCalled();
         });
 
         it("should handle debug mode output", async () => {
+            expect.hasAssertions();
+
             const mockData = {
                 data: {
                     sessions: [{ id: 1 }, { id: 2 }],
                 },
             };
 
-            global.window.electronAPI.openFile.mockResolvedValue("test.fit");
-            global.window.electronAPI.readFile.mockResolvedValue(
-                new ArrayBuffer(100)
-            );
-            global.window.electronAPI.parseFitFile.mockResolvedValue(mockData);
+            getElectronAPI().openFile.mockResolvedValue("test.fit");
+            getElectronAPI().readFile.mockResolvedValue(new ArrayBuffer(100));
+            getElectronAPI().parseFitFile.mockResolvedValue(mockData);
 
-            const mockParams = {
-                isOpeningFileRef: { value: false },
-                openFileBtn: document.createElement("button"),
-                setLoading: vi.fn(),
-                showNotification: vi.fn(),
-            };
+            const mockParams = createOpenFileParams();
 
             // Make sure we're in development mode
-            if (process.env) {
-                process.env.NODE_ENV = "development";
-            }
+            process.env.NODE_ENV = "development";
 
             // Reset console.log mock to track calls
-            console.log = vi.fn();
+            vi.spyOn(console, "log").mockImplementation();
 
             const result =
                 await handleOpenFileModule.handleOpenFile(mockParams);
@@ -572,21 +619,16 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should skip file size validation when option is disabled", async () => {
+            expect.hasAssertions();
+
             // Empty file would normally fail
-            global.window.electronAPI.openFile.mockResolvedValue("test.fit");
-            global.window.electronAPI.readFile.mockResolvedValue(
-                new ArrayBuffer(0)
-            );
-            global.window.electronAPI.parseFitFile.mockResolvedValue({
+            getElectronAPI().openFile.mockResolvedValue("test.fit");
+            getElectronAPI().readFile.mockResolvedValue(new ArrayBuffer(0));
+            getElectronAPI().parseFitFile.mockResolvedValue({
                 data: { sessions: [] },
             });
 
-            const mockParams = {
-                isOpeningFileRef: { value: false },
-                openFileBtn: document.createElement("button"),
-                setLoading: vi.fn(),
-                showNotification: vi.fn(),
-            };
+            const mockParams = createOpenFileParams();
 
             const options = {
                 validateFileSize: false,
@@ -599,7 +641,9 @@ describe("handleOpenFile Module", () => {
 
             // Should pass the empty file check since validation is disabled
             expect(result).toBe(true);
-            expect(global.window.electronAPI.parseFitFile).toHaveBeenCalled();
+            expect(getElectronAPI().parseFitFile).toHaveBeenCalledWith(
+                expect.any(ArrayBuffer)
+            );
             expect(mockParams.showNotification).not.toHaveBeenCalledWith(
                 expect.stringContaining("Selected file appears to be empty"),
                 "error"
@@ -607,26 +651,21 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should handle optional function calls", async () => {
+            expect.hasAssertions();
+
             // Save original window functions
-            const originalShowFitData = global.window.showFitData;
+            const originalShowFitData = getTestWindow().showFitData;
 
             // Remove optional functions
-            delete global.window.showFitData;
+            delete getTestWindow().showFitData;
 
-            global.window.electronAPI.openFile.mockResolvedValue("test.fit");
-            global.window.electronAPI.readFile.mockResolvedValue(
-                new ArrayBuffer(100)
-            );
-            global.window.electronAPI.parseFitFile.mockResolvedValue({
+            getElectronAPI().openFile.mockResolvedValue("test.fit");
+            getElectronAPI().readFile.mockResolvedValue(new ArrayBuffer(100));
+            getElectronAPI().parseFitFile.mockResolvedValue({
                 data: { sessions: [{ id: 1 }] },
             });
 
-            const mockParams = {
-                isOpeningFileRef: { value: false },
-                openFileBtn: document.createElement("button"),
-                setLoading: vi.fn(),
-                showNotification: vi.fn(),
-            };
+            const mockParams = createOpenFileParams();
 
             // Should not throw errors when optional functions are missing
             const result =
@@ -636,28 +675,21 @@ describe("handleOpenFile Module", () => {
             expect(mockParams.showNotification).not.toHaveBeenCalled();
 
             // Restore original functions
-            global.window.showFitData = originalShowFitData;
+            getTestWindow().showFitData = originalShowFitData;
         });
 
         it("should correctly clean up isOpeningFileRef in finally block", async () => {
+            expect.hasAssertions();
+
             // Force an error in the middle of processing
-            global.window.electronAPI.parseFitFile.mockImplementationOnce(
-                () => {
-                    throw new Error("Unexpected error");
-                }
-            );
+            getElectronAPI().parseFitFile.mockImplementationOnce(() => {
+                throw new Error("Unexpected error");
+            });
 
-            const mockParams = {
-                isOpeningFileRef: { value: false },
-                openFileBtn: document.createElement("button"),
-                setLoading: vi.fn(),
-                showNotification: vi.fn(),
-            };
+            const mockParams = createOpenFileParams();
 
-            global.window.electronAPI.openFile.mockResolvedValue("test.fit");
-            global.window.electronAPI.readFile.mockResolvedValue(
-                new ArrayBuffer(100)
-            );
+            getElectronAPI().openFile.mockResolvedValue("test.fit");
+            getElectronAPI().readFile.mockResolvedValue(new ArrayBuffer(100));
 
             // Should not resolve successfully
             const result =
@@ -670,15 +702,12 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should handle invalid electronAPI", async () => {
-            const originalElectronAPI = global.window.electronAPI;
-            global.window.electronAPI = undefined;
+            expect.hasAssertions();
 
-            const mockParams = {
-                isOpeningFileRef: { value: false },
-                openFileBtn: document.createElement("button"),
-                setLoading: vi.fn(),
-                showNotification: vi.fn(),
-            };
+            const originalElectronAPI = getTestWindow().electronAPI;
+            getTestWindow().electronAPI = undefined;
+
+            const mockParams = createOpenFileParams();
 
             const result =
                 await handleOpenFileModule.handleOpenFile(mockParams);
@@ -690,7 +719,7 @@ describe("handleOpenFile Module", () => {
                 expect.any(Number)
             );
 
-            global.window.electronAPI = originalElectronAPI;
+            getTestWindow().electronAPI = originalElectronAPI;
         });
     });
 });
