@@ -190,13 +190,19 @@ describe("dom helpers", () => {
     });
 
     it("returns undefined for unsupported value, checked, and data reads", () => {
-        expect.assertions(3);
+        expect.assertions(1);
 
         const div = document.createElement("div");
 
-        expect(getValue(div)).toBeUndefined();
-        expect(getChecked(div)).toBeUndefined();
-        expect(getData(null, "key")).toBeUndefined();
+        expect({
+            checked: getChecked(div),
+            data: getData(null, "key"),
+            value: getValue(div),
+        }).toStrictEqual({
+            checked: undefined,
+            data: undefined,
+            value: undefined,
+        });
     });
 
     it("ignores invalid element inputs for mutating helpers", () => {

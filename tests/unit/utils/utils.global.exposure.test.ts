@@ -259,7 +259,7 @@ describe("utils.js – global exposure and helpers", () => {
         // Remove everything
         w.FitFileViewerUtils.cleanup();
 
-        expect(w.formatDistance).toBeUndefined();
-        expect(w.renderSummary).toBeUndefined();
+        expect(w).not.toHaveProperty("formatDistance");
+        expect(w).not.toHaveProperty("renderSummary");
     });
 });

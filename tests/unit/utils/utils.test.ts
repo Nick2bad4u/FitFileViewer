@@ -146,7 +146,7 @@ describe("utils global attachment and API", () => {
 
         // cleanup removes globals
         helpers.cleanup();
-        expect((globalThis as any).window.formatDistance).toBeUndefined();
+        expect((globalThis as any).window).not.toHaveProperty("formatDistance");
     });
 
     it("loads version via deferred electronAPI after import", async () => {
