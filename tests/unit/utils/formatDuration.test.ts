@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { formatDuration } from "../../../electron-app/utils/formatting/formatters/formatDuration.js";
 
-describe("formatDuration", () => {
+describe(formatDuration, () => {
     it("formats seconds, minutes, and hours", () => {
+        expect.hasAssertions();
+
         expect(formatDuration(null)).toBe("");
         expect(formatDuration(undefined)).toBe("");
         expect(formatDuration(0)).toBe("0 sec");
@@ -15,6 +17,8 @@ describe("formatDuration", () => {
     });
 
     it("normalizes numeric strings and rounded decimals", () => {
+        expect.hasAssertions();
+
         expect(formatDuration(" 45 ")).toBe("45 sec");
         expect(formatDuration("1e2")).toBe("1 min 40 sec");
         expect(formatDuration(30.4)).toBe("30 sec");
@@ -22,6 +26,8 @@ describe("formatDuration", () => {
     });
 
     it("handles invalid-input durations by throwing clear errors", () => {
+        expect.hasAssertions();
+
         expect(() => formatDuration("")).toThrow(
             "Invalid duration input: Empty string input"
         );

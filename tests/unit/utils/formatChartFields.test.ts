@@ -36,6 +36,8 @@ const derivedChartTypes = [
 
 describe("formatChartFields", () => {
     it("keeps the chartable FIT field order stable", () => {
+        expect.hasAssertions();
+
         expect(formatChartFields).toEqual(expectedChartFields);
         expect(new Set(formatChartFields)).toHaveLength(
             expectedChartFields.length
@@ -43,6 +45,8 @@ describe("formatChartFields", () => {
     });
 
     it("provides labels and colors for every chartable field", () => {
+        expect.hasAssertions();
+
         for (const field of formatChartFields) {
             expect(fieldLabels[field]).toBeTypeOf("string");
             expect(fieldLabels[field]).not.toBe("");
@@ -56,6 +60,8 @@ describe("formatChartFields", () => {
     });
 
     it("keeps derived chart metadata out of raw FIT field ordering", () => {
+        expect.hasAssertions();
+
         for (const chartType of derivedChartTypes) {
             expect(formatChartFields).not.toContain(chartType);
             expect(fieldLabels[chartType]).toBeTypeOf("string");
@@ -69,6 +75,8 @@ describe("formatChartFields", () => {
     });
 
     it("keeps label and color keys aligned", () => {
+        expect.hasAssertions();
+
         expect(Object.keys(fieldLabels).sort()).toEqual(
             Object.keys(fieldColors).sort()
         );

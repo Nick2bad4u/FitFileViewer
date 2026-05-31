@@ -1,18 +1,22 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { formatWeight } from "../../../electron-app/utils/formatting/formatters/formatWeight.js";
 
-describe("formatWeight", () => {
+describe(formatWeight, () => {
     afterEach(() => {
         vi.restoreAllMocks();
     });
 
     it("formats kilograms with rounded pounds", () => {
+        expect.hasAssertions();
+
         expect(formatWeight(0)).toBe("0 kg (0 lbs)");
         expect(formatWeight(70)).toBe("70 kg (154 lbs)");
         expect(formatWeight(70.5)).toBe("70.5 kg (155 lbs)");
     });
 
     it("handles invalid-input weights with warnings", () => {
+        expect.hasAssertions();
+
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
         for (const value of [
@@ -35,6 +39,8 @@ describe("formatWeight", () => {
     });
 
     it("logs and returns the original value when formatting fails", () => {
+        expect.hasAssertions();
+
         const errorSpy = vi
             .spyOn(console, "error")
             .mockImplementation(() => {});
