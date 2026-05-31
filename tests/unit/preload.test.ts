@@ -783,7 +783,7 @@ describe("preload.js - Comprehensive API Testing", () => {
                 "exit",
                 expect.any(Function)
             );
-            expect(getElectronAPI().validateAPI()).toBe(true);
+            expect(getElectronAPI().validateAPI()).toStrictEqual(true);
         });
 
         it("should log cleanup message on beforeExit", () => {
@@ -1065,13 +1065,14 @@ describe("preload.js - Comprehensive API Testing", () => {
 
             const theme = "dark";
             const fitFilePath = "/path/to/file.fit";
-            const result = await api.injectMenu(theme, fitFilePath);
+            await expect(
+                api.injectMenu(theme, fitFilePath)
+            ).resolves.toStrictEqual(true);
             expect(electronMock.ipcRenderer.invoke).toHaveBeenCalledWith(
                 "devtools-inject-menu",
                 theme,
                 fitFilePath
             );
-            expect(result).toBe(true);
         });
     });
 
@@ -1118,9 +1119,7 @@ describe("preload.js - Comprehensive API Testing", () => {
 
             const initialInvokeCount =
                 electronMock.ipcRenderer.invoke.mock.calls.length;
-            const result = await devTools.testIPC();
-
-            expect(result).toBe(true);
+            await expect(devTools.testIPC()).resolves.toStrictEqual(true);
             expect(
                 electronMock.ipcRenderer.invoke.mock.calls.length
             ).toBeGreaterThan(initialInvokeCount);
@@ -1346,8 +1345,9 @@ describe("preload.js - Comprehensive API Testing", () => {
             // Mock the invoke to return success
             electronMock.ipcRenderer.invoke.mockResolvedValueOnce(true);
 
-            const result = await electronAPI.injectMenu(theme, fitFilePath);
-            expect(result).toBe(true);
+            await expect(
+                electronAPI.injectMenu(theme, fitFilePath)
+            ).resolves.toStrictEqual(true);
             expect(electronMock.ipcRenderer.invoke).toHaveBeenCalledWith(
                 "devtools-inject-menu",
                 theme,

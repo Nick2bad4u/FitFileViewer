@@ -248,7 +248,7 @@ describe("preload.js dist bridge behavior", () => {
                     validateAPI: expect.any(Function),
                 })
             );
-            expect(exposedAPI.validateAPI()).toBe(true);
+            expect(exposedAPI.validateAPI()).toStrictEqual(true);
             expect(exposedAPI.getChannelInfo()).toMatchObject({
                 channels: EXPECTED_PRELOAD_CHANNELS,
                 events: EXPECTED_PRELOAD_EVENTS,
@@ -274,7 +274,7 @@ describe("preload.js dist bridge behavior", () => {
                 getChannelInfo: expect.any(Function),
                 validateAPI: expect.any(Function),
             });
-            expect(exposedAPI.validateAPI()).toBe(true);
+            expect(exposedAPI.validateAPI()).toStrictEqual(true);
         });
 
         it("should validate API before exposing", () => {
@@ -282,7 +282,7 @@ describe("preload.js dist bridge behavior", () => {
             executePreloadScript();
 
             expect(exposedAPI.validateAPI).toBeTypeOf("function");
-            expect(exposedAPI.validateAPI()).toBe(true);
+            expect(exposedAPI.validateAPI()).toStrictEqual(true);
         });
 
         it("should not expose API if validation fails", () => {
@@ -378,9 +378,9 @@ describe("preload.js dist bridge behavior", () => {
             mockIpcRenderer.invoke.mockResolvedValue("1.0.0");
             executePreloadScript({ NODE_ENV: "development" });
 
-            const result = await exposedDevTools.testIPC();
-
-            expect(result).toBe(true);
+            await expect(exposedDevTools.testIPC()).resolves.toStrictEqual(
+                true
+            );
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
                 "getAppVersion"
             );
@@ -391,9 +391,9 @@ describe("preload.js dist bridge behavior", () => {
             mockIpcRenderer.invoke.mockRejectedValue(new Error("IPC failed"));
             executePreloadScript({ NODE_ENV: "development" });
 
-            const result = await exposedDevTools.testIPC();
-
-            expect(result).toBe(false);
+            await expect(exposedDevTools.testIPC()).resolves.toStrictEqual(
+                false
+            );
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] IPC test failed:",
                 expect.any(Error)
@@ -464,9 +464,13 @@ describe("preload.js dist bridge behavior", () => {
             expect.hasAssertions();
             executePreloadScript();
 
-            const result = exposedAPI.validateAPI();
-
-            expect(result).toBe(true);
+            expect(exposedAPI.validateAPI()).toStrictEqual(true);
+            expect(exposedAPI.getChannelInfo()).toMatchObject({
+                channels: EXPECTED_PRELOAD_CHANNELS,
+                events: EXPECTED_PRELOAD_EVENTS,
+                totalChannels: 27,
+                totalEvents: 10,
+            });
         });
 
         it("getChannelInfo should not include unknown channels", () => {
@@ -924,9 +928,9 @@ describe("preload.js dist bridge behavior", () => {
             expect.hasAssertions();
             const invalidTheme = 123; // Not a string or null
 
-            const result = await exposedAPI.injectMenu(invalidTheme);
-
-            expect(result).toBe(false);
+            await expect(
+                exposedAPI.injectMenu(invalidTheme)
+            ).resolves.toStrictEqual(false);
             expect(mockIpcRenderer.invoke).not.toHaveBeenCalled();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] injectMenu: theme must be a string or null"
@@ -937,9 +941,9 @@ describe("preload.js dist bridge behavior", () => {
             expect.hasAssertions();
             const invalidPath = 123; // Not a string or null
 
-            const result = await exposedAPI.injectMenu("dark", invalidPath);
-
-            expect(result).toBe(false);
+            await expect(
+                exposedAPI.injectMenu("dark", invalidPath)
+            ).resolves.toStrictEqual(false);
             expect(mockIpcRenderer.invoke).not.toHaveBeenCalled();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] injectMenu: fitFilePath must be a string or null"

@@ -190,7 +190,7 @@ describe("preload.js dist API methods", () => {
                     validateAPI: expect.any(Function),
                 })
             );
-            expect(exposedAPI?.validateAPI()).toBe(true);
+            expect(exposedAPI?.validateAPI()).toStrictEqual(true);
             expect(mockProcess.once).toHaveBeenCalledWith(
                 "beforeExit",
                 expect.any(Function)
@@ -206,14 +206,14 @@ describe("preload.js dist API methods", () => {
                 "electronAPI",
                 exposedAPI
             );
-            expect(exposedAPI.validateAPI()).toBe(true);
+            expect(exposedAPI.validateAPI()).toStrictEqual(true);
         });
 
         it("should validate API before exposing", () => {
             expect.hasAssertions();
             const { exposedAPI } = createPreloadEnvironment();
 
-            expect(exposedAPI.validateAPI()).toBe(true);
+            expect(exposedAPI.validateAPI()).toStrictEqual(true);
             expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith(
                 "electronAPI",
                 exposedAPI
@@ -795,20 +795,29 @@ describe("preload.js dist API methods", () => {
             );
 
             const { exposedAPI } = createPreloadEnvironment();
-            const result = await exposedAPI.injectMenu("dark");
 
-            expect(result).toBe(false);
+            await expect(exposedAPI.injectMenu("dark")).resolves.toStrictEqual(
+                false
+            );
+            expect(consoleSpy.error).toHaveBeenCalledWith(
+                "[preload.js] Error in injectMenu:",
+                expect.any(Error)
+            );
         });
 
         it("should reject invalid parameters in injectMenu", async () => {
             expect.hasAssertions();
             const { exposedAPI } = createPreloadEnvironment();
-            const result = await exposedAPI.injectMenu(123);
 
-            expect(result).toBe(false);
+            await expect(exposedAPI.injectMenu(123)).resolves.toStrictEqual(
+                false
+            );
             expect(mockIpcRenderer.invoke).not.toHaveBeenCalledWith(
                 "devtools-inject-menu",
                 123
+            );
+            expect(consoleSpy.error).toHaveBeenCalledWith(
+                "[preload.js] injectMenu: theme must be a string or null"
             );
         });
     });
@@ -817,9 +826,13 @@ describe("preload.js dist API methods", () => {
         it("should provide validateAPI method", () => {
             expect.hasAssertions();
             const { exposedAPI } = createPreloadEnvironment();
-            const result = exposedAPI.validateAPI();
-
-            expect(result).toBe(true);
+            expect(exposedAPI.validateAPI()).toStrictEqual(true);
+            expect(exposedAPI.getChannelInfo()).toMatchObject({
+                channels: EXPECTED_PRELOAD_CHANNELS,
+                events: EXPECTED_PRELOAD_EVENTS,
+                totalChannels: 27,
+                totalEvents: 10,
+            });
         });
 
         it("should provide getChannelInfo with complete information", () => {
