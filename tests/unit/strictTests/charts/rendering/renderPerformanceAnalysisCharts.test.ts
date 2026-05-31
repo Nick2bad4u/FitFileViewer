@@ -1,21 +1,40 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+type PerformanceAnalysisOptions = {
+    maxPoints: number | "all";
+};
+
+type PerformanceAnalysisDatum = Record<string, unknown>;
+
+type BasicRenderer = (
+    container: HTMLElement,
+    data: PerformanceAnalysisDatum[],
+    options: PerformanceAnalysisOptions
+) => void;
+
+type AltitudeRenderer = (
+    container: HTMLElement,
+    data: PerformanceAnalysisDatum[],
+    labels: Array<number | string>,
+    options: PerformanceAnalysisOptions
+) => void;
+
 vi.mock(
-    "../../../../../electron-app/utils/charts/rendering/renderSpeedVsDistanceChart.js",
+    import("../../../../../electron-app/utils/charts/rendering/renderSpeedVsDistanceChart.js"),
     () => ({
-        renderSpeedVsDistanceChart: vi.fn(),
+        renderSpeedVsDistanceChart: vi.fn<BasicRenderer>(),
     })
 );
 vi.mock(
-    "../../../../../electron-app/utils/charts/rendering/renderPowerVsHeartRateChart.js",
+    import("../../../../../electron-app/utils/charts/rendering/renderPowerVsHeartRateChart.js"),
     () => ({
-        renderPowerVsHeartRateChart: vi.fn(),
+        renderPowerVsHeartRateChart: vi.fn<BasicRenderer>(),
     })
 );
 vi.mock(
-    "../../../../../electron-app/utils/charts/rendering/renderAltitudeProfileChart.js",
+    import("../../../../../electron-app/utils/charts/rendering/renderAltitudeProfileChart.js"),
     () => ({
-        renderAltitudeProfileChart: vi.fn(),
+        renderAltitudeProfileChart: vi.fn<AltitudeRenderer>(),
     })
 );
 
@@ -25,6 +44,8 @@ describe("renderPerformanceAnalysisCharts", () => {
     });
 
     it("invokes all sub renderers", async () => {
+        expect.hasAssertions();
+
         const spd =
             await import("../../../../../electron-app/utils/charts/rendering/renderSpeedVsDistanceChart.js");
         const pvh =
@@ -35,25 +56,38 @@ describe("renderPerformanceAnalysisCharts", () => {
             await import("../../../../../electron-app/utils/charts/rendering/renderPerformanceAnalysisCharts.js");
 
         const container = document.createElement("div");
+        const data = [{ points: [] }];
+        const labels = [
+            1,
+            2,
+            3,
+        ];
+        const options = { maxPoints: "all" as const };
         expect(
-            renderPerformanceAnalysisCharts(
-                container,
-                { points: [] },
-                [
-                    1,
-                    2,
-                    3,
-                ],
-                {}
-            )
+            renderPerformanceAnalysisCharts(container, data, labels, options)
         ).toBeUndefined();
 
-        expect(spd.renderSpeedVsDistanceChart).toHaveBeenCalled();
-        expect(pvh.renderPowerVsHeartRateChart).toHaveBeenCalled();
-        expect(alt.renderAltitudeProfileChart).toHaveBeenCalled();
+        expect(spd.renderSpeedVsDistanceChart).toHaveBeenCalledWith(
+            container,
+            data,
+            options
+        );
+        expect(pvh.renderPowerVsHeartRateChart).toHaveBeenCalledWith(
+            container,
+            data,
+            options
+        );
+        expect(alt.renderAltitudeProfileChart).toHaveBeenCalledWith(
+            container,
+            data,
+            labels,
+            options
+        );
     });
 
     it("handles renderer errors gracefully", async () => {
+        expect.hasAssertions();
+
         const spd =
             await import("../../../../../electron-app/utils/charts/rendering/renderSpeedVsDistanceChart.js");
         const pvh =
@@ -67,22 +101,20 @@ describe("renderPerformanceAnalysisCharts", () => {
         const consoleError = vi
             .spyOn(console, "error")
             .mockImplementation(() => {});
-        (spd.renderSpeedVsDistanceChart as any).mockImplementation(() => {
+        vi.mocked(spd.renderSpeedVsDistanceChart).mockImplementation(() => {
             throw error;
         });
 
         const container = document.createElement("div");
+        const data = [{ points: [] }];
+        const labels = [
+            1,
+            2,
+            3,
+        ];
+        const options = { maxPoints: "all" as const };
         expect(
-            renderPerformanceAnalysisCharts(
-                container,
-                { points: [] },
-                [
-                    1,
-                    2,
-                    3,
-                ],
-                {}
-            )
+            renderPerformanceAnalysisCharts(container, data, labels, options)
         ).toBeUndefined();
 
         expect(consoleError).toHaveBeenCalledWith(
