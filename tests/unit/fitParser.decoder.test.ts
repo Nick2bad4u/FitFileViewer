@@ -140,7 +140,7 @@ describe("fitParser.js decoder behavior", () => {
 
     describe("module exports", () => {
         it("should export all required functions and constants", () => {
-            expect.hasAssertions();
+            expect.assertions(12);
 
             expect(fitParser.decodeFitFile).toBeTypeOf("function");
             expect(fitParser.FitDecodeError).toBeTypeOf("function");
@@ -169,7 +169,7 @@ describe("fitParser.js decoder behavior", () => {
 
     describe("fit decode error", () => {
         it("should create error with correct properties", () => {
-            expect.hasAssertions();
+            expect.assertions(6);
 
             const error = new fitParser.FitDecodeError(
                 "Test error",
@@ -186,7 +186,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should serialize to JSON correctly", () => {
-            expect.hasAssertions();
+            expect.assertions(5);
 
             const error = new fitParser.FitDecodeError("Test error", {
                 code: "TEST",
@@ -206,7 +206,7 @@ describe("fitParser.js decoder behavior", () => {
 
     describe("state management integration", () => {
         it("should initialize state management with all managers", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             fitParser.initializeStateManagement({
                 settingsStateManager: mockSettingsStateManager,
@@ -228,7 +228,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should initialize state management with no managers", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             fitParser.initializeStateManagement();
 
@@ -246,7 +246,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should initialize state management with partial managers", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockSettingsStateManager.getCategory.mockReturnValue({
                 mergeHeartRates: false,
@@ -272,7 +272,7 @@ describe("fitParser.js decoder behavior", () => {
 
     describe("decoder options management", () => {
         it("should return default decoder options", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const defaults = fitParser.getDefaultDecoderOptions();
 
@@ -288,7 +288,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should validate valid decoder options", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const options = {
                 applyScaleAndOffset: false,
@@ -309,7 +309,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should handle invalid decoder options", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const options = {
                 applyScaleAndOffset: "invalid",
@@ -328,7 +328,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should handle null decoder options", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const result = fitParser.validateDecoderOptions(null);
 
@@ -339,7 +339,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should get persisted decoder options from state manager", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             fitParser.initializeStateManagement({
                 settingsStateManager: mockSettingsStateManager,
@@ -360,7 +360,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should fail clearly when state manager update throws", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             fitParser.initializeStateManagement({
                 settingsStateManager: {
@@ -384,7 +384,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should return default decoder options when no state manager is configured", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             fitParser.initializeStateManagement(undefined);
             const options = fitParser.getPersistedDecoderOptions();
@@ -393,7 +393,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should update decoder options in state manager", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             fitParser.initializeStateManagement({
                 settingsStateManager: mockSettingsStateManager,
@@ -414,7 +414,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should report state manager update failures without persistence fallback", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             fitParser.initializeStateManagement({
                 settingsStateManager: {
@@ -436,7 +436,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should reject decoder updates when no state manager is configured", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             fitParser.initializeStateManagement(undefined);
             const result = fitParser.updateDecoderOptions({
@@ -449,7 +449,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should reject async-looking state manager update failures synchronously", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const updateCategory = vi
                 .fn<() => Promise<never>>()
@@ -473,7 +473,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should reject decoder updates when state manager collection is empty", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             fitParser.initializeStateManagement({});
             const res = fitParser.updateDecoderOptions({
@@ -486,7 +486,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should reject invalid options in update", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const invalidOptions = { applyScaleAndOffset: "invalid" };
             const result = fitParser.updateDecoderOptions(invalidOptions);
@@ -500,14 +500,14 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should get current decoder options", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const options = fitParser.getCurrentDecoderOptions();
             expect(options).toMatchObject(fitParser.getDefaultDecoderOptions());
         });
 
         it("should reset decoder options to defaults", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             fitParser.initializeStateManagement({
                 settingsStateManager: mockSettingsStateManager,
@@ -530,7 +530,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should successfully decode a valid FIT file", async () => {
-            expect.hasAssertions();
+            expect.assertions(7);
 
             const buffer = Buffer.from([
                 0x0e,
@@ -584,7 +584,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should handle Uint8Array input", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const uint8Array = new Uint8Array([
                 0x0e,
@@ -602,7 +602,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should track progress during decoding", async () => {
-            expect.hasAssertions();
+            expect.assertions(7);
 
             const buffer = Buffer.from([
                 0x0e,
@@ -635,7 +635,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should track performance timing", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const buffer = Buffer.from([
                 0x0e,
@@ -656,7 +656,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should use custom decoder options", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const buffer = Buffer.from([
                 0x0e,
@@ -675,7 +675,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should handle invalid input buffer", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             await expect(fitParser.decodeFitFile(null)).rejects.toThrow(
                 "Input is not a valid Buffer or Uint8Array"
@@ -686,7 +686,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should handle integrity check failure", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const buffer = Buffer.from([
                 0x0e,
@@ -706,7 +706,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should handle decoding errors", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const buffer = Buffer.from([
                 0x0e,
@@ -728,7 +728,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should handle empty messages result", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const buffer = Buffer.from([
                 0x0e,
@@ -750,7 +750,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should handle SDK import failure", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const buffer = Buffer.from([
                 0x0e,
@@ -782,7 +782,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should handle state manager progress update failures gracefully", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const buffer = Buffer.from([
                 0x0e,
@@ -806,7 +806,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should handle state manager error update failures gracefully", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const buffer = Buffer.from([
                 0x0e,
@@ -831,7 +831,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should handle generic exceptions", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const buffer = Buffer.from([
                 0x0e,
@@ -856,7 +856,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should handle exceptions without message or stack", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const buffer = Buffer.from([
                 0x0e,
@@ -877,7 +877,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should handle fitFileStateManager.updateLoadingProgress failure", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const buffer = Buffer.from([
                 0x0e,
@@ -910,7 +910,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should handle state error update failure when no messages decoded", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const buffer = Buffer.from([
                 0x0e,
@@ -949,7 +949,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should handle state error update failure in generic exception handling", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const buffer = Buffer.from([
                 0x0e,
@@ -990,7 +990,7 @@ describe("fitParser.js decoder behavior", () => {
 
     describe("unknown message labels", () => {
         it("should apply unknown message labels", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const timestamp = new Date("2024-01-02T03:04:05.000Z");
             const messages: FitMessages = {
@@ -1022,7 +1022,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should apply device status labels from numeric unknown message keys", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const timestamp = new Date("2024-02-03T04:05:06.000Z");
             const messages: FitMessages = {
@@ -1052,7 +1052,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should preserve unmapped unknown message labels", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const messages: FitMessages = {
                 unknown_123: [{ field1: "value1" }],
@@ -1066,7 +1066,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should handle messages without unknown labels", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const timestamp = new Date("2024-03-04T05:06:07.000Z");
             const messages: FitMessages = {
@@ -1081,7 +1081,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should handle empty messages object", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const messages: FitMessages = {};
 
@@ -1091,7 +1091,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should handle null/undefined messages", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const result1 = fitParser.applyUnknownMessageLabels(null);
             const result2 = fitParser.applyUnknownMessageLabels(undefined);
@@ -1103,7 +1103,7 @@ describe("fitParser.js decoder behavior", () => {
 
     describe("schema and constants", () => {
         it("should have valid decoder options schema", () => {
-            expect.hasAssertions();
+            expect.assertions(8);
 
             const schema = fitParser.DECODER_OPTIONS_SCHEMA;
 
@@ -1156,7 +1156,7 @@ describe("fitParser.js decoder behavior", () => {
 
     describe("edge cases and error handling", () => {
         it("should handle missing integrity check method", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const buffer = Buffer.from([
                 0x0e,
@@ -1173,7 +1173,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should handle decoder without read method", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const buffer = Buffer.from([
                 0x0e,
@@ -1189,7 +1189,7 @@ describe("fitParser.js decoder behavior", () => {
         });
 
         it("should handle performance monitor timing failures", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const buffer = Buffer.from([
                 0x0e,
