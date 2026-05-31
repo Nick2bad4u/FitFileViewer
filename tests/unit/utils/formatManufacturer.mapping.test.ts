@@ -108,7 +108,9 @@ describe("formatManufacturer mapping behavior", () => {
                     "CustomManufacturer"
                 );
                 expect(formatManufacturer("MyBike")).toBe("MyBike");
-                expect(hasManufacturerMapping("unknownBrand")).not.toBe(true);
+                expect(
+                    hasManufacturerMapping("unknownBrand")
+                ).not.toStrictEqual(true);
             });
         });
 
@@ -124,7 +126,9 @@ describe("formatManufacturer mapping behavior", () => {
                 expect(formatManufacturer("faveroElectronics")).toBe(
                     "Favero Electronics"
                 );
-                expect(hasManufacturerMapping("faveroElectronics")).toBe(true);
+                expect(
+                    hasManufacturerMapping("faveroElectronics")
+                ).toStrictEqual(true);
                 expect(formatManufacturer("faveroElectronicsPlus")).not.toBe(
                     "Favero Electronics"
                 );
@@ -395,52 +399,109 @@ describe("formatManufacturer mapping behavior", () => {
                     values.every(
                         (value) => typeof value === "string" && value.length > 0
                     )
-                ).toBe(true);
+                ).toStrictEqual(true);
                 expect(
                     nonIgpsportValues.every((value) => /^[A-Z]/.test(value))
-                ).toBe(true);
-                expect(values.some((value) => value.length === 0)).toBe(false);
+                ).toStrictEqual(true);
+                expect(
+                    values.some((value) => value.length === 0)
+                ).toStrictEqual(false);
             });
         });
 
         describe("hasManufacturerMapping", () => {
             it("should return true for manufacturers with defined mappings", () => {
-                expect(hasManufacturerMapping("garmin")).toBe(true);
-                expect(hasManufacturerMapping("wahoo")).toBe(true);
-                expect(hasManufacturerMapping("polar")).toBe(true);
-                expect(hasManufacturerMapping("tacx")).toBe(true);
-                expect(hasManufacturerMapping("elite")).toBe(true);
+                expect(
+                    [
+                        "garmin",
+                        "wahoo",
+                        "polar",
+                        "tacx",
+                        "elite",
+                    ].map((manufacturer) =>
+                        hasManufacturerMapping(manufacturer)
+                    )
+                ).toStrictEqual([
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                ]);
             });
 
             it("should return false for manufacturers without defined mappings", () => {
-                expect(hasManufacturerMapping("unknownBrand")).toBe(false);
-                expect(hasManufacturerMapping("customManufacturer")).toBe(
-                    false
-                );
-                expect(hasManufacturerMapping("testBrand")).toBe(false);
+                expect(
+                    [
+                        "unknownBrand",
+                        "customManufacturer",
+                        "testBrand",
+                    ].map((manufacturer) =>
+                        hasManufacturerMapping(manufacturer)
+                    )
+                ).toStrictEqual([
+                    false,
+                    false,
+                    false,
+                ]);
             });
 
             it("should be case-insensitive for mapped manufacturers", () => {
-                expect(hasManufacturerMapping("GARMIN")).toBe(true);
-                expect(hasManufacturerMapping("GaRmIn")).toBe(true);
-                expect(hasManufacturerMapping("garmin")).toBe(true);
-                expect(hasManufacturerMapping("Garmin")).toBe(true);
-                expect(hasManufacturerMapping("faveroElectronics")).toBe(true);
+                expect(
+                    [
+                        "GARMIN",
+                        "GaRmIn",
+                        "garmin",
+                        "Garmin",
+                        "faveroElectronics",
+                    ].map((manufacturer) =>
+                        hasManufacturerMapping(manufacturer)
+                    )
+                ).toStrictEqual([
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                ]);
             });
 
             it("should handle whitespace in manufacturer names", () => {
-                expect(hasManufacturerMapping("  garmin  ")).toBe(true);
-                expect(hasManufacturerMapping(" wahoo ")).toBe(true);
-                expect(hasManufacturerMapping("\tpolar\n")).toBe(true);
+                expect(
+                    [
+                        "  garmin  ",
+                        " wahoo ",
+                        "\tpolar\n",
+                    ].map((manufacturer) =>
+                        hasManufacturerMapping(manufacturer)
+                    )
+                ).toStrictEqual([
+                    true,
+                    true,
+                    true,
+                ]);
             });
 
             it("should handle non-string inputs gracefully", () => {
-                expect(hasManufacturerMapping(null as any)).toBe(false);
-                expect(hasManufacturerMapping(undefined as any)).toBe(false);
-                expect(hasManufacturerMapping(123 as any)).toBe(false);
-                expect(hasManufacturerMapping(true as any)).toBe(false);
-                expect(hasManufacturerMapping([] as any)).toBe(false);
-                expect(hasManufacturerMapping({} as any)).toBe(false);
+                expect(
+                    [
+                        null,
+                        undefined,
+                        123,
+                        true,
+                        [],
+                        {},
+                    ].map((manufacturer) =>
+                        hasManufacturerMapping(manufacturer as any)
+                    )
+                ).toStrictEqual([
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                ]);
             });
 
             it("should handle empty and whitespace-only strings", () => {
