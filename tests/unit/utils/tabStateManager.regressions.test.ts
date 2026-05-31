@@ -1,23 +1,33 @@
-/**
- * Regression coverage for tabStateManager edge cases.
- *
- * @file TabStateManager.regressions.test.ts
- */
+// Regression coverage for tabStateManager edge cases.
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+type GetState = (path?: string) => unknown;
+type SetState = (path: string, value: unknown, options?: unknown) => void;
+type Subscribe = (
+    path: string,
+    callback: (newValue: unknown, oldValue?: unknown) => void
+) => () => void;
+type UpdateState = (path: string, value: unknown, options?: unknown) => void;
+type ShowNotification = (
+    message: string,
+    type?: string,
+    duration?: number
+) => void;
+type TestWindowHook = () => Promise<void> | void;
+
 // Mock dependencies with proper hoisting
-vi.mock("../../../electron-app/utils/state/core/stateManager", () => ({
-    getState: vi.fn(),
-    setState: vi.fn(),
-    subscribe: vi.fn(() => vi.fn()), // Return unsubscribe function
-    updateState: vi.fn(),
+vi.mock(import("../../../electron-app/utils/state/core/stateManager"), () => ({
+    getState: vi.fn<GetState>(),
+    setState: vi.fn<SetState>(),
+    subscribe: vi.fn<Subscribe>(() => vi.fn<() => void>()),
+    updateState: vi.fn<UpdateState>(),
 }));
 
 vi.mock(
-    "../../../electron-app/utils/ui/notifications/showNotification",
+    import("../../../electron-app/utils/ui/notifications/showNotification"),
     () => ({
-        showNotification: vi.fn(),
+        showNotification: vi.fn<ShowNotification>(),
     })
 );
 
@@ -52,7 +62,11 @@ const tabDomFixtures = [
     ["zwift", "Zwift"],
 ];
 
-const createElement = (tagName, attributes = {}, textContent = "") => {
+const createElement = (
+    tagName: keyof HTMLElementTagNameMap,
+    attributes: Record<string, string> = {},
+    textContent = ""
+): HTMLElement => {
     const element = document.createElement(tagName);
 
     Object.entries(attributes).forEach(([key, value]) => {
@@ -117,10 +131,10 @@ describe("tabStateManager regressions", () => {
         mockGetState.mockReturnValue("summary");
 
         Object.assign(window, {
-            createTables: vi.fn(),
-            renderSummary: vi.fn(),
-            renderMap: vi.fn(),
-            renderChartJS: vi.fn(),
+            createTables: vi.fn<TestWindowHook>(),
+            renderChartJS: vi.fn<TestWindowHook>(),
+            renderMap: vi.fn<TestWindowHook>(),
+            renderSummary: vi.fn<TestWindowHook>(),
         });
     });
 
@@ -133,8 +147,10 @@ describe("tabStateManager regressions", () => {
         // Don't reset mockSubscribe to preserve initialization calls
     });
 
-    describe("Cleanup behavior", () => {
+    describe("cleanup behavior", () => {
         it("should expose an idempotent cleanup method", () => {
+            expect.hasAssertions();
+
             expect(tabStateManager).toEqual(
                 expect.objectContaining({
                     cleanup: expect.any(Function),
@@ -157,14 +173,16 @@ describe("tabStateManager regressions", () => {
         });
 
         it("should unsubscribe tracked state listeners once across multiple cleanup calls", () => {
-            const unsubscribeActive = vi.fn();
-            const unsubscribeData = vi.fn();
+            expect.hasAssertions();
+
+            const unsubscribeActive = vi.fn<() => void>();
+            const unsubscribeData = vi.fn<() => void>();
             const consoleSpy = vi
                 .spyOn(console, "log")
                 .mockImplementation(() => {});
             mockSubscribe
-                .mockImplementationOnce(() => unsubscribeActive)
-                .mockImplementationOnce(() => unsubscribeData);
+                .mockReturnValueOnce(unsubscribeActive)
+                .mockReturnValueOnce(unsubscribeData);
 
             const manager = new TabStateManager();
 
@@ -184,8 +202,10 @@ describe("tabStateManager regressions", () => {
         });
     });
 
-    describe("State synchronization", () => {
+    describe("state synchronization", () => {
         it("detects mismatched DOM and state active tabs", () => {
+            expect.hasAssertions();
+
             const summaryBtn = document.getElementById("tab-summary");
 
             // Manually set DOM to active state
@@ -210,6 +230,8 @@ describe("tabStateManager regressions", () => {
         });
 
         it("documents async handler failures that require awaiting", async () => {
+            expect.hasAssertions();
+
             let asyncError = null;
 
             // Simulate async handler that fails
@@ -241,8 +263,10 @@ describe("tabStateManager regressions", () => {
         });
     });
 
-    describe("Data Validation Edge Cases", () => {
+    describe("data validation edge cases", () => {
         it("treats malformed globalData as unavailable data", () => {
+            expect.hasAssertions();
+
             const testCases = [
                 { recordMesgs: null },
                 { recordMesgs: undefined },
@@ -282,6 +306,8 @@ describe("tabStateManager regressions", () => {
         });
 
         it("does not resolve configuration for invalid tab names", () => {
+            expect.hasAssertions();
+
             // Test with invalid tab name
             const invalidTabs = [
                 "",
@@ -304,8 +330,10 @@ describe("tabStateManager regressions", () => {
         });
     });
 
-    describe("DOM Manipulation Security Issues", () => {
+    describe("dom manipulation security issues", () => {
         it("sets the AltFit iframe source when it is not loaded", () => {
+            expect.hasAssertions();
+
             document.body.append(
                 createElement("iframe", {
                     id: "altfit-iframe",
@@ -332,6 +360,8 @@ describe("tabStateManager regressions", () => {
         });
 
         it("moves background data content into the visible data container", () => {
+            expect.hasAssertions();
+
             setupContentMoveDom();
 
             const bgContainer = document.getElementById(
@@ -373,8 +403,10 @@ describe("tabStateManager regressions", () => {
         });
     });
 
-    describe("Performance and Error Handling", () => {
+    describe("performance and error handling", () => {
         it("keeps repeated tab DOM queries within a reasonable duration", () => {
+            expect.hasAssertions();
+
             const performanceTest = () => {
                 const start = performance.now();
 
@@ -396,10 +428,12 @@ describe("tabStateManager regressions", () => {
         });
 
         it("documents async render failures that require awaiting", async () => {
+            expect.hasAssertions();
+
             // Mock failing async functions
-            window.renderChartJS = vi
-                .fn()
-                .mockRejectedValue(new Error("Chart render failed"));
+            vi.spyOn(window, "renderChartJS").mockRejectedValue(
+                new Error("Chart render failed")
+            );
 
             let caughtError = null;
 
@@ -423,8 +457,10 @@ describe("tabStateManager regressions", () => {
         });
     });
 
-    describe("Tab Configuration Validation", () => {
+    describe("tab configuration validation", () => {
         it("validates tab configuration consistency", () => {
+            expect.hasAssertions();
+
             // Check for missing or invalid configurations
             const requiredProps = [
                 "id",
@@ -450,6 +486,8 @@ describe("tabStateManager regressions", () => {
         });
 
         it("documents duplicate chart handler assignments", () => {
+            expect.hasAssertions();
+
             const handlers = Object.values(TAB_CONFIG)
                 .filter((config) => config.handler)
                 .map((config) => config.handler);
@@ -472,8 +510,10 @@ describe("tabStateManager regressions", () => {
         });
     });
 
-    describe("Integration Issues", () => {
+    describe("integration issues", () => {
         it("keeps subscription callbacks bounded during recursive state updates", () => {
+            expect.hasAssertions();
+
             let recursionCount = 0;
             const maxRecursion = 3;
 
@@ -483,6 +523,7 @@ describe("tabStateManager regressions", () => {
                     recursionCount++;
                     callback("map", "summary"); // This could trigger more state changes
                 }
+                return () => {};
             });
 
             // Test that subscription doesn't cause infinite loops
@@ -491,6 +532,8 @@ describe("tabStateManager regressions", () => {
         });
 
         it("reports invalid state when active tab has no configuration", () => {
+            expect.hasAssertions();
+
             // Test with state that doesn't match DOM
             mockGetState.mockReturnValue("nonexistent-tab");
 
