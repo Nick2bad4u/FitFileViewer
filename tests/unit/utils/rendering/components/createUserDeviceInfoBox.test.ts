@@ -1,90 +1,148 @@
-/**
- * @vitest-environment jsdom
- */
+// @vitest-environment jsdom
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// Mock dependent formatters and theme
-vi.mock("../../../../../electron-app/utils/theming/core/theme.js", () => ({
-    getThemeConfig: vi.fn(() => ({
-        name: "test-theme",
-        theme: "light",
-        isDark: false,
-        isLight: true,
+type FormatCapitalize = (value: unknown) => string;
+type FormatHeight = (value: unknown) => string;
+type FormatManufacturer = (value: unknown) => string;
+type FormatSensorName = (value: unknown) => string;
+type FormatWeight = (value: unknown) => string;
+type GetThemeConfig = () => {
+    colors: {
+        accent: string;
+        background: string;
+        border: string;
+        borderLight: string;
+        primary: string;
+        primaryShadow: string;
+        primaryShadowHeavy: string;
+        primaryShadowLight: string;
+        shadow: string;
+        shadowHeavy: string;
+        shadowLight: string;
+        shadowMedium: string;
+        surface: string;
+        surfaceSecondary: string;
+        text: string;
+        textPrimary: string;
+        textSecondary: string;
+    };
+    isDark: boolean;
+    isLight: boolean;
+    name: string;
+    theme: string;
+};
+type TestWindow = Window &
+    typeof globalThis & {
+        globalData?: unknown;
+    };
+
+const themeConfig = vi.hoisted(
+    (): ReturnType<GetThemeConfig> => ({
         colors: {
-            primary: "#00f",
             accent: "#0f0",
             background: "#fff",
+            border: "#ccc",
+            borderLight: "rgba(255,255,255,0.3)",
+            primary: "#00f",
+            primaryShadow: "rgba(0,0,255,0.3)",
+            primaryShadowHeavy: "rgba(0,0,255,0.4)",
+            primaryShadowLight: "rgba(0,0,255,0.2)",
+            shadow: "rgba(0,0,0,0.3)",
+            shadowHeavy: "rgba(0,0,0,0.4)",
+            shadowLight: "rgba(0,0,0,0.1)",
+            shadowMedium: "rgba(0,0,0,0.2)",
             surface: "#eee",
             surfaceSecondary: "#ddd",
             text: "#111",
             textPrimary: "#000",
             textSecondary: "#333",
-            border: "#ccc",
-            shadow: "rgba(0,0,0,0.3)",
-            shadowLight: "rgba(0,0,0,0.1)",
-            shadowMedium: "rgba(0,0,0,0.2)",
-            shadowHeavy: "rgba(0,0,0,0.4)",
-            primaryShadowLight: "rgba(0,0,255,0.2)",
-            primaryShadowHeavy: "rgba(0,0,255,0.4)",
-            primaryShadow: "rgba(0,0,255,0.3)",
-            borderLight: "rgba(255,255,255,0.3)",
         },
-    })),
-}));
+        isDark: false,
+        isLight: true,
+        name: "test-theme",
+        theme: "light",
+    })
+);
+
+// Mock dependent formatters and theme
 vi.mock(
-    "../../../../../electron-app/utils/formatting/formatters/formatHeight.js",
+    import("../../../../../electron-app/utils/theming/core/theme.js"),
     () => ({
-        formatHeight: vi.fn((v) => `${v}cm`),
+        getThemeConfig: vi.fn<GetThemeConfig>(() => themeConfig),
     })
 );
 vi.mock(
-    "../../../../../electron-app/utils/formatting/formatters/formatWeight.js",
+    import("../../../../../electron-app/utils/formatting/formatters/formatHeight.js"),
     () => ({
-        formatWeight: vi.fn((v) => `${v}kg`),
+        formatHeight: vi.fn<FormatHeight>((value) => `${value}cm`),
     })
 );
 vi.mock(
-    "../../../../../electron-app/utils/formatting/formatters/formatSensorName.js",
+    import("../../../../../electron-app/utils/formatting/formatters/formatWeight.js"),
     () => ({
-        formatSensorName: vi.fn(() => "Garmin Foo"),
+        formatWeight: vi.fn<FormatWeight>((value) => `${value}kg`),
     })
 );
 vi.mock(
-    "../../../../../electron-app/utils/formatting/formatters/formatManufacturer.js",
+    import("../../../../../electron-app/utils/formatting/formatters/formatSensorName.js"),
     () => ({
-        formatManufacturer: vi.fn(() => "Garmin"),
+        formatSensorName: vi.fn<FormatSensorName>(() => "Garmin Foo"),
     })
 );
 vi.mock(
-    "../../../../../electron-app/utils/formatting/display/formatCapitalize.js",
+    import("../../../../../electron-app/utils/formatting/formatters/formatManufacturer.js"),
     () => ({
-        formatCapitalize: vi.fn((s) => String(s)),
+        formatManufacturer: vi.fn<FormatManufacturer>(() => "Garmin"),
+    })
+);
+vi.mock(
+    import("../../../../../electron-app/utils/formatting/display/formatCapitalize.js"),
+    () => ({
+        formatCapitalize: vi.fn<FormatCapitalize>((value) => String(value)),
     })
 );
 
 import { createUserDeviceInfoBox } from "../../../../../electron-app/utils/rendering/components/createUserDeviceInfoBox.js";
 
-const makeContainer = () => {
+function getTestWindow(): TestWindow {
+    return window as TestWindow;
+}
+
+function makeContainer(): HTMLDivElement {
     const c = document.createElement("div");
     document.body.innerHTML = "";
-    document.body.appendChild(c);
+    document.body.append(c);
     return c;
-};
+}
 
-describe("createUserDeviceInfoBox", () => {
+function setGlobalData(globalData: unknown): void {
+    getTestWindow().globalData = globalData;
+}
+
+function getInfoBoxElement(container: HTMLElement): HTMLDivElement {
+    const infoBox = container.querySelector<HTMLDivElement>(
+        ".user-device-info-box"
+    );
+    if (!(infoBox instanceof HTMLDivElement)) {
+        throw new TypeError("Expected info box to render as a div");
+    }
+    return infoBox;
+}
+
+describe(createUserDeviceInfoBox, () => {
     beforeEach(() => {
         vi.clearAllMocks();
         // reset DOM and globals
         document.body.innerHTML = "";
-        // @ts-ignore
-        delete window.globalData;
+        delete getTestWindow().globalData;
     });
 
     it("creates info box with user profile and device sections when data present", () => {
+        expect.hasAssertions();
+
         const container = makeContainer();
-        // @ts-ignore
-        window.globalData = {
+        setGlobalData({
             userProfileMesgs: [
                 { friendlyName: "nick", age: 30, height: 180, weight: 80 },
             ],
@@ -101,12 +159,12 @@ describe("createUserDeviceInfoBox", () => {
                     garminProduct: "456",
                 },
             ],
-        };
+        });
 
         createUserDeviceInfoBox(container);
 
         // Should append exactly one child (info box)
-        expect(container.children.length).toBe(1);
+        expect(container.children).toHaveLength(1);
         const infoBox = container.firstElementChild;
         expect(infoBox?.classList.contains("user-device-info-box")).toBe(true);
 
@@ -117,18 +175,20 @@ describe("createUserDeviceInfoBox", () => {
     });
 
     it("shows fallback message when no device info available", () => {
+        expect.hasAssertions();
+
         const container = makeContainer();
-        // @ts-ignore
-        window.globalData = { userProfileMesgs: [{}], deviceInfoMesgs: [] };
+        setGlobalData({ deviceInfoMesgs: [], userProfileMesgs: [{}] });
         createUserDeviceInfoBox(container);
 
         expect(container.innerHTML).toMatch(/No device information available/);
     });
 
     it("renders most user profile fields when provided", () => {
+        expect.hasAssertions();
+
         const container = makeContainer();
-        // @ts-ignore
-        window.globalData = {
+        setGlobalData({
             userProfileMesgs: [
                 {
                     friendlyName: "nick",
@@ -169,46 +229,52 @@ describe("createUserDeviceInfoBox", () => {
                     garminProduct: "x",
                 },
             ],
-        };
+        });
 
         createUserDeviceInfoBox(container);
 
         // Spot-check a variety of labels produced by optional fields
         const html = container.innerHTML;
-        expect(html).toMatch(/Device or Name:/);
-        expect(html).toMatch(/Gender:/);
-        expect(html).toMatch(/Age:/);
-        expect(html).toMatch(/Height:/);
-        expect(html).toMatch(/Weight:/);
-        expect(html).toMatch(/Language:/);
-        expect(html).toMatch(/Elevation Setting:/);
-        expect(html).toMatch(/Weight Setting:/);
-        expect(html).toMatch(/Resting HR:/);
-        expect(html).toMatch(/Max HR:/);
-        expect(html).toMatch(/Max Running HR:/);
-        expect(html).toMatch(/Max Biking HR:/);
-        expect(html).toMatch(/HR Setting:/);
-        expect(html).toMatch(/Speed Setting:/);
-        expect(html).toMatch(/Distance Setting:/);
-        expect(html).toMatch(/Power Setting:/);
-        expect(html).toMatch(/Activity Class:/);
-        expect(html).toMatch(/Position Setting:/);
-        expect(html).toMatch(/Temperature Setting:/);
-        expect(html).toMatch(/Local ID:/);
-        expect(html).toMatch(/Global ID:/);
-        expect(html).toMatch(/Wake Time:/);
-        expect(html).toMatch(/Sleep Time:/);
-        expect(html).toMatch(/Height Setting:/);
-        expect(html).toMatch(/Running Step Length:/);
-        expect(html).toMatch(/Walking Step Length:/);
-        expect(html).toMatch(/Depth Setting:/);
-        expect(html).toMatch(/Dive Count:/);
+        const expectedLabels = [
+            "Device or Name:",
+            "Gender:",
+            "Age:",
+            "Height:",
+            "Weight:",
+            "Language:",
+            "Elevation Setting:",
+            "Weight Setting:",
+            "Resting HR:",
+            "Max HR:",
+            "Max Running HR:",
+            "Max Biking HR:",
+            "HR Setting:",
+            "Speed Setting:",
+            "Distance Setting:",
+            "Power Setting:",
+            "Activity Class:",
+            "Position Setting:",
+            "Temperature Setting:",
+            "Local ID:",
+            "Global ID:",
+            "Wake Time:",
+            "Sleep Time:",
+            "Height Setting:",
+            "Running Step Length:",
+            "Walking Step Length:",
+            "Depth Setting:",
+            "Dive Count:",
+        ];
+        expect(
+            expectedLabels.filter((label) => !html.includes(label))
+        ).toStrictEqual([]);
     });
 
     it("selects first device as primary when no creator entry exists and renders serial suffix", () => {
+        expect.hasAssertions();
+
         const container = makeContainer();
-        // @ts-ignore
-        window.globalData = {
+        setGlobalData({
             userProfileMesgs: [{}],
             deviceInfoMesgs: [
                 {
@@ -226,7 +292,7 @@ describe("createUserDeviceInfoBox", () => {
                     garminProduct: "HRM",
                 },
             ],
-        };
+        });
 
         createUserDeviceInfoBox(container);
 
@@ -239,9 +305,10 @@ describe("createUserDeviceInfoBox", () => {
     });
 
     it("renders sensor pills only when manufacturer or garminProduct is present", () => {
+        expect.hasAssertions();
+
         const container = makeContainer();
-        // @ts-ignore
-        window.globalData = {
+        setGlobalData({
             userProfileMesgs: [{}],
             deviceInfoMesgs: [
                 {
@@ -255,7 +322,7 @@ describe("createUserDeviceInfoBox", () => {
                 // Invalid sensor (no manufacturer/garminProduct): should not render pill
                 { sourceType: "antplus" },
             ],
-        };
+        });
 
         createUserDeviceInfoBox(container);
 
@@ -266,15 +333,16 @@ describe("createUserDeviceInfoBox", () => {
     });
 
     it("sanitizes FIT-derived strings (prevents HTML injection)", () => {
+        expect.hasAssertions();
+
         const container = makeContainer();
 
-        // @ts-ignore
-        window.globalData = {
+        setGlobalData({
             userProfileMesgs: [
                 { friendlyName: "<img src=x onerror=alert(1)>bad" },
             ],
             deviceInfoMesgs: [],
-        };
+        });
 
         createUserDeviceInfoBox(container);
 
@@ -289,10 +357,11 @@ describe("createUserDeviceInfoBox", () => {
     });
 
     it("applies hover effects and logs theme on creation", () => {
+        expect.hasAssertions();
+
         const container = makeContainer();
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-        // @ts-ignore
-        window.globalData = {
+        setGlobalData({
             userProfileMesgs: [{}],
             deviceInfoMesgs: [
                 {
@@ -301,24 +370,18 @@ describe("createUserDeviceInfoBox", () => {
                     manufacturer: "garmin",
                 },
             ],
-        };
+        });
 
         createUserDeviceInfoBox(container);
 
-        const infoBox = container.querySelector<HTMLDivElement>(
-            ".user-device-info-box"
-        );
-        expect(infoBox).toBeInstanceOf(HTMLDivElement);
-        if (!(infoBox instanceof HTMLDivElement)) {
-            throw new TypeError("Expected info box to render as a div");
-        }
+        const boxNode = getInfoBoxElement(container);
 
         // Simulate hover events on the infoBox to exercise event listeners
-        infoBox.dispatchEvent(new Event("mouseenter"));
-        expect(infoBox.style.transform).toContain("translateY(-4px)");
-        infoBox.dispatchEvent(new Event("mouseleave"));
+        boxNode.dispatchEvent(new Event("mouseenter"));
+        expect(boxNode.style.transform).toContain("translateY(-4px)");
+        boxNode.dispatchEvent(new Event("mouseleave"));
         // After leave, transform should reset to baseline
-        expect(infoBox.style.transform).toContain("translateY(0)");
+        expect(boxNode.style.transform).toContain("translateY(0)");
 
         // Ensure theme name is logged (accept any theme name)
         expect(logSpy).toHaveBeenCalledWith(
@@ -330,22 +393,23 @@ describe("createUserDeviceInfoBox", () => {
     });
 
     it("does not throw and logs error when an exception occurs", () => {
+        expect.hasAssertions();
+
         const container = makeContainer();
         const consoleSpy = vi
             .spyOn(console, "error")
             .mockImplementation(() => {});
 
         // Force an error by making append throw (not appendChild)
-        const originalAppend = container.append.bind(container);
-        // @ts-ignore
-        container.append = () => {
+        vi.spyOn(container, "append").mockImplementation(() => {
             throw new Error("fail");
-        };
+        });
 
         expect(() => createUserDeviceInfoBox(container)).not.toThrow();
-        expect(consoleSpy).toHaveBeenCalled();
-
-        // restore
-        container.append = originalAppend;
+        expect(consoleSpy).toHaveBeenCalledWith(
+            "[ChartJS] Error creating user/device info box:",
+            expect.any(Error)
+        );
+        consoleSpy.mockRestore();
     });
 });
