@@ -63,10 +63,12 @@ Packaging is configured from the repository root:
 
 ```javascript
 // electron-builder.config.cjs
+const rootPackageFiles = ["electron-app/dist/**", "package.json"];
+
 module.exports = {
  appId: appPackage.appid,
  productName: appPackage.productName,
- files: appPackageFiles,
+ files: rootPackageFiles,
  artifactName: "Fit-File-Viewer-${platform}-${arch}-${version}.${ext}",
  publish: [{ provider: "github", owner: "Nick2bad4u", repo: "FitFileViewer" }],
 };

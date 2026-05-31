@@ -139,9 +139,19 @@ describe("workspace package boundaries", () => {
     });
 
     it("keeps public package snippets aligned with the root app manifest", () => {
-        expect.assertions(5);
+        expect.assertions(7);
 
         const rootPackage = readPackageJson("package.json");
+        const buildReleaseGuide = readFileSync(
+            path.join(
+                process.cwd(),
+                "docusaurus",
+                "docs",
+                "development",
+                "build-release.md"
+            ),
+            "utf8"
+        );
         const homepageSource = readFileSync(
             path.join(process.cwd(), "docusaurus", "src", "pages", "index.tsx"),
             "utf8"
@@ -152,6 +162,8 @@ describe("workspace package boundaries", () => {
         expect(homepageSource).toContain('"docusaurus"');
         expect(homepageSource).not.toContain("fitfileviewer-root");
         expect(homepageSource).not.toContain('"electron-app",');
+        expect(buildReleaseGuide).toContain("files: rootPackageFiles");
+        expect(buildReleaseGuide).not.toContain("appPackageFiles");
     });
 
     it("keeps dependency update configuration rooted at the app package", () => {
