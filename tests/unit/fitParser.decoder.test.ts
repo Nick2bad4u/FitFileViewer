@@ -297,11 +297,15 @@ describe("fitParser.js decoder behavior", () => {
 
             const result = fitParser.validateDecoderOptions(options);
 
-            expect(result.isValid).toBe(true);
-            expect(result.errors).toHaveLength(0);
-            expect(result.validatedOptions.applyScaleAndOffset).toBe(false);
-            expect(result.validatedOptions.expandSubFields).toBe(true);
-            expect(result.validatedOptions.expandComponents).toBe(true); // default
+            expect(result).toMatchObject({
+                errors: [],
+                isValid: true,
+                validatedOptions: {
+                    applyScaleAndOffset: false,
+                    expandComponents: true,
+                    expandSubFields: true,
+                },
+            });
         });
 
         it("should handle invalid decoder options", () => {
@@ -314,13 +318,13 @@ describe("fitParser.js decoder behavior", () => {
 
             const result = fitParser.validateDecoderOptions(options);
 
-            expect(result.isValid).toBe(false);
-            expect(result.errors).toStrictEqual([
-                "applyScaleAndOffset must be of type boolean, got string",
-            ]);
-            expect(result.validatedOptions).toMatchObject(
-                fitParser.getDefaultDecoderOptions()
-            );
+            expect(result).toMatchObject({
+                errors: [
+                    "applyScaleAndOffset must be of type boolean, got string",
+                ],
+                isValid: false,
+                validatedOptions: fitParser.getDefaultDecoderOptions(),
+            });
         });
 
         it("should handle null decoder options", () => {
@@ -328,10 +332,10 @@ describe("fitParser.js decoder behavior", () => {
 
             const result = fitParser.validateDecoderOptions(null);
 
-            expect(result.isValid).toBe(true);
-            expect(result.validatedOptions).toMatchObject(
-                fitParser.getDefaultDecoderOptions()
-            );
+            expect(result).toMatchObject({
+                isValid: true,
+                validatedOptions: fitParser.getDefaultDecoderOptions(),
+            });
         });
 
         it("should get persisted decoder options from state manager", () => {
@@ -350,7 +354,9 @@ describe("fitParser.js decoder behavior", () => {
             expect(mockSettingsStateManager.getCategory).toHaveBeenCalledWith(
                 "decoder"
             );
-            expect(options.applyScaleAndOffset).toBe(false);
+            expect(options).toMatchObject({
+                applyScaleAndOffset: false,
+            });
         });
 
         it("should fail clearly when state manager update throws", () => {
@@ -396,7 +402,9 @@ describe("fitParser.js decoder behavior", () => {
             const newOptions = { applyScaleAndOffset: false };
             const result = fitParser.updateDecoderOptions(newOptions);
 
-            expect(result.success).toBe(true);
+            expect(result).toMatchObject({
+                success: true,
+            });
             expect(
                 mockSettingsStateManager.updateCategory
             ).toHaveBeenCalledWith(
@@ -483,10 +491,12 @@ describe("fitParser.js decoder behavior", () => {
             const invalidOptions = { applyScaleAndOffset: "invalid" };
             const result = fitParser.updateDecoderOptions(invalidOptions);
 
-            expect(result.success).toBe(false);
-            expect(result.errors).toStrictEqual([
-                "applyScaleAndOffset must be of type boolean, got string",
-            ]);
+            expect(result).toStrictEqual({
+                errors: [
+                    "applyScaleAndOffset must be of type boolean, got string",
+                ],
+                success: false,
+            });
         });
 
         it("should get current decoder options", () => {
@@ -503,10 +513,10 @@ describe("fitParser.js decoder behavior", () => {
                 settingsStateManager: mockSettingsStateManager,
             });
             const result = fitParser.resetDecoderOptions();
-            expect(result.success).toBe(true);
-            expect(result.options).toMatchObject(
-                fitParser.getDefaultDecoderOptions()
-            );
+            expect(result).toMatchObject({
+                options: fitParser.getDefaultDecoderOptions(),
+                success: true,
+            });
         });
     });
 
@@ -1078,7 +1088,6 @@ describe("fitParser.js decoder behavior", () => {
             const result = fitParser.applyUnknownMessageLabels(messages);
 
             expect(result).toStrictEqual({});
-            expect(Object.keys(result)).toHaveLength(0);
         });
 
         it("should handle null/undefined messages", () => {
@@ -1089,8 +1098,6 @@ describe("fitParser.js decoder behavior", () => {
 
             expect(result1).toStrictEqual({});
             expect(result2).toStrictEqual({});
-            expect(Object.keys(result1)).toHaveLength(0);
-            expect(Object.keys(result2)).toHaveLength(0);
         });
     });
 
