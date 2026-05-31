@@ -5,14 +5,12 @@ import process from "node:process";
 import { pathToFileURL } from "node:url";
 
 import {
+    buildRendererScriptPath,
     repositoryRoot,
-    repositoryScriptPath,
     rootViteRendererConfigPath,
 } from "./lib/workspaces.mjs";
 
-const require = createRequire(
-    pathToFileURL(repositoryScriptPath("build-renderer.mjs")).href
-);
+const require = createRequire(pathToFileURL(buildRendererScriptPath).href);
 const vitePackagePath = require.resolve("vite/package.json");
 export const viteCliPath = path.join(
     path.dirname(vitePackagePath),

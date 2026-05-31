@@ -20,7 +20,10 @@ type WorkspacesModule = {
     appSourcePath: string;
     appSourceRepositoryPath: (...segments: string[]) => string;
     appSourceRelativePath: (...segments: string[]) => string;
+    buildRendererScriptPath: string;
     buildRuntimeScriptPath: string;
+    bundlePreloadScriptPath: string;
+    cleanRuntimeDistScriptPath: string;
     docusaurusPackagePath: string;
     docusaurusPackageRepositoryPath: string;
     docusaurusWorkspaceAbsolutePath: (...segments: string[]) => string;
@@ -28,7 +31,9 @@ type WorkspacesModule = {
     docusaurusWorkspacePath: string;
     docusaurusWorkspaceRepositoryPath: (...segments: string[]) => string;
     docusaurusWorkspaceRelativePath: (...segments: string[]) => string;
+    formatRuntimeOutputScriptPath: string;
     generateApiCategoriesScriptPath: string;
+    prepareRuntimeDistScriptPath: string;
     repositoryRoot: string;
     repositoryPath: (...segments: string[]) => string;
     repositoryScriptPath: (...segments: string[]) => string;
@@ -79,7 +84,9 @@ type WorkspacesModule = {
     runDocusaurusScriptPath: string;
     runElectronBuilderScriptPath: string;
     runElectronScriptPath: string;
+    runTypescriptScriptPath: string;
     scriptsPath: string;
+    validateRuntimeTsconfigScriptPath: string;
 };
 
 async function importWorkspaces(): Promise<WorkspacesModule> {
@@ -88,7 +95,7 @@ async function importWorkspaces(): Promise<WorkspacesModule> {
 
 describe("workspace path helpers", () => {
     it("centralizes the app source root paths", async () => {
-        expect.assertions(20);
+        expect.assertions(13);
 
         const workspaces = await importWorkspaces();
 
@@ -118,6 +125,16 @@ describe("workspace path helpers", () => {
         expect(workspaces.appSourceAbsolutePath("dist")).toBe(
             path.join(process.cwd(), "electron-app", "dist")
         );
+        expect(
+            workspaces.repositoryPath(workspaces.rootFlatpakManifestPath)
+        ).toBe(path.join(process.cwd(), workspaces.rootFlatpakManifestPath));
+    });
+
+    it("centralizes root script paths", async () => {
+        expect.assertions(14);
+
+        const workspaces = await importWorkspaces();
+
         expect(workspaces.scriptsPath).toBe(
             path.join(process.cwd(), "scripts")
         );
@@ -126,6 +143,27 @@ describe("workspace path helpers", () => {
         );
         expect(workspaces.buildRuntimeScriptPath).toBe(
             path.join(process.cwd(), "scripts", "build-runtime.mjs")
+        );
+        expect(workspaces.cleanRuntimeDistScriptPath).toBe(
+            path.join(process.cwd(), "scripts", "clean-runtime-dist.mjs")
+        );
+        expect(workspaces.validateRuntimeTsconfigScriptPath).toBe(
+            path.join(process.cwd(), "scripts", "validate-runtime-tsconfig.mjs")
+        );
+        expect(workspaces.runTypescriptScriptPath).toBe(
+            path.join(process.cwd(), "scripts", "run-typescript.mjs")
+        );
+        expect(workspaces.bundlePreloadScriptPath).toBe(
+            path.join(process.cwd(), "scripts", "bundle-preload.mjs")
+        );
+        expect(workspaces.buildRendererScriptPath).toBe(
+            path.join(process.cwd(), "scripts", "build-renderer.mjs")
+        );
+        expect(workspaces.formatRuntimeOutputScriptPath).toBe(
+            path.join(process.cwd(), "scripts", "format-runtime-output.mjs")
+        );
+        expect(workspaces.prepareRuntimeDistScriptPath).toBe(
+            path.join(process.cwd(), "scripts", "prepare-runtime-dist.mjs")
         );
         expect(workspaces.generateApiCategoriesScriptPath).toBe(
             path.join(process.cwd(), "scripts", "generate-api-categories.mjs")
@@ -139,9 +177,6 @@ describe("workspace path helpers", () => {
         expect(workspaces.runElectronScriptPath).toBe(
             path.join(process.cwd(), "scripts", "run-electron.mjs")
         );
-        expect(
-            workspaces.repositoryPath(workspaces.rootFlatpakManifestPath)
-        ).toBe(path.join(process.cwd(), workspaces.rootFlatpakManifestPath));
     });
 
     it("centralizes app runtime asset paths", async () => {

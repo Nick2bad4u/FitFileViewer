@@ -2,35 +2,44 @@ import { spawnSync } from "node:child_process";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
-import { repositoryRoot, repositoryScriptPath } from "./lib/workspaces.mjs";
+import {
+    buildRendererScriptPath,
+    bundlePreloadScriptPath,
+    cleanRuntimeDistScriptPath,
+    formatRuntimeOutputScriptPath,
+    prepareRuntimeDistScriptPath,
+    repositoryRoot,
+    runTypescriptScriptPath,
+    validateRuntimeTsconfigScriptPath,
+} from "./lib/workspaces.mjs";
 
 export const buildRuntimeSteps = [
     {
-        args: [repositoryScriptPath("clean-runtime-dist.mjs")],
+        args: [cleanRuntimeDistScriptPath],
         label: "clean runtime dist",
     },
     {
-        args: [repositoryScriptPath("validate-runtime-tsconfig.mjs")],
+        args: [validateRuntimeTsconfigScriptPath],
         label: "validate runtime TypeScript file list",
     },
     {
-        args: [repositoryScriptPath("run-typescript.mjs"), "runtime"],
+        args: [runTypescriptScriptPath, "runtime"],
         label: "compile runtime TypeScript",
     },
     {
-        args: [repositoryScriptPath("bundle-preload.mjs")],
+        args: [bundlePreloadScriptPath],
         label: "bundle preload",
     },
     {
-        args: [repositoryScriptPath("build-renderer.mjs")],
+        args: [buildRendererScriptPath],
         label: "build renderer bundle",
     },
     {
-        args: [repositoryScriptPath("format-runtime-output.mjs")],
+        args: [formatRuntimeOutputScriptPath],
         label: "format runtime output",
     },
     {
-        args: [repositoryScriptPath("prepare-runtime-dist.mjs")],
+        args: [prepareRuntimeDistScriptPath],
         label: "prepare runtime dist",
     },
 ];

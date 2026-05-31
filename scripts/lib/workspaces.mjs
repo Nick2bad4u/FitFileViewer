@@ -101,9 +101,22 @@ export const rootAppStyleCssPath = path.posix.join(
     appStyleCssPath
 );
 export const scriptsPath = path.join(repositoryRoot, "scripts");
+export const bundlePreloadScriptPath =
+    repositoryScriptPath("bundle-preload.mjs");
+export const buildRendererScriptPath =
+    repositoryScriptPath("build-renderer.mjs");
 export const buildRuntimeScriptPath = repositoryScriptPath("build-runtime.mjs");
+export const cleanRuntimeDistScriptPath = repositoryScriptPath(
+    "clean-runtime-dist.mjs"
+);
+export const formatRuntimeOutputScriptPath = repositoryScriptPath(
+    "format-runtime-output.mjs"
+);
 export const generateApiCategoriesScriptPath = repositoryScriptPath(
     "generate-api-categories.mjs"
+);
+export const prepareRuntimeDistScriptPath = repositoryScriptPath(
+    "prepare-runtime-dist.mjs"
 );
 export const runDocusaurusScriptPath =
     repositoryScriptPath("run-docusaurus.mjs");
@@ -111,6 +124,11 @@ export const runElectronBuilderScriptPath = repositoryScriptPath(
     "run-electron-builder.mjs"
 );
 export const runElectronScriptPath = repositoryScriptPath("run-electron.mjs");
+export const runTypescriptScriptPath =
+    repositoryScriptPath("run-typescript.mjs");
+export const validateRuntimeTsconfigScriptPath = repositoryScriptPath(
+    "validate-runtime-tsconfig.mjs"
+);
 
 export function appSourceRelativePath(...segments) {
     return path.join(appSourceDirectoryName, ...segments);

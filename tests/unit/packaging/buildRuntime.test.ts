@@ -3,7 +3,15 @@ import process from "node:process";
 
 import { describe, expect, it, vi } from "vitest";
 
-import { repositoryScriptPath } from "../../../scripts/lib/workspaces.mjs";
+import {
+    buildRendererScriptPath,
+    bundlePreloadScriptPath,
+    cleanRuntimeDistScriptPath,
+    formatRuntimeOutputScriptPath,
+    prepareRuntimeDistScriptPath,
+    runTypescriptScriptPath,
+    validateRuntimeTsconfigScriptPath,
+} from "../../../scripts/lib/workspaces.mjs";
 import {
     buildRuntimeSteps,
     runBuildRuntime,
@@ -29,13 +37,13 @@ describe("build-runtime script", () => {
             "prepare runtime dist",
         ]);
         expect(buildRuntimeSteps.map((step) => step.args)).toStrictEqual([
-            [repositoryScriptPath("clean-runtime-dist.mjs")],
-            [repositoryScriptPath("validate-runtime-tsconfig.mjs")],
-            [repositoryScriptPath("run-typescript.mjs"), "runtime"],
-            [repositoryScriptPath("bundle-preload.mjs")],
-            [repositoryScriptPath("build-renderer.mjs")],
-            [repositoryScriptPath("format-runtime-output.mjs")],
-            [repositoryScriptPath("prepare-runtime-dist.mjs")],
+            [cleanRuntimeDistScriptPath],
+            [validateRuntimeTsconfigScriptPath],
+            [runTypescriptScriptPath, "runtime"],
+            [bundlePreloadScriptPath],
+            [buildRendererScriptPath],
+            [formatRuntimeOutputScriptPath],
+            [prepareRuntimeDistScriptPath],
         ]);
     });
 
