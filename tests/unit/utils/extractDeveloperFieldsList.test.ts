@@ -3,7 +3,7 @@ import { extractDeveloperFieldsList } from "../../../electron-app/utils/data/pro
 
 describe(extractDeveloperFieldsList, () => {
     it("returns no fields for non-record-list input", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         expect(
             [
@@ -25,7 +25,7 @@ describe(extractDeveloperFieldsList, () => {
     });
 
     it("extracts numeric scalar fields and array indices from developerFields JSON", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const records = [
             { developerFields: '{"1": 100, "2": [10, "x", null]}' },
@@ -43,7 +43,7 @@ describe(extractDeveloperFieldsList, () => {
     });
 
     it("handles invalid-input developerFields payloads by ignoring them", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const records = [
             null,
@@ -59,7 +59,7 @@ describe(extractDeveloperFieldsList, () => {
     });
 
     it("ignores non-numeric scalar values while preserving array index fields", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const records = [
             {
@@ -88,7 +88,7 @@ describe(extractDeveloperFieldsList, () => {
     });
 
     it("deduplicates fields across records and sorts identifiers naturally", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const records = [
             { developerFields: '{"10": 10, "2": [1, 2]}' },
