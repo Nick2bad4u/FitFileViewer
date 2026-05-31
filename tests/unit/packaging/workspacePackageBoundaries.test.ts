@@ -192,10 +192,20 @@ describe("workspace package boundaries", () => {
     });
 
     it("keeps Docusaurus setup guidance in maintained docs pages", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const docusaurusReadme = readFileSync(
             path.join(process.cwd(), "docusaurus", "README.md"),
+            "utf8"
+        );
+        const docusaurusSetupGuide = readFileSync(
+            path.join(
+                process.cwd(),
+                "docusaurus",
+                "docs",
+                "development",
+                "setup.md"
+            ),
             "utf8"
         );
 
@@ -207,6 +217,7 @@ describe("workspace package boundaries", () => {
         });
         expect(docusaurusReadme).toContain("docs/development/setup.md");
         expect(docusaurusReadme).toContain("docs/development/build-release.md");
+        expect(docusaurusSetupGuide).not.toContain("├── vendor/");
     });
 
     it("keeps Electron app tooling configuration centralized at the repository root", () => {

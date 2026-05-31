@@ -99,7 +99,6 @@ FitFileViewer/
 ├── tests/                 # Root-owned Vitest and Playwright tests
 ├── docs/                  # Documentation
 ├── docusaurus/            # Documentation site
-├── vendor/                # Curated source-only vendor replacements
 ├── fit-test-files/        # Sample FIT files
 ├── electron-builder.config.cjs
 ├── eslint.config.mjs
