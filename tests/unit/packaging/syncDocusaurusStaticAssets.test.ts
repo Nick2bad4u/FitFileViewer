@@ -9,6 +9,12 @@ import {
     screenshotNames,
     syncDocusaurusStaticAssets,
 } from "../../../scripts/sync-docusaurus-static-assets.mjs";
+import {
+    docusaurusStaticFaviconPath,
+    docusaurusStaticScreenshotsPath,
+    rootAppFaviconPath,
+    rootDocsScreenshotsPath,
+} from "../../../scripts/lib/workspaces.mjs";
 
 const temporaryRoots: string[] = [];
 
@@ -56,31 +62,15 @@ describe("sync-docusaurus-static-assets script", () => {
 
         expect(plan.staticAssets).toStrictEqual([
             {
-                source: path.join(
-                    temporaryRoot,
-                    "static",
-                    "icons",
-                    "favicon.ico"
-                ),
-                target: path.join(
-                    temporaryRoot,
-                    "docusaurus",
-                    "static",
-                    "favicon.ico"
-                ),
+                source: path.join(temporaryRoot, rootAppFaviconPath),
+                target: path.join(temporaryRoot, docusaurusStaticFaviconPath),
             },
         ]);
         expect(plan.screenshotSourceDir).toBe(
-            path.join(temporaryRoot, "docs", "screenshots")
+            path.join(temporaryRoot, rootDocsScreenshotsPath)
         );
         expect(plan.screenshotTargetDir).toBe(
-            path.join(
-                temporaryRoot,
-                "docusaurus",
-                "static",
-                "img",
-                "screenshots"
-            )
+            path.join(temporaryRoot, docusaurusStaticScreenshotsPath)
         );
         expect(plan.screenshotNames).toStrictEqual(screenshotNames);
     });
@@ -91,31 +81,22 @@ describe("sync-docusaurus-static-assets script", () => {
         const temporaryRoot = makeTemporaryRoot();
         const logger = vi.fn<(message: string) => void>();
         const screenshotTargets = screenshotNames.map((screenshotName) =>
-            path.join(
-                "docusaurus",
-                "static",
-                "img",
-                "screenshots",
-                screenshotName
-            )
+            path.join(docusaurusStaticScreenshotsPath, screenshotName)
         );
         const syncedTargets = [
-            path.join("docusaurus", "static", "favicon.ico"),
+            docusaurusStaticFaviconPath,
             ...screenshotTargets,
         ];
         const expectedPathStates = Object.fromEntries(
             syncedTargets.map((target) => [target, "present"])
         );
 
-        writePlaceholder(
-            temporaryRoot,
-            path.join("static", "icons", "favicon.ico")
-        );
+        writePlaceholder(temporaryRoot, rootAppFaviconPath);
 
         for (const screenshotName of screenshotNames) {
             writePlaceholder(
                 temporaryRoot,
-                path.join("docs", "screenshots", screenshotName)
+                path.join(rootDocsScreenshotsPath, screenshotName)
             );
         }
 
@@ -123,14 +104,14 @@ describe("sync-docusaurus-static-assets script", () => {
 
         expect({
             faviconContent: fs.readFileSync(
-                path.join(temporaryRoot, "docusaurus", "static", "favicon.ico"),
+                path.join(temporaryRoot, docusaurusStaticFaviconPath),
                 "utf8"
             ),
             logMessages: logger.mock.calls.map(([message]) => message),
             pathStates: getPathStates(temporaryRoot, syncedTargets),
             syncedCount,
         }).toStrictEqual({
-            faviconContent: path.join("static", "icons", "favicon.ico"),
+            faviconContent: rootAppFaviconPath,
             logMessages: [
                 "[sync-docusaurus-static-assets] Synced 4 static assets.",
             ],
@@ -145,30 +126,21 @@ describe("sync-docusaurus-static-assets script", () => {
         const temporaryRoot = makeTemporaryRoot();
         const logger = vi.fn<(message: string) => void>();
 
-        writePlaceholder(
-            temporaryRoot,
-            path.join("static", "icons", "favicon.ico")
-        );
+        writePlaceholder(temporaryRoot, rootAppFaviconPath);
 
         expect(() => syncDocusaurusStaticAssets(temporaryRoot, logger)).toThrow(
-            `Missing canonical screenshot: ${path.join(temporaryRoot, "docs", "screenshots", screenshotNames[0] ?? "")}`
+            `Missing canonical screenshot: ${path.join(temporaryRoot, rootDocsScreenshotsPath, screenshotNames[0] ?? "")}`
         );
         expect(
             getPathStates(temporaryRoot, [
                 path.join(
-                    "docusaurus",
-                    "static",
-                    "img",
-                    "screenshots",
+                    docusaurusStaticScreenshotsPath,
                     screenshotNames[0] ?? ""
                 ),
             ])
         ).toStrictEqual({
             [path.join(
-                "docusaurus",
-                "static",
-                "img",
-                "screenshots",
+                docusaurusStaticScreenshotsPath,
                 screenshotNames[0] ?? ""
             )]: "missing",
         });
@@ -182,14 +154,12 @@ describe("sync-docusaurus-static-assets script", () => {
         const logger = vi.fn<(message: string) => void>();
 
         expect(() => syncDocusaurusStaticAssets(temporaryRoot, logger)).toThrow(
-            `Missing canonical static asset: ${path.join(temporaryRoot, "static", "icons", "favicon.ico")}`
+            `Missing canonical static asset: ${path.join(temporaryRoot, rootAppFaviconPath)}`
         );
         expect(
-            getPathStates(temporaryRoot, [
-                path.join("docusaurus", "static", "favicon.ico"),
-            ])
+            getPathStates(temporaryRoot, [docusaurusStaticFaviconPath])
         ).toStrictEqual({
-            [path.join("docusaurus", "static", "favicon.ico")]: "missing",
+            [docusaurusStaticFaviconPath]: "missing",
         });
         expect(logger).not.toHaveBeenCalled();
     });

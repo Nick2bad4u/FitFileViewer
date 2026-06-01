@@ -26,6 +26,9 @@ type WorkspacesModule = {
     cleanRuntimeDistScriptPath: string;
     docusaurusPackagePath: string;
     docusaurusPackageRepositoryPath: string;
+    docusaurusStaticFaviconPath: string;
+    docusaurusStaticPath: string;
+    docusaurusStaticScreenshotsPath: string;
     docusaurusWorkspaceAbsolutePath: (...segments: string[]) => string;
     docusaurusWorkspaceName: string;
     docusaurusWorkspacePath: string;
@@ -45,6 +48,7 @@ type WorkspacesModule = {
     rootElectronAppEslintTsconfigPath: string;
     rootAlternativeFitViewPath: string;
     rootAppElevProfileCssPath: string;
+    rootAppFaviconPath: string;
     rootAppIconsPath: string;
     rootAppIndexHtmlPath: string;
     rootAppStaticPath: string;
@@ -54,6 +58,7 @@ type WorkspacesModule = {
     rootCoverageAbsolutePath: string;
     rootCoveragePath: string;
     rootDocusaurusTsconfigPath: string;
+    rootDocsScreenshotsPath: string;
     rootElectronAppTsconfigPath: string;
     rootEslintTsconfigPath: string;
     rootEslintConfigPath: string;
@@ -198,7 +203,7 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes app runtime asset paths", async () => {
-        expect.assertions(18);
+        expect.assertions(19);
 
         const workspaces = await importWorkspaces();
 
@@ -231,13 +236,14 @@ describe("workspace path helpers", () => {
             "static/app/elevProfile.css"
         );
         expect(workspaces.rootAppIconsPath).toBe("static/icons");
+        expect(workspaces.rootAppFaviconPath).toBe("static/icons/favicon.ico");
         expect(workspaces.rootAppIndexHtmlPath).toBe("static/app/index.html");
         expect(workspaces.rootAppStyleCssPath).toBe("static/app/style.css");
         expect(workspaces.appStyleCssPath).toBe("style.css");
     });
 
     it("centralizes root config paths", async () => {
-        expect.assertions(17);
+        expect.assertions(18);
 
         const workspaces = await importWorkspaces();
 
@@ -257,6 +263,7 @@ describe("workspace path helpers", () => {
         expect(workspaces.rootEslintTsconfigPath).toBe("tsconfig.eslint.json");
         expect(workspaces.rootEslintConfigPath).toBe("eslint.config.mjs");
         expect(workspaces.rootFlatpakManifestPath).toBe("flatpak-build.yml");
+        expect(workspaces.rootDocsScreenshotsPath).toBe("docs/screenshots");
         expect(workspaces.rootPlaywrightConfigPath).toBe(
             "playwright.config.ts"
         );
@@ -317,7 +324,7 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes the Docusaurus workspace root and package paths", async () => {
-        expect.assertions(9);
+        expect.assertions(12);
 
         const workspaces = await importWorkspaces();
 
@@ -328,6 +335,15 @@ describe("workspace path helpers", () => {
         );
         expect(workspaces.docusaurusWorkspaceRelativePath("static")).toBe(
             path.join("docusaurus", "static")
+        );
+        expect(workspaces.docusaurusStaticPath).toBe(
+            path.join("docusaurus", "static")
+        );
+        expect(workspaces.docusaurusStaticFaviconPath).toBe(
+            path.join("docusaurus", "static", "favicon.ico")
+        );
+        expect(workspaces.docusaurusStaticScreenshotsPath).toBe(
+            path.join("docusaurus", "static", "img", "screenshots")
         );
         expect(
             workspaces.docusaurusWorkspaceRepositoryPath("package.json")

@@ -4,9 +4,11 @@ import process from "node:process";
 import { pathToFileURL } from "node:url";
 
 import {
-    docusaurusWorkspaceName,
+    docusaurusStaticFaviconPath,
+    docusaurusStaticScreenshotsPath,
     repositoryRoot,
-    rootAppIconsPath,
+    rootAppFaviconPath,
+    rootDocsScreenshotsPath,
 } from "./lib/workspaces.mjs";
 
 export const screenshotNames = [
@@ -16,13 +18,10 @@ export const screenshotNames = [
 ];
 
 export function createStaticAssetPlan(root = repositoryRoot) {
-    const screenshotSourceDir = path.join(root, "docs", "screenshots");
+    const screenshotSourceDir = path.join(root, rootDocsScreenshotsPath);
     const screenshotTargetDir = path.join(
         root,
-        docusaurusWorkspaceName,
-        "static",
-        "img",
-        "screenshots"
+        docusaurusStaticScreenshotsPath
     );
 
     return {
@@ -31,13 +30,8 @@ export function createStaticAssetPlan(root = repositoryRoot) {
         screenshotTargetDir,
         staticAssets: [
             {
-                source: path.join(root, rootAppIconsPath, "favicon.ico"),
-                target: path.join(
-                    root,
-                    docusaurusWorkspaceName,
-                    "static",
-                    "favicon.ico"
-                ),
+                source: path.join(root, rootAppFaviconPath),
+                target: path.join(root, docusaurusStaticFaviconPath),
             },
         ],
     };

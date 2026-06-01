@@ -13,6 +13,7 @@ export const rootPackagePath = repositoryPath(rootPackageJsonPath);
 export const rootPackageRepositoryPath = rootPackageJsonPath;
 export const rootPlaywrightConfigPath = "playwright.config.ts";
 export const rootDocusaurusTsconfigPath = "tsconfig.docusaurus.json";
+export const rootDocsScreenshotsPath = path.posix.join("docs", "screenshots");
 export const rootElectronBuilderConfigPath = "electron-builder.config.cjs";
 export const rootElectronAppBaseTsconfigPath =
     "tsconfig.electron-app.base.json";
@@ -79,6 +80,16 @@ export const docusaurusPackagePath =
     docusaurusWorkspaceAbsolutePath("package.json");
 export const docusaurusPackageRepositoryPath =
     docusaurusWorkspaceRepositoryPath("package.json");
+export const docusaurusStaticPath = docusaurusWorkspaceRelativePath("static");
+export const docusaurusStaticFaviconPath = docusaurusWorkspaceRelativePath(
+    "static",
+    "favicon.ico"
+);
+export const docusaurusStaticScreenshotsPath = docusaurusWorkspaceRelativePath(
+    "static",
+    "img",
+    "screenshots"
+);
 export const rootAlternativeFitViewPath = path.posix.join(
     rootStaticAssetsPath,
     appAlternativeFitViewPath
@@ -91,6 +102,10 @@ export const rootAppElevProfileCssPath = path.posix.join(
 export const rootAppIconsPath = path.posix.join(
     rootStaticAssetsPath,
     appIconsPath
+);
+export const rootAppFaviconPath = path.posix.join(
+    rootAppIconsPath,
+    "favicon.ico"
 );
 export const rootAppIndexHtmlPath = path.posix.join(
     rootAppStaticPath,
