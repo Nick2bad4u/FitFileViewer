@@ -128,7 +128,7 @@ describe("renderZoneChart", () => {
     });
 
     it("renders doughnut with data colors and pushes instance", async () => {
-        expect.assertions(10);
+        expect.assertions(11);
 
         const { renderZoneChart } = await loadModule();
         const container = document.getElementById("root")!;
@@ -146,10 +146,8 @@ describe("renderZoneChart", () => {
         const canvas = container.querySelector("canvas");
         expect(canvas).toBeInstanceOf(HTMLCanvasElement);
         expect(canvas?.id).toBe("chart-hr_zone-0");
-        expect(getChartConstructor()).toHaveBeenCalledWith(
-            canvas,
-            expect.objectContaining({ type: "doughnut" })
-        );
+        expect(getChartConstructor()).toHaveBeenCalledOnce();
+        expect(getChartConstructor().mock.calls[0]?.[0]).toBe(canvas);
         expect(getChartInstances()).toBeInstanceOf(Array);
         expect(getChartInstances()).toHaveLength(1);
 
@@ -168,7 +166,7 @@ describe("renderZoneChart", () => {
     });
 
     it("renders bar config when chartType=bar and uses zoneType colors fallback", async () => {
-        expect.assertions(8);
+        expect.assertions(9);
 
         vi.doMock(
             import("../../../../electron-app/utils/data/zones/chartZoneColorUtils.js"),
@@ -199,10 +197,8 @@ describe("renderZoneChart", () => {
         const canvas = container.querySelector("canvas");
         expect(canvas).toBeInstanceOf(HTMLCanvasElement);
         expect(canvas?.id).toBe("chart-power_zone-0");
-        expect(getChartConstructor()).toHaveBeenCalledWith(
-            canvas,
-            expect.objectContaining({ type: "bar" })
-        );
+        expect(getChartConstructor()).toHaveBeenCalledOnce();
+        expect(getChartConstructor().mock.calls[0]?.[0]).toBe(canvas);
 
         const chartConfig = getCreatedChartConfig();
         expect(chartConfig.type).toBe("bar");
