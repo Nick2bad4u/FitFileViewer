@@ -406,20 +406,14 @@ test.describe("FitFileViewer Electron UI", () => {
             { bytes: fitBytes, filePath: sampleFitPath }
         );
 
-        expect(loadResult.activeFileName).toContain(
-            path.basename(sampleFitPath)
-        );
-        expect({
-            globalRecordCount: loadResult.globalRecordCount,
-            globalSessionCount: loadResult.globalSessionCount,
-            mapTabActive: loadResult.mapTabActive,
-        }).toStrictEqual({
+        expect(loadResult).toStrictEqual({
+            activeFileName: sampleFitActivityState.activeFileName,
             globalRecordCount: 1285,
             globalSessionCount: 1,
             mapTabActive: true,
+            title: sampleFitActivityState.title,
         });
-        expect(loadResult.globalRecordCount).not.toBe(0);
-        expect(loadResult.title).toContain(path.basename(sampleFitPath));
+        expect(loadResult.activeFileName).not.toBe("");
 
         await page.locator("#tab_map").click();
         await expect(page.locator("#leaflet-map")).toBeVisible();
