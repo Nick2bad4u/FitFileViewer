@@ -120,7 +120,7 @@ describe("appActions", () => {
         expect.hasAssertions();
         expect(Date.now()).toBe(1_704_067_200_000);
 
-        expect(() => AppActions.clearData()).not.toThrow();
+        expect(AppActions.clearData()).toBeUndefined();
 
         // Expect multiple setState calls for clearing data
         const keys = [
@@ -264,11 +264,11 @@ describe("appActions", () => {
         expect.hasAssertions();
         expect(Date.now()).toBe(1_704_067_200_000);
 
-        expect(() =>
+        expect(
             AppActions.renderChart({ datasets: [] }, {
                 responsive: true,
             } as any)
-        ).not.toThrow();
+        ).toBeUndefined();
         expect(h.mockUpdateState).toHaveBeenCalledWith(
             "charts",
             expect.objectContaining({
@@ -290,7 +290,7 @@ describe("appActions", () => {
 
         expect(Date.now()).toBe(1_704_067_200_000);
 
-        expect(() => AppActions.renderMap([10, 20], 15)).not.toThrow();
+        expect(AppActions.renderMap([10, 20], 15)).toBeUndefined();
         expect(h.mockUpdateState).toHaveBeenCalledWith(
             "map",
             expect.objectContaining({
@@ -311,9 +311,9 @@ describe("appActions", () => {
         expect.hasAssertions();
         expect(Date.now()).toBe(1_704_067_200_000);
 
-        expect(() =>
+        expect(
             AppActions.renderTable({ columns: ["a"] } as any)
-        ).not.toThrow();
+        ).toBeUndefined();
         expect(h.mockUpdateState).toHaveBeenCalledWith(
             "tables",
             expect.objectContaining({ isRendered: true, columns: ["a"] }),
@@ -330,30 +330,28 @@ describe("appActions", () => {
         expect.hasAssertions();
         expect(Date.now()).toBe(1_704_067_200_000);
 
-        expect(() => AppActions.selectLap(3)).not.toThrow();
+        expect(AppActions.selectLap(3)).toBeUndefined();
         expect(h.mockSetState).toHaveBeenCalledWith(
             "map.selectedLap",
             3,
             expect.any(Object)
         );
 
-        expect(() => AppActions.setFileOpening(true)).not.toThrow();
+        expect(AppActions.setFileOpening(true)).toBeUndefined();
         expect(h.mockSetState).toHaveBeenCalledWith(
             "app.isOpeningFile",
             true,
             expect.any(Object)
         );
 
-        expect(() => AppActions.setInitialized(true)).not.toThrow();
+        expect(AppActions.setInitialized(true)).toBeUndefined();
         expect(h.mockSetState).toHaveBeenCalledWith(
             "app.initialized",
             true,
             expect.any(Object)
         );
 
-        expect(() =>
-            AppActions.updateWindowState({ w: 1 } as any)
-        ).not.toThrow();
+        expect(AppActions.updateWindowState({ w: 1 } as any)).toBeUndefined();
         expect(h.mockUpdateState).toHaveBeenCalledWith(
             "ui.windowState",
             { w: 1 },
@@ -365,14 +363,14 @@ describe("appActions", () => {
         expect.hasAssertions();
         expect(Date.now()).toBe(1_704_067_200_000);
 
-        expect(() => AppActions.switchTab("chart")).not.toThrow();
+        expect(AppActions.switchTab("chart")).toBeUndefined();
         expect(h.mockSetState).toHaveBeenCalledWith(
             "ui.activeTab",
             "chart",
             expect.any(Object)
         );
         h.mockSetState.mockClear();
-        expect(() => AppActions.switchTab("not-a-tab")).not.toThrow();
+        expect(AppActions.switchTab("not-a-tab")).toBeUndefined();
         expect(h.mockSetState).not.toHaveBeenCalled();
     });
 
@@ -380,14 +378,14 @@ describe("appActions", () => {
         expect.hasAssertions();
         expect(Date.now()).toBe(1_704_067_200_000);
 
-        expect(() => AppActions.switchTheme("dark")).not.toThrow();
+        expect(AppActions.switchTheme("dark")).toBeUndefined();
         expect(h.mockSetState).toHaveBeenCalledWith(
             "ui.theme",
             "dark",
             expect.any(Object)
         );
         h.mockSetState.mockClear();
-        expect(() => AppActions.switchTheme("purple")).not.toThrow();
+        expect(AppActions.switchTheme("purple")).toBeUndefined();
         expect(h.mockSetState).not.toHaveBeenCalled();
     });
 
@@ -399,13 +397,13 @@ describe("appActions", () => {
             if (path === "charts.controlsVisible") return false;
             if (path === "map.measurementMode") return true;
         });
-        expect(() => AppActions.toggleChartControls()).not.toThrow();
+        expect(AppActions.toggleChartControls()).toBeUndefined();
         expect(h.mockSetState).toHaveBeenCalledWith(
             "charts.controlsVisible",
             true,
             expect.any(Object)
         );
-        expect(() => AppActions.toggleMeasurementMode()).not.toThrow();
+        expect(AppActions.toggleMeasurementMode()).toBeUndefined();
         expect(h.mockSetState).toHaveBeenCalledWith(
             "map.measurementMode",
             false,
@@ -475,8 +473,9 @@ describe(StateMiddleware, () => {
         mw.use((_p, v) => {
             // no return
         });
-        expect(() => mw.apply("x", 10, 0, {})).not.toThrow();
-        expect(mw.apply("x", 10, 0, {})).toBe(10);
+        const result = mw.apply("x", 10, 0, {});
+        expect(result).toBe(10);
+        expect(result).not.toBe(0);
     });
 
     it("apply should use modified value when middleware returns value", () => {

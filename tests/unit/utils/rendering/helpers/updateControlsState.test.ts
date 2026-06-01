@@ -143,7 +143,7 @@ describe(updateControlsState, () => {
 
             document.body.replaceChildren();
 
-            expect(() => initializeControlsState()).not.toThrow();
+            expect(initializeControlsState()).toBeUndefined();
             expect(mockSubscribe).toHaveBeenCalledWith(
                 "charts.controlsVisible",
                 expect.any(Function)
