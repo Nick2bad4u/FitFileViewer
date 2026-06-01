@@ -90,7 +90,7 @@ describe("clean-releases script", () => {
     });
 
     it("parses dry-run release cleanup arguments", async () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const { parseArgs } = await importCleanReleases();
 
@@ -105,6 +105,13 @@ describe("clean-releases script", () => {
             deleteTags: true,
             help: false,
             keepLast: 3,
+            releasesJsonPath: "tmp/releases.json",
+            yes: false,
+        });
+        expect(parseArgs(["--releases-json=tmp/releases.json"])).toStrictEqual({
+            deleteTags: false,
+            help: false,
+            keepLast: 5,
             releasesJsonPath: "tmp/releases.json",
             yes: false,
         });
@@ -138,5 +145,18 @@ describe("clean-releases script", () => {
                 validRelease: true,
             },
         });
+    });
+
+    it("rejects release JSON arguments without path values", async () => {
+        expect.assertions(2);
+
+        const { parseArgs } = await importCleanReleases();
+
+        expect(() => parseArgs(["--releases-json"])).toThrow(
+            "--releases-json requires a value"
+        );
+        expect(() => parseArgs(["--releases-json", "--delete-tags"])).toThrow(
+            "--releases-json requires a value"
+        );
     });
 });

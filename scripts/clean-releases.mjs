@@ -320,7 +320,7 @@ function parseKeepLast(value) {
 }
 
 function parseRequiredValue(name, value) {
-    if (!value) {
+    if (!value || value.startsWith("-")) {
         throw new TypeError(`${name} requires a value`);
     }
 
