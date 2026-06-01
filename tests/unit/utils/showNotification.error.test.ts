@@ -143,7 +143,7 @@ describe("showNotification.js - error handling coverage", () => {
     });
 
     it("handles errors in notification click handlers", async () => {
-        expect.assertions(3);
+        expect.assertions(6);
 
         // Create a notification with an onClick handler that throws
         const errorHandler = vi.fn<() => void>().mockImplementation(() => {
@@ -161,24 +161,23 @@ describe("showNotification.js - error handling coverage", () => {
         captured.stop();
 
         expect(errorHandler).toHaveBeenCalledOnce();
-        expect({
-            capturedMessages: captured.errors.map((error) => error.message),
-            cursor: el.style.cursor,
-            display: el.style.display,
-            visibleClassPresent: el.classList.contains("show"),
-        }).toEqual({
-            capturedMessages: ["Error in click handler"],
-            cursor: "pointer",
-            display: "flex",
-            visibleClassPresent: true,
-        });
+        expect(captured.errors.map((error) => error.message)).toStrictEqual([
+            "Error in click handler",
+        ]);
+        expect(el.style.cursor).toBe("pointer");
+        expect(el.style.display).toBe("flex");
+        expect([...el.classList]).toStrictEqual([
+            "notification",
+            "info",
+            "show",
+        ]);
         expect(el.querySelector(".notification-close")).toBeInstanceOf(
             HTMLButtonElement
         );
     });
 
     it("handles errors in action button click handlers", async () => {
-        expect.assertions(6);
+        expect.assertions(8);
 
         // Create action with handler that throws
         const errorActionHandler = vi
@@ -205,15 +204,15 @@ describe("showNotification.js - error handling coverage", () => {
         captured.stop();
 
         expect(errorActionHandler).toHaveBeenCalledOnce();
-        expect({
-            capturedMessages: captured.errors.map((error) => error.message),
-            display: el.style.display,
-            visibleClassPresent: el.classList.contains("show"),
-        }).toEqual({
-            capturedMessages: ["Error in action handler"],
-            display: "flex",
-            visibleClassPresent: true,
-        });
+        expect(captured.errors.map((error) => error.message)).toStrictEqual([
+            "Error in action handler",
+        ]);
+        expect(el.style.display).toBe("flex");
+        expect([...el.classList]).toStrictEqual([
+            "notification",
+            "info",
+            "show",
+        ]);
         expect(el.querySelector(".notification-message")?.textContent).toBe(
             "Action error test"
         );
