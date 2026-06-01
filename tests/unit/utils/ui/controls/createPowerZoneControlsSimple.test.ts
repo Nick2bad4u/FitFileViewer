@@ -30,7 +30,7 @@ describe("createPowerZoneControlsSimple", () => {
 
         const result = createPowerZoneControls(parent);
         expect(result).toBe(existing);
-        expect(parent.contains(existing)).toBe(false);
+        expect([...parent.children]).not.toContain(existing);
     });
 
     it("creates controls section with collapse toggle and persists state", () => {
@@ -40,7 +40,7 @@ describe("createPowerZoneControlsSimple", () => {
         document.body.append(parent);
 
         const controls = createPowerZoneControls(parent);
-        expect(parent.contains(controls)).toBe(true);
+        expect([...parent.children]).toContain(controls);
 
         const collapseBtn = controls.querySelector<HTMLButtonElement>(
             ".power-zone-collapse-btn"
@@ -129,7 +129,7 @@ describe("createPowerZoneControlsSimple", () => {
 
         movePowerZoneControlsToSection();
 
-        expect(content?.contains(fieldContainer)).toBe(true);
+        expect([...(content?.children ?? [])]).toContain(fieldContainer);
         expect(logSpy).toHaveBeenCalledWith(
             "[PowerZoneControls] Moved power_zone_doughnut control to power zone section"
         );
@@ -188,16 +188,21 @@ describe("createPowerZoneControlsSimple", () => {
     });
 
     it("reads power zone visibility preference from chart settings", () => {
-        expect.assertions(2);
+        expect.assertions(1);
 
         const initialSettings = getPowerZoneVisibilitySettings() as {
             doughnutVisible: boolean;
         };
-        expect(initialSettings.doughnutVisible).toBe(true);
         setChartFieldVisibility("power_zone_doughnut", "hidden");
         const updatedSettings = getPowerZoneVisibilitySettings() as {
             doughnutVisible: boolean;
         };
-        expect(updatedSettings.doughnutVisible).toBe(false);
+        expect({
+            initial: initialSettings.doughnutVisible,
+            updated: updatedSettings.doughnutVisible,
+        }).toStrictEqual({
+            initial: true,
+            updated: false,
+        });
     });
 });
