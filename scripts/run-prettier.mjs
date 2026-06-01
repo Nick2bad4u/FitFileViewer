@@ -5,7 +5,10 @@ import { pathToFileURL } from "node:url";
 
 import {
     appLeafletMeasureLitePath,
+    docusaurusConfigRepositoryPath,
     docusaurusPackageRepositoryPath,
+    docusaurusSidebarsRepositoryPath,
+    docusaurusTsconfigRepositoryPath,
     repositoryRoot,
     rootDocusaurusTsconfigPath,
     rootElectronAppBaseTsconfigPath,
@@ -31,9 +34,9 @@ const prettierCliPath = require.resolve("prettier/bin/prettier.cjs");
 export const prettierTargets = [
     rootPackageJsonPath,
     docusaurusPackageRepositoryPath,
-    "docusaurus/docusaurus.config.ts",
-    "docusaurus/sidebars.ts",
-    "docusaurus/tsconfig.json",
+    docusaurusConfigRepositoryPath,
+    docusaurusSidebarsRepositoryPath,
+    docusaurusTsconfigRepositoryPath,
     rootTypedocConfigPath,
     ".markdown-link-check.json",
     ".markdownlint.json",

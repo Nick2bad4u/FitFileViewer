@@ -80,6 +80,13 @@ export const docusaurusPackagePath =
     docusaurusWorkspaceAbsolutePath("package.json");
 export const docusaurusPackageRepositoryPath =
     docusaurusWorkspaceRepositoryPath("package.json");
+export const docusaurusConfigRepositoryPath = docusaurusWorkspaceRepositoryPath(
+    "docusaurus.config.ts"
+);
+export const docusaurusSidebarsRepositoryPath =
+    docusaurusWorkspaceRepositoryPath("sidebars.ts");
+export const docusaurusTsconfigRepositoryPath =
+    docusaurusWorkspaceRepositoryPath("tsconfig.json");
 export const docusaurusStaticPath = docusaurusWorkspaceRelativePath("static");
 export const docusaurusStaticFaviconPath = docusaurusWorkspaceRelativePath(
     "static",

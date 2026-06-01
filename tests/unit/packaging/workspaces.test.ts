@@ -24,11 +24,14 @@ type WorkspacesModule = {
     buildRuntimeScriptPath: string;
     bundlePreloadScriptPath: string;
     cleanRuntimeDistScriptPath: string;
+    docusaurusConfigRepositoryPath: string;
     docusaurusPackagePath: string;
     docusaurusPackageRepositoryPath: string;
+    docusaurusSidebarsRepositoryPath: string;
     docusaurusStaticFaviconPath: string;
     docusaurusStaticPath: string;
     docusaurusStaticScreenshotsPath: string;
+    docusaurusTsconfigRepositoryPath: string;
     docusaurusWorkspaceAbsolutePath: (...segments: string[]) => string;
     docusaurusWorkspaceName: string;
     docusaurusWorkspacePath: string;
@@ -324,7 +327,7 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes the Docusaurus workspace root and package paths", async () => {
-        expect.assertions(12);
+        expect.assertions(15);
 
         const workspaces = await importWorkspaces();
 
@@ -344,6 +347,15 @@ describe("workspace path helpers", () => {
         );
         expect(workspaces.docusaurusStaticScreenshotsPath).toBe(
             path.join("docusaurus", "static", "img", "screenshots")
+        );
+        expect(workspaces.docusaurusConfigRepositoryPath).toBe(
+            "docusaurus/docusaurus.config.ts"
+        );
+        expect(workspaces.docusaurusSidebarsRepositoryPath).toBe(
+            "docusaurus/sidebars.ts"
+        );
+        expect(workspaces.docusaurusTsconfigRepositoryPath).toBe(
+            "docusaurus/tsconfig.json"
         );
         expect(
             workspaces.docusaurusWorkspaceRepositoryPath("package.json")

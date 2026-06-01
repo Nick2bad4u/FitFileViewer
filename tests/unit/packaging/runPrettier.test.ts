@@ -11,7 +11,10 @@ import {
 } from "../../../scripts/run-prettier.mjs";
 import {
     appLeafletMeasureLitePath,
+    docusaurusConfigRepositoryPath,
     docusaurusPackageRepositoryPath,
+    docusaurusSidebarsRepositoryPath,
+    docusaurusTsconfigRepositoryPath,
     rootDocusaurusTsconfigPath,
     rootElectronAppBaseTsconfigPath,
     rootElectronAppEslintTsconfigPath,
@@ -43,9 +46,9 @@ describe("run-prettier wrapper", () => {
         const expectedTargets = [
             rootPackageJsonPath,
             docusaurusPackageRepositoryPath,
-            "docusaurus/docusaurus.config.ts",
-            "docusaurus/sidebars.ts",
-            "docusaurus/tsconfig.json",
+            docusaurusConfigRepositoryPath,
+            docusaurusSidebarsRepositoryPath,
+            docusaurusTsconfigRepositoryPath,
             rootTypedocConfigPath,
             ".markdown-link-check.json",
             ".markdownlint.json",
