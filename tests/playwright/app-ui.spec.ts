@@ -322,6 +322,50 @@ test.describe("FitFileViewer Electron UI", () => {
         }
     });
 
+    test("preserves the loaded activity when a later Open File is cancelled", async () => {
+        await mockOpenFileDialog({
+            canceled: true,
+            filePaths: [],
+        });
+
+        try {
+            await waitForOpenFileButtonReady();
+
+            const stateBeforeCancel = await page.evaluate(() => ({
+                activeFileName:
+                    document
+                        .querySelector("#active_file_name")
+                        ?.textContent?.trim() ?? "",
+                recordCount: window.globalData?.recordMesgs?.length ?? 0,
+                sessionCount: window.globalData?.sessionMesgs?.length ?? 0,
+                title: document.title,
+            }));
+
+            await page.locator("#open_file_btn").click();
+            await expect.poll(getOpenFileDialogCallCount).toBe(1);
+
+            const stateAfterCancel = await page.evaluate(() => ({
+                activeFileName:
+                    document
+                        .querySelector("#active_file_name")
+                        ?.textContent?.trim() ?? "",
+                recordCount: window.globalData?.recordMesgs?.length ?? 0,
+                sessionCount: window.globalData?.sessionMesgs?.length ?? 0,
+                title: document.title,
+            }));
+
+            expect(stateAfterCancel).toStrictEqual(stateBeforeCancel);
+            expect(stateAfterCancel).toStrictEqual({
+                activeFileName: `Active:${path.basename(sampleFitPath)}`,
+                recordCount: 1285,
+                sessionCount: 1,
+                title: `Fit File Viewer - ${path.basename(sampleFitPath)}`,
+            });
+        } finally {
+            await restoreOpenFileDialog();
+        }
+    });
+
     test("renders a real FIT file across map, charts, data, and summary tabs", async () => {
         const fitBytes = Array.from(fs.readFileSync(sampleFitPath));
 
