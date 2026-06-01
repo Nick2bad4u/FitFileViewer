@@ -83,7 +83,7 @@ describe(formatProduct, () => {
         });
         expect(formatProduct("garmin", 1735)).toBe("1735");
         expect(warnSpy).toHaveBeenCalledWith(
-            expect.stringContaining("Error looking up manufacturer ID:"),
+            "[formatProduct] Error looking up manufacturer ID:",
             manufacturerLookupError
         );
 
@@ -93,7 +93,7 @@ describe(formatProduct, () => {
         });
         expect(formatProduct(1, 1735)).toBe("1735");
         expect(warnSpy).toHaveBeenCalledWith(
-            expect.stringContaining("Error looking up product name:"),
+            "[formatProduct] Error looking up product name:",
             productLookupError
         );
     });

@@ -652,7 +652,7 @@ describe("exportUtils chart export helpers", () => {
 
             expect(document.body.childElementCount).toBe(0);
             expect(dependencyMocks.showNotification).toHaveBeenCalledWith(
-                expect.stringContaining("Failed to copy chart to clipboard"),
+                "Failed to copy chart to clipboard: Invalid chart instance provided",
                 "error"
             );
         });

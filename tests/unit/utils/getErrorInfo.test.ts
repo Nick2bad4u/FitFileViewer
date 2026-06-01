@@ -5,11 +5,12 @@ describe(getErrorInfo, () => {
     it("extracts message and stack from native errors", () => {
         expect.assertions(1);
 
-        const result = getErrorInfo(new TypeError("Invalid FIT payload"));
+        const error = new TypeError("Invalid FIT payload");
+        const result = getErrorInfo(error);
 
         expect(result).toEqual({
             message: "Invalid FIT payload",
-            stack: expect.stringContaining("TypeError: Invalid FIT payload"),
+            stack: error.stack,
         });
     });
 
