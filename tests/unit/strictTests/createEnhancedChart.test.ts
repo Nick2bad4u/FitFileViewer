@@ -275,7 +275,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
     describe("basic chart creation", () => {
         it("should create a basic line chart with default options", () => {
-            expect.assertions(4);
+            expect.assertions(5);
 
             const canvas = document.createElement("canvas");
             const options = {
@@ -302,10 +302,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             const result = createEnhancedChart(canvas, options);
 
             expect(result).toBe(chartInstanceMock);
-            expect(Chart).toHaveBeenCalledWith(
-                canvas,
-                expect.objectContaining({ type: "line" })
-            );
+            expect(Chart).toHaveBeenCalledOnce();
+            expect(Chart.mock.calls[0][0]).toBe(canvas);
             expect(Chart.mock.calls[0][1].type).toBe("line");
             expect(Chart.mock.calls[0][1].type).not.toBe("bar");
         });
