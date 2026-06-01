@@ -218,13 +218,17 @@ describe("setupApplicationEventHandlers file:// policy", () => {
 
         webContentsCreatedHandler({}, contents);
 
-        expect(mockSession.on).toHaveBeenCalledWith(
-            "will-download",
-            expect.any(Function)
-        );
+        const [registeredEventName, registeredHandler] =
+            mockSession.on.mock.calls[0] ?? [];
         assertFunction<DownloadHandler>(
             willDownloadHandler,
             "will-download handler"
+        );
+        expect(registeredEventName).toBe("will-download");
+        expect(registeredHandler).toBe(willDownloadHandler);
+        expect(mockSession.on).toHaveBeenCalledExactlyOnceWith(
+            "will-download",
+            willDownloadHandler
         );
 
         // Allow blob: (export)
