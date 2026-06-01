@@ -107,7 +107,9 @@ import {
 } from "../../../../electron-app/utils/charts/core/renderChartJS.js";
 
 // Import the module being tested
-import chartStateManager from "../../../../electron-app/utils/charts/core/chartStateManager.js";
+import chartStateManager, {
+    ChartStateManager,
+} from "../../../../electron-app/utils/charts/core/chartStateManager.js";
 
 describe("chartStateManager", () => {
     beforeEach(() => {
@@ -155,7 +157,7 @@ describe("chartStateManager", () => {
         it("should create a ChartStateManager instance", () => {
             expect.hasAssertions();
 
-            expect(chartStateManager).toBeInstanceOf(Object);
+            expect(chartStateManager).toBeInstanceOf(ChartStateManager);
             expect({
                 isInitialized: chartStateManager.isInitialized,
                 renderDebounceTime: chartStateManager.renderDebounceTime,
@@ -187,7 +189,7 @@ describe("chartStateManager", () => {
             // Since we're importing in test context, the global assignment might not persist
             // between module imports. Just verify the logic would work.
             expect(globalThis.window.document).toBe(document);
-            expect(chartStateManager).toBeInstanceOf(Object);
+            expect(chartStateManager).toBeInstanceOf(ChartStateManager);
             expect(chartStateManager.debouncedRender).toBeTypeOf("function");
             expect(chartStateManager.isChartTabActive).toBeTypeOf("function");
             expect(globalThis.window).toBeTypeOf("object");
@@ -899,7 +901,7 @@ describe("chartStateManager", () => {
         it("should export ChartStateManager as default", () => {
             expect.hasAssertions();
 
-            expect(chartStateManager).toBeInstanceOf(Object);
+            expect(chartStateManager).toBeInstanceOf(ChartStateManager);
             expect(chartStateManager.constructor.name).toBe(
                 "ChartStateManager"
             );
@@ -909,7 +911,7 @@ describe("chartStateManager", () => {
         it("should be an instance of ChartStateManager", () => {
             expect.hasAssertions();
 
-            expect(chartStateManager).toBeInstanceOf(Object);
+            expect(chartStateManager).toBeInstanceOf(ChartStateManager);
             expect({
                 isInitialized: chartStateManager.isInitialized,
             }).toStrictEqual({
@@ -921,7 +923,7 @@ describe("chartStateManager", () => {
             expect.hasAssertions();
 
             // In test environment, verify singleton behavior exists
-            expect(chartStateManager).toBeInstanceOf(Object);
+            expect(chartStateManager).toBeInstanceOf(ChartStateManager);
             expect(chartStateManager.debouncedRender).toBeTypeOf("function");
             expect(chartStateManager.isChartTabActive).toBeTypeOf("function");
             expect(chartStateManager.getChartInfo).toBeTypeOf("function");
