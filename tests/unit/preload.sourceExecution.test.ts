@@ -9,6 +9,7 @@ type PreloadExecutionGlobal = typeof globalThis & {
 };
 
 interface ExposedElectronAPI {
+    addRecentFile: (...args: unknown[]) => Promise<unknown>;
     getAppVersion: () => Promise<unknown>;
     getChannelInfo: () => {
         channels: Record<string, string>;
@@ -16,6 +17,9 @@ interface ExposedElectronAPI {
         totalChannels: number;
         totalEvents: number;
     };
+    getTheme: () => Promise<unknown>;
+    openFileDialog: () => Promise<unknown>;
+    parseFitFile: (...args: unknown[]) => Promise<unknown>;
     validateAPI: () => boolean;
 }
 
@@ -32,6 +36,8 @@ interface ExposedDevTools {
         };
         version: string;
     };
+    logAPIState: () => void;
+    testIPC: () => Promise<boolean>;
 }
 
 const preloadExecutionGlobal = globalThis as PreloadExecutionGlobal;
@@ -83,43 +89,11 @@ describe("preload.js source execution", () => {
 
     describe("development mode execution", () => {
         it("should execute preload.js and expose electronAPI in development mode", async () => {
-            expect.assertions(11);
+            expect.assertions(13);
 
             process.env.NODE_ENV = "development";
 
             await import("../../electron-app/preload.js");
-
-            // Verify contextBridge.exposeInMainWorld was called for electronAPI
-            expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith(
-                "electronAPI",
-                expect.objectContaining({
-                    // Verify key API methods exist
-                    addRecentFile: expect.any(Function),
-                    getAppVersion: expect.any(Function),
-                    openFileDialog: expect.any(Function),
-                    parseFitFile: expect.any(Function),
-                    getTheme: expect.any(Function),
-                    validateAPI: expect.any(Function),
-                    getChannelInfo: expect.any(Function),
-                })
-            );
-
-            // Verify devTools was also exposed in development mode
-            expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith(
-                "devTools",
-                expect.objectContaining({
-                    getPreloadInfo: expect.any(Function),
-                    logAPIState: expect.any(Function),
-                    testIPC: expect.any(Function),
-                })
-            );
-
-            // Verify development logging occurred
-            expect(console.log).toHaveBeenCalledWith(
-                expect.stringContaining(
-                    "[preload.js] Successfully exposed electronAPI to main world"
-                )
-            );
 
             const electronAPICall =
                 mockContextBridge.exposeInMainWorld.mock.calls.find(
@@ -133,6 +107,65 @@ describe("preload.js source execution", () => {
                 | ExposedElectronAPI
                 | undefined;
             const devTools = devToolsCall?.[1] as ExposedDevTools | undefined;
+
+            // Verify contextBridge.exposeInMainWorld was called for electronAPI
+            expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith(
+                "electronAPI",
+                electronAPI
+            );
+            expect(
+                Object.fromEntries(
+                    [
+                        "addRecentFile",
+                        "getAppVersion",
+                        "getChannelInfo",
+                        "getTheme",
+                        "openFileDialog",
+                        "parseFitFile",
+                        "validateAPI",
+                    ].map((methodName) => [
+                        methodName,
+                        Object.hasOwn(electronAPI ?? {}, methodName),
+                    ])
+                )
+            ).toEqual({
+                addRecentFile: true,
+                getAppVersion: true,
+                getChannelInfo: true,
+                getTheme: true,
+                openFileDialog: true,
+                parseFitFile: true,
+                validateAPI: true,
+            });
+
+            // Verify devTools was also exposed in development mode
+            expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith(
+                "devTools",
+                devTools
+            );
+            expect(
+                Object.fromEntries(
+                    [
+                        "getPreloadInfo",
+                        "logAPIState",
+                        "testIPC",
+                    ].map((methodName) => [
+                        methodName,
+                        Object.hasOwn(devTools ?? {}, methodName),
+                    ])
+                )
+            ).toEqual({
+                getPreloadInfo: true,
+                logAPIState: true,
+                testIPC: true,
+            });
+
+            // Verify development logging occurred
+            expect(console.log).toHaveBeenCalledWith(
+                expect.stringContaining(
+                    "[preload.js] Successfully exposed electronAPI to main world"
+                )
+            );
 
             expect(electronAPI?.validateAPI()).toStrictEqual(true);
             const preloadInfo = devTools?.getPreloadInfo();
@@ -159,7 +192,7 @@ describe("preload.js source execution", () => {
         });
 
         it("should provide working API methods when executed", async () => {
-            expect.assertions(11);
+            expect.assertions(12);
 
             process.env.NODE_ENV = "development";
 
@@ -174,13 +207,21 @@ describe("preload.js source execution", () => {
             );
             expect(electronAPICall).toEqual([
                 "electronAPI",
-                expect.objectContaining({
-                    getChannelInfo: expect.any(Function),
-                    validateAPI: expect.any(Function),
-                }),
+                electronAPICall?.[1],
             ]);
 
-            const electronAPI = electronAPICall![1];
+            const electronAPI = electronAPICall![1] as ExposedElectronAPI;
+            expect(
+                Object.fromEntries(
+                    ["getChannelInfo", "validateAPI"].map((methodName) => [
+                        methodName,
+                        Object.hasOwn(electronAPI, methodName),
+                    ])
+                )
+            ).toEqual({
+                getChannelInfo: true,
+                validateAPI: true,
+            });
 
             // Test validateAPI method
             expect(electronAPI.validateAPI()).toStrictEqual(true);
@@ -240,7 +281,7 @@ describe("preload.js source execution", () => {
 
     describe("production mode execution", () => {
         it("should execute preload.js in production mode without devTools", async () => {
-            expect.assertions(2);
+            expect.assertions(3);
 
             // Set production mode
             process.env.NODE_ENV = "production";
@@ -254,11 +295,22 @@ describe("preload.js source execution", () => {
                 );
             expect(electronAPICall).toEqual([
                 "electronAPI",
-                expect.objectContaining({
-                    getChannelInfo: expect.any(Function),
-                    validateAPI: expect.any(Function),
-                }),
+                electronAPICall?.[1],
             ]);
+            const electronAPI = electronAPICall?.[1] as
+                | ExposedElectronAPI
+                | undefined;
+            expect(
+                Object.fromEntries(
+                    ["getChannelInfo", "validateAPI"].map((methodName) => [
+                        methodName,
+                        Object.hasOwn(electronAPI ?? {}, methodName),
+                    ])
+                )
+            ).toEqual({
+                getChannelInfo: true,
+                validateAPI: true,
+            });
 
             // Verify devTools was NOT exposed in production
             expect(
