@@ -68,53 +68,52 @@ describe("clean-workspace script", () => {
 
         const { cleanupTargets } = await importCleanWorkspace();
 
-        expect(cleanupTargets).toEqual(
-            expect.arrayContaining([
-                ".cache",
-                ".eslintcache",
-                ".prettier-cache",
-                ".stylelintcache",
-                rootFlatpakBundlePath,
-                rootFlatpakZipPath,
-                rootArtifactsPath,
-                rootFlatpakBuildPath,
-                rootFlatpakRepoPath,
-                rootCoveragePath,
-                "dist",
-                "html",
-                "logs",
-                "out",
-                rootReleaseDistPath,
-                "temp",
-                appSourceRelativePath(rootCoveragePath),
-                appDistPath,
-                appTypesPath,
-                docusaurusWorkspaceRelativePath("build"),
-                docusaurusWorkspaceRelativePath("docs", "api"),
-                docusaurusWorkspaceRelativePath("static", "favicon.ico"),
-                docusaurusWorkspaceRelativePath("static", "img", "favicon.ico"),
-                docusaurusWorkspaceRelativePath(
-                    "static",
-                    "img",
-                    "screenshots",
-                    "ChartsV3.png"
-                ),
-                docusaurusWorkspaceRelativePath(
-                    "static",
-                    "img",
-                    "screenshots",
-                    "DataV2.png"
-                ),
-                docusaurusWorkspaceRelativePath(
-                    "static",
-                    "img",
-                    "screenshots",
-                    "MapsV2.png"
-                ),
-                "playwright-report",
-                "test-results",
-            ])
-        );
+        expect(cleanupTargets).toStrictEqual([
+            ".cache",
+            ".eslintcache",
+            ".prettier-cache",
+            ".stylelintcache",
+            docusaurusWorkspaceRelativePath(".docusaurus"),
+            docusaurusWorkspaceRelativePath("build"),
+            docusaurusWorkspaceRelativePath("docs", "api"),
+            docusaurusWorkspaceRelativePath("static", "favicon.ico"),
+            docusaurusWorkspaceRelativePath("static", "img", "favicon.ico"),
+            docusaurusWorkspaceRelativePath(
+                "static",
+                "img",
+                "screenshots",
+                "ChartsV3.png"
+            ),
+            docusaurusWorkspaceRelativePath(
+                "static",
+                "img",
+                "screenshots",
+                "DataV2.png"
+            ),
+            docusaurusWorkspaceRelativePath(
+                "static",
+                "img",
+                "screenshots",
+                "MapsV2.png"
+            ),
+            rootFlatpakBundlePath,
+            rootFlatpakZipPath,
+            rootArtifactsPath,
+            rootFlatpakBuildPath,
+            rootFlatpakRepoPath,
+            rootCoveragePath,
+            "dist",
+            "html",
+            "logs",
+            "out",
+            "playwright-report",
+            rootReleaseDistPath,
+            "temp",
+            "test-results",
+            appSourceRelativePath(rootCoveragePath),
+            appDistPath,
+            appTypesPath,
+        ]);
     });
 
     it("does not keep stale nested Electron app generated directories", async () => {
@@ -122,14 +121,16 @@ describe("clean-workspace script", () => {
 
         const { cleanupTargets } = await importCleanWorkspace();
 
-        expect(cleanupTargets).toEqual(
-            expect.not.arrayContaining([
-                appSourceRelativePath("html"),
-                appSourceRelativePath("logs"),
-                appSourceRelativePath("release"),
-                appSourceRelativePath("temp-win7"),
-            ])
-        );
+        expect(
+            cleanupTargets.filter((target) =>
+                [
+                    appSourceRelativePath("html"),
+                    appSourceRelativePath("logs"),
+                    appSourceRelativePath("release"),
+                    appSourceRelativePath("temp-win7"),
+                ].includes(target)
+            )
+        ).toStrictEqual([]);
     });
 
     it("keeps stale nested Electron app generated directories out of gitignore", () => {
@@ -150,14 +151,16 @@ describe("clean-workspace script", () => {
 
         const { cleanupTargets } = await importCleanWorkspace();
 
-        expect(cleanupTargets).toEqual(
-            expect.not.arrayContaining([
-                ".vscode/mcp.json",
-                "docusaurus/node_modules",
-                "node_modules",
-                "package-lock.json",
-            ])
-        );
+        expect(
+            cleanupTargets.filter((target) =>
+                [
+                    ".vscode/mcp.json",
+                    "docusaurus/node_modules",
+                    "node_modules",
+                    "package-lock.json",
+                ].includes(target)
+            )
+        ).toStrictEqual([]);
     });
 
     it("removes generated files and directories under the selected workspace root", async () => {
