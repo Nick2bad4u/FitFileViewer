@@ -219,14 +219,16 @@ describe("updateActiveTab.js - environment fallbacks", () => {
 
         // Capture subscription
         initializeActiveTabState();
-        expect(subscribe).toHaveBeenCalledWith(
-            "ui.activeTab",
-            expect.any(Function)
-        );
+        expect(
+            subscribe.mock.calls.map(([path, callback]) => [
+                path,
+                typeof callback,
+            ])
+        ).toContainEqual(["ui.activeTab", "function"]);
         const call = subscribe.mock.calls.find(
             ([path]) => path === "ui.activeTab"
         );
-        expect(call).toEqual(["ui.activeTab", expect.any(Function)]);
+        expect(call?.[1]).toBeTypeOf("function");
         const cb = call?.[1] as (val: string) => void;
 
         // Act: make "data" active via state

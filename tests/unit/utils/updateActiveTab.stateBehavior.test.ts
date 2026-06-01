@@ -124,6 +124,15 @@ function getSubscriptionCallback(): SubscriptionCallback {
     return callback as SubscriptionCallback;
 }
 
+function expectActiveTabSubscriptionRegistered(): void {
+    expect(
+        mockSubscribe.mock.calls.map(([path, callback]) => [
+            path,
+            typeof callback,
+        ])
+    ).toContainEqual(["ui.activeTab", "function"]);
+}
+
 describe("updateActiveTab state behavior", () => {
     beforeEach(() => {
         vi.clearAllMocks();
@@ -530,10 +539,7 @@ describe("updateActiveTab state behavior", () => {
             expect([
                 ...getRequiredElement("tab-chart").classList,
             ]).not.toContain("active");
-            expect(mockSubscribe).toHaveBeenCalledWith(
-                "ui.activeTab",
-                expect.any(Function)
-            );
+            expectActiveTabSubscriptionRegistered();
         });
 
         it("should set up click listeners on tab buttons", () => {
@@ -617,10 +623,7 @@ describe("updateActiveTab state behavior", () => {
             expect(testContainer.querySelectorAll(".tab-button")).toHaveLength(
                 0
             );
-            expect(mockSubscribe).toHaveBeenCalledWith(
-                "ui.activeTab",
-                expect.any(Function)
-            );
+            expectActiveTabSubscriptionRegistered();
         });
     });
 
@@ -726,10 +729,7 @@ describe("updateActiveTab state behavior", () => {
             ]);
 
             initializeActiveTabState();
-            expect(mockSubscribe).toHaveBeenCalledWith(
-                "ui.activeTab",
-                expect.any(Function)
-            );
+            expectActiveTabSubscriptionRegistered();
             expect(testContainer.querySelectorAll(".tab-button")).toHaveLength(
                 3
             );

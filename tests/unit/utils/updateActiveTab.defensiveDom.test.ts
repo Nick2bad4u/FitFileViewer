@@ -100,10 +100,11 @@ describe("updateActiveTab defensive DOM handling", () => {
             await initializeActiveTabState();
 
             // Get the subscription callback that was registered
-            expect(stateManagerMocks.subscribe).toHaveBeenCalledWith(
-                "ui.activeTab",
-                expect.any(Function)
-            );
+            expect(
+                stateManagerMocks.subscribe.mock.calls.map(
+                    ([path, callback]) => [path, typeof callback]
+                )
+            ).toContainEqual(["ui.activeTab", "function"]);
             const stateCallback = getActiveTabSubscription();
 
             // Clear DOM to ensure no tab buttons exist

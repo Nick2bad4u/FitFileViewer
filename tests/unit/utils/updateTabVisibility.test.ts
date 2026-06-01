@@ -223,14 +223,17 @@ describe(updateTabVisibility, () => {
 
         initializeTabVisibilityState();
 
-        expect(mockSubscribe).toHaveBeenCalledWith(
+        const subscriptionRegistrations = mockSubscribe.mock.calls.map(
+            ([path, callback]) => [path, typeof callback]
+        );
+        expect(subscriptionRegistrations).toContainEqual([
             "ui.activeTab",
-            expect.any(Function)
-        );
-        expect(mockSubscribe).toHaveBeenCalledWith(
+            "function",
+        ]);
+        expect(subscriptionRegistrations).toContainEqual([
             "globalData",
-            expect.any(Function)
-        );
+            "function",
+        ]);
         expect(logSpy).toHaveBeenCalledWith(
             "[TabVisibility] State management initialized"
         );
