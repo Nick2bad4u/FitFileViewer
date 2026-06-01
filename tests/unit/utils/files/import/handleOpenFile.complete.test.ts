@@ -402,7 +402,7 @@ describe("handleOpenFile Module", () => {
             expect(getElectronAPI().parseFitFile).toHaveBeenCalledWith(
                 expect.any(ArrayBuffer)
             );
-            expect(result).toBe(true);
+            expect({ fileOpened: result }).toStrictEqual({ fileOpened: true });
         });
 
         it("should handle when user cancels file selection", async () => {
@@ -415,7 +415,9 @@ describe("handleOpenFile Module", () => {
             const result =
                 await handleOpenFileModule.handleOpenFile(mockParams);
 
-            expect(result).toBe(false);
+            expect({ fileOpened: result }).toStrictEqual({
+                fileOpened: false,
+            });
         });
 
         it("should prevent multiple file opening operations", async () => {
@@ -431,7 +433,9 @@ describe("handleOpenFile Module", () => {
             const result =
                 await handleOpenFileModule.handleOpenFile(mockParams);
 
-            expect(result).toBe(false);
+            expect({ fileOpened: result }).toStrictEqual({
+                fileOpened: false,
+            });
             expect(mockParams.showNotification).toHaveBeenCalledWith(
                 expect.stringContaining("File opening is already in progress"),
                 "warning"
@@ -451,7 +455,9 @@ describe("handleOpenFile Module", () => {
                 { validateFileSize: true }
             );
 
-            expect(result).toBe(false);
+            expect({ fileOpened: result }).toStrictEqual({
+                fileOpened: false,
+            });
             expect(mockParams.showNotification).toHaveBeenCalledWith(
                 "Selected file appears to be empty",
                 "error"
@@ -470,7 +476,9 @@ describe("handleOpenFile Module", () => {
             const result =
                 await handleOpenFileModule.handleOpenFile(mockParams);
 
-            expect(result).toBe(false);
+            expect({ fileOpened: result }).toStrictEqual({
+                fileOpened: false,
+            });
             expect(mockParams.showNotification).toHaveBeenCalledWith(
                 expect.stringContaining("Unable to open the file dialog"),
                 "error"
@@ -490,7 +498,9 @@ describe("handleOpenFile Module", () => {
             const result =
                 await handleOpenFileModule.handleOpenFile(mockParams);
 
-            expect(result).toBe(false);
+            expect({ fileOpened: result }).toStrictEqual({
+                fileOpened: false,
+            });
             expect(mockParams.showNotification).toHaveBeenCalledWith(
                 expect.stringContaining("Error reading file"),
                 "error"
@@ -511,7 +521,9 @@ describe("handleOpenFile Module", () => {
             const result =
                 await handleOpenFileModule.handleOpenFile(mockParams);
 
-            expect(result).toBe(false);
+            expect({ fileOpened: result }).toStrictEqual({
+                fileOpened: false,
+            });
             expect(mockParams.showNotification).toHaveBeenCalledWith(
                 expect.stringContaining("Error parsing FIT file"),
                 "error"
@@ -533,7 +545,9 @@ describe("handleOpenFile Module", () => {
             const result =
                 await handleOpenFileModule.handleOpenFile(mockParams);
 
-            expect(result).toBe(false);
+            expect({ fileOpened: result }).toStrictEqual({
+                fileOpened: false,
+            });
             expect(mockParams.showNotification).toHaveBeenCalledWith(
                 "Error: Parse error\nInvalid file format",
                 "error"
@@ -560,7 +574,7 @@ describe("handleOpenFile Module", () => {
             const result =
                 await handleOpenFileModule.handleOpenFile(mockParams);
 
-            expect(result).toBe(true);
+            expect({ fileOpened: result }).toStrictEqual({ fileOpened: true });
             expect(mockParams.showNotification).toHaveBeenCalledWith(
                 expect.stringContaining("Error displaying FIT data"),
                 "error"
@@ -584,7 +598,7 @@ describe("handleOpenFile Module", () => {
             const result =
                 await handleOpenFileModule.handleOpenFile(mockParams);
 
-            expect(result).toBe(true);
+            expect({ fileOpened: result }).toStrictEqual({ fileOpened: true });
             expect(getElectronAPI().readFile).toHaveBeenCalledWith("test.fit");
         });
 
@@ -598,7 +612,9 @@ describe("handleOpenFile Module", () => {
             const result =
                 await handleOpenFileModule.handleOpenFile(mockParams);
 
-            expect(result).toBe(false);
+            expect({ fileOpened: result }).toStrictEqual({
+                fileOpened: false,
+            });
             expect(mockParams.showNotification).toHaveBeenCalledWith(
                 "Error reading file: No file path provided",
                 "error"
@@ -630,7 +646,7 @@ describe("handleOpenFile Module", () => {
             const result =
                 await handleOpenFileModule.handleOpenFile(mockParams);
 
-            expect(result).toBe(true);
+            expect({ fileOpened: result }).toStrictEqual({ fileOpened: true });
             expect(console.log).toHaveBeenCalledWith(
                 expect.stringContaining(
                     "Debug: Parsed FIT data contains 2 sessions"
@@ -660,7 +676,7 @@ describe("handleOpenFile Module", () => {
             );
 
             // Should pass the empty file check since validation is disabled
-            expect(result).toBe(true);
+            expect({ fileOpened: result }).toStrictEqual({ fileOpened: true });
             expect(getElectronAPI().parseFitFile).toHaveBeenCalledWith(
                 expect.any(ArrayBuffer)
             );
@@ -691,7 +707,7 @@ describe("handleOpenFile Module", () => {
             const result =
                 await handleOpenFileModule.handleOpenFile(mockParams);
 
-            expect(result).toBe(true);
+            expect({ fileOpened: result }).toStrictEqual({ fileOpened: true });
             expect(mockParams.showNotification).not.toHaveBeenCalled();
 
             // Restore original functions
@@ -715,7 +731,9 @@ describe("handleOpenFile Module", () => {
             const result =
                 await handleOpenFileModule.handleOpenFile(mockParams);
 
-            expect(result).toBe(false);
+            expect({ fileOpened: result }).toStrictEqual({
+                fileOpened: false,
+            });
 
             // Verify the isOpeningFileRef was reset even though an error occurred
             expect(mockParams.isOpeningFileRef).toHaveProperty("value", false);
@@ -732,7 +750,9 @@ describe("handleOpenFile Module", () => {
             const result =
                 await handleOpenFileModule.handleOpenFile(mockParams);
 
-            expect(result).toBe(false);
+            expect({ fileOpened: result }).toStrictEqual({
+                fileOpened: false,
+            });
             expect(mockParams.showNotification).toHaveBeenCalledWith(
                 "Electron API not available. Please restart the app.",
                 "error",
