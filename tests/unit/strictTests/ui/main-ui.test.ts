@@ -340,22 +340,32 @@ function getRequiredSelector<T extends Element>(
 
 function getCurrentElectronAPI(): ReturnType<typeof installElectronAPI> {
     const api = Reflect.get(window, "electronAPI");
-    expect(api).toMatchObject({
-        decodeFitFile: expect.any(Function),
-        emit: expect.any(Function),
-        openExternal: expect.any(Function),
-        send: expect.any(Function),
-    });
+
+    if (
+        !api ||
+        typeof api.decodeFitFile !== "function" ||
+        typeof api.emit !== "function" ||
+        typeof api.openExternal !== "function" ||
+        typeof api.send !== "function"
+    ) {
+        throw new TypeError("Expected window.electronAPI test double");
+    }
+
     return api as ReturnType<typeof installElectronAPI>;
 }
 
 function getDragDropHandler() {
     const handler = Reflect.get(window, "dragDropHandler");
-    expect(handler).toMatchObject({
-        processDroppedFile: expect.any(Function),
-        readFileAsArrayBuffer: expect.any(Function),
-        showDropOverlay: expect.any(Function),
-    });
+
+    if (
+        !handler ||
+        typeof handler.processDroppedFile !== "function" ||
+        typeof handler.readFileAsArrayBuffer !== "function" ||
+        typeof handler.showDropOverlay !== "function"
+    ) {
+        throw new TypeError("Expected window.dragDropHandler test double");
+    }
+
     return handler as DragDropHandlerUnderTest;
 }
 
@@ -363,7 +373,10 @@ function getWindowFunction<T extends (...args: never[]) => unknown>(
     name: string
 ) {
     const fn = Reflect.get(window, name);
-    expect(fn).toEqual(expect.any(Function));
+    if (typeof fn !== "function") {
+        throw new TypeError(`Expected window.${name} to be a function`);
+    }
+
     return fn as T;
 }
 
@@ -438,7 +451,7 @@ describe("main-ui.js core flows", () => {
     });
 
     it("opens summary column selector from IPC and clicks gear after delay", async () => {
-        expect.assertions(10);
+        expect.assertions(8);
 
         await importMainUI();
         const summaryTab = getRequiredElement("tab-summary", HTMLButtonElement);
@@ -504,14 +517,15 @@ describe("main-ui.js core flows", () => {
         await fn(buf);
         expect(iframe.src).toContain("ffv/index.html");
         iframe.dispatchEvent(new Event("load"));
+        expect(convertArrayBufferToBase64).toHaveBeenCalledWith(buf);
         expect(postMessage).toHaveBeenCalledWith(
-            { type: "fit-file", base64: expect.any(String) },
+            { type: "fit-file", base64: "BASE64DATA" },
             window.location.origin
         );
     });
 
     it("drag and drop overlay shows/hides", async () => {
-        expect.assertions(9);
+        expect.assertions(8);
 
         await importMainUI();
 
@@ -544,7 +558,7 @@ describe("main-ui.js core flows", () => {
     });
 
     it("processDroppedFile handles valid and invalid files and toggles loading", async () => {
-        expect.assertions(17);
+        expect.assertions(15);
 
         await importMainUI();
         const handler = getDragDropHandler();
@@ -626,7 +640,7 @@ describe("main-ui.js core flows", () => {
     });
 
     it("external link handlers call electronAPI.openExternal", async () => {
-        expect.assertions(7);
+        expect.assertions(5);
 
         await importMainUI();
         document.dispatchEvent(new Event("DOMContentLoaded"));
@@ -700,7 +714,7 @@ describe("main-ui.js core flows", () => {
     });
 
     it("dev helpers injectMenu and devCleanup work", async () => {
-        expect.assertions(6);
+        expect.assertions(4);
 
         const api = installElectronAPI();
         await importMainUI();
