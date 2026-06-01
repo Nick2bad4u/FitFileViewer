@@ -55,7 +55,7 @@ describe("showNotification queue edge cases", () => {
     });
 
     it("handles errors during displayNotification process", async () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         // Create a notification element that throws when the display pipeline adds its class.
         vi.spyOn(document, "querySelector").mockImplementationOnce(() => {
@@ -72,10 +72,12 @@ describe("showNotification queue edge cases", () => {
         const p = showNotification("Error test");
         await p;
         await vi.runAllTimersAsync();
-        expect(console.error).toHaveBeenCalledWith(
-            "Error displaying notification:",
-            expect.objectContaining({ message: "Simulated error" })
+        const loggedError = vi.mocked(console.error).mock.calls[0]?.[1];
+        expect(vi.mocked(console.error).mock.calls[0]?.[0]).toBe(
+            "Error displaying notification:"
         );
+        expect(loggedError).toBeInstanceOf(Error);
+        expect((loggedError as Error).message).toBe("Simulated error");
         expect(notificationQueue).toStrictEqual([]);
         expect(isShowingNotification).toStrictEqual(false);
     });
@@ -233,7 +235,7 @@ describe("showNotification queue edge cases", () => {
     });
 
     it("handles error when resolveShown throws", async () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         const notification: QueuedNotification = {
             message: "Error test",
@@ -252,10 +254,12 @@ describe("showNotification queue edge cases", () => {
 
         // This shouldn't throw despite the error in resolveShown
         await processNotificationQueue();
-        expect(console.error).toHaveBeenCalledWith(
-            "Error displaying notification:",
-            expect.objectContaining({ message: "resolveShown error" })
+        const loggedError = vi.mocked(console.error).mock.calls[0]?.[1];
+        expect(vi.mocked(console.error).mock.calls[0]?.[0]).toBe(
+            "Error displaying notification:"
         );
+        expect(loggedError).toBeInstanceOf(Error);
+        expect((loggedError as Error).message).toBe("resolveShown error");
         expect(notificationQueue).toStrictEqual([]);
         expect(isShowingNotification).toStrictEqual(false);
     });

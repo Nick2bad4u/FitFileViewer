@@ -111,7 +111,7 @@ describe("showNotification.js - error handling coverage", () => {
     });
 
     it("handles errors during displayNotification process", async () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         // Create a spy that makes buildNotificationContent throw
         const mockError = new Error("Simulated error in displayNotification");
@@ -134,12 +134,13 @@ describe("showNotification.js - error handling coverage", () => {
             queueSize: 0,
         });
 
-        // Error should be caught and logged
-        expect(console.error).toHaveBeenCalledWith(
-            "Error displaying notification:",
-            expect.objectContaining({
-                message: "Simulated error in displayNotification",
-            })
+        const loggedError = vi.mocked(console.error).mock.calls[0]?.[1];
+        expect(vi.mocked(console.error).mock.calls[0]?.[0]).toBe(
+            "Error displaying notification:"
+        );
+        expect(loggedError).toBeInstanceOf(Error);
+        expect((loggedError as Error).message).toBe(
+            "Simulated error in displayNotification"
         );
     });
 
