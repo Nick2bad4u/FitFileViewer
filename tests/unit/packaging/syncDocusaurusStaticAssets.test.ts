@@ -140,7 +140,7 @@ describe("sync-docusaurus-static-assets script", () => {
     });
 
     it("throws when a canonical screenshot is missing", () => {
-        expect.assertions(1);
+        expect.assertions(3);
 
         const temporaryRoot = makeTemporaryRoot();
         const logger = vi.fn<(message: string) => void>();
@@ -151,7 +151,46 @@ describe("sync-docusaurus-static-assets script", () => {
         );
 
         expect(() => syncDocusaurusStaticAssets(temporaryRoot, logger)).toThrow(
-            "Missing canonical screenshot"
+            `Missing canonical screenshot: ${path.join(temporaryRoot, "docs", "screenshots", screenshotNames[0] ?? "")}`
         );
+        expect(
+            getPathStates(temporaryRoot, [
+                path.join(
+                    "docusaurus",
+                    "static",
+                    "img",
+                    "screenshots",
+                    screenshotNames[0] ?? ""
+                ),
+            ])
+        ).toStrictEqual({
+            [path.join(
+                "docusaurus",
+                "static",
+                "img",
+                "screenshots",
+                screenshotNames[0] ?? ""
+            )]: "missing",
+        });
+        expect(logger).not.toHaveBeenCalled();
+    });
+
+    it("throws before logging when the canonical favicon is missing", () => {
+        expect.assertions(3);
+
+        const temporaryRoot = makeTemporaryRoot();
+        const logger = vi.fn<(message: string) => void>();
+
+        expect(() => syncDocusaurusStaticAssets(temporaryRoot, logger)).toThrow(
+            `Missing canonical static asset: ${path.join(temporaryRoot, "static", "icons", "favicon.ico")}`
+        );
+        expect(
+            getPathStates(temporaryRoot, [
+                path.join("docusaurus", "static", "favicon.ico"),
+            ])
+        ).toStrictEqual({
+            [path.join("docusaurus", "static", "favicon.ico")]: "missing",
+        });
+        expect(logger).not.toHaveBeenCalled();
     });
 });
