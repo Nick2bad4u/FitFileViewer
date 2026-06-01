@@ -182,14 +182,25 @@ describe("preload.js electronAPI exposure and behavior", () => {
         const info = api.getChannelInfo();
         expect(info.totalChannels).toBe(Object.keys(info.channels).length);
         expect(info.totalEvents).toBe(Object.keys(info.events).length);
-        expect(info.channels).toMatchObject({
+        expect({
+            APP_VERSION: info.channels.APP_VERSION,
+            DEVTOOLS_INJECT_MENU: info.channels.DEVTOOLS_INJECT_MENU,
+            FILE_READ: info.channels.FILE_READ,
+            FIT_DECODE: info.channels.FIT_DECODE,
+            THEME_GET: info.channels.THEME_GET,
+        }).toStrictEqual({
             APP_VERSION: "getAppVersion",
             DEVTOOLS_INJECT_MENU: "devtools-inject-menu",
             FILE_READ: "file:read",
             FIT_DECODE: "fit:decode",
             THEME_GET: "theme:get",
         });
-        expect(info.events).toMatchObject({
+        expect({
+            MENU_CHECK_FOR_UPDATES: info.events.MENU_CHECK_FOR_UPDATES,
+            MENU_OPEN_FILE: info.events.MENU_OPEN_FILE,
+            OPEN_RECENT_FILE: info.events.OPEN_RECENT_FILE,
+            SET_THEME: info.events.SET_THEME,
+        }).toStrictEqual({
             MENU_CHECK_FOR_UPDATES: "menu-check-for-updates",
             MENU_OPEN_FILE: "menu-open-file",
             OPEN_RECENT_FILE: "open-recent-file",
@@ -367,12 +378,20 @@ describe("preload.js electronAPI exposure and behavior", () => {
         expect(info.apiMethods).toContain("getAppVersion");
         expect(info.apiMethods).toContain("getChannelInfo");
         expect(info.apiMethods).toContain("injectMenu");
-        expect(info.constants.CHANNELS).toMatchObject({
+        expect({
+            APP_VERSION: info.constants.CHANNELS.APP_VERSION,
+            DEVTOOLS_INJECT_MENU: info.constants.CHANNELS.DEVTOOLS_INJECT_MENU,
+            FIT_PARSE: info.constants.CHANNELS.FIT_PARSE,
+        }).toStrictEqual({
             APP_VERSION: "getAppVersion",
             DEVTOOLS_INJECT_MENU: "devtools-inject-menu",
             FIT_PARSE: "fit:parse",
         });
-        expect(info.constants.EVENTS).toMatchObject({
+        expect({
+            INSTALL_UPDATE: info.constants.EVENTS.INSTALL_UPDATE,
+            OPEN_RECENT_FILE: info.constants.EVENTS.OPEN_RECENT_FILE,
+            THEME_CHANGED: info.constants.EVENTS.THEME_CHANGED,
+        }).toStrictEqual({
             INSTALL_UPDATE: "install-update",
             OPEN_RECENT_FILE: "open-recent-file",
             THEME_CHANGED: "theme-changed",
