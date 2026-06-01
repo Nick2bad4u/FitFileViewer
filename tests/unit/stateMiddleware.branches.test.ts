@@ -78,8 +78,7 @@ describe("stateMiddleware additional branches", () => {
             .mockImplementation((...args: unknown[]) => {
                 // Only throw for the inner error-handler invocation log to trigger the outer catch branch
                 if (
-                    typeof args[0] === "string" &&
-                    args[0].includes("Error invoking error handler")
+                    args[0] === "[StateMiddleware] Error invoking error handler"
                 ) {
                     throw new Error("console boom");
                 }

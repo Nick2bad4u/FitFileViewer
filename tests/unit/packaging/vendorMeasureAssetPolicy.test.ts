@@ -26,6 +26,10 @@ const rendererBrowserPackages = [
     "screenfull",
 ] as const;
 
+const fromImportSpecifierPattern =
+    /^\s*import\s+[^"\n].*?\s+from\s+"([^"]+)";/gmu;
+const sideEffectImportSpecifierPattern = /^\s*import\s+"([^"]+)";/gmu;
+
 type PackageJson = {
     dependencies?: Record<string, string>;
     devDependencies?: Record<string, string>;
@@ -42,6 +46,28 @@ function getFileExistence(relativePaths: string[]): Record<string, boolean> {
             existsSync(path.join(repositoryRoot, relativePath)),
         ])
     );
+}
+
+function getImportedBrowserPackages(source: string): Set<string> {
+    const importedPackages = new Set<string>();
+    const importSpecifiers = [
+        ...source.matchAll(fromImportSpecifierPattern),
+        ...source.matchAll(sideEffectImportSpecifierPattern),
+    ].map((match) => match[1]);
+
+    for (const importSpecifier of importSpecifiers) {
+        const packageName = rendererBrowserPackages.find(
+            (candidate) =>
+                importSpecifier === candidate ||
+                importSpecifier.startsWith(`${candidate}/`)
+        );
+
+        if (packageName) {
+            importedPackages.add(packageName);
+        }
+    }
+
+    return importedPackages;
 }
 
 describe("renderer vendor asset policy", () => {
@@ -61,9 +87,8 @@ describe("renderer vendor asset policy", () => {
                 (packageName) =>
                     rootPackage.dependencies?.[packageName] !== undefined
             );
-        const missingVendorImports = rendererBrowserPackages.filter(
-            (packageName) => !vendorBundleSource.includes(`"${packageName}`)
-        );
+        const vendorBrowserPackageImports =
+            getImportedBrowserPackages(vendorBundleSource);
 
         expect(rootPackage.devDependencies).toMatchObject(
             Object.fromEntries(
@@ -77,7 +102,9 @@ describe("renderer vendor asset policy", () => {
         expect(vendorBundleSource).toEqual(
             expect.stringContaining('from "chart.js/auto"')
         );
-        expect(missingVendorImports).toStrictEqual([]);
+        expect(vendorBrowserPackageImports).toStrictEqual(
+            new Set(rendererBrowserPackages)
+        );
         expect(staticAppIndex).toContain('src="renderer/vendor-globals.js"');
     });
 

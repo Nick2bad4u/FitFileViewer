@@ -88,7 +88,6 @@ describe("clean-workspace script", () => {
                 "temp",
                 appSourceRelativePath(rootCoveragePath),
                 appDistPath,
-                appSourceRelativePath("html"),
                 appTypesPath,
                 docusaurusWorkspaceRelativePath("build"),
                 docusaurusWorkspaceRelativePath("docs", "api"),
@@ -118,19 +117,34 @@ describe("clean-workspace script", () => {
         );
     });
 
+    it("does not keep stale nested Electron app generated directories", async () => {
+        expect.assertions(1);
+
+        const { cleanupTargets } = await importCleanWorkspace();
+
+        expect(cleanupTargets).toEqual(
+            expect.not.arrayContaining([
+                appSourceRelativePath("html"),
+                appSourceRelativePath("logs"),
+                appSourceRelativePath("release"),
+                appSourceRelativePath("temp-win7"),
+            ])
+        );
+    });
+
     it("does not treat dependency installs or local editor state as generated cleanup targets", async () => {
         expect.assertions(1);
 
         const { cleanupTargets } = await importCleanWorkspace();
 
-        expect(
-            [
+        expect(cleanupTargets).toEqual(
+            expect.not.arrayContaining([
                 ".vscode/mcp.json",
                 "docusaurus/node_modules",
                 "node_modules",
                 "package-lock.json",
-            ].filter((target) => cleanupTargets.includes(target))
-        ).toStrictEqual([]);
+            ])
+        );
     });
 
     it("removes generated files and directories under the selected workspace root", async () => {

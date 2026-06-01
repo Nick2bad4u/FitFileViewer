@@ -62,10 +62,6 @@ export const cleanupTargets = [
     "test-results",
     legacyAppCoveragePath,
     appSourceRelativePath("dist"),
-    appSourceRelativePath("html"),
-    appSourceRelativePath("logs"),
-    appSourceRelativePath("release"),
-    appSourceRelativePath("temp-win7"),
     appSourceRelativePath("types"),
 ];
 
