@@ -17,7 +17,7 @@ describe("estimateCyclingPower.js", () => {
     type FitMesg = Record<string, FitMesgValue>;
 
     it("hasPowerData should detect real power and enhanced_power", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const mod =
             await import("../../../../../electron-app/utils/data/processing/estimateCyclingPower.js");
@@ -39,7 +39,7 @@ describe("estimateCyclingPower.js", () => {
     });
 
     it("applyEstimatedPowerToRecords should no-op when disabled", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const { applyEstimatedPowerToRecords } =
             await import("../../../../../electron-app/utils/data/processing/estimateCyclingPower.js");
@@ -83,7 +83,7 @@ describe("estimateCyclingPower.js", () => {
     });
 
     it("applyEstimatedPowerToRecords should no-op when recordMesgs empty", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const { applyEstimatedPowerToRecords } =
             await import("../../../../../electron-app/utils/data/processing/estimateCyclingPower.js");
@@ -111,7 +111,7 @@ describe("estimateCyclingPower.js", () => {
     });
 
     it("applyEstimatedPowerToRecords should not overwrite real power", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const { applyEstimatedPowerToRecords } =
             await import("../../../../../electron-app/utils/data/processing/estimateCyclingPower.js");
@@ -157,7 +157,7 @@ describe("estimateCyclingPower.js", () => {
     });
 
     it("applyEstimatedPowerToRecords should skip non-cycling sport when sport is known", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const { applyEstimatedPowerToRecords } =
             await import("../../../../../electron-app/utils/data/processing/estimateCyclingPower.js");
@@ -200,7 +200,7 @@ describe("estimateCyclingPower.js", () => {
     });
 
     it("applyEstimatedPowerToRecords should compute and attach estimatedPower using distance field", async () => {
-        expect.hasAssertions();
+        expect.assertions(17);
 
         const { applyEstimatedPowerToRecords } =
             await import("../../../../../electron-app/utils/data/processing/estimateCyclingPower.js");
@@ -259,7 +259,7 @@ describe("estimateCyclingPower.js", () => {
     });
 
     it("produces plausible power for flat road at 36 km/h (sanity check)", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const { applyEstimatedPowerToRecords } =
             await import("../../../../../electron-app/utils/data/processing/estimateCyclingPower.js");
@@ -304,7 +304,7 @@ describe("estimateCyclingPower.js", () => {
     });
 
     it("uphill (positive grade) should require more power than flat at same speed", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const { applyEstimatedPowerToRecords } =
             await import("../../../../../electron-app/utils/data/processing/estimateCyclingPower.js");
@@ -358,7 +358,7 @@ describe("estimateCyclingPower.js", () => {
     });
 
     it("zero speed should yield ~0 estimated power", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const { applyEstimatedPowerToRecords } =
             await import("../../../../../electron-app/utils/data/processing/estimateCyclingPower.js");
@@ -388,7 +388,7 @@ describe("estimateCyclingPower.js", () => {
     });
 
     it("applyEstimatedPowerToRecords should fall back to GPS haversine when distance is missing", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const { applyEstimatedPowerToRecords } =
             await import("../../../../../electron-app/utils/data/processing/estimateCyclingPower.js");
@@ -435,7 +435,7 @@ describe("estimateCyclingPower.js", () => {
     });
 
     it("should handle non-date timestamps and degree-based GPS values", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const { applyEstimatedPowerToRecords } =
             await import("../../../../../electron-app/utils/data/processing/estimateCyclingPower.js");
@@ -485,7 +485,7 @@ describe("estimateCyclingPower.js", () => {
     });
 
     it("applyEstimatedPowerToRecords should fall back to speed integration when distance and GPS are missing", async () => {
-        expect.hasAssertions();
+        expect.assertions(8);
 
         const { applyEstimatedPowerToRecords } =
             await import("../../../../../electron-app/utils/data/processing/estimateCyclingPower.js");

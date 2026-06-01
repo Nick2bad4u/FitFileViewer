@@ -321,7 +321,7 @@ describe(renderSingleHRZoneBar, () => {
     }
 
     it("should create a Chart.js chart with correct configuration", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         // Prepare test data
         const zoneData = [
             { label: "Zone 1", value: 300, color: "#ff0000" },
@@ -348,7 +348,7 @@ describe(renderSingleHRZoneBar, () => {
     });
 
     it("should handle custom options like title", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
         // Prepare test data
         const zoneData = [{ label: "Zone 1", value: 300, color: "#ff0000" }];
 
@@ -368,7 +368,7 @@ describe(renderSingleHRZoneBar, () => {
     });
 
     it("should use zone colors from chartZoneColorUtils when colors not provided", () => {
-        expect.hasAssertions();
+        expect.assertions(10);
         // Create a fresh Chart mock for this test
         const ChartSpy = vi
             .fn<
@@ -427,7 +427,7 @@ describe(renderSingleHRZoneBar, () => {
     });
 
     it("should wire tooltip and y-axis callbacks that format time", () => {
-        expect.hasAssertions();
+        expect.assertions(7);
         const zoneData = [{ label: "Zone 1", value: 120 }];
         const view = renderSingleHRZoneBar(canvas, zoneData);
         const cfg = getCapturedChartConfig(view);
@@ -448,7 +448,7 @@ describe(renderSingleHRZoneBar, () => {
     });
 
     it("should expose styling callbacks in configuration (smoke)", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
         const zoneData = [{ label: "Zone 1", value: 120 }];
         const view = renderSingleHRZoneBar(canvas, zoneData);
         const chartConfig = getCapturedChartConfig(view);
@@ -466,7 +466,7 @@ describe(renderSingleHRZoneBar, () => {
     });
 
     it("should handle invalid inputs gracefully", () => {
-        expect.hasAssertions();
+        expect.assertions(8);
         // Test with null canvas
         expect(
             renderSingleHRZoneBar(null as unknown as HTMLCanvasElement, [])
@@ -501,7 +501,7 @@ describe(renderSingleHRZoneBar, () => {
     });
 
     it("should include tooltip and y-axis format callbacks (smoke)", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
         const zoneData = [{ label: "Zone 1", value: 120 }];
         const view = renderSingleHRZoneBar(canvas, zoneData);
         const chartConfig = getCapturedChartConfig(view);

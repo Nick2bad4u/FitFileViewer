@@ -238,7 +238,7 @@ describe("chartStatusIndicator.js", () => {
 
     describe("updateAllChartStatusIndicators", () => {
         it("should update both status indicators when they exist", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             // Set up the DOM with both indicators
             const settingsIndicator = document.createElement("div");
@@ -281,7 +281,7 @@ describe("chartStatusIndicator.js", () => {
         });
 
         it("should create global indicator if it does not exist", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             // Set up the DOM with only settings indicator
             const settingsIndicator = document.createElement("div");
@@ -310,7 +310,7 @@ describe("chartStatusIndicator.js", () => {
         });
 
         it("should handle errors gracefully", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             // Import the module
             const { updateAllChartStatusIndicators } =
@@ -337,7 +337,7 @@ describe("chartStatusIndicator.js", () => {
 
     describe("updateChartStatusIndicator", () => {
         it("should update a specific chart status indicator when provided", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             // Set up the DOM with an indicator
             const indicator = document.createElement("div");
@@ -364,7 +364,7 @@ describe("chartStatusIndicator.js", () => {
         });
 
         it("should update the default indicator when none provided", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             // Set up the DOM with the default indicator
             const indicator = document.createElement("div");
@@ -387,7 +387,7 @@ describe("chartStatusIndicator.js", () => {
         });
 
         it("should do nothing if no indicator exists", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             // Import the module
             const { updateChartStatusIndicator } =
@@ -404,7 +404,7 @@ describe("chartStatusIndicator.js", () => {
         });
 
         it("should handle errors gracefully", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             // Import the module
             const { updateChartStatusIndicator } =
@@ -438,7 +438,7 @@ describe("chartStatusIndicator.js", () => {
 
     describe("setupChartStatusUpdates", () => {
         it("should register all required event listeners", async () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             // Import the module
             const { setupChartStatusUpdates } =
@@ -487,7 +487,7 @@ describe("chartStatusIndicator.js", () => {
         });
 
         it("should handle event listener callbacks correctly", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             // Since we're getting weird spying issues, let's just test the event registration
             // without spying on the internal function call
@@ -522,7 +522,7 @@ describe("chartStatusIndicator.js", () => {
         });
 
         it("should handle errors during setup gracefully", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             // Mock addEventListener to throw an error - need to update both window and globalThis
             const errorMock = vi.fn<AddEventListener>(() => {
@@ -553,7 +553,7 @@ describe("chartStatusIndicator.js", () => {
         });
 
         it("should not redefine globalData property if already configured", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             // Define a custom getter/setter for globalData
             Object.defineProperty(window, "globalData", {
