@@ -14,6 +14,11 @@ interface ExposedElectronApi {
 interface ExposedDevTools {
     getPreloadInfo: () => {
         apiMethods: string[];
+        constants: {
+            CHANNELS: Record<string, string>;
+            EVENTS: Record<string, string>;
+        };
+        timestamp: string;
         version: string;
     };
     logAPIState: () => void;
@@ -131,18 +136,36 @@ describe("preload.js - Script Evaluation Test", () => {
             logAPIState: true,
             testIPC: true,
         });
-        expect(devTools.getPreloadInfo()).toMatchObject({
+        const preloadInfo = devTools.getPreloadInfo();
+        expect({
+            apiMethods: preloadInfo.apiMethods,
+            appVersionChannel: preloadInfo.constants.CHANNELS.APP_VERSION,
+            menuOpenFileEvent: preloadInfo.constants.EVENTS.MENU_OPEN_FILE,
+            timestampType: typeof preloadInfo.timestamp,
+            version: preloadInfo.version,
+        }).toStrictEqual({
             apiMethods: Object.keys(electronAPI),
+            appVersionChannel: "getAppVersion",
+            menuOpenFileEvent: "menu-open-file",
+            timestampType: "string",
             version: "1.0.0",
         });
         devTools.logAPIState();
-        expect(consoleLogSpy).toHaveBeenCalledWith(
-            "[preload.js] Current API State:",
-            expect.objectContaining({
-                electronAPI: "object",
-                methodCount: Object.keys(electronAPI).length,
-            })
+        const apiStateLog = consoleLogSpy.mock.calls.find(
+            ([message]) => message === "[preload.js] Current API State:"
         );
+        const apiStatePayload = apiStateLog?.[1] as
+            | Record<string, unknown>
+            | undefined;
+        expect({
+            electronAPI: apiStatePayload?.electronAPI,
+            methodCount: apiStatePayload?.methodCount,
+            message: apiStateLog?.[0],
+        }).toStrictEqual({
+            electronAPI: "object",
+            methodCount: Object.keys(electronAPI).length,
+            message: "[preload.js] Current API State:",
+        });
         await expect(devTools.testIPC()).resolves.toBe(true);
         expect(electronMock.ipcRenderer.invoke).toHaveBeenCalledWith(
             "getAppVersion"
@@ -179,13 +202,16 @@ describe("preload.js - Script Evaluation Test", () => {
                 (message): message is string => typeof message === "string"
             );
 
-        expect(logMessages).toEqual(
-            expect.arrayContaining([
-                expect.stringContaining("[preload.js]"),
-                expect.stringContaining(
-                    "Preload script initialized successfully"
-                ),
-            ])
-        );
+        expect({
+            hasInitializedLog: logMessages.some((message) =>
+                message.includes("Preload script initialized successfully")
+            ),
+            hasPreloadLog: logMessages.some((message) =>
+                message.includes("[preload.js]")
+            ),
+        }).toStrictEqual({
+            hasInitializedLog: true,
+            hasPreloadLog: true,
+        });
     });
 });
