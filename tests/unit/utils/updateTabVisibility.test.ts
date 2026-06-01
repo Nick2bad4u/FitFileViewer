@@ -144,7 +144,7 @@ describe(updateTabVisibility, () => {
         expect(mockSetState).toHaveBeenCalledWith(
             "ui.activeTabContent",
             "summary",
-            expect.objectContaining({ source: "updateTabVisibility" })
+            { source: "updateTabVisibility" }
         );
     });
 
@@ -157,7 +157,7 @@ describe(updateTabVisibility, () => {
         expect(mockSetState).toHaveBeenCalledWith(
             "ui.activeTabContent",
             "chart",
-            expect.objectContaining({ source: "updateTabVisibility" })
+            { source: "updateTabVisibility" }
         );
     });
 
@@ -170,7 +170,7 @@ describe(updateTabVisibility, () => {
         expect(mockSetState).toHaveBeenCalledWith(
             "ui.activeTabContent",
             "summary",
-            expect.objectContaining({ source: "updateTabVisibility" })
+            { source: "updateTabVisibility" }
         );
     });
 
@@ -200,7 +200,7 @@ describe(updateTabVisibility, () => {
         expect(mockSetState).toHaveBeenCalledWith(
             "ui.activeTabContent",
             "missing",
-            expect.objectContaining({ source: "updateTabVisibility" })
+            { source: "updateTabVisibility" }
         );
     });
 
@@ -254,7 +254,7 @@ describe(updateTabVisibility, () => {
         expect(mockSetState).toHaveBeenCalledWith(
             "ui.activeTabContent",
             "map",
-            expect.objectContaining({ source: "updateTabVisibility" })
+            { source: "updateTabVisibility" }
         );
     });
 

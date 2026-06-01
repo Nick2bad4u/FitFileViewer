@@ -85,7 +85,7 @@ describe("updateTabVisibility - additional branches", () => {
         expect(setState).toHaveBeenCalledWith(
             "ui.activeTabContent",
             "summary",
-            expect.objectContaining({ source: "updateTabVisibility" })
+            { source: "updateTabVisibility" }
         );
 
         // Also verify display toggling behavior: summary visible, others hidden
@@ -128,7 +128,7 @@ describe("updateTabVisibility - additional branches", () => {
         expect(setState).toHaveBeenCalledWith(
             "ui.activeTabContent",
             "missing",
-            expect.objectContaining({ source: "updateTabVisibility" })
+            { source: "updateTabVisibility" }
         );
         for (const id of contentIds) {
             expect(document.getElementById(id)?.style.display).toBe("none");
@@ -166,11 +166,9 @@ describe("updateTabVisibility - additional branches", () => {
 
         updateTabVisibility("content_map");
 
-        expect(effSet).toHaveBeenCalledWith(
-            "ui.activeTabContent",
-            "map",
-            expect.objectContaining({ source: "updateTabVisibility" })
-        );
+        expect(effSet).toHaveBeenCalledWith("ui.activeTabContent", "map", {
+            source: "updateTabVisibility",
+        });
         const map = document.getElementById("content_map")!;
         const summary = document.getElementById("content_summary")!;
         expect(map.style.display).toBe("flex");
