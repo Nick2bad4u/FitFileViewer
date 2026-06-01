@@ -226,18 +226,49 @@ describe("root app shell asset references", () => {
         );
         const alternativeViewerManifestIconReferences =
             getManifestIconReferences(alternativeViewerManifestPath);
+        const cssAssetReferences = alternativeViewerIndexReferences.filter(
+            (reference) => /^\.\/assets\/.+\.css$/u.test(reference)
+        );
+        const jsAssetReferences = alternativeViewerIndexReferences.filter(
+            (reference) => /^\.\/assets\/.+\.js$/u.test(reference)
+        );
+        const shellReferences = alternativeViewerIndexReferences.filter(
+            (reference) => !reference.startsWith("./assets/")
+        );
+        const unexpectedAssetReferences =
+            alternativeViewerIndexReferences.filter(
+                (reference) =>
+                    reference.startsWith("./assets/") &&
+                    !cssAssetReferences.includes(reference) &&
+                    !jsAssetReferences.includes(reference)
+            );
 
-        expect(alternativeViewerIndexReferences).toEqual(
-            expect.arrayContaining([
+        expect({
+            cssAssetReferenceCount: cssAssetReferences.length,
+            cssAssetReferencesAreBundledAssets: cssAssetReferences.every(
+                (reference) => /^\.\/assets\/.+\.css$/u.test(reference)
+            ),
+            jsAssetReferenceCount: jsAssetReferences.length,
+            jsAssetReferencesAreBundledAssets: jsAssetReferences.every(
+                (reference) => /^\.\/assets\/.+\.js$/u.test(reference)
+            ),
+            shellReferences,
+            unexpectedAssetReferences,
+        }).toStrictEqual({
+            cssAssetReferenceCount: 1,
+            cssAssetReferencesAreBundledAssets: true,
+            jsAssetReferenceCount: 1,
+            jsAssetReferencesAreBundledAssets: true,
+            shellReferences: [
                 "../icons/apple-touch-icon.png",
-                "../icons/favicon-96x96.png",
                 "../icons/favicon.ico",
+                "../icons/favicon-96x96.png",
                 "../icons/favicon.svg",
                 "./manifest.json",
-                expect.stringMatching(/^\.\/assets\/.+\.css$/u),
-                expect.stringMatching(/^\.\/assets\/.+\.js$/u),
-            ])
-        );
+                "../icons/favicon.svg",
+            ],
+            unexpectedAssetReferences: [],
+        });
         expect(alternativeViewerManifestIconReferences).toStrictEqual([
             "../icons/web-app-manifest-192x192.png",
             "../icons/web-app-manifest-512x512.png",
