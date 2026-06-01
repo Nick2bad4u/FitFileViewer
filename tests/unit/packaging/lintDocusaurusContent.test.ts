@@ -67,15 +67,35 @@ describe("lint-docusaurus-content script", () => {
     });
 
     it("throws when markdownlint cannot be started", () => {
-        expect.assertions(1);
+        expect.assertions(4);
 
+        const spawnError = new Error("spawn failed");
         const commandRunner = vi.fn<CommandRunner>(() => ({
-            error: new Error("spawn failed"),
+            error: spawnError,
             status: null,
         }));
 
         expect(() => runLintDocusaurusContent([], commandRunner)).toThrow(
-            "spawn failed"
+            spawnError
         );
+        expect(commandRunner).toHaveBeenCalledOnce();
+
+        const [
+            command,
+            args,
+            options,
+        ] = commandRunner.mock.calls[0] ?? [];
+
+        expect({ args, command }).toStrictEqual({
+            args: buildMarkdownlintArgs([]),
+            command: process.execPath,
+        });
+        expect({
+            ...options,
+            cwd: path.resolve(options?.cwd ?? ""),
+        }).toStrictEqual({
+            cwd: path.resolve(process.cwd()),
+            stdio: "inherit",
+        });
     });
 });

@@ -140,7 +140,7 @@ describe("run-docusaurus wrapper", () => {
     });
 
     it("stops when static asset sync fails", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const commandRunner = vi
             .fn<CommandRunner>()
@@ -155,17 +155,45 @@ describe("run-docusaurus wrapper", () => {
             commandCalls: 1,
             status: 7,
         });
+        expect(commandRunner.mock.calls[0]).toStrictEqual([
+            process.execPath,
+            [syncDocusaurusStaticAssetsScript],
+            {
+                cwd: process.cwd(),
+                stdio: "inherit",
+            },
+        ]);
     });
 
     it("throws when Docusaurus cannot be started", () => {
-        expect.assertions(1);
+        expect.assertions(4);
 
+        const spawnError = new Error("spawn failed");
         const commandRunner = vi
             .fn<CommandRunner>()
-            .mockReturnValue({ error: new Error("spawn failed"), status: 0 });
+            .mockReturnValue({ error: spawnError, status: 0 });
 
         expect(() => runDocusaurus(["clear"], commandRunner)).toThrow(
-            "spawn failed"
+            spawnError
         );
+        expect(commandRunner).toHaveBeenCalledOnce();
+
+        const [
+            command,
+            args,
+            options,
+        ] = commandRunner.mock.calls[0] ?? [];
+
+        expect({ args, command }).toStrictEqual({
+            args: buildDocusaurusArgs(["clear"]),
+            command: process.execPath,
+        });
+        expect({
+            ...options,
+            cwd: path.resolve(options?.cwd ?? ""),
+        }).toStrictEqual({
+            cwd: path.join(process.cwd(), "docusaurus"),
+            stdio: "inherit",
+        });
     });
 });

@@ -75,7 +75,7 @@ describe("typecheck-docusaurus script", () => {
     });
 
     it("returns a failing status from TypeScript", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const commandRunner = vi
             .fn<CommandRunner>()
@@ -90,18 +90,41 @@ describe("typecheck-docusaurus script", () => {
             commandCalls: 1,
             status: 2,
         });
+        expect(commandRunner.mock.calls[0]?.[1]).toStrictEqual(
+            buildDocusaurusTypecheckArgs([])
+        );
     });
 
     it("throws when TypeScript cannot be started", () => {
-        expect.assertions(1);
+        expect.assertions(4);
 
+        const spawnError = new Error("spawn failed");
         const commandRunner = vi.fn<CommandRunner>().mockReturnValue({
-            error: new Error("spawn failed"),
+            error: spawnError,
             status: 0,
         });
 
         expect(() => runDocusaurusTypecheck([], commandRunner)).toThrow(
-            "spawn failed"
+            spawnError
         );
+        expect(commandRunner).toHaveBeenCalledOnce();
+
+        const [
+            command,
+            args,
+            options,
+        ] = commandRunner.mock.calls[0] ?? [];
+
+        expect({ args, command }).toStrictEqual({
+            args: buildDocusaurusTypecheckArgs([]),
+            command: process.execPath,
+        });
+        expect({
+            ...options,
+            cwd: path.resolve(options?.cwd ?? ""),
+        }).toStrictEqual({
+            cwd: path.resolve(process.cwd()),
+            stdio: "inherit",
+        });
     });
 });
