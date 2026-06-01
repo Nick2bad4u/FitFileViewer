@@ -114,7 +114,7 @@ describe("openPowerEstimationSettingsModal.js", () => {
     });
 
     it("should persist settings and call onApply, then close", async () => {
-        expect.assertions(8);
+        expect.assertions(7);
 
         const { openPowerEstimationSettingsModal } =
             await import("../../../../../electron-app/utils/ui/modals/openPowerEstimationSettingsModal.js");
@@ -125,7 +125,7 @@ describe("openPowerEstimationSettingsModal.js", () => {
         const checkbox = document.querySelector<HTMLInputElement>(
             "input[type='checkbox']"
         );
-        expect(checkbox?.checked).toBe(true);
+        expect(checkbox).toHaveProperty("checked", true);
         checkbox!.checked = false;
 
         const inputs = Array.from(
@@ -144,8 +144,13 @@ describe("openPowerEstimationSettingsModal.js", () => {
         expect(mockSetSettings).toHaveBeenCalledOnce();
         const saved = mockSetSettings.mock
             .calls[0][0] as PowerEstimationSettings;
-        expect(saved.enabled).toBe(false);
-        expect(saved.riderWeightKg).toBe(80);
+        expect({
+            enabled: saved.enabled,
+            riderWeightKg: saved.riderWeightKg,
+        }).toStrictEqual({
+            enabled: false,
+            riderWeightKg: 80,
+        });
 
         expect(onApply).toHaveBeenCalledOnce();
         expect(document.body.textContent).not.toContain("Estimated Power");
