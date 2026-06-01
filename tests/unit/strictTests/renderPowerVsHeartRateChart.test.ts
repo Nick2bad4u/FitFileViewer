@@ -530,7 +530,12 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
             renderPowerVsHeartRateChart(container, data, optionsWithLegend);
 
             let chartConfig = getLatestChartConfig();
-            expect(chartConfig.options.plugins.legend).toMatchObject({
+            expect({
+                display: chartConfig.options.plugins.legend.display,
+                labels: {
+                    color: chartConfig.options.plugins.legend.labels.color,
+                },
+            }).toStrictEqual({
                 display: true,
                 labels: { color: "#fff" },
             });
@@ -543,7 +548,12 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
             renderPowerVsHeartRateChart(container, data, optionsWithoutLegend);
 
             chartConfig = getLatestChartConfig();
-            expect(chartConfig.options.plugins.legend).toMatchObject({
+            expect({
+                display: chartConfig.options.plugins.legend.display,
+                labels: {
+                    color: chartConfig.options.plugins.legend.labels.color,
+                },
+            }).toStrictEqual({
                 display: false,
                 labels: { color: "#fff" },
             });
@@ -562,7 +572,10 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
             renderPowerVsHeartRateChart(container, data, optionsWithTitle);
 
             let chartConfig = getLatestChartConfig();
-            expect(chartConfig.options.plugins.title).toMatchObject({
+            expect({
+                display: chartConfig.options.plugins.title.display,
+                text: chartConfig.options.plugins.title.text,
+            }).toStrictEqual({
                 display: true,
                 text: "Power vs Heart Rate",
             });
@@ -575,7 +588,10 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
             renderPowerVsHeartRateChart(container, data, optionsWithoutTitle);
 
             chartConfig = getLatestChartConfig();
-            expect(chartConfig.options.plugins.title).toMatchObject({
+            expect({
+                display: chartConfig.options.plugins.title.display,
+                text: chartConfig.options.plugins.title.text,
+            }).toStrictEqual({
                 display: false,
                 text: "Power vs Heart Rate",
             });
@@ -632,7 +648,10 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
             renderPowerVsHeartRateChart(container, data, optionsWithPoints);
 
             let chartConfig = getLatestChartConfig();
-            expect(chartConfig.data.datasets[0]).toMatchObject({
+            expect({
+                pointHoverRadius: chartConfig.data.datasets[0].pointHoverRadius,
+                pointRadius: chartConfig.data.datasets[0].pointRadius,
+            }).toStrictEqual({
                 pointHoverRadius: 4,
                 pointRadius: 2,
             });
@@ -645,7 +664,10 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
             renderPowerVsHeartRateChart(container, data, optionsWithoutPoints);
 
             chartConfig = getLatestChartConfig();
-            expect(chartConfig.data.datasets[0]).toMatchObject({
+            expect({
+                pointHoverRadius: chartConfig.data.datasets[0].pointHoverRadius,
+                pointRadius: chartConfig.data.datasets[0].pointRadius,
+            }).toStrictEqual({
                 pointHoverRadius: 4,
                 pointRadius: 1,
             });
@@ -665,7 +687,14 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
             renderPowerVsHeartRateChart(container, data, options);
 
             const chartConfig = getLatestChartConfig();
-            expect(chartConfig.options.scales.x).toMatchObject({
+            expect({
+                display: chartConfig.options.scales.x.display,
+                title: {
+                    display: chartConfig.options.scales.x.title.display,
+                    text: chartConfig.options.scales.x.title.text,
+                },
+                type: chartConfig.options.scales.x.type,
+            }).toStrictEqual({
                 display: true,
                 title: {
                     display: true,
@@ -690,7 +719,14 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
             renderPowerVsHeartRateChart(container, data, options);
 
             const chartConfig = getLatestChartConfig();
-            expect(chartConfig.options.scales.y).toMatchObject({
+            expect({
+                display: chartConfig.options.scales.y.display,
+                title: {
+                    display: chartConfig.options.scales.y.title.display,
+                    text: chartConfig.options.scales.y.title.text,
+                },
+                type: chartConfig.options.scales.y.type,
+            }).toStrictEqual({
                 display: true,
                 title: {
                     display: true,
@@ -716,7 +752,16 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
             const chartConfig = getLatestChartConfig();
             const zoomConfig = chartConfig.options.plugins.zoom;
 
-            expect(zoomConfig).toMatchObject({
+            expect({
+                limits: zoomConfig.limits,
+                pan: zoomConfig.pan,
+                zoom: {
+                    drag: zoomConfig.zoom.drag,
+                    mode: zoomConfig.zoom.mode,
+                    pinch: zoomConfig.zoom.pinch,
+                    wheel: zoomConfig.zoom.wheel,
+                },
+            }).toStrictEqual({
                 limits: {
                     x: {
                         max: "original",
@@ -734,6 +779,9 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
                 },
                 zoom: {
                     drag: {
+                        backgroundColor: "#667eea80",
+                        borderColor: "#667eeaCC",
+                        borderWidth: 2,
                         enabled: true,
                         modifierKey: "shift",
                     },
@@ -1086,7 +1134,12 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
             expect(Chart).toHaveBeenCalledOnce();
             expect(container.children).toHaveLength(1);
             expect(container.children[0].tagName).toBe("CANVAS");
-            expect(getLatestChartConfig().data.datasets[0]).toMatchObject({
+            const fallbackDataset = getLatestChartConfig().data.datasets[0];
+            expect({
+                backgroundColor: fallbackDataset.backgroundColor,
+                borderColor: fallbackDataset.borderColor,
+                data: fallbackDataset.data,
+            }).toStrictEqual({
                 backgroundColor: "#f59e0b99",
                 borderColor: "#f59e0b",
                 data: [{ x: 120, y: 200 }],
