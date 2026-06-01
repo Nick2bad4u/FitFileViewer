@@ -52,8 +52,6 @@ export function organizeDistributables(options = {}) {
     const copiedFiles = [];
     const processedArtifacts = [];
 
-    fs.mkdirSync(outputDirectory, { recursive: true });
-
     if (!fs.existsSync(artifactsDirectory)) {
         return {
             copiedDirectories,
@@ -61,6 +59,8 @@ export function organizeDistributables(options = {}) {
             processedArtifacts,
         };
     }
+
+    fs.mkdirSync(outputDirectory, { recursive: true });
 
     for (const entry of fs.readdirSync(artifactsDirectory, {
         withFileTypes: true,

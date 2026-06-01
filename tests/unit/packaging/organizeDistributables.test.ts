@@ -262,21 +262,23 @@ describe("organize-distributables script", () => {
     });
 
     it("returns an empty result when the artifacts directory is missing", async () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const { organizeDistributables } = await importOrganizeDistributables();
         const temporaryRoot = makeTemporaryRoot();
+        const outputDirectory = path.join(temporaryRoot, "release-dist");
 
         expect(
             organizeDistributables({
                 artifactsDirectory: path.join(temporaryRoot, "missing"),
-                outputDirectory: path.join(temporaryRoot, "release-dist"),
+                outputDirectory,
             })
         ).toStrictEqual({
             copiedDirectories: [],
             copiedFiles: [],
             processedArtifacts: [],
         });
+        expect(fs.existsSync(outputDirectory)).toBe(false);
     });
 
     it("parses artifacts and output directory arguments", async () => {
