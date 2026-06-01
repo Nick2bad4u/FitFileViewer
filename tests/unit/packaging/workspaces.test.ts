@@ -31,9 +31,14 @@ type WorkspacesModule = {
     docusaurusApiDocsAbsolutePath: string;
     docusaurusBuildPath: string;
     docusaurusCachePath: string;
+    docusaurusArchitectureOverviewDocPath: string;
     docusaurusConfigRepositoryPath: string;
+    docusaurusDevelopmentBuildReleaseDocPath: string;
+    docusaurusDevelopmentSetupDocPath: string;
+    docusaurusHomePagePath: string;
     docusaurusPackagePath: string;
     docusaurusPackageRepositoryPath: string;
+    docusaurusReadmeRepositoryPath: string;
     docusaurusSidebarsRepositoryPath: string;
     docusaurusStaticFaviconPath: string;
     docusaurusStaticImageFaviconPath: string;
@@ -78,7 +83,13 @@ type WorkspacesModule = {
     rootCoverageAbsolutePath: string;
     rootCoveragePath: string;
     rootDocusaurusTsconfigPath: string;
+    rootApplicationArchitectureDocPath: string;
+    rootApplicationLayoutDocPath: string;
+    rootApplicationOverviewDocPath: string;
+    rootDevelopmentGuideDocPath: string;
+    rootDocsPath: string;
     rootDocsScreenshotsPath: string;
+    rootGyazoSetupDocPath: string;
     rootElectronAppTsconfigPath: string;
     rootEslintTsconfigPath: string;
     rootEslintConfigPath: string;
@@ -309,7 +320,7 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes root config paths", async () => {
-        expect.assertions(17);
+        expect.assertions(16);
 
         const workspaces = await importWorkspaces();
 
@@ -341,7 +352,6 @@ describe("workspace path helpers", () => {
         expect(workspaces.rootEslintTsconfigPath).toBe("tsconfig.eslint.json");
         expect(workspaces.rootEslintConfigPath).toBe("eslint.config.mjs");
         expect(workspaces.rootFlatpakManifestPath).toBe("flatpak-build.yml");
-        expect(workspaces.rootDocsScreenshotsPath).toBe("docs/screenshots");
         expect(workspaces.rootPlaywrightConfigPath).toBe(
             "playwright.config.ts"
         );
@@ -384,6 +394,46 @@ describe("workspace path helpers", () => {
         );
         expect(workspaces.rootRemarkConfigPath).toBe(".remarkrc.mjs");
         expect(workspaces.rootSecretlintConfigPath).toBe(".secretlintrc.cjs");
+    });
+
+    it("centralizes root and Docusaurus docs paths", async () => {
+        expect.assertions(1);
+
+        const workspaces = await importWorkspaces();
+
+        expect({
+            docusaurusArchitectureOverview:
+                workspaces.docusaurusArchitectureOverviewDocPath,
+            docusaurusBuildRelease:
+                workspaces.docusaurusDevelopmentBuildReleaseDocPath,
+            docusaurusDevelopmentSetup:
+                workspaces.docusaurusDevelopmentSetupDocPath,
+            docusaurusHomePage: workspaces.docusaurusHomePagePath,
+            docusaurusReadme: workspaces.docusaurusReadmeRepositoryPath,
+            rootApplicationArchitecture:
+                workspaces.rootApplicationArchitectureDocPath,
+            rootApplicationLayout: workspaces.rootApplicationLayoutDocPath,
+            rootApplicationOverview: workspaces.rootApplicationOverviewDocPath,
+            rootDevelopmentGuide: workspaces.rootDevelopmentGuideDocPath,
+            rootDocs: workspaces.rootDocsPath,
+            rootDocsScreenshots: workspaces.rootDocsScreenshotsPath,
+            rootGyazoSetup: workspaces.rootGyazoSetupDocPath,
+        }).toStrictEqual({
+            docusaurusArchitectureOverview:
+                "docusaurus/docs/architecture/overview.md",
+            docusaurusBuildRelease:
+                "docusaurus/docs/development/build-release.md",
+            docusaurusDevelopmentSetup: "docusaurus/docs/development/setup.md",
+            docusaurusHomePage: "docusaurus/src/pages/index.tsx",
+            docusaurusReadme: "docusaurus/README.md",
+            rootApplicationArchitecture: "docs/APPLICATION_ARCHITECTURE.md",
+            rootApplicationLayout: "docs/APPLICATION_LAYOUT.md",
+            rootApplicationOverview: "docs/APPLICATION_OVERVIEW.md",
+            rootDevelopmentGuide: "docs/DEVELOPMENT_GUIDE.md",
+            rootDocs: "docs",
+            rootDocsScreenshots: "docs/screenshots",
+            rootGyazoSetup: "docs/GYAZO_SETUP.md",
+        });
     });
 
     it("centralizes root generated output and test paths", async () => {

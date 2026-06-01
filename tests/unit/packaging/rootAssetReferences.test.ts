@@ -16,6 +16,7 @@ import {
     rootAppIconsSiteWebManifestPath,
     rootAppIndexHtmlPath,
     rootAppStyleCssPath,
+    rootApplicationLayoutDocPath,
     rootCodecovConfigPath,
     rootElectronBuilderConfigPath,
     rootFlatpakManifestPath,
@@ -351,7 +352,7 @@ describe("root app shell asset references", () => {
             rootAlternativeFitViewIndexPath,
             rootAlternativeFitViewManifestPath,
             rootAppIconsSiteWebManifestPath,
-            "docs/APPLICATION_LAYOUT.md",
+            rootApplicationLayoutDocPath,
         ]);
 
         expect(iconNames).toStrictEqual([

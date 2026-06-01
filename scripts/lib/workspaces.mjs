@@ -23,7 +23,31 @@ export const rootNcuConfigPath = ".ncurc.json";
 export const rootPlaywrightConfigPath = "playwright.config.ts";
 export const rootPreCommitConfigPath = ".pre-commit-config.yaml";
 export const rootDocusaurusTsconfigPath = "tsconfig.docusaurus.json";
-export const rootDocsScreenshotsPath = path.posix.join("docs", "screenshots");
+export const rootDocsPath = "docs";
+export const rootApplicationArchitectureDocPath = path.posix.join(
+    rootDocsPath,
+    "APPLICATION_ARCHITECTURE.md"
+);
+export const rootApplicationLayoutDocPath = path.posix.join(
+    rootDocsPath,
+    "APPLICATION_LAYOUT.md"
+);
+export const rootApplicationOverviewDocPath = path.posix.join(
+    rootDocsPath,
+    "APPLICATION_OVERVIEW.md"
+);
+export const rootDevelopmentGuideDocPath = path.posix.join(
+    rootDocsPath,
+    "DEVELOPMENT_GUIDE.md"
+);
+export const rootGyazoSetupDocPath = path.posix.join(
+    rootDocsPath,
+    "GYAZO_SETUP.md"
+);
+export const rootDocsScreenshotsPath = path.posix.join(
+    rootDocsPath,
+    "screenshots"
+);
 export const rootElectronBuilderConfigPath = "electron-builder.config.cjs";
 export const rootElectronAppBaseTsconfigPath =
     "tsconfig.electron-app.base.json";
@@ -107,6 +131,23 @@ export const docusaurusSidebarsRepositoryPath =
     docusaurusWorkspaceRepositoryPath("sidebars.ts");
 export const docusaurusTsconfigRepositoryPath =
     docusaurusWorkspaceRepositoryPath("tsconfig.json");
+export const docusaurusReadmeRepositoryPath =
+    docusaurusWorkspaceRepositoryPath("README.md");
+export const docusaurusArchitectureOverviewDocPath =
+    docusaurusWorkspaceRepositoryPath("docs", "architecture", "overview.md");
+export const docusaurusDevelopmentBuildReleaseDocPath =
+    docusaurusWorkspaceRepositoryPath(
+        "docs",
+        "development",
+        "build-release.md"
+    );
+export const docusaurusDevelopmentSetupDocPath =
+    docusaurusWorkspaceRepositoryPath("docs", "development", "setup.md");
+export const docusaurusHomePagePath = docusaurusWorkspaceRepositoryPath(
+    "src",
+    "pages",
+    "index.tsx"
+);
 export const docusaurusCachePath =
     docusaurusWorkspaceRelativePath(".docusaurus");
 export const docusaurusBuildPath = docusaurusWorkspaceRelativePath("build");

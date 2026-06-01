@@ -4,6 +4,9 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
+    docusaurusDevelopmentBuildReleaseDocPath,
+    docusaurusDevelopmentSetupDocPath,
+    docusaurusHomePagePath,
     rootElectronAppBaseTsconfigPath,
     rootElectronAppEslintTsconfigPath,
     appTypesPath,
@@ -21,6 +24,8 @@ import {
     rootPrettierIgnorePath,
     rootRuntimeTsconfigPath,
     rootStylelintConfigPath,
+    rootDevelopmentGuideDocPath,
+    docusaurusReadmeRepositoryPath,
     rootViteRendererConfigPath,
     rootVitestConfigPath,
 } from "../../../scripts/lib/workspaces.mjs";
@@ -241,8 +246,8 @@ describe("workspace package boundaries", () => {
 
         const rootPackage = readPackageJson("package.json");
         const setupDocs = [
-            "docs/DEVELOPMENT_GUIDE.md",
-            "docusaurus/docs/development/setup.md",
+            rootDevelopmentGuideDocPath,
+            docusaurusDevelopmentSetupDocPath,
         ].map((relativePath) =>
             readFileSync(path.join(process.cwd(), relativePath), "utf8")
         );
@@ -264,17 +269,11 @@ describe("workspace package boundaries", () => {
 
         const rootPackage = readPackageJson("package.json");
         const buildReleaseGuide = readFileSync(
-            path.join(
-                process.cwd(),
-                "docusaurus",
-                "docs",
-                "development",
-                "build-release.md"
-            ),
+            path.join(process.cwd(), docusaurusDevelopmentBuildReleaseDocPath),
             "utf8"
         );
         const homepageSource = readFileSync(
-            path.join(process.cwd(), "docusaurus", "src", "pages", "index.tsx"),
+            path.join(process.cwd(), docusaurusHomePagePath),
             "utf8"
         );
 
@@ -336,17 +335,11 @@ describe("workspace package boundaries", () => {
         expect.assertions(4);
 
         const docusaurusReadme = readFileSync(
-            path.join(process.cwd(), "docusaurus", "README.md"),
+            path.join(process.cwd(), docusaurusReadmeRepositoryPath),
             "utf8"
         );
         const docusaurusSetupGuide = readFileSync(
-            path.join(
-                process.cwd(),
-                "docusaurus",
-                "docs",
-                "development",
-                "setup.md"
-            ),
+            path.join(process.cwd(), docusaurusDevelopmentSetupDocPath),
             "utf8"
         );
 

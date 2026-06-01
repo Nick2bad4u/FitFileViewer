@@ -3,6 +3,8 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { rootGyazoSetupDocPath } from "../../../scripts/lib/workspaces.mjs";
+
 function readWorkspaceFile(relativePath: string): string {
     return readFileSync(path.join(process.cwd(), relativePath), "utf8");
 }
@@ -11,7 +13,7 @@ describe("gyazo setup documentation", () => {
     it("points users at current TypeScript runtime files and root build flow", () => {
         expect.assertions(1);
 
-        const guide = readWorkspaceFile("docs/GYAZO_SETUP.md");
+        const guide = readWorkspaceFile(rootGyazoSetupDocPath);
         const requiredGuideSnippets = [
             "electron-app/utils/files/export/exportUtils.ts",
             "electron-app/main/oauth/gyazoOAuthServer.ts",
@@ -26,7 +28,7 @@ describe("gyazo setup documentation", () => {
     it("does not tell users to edit removed JavaScript paths or source credentials", () => {
         expect.assertions(3);
 
-        const guide = readWorkspaceFile("docs/GYAZO_SETUP.md");
+        const guide = readWorkspaceFile(rootGyazoSetupDocPath);
         const exportUtilsSource = readWorkspaceFile(
             "electron-app/utils/files/export/exportUtils.ts"
         );

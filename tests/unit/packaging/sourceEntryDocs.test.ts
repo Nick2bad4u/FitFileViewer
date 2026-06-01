@@ -4,6 +4,10 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
+    docusaurusArchitectureOverviewDocPath,
+    rootApplicationArchitectureDocPath,
+    rootApplicationLayoutDocPath,
+    rootApplicationOverviewDocPath,
     rootCliffConfigPath,
     rootCodecovConfigPath,
     rootElectronBuilderConfigPath,
@@ -15,10 +19,10 @@ import {
 } from "../../../scripts/lib/workspaces.mjs";
 
 const SOURCE_LAYOUT_DOCS = [
-    "docs/APPLICATION_ARCHITECTURE.md",
-    "docs/APPLICATION_LAYOUT.md",
-    "docs/APPLICATION_OVERVIEW.md",
-    "docusaurus/docs/architecture/overview.md",
+    rootApplicationArchitectureDocPath,
+    rootApplicationLayoutDocPath,
+    rootApplicationOverviewDocPath,
+    docusaurusArchitectureOverviewDocPath,
 ];
 
 function readWorkspaceFile(relativePath: string): string {
@@ -85,8 +89,8 @@ describe("source entrypoint documentation", () => {
         expect.assertions(2);
 
         const docs = [
-            readWorkspaceFile("docs/APPLICATION_LAYOUT.md"),
-            readWorkspaceFile("docs/APPLICATION_OVERVIEW.md"),
+            readWorkspaceFile(rootApplicationLayoutDocPath),
+            readWorkspaceFile(rootApplicationOverviewDocPath),
         ].join("\n");
 
         expect(docs).toContain("electron-app/dist/preload.js");
@@ -98,7 +102,7 @@ describe("source entrypoint documentation", () => {
     it("keeps the root layout guide from documenting removed top-level directories", () => {
         expect.assertions(2);
 
-        const layoutGuide = readWorkspaceFile("docs/APPLICATION_LAYOUT.md");
+        const layoutGuide = readWorkspaceFile(rootApplicationLayoutDocPath);
         const currentRootDirectories = [
             "docusaurus/",
             "electron-app/",
@@ -121,7 +125,7 @@ describe("source entrypoint documentation", () => {
     it("documents only current root tooling files in the root layout guide", () => {
         expect.assertions(3);
 
-        const layoutGuide = readWorkspaceFile("docs/APPLICATION_LAYOUT.md");
+        const layoutGuide = readWorkspaceFile(rootApplicationLayoutDocPath);
         const documentedRootToolingFiles = [
             rootGitignorePath,
             rootCliffConfigPath,
