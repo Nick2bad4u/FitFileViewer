@@ -359,9 +359,12 @@ describe("createShownFilesList", () => {
                 configurable: true,
             });
 
-            expect(() => {
-                (global.window as any).updateShownFilesList();
-            }).not.toThrow();
+            (global.window as any).updateShownFilesList();
+
+            const items = getOverlayItems(container);
+            expect(items).toHaveLength(1);
+            expect(items[0]?.textContent?.trim()).toBe("File: overlay.fit×");
+            expect(container.getAttribute("aria-disabled")).toBe("false");
         });
 
         it("calculates luminance correctly for contrast ratios", () => {
@@ -417,13 +420,11 @@ describe("createShownFilesList", () => {
                 configurable: true,
             });
 
-            // Test that the function executes without crashing
-            expect(() => {
-                (global.window as any).updateShownFilesList();
-            }).not.toThrow();
+            (global.window as any).updateShownFilesList();
 
-            // The function may or may not call getComputedStyle depending on code path
-            // so we don't assert that it was called, just that it doesn't crash
+            const firstItem = getOverlayItems(container)[0];
+            expect(firstItem?.style.filter).toContain("invert");
+            expect(firstItem?.textContent?.trim()).toBe("File: overlay.fit×");
         });
 
         it("meets WCAG AA contrast requirements", () => {
@@ -451,30 +452,38 @@ describe("createShownFilesList", () => {
 
         it("handles 3-character hex colors", () => {
             expect.hasAssertions();
-            mockChartOverlayColorPalette[0] = "#abc";
+            mockChartOverlayColorPalette[1] = "#abc";
 
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
                 { data: {}, filePath: "overlay.fit" },
             ];
 
-            expect(() => {
-                (global.window as any).updateShownFilesList();
-            }).not.toThrow();
+            (global.window as any).updateShownFilesList();
+
+            const firstItem = getOverlayItems(container)[0];
+            expect(firstItem?.style.color).toMatch(
+                /(#abc|rgb\(170,\s*187,\s*204\))/
+            );
+            expect(firstItem?.textContent?.trim()).toBe("File: overlay.fit×");
         });
 
         it("handles 6-character hex colors", () => {
             expect.hasAssertions();
-            mockChartOverlayColorPalette[0] = "#aabbcc";
+            mockChartOverlayColorPalette[1] = "#aabbcc";
 
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
                 { data: {}, filePath: "overlay.fit" },
             ];
 
-            expect(() => {
-                (global.window as any).updateShownFilesList();
-            }).not.toThrow();
+            (global.window as any).updateShownFilesList();
+
+            const firstItem = getOverlayItems(container)[0];
+            expect(firstItem?.style.color).toMatch(
+                /(#aabbcc|rgb\(170,\s*187,\s*204\))/
+            );
+            expect(firstItem?.textContent?.trim()).toBe("File: overlay.fit×");
         });
     });
 
@@ -600,14 +609,13 @@ describe("createShownFilesList", () => {
 
             const container = createShownFilesList();
 
-            expect(() => {
-                (global.window as any).updateShownFilesList();
-            }).not.toThrow();
+            (global.window as any).updateShownFilesList();
 
             expect(getOverlayText(container)).toStrictEqual([
                 "File: (unknown)×",
                 "File: overlay.fit×",
             ]);
+            expect(container.getAttribute("aria-disabled")).toBe("false");
         });
 
         it("clears existing list before updating", () => {
@@ -1416,9 +1424,17 @@ describe("createShownFilesList", () => {
             const ul = container.querySelector("#shown-files-ul");
             const firstItem = ul?.querySelector("li") as HTMLElement;
 
-            expect(() => {
-                firstItem.click();
-            }).not.toThrow();
+            firstItem.click();
+
+            expect(getOverlayState()).toMatchObject({
+                highlightedOverlayIdx: 1,
+            });
+            expect(
+                (global.window as any).updateOverlayHighlights
+            ).toHaveBeenCalledWith();
+            expect(
+                (global.window as any)._leafletMapInstance.fitBounds
+            ).not.toHaveBeenCalled();
         });
 
         it("handles missing map instance gracefully", () => {
@@ -1431,9 +1447,13 @@ describe("createShownFilesList", () => {
             const ul = container.querySelector("#shown-files-ul");
             const firstItem = ul?.querySelector("li") as HTMLElement;
 
-            expect(() => {
-                firstItem.click();
-            }).not.toThrow();
+            firstItem.click();
+
+            expect(getOverlayState()).toMatchObject({
+                highlightedOverlayIdx: 1,
+            });
+            expect(mockPolyline.bringToFront).toHaveBeenCalledWith();
+            expect(mockPolyline.getElement).toHaveBeenCalledWith();
         });
 
         it("handles polyline without getElement method", () => {
@@ -1446,9 +1466,17 @@ describe("createShownFilesList", () => {
             const ul = container.querySelector("#shown-files-ul");
             const firstItem = ul?.querySelector("li") as HTMLElement;
 
-            expect(() => {
-                firstItem.click();
-            }).not.toThrow();
+            firstItem.click();
+
+            expect(getOverlayState()).toMatchObject({
+                highlightedOverlayIdx: 1,
+            });
+            expect(mockPolyline.bringToFront).toHaveBeenCalledWith();
+            expect(
+                (global.window as any)._leafletMapInstance.fitBounds
+            ).toHaveBeenCalledWith(mockPolyline.getBounds(), {
+                padding: [20, 20],
+            });
         });
 
         it("handles polyline without getBounds method", () => {
@@ -1461,9 +1489,15 @@ describe("createShownFilesList", () => {
             const ul = container.querySelector("#shown-files-ul");
             const firstItem = ul?.querySelector("li") as HTMLElement;
 
-            expect(() => {
-                firstItem.click();
-            }).not.toThrow();
+            firstItem.click();
+
+            expect(getOverlayState()).toMatchObject({
+                highlightedOverlayIdx: 1,
+            });
+            expect(mockPolyline.bringToFront).toHaveBeenCalledWith();
+            expect(
+                (global.window as any)._leafletMapInstance.fitBounds
+            ).not.toHaveBeenCalled();
         });
     });
 
@@ -1473,9 +1507,10 @@ describe("createShownFilesList", () => {
             const container = createShownFilesList();
             container.innerHTML = ""; // Remove the ul
 
-            expect(() => {
-                (global.window as any).updateShownFilesList();
-            }).not.toThrow();
+            (global.window as any).updateShownFilesList();
+
+            expect(container.querySelector("#shown-files-ul")).toBeNull();
+            expect(getOverlayItems(container)).toStrictEqual([]);
         });
 
         it("handles theme change during operation", () => {
@@ -1500,10 +1535,12 @@ describe("createShownFilesList", () => {
                 "shown-files-list map-controls-secondary-card"
             );
 
-            // The event handler should be set up without throwing errors
-            expect(() => {
-                document.body.dispatchEvent(new Event("themechange"));
-            }).not.toThrow();
+            document.body.dispatchEvent(new Event("themechange"));
+
+            expect(container.style.color).toMatch(
+                /(#ffffff|rgb\(255,\s*255,\s*255\))/
+            );
+            expect(container.style.border).toContain("1px solid");
         });
 
         it("handles empty loadedFitFiles array", () => {
@@ -1512,11 +1549,11 @@ describe("createShownFilesList", () => {
 
             const container = createShownFilesList();
 
-            expect(() => {
-                (global.window as any).updateShownFilesList();
-            }).not.toThrow();
+            (global.window as any).updateShownFilesList();
 
             expect(container.style.display).toBe("none");
+            expect(container.getAttribute("aria-disabled")).toBe("true");
+            expect(getOverlayItems(container)).toStrictEqual([]);
         });
 
         it("handles null loadedFitFiles", () => {
@@ -1525,11 +1562,11 @@ describe("createShownFilesList", () => {
 
             const container = createShownFilesList();
 
-            expect(() => {
-                (global.window as any).updateShownFilesList();
-            }).not.toThrow();
+            (global.window as any).updateShownFilesList();
 
             expect(container.style.display).toBe("none");
+            expect(container.getAttribute("aria-disabled")).toBe("true");
+            expect(getOverlayItems(container)).toStrictEqual([]);
         });
 
         it("handles undefined loadedFitFiles", () => {
@@ -1538,11 +1575,11 @@ describe("createShownFilesList", () => {
 
             const container = createShownFilesList();
 
-            expect(() => {
-                (global.window as any).updateShownFilesList();
-            }).not.toThrow();
+            (global.window as any).updateShownFilesList();
 
             expect(container.style.display).toBe("none");
+            expect(container.getAttribute("aria-disabled")).toBe("true");
+            expect(getOverlayItems(container)).toStrictEqual([]);
         });
 
         it("handles missing color palette gracefully", () => {
@@ -1556,9 +1593,13 @@ describe("createShownFilesList", () => {
 
             const container = createShownFilesList();
 
-            expect(() => {
-                (global.window as any).updateShownFilesList();
-            }).not.toThrow();
+            (global.window as any).updateShownFilesList();
+
+            const firstItem = getOverlayItems(container)[0];
+            expect(firstItem?.style.color).toMatch(
+                /(#1976d2|rgb\(25,\s*118,\s*210\))/
+            );
+            expect(firstItem?.textContent?.trim()).toBe("File: overlay1.fit×");
         });
 
         it("prevents memory leaks by aborting event listeners", () => {
@@ -1665,10 +1706,12 @@ describe("createShownFilesList", () => {
                 "shown-files-list map-controls-secondary-card"
             );
 
-            // Theme change should not throw errors
-            expect(() => {
-                document.body.dispatchEvent(new Event("themechange"));
-            }).not.toThrow();
+            document.body.dispatchEvent(new Event("themechange"));
+
+            expect(container.style.color).toMatch(
+                /(#e0e0e0|rgb\(224,\s*224,\s*224\))/
+            );
+            expect(container.style.border).toContain("1px solid");
         });
 
         it("handles partial theme color objects", () => {
@@ -1691,11 +1734,13 @@ describe("createShownFilesList", () => {
                 "shown-files-list map-controls-secondary-card"
             );
 
-            // Theme system should handle partial objects without errors
-            expect(() => {
-                mockGetThemeColors.mockReturnValue({ surface: "#partial" });
-                document.body.dispatchEvent(new Event("themechange"));
-            }).not.toThrow();
+            mockGetThemeColors.mockReturnValue({ surface: "#partial" });
+            document.body.dispatchEvent(new Event("themechange"));
+
+            expect(container.style.color).toMatch(
+                /(#000000|rgb\(0,\s*0,\s*0\))/
+            );
+            expect(container.style.border).toContain("1px solid");
         });
 
         it("maintains theme state across updates", () => {
@@ -1725,10 +1770,11 @@ describe("createShownFilesList", () => {
                 "shown-files-list map-controls-secondary-card"
             );
 
-            // Should handle theme persistence without errors
-            expect(() => {
-                (global.window as any).updateShownFilesList();
-            }).not.toThrow();
+            (global.window as any).updateShownFilesList();
+
+            expect(getOverlayText(container)).toStrictEqual([
+                "File: overlay1.fit×",
+            ]);
             const borderStyle = container.style.border;
             expect({
                 isEmpty: borderStyle === "",
