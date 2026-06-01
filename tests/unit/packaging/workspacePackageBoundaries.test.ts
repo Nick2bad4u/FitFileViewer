@@ -372,4 +372,22 @@ describe("workspace package boundaries", () => {
         expect(playwrightConfig).toContain('testDir: "./tests/playwright"');
         expect(playwrightConfig).toContain("workers: 1");
     });
+
+    it("keeps the Electron Playwright smoke launch rooted at the app manifest", () => {
+        expect.assertions(4);
+
+        const appUiSpec = readFileSync(
+            path.join(process.cwd(), "tests", "playwright", "app-ui.spec.ts"),
+            "utf8"
+        );
+
+        expect(appUiSpec).toContain(
+            'args: [repositoryRoot, "--disable-http-cache"]'
+        );
+        expect(appUiSpec).toContain("cwd: repositoryRoot");
+        expect(appUiSpec).not.toContain(
+            'path.join(repositoryRoot, "electron-app")'
+        );
+        expect(appUiSpec).not.toContain("args: [appRoot");
+    });
 });
