@@ -1170,7 +1170,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                     recordMesgs: expect.any(Array),
                 })
             );
-            expect(view).toBe(true);
+            expect({ rendered: view }).toStrictEqual({ rendered: true });
         });
 
         it("should handle string container ID parameter", async () => {
@@ -1187,7 +1187,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             expect(global.document.getElementById).toHaveBeenCalledWith(
                 "content-chart"
             );
-            expect(view).toBe(true);
+            expect({ rendered: view }).toStrictEqual({ rendered: true });
         });
 
         it("should handle no valid data scenario", async () => {
@@ -1208,7 +1208,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                 "No FIT file data available for chart rendering",
                 "warning"
             );
-            expect(view).toBe(false);
+            expect({ rendered: view }).toStrictEqual({ rendered: false });
         });
 
         it("should handle Chart.js not available error", async () => {
@@ -1223,7 +1223,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             expect(
                 mocks.showNotification.showNotification
             ).toHaveBeenCalledWith("Chart library not available", "error");
-            expect(view).toBe(false);
+            expect({ rendered: view }).toStrictEqual({ rendered: false });
         });
 
         it("should handle empty record messages", async () => {
@@ -1244,11 +1244,11 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                 "No chartable data found in this FIT file",
                 "info"
             );
-            expect(view).toBe(false);
+            expect({ rendered: view }).toStrictEqual({ rendered: false });
         });
 
         it("should handle debouncing of rapid render calls", async () => {
-            expect.assertions(2);
+            expect.assertions(1);
             const { renderChartJS } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -1266,8 +1266,13 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
                 const [result1, result2] = await Promise.all([view, utils]);
 
-                expect(result1).toBe(true);
-                expect(result2).toBe(true);
+                expect({
+                    firstRender: result1,
+                    secondRender: result2,
+                }).toStrictEqual({
+                    firstRender: true,
+                    secondRender: true,
+                });
             } finally {
                 Date.now = originalDateNow;
             }
@@ -1291,7 +1296,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                 "Failed to render charts due to an error",
                 "error"
             );
-            expect(view).toBe(false);
+            expect({ rendered: view }).toStrictEqual({ rendered: false });
         });
 
         it("should handle no container scenario with placeholder content", async () => {
@@ -1307,7 +1312,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             const view = await renderChartJS();
 
             // Should show placeholder content for no data
-            expect(view).toBe(false);
+            expect({ rendered: view }).toStrictEqual({ rendered: false });
         });
     });
 
