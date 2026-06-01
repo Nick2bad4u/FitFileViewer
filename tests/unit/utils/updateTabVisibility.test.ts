@@ -118,21 +118,15 @@ describe(updateTabVisibility, () => {
     });
 
     it("hides every tracked content section when no target is provided", () => {
-        expect.assertions(8);
+        expect.assertions(22);
 
         updateTabVisibility(null);
 
         for (const id of contentIds) {
             const element = getContentElement(id);
-            expect({
-                ariaHidden: element.getAttribute("aria-hidden"),
-                display: element.style.display,
-                isActive: element.classList.contains("active"),
-            }).toEqual({
-                ariaHidden: "true",
-                display: "none",
-                isActive: false,
-            });
+            expect(element.getAttribute("aria-hidden")).toBe("true");
+            expect(element.style.display).toBe("none");
+            expect([...element.classList]).toStrictEqual([]);
         }
         expect(mockSetState).not.toHaveBeenCalled();
     });
