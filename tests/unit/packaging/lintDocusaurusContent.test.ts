@@ -20,22 +20,27 @@ type CommandRunner = (
 
 describe("lint-docusaurus-content script", () => {
     it("builds root-owned markdownlint arguments for Docusaurus content", () => {
-        expect.assertions(5);
+        expect.assertions(3);
 
         const args = buildMarkdownlintArgs(["--fix"]);
 
-        expect(markdownlintTargets).toStrictEqual([
+        const expectedTargets = [
             docusaurusWorkspaceRepositoryPath("docs/**/*.{md,mdx}"),
             `!${docusaurusWorkspaceRepositoryPath("docs/api/**/*.md")}`,
             docusaurusWorkspaceRepositoryPath("blog/**/*.{md,mdx}"),
             docusaurusWorkspaceRepositoryPath("src/**/*.{md,mdx}"),
-        ]);
+        ];
+
+        expect(markdownlintTargets).toStrictEqual(expectedTargets);
         expect(args[0]).toMatch(
             /[\\/]markdownlint-cli2[\\/].*markdownlint-cli2(?:\.mjs|\.cjs|\.js)?$/u
         );
-        expect(args).toContain("--config");
-        expect(args).toContain(rootMarkdownlintConfigPath);
-        expect(args.at(-1)).toBe("--fix");
+        expect(args.slice(1)).toStrictEqual([
+            ...expectedTargets,
+            "--config",
+            rootMarkdownlintConfigPath,
+            "--fix",
+        ]);
     });
 
     it("runs markdownlint from the repository root", () => {
