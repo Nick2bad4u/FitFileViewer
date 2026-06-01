@@ -26,6 +26,11 @@ const rendererBrowserPackages = [
     "screenfull",
 ] as const;
 
+type PackageJson = {
+    dependencies?: Record<string, string>;
+    devDependencies?: Record<string, string>;
+};
+
 function readWorkspaceFile(relativePath: string): string {
     return readFileSync(path.join(repositoryRoot, relativePath), "utf8");
 }
@@ -41,16 +46,24 @@ function getFileExistence(relativePaths: string[]): Record<string, boolean> {
 
 describe("renderer vendor asset policy", () => {
     it("keeps renderer browser libraries npm-managed and bundled through the renderer entry", () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
-        const rootPackage = JSON.parse(readWorkspaceFile("package.json")) as {
-            devDependencies?: Record<string, string>;
-        };
+        const rootPackage = JSON.parse(
+            readWorkspaceFile("package.json")
+        ) as PackageJson;
         const staticAppIndex = readWorkspaceFile("static/app/index.html");
         const vendorBundleSource = [
             readWorkspaceFile("electron-app/renderer/vendorGlobalsCore.ts"),
             readWorkspaceFile("electron-app/renderer/vendorGlobals.ts"),
         ].join("\n");
+        const browserPackagesInProductionDependencies =
+            rendererBrowserPackages.filter(
+                (packageName) =>
+                    rootPackage.dependencies?.[packageName] !== undefined
+            );
+        const missingVendorImports = rendererBrowserPackages.filter(
+            (packageName) => !vendorBundleSource.includes(`"${packageName}`)
+        );
 
         expect(rootPackage.devDependencies).toMatchObject(
             Object.fromEntries(
@@ -60,14 +73,11 @@ describe("renderer vendor asset policy", () => {
                 ])
             )
         );
+        expect(browserPackagesInProductionDependencies).toStrictEqual([]);
         expect(vendorBundleSource).toEqual(
             expect.stringContaining('from "chart.js/auto"')
         );
-        expect(
-            rendererBrowserPackages.every((packageName) =>
-                vendorBundleSource.includes(`"${packageName}`)
-            )
-        ).toBe(true);
+        expect(missingVendorImports).toStrictEqual([]);
         expect(staticAppIndex).toContain('src="renderer/vendor-globals.js"');
     });
 
