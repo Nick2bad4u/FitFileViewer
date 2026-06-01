@@ -9,7 +9,10 @@ import {
     stylelintConfigPath,
     stylelintTargets,
 } from "../../../scripts/lint-css.mjs";
-import { rootStylelintConfigPath } from "../../../scripts/lib/workspaces.mjs";
+import {
+    rootAppCssGlobPath,
+    rootStylelintConfigPath,
+} from "../../../scripts/lib/workspaces.mjs";
 
 type CommandRunner = (
     command: string,
@@ -26,7 +29,7 @@ describe("lint-css wrapper", () => {
             stylelintTargets,
         }).toStrictEqual({
             stylelintConfigPath: rootStylelintConfigPath,
-            stylelintTargets: ["static/app/*.css"],
+            stylelintTargets: [rootAppCssGlobPath],
         });
     });
 
@@ -37,13 +40,13 @@ describe("lint-css wrapper", () => {
 
         expect(args[0]).toMatch(/[\\/]stylelint[\\/]bin[\\/]stylelint\.mjs$/u);
         expect(args.slice(1)).toStrictEqual([
-            "static/app/*.css",
+            rootAppCssGlobPath,
             "--config",
             rootStylelintConfigPath,
             "--quiet",
         ]);
         expect(args.indexOf("--config")).toBeGreaterThan(
-            args.indexOf("static/app/*.css")
+            args.indexOf(rootAppCssGlobPath)
         );
         expect(args.at(-1)).toBe("--quiet");
     });
@@ -69,7 +72,7 @@ describe("lint-css wrapper", () => {
             status: exitStatus,
         }).toStrictEqual({
             args: [
-                "static/app/*.css",
+                rootAppCssGlobPath,
                 "--config",
                 rootStylelintConfigPath,
                 "--fix",

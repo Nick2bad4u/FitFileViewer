@@ -140,6 +140,7 @@ export const rootAppElevProfileCssPath = path.posix.join(
     rootAppStaticPath,
     appElevProfileCssPath
 );
+export const rootAppCssGlobPath = path.posix.join(rootAppStaticPath, "*.css");
 export const rootAppIconsPath = path.posix.join(
     rootStaticAssetsPath,
     appIconsPath

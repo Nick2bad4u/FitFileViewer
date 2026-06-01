@@ -62,6 +62,7 @@ type WorkspacesModule = {
     rootElectronAppBaseTsconfigPath: string;
     rootElectronAppEslintTsconfigPath: string;
     rootAlternativeFitViewPath: string;
+    rootAppCssGlobPath: string;
     rootAppElevProfileCssPath: string;
     rootAppFaviconPath: string;
     rootAppIconsPath: string;
@@ -229,7 +230,7 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes app runtime asset paths", async () => {
-        expect.assertions(20);
+        expect.assertions(13);
 
         const workspaces = await importWorkspaces();
 
@@ -267,16 +268,27 @@ describe("workspace path helpers", () => {
         expect(workspaces.rendererVendorGlobalsStyleFileName).toBe(
             "vendor-globals.css"
         );
-        expect(workspaces.rootStaticAssetsPath).toBe("static");
-        expect(workspaces.rootAlternativeFitViewPath).toBe("static/ffv");
-        expect(workspaces.rootAppStaticPath).toBe("static/app");
-        expect(workspaces.rootAppElevProfileCssPath).toBe(
-            "static/app/elevProfile.css"
-        );
-        expect(workspaces.rootAppIconsPath).toBe("static/icons");
-        expect(workspaces.rootAppFaviconPath).toBe("static/icons/favicon.ico");
-        expect(workspaces.rootAppIndexHtmlPath).toBe("static/app/index.html");
-        expect(workspaces.rootAppStyleCssPath).toBe("static/app/style.css");
+        expect({
+            alternativeViewer: workspaces.rootAlternativeFitViewPath,
+            appCssGlob: workspaces.rootAppCssGlobPath,
+            appElevProfileCss: workspaces.rootAppElevProfileCssPath,
+            appFavicon: workspaces.rootAppFaviconPath,
+            appIcons: workspaces.rootAppIconsPath,
+            appIndexHtml: workspaces.rootAppIndexHtmlPath,
+            appStatic: workspaces.rootAppStaticPath,
+            appStyleCss: workspaces.rootAppStyleCssPath,
+            staticAssets: workspaces.rootStaticAssetsPath,
+        }).toStrictEqual({
+            alternativeViewer: "static/ffv",
+            appCssGlob: "static/app/*.css",
+            appElevProfileCss: "static/app/elevProfile.css",
+            appFavicon: "static/icons/favicon.ico",
+            appIcons: "static/icons",
+            appIndexHtml: "static/app/index.html",
+            appStatic: "static/app",
+            appStyleCss: "static/app/style.css",
+            staticAssets: "static",
+        });
         expect(workspaces.appStyleCssPath).toBe("style.css");
     });
 
