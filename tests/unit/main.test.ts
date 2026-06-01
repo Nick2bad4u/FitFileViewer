@@ -356,17 +356,23 @@ type MainImport = {
 
 type TimerHandle = ReturnType<typeof setTimeout>;
 
+type DevHelpers = {
+    cleanupEventHandlers: () => void;
+    getAppState: () => {
+        eventHandlers: Map<string, unknown>;
+        loadedFitFilePath?: unknown;
+        mainWindow?: unknown;
+    };
+    logState: () => void;
+    rebuildMenu: (theme?: null | string, filePath?: null | string) => void;
+};
+
 type TestGlobals = typeof globalThis & {
     __electronHoistedMock?: typeof mockElectron;
     __ffvGyazoStartupTimer?: TimerHandle;
     __ffvTestKeepalive?: TimerHandle;
     __ffvTestRetryTimers?: TimerHandle[];
-    devHelpers?: {
-        cleanupEventHandlers?: unknown;
-        getAppState?: unknown;
-        logState?: unknown;
-        rebuildMenu?: unknown;
-    };
+    devHelpers?: DevHelpers;
 };
 
 const testGlobals = globalThis as TestGlobals;
@@ -642,7 +648,7 @@ describe("main.js - Electron Main Process", () => {
         });
 
         it("should handle development flag", async () => {
-            expect.assertions(1);
+            expect.assertions(6);
 
             // Mock command line arguments
             const originalArgv = process.argv;
@@ -653,14 +659,46 @@ describe("main.js - Electron Main Process", () => {
             ];
 
             try {
-                await importMainModule();
+                const mainModule = await importMainModule();
+                const devHelpers = testGlobals.devHelpers;
 
-                expect(testGlobals.devHelpers).toMatchObject({
-                    cleanupEventHandlers: expect.any(Function),
-                    getAppState: expect.any(Function),
-                    logState: expect.any(Function),
-                    rebuildMenu: expect.any(Function),
-                });
+                expect(Object.keys(devHelpers ?? {}).sort()).toStrictEqual([
+                    "cleanupEventHandlers",
+                    "getAppState",
+                    "logState",
+                    "rebuildMenu",
+                ]);
+
+                mainModule.setAppState("loadedFitFilePath", "dev-activity.fit");
+                const devState = devHelpers?.getAppState();
+
+                expect(devState?.loadedFitFilePath).toBe("dev-activity.fit");
+                expect(devState?.mainWindow).toBe(mockWindow);
+
+                const handler = vi.fn<() => void>();
+                const removeListener =
+                    vi.fn<(eventName: string, listener: () => void) => void>();
+                mainModule.setAppState(
+                    "eventHandlers",
+                    new Map([
+                        [
+                            "dev-test-handler",
+                            {
+                                emitter: { removeListener },
+                                event: "dev-event",
+                                handler,
+                            },
+                        ],
+                    ])
+                );
+                expect(devHelpers?.getAppState().eventHandlers.size).toBe(1);
+
+                devHelpers?.cleanupEventHandlers();
+                expect(removeListener).toHaveBeenCalledWith(
+                    "dev-event",
+                    handler
+                );
+                expect(devHelpers?.getAppState().eventHandlers.size).toBe(0);
             } finally {
                 process.argv = originalArgv;
             }
