@@ -11,7 +11,23 @@ const electronAppBasePath = "electron-app";
 const dependPlugin = nickTwoBadFourU.configs.all.find(
     (entry) => entry.plugins?.depend
 )?.plugins.depend;
-const electronAppSharedConfig = nickTwoBadFourU.configs.all.map((entry) => ({
+const rootToolingIgnorePatterns = new Set([
+    "script/**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}",
+    "scripts/**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}",
+]);
+const rootSharedConfig = nickTwoBadFourU.configs.all.map((entry) => {
+    if (!entry.ignores) {
+        return entry;
+    }
+
+    return {
+        ...entry,
+        ignores: entry.ignores.filter(
+            (ignorePattern) => !rootToolingIgnorePatterns.has(ignorePattern)
+        ),
+    };
+});
+const electronAppSharedConfig = rootSharedConfig.map((entry) => ({
     ...entry,
     basePath: electronAppBasePath,
 }));
@@ -58,7 +74,7 @@ const config = [
             "windowStateUtils.js",
         ],
     },
-    ...nickTwoBadFourU.configs.all,
+    ...rootSharedConfig,
     ...electronAppSharedConfig,
     {
         basePath: electronAppBasePath,

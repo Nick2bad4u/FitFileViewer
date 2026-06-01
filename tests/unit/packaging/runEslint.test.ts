@@ -27,9 +27,10 @@ async function importRunEslint(): Promise<RunEslintModule> {
 
 describe("run-eslint script", () => {
     it("builds root-owned ESLint target arguments", async () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         const { buildEslintArgs } = await importRunEslint();
+        const scriptPath = "scripts/prepare-runtime-dist.mjs";
         const testPath = "tests/unit/packaging/runEslint.test.ts";
 
         expect(buildEslintArgs("root", ["--fix"])).toStrictEqual([
@@ -76,6 +77,19 @@ describe("run-eslint script", () => {
             ".cache/.eslintcache-ad-hoc",
             "--fix",
             testPath,
+        ]);
+        expect(
+            buildEslintArgs(scriptPath, ["--no-warn-ignored"])
+        ).toStrictEqual([
+            "--config",
+            rootEslintConfigPath,
+            "--cache",
+            "--cache-strategy",
+            "content",
+            "--cache-location",
+            ".cache/.eslintcache-ad-hoc",
+            "--no-warn-ignored",
+            scriptPath,
         ]);
         expect(() => buildEslintArgs("missing")).toThrow(
             "Unknown ESLint target: missing"

@@ -680,7 +680,6 @@ function printTable(fileAnalysis, options) {
  * @returns {Promise<IstanbulCoverage>}
  */
 async function readCoverageData(coveragePath) {
-    // eslint-disable-next-line security/detect-non-literal-fs-filename -- coveragePath is selected from validated coverage file candidates.
     const coverageJson = await readFile(coveragePath, "utf8");
     return parseCoverageData(JSON.parse(coverageJson));
 }
@@ -840,7 +839,6 @@ if (
     process.argv[1] &&
     import.meta.url === pathToFileURL(process.argv[1]).href
 ) {
-    // eslint-disable-next-line unicorn/prefer-top-level-await -- n/no-top-level-await forbids TLA for published modules in this package.
     main().catch(
         /**
          * @param {unknown} error

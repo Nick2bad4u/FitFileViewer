@@ -8,6 +8,7 @@ const GITHUB_JSON_HEADERS = [
     "-H",
     "Accept: application/vnd.github+json",
     "-H",
+    // eslint-disable-next-line case-police/string-check -- GitHub documents this exact API version header spelling.
     "X-GitHub-Api-Version: 2022-11-28",
 ];
 
