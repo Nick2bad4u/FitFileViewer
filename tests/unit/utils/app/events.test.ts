@@ -634,13 +634,15 @@ describe(setupListeners, () => {
             "high-contrast",
         ]);
         setContrast?.(undefined, "white");
-        expect(document.body.classList.contains("high-contrast-white")).toBe(
-            true
-        );
+        expect([...document.body.classList]).toStrictEqual([
+            "font-large",
+            "high-contrast-white",
+        ]);
         setContrast?.(undefined, "yellow");
-        expect(document.body.classList.contains("high-contrast-yellow")).toBe(
-            true
-        );
+        expect([...document.body.classList]).toStrictEqual([
+            "font-large",
+            "high-contrast-yellow",
+        ]);
     });
 
     it("forwards print and update menu IPC events", () => {
