@@ -1114,8 +1114,9 @@ describe("preload.js - Comprehensive API Testing", () => {
 
             // Mock ipcRenderer to throw errors for this test
             const originalSend = electronMock.ipcRenderer.send;
+            const sendError = new Error("Test send error");
             electronMock.ipcRenderer.send.mockImplementation(() => {
-                throw new Error("Test send error");
+                throw sendError;
             });
 
             const result = api.send("test-channel", "test-data");
@@ -1125,7 +1126,7 @@ describe("preload.js - Comprehensive API Testing", () => {
             });
             expect(consoleErrorSpy).toHaveBeenCalledWith(
                 "[preload.js] Error in send(test-channel):",
-                expect.any(Error)
+                sendError
             );
 
             // Restore original
@@ -1255,15 +1256,20 @@ describe("preload.js - Comprehensive API Testing", () => {
 
             const devTools = getDevTools();
             expect(devTools.getPreloadInfo).toBeTypeOf("function");
+            const mockDate = new Date("2026-06-01T12:00:00.000Z");
+            vi.useFakeTimers();
+            vi.setSystemTime(mockDate);
 
             const info = devTools.getPreloadInfo();
             expect(info).toEqual({
                 apiMethods: EXPECTED_ELECTRON_API_METHODS,
                 constants: EXPECTED_PRELOAD_CONSTANTS,
-                timestamp: expect.any(String),
+                timestamp: mockDate.toISOString(),
                 version: "1.0.0",
             });
             expect(info.apiMethods).not.toContain("__proto__");
+
+            vi.useRealTimers();
         });
 
         it("should test testIPC function in development", async () => {
