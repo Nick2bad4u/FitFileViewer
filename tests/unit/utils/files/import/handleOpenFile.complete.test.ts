@@ -233,22 +233,30 @@ describe("handleOpenFile Module", () => {
 
     describe("validateElectronAPI", () => {
         it("should return true when electronAPI is available", () => {
-            expect.assertions(1);
+            expect.assertions(2);
 
-            expect(handleOpenFileModule.validateElectronAPI()).toBe(true);
+            expect({
+                apiAvailable: handleOpenFileModule.validateElectronAPI(),
+            }).toStrictEqual({ apiAvailable: true });
+            expect(console.error).not.toHaveBeenCalled();
         });
 
         it("should return false when electronAPI is not available", () => {
-            expect.assertions(1);
+            expect.assertions(2);
 
             const originalElectronAPI = getTestWindow().electronAPI;
             getTestWindow().electronAPI = undefined;
-            expect(handleOpenFileModule.validateElectronAPI()).toBe(false);
+            expect({
+                apiAvailable: handleOpenFileModule.validateElectronAPI(),
+            }).toStrictEqual({ apiAvailable: false });
+            expect(console.error).toHaveBeenCalledWith(
+                expect.stringContaining("Electron API not available")
+            );
             getTestWindow().electronAPI = originalElectronAPI;
         });
 
         it("should return false when required methods are missing", () => {
-            expect.assertions(1);
+            expect.assertions(2);
 
             const originalElectronAPI = getTestWindow().electronAPI;
             getTestWindow().electronAPI = {
@@ -256,7 +264,13 @@ describe("handleOpenFile Module", () => {
                 parseFitFile:
                     vi.fn<(buffer: ArrayBuffer) => Promise<FitDecodeResult>>(),
             }; // Missing openFile
-            expect(handleOpenFileModule.validateElectronAPI()).toBe(false);
+            expect({
+                apiAvailable: handleOpenFileModule.validateElectronAPI(),
+            }).toStrictEqual({ apiAvailable: false });
+            expect(console.error).toHaveBeenCalledWith(
+                expect.stringContaining("Missing Electron API methods"),
+                expect.stringContaining("openFile")
+            );
             getTestWindow().electronAPI = originalElectronAPI;
         });
     });
@@ -278,9 +292,9 @@ describe("handleOpenFile Module", () => {
 
             // Focus only on UI element updates which are more reliable to test
             // Skip stateManager assertions which are difficult to mock reliably
-            expect(uiElements.openFileBtn.disabled).toBe(true);
+            expect(uiElements.openFileBtn).toHaveProperty("disabled", true);
             expect(uiElements.setLoading).toHaveBeenCalledWith(true);
-            expect(uiElements.isOpeningFileRef.value).toBe(true);
+            expect(uiElements.isOpeningFileRef).toHaveProperty("value", true);
         });
 
         it("should update UI elements with completed status", async () => {
@@ -299,9 +313,9 @@ describe("handleOpenFile Module", () => {
 
             // Focus only on UI element updates which are more reliable to test
             // Skip stateManager assertions which are difficult to mock reliably
-            expect(uiElements.openFileBtn.disabled).toBe(false);
+            expect(uiElements.openFileBtn).toHaveProperty("disabled", false);
             expect(uiElements.setLoading).toHaveBeenCalledWith(false);
-            expect(uiElements.isOpeningFileRef.value).toBe(false);
+            expect(uiElements.isOpeningFileRef).toHaveProperty("value", false);
         });
 
         it("should handle missing UI elements", () => {
@@ -322,8 +336,14 @@ describe("handleOpenFile Module", () => {
             }).not.toThrow();
 
             // Test UI element updates that we do have
-            expect(partialElements.openFileBtn.disabled).toBe(true);
-            expect(partialElements.isOpeningFileRef.value).toBe(true);
+            expect(partialElements.openFileBtn).toHaveProperty(
+                "disabled",
+                true
+            );
+            expect(partialElements.isOpeningFileRef).toHaveProperty(
+                "value",
+                true
+            );
         });
 
         it("should handle errors when updating UI state", () => {
@@ -698,7 +718,7 @@ describe("handleOpenFile Module", () => {
             expect(result).toBe(false);
 
             // Verify the isOpeningFileRef was reset even though an error occurred
-            expect(mockParams.isOpeningFileRef.value).toBe(false);
+            expect(mockParams.isOpeningFileRef).toHaveProperty("value", false);
         });
 
         it("should handle invalid electronAPI", async () => {
