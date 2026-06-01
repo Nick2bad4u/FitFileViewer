@@ -95,7 +95,7 @@ describe(openFitFileFromPath, () => {
     });
 
     it("reports direct parser error payloads without displaying them", async () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         await withOpenFitFileHarness(async (harness) => {
             harness.readFile.mockResolvedValue(new ArrayBuffer(16));
@@ -116,11 +116,10 @@ describe(openFitFileFromPath, () => {
                 "error",
                 8000
             );
-            expect(harness.handleFileLoadingError).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    message: "FIT decode failed\nbad header",
-                })
-            );
+            const loadingError =
+                harness.handleFileLoadingError.mock.calls[0]?.[0];
+            expect(loadingError).toBeInstanceOf(Error);
+            expect(loadingError?.message).toBe("FIT decode failed\nbad header");
         });
     });
 

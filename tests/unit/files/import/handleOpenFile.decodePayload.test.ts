@@ -64,7 +64,7 @@ async function withHandleOpenFileHarness(
 
 describe(handleOpenFile, () => {
     it("reports wrapped FIT decode error payloads without displaying them", async () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         await withHandleOpenFileHarness(async (harness) => {
             harness.openFile.mockResolvedValue("C:\\activities\\bad.fit");
@@ -91,9 +91,10 @@ describe(handleOpenFile, () => {
                 "Error: FIT decode failed\ninvalid CRC",
                 "error"
             );
-            expect(harness.handleFileLoadingError).toHaveBeenCalledWith(
-                expect.objectContaining({ message: "FIT decode failed" })
-            );
+            const loadingError =
+                harness.handleFileLoadingError.mock.calls[0]?.[0];
+            expect(loadingError).toBeInstanceOf(Error);
+            expect(loadingError?.message).toBe("FIT decode failed");
         });
     });
 });
