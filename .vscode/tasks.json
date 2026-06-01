@@ -11,6 +11,9 @@
                 "kind": "build"
             },
             "label": "build runtime from root",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
             "problemMatcher": "$tsc",
             "type": "shell"
         },
@@ -22,6 +25,9 @@
             "group": "test",
             "isBackground": false,
             "label": "test from root",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
             "problemMatcher": [],
             "type": "shell"
         },
@@ -34,6 +40,9 @@
             "group": "test",
             "isBackground": false,
             "label": "lint electron app from root",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
             "problemMatcher": [],
             "type": "shell"
         },
@@ -46,6 +55,9 @@
             "group": "test",
             "isBackground": false,
             "label": "typecheck from root",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
             "problemMatcher": [],
             "type": "shell"
         }

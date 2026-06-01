@@ -7,6 +7,9 @@ type VsCodeTask = {
     args?: string[];
     command?: string;
     label?: string;
+    options?: {
+        cwd?: string;
+    };
 };
 
 type VsCodeTasksJson = {
@@ -23,11 +26,12 @@ function readVsCodeTasks(): VsCodeTask[] {
 
 describe("vs code workspace tasks", () => {
     it("keeps editor tasks aligned with root-owned npm scripts", () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         const tasks = readVsCodeTasks();
         const taskLabels = tasks.map((task) => task.label);
         const taskCommands = tasks.map((task) => task.command);
+        const taskCwds = tasks.map((task) => task.options?.cwd);
         const taskArgs = tasks.flatMap((task) => task.args ?? []);
 
         expect(taskLabels).toStrictEqual([
@@ -37,6 +41,9 @@ describe("vs code workspace tasks", () => {
             "typecheck from root",
         ]);
         expect(new Set(taskCommands)).toStrictEqual(new Set(["npm"]));
+        expect(new Set(taskCwds)).toStrictEqual(
+            new Set(["${workspaceFolder}"])
+        );
         expect(taskArgs).not.toEqual(
             expect.arrayContaining([
                 expect.stringMatching(/^electron-app[\\/]tests[\\/]/u),
