@@ -24,7 +24,7 @@ describe("state manager subscriptions", () => {
     });
 
     it("sets nested state, notifies subscribers, and stops after unsubscribe", () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         const listener =
             vi.fn<
@@ -59,7 +59,7 @@ describe("state manager subscriptions", () => {
     });
 
     it("warns and leaves state unchanged for an invalid path", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 

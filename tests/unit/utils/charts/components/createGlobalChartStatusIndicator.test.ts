@@ -64,7 +64,7 @@ describe(createGlobalChartStatusIndicator, () => {
     });
 
     it("returns null and warns when chart content container missing", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         // Remove content container
         document.getElementById("content-chartjs")?.remove();
@@ -80,7 +80,7 @@ describe(createGlobalChartStatusIndicator, () => {
     });
 
     it("creates indicator for all-visible charts with 'Charts Ready' quick action", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         mockGetChartCounts.mockReturnValue(createMockChartCounts(4, 4));
         const indicator = createGlobalChartStatusIndicator();
@@ -97,7 +97,7 @@ describe(createGlobalChartStatusIndicator, () => {
     });
 
     it("creates indicator for some-hidden charts and opens settings on click", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         // Provide settings wrapper and toggle button that handler manipulates
         const settingsWrapper = document.createElement("div");
@@ -121,7 +121,7 @@ describe(createGlobalChartStatusIndicator, () => {
     });
 
     it("creates indicator for no charts with 'Load FIT' quick action", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         mockGetChartCounts.mockReturnValue(createMockChartCounts(0, 0));
         const indicator = createGlobalChartStatusIndicator();
@@ -133,7 +133,7 @@ describe(createGlobalChartStatusIndicator, () => {
     });
 
     it("reuses existing indicator when already present", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const first = createGlobalChartStatusIndicator();
         const second = createGlobalChartStatusIndicator();
@@ -143,7 +143,7 @@ describe(createGlobalChartStatusIndicator, () => {
     });
 
     it("inserts before chart container when present; warns when container missing", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const chartContent = document.getElementById("content-chartjs");
         // Create chart container to be the reference node

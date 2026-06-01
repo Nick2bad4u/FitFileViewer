@@ -43,7 +43,7 @@ describe("renderSummary - modal and renderTable wiring", () => {
     });
 
     it("invokes renderTable and exercises showColModal callbacks", async () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         const renderTable = vi.fn<(args: RenderTableArgs) => void>();
         const loadColPrefs = vi.fn<(key: string, all: string[]) => string[]>(
@@ -128,7 +128,7 @@ describe("renderSummary - modal and renderTable wiring", () => {
     });
 
     it("returns without rendering when the summary container is missing", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         document.body.replaceChildren();
         const renderTable = vi.fn<(args: RenderTableArgs) => void>();

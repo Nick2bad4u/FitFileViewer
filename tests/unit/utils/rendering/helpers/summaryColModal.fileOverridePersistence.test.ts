@@ -51,7 +51,7 @@ describe("summaryColModal - file override persistence", () => {
     });
 
     it("clears per-file override when reset to default", async () => {
-        expect.hasAssertions();
+        expect.assertions(7);
 
         const {
             getStorageKey,
