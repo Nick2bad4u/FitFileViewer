@@ -3,6 +3,7 @@ import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
+import { readInlineOptionValue, readOptionValue } from "./lib/cli-options.mjs";
 import { rootReleaseDistRelativePath } from "./lib/workspaces.mjs";
 
 export const defaultSquirrelWin32Directory = rootReleaseDistRelativePath(
@@ -139,26 +140,6 @@ function printUsage() {
 Options:
   --squirrel-directory <path>  Squirrel win32 directory. Defaults to release-dist/windows-latest-ia32/squirrel-windows-ia32.
   -h, --help                   Show this help text.`);
-}
-
-function readInlineOptionValue(arg, optionName) {
-    const value = arg.slice(`${optionName}=`.length);
-
-    if (!value) {
-        throw new Error(`${optionName} requires a value`);
-    }
-
-    return value;
-}
-
-function readOptionValue(args, index, optionName) {
-    const value = args[index + 1];
-
-    if (!value || value.startsWith("-")) {
-        throw new Error(`${optionName} requires a value`);
-    }
-
-    return value;
 }
 
 function renameFile(sourcePath, destinationPath) {

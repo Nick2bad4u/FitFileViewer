@@ -2,6 +2,7 @@ import { spawnSync } from "node:child_process";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
+import { readInlineOptionValue, readOptionValue } from "./lib/cli-options.mjs";
 import { appSourceRepositoryPath, repositoryRoot } from "./lib/workspaces.mjs";
 
 export const defaultDiffPath = `${appSourceRepositoryPath()}/`;
@@ -136,26 +137,6 @@ Options:
   --diff-path <path>     Repository path to diff. Defaults to electron-app/.
   --tag-pattern <glob>   Version tag pattern. Defaults to v*.
   -h, --help             Show this help text.`);
-}
-
-function readInlineOptionValue(arg, optionName) {
-    const value = arg.slice(`${optionName}=`.length);
-
-    if (!value) {
-        throw new Error(`${optionName} requires a value`);
-    }
-
-    return value;
-}
-
-function readOptionValue(args, index, optionName) {
-    const value = args[index + 1];
-
-    if (!value || value.startsWith("-")) {
-        throw new Error(`${optionName} requires a value`);
-    }
-
-    return value;
 }
 
 function runCommandSync(command, args) {
