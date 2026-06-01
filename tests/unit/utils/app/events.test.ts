@@ -212,7 +212,7 @@ describe(setupListeners, () => {
     });
 
     it("delegates open file clicks to the provided handler", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
         handleOpenFile.mockImplementationOnce(({ openFileBtn }) => {
             openFileBtn.dataset.openHandled = "true";
         });
@@ -237,7 +237,7 @@ describe(setupListeners, () => {
     });
 
     it("shows info notification when no recent files exist", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         electronAPI.recentFiles.mockResolvedValueOnce([]);
         const event = new MouseEvent("contextmenu", {
             bubbles: true,
@@ -263,7 +263,7 @@ describe(setupListeners, () => {
     });
 
     it("loads and opens a recent file from the context menu", async () => {
-        expect.hasAssertions();
+        expect.assertions(10);
         electronAPI.recentFiles.mockResolvedValueOnce(["C:/rides/demo.fit"]);
         const arrayBuffer = new ArrayBuffer(16);
         electronAPI.readFile.mockResolvedValueOnce(arrayBuffer);
@@ -324,7 +324,7 @@ describe(setupListeners, () => {
     });
 
     it("supports keyboard navigation and outside interactions in the recent files menu", async () => {
-        expect.hasAssertions();
+        expect.assertions(11);
         vi.useFakeTimers();
         electronAPI.recentFiles.mockResolvedValueOnce([
             "C:/rides/a.fit",
@@ -406,7 +406,7 @@ describe(setupListeners, () => {
     });
 
     it("handles menu forwarders by relaying to send", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
         const saveAsHandler = requireHandler(
             ipcHandlers.get("menu-save-as"),
             "menu-save-as"
@@ -425,7 +425,7 @@ describe(setupListeners, () => {
     });
 
     it("responds to menu open recent file requests", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
         const handler = requireHandler(recentOpenHandler, "open recent file");
         electronAPI.readFile.mockResolvedValueOnce(new ArrayBuffer(8));
         electronAPI.parseFitFile.mockResolvedValueOnce({ recordMesgs: [] });
@@ -444,7 +444,7 @@ describe(setupListeners, () => {
     });
 
     it("exports CSV files using copyTableAsCSV", async () => {
-        expect.hasAssertions();
+        expect.assertions(6);
         vi.useFakeTimers();
         const csv = "header\nvalue";
         const copyTableAsCSV = vi.fn<CopyTableAsCsv>(() => csv);
@@ -491,7 +491,7 @@ describe(setupListeners, () => {
     });
 
     it("warns when GPX export has no data", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         const exportHandler = requireHandler(
             ipcHandlers.get("export-file"),
             "export-file"
@@ -512,7 +512,7 @@ describe(setupListeners, () => {
     });
 
     it("builds GPX export when records exist", async () => {
-        expect.hasAssertions();
+        expect.assertions(6);
         vi.useFakeTimers();
         const exportHandler = requireHandler(
             ipcHandlers.get("export-file"),
@@ -556,7 +556,7 @@ describe(setupListeners, () => {
     });
 
     it("shows update notifications for auto-updater events", () => {
-        expect.hasAssertions();
+        expect.assertions(12);
         const events = [
             "update-checking",
             "update-available",
@@ -605,7 +605,7 @@ describe(setupListeners, () => {
     });
 
     it("reports updater progress when percent data is missing", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         const handler = requireHandler(
             updateHandlers.get("update-download-progress"),
             "update-download-progress"
@@ -622,7 +622,7 @@ describe(setupListeners, () => {
     });
 
     it("updates accessibility classes for font and contrast modes", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
         const setFont = ipcHandlers.get("set-font-size");
         const setContrast = ipcHandlers.get("set-high-contrast");
         document.body.className = "";
@@ -644,7 +644,7 @@ describe(setupListeners, () => {
     });
 
     it("forwards print and update menu IPC events", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
         const printSpy = vi.spyOn(window, "print").mockImplementation(() => {});
         const printHandler = ipcHandlers.get("menu-print");
         printHandler?.();
@@ -660,7 +660,7 @@ describe(setupListeners, () => {
     });
 
     it("routes show-notification IPC messages through the notifier", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         const handler = requireHandler(
             ipcHandlers.get("show-notification"),
             "show-notification"
@@ -676,7 +676,7 @@ describe(setupListeners, () => {
     });
 
     it("loads keyboard shortcuts module and invokes the modal presenter when available", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         delete globalAny.showKeyboardShortcutsModal;
 
         const handler = ipcHandlers.get("menu-keyboard-shortcuts");
@@ -691,7 +691,7 @@ describe(setupListeners, () => {
     });
 
     it("does not use script tag injection for keyboard shortcuts", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
         delete globalAny.showKeyboardShortcutsModal;
         const shortcutsHandler = requireHandler(
             ipcHandlers.get("menu-keyboard-shortcuts"),
@@ -722,7 +722,7 @@ describe(setupListeners, () => {
     });
 
     it("invokes showKeyboardShortcutsModal when script already present", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         const showKeyboardShortcutsModal = vi.fn<ShowKeyboardShortcutsModal>(
             () => {
                 document.body.dataset.shortcutsModal = "opened";

@@ -117,7 +117,7 @@ afterEach(() => {
 
 describe("appActions", () => {
     it("clearData should reset core slices and notify", () => {
-        expect.hasAssertions();
+        expect.assertions(9);
         expect(Date.now()).toBe(1_704_067_200_000);
 
         expect(AppActions.clearData()).toBeUndefined();
@@ -145,7 +145,7 @@ describe("appActions", () => {
     });
 
     it("loadFile delegates to fitFileStateManager when available", async () => {
-        expect.hasAssertions();
+        expect.assertions(7);
         expect(Date.now()).toBe(1_704_067_200_000);
 
         await expect(
@@ -168,7 +168,7 @@ describe("appActions", () => {
     });
 
     it("loadFile falls back to legacy flow when domain manager is unavailable", async () => {
-        expect.hasAssertions();
+        expect.assertions(11);
         expect(Date.now()).toBe(1_704_067_200_000);
 
         const originalHandle = h.mockFitManager.handleFileLoaded;
@@ -239,7 +239,7 @@ describe("appActions", () => {
     });
 
     it("loadFile surfaces delegated errors and clears loading", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
         expect(Date.now()).toBe(1_704_067_200_000);
 
         h.mockFitManager.handleFileLoaded.mockImplementation(() => {
@@ -261,7 +261,7 @@ describe("appActions", () => {
     });
 
     it("renderChart should update charts slice and performance", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
         expect(Date.now()).toBe(1_704_067_200_000);
 
         expect(
@@ -286,7 +286,7 @@ describe("appActions", () => {
     });
 
     it("renderMap should update map slice and performance", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         expect(Date.now()).toBe(1_704_067_200_000);
 
@@ -308,7 +308,7 @@ describe("appActions", () => {
     });
 
     it("renderTable should update tables slice and performance", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
         expect(Date.now()).toBe(1_704_067_200_000);
 
         expect(
@@ -327,7 +327,7 @@ describe("appActions", () => {
     });
 
     it("selectLap, setFileOpening, setInitialized, updateWindowState call set/update state", () => {
-        expect.hasAssertions();
+        expect.assertions(9);
         expect(Date.now()).toBe(1_704_067_200_000);
 
         expect(AppActions.selectLap(3)).toBeUndefined();
@@ -360,7 +360,7 @@ describe("appActions", () => {
     });
 
     it("switchTab validates values and sets state when valid", () => {
-        expect.hasAssertions();
+        expect.assertions(5);
         expect(Date.now()).toBe(1_704_067_200_000);
 
         expect(AppActions.switchTab("chart")).toBeUndefined();
@@ -375,7 +375,7 @@ describe("appActions", () => {
     });
 
     it("switchTheme validates values and sets state when valid", () => {
-        expect.hasAssertions();
+        expect.assertions(5);
         expect(Date.now()).toBe(1_704_067_200_000);
 
         expect(AppActions.switchTheme("dark")).toBeUndefined();
@@ -390,7 +390,7 @@ describe("appActions", () => {
     });
 
     it("toggleChartControls and toggleMeasurementMode invert current value", () => {
-        expect.hasAssertions();
+        expect.assertions(5);
         expect(Date.now()).toBe(1_704_067_200_000);
 
         h.mockGetState.mockImplementation((path: string) => {
@@ -414,7 +414,7 @@ describe("appActions", () => {
 
 describe("appSelectors", () => {
     it("provides defaults for missing state", () => {
-        expect.hasAssertions();
+        expect.assertions(12);
         expect(Date.now()).toBe(1_704_067_200_000);
 
         h.mockGetState.mockReturnValueOnce(undefined); // activeTab
@@ -452,7 +452,7 @@ describe("appSelectors", () => {
     });
 
     it("isTabActive compares to activeTab", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         expect(Date.now()).toBe(1_704_067_200_000);
 
@@ -466,7 +466,7 @@ describe("appSelectors", () => {
 
 describe(StateMiddleware, () => {
     it("apply should pass through value when middleware returns undefined", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
         expect(Date.now()).toBe(1_704_067_200_000);
 
         const mw = new StateMiddleware();
@@ -479,7 +479,7 @@ describe(StateMiddleware, () => {
     });
 
     it("apply should use modified value when middleware returns value", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         expect(Date.now()).toBe(1_704_067_200_000);
 
         const mw = new StateMiddleware();
@@ -489,7 +489,7 @@ describe(StateMiddleware, () => {
     });
 
     it("apply should catch middleware errors and continue", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         expect(Date.now()).toBe(1_704_067_200_000);
 
@@ -510,7 +510,7 @@ describe(StateMiddleware, () => {
 
 describe("useComputed and useState", () => {
     it("useComputed should cache until dependencies invalidate", () => {
-        expect.hasAssertions();
+        expect.assertions(8);
         expect(Date.now()).toBe(1_704_067_200_000);
 
         let calls = 0;
@@ -542,7 +542,7 @@ describe("useComputed and useState", () => {
     });
 
     it("useState should provide default and setter that writes back", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
         expect(Date.now()).toBe(1_704_067_200_000);
 
         h.mockGetState.mockReturnValueOnce(undefined);
