@@ -63,7 +63,6 @@
         "node_modules",
         "node_modules/**/*",
         "out",
-        "electron-app/release",
         "**/*.test.ts",
         "**/*.test.tsx",
         "**/tests/**",

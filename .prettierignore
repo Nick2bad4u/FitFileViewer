@@ -8,10 +8,6 @@ coverage/
 *.min.js
 *.min.css
 
-# Generated test artifacts
-electron-app/test-report.junit.xml
-electron-app/logs/
-
 # Ignore Change Logs
 
 .github/PROMPTS/

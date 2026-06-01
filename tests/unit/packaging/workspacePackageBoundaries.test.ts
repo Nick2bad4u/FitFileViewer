@@ -68,6 +68,14 @@ const nestedElectronPackageDelegationPatterns = [
     /(?:^|\s)npm\s+(?:(?:--prefix|-C)\s+["']?electron-app["']?|(?:run\s+)?(?:-w|--workspace)\s+["']?electron-app["']?)/u,
 ] as const;
 
+const staleNestedGeneratedAppPaths = [
+    "electron-app/html",
+    "electron-app/logs",
+    "electron-app/release",
+    "electron-app/temp-win7",
+    "electron-app/test-report.junit.xml",
+] as const;
+
 function delegatesToNestedElectronPackage(script: string): boolean {
     return nestedElectronPackageDelegationPatterns.some((pattern) =>
         pattern.test(script)
@@ -358,6 +366,30 @@ describe("workspace package boundaries", () => {
                 appLocalToolingConfigs.map((configPath) => [configPath, false])
             )
         );
+    });
+
+    it("keeps root tooling ignores free of stale nested generated app paths", () => {
+        expect.assertions(1);
+
+        const rootToolingIgnoreFiles = [
+            ".gitignore",
+            ".prettierignore",
+            rootElectronAppTsconfigPath,
+            rootStylelintConfigPath,
+        ];
+
+        const staleReferences = rootToolingIgnoreFiles.flatMap((filePath) => {
+            const content = readFileSync(
+                path.join(process.cwd(), filePath),
+                "utf8"
+            );
+
+            return staleNestedGeneratedAppPaths
+                .filter((stalePath) => content.includes(stalePath))
+                .map((stalePath) => `${filePath}: ${stalePath}`);
+        });
+
+        expect(staleReferences).toStrictEqual([]);
     });
 
     it("keeps the root Playwright smoke config strict", () => {
