@@ -158,14 +158,36 @@ describe("chartZoneColorUtils", () => {
         ]);
     });
 
-    it("hasChartSpecificColors detects presence", async () => {
-        expect.assertions(2);
+    it("hasChartSpecificColors detects saved colors within the requested zone count", async () => {
+        expect.assertions(3);
 
         const { hasChartSpecificColors, saveChartSpecificZoneColor } =
             await loadModule();
-        expect(hasChartSpecificColors("foo", 3)).toBe(false);
+        expect([
+            localStorage.getItem("chartjs_foo_zone_1_color"),
+            localStorage.getItem("chartjs_foo_zone_2_color"),
+            localStorage.getItem("chartjs_foo_zone_3_color"),
+        ]).toStrictEqual([
+            null,
+            null,
+            null,
+        ]);
+        expect([
+            hasChartSpecificColors("foo", 0),
+            hasChartSpecificColors("foo", 3),
+        ]).toStrictEqual([false, false]);
         saveChartSpecificZoneColor("foo", 1, "#123456");
-        expect(hasChartSpecificColors("foo", 3)).toBe(true);
+        expect({
+            fullRange: hasChartSpecificColors("foo", 3),
+            savedColor: localStorage.getItem("chartjs_foo_zone_2_color"),
+            savedZoneRange: hasChartSpecificColors("foo", 2),
+            skippedZoneRange: hasChartSpecificColors("foo", 1),
+        }).toStrictEqual({
+            fullRange: true,
+            savedColor: "#123456",
+            savedZoneRange: true,
+            skippedZoneRange: false,
+        });
     });
 
     it("resetChartSpecificZoneColors sets scheme to custom and writes defaults", async () => {
