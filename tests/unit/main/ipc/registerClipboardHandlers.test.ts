@@ -99,7 +99,7 @@ describe("registerClipboardHandlers", () => {
     }
 
     it("registers clipboard handlers", () => {
-        expect.assertions(6);
+        expect.assertions(5);
 
         const handlers = captureClipboardHandlers();
 
@@ -111,14 +111,15 @@ describe("registerClipboardHandlers", () => {
         });
 
         expect(mockRegisterIpcHandle).toHaveBeenCalledTimes(2);
-        expect(mockRegisterIpcHandle).toHaveBeenCalledWith(
-            "clipboard:writeText",
-            expect.any(Function)
-        );
-        expect(mockRegisterIpcHandle).toHaveBeenCalledWith(
-            "clipboard:writePngDataUrl",
-            expect.any(Function)
-        );
+        expect(
+            mockRegisterIpcHandle.mock.calls.map(([channel, handler]) => [
+                channel,
+                handlers[channel] === handler,
+            ])
+        ).toStrictEqual([
+            ["clipboard:writeText", true],
+            ["clipboard:writePngDataUrl", true],
+        ]);
         expect(handlers["clipboard:writeText"]).toBeTypeOf("function");
         expect(handlers["clipboard:writePngDataUrl"]).toBeTypeOf("function");
         expect(Object.keys(handlers).sort()).toStrictEqual([
