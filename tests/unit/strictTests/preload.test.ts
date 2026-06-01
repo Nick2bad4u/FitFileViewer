@@ -169,12 +169,13 @@ describe("preload.js electronAPI exposure and behavior", () => {
         const { api } = await setupPreloadTest();
 
         // Basic API methods should exist
-        expect(api).toEqual(
-            expect.objectContaining({
-                getChannelInfo: expect.any(Function),
-                validateAPI: expect.any(Function),
-            })
-        );
+        expect({
+            getChannelInfo: typeof api.getChannelInfo,
+            validateAPI: typeof api.validateAPI,
+        }).toStrictEqual({
+            getChannelInfo: "function",
+            validateAPI: "function",
+        });
         expect(window).not.toHaveProperty(DEV_TOOLS_GLOBAL);
 
         // getChannelInfo returns the preload catalog used by the exposed API.
@@ -353,13 +354,15 @@ describe("preload.js electronAPI exposure and behavior", () => {
 
         await importPreloadFresh();
         const dev = getExposedDevTools(exposed);
-        expect(dev).toEqual(
-            expect.objectContaining({
-                getPreloadInfo: expect.any(Function),
-                logAPIState: expect.any(Function),
-                testIPC: expect.any(Function),
-            })
-        );
+        expect({
+            getPreloadInfo: typeof dev.getPreloadInfo,
+            logAPIState: typeof dev.logAPIState,
+            testIPC: typeof dev.testIPC,
+        }).toStrictEqual({
+            getPreloadInfo: "function",
+            logAPIState: "function",
+            testIPC: "function",
+        });
         const info = dev.getPreloadInfo();
         expect(info.apiMethods).toContain("getAppVersion");
         expect(info.apiMethods).toContain("getChannelInfo");
@@ -386,10 +389,17 @@ describe("preload.js electronAPI exposure and behavior", () => {
         expect(logs.join("\n")).toMatch(/Current API State/);
 
         // Trigger beforeExit cleanup handler
-        expect(onceSpy).toHaveBeenCalledWith(
-            "beforeExit",
-            expect.any(Function)
-        );
+        const [registeredEventName, registeredListener] =
+            onceSpy.mock.calls.find(
+                ([eventName]) => eventName === "beforeExit"
+            ) ?? [];
+        expect({
+            registeredEventName,
+            registeredListenerType: typeof registeredListener,
+        }).toStrictEqual({
+            registeredEventName: "beforeExit",
+            registeredListenerType: "function",
+        });
         expect(beforeExitCb).toBeTypeOf("function");
         (beforeExitCb as () => void)();
         expect(logs.join("\n")).toMatch(/Process exiting, performing cleanup/);
