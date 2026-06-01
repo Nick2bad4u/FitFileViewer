@@ -120,9 +120,9 @@ describe(logWithLevel, () => {
             },
         });
 
-        expect(() => {
-            logWithLevel("info", "Partial context", context);
-        }).not.toThrow();
+        expect(
+            logWithLevel("info", "Partial context", context)
+        ).toBeUndefined();
 
         expect(consoleEntries).toStrictEqual([
             {
@@ -165,9 +165,7 @@ describe(logWithLevel, () => {
             throw new Error("console.warn failed");
         });
 
-        expect(() => {
-            logWithLevel("warn", "Fallback path");
-        }).not.toThrow();
+        expect(logWithLevel("warn", "Fallback path")).toBeUndefined();
         expect(consoleEntries).toStrictEqual([
             {
                 args: ["[FFV][logWithLevel] Logging failure"],

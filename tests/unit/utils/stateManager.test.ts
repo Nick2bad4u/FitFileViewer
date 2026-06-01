@@ -365,7 +365,7 @@ describe("state manager core", () => {
 
         resetStateManager();
 
-        expect(() => setState("", "value")).not.toThrow();
+        expect(setState("", "value")).toBeUndefined();
         expect(getRootState().ui.activeTab).toBe("summary");
     });
 
@@ -377,7 +377,7 @@ describe("state manager core", () => {
         const circular: CircularState = { prop: "value" };
         circular.self = circular;
 
-        expect(() => setState("circular", circular)).not.toThrow();
+        expect(setState("circular", circular)).toBeUndefined();
 
         const result = getState<CircularState>("circular");
 
@@ -441,7 +441,7 @@ describe("state manager core", () => {
             unsubscribe();
         });
 
-        expect(() => setState("cleanup.test", "value2")).not.toThrow();
+        expect(setState("cleanup.test", "value2")).toBeUndefined();
         expect(getSubscriptions().paths).not.toContain("cleanup.test");
     });
 
@@ -678,8 +678,8 @@ describe("state manager core", () => {
 
         resetStateManager();
 
-        expect(() => resetState("nonexistent.path")).not.toThrow();
-        expect(() => resetState("also.nonexistent")).not.toThrow();
+        expect(resetState("nonexistent.path")).toBeUndefined();
+        expect(resetState("also.nonexistent")).toBeUndefined();
         expect(getRootState().ui.activeTab).toBe("summary");
     });
 
@@ -690,7 +690,7 @@ describe("state manager core", () => {
 
         setState("nulltest", null);
 
-        expect(() => resetState("nulltest.subpath")).not.toThrow();
+        expect(resetState("nulltest.subpath")).toBeUndefined();
         expect(getState("nulltest")).toBeNull();
     });
 
@@ -704,7 +704,7 @@ describe("state manager core", () => {
 
         resetState("temp.path");
 
-        expect(() => unsubscribe()).not.toThrow();
+        expect(unsubscribe()).toBeUndefined();
         expect(getSubscriptions().paths).not.toContain("temp.path");
     });
 
