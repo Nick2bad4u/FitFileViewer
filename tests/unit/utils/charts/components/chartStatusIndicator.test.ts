@@ -553,7 +553,7 @@ describe("chartStatusIndicator.js", () => {
         });
 
         it("should not redefine globalData property if already configured", async () => {
-            expect.assertions(3);
+            expect.assertions(2);
 
             // Define a custom getter/setter for globalData
             Object.defineProperty(window, "globalData", {
@@ -578,8 +578,19 @@ describe("chartStatusIndicator.js", () => {
                 window,
                 "globalData"
             );
-            expect(descriptor?.configurable).toBe(false);
-            expect(window.globalData).toBe("existing");
+            expect({
+                configurable: descriptor?.configurable,
+                enumerable: descriptor?.enumerable,
+                hasGetter: typeof descriptor?.get,
+                hasSetter: typeof descriptor?.set,
+                value: window.globalData,
+            }).toStrictEqual({
+                configurable: false,
+                enumerable: false,
+                hasGetter: "function",
+                hasSetter: "function",
+                value: "existing",
+            });
             expect(console.error).not.toHaveBeenCalled();
         });
     });
