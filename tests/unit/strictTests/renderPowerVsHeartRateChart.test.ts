@@ -239,7 +239,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
     describe("data validation and processing", () => {
         it("should return early when data has no power values", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const container = document.createElement("div");
             const data = [
@@ -259,7 +259,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
         });
 
         it("should return early when data has no heart rate values", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const container = document.createElement("div");
             const data = [
@@ -279,7 +279,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
         });
 
         it("should return early when field visibility is hidden", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const visibilitySpy = vi
                 .spyOn(chartSettingsManager, "getFieldVisibility")
@@ -303,7 +303,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
         });
 
         it("should process data correctly with valid power and heart rate values", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -332,7 +332,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
         });
 
         it("should return early when no valid data points exist after filtering", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -356,7 +356,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
     describe("data point limiting", () => {
         it("should apply data point limiting when maxPoints is exceeded", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -383,7 +383,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
         });
 
         it("should not limit data when maxPoints is 'all'", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -409,7 +409,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
         });
 
         it("should not limit data when data length is less than maxPoints", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -438,7 +438,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
     describe("chart canvas creation and styling", () => {
         it("should create canvas with correct ID and styling", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -463,7 +463,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
         });
 
         it("should apply theme background and shadow to canvas", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -481,7 +481,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
     describe("chart configuration", () => {
         it("should create scatter chart with correct basic configuration", () => {
-            expect.hasAssertions();
+            expect.assertions(6);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -519,7 +519,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
         });
 
         it("should configure legend display based on options", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -551,7 +551,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
         });
 
         it("should configure title display based on options", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -583,7 +583,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
         });
 
         it("should configure grid display based on options", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -621,7 +621,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
         });
 
         it("should configure point radius based on showPoints option", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -655,7 +655,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
     describe("scales configuration", () => {
         it("should configure x-axis for heart rate", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -680,7 +680,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
         });
 
         it("should configure y-axis for power", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -704,7 +704,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
     describe("zoom and pan configuration", () => {
         it("should configure zoom plugin with correct settings", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -755,7 +755,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
     describe("tooltip configuration", () => {
         it("should configure tooltip with custom label callback", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -788,7 +788,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
     describe("plugin integration", () => {
         it("should include required plugins in configuration", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -815,7 +815,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
         });
 
         it("should configure background color plugin", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -836,7 +836,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
     describe("chart instance management", () => {
         it("should track chart instance in global array", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -858,7 +858,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
         });
 
         it("should initialize global chart instances array if not present", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             mockLocalStorage.getItem.mockReturnValue(null);
             delete global.window._chartjsInstances;
@@ -875,7 +875,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
         });
 
         it("should log success message when chart is created", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -894,7 +894,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
     describe("error handling", () => {
         it("should handle errors gracefully and log error message", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
             Chart.mockImplementation(() => {
@@ -917,7 +917,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
     describe("edge cases and boundary conditions", () => {
         it("should handle empty data array", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -935,7 +935,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
         });
 
         it("should handle data with zero power values", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -960,7 +960,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
         });
 
         it("should handle data with zero heart rate values", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -985,7 +985,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
         });
 
         it("should handle very large datasets efficiently", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -1009,7 +1009,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
         });
 
         it("should handle mixed valid and invalid data points", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -1043,7 +1043,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
     describe("performance and optimization", () => {
         it("should handle rapid successive chart creations", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -1060,7 +1060,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
         });
 
         it("should not modify original data array", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -1081,7 +1081,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
     describe("integration with dependencies", () => {
         it("should use fallback colors when theme configuration is missing", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -1102,7 +1102,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
         });
 
         it("should call createChartCanvas with correct parameters", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -1127,7 +1127,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
     describe("real-world usage scenarios", () => {
         it("should handle typical cycling power and heart rate data", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -1164,7 +1164,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
         });
 
         it("should handle training data with power spikes", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
