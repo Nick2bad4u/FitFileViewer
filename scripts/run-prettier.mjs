@@ -25,7 +25,9 @@ import {
     rootNcuConfigPath,
     rootPackageJsonPath,
     rootPlaywrightConfigPath,
+    rootPlaywrightTestsPath,
     rootPreCommitConfigPath,
+    rootPrettierCachePath,
     rootPrettierConfigPath,
     rootRemarkConfigPath,
     rootRuntimeTsconfigPath,
@@ -33,6 +35,7 @@ import {
     rootStylelintConfigPath,
     rootTypedocConfigPath,
     rootViteRendererConfigPath,
+    rootVitestSupportPath,
     rootVitestConfigPath,
     rootVitestTypecheckTsconfigPath,
 } from "./lib/workspaces.mjs";
@@ -78,8 +81,8 @@ export const prettierTargets = [
     "tests/fixtures/**/*.{js,ts}",
     "tests/integration/**/*.ts",
     "tests/unit/**/*.ts",
-    "tests/playwright/**/*.ts",
-    "tests/vitest/**/*.{cjs,mjs,ts}",
+    `${rootPlaywrightTestsPath}/**/*.ts`,
+    `${rootVitestSupportPath}/**/*.{cjs,mjs,ts}`,
     appLeafletMeasureLitePath,
 ];
 
@@ -87,7 +90,7 @@ export const prettierOptions = [
     "--log-level",
     "warn",
     "--cache",
-    "--cache-location=.cache/.prettier-cache",
+    `--cache-location=${rootPrettierCachePath}`,
     "--cache-strategy=content",
 ];
 

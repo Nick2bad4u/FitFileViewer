@@ -30,7 +30,9 @@ import {
     rootNcuConfigPath,
     rootPackageJsonPath,
     rootPlaywrightConfigPath,
+    rootPlaywrightTestsPath,
     rootPreCommitConfigPath,
+    rootPrettierCachePath,
     rootPrettierConfigPath,
     rootRemarkConfigPath,
     rootRuntimeTsconfigPath,
@@ -39,6 +41,7 @@ import {
     rootTypedocConfigPath,
     rootViteRendererConfigPath,
     rootVitestConfigPath,
+    rootVitestSupportPath,
     rootVitestTypecheckTsconfigPath,
 } from "../../../scripts/lib/workspaces.mjs";
 
@@ -90,8 +93,8 @@ describe("run-prettier wrapper", () => {
             "tests/fixtures/**/*.{js,ts}",
             "tests/integration/**/*.ts",
             "tests/unit/**/*.ts",
-            "tests/playwright/**/*.ts",
-            "tests/vitest/**/*.{cjs,mjs,ts}",
+            `${rootPlaywrightTestsPath}/**/*.ts`,
+            `${rootVitestSupportPath}/**/*.{cjs,mjs,ts}`,
             appLeafletMeasureLitePath,
         ];
 
@@ -175,5 +178,13 @@ describe("run-prettier wrapper", () => {
             },
         });
         expect(args?.[0]).toMatch(/[\\/]prettier[\\/]bin[\\/]prettier\.cjs$/u);
+    });
+
+    it("keeps cache output rooted in the shared workspace cache directory", () => {
+        expect.assertions(1);
+
+        expect(prettierOptions).toContain(
+            `--cache-location=${rootPrettierCachePath}`
+        );
     });
 });

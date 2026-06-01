@@ -6,9 +6,13 @@ import process from "node:process";
 import { pathToFileURL } from "node:url";
 
 import {
+    adHocEslintCachePath,
+    appEslintCachePath,
     appSourceDirectoryName,
+    docusaurusEslintCachePath,
     docusaurusWorkspaceName,
     repositoryRoot,
+    rootEslintCachePath,
     rootEslintConfigPath,
 } from "./lib/workspaces.mjs";
 
@@ -21,12 +25,12 @@ const eslintCliPath = path.join(
 
 export const eslintTargets = Object.freeze({
     docusaurus: {
-        cacheLocation: ".cache/.eslintcache-docusaurus",
+        cacheLocation: docusaurusEslintCachePath,
         paths: [`${docusaurusWorkspaceName}/**/*.{js,jsx,ts,tsx}`],
         prefixArgs: ["--config", rootEslintConfigPath],
     },
     electronApp: {
-        cacheLocation: ".cache/.eslintcache-electron",
+        cacheLocation: appEslintCachePath,
         paths: [appSourceDirectoryName],
         prefixArgs: [
             "--config",
@@ -35,7 +39,7 @@ export const eslintTargets = Object.freeze({
         ],
     },
     root: {
-        cacheLocation: ".cache/.eslintcache-root",
+        cacheLocation: rootEslintCachePath,
         paths: [
             ".",
             "--ignore-pattern",
@@ -56,7 +60,7 @@ function buildAdHocPathTarget(targetName) {
     }
 
     return {
-        cacheLocation: ".cache/.eslintcache-ad-hoc",
+        cacheLocation: adHocEslintCachePath,
         paths: [targetName],
         prefixArgs: ["--config", rootEslintConfigPath],
     };

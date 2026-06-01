@@ -9,6 +9,7 @@ export const rootArtifactsPath = "artifacts";
 export const rootChangelogPath = "CHANGELOG.md";
 export const rootCliffConfigPath = "cliff.toml";
 export const rootCodecovConfigPath = "codecov.yml";
+export const rootCachePath = ".cache";
 export const rootCoveragePath = "coverage";
 export const rootCoverageAbsolutePath = repositoryPath(rootCoveragePath);
 export const rootCspellConfigPath = "cspell.json";
@@ -22,6 +23,10 @@ export const rootMermaidConfigPath = "mermaid.config.json";
 export const rootNcuConfigPath = ".ncurc.json";
 export const rootPlaywrightConfigPath = "playwright.config.ts";
 export const rootPreCommitConfigPath = ".pre-commit-config.yaml";
+export const rootPrettierCachePath = path.posix.join(
+    rootCachePath,
+    ".prettier-cache"
+);
 export const rootDocusaurusTsconfigPath = "tsconfig.docusaurus.json";
 export const rootDocsPath = "docs";
 export const rootApplicationArchitectureDocPath = path.posix.join(
@@ -56,6 +61,22 @@ export const rootElectronAppEslintTsconfigPath =
 export const rootElectronAppTsconfigPath = "tsconfig.electron-app.json";
 export const rootEslintTsconfigPath = "tsconfig.eslint.json";
 export const rootEslintConfigPath = "eslint.config.mjs";
+export const rootEslintCachePath = path.posix.join(
+    rootCachePath,
+    ".eslintcache-root"
+);
+export const appEslintCachePath = path.posix.join(
+    rootCachePath,
+    ".eslintcache-electron"
+);
+export const docusaurusEslintCachePath = path.posix.join(
+    rootCachePath,
+    ".eslintcache-docusaurus"
+);
+export const adHocEslintCachePath = path.posix.join(
+    rootCachePath,
+    ".eslintcache-ad-hoc"
+);
 export const rootFlatpakBuildPath = "flatpak-build-dir";
 export const rootFlatpakBundlePath = "FitFileViewer.flatpak";
 export const rootFlatpakManifestPath = "flatpak-build.yml";
@@ -97,7 +118,7 @@ export const rootTypedocConfigPath = "typedoc.json";
 export const rootUnitTestsPath = path.posix.join("tests", "unit");
 export const rootTabsTestsPath = path.posix.join(rootUnitTestsPath, "tabs");
 export const rootViteRendererConfigPath = "vite.renderer.config.mjs";
-export const rootVitestCachePath = path.posix.join(".cache", "vitest");
+export const rootVitestCachePath = path.posix.join(rootCachePath, "vitest");
 export const rootVitestConfigPath = "vitest.config.ts";
 export const rootVitestTypecheckTsconfigPath = "tsconfig.vitest-typecheck.json";
 export const appSourcePath = path.join(repositoryRoot, appSourceDirectoryName);

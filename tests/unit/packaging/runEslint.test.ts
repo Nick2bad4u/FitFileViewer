@@ -3,8 +3,12 @@ import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import {
+    adHocEslintCachePath,
+    appEslintCachePath,
     appSourceDirectoryName,
+    docusaurusEslintCachePath,
     docusaurusWorkspaceName,
+    rootEslintCachePath,
     rootEslintConfigPath,
 } from "../../../scripts/lib/workspaces.mjs";
 
@@ -38,7 +42,7 @@ describe("run-eslint script", () => {
             "--cache-strategy",
             "content",
             "--cache-location",
-            ".cache/.eslintcache-root",
+            rootEslintCachePath,
             "--fix",
             ".",
             "--ignore-pattern",
@@ -54,7 +58,7 @@ describe("run-eslint script", () => {
             "--cache-strategy",
             "content",
             "--cache-location",
-            ".cache/.eslintcache-electron",
+            appEslintCachePath,
             appSourceDirectoryName,
         ]);
         expect(buildEslintArgs("docusaurus")).toStrictEqual([
@@ -64,7 +68,7 @@ describe("run-eslint script", () => {
             "--cache-strategy",
             "content",
             "--cache-location",
-            ".cache/.eslintcache-docusaurus",
+            docusaurusEslintCachePath,
             `${docusaurusWorkspaceName}/**/*.{js,jsx,ts,tsx}`,
         ]);
         expect(buildEslintArgs(testPath, ["--fix"])).toStrictEqual([
@@ -74,7 +78,7 @@ describe("run-eslint script", () => {
             "--cache-strategy",
             "content",
             "--cache-location",
-            ".cache/.eslintcache-ad-hoc",
+            adHocEslintCachePath,
             "--fix",
             testPath,
         ]);
@@ -87,7 +91,7 @@ describe("run-eslint script", () => {
             "--cache-strategy",
             "content",
             "--cache-location",
-            ".cache/.eslintcache-ad-hoc",
+            adHocEslintCachePath,
             "--no-warn-ignored",
             scriptPath,
         ]);
@@ -137,7 +141,7 @@ describe("run-eslint script", () => {
                 "--cache-strategy",
                 "content",
                 "--cache-location",
-                ".cache/.eslintcache-root",
+                rootEslintCachePath,
                 "--fix",
                 ".",
                 "--ignore-pattern",

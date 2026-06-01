@@ -3,12 +3,14 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 type WorkspacesModule = {
+    adHocEslintCachePath: string;
     appAlternativeFitViewPath: string;
     appCoveragePath: string;
     appDistAbsolutePath: string;
     appDistPath: string;
     appDistRendererRepositoryPath: string;
     appElevProfileCssPath: string;
+    appEslintCachePath: string;
     appIconsPath: string;
     appIndexHtmlPath: string;
     appLeafletMeasureLitePath: string;
@@ -36,6 +38,7 @@ type WorkspacesModule = {
     docusaurusConfigRepositoryPath: string;
     docusaurusDevelopmentBuildReleaseDocPath: string;
     docusaurusDevelopmentSetupDocPath: string;
+    docusaurusEslintCachePath: string;
     docusaurusHomePagePath: string;
     docusaurusPackagePath: string;
     docusaurusPackageRepositoryPath: string;
@@ -87,6 +90,7 @@ type WorkspacesModule = {
     rootApplicationArchitectureDocPath: string;
     rootApplicationLayoutDocPath: string;
     rootApplicationOverviewDocPath: string;
+    rootCachePath: string;
     rootDevelopmentGuideDocPath: string;
     rootDocsPath: string;
     rootDocsScreenshotsPath: string;
@@ -94,6 +98,7 @@ type WorkspacesModule = {
     rootElectronAppTsconfigPath: string;
     rootEslintTsconfigPath: string;
     rootEslintConfigPath: string;
+    rootEslintCachePath: string;
     rootFlatpakBuildPath: string;
     rootFlatpakBundlePath: string;
     rootFlatpakManifestPath: string;
@@ -113,6 +118,7 @@ type WorkspacesModule = {
     rootMermaidConfigPath: string;
     rootNcuConfigPath: string;
     rootPrettierConfigPath: string;
+    rootPrettierCachePath: string;
     rootPrettierIgnorePath: string;
     rootPreCommitConfigPath: string;
     rootRemarkConfigPath: string;
@@ -330,7 +336,7 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes root config paths", async () => {
-        expect.assertions(17);
+        expect.assertions(16);
 
         const workspaces = await importWorkspaces();
 
@@ -376,11 +382,31 @@ describe("workspace path helpers", () => {
         expect(workspaces.rootViteRendererConfigPath).toBe(
             "vite.renderer.config.mjs"
         );
-        expect(workspaces.rootVitestCachePath).toBe(".cache/vitest");
         expect(workspaces.rootVitestConfigPath).toBe("vitest.config.ts");
         expect(workspaces.rootVitestTypecheckTsconfigPath).toBe(
             "tsconfig.vitest-typecheck.json"
         );
+    });
+
+    it("centralizes root cache paths", async () => {
+        expect.assertions(4);
+
+        const workspaces = await importWorkspaces();
+
+        expect(workspaces.rootCachePath).toBe(".cache");
+        expect(workspaces.rootPrettierCachePath).toBe(".cache/.prettier-cache");
+        expect(workspaces.rootVitestCachePath).toBe(".cache/vitest");
+        expect({
+            adHoc: workspaces.adHocEslintCachePath,
+            docusaurus: workspaces.docusaurusEslintCachePath,
+            electronApp: workspaces.appEslintCachePath,
+            root: workspaces.rootEslintCachePath,
+        }).toStrictEqual({
+            adHoc: ".cache/.eslintcache-ad-hoc",
+            docusaurus: ".cache/.eslintcache-docusaurus",
+            electronApp: ".cache/.eslintcache-electron",
+            root: ".cache/.eslintcache-root",
+        });
     });
 
     it("centralizes root tooling metadata paths", async () => {
