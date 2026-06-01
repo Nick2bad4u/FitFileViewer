@@ -104,7 +104,7 @@ function resetState(): void {
 
 describe(ChartTabIntegration, () => {
     it("enables the chart tab and renders when active data arrives", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         resetState();
         stateValues.set("ui.activeTab", "chartjs");
@@ -118,10 +118,8 @@ describe(ChartTabIntegration, () => {
 
         integration.handleDataChange({ recordMesgs: [{ timestamp: 1 }] });
 
-        expect({
-            disabled: button.disabled,
-            hasDisabledClass: button.classList.contains("disabled"),
-        }).toStrictEqual({ disabled: false, hasDisabledClass: false });
+        expect(button).toHaveProperty("disabled", false);
+        expect([...button.classList]).toStrictEqual([]);
         expect(button.style.opacity).toBe("1");
         expect(debouncedRenderMock).toHaveBeenCalledWith(
             "New data loaded via integration"
@@ -131,7 +129,7 @@ describe(ChartTabIntegration, () => {
     });
 
     it("disables the chart tab and clears chart state when data is cleared", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         resetState();
         const button = document.createElement("button");
@@ -142,10 +140,8 @@ describe(ChartTabIntegration, () => {
 
         integration.handleDataChange(null);
 
-        expect({
-            disabled: button.disabled,
-            hasDisabledClass: button.classList.contains("disabled"),
-        }).toStrictEqual({ disabled: true, hasDisabledClass: true });
+        expect(button).toHaveProperty("disabled", true);
+        expect([...button.classList]).toStrictEqual(["disabled"]);
         expect(button.style.opacity).toBe("0.5");
         expect(clearChartStateMock).toHaveBeenCalledOnce();
 
