@@ -682,7 +682,7 @@ describe("preload.js dist API methods", () => {
 
     describe("auto-Updater Functions", () => {
         it("should provide onUpdateEvent method", () => {
-            expect.assertions(2);
+            expect.assertions(3);
             const { exposedAPI } = createPreloadEnvironment();
             const callback = vi.fn<IpcListener>();
 
@@ -690,12 +690,19 @@ describe("preload.js dist API methods", () => {
                 "update-available",
                 callback
             );
+            const [, registeredListener] =
+                mockIpcRenderer.on.mock.calls[0] ?? [];
 
-            expect(mockIpcRenderer.on).toHaveBeenCalledWith(
-                "update-available",
-                expect.any(Function)
+            expect(mockIpcRenderer.on.mock.calls[0]?.[0]).toBe(
+                "update-available"
             );
-            expect(unsubscribe).toBeTypeOf("function");
+            registeredListener?.({}, { version: "29.9.0" });
+            expect(callback).toHaveBeenCalledWith({ version: "29.9.0" });
+            unsubscribe?.();
+            expect(mockIpcRenderer.removeListener).toHaveBeenCalledWith(
+                "update-available",
+                registeredListener
+            );
         });
 
         it("should provide checkForUpdates method", () => {
@@ -750,17 +757,25 @@ describe("preload.js dist API methods", () => {
 
     describe("generic IPC Functions", () => {
         it("should provide onIpc method", () => {
-            expect.assertions(2);
+            expect.assertions(3);
             const { exposedAPI } = createPreloadEnvironment();
             const callback = vi.fn<IpcListener>();
 
             const unsubscribe = exposedAPI.onIpc("custom-channel", callback);
+            const [, registeredListener] =
+                mockIpcRenderer.on.mock.calls[0] ?? [];
+            const ipcEvent = { senderId: 1 };
 
-            expect(mockIpcRenderer.on).toHaveBeenCalledWith(
-                "custom-channel",
-                expect.any(Function)
+            expect(mockIpcRenderer.on.mock.calls[0]?.[0]).toBe(
+                "custom-channel"
             );
-            expect(unsubscribe).toBeTypeOf("function");
+            registeredListener?.(ipcEvent, "arg1", "arg2");
+            expect(callback).toHaveBeenCalledWith(ipcEvent, "arg1", "arg2");
+            unsubscribe?.();
+            expect(mockIpcRenderer.removeListener).toHaveBeenCalledWith(
+                "custom-channel",
+                registeredListener
+            );
         });
 
         it("should provide send method", () => {
