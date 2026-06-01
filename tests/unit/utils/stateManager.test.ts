@@ -40,6 +40,20 @@ function getRootStateRecord(): Record<string, unknown> {
     return getState<Record<string, unknown>>("") as Record<string, unknown>;
 }
 
+function getStableHistoryEntry(entry = getStateHistory().at(-1)) {
+    if (!entry) {
+        throw new TypeError("Expected state history entry");
+    }
+
+    return {
+        newValue: entry.newValue,
+        oldValue: entry.oldValue,
+        path: entry.path,
+        source: entry.source,
+        timestampType: typeof entry.timestamp,
+    };
+}
+
 describe("state manager core", () => {
     it("sets and gets simple state values", () => {
         expect.assertions(1);
@@ -170,9 +184,12 @@ describe("state manager core", () => {
         setState("test.source", "value", { source: "test-suite" });
 
         expect(getState("test.source")).toBe("value");
-        expect(getStateHistory().at(-1)).toMatchObject({
+        expect(getStableHistoryEntry()).toStrictEqual({
+            newValue: "value",
+            oldValue: undefined,
             path: "test.source",
             source: "test-suite",
+            timestampType: "number",
         });
         expect(mockSubscriber).toHaveBeenCalledWith(
             "value",
@@ -211,9 +228,12 @@ describe("state manager core", () => {
         setState("test.old-value", "updated");
 
         expect(getState("test.old-value")).toBe("updated");
-        expect(getStateHistory().at(-1)).toMatchObject({
+        expect(getStableHistoryEntry()).toStrictEqual({
+            newValue: "updated",
             oldValue: "initial",
             path: "test.old-value",
+            source: "unknown",
+            timestampType: "number",
         });
         expect(mockSubscriber).toHaveBeenCalledWith(
             "updated",
@@ -411,11 +431,9 @@ describe("state manager core", () => {
 
         const duration = performance.now() - start;
 
-        expect(
-            getState<Record<string, number>>("performance.test")
-        ).toMatchObject({
-            "99": 99,
-        });
+        expect(getState<Record<string, number>>("performance.test")["99"]).toBe(
+            99
+        );
         expect(duration).toBeLessThan(1000);
     });
 
@@ -456,9 +474,12 @@ describe("state manager core", () => {
         const result = getState<TestObjectState>("merge.test");
 
         expect(result).toStrictEqual({ a: 1, b: 3, c: 4 });
-        expect(getStateHistory().at(-1)).toMatchObject({
+        expect(getStableHistoryEntry()).toStrictEqual({
             newValue: { b: 3, c: 4 },
+            oldValue: { a: 1, b: 2 },
             path: "merge.test",
+            source: "unknown",
+            timestampType: "number",
         });
     });
 
@@ -480,9 +501,12 @@ describe("state manager core", () => {
             "value2",
             "value3",
         ]);
-        expect(history.at(-1)).toMatchObject({
+        expect(getStableHistoryEntry(history.at(-1))).toStrictEqual({
+            newValue: "value3",
             oldValue: "value2",
             path: "history.test",
+            source: "unknown",
+            timestampType: "number",
         });
     });
 
@@ -626,10 +650,19 @@ describe("state manager core", () => {
         const history = getStateHistory();
 
         expect(history).toHaveLength(50);
-        expect(history[0]).toMatchObject({ path: "history.stress.10" });
-        expect(history.at(-1)).toMatchObject({
+        expect(getStableHistoryEntry(history[0])).toStrictEqual({
+            newValue: "value10",
+            oldValue: undefined,
+            path: "history.stress.10",
+            source: "unknown",
+            timestampType: "number",
+        });
+        expect(getStableHistoryEntry(history.at(-1))).toStrictEqual({
             newValue: "value59",
+            oldValue: undefined,
             path: "history.stress.59",
+            source: "unknown",
+            timestampType: "number",
         });
     });
 
@@ -718,18 +751,19 @@ describe("state manager core", () => {
         setState("log.test", "value", { source: "test-source" });
 
         expect(getState("log.test")).toBe("value");
-        expect(getStateHistory().at(-1)).toMatchObject({
+        expect(getStableHistoryEntry()).toStrictEqual({
+            newValue: "value",
+            oldValue: undefined,
             path: "log.test",
             source: "test-source",
+            timestampType: "number",
         });
         expect(consoleSpy).toHaveBeenCalledWith(
-            expect.stringContaining(
-                "[StateManager] log.test updated by test-source:"
-            ),
-            expect.objectContaining({
+            "[StateManager] log.test updated by test-source:",
+            {
                 newValue: "value",
                 oldValue: undefined,
-            })
+            }
         );
 
         consoleSpy.mockRestore();
