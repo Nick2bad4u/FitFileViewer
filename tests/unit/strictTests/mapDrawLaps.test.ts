@@ -212,17 +212,30 @@ describe(mapDrawLaps, () => {
 
         mapDrawLaps("all", createOptions(map, mapContainerElement));
 
-        expect(leaflet.polyline).toHaveBeenCalledWith(
-            [
+        const [polylineLatLngs, polylineOptions] =
+            leaflet.polyline.mock.calls[0] ?? [];
+        const stablePolylineOptions =
+            polylineOptions && typeof polylineOptions === "object"
+                ? (polylineOptions as Record<string, unknown>)
+                : {};
+        expect({
+            latLngs: polylineLatLngs,
+            options: {
+                color: stablePolylineOptions["color"],
+                dashArray: stablePolylineOptions["dashArray"],
+                smoothFactor: stablePolylineOptions["smoothFactor"],
+            },
+        }).toStrictEqual({
+            latLngs: [
                 [90, -90],
                 [45, 45],
             ],
-            expect.objectContaining({
+            options: {
                 color: "#00aaff",
                 dashArray: "6, 8",
                 smoothFactor: 0,
-            })
-        );
+            },
+        });
         const fitBoundsCalls = map.fitBounds.mock.calls.map(
             ([bounds, options]) => ({
                 clone: typeof (bounds as BoundsStub).clone,
