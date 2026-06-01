@@ -180,6 +180,15 @@ function getReferenceExistence(
     );
 }
 
+function expectReferencesToResolve(
+    ownerPath: string,
+    references: string[]
+): void {
+    expect(getReferenceExistence(ownerPath, references)).toStrictEqual(
+        Object.fromEntries(references.map((reference) => [reference, true]))
+    );
+}
+
 describe("root app shell asset references", () => {
     it("keeps Flatpak app shell installs pointed at root static assets", () => {
         expect.assertions(6);
@@ -208,34 +217,39 @@ describe("root app shell asset references", () => {
     });
 
     it("keeps alternative FIT viewer shell references backed by root static assets", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         const alternativeViewerIndexPath = "static/ffv/index.html";
         const alternativeViewerManifestPath = "static/ffv/manifest.json";
+        const alternativeViewerIndexReferences = getHtmlRelativeAssetReferences(
+            alternativeViewerIndexPath
+        );
+        const alternativeViewerManifestIconReferences =
+            getManifestIconReferences(alternativeViewerManifestPath);
 
-        expect(
-            getReferenceExistence(
-                alternativeViewerIndexPath,
-                getHtmlRelativeAssetReferences(alternativeViewerIndexPath)
-            )
-        ).toStrictEqual({
-            "../icons/apple-touch-icon.png": true,
-            "../icons/favicon-96x96.png": true,
-            "../icons/favicon.ico": true,
-            "../icons/favicon.svg": true,
-            "./assets/index-LvWRIhnC.js": true,
-            "./assets/index-mfP-sHfH.css": true,
-            "./manifest.json": true,
-        });
-        expect(
-            getReferenceExistence(
-                alternativeViewerManifestPath,
-                getManifestIconReferences(alternativeViewerManifestPath)
-            )
-        ).toStrictEqual({
-            "../icons/web-app-manifest-192x192.png": true,
-            "../icons/web-app-manifest-512x512.png": true,
-        });
+        expect(alternativeViewerIndexReferences).toEqual(
+            expect.arrayContaining([
+                "../icons/apple-touch-icon.png",
+                "../icons/favicon-96x96.png",
+                "../icons/favicon.ico",
+                "../icons/favicon.svg",
+                "./manifest.json",
+                expect.stringMatching(/^\.\/assets\/.+\.css$/u),
+                expect.stringMatching(/^\.\/assets\/.+\.js$/u),
+            ])
+        );
+        expect(alternativeViewerManifestIconReferences).toStrictEqual([
+            "../icons/web-app-manifest-192x192.png",
+            "../icons/web-app-manifest-512x512.png",
+        ]);
+        expectReferencesToResolve(
+            alternativeViewerIndexPath,
+            alternativeViewerIndexReferences
+        );
+        expectReferencesToResolve(
+            alternativeViewerManifestPath,
+            alternativeViewerManifestIconReferences
+        );
         expect(
             existsSync(
                 path.join(
