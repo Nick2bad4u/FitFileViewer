@@ -20,7 +20,7 @@ describe("style.css theme variables", () => {
         const rootIndex = styleText.indexOf(":root");
         const lightIndex = styleText.indexOf("body.theme-light");
 
-        expect(rootIndex).toBeGreaterThan(-1);
+        expect(rootIndex).not.toBe(-1);
         expect(lightIndex).toBeGreaterThan(rootIndex);
 
         const colorBgIndex = styleText.indexOf("--color-bg:", rootIndex);
@@ -41,7 +41,7 @@ describe("style.css theme variables", () => {
         const styleText = loadStyleSheet();
         const lightIndex = styleText.indexOf("body.theme-light");
 
-        expect(lightIndex).toBeGreaterThan(-1);
+        expect(lightIndex).not.toBe(-1);
         expect(styleText).toContain("--color-bg:");
         expect(styleText).toContain("--color-fg:");
         expect(styleText).toContain("--color-accent-rgb:");

@@ -160,18 +160,16 @@ describe("preload IPC helpers", () => {
         expect.assertions(3);
 
         const { helpers, ipcRenderer, preloadLog } = createHelpers();
-        let didThrow = false;
         ipcRenderer.send.mockImplementationOnce(() => {
             throw new Error("send failed");
         });
 
-        try {
-            helpers.createSafeSendHandler("app:test", "testSend")("payload");
-        } catch {
-            didThrow = true;
-        }
+        const returnValue = helpers.createSafeSendHandler(
+            "app:test",
+            "testSend"
+        )("payload");
 
-        expect(didThrow).toBe(false);
+        expect(returnValue).toBeUndefined();
         expect(ipcRenderer.send).toHaveBeenCalledWith("app:test", "payload");
         expect(preloadLog).toHaveBeenCalledWith(
             "error",
