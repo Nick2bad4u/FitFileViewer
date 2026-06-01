@@ -9,6 +9,13 @@ const sampleFitPath = path.join(
     "fit-test-files",
     "_Fenton_Michigan_Afternoon_Ride_5_27_miles.fit"
 );
+const sampleFitFileName = path.basename(sampleFitPath);
+const sampleFitActivityState: ActivityUiState = {
+    activeFileName: `Active:${sampleFitFileName}`,
+    recordCount: 1285,
+    sessionCount: 1,
+    title: `Fit File Viewer - ${sampleFitFileName}`,
+};
 
 const reportedFailureNeedles = [
     "Cannot read properties of undefined (reading 'NODE_ENV')",
@@ -32,10 +39,13 @@ const mapTileHosts = new Set([
     "tile.openstreetmap.de",
     "tile.openstreetmap.fr",
     "tile.opentopomap.org",
+    "tiles-eu.stadiamaps.com",
+    "tiles-us.stadiamaps.com",
     "tile.waymarkedtrails.org",
     "tiles.openfreemap.org",
     "tiles.openseamap.org",
     "tiles.openrailwaymap.org",
+    "tiles.stadiamaps.com",
     "tile-cyclosm.openstreetmap.fr",
     "tile.thunderforest.com",
 ]);
@@ -152,6 +162,48 @@ test.describe("FitFileViewer Electron UI", () => {
             sessionCount: window.globalData?.sessionMesgs?.length ?? 0,
             title: document.title,
         }));
+    }
+
+    async function openSampleFitThroughDialog(): Promise<ActivityUiState> {
+        await mockOpenFileDialog({
+            canceled: false,
+            filePaths: [sampleFitPath],
+        });
+
+        try {
+            await waitForOpenFileButtonReady();
+            await page.locator("#open_file_btn").click();
+
+            await expect(page.locator("#active_file_name")).toContainText(
+                sampleFitFileName
+            );
+            await expect(page).toHaveTitle(new RegExp(sampleFitFileName, "u"));
+            await expect(page.locator("#tab_map")).toHaveClass(/active/u);
+
+            const openedFileState = await page.waitForFunction(() => {
+                const recordCount = window.globalData?.recordMesgs?.length ?? 0;
+                const sessionCount =
+                    window.globalData?.sessionMesgs?.length ?? 0;
+
+                if (recordCount === 0 || sessionCount === 0) {
+                    return null;
+                }
+
+                return {
+                    recordCount,
+                    sessionCount,
+                };
+            });
+
+            expect(await openedFileState.jsonValue()).toStrictEqual({
+                recordCount: sampleFitActivityState.recordCount,
+                sessionCount: sampleFitActivityState.sessionCount,
+            });
+
+            return getActivityUiState();
+        } finally {
+            await restoreOpenFileDialog();
+        }
     }
 
     test.beforeAll(async () => {
@@ -284,48 +336,16 @@ test.describe("FitFileViewer Electron UI", () => {
     });
 
     test("opens a real FIT file through the Open File button", async () => {
-        await mockOpenFileDialog({
-            canceled: false,
-            filePaths: [sampleFitPath],
-        });
-
-        try {
-            await waitForOpenFileButtonReady();
-            await page.locator("#open_file_btn").click();
-
-            await expect(page.locator("#active_file_name")).toContainText(
-                path.basename(sampleFitPath)
-            );
-            await expect(page).toHaveTitle(
-                new RegExp(path.basename(sampleFitPath), "u")
-            );
-            await expect(page.locator("#tab_map")).toHaveClass(/active/u);
-
-            const openedFileState = await page.waitForFunction(() => {
-                const recordCount = window.globalData?.recordMesgs?.length ?? 0;
-                const sessionCount =
-                    window.globalData?.sessionMesgs?.length ?? 0;
-
-                if (recordCount === 0 || sessionCount === 0) {
-                    return null;
-                }
-
-                return {
-                    recordCount,
-                    sessionCount,
-                };
-            });
-
-            expect(await openedFileState.jsonValue()).toStrictEqual({
-                recordCount: 1285,
-                sessionCount: 1,
-            });
-        } finally {
-            await restoreOpenFileDialog();
-        }
+        await expect(openSampleFitThroughDialog()).resolves.toStrictEqual(
+            sampleFitActivityState
+        );
     });
 
     test("preserves the loaded activity when a later Open File is cancelled", async () => {
+        await expect(openSampleFitThroughDialog()).resolves.toStrictEqual(
+            sampleFitActivityState
+        );
+
         await mockOpenFileDialog({
             canceled: true,
             filePaths: [],
@@ -342,12 +362,7 @@ test.describe("FitFileViewer Electron UI", () => {
             const stateAfterCancel = await getActivityUiState();
 
             expect(stateAfterCancel).toStrictEqual(stateBeforeCancel);
-            expect(stateAfterCancel).toStrictEqual({
-                activeFileName: `Active:${path.basename(sampleFitPath)}`,
-                recordCount: 1285,
-                sessionCount: 1,
-                title: `Fit File Viewer - ${path.basename(sampleFitPath)}`,
-            });
+            expect(stateAfterCancel).toStrictEqual(sampleFitActivityState);
         } finally {
             await restoreOpenFileDialog();
         }
