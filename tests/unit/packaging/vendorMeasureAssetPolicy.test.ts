@@ -3,6 +3,16 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import {
+    appLeafletMeasureLitePath,
+    appRendererVendorGlobalsCoreEntryPath,
+    appRendererVendorGlobalsEntryPath,
+    appSourceRepositoryPath,
+    rootAppIndexHtmlPath,
+    rootPackageRepositoryPath,
+    rootStaticAssetsPath,
+} from "../../../scripts/lib/workspaces.mjs";
+
 const repositoryRoot = process.cwd();
 const rendererBrowserPackages = [
     "@maplibre/maplibre-gl-leaflet",
@@ -29,6 +39,12 @@ const rendererBrowserPackages = [
 const fromImportSpecifierPattern =
     /^\s*import\s+[^"\n].*?\s+from\s+"([^"]+)";/gmu;
 const sideEffectImportSpecifierPattern = /^\s*import\s+"([^"]+)";/gmu;
+const staleRepositoryVendorPaths = [
+    appSourceRepositoryPath("renderer", "vendor"),
+    appSourceRepositoryPath("vendor"),
+    path.posix.join(path.posix.dirname(rootAppIndexHtmlPath), "vendor"),
+    path.posix.join(rootStaticAssetsPath, "vendor"),
+] as const;
 
 type PackageJson = {
     dependencies?: Record<string, string>;
@@ -75,12 +91,12 @@ describe("renderer vendor asset policy", () => {
         expect.assertions(6);
 
         const rootPackage = JSON.parse(
-            readWorkspaceFile("package.json")
+            readWorkspaceFile(rootPackageRepositoryPath)
         ) as PackageJson;
-        const staticAppIndex = readWorkspaceFile("static/app/index.html");
+        const staticAppIndex = readWorkspaceFile(rootAppIndexHtmlPath);
         const vendorBundleSource = [
-            readWorkspaceFile("electron-app/renderer/vendorGlobalsCore.ts"),
-            readWorkspaceFile("electron-app/renderer/vendorGlobals.ts"),
+            readWorkspaceFile(appRendererVendorGlobalsCoreEntryPath),
+            readWorkspaceFile(appRendererVendorGlobalsEntryPath),
         ].join("\n");
         const browserPackagesInProductionDependencies =
             rendererBrowserPackages.filter(
@@ -121,21 +137,16 @@ describe("renderer vendor asset policy", () => {
     it("does not keep package-sourced browser assets in repository vendor trees", () => {
         expect.assertions(4);
 
-        const staticAppIndex = readWorkspaceFile("static/app/index.html");
+        const staticAppIndex = readWorkspaceFile(rootAppIndexHtmlPath);
 
-        expect(
-            getFileExistence([
-                "electron-app/renderer/vendor",
-                "electron-app/vendor",
-                "static/app/vendor",
-                "static/vendor",
-            ])
-        ).toStrictEqual({
-            "electron-app/renderer/vendor": false,
-            "electron-app/vendor": false,
-            "static/app/vendor": false,
-            "static/vendor": false,
-        });
+        expect(getFileExistence([...staleRepositoryVendorPaths])).toStrictEqual(
+            Object.fromEntries(
+                staleRepositoryVendorPaths.map((vendorPath) => [
+                    vendorPath,
+                    false,
+                ])
+            )
+        );
         expect(staticAppIndex).toContain('href="renderer/vendor-globals.css"');
         expect(staticAppIndex).not.toContain("node_modules");
         expect(staticAppIndex).not.toContain("vendor/");
@@ -144,18 +155,18 @@ describe("renderer vendor asset policy", () => {
     it("keeps upstream CSS npm-managed and JS as a CSP-safe local control", () => {
         expect.assertions(5);
 
-        const rootPackage = JSON.parse(readWorkspaceFile("package.json")) as {
+        const rootPackage = JSON.parse(
+            readWorkspaceFile(rootPackageRepositoryPath)
+        ) as {
             devDependencies?: Record<string, string>;
         };
         const vendorGlobalsCore = readWorkspaceFile(
-            "electron-app/renderer/vendorGlobalsCore.ts"
+            appRendererVendorGlobalsCoreEntryPath
         );
         const vendorGlobals = readWorkspaceFile(
-            "electron-app/renderer/vendorGlobals.ts"
+            appRendererVendorGlobalsEntryPath
         );
-        const measureLite = readWorkspaceFile(
-            "electron-app/renderer/leafletMeasureLite.js"
-        );
+        const measureLite = readWorkspaceFile(appLeafletMeasureLitePath);
 
         expect(rootPackage.devDependencies?.["leaflet-measure"]).toBe("^3.1.0");
         expect(vendorGlobalsCore).toContain(

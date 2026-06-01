@@ -14,6 +14,7 @@ type WorkspacesModule = {
     appLeafletMeasureLitePath: string;
     appPreloadBundleAbsolutePath: string;
     appPreloadSourceAbsolutePath: string;
+    appRendererVendorGlobalsCoreEntryPath: string;
     appRendererVendorGlobalsEntryPath: string;
     appStyleCssPath: string;
     appTypesAbsolutePath: string;
@@ -247,7 +248,7 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes app runtime asset paths", async () => {
-        expect.assertions(13);
+        expect.assertions(14);
 
         const workspaces = await importWorkspaces();
 
@@ -273,6 +274,9 @@ describe("workspace path helpers", () => {
             ),
             source: path.join(process.cwd(), "electron-app", "preload.ts"),
         });
+        expect(workspaces.appRendererVendorGlobalsCoreEntryPath).toBe(
+            "electron-app/renderer/vendorGlobalsCore.ts"
+        );
         expect(workspaces.appRendererVendorGlobalsEntryPath).toBe(
             "electron-app/renderer/vendorGlobals.ts"
         );

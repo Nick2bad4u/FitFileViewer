@@ -110,6 +110,10 @@ export const appPreloadBundleAbsolutePath = appSourceAbsolutePath(
     "dist",
     "preload.js"
 );
+export const appRendererVendorGlobalsCoreEntryPath = appSourceRepositoryPath(
+    "renderer",
+    "vendorGlobalsCore.ts"
+);
 export const appRendererVendorGlobalsEntryPath = appSourceRepositoryPath(
     "renderer",
     "vendorGlobals.ts"
