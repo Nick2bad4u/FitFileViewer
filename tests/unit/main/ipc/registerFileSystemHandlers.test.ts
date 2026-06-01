@@ -1,4 +1,5 @@
 // @vitest-environment node
+import { createRequire } from "node:module";
 import type { Mock } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -15,14 +16,22 @@ type RegisterIpcHandle = (
     handler: FileSystemIpcHandler
 ) => void;
 type ReadFileCallback = (error: Error | null, data?: unknown) => void;
+type StatCallback = (error: Error | null, stats?: { size: number }) => void;
 type FileSystemModule = {
     readFile: Mock<(filePath: string, callback: ReadFileCallback) => void>;
+    stat?: Mock<(filePath: string, callback: StatCallback) => void>;
 };
 type LogWithContext = (
     level: "error" | "info" | "warn",
     message: string,
     context?: Record<string, unknown>
 ) => void;
+
+const require = createRequire(import.meta.url);
+const { MAX_FIT_FILE_BYTES } =
+    require("../../../../electron-app/main/ipc/fileReadPayload.js") as {
+        MAX_FIT_FILE_BYTES: number;
+    };
 
 describe("registerFileSystemHandlers", () => {
     let registerIpcHandle: Mock<RegisterIpcHandle>;
@@ -36,6 +45,11 @@ describe("registerFileSystemHandlers", () => {
         fileSystem = {
             readFile:
                 vi.fn<(filePath: string, callback: ReadFileCallback) => void>(),
+            stat: vi
+                .fn<(filePath: string, callback: StatCallback) => void>()
+                .mockImplementation((_path, callback) =>
+                    callback(null, { size: 0 })
+                ),
         };
     });
 
@@ -174,6 +188,60 @@ describe("registerFileSystemHandlers", () => {
 
         await expect(handler({}, "C:/unapproved.fit")).rejects.toThrow(
             "File access denied"
+        );
+    });
+
+    it("rejects missing files without logging expected ENOENT failures", async () => {
+        expect.assertions(5);
+
+        registerDefaultHandlers();
+        const handler = getFileReadHandler();
+        const missingFileError = Object.assign(
+            new Error("ENOENT: no such file or directory"),
+            { code: "ENOENT" }
+        );
+        fileSystem.stat?.mockImplementation((_path, callback) =>
+            callback(missingFileError)
+        );
+
+        const approvedPath = approveFilePath("C:/missing.fit", {
+            source: "test",
+        });
+
+        await expect(handler({}, approvedPath)).rejects.toThrow("ENOENT");
+        expect(fileSystem.stat).toHaveBeenCalledWith(
+            approvedPath,
+            expect.any(Function)
+        );
+        expect(fileSystem.readFile).not.toHaveBeenCalled();
+        expect(logWithContext).not.toHaveBeenCalled();
+    });
+
+    it("rejects oversized files before reading file contents", async () => {
+        expect.assertions(4);
+
+        registerDefaultHandlers();
+        const handler = getFileReadHandler();
+        fileSystem.stat?.mockImplementation((_path, callback) =>
+            callback(null, { size: MAX_FIT_FILE_BYTES + 1 })
+        );
+
+        const approvedPath = approveFilePath("C:/too-large.fit", {
+            source: "test",
+        });
+
+        await expect(handler({}, approvedPath)).rejects.toThrow(
+            "File size exceeds 100MB limit"
+        );
+        expect(fileSystem.readFile).not.toHaveBeenCalled();
+        expect(logWithContext).toHaveBeenCalledWith(
+            "error",
+            "Error in file:read:",
+            expect.objectContaining({
+                authorizedPath: approvedPath,
+                error: "File size exceeds 100MB limit",
+                filePath: approvedPath,
+            })
         );
     });
 
