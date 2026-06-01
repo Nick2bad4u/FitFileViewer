@@ -1,14 +1,31 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import process from "node:process";
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+type CommandRunner = (
+    command: string,
+    args: string[],
+    options: {
+        cwd: string;
+        env: NodeJS.ProcessEnv;
+        stdio: string;
+    }
+) => { error?: Error; status: number | null };
 
 type RunElectronModule = {
     defaultAppPath: string;
+    electronCliPath: string;
     parseArgs: (args: string[]) => {
         electronArgs: string[];
         electronIsDev: string | undefined;
     };
+    runElectron: (
+        argv?: string[],
+        commandRunner?: CommandRunner,
+        environment?: NodeJS.ProcessEnv
+    ) => number;
     withDefaultAppPath: (electronArgs: string[], appPath?: string) => string[];
 };
 
@@ -83,5 +100,68 @@ describe("run-electron script", () => {
         expect(scripts["start:prod"]).toBe(
             "node scripts/start-electron.mjs --electron-is-dev 0"
         );
+    });
+
+    it("runs Electron from the repository root with the root app manifest", async () => {
+        expect.assertions(2);
+
+        const { electronCliPath, runElectron } = await importRunElectron();
+        const commandRunner = vi.fn<CommandRunner>(() => ({ status: 0 }));
+        const environment = { FFV_TEST_ENV: "1" };
+
+        const status = runElectron(
+            [
+                "--electron-is-dev",
+                "0",
+                "--inspect=9229",
+            ],
+            commandRunner,
+            environment
+        );
+
+        const [
+            command,
+            args,
+            options,
+        ] = commandRunner.mock.calls[0] ?? [];
+
+        expect(commandRunner).toHaveBeenCalledOnce();
+        expect({
+            args,
+            command,
+            options: {
+                ...options,
+                cwd: path.resolve(options?.cwd ?? ""),
+            },
+            status,
+        }).toStrictEqual({
+            args: [
+                electronCliPath,
+                "--inspect=9229",
+                ".",
+            ],
+            command: process.execPath,
+            options: {
+                cwd: path.resolve(process.cwd()),
+                env: {
+                    ELECTRON_IS_DEV: "0",
+                    FFV_TEST_ENV: "1",
+                },
+                stdio: "inherit",
+            },
+            status: 0,
+        });
+    });
+
+    it("throws when Electron reports a spawn error", async () => {
+        expect.assertions(1);
+
+        const { runElectron } = await importRunElectron();
+        const commandRunner = vi.fn<CommandRunner>(() => ({
+            error: new Error("spawn failed"),
+            status: 0,
+        }));
+
+        expect(() => runElectron([], commandRunner)).toThrow("spawn failed");
     });
 });

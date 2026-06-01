@@ -11,6 +11,7 @@ const require = createRequire(
 );
 const electronCliPath = require.resolve("electron/cli.js");
 export const defaultAppPath = ".";
+export { electronCliPath };
 
 export function parseArgs(argv) {
     const electronArgs = [];
@@ -59,16 +60,20 @@ export function withDefaultAppPath(electronArgs, appPath = defaultAppPath) {
         : [...electronArgs, appPath];
 }
 
-export function runElectron(argv = process.argv.slice(2)) {
+export function runElectron(
+    argv = process.argv.slice(2),
+    commandRunner = spawnSync,
+    environment = process.env
+) {
     const { electronArgs, electronIsDev } = parseArgs(argv);
-    const result = spawnSync(
+    const result = commandRunner(
         process.execPath,
         [electronCliPath, ...withDefaultAppPath(electronArgs)],
         {
             cwd: repositoryRoot,
             env: electronIsDev
-                ? { ...process.env, ELECTRON_IS_DEV: electronIsDev }
-                : process.env,
+                ? { ...environment, ELECTRON_IS_DEV: electronIsDev }
+                : environment,
             stdio: "inherit",
         }
     );
