@@ -28,6 +28,7 @@ type WorkspacesModule = {
     bundlePreloadScriptPath: string;
     cleanRuntimeDistScriptPath: string;
     docusaurusApiDocsPath: string;
+    docusaurusApiDocsAbsolutePath: string;
     docusaurusBuildPath: string;
     docusaurusCachePath: string;
     docusaurusConfigRepositoryPath: string;
@@ -349,7 +350,7 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes the Docusaurus workspace root and package paths", async () => {
-        expect.assertions(19);
+        expect.assertions(20);
 
         const workspaces = await importWorkspaces();
 
@@ -369,6 +370,9 @@ describe("workspace path helpers", () => {
         );
         expect(workspaces.docusaurusApiDocsPath).toBe(
             path.join("docusaurus", "docs", "api")
+        );
+        expect(workspaces.docusaurusApiDocsAbsolutePath).toBe(
+            path.join(process.cwd(), "docusaurus", "docs", "api")
         );
         expect(workspaces.docusaurusStaticPath).toBe(
             path.join("docusaurus", "static")

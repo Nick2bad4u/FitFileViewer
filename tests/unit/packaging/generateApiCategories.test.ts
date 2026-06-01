@@ -4,6 +4,7 @@ import path from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
+import { docusaurusApiDocsAbsolutePath } from "../../../scripts/lib/workspaces.mjs";
 import {
     apiDir,
     generateApiCategories,
@@ -45,9 +46,7 @@ describe("generate-api-categories script", () => {
     it("uses the root-owned Docusaurus API docs path", () => {
         expect.assertions(2);
 
-        expect(apiDir).toBe(
-            path.join(process.cwd(), "docusaurus", "docs", "api")
-        );
+        expect(apiDir).toBe(docusaurusApiDocsAbsolutePath);
         expect(apiDir).not.toContain(`${path.sep}electron-app${path.sep}`);
     });
 

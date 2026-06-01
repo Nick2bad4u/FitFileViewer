@@ -3,9 +3,9 @@ import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
-import { docusaurusWorkspaceAbsolutePath } from "./lib/workspaces.mjs";
+import { docusaurusApiDocsAbsolutePath } from "./lib/workspaces.mjs";
 
-export const apiDir = docusaurusWorkspaceAbsolutePath("docs", "api");
+export const apiDir = docusaurusApiDocsAbsolutePath;
 
 /**
  * Optional explicit label overrides for specific API module directories. Falls

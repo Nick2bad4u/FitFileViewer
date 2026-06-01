@@ -100,6 +100,10 @@ export const docusaurusApiDocsPath = docusaurusWorkspaceRelativePath(
     "docs",
     "api"
 );
+export const docusaurusApiDocsAbsolutePath = docusaurusWorkspaceAbsolutePath(
+    "docs",
+    "api"
+);
 export const docusaurusStaticPath = docusaurusWorkspaceRelativePath("static");
 export const docusaurusStaticFaviconPath = docusaurusWorkspaceRelativePath(
     "static",
