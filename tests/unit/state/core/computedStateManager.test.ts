@@ -334,9 +334,9 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 expect.hasAssertions();
                 const computedCount = computedStateManager.computedValues.size;
 
-                expect(() =>
+                expect(
                     computedStateManager.computeValue("nonExistent")
-                ).not.toThrow();
+                ).toBeUndefined();
 
                 expect(computedStateManager.computedValues.size).toBe(
                     computedCount
@@ -430,9 +430,9 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 expect.hasAssertions();
                 const computedCount = computedStateManager.computedValues.size;
 
-                expect(() =>
+                expect(
                     computedStateManager.invalidateComputed("nonExistent")
-                ).not.toThrow();
+                ).toBeUndefined();
 
                 expect(computedStateManager.computedValues.size).toBe(
                     computedCount
@@ -499,10 +499,12 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                     []
                 );
 
-                // Should not throw error even with invalid unsubscribe functions
-                expect(() =>
+                expect(
                     computedStateManager.removeComputed("cleanupTest")
-                ).not.toThrow();
+                ).toBeUndefined();
+                expect(
+                    computedStateManager.computedValues.has("cleanupTest")
+                ).not.toStrictEqual(true);
             });
         });
 
@@ -632,7 +634,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
     describe("convenience functions", () => {
         describe("addComputed", () => {
             it("should delegate to computedStateManager.addComputed", () => {
-                expect.assertions(4);
+                expect.assertions(5);
                 const computeFn = () => "convenience-test";
                 const cleanup = addComputed("convenience", computeFn, ["dep"]);
 
@@ -640,13 +642,15 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                     computedStateManager.computedValues.has("convenience")
                 ).toStrictEqual(true);
                 vi.mocked(console.warn).mockClear();
-                let result: unknown;
-                expect(() => {
-                    result = getComputed("missingConvenience");
-                }).not.toThrow();
+                const result = getComputed("missingConvenience");
+                const warning = vi.mocked(console.warn).mock.calls.at(-1)?.[0];
+                expect(result).not.toBe("convenience-test");
+                expect(vi.mocked(console.warn)).toHaveBeenCalledWith(
+                    '[ComputedState] Computed value "missingConvenience" does not exist'
+                );
                 expect({
                     result,
-                    warning: vi.mocked(console.warn).mock.calls.at(-1)?.[0],
+                    warning,
                 }).toStrictEqual({
                     result: undefined,
                     warning:
@@ -658,7 +662,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
         describe("getComputed", () => {
             it("should delegate to computedStateManager.getComputed", () => {
-                expect.assertions(3);
+                expect.assertions(4);
                 computedStateManager.addComputed(
                     "getTest",
                     () => "get-value",
@@ -667,13 +671,15 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 const result = getComputed("getTest");
                 expect(result).toBe("get-value");
                 vi.mocked(console.warn).mockClear();
-                let missingResult: unknown;
-                expect(() => {
-                    missingResult = getComputed("missingGetTest");
-                }).not.toThrow();
+                const missingResult = getComputed("missingGetTest");
+                const warning = vi.mocked(console.warn).mock.calls.at(-1)?.[0];
+                expect(missingResult).not.toBe("get-value");
+                expect(vi.mocked(console.warn)).toHaveBeenCalledWith(
+                    '[ComputedState] Computed value "missingGetTest" does not exist'
+                );
                 expect({
                     result: missingResult,
-                    warning: vi.mocked(console.warn).mock.calls.at(-1)?.[0],
+                    warning,
                 }).toStrictEqual({
                     result: undefined,
                     warning:

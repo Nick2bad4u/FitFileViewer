@@ -565,46 +565,75 @@ describe("settingsStateManager.js - simplified coverage", () => {
         });
 
         describe("migrateFromLegacy", () => {
-            it("should complete migration process", () => {
+            it("should migrate the legacy theme key to the namespaced key", async () => {
                 expect.hasAssertions();
-                mockLocalStorage.data["dark-theme"] = "true";
 
-                // Function should complete without throwing
-                expect(() =>
+                mockLocalStorage.data.theme = '"dark"';
+
+                await expect(
                     settingsStateManager.migrateFromLegacy()
-                ).not.toThrow();
+                ).resolves.toBeUndefined();
+
+                expect(mockLocalStorage.data["ffv-theme"]).toBe('"dark"');
+                expect(Object.hasOwn(mockLocalStorage.data, "theme")).toBe(
+                    false
+                );
+                expect(mockLocalStorage.removeItem).toHaveBeenCalledWith(
+                    "theme"
+                );
             });
 
-            it("should handle case when new theme already exists", () => {
+            it("should preserve existing namespaced theme during legacy migration", async () => {
                 expect.hasAssertions();
-                mockLocalStorage.data["dark-theme"] = "true";
+
+                mockLocalStorage.data.theme = '"dark"';
                 mockLocalStorage.data["ffv-theme"] = '"light"';
 
-                expect(() =>
+                await expect(
                     settingsStateManager.migrateFromLegacy()
-                ).not.toThrow();
+                ).resolves.toBeUndefined();
+
+                expect(mockLocalStorage.data["ffv-theme"]).toBe('"light"');
+                expect(mockLocalStorage.data.theme).toBe('"dark"');
+                expect(mockLocalStorage.removeItem).not.toHaveBeenCalledWith(
+                    "theme"
+                );
             });
         });
 
         describe("migrateSettings", () => {
-            it("should complete migration process", async () => {
+            it("should skip migration when settings are already current", async () => {
                 expect.hasAssertions();
-                mockGetState.mockReturnValue("1.0.0");
 
-                // Function should complete without throwing
+                mockLocalStorage.data.settings_migration_version = "1.0.0";
+
                 await expect(
                     settingsStateManager.migrateSettings()
-                ).resolves.not.toThrow();
+                ).resolves.toBeUndefined();
+
+                expect(mockLocalStorage.setItem).not.toHaveBeenCalledWith(
+                    "settings_migration_version",
+                    "1.0.0"
+                );
             });
 
-            it("should handle initial migration", async () => {
+            it("should perform initial migration and record the migration version", async () => {
                 expect.hasAssertions();
-                mockGetState.mockReturnValue(null);
 
-                // Function should complete without throwing
+                mockLocalStorage.data.theme = '"dark"';
+
                 await expect(
                     settingsStateManager.migrateSettings()
-                ).resolves.not.toThrow();
+                ).resolves.toBeUndefined();
+
+                expect(mockLocalStorage.data["ffv-theme"]).toBe('"dark"');
+                expect(mockLocalStorage.data.settings_migration_version).toBe(
+                    "1.0.0"
+                );
+                expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
+                    "settings_migration_version",
+                    "1.0.0"
+                );
             });
         });
     });
