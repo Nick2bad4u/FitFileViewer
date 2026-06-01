@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 
+import { repositoryRoot } from "../../../scripts/lib/workspaces.mjs";
+
 type CommandCall = {
     args: string[];
     command: string;
     options: {
+        cwd: string;
         stdio: "inherit";
     };
 };
@@ -16,6 +19,7 @@ type InstallBuildDependenciesModule = {
             args: string[],
             options: CommandCall["options"]
         ) => void;
+        repositoryRoot?: string;
     }) => number;
     parseArgs: (
         args: string[],
@@ -114,10 +118,12 @@ describe("install-build-dependencies script", () => {
 
         expect({
             commands: calls.map((call) => call.command),
+            cwds: calls.map((call) => call.options.cwd),
             installedCommandCount,
             stdioModes: calls.map((call) => call.options.stdio),
         }).toStrictEqual({
             commands: ["choco", "choco"],
+            cwds: [repositoryRoot, repositoryRoot],
             installedCommandCount: 2,
             stdioModes: ["inherit", "inherit"],
         });

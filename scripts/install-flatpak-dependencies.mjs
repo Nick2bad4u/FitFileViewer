@@ -2,6 +2,8 @@ import { execFileSync } from "node:child_process";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
+import { repositoryRoot } from "./lib/workspaces.mjs";
+
 const flatpakDependencyCommands = [
     ["sudo", ["apt-get", "update"]],
     [
@@ -63,9 +65,14 @@ export function getFlatpakDependencyCommands() {
     return flatpakDependencyCommands;
 }
 
-export function installFlatpakDependencies(runCommand = execFileSync) {
+export function installFlatpakDependencies(
+    runCommand = execFileSync,
+    options = {}
+) {
+    const root = options.repositoryRoot ?? repositoryRoot;
+
     for (const [command, args] of flatpakDependencyCommands) {
-        runCommand(command, args, { stdio: "inherit" });
+        runCommand(command, args, { cwd: root, stdio: "inherit" });
     }
 
     return flatpakDependencyCommands.length;

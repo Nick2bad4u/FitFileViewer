@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 
+import { repositoryRoot } from "../../../scripts/lib/workspaces.mjs";
+
 type CommandCall = {
     args: string[];
     command: string;
     options: {
+        cwd: string;
         stdio: "inherit";
     };
 };
@@ -14,7 +17,10 @@ type InstallFlatpakDependenciesModule = {
             command: string,
             args: string[],
             options: CommandCall["options"]
-        ) => void
+        ) => void,
+        options?: {
+            repositoryRoot?: string;
+        }
     ) => number;
     parseArgs: (args: string[]) => {
         help: boolean;
@@ -74,6 +80,7 @@ describe("install-flatpak-dependencies script", () => {
 
         expect({
             commands: calls.map((call) => call.command),
+            cwds: calls.map((call) => call.options.cwd),
             installedCommandCount,
             stdioModes: calls.map((call) => call.options.stdio),
         }).toStrictEqual({
@@ -83,6 +90,13 @@ describe("install-flatpak-dependencies script", () => {
                 "flatpak",
                 "flatpak",
                 "flatpak",
+            ],
+            cwds: [
+                repositoryRoot,
+                repositoryRoot,
+                repositoryRoot,
+                repositoryRoot,
+                repositoryRoot,
             ],
             installedCommandCount: 5,
             stdioModes: [

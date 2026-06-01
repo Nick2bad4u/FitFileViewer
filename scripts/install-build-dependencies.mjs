@@ -2,6 +2,8 @@ import { execFileSync } from "node:child_process";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
+import { repositoryRoot } from "./lib/workspaces.mjs";
+
 const linuxCommands = [
     ["sudo", ["apt-get", "update"]],
     [
@@ -129,9 +131,10 @@ export function getBuildDependencyCommands(platform) {
 export function installBuildDependencies(options) {
     const commands = getBuildDependencyCommands(options.platform);
     const runCommand = options.runCommand ?? execFileSync;
+    const root = options.repositoryRoot ?? repositoryRoot;
 
     for (const [command, args] of commands) {
-        runCommand(command, args, { stdio: "inherit" });
+        runCommand(command, args, { cwd: root, stdio: "inherit" });
     }
 
     return commands.length;
