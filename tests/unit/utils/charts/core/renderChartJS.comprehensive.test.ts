@@ -670,7 +670,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
     describe("chartSettingsManager Object", () => {
         it("should provide getFieldVisibility method with settings state manager", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { chartSettingsManager } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -684,7 +684,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should provide getSettings method with state fallback", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { chartSettingsManager } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -710,7 +710,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should provide setFieldVisibility with state updates", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             const { chartSettingsManager } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -729,7 +729,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should provide updateSettings method with persistence", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             const { chartSettingsManager } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -757,7 +757,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should skip cache invalidation for display-only changes", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const module =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -779,7 +779,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should invalidate render caches when unit settings change", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const module =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -804,7 +804,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
     describe("chart Plugin Registration", () => {
         it("should register Chart.js zoom plugin when available", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             globalThis.Chart = {
                 register: vi.fn<MockFn>(),
                 Zoom: {},
@@ -820,7 +820,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should register background color plugin when Chart.js available", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             globalThis.Chart = {
                 register: vi.fn<MockFn>(),
                 registry: {
@@ -840,7 +840,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should handle Chart.js not available scenario", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             globalThis.Chart = null;
 
             const { chartActions, chartState } =
@@ -858,7 +858,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
     describe("chartState Object - Computed Properties", () => {
         it("should provide chartData from state", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { chartState } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -871,7 +871,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should provide hasValidData computed property", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { chartState } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -884,7 +884,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should handle invalid data in hasValidData", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
             mocks.stateManager.getState.mockReturnValue(null);
             const { chartState } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
@@ -895,7 +895,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should provide renderableFields with visibility filtering", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
             const { chartState } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -910,7 +910,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should handle no valid data in renderableFields", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
             mocks.stateManager.getState.mockReturnValue(null);
             const { chartState } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
@@ -923,7 +923,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
     describe("chartActions Object - State Management", () => {
         it("should clear charts and reset state", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             const mockChart = { destroy: vi.fn<MockFn>() };
             globalThis._chartjsInstances = [mockChart];
 
@@ -949,7 +949,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should handle chart destruction errors gracefully", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const mockChart = {
                 destroy: vi.fn<MockFn>().mockImplementation(() => {
                     throw new Error("Destroy failed");
@@ -965,7 +965,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should complete rendering with success", async () => {
-            expect.hasAssertions();
+            expect.assertions(4);
             const { chartActions } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -996,7 +996,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should complete rendering with failure", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             const { chartActions } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -1020,7 +1020,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should start rendering process", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             const { chartActions } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -1045,7 +1045,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should select chart and trigger re-render when rendered", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             mocks.stateManager.getState.mockImplementation((path) => {
                 if (path === "charts.isRendered") return true;
                 return null;
@@ -1070,7 +1070,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should toggle controls visibility", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             const { chartActions } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -1095,7 +1095,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
     describe("exportChartsWithState Function", () => {
         it("should handle no rendered charts scenario", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             mocks.stateManager.getState.mockImplementation((path) => {
                 if (path === "charts.isRendered") return false;
                 return null;
@@ -1112,7 +1112,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should export charts when available", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
             mocks.stateManager.getState.mockImplementation((path) => {
                 if (path === "charts.isRendered") return true;
                 return null;
@@ -1137,7 +1137,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
     describe("main renderChartJS Function - Core Rendering", () => {
         it("should execute chart rendering with valid data", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             const { renderChartJS } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -1158,7 +1158,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should handle string container ID parameter", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             global.document.getElementById.mockReturnValue(
                 document.createElement("div")
             );
@@ -1175,7 +1175,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should handle no valid data scenario", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             mocks.stateManager.getState.mockImplementation((path) => {
                 if (path === "globalData") return null;
                 return null;
@@ -1196,7 +1196,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should handle Chart.js not available error", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             globalThis.Chart = null;
 
             const { renderChartJS } =
@@ -1211,7 +1211,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should handle empty record messages", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             mocks.stateManager.getState.mockImplementation((path) => {
                 if (path === "globalData") return { recordMesgs: [] };
                 return null;
@@ -1232,7 +1232,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should handle debouncing of rapid render calls", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { renderChartJS } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -1258,7 +1258,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should handle critical error in chart rendering", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             // Mock setupZoneData to throw error
             mocks.setupZoneData.setupZoneData.mockImplementation(() => {
                 throw new Error("Critical setup error");
@@ -1279,7 +1279,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should handle no container scenario with placeholder content", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
             mocks.stateManager.getState.mockImplementation((path) => {
                 if (path === "globalData") return { recordMesgs: [] };
                 return null;
@@ -1297,7 +1297,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
     describe("renderChartsWithData Function - Data Processing", () => {
         it("should process chart data with unit conversion", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             // Test is implicitly covered by main renderChartJS function
             // Since renderChartsWithData is private, it's tested through public interface
 
@@ -1313,7 +1313,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should handle settings validation and boolean conversion", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             mocks.settingsStateManager.getChartSettings.mockReturnValue({
                 showFill: "on",
                 showGrid: "off",
@@ -1332,7 +1332,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should reuse cached chart series for display-only setting changes", async () => {
-            expect.hasAssertions();
+            expect.assertions(8);
             const sharedData = {
                 recordMesgs: [
                     { timestamp: 1000, speed: 10, elevation: 100 },
@@ -1410,7 +1410,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
     describe("performance and Monitoring", () => {
         it("should track performance timing", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             global.window.performance.now
                 .mockReturnValueOnce(1000)
                 .mockReturnValueOnce(1500);
@@ -1425,7 +1425,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should update performance state on completion", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             const { renderChartJS } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -1447,7 +1447,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
     describe("integration and Complex Workflows", () => {
         it("should handle complete chart lifecycle with all components", async () => {
-            expect.hasAssertions();
+            expect.assertions(8);
             globalThis._chartjsInstances = [
                 { destroy: vi.fn<MockFn>() },
                 { destroy: vi.fn<MockFn>() },
@@ -1489,7 +1489,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should handle theme configuration integration", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const themeMod =
                 await import("../../../../../electron-app/utils/theming/core/theme.js");
             const { renderChartJS } =
@@ -1502,7 +1502,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should integrate with all chart rendering modules", async () => {
-            expect.hasAssertions();
+            expect.assertions(9);
             const { renderChartJS } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -1541,7 +1541,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
     describe("edge Cases and Error Scenarios", () => {
         it("should handle malformed record messages", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
             mocks.stateManager.getState.mockImplementation((path) => {
                 if (path === "globalData")
                     return {
@@ -1563,7 +1563,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should handle missing field data gracefully", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
             mocks.formatChartFields.formatChartFields = [];
 
             const { renderChartJS } =
@@ -1575,7 +1575,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should handle DOM manipulation errors", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
             // Cause a DOM error inside the normal rendering path (try block)
             const originalCreateElement = global.document.createElement.bind(
                 global.document
@@ -1601,7 +1601,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
     describe("state Utility Functions", () => {
         it("should provide resetChartNotificationState function", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
             const { previousChartState, resetChartNotificationState } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -1618,7 +1618,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should provide updatePreviousChartState function", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const { previousChartState, updatePreviousChartState } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
