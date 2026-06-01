@@ -161,7 +161,7 @@ describe("renderChartJS.js state API", () => {
 
     describe("hexToRgba function - Color Conversion Utility", () => {
         it("should convert hex color to rgba format", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const result = hexToRgba("#ff0000", 0.5);
             expect(result).toBe("rgba(255, 0, 0, 0.5)");
@@ -169,7 +169,7 @@ describe("renderChartJS.js state API", () => {
         });
 
         it("should handle different hex color values", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             expect(hexToRgba("#000000", 1.0)).toBe("rgba(0, 0, 0, 1)");
             expect(hexToRgba("#ffffff", 0.0)).toBe("rgba(255, 255, 255, 0)");
@@ -177,14 +177,14 @@ describe("renderChartJS.js state API", () => {
         });
 
         it("should handle edge case alpha values", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             expect(hexToRgba("#ff0000", 0)).toBe("rgba(255, 0, 0, 0)");
             expect(hexToRgba("#ff0000", 1)).toBe("rgba(255, 0, 0, 1)");
         });
 
         it("should parse hex colors correctly regardless of case", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             expect(hexToRgba("#ABCDEF", 0.5)).toBe("rgba(171, 205, 239, 0.5)");
             expect(hexToRgba("#abcdef", 0.5)).toBe("rgba(171, 205, 239, 0.5)");
@@ -193,7 +193,7 @@ describe("renderChartJS.js state API", () => {
 
     describe("updatePreviousChartState function - State Tracking", () => {
         it("should update previousChartState object correctly", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             const chartCount = 5;
             const visibleFields = 3;
@@ -210,7 +210,7 @@ describe("renderChartJS.js state API", () => {
         });
 
         it("should call updateState with correct parameters", async () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             const { updateState } =
                 await import("../../../electron-app/utils/state/core/stateManager.js");
@@ -238,7 +238,7 @@ describe("renderChartJS.js state API", () => {
         });
 
         it("should handle zero values correctly", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             updatePreviousChartState(0, 0, 0);
 
@@ -250,7 +250,7 @@ describe("renderChartJS.js state API", () => {
         });
 
         it("should handle large values correctly", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const largeCount = 999999;
             const largeFields = 100;
@@ -266,7 +266,7 @@ describe("renderChartJS.js state API", () => {
 
     describe("resetChartNotificationState function - State Reset", () => {
         it("should reset all chart state values to defaults", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             // First set some values
             previousChartState.chartCount = 10;
@@ -289,7 +289,7 @@ describe("renderChartJS.js state API", () => {
         });
 
         it("should work correctly when called multiple times", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             resetChartNotificationState();
             resetChartNotificationState();
@@ -303,7 +303,7 @@ describe("renderChartJS.js state API", () => {
         });
 
         it("should work when state is already reset", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             resetChartNotificationState();
 
@@ -317,7 +317,7 @@ describe("renderChartJS.js state API", () => {
 
     describe("refreshChartsIfNeeded function - Conditional Refresh Logic", () => {
         it("should return false when no valid data exists", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             // Mock state to have no data
             globalMockState.data.set("globalData", null);
@@ -333,7 +333,7 @@ describe("renderChartJS.js state API", () => {
         });
 
         it("should return false when currently rendering", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             // Mock state to have data but currently rendering
             globalMockState.data.set("globalData", {
@@ -355,7 +355,7 @@ describe("renderChartJS.js state API", () => {
         });
 
         it("should handle empty recordMesgs array", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             globalMockState.data.set("globalData", {
                 recordMesgs: [], // Empty array
@@ -370,7 +370,7 @@ describe("renderChartJS.js state API", () => {
 
     describe("getChartStatus function - Status Information Retrieval", () => {
         it("should return chart status object", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             globalMockState.data.set("charts.isRendered", true);
             globalMockState.data.set("charts.isRendering", false);
@@ -404,7 +404,7 @@ describe("renderChartJS.js state API", () => {
         });
 
         it("should return default values when state is empty", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             // Clear all state
             globalMockState.data.clear();
@@ -426,7 +426,7 @@ describe("renderChartJS.js state API", () => {
         });
 
         it("should correctly detect hasData with various data states", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             expect(getChartStatus()).toMatchObject({ hasData: null });
 
@@ -437,28 +437,28 @@ describe("renderChartJS.js state API", () => {
 
     describe("chartState object - State Getters", () => {
         it("should correctly get isRendered state", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             // Our mock always returns false for isRendered
             expect(chartState.isRendered).toStrictEqual(false);
         });
 
         it("should correctly get isRendering state", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             // Our mock always returns false for isRendering
             expect(chartState.isRendering).toStrictEqual(false);
         });
 
         it("should correctly get controlsVisible with default true", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             // Our mock always returns true for controlsVisible
             expect(chartState.controlsVisible).toStrictEqual(true);
         });
 
         it("should correctly get selectedChart with default", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             // Our mock always returns 'elevation' for selectedChart
             expect(chartState.selectedChart).toBe("elevation");
@@ -468,7 +468,7 @@ describe("renderChartJS.js state API", () => {
     });
 
     it("should correctly detect hasValidData", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         // Our mock always returns null for globalData which means hasValidData will be null
         expect(chartState.hasValidData).toBeNull();
@@ -483,7 +483,7 @@ describe("chartActions object - State Actions", () => {
     });
 
     it("should correctly start rendering process", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const { setState } =
             await import("../../../electron-app/utils/state/core/stateManager.js");
@@ -503,7 +503,7 @@ describe("chartActions object - State Actions", () => {
     });
 
     it("should correctly complete rendering process on success", async () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         const { updateState, setState } =
             await import("../../../electron-app/utils/state/core/stateManager.js");
@@ -546,7 +546,7 @@ describe("chartActions object - State Actions", () => {
     });
 
     it("should correctly complete rendering process on failure", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const { updateState, setState } =
             await import("../../../electron-app/utils/state/core/stateManager.js");
@@ -590,7 +590,7 @@ describe("integration and error handling", () => {
     });
 
     it("should read chart status without throwing when state is undefined", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         expect(getChartStatus()).toEqual({
             chartOptions: null,
@@ -607,7 +607,7 @@ describe("integration and error handling", () => {
     });
 
     it("should work with undefined state values", () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         // Default values from our mock
         expect(chartState.isRendered).toStrictEqual(false);
