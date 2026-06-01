@@ -4,14 +4,19 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
+    rootElectronAppBaseTsconfigPath,
+    rootElectronAppEslintTsconfigPath,
     appSourceRepositoryPath,
     docusaurusPackageRepositoryPath,
+    rootElectronBuilderConfigPath,
     rootElectronAppTsconfigPath,
     rootEslintConfigPath,
     rootPackageRepositoryPath,
     rootPlaywrightConfigPath,
     rootPrettierConfigPath,
     rootRuntimeTsconfigPath,
+    rootStylelintConfigPath,
+    rootViteRendererConfigPath,
     rootVitestConfigPath,
 } from "../../../scripts/lib/workspaces.mjs";
 
@@ -293,11 +298,16 @@ describe("workspace package boundaries", () => {
         expect.assertions(2);
 
         const rootToolingConfigs = [
+            rootElectronAppBaseTsconfigPath,
+            rootElectronAppEslintTsconfigPath,
+            rootElectronBuilderConfigPath,
             rootEslintConfigPath,
             rootPrettierConfigPath,
+            rootStylelintConfigPath,
             rootVitestConfigPath,
             rootElectronAppTsconfigPath,
             rootRuntimeTsconfigPath,
+            rootViteRendererConfigPath,
             rootPlaywrightConfigPath,
         ];
         const appLocalToolingConfigs = [
@@ -309,6 +319,11 @@ describe("workspace package boundaries", () => {
             ".prettierrc.cjs",
             ".prettierrc.js",
             ".prettierrc.json",
+            ".stylelintrc",
+            ".stylelintrc.cjs",
+            ".stylelintrc.js",
+            ".stylelintrc.json",
+            "electron-builder.config.cjs",
             "eslint.config.mjs",
             "package-lock.json",
             "package.json",
@@ -316,7 +331,10 @@ describe("workspace package boundaries", () => {
             "prettier.config.mjs",
             "stylelint.config.mjs",
             "tsconfig.json",
+            "tsconfig.electron-app.base.json",
+            "tsconfig.electron-app.eslint.json",
             "tsconfig.runtime.json",
+            "vite.renderer.config.mjs",
             "vitest.config.js",
             "vitest.config.ts",
         ].map((configPath) => appSourceRepositoryPath(configPath));
