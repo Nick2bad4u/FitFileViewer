@@ -148,12 +148,12 @@ describe("preload.js - Development mode coverage", () => {
             })
         );
 
-        // getPreloadInfo returns structure with constants and apiMethods
+        // getPreloadInfo returns structure with constants and exposed API methods
         const info = devTools.getPreloadInfo();
-        expect(info).toHaveProperty("apiMethods");
-        expect(info.apiMethods).toBeInstanceOf(Array);
-        expect(info).toHaveProperty("constants");
+        expect(info.apiMethods).toStrictEqual(Object.keys(api));
         expect(info.constants).toHaveProperty("CHANNELS");
+        expect(info.constants).toHaveProperty("EVENTS");
+        expect(new Date(info.timestamp).toISOString()).toBe(info.timestamp);
 
         // testIPC should call through to ipcRenderer.invoke via electronAPI.getAppVersion and return true
         const ok = await devTools.testIPC();
