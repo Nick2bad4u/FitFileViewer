@@ -35,6 +35,9 @@ describe(createGlobalChartStatusIndicator, () => {
     let root: HTMLDivElement;
 
     beforeEach(() => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2026-01-02T03:04:05.006Z"));
+
         // DOM reset
         document.body.innerHTML = "";
         root = document.createElement("div");
@@ -58,6 +61,7 @@ describe(createGlobalChartStatusIndicator, () => {
     });
 
     afterEach(() => {
+        vi.useRealTimers();
         document.body.innerHTML = "";
         vi.resetAllMocks();
         vi.restoreAllMocks();
@@ -72,9 +76,7 @@ describe(createGlobalChartStatusIndicator, () => {
         const result = createGlobalChartStatusIndicator();
         expect(result).toBeNull();
         expect(console.warn).toHaveBeenCalledWith(
-            expect.stringContaining(
-                "[GlobalChartStatus] Chart tab content not found"
-            ),
+            "2026-01-02T03:04:05.006Z [GlobalChartStatus] Chart tab content not found",
             { id: "content_chartjs" }
         );
     });
@@ -160,9 +162,7 @@ describe(createGlobalChartStatusIndicator, () => {
         const indicator2 = createGlobalChartStatusIndicator();
         expect(indicator2).toBeInstanceOf(HTMLElement);
         expect(console.warn).toHaveBeenCalledWith(
-            expect.stringContaining(
-                "[GlobalChartStatus] Chart container not found"
-            ),
+            "2026-01-02T03:04:05.006Z [GlobalChartStatus] Chart container not found",
             { id: "chartjs_chart_container" }
         );
     });

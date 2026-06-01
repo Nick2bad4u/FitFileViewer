@@ -198,10 +198,10 @@ describe("renderZoneChartNew", () => {
                 }),
             });
         expect(legendLabels).toHaveLength(2);
-        expect(legendLabels[0].text).toContain("formatted-120");
+        expect(legendLabels[0].text).toBe("Z1: formatted-120 (66.7%)");
         expect(legendLabels[1]).toMatchObject({
             hidden: true,
-            text: expect.stringContaining("formatted-60"),
+            text: "Z2: formatted-60 (33.3%)",
         });
 
         const tooltipLines = config.options.plugins.tooltip.callbacks.label({

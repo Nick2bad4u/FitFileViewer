@@ -143,7 +143,7 @@ describe("setupTheme", () => {
         expect(result).toBe("light");
         expect(applyTheme).toHaveBeenCalledWith("light");
         expect(consoleWarnSpy).toHaveBeenCalledWith(
-            expect.stringContaining("getTheme not available")
+            "[ThemeSetup] ElectronAPI getTheme not available, using default theme"
         );
     });
 
@@ -168,7 +168,7 @@ describe("setupTheme", () => {
             expect(result).toBe("dark");
             expect(applyTheme).toHaveBeenCalledWith("dark");
             expect(consoleWarnSpy).toHaveBeenCalledWith(
-                expect.stringContaining("Failed to read from localStorage")
+                "[ThemeSetup] Failed to read from localStorage: storage failure"
             );
         } finally {
             getItemSpy.mockRestore();
