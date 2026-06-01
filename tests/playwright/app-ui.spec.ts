@@ -18,6 +18,13 @@ const reportedFailureNeedles = [
     "Error during chart rendering",
 ] as const;
 
+type ActivityUiState = {
+    activeFileName: string;
+    recordCount: number;
+    sessionCount: number;
+    title: string;
+};
+
 const mapTileHosts = new Set([
     "basemaps.cartocdn.com",
     "server.arcgisonline.com",
@@ -135,6 +142,18 @@ test.describe("FitFileViewer Electron UI", () => {
         });
     }
 
+    async function getActivityUiState(): Promise<ActivityUiState> {
+        return page.evaluate(() => ({
+            activeFileName:
+                document
+                    .querySelector("#active_file_name")
+                    ?.textContent?.trim() ?? "",
+            recordCount: window.globalData?.recordMesgs?.length ?? 0,
+            sessionCount: window.globalData?.sessionMesgs?.length ?? 0,
+            title: document.title,
+        }));
+    }
+
     test.beforeAll(async () => {
         electronApp = await electron.launch({
             args: [repositoryRoot, "--disable-http-cache"],
@@ -245,28 +264,12 @@ test.describe("FitFileViewer Electron UI", () => {
         try {
             await waitForOpenFileButtonReady();
 
-            const stateBeforeCancel = await page.evaluate(() => ({
-                activeFileName:
-                    document
-                        .querySelector("#active_file_name")
-                        ?.textContent?.trim() ?? "",
-                recordCount: window.globalData?.recordMesgs?.length ?? 0,
-                sessionCount: window.globalData?.sessionMesgs?.length ?? 0,
-                title: document.title,
-            }));
+            const stateBeforeCancel = await getActivityUiState();
 
             await page.locator("#open_file_btn").click();
             await expect.poll(getOpenFileDialogCallCount).toBe(1);
 
-            const stateAfterCancel = await page.evaluate(() => ({
-                activeFileName:
-                    document
-                        .querySelector("#active_file_name")
-                        ?.textContent?.trim() ?? "",
-                recordCount: window.globalData?.recordMesgs?.length ?? 0,
-                sessionCount: window.globalData?.sessionMesgs?.length ?? 0,
-                title: document.title,
-            }));
+            const stateAfterCancel = await getActivityUiState();
 
             expect(stateAfterCancel).toStrictEqual(stateBeforeCancel);
             expect(stateAfterCancel).toStrictEqual({
@@ -331,28 +334,12 @@ test.describe("FitFileViewer Electron UI", () => {
         try {
             await waitForOpenFileButtonReady();
 
-            const stateBeforeCancel = await page.evaluate(() => ({
-                activeFileName:
-                    document
-                        .querySelector("#active_file_name")
-                        ?.textContent?.trim() ?? "",
-                recordCount: window.globalData?.recordMesgs?.length ?? 0,
-                sessionCount: window.globalData?.sessionMesgs?.length ?? 0,
-                title: document.title,
-            }));
+            const stateBeforeCancel = await getActivityUiState();
 
             await page.locator("#open_file_btn").click();
             await expect.poll(getOpenFileDialogCallCount).toBe(1);
 
-            const stateAfterCancel = await page.evaluate(() => ({
-                activeFileName:
-                    document
-                        .querySelector("#active_file_name")
-                        ?.textContent?.trim() ?? "",
-                recordCount: window.globalData?.recordMesgs?.length ?? 0,
-                sessionCount: window.globalData?.sessionMesgs?.length ?? 0,
-                title: document.title,
-            }));
+            const stateAfterCancel = await getActivityUiState();
 
             expect(stateAfterCancel).toStrictEqual(stateBeforeCancel);
             expect(stateAfterCancel).toStrictEqual({
