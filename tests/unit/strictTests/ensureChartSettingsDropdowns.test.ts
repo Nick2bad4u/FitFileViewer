@@ -372,7 +372,7 @@ afterEach(() => {
 
 describe("ensureChartSettingsDropdowns integration", () => {
     it("returns default settings when container missing", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         setupDOM(false);
         const result = ensureChartSettingsDropdowns("chartjs-chart-container");
@@ -380,7 +380,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
     });
 
     it("creates panel, toggle button, and sections; moves zone controls after timeout", async () => {
-        expect.hasAssertions();
+        expect.assertions(14);
 
         setupDOM(true);
         seedGlobalData();
@@ -426,7 +426,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
     });
 
     it("range/toggle/select controls update settings and trigger re-render (debounced)", () => {
-        expect.hasAssertions();
+        expect.assertions(10);
 
         setupDOM(true);
         seedGlobalData();
@@ -480,7 +480,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
     });
 
     it("field toggle hides/shows and triggers state render and status updates; color picker updates", () => {
-        expect.hasAssertions();
+        expect.assertions(9);
 
         setupDOM(true);
         seedGlobalData();
@@ -529,7 +529,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
     });
 
     it("toggle all buttons update all fields and notify", () => {
-        expect.hasAssertions();
+        expect.assertions(10);
 
         setupDOM(true);
         seedGlobalData();
@@ -573,7 +573,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
     });
 
     it("export section: no charts warns; with charts opens modal and calls export utils", () => {
-        expect.hasAssertions();
+        expect.assertions(9);
 
         setupDOM(true);
         seedGlobalData();
@@ -639,7 +639,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
     });
 
     it("settings header reset button calls reset and re-enables after delay", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         setupDOM(true);
         seedGlobalData();

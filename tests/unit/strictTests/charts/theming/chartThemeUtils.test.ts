@@ -73,7 +73,7 @@ describe("detectCurrentTheme", () => {
     });
 
     it("returns dark when body has theme-dark class", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         document.body.classList.add("theme-dark");
 
@@ -81,7 +81,7 @@ describe("detectCurrentTheme", () => {
     });
 
     it("returns light when body has theme-light class", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         document.body.classList.add("theme-light");
 
@@ -89,7 +89,7 @@ describe("detectCurrentTheme", () => {
     });
 
     it("uses getEffectiveTheme when available", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         mockEffectiveTheme("dark");
 
@@ -97,7 +97,7 @@ describe("detectCurrentTheme", () => {
     });
 
     it("falls back to localStorage when getEffectiveTheme throws", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const consoleWarn = vi
             .spyOn(console, "warn")
@@ -113,7 +113,7 @@ describe("detectCurrentTheme", () => {
     });
 
     it("resolves auto to system dark via matchMedia", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         mockEffectiveTheme(null);
         setSavedTheme("auto");
@@ -123,7 +123,7 @@ describe("detectCurrentTheme", () => {
     });
 
     it("resolves auto to system light via matchMedia false", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         mockEffectiveTheme(null);
         setSavedTheme("auto");
@@ -133,7 +133,7 @@ describe("detectCurrentTheme", () => {
     });
 
     it("uses system preference fallback when no storage and no classes", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         mockEffectiveTheme(undefined);
         setMatchMedia(true);
@@ -142,7 +142,7 @@ describe("detectCurrentTheme", () => {
     });
 
     it("final fallback returns light when everything else unavailable", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const consoleWarn = vi
             .spyOn(console, "warn")

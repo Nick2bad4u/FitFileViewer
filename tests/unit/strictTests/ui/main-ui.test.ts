@@ -419,7 +419,7 @@ describe("main-ui.js core flows", () => {
     });
 
     it("unloads file via button and emits IPC", async () => {
-        expect.hasAssertions();
+        expect.assertions(8);
 
         const api = installElectronAPI();
         await importMainUI();
@@ -438,7 +438,7 @@ describe("main-ui.js core flows", () => {
     });
 
     it("opens summary column selector from IPC and clicks gear after delay", async () => {
-        expect.hasAssertions();
+        expect.assertions(10);
 
         await importMainUI();
         const summaryTab = getRequiredElement("tab-summary", HTMLButtonElement);
@@ -486,7 +486,7 @@ describe("main-ui.js core flows", () => {
     });
 
     it("sends fit file to Alt FIT iframe with proper base64", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         await importMainUI();
         const iframe = getRequiredElement("altfit-iframe", HTMLIFrameElement);
@@ -511,7 +511,7 @@ describe("main-ui.js core flows", () => {
     });
 
     it("drag and drop overlay shows/hides", async () => {
-        expect.hasAssertions();
+        expect.assertions(9);
 
         await importMainUI();
 
@@ -544,7 +544,7 @@ describe("main-ui.js core flows", () => {
     });
 
     it("processDroppedFile handles valid and invalid files and toggles loading", async () => {
-        expect.hasAssertions();
+        expect.assertions(17);
 
         await importMainUI();
         const handler = getDragDropHandler();
@@ -626,7 +626,7 @@ describe("main-ui.js core flows", () => {
     });
 
     it("external link handlers call electronAPI.openExternal", async () => {
-        expect.hasAssertions();
+        expect.assertions(7);
 
         await importMainUI();
         document.dispatchEvent(new Event("DOMContentLoaded"));
@@ -665,7 +665,7 @@ describe("main-ui.js core flows", () => {
     });
 
     it("does not fall back to window.open when openExternal fails", async () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         const api = installElectronAPI();
         api.openExternal.mockRejectedValueOnce(new Error("blocked"));
@@ -700,7 +700,7 @@ describe("main-ui.js core flows", () => {
     });
 
     it("dev helpers injectMenu and devCleanup work", async () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         const api = installElectronAPI();
         await importMainUI();
