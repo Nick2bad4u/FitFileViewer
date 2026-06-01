@@ -472,6 +472,18 @@ function getRegisteredIpcHandleChannels(): string[] {
     return harness.ipcMain.handle.mock.calls.map(([channel]) => channel);
 }
 
+function getRegisteredAutoUpdaterEvents(): string[] {
+    return [
+        ...new Set(
+            harness.autoUpdater.on.mock.calls.map(([eventName]) => eventName)
+        ),
+    ];
+}
+
+function getRegisteredWebContentsEvents(): string[] {
+    return harness.webContents.on.mock.calls.map(([eventName]) => eventName);
+}
+
 function getSentRendererChannels(): string[] {
     return harness.webContents.send.mock.calls.map(([channel]) => channel);
 }
@@ -484,7 +496,7 @@ function getSentUpdateChannels(): string[] {
 
 describe("main.js entrypoint behavior", () => {
     it("wires startup, IPC, updater, and renderer events through the real entry point", async () => {
-        expect.assertions(13);
+        expect.assertions(14);
 
         resetHarness();
 
@@ -511,14 +523,17 @@ describe("main.js entrypoint behavior", () => {
             expect(registeredIpcChannels).toContain("file:read");
             expect(registeredIpcChannels).toContain("fit:parse");
             expect(registeredIpcChannels).toContain("getAppVersion");
-            expect(harness.webContents.on).toHaveBeenCalledWith(
-                "did-finish-load",
-                expect.any(Function)
+            expect(getRegisteredWebContentsEvents()).toContain(
+                "did-finish-load"
             );
-            expect(harness.autoUpdater.on).toHaveBeenCalledWith(
+            expect(getRegisteredAutoUpdaterEvents()).toStrictEqual([
                 "checking-for-update",
-                expect.any(Function)
-            );
+                "download-progress",
+                "error",
+                "update-available",
+                "update-downloaded",
+                "update-not-available",
+            ]);
             expect(
                 harness.autoUpdater.checkForUpdatesAndNotify
             ).toHaveBeenCalledWith();
@@ -527,9 +542,25 @@ describe("main.js entrypoint behavior", () => {
                 "update-download-progress",
                 "update-downloaded",
             ]);
-            expect(
-                harness.session.defaultSession.webRequest.onBeforeRequest
-            ).toHaveBeenCalledWith(expect.any(Function));
+            const [blockedRequestListener] =
+                harness.session.defaultSession.webRequest.onBeforeRequest.mock
+                    .calls[0] ?? [];
+            const blockedRequestCallback =
+                vi.fn<(response: { cancel?: boolean }) => void>();
+            const allowedRequestCallback =
+                vi.fn<(response: { cancel?: boolean }) => void>();
+            blockedRequestListener?.(
+                { url: "https://ua.harryonline.net/collect" },
+                blockedRequestCallback
+            );
+            blockedRequestListener?.(
+                { url: "https://example.com/asset.js" },
+                allowedRequestCallback
+            );
+            expect(blockedRequestCallback).toHaveBeenCalledWith({
+                cancel: true,
+            });
+            expect(allowedRequestCallback).toHaveBeenCalledWith({});
         } finally {
             cleanupHarness();
         }
