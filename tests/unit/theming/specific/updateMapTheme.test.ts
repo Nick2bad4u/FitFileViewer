@@ -153,6 +153,7 @@ describe("updateMapTheme - comprehensive coverage", () => {
             expect.hasAssertions();
 
             // Setup - mock querySelector to throw
+            const { mapElement, tilePane } = setupLeafletDom();
             const querySelectorSpy = vi
                 .spyOn(document, "querySelector")
                 .mockImplementation((): never => {
@@ -161,16 +162,16 @@ describe("updateMapTheme - comprehensive coverage", () => {
             mockGetMapThemeInverted.mockReturnValue(true);
 
             try {
-                // Execute
-                expect(() => {
-                    updateMapTheme();
-                }).not.toThrow();
+                updateMapTheme();
 
                 // Verify error handling
                 expect(consoleErrorSpy).toHaveBeenCalledWith(
                     "[updateMapTheme] Error updating map theme:",
                     expect.any(Error)
                 );
+                expect(mapElement.isConnected).toBe(true);
+                expect(mapElement.style.filter).toBe("");
+                expect(tilePane.style.filter).toBe("");
             } finally {
                 // Restore original querySelector
                 querySelectorSpy.mockRestore();
@@ -294,11 +295,12 @@ describe("updateMapTheme - comprehensive coverage", () => {
         it("should handle cleanup when no listeners exist", () => {
             expect.hasAssertions();
 
-            // Execute - this should not throw
             const beforeUnloadEvent = new Event("beforeunload");
-            expect(() => {
-                window.dispatchEvent(beforeUnloadEvent);
-            }).not.toThrow();
+            const dispatched = window.dispatchEvent(beforeUnloadEvent);
+
+            expect(dispatched).toBe(true);
+            expect(beforeUnloadEvent.defaultPrevented).toBe(false);
+            expect(consoleLogSpy).not.toHaveBeenCalled();
         });
     });
 

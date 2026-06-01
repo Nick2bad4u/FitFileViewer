@@ -1089,9 +1089,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
             const data = [{ power: 200, heartRate: 120 }];
             const options = { maxPoints: 1000 };
 
-            expect(() =>
-                renderPowerVsHeartRateChart(container, data, options)
-            ).not.toThrow();
+            renderPowerVsHeartRateChart(container, data, options);
 
             expect(Chart).toHaveBeenCalledOnce();
             expect(container.children).toHaveLength(1);

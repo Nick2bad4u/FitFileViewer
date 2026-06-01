@@ -1125,9 +1125,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
                 showGrid: true,
             };
 
-            expect(() =>
-                renderAltitudeProfileChart(container, data, labels, options)
-            ).not.toThrow();
+            renderAltitudeProfileChart(container, data, labels, options);
 
             expect(console.error).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering altitude profile chart:",

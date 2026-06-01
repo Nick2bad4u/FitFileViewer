@@ -834,9 +834,10 @@ describe("chartStateManager", () => {
 
             document.body.innerHTML = ""; // Remove mock controls panel
 
-            expect(() =>
-                chartStateManager.updateControlsVisibility(true)
-            ).not.toThrow();
+            chartStateManager.updateControlsVisibility(true);
+
+            expect(document.querySelector(".chart-controls")).toBeNull();
+            expect(document.body.childElementCount).toBe(0);
         });
     });
 
