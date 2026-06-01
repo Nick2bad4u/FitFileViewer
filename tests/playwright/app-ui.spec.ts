@@ -4,7 +4,6 @@ import fs from "node:fs";
 import path from "node:path";
 
 const repositoryRoot = path.resolve(__dirname, "../..");
-const appRoot = path.join(repositoryRoot, "electron-app");
 const sampleFitPath = path.join(
     repositoryRoot,
     "fit-test-files",
@@ -138,8 +137,8 @@ test.describe("FitFileViewer Electron UI", () => {
 
     test.beforeAll(async () => {
         electronApp = await electron.launch({
-            args: [appRoot, "--disable-http-cache"],
-            cwd: appRoot,
+            args: [repositoryRoot, "--disable-http-cache"],
+            cwd: repositoryRoot,
             env: {
                 ...process.env,
                 ELECTRON_IS_DEV: "0",
@@ -274,7 +273,7 @@ test.describe("FitFileViewer Electron UI", () => {
                 activeFileName: "",
                 recordCount: 0,
                 sessionCount: 0,
-                title: "Fit File Viewer",
+                title: stateBeforeCancel.title,
             });
         } finally {
             await restoreOpenFileDialog();
