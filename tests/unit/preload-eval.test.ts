@@ -5,6 +5,21 @@ type ExposeInMainWorld = (name: string, api: unknown) => void;
 type IpcInvoke = (...args: unknown[]) => Promise<string>;
 type IpcListener = (...args: unknown[]) => void;
 
+interface ExposedElectronApi {
+    getAppVersion: () => Promise<string>;
+    invoke: (...args: unknown[]) => Promise<string>;
+    validateAPI: () => boolean;
+}
+
+interface ExposedDevTools {
+    getPreloadInfo: () => {
+        apiMethods: string[];
+        version: string;
+    };
+    logAPIState: () => void;
+    testIPC: () => Promise<boolean>;
+}
+
 interface ElectronEvalMock {
     contextBridge: {
         exposeInMainWorld: ReturnType<typeof vi.fn<ExposeInMainWorld>>;
@@ -71,43 +86,81 @@ describe("preload.js - Script Evaluation Test", () => {
         process.env.NODE_ENV = originalNodeEnv;
     });
 
-    it("should execute the preload script and expose APIs", () => {
-        expect.assertions(4);
+    it("should execute the preload script and expose APIs", async () => {
+        expect.assertions(9);
         // Check if contextBridge.exposeInMainWorld was called
         const exposeCalls =
             electronMock.contextBridge.exposeInMainWorld.mock.calls;
+        const electronAPI = exposeCalls[0]?.[1] as ExposedElectronApi;
+        const devTools = exposeCalls[1]?.[1] as ExposedDevTools;
+
         expect(exposeCalls.map((call: unknown[]) => call[0])).toEqual([
             "electronAPI",
             devToolsApiName,
         ]);
-        expect(exposeCalls[0]?.[1]).toEqual(
+        expect(
+            Object.fromEntries(
+                [
+                    "getAppVersion",
+                    "invoke",
+                    "validateAPI",
+                ].map((methodName) => [
+                    methodName,
+                    Object.hasOwn(electronAPI, methodName),
+                ])
+            )
+        ).toEqual({
+            getAppVersion: true,
+            invoke: true,
+            validateAPI: true,
+        });
+        expect(electronAPI.validateAPI()).toBe(true);
+        expect(
+            Object.fromEntries(
+                [
+                    "getPreloadInfo",
+                    "logAPIState",
+                    "testIPC",
+                ].map((methodName) => [
+                    methodName,
+                    Object.hasOwn(devTools, methodName),
+                ])
+            )
+        ).toEqual({
+            getPreloadInfo: true,
+            logAPIState: true,
+            testIPC: true,
+        });
+        expect(devTools.getPreloadInfo()).toMatchObject({
+            apiMethods: Object.keys(electronAPI),
+            version: "1.0.0",
+        });
+        devTools.logAPIState();
+        expect(consoleLogSpy).toHaveBeenCalledWith(
+            "[preload.js] Current API State:",
             expect.objectContaining({
-                getAppVersion: expect.any(Function),
-                invoke: expect.any(Function),
-                validateAPI: expect.any(Function),
+                electronAPI: "object",
+                methodCount: Object.keys(electronAPI).length,
             })
         );
-        expect(exposeCalls[1]?.[1]).toEqual(
-            expect.objectContaining({
-                getPreloadInfo: expect.any(Function),
-                logAPIState: expect.any(Function),
-                testIPC: expect.any(Function),
-            })
+        await expect(devTools.testIPC()).resolves.toBe(true);
+        expect(electronMock.ipcRenderer.invoke).toHaveBeenCalledWith(
+            "getAppVersion"
         );
         expect(consoleErrorSpy).not.toHaveBeenCalled();
     });
 
     it("should register process beforeExit handler", () => {
         expect.assertions(3);
-        expect(processOnceSpy).toHaveBeenCalledWith(
-            "beforeExit",
-            expect.any(Function)
-        );
         const beforeExit = onceCalls.find(
             (call) => call.event === "beforeExit"
         );
+        expect(processOnceSpy.mock.calls).toContainEqual([
+            "beforeExit",
+            beforeExit?.cb,
+        ]);
         expect(beforeExit).toEqual({
-            cb: expect.any(Function),
+            cb: beforeExit?.cb,
             event: "beforeExit",
         });
 
