@@ -148,8 +148,8 @@ describe("settingsStateManager.js - simplified coverage", () => {
                 expect(settingsStateManager.subscribers).toBeInstanceOf(Map);
                 expect(settingsStateManager.subscribers.size).toBe(0);
                 expect(
-                    settingsStateManager.subscribers.has("missing")
-                ).not.toBe(true);
+                    settingsStateManager.subscribers.get("missing")
+                ).toBeUndefined();
             });
         });
 
