@@ -106,9 +106,12 @@ describe("renderer vendor asset policy", () => {
             []
         );
         expect(browserPackagesInProductionDependencies).toStrictEqual([]);
-        expect(vendorBundleSource).toEqual(
-            expect.stringContaining('from "chart.js/auto"')
-        );
+        expect(
+            ['from "chart.js/auto"'].filter(
+                (importStatement) =>
+                    !vendorBundleSource.includes(importStatement)
+            )
+        ).toStrictEqual([]);
         expect(vendorBrowserPackageImports).toStrictEqual(
             new Set(rendererBrowserPackages)
         );

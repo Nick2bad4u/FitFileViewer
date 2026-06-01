@@ -15,27 +15,25 @@ describe("pre-commit configuration", () => {
         expect.assertions(2);
 
         const config = readPreCommitConfig();
+        const requiredRootEntries = ["entry: node scripts/run-eslint.mjs root"];
 
         expect(config).not.toContain("pre-commit/mirrors-eslint");
-        expect(config).toEqual(
-            expect.stringContaining("entry: node scripts/run-eslint.mjs root")
-        );
+        expect(
+            requiredRootEntries.filter((entry) => !config.includes(entry))
+        ).toStrictEqual([]);
     });
 
     it("covers Electron and Docusaurus code through the root ESLint wrapper", () => {
-        expect.assertions(2);
+        expect.assertions(1);
 
         const config = readPreCommitConfig();
+        const requiredRootEntries = [
+            "entry: node scripts/run-eslint.mjs docusaurus",
+            "entry: node scripts/run-eslint.mjs electronApp",
+        ];
 
-        expect(config).toEqual(
-            expect.stringContaining(
-                "entry: node scripts/run-eslint.mjs docusaurus"
-            )
-        );
-        expect(config).toEqual(
-            expect.stringContaining(
-                "entry: node scripts/run-eslint.mjs electronApp"
-            )
-        );
+        expect(
+            requiredRootEntries.filter((entry) => !config.includes(entry))
+        ).toStrictEqual([]);
     });
 });

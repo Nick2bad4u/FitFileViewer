@@ -9,23 +9,18 @@ function readWorkspaceFile(relativePath: string): string {
 
 describe("gyazo setup documentation", () => {
     it("points users at current TypeScript runtime files and root build flow", () => {
-        expect.assertions(3);
+        expect.assertions(1);
 
         const guide = readWorkspaceFile("docs/GYAZO_SETUP.md");
+        const requiredGuideSnippets = [
+            "electron-app/utils/files/export/exportUtils.ts",
+            "electron-app/main/oauth/gyazoOAuthServer.ts",
+            "npm run build:runtime-ts",
+        ];
 
-        expect(guide).toEqual(
-            expect.stringContaining(
-                "electron-app/utils/files/export/exportUtils.ts"
-            )
-        );
-        expect(guide).toEqual(
-            expect.stringContaining(
-                "electron-app/main/oauth/gyazoOAuthServer.ts"
-            )
-        );
-        expect(guide).toEqual(
-            expect.stringContaining("npm run build:runtime-ts")
-        );
+        expect(
+            requiredGuideSnippets.filter((snippet) => !guide.includes(snippet))
+        ).toStrictEqual([]);
     });
 
     it("does not tell users to edit removed JavaScript paths or source credentials", () => {
