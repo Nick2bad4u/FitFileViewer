@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import {
     rootElectronAppBaseTsconfigPath,
     rootElectronAppEslintTsconfigPath,
+    appTypesPath,
     appSourceRepositoryPath,
     docusaurusPackageRepositoryPath,
     rootElectronBuilderConfigPath,
@@ -390,6 +391,24 @@ describe("workspace package boundaries", () => {
         });
 
         expect(staleReferences).toStrictEqual([]);
+    });
+
+    it("keeps generated declaration ignores pointed at the app output path", () => {
+        expect.assertions(3);
+
+        const prettierIgnore = readFileSync(
+            path.join(process.cwd(), ".prettierignore"),
+            "utf8"
+        );
+        const gitignore = readFileSync(
+            path.join(process.cwd(), ".gitignore"),
+            "utf8"
+        );
+        const appTypesIgnorePath = `${appTypesPath.replaceAll(path.sep, "/")}/`;
+
+        expect(prettierIgnore).toContain(appTypesIgnorePath);
+        expect(gitignore).toContain(appTypesIgnorePath);
+        expect(prettierIgnore).not.toMatch(/^types\/$/mu);
     });
 
     it("keeps the root Playwright smoke config strict", () => {
