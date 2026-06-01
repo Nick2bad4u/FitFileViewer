@@ -105,6 +105,29 @@ describe("run-playwright script", () => {
         });
     });
 
+    it("returns the runtime build failure before launching Playwright", () => {
+        expect.assertions(2);
+
+        const commandRunner = vi
+            .fn<CommandRunner>()
+            .mockReturnValue({ status: 7 });
+        const logger = vi.fn<(message: string) => void>();
+
+        const status = runPlaywright(["--headed"], commandRunner, logger);
+
+        expect(status).toBe(7);
+        expect(commandRunner.mock.calls).toStrictEqual([
+            [
+                process.execPath,
+                [buildRuntimeScriptPath],
+                {
+                    cwd: process.cwd(),
+                    stdio: "inherit",
+                },
+            ],
+        ]);
+    });
+
     it("throws when a Playwright step runner reports a spawn error", () => {
         expect.assertions(1);
 
