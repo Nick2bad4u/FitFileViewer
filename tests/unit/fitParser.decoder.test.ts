@@ -865,7 +865,7 @@ describe("fitParser.js decoder behavior", () => {
 
             expect(result.activity).toEqual([{ sport: "cycling" }]);
             expect(console.warn).toHaveBeenCalledWith(
-                expect.stringContaining("Failed to update loading progress"),
+                "[FitParser] Failed to update loading progress:",
                 stateUpdateError
             );
         });
@@ -893,7 +893,7 @@ describe("fitParser.js decoder behavior", () => {
 
             expect(result.error).toContain("FIT file integrity check failed");
             expect(console.warn).toHaveBeenCalledWith(
-                expect.stringContaining("Failed to update error state"),
+                "[FitParser] Failed to update error state:",
                 errorStateUpdateError
             );
         });
@@ -915,9 +915,7 @@ describe("fitParser.js decoder behavior", () => {
             const result = await fitParser.decodeFitFile(buffer);
 
             expect(result.error).toBe("Unexpected error");
-            expect(result.details).toEqual(
-                expect.stringContaining("Error: Unexpected error")
-            );
+            expect(result.details).toBe(unexpectedError.stack);
             expect(console.error).toHaveBeenCalledWith(
                 "[FitParser] Failed to decode file",
                 unexpectedError
