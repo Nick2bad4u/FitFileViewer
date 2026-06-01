@@ -74,7 +74,7 @@ describe("keyboardShortcutsModal", () => {
     });
 
     it("creates and displays the modal when triggered", async () => {
-        expect.hasAssertions();
+        expect.assertions(10);
 
         const { showKeyboardShortcutsModal } = await loadModal();
         const trigger = document.createElement("button");
@@ -118,7 +118,7 @@ describe("keyboardShortcutsModal", () => {
     });
 
     it("closes modal with animation and restores focus", async () => {
-        expect.hasAssertions();
+        expect.assertions(8);
 
         const { showKeyboardShortcutsModal, closeKeyboardShortcutsModal } =
             await loadModal();
@@ -160,7 +160,7 @@ describe("keyboardShortcutsModal", () => {
     });
 
     it("closes when Escape is pressed", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const { showKeyboardShortcutsModal } = await loadModal();
         vi.useFakeTimers();
@@ -191,7 +191,7 @@ describe("keyboardShortcutsModal", () => {
     });
 
     it("traps focus within the modal", async () => {
-        expect.hasAssertions();
+        expect.assertions(8);
 
         const { showKeyboardShortcutsModal } = await loadModal();
         vi.useFakeTimers();
@@ -235,7 +235,7 @@ describe("keyboardShortcutsModal", () => {
     });
 
     it("opens external links via electron API", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const { showKeyboardShortcutsModal } = await loadModal();
         vi.useFakeTimers();
