@@ -85,6 +85,15 @@ const requiredRootToolingDevDependencies = [
     "vitest",
 ] as const;
 
+const expectedRootToolingScripts = {
+    "lint:electron-app":
+        "node scripts/run-eslint.mjs electronApp && node scripts/run-typescript.mjs typecheck",
+    "lint:electron-app:fix":
+        "node scripts/run-eslint.mjs electronApp --fix && node scripts/run-typescript.mjs typecheck",
+    "test:ui": "node scripts/run-vitest.mjs --ui",
+    "update-deps": "node scripts/update-deps.mjs",
+} as const;
+
 function delegatesToNestedElectronPackage(script: string): boolean {
     return nestedElectronPackageDelegationPatterns.some((pattern) =>
         pattern.test(script)
@@ -98,14 +107,14 @@ describe("workspace package boundaries", () => {
         const rootPackage = readPackageJson("package.json");
 
         expect(rootPackage.workspaces).toStrictEqual(["docusaurus"]);
-        expect(rootPackage.scripts).toMatchObject({
-            "lint:electron-app":
-                "node scripts/run-eslint.mjs electronApp && node scripts/run-typescript.mjs typecheck",
-            "lint:electron-app:fix":
-                "node scripts/run-eslint.mjs electronApp --fix && node scripts/run-typescript.mjs typecheck",
-            "test:ui": "node scripts/run-vitest.mjs --ui",
-            "update-deps": "node scripts/update-deps.mjs",
-        });
+        expect(
+            Object.fromEntries(
+                Object.keys(expectedRootToolingScripts).map((scriptName) => [
+                    scriptName,
+                    rootPackage.scripts?.[scriptName],
+                ])
+            )
+        ).toStrictEqual(expectedRootToolingScripts);
         expect(
             Object.fromEntries(
                 requiredRootToolingDevDependencies.map((dependencyName) => [
