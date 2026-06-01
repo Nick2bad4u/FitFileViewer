@@ -107,7 +107,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("extractTabName returns known ids and patterns, null for unknown", () => {
-        expect.hasAssertions();
+        expect.assertions(6);
         expect(tabStateManager.extractTabName("tab_data")).toBe("data");
         expect(tabStateManager.extractTabName("map_tab")).toBe("map");
         expect(tabStateManager.extractTabName("btn_summary")).toBe("summary");
@@ -119,7 +119,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleTabButtonClick ignores disabled buttons and prevents event", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
         const btn = document.createElement("button");
         btn.id = "tab_map";
         btn.className = "tab-button tab-disabled";
@@ -141,7 +141,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleTabButtonClick ignores when disabled attribute present", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
         const btn = document.createElement("button");
         btn.id = "tab_map";
         btn.className = "tab-button";
@@ -165,7 +165,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleTabButtonClick ignores when disabled property is true", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         const btn = document.createElement("button");
         btn.id = "tab_map";
         btn.className = "tab-button";
@@ -188,7 +188,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleTabButtonClick honors data requirement and avoids state update when missing", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         const btn = document.createElement("button");
         btn.id = "tab_data"; // requiresData: true
         btn.className = "tab-button";
@@ -213,7 +213,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleTabButtonClick with unknown tab id returns early without state change", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         const btn = document.createElement("button");
         btn.id = "tab_nonexistent";
         btn.className = "tab-button";
@@ -234,7 +234,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleTabButtonClick sets activeTab for valid click", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         const btn = document.createElement("button");
         btn.id = "tab_summary";
         btn.className = "tab-button";
@@ -261,7 +261,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("updateTabButtonStates toggles active and aria-selected", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
         const a = document.createElement("button");
         a.id = "tab_summary";
         a.className = "tab-button";
@@ -278,7 +278,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("updateContentVisibility hides all then shows active", () => {
-        expect.hasAssertions();
+        expect.assertions(16);
         Object.values(TAB_CONFIG).forEach((cfg) => {
             const el = document.createElement("div");
             el.id = cfg.contentId;
@@ -297,7 +297,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleTabChange updates previousTab and calls state update helpers", async () => {
-        expect.hasAssertions();
+        expect.assertions(5);
         const spyBtns = vi.spyOn(tabStateManager, "updateTabButtonStates");
         const spyContent = vi.spyOn(tabStateManager, "updateContentVisibility");
         const spySpecific = vi
@@ -313,7 +313,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleAltFitTab sets iframe src safely", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
         const iframe = document.createElement("iframe");
         iframe.id = "altfit_iframe";
         iframe.src = "about:blank";
@@ -324,7 +324,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleAltFitTab is idempotent when src already set", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
         const iframe = document.createElement("iframe");
         iframe.id = "altfit_iframe";
         // Pre-set to expected value
@@ -337,7 +337,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleAltFitTab does nothing for non-iframe element", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
         const div = document.createElement("div");
         div.id = "altfit_iframe";
         root.appendChild(div);
@@ -345,7 +345,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleSummaryTab renders when hash changes and stores lastDataHash", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
         const gd = { recordMesgs: [{ timestamp: 1 }, { timestamp: 2 }] };
         await tabStateManager.handleSummaryTab(gd);
         expect(gd.recordMesgs).toHaveLength(2);
@@ -362,7 +362,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("updateContentVisibility warns for unknown tab", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         const warnSpy = vi.spyOn(console, "warn");
         tabStateManager.updateContentVisibility("unknown");
         expect(TAB_CONFIG.unknown).toBeUndefined();
@@ -372,7 +372,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleTabSpecificLogic catches errors and continues (summary throws)", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         const view = /* @type {any} */ window.renderSummary;
         try {
             /* @type {any} */ vi.spyOn(
@@ -391,7 +391,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleTabSpecificLogic executes 'summary' branch normally and breaks", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
         // Ensure globalData present and summary hash differs so render occurs
         const gd = { recordMesgs: [{ timestamp: 1 }, { timestamp: 3 }] };
         mockGetState.mockImplementation((/* @type {any} */ key) => {
@@ -419,7 +419,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleSummaryTab no-op without renderer", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         const view = /* @type {any} */ window.renderSummary;
         // @ts-ignore
         // @ts-ignore
@@ -436,7 +436,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleChartTab sets charts.tabActive true regardless of render state", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
         await tabStateManager.handleChartTab({ recordMesgs: [{}] });
         expect(mockGetState("ui.activeTab")).toBe("summary");
         expect(mockSetState).toHaveBeenCalledWith(
@@ -462,7 +462,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleMapTab renders once and marks isRendered", async () => {
-        expect.hasAssertions();
+        expect.assertions(5);
         await tabStateManager.handleMapTab({ recordMesgs: [{}] });
         expect(mockGetState("ui.activeTab")).toBe("summary");
         expect(/* @type {any} */ window.renderMap).toHaveBeenCalledWith();
@@ -486,7 +486,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleDataTab moves background content when present, otherwise renders fresh tables", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         const bg = document.createElement("div");
         bg.id = "background_data_container";
         bg.appendChild(document.createElement("div"));
@@ -505,7 +505,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleChartTab/map/summary/data return early without data", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         await tabStateManager.handleChartTab(null);
         await tabStateManager.handleMapTab(null);
         await tabStateManager.handleSummaryTab(null);
@@ -520,7 +520,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("setupTabButtonHandlers attaches DOMContentLoaded handler when document is loading", () => {
-        expect.hasAssertions();
+        expect.assertions(7);
         // Force readyState to loading
         const origDesc = Object.getOwnPropertyDescriptor(
             Document.prototype,
@@ -561,7 +561,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("setupTabButtonHandlers attaches click listeners when document is ready", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
         // Create some tab buttons
         const a = document.createElement("button");
         a.id = TAB_CONFIG.summary.id;
@@ -599,7 +599,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("updateTabAvailability toggles disabled state for requiresData tabs", () => {
-        expect.hasAssertions();
+        expect.assertions(10);
         // Create buttons for all tabs
         Object.values(TAB_CONFIG).forEach((cfg) => {
             const btn = document.createElement("button");
@@ -627,7 +627,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("getActiveTabInfo returns elements and previous tab tracking", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
         const btn = document.createElement("button");
         btn.id = "tab_map";
         btn.className = "tab-button";
@@ -645,7 +645,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("getActiveTabInfo handles unknown activeTab gracefully", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
         mockGetState.mockImplementationOnce((/* @type {any} */ key) =>
             key === "ui.activeTab" ? "unknown" : null
         );
@@ -657,7 +657,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("hashData handles nulls and missing timestamps", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         // @ts-ignore accessing class method
         expect(tabStateManager.hashData(null)).toBe("");
         // missing timestamps -> 0 fallback
@@ -668,7 +668,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("switchToTab validates name and sets state", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
         expect(tabStateManager.switchToTab("nonexistent")).toBe(false);
         expect(mockSetState).not.toHaveBeenCalledWith(
             "ui.activeTab",
@@ -687,7 +687,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleTabButtonClick returns early when event has no currentTarget", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
         // Should not throw and should not set state
         expect(() =>
             tabStateManager.handleTabButtonClick(
@@ -703,7 +703,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("getDoc returns a usable document for DOM operations", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
         // Ensure a content element exists
         const content = document.createElement("div");
         content.id = "content_summary";
@@ -715,7 +715,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleTabSpecificLogic executes 'chartjs' branch and marks charts active", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         mockGetState.mockImplementation((/* @type {any} */ key) => {
             if (key === "globalData") return { recordMesgs: [{}] };
             if (key === "charts") return { isRendered: false };
@@ -735,7 +735,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleTabSpecificLogic executes 'map' branch and calls renderMap", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         mockGetState.mockImplementation((/* @type {any} */ key) => {
             if (key === "globalData") return { recordMesgs: [{}] };
             if (key === "map") return { isRendered: false };
@@ -748,7 +748,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleTabSpecificLogic executes 'data' branch and calls createTables when no background content", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         // No background_data_container present, so it should render fresh tables
         const vis = document.createElement("div");
         vis.id = "content_data";
@@ -765,7 +765,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleTabSpecificLogic executes 'altfit' branch and calls handleAltFitTab", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         const iframe = document.createElement("iframe");
         iframe.id = "altfit_iframe";
         root.appendChild(iframe);
@@ -777,7 +777,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleTabButtonClick returns early when button already active", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         const btn = document.createElement("button");
         btn.id = "tab_map";
         btn.className = "tab-button active";
@@ -800,7 +800,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleTabSpecificLogic returns early for unknown tab (no config)", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         await expect(
             tabStateManager.handleTabSpecificLogic(/* @type {any} */ "unknown")
         ).resolves.toBeUndefined();
@@ -808,7 +808,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("initializeSubscriptions callbacks invoke handlers when state changes", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
         // Re-initialize subscriptions after resetting mocks so calls are captured
         tabStateManager.initializeSubscriptions();
         // Retrieve the callbacks from the mock
@@ -860,7 +860,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("updateTabButtonStates tolerates per-button failures (catch path)", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         const a = document.createElement("button");
         a.id = "tab_summary";
         a.className = "tab-button";
@@ -885,7 +885,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleTabSpecificLogic default path logs for unsupported configured tab (zwift)", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
         const logSpy = vi.spyOn(console, "log");
         await expect(
             tabStateManager.handleTabSpecificLogic("zwift")
@@ -897,7 +897,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("cleanup marks uninitialized and removes listeners without throwing", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         // Add some tab buttons to attach listeners in setup
         Object.values(TAB_CONFIG).forEach((cfg) => {
             const btn = document.createElement("button");
