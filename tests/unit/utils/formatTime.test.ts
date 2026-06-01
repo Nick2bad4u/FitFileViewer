@@ -23,7 +23,7 @@ describe(formatTime, () => {
     });
 
     it("formats seconds as clock strings by default", () => {
-        expect.hasAssertions();
+        expect.assertions(7);
 
         expect(formatTime(0)).toBe("0:00");
         expect(formatTime(5)).toBe("0:05");
@@ -35,7 +35,7 @@ describe(formatTime, () => {
     });
 
     it("formats user-unit settings for seconds, minutes, and hours", () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         mockedGetChartSetting.mockReturnValue("seconds");
         expect(formatTime(90, true)).toBe("1:30");
@@ -52,14 +52,14 @@ describe(formatTime, () => {
     });
 
     it("does not read user settings when user units are disabled", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         expect(formatTime(90, false)).toBe("1:30");
         expect(mockedGetChartSetting).not.toHaveBeenCalled();
     });
 
     it("handles invalid-input values with warnings and the fallback time", () => {
-        expect.hasAssertions();
+        expect.assertions(13);
 
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
@@ -93,7 +93,7 @@ describe(formatTime, () => {
     });
 
     it("logs and returns the fallback time when formatting fails", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const errorSpy = vi
             .spyOn(console, "error")

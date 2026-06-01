@@ -39,7 +39,7 @@ describe(formatProduct, () => {
     });
 
     it("formats product lookup results from manufacturer IDs and names", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         expect(formatProduct(1, 1735)).toBe("Edge 520");
         expect(formatProduct("garmin", 1735)).toBe("Edge 520");
@@ -48,7 +48,7 @@ describe(formatProduct, () => {
     });
 
     it("formats snake-case lookup names and falls back to product IDs", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         mockedGetProductName.mockReturnValueOnce("heart_rate_monitor");
         expect(formatProduct(1, 123)).toBe("Heart Rate Monitor");
@@ -61,7 +61,7 @@ describe(formatProduct, () => {
     });
 
     it("handles invalid-input fallback cases", () => {
-        expect.hasAssertions();
+        expect.assertions(7);
 
         expect(formatProduct(null, 1735)).toBe("1735");
         expect(formatProduct(undefined, 1735)).toBe("1735");
@@ -73,7 +73,7 @@ describe(formatProduct, () => {
     });
 
     it("warns and falls back when lookup helpers fail", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 

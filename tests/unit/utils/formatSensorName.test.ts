@@ -1,35 +1,63 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { formatManufacturer } from "../../../electron-app/utils/formatting/formatters/formatManufacturer.js";
-import { formatProduct } from "../../../electron-app/utils/formatting/formatters/formatProduct.js";
-import { formatSensorName } from "../../../electron-app/utils/formatting/formatters/formatSensorName.js";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-vi.mock(
-    import("../../../electron-app/utils/formatting/formatters/formatManufacturer.js"),
-    () => ({
-        formatManufacturer: vi.fn<(manufacturer: unknown) => string>(),
-    })
-);
+const formatManufacturerModulePath =
+    "../../../electron-app/utils/formatting/formatters/formatManufacturer.js";
+const formatProductModulePath =
+    "../../../electron-app/utils/formatting/formatters/formatProduct.js";
+type FormatManufacturerMock = (manufacturer: unknown) => string;
+type FormatProductMock = (manufacturer: unknown, productId: unknown) => string;
 
-vi.mock(
-    import("../../../electron-app/utils/formatting/formatters/formatProduct.js"),
-    () => ({
-        formatProduct:
-            vi.fn<(manufacturer: unknown, productId: unknown) => string>(),
-    })
-);
+async function importFormatSensorNameWithMocks({
+    formatManufacturerImplementation,
+    formatProductImplementation,
+}: {
+    formatManufacturerImplementation?: FormatManufacturerMock;
+    formatProductImplementation?: FormatProductMock;
+} = {}) {
+    vi.resetModules();
 
-const mockedFormatManufacturer = vi.mocked(formatManufacturer);
-const mockedFormatProduct = vi.mocked(formatProduct);
+    const mockedFormatManufacturer = vi
+        .fn<FormatManufacturerMock>()
+        .mockImplementation(
+            formatManufacturerImplementation ?? (() => "Garmin")
+        );
+    const mockedFormatProduct = vi
+        .fn<FormatProductMock>()
+        .mockImplementation(formatProductImplementation ?? (() => "Edge 520"));
 
-describe(formatSensorName, () => {
-    beforeEach(() => {
-        vi.clearAllMocks();
-        mockedFormatManufacturer.mockReturnValue("Garmin");
-        mockedFormatProduct.mockReturnValue("Edge 520");
+    vi.doMock(formatManufacturerModulePath, () => ({
+        formatManufacturer: mockedFormatManufacturer,
+    }));
+    vi.doMock(formatProductModulePath, () => ({
+        formatProduct: mockedFormatProduct,
+    }));
+
+    const { formatSensorName } =
+        await import("../../../electron-app/utils/formatting/formatters/formatSensorName.js");
+
+    return {
+        formatSensorName,
+        mockedFormatManufacturer,
+        mockedFormatProduct,
+    };
+}
+
+describe("formatSensorName", () => {
+    afterEach(() => {
+        vi.doUnmock(formatManufacturerModulePath);
+        vi.doUnmock(formatProductModulePath);
+        vi.restoreAllMocks();
+        vi.resetModules();
     });
 
-    it("formats manufacturer and product sensors without duplicate brands", () => {
-        expect.hasAssertions();
+    it("formats manufacturer and product sensors without duplicate brands", async () => {
+        expect.assertions(4);
+
+        const {
+            formatSensorName,
+            mockedFormatManufacturer,
+            mockedFormatProduct,
+        } = await importFormatSensorNameWithMocks();
 
         expect(formatSensorName({ manufacturer: 1, product: 1735 })).toBe(
             "Garmin Edge 520"
@@ -43,8 +71,14 @@ describe(formatSensorName, () => {
         ).toBe("Garmin Edge 1030");
     });
 
-    it("formats garmin product values without formatter dependencies", () => {
-        expect.hasAssertions();
+    it("formats garmin product values without formatter dependencies", async () => {
+        expect.assertions(3);
+
+        const {
+            formatSensorName,
+            mockedFormatManufacturer,
+            mockedFormatProduct,
+        } = await importFormatSensorNameWithMocks();
 
         expect(formatSensorName({ garminProduct: "edge_520_plus" })).toBe(
             "Edge 520 Plus"
@@ -53,16 +87,24 @@ describe(formatSensorName, () => {
         expect(mockedFormatProduct).not.toHaveBeenCalled();
     });
 
-    it("formats manufacturer-only fallbacks without product lookups", () => {
-        expect.hasAssertions();
+    it("formats manufacturer-only fallbacks without product lookups", async () => {
+        expect.assertions(3);
+
+        const {
+            formatSensorName,
+            mockedFormatManufacturer,
+            mockedFormatProduct,
+        } = await importFormatSensorNameWithMocks();
 
         expect(formatSensorName({ manufacturer: "garmin" })).toBe("Garmin");
         expect(mockedFormatManufacturer).toHaveBeenCalledWith("garmin");
         expect(mockedFormatProduct).not.toHaveBeenCalled();
     });
 
-    it("prioritizes manufacturer and product over garmin product values", () => {
-        expect.hasAssertions();
+    it("prioritizes manufacturer and product over garmin product values", async () => {
+        expect.assertions(1);
+
+        const { formatSensorName } = await importFormatSensorNameWithMocks();
 
         expect(
             formatSensorName({
@@ -73,9 +115,14 @@ describe(formatSensorName, () => {
         ).toBe("Garmin Edge 520");
     });
 
-    it("handles invalid-input sensors with warnings", () => {
-        expect.hasAssertions();
+    it("handles invalid-input sensors with warnings", async () => {
+        expect.assertions(9);
 
+        const {
+            formatSensorName,
+            mockedFormatManufacturer,
+            mockedFormatProduct,
+        } = await importFormatSensorNameWithMocks();
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
         for (const sensor of [
@@ -97,16 +144,17 @@ describe(formatSensorName, () => {
         expect(mockedFormatProduct).not.toHaveBeenCalled();
     });
 
-    it("logs and falls back when formatter dependencies fail", () => {
-        expect.hasAssertions();
+    it("logs and falls back when formatter dependencies fail", async () => {
+        expect.assertions(2);
 
+        const { formatSensorName } = await importFormatSensorNameWithMocks({
+            formatProductImplementation: () => {
+                throw new Error("Product error");
+            },
+        });
         const errorSpy = vi
             .spyOn(console, "error")
             .mockImplementation(() => {});
-
-        mockedFormatProduct.mockImplementationOnce(() => {
-            throw new Error("Product error");
-        });
 
         expect(formatSensorName({ manufacturer: 1, product: 1735 })).toBe(
             "Unknown Sensor"
