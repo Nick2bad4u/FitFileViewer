@@ -816,7 +816,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             expect(globalThis.Chart.register).toHaveBeenCalledWith(
                 globalThis.Chart.Zoom
             );
-            expect(chartModule.chartState.hasValidData).toBe(true);
+            expect(chartModule.chartState).toHaveProperty("hasValidData", true);
         });
 
         it("should register background color plugin when Chart.js available", async () => {
@@ -836,7 +836,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             expect(globalThis.Chart.register).toHaveBeenCalledWith(
                 expect.any(Object)
             );
-            expect(chartModule.chartState.hasValidData).toBe(true);
+            expect(chartModule.chartState).toHaveProperty("hasValidData", true);
         });
 
         it("should handle Chart.js not available scenario", async () => {
@@ -852,7 +852,9 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                     startRendering: expect.any(Function),
                 })
             );
-            expect(chartState.hasValidData).not.toBe(false);
+            expect({ hasValidData: chartState.hasValidData }).toStrictEqual({
+                hasValidData: true,
+            });
         });
     });
 
@@ -880,7 +882,9 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             expect(mocks.stateManager.getState).toHaveBeenCalledWith(
                 "globalData"
             );
-            expect(result).toBe(true);
+            expect({ hasValidData: result }).toStrictEqual({
+                hasValidData: true,
+            });
         });
 
         it("should handle invalid data in hasValidData", async () => {
