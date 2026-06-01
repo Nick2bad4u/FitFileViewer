@@ -16,6 +16,17 @@ interface ExposedPreloadApi {
     validateAPI: () => boolean;
 }
 
+interface ExposedDevTools {
+    getPreloadInfo: () => {
+        apiMethods: string[];
+        constants: unknown;
+        timestamp: string;
+        version: string;
+    };
+    logAPIState: () => void;
+    testIPC: () => Promise<boolean>;
+}
+
 type ContextBridgeExpose = (name: string, api: unknown) => void;
 type IpcInvoke = (...args: unknown[]) => Promise<unknown>;
 type IpcListener = (...args: unknown[]) => void;
@@ -173,7 +184,9 @@ describe("preload.js dist API methods", () => {
             mockConsole,
             exposedAPI: mockContextBridge.exposeInMainWorld.mock
                 .calls[0]?.[1] as ExposedPreloadApi | undefined,
-            devTools: mockContextBridge.exposeInMainWorld.mock.calls[1]?.[1],
+            devTools: mockContextBridge.exposeInMainWorld.mock.calls[1]?.[1] as
+                | ExposedDevTools
+                | undefined,
             getBeforeExitListeners: () => beforeExitListeners,
         };
     }
@@ -931,11 +944,12 @@ describe("preload.js dist API methods", () => {
     });
 
     describe("development Mode Features", () => {
-        it("should expose development tools in development mode", () => {
-            expect.assertions(3);
+        it("should expose development tools in development mode", async () => {
+            expect.assertions(8);
             const { devTools, exposedAPI } = createPreloadEnvironment({
                 NODE_ENV: "development",
             });
+            const preloadInfo = devTools?.getPreloadInfo();
 
             // Should expose both electronAPI and development tools.
             expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith(
@@ -947,11 +961,34 @@ describe("preload.js dist API methods", () => {
                 devTools
             );
 
-            expect(devTools).toMatchObject({
-                getPreloadInfo: expect.any(Function),
-                logAPIState: expect.any(Function),
-                testIPC: expect.any(Function),
+            expect(Object.keys(devTools ?? {}).sort()).toEqual([
+                "getPreloadInfo",
+                "logAPIState",
+                "testIPC",
+            ]);
+            expect(preloadInfo).toMatchObject({
+                apiMethods: Object.keys(exposedAPI ?? {}),
+                constants: {
+                    CHANNELS: EXPECTED_PRELOAD_CHANNELS,
+                    EVENTS: EXPECTED_PRELOAD_EVENTS,
+                },
+                version: "1.0.0",
             });
+            expect(preloadInfo?.timestamp).toSatisfy((timestamp: string) =>
+                Number.isFinite(Date.parse(timestamp))
+            );
+            devTools?.logAPIState();
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                "[preload.js] Current API State:",
+                expect.objectContaining({
+                    electronAPI: "object",
+                    methodCount: Object.keys(exposedAPI ?? {}).length,
+                })
+            );
+            await expect(devTools?.testIPC()).resolves.toBe(true);
+            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
+                "getAppVersion"
+            );
         });
 
         it("should not expose development tools in production mode", () => {
@@ -974,9 +1011,10 @@ describe("preload.js dist API methods", () => {
 
     describe("error Handling and Edge Cases", () => {
         it("should handle contextBridge exposure failures", () => {
-            expect.assertions(3);
+            expect.assertions(5);
             // Create a new environment where contextBridge throws on exposure
             const env = { NODE_ENV: "test" };
+            let beforeExitListeners: ProcessListener[] = [];
             const mockRequire = vi.fn<RequireModule>((moduleName) =>
                 resolvePreloadScriptRequire(moduleName, {
                     ipcRenderer: mockIpcRenderer,
@@ -988,7 +1026,27 @@ describe("preload.js dist API methods", () => {
                 })
             );
 
-            const mockProcess = { env, once: vi.fn<ProcessOnce>() };
+            const mockProcess = {
+                env,
+                listeners: vi.fn<ProcessListeners>((eventName) =>
+                    eventName === "beforeExit" ? beforeExitListeners : []
+                ),
+                once: vi.fn<ProcessOnce>((eventName, listener) => {
+                    if (eventName === "beforeExit") {
+                        beforeExitListeners.push(listener);
+                    }
+                }),
+                removeListener: vi.fn<ProcessListenerMutation>(
+                    (eventName, listener) => {
+                        if (eventName === "beforeExit") {
+                            beforeExitListeners = beforeExitListeners.filter(
+                                (currentListener) =>
+                                    currentListener !== listener
+                            );
+                        }
+                    }
+                ),
+            };
             const consoleSpy = vi
                 .spyOn(console, "error")
                 .mockImplementation(() => {});
@@ -1001,20 +1059,23 @@ describe("preload.js dist API methods", () => {
             );
 
             expect(result).toBeUndefined();
-            expect(mockProcess.once).toHaveBeenCalledWith(
+            expect(mockProcess.once.mock.calls[0]).toEqual([
                 "beforeExit",
-                expect.any(Function)
-            );
-            expect(consoleSpy).toHaveBeenCalledWith(
-                "[preload.js] Failed to expose electronAPI:",
-                expect.any(Error)
-            );
+                beforeExitListeners[0],
+            ]);
+            expect(beforeExitListeners).toHaveLength(1);
+            const exposureError = consoleSpy.mock.calls.find(
+                ([message]) =>
+                    message === "[preload.js] Failed to expose electronAPI:"
+            )?.[1];
+            expect(exposureError).toBeInstanceOf(Error);
+            expect((exposureError as Error).message).toBe("Exposure failed");
 
             consoleSpy.mockRestore();
         });
 
         it("should handle send operation errors", () => {
-            expect.assertions(3);
+            expect.assertions(4);
             mockIpcRenderer.send.mockImplementation(() => {
                 throw new Error("Send failed");
             });
@@ -1031,10 +1092,12 @@ describe("preload.js dist API methods", () => {
                 "theme-changed",
                 "dark"
             );
-            expect(consoleSpy).toHaveBeenCalledWith(
-                "[preload.js] Error in sendThemeChanged:",
-                expect.any(Error)
-            );
+            const sendError = consoleSpy.mock.calls.find(
+                ([message]) =>
+                    message === "[preload.js] Error in sendThemeChanged:"
+            )?.[1];
+            expect(sendError).toBeInstanceOf(Error);
+            expect((sendError as Error).message).toBe("Send failed");
 
             consoleSpy.mockRestore();
         });
@@ -1042,13 +1105,17 @@ describe("preload.js dist API methods", () => {
 
     describe("process Lifecycle", () => {
         it("should handle process exit cleanup", () => {
-            expect.assertions(2);
-            const { mockProcess } = createPreloadEnvironment();
+            expect.assertions(4);
+            const { getBeforeExitListeners, mockProcess } =
+                createPreloadEnvironment();
 
-            expect(mockProcess.once).toHaveBeenCalledWith(
+            expect(mockProcess.once.mock.calls[0]).toEqual([
                 "beforeExit",
-                expect.any(Function)
-            );
+                getBeforeExitListeners()[0],
+            ]);
+            expect(getBeforeExitListeners()).toHaveLength(1);
+            getBeforeExitListeners()[0]?.();
+            expect(getBeforeExitListeners()).toHaveLength(0);
             expect(mockProcess.env.NODE_ENV).toBe("test");
         });
 
