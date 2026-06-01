@@ -75,6 +75,18 @@ const mockPerformanceMonitor = {
     isEnabled: true,
 };
 
+function createExpectedDefaultDecoderOptions(): DecoderOptions {
+    return {
+        applyScaleAndOffset: true,
+        convertDateTimesToDates: true,
+        convertTypesToStrings: true,
+        expandComponents: true,
+        expandSubFields: true,
+        includeUnknownData: true,
+        mergeHeartRates: true,
+    };
+}
+
 // Mock modules
 vi.mock(import("@garmin/fitsdk"), () => mockFitSDK);
 
@@ -87,6 +99,8 @@ describe("fitParser.js decoder behavior", () => {
     beforeEach(async () => {
         // Reset all mocks
         vi.resetAllMocks();
+        mockFitFileStateManager.getRecordCount.mockReturnValue(100);
+        mockPerformanceMonitor.getOperationTime.mockReturnValue(1500);
         mockRecordTimestamp = new Date("2024-01-02T03:04:05.000Z");
 
         // Setup mock decoder
@@ -216,7 +230,7 @@ describe("fitParser.js decoder behavior", () => {
 
     describe("state management integration", () => {
         it("should initialize state management with all managers", () => {
-            expect.assertions(2);
+            expect.assertions(3);
 
             fitParser.initializeStateManagement({
                 settingsStateManager: mockSettingsStateManager,
@@ -232,9 +246,10 @@ describe("fitParser.js decoder behavior", () => {
                     hasPerformanceMonitor: true,
                 }
             );
-            expect(fitParser.getPersistedDecoderOptions()).toMatchObject(
-                fitParser.getDefaultDecoderOptions()
+            expect(fitParser.getPersistedDecoderOptions()).toStrictEqual(
+                createExpectedDefaultDecoderOptions()
             );
+            expect(console.warn).not.toHaveBeenCalled();
         });
 
         it("should initialize state management with no managers", () => {
@@ -274,7 +289,8 @@ describe("fitParser.js decoder behavior", () => {
                     hasPerformanceMonitor: false,
                 }
             );
-            expect(fitParser.getPersistedDecoderOptions()).toMatchObject({
+            expect(fitParser.getPersistedDecoderOptions()).toStrictEqual({
+                ...createExpectedDefaultDecoderOptions(),
                 mergeHeartRates: false,
             });
         });
@@ -286,15 +302,9 @@ describe("fitParser.js decoder behavior", () => {
 
             const defaults = fitParser.getDefaultDecoderOptions();
 
-            expect(defaults).toMatchObject({
-                applyScaleAndOffset: true,
-                expandSubFields: true,
-                expandComponents: true,
-                convertTypesToStrings: true,
-                convertDateTimesToDates: true,
-                includeUnknownData: true,
-                mergeHeartRates: true,
-            });
+            expect(defaults).toStrictEqual(
+                createExpectedDefaultDecoderOptions()
+            );
         });
 
         it("should validate valid decoder options", () => {
@@ -307,13 +317,12 @@ describe("fitParser.js decoder behavior", () => {
 
             const result = fitParser.validateDecoderOptions(options);
 
-            expect(result).toMatchObject({
+            expect(result).toStrictEqual({
                 errors: [],
                 isValid: true,
                 validatedOptions: {
+                    ...createExpectedDefaultDecoderOptions(),
                     applyScaleAndOffset: false,
-                    expandComponents: true,
-                    expandSubFields: true,
                 },
             });
         });
@@ -328,12 +337,12 @@ describe("fitParser.js decoder behavior", () => {
 
             const result = fitParser.validateDecoderOptions(options);
 
-            expect(result).toMatchObject({
+            expect(result).toStrictEqual({
                 errors: [
                     "applyScaleAndOffset must be of type boolean, got string",
                 ],
                 isValid: false,
-                validatedOptions: fitParser.getDefaultDecoderOptions(),
+                validatedOptions: createExpectedDefaultDecoderOptions(),
             });
         });
 
@@ -342,9 +351,10 @@ describe("fitParser.js decoder behavior", () => {
 
             const result = fitParser.validateDecoderOptions(null);
 
-            expect(result).toMatchObject({
+            expect(result).toStrictEqual({
+                errors: [],
                 isValid: true,
-                validatedOptions: fitParser.getDefaultDecoderOptions(),
+                validatedOptions: createExpectedDefaultDecoderOptions(),
             });
         });
 
@@ -364,7 +374,8 @@ describe("fitParser.js decoder behavior", () => {
             expect(mockSettingsStateManager.getCategory).toHaveBeenCalledWith(
                 "decoder"
             );
-            expect(options).toMatchObject({
+            expect(options).toStrictEqual({
+                ...createExpectedDefaultDecoderOptions(),
                 applyScaleAndOffset: false,
             });
         });
@@ -412,15 +423,19 @@ describe("fitParser.js decoder behavior", () => {
             const newOptions = { applyScaleAndOffset: false };
             const result = fitParser.updateDecoderOptions(newOptions);
 
-            expect(result).toMatchObject({
+            expect(result).toStrictEqual({
+                options: {
+                    ...createExpectedDefaultDecoderOptions(),
+                    applyScaleAndOffset: false,
+                },
                 success: true,
             });
             expect(
                 mockSettingsStateManager.updateCategory
-            ).toHaveBeenCalledWith(
-                "decoder",
-                expect.objectContaining({ applyScaleAndOffset: false })
-            );
+            ).toHaveBeenCalledWith("decoder", {
+                ...createExpectedDefaultDecoderOptions(),
+                applyScaleAndOffset: false,
+            });
         });
 
         it("should report state manager update failures without persistence fallback", () => {
@@ -513,7 +528,9 @@ describe("fitParser.js decoder behavior", () => {
             expect.assertions(1);
 
             const options = fitParser.getCurrentDecoderOptions();
-            expect(options).toMatchObject(fitParser.getDefaultDecoderOptions());
+            expect(options).toStrictEqual(
+                createExpectedDefaultDecoderOptions()
+            );
         });
 
         it("should reset decoder options to defaults", () => {
@@ -523,8 +540,8 @@ describe("fitParser.js decoder behavior", () => {
                 settingsStateManager: mockSettingsStateManager,
             });
             const result = fitParser.resetDecoderOptions();
-            expect(result).toMatchObject({
-                options: fitParser.getDefaultDecoderOptions(),
+            expect(result).toStrictEqual({
+                options: createExpectedDefaultDecoderOptions(),
                 success: true,
             });
         });
@@ -563,32 +580,34 @@ describe("fitParser.js decoder behavior", () => {
             expect(
                 mockFitFileStateManager.handleFileLoaded
             ).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    messages: expect.objectContaining({
+                {
+                    messages: {
                         activity: [{ sport: "cycling" }],
                         record: [
-                            expect.objectContaining({
+                            {
                                 heart_rate: 150,
                                 timestamp: mockRecordTimestamp,
-                            }),
+                            },
                         ],
-                    }),
-                    metadata: expect.objectContaining({
-                        decodingOptions: fitParser.getDefaultDecoderOptions(),
-                    }),
-                }),
+                    },
+                    metadata: {
+                        decodingOptions: createExpectedDefaultDecoderOptions(),
+                        processingTime: 1500,
+                        recordCount: 100,
+                    },
+                },
                 {
                     filePath: null,
                     source: "fitParser.decodeFitFile",
                 }
             );
-            expect(result).toMatchObject({
+            expect(result).toStrictEqual({
                 activity: [{ sport: "cycling" }],
                 record: [
-                    expect.objectContaining({
+                    {
                         heart_rate: 150,
                         timestamp: mockRecordTimestamp,
-                    }),
+                    },
                 ],
             });
         });
@@ -678,9 +697,10 @@ describe("fitParser.js decoder behavior", () => {
 
             const result = await fitParser.decodeFitFile(buffer, customOptions);
 
-            expect(mockDecoder.read).toHaveBeenCalledWith(
-                expect.objectContaining({ applyScaleAndOffset: false })
-            );
+            expect(mockDecoder.read).toHaveBeenCalledWith({
+                ...createExpectedDefaultDecoderOptions(),
+                applyScaleAndOffset: false,
+            });
             expect(result.record).toHaveLength(1);
         });
 
@@ -1152,7 +1172,7 @@ describe("fitParser.js decoder behavior", () => {
 
     describe("schema and constants", () => {
         it("should have valid decoder options schema", () => {
-            expect.assertions(8);
+            expect.assertions(9);
 
             const schema = fitParser.DECODER_OPTIONS_SCHEMA;
 
@@ -1165,41 +1185,42 @@ describe("fitParser.js decoder behavior", () => {
                 "includeUnknownData",
                 "mergeHeartRates",
             ]);
-            expect(schema.applyScaleAndOffset).toMatchObject({
-                type: "boolean",
+            expect(schema.applyScaleAndOffset).toStrictEqual({
                 default: true,
                 description: "Apply scale and offset transformations",
-            });
-            expect(schema.expandSubFields).toMatchObject({
                 type: "boolean",
+            });
+            expect(schema.expandSubFields).toStrictEqual({
                 default: true,
                 description: "Expand sub-fields in messages",
-            });
-            expect(schema.expandComponents).toMatchObject({
                 type: "boolean",
+            });
+            expect(schema.expandComponents).toStrictEqual({
                 default: true,
                 description: "Expand component fields",
-            });
-            expect(schema.convertTypesToStrings).toMatchObject({
                 type: "boolean",
+            });
+            expect(schema.convertTypesToStrings).toStrictEqual({
                 default: true,
                 description: "Convert enum types to strings",
-            });
-            expect(schema.convertDateTimesToDates).toMatchObject({
                 type: "boolean",
+            });
+            expect(schema.convertDateTimesToDates).toStrictEqual({
                 default: true,
                 description: "Convert timestamps to Date objects",
-            });
-            expect(schema.includeUnknownData).toMatchObject({
                 type: "boolean",
+            });
+            expect(schema.includeUnknownData).toStrictEqual({
                 default: true,
                 description: "Include unknown message types",
-            });
-            expect(schema.mergeHeartRates).toMatchObject({
                 type: "boolean",
+            });
+            expect(schema.mergeHeartRates).toStrictEqual({
                 default: true,
                 description: "Merge heart rate data from multiple sources",
+                type: "boolean",
             });
+            expect(schema).not.toHaveProperty("decodeEverything");
         });
     });
 
