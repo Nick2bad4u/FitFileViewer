@@ -128,7 +128,7 @@ describe("preload.js - Basic API Validation", () => {
     });
 
     it("should expose a validated electron API", async () => {
-        expect.assertions(10);
+        expect.assertions(11);
         const electronApiExposure =
             electronMock.contextBridge.exposeInMainWorld.mock.calls.find(
                 ([name]) => name === "electronAPI"
@@ -136,18 +136,31 @@ describe("preload.js - Basic API Validation", () => {
 
         expect(electronApiExposure).toEqual([
             "electronAPI",
-            expect.objectContaining({
-                getChannelInfo: expect.any(Function),
-                openFile: expect.any(Function),
-                readFile: expect.any(Function),
-                validateAPI: expect.any(Function),
-            }),
+            exposedGlobals.get("electronAPI"),
         ]);
 
         const electronAPI =
                 electronApiExposure?.[1] as PreloadMinimalElectronAPI,
             channelInfo = electronAPI.getChannelInfo();
 
+        expect(
+            Object.fromEntries(
+                [
+                    "getChannelInfo",
+                    "openFile",
+                    "readFile",
+                    "validateAPI",
+                ].map((methodName) => [
+                    methodName,
+                    Object.hasOwn(electronAPI, methodName),
+                ])
+            )
+        ).toEqual({
+            getChannelInfo: true,
+            openFile: true,
+            readFile: true,
+            validateAPI: true,
+        });
         expect({
             exposedElectronAPI: exposedGlobals.get("electronAPI"),
             validationResult: electronAPI.validateAPI(),
@@ -223,10 +236,10 @@ describe("preload.js - Basic API Validation", () => {
         const currentProcess =
             globalThis.process as unknown as PreloadMinimalProcess;
 
-        expect(currentProcess.once).toHaveBeenCalledWith(
+        expect(currentProcess.once.mock.calls[0]).toEqual([
             "beforeExit",
-            expect.any(Function)
-        );
+            beforeExitListeners[0],
+        ]);
         expect(beforeExitListeners).toHaveLength(1);
         expect(beforeExitListeners[0]).toBeTypeOf("function");
     });
