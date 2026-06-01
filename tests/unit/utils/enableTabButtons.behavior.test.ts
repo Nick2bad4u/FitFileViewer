@@ -658,10 +658,16 @@ describe("enableTabButtons behavior", () => {
                 id: "",
                 tabButtonCount: 1,
             });
-            expect(consoleLogSpy).toHaveBeenCalledWith(
-                expect.stringContaining("Button No ID:"),
-                expect.objectContaining({ disabled: false })
+            const noIdButtonLog = consoleLogSpy.mock.calls.find(([message]) =>
+                String(message).includes("Button No ID:")
             );
+            expect({
+                disabled: (noIdButtonLog?.[1] as { disabled?: unknown })
+                    ?.disabled,
+                messageIncludesNoId: String(noIdButtonLog?.[0]).includes(
+                    "Button No ID:"
+                ),
+            }).toStrictEqual({ disabled: false, messageIncludesNoId: true });
         });
     });
 

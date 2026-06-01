@@ -296,13 +296,16 @@ describe("error handling utilities", () => {
             };
 
             expect(logError(error, { operation: "telemetry" })).toBeUndefined();
-            expect(errorSpy).toHaveBeenCalledWith(
-                expect.stringMatching(/^\[.+\] Error:$/u),
-                expect.objectContaining({
-                    message: "Telemetry failure",
-                    name: "Error",
-                })
-            );
+            const [errorPrefix, errorPayload] = errorSpy.mock.calls[0] ?? [];
+            expect({
+                message: (errorPayload as Error | undefined)?.message,
+                name: (errorPayload as Error | undefined)?.name,
+                prefixMatches: /^\[.+\] Error:$/u.test(String(errorPrefix)),
+            }).toStrictEqual({
+                message: "Telemetry failure",
+                name: "Error",
+                prefixMatches: true,
+            });
             expect(
                 globalRef.performanceMonitor.recordError
             ).toHaveBeenCalledWith(error, "telemetry");

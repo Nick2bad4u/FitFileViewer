@@ -129,11 +129,15 @@ describe(DragDropHandler, () => {
                 "Failed to load FIT file",
                 "error"
             );
-            expect(mocks.handleFileLoadingError).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    message: "FIT decode failed\ninvalid CRC",
-                })
-            );
+            const [loadingError] = mocks.handleFileLoadingError.mock
+                .calls[0] ?? [undefined];
+            expect({
+                errorMessage: loadingError?.message,
+                errorName: loadingError?.name,
+            }).toStrictEqual({
+                errorMessage: "FIT decode failed\ninvalid CRC",
+                errorName: "Error",
+            });
             expect(mocks.setFileOpening).toHaveBeenCalledWith(true);
             expect(mocks.setFileOpening).toHaveBeenLastCalledWith(false);
         } finally {
