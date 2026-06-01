@@ -73,6 +73,69 @@ test.describe("FitFileViewer Electron UI", () => {
     const rendererMessages: string[] = [];
     const pageErrors: string[] = [];
 
+    async function mockOpenFileDialog(dialogResult: {
+        canceled: boolean;
+        filePaths: string[];
+    }): Promise<void> {
+        await electronApp.evaluate(({ dialog }, result) => {
+            const mainGlobal = globalThis as typeof globalThis & {
+                __ffvPlaywrightOpenFileDialogCalls?: number;
+                __ffvPlaywrightOriginalShowOpenDialog?: typeof dialog.showOpenDialog;
+            };
+
+            mainGlobal.__ffvPlaywrightOriginalShowOpenDialog ??=
+                dialog.showOpenDialog;
+            mainGlobal.__ffvPlaywrightOpenFileDialogCalls = 0;
+            dialog.showOpenDialog = async () => {
+                mainGlobal.__ffvPlaywrightOpenFileDialogCalls =
+                    (mainGlobal.__ffvPlaywrightOpenFileDialogCalls ?? 0) + 1;
+                return result;
+            };
+        }, dialogResult);
+    }
+
+    async function restoreOpenFileDialog(): Promise<void> {
+        await electronApp.evaluate(({ dialog }) => {
+            const mainGlobal = globalThis as typeof globalThis & {
+                __ffvPlaywrightOpenFileDialogCalls?: number;
+                __ffvPlaywrightOriginalShowOpenDialog?: typeof dialog.showOpenDialog;
+            };
+
+            if (mainGlobal.__ffvPlaywrightOriginalShowOpenDialog) {
+                dialog.showOpenDialog =
+                    mainGlobal.__ffvPlaywrightOriginalShowOpenDialog;
+                delete mainGlobal.__ffvPlaywrightOriginalShowOpenDialog;
+            }
+            delete mainGlobal.__ffvPlaywrightOpenFileDialogCalls;
+        });
+    }
+
+    async function getOpenFileDialogCallCount(): Promise<number> {
+        return electronApp.evaluate(() => {
+            const mainGlobal = globalThis as typeof globalThis & {
+                __ffvPlaywrightOpenFileDialogCalls?: number;
+            };
+
+            return mainGlobal.__ffvPlaywrightOpenFileDialogCalls ?? 0;
+        });
+    }
+
+    async function waitForOpenFileButtonReady(): Promise<void> {
+        await page.waitForFunction(() => {
+            const openButton = document.querySelector("#open_file_btn") as
+                | (HTMLButtonElement & {
+                      __ffvLifecycleListenersCleanup?: unknown;
+                  })
+                | null;
+
+            return (
+                openButton !== null &&
+                !openButton.disabled &&
+                typeof openButton.__ffvLifecycleListenersCleanup === "function"
+            );
+        });
+    }
+
     test.beforeAll(async () => {
         electronApp = await electron.launch({
             args: [appRoot, "--disable-http-cache"],
@@ -174,35 +237,58 @@ test.describe("FitFileViewer Electron UI", () => {
         });
     });
 
-    test("opens a real FIT file through the Open File button", async () => {
-        await electronApp.evaluate(({ dialog }, filePath) => {
-            const mainGlobal = globalThis as typeof globalThis & {
-                __ffvPlaywrightOriginalShowOpenDialog?: typeof dialog.showOpenDialog;
-            };
-
-            mainGlobal.__ffvPlaywrightOriginalShowOpenDialog ??=
-                dialog.showOpenDialog;
-            dialog.showOpenDialog = async () => ({
-                canceled: false,
-                filePaths: [filePath],
-            });
-        }, sampleFitPath);
+    test("leaves the current activity unchanged when Open File is cancelled", async () => {
+        await mockOpenFileDialog({
+            canceled: true,
+            filePaths: [],
+        });
 
         try {
-            await page.waitForFunction(() => {
-                const openButton = document.querySelector("#open_file_btn") as
-                    | (HTMLButtonElement & {
-                          __ffvLifecycleListenersCleanup?: unknown;
-                      })
-                    | null;
+            await waitForOpenFileButtonReady();
 
-                return (
-                    openButton !== null &&
-                    !openButton.disabled &&
-                    typeof openButton.__ffvLifecycleListenersCleanup ===
-                        "function"
-                );
+            const stateBeforeCancel = await page.evaluate(() => ({
+                activeFileName:
+                    document
+                        .querySelector("#active_file_name")
+                        ?.textContent?.trim() ?? "",
+                recordCount: window.globalData?.recordMesgs?.length ?? 0,
+                sessionCount: window.globalData?.sessionMesgs?.length ?? 0,
+                title: document.title,
+            }));
+
+            await page.locator("#open_file_btn").click();
+            await expect.poll(getOpenFileDialogCallCount).toBe(1);
+
+            const stateAfterCancel = await page.evaluate(() => ({
+                activeFileName:
+                    document
+                        .querySelector("#active_file_name")
+                        ?.textContent?.trim() ?? "",
+                recordCount: window.globalData?.recordMesgs?.length ?? 0,
+                sessionCount: window.globalData?.sessionMesgs?.length ?? 0,
+                title: document.title,
+            }));
+
+            expect(stateAfterCancel).toStrictEqual(stateBeforeCancel);
+            expect(stateAfterCancel).toStrictEqual({
+                activeFileName: "",
+                recordCount: 0,
+                sessionCount: 0,
+                title: "Fit File Viewer",
             });
+        } finally {
+            await restoreOpenFileDialog();
+        }
+    });
+
+    test("opens a real FIT file through the Open File button", async () => {
+        await mockOpenFileDialog({
+            canceled: false,
+            filePaths: [sampleFitPath],
+        });
+
+        try {
+            await waitForOpenFileButtonReady();
             await page.locator("#open_file_btn").click();
 
             await expect(page.locator("#active_file_name")).toContainText(
@@ -233,17 +319,7 @@ test.describe("FitFileViewer Electron UI", () => {
                 sessionCount: 1,
             });
         } finally {
-            await electronApp.evaluate(({ dialog }) => {
-                const mainGlobal = globalThis as typeof globalThis & {
-                    __ffvPlaywrightOriginalShowOpenDialog?: typeof dialog.showOpenDialog;
-                };
-
-                if (mainGlobal.__ffvPlaywrightOriginalShowOpenDialog) {
-                    dialog.showOpenDialog =
-                        mainGlobal.__ffvPlaywrightOriginalShowOpenDialog;
-                    delete mainGlobal.__ffvPlaywrightOriginalShowOpenDialog;
-                }
-            });
+            await restoreOpenFileDialog();
         }
     });
 
