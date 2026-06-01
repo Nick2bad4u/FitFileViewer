@@ -199,7 +199,10 @@ describe("renderZoneChartNew", () => {
             });
         expect(legendLabels).toHaveLength(2);
         expect(legendLabels[0].text).toContain("formatted-120");
-        expect(legendLabels[1].hidden).toBe(true);
+        expect(legendLabels[1]).toMatchObject({
+            hidden: true,
+            text: expect.stringContaining("formatted-60"),
+        });
 
         const tooltipLines = config.options.plugins.tooltip.callbacks.label({
             dataset: { data: dataset.data },
