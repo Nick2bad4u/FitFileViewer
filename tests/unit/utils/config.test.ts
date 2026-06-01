@@ -14,7 +14,10 @@ describe("config/index.js", () => {
     it("exports shared constants as named values", () => {
         expect.assertions(3);
 
-        expect(CONVERSION_FACTORS).toMatchObject({
+        expect({
+            METERS_PER_KILOMETER: CONVERSION_FACTORS.METERS_PER_KILOMETER,
+            METERS_PER_MILE: CONVERSION_FACTORS.METERS_PER_MILE,
+        }).toStrictEqual({
             METERS_PER_KILOMETER: 1000,
             METERS_PER_MILE: 1609.344,
         });
