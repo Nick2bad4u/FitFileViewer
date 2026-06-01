@@ -29,7 +29,7 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
     });
 
     it("registers middleware with priorities and updates execution order", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const calls: string[] = [];
         registerMiddleware(
@@ -73,7 +73,7 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
     });
 
     it("halts execution when a handler returns false and supports object-return context modification", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const seen: string[] = [];
 
@@ -121,7 +121,7 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
     });
 
     it("supports enable/disable specific middleware and global disable", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         registerMiddleware(
             "only",
@@ -159,7 +159,7 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
     });
 
     it("unregisters middleware and clears all", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         registerMiddleware("a", { beforeSet: (c) => ({ ...c, value: 1 }) }, 10);
         registerMiddleware("b", { beforeSet: (c) => ({ ...c, value: 2 }) }, 20);
@@ -185,7 +185,7 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
     });
 
     it("wrapHandler measures performance and logs slow handlers; errors propagate to error handlers", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         const errorSpy = vi
@@ -253,7 +253,7 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
     });
 
     it("initializes default middleware and avoids duplicate init", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         initializeDefaultMiddleware();
@@ -267,7 +267,7 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
     });
 
     it("persistence middleware saves specific paths to localStorage (happy and error paths)", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         // Register only the persistence middleware for this test
         registerMiddleware("persistence", persistenceMiddleware, 40);
@@ -309,7 +309,7 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
     });
 
     it("performance middleware tracks start/stop and trims to last 100 entries", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         // Register only the performance middleware for this test
         registerMiddleware("performance", performanceMiddleware, 30);
@@ -328,7 +328,7 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
     });
 
     it("validation middleware blocks disallowed values and notifies onError", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         // Register only the validation middleware for this test
         registerMiddleware("validation", validationMiddleware, 10);
@@ -369,7 +369,7 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
     });
 
     it("logging middleware respects options.source !== 'internal'", async () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         // Register only the logging middleware for this test
         registerMiddleware("logging", loggingMiddleware, 20);
@@ -419,7 +419,7 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
     });
 
     it("logging middleware onSubscribe logs subscription events", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         // Register only the logging middleware and execute ON_SUBSCRIBE
         registerMiddleware("logging", loggingMiddleware, 20);
@@ -440,7 +440,7 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
     });
 
     it("notification middleware triggers for key state changes", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         // Register only the notification middleware and exercise its branches
         registerMiddleware("notification", notificationMiddleware, 50);
@@ -476,7 +476,7 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
     });
 
     it("registering a duplicate middleware warns and replaces the previous one", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         registerMiddleware("dup", { beforeSet: (c) => c }, 10);
@@ -495,7 +495,7 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
     });
 
     it("executeErrorHandlers logs when an error handler itself throws", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const errorSpy = vi
             .spyOn(console, "error")
@@ -538,7 +538,7 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
     });
 
     it("getMiddlewareInfo includes onError in phases when defined", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         cleanupMiddleware();
         registerMiddleware(
@@ -554,7 +554,7 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
     });
 
     it("executes beforeGet and afterGet phases and applies context mutations", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const seen: string[] = [];
         registerMiddleware(
@@ -590,7 +590,7 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
     });
 
     it("cleanupMiddleware logs clearing and cleaned up messages", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         cleanupMiddleware();
@@ -605,7 +605,7 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
     });
 
     it("enableMiddleware on unknown name warns and returns false", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         const ok = enableMiddleware("__missing__", false);
@@ -617,7 +617,7 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
     });
 
     it("getMiddlewareInfo returns metadata for registered middleware", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         cleanupMiddleware();
         registerMiddleware("logging", loggingMiddleware, 20);
@@ -628,7 +628,7 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
     });
 
     it("onUnsubscribe handlers are executed and can mutate context", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         registerMiddleware(
             "sub",
