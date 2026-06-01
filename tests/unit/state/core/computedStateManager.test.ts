@@ -200,9 +200,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 computedStateManager.addComputed("duplicate", secondFn, []);
 
                 expect(console.warn).toHaveBeenCalledWith(
-                    expect.stringContaining(
-                        'Computed value "duplicate" already exists, replacing...'
-                    )
+                    '[ComputedState] Computed value "duplicate" already exists, replacing...'
                 );
                 expect(
                     computedStateManager.computedValues.get("duplicate")
@@ -270,9 +268,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 expect(computed.error).toBeInstanceOf(Error);
                 expect(computed.isValid).toStrictEqual(false);
                 expect(console.error).toHaveBeenCalledWith(
-                    expect.stringContaining(
-                        'Error computing value for "errorTest"'
-                    ),
+                    '[ComputedState] Error computing value for "errorTest":',
                     computationError
                 );
             });
@@ -293,9 +289,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 computedStateManager.computeValue("circular");
 
                 expect(console.error).toHaveBeenCalledWith(
-                    expect.stringContaining(
-                        'Circular dependency detected for computed value "circular"'
-                    )
+                    '[ComputedState] Circular dependency detected for computed value "circular"'
                 );
                 expect(circularFn).not.toHaveBeenCalled();
                 const computed =
@@ -319,9 +313,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 computedStateManager.addComputed("slowTest", slowFn, []);
 
                 expect(console.warn).toHaveBeenCalledWith(
-                    expect.stringContaining(
-                        'Slow computation for "slowTest": 15.00ms'
-                    )
+                    '[ComputedState] Slow computation for "slowTest": 15.00ms'
                 );
                 const computed =
                     computedStateManager.computedValues.get("slowTest");
@@ -482,9 +474,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                     computedCount
                 );
                 expect(console.warn).toHaveBeenCalledWith(
-                    expect.stringContaining(
-                        'Computed value "nonExistent" does not exist'
-                    )
+                    '[ComputedState] Computed value "nonExistent" does not exist'
                 );
             });
 
@@ -714,9 +704,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
                 removeComputed("removeTest");
                 expect(console.warn).toHaveBeenCalledWith(
-                    expect.stringContaining(
-                        'Computed value "removeTest" does not exist'
-                    )
+                    '[ComputedState] Computed value "removeTest" does not exist'
                 );
             });
         });
@@ -927,7 +915,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 mockStateManager.subscribe.mock.calls.map(
                     ([path, callback]) => [path, typeof callback]
                 )
-            ).toContainEqual(["globalData.test", "function"]);
+            ).toStrictEqual([["globalData.test", "function"]]);
 
             mockStateManager.setState("globalData.test", "updated");
             mockStateManager.triggerSubscriptions("globalData.test");
