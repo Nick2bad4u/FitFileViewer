@@ -12,12 +12,20 @@ import {
 
 describe("chartOptionsConfig exports", () => {
     it("exports a non-empty options array", () => {
-        expect.assertions(1);
+        expect.assertions(3);
 
-        expect([
-            Array.isArray(chartOptionsConfig),
-            chartOptionsConfig.length > 0,
-        ]).toStrictEqual([true, true]);
+        expect(chartOptionsConfig).toBeInstanceOf(Array);
+        expect(chartOptionsConfig).toHaveLength(14);
+        expect([chartOptionsConfig.at(0), chartOptionsConfig.at(-1)]).toEqual([
+            expect.objectContaining({
+                id: "maxpoints",
+                label: "Max Points",
+            }),
+            expect.objectContaining({
+                id: "temperatureUnits",
+                label: "Temperature Units",
+            }),
+        ]);
     });
 
     it("includes expected option IDs", () => {
