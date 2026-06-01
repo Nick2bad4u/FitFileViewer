@@ -89,7 +89,7 @@ describe("createMapThemeToggle", () => {
         expect(btn.tagName).toBe("BUTTON");
         expect(btn.getAttribute("aria-label")).toBe("Toggle map theme");
         expect(btn.textContent).toContain("Map Theme");
-        expect(btn.classList.contains("active")).toBe(true);
+        expect([...btn.classList]).toContain("active");
         expect(btn.title).toBe("Map: Dark theme (click for light theme)");
         expect(btn.querySelector("svg path")?.getAttribute("d")).toBe(
             "M17 12.5A7.5 7.5 0 1 1 10 2.5a6 6 0 0 0 7 10z"
@@ -106,7 +106,7 @@ describe("createMapThemeToggle", () => {
         btn.click();
 
         expect(localStorage.getItem("ffv-map-theme-inverted")).toBe("false");
-        expect(btn.classList.contains("active")).toBe(false);
+        expect([...btn.classList]).not.toContain("active");
         expect(btn.title).toBe("Map: Light theme (click for dark theme)");
         expect(btn.querySelector("svg circle")).toMatchObject({
             namespaceURI: "http://www.w3.org/2000/svg",

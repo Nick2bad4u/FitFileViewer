@@ -75,7 +75,7 @@ describe("mapActionButtons", () => {
             "Map not ready for centering",
             "warning"
         );
-        expect(name.classList.contains("highlighted")).toBe(false);
+        expect([...name.classList]).not.toContain("highlighted");
     });
 
     it("centers map when main polyline and bounds exist", async () => {

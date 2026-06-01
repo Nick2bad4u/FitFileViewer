@@ -100,10 +100,10 @@ describe("enhanceCreditsSection", () => {
 
         setupCreditsMarquee();
 
-        expect(footer.classList.contains("credits-marquee")).toBe(true);
-        expect(
-            section.classList.contains("credits-section--marquee-active")
-        ).toBe(true);
+        expect([...footer.classList]).toContain("credits-marquee");
+        expect([...section.classList]).toContain(
+            "credits-section--marquee-active"
+        );
         expect(footer.style.getPropertyValue("--credits-scroll-distance")).toBe(
             "272px"
         );
@@ -128,10 +128,10 @@ describe("enhanceCreditsSection", () => {
 
         setupCreditsMarquee();
 
-        expect(footer.classList.contains("credits-marquee")).toBe(false);
-        expect(
-            section.classList.contains("credits-section--marquee-active")
-        ).toBe(false);
+        expect([...footer.classList]).not.toContain("credits-marquee");
+        expect([...section.classList]).not.toContain(
+            "credits-section--marquee-active"
+        );
         expect(footer.style.getPropertyValue("--credits-scroll-distance")).toBe(
             ""
         );
