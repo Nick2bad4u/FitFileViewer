@@ -97,12 +97,10 @@ describe("registerFileSystemHandlers", () => {
 
         registerDefaultHandlers();
 
-        expect(registerIpcHandle).toHaveBeenCalledWith(
-            "file:read",
-            expect.any(Function)
-        );
-
         const handler = getFileReadHandler();
+        expect(registerIpcHandle.mock.calls).toStrictEqual([
+            ["file:read", handler],
+        ]);
         const mockBuffer = Buffer.from("hello-world");
         fileSystem.readFile.mockImplementation((_path, callback) =>
             callback(null, mockBuffer)
@@ -111,10 +109,7 @@ describe("registerFileSystemHandlers", () => {
         const approvedPath = approveFilePath("C:/test.fit", { source: "test" });
         const result = await handler({}, approvedPath);
 
-        expect(fileSystem.readFile).toHaveBeenCalledWith(
-            approvedPath,
-            expect.any(Function)
-        );
+        expect(fileSystem.readFile.mock.calls[0]?.[0]).toBe(approvedPath);
         expect(result).toBeInstanceOf(ArrayBuffer);
         expect(Buffer.from(result as ArrayBuffer).toString()).toBe(
             "hello-world"
@@ -209,10 +204,7 @@ describe("registerFileSystemHandlers", () => {
         });
 
         await expect(handler({}, approvedPath)).rejects.toThrow("ENOENT");
-        expect(fileSystem.stat).toHaveBeenCalledWith(
-            approvedPath,
-            expect.any(Function)
-        );
+        expect(fileSystem.stat?.mock.calls[0]?.[0]).toBe(approvedPath);
         expect(fileSystem.readFile).not.toHaveBeenCalled();
         expect(logWithContext).not.toHaveBeenCalled();
     });
