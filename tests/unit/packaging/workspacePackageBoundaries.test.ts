@@ -19,6 +19,7 @@ import {
     rootNcuConfigPath,
     rootPackageLockPath,
     rootPackageRepositoryPath,
+    rootPlaywrightAppUiSpecPath,
     rootPlaywrightConfigPath,
     rootPrettierConfigPath,
     rootPrettierIgnorePath,
@@ -476,7 +477,7 @@ describe("workspace package boundaries", () => {
         expect.assertions(4);
 
         const appUiSpec = readFileSync(
-            path.join(process.cwd(), "tests", "playwright", "app-ui.spec.ts"),
+            path.join(process.cwd(), rootPlaywrightAppUiSpecPath),
             "utf8"
         );
 

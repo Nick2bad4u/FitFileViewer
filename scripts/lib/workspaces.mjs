@@ -79,6 +79,11 @@ export const rootSecretlintConfigPath = ".secretlintrc.cjs";
 export const rootStaticAssetsPath = "static";
 export const rootStylelintConfigPath = "stylelint.config.mjs";
 export const rootIntegrationTestsPath = path.posix.join("tests", "integration");
+export const rootPlaywrightTestsPath = path.posix.join("tests", "playwright");
+export const rootPlaywrightAppUiSpecPath = path.posix.join(
+    rootPlaywrightTestsPath,
+    "app-ui.spec.ts"
+);
 export const rootTypedocConfigPath = "typedoc.json";
 export const rootUnitTestsPath = path.posix.join("tests", "unit");
 export const rootTabsTestsPath = path.posix.join(rootUnitTestsPath, "tabs");

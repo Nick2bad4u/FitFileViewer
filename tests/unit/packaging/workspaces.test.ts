@@ -105,6 +105,8 @@ type WorkspacesModule = {
     rootPackagePath: string;
     rootPackageRepositoryPath: string;
     rootPlaywrightConfigPath: string;
+    rootPlaywrightAppUiSpecPath: string;
+    rootPlaywrightTestsPath: string;
     rootIntegrationTestsPath: string;
     rootMarkdownLinkCheckConfigPath: string;
     rootMarkdownlintConfigPath: string;
@@ -441,7 +443,7 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes root generated output and test paths", async () => {
-        expect.assertions(14);
+        expect.assertions(16);
 
         const workspaces = await importWorkspaces();
 
@@ -462,6 +464,10 @@ describe("workspace path helpers", () => {
             path.join(process.cwd(), "release-dist", "win7")
         );
         expect(workspaces.rootIntegrationTestsPath).toBe("tests/integration");
+        expect(workspaces.rootPlaywrightTestsPath).toBe("tests/playwright");
+        expect(workspaces.rootPlaywrightAppUiSpecPath).toBe(
+            "tests/playwright/app-ui.spec.ts"
+        );
         expect(workspaces.rootUnitTestsPath).toBe("tests/unit");
         expect(workspaces.rootTabsTestsPath).toBe("tests/unit/tabs");
         expect(
