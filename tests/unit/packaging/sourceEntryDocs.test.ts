@@ -16,7 +16,7 @@ function readWorkspaceFile(relativePath: string): string {
 
 describe("source entrypoint documentation", () => {
     it("documents TypeScript source entrypoints for the Electron app", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const docs = SOURCE_LAYOUT_DOCS.map((docPath) =>
             readWorkspaceFile(docPath)
@@ -28,7 +28,25 @@ describe("source entrypoint documentation", () => {
             "preload.ts",
             "renderer.ts",
         ];
+        const expectedSourceEntrypointPaths = expectedSourceEntrypoints.map(
+            (sourceEntrypoint) => path.join("electron-app", sourceEntrypoint)
+        );
 
+        expect(
+            Object.fromEntries(
+                expectedSourceEntrypointPaths.map((sourceEntrypointPath) => [
+                    sourceEntrypointPath,
+                    existsSync(path.join(process.cwd(), sourceEntrypointPath)),
+                ])
+            )
+        ).toStrictEqual(
+            Object.fromEntries(
+                expectedSourceEntrypointPaths.map((sourceEntrypointPath) => [
+                    sourceEntrypointPath,
+                    true,
+                ])
+            )
+        );
         expect(
             expectedSourceEntrypoints.filter(
                 (sourceEntrypoint) => !docs.includes(sourceEntrypoint)
