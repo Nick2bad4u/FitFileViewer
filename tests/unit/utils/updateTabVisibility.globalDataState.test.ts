@@ -97,7 +97,10 @@ describe("updateTabVisibility globalData state subscription", () => {
                     path,
                     typeof callback,
                 ])
-            ).toContainEqual(["globalData", "function"]);
+            ).toStrictEqual([
+                ["ui.activeTab", "function"],
+                ["globalData", "function"],
+            ]);
             const globalDataSubscription = mockSubscribe.mock.calls.find(
                 (call: any[]) => call[0] === "globalData"
             );

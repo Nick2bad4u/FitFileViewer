@@ -130,7 +130,7 @@ function expectActiveTabSubscriptionRegistered(): void {
             path,
             typeof callback,
         ])
-    ).toContainEqual(["ui.activeTab", "function"]);
+    ).toStrictEqual([["ui.activeTab", "function"]]);
 }
 
 describe("updateActiveTab state behavior", () => {

@@ -224,7 +224,7 @@ describe("updateActiveTab.js - environment fallbacks", () => {
                 path,
                 typeof callback,
             ])
-        ).toContainEqual(["ui.activeTab", "function"]);
+        ).toStrictEqual([["ui.activeTab", "function"]]);
         const call = subscribe.mock.calls.find(
             ([path]) => path === "ui.activeTab"
         );

@@ -182,9 +182,7 @@ describe(updateTabVisibility, () => {
         updateTabVisibility("content_map");
 
         expect(warnSpy).toHaveBeenCalledWith(
-            expect.stringContaining(
-                "updateTabVisibility: Missing element in the DOM: content_summary"
-            )
+            "updateTabVisibility: Missing element in the DOM: content_summary. Please check the HTML structure to ensure the element with ID 'content_summary' exists, or verify that it is dynamically added to the DOM before calling updateTabVisibility."
         );
         expect(getContentElement("content_map").style.display).toBe("flex");
     });
@@ -217,7 +215,7 @@ describe(updateTabVisibility, () => {
     });
 
     it("registers active-tab and global-data subscriptions", () => {
-        expect.assertions(5);
+        expect.assertions(4);
 
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
@@ -226,13 +224,9 @@ describe(updateTabVisibility, () => {
         const subscriptionRegistrations = mockSubscribe.mock.calls.map(
             ([path, callback]) => [path, typeof callback]
         );
-        expect(subscriptionRegistrations).toContainEqual([
-            "ui.activeTab",
-            "function",
-        ]);
-        expect(subscriptionRegistrations).toContainEqual([
-            "globalData",
-            "function",
+        expect(subscriptionRegistrations).toStrictEqual([
+            ["ui.activeTab", "function"],
+            ["globalData", "function"],
         ]);
         expect(logSpy).toHaveBeenCalledWith(
             "[TabVisibility] State management initialized"
