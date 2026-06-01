@@ -99,7 +99,7 @@ describe("showFitData", () => {
     });
 
     it("updates UI, state, dispatches events, and triggers map render", async () => {
-        expect.hasAssertions();
+        expect.assertions(9);
 
         const { showFitData } = await loadModule();
         const data: Record<string, unknown> = {};
@@ -134,7 +134,7 @@ describe("showFitData", () => {
     });
 
     it("throws on invalid data and writes error state", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const { showFitData } = await loadModule();
         expect(() =>

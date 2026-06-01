@@ -9,7 +9,7 @@ vi.mock(
 
 describe("createAddFitFileToMapButton", () => {
     it("invokes openFileSelector on click and handles error by notifying", async () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         const notif =
             await import("../../../../../electron-app/utils/ui/notifications/showNotification.js");
@@ -34,22 +34,31 @@ describe("createAddFitFileToMapButton", () => {
 
         state.setState("globalData", { recordMesgs: [{}] });
         await vi.waitFor(() => {
-            expect(btn.disabled).toBe(false);
+            if (btn.disabled) {
+                throw new Error("Expected button to become enabled");
+            }
         });
+        expect(btn.disabled).toBe(false);
 
         btn.click();
         await vi.waitFor(() => {
-            expect(openSpy).toHaveBeenCalledWith();
+            if (openSpy.mock.calls.length === 0) {
+                throw new Error("Expected openFileSelector to be called");
+            }
         });
+        expect(openSpy).toHaveBeenCalledWith();
 
         // Error path
         openSpy.mockRejectedValue(new Error("fail"));
         btn.click();
         await vi.waitFor(() => {
-            expect(notifSpy).toHaveBeenCalledWith(
-                "Failed to open file selector",
-                "error"
-            );
+            if (notifSpy.mock.calls.length === 0) {
+                throw new Error("Expected error notification");
+            }
         });
+        expect(notifSpy).toHaveBeenCalledWith(
+            "Failed to open file selector",
+            "error"
+        );
     });
 });

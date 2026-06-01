@@ -44,7 +44,7 @@ describe("renderPerformanceAnalysisCharts", () => {
     });
 
     it("invokes all sub renderers", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const spd =
             await import("../../../../../electron-app/utils/charts/rendering/renderSpeedVsDistanceChart.js");
@@ -86,7 +86,7 @@ describe("renderPerformanceAnalysisCharts", () => {
     });
 
     it("handles renderer errors gracefully", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const spd =
             await import("../../../../../electron-app/utils/charts/rendering/renderSpeedVsDistanceChart.js");

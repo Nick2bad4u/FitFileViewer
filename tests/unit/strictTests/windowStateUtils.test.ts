@@ -10,7 +10,7 @@ interface WindowStateSnapshot {
 
 describe("windowStateUtils strict tests (pure functions)", () => {
     it("validateWindowState accepts well-formed objects", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const mod = await import("../../../electron-app/windowStateUtils.js");
         const validStates = [
@@ -24,7 +24,7 @@ describe("windowStateUtils strict tests (pure functions)", () => {
     });
 
     it("validateWindowState rejects malformed objects", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const mod = await import("../../../electron-app/windowStateUtils.js");
         const invalidStates = [
@@ -45,7 +45,7 @@ describe("windowStateUtils strict tests (pure functions)", () => {
     });
 
     it("sanitizeWindowState enforces minimum sizes and preserves coordinates", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const mod = await import("../../../electron-app/windowStateUtils.js");
         const s1 = mod.sanitizeWindowState({ width: 300, height: 200 });

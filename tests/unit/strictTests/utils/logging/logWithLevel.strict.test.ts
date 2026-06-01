@@ -15,7 +15,7 @@ describe("logWithLevel.strict", () => {
     });
 
     it("logs at all levels with and without payload", async () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         const { logWithLevel } = await fresh();
         const clog = vi.spyOn(console, "log").mockImplementation(() => {});
@@ -46,7 +46,7 @@ describe("logWithLevel.strict", () => {
     });
 
     it("falls back to minimal line when Object.keys throws", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const { logWithLevel } = await fresh();
         const baseLog = vi.spyOn(console, "log").mockImplementation(() => {});

@@ -82,7 +82,7 @@ describe("enhanceCreditsSection", () => {
     });
 
     it("applies marquee class and custom properties when content overflows", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const { footer, section } = renderCreditsFixture(
             "Some lengthy credits text that should overflow the container width significantly.",
@@ -113,7 +113,7 @@ describe("enhanceCreditsSection", () => {
     });
 
     it("does not apply marquee styling when content fits the container", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const { footer, section } = renderCreditsFixture("Short text", "500px");
 

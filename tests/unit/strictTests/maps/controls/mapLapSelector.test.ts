@@ -22,7 +22,7 @@ describe("mapLapSelector", () => {
     });
 
     it("adds control and handles single vs multi select changes", async () => {
-        expect.hasAssertions();
+        expect.assertions(7);
 
         const { addLapSelector } = await loadModule();
         const container = document.getElementById("container")!;
@@ -69,7 +69,7 @@ describe("mapLapSelector", () => {
     });
 
     it("does not add control when lap data is missing", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const { addLapSelector } = await loadModule();
         const container = document.getElementById("container")!;

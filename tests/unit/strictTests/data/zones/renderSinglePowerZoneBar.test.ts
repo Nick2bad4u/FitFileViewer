@@ -94,7 +94,7 @@ describe("renderSinglePowerZoneBar", () => {
     });
 
     it("renders chart when Chart is available", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         vi.spyOn(console, "log").mockReturnValue(undefined);
         const canvas = document.createElement("canvas");
@@ -141,7 +141,7 @@ describe("renderSinglePowerZoneBar", () => {
     });
 
     it("handles errors gracefully when Chart.js missing", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         vi.spyOn(console, "error").mockReturnValue(undefined);
         delete testGlobal.Chart;

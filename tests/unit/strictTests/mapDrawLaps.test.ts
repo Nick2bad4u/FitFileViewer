@@ -180,7 +180,7 @@ describe(mapDrawLaps, () => {
     });
 
     it("draws all valid coordinate records and registers point markers", () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         const leaflet = createLeafletStub();
         (globalThis as typeof globalThis & { L?: LeafletStub }).L = leaflet;
@@ -238,7 +238,7 @@ describe(mapDrawLaps, () => {
     });
 
     it("renders a no-location message and skips drawing when records lack coordinates", () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         const leaflet = createLeafletStub();
         (globalThis as typeof globalThis & { L?: LeafletStub }).L = leaflet;

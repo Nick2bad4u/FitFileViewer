@@ -60,7 +60,7 @@ describe("mapActionButtons", () => {
     });
 
     it("attaches click listener and shows notification when map not ready", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         await import("../../../../../electron-app/utils/maps/controls/mapActionButtons.js");
         const showNotificationMock = await getShowNotificationMock();
@@ -79,7 +79,7 @@ describe("mapActionButtons", () => {
     });
 
     it("centers map when main polyline and bounds exist", async () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         // stub Leaflet structures and bounds
         const fitBounds = vi.fn<FitBoundsFn>();
