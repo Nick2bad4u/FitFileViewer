@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -55,6 +55,110 @@ function resolveRepositoryReference(
     return path.posix.normalize(
         path.posix.join(path.posix.dirname(ownerPath), reference)
     );
+}
+
+function stripJavaScriptComments(source: string): string {
+    return source.replaceAll(/\/\*[\S\s]*?\*\/|\/\/[^\n\r]*/gu, "");
+}
+
+function getAssetRelativeReferences(
+    ownerPath: string,
+    ownerSource: string
+): string[] {
+    const ownerDirectory = path.posix.dirname(ownerPath);
+    const relativeReferences = [];
+
+    if (ownerPath.endsWith(".js") || ownerPath.endsWith(".mjs")) {
+        const sourceWithoutComments = stripJavaScriptComments(ownerSource);
+        const assetReferencePattern =
+            /(?:import\s*\(\s*|from\s*)["']\.\/([^"']+)["']|new URL\(\s*["'](?:\.\/)?([^"']+)["']\s*,\s*import\.meta\.url\s*\)|["']\.\/([^"']+\.(?:css|ico|jpeg|jpg|js|png|svg|webp))["']/gu;
+
+        for (const match of sourceWithoutComments.matchAll(
+            assetReferencePattern
+        )) {
+            relativeReferences.push(match[1] ?? match[2] ?? match[3]);
+        }
+    } else {
+        for (const match of ownerSource.matchAll(
+            /\b(?:href|src)="([^"#:]+)"|url\(["']?([^)"']+)["']?\)/gu
+        )) {
+            relativeReferences.push(match[1] ?? match[2]);
+        }
+    }
+
+    return relativeReferences
+        .filter((reference): reference is string => Boolean(reference))
+        .filter((reference) => !reference.startsWith("data:"))
+        .filter((reference) => !reference.startsWith("#"))
+        .map((reference) =>
+            path.posix.normalize(path.posix.join(ownerDirectory, reference))
+        )
+        .filter((reference) => reference.startsWith("static/ffv/assets/"));
+}
+
+function getAlternativeViewerAssetGraph(): {
+    missingReferences: Record<string, string[]>;
+    unreferencedAssets: string[];
+} {
+    const entryPath = "static/ffv/index.html";
+    const assetsDirectory = path.join(process.cwd(), "static", "ffv", "assets");
+    const knownAssets = new Set(
+        readdirSync(assetsDirectory)
+            .filter((fileName) =>
+                statSync(path.join(assetsDirectory, fileName)).isFile()
+            )
+            .map((fileName) => `static/ffv/assets/${fileName}`)
+    );
+    const pendingReferences = getAssetRelativeReferences(
+        entryPath,
+        readRepositoryFile(entryPath)
+    ).map((assetPath) => ({ assetPath, ownerPath: entryPath }));
+    const referencedAssets = new Set<string>();
+    const missingReferences: Record<string, string[]> = {};
+
+    while (pendingReferences.length > 0) {
+        const pendingReference = pendingReferences.shift();
+
+        if (
+            !pendingReference ||
+            referencedAssets.has(pendingReference.assetPath)
+        ) {
+            continue;
+        }
+        const { assetPath, ownerPath } = pendingReference;
+        referencedAssets.add(assetPath);
+
+        const absoluteAssetPath = path.join(process.cwd(), assetPath);
+        if (!existsSync(absoluteAssetPath)) {
+            missingReferences[ownerPath] = [
+                ...(missingReferences[ownerPath] ?? []),
+                assetPath,
+            ].sort();
+            continue;
+        }
+        if (!assetPath.endsWith(".css") && !assetPath.endsWith(".js")) {
+            continue;
+        }
+
+        for (const reference of getAssetRelativeReferences(
+            assetPath,
+            readRepositoryFile(assetPath)
+        )) {
+            if (!referencedAssets.has(reference)) {
+                pendingReferences.push({
+                    assetPath: reference,
+                    ownerPath: assetPath,
+                });
+            }
+        }
+    }
+
+    return {
+        missingReferences,
+        unreferencedAssets: [...knownAssets]
+            .filter((assetPath) => !referencedAssets.has(assetPath))
+            .sort(),
+    };
 }
 
 function getReferenceExistence(
@@ -143,6 +247,15 @@ describe("root app shell asset references", () => {
                 )
             )
         ).toBe(false);
+    });
+
+    it("keeps alternative FIT viewer generated assets internally reachable", () => {
+        expect.assertions(1);
+
+        expect(getAlternativeViewerAssetGraph()).toStrictEqual({
+            missingReferences: {},
+            unreferencedAssets: [],
+        });
     });
 
     it("keeps root static icons limited to packaged and shell-referenced assets", () => {
