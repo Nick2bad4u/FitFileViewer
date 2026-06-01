@@ -162,9 +162,7 @@ describe("preload.js source execution", () => {
 
             // Verify development logging occurred
             expect(console.log).toHaveBeenCalledWith(
-                expect.stringContaining(
-                    "[preload.js] Successfully exposed electronAPI to main world"
-                )
+                "[preload.js] Successfully exposed electronAPI to main world"
             );
 
             expect(electronAPI?.validateAPI()).toStrictEqual(true);
