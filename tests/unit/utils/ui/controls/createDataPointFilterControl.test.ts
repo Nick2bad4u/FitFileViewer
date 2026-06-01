@@ -189,6 +189,20 @@ function requireElement<T extends Element>(
     return element;
 }
 
+function getClassList(element: Element): string[] {
+    return [...element.classList];
+}
+
+function getRadioCheckedState(
+    rangeRadio: HTMLInputElement | null,
+    topPercentRadio: HTMLInputElement | null
+): Record<"range" | "topPercent", boolean | undefined> {
+    return {
+        range: rangeRadio?.checked,
+        topPercent: topPercentRadio?.checked,
+    };
+}
+
 describe(createDataPointFilterControl, () => {
     it("uses persisted configuration to seed summary without overwriting", async () => {
         expect.assertions(2);
@@ -249,20 +263,21 @@ describe(createDataPointFilterControl, () => {
         const panel = document.body.querySelector<HTMLDivElement>(
             ".data-point-filter-control__panel"
         );
-        expect(panel?.hidden).toBe(false);
-        expect(
-            container.classList.contains("data-point-filter-control--open")
-        ).toBe(true);
+        const panelElement = requireElement(panel, "filter panel");
+        expect(panelElement.hidden).toBe(false);
+        expect(getClassList(container)).toContain(
+            "data-point-filter-control--open"
+        );
 
         const outside = document.createElement("div");
         document.body.append(outside);
         outside.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
         await Promise.resolve();
 
-        expect(panel?.hidden).toBe(true);
-        expect(
-            container.classList.contains("data-point-filter-control--open")
-        ).toBe(false);
+        expect(panelElement.hidden).toBe(true);
+        expect(getClassList(container)).not.toContain(
+            "data-point-filter-control--open"
+        );
         expect(
             container
                 .querySelector(".data-point-filter-control__toggle")
@@ -757,9 +772,12 @@ describe(createDataPointFilterControl, () => {
             )?.textContent
         ).toBe("Highlight the most intense sections of your ride.");
         expect(
-            document.body.querySelector<HTMLDivElement>(
-                ".data-point-filter-control__panel"
-            )?.hidden
+            requireElement(
+                document.body.querySelector<HTMLDivElement>(
+                    ".data-point-filter-control__panel"
+                ),
+                "filter panel"
+            ).hidden
         ).toBe(true);
 
         const rangeRadio = document.body.querySelector<HTMLInputElement>(
@@ -780,7 +798,7 @@ describe(createDataPointFilterControl, () => {
     });
 
     it("synchronizes range sliders and toggles mode when user adjusts values", async () => {
-        expect.assertions(8);
+        expect.assertions(7);
 
         computeRangeState.mockReturnValue({
             rangeValues: { min: 100, max: 200 },
@@ -824,8 +842,12 @@ describe(createDataPointFilterControl, () => {
         minSliderElement.dispatchEvent(new Event("input", { bubbles: true }));
         await Promise.resolve();
 
-        expect(rangeRadio?.checked).toBe(true);
-        expect(topPercentRadio?.checked).toBe(false);
+        expect(getRadioCheckedState(rangeRadio, topPercentRadio)).toStrictEqual(
+            {
+                range: true,
+                topPercent: false,
+            }
+        );
         expect(rangeValues?.textContent).toContain("260");
         expect(maxSliderElement.value).toBe("260");
 
@@ -888,7 +910,7 @@ describe(createDataPointFilterControl, () => {
     });
 
     it("promotes slider interaction to value range mode when starting in top-percent", async () => {
-        expect.assertions(5);
+        expect.assertions(3);
 
         globalThis.mapDataPointFilter = {
             enabled: true,
@@ -929,8 +951,12 @@ describe(createDataPointFilterControl, () => {
         const minSliderElement = requireElement(minSlider, "minimum slider");
         const maxSliderElement = requireElement(maxSlider, "maximum slider");
         expect(minSliderElement.type).toBe("range");
-        expect(rangeRadio?.checked).toBe(false);
-        expect(topPercentRadio?.checked).toBe(true);
+        expect(getRadioCheckedState(rangeRadio, topPercentRadio)).toStrictEqual(
+            {
+                range: false,
+                topPercent: true,
+            }
+        );
 
         minSliderElement.value = "200";
         minSliderElement.dispatchEvent(new Event("input", { bubbles: true }));
@@ -940,8 +966,12 @@ describe(createDataPointFilterControl, () => {
         maxSliderElement.dispatchEvent(new Event("change", { bubbles: true }));
         await Promise.resolve();
 
-        expect(rangeRadio?.checked).toBe(true);
-        expect(topPercentRadio?.checked).toBe(false);
+        expect(getRadioCheckedState(rangeRadio, topPercentRadio)).toStrictEqual(
+            {
+                range: true,
+                topPercent: false,
+            }
+        );
     });
 
     it("clamps percent input values on change events", async () => {
@@ -1105,7 +1135,7 @@ describe(createDataPointFilterControl, () => {
     });
 
     it("recomputes range stats on metric change without preserving selection", async () => {
-        expect.assertions(3);
+        expect.assertions(2);
 
         const metricCalls: Array<{
             metric: string;
@@ -1142,22 +1172,23 @@ describe(createDataPointFilterControl, () => {
             new Event("change", { bubbles: true })
         );
 
-        expect(
-            metricCalls.some(
-                (call) => call.options?.preserveSelection === false
-            )
-        ).toBe(true);
-        expect(
-            metricCalls.some(
+        expect({
+            hasEmptyRangeCall: metricCalls.some(
                 (call) =>
                     call.current?.min === undefined &&
                     call.current?.max === undefined
-            )
-        ).toBe(true);
+            ),
+            hasResetSelectionCall: metricCalls.some(
+                (call) => call.options?.preserveSelection === false
+            ),
+        }).toStrictEqual({
+            hasEmptyRangeCall: true,
+            hasResetSelectionCall: true,
+        });
     });
 
     it("disables range controls when stats are unavailable", async () => {
-        expect.assertions(5);
+        expect.assertions(4);
 
         computeRangeState.mockReturnValue({
             stats: null,
@@ -1183,8 +1214,13 @@ describe(createDataPointFilterControl, () => {
         );
 
         expect(rangeGroup?.dataset.disabled).toBe("true");
-        expect(minSlider?.disabled).toBe(true);
-        expect(maxSlider?.disabled).toBe(true);
+        expect({
+            maxSliderDisabled: maxSlider?.disabled,
+            minSliderDisabled: minSlider?.disabled,
+        }).toStrictEqual({
+            maxSliderDisabled: true,
+            minSliderDisabled: true,
+        });
         expect(rangeValues?.textContent).toBe("Range unavailable");
 
         minSlider?.dispatchEvent(new Event("input", { bubbles: true }));
@@ -1442,11 +1478,9 @@ describe(createDataPointFilterControl, () => {
         });
         window.dispatchEvent(new Event("resize"));
         await Promise.resolve();
-        expect(
-            panel?.classList.contains(
-                "data-point-filter-control__panel--reverse"
-            )
-        ).toBe(true);
+        expect(getClassList(requireElement(panel, "filter panel"))).toContain(
+            "data-point-filter-control__panel--reverse"
+        );
     });
 
     it("clamps the panel arrow offset when positioned near viewport edges", async () => {
@@ -1654,7 +1688,7 @@ describe(createDataPointFilterControl, () => {
         const panel = document.body.querySelector<HTMLDivElement>(
             ".data-point-filter-control__panel"
         );
-        expect(panel?.hidden).toBe(true);
+        expect(requireElement(panel, "filter panel").hidden).toBe(true);
     });
 
     it("falls back to candidate values and default coverage in cached summaries", async () => {
