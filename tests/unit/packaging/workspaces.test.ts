@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 type WorkspacesModule = {
     appAlternativeFitViewPath: string;
+    appCoveragePath: string;
     appDistAbsolutePath: string;
     appDistPath: string;
     appDistRendererRepositoryPath: string;
@@ -24,11 +25,15 @@ type WorkspacesModule = {
     buildRuntimeScriptPath: string;
     bundlePreloadScriptPath: string;
     cleanRuntimeDistScriptPath: string;
+    docusaurusApiDocsPath: string;
+    docusaurusBuildPath: string;
+    docusaurusCachePath: string;
     docusaurusConfigRepositoryPath: string;
     docusaurusPackagePath: string;
     docusaurusPackageRepositoryPath: string;
     docusaurusSidebarsRepositoryPath: string;
     docusaurusStaticFaviconPath: string;
+    docusaurusStaticImageFaviconPath: string;
     docusaurusStaticPath: string;
     docusaurusStaticScreenshotsPath: string;
     docusaurusTsconfigRepositoryPath: string;
@@ -105,7 +110,7 @@ async function importWorkspaces(): Promise<WorkspacesModule> {
 
 describe("workspace path helpers", () => {
     it("centralizes the app source root paths", async () => {
-        expect.assertions(15);
+        expect.assertions(16);
 
         const workspaces = await importWorkspaces();
 
@@ -134,6 +139,9 @@ describe("workspace path helpers", () => {
         );
         expect(workspaces.appTypesAbsolutePath).toBe(
             path.join(process.cwd(), "electron-app", "types")
+        );
+        expect(workspaces.appCoveragePath).toBe(
+            path.join("electron-app", "coverage")
         );
         expect(workspaces.appSourceRepositoryPath("main.ts")).toBe(
             "electron-app/main.ts"
@@ -327,7 +335,7 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes the Docusaurus workspace root and package paths", async () => {
-        expect.assertions(15);
+        expect.assertions(19);
 
         const workspaces = await importWorkspaces();
 
@@ -339,11 +347,23 @@ describe("workspace path helpers", () => {
         expect(workspaces.docusaurusWorkspaceRelativePath("static")).toBe(
             path.join("docusaurus", "static")
         );
+        expect(workspaces.docusaurusCachePath).toBe(
+            path.join("docusaurus", ".docusaurus")
+        );
+        expect(workspaces.docusaurusBuildPath).toBe(
+            path.join("docusaurus", "build")
+        );
+        expect(workspaces.docusaurusApiDocsPath).toBe(
+            path.join("docusaurus", "docs", "api")
+        );
         expect(workspaces.docusaurusStaticPath).toBe(
             path.join("docusaurus", "static")
         );
         expect(workspaces.docusaurusStaticFaviconPath).toBe(
             path.join("docusaurus", "static", "favicon.ico")
+        );
+        expect(workspaces.docusaurusStaticImageFaviconPath).toBe(
+            path.join("docusaurus", "static", "img", "favicon.ico")
         );
         expect(workspaces.docusaurusStaticScreenshotsPath).toBe(
             path.join("docusaurus", "static", "img", "screenshots")

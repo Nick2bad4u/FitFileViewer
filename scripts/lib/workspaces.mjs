@@ -53,6 +53,7 @@ export const docusaurusWorkspacePath = path.join(
     docusaurusWorkspaceName
 );
 export const appAlternativeFitViewPath = "ffv";
+export const appCoveragePath = appSourceRelativePath(rootCoveragePath);
 export const appDistPath = appSourceRelativePath("dist");
 export const appDistAbsolutePath = appSourceAbsolutePath("dist");
 export const appDistRendererRepositoryPath = appSourceRepositoryPath(
@@ -87,9 +88,21 @@ export const docusaurusSidebarsRepositoryPath =
     docusaurusWorkspaceRepositoryPath("sidebars.ts");
 export const docusaurusTsconfigRepositoryPath =
     docusaurusWorkspaceRepositoryPath("tsconfig.json");
+export const docusaurusCachePath =
+    docusaurusWorkspaceRelativePath(".docusaurus");
+export const docusaurusBuildPath = docusaurusWorkspaceRelativePath("build");
+export const docusaurusApiDocsPath = docusaurusWorkspaceRelativePath(
+    "docs",
+    "api"
+);
 export const docusaurusStaticPath = docusaurusWorkspaceRelativePath("static");
 export const docusaurusStaticFaviconPath = docusaurusWorkspaceRelativePath(
     "static",
+    "favicon.ico"
+);
+export const docusaurusStaticImageFaviconPath = docusaurusWorkspaceRelativePath(
+    "static",
+    "img",
     "favicon.ico"
 );
 export const docusaurusStaticScreenshotsPath = docusaurusWorkspaceRelativePath(

@@ -5,10 +5,16 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
+    appCoveragePath,
     appDistPath,
     appTypesPath,
     appSourceRelativePath,
-    docusaurusWorkspaceRelativePath,
+    docusaurusApiDocsPath,
+    docusaurusBuildPath,
+    docusaurusCachePath,
+    docusaurusStaticFaviconPath,
+    docusaurusStaticImageFaviconPath,
+    docusaurusStaticScreenshotsPath,
     rootArtifactsPath,
     rootCoveragePath,
     rootFlatpakBuildPath,
@@ -73,29 +79,14 @@ describe("clean-workspace script", () => {
             ".eslintcache",
             ".prettier-cache",
             ".stylelintcache",
-            docusaurusWorkspaceRelativePath(".docusaurus"),
-            docusaurusWorkspaceRelativePath("build"),
-            docusaurusWorkspaceRelativePath("docs", "api"),
-            docusaurusWorkspaceRelativePath("static", "favicon.ico"),
-            docusaurusWorkspaceRelativePath("static", "img", "favicon.ico"),
-            docusaurusWorkspaceRelativePath(
-                "static",
-                "img",
-                "screenshots",
-                "ChartsV3.png"
-            ),
-            docusaurusWorkspaceRelativePath(
-                "static",
-                "img",
-                "screenshots",
-                "DataV2.png"
-            ),
-            docusaurusWorkspaceRelativePath(
-                "static",
-                "img",
-                "screenshots",
-                "MapsV2.png"
-            ),
+            docusaurusCachePath,
+            docusaurusBuildPath,
+            docusaurusApiDocsPath,
+            docusaurusStaticFaviconPath,
+            docusaurusStaticImageFaviconPath,
+            path.join(docusaurusStaticScreenshotsPath, "ChartsV3.png"),
+            path.join(docusaurusStaticScreenshotsPath, "DataV2.png"),
+            path.join(docusaurusStaticScreenshotsPath, "MapsV2.png"),
             rootFlatpakBundlePath,
             rootFlatpakZipPath,
             rootArtifactsPath,
@@ -110,7 +101,7 @@ describe("clean-workspace script", () => {
             rootReleaseDistPath,
             "temp",
             "test-results",
-            appSourceRelativePath(rootCoveragePath),
+            appCoveragePath,
             appDistPath,
             appTypesPath,
         ]);
@@ -182,7 +173,7 @@ describe("clean-workspace script", () => {
             "out",
             "temp",
             appDistPath,
-            docusaurusWorkspaceRelativePath("build"),
+            docusaurusBuildPath,
         ];
         const unrelatedFile = "README.md";
 

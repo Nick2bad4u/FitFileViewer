@@ -4,8 +4,15 @@ import process from "node:process";
 import { pathToFileURL } from "node:url";
 
 import {
-    appSourceRelativePath,
-    docusaurusWorkspaceRelativePath,
+    appCoveragePath,
+    appDistPath,
+    appTypesPath,
+    docusaurusApiDocsPath,
+    docusaurusBuildPath,
+    docusaurusCachePath,
+    docusaurusStaticFaviconPath,
+    docusaurusStaticImageFaviconPath,
+    docusaurusStaticScreenshotsPath,
     repositoryRoot,
     rootArtifactsPath,
     rootCoveragePath,
@@ -16,36 +23,19 @@ import {
     rootReleaseDistPath,
 } from "./lib/workspaces.mjs";
 
-const legacyAppCoveragePath = appSourceRelativePath(rootCoveragePath);
-
 export const cleanupTargets = [
     ".cache",
     ".eslintcache",
     ".prettier-cache",
     ".stylelintcache",
-    docusaurusWorkspaceRelativePath(".docusaurus"),
-    docusaurusWorkspaceRelativePath("build"),
-    docusaurusWorkspaceRelativePath("docs", "api"),
-    docusaurusWorkspaceRelativePath("static", "favicon.ico"),
-    docusaurusWorkspaceRelativePath("static", "img", "favicon.ico"),
-    docusaurusWorkspaceRelativePath(
-        "static",
-        "img",
-        "screenshots",
-        "ChartsV3.png"
-    ),
-    docusaurusWorkspaceRelativePath(
-        "static",
-        "img",
-        "screenshots",
-        "DataV2.png"
-    ),
-    docusaurusWorkspaceRelativePath(
-        "static",
-        "img",
-        "screenshots",
-        "MapsV2.png"
-    ),
+    docusaurusCachePath,
+    docusaurusBuildPath,
+    docusaurusApiDocsPath,
+    docusaurusStaticFaviconPath,
+    docusaurusStaticImageFaviconPath,
+    path.join(docusaurusStaticScreenshotsPath, "ChartsV3.png"),
+    path.join(docusaurusStaticScreenshotsPath, "DataV2.png"),
+    path.join(docusaurusStaticScreenshotsPath, "MapsV2.png"),
     rootFlatpakBundlePath,
     rootFlatpakZipPath,
     rootArtifactsPath,
@@ -60,9 +50,9 @@ export const cleanupTargets = [
     rootReleaseDistPath,
     "temp",
     "test-results",
-    legacyAppCoveragePath,
-    appSourceRelativePath("dist"),
-    appSourceRelativePath("types"),
+    appCoveragePath,
+    appDistPath,
+    appTypesPath,
 ];
 
 export function cleanWorkspace(
