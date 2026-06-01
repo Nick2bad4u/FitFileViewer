@@ -128,7 +128,7 @@ describe("preload.js - Basic API Validation", () => {
     });
 
     it("should expose a validated electron API", async () => {
-        expect.assertions(11);
+        expect.assertions(12);
         const electronApiExposure =
             electronMock.contextBridge.exposeInMainWorld.mock.calls.find(
                 ([name]) => name === "electronAPI"
@@ -168,12 +168,20 @@ describe("preload.js - Basic API Validation", () => {
             exposedElectronAPI: electronAPI,
             validationResult: true,
         });
-        expect(channelInfo.channels).toMatchObject({
+        expect(channelInfo.channels).not.toHaveProperty("NOT_A_CHANNEL");
+        expect({
+            APP_VERSION: channelInfo.channels.APP_VERSION,
+            DIALOG_OPEN_FILE: channelInfo.channels.DIALOG_OPEN_FILE,
+            FILE_READ: channelInfo.channels.FILE_READ,
+        }).toStrictEqual({
             APP_VERSION: "getAppVersion",
             DIALOG_OPEN_FILE: "dialog:openFile",
             FILE_READ: "file:read",
         });
-        expect(channelInfo.events).toMatchObject({
+        expect({
+            MENU_OPEN_FILE: channelInfo.events.MENU_OPEN_FILE,
+            THEME_CHANGED: channelInfo.events.THEME_CHANGED,
+        }).toStrictEqual({
             MENU_OPEN_FILE: "menu-open-file",
             THEME_CHANGED: "theme-changed",
         });
@@ -252,12 +260,12 @@ describe("preload.js - Basic API Validation", () => {
                 (message): message is string => typeof message === "string"
             );
 
-        expect(logMessages).toEqual(
-            expect.arrayContaining([
-                expect.stringMatching(
-                    /\[preload\.js\] (Preload script initialized|Successfully exposed)/u
-                ),
-            ])
-        );
+        expect(
+            logMessages.some((message) =>
+                /\[preload\.js\] (Preload script initialized|Successfully exposed)/u.test(
+                    message
+                )
+            )
+        ).toBe(true);
     });
 });
