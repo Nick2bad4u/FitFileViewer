@@ -234,6 +234,28 @@ describe("uiStateManager - comprehensive coverage", () => {
         document.body.append(notification);
     }
 
+    function getStableLastNotificationState() {
+        const [
+            path,
+            value,
+            options,
+        ] = vi.mocked(setState).mock.calls.at(-1) ?? [];
+        const notification =
+            value && typeof value === "object"
+                ? (value as Record<string, unknown>)
+                : {};
+
+        return {
+            notification: {
+                message: notification["message"],
+                timestampType: typeof notification["timestamp"],
+                type: notification["type"],
+            },
+            options,
+            path,
+        };
+    }
+
     function getElementClickListenerRegistration(
         element: Element | null,
         manager: UIStateManager
@@ -777,14 +799,15 @@ describe("uiStateManager - comprehensive coverage", () => {
                 "info",
                 3000
             );
-            expect(vi.mocked(setState)).toHaveBeenCalledWith(
-                "ui.lastNotification",
-                expect.objectContaining({
+            expect(getStableLastNotificationState()).toStrictEqual({
+                notification: {
                     message: "Test message",
+                    timestampType: "number",
                     type: "info",
-                }),
-                { source: "UIStateManager.showNotification" }
-            );
+                },
+                options: { source: "UIStateManager.showNotification" },
+                path: "ui.lastNotification",
+            });
         });
 
         it("should handle object notification parameter", () => {
@@ -812,14 +835,15 @@ describe("uiStateManager - comprehensive coverage", () => {
                 "error",
                 5000
             );
-            expect(vi.mocked(setState)).toHaveBeenCalledWith(
-                "ui.lastNotification",
-                expect.objectContaining({
+            expect(getStableLastNotificationState()).toStrictEqual({
+                notification: {
                     message: "Error occurred",
+                    timestampType: "number",
                     type: "error",
-                }),
-                { source: "UIStateManager.showNotification" }
-            );
+                },
+                options: { source: "UIStateManager.showNotification" },
+                path: "ui.lastNotification",
+            });
         });
 
         it("should handle object notification with default values", () => {
@@ -843,14 +867,15 @@ describe("uiStateManager - comprehensive coverage", () => {
                 "info",
                 3000
             );
-            expect(vi.mocked(setState)).toHaveBeenCalledWith(
-                "ui.lastNotification",
-                expect.objectContaining({
+            expect(getStableLastNotificationState()).toStrictEqual({
+                notification: {
                     message: "Test",
+                    timestampType: "number",
                     type: "info",
-                }),
-                { source: "UIStateManager.showNotification" }
-            );
+                },
+                options: { source: "UIStateManager.showNotification" },
+                path: "ui.lastNotification",
+            });
         });
 
         it("should handle invalid notification parameter", () => {
@@ -889,14 +914,15 @@ describe("uiStateManager - comprehensive coverage", () => {
                 "[Notification INFO] Test message"
             );
             expect(getRenderedNotificationState()).toBeNull();
-            expect(vi.mocked(setState)).toHaveBeenCalledWith(
-                "ui.lastNotification",
-                expect.objectContaining({
+            expect(getStableLastNotificationState()).toStrictEqual({
+                notification: {
                     message: "Test message",
+                    timestampType: "number",
                     type: "info",
-                }),
-                { source: "UIStateManager.showNotification" }
-            );
+                },
+                options: { source: "UIStateManager.showNotification" },
+                path: "ui.lastNotification",
+            });
         });
 
         it("should handle error notification fallback", async () => {
@@ -922,14 +948,15 @@ describe("uiStateManager - comprehensive coverage", () => {
             );
             expect(getRenderedNotificationState()).toBeNull();
             expect(consoleWarnSpy).toHaveBeenCalledWith("ERROR: Error message");
-            expect(vi.mocked(setState)).toHaveBeenCalledWith(
-                "ui.lastNotification",
-                expect.objectContaining({
+            expect(getStableLastNotificationState()).toStrictEqual({
+                notification: {
                     message: "Error message",
+                    timestampType: "number",
                     type: "error",
-                }),
-                { source: "UIStateManager.showNotification" }
-            );
+                },
+                options: { source: "UIStateManager.showNotification" },
+                path: "ui.lastNotification",
+            });
         });
     });
 
@@ -1255,12 +1282,26 @@ describe("uiStateManager - comprehensive coverage", () => {
                 },
                 { source: "UIStateManager.updateWindowStateFromDOM" }
             );
-            expect(vi.mocked(updateState).mock.calls.at(-1)?.[1]).toEqual(
-                expect.objectContaining({ maximized: false })
-            );
-            expect(vi.mocked(updateState).mock.calls.at(-1)?.[1]).not.toEqual(
-                expect.objectContaining({ maximized: true })
-            );
+            expect(vi.mocked(updateState).mock.calls.at(-1)).toStrictEqual([
+                "ui.windowState",
+                {
+                    height: 800,
+                    width: 1200,
+                    maximized: false,
+                    x: 100,
+                    y: 200,
+                },
+                { source: "UIStateManager.updateWindowStateFromDOM" },
+            ]);
+            expect(
+                vi.mocked(updateState).mock.calls.at(-1)?.[1]
+            ).not.toStrictEqual({
+                height: 800,
+                width: 1200,
+                maximized: true,
+                x: 100,
+                y: 200,
+            });
         });
 
         it("should detect maximized window", () => {
@@ -1278,11 +1319,17 @@ describe("uiStateManager - comprehensive coverage", () => {
 
             manager.updateWindowStateFromDOM();
 
-            expect(vi.mocked(updateState)).toHaveBeenCalledWith(
+            expect(vi.mocked(updateState).mock.calls.at(-1)).toStrictEqual([
                 "ui.windowState",
-                expect.objectContaining({ maximized: true }),
-                { source: "UIStateManager.updateWindowStateFromDOM" }
-            );
+                {
+                    height: 800,
+                    width: 1200,
+                    maximized: true,
+                    x: 100,
+                    y: 200,
+                },
+                { source: "UIStateManager.updateWindowStateFromDOM" },
+            ]);
             expect(window.outerWidth).toBe(window.screen.availWidth);
         });
     });
