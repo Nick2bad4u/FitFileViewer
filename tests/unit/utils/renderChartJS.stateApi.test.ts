@@ -142,6 +142,18 @@ import {
     chartActions,
 } from "../../../electron-app/utils/charts/core/renderChartJS.js";
 
+function getRenderingStatusSnapshot() {
+    const { isRendered, isRendering, performance, renderedCount } =
+        getChartStatus();
+
+    return {
+        isRendered,
+        isRendering,
+        performance,
+        renderedCount,
+    };
+}
+
 describe("renderChartJS.js state API", () => {
     beforeEach(() => {
         // Reset all mocks and state before each test
@@ -428,10 +440,10 @@ describe("renderChartJS.js state API", () => {
         it("should correctly detect hasData with various data states", () => {
             expect.assertions(2);
 
-            expect(getChartStatus()).toMatchObject({ hasData: null });
+            expect(getChartStatus().hasData).toBeNull();
 
             globalMockState.data.set("globalData", { recordMesgs: [{}] });
-            expect(getChartStatus()).toMatchObject({ hasData: true });
+            expect(getChartStatus().hasData).toBe(true);
         });
     });
 
@@ -490,7 +502,7 @@ describe("chartActions object - State Actions", () => {
 
         chartActions.startRendering();
 
-        expect(getChartStatus()).toMatchObject({ isRendering: true });
+        expect(getChartStatus().isRendering).toBe(true);
         expect(setState).toHaveBeenCalledWith("charts.isRendering", true, {
             silent: false,
             source: "chartActions.startRendering",
@@ -514,7 +526,7 @@ describe("chartActions object - State Actions", () => {
 
         chartActions.completeRendering(true, 5, 250);
 
-        expect(getChartStatus()).toMatchObject({
+        expect(getRenderingStatusSnapshot()).toStrictEqual({
             isRendered: true,
             isRendering: false,
             performance: 250,
@@ -557,7 +569,7 @@ describe("chartActions object - State Actions", () => {
 
         chartActions.completeRendering(false, 0, 100);
 
-        expect(getChartStatus()).toMatchObject({
+        expect(getRenderingStatusSnapshot()).toStrictEqual({
             isRendered: false,
             isRendering: false,
             performance: null,
