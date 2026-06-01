@@ -156,7 +156,7 @@ afterEach(() => {
 
 describe("rendererStateIntegration", () => {
     it("exampleStateUsage interacts with state, actions, and subscriptions", async () => {
-        expect.hasAssertions();
+        expect.assertions(12);
 
         vi.useFakeTimers();
         stateStore.set("ui.activeTab", "summary");
@@ -206,7 +206,7 @@ describe("rendererStateIntegration", () => {
     });
 
     it("initializeRendererWithNewStateSystem wires subscriptions and responds to changes", async () => {
-        expect.hasAssertions();
+        expect.assertions(20);
 
         const tabContentSummary = document.createElement("div");
         tabContentSummary.className = "tab-content";
@@ -401,7 +401,7 @@ describe("rendererStateIntegration", () => {
     });
 
     it("migrateExistingRenderer provides guidance without throwing", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const module = await importTarget();
         expect(() => module.migrateExistingRenderer()).not.toThrow();
