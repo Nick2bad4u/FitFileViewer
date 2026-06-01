@@ -247,7 +247,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
 
     describe("data validation and processing", () => {
         it("should return early when data has no speed values", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const container = document.createElement("div");
             const data = [
@@ -276,7 +276,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
         });
 
         it("should return early when data has no distance values", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const container = document.createElement("div");
             const data = [
@@ -305,7 +305,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
         });
 
         it("should return early when field visibility is hidden", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const container = document.createElement("div");
             const data = [
@@ -338,7 +338,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
         });
 
         it("should process data correctly with valid speed and distance values", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -373,7 +373,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
         });
 
         it("should handle enhancedSpeed preference over speed", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -404,7 +404,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
         });
 
         it("should return early when no valid data points exist after filtering", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -437,7 +437,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
 
     describe("data point limiting", () => {
         it("should apply data point limiting when maxPoints is exceeded", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -474,7 +474,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
         });
 
         it("should not limit data when maxPoints is 'all'", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -502,7 +502,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
         });
 
         it("should handle data point limiting with exact step calculation", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -534,7 +534,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
 
     describe("chart configuration", () => {
         it("should create scatter chart with correct type and configuration", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -576,7 +576,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
         });
 
         it("should configure chart options based on provided options - all enabled", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -612,7 +612,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
         });
 
         it("should configure chart options based on provided options - all disabled", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -645,7 +645,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
         });
 
         it("should set correct axis titles and configuration", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -685,7 +685,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
         });
 
         it("should configure zoom and pan options correctly", () => {
-            expect.hasAssertions();
+            expect.assertions(5);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -736,7 +736,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
 
     describe("canvas creation and styling", () => {
         it("should create canvas with correct ID and styling", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -768,7 +768,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
         });
 
         it("should append canvas to container", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -793,7 +793,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
 
     describe("chart instance management", () => {
         it("should add chart instance to global instances array", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -818,7 +818,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
         });
 
         it("should initialize global instances array if it doesn't exist", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             mockLocalStorage.getItem.mockReturnValue(null);
             getChartTestWindow()._chartjsInstances = undefined;
@@ -841,7 +841,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
         });
 
         it("should log success message when chart is created", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -868,7 +868,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
 
     describe("tooltip configuration", () => {
         it("should configure tooltip with distance and speed formatting", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -896,7 +896,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
         });
 
         it("should format tooltip correctly with kilometers distance units", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             mockLocalStorage.getItem.mockImplementation((key: string) => {
                 if (key === "chartjs_field_speed_vs_distance") return null;
@@ -932,7 +932,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
         });
 
         it("should format tooltip correctly with feet distance units", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             mockLocalStorage.getItem.mockImplementation((key: string) => {
                 if (key === "chartjs_field_speed_vs_distance") return null;
@@ -968,7 +968,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
         });
 
         it("should format tooltip correctly with miles distance units", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             mockLocalStorage.getItem.mockImplementation((key: string) => {
                 if (key === "chartjs_field_speed_vs_distance") return null;
@@ -1004,7 +1004,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
         });
 
         it("should handle tooltip formatting with default units when no localStorage value", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             mockLocalStorage.getItem.mockImplementation((key: string) => {
                 if (key === "chartjs_field_speed_vs_distance") return null;
@@ -1041,7 +1041,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
 
     describe("plugin configuration", () => {
         it("should include chartZoomResetPlugin and chartBackgroundColorPlugin", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -1065,7 +1065,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
         });
 
         it("should configure chartBackgroundColorPlugin with theme colors", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -1090,7 +1090,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
 
     describe("error handling", () => {
         it("should handle Chart.js constructor throwing error", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             mockLocalStorage.getItem.mockReturnValue(null);
             Chart.mockImplementation(() => {
@@ -1121,7 +1121,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
         });
 
         it("should handle errors during canvas creation", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             const consoleSpy = vi
                 .spyOn(console, "error")
@@ -1160,7 +1160,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
         });
 
         it("should handle null container gracefully", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -1190,7 +1190,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
 
     describe("responsive configuration", () => {
         it("should set responsive and maintainAspectRatio options", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -1220,7 +1220,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
 
     describe("edge cases", () => {
         it("should handle empty data array", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -1247,7 +1247,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
         });
 
         it("should handle data with zero values", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -1275,7 +1275,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
         });
 
         it("should handle fractional maxPoints calculation", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
