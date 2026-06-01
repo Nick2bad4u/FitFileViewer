@@ -7,7 +7,19 @@ const path = require("node:path") as typeof import("node:path");
 
 let RECENT_FILES_PATH: string | undefined;
 
-const { RECENT_FILES_PATH: RECENT_ENV } = process.env;
+function getRecentProcessEnvironmentValue(name: string): string | undefined {
+    try {
+        const processValue = Reflect.get(globalThis, "process") as
+            | { env?: Record<string, unknown> }
+            | undefined;
+        const value = processValue?.env?.[name];
+        return typeof value === "string" ? value : undefined;
+    } catch {
+        return undefined;
+    }
+}
+
+const RECENT_ENV = getRecentProcessEnvironmentValue("RECENT_FILES_PATH");
 if (RECENT_ENV) {
     RECENT_FILES_PATH = RECENT_ENV;
 } else {
@@ -25,7 +37,10 @@ if (RECENT_ENV) {
     if (userDataPath) {
         RECENT_FILES_PATH = path.join(userDataPath, "recent-files.json");
     } else {
-        const { TEMP, TMP, VITEST_WORKER_ID } = process.env;
+        const TEMP = getRecentProcessEnvironmentValue("TEMP");
+        const TMP = getRecentProcessEnvironmentValue("TMP");
+        const VITEST_WORKER_ID =
+            getRecentProcessEnvironmentValue("VITEST_WORKER_ID");
         const tempDir = TEMP || TMP || os.tmpdir();
         const fitTempDir = path.join(tempDir, "fit-file-viewer-tests");
 
