@@ -134,7 +134,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
             it("should initialize middleware array", () => {
                 expect.assertions(1);
-                expect(Array.isArray(stateInstance.middleware)).toBe(true);
+                expect(stateInstance.middleware).toBeInstanceOf(Array);
             });
 
             it("should set up dev mode correctly", () => {
@@ -282,10 +282,12 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
                 const unsubscribe = stateInstance.listen("testPath", listener);
 
-                expect(stateInstance.listeners.has("testPath")).toBe(true);
-                expect(
-                    stateInstance.listeners.get("testPath").has(listener)
-                ).toBe(true);
+                expect([...stateInstance.listeners.keys()]).toContain(
+                    "testPath"
+                );
+                expect([...stateInstance.listeners.get("testPath")]).toContain(
+                    listener
+                );
                 expect(unsubscribe).toBeTypeOf("function");
             });
 
@@ -299,8 +301,8 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
                 const pathListeners = stateInstance.listeners.get("testPath");
                 expect(pathListeners.size).toBe(2);
-                expect(pathListeners.has(listener1)).toBe(true);
-                expect(pathListeners.has(listener2)).toBe(true);
+                expect([...pathListeners]).toContain(listener1);
+                expect([...pathListeners]).toContain(listener2);
             });
 
             it("should unsubscribe listeners", () => {
@@ -332,7 +334,9 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
                 expect(stateInstance.listeners.get("testPath").size).toBe(1);
 
                 unsubscribe2();
-                expect(stateInstance.listeners.has("testPath")).toBe(false);
+                expect([...stateInstance.listeners.keys()]).not.toContain(
+                    "testPath"
+                );
             });
         });
 
@@ -657,7 +661,9 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
                 expect(serializable.string).toBe("test");
                 expect(serializable.number).toBe(42);
-                expect(serializable.boolean).toBe(true);
+                expect({ value: serializable.boolean }).toStrictEqual({
+                    value: true,
+                });
                 expect(serializable.map).toBeUndefined(); // Maps are filtered out
                 expect(serializable.set).toBeUndefined(); // Sets are filtered out
                 expect(serializable.function).toBeUndefined(); // Functions are filtered out
@@ -938,10 +944,13 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
                 { sender },
                 "settings.charts"
             );
-            expect([firstListenResult, secondListenResult]).toEqual([
-                true,
-                true,
-            ]);
+            expect({
+                firstListenResult,
+                secondListenResult,
+            }).toStrictEqual({
+                firstListenResult: true,
+                secondListenResult: true,
+            });
             expect((stateInstance as any).ipcSubscriptions.size).toBe(1);
 
             // Trigger change notification
@@ -957,7 +966,9 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             );
 
             send.mockClear();
-            expect(unlistenHandler({ sender }, "settings.charts")).toBe(true);
+            expect({
+                unlistenResult: unlistenHandler({ sender }, "settings.charts"),
+            }).toStrictEqual({ unlistenResult: true });
             expect((stateInstance as any).ipcSubscriptions.size).toBe(0);
 
             // Should no longer notify
@@ -1021,7 +1032,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
     });
 
     it("should handle main-state:set IPC calls with allowed paths", () => {
-        expect.assertions(2);
+        expect.assertions(1);
         const testInstance = new MainProcessState();
         const mockEvent = {
             sender: {
@@ -1041,11 +1052,16 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             "loadedFitFilePath",
             "/test/path"
         );
-        expect(result1).toBe(true);
 
         // Test restricted path
         const result2 = setHandler(mockEvent, "restrictedPath", "value");
-        expect(result2).toBe(false);
+        expect({
+            allowedPathSet: result1,
+            restrictedPathSet: result2,
+        }).toStrictEqual({
+            allowedPathSet: true,
+            restrictedPathSet: false,
+        });
     });
 
     it("main-state:set should block prototype pollution paths", () => {
@@ -1058,13 +1074,13 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
         // Attempt to set a path that would normally pollute Object.prototype if not blocked
         const result = setHandler({}, "operations.__proto__.polluted", "yes");
-        expect(result).toBe(false);
+        expect({ setBlocked: result }).toStrictEqual({ setBlocked: false });
 
         // Verify we did not pollute prototypes
         // eslint-disable-next-line no-prototype-builtins
         expect(
             Object.prototype.hasOwnProperty.call(Object.prototype, "polluted")
-        ).toBe(false);
+        ).toStrictEqual(false);
         expect(({} as any).polluted).toBeUndefined();
 
         // Also ensure no operation was created
@@ -1111,7 +1127,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
         )![1];
 
         const result = listenHandler(mockEvent, "testPath");
-        expect(result).toBe(true);
+        expect({ listenResult: result }).toStrictEqual({ listenResult: true });
     });
 
     it("should handle main-state:operation IPC calls", () => {
@@ -1150,7 +1166,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
         )![1];
 
         const result = errorsHandler({}, 10);
-        expect(Array.isArray(result)).toBe(true);
+        expect(result).toBeInstanceOf(Array);
     });
 
     it("should handle main-state:metrics IPC calls", () => {
