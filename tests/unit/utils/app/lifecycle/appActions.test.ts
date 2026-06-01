@@ -414,41 +414,58 @@ describe("appActions", () => {
 
 describe("appSelectors", () => {
     it("provides defaults for missing state", () => {
-        expect.assertions(12);
+        expect.assertions(3);
         expect(Date.now()).toBe(1_704_067_200_000);
 
         h.mockGetState.mockReturnValueOnce(undefined); // activeTab
-        expect(AppSelectors.activeTab()).toBe("summary");
-
         h.mockGetState.mockReturnValueOnce(undefined); // charts.isRendered
-        expect(AppSelectors.areChartsRendered()).toBe(false);
-
         h.mockGetState.mockReturnValueOnce(undefined); // tables.isRendered
-        expect(AppSelectors.areTablesRendered()).toBe(false);
-
         h.mockGetState.mockReturnValueOnce(undefined); // ui.theme
-        expect(AppSelectors.currentTheme()).toBe("system");
-
         h.mockGetState.mockReturnValueOnce(undefined); // charts
-        expect(AppSelectors.getChartConfig()).toEqual({});
-
         h.mockGetState.mockReturnValueOnce(null); // currentFile
-        expect(AppSelectors.getCurrentFile()).toBeNull();
-
         h.mockGetState.mockReturnValueOnce(undefined); // map
-        expect(AppSelectors.getMapConfig()).toEqual({});
-
         h.mockGetState.mockReturnValueOnce(undefined); // performance
-        expect(AppSelectors.getPerformanceMetrics()).toEqual({});
-
         h.mockGetState.mockReturnValueOnce(null); // globalData
-        expect(AppSelectors.hasData()).toBe(false);
-
         h.mockGetState.mockReturnValueOnce(undefined); // isLoading
-        expect(AppSelectors.isLoading()).toBe(false);
-
         h.mockGetState.mockReturnValueOnce(undefined); // map.isRendered
-        expect(AppSelectors.isMapRendered()).toBe(false);
+        expect({
+            activeTab: AppSelectors.activeTab(),
+            areChartsRendered: AppSelectors.areChartsRendered(),
+            areTablesRendered: AppSelectors.areTablesRendered(),
+            currentTheme: AppSelectors.currentTheme(),
+            chartConfig: AppSelectors.getChartConfig(),
+            currentFile: AppSelectors.getCurrentFile(),
+            mapConfig: AppSelectors.getMapConfig(),
+            performanceMetrics: AppSelectors.getPerformanceMetrics(),
+            hasData: AppSelectors.hasData(),
+            isLoading: AppSelectors.isLoading(),
+            isMapRendered: AppSelectors.isMapRendered(),
+        }).toStrictEqual({
+            activeTab: "summary",
+            areChartsRendered: false,
+            areTablesRendered: false,
+            currentTheme: "system",
+            chartConfig: {},
+            currentFile: null,
+            mapConfig: {},
+            performanceMetrics: {},
+            hasData: false,
+            isLoading: false,
+            isMapRendered: false,
+        });
+        expect(h.mockGetState.mock.calls.map(([path]) => path)).toStrictEqual([
+            "ui.activeTab",
+            "charts.isRendered",
+            "tables.isRendered",
+            "ui.theme",
+            "charts",
+            "currentFile",
+            "map",
+            "performance",
+            "globalData",
+            "isLoading",
+            "map.isRendered",
+        ]);
     });
 
     it("isTabActive compares to activeTab", () => {
@@ -459,8 +476,17 @@ describe("appSelectors", () => {
         h.mockGetState.mockImplementation((path: string) =>
             path === "ui.activeTab" ? "map" : undefined
         );
-        expect(AppSelectors.isTabActive("map")).toBe(true);
-        expect(AppSelectors.isTabActive("chart")).toBe(false);
+        expect({
+            chart: AppSelectors.isTabActive("chart"),
+            map: AppSelectors.isTabActive("map"),
+        }).toStrictEqual({
+            chart: false,
+            map: true,
+        });
+        expect(h.mockGetState.mock.calls.map(([path]) => path)).toStrictEqual([
+            "ui.activeTab",
+            "ui.activeTab",
+        ]);
     });
 });
 
