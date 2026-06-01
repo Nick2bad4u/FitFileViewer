@@ -68,7 +68,7 @@ describe("async concurrency limiter", () => {
         expect({
             activeCount,
             maxActiveCount,
-        }).toMatchObject({
+        }).toStrictEqual({
             activeCount: 0,
             maxActiveCount: 2,
         });
@@ -95,7 +95,7 @@ describe("async concurrency limiter", () => {
             1,
             2,
         ]);
-        expect({ maxActiveCount }).toMatchObject({ maxActiveCount: 1 });
+        expect({ maxActiveCount }).toStrictEqual({ maxActiveCount: 1 });
     });
 
     it("continues queued work after a rejected factory", async () => {
