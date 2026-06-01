@@ -228,7 +228,7 @@ describe("stateIntegration.js - Essential Coverage", () => {
     });
 
     it("migrates legacy chart controls to reactive state accessors", () => {
-        expect.assertions(4);
+        expect.assertions(3);
         resetTestEnvironment();
 
         const testGlobal = globalThis as StateIntegrationTestGlobal;
@@ -236,15 +236,24 @@ describe("stateIntegration.js - Essential Coverage", () => {
 
         stateIntegration.migrateChartControlsState();
 
-        expect(getState("charts.controlsVisible")).toBe(true);
-        expect(testGlobal.chartControlsState?.isVisible).toBe(true);
+        expect({
+            legacyVisible: testGlobal.chartControlsState?.isVisible,
+            stateVisible: getState("charts.controlsVisible"),
+        }).toStrictEqual({
+            legacyVisible: true,
+            stateVisible: true,
+        });
 
         testGlobal.chartControlsState = testGlobal.chartControlsState ?? {};
         testGlobal.chartControlsState.isVisible = false;
-        expect(getState("charts.controlsVisible")).toBe(false);
+        expect({
+            stateVisible: getState("charts.controlsVisible"),
+        }).toStrictEqual({ stateVisible: false });
 
         setState("charts.controlsVisible", true);
-        expect(testGlobal.chartControlsState.isVisible).toBe(true);
+        expect({
+            legacyVisible: testGlobal.chartControlsState.isVisible,
+        }).toStrictEqual({ legacyVisible: true });
 
         resetTestEnvironment();
     });
@@ -279,7 +288,7 @@ describe("stateIntegration.js - Essential Coverage", () => {
     });
 
     it("loads persisted UI state from localStorage", () => {
-        expect.assertions(4);
+        expect.assertions(2);
         resetTestEnvironment();
 
         const storageFixture = createStorageFixture({
@@ -295,9 +304,15 @@ describe("stateIntegration.js - Essential Coverage", () => {
         expect(storageFixture.storage.getItem).toHaveBeenCalledWith(
             persistedStateKey
         );
-        expect(getState("ui.theme")).toBe("dark");
-        expect(getState("ui.sidebarCollapsed")).toBe(true);
-        expect(getState("charts.selectedChart")).toBe("pace");
+        expect({
+            selectedChart: getState("charts.selectedChart"),
+            sidebarCollapsed: getState("ui.sidebarCollapsed"),
+            theme: getState("ui.theme"),
+        }).toStrictEqual({
+            selectedChart: "pace",
+            sidebarCollapsed: true,
+            theme: "dark",
+        });
 
         resetTestEnvironment();
     });
@@ -359,7 +374,7 @@ describe("stateIntegration.js - Essential Coverage", () => {
     });
 
     it("initializes compatibility globals and development debug utilities", () => {
-        expect.assertions(8);
+        expect.assertions(5);
         resetTestEnvironment();
 
         const testGlobal = globalThis as StateIntegrationTestGlobal;
@@ -370,10 +385,17 @@ describe("stateIntegration.js - Essential Coverage", () => {
         testGlobal.globalData = { loaded: true };
         testGlobal.isChartRendered = true;
 
-        expect(getState("globalData")).toEqual({ loaded: true });
-        expect(getState("charts.isRendered")).toBe(true);
-        expect(testGlobal.AppState?.globalData).toEqual({ loaded: true });
-        expect(testGlobal.AppState?.isChartRendered).toBe(true);
+        expect({
+            appStateChartRendered: testGlobal.AppState?.isChartRendered,
+            appStateGlobalData: testGlobal.AppState?.globalData,
+            chartRenderedState: getState("charts.isRendered"),
+            globalDataState: getState("globalData"),
+        }).toStrictEqual({
+            appStateChartRendered: true,
+            appStateGlobalData: { loaded: true },
+            chartRenderedState: true,
+            globalDataState: { loaded: true },
+        });
         expect(testGlobal.__state_debug?.logState).toBeTypeOf("function");
         expect(testGlobal.__state_debug?.setState).toBe(setState);
         expect(testGlobal.__state_debug?.triggerAction("missingAction")).toBe(
