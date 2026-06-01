@@ -48,7 +48,7 @@ describe("build-runtime script", () => {
     });
 
     it("returns zero when every build step succeeds", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const commandRunner = vi
             .fn<CommandRunner>()
@@ -81,10 +81,13 @@ describe("build-runtime script", () => {
             cwd: path.resolve(process.cwd()),
             stdio: "inherit",
         });
+        expect(logger.mock.calls).toStrictEqual(
+            buildRuntimeSteps.map((step) => [`[build-runtime] ${step.label}`])
+        );
     });
 
     it("stops after the first failing build step", () => {
-        expect.assertions(1);
+        expect.assertions(3);
 
         const commandRunner = vi
             .fn<CommandRunner>()
@@ -102,18 +105,34 @@ describe("build-runtime script", () => {
             loggerCalls: 2,
             status: 9,
         });
+        expect(commandRunner.mock.calls.map(([, args]) => args)).toStrictEqual([
+            [cleanRuntimeDistScriptPath],
+            [validateRuntimeTsconfigScriptPath],
+        ]);
+        expect(logger.mock.calls).toStrictEqual([
+            ["[build-runtime] clean runtime dist"],
+            ["[build-runtime] validate runtime TypeScript file list"],
+        ]);
     });
 
     it("throws when a build step runner reports a spawn error", () => {
-        expect.assertions(1);
+        expect.assertions(4);
 
+        const spawnError = new Error("spawn failed");
         const commandRunner = vi
             .fn<CommandRunner>()
-            .mockReturnValue({ error: new Error("spawn failed"), status: 0 });
+            .mockReturnValue({ error: spawnError, status: 0 });
         const logger = vi.fn<(message: string) => void>();
 
         expect(() => runBuildRuntime(commandRunner, logger)).toThrow(
-            "spawn failed"
+            spawnError
+        );
+        expect(commandRunner).toHaveBeenCalledOnce();
+        expect(commandRunner.mock.calls[0]?.[1]).toStrictEqual([
+            cleanRuntimeDistScriptPath,
+        ]);
+        expect(logger).toHaveBeenCalledWith(
+            "[build-runtime] clean runtime dist"
         );
     });
 });

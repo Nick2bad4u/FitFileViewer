@@ -55,7 +55,7 @@ describe("run-typescript wrapper", () => {
     });
 
     it("returns status 1 for unknown tasks without spawning tsc", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const commandRunner = vi
             .fn<CommandRunner>()
@@ -72,6 +72,9 @@ describe("run-typescript wrapper", () => {
             commandCalls: 0,
             status: 1,
         });
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+            "[run-typescript] Expected one of: declarations, runtime, typecheck"
+        );
 
         consoleErrorSpy.mockRestore();
     });
