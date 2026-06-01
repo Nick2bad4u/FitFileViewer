@@ -111,7 +111,7 @@ describe("tabStateManager.fallback", () => {
     });
 
     it("uses global fallback state manager and renders summary path", async () => {
-        expect.assertions(7);
+        expect.assertions(6);
 
         const mod =
             await import("../../../../../electron-app/utils/ui/tabs/tabStateManager.js");
@@ -136,7 +136,6 @@ describe("tabStateManager.fallback", () => {
 
         // Also exercise switchToTab via fallback
         const switchedToMap = instance.switchToTab("map");
-        expect(switchedToMap).toBe(true);
         expect(eff.setState).toHaveBeenCalledWith(
             "ui.activeTab",
             "map",
@@ -146,7 +145,13 @@ describe("tabStateManager.fallback", () => {
         );
 
         const switchedToMissingTab = instance.switchToTab("missing-tab");
-        expect(switchedToMissingTab).toBe(false);
+        expect({
+            switchedToMap,
+            switchedToMissingTab,
+        }).toStrictEqual({
+            switchedToMap: true,
+            switchedToMissingTab: false,
+        });
         expect(eff.setState).not.toHaveBeenCalledWith(
             "ui.activeTab",
             "missing-tab",
