@@ -206,7 +206,7 @@ describe("shareChartsAsURL with Imgur fallback", () => {
         expect(document.body.querySelector("textarea")).toBeNull();
 
         expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
-            expect.stringContaining("data:image/png;base64,")
+            createPngDataUrl(800, 400)
         );
 
         expect(mockShowNotification).toHaveBeenCalledWith(
@@ -245,7 +245,7 @@ describe("shareChartsAsURL with Imgur fallback", () => {
         expect(document.body.querySelector("textarea")).toBeNull();
 
         expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
-            expect.stringContaining("data:image/png;base64,")
+            createPngDataUrl(1620, 400)
         );
 
         expect(mockShowNotification).toHaveBeenCalledWith(
