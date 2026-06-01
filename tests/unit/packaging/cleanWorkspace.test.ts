@@ -207,13 +207,26 @@ describe("clean-workspace script", () => {
     });
 
     it("refuses cleanup targets that resolve outside the selected root", async () => {
-        expect.assertions(1);
+        expect.assertions(4);
 
         const { cleanWorkspace } = await importCleanWorkspace();
         const temporaryRoot = makeTemporaryRoot();
+        const neighboringRoot = makeTemporaryRoot();
+        const neighboringFile = "neighbor.txt";
+        writePlaceholder(temporaryRoot, "inside.txt");
+        writePlaceholder(neighboringRoot, neighboringFile);
 
         expect(() => cleanWorkspace(temporaryRoot, [".."])).toThrow(
-            "Refusing to remove outside repository"
+            `Refusing to remove outside repository: ${path.join(temporaryRoot, "..")}`
         );
+        expect(() => cleanWorkspace(temporaryRoot, ["."])).toThrow(
+            `Refusing to remove outside repository: ${path.join(temporaryRoot, ".")}`
+        );
+        expect(
+            fs.readFileSync(path.join(temporaryRoot, "inside.txt"), "utf8")
+        ).toBe("generated");
+        expect(
+            fs.readFileSync(path.join(neighboringRoot, neighboringFile), "utf8")
+        ).toBe("generated");
     });
 });
