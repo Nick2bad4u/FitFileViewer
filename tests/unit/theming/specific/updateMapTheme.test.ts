@@ -46,6 +46,8 @@ describe("updateMapTheme - comprehensive coverage", () => {
         return { mapElement, tilePane };
     };
 
+    const getClassList = (element: Element) => [...element.classList];
+
     beforeEach(() => {
         // Reset all mocks
         vi.resetAllMocks();
@@ -139,9 +141,7 @@ describe("updateMapTheme - comprehensive coverage", () => {
             updateMapTheme();
 
             // Verify error handling
-            expect(mapElement.classList.contains("ffv-map-inverted")).toBe(
-                false
-            );
+            expect(getClassList(mapElement)).not.toContain("ffv-map-inverted");
             expect(mapElement.style.filter).toBe("");
             expect(consoleErrorSpy).toHaveBeenCalledWith(
                 "[updateMapTheme] Error updating map theme:",
@@ -298,8 +298,13 @@ describe("updateMapTheme - comprehensive coverage", () => {
             const beforeUnloadEvent = new Event("beforeunload");
             const dispatched = window.dispatchEvent(beforeUnloadEvent);
 
-            expect(dispatched).toBe(true);
-            expect(beforeUnloadEvent.defaultPrevented).toBe(false);
+            expect({
+                defaultPrevented: beforeUnloadEvent.defaultPrevented,
+                dispatched,
+            }).toStrictEqual({
+                defaultPrevented: false,
+                dispatched: true,
+            });
             expect(consoleLogSpy).not.toHaveBeenCalled();
         });
     });
@@ -336,7 +341,7 @@ describe("updateMapTheme - comprehensive coverage", () => {
             // Setup
             const { mapElement, tilePane } = setupLeafletDom();
             const snapshots: Array<{
-                classApplied: boolean;
+                classes: string[];
                 containerFilter: string;
                 tileFilter: string;
             }> = [];
@@ -345,7 +350,7 @@ describe("updateMapTheme - comprehensive coverage", () => {
             mockGetMapThemeInverted.mockReturnValue(true);
             updateMapTheme();
             snapshots.push({
-                classApplied: mapElement.classList.contains("ffv-map-inverted"),
+                classes: getClassList(mapElement),
                 containerFilter: mapElement.style.filter,
                 tileFilter: tilePane.style.filter,
             });
@@ -353,7 +358,7 @@ describe("updateMapTheme - comprehensive coverage", () => {
             mockGetMapThemeInverted.mockReturnValue(false);
             updateMapTheme();
             snapshots.push({
-                classApplied: mapElement.classList.contains("ffv-map-inverted"),
+                classes: getClassList(mapElement),
                 containerFilter: mapElement.style.filter,
                 tileFilter: tilePane.style.filter,
             });
@@ -362,24 +367,24 @@ describe("updateMapTheme - comprehensive coverage", () => {
             mockGetMapThemeInverted.mockReturnValue(true);
             updateMapTheme();
             snapshots.push({
-                classApplied: mapElement.classList.contains("ffv-map-inverted"),
+                classes: getClassList(mapElement),
                 containerFilter: mapElement.style.filter,
                 tileFilter: tilePane.style.filter,
             });
 
             expect(snapshots).toEqual([
                 {
-                    classApplied: true,
+                    classes: ["ffv-map-inverted"],
                     containerFilter: "none",
                     tileFilter: DARK_TILE_FILTER,
                 },
                 {
-                    classApplied: false,
+                    classes: [],
                     containerFilter: "none",
                     tileFilter: "none",
                 },
                 {
-                    classApplied: true,
+                    classes: ["ffv-map-inverted"],
                     containerFilter: "none",
                     tileFilter: DARK_TILE_FILTER,
                 },
