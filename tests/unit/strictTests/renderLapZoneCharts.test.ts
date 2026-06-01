@@ -113,7 +113,8 @@ describe(renderLapZoneCharts, () => {
         it("should handle null container gracefully", () => {
             expect.hasAssertions();
 
-            expect(() => renderLapZoneCharts(null)).not.toThrow();
+            renderLapZoneCharts(null);
+
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] renderLapZoneCharts called"
             );
@@ -130,7 +131,8 @@ describe(renderLapZoneCharts, () => {
         it("should handle undefined container gracefully", () => {
             expect.hasAssertions();
 
-            expect(() => renderLapZoneCharts(undefined)).not.toThrow();
+            renderLapZoneCharts(undefined);
+
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] renderLapZoneCharts called"
             );
@@ -976,7 +978,8 @@ describe(renderLapZoneCharts, () => {
                 },
             ];
 
-            expect(() => renderLapZoneCharts(container)).not.toThrow();
+            renderLapZoneCharts(container);
+
             expect(mockConsoleError).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering lap zone charts:",
                 expect.any(Error)
