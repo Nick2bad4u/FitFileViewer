@@ -94,18 +94,29 @@ describe("gitignore policy", () => {
     });
 
     it("keeps cleanup targets ignored by git", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
-        const unignoredCleanupTargets = cleanupTargets
-            .map((target) => ({
-                probePath: createCleanupProbePath(target),
+        const cleanupTargetProbeResults = cleanupTargets.map((target) => {
+            const probePath = createCleanupProbePath(target);
+            const ignoreResult = checkIgnore(probePath, "-q");
+
+            return {
+                ignoreResult,
+                probePath,
                 target,
-            }))
-            .filter(
-                ({ probePath }) => checkIgnore(probePath, "-q").status !== 0
-            )
+            };
+        });
+        const gitIgnoreErrors = cleanupTargetProbeResults
+            .filter(({ ignoreResult }) => ignoreResult.stderr !== "")
+            .map(
+                ({ ignoreResult, probePath, target }) =>
+                    `${target} -> ${probePath}: ${ignoreResult.stderr.trim()}`
+            );
+        const unignoredCleanupTargets = cleanupTargetProbeResults
+            .filter(({ ignoreResult }) => ignoreResult.status !== 0)
             .map(({ probePath, target }) => `${target} -> ${probePath}`);
 
+        expect(gitIgnoreErrors).toStrictEqual([]);
         expect(unignoredCleanupTargets).toStrictEqual([]);
     });
 
