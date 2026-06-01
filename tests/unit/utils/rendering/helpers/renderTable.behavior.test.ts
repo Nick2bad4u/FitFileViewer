@@ -151,7 +151,7 @@ describe("renderTable behavior", () => {
     });
 
     it("copy as CSV writes expected header and at least one row", async () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         const container = document.querySelector("#host") as HTMLElement;
         const gearBtn = document.createElement("button");
@@ -186,6 +186,8 @@ describe("renderTable behavior", () => {
         const [header, firstLine] = csv.split("\n");
         expect(header.split(",")).toEqual(["Type", ...visibleColumns]);
         // First line is for Summary
-        expect(firstLine.startsWith("Summary,")).toBe(true);
+        const firstLineCells = firstLine.split(",");
+        expect(firstLineCells).toHaveLength(1 + visibleColumns.length);
+        expect(firstLineCells[0]).toBe("Summary");
     });
 });
