@@ -60,6 +60,10 @@ function sha512Base64(content: string): string {
     return crypto.createHash("sha512").update(content).digest("base64");
 }
 
+function normalizeTestPath(filePath: string): string {
+    return filePath.split(path.sep).join("/");
+}
+
 afterEach(() => {
     for (const temporaryRoot of temporaryRoots.splice(0)) {
         fs.rmSync(temporaryRoot, { force: true, recursive: true });
@@ -142,7 +146,8 @@ describe("fix-latest-yml-sha512 script", () => {
             .split("\n")
             .find((line) => line.startsWith("sha512:"));
 
-        expect(summary).toMatchObject({
+        expect(summary).toStrictEqual({
+            file: normalizeTestPath(latestYmlFile),
             fileCount: 2,
             missingCount: 0,
             updatedCount: 2,
@@ -176,7 +181,8 @@ describe("fix-latest-yml-sha512 script", () => {
         const summary = updateLatestYmlSha512(latestYmlFile);
         const updatedLatestYml = fs.readFileSync(latestYmlFile, "utf8");
 
-        expect(summary).toMatchObject({
+        expect(summary).toStrictEqual({
+            file: normalizeTestPath(latestYmlFile),
             fileCount: 1,
             missingCount: 1,
             updatedCount: 0,
