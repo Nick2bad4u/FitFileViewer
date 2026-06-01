@@ -111,7 +111,8 @@ describe("preload clipboard bridge", () => {
         expect.assertions(3);
 
         const { bridge, invoke, preloadLog } = createBridge();
-        invoke.mockRejectedValueOnce(new Error("clipboard failed"));
+        const clipboardError = new Error("clipboard failed");
+        invoke.mockRejectedValueOnce(clipboardError);
 
         const result = await bridge.writeClipboardText("hello");
 
@@ -119,7 +120,7 @@ describe("preload clipboard bridge", () => {
         expect(preloadLog).toHaveBeenCalledWith(
             "error",
             "[preload.js] writeClipboardText failed:",
-            expect.any(Error)
+            clipboardError
         );
         expect(invoke).toHaveBeenCalledWith("clipboard:writeText", "hello");
     });
@@ -129,7 +130,8 @@ describe("preload clipboard bridge", () => {
 
         const { bridge, invoke, preloadLog } = createBridge();
         const dataUrl = "data:image/png;base64,abc";
-        invoke.mockRejectedValueOnce(new Error("clipboard failed"));
+        const clipboardError = new Error("clipboard failed");
+        invoke.mockRejectedValueOnce(clipboardError);
 
         const result = await bridge.writeClipboardPngDataUrl(dataUrl);
 
@@ -137,7 +139,7 @@ describe("preload clipboard bridge", () => {
         expect(preloadLog).toHaveBeenCalledWith(
             "error",
             "[preload.js] writeClipboardPngDataUrl failed:",
-            expect.any(Error)
+            clipboardError
         );
         expect(invoke).toHaveBeenCalledWith(
             "clipboard:writePngDataUrl",

@@ -133,7 +133,8 @@ describe("generic preload IPC API", () => {
 
         const { api, ipcMock, preloadLog } = createApi();
         ipcMock.invoke.mockResolvedValueOnce("29.9.0");
-        ipcMock.invoke.mockRejectedValueOnce(new Error("invoke failed"));
+        const invokeError = new Error("invoke failed");
+        ipcMock.invoke.mockRejectedValueOnce(invokeError);
 
         await expect(api.invoke("getAppVersion")).resolves.toBe("29.9.0");
         await expect(api.invoke("getAppVersion")).rejects.toThrow(
@@ -144,9 +145,11 @@ describe("generic preload IPC API", () => {
         expect(preloadLog).toHaveBeenCalledWith(
             "error",
             "[preload.js] Error in invoke(getAppVersion):",
-            expect.any(Error)
+            invokeError
         );
-        expect(preloadLog).not.toHaveBeenCalledWith("warn", expect.anything());
+        expect(
+            preloadLog.mock.calls.filter(([level]) => level === "warn")
+        ).toStrictEqual([]);
     });
 
     it("blocks non-allowlisted generic channels while enforcement is enabled", async () => {

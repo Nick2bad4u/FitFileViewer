@@ -91,17 +91,24 @@ describe("preload edge cases", () => {
 
         await importPreloadWithMock({ ipcRenderer });
 
-        expect(consoleErrorSpy.mock.calls).toEqual([
-            ["[preload.js] API validation failed - not exposing to main world"],
-            [
-                "[preload.js] Failed to expose development tools:",
-                expect.any(Error),
-            ],
+        expect(
+            consoleErrorSpy.mock.calls.map(([message, detail]) => ({
+                errorMessage:
+                    detail instanceof Error ? detail.message : undefined,
+                message,
+            }))
+        ).toStrictEqual([
+            {
+                errorMessage: undefined,
+                message:
+                    "[preload.js] API validation failed - not exposing to main world",
+            },
+            {
+                errorMessage: "contextBridge unavailable",
+                message: "[preload.js] Failed to expose development tools:",
+            },
         ]);
-        expect(consoleErrorSpy.mock.calls[1]?.[1]).toHaveProperty(
-            "message",
-            "contextBridge unavailable"
-        );
+        expect(consoleErrorSpy.mock.calls[1]?.[1]).toBeInstanceOf(Error);
 
         // And no exposeInMainWorld should have been called (since it's missing entirely)
         expect(globalThis).not.toHaveProperty("electronAPI");
@@ -150,8 +157,9 @@ describe("preload edge cases", () => {
         expect(cb).toHaveBeenCalledWith("C:/test.fit");
 
         // Now cause the callback to throw and ensure it's caught and logged
+        const callbackError = new Error("boom");
         const errCb = vi.fn<RecentFileCallback>(() => {
-            throw new Error("boom");
+            throw callbackError;
         });
         api.onOpenRecentFile(errCb);
         const call2 = ipcRenderer.on.mock.calls.find(
@@ -167,7 +175,7 @@ describe("preload edge cases", () => {
         wrapper2({}, "C:/test2.fit");
         expect(consoleErrorSpy).toHaveBeenCalledWith(
             "[preload.js] Error in onOpenRecentFile callback:",
-            expect.any(Error)
+            callbackError
         );
 
         consoleErrorSpy.mockRestore();
