@@ -63,6 +63,17 @@ function createEngineDocsPattern(engineRange: string | undefined): RegExp {
     );
 }
 
+const nestedElectronPackageDelegationPatterns = [
+    /(?:^|[&;|]\s*|\s)(?:cd|pushd|Set-Location)\s+["']?electron-app["']?(?:\s|$)/u,
+    /(?:^|\s)npm\s+(?:(?:--prefix|-C)\s+["']?electron-app["']?|(?:run\s+)?(?:-w|--workspace)\s+["']?electron-app["']?)/u,
+] as const;
+
+function delegatesToNestedElectronPackage(script: string): boolean {
+    return nestedElectronPackageDelegationPatterns.some((pattern) =>
+        pattern.test(script)
+    );
+}
+
 describe("workspace package boundaries", () => {
     it("keeps shared tooling and local Vitest UI support in the root workspace", () => {
         expect.assertions(9);
@@ -111,13 +122,11 @@ describe("workspace package boundaries", () => {
         expect.assertions(1);
 
         const rootPackage = readPackageJson("package.json");
-        const nestedElectronScriptPattern =
-            /(?:^|\s)(?:cd\s+electron-app|npm\s+(?:--prefix\s+electron-app|(?:run\s+)?-w\s+electron-app|(?:run\s+)?--workspace\s+electron-app))/u;
 
         expect(
             Object.entries(rootPackage.scripts ?? {})
                 .filter(([, script]) =>
-                    nestedElectronScriptPattern.test(script)
+                    delegatesToNestedElectronPackage(script)
                 )
                 .map(([scriptName, script]) => `${scriptName}: ${script}`)
         ).toStrictEqual([]);
