@@ -303,19 +303,15 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
 
         expect(latitudeDataset.data).toHaveLength(2);
         expect(longitudeDataset.data).toHaveLength(2);
-        expect(latitudeDataset).toMatchObject({ pointRadius: 2 });
-        expect(config.options.plugins.legend).toMatchObject({
-            display: false,
-        });
-        expect(config.options.scales.x.grid).toMatchObject({
-            display: false,
-        });
+        expect(latitudeDataset.pointRadius).toBe(2);
+        expect(config.options.plugins.legend.display).toBe(false);
+        expect(config.options.scales.x.grid.display).toBe(false);
 
         const firstLatPoint = latitudeDataset.data[0];
         const secondLatPoint = latitudeDataset.data[1];
         expect(firstLatPoint.y).toBeCloseTo(0, 6);
         expect(secondLatPoint.y).toBeCloseTo(-90, 6);
-        expect(secondLatPoint).toMatchObject({ pointIndex: 2 });
+        expect(secondLatPoint.pointIndex).toBe(2);
         expect(secondLatPoint.elapsedSeconds).toBeCloseTo(2.5, 5);
 
         const tooltipLabel = config.options.plugins.tooltip.callbacks.label({
