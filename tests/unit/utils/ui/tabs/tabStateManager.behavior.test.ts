@@ -165,7 +165,7 @@ describe("tabStateManager.behavior", () => {
         expect(prevent).toHaveBeenCalledWith();
         expect(stop).toHaveBeenCalledWith();
         expect(mockSetState).not.toHaveBeenCalled();
-        expect(btn.hasAttribute("disabled")).toBe(true);
+        expect(btn).toHaveProperty("disabled", true);
     });
 
     it("handleTabButtonClick ignores when disabled property is true", () => {
@@ -188,7 +188,7 @@ describe("tabStateManager.behavior", () => {
         );
 
         expect(mockSetState).not.toHaveBeenCalled();
-        expect(btn.disabled).toBe(true);
+        expect(btn).toHaveProperty("disabled", true);
     });
 
     it("handleTabButtonClick honors data requirement and avoids state update when missing", () => {
@@ -429,7 +429,7 @@ describe("tabStateManager.behavior", () => {
         // @ts-ignore
         delete (/* @type {any} */ window.renderSummary);
         await tabStateManager.handleSummaryTab({ recordMesgs: [{}] });
-        expect("renderSummary" in window).toBe(false);
+        expect(window).not.toHaveProperty("renderSummary");
         // No throw and no setState
         expect(mockSetState).not.toHaveBeenCalledWith(
             "summary.lastDataHash",
@@ -619,14 +619,14 @@ describe("tabStateManager.behavior", () => {
         );
         dataRequiredConfigs.forEach((cfg) => {
             const el = /* @type {any} */ document.getElementById(cfg.id);
-            expect(el.disabled).toBe(true);
+            expect(el).toHaveProperty("disabled", true);
         });
 
         // Non-empty -> enable
         tabStateManager.updateTabAvailability({ recordMesgs: [{}] });
         dataRequiredConfigs.forEach((cfg) => {
             const el = /* @type {any} */ document.getElementById(cfg.id);
-            expect(el.disabled).toBe(false);
+            expect(el).toHaveProperty("disabled", false);
         });
     });
 
@@ -673,14 +673,18 @@ describe("tabStateManager.behavior", () => {
 
     it("switchToTab validates name and sets state", () => {
         expect.assertions(4);
-        expect(tabStateManager.switchToTab("nonexistent")).toBe(false);
+        expect({
+            switchedToMissingTab: tabStateManager.switchToTab("nonexistent"),
+        }).toStrictEqual({ switchedToMissingTab: false });
         expect(mockSetState).not.toHaveBeenCalledWith(
             "ui.activeTab",
             "nonexistent",
             expect.anything()
         );
 
-        expect(tabStateManager.switchToTab("map")).toBe(true);
+        expect({
+            switchedToMapTab: tabStateManager.switchToTab("map"),
+        }).toStrictEqual({ switchedToMapTab: true });
         expect(mockSetState).toHaveBeenCalledWith(
             "ui.activeTab",
             "map",
@@ -703,7 +707,7 @@ describe("tabStateManager.behavior", () => {
             )
         ).not.toThrow();
         expect(mockSetState).not.toHaveBeenCalled();
-        expect(root.isConnected).toBe(true);
+        expect(root).toHaveProperty("isConnected", true);
     });
 
     it("getDoc returns a usable document for DOM operations", () => {
@@ -855,10 +859,8 @@ describe("tabStateManager.behavior", () => {
             recordMesgs: [{}],
         });
         // Should have toggled disabled to false for requiresData button
-        expect(
-            /* @type {any} */ document.getElementById(TAB_CONFIG.summary.id)
-                .disabled
-        ).toBe(false);
+        const summaryTabButton = document.getElementById(TAB_CONFIG.summary.id);
+        expect(summaryTabButton).toHaveProperty("disabled", false);
     });
 
     it("updateTabButtonStates tolerates per-button failures (catch path)", () => {
@@ -912,6 +914,6 @@ describe("tabStateManager.behavior", () => {
         // Call cleanup to ensure it detaches without error
         expect(() => tabStateManager.cleanup()).not.toThrow();
         // Internal flag should be false after cleanup so tests can re-init later
-        expect(tabStateManager.isInitialized).toBe(false);
+        expect(tabStateManager).toHaveProperty("isInitialized", false);
     });
 });
