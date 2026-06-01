@@ -72,7 +72,7 @@ describe("preload edge cases", () => {
     });
 
     it("does not expose when validateAPI fails and logs errors", async () => {
-        expect.assertions(6);
+        expect.assertions(3);
 
         process.env.NODE_ENV = "development";
 
@@ -91,28 +91,15 @@ describe("preload edge cases", () => {
 
         await importPreloadWithMock({ ipcRenderer });
 
-        // Should have logged validation failure (no electronAPI exposure)
-        const validationErrors = consoleErrorSpy.mock.calls.filter(
-            (c) =>
-                typeof c[0] === "string" &&
-                c[0].includes("API validation failed - not exposing")
-        );
-        expect(validationErrors).toEqual([
+        expect(consoleErrorSpy.mock.calls).toEqual([
             ["[preload.js] API validation failed - not exposing to main world"],
+            [
+                "[preload.js] Failed to expose development tools:",
+                expect.any(Error),
+            ],
         ]);
-
-        // Dev tools exposure should also fail and log an error due to missing contextBridge
-        const devtoolsErrors = consoleErrorSpy.mock.calls.filter(
-            (c) =>
-                typeof c[0] === "string" &&
-                c[0].includes("Failed to expose development tools")
-        );
-        expect(devtoolsErrors).toHaveLength(1);
-        expect(devtoolsErrors[0]?.[0]).toBe(
-            "[preload.js] Failed to expose development tools:"
-        );
-        expect(devtoolsErrors[0]?.[1]).toBeInstanceOf(Error);
-        expect((devtoolsErrors[0]?.[1] as Error).message).toBe(
+        expect(consoleErrorSpy.mock.calls[1]?.[1]).toHaveProperty(
+            "message",
             "contextBridge unavailable"
         );
 
