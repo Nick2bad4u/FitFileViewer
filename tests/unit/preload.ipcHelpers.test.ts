@@ -179,9 +179,9 @@ describe("preload IPC helpers", () => {
     });
 
     it("subscribes to events, transforms payloads, and removes listeners", () => {
-        expect.assertions(3);
+        expect.assertions(7);
 
-        const { helpers, ipcRenderer } = createHelpers();
+        const { helpers, ipcRenderer, validateCallback } = createHelpers();
         const receivedPayloads: unknown[] = [];
         const callback = vi.fn<(value: unknown) => void>((value) => {
             receivedPayloads.push(value);
@@ -191,15 +191,17 @@ describe("preload IPC helpers", () => {
             "onEvent",
             (value) => ({ value })
         )(callback);
-        const listener = ipcRenderer.on.mock.calls[0]?.[1];
+        const [registeredChannel, listener] =
+            ipcRenderer.on.mock.calls[0] ?? [];
 
-        expect(ipcRenderer.on).toHaveBeenCalledWith(
-            "app:event",
-            expect.any(Function)
-        );
+        expect(validateCallback).toHaveBeenCalledWith(callback, "onEvent");
+        expect(ipcRenderer.on).toHaveBeenCalledOnce();
+        expect(registeredChannel).toBe("app:event");
+        expect(listener).toBeTypeOf("function");
 
         listener?.({}, "payload");
 
+        expect(callback).toHaveBeenCalledWith({ value: "payload" });
         expect(receivedPayloads).toStrictEqual([{ value: "payload" }]);
 
         unsubscribe();
@@ -217,17 +219,18 @@ describe("preload IPC helpers", () => {
             createHelpers();
         validateCallback.mockReturnValueOnce(false);
 
+        const invalidCallback = () => undefined;
         const unsubscribe = helpers.createSafeEventHandler(
             "app:event",
             "onEvent"
-        )(() => undefined);
+        )(invalidCallback);
 
         expect(unsubscribe).toBeTypeOf("function");
         unsubscribe();
         expect(ipcRenderer.on).not.toHaveBeenCalled();
         expect(preloadLog).not.toHaveBeenCalled();
         expect(validateCallback).toHaveBeenCalledWith(
-            expect.any(Function),
+            invalidCallback,
             "onEvent"
         );
     });
