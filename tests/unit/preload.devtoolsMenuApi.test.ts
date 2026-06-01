@@ -68,7 +68,7 @@ describe("preload devtools menu API", () => {
 
         const result = await api.injectMenu("dark", "activity.fit");
 
-        expect(result).toBe(true);
+        expect({ injected: result }).toStrictEqual({ injected: true });
         expect(invoke).toHaveBeenCalledWith(
             "devtools-inject-menu",
             "dark",
@@ -85,26 +85,31 @@ describe("preload devtools menu API", () => {
 
         const result = await api.injectMenu();
 
-        expect(result).toBe(true);
+        expect({ injected: result }).toStrictEqual({ injected: true });
         expect(invoke).toHaveBeenCalledWith("devtools-inject-menu", null, null);
     });
 
     it("rejects invalid values before invoking IPC", async () => {
-        expect.assertions(4);
+        expect.assertions(3);
 
         const { api, invoke } = createApi();
 
         const invalidThemeResult = await api.injectMenu(123 as never, null);
         const invalidPathResult = await api.injectMenu("dark", 123 as never);
 
-        expect(invalidThemeResult).toBe(false);
-        expect(invalidPathResult).toBe(false);
+        expect({
+            invalidPathResult,
+            invalidThemeResult,
+        }).toStrictEqual({
+            invalidPathResult: false,
+            invalidThemeResult: false,
+        });
         expect(invoke).not.toHaveBeenCalled();
 
         invoke.mockResolvedValueOnce(false);
         const validCallResult = await api.injectMenu("dark", "activity.fit");
 
-        expect(validCallResult).toBe(false);
+        expect({ validCallResult }).toStrictEqual({ validCallResult: false });
     });
 
     it("logs IPC failures and resolves false", async () => {
@@ -115,7 +120,7 @@ describe("preload devtools menu API", () => {
 
         const result = await api.injectMenu("dark", null);
 
-        expect(result).toBe(false);
+        expect({ injected: result }).toStrictEqual({ injected: false });
         expect(preloadLog).toHaveBeenCalledWith(
             "error",
             "[preload.js] Error in injectMenu:",
