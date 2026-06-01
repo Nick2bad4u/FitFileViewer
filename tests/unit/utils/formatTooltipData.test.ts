@@ -23,7 +23,7 @@ describe(formatTooltipData, () => {
     });
 
     it("formats complete tooltip data with elapsed time and primary metrics", () => {
-        expect.hasAssertions();
+        expect.assertions(10);
 
         const result = formatTooltipData(
             50,
@@ -53,7 +53,7 @@ describe(formatTooltipData, () => {
     });
 
     it("formats auxiliary heart rate and estimated power fallbacks", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const result = formatTooltipData(
             7,
@@ -71,7 +71,7 @@ describe(formatTooltipData, () => {
     });
 
     it("handles invalid-input row data with a fallback message", () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
@@ -90,7 +90,7 @@ describe(formatTooltipData, () => {
     });
 
     it("omits invalid-input metric values while preserving lap and index", () => {
-        expect.hasAssertions();
+        expect.assertions(8);
 
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
@@ -120,7 +120,7 @@ describe(formatTooltipData, () => {
     });
 
     it("logs and returns an error message when formatting throws", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const errorSpy = vi
             .spyOn(console, "error")

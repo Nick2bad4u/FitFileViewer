@@ -18,7 +18,7 @@ describe(getUnitSymbol, () => {
     });
 
     it("returns configured symbols for distance, temperature, speed, and time units", () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         mockedGetChartSetting.mockImplementation((key) => {
             if (key === "distanceUnits") {
@@ -41,7 +41,7 @@ describe(getUnitSymbol, () => {
     });
 
     it("uses defaults when settings are missing", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         mockedGetChartSetting.mockReturnValue(undefined);
 
@@ -52,7 +52,7 @@ describe(getUnitSymbol, () => {
     });
 
     it("falls back for unknown configured unit values", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         mockedGetChartSetting.mockImplementation((key) => {
             if (key === "distanceUnits") {
@@ -73,7 +73,7 @@ describe(getUnitSymbol, () => {
     });
 
     it("returns fixed labels for known fitness fields", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         expect(
             new Map([
@@ -103,7 +103,7 @@ describe(getUnitSymbol, () => {
     });
 
     it("returns an empty symbol and warns for invalid fields", () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
@@ -120,7 +120,7 @@ describe(getUnitSymbol, () => {
     });
 
     it("warns and uses defaults when settings lookup throws", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         mockedGetChartSetting.mockImplementation(() => {
@@ -136,7 +136,7 @@ describe(getUnitSymbol, () => {
     });
 
     it("logs and returns an empty symbol when validation logging fails", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         vi.spyOn(console, "warn").mockImplementationOnce(() => {
             throw new Error("console.warn failed");

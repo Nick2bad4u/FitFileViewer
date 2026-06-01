@@ -3,7 +3,7 @@ import { getErrorInfo } from "../../../electron-app/utils/logging/index.js";
 
 describe(getErrorInfo, () => {
     it("extracts message and stack from native errors", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const result = getErrorInfo(new TypeError("Invalid FIT payload"));
 
@@ -14,7 +14,7 @@ describe(getErrorInfo, () => {
     });
 
     it("extracts string message and stack fields from error-like objects", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         expect(
             getErrorInfo({
@@ -29,7 +29,7 @@ describe(getErrorInfo, () => {
     });
 
     it("falls back to object stringification for missing or non-string messages", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         expect(getErrorInfo({ stack: "Stack without message" })).toEqual({
             message: "[object Object]",
@@ -45,7 +45,7 @@ describe(getErrorInfo, () => {
     });
 
     it("stringifies primitive thrown values", () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         const expectedMessages = new Map<unknown, string>([
             ["Simple string error", "Simple string error"],
@@ -62,7 +62,7 @@ describe(getErrorInfo, () => {
     });
 
     it("does not leak unrelated properties into the normalized result", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const result = getErrorInfo({
             message: "Request failed",
