@@ -111,7 +111,7 @@ describe("tabStateManager.fallback", () => {
     });
 
     it("uses global fallback state manager and renders summary path", async () => {
-        expect.hasAssertions();
+        expect.assertions(7);
 
         const mod =
             await import("../../../../../electron-app/utils/ui/tabs/tabStateManager.js");

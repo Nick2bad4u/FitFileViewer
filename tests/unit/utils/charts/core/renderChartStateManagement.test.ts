@@ -18,7 +18,7 @@ describe("renderChartStateManagement", () => {
     });
 
     it("initializes charts state, computed values, and render middleware", async () => {
-        expect.hasAssertions();
+        expect.assertions(10);
 
         const consoleLog = vi
             .spyOn(console, "log")
@@ -112,7 +112,7 @@ describe("renderChartStateManagement", () => {
     });
 
     it("does not register duplicate chart render middleware", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const computedValues = new Map<string, () => unknown>();
         const register =
@@ -147,7 +147,7 @@ describe("renderChartStateManagement", () => {
     });
 
     it("requests refresh only when chart data is valid and rendering is idle", () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         const requestRerender = vi.fn<(reason: string) => void>();
 
