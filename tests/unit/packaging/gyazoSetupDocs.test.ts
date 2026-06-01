@@ -9,27 +9,27 @@ function readWorkspaceFile(relativePath: string): string {
 
 describe("gyazo setup documentation", () => {
     it("points users at current TypeScript runtime files and root build flow", () => {
-        expect.assertions(1);
+        expect.assertions(3);
 
         const guide = readWorkspaceFile("docs/GYAZO_SETUP.md");
 
-        expect({
-            includesCurrentExportUtility: guide.includes(
+        expect(guide).toEqual(
+            expect.stringContaining(
                 "electron-app/utils/files/export/exportUtils.ts"
-            ),
-            includesMainOauthServer: guide.includes(
+            )
+        );
+        expect(guide).toEqual(
+            expect.stringContaining(
                 "electron-app/main/oauth/gyazoOAuthServer.ts"
-            ),
-            includesRootBuildScript: guide.includes("npm run build:runtime-ts"),
-        }).toStrictEqual({
-            includesCurrentExportUtility: true,
-            includesMainOauthServer: true,
-            includesRootBuildScript: true,
-        });
+            )
+        );
+        expect(guide).toEqual(
+            expect.stringContaining("npm run build:runtime-ts")
+        );
     });
 
     it("does not tell users to edit removed JavaScript paths or source credentials", () => {
-        expect.assertions(4);
+        expect.assertions(3);
 
         const guide = readWorkspaceFile("docs/GYAZO_SETUP.md");
         const exportUtilsSource = readWorkspaceFile(
@@ -41,18 +41,5 @@ describe("gyazo setup documentation", () => {
         expect(exportUtilsSource).not.toContain(
             "Update the exportUtils.gyazoConfig"
         );
-        expect({
-            guideMentionsRemovedPath: guide.includes(
-                "electron-app/utils/exportUtils.js"
-            ),
-            guideMentionsSourceConfig: guide.includes("gyazoConfig:"),
-            uiMentionsSourceConfig: exportUtilsSource.includes(
-                "Update the exportUtils.gyazoConfig"
-            ),
-        }).toStrictEqual({
-            guideMentionsRemovedPath: false,
-            guideMentionsSourceConfig: false,
-            uiMentionsSourceConfig: false,
-        });
     });
 });

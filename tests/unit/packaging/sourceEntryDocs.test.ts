@@ -16,25 +16,17 @@ function readWorkspaceFile(relativePath: string): string {
 
 describe("source entrypoint documentation", () => {
     it("documents TypeScript source entrypoints for the Electron app", () => {
-        expect.assertions(1);
+        expect.assertions(5);
 
         const docs = SOURCE_LAYOUT_DOCS.map((docPath) =>
             readWorkspaceFile(docPath)
         ).join("\n");
 
-        expect({
-            fitParser: docs.includes("fitParser.ts"),
-            main: docs.includes("main.ts"),
-            mainUi: docs.includes("main-ui.ts"),
-            preload: docs.includes("preload.ts"),
-            renderer: docs.includes("renderer.ts"),
-        }).toStrictEqual({
-            fitParser: true,
-            main: true,
-            mainUi: true,
-            preload: true,
-            renderer: true,
-        });
+        expect(docs).toEqual(expect.stringContaining("fitParser.ts"));
+        expect(docs).toEqual(expect.stringContaining("main.ts"));
+        expect(docs).toEqual(expect.stringContaining("main-ui.ts"));
+        expect(docs).toEqual(expect.stringContaining("preload.ts"));
+        expect(docs).toEqual(expect.stringContaining("renderer.ts"));
     });
 
     it("does not present generated JavaScript files as source layout entries", () => {

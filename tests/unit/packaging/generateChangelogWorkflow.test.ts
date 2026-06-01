@@ -107,7 +107,7 @@ describe("generate-changelog-workflow script", () => {
     });
 
     it("runs the changelog generator and logs the root changelog result", async () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const { runChangelogWorkflow } =
             await importGenerateChangelogWorkflow();
@@ -131,10 +131,6 @@ describe("generate-changelog-workflow script", () => {
         expect({
             commands,
             exitCode,
-            reportedCompletion: messages.includes(
-                "All changelog generation completed."
-            ),
-            reportedRootChangelog: messages.includes("Found: CHANGELOG.md"),
         }).toStrictEqual({
             commands: [
                 {
@@ -143,9 +139,13 @@ describe("generate-changelog-workflow script", () => {
                 },
             ],
             exitCode: 0,
-            reportedCompletion: true,
-            reportedRootChangelog: true,
         });
+        expect(messages).toEqual(
+            expect.arrayContaining([
+                "All changelog generation completed.",
+                "Found: CHANGELOG.md",
+            ])
+        );
     });
 
     it("propagates a failed changelog generation status", async () => {

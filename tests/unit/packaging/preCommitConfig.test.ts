@@ -23,20 +23,19 @@ describe("pre-commit configuration", () => {
     });
 
     it("covers Electron and Docusaurus code through the root ESLint wrapper", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const config = readPreCommitConfig();
 
-        expect({
-            docusaurus: config.includes(
+        expect(config).toEqual(
+            expect.stringContaining(
                 "entry: node scripts/run-eslint.mjs docusaurus"
-            ),
-            electronApp: config.includes(
+            )
+        );
+        expect(config).toEqual(
+            expect.stringContaining(
                 "entry: node scripts/run-eslint.mjs electronApp"
-            ),
-        }).toStrictEqual({
-            docusaurus: true,
-            electronApp: true,
-        });
+            )
+        );
     });
 });
