@@ -215,9 +215,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 const computeFn = vi.fn<() => string>(() => "computed-value");
                 computedStateManager.addComputed("initialTest", computeFn, []);
 
-                expect(computeFn).toHaveBeenCalledWith(
-                    expect.objectContaining({ globalData: {} })
-                );
+                expect(computeFn.mock.calls.at(-1)?.[0].globalData).toEqual({});
                 expect(
                     computedStateManager.computedValues.get("initialTest").value
                 ).toBe("computed-value");
@@ -300,9 +298,12 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                     )
                 );
                 expect(circularFn).not.toHaveBeenCalled();
-                expect(
-                    computedStateManager.computedValues.get("circular")
-                ).toMatchObject({
+                const computed =
+                    computedStateManager.computedValues.get("circular");
+                expect({
+                    isValid: computed.isValid,
+                    value: computed.value,
+                }).toStrictEqual({
                     isValid: false,
                     value: undefined,
                 });
@@ -322,9 +323,13 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                         'Slow computation for "slowTest": 15.00ms'
                     )
                 );
-                expect(
-                    computedStateManager.computedValues.get("slowTest")
-                ).toMatchObject({
+                const computed =
+                    computedStateManager.computedValues.get("slowTest");
+                expect({
+                    error: computed.error,
+                    isValid: computed.isValid,
+                    value: computed.value,
+                }).toStrictEqual({
                     error: null,
                     isValid: true,
                     value: "slow-result",
@@ -368,9 +373,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 computeFn.mockClear();
 
                 const result = computedStateManager.getComputed("invalidTest");
-                expect(computeFn).toHaveBeenCalledWith(
-                    expect.objectContaining({ globalData: {} })
-                );
+                expect(computeFn.mock.calls.at(-1)?.[0].globalData).toEqual({});
                 expect(result).toBe("recomputed-value");
             });
 
@@ -386,9 +389,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 computeFn.mockClear();
 
                 const result = computedStateManager.getComputed("errorTest");
-                expect(computeFn).toHaveBeenCalledWith(
-                    expect.objectContaining({ globalData: {} })
-                );
+                expect(computeFn.mock.calls.at(-1)?.[0].globalData).toEqual({});
                 expect(result).toBe("fixed-value");
             });
 
@@ -529,22 +530,26 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
                 computedStateManager.recomputeAll();
 
-                expect(fn1).toHaveBeenCalledWith(
-                    expect.objectContaining({ globalData: {} })
-                );
-                expect(fn2).toHaveBeenCalledWith(
-                    expect.objectContaining({ globalData: {} })
-                );
-                expect(
-                    computedStateManager.computedValues.get("test1")
-                ).toMatchObject({
+                expect(fn1.mock.calls.at(-1)?.[0].globalData).toEqual({});
+                expect(fn2.mock.calls.at(-1)?.[0].globalData).toEqual({});
+                const firstComputed =
+                    computedStateManager.computedValues.get("test1");
+                expect({
+                    error: firstComputed.error,
+                    isValid: firstComputed.isValid,
+                    value: firstComputed.value,
+                }).toStrictEqual({
                     error: null,
                     isValid: true,
                     value: "value1-2",
                 });
-                expect(
-                    computedStateManager.computedValues.get("test2")
-                ).toMatchObject({
+                const secondComputed =
+                    computedStateManager.computedValues.get("test2");
+                expect({
+                    error: secondComputed.error,
+                    isValid: secondComputed.isValid,
+                    value: secondComputed.value,
+                }).toStrictEqual({
                     error: null,
                     isValid: true,
                     value: "value2-2",
@@ -569,11 +574,16 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
                 expect(result).toHaveProperty("meta1");
                 expect(result).toHaveProperty("meta2");
-                expect(result.meta1).toMatchObject({
+                expect({
+                    dependencies: result.meta1.dependencies,
+                    error: result.meta1.error,
+                    isValid: result.meta1.isValid,
+                    value: result.meta1.value,
+                }).toStrictEqual({
                     dependencies: ["dep1"],
-                    value: "value1",
-                    isValid: true,
                     error: null,
+                    isValid: true,
+                    value: "value1",
                 });
             });
         });
@@ -758,6 +768,9 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                         computedStateManager.computedValues.has(key)
                     ).toStrictEqual(true);
                 }
+                expect(
+                    computedStateManager.computedValues.has("missingComputed")
+                ).not.toStrictEqual(true);
             });
 
             it("should compute isFileLoaded correctly", () => {
@@ -828,11 +841,17 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 computedStateManager.invalidateComputed("summaryData");
                 const result = getComputed("summaryData");
 
-                expect(result).toMatchObject({
+                expect(result).toStrictEqual({
                     avgHeartRate: 140,
                     avgPower: 250,
+                    avgSpeed: undefined,
+                    maxHeartRate: undefined,
+                    maxPower: undefined,
                     maxSpeed: 45,
+                    totalAscent: undefined,
+                    totalDescent: undefined,
                     totalDistance: 10000,
+                    totalTime: undefined,
                 });
             });
 
@@ -847,7 +866,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 computedStateManager.invalidateComputed("themeInfo");
                 const result = getComputed("themeInfo");
 
-                expect(result).toMatchObject({
+                expect(result).toStrictEqual({
                     currentTheme: "dark",
                     isDarkTheme: true,
                     isLightTheme: false,
