@@ -46,7 +46,7 @@ function resetExternalLinkHandlerMocks(): CleanupFunction {
 
 describe(setupExternalLinkHandlers, () => {
     it("cleans up existing handlers before attaching document-level handlers", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         const nextCleanup = resetExternalLinkHandlerMocks();
         let cleanedPrevious = false;
@@ -65,12 +65,11 @@ describe(setupExternalLinkHandlers, () => {
 
         expect({ cleanedPrevious }).toStrictEqual({ cleanedPrevious: true });
         expect(installedCleanup).toBe(nextCleanup);
-        expect(
-            mocks.attachExternalLinkHandlers
-        ).toHaveBeenCalledExactlyOnceWith({
-            onOpenExternalError: expect.any(Function),
-            root: document,
-        });
+        expect(mocks.attachExternalLinkHandlers).toHaveBeenCalledOnce();
+        const [attachOptions] = mocks.attachExternalLinkHandlers.mock
+            .calls[0] as [AttachExternalLinkHandlersOptions];
+        expect(attachOptions).toMatchObject({ root: document });
+        expect(attachOptions.onOpenExternalError).toBeTypeOf("function");
     });
 
     it("continues attaching handlers when a stale cleanup callback throws", () => {
