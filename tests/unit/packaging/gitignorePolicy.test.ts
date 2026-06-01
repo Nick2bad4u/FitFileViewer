@@ -1,6 +1,9 @@
 import { spawnSync } from "node:child_process";
+import path from "node:path";
 
 import { describe, expect, it } from "vitest";
+
+import { cleanupTargets } from "../../../scripts/clean-workspace.mjs";
 
 type GitIgnoreResult = {
     status: number | null;
@@ -28,6 +31,18 @@ function checkIgnore(path: string, mode: "-q" | "-v"): GitIgnoreResult {
         stderr: result.stderr,
         stdout: result.stdout,
     };
+}
+
+function createCleanupProbePath(target: string): string {
+    const normalizedTarget = target.replaceAll(path.sep, "/");
+    const basename = path.posix.basename(normalizedTarget);
+    const fileLikeTarget =
+        path.posix.extname(normalizedTarget) !== "" &&
+        !basename.startsWith(".");
+
+    return fileLikeTarget
+        ? normalizedTarget
+        : path.posix.join(normalizedTarget, ".ffv-clean-probe");
 }
 
 describe("gitignore policy", () => {
@@ -74,6 +89,43 @@ describe("gitignore policy", () => {
         }).toStrictEqual({ stderr: "", status: 0 });
         expect(htmlTrace.stdout).toMatch(
             /\.gitignore:\d+:html\/\s+html\/index\.html/u
+        );
+    });
+
+    it("keeps cleanup targets ignored by git", () => {
+        expect.assertions(1);
+
+        const unignoredCleanupTargets = cleanupTargets
+            .map((target) => ({
+                probePath: createCleanupProbePath(target),
+                target,
+            }))
+            .filter(
+                ({ probePath }) => checkIgnore(probePath, "-q").status !== 0
+            )
+            .map(({ probePath, target }) => `${target} -> ${probePath}`);
+
+        expect(unignoredCleanupTargets).toStrictEqual([]);
+    });
+
+    it("keeps local-only editor and AI helper files ignored", () => {
+        expect.assertions(3);
+
+        const copilotTrace = checkIgnore(
+            ".github/copilot-instructions.md",
+            "-v"
+        );
+        const codacyTrace = checkIgnore(".codacy/cli.sh", "-v");
+        const mcpTrace = checkIgnore(".vscode/mcp.json", "-v");
+
+        expect(copilotTrace.stdout).toMatch(
+            /\.gitignore:\d+:\.github\/copilot-instructions\.md\s+\.github\/copilot-instructions\.md/u
+        );
+        expect(codacyTrace.stdout).toMatch(
+            /\.gitignore:\d+:\.codacy\/cli\.sh\s+\.codacy\/cli\.sh/u
+        );
+        expect(mcpTrace.stdout).toMatch(
+            /\.gitignore:\d+:\.vscode\/\*\s+\.vscode\/mcp\.json/u
         );
     });
 });
