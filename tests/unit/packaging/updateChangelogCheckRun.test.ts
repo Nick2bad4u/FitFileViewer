@@ -149,8 +149,8 @@ describe("update-changelog-check-run script", () => {
             checkId,
             commandCount: calls.length,
             envFile: fs.readFileSync(githubEnv, "utf8"),
-            requestPath: calls[0]?.args.find((arg) =>
-                arg.includes("/check-runs")
+            requestPath: calls[0]?.args.find(
+                (arg) => arg === "/repos/Nick2bad4u/FitFileViewer/check-runs"
             ),
             requestPayload: JSON.parse(calls[0]?.options.input ?? "{}"),
         }).toStrictEqual({

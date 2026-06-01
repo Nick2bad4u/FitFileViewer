@@ -66,18 +66,18 @@ describe("lint-css wrapper", () => {
         ] = commandRunner.mock.calls[0] ?? [];
 
         expect({
+            args,
             command,
-            includesFix: args?.includes("--fix"),
             status: exitStatus,
-            stylelintCliMatches:
-                /[\\/]stylelint[\\/]bin[\\/]stylelint\.mjs$/u.test(
-                    args?.[0] ?? ""
-                ),
         }).toStrictEqual({
+            args: expect.arrayContaining([
+                expect.stringMatching(
+                    /[\\/]stylelint[\\/]bin[\\/]stylelint\.mjs$/u
+                ),
+                "--fix",
+            ]),
             command: process.execPath,
-            includesFix: true,
             status: 4,
-            stylelintCliMatches: true,
         });
         expect({
             ...options,

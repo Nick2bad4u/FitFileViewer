@@ -38,7 +38,7 @@ type CommandRunner = (
 
 describe("run-prettier wrapper", () => {
     it("keeps root-owned formatting targets for app and workspace metadata", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const requiredTargets = [
             rootPackageJsonPath,
@@ -65,17 +65,14 @@ describe("run-prettier wrapper", () => {
             "tests/integration/**/*.ts",
         ];
 
-        expect({
-            missingTargets: requiredTargets.filter(
-                (target) => !prettierTargets.includes(target)
-            ),
-            obsoleteTargets: prettierTargets.filter(
+        expect(prettierTargets).toEqual(
+            expect.arrayContaining(requiredTargets)
+        );
+        expect(
+            prettierTargets.filter(
                 (target) => target === "electron-app/*.config.*"
-            ),
-        }).toStrictEqual({
-            missingTargets: [],
-            obsoleteTargets: [],
-        });
+            )
+        ).toStrictEqual([]);
     });
 
     it("builds default check arguments with cached formatting options", () => {
@@ -129,7 +126,7 @@ describe("run-prettier wrapper", () => {
             mode: args?.at(-1),
             prettierCliPath: args?.[0],
             targetSample: {
-                rootPackage: args?.includes(rootPackageJsonPath),
+                rootPackage: args?.find((arg) => arg === rootPackageJsonPath),
             },
             options: {
                 ...options,
@@ -143,7 +140,7 @@ describe("run-prettier wrapper", () => {
                 /[\\/]prettier[\\/]bin[\\/]prettier\.cjs$/u
             ),
             targetSample: {
-                rootPackage: true,
+                rootPackage: rootPackageJsonPath,
             },
             options: {
                 cwd: path.resolve(process.cwd()),

@@ -92,13 +92,13 @@ describe("run-docusaurus wrapper", () => {
             args: [syncDocusaurusStaticAssetsScript],
         });
         expect({
+            args: docsArgs,
             command: docsCommand,
             cwd: path.resolve(docsOptions?.cwd ?? ""),
-            includesBuild: docsArgs?.includes("build"),
         }).toStrictEqual({
+            args: expect.arrayContaining(["build"]),
             command: process.execPath,
             cwd: path.join(process.cwd(), "docusaurus"),
-            includesBuild: true,
         });
     });
 
@@ -125,11 +125,11 @@ describe("run-docusaurus wrapper", () => {
         ] = commandRunner.mock.calls[0] ?? [];
 
         expect({
+            args,
             cwd: path.resolve(options?.cwd ?? ""),
-            includesClear: args?.includes("clear"),
         }).toStrictEqual({
+            args: expect.arrayContaining(["clear"]),
             cwd: path.join(process.cwd(), "docusaurus"),
-            includesClear: true,
         });
     });
 
