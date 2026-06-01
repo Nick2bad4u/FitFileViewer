@@ -7,7 +7,7 @@ import {
     readOptionValue,
     requireOption,
 } from "./lib/cli-options.mjs";
-import { repositoryRoot } from "./lib/workspaces.mjs";
+import { repositoryRoot, rootChangelogPath } from "./lib/workspaces.mjs";
 
 const BOT_EMAIL = "41898282+github-actions[bot]@users.noreply.github.com";
 const BOT_NAME = "github-actions[bot]";
@@ -50,7 +50,7 @@ export function commitChangelogWorkflow(options) {
         ],
         { cwd, runCommand }
     );
-    runGit(["add", "CHANGELOG.md"], { cwd, runCommand });
+    runGit(["add", rootChangelogPath], { cwd, runCommand });
 
     const diffResult = runCommand(
         "git",

@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { repositoryRoot } from "../../../scripts/lib/workspaces.mjs";
+import {
+    repositoryRoot,
+    rootChangelogPath,
+} from "../../../scripts/lib/workspaces.mjs";
 
 type CommandCall = {
     args: string[];
@@ -104,7 +107,7 @@ describe("commit-changelog-workflow script", () => {
             commands: [
                 "config user.name github-actions[bot]",
                 "config user.email 41898282+github-actions[bot]@users.noreply.github.com",
-                "add CHANGELOG.md",
+                `add ${rootChangelogPath}`,
                 "diff --staged --quiet",
             ],
             didCommit: false,
@@ -144,7 +147,7 @@ describe("commit-changelog-workflow script", () => {
             commands: [
                 "config user.name github-actions[bot]",
                 "config user.email 41898282+github-actions[bot]@users.noreply.github.com",
-                "add CHANGELOG.md",
+                `add ${rootChangelogPath}`,
                 "diff --staged --quiet",
                 "commit -m chore: update changelogs for v30.0.0 [skip ci]",
                 "push origin release",

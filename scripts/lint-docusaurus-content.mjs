@@ -6,6 +6,7 @@ import { pathToFileURL } from "node:url";
 import {
     docusaurusWorkspaceRepositoryPath,
     repositoryRoot,
+    rootMarkdownlintConfigPath,
 } from "./lib/workspaces.mjs";
 
 const require = createRequire(import.meta.url);
@@ -23,7 +24,7 @@ export function buildMarkdownlintArgs(argv = process.argv.slice(2)) {
         markdownlintCliPath,
         ...markdownlintTargets,
         "--config",
-        ".markdownlint.json",
+        rootMarkdownlintConfigPath,
         ...argv,
     ];
 }

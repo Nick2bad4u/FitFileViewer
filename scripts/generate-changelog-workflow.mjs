@@ -7,6 +7,7 @@ import { pathToFileURL } from "node:url";
 import {
     generateChangelogScriptPath,
     repositoryRoot,
+    rootChangelogPath,
 } from "./lib/workspaces.mjs";
 
 if (
@@ -23,13 +24,13 @@ if (
 }
 
 export function createChangelogMetadata(cwd = repositoryRoot) {
-    const changelogPath = path.join(cwd, "CHANGELOG.md");
+    const changelogPath = path.join(cwd, rootChangelogPath);
 
     if (!fs.existsSync(changelogPath)) {
         return {
             exists: false,
             lineCount: 0,
-            path: "CHANGELOG.md",
+            path: rootChangelogPath,
             size: "file not found",
         };
     }
@@ -39,7 +40,7 @@ export function createChangelogMetadata(cwd = repositoryRoot) {
     return {
         exists: true,
         lineCount: contents ? contents.split(/\r?\n/).length : 0,
-        path: "CHANGELOG.md",
+        path: rootChangelogPath,
         size: String(fs.statSync(changelogPath).size),
     };
 }
@@ -56,10 +57,10 @@ export function createDirectoryListing(cwd = repositoryRoot) {
 
 export function formatChangelogMetadata(metadata) {
     if (!metadata.exists) {
-        return "Root CHANGELOG.md generated, size: file not found";
+        return `Root ${rootChangelogPath} generated, size: file not found`;
     }
 
-    return `Root CHANGELOG.md generated, size: ${metadata.size}, lines: ${metadata.lineCount}`;
+    return `Root ${rootChangelogPath} generated, size: ${metadata.size}, lines: ${metadata.lineCount}`;
 }
 
 export function formatDirectoryListing(entries) {
@@ -104,7 +105,7 @@ export function runChangelogWorkflow(options = {}) {
     log("Available files:");
     log(formatDirectoryListing(createDirectoryListing(cwd)));
     log("");
-    log("Generating root CHANGELOG.md...");
+    log(`Generating root ${rootChangelogPath}...`);
 
     const result = runCommand(
         process.execPath,

@@ -4,7 +4,10 @@ import path from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
-import { generateChangelogScriptPath } from "../../../scripts/lib/workspaces.mjs";
+import {
+    generateChangelogScriptPath,
+    rootChangelogPath,
+} from "../../../scripts/lib/workspaces.mjs";
 
 type DirectoryEntry = {
     name: string;
@@ -96,12 +99,12 @@ describe("generate-changelog-workflow script", () => {
             formatChangelogMetadata(createChangelogMetadata(temporaryRoot))
         ).toBe("Root CHANGELOG.md generated, size: file not found");
 
-        fs.writeFileSync(path.join(temporaryRoot, "CHANGELOG.md"), "a\nb\n");
+        fs.writeFileSync(path.join(temporaryRoot, rootChangelogPath), "a\nb\n");
 
         expect(createChangelogMetadata(temporaryRoot)).toStrictEqual({
             exists: true,
             lineCount: 3,
-            path: "CHANGELOG.md",
+            path: rootChangelogPath,
             size: "4",
         });
     });
@@ -115,7 +118,10 @@ describe("generate-changelog-workflow script", () => {
         const messages: string[] = [];
         const commands: Array<{ args: string[]; command: string }> = [];
 
-        fs.writeFileSync(path.join(temporaryRoot, "CHANGELOG.md"), "# Log\n");
+        fs.writeFileSync(
+            path.join(temporaryRoot, rootChangelogPath),
+            "# Log\n"
+        );
 
         const exitCode = runChangelogWorkflow({
             cwd: temporaryRoot,
@@ -144,14 +150,14 @@ describe("generate-changelog-workflow script", () => {
             "Starting changelog generation...",
             `Current directory: ${temporaryRoot}`,
             "Available files:",
-            "- CHANGELOG.md",
+            `- ${rootChangelogPath}`,
             "",
-            "Generating root CHANGELOG.md...",
+            `Generating root ${rootChangelogPath}...`,
             "Root CHANGELOG.md generated, size: 6, lines: 2",
             "",
             "All changelog generation completed.",
             "Files updated:",
-            "Found: CHANGELOG.md",
+            `Found: ${rootChangelogPath}`,
         ]);
     });
 

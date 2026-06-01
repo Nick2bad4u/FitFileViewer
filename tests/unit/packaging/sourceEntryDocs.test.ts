@@ -3,6 +3,16 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import {
+    rootCliffConfigPath,
+    rootCodecovConfigPath,
+    rootElectronBuilderConfigPath,
+    rootEslintConfigPath,
+    rootPrettierConfigPath,
+    rootStylelintConfigPath,
+    rootVitestConfigPath,
+} from "../../../scripts/lib/workspaces.mjs";
+
 const SOURCE_LAYOUT_DOCS = [
     "docs/APPLICATION_ARCHITECTURE.md",
     "docs/APPLICATION_LAYOUT.md",
@@ -113,13 +123,13 @@ describe("source entrypoint documentation", () => {
         const layoutGuide = readWorkspaceFile("docs/APPLICATION_LAYOUT.md");
         const documentedRootToolingFiles = [
             ".gitignore",
-            "cliff.toml",
-            "codecov.yml",
-            "electron-builder.config.cjs",
-            "eslint.config.mjs",
-            "prettier.config.mjs",
-            "stylelint.config.mjs",
-            "vitest.config.ts",
+            rootCliffConfigPath,
+            rootCodecovConfigPath,
+            rootElectronBuilderConfigPath,
+            rootEslintConfigPath,
+            rootPrettierConfigPath,
+            rootStylelintConfigPath,
+            rootVitestConfigPath,
         ];
         const staleRootToolingFiles = [
             ".browserslistrc",

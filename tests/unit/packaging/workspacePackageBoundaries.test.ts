@@ -12,6 +12,7 @@ import {
     rootElectronBuilderConfigPath,
     rootElectronAppTsconfigPath,
     rootEslintConfigPath,
+    rootNcuConfigPath,
     rootPackageRepositoryPath,
     rootPlaywrightConfigPath,
     rootPrettierConfigPath,
@@ -287,7 +288,7 @@ describe("workspace package boundaries", () => {
         expect.assertions(3);
 
         const ncuConfig = JSON.parse(
-            readFileSync(path.join(process.cwd(), ".ncurc.json"), "utf8")
+            readFileSync(path.join(process.cwd(), rootNcuConfigPath), "utf8")
         ) as Record<string, unknown>;
 
         expect(ncuConfig).toStrictEqual({

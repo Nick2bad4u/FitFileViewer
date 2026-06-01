@@ -2,7 +2,11 @@ import { spawnSync } from "node:child_process";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 
-import { repositoryRoot } from "./lib/workspaces.mjs";
+import {
+    repositoryRoot,
+    rootChangelogPath,
+    rootCliffConfigPath,
+} from "./lib/workspaces.mjs";
 
 const gitCliffCliPath = fileURLToPath(
     await import.meta.resolve("git-cliff/cli")
@@ -10,9 +14,9 @@ const gitCliffCliPath = fileURLToPath(
 const userArgs = process.argv.slice(2);
 const gitCliffArgs = [
     "--config",
-    "cliff.toml",
+    rootCliffConfigPath,
     "--output",
-    "CHANGELOG.md",
+    rootChangelogPath,
     ...userArgs,
 ];
 

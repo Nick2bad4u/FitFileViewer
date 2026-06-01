@@ -55,6 +55,10 @@ type WorkspacesModule = {
     rendererVendorGlobalsBundleName: string;
     rendererVendorGlobalsScriptFileName: string;
     rendererVendorGlobalsStyleFileName: string;
+    rootChangelogPath: string;
+    rootCliffConfigPath: string;
+    rootCodecovConfigPath: string;
+    rootCspellConfigPath: string;
     rootElectronAppBaseTsconfigPath: string;
     rootElectronAppEslintTsconfigPath: string;
     rootAlternativeFitViewPath: string;
@@ -83,12 +87,19 @@ type WorkspacesModule = {
     rootPackageRepositoryPath: string;
     rootPlaywrightConfigPath: string;
     rootIntegrationTestsPath: string;
+    rootMarkdownLinkCheckConfigPath: string;
+    rootMarkdownlintConfigPath: string;
+    rootMermaidConfigPath: string;
+    rootNcuConfigPath: string;
     rootPrettierConfigPath: string;
+    rootPreCommitConfigPath: string;
+    rootRemarkConfigPath: string;
     rootReleaseDistPath: string;
     rootReleaseDistAbsolutePath: string;
     rootReleaseDistRelativePath: (...segments: string[]) => string;
     rootRuntimeTsconfigAbsolutePath: string;
     rootRuntimeTsconfigPath: string;
+    rootSecretlintConfigPath: string;
     rootStaticAssetsPath: string;
     rootStylelintConfigPath: string;
     rootTabsTestsPath: string;
@@ -309,6 +320,30 @@ describe("workspace path helpers", () => {
         expect(workspaces.rootVitestTypecheckTsconfigPath).toBe(
             "tsconfig.vitest-typecheck.json"
         );
+    });
+
+    it("centralizes root tooling metadata paths", async () => {
+        expect.assertions(11);
+
+        const workspaces = await importWorkspaces();
+
+        expect(workspaces.rootChangelogPath).toBe("CHANGELOG.md");
+        expect(workspaces.rootCliffConfigPath).toBe("cliff.toml");
+        expect(workspaces.rootCodecovConfigPath).toBe("codecov.yml");
+        expect(workspaces.rootCspellConfigPath).toBe("cspell.json");
+        expect(workspaces.rootMarkdownLinkCheckConfigPath).toBe(
+            ".markdown-link-check.json"
+        );
+        expect(workspaces.rootMarkdownlintConfigPath).toBe(
+            ".markdownlint.json"
+        );
+        expect(workspaces.rootMermaidConfigPath).toBe("mermaid.config.json");
+        expect(workspaces.rootNcuConfigPath).toBe(".ncurc.json");
+        expect(workspaces.rootPreCommitConfigPath).toBe(
+            ".pre-commit-config.yaml"
+        );
+        expect(workspaces.rootRemarkConfigPath).toBe(".remarkrc.mjs");
+        expect(workspaces.rootSecretlintConfigPath).toBe(".secretlintrc.cjs");
     });
 
     it("centralizes root generated output and test paths", async () => {

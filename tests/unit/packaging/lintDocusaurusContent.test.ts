@@ -2,7 +2,10 @@ import path from "node:path";
 
 import { describe, expect, it, vi } from "vitest";
 
-import { docusaurusWorkspaceRepositoryPath } from "../../../scripts/lib/workspaces.mjs";
+import {
+    docusaurusWorkspaceRepositoryPath,
+    rootMarkdownlintConfigPath,
+} from "../../../scripts/lib/workspaces.mjs";
 import {
     buildMarkdownlintArgs,
     markdownlintTargets,
@@ -31,7 +34,7 @@ describe("lint-docusaurus-content script", () => {
             /[\\/]markdownlint-cli2[\\/].*markdownlint-cli2(?:\.mjs|\.cjs|\.js)?$/u
         );
         expect(args).toContain("--config");
-        expect(args).toContain(".markdownlint.json");
+        expect(args).toContain(rootMarkdownlintConfigPath);
         expect(args.at(-1)).toBe("--fix");
     });
 

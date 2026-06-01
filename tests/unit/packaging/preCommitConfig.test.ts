@@ -3,9 +3,11 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { rootPreCommitConfigPath } from "../../../scripts/lib/workspaces.mjs";
+
 function readPreCommitConfig(): string {
     return readFileSync(
-        path.join(process.cwd(), ".pre-commit-config.yaml"),
+        path.join(process.cwd(), rootPreCommitConfigPath),
         "utf8"
     );
 }
