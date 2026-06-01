@@ -35,27 +35,39 @@ describe("renderChartRuntimeHelpers environment detection", () => {
     });
 
     it("treats a missing renderer process shim as a non-node environment", () => {
-        expect.assertions(3);
+        expect.assertions(1);
 
         setGlobalProcess(undefined);
 
-        expect(isNodeEnv("test")).toBe(false);
-        expect(isDevelopmentEnvironment()).toBe(false);
-        expect(isTestEnvironment()).toBe(false);
+        expect({
+            developmentEnvironment: isDevelopmentEnvironment(),
+            nodeTestEnvironment: isNodeEnv("test"),
+            testEnvironment: isTestEnvironment(),
+        }).toStrictEqual({
+            developmentEnvironment: false,
+            nodeTestEnvironment: false,
+            testEnvironment: false,
+        });
     });
 
     it("treats a renderer process shim without env as a non-node environment", () => {
-        expect.assertions(3);
+        expect.assertions(1);
 
         setGlobalProcess({});
 
-        expect(isNodeEnv("test")).toBe(false);
-        expect(isDevelopmentEnvironment()).toBe(false);
-        expect(isTestEnvironment()).toBe(false);
+        expect({
+            developmentEnvironment: isDevelopmentEnvironment(),
+            nodeTestEnvironment: isNodeEnv("test"),
+            testEnvironment: isTestEnvironment(),
+        }).toStrictEqual({
+            developmentEnvironment: false,
+            nodeTestEnvironment: false,
+            testEnvironment: false,
+        });
     });
 
     it("reads NODE_ENV when the renderer process shim exposes an env object", () => {
-        expect.assertions(3);
+        expect.assertions(1);
 
         setGlobalProcess({
             env: {
@@ -63,8 +75,14 @@ describe("renderChartRuntimeHelpers environment detection", () => {
             },
         });
 
-        expect(isNodeEnv("test")).toBe(true);
-        expect(isTestEnvironment()).toBe(true);
-        expect(isDevelopmentEnvironment()).toBe(false);
+        expect({
+            developmentEnvironment: isDevelopmentEnvironment(),
+            nodeTestEnvironment: isNodeEnv("test"),
+            testEnvironment: isTestEnvironment(),
+        }).toStrictEqual({
+            developmentEnvironment: false,
+            nodeTestEnvironment: true,
+            testEnvironment: true,
+        });
     });
 });
