@@ -85,9 +85,7 @@ describe("data ant product ID lookup", () => {
         const entries = Object.entries(dataAntProductIds);
 
         expect(dataAntProductIds).toBeTypeOf("object");
-        expect({ isArray: Array.isArray(dataAntProductIds) }).toEqual({
-            isArray: false,
-        });
+        expect(dataAntProductIds).not.toBeInstanceOf(Array);
         expect(entries).toHaveLength(5);
         expect(productLookup["1"]).toBeTypeOf("object");
         expect(productLookup["32"]).toBeTypeOf("object");
@@ -95,22 +93,17 @@ describe("data ant product ID lookup", () => {
     });
 
     it("uses positive integer string keys and non-empty product names", () => {
-        expect.assertions(2425);
+        expect.assertions(2430);
 
         const productEntries = Object.entries(dataAntProductIds);
 
         for (const [manufacturerId, products] of productEntries) {
             const numericManufacturerId = Number(manufacturerId);
 
-            expect({
-                isArray: Array.isArray(products),
-                manufacturerIdIsInteger: Number.isInteger(
-                    numericManufacturerId
-                ),
-            }).toEqual({
-                isArray: false,
-                manufacturerIdIsInteger: true,
-            });
+            expect(products).not.toBeInstanceOf(Array);
+            expect(numericManufacturerId).toBe(
+                Math.trunc(numericManufacturerId)
+            );
             expect(numericManufacturerId).toBeGreaterThanOrEqual(1);
             expect(products).toBeTypeOf("object");
 

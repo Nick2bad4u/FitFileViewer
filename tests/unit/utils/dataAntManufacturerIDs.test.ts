@@ -55,19 +55,17 @@ const getManufacturer = (manufacturerId: unknown): string | undefined =>
 
 describe("data ant manufacturer ID lookup", () => {
     it("exports an immutable numeric lookup table", () => {
-        expect.assertions(6);
+        expect.assertions(7);
 
         const entries = Object.entries(dataAntManufacturerIDs);
         const keys = Object.keys(dataAntManufacturerIDs);
 
         expect(dataAntManufacturerIDs).toBeTypeOf("object");
-        expect({
-            isArray: Array.isArray(dataAntManufacturerIDs),
-            isFrozen: Object.isFrozen(dataAntManufacturerIDs),
-        }).toEqual({
-            isArray: false,
-            isFrozen: true,
-        });
+        expect(dataAntManufacturerIDs).not.toBeInstanceOf(Array);
+        expect(() => {
+            (manufacturerLookup as Record<string, string>)["999999"] =
+                "not_a_manufacturer";
+        }).toThrow(TypeError);
         expect(entries).toHaveLength(232);
         expect(keys.slice(0, 3)).toEqual([
             "1",
