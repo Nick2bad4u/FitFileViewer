@@ -273,10 +273,13 @@ describe(renderLapZoneCharts, () => {
         it("should filter messages with referenceMesg === 'lap'", () => {
             expect.assertions(4);
 
-            window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "session", timeInHrZone: "[0,10,20]" },
+            const expectedLapZoneData = [
                 { referenceMesg: "lap", timeInHrZone: "[0,15,25]" },
                 { referenceMesg: "lap", timeInPowerZone: "[0,5,15]" },
+            ];
+            window.globalData.timeInZoneMesgs = [
+                { referenceMesg: "session", timeInHrZone: "[0,10,20]" },
+                ...expectedLapZoneData,
                 { referenceMesg: "activity", timeInHrZone: "[0,8,12]" },
             ];
 
@@ -287,7 +290,7 @@ describe(renderLapZoneCharts, () => {
             );
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] Found lap zone data:",
-                expect.any(Array)
+                expectedLapZoneData
             );
             expect(mockConsoleLog).not.toHaveBeenCalledWith(
                 "[ChartJS] No lap-specific zone data found"
@@ -799,44 +802,71 @@ describe(renderLapZoneCharts, () => {
         });
 
         it("should call renderLapZoneChart for Power stacked chart", () => {
-            expect.assertions(2);
+            expect.assertions(6);
 
             renderLapZoneCharts(container);
-            expect(renderLapZoneChart).toHaveBeenCalledWith(
-                expect.any(HTMLCanvasElement),
-                expect.any(Array),
-                {
-                    title: "Power Zone by Lap (Stacked)",
-                }
+            const powerCalls = renderLapZoneChartMock.mock.calls.filter(
+                (call) => call[2]?.title === "Power Zone by Lap (Stacked)"
             );
+
+            expect(powerCalls).toHaveLength(1);
+
+            const [
+                canvas,
+                data,
+                options,
+            ] = powerCalls[0];
+
+            expect(canvas).toBeInstanceOf(window.HTMLCanvasElement);
+            expect(canvas.id).toBe("chartjs-canvas-lap-power-zones");
+            expect(data).toHaveLength(1);
+            expect(options).toStrictEqual({
+                title: "Power Zone by Lap (Stacked)",
+            });
             expect(getCanvasIds()).toContain("chartjs-canvas-lap-power-zones");
         });
 
         it("should call renderSingleHRZoneBar for HR individual chart", () => {
-            expect.assertions(2);
+            expect.assertions(6);
 
             renderLapZoneCharts(container);
-            expect(renderSingleHRZoneBar).toHaveBeenCalledWith(
-                expect.any(HTMLCanvasElement),
-                expect.any(Array),
-                {
-                    title: "HR Zone by Lap (Individual)",
-                }
-            );
+
+            expect(renderSingleHRZoneBarMock).toHaveBeenCalledOnce();
+
+            const [
+                canvas,
+                data,
+                options,
+            ] = renderSingleHRZoneBarMock.mock.calls[0];
+
+            expect(canvas).toBeInstanceOf(window.HTMLCanvasElement);
+            expect(canvas.id).toBe("chartjs-canvas-single-lap-hr");
+            expect(data).toHaveLength(2);
+            expect(options).toStrictEqual({
+                title: "HR Zone by Lap (Individual)",
+            });
             expect(getCanvasIds()).toContain("chartjs-canvas-single-lap-hr");
         });
 
         it("should call renderSinglePowerZoneBar for Power individual chart", () => {
-            expect.assertions(2);
+            expect.assertions(6);
 
             renderLapZoneCharts(container);
-            expect(renderSinglePowerZoneBar).toHaveBeenCalledWith(
-                expect.any(HTMLCanvasElement),
-                expect.any(Array),
-                {
-                    title: "Power Zone by Lap (Individual)",
-                }
-            );
+
+            expect(renderSinglePowerZoneBarMock).toHaveBeenCalledOnce();
+
+            const [
+                canvas,
+                data,
+                options,
+            ] = renderSinglePowerZoneBarMock.mock.calls[0];
+
+            expect(canvas).toBeInstanceOf(window.HTMLCanvasElement);
+            expect(canvas.id).toBe("chartjs-canvas-single-lap-power");
+            expect(data).toHaveLength(2);
+            expect(options).toStrictEqual({
+                title: "Power Zone by Lap (Individual)",
+            });
             expect(getCanvasIds()).toContain("chartjs-canvas-single-lap-power");
         });
     });
@@ -907,8 +937,9 @@ describe(renderLapZoneCharts, () => {
             expect.assertions(2);
 
             // Force an error by making getThemeConfig throw
+            const themeConfigError = new Error("Theme config error");
             getThemeConfigMock.mockImplementation(() => {
-                throw new Error("Theme config error");
+                throw themeConfigError;
             });
 
             window.globalData.timeInZoneMesgs = [
@@ -922,7 +953,7 @@ describe(renderLapZoneCharts, () => {
             renderLapZoneCharts(container);
             expect(mockConsoleError).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering lap zone charts:",
-                expect.any(Error)
+                themeConfigError
             );
             expect({
                 canvasIds: getCanvasIds(),
@@ -966,8 +997,9 @@ describe(renderLapZoneCharts, () => {
             expect.assertions(2);
 
             delete window.showNotification;
+            const testError = new Error("Test error");
             getThemeConfigMock.mockImplementation(() => {
-                throw new Error("Test error");
+                throw testError;
             });
 
             window.globalData.timeInZoneMesgs = [
@@ -982,7 +1014,7 @@ describe(renderLapZoneCharts, () => {
 
             expect(mockConsoleError).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering lap zone charts:",
-                expect.any(Error)
+                testError
             );
             expect({
                 canvasIds: getCanvasIds(),
