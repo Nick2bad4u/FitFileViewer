@@ -169,7 +169,8 @@ describe("updateMapTheme - comprehensive coverage", () => {
                     "[updateMapTheme] Error updating map theme:",
                     expect.any(Error)
                 );
-                expect(mapElement.isConnected).toBe(true);
+                expect(mockGetMapThemeInverted).not.toHaveBeenCalled();
+                expect(mapElement.parentElement).toBe(document.body);
                 expect(mapElement.style.filter).toBe("");
                 expect(tilePane.style.filter).toBe("");
             } finally {
