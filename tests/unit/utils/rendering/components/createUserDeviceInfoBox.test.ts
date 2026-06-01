@@ -139,7 +139,7 @@ describe(createUserDeviceInfoBox, () => {
     });
 
     it("creates info box with user profile and device sections when data present", () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         const container = makeContainer();
         setGlobalData({
@@ -175,7 +175,7 @@ describe(createUserDeviceInfoBox, () => {
     });
 
     it("shows fallback message when no device info available", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const container = makeContainer();
         setGlobalData({ deviceInfoMesgs: [], userProfileMesgs: [{}] });
@@ -185,7 +185,7 @@ describe(createUserDeviceInfoBox, () => {
     });
 
     it("renders most user profile fields when provided", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const container = makeContainer();
         setGlobalData({
@@ -271,7 +271,7 @@ describe(createUserDeviceInfoBox, () => {
     });
 
     it("selects first device as primary when no creator entry exists and renders serial suffix", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const container = makeContainer();
         setGlobalData({
@@ -305,7 +305,7 @@ describe(createUserDeviceInfoBox, () => {
     });
 
     it("renders sensor pills only when manufacturer or garminProduct is present", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const container = makeContainer();
         setGlobalData({
@@ -333,7 +333,7 @@ describe(createUserDeviceInfoBox, () => {
     });
 
     it("sanitizes FIT-derived strings (prevents HTML injection)", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const container = makeContainer();
 
@@ -357,7 +357,7 @@ describe(createUserDeviceInfoBox, () => {
     });
 
     it("applies hover effects and logs theme on creation", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const container = makeContainer();
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
@@ -393,7 +393,7 @@ describe(createUserDeviceInfoBox, () => {
     });
 
     it("does not throw and logs error when an exception occurs", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const container = makeContainer();
         const consoleSpy = vi
