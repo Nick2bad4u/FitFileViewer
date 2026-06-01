@@ -238,13 +238,28 @@ describe("createShownFilesList", () => {
 
             const container = createShownFilesList();
 
-            expect(addEventListenerSpy).toHaveBeenCalledWith(
-                "themechange",
-                expect.any(Function),
-                expect.objectContaining({
-                    signal: expect.any(AbortSignal),
-                })
-            );
+            const [
+                eventName,
+                listener,
+                options,
+            ] =
+                addEventListenerSpy.mock.calls.find(
+                    ([event]) => event === "themechange"
+                ) ?? [];
+            const listenerOptions = options as
+                | AddEventListenerOptions
+                | undefined;
+
+            expect({
+                eventName,
+                listenerType: typeof listener,
+                signalIsAbortSignal:
+                    listenerOptions?.signal instanceof AbortSignal,
+            }).toStrictEqual({
+                eventName: "themechange",
+                listenerType: "function",
+                signalIsAbortSignal: true,
+            });
             expect((container as any)._dispose).toBeTypeOf("function");
             expect(container.getAttribute("role")).toBe("region");
         });
