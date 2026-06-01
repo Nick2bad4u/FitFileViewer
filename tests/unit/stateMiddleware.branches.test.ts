@@ -18,6 +18,10 @@ function firstArguments(calls: unknown[][]): string[] {
     return calls.map((call) => String(call[0]));
 }
 
+function countMessagesContaining(messages: string[], snippet: string): number {
+    return messages.filter((message) => message.includes(snippet)).length;
+}
+
 // We will import fresh modules in some tests to control module-level flags
 import "../vitest/shims/nodeWebStorage";
 describe("stateMiddleware additional branches", () => {
@@ -60,11 +64,13 @@ describe("stateMiddleware additional branches", () => {
         };
         await executeMiddleware(MIDDLEWARE_PHASES.BEFORE_SET, ctx);
 
-        expect(firstArguments(warnSpy.mock.calls)).toEqual(
-            expect.arrayContaining([
-                expect.stringContaining('Slow middleware "slowMW.beforeSet"'),
-            ])
-        );
+        const warningMessages = firstArguments(warnSpy.mock.calls);
+        expect({
+            slowMiddlewareWarnings: countMessagesContaining(
+                warningMessages,
+                'Slow middleware "slowMW.beforeSet"'
+            ),
+        }).toStrictEqual({ slowMiddlewareWarnings: 1 });
         expect(perfSpy.mock.calls.length).toBeGreaterThanOrEqual(2);
         cleanupMiddleware();
     });
@@ -120,16 +126,30 @@ describe("stateMiddleware additional branches", () => {
         ).resolves.toEqual(ctx);
 
         // We should have seen the inner error-invocation message and then the outer "Error in error handler for \"errMW\""
-        expect(firstArguments(errorSpy.mock.calls)).toEqual(
-            expect.arrayContaining([
-                expect.stringContaining('Handler error in "thrower.beforeSet"'),
-                expect.stringContaining(
-                    'Error in middleware "thrower" phase "beforeSet"'
-                ),
-                expect.stringContaining("Error invoking error handler"),
-                expect.stringContaining('Error in error handler for "errMW"'),
-            ])
-        );
+        const errorMessages = firstArguments(errorSpy.mock.calls);
+        expect({
+            errorHandlerInvocationErrors: countMessagesContaining(
+                errorMessages,
+                "Error invoking error handler"
+            ),
+            errorHandlerOuterErrors: countMessagesContaining(
+                errorMessages,
+                'Error in error handler for "errMW"'
+            ),
+            handlerErrors: countMessagesContaining(
+                errorMessages,
+                'Handler error in "thrower.beforeSet"'
+            ),
+            middlewarePhaseErrors: countMessagesContaining(
+                errorMessages,
+                'Error in middleware "thrower" phase "beforeSet"'
+            ),
+        }).toStrictEqual({
+            errorHandlerInvocationErrors: 1,
+            errorHandlerOuterErrors: 1,
+            handlerErrors: 1,
+            middlewarePhaseErrors: 1,
+        });
 
         cleanupMiddleware();
     });
@@ -247,13 +267,13 @@ describe("stateMiddleware additional branches", () => {
         };
         await executeMiddleware(MIDDLEWARE_PHASES.AFTER_SET, ctx);
 
-        expect(firstArguments(errorSpy.mock.calls)).toEqual(
-            expect.arrayContaining([
-                expect.stringContaining(
-                    '[StatePersist] Failed to save "settings.theme"'
-                ),
-            ])
-        );
+        const errorMessages = firstArguments(errorSpy.mock.calls);
+        expect({
+            persistenceSaveErrors: countMessagesContaining(
+                errorMessages,
+                '[StatePersist] Failed to save "settings.theme"'
+            ),
+        }).toStrictEqual({ persistenceSaveErrors: 1 });
 
         setItemMock.mockRestore();
         // restore just in case
@@ -276,11 +296,13 @@ describe("stateMiddleware additional branches", () => {
         registerMiddleware("dup", duplicateMiddleware, 50);
         registerMiddleware("dup", duplicateMiddleware, 60);
 
-        expect(firstArguments(warnSpy.mock.calls)).toEqual(
-            expect.arrayContaining([
-                expect.stringContaining('Middleware "dup" already registered'),
-            ])
-        );
+        const warningMessages = firstArguments(warnSpy.mock.calls);
+        expect({
+            duplicateRegistrationWarnings: countMessagesContaining(
+                warningMessages,
+                'Middleware "dup" already registered'
+            ),
+        }).toStrictEqual({ duplicateRegistrationWarnings: 1 });
         cleanupMiddleware();
     });
 
@@ -298,13 +320,13 @@ describe("stateMiddleware additional branches", () => {
         // Second call should log skipping message and return
         initializeDefaultMiddleware();
 
-        expect(firstArguments(logSpy.mock.calls)).toEqual(
-            expect.arrayContaining([
-                expect.stringContaining(
-                    "Default middleware already initialized, skipping"
-                ),
-            ])
-        );
+        const logMessages = firstArguments(logSpy.mock.calls);
+        expect({
+            defaultMiddlewareSkipMessages: countMessagesContaining(
+                logMessages,
+                "Default middleware already initialized, skipping"
+            ),
+        }).toStrictEqual({ defaultMiddlewareSkipMessages: 1 });
 
         cleanupMiddleware();
     });
