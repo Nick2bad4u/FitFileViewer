@@ -182,6 +182,13 @@ describe("mapDrawLaps", () => {
         return call as [unknown[], Record<string, unknown>];
     };
 
+    function pickOptions(
+        options: Record<string, unknown>,
+        keys: string[]
+    ): Record<string, unknown> {
+        return Object.fromEntries(keys.map((key) => [key, options[key]]));
+    }
+
     describe("drawOverlayForFitFile", () => {
         it("should draw polyline for valid GPS data", () => {
             expect.hasAssertions();
@@ -209,7 +216,9 @@ describe("mapDrawLaps", () => {
 
             const [coordinates, polylineOptions] = getPolylineCall();
             expect(coordinates).toHaveLength(3);
-            expect(polylineOptions).toMatchObject({ color: "#ff0000" });
+            expect(pickOptions(polylineOptions, ["color"])).toStrictEqual({
+                color: "#ff0000",
+            });
             expect(mockPolyline.addTo).toHaveBeenCalledWith(mockMap);
             expect(result).toBe(mockLatLngBounds); // Returns bounds, not polyline
         });
@@ -292,7 +301,9 @@ describe("mapDrawLaps", () => {
             ).not.toHaveProperty("0");
             const [coordinates, polylineOptions] = getPolylineCall();
             expect(coordinates).toHaveLength(2);
-            expect(polylineOptions).toMatchObject({
+            expect(
+                pickOptions(polylineOptions, ["color", "weight"])
+            ).toStrictEqual({
                 color: "#0000ff",
                 weight: 4,
             });
@@ -325,7 +336,9 @@ describe("mapDrawLaps", () => {
 
             const [coordinates, polylineOptions] = getPolylineCall();
             expect(coordinates).toHaveLength(2);
-            expect(polylineOptions).toMatchObject({ color: "#ff0000" });
+            expect(pickOptions(polylineOptions, ["color"])).toStrictEqual({
+                color: "#ff0000",
+            });
             expect(result).toBe(mockLatLngBounds); // Returns bounds, not polyline
         });
     });
@@ -585,7 +598,9 @@ describe("mapDrawLaps", () => {
             // Verify polyline creation
             const [polylineCoordinates, polylineOptions] = getPolylineCall();
             expect(polylineCoordinates).toHaveLength(3);
-            expect(polylineOptions).toMatchObject({ color: "#1976d2" });
+            expect(pickOptions(polylineOptions, ["color"])).toStrictEqual({
+                color: "#1976d2",
+            });
             const activityGroup =
                 mockLeaflet.featureGroup.mock.results[0]?.value;
             expect(activityGroup).toBe(
@@ -603,12 +618,16 @@ describe("mapDrawLaps", () => {
             // Verify marker creation (start/end markers)
             const [markerCoordinates, markerOptions] = getMarkerCall();
             expect(markerCoordinates).toHaveLength(2);
-            expect(markerOptions).toMatchObject({ title: "Start" });
+            expect(pickOptions(markerOptions, ["title"])).toStrictEqual({
+                title: "Start",
+            });
 
             // Verify circle markers for data points
             const [circleCoordinates, circleOptions] = getCircleMarkerCall();
             expect(circleCoordinates).toHaveLength(2);
-            expect(circleOptions).toMatchObject({
+            expect(
+                pickOptions(circleOptions, ["color", "fillColor"])
+            ).toStrictEqual({
                 color: "#1976d2",
                 fillColor: "#fff",
             });
@@ -681,7 +700,9 @@ describe("mapDrawLaps", () => {
             // Verify single lap polyline creation
             const [coordinates, polylineOptions] = getPolylineCall();
             expect(coordinates).toHaveLength(3);
-            expect(polylineOptions).toMatchObject({ color: "#1976d2" });
+            expect(pickOptions(polylineOptions, ["color"])).toStrictEqual({
+                color: "#1976d2",
+            });
             {
                 const activityGroup =
                     mockLeaflet.featureGroup.mock.results[0]?.value;
@@ -769,7 +790,9 @@ describe("mapDrawLaps", () => {
             // Verify multiple polylines created (one for each lap)
             const [coordinates, polylineOptions] = getPolylineCall();
             expect(coordinates).toHaveLength(2);
-            expect(polylineOptions).toMatchObject({ color: "#1976d2" });
+            expect(pickOptions(polylineOptions, ["color"])).toStrictEqual({
+                color: "#1976d2",
+            });
             {
                 const activityGroup =
                     mockLeaflet.featureGroup.mock.results[0]?.value;
@@ -817,12 +840,16 @@ describe("mapDrawLaps", () => {
             // Should behave same as "all" - creating a polyline
             const [coordinates, polylineOptions] = getPolylineCall();
             expect(coordinates).toHaveLength(1);
-            expect(polylineOptions).toMatchObject({ dashArray: "6, 8" });
+            expect(pickOptions(polylineOptions, ["dashArray"])).toStrictEqual({
+                dashArray: "6, 8",
+            });
             expect((globalThis as any).window._mainPolyline).toBe(mockPolyline);
             expect((globalThis as any).window._mainPolylineOriginalBounds).toBe(
                 mockLatLngBounds
             );
-            expect(polylineOptions).toMatchObject({
+            expect(
+                pickOptions(polylineOptions, ["dashArray", "weight"])
+            ).toStrictEqual({
                 dashArray: "6, 8",
                 weight: 4,
             });
@@ -887,7 +914,9 @@ describe("mapDrawLaps", () => {
             // Verify overlay processing
             const [coordinates, polylineOptions] = getPolylineCall();
             expect(coordinates).toHaveLength(1);
-            expect(polylineOptions).toMatchObject({ color: "#1976d2" });
+            expect(pickOptions(polylineOptions, ["color"])).toStrictEqual({
+                color: "#1976d2",
+            });
             expect(mockLeaflet.polyline).toHaveBeenCalledTimes(2);
             expect((globalThis as any).window._overlayPolylines).toStrictEqual({
                 "1": mockPolyline,
@@ -932,7 +961,9 @@ describe("mapDrawLaps", () => {
             // Should fall back to default behavior
             const [coordinates, polylineOptions] = getPolylineCall();
             expect(coordinates).toHaveLength(1);
-            expect(polylineOptions).toMatchObject({ color: "#1976d2" });
+            expect(pickOptions(polylineOptions, ["color"])).toStrictEqual({
+                color: "#1976d2",
+            });
             expect((globalThis as any).window._mainPolyline).toBe(mockPolyline);
             expect(mapContainer.textContent).not.toContain(
                 "Lap index out of bounds or invalid."
@@ -980,19 +1011,24 @@ describe("mapDrawLaps", () => {
             // Should filter out invalid records and still create polyline
             const [coordinates, polylineOptions] = getPolylineCall();
             expect(coordinates).toHaveLength(1);
-            expect(polylineOptions).toMatchObject({ dashArray: "6, 8" });
-            expect(mockLeaflet.polyline).toHaveBeenCalledWith(
-                [
+            expect(pickOptions(polylineOptions, ["dashArray"])).toStrictEqual({
+                dashArray: "6, 8",
+            });
+            expect({
+                coordinates,
+                options: pickOptions(polylineOptions, ["color", "weight"]),
+            }).toStrictEqual({
+                coordinates: [
                     [
                         Number((429496729 / 2 ** 31) * 180),
                         Number((858993459 / 2 ** 31) * 180),
                     ],
                 ],
-                expect.objectContaining({
+                options: {
                     color: "#1976d2",
                     weight: 4,
-                })
-            );
+                },
+            });
             expect(mapContainer.textContent).toBe("");
         });
     });
