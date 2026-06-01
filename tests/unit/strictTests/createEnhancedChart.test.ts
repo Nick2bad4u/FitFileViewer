@@ -275,7 +275,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
     describe("basic chart creation", () => {
         it("should create a basic line chart with default options", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             const canvas = document.createElement("canvas");
             const options = {
@@ -311,7 +311,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should create a bar chart when chartType is bar", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             const canvas = document.createElement("canvas");
             const options = {
@@ -342,7 +342,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should create a scatter chart when chartType is scatter", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             const canvas = document.createElement("canvas");
             const options = {
@@ -373,7 +373,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should create an area chart (line type with area styling)", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             const canvas = document.createElement("canvas");
             const options = {
@@ -406,7 +406,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
     describe("dataset configuration", () => {
         it("should configure dataset with custom colors", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             const canvas = document.createElement("canvas");
             const customColors = { speed: "#00ff00" };
@@ -438,7 +438,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should configure dataset with field labels", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const canvas = document.createElement("canvas");
             const fieldLabels = { speed: "Speed (Enhanced)" };
@@ -467,7 +467,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should configure point display based on showPoints option", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const canvas = document.createElement("canvas");
             const options = {
@@ -496,7 +496,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should configure fill based on showFill option", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const canvas = document.createElement("canvas");
             const options = {
@@ -527,7 +527,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
     describe("theme configuration", () => {
         it("should configure chart for light theme", async () => {
-            expect.hasAssertions();
+            expect.assertions(6);
 
             const { detectCurrentTheme } =
                 await import("../../../electron-app/utils/charts/theming/chartThemeUtils.js");
@@ -564,7 +564,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should configure chart for dark theme", () => {
-            expect.hasAssertions();
+            expect.assertions(7);
 
             const canvas = document.createElement("canvas");
             const options = {
@@ -598,7 +598,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should configure grid colors based on theme", () => {
-            expect.hasAssertions();
+            expect.assertions(6);
 
             const canvas = document.createElement("canvas");
             const options = {
@@ -637,7 +637,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
     describe("plugin configuration", () => {
         it("should include required plugins", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const canvas = document.createElement("canvas");
             const options = {
@@ -668,7 +668,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should configure zoom plugin", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const canvas = document.createElement("canvas");
             const zoomPluginConfig = {
@@ -700,7 +700,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should configure background color plugin based on theme", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             const canvas = document.createElement("canvas");
             const options = {
@@ -744,7 +744,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
     describe("tooltip configuration", () => {
         it("should configure tooltip title callback", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const canvas = document.createElement("canvas");
             const options = {
@@ -776,7 +776,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should format tooltip for distance fields with unit conversion", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue("kilometers");
 
@@ -815,7 +815,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should format tooltip for temperature fields with fahrenheit conversion", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             mockLocalStorage.getItem.mockReturnValue("fahrenheit");
 
@@ -854,7 +854,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should format tooltip for non-converted fields", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const canvas = document.createElement("canvas");
             const options = {
@@ -892,7 +892,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
     describe("scale configuration", () => {
         it("should configure x-axis with time formatting", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const canvas = document.createElement("canvas");
             const options = {
@@ -922,7 +922,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should configure y-axis with field-specific formatting", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const canvas = document.createElement("canvas");
             const fieldLabels = { speed: "Speed" };
@@ -952,7 +952,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should format x-axis ticks for different time units", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             mockLocalStorage.getItem.mockReturnValue("minutes");
 
@@ -986,7 +986,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should format x-axis ticks for hours", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             mockLocalStorage.getItem.mockReturnValue("hours");
 
@@ -1020,7 +1020,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should format x-axis ticks for seconds using formatTime", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             mockLocalStorage.getItem.mockReturnValue("seconds");
 
@@ -1054,7 +1054,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should hide grid when showGrid is false", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const canvas = document.createElement("canvas");
             const options = {
@@ -1088,7 +1088,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
     describe("animation configuration", () => {
         it("should configure no animation when animationStyle is none", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const canvas = document.createElement("canvas");
             const options = {
@@ -1117,7 +1117,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should configure fast animation", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const canvas = document.createElement("canvas");
             const options = {
@@ -1146,7 +1146,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should configure slow animation", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const canvas = document.createElement("canvas");
             const options = {
@@ -1174,7 +1174,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should configure normal animation", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const canvas = document.createElement("canvas");
             const options = {
@@ -1202,7 +1202,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should call updateChartAnimations when animation is enabled", async () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             const { updateChartAnimations } =
                 await import("../../../electron-app/utils/charts/core/updateChartAnimations.js");
@@ -1239,7 +1239,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should not call updateChartAnimations when animation is disabled", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const { updateChartAnimations } =
                 await import("../../../electron-app/utils/charts/core/updateChartAnimations.js");
@@ -1274,7 +1274,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
     describe("display options", () => {
         it("should hide legend when showLegend is false", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const canvas = document.createElement("canvas");
             const options = {
@@ -1305,7 +1305,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should hide title when showTitle is false", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const canvas = document.createElement("canvas");
             const options = {
@@ -1333,7 +1333,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should set title text with field label and unit symbol", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const canvas = document.createElement("canvas");
             const fieldLabels = { speed: "Velocity" };
@@ -1364,7 +1364,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
     describe("canvas styling", () => {
         it("should apply canvas styling", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const canvas = document.createElement("canvas");
             const options = {
@@ -1397,7 +1397,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
     describe("error handling", () => {
         it("should handle Chart constructor throwing error", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             Chart.mockImplementationOnce(() => {
                 throw new Error("Chart creation failed");
@@ -1432,7 +1432,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should return null and log when chart creation fails", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             Chart.mockImplementationOnce(() => {
                 throw new Error("Chart creation failed");
@@ -1469,7 +1469,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
     describe("edge cases", () => {
         it("should handle empty chartData", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const canvas = document.createElement("canvas");
             const options = {
@@ -1499,7 +1499,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should handle maximum smoothing value", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const canvas = document.createElement("canvas");
             const options = {
@@ -1527,7 +1527,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         });
 
         it("should handle field with no label or custom color", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const canvas = document.createElement("canvas");
             const options = {
