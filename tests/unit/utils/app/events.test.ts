@@ -240,12 +240,12 @@ describe(setupListeners, () => {
             dispatchResult: true,
         });
         expect(openButton.dataset.openHandled).toBe("true");
-        expect(handleOpenFile).toHaveBeenCalledExactlyOnceWith(
-            expect.objectContaining({
-                isOpeningFileRef,
-                openFileBtn: openButton,
-            })
-        );
+        expect(handleOpenFile).toHaveBeenCalledExactlyOnceWith({
+            isOpeningFileRef,
+            openFileBtn: openButton,
+            setLoading,
+            showNotification,
+        });
     });
 
     it("shows info notification when no recent files exist", async () => {
