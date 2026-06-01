@@ -61,7 +61,7 @@ describe("data ant manufacturer ID lookup", () => {
         const keys = Object.keys(dataAntManufacturerIDs);
 
         expect(dataAntManufacturerIDs).toBeTypeOf("object");
-        expect(dataAntManufacturerIDs).not.toBeInstanceOf(Array);
+        expect(Object.isFrozen(dataAntManufacturerIDs)).toStrictEqual(true);
         expect(() => {
             (manufacturerLookup as Record<string, string>)["999999"] =
                 "not_a_manufacturer";

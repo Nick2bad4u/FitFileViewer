@@ -85,7 +85,13 @@ describe("data ant product ID lookup", () => {
         const entries = Object.entries(dataAntProductIds);
 
         expect(dataAntProductIds).toBeTypeOf("object");
-        expect(dataAntProductIds).not.toBeInstanceOf(Array);
+        expect(Object.keys(dataAntProductIds)).toStrictEqual([
+            "1",
+            "32",
+            "68",
+            "263",
+            "280",
+        ]);
         expect(entries).toHaveLength(5);
         expect(productLookup["1"]).toBeTypeOf("object");
         expect(productLookup["32"]).toBeTypeOf("object");
@@ -100,7 +106,7 @@ describe("data ant product ID lookup", () => {
         for (const [manufacturerId, products] of productEntries) {
             const numericManufacturerId = Number(manufacturerId);
 
-            expect(products).not.toBeInstanceOf(Array);
+            expect(Object.getPrototypeOf(products)).toBe(Object.prototype);
             expect(numericManufacturerId).toBe(
                 Math.trunc(numericManufacturerId)
             );
