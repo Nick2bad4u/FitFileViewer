@@ -95,7 +95,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
     describe("mainProcessState Class", () => {
         describe("constructor and Initialization", () => {
             it("should initialize with default data structure", () => {
-                expect.hasAssertions();
+                expect.assertions(12);
                 expect(stateInstance.data).toMatchObject({
                     errors: [],
                     gyazoServer: null,
@@ -128,24 +128,24 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             });
 
             it("should initialize listeners map", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
                 expect(stateInstance.listeners).toBeInstanceOf(Map);
             });
 
             it("should initialize middleware array", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
                 expect(Array.isArray(stateInstance.middleware)).toBe(true);
             });
 
             it("should set up dev mode correctly", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
                 expect(stateInstance.devMode).toBeTypeOf("boolean");
             });
         });
 
         describe("path-based Get/Set Operations", () => {
             it("should get values by path using getByPath", () => {
-                expect.hasAssertions();
+                expect.assertions(3);
                 stateInstance.data.test = { nested: { value: "hello" } };
 
                 expect(
@@ -163,7 +163,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             });
 
             it("should return null for non-existent paths", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
                 const queryByPath = stateInstance.getByPath.bind(stateInstance);
 
                 expect(
@@ -175,7 +175,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             });
 
             it("should handle empty path", () => {
-                expect.hasAssertions();
+                expect.assertions(3);
                 const obj = { test: "value" };
                 expect(stateInstance.getByPath(obj, "")).toBe(obj);
                 expect(stateInstance.getByPath(obj, null)).toBe(obj);
@@ -183,7 +183,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             });
 
             it("should get values using public get method", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
                 stateInstance.data.loadedFitFilePath = "/path/to/file.fit";
                 expect(stateInstance.get("loadedFitFilePath")).toBe(
                     "/path/to/file.fit"
@@ -191,7 +191,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             });
 
             it("should set values by path using setByPath", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
                 stateInstance.setByPath(
                     stateInstance.data,
                     "test.nested.value",
@@ -201,7 +201,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             });
 
             it("should create nested objects when setting deep paths", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
                 stateInstance.setByPath(
                     stateInstance.data,
                     "deep.nested.path.value",
@@ -211,7 +211,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             });
 
             it("should handle array indices in paths", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
                 stateInstance.setByPath(
                     stateInstance.data,
                     "arrayTest.0.name",
@@ -223,7 +223,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
         describe("set Method and Change Notification", () => {
             it("should set values and trigger change notification", () => {
-                expect.hasAssertions();
+                expect.assertions(3);
                 const notifySpy = vi.spyOn(stateInstance, "notifyChange");
 
                 stateInstance.set("testKey", "testValue");
@@ -240,7 +240,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             });
 
             it("should handle options parameter in set method", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
                 const notifySpy = vi.spyOn(stateInstance, "notifyChange");
                 const options = { silent: false };
 
@@ -258,7 +258,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             });
 
             it("should store previous value when setting", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
                 stateInstance.data.existingKey = "oldValue";
                 const notifySpy = vi.spyOn(stateInstance, "notifyChange");
 
@@ -277,7 +277,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
         describe("listener Management", () => {
             it("should add listeners using listen method", () => {
-                expect.hasAssertions();
+                expect.assertions(3);
                 const listener = vi.fn<Listener>();
 
                 const unsubscribe = stateInstance.listen("testPath", listener);
@@ -290,7 +290,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             });
 
             it("should handle multiple listeners for same path", () => {
-                expect.hasAssertions();
+                expect.assertions(3);
                 const listener1 = vi.fn<Listener>();
                 const listener2 = vi.fn<Listener>();
 
@@ -304,7 +304,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             });
 
             it("should unsubscribe listeners", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
                 const listener = vi.fn<Listener>();
 
                 const unsubscribe = stateInstance.listen("testPath", listener);
@@ -315,7 +315,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             });
 
             it("should clean up listener sets when empty", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
                 const listener1 = vi.fn<Listener>();
                 const listener2 = vi.fn<Listener>();
 
@@ -338,7 +338,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
         describe("change Notification", () => {
             it("should notify local listeners", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
                 let observedChange: unknown;
                 const listener = vi.fn<Listener>((change) => {
                     observedChange = change;
@@ -358,7 +358,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             });
 
             it("should notify wildcard listeners", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
                 let observedChange: unknown;
                 const listener = vi.fn<Listener>((change) => {
                     observedChange = change;
@@ -378,7 +378,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             });
 
             it("should notify renderer processes", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
                 const notifyRenderersSpy = vi.spyOn(
                     stateInstance,
                     "notifyRenderers"
@@ -400,7 +400,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             });
 
             it("should handle listener errors gracefully", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
                 const badListener = vi.fn<Listener>().mockImplementation(() => {
                     throw new Error("Listener error");
                 });
@@ -421,7 +421,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
         describe("operation Management", () => {
             it("should start operations", () => {
-                expect.hasAssertions();
+                expect.assertions(5);
                 stateInstance.startOperation("test-operation", {
                     message: "Test operation",
                 });
@@ -446,7 +446,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             });
 
             it("should complete operations", () => {
-                expect.hasAssertions();
+                expect.assertions(5);
                 stateInstance.startOperation("test-operation", {
                     message: "Test operation",
                 });
@@ -465,14 +465,14 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             });
 
             it("should handle completing non-existent operation", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
                 expect(() => {
                     stateInstance.completeOperation("non-existent", {});
                 }).not.toThrow();
             });
 
             it("should fail operations", () => {
-                expect.hasAssertions();
+                expect.assertions(4);
                 stateInstance.startOperation("test-operation", {
                     message: "Test operation",
                 });
@@ -490,7 +490,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             });
 
             it("should handle failing operation with string error", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
                 stateInstance.startOperation("test-operation", {
                     message: "Test operation",
                 });
@@ -504,7 +504,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             });
 
             it("should handle failing non-existent operation", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
                 expect(() => {
                     stateInstance.failOperation(
                         "non-existent",
@@ -516,7 +516,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
         describe("error Management", () => {
             it("should add errors to state", () => {
-                expect.hasAssertions();
+                expect.assertions(4);
                 const error = new Error("Test error");
 
                 stateInstance.addError(error);
@@ -529,7 +529,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             });
 
             it("should add errors with context", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
                 const error = new Error("Test error");
                 const context = { source: "test", details: "extra info" };
 
@@ -540,7 +540,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             });
 
             it("should handle string errors", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
                 stateInstance.addError("String error message");
 
                 const errors = stateInstance.get("errors");
@@ -548,7 +548,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             });
 
             it("should limit error history to 100 items", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
                 // Prevent repeated notifyRenderers calls from adding overhead during coverage runs
                 // We only care about the error list length behavior here.
                 const notifyStub = vi
@@ -569,7 +569,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
         describe("renderer Communication", () => {
             it("should notify renderers when windows exist", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
                 // Since safeElectron() uses require('electron') which bypasses our ES6 mock,
                 // we'll test the behavior indirectly by checking that no errors are thrown
                 // and that the function completes successfully
@@ -587,7 +587,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             });
 
             it("should handle window validation failures", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
                 const mockWindow = {
                     isDestroyed: vi.fn<IsDestroyed>().mockReturnValue(true),
                     webContents: null,
@@ -603,7 +603,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             });
 
             it("should handle IPC send errors", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
                 const mockWindow = {
                     isDestroyed: vi.fn<IsDestroyed>().mockReturnValue(false),
                     webContents: {
@@ -626,7 +626,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             });
 
             it("should handle missing BrowserWindow", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
                 mockBrowserWindow.getAllWindows.mockImplementation(() => {
                     throw new Error("BrowserWindow not available");
                 });
@@ -641,7 +641,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
         describe("data Serialization", () => {
             it("should make data serializable for IPC", () => {
-                expect.hasAssertions();
+                expect.assertions(8);
                 const data = {
                     string: "test",
                     number: 42,
@@ -666,7 +666,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             });
 
             it("should handle nested objects in serialization", () => {
-                expect.hasAssertions();
+                expect.assertions(4);
                 const data = {
                     nested: {
                         string: "value",
@@ -687,7 +687,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             });
 
             it("should handle arrays in serialization", () => {
-                expect.hasAssertions();
+                expect.assertions(4);
                 const data = {
                     array: [
                         "string",
@@ -709,7 +709,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             });
 
             it("should handle null and undefined values", () => {
-                expect.hasAssertions();
+                expect.assertions(4);
                 expect(stateInstance.makeSerializable(null)).toBeNull();
                 expect(
                     stateInstance.makeSerializable(undefined)
@@ -721,7 +721,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
         describe("update Method", () => {
             it("should update multiple paths at once", () => {
-                expect.hasAssertions();
+                expect.assertions(5);
                 const notifyChangeSpy = vi.spyOn(stateInstance, "notifyChange");
 
                 const updates = {
@@ -742,7 +742,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
         describe("development Information", () => {
             it("should provide development info", () => {
-                expect.hasAssertions();
+                expect.assertions(6);
                 stateInstance.addError(new Error("Test error"));
                 stateInstance.startOperation("test-op", { message: "Test" });
                 stateInstance.listen("test-path", () => {});
@@ -761,19 +761,19 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
     describe("exported Module", () => {
         it("should export MainProcessState class", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             expect(MainProcessState).toBeTypeOf("function");
             expect(MainProcessState.name).toBe("MainProcessState");
         });
 
         it("should export singleton mainProcessState instance", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             expect(mainProcessState).toBeInstanceOf(MainProcessState);
             expect(mainProcessState).not.toBe(stateInstance);
         });
 
         it("should maintain singleton behavior", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
             const { mainProcessState: instance1 } =
                 await import("../../../../../electron-app/utils/state/integration/mainProcessStateManager.js");
             const { mainProcessState: instance2 } =
@@ -785,21 +785,21 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
     describe("edge Cases and Error Handling", () => {
         it("should handle invalid paths gracefully", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             expect(stateInstance.get("")).toBe(stateInstance.data);
             expect(stateInstance.get(null)).toBe(stateInstance.data);
             expect(stateInstance.get(undefined)).toBe(stateInstance.data);
         });
 
         it("should handle setByPath with empty path", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
             expect(() => {
                 stateInstance.setByPath(stateInstance.data, "", "value");
             }).not.toThrow();
         });
 
         it("should reject setByPath through primitive intermediate values", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
             stateInstance.data.primitive = "string";
 
             expect(() => {
@@ -814,7 +814,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
         });
 
         it("should reject setByPath through null intermediate values", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
             stateInstance.data.nullish = null;
 
             expect(() => {
@@ -829,7 +829,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
         });
 
         it("should handle operations with missing operations map", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             const originalOperations = stateInstance.data.operations;
 
             // Don't set to null directly - instead test missing nested path
@@ -854,7 +854,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
     describe("ipc Handler Setup", () => {
         it("should set up IPC handlers when ipcMain is available", () => {
-            expect.hasAssertions();
+            expect.assertions(10);
             mockIpcMain.handle.mockClear();
 
             // Create new instance to trigger setupIPCHandlers
@@ -911,7 +911,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
         });
 
         it("listen is idempotent per sender+path and unlisten stops notifications", () => {
-            expect.hasAssertions();
+            expect.assertions(8);
             const listenHandler = mockIpcMain.handle.mock.calls.find(
                 (c) => c[0] === "main-state:listen"
             )?.[1] as any;
@@ -971,7 +971,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
         });
 
         it("should skip IPC handler setup when ipcMain is not available", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
             // Temporarily mock electron to not have ipcMain
             const originalMock = vi.mocked(require("electron"));
             vi.doMock(import("electron"), () => ({
@@ -990,7 +990,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
     });
 
     it("should handle main-state:get IPC calls", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         const testInstance = new MainProcessState();
         const mockEvent = {
             sender: {
@@ -1021,7 +1021,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
     });
 
     it("should handle main-state:set IPC calls with allowed paths", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
         const testInstance = new MainProcessState();
         const mockEvent = {
             sender: {
@@ -1049,7 +1049,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
     });
 
     it("main-state:set should block prototype pollution paths", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
         const testInstance = new MainProcessState();
 
         const setHandler = mockIpcMain.handle.mock.calls.find(
@@ -1073,7 +1073,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
     });
 
     it("main-state:operations should return plain object entries", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
         // Ensure the handler we call is the one registered by THIS instance.
         mockIpcMain.handle.mockClear();
         const testInstance = new MainProcessState();
@@ -1097,7 +1097,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
     });
 
     it("should handle main-state:listen IPC calls", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
         const mockSender = {
             send: vi.fn<SendMessage>(),
         };
@@ -1115,7 +1115,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
     });
 
     it("should handle main-state:operation IPC calls", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
         const testInstance = new MainProcessState();
 
         // Get the handler function that was registered
@@ -1128,7 +1128,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
     });
 
     it("should handle main-state:operations IPC calls", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
         const testInstance = new MainProcessState();
 
         // Get the handler function that was registered
@@ -1141,7 +1141,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
     });
 
     it("should handle main-state:errors IPC calls", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
         const testInstance = new MainProcessState();
 
         // Get the handler function that was registered
@@ -1154,7 +1154,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
     });
 
     it("should handle main-state:metrics IPC calls", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
         const testInstance = new MainProcessState();
 
         // Get the handler function that was registered
