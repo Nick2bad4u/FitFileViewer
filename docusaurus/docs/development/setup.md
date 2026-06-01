@@ -14,11 +14,11 @@ Get started contributing to FitFileViewer.
 
 ### Required Software
 
-| Software | Version | Purpose         |
-| -------- | ------- | --------------- |
-| Node.js  | 18+     | Runtime         |
-| npm      | 9+      | Package manager |
-| Git      | Latest  | Version control |
+| Software | Version   | Purpose         |
+| -------- | --------- | --------------- |
+| Node.js  | >=22.12.0 | Runtime         |
+| npm      | >=11.15.0 | Package manager |
+| Git      | Latest    | Version control |
 
 ### Recommended
 

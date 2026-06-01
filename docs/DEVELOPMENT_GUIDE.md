@@ -17,8 +17,8 @@
 
 ```bash
 # Required Software
-Node.js >= 16.0.0
-npm >= 7.0.0
+Node.js >= 22.12.0
+npm >= 11.15.0
 Git >= 2.0.0
 
 # Recommended Tools

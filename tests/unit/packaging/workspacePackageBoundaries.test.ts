@@ -45,6 +45,19 @@ function getFileExistence(relativePaths: string[]): Record<string, boolean> {
     );
 }
 
+function createEngineDocsPattern(engineRange: string | undefined): RegExp {
+    if (!engineRange) {
+        throw new Error("Expected package engine range to be defined");
+    }
+
+    return new RegExp(
+        engineRange
+            .replace(/[.*+?^${}()|[\]\\]/gu, "\\$&")
+            .replace(">=", ">=\\s*"),
+        "u"
+    );
+}
+
 describe("workspace package boundaries", () => {
     it("keeps shared tooling and local Vitest UI support in the root workspace", () => {
         expect.assertions(9);
@@ -157,6 +170,29 @@ describe("workspace package boundaries", () => {
         });
         expect(docusaurusPackage).not.toHaveProperty("engines");
         expect(docusaurusPackage.private).toBe(true);
+    });
+
+    it("keeps setup docs aligned with root runtime engines", () => {
+        expect.assertions(4);
+
+        const rootPackage = readPackageJson("package.json");
+        const setupDocs = [
+            "docs/DEVELOPMENT_GUIDE.md",
+            "docusaurus/docs/development/setup.md",
+        ].map((relativePath) =>
+            readFileSync(path.join(process.cwd(), relativePath), "utf8")
+        );
+        const nodeEnginePattern = createEngineDocsPattern(
+            rootPackage.engines?.node
+        );
+        const npmEnginePattern = createEngineDocsPattern(
+            rootPackage.engines?.npm
+        );
+
+        for (const doc of setupDocs) {
+            expect(doc).toMatch(nodeEnginePattern);
+            expect(doc).toMatch(npmEnginePattern);
+        }
     });
 
     it("keeps public package snippets aligned with the root app manifest", () => {
