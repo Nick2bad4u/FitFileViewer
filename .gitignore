@@ -12,10 +12,6 @@ yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
 
-# electron-app: generated app artifacts
-electron-app/logs/
-electron-app/release/
-
 # Repo-root generated test artifacts
 test-results/
 playwright-report/
@@ -361,8 +357,6 @@ vscode-extension/*
 todo.md
 !scripts/lib/
 !scripts/lib/**
-electron-app/temp-win7/
-electron-app/html/
 # Ignore generated doc coverage badges
 docusaurus/static/img/coverage.json
 docusaurus/static/img/coverage.svg

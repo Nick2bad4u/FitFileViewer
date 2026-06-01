@@ -86,12 +86,12 @@ describe("preload clipboard bridge", () => {
 
         const result = await bridge.writeClipboardText("hello");
 
-        expect(result ? "success" : "failure").toBe("success");
+        expect(result).toBe(true);
         expect(invoke).toHaveBeenCalledWith("clipboard:writeText", "hello");
         expect(preloadLog).not.toHaveBeenCalled();
     });
 
-    it("writes PNG data URLs and coerces falsey IPC results to false", async () => {
+    it("writes PNG data URLs and coerces falsy IPC results to false", async () => {
         expect.assertions(2);
 
         const { bridge, invoke } = createBridge();
@@ -100,7 +100,7 @@ describe("preload clipboard bridge", () => {
 
         const result = await bridge.writeClipboardPngDataUrl(dataUrl);
 
-        expect(result ? "success" : "failure").toBe("failure");
+        expect(result).toBe(false);
         expect(invoke).toHaveBeenCalledWith(
             "clipboard:writePngDataUrl",
             dataUrl
@@ -115,7 +115,7 @@ describe("preload clipboard bridge", () => {
 
         const result = await bridge.writeClipboardText("hello");
 
-        expect(result ? "success" : "failure").toBe("failure");
+        expect(result).toBe(false);
         expect(preloadLog).toHaveBeenCalledWith(
             "error",
             "[preload.js] writeClipboardText failed:",
@@ -133,7 +133,7 @@ describe("preload clipboard bridge", () => {
 
         const result = await bridge.writeClipboardPngDataUrl(dataUrl);
 
-        expect(result ? "success" : "failure").toBe("failure");
+        expect(result).toBe(false);
         expect(preloadLog).toHaveBeenCalledWith(
             "error",
             "[preload.js] writeClipboardPngDataUrl failed:",

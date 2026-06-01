@@ -132,6 +132,19 @@ describe("clean-workspace script", () => {
         );
     });
 
+    it("keeps stale nested Electron app generated directories out of gitignore", () => {
+        expect.assertions(1);
+
+        const gitignore = fs.readFileSync(
+            path.join(process.cwd(), ".gitignore"),
+            "utf8"
+        );
+
+        expect(gitignore).not.toMatch(
+            /electron-app\/(?:html|logs|release|temp-win7)\/?/u
+        );
+    });
+
     it("does not treat dependency installs or local editor state as generated cleanup targets", async () => {
         expect.assertions(1);
 
