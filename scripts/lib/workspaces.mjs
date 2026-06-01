@@ -137,6 +137,18 @@ export const rootAlternativeFitViewPath = path.posix.join(
     rootStaticAssetsPath,
     appAlternativeFitViewPath
 );
+export const rootAlternativeFitViewAssetsPath = path.posix.join(
+    rootAlternativeFitViewPath,
+    "assets"
+);
+export const rootAlternativeFitViewIndexPath = path.posix.join(
+    rootAlternativeFitViewPath,
+    appIndexHtmlPath
+);
+export const rootAlternativeFitViewManifestPath = path.posix.join(
+    rootAlternativeFitViewPath,
+    "manifest.json"
+);
 export const rootAppStaticPath = path.posix.join(rootStaticAssetsPath, "app");
 export const rootAppElevProfileCssPath = path.posix.join(
     rootAppStaticPath,
@@ -150,6 +162,10 @@ export const rootAppIconsPath = path.posix.join(
 export const rootAppFaviconPath = path.posix.join(
     rootAppIconsPath,
     "favicon.ico"
+);
+export const rootAppIconsSiteWebManifestPath = path.posix.join(
+    rootAppIconsPath,
+    "site.webmanifest"
 );
 export const rootAppIndexHtmlPath = path.posix.join(
     rootAppStaticPath,

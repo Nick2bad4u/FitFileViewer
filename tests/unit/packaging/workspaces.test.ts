@@ -62,10 +62,14 @@ type WorkspacesModule = {
     rootElectronAppBaseTsconfigPath: string;
     rootElectronAppEslintTsconfigPath: string;
     rootAlternativeFitViewPath: string;
+    rootAlternativeFitViewAssetsPath: string;
+    rootAlternativeFitViewIndexPath: string;
+    rootAlternativeFitViewManifestPath: string;
     rootAppCssGlobPath: string;
     rootAppElevProfileCssPath: string;
     rootAppFaviconPath: string;
     rootAppIconsPath: string;
+    rootAppIconsSiteWebManifestPath: string;
     rootAppIndexHtmlPath: string;
     rootAppStaticPath: string;
     rootAppStyleCssPath: string;
@@ -271,21 +275,31 @@ describe("workspace path helpers", () => {
             "vendor-globals.css"
         );
         expect({
+            alternativeViewerAssets:
+                workspaces.rootAlternativeFitViewAssetsPath,
+            alternativeViewerIndex: workspaces.rootAlternativeFitViewIndexPath,
+            alternativeViewerManifest:
+                workspaces.rootAlternativeFitViewManifestPath,
             alternativeViewer: workspaces.rootAlternativeFitViewPath,
             appCssGlob: workspaces.rootAppCssGlobPath,
             appElevProfileCss: workspaces.rootAppElevProfileCssPath,
             appFavicon: workspaces.rootAppFaviconPath,
             appIcons: workspaces.rootAppIconsPath,
+            appIconsSiteWebManifest: workspaces.rootAppIconsSiteWebManifestPath,
             appIndexHtml: workspaces.rootAppIndexHtmlPath,
             appStatic: workspaces.rootAppStaticPath,
             appStyleCss: workspaces.rootAppStyleCssPath,
             staticAssets: workspaces.rootStaticAssetsPath,
         }).toStrictEqual({
+            alternativeViewerAssets: "static/ffv/assets",
+            alternativeViewerIndex: "static/ffv/index.html",
+            alternativeViewerManifest: "static/ffv/manifest.json",
             alternativeViewer: "static/ffv",
             appCssGlob: "static/app/*.css",
             appElevProfileCss: "static/app/elevProfile.css",
             appFavicon: "static/icons/favicon.ico",
             appIcons: "static/icons",
+            appIconsSiteWebManifest: "static/icons/site.webmanifest",
             appIndexHtml: "static/app/index.html",
             appStatic: "static/app",
             appStyleCss: "static/app/style.css",

@@ -3,15 +3,34 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import {
+    appElevProfileCssPath,
+    appIndexHtmlPath,
+    appSourceRepositoryPath,
+    appStyleCssPath,
+    rootAlternativeFitViewAssetsPath,
+    rootAlternativeFitViewIndexPath,
+    rootAlternativeFitViewManifestPath,
+    rootAppElevProfileCssPath,
+    rootAppIconsPath,
+    rootAppIconsSiteWebManifestPath,
+    rootAppIndexHtmlPath,
+    rootAppStyleCssPath,
+    rootCodecovConfigPath,
+    rootElectronBuilderConfigPath,
+    rootFlatpakManifestPath,
+    rootPackageRepositoryPath,
+} from "../../../scripts/lib/workspaces.mjs";
+
 const staleAppShellAssetPaths = [
-    "electron-app/index.html",
-    "electron-app/style.css",
-    "electron-app/elevProfile.css",
+    appSourceRepositoryPath(appIndexHtmlPath),
+    appSourceRepositoryPath(appStyleCssPath),
+    appSourceRepositoryPath(appElevProfileCssPath),
 ];
 const rootAppShellAssetPaths = [
-    "static/app/index.html",
-    "static/app/style.css",
-    "static/app/elevProfile.css",
+    rootAppIndexHtmlPath,
+    rootAppStyleCssPath,
+    rootAppElevProfileCssPath,
 ];
 
 function readRepositoryFile(relativePath: string): string {
@@ -99,7 +118,9 @@ function getAssetRelativeReferences(
         .map((reference) =>
             path.posix.normalize(path.posix.join(ownerDirectory, reference))
         )
-        .filter((reference) => reference.startsWith("static/ffv/assets/"));
+        .filter((reference) =>
+            reference.startsWith(`${rootAlternativeFitViewAssetsPath}/`)
+        );
 }
 
 function getAlternativeViewerAssetGraph(): {
@@ -108,14 +129,19 @@ function getAlternativeViewerAssetGraph(): {
     referencedAssetCount: number;
     unreferencedAssets: string[];
 } {
-    const entryPath = "static/ffv/index.html";
-    const assetsDirectory = path.join(process.cwd(), "static", "ffv", "assets");
+    const entryPath = rootAlternativeFitViewIndexPath;
+    const assetsDirectory = path.join(
+        process.cwd(),
+        rootAlternativeFitViewAssetsPath
+    );
     const knownAssets = new Set(
         readdirSync(assetsDirectory)
             .filter((fileName) =>
                 statSync(path.join(assetsDirectory, fileName)).isFile()
             )
-            .map((fileName) => `static/ffv/assets/${fileName}`)
+            .map(
+                (fileName) => `${rootAlternativeFitViewAssetsPath}/${fileName}`
+            )
     );
     const pendingReferences = getAssetRelativeReferences(
         entryPath,
@@ -203,7 +229,7 @@ describe("root app shell asset references", () => {
     it("keeps Flatpak app shell installs pointed at root static assets", () => {
         expect.assertions(6);
 
-        const manifest = readRepositoryFile("flatpak-build.yml");
+        const manifest = readRepositoryFile(rootFlatpakManifestPath);
 
         for (const assetPath of staleAppShellAssetPaths) {
             expect(manifest).not.toContain(`./${assetPath}`);
@@ -216,7 +242,7 @@ describe("root app shell asset references", () => {
     it("keeps Codecov renderer UI paths pointed at root static assets", () => {
         expect.assertions(6);
 
-        const codecovConfig = readRepositoryFile("codecov.yml");
+        const codecovConfig = readRepositoryFile(rootCodecovConfigPath);
 
         for (const assetPath of staleAppShellAssetPaths) {
             expect(codecovConfig).not.toContain(`- ${assetPath}`);
@@ -229,8 +255,9 @@ describe("root app shell asset references", () => {
     it("keeps alternative FIT viewer shell references backed by root static assets", () => {
         expect.assertions(5);
 
-        const alternativeViewerIndexPath = "static/ffv/index.html";
-        const alternativeViewerManifestPath = "static/ffv/manifest.json";
+        const alternativeViewerIndexPath = rootAlternativeFitViewIndexPath;
+        const alternativeViewerManifestPath =
+            rootAlternativeFitViewManifestPath;
         const alternativeViewerIndexReferences = getHtmlRelativeAssetReferences(
             alternativeViewerIndexPath
         );
@@ -293,9 +320,7 @@ describe("root app shell asset references", () => {
         );
         const obsoleteFabricIconsPath = path.join(
             process.cwd(),
-            "static",
-            "ffv",
-            "assets",
+            rootAlternativeFitViewAssetsPath,
             "fabric-icons.css"
         );
         expect({
@@ -317,15 +342,15 @@ describe("root app shell asset references", () => {
     it("keeps root static icons limited to packaged and shell-referenced assets", () => {
         expect.assertions(2);
 
-        const iconNames = getDirectoryFileNames("static/icons");
+        const iconNames = getDirectoryFileNames(rootAppIconsPath);
         const iconReferenceSources = getRepositoryReferences([
-            "package.json",
-            "electron-builder.config.cjs",
-            "flatpak-build.yml",
-            "static/app/index.html",
-            "static/ffv/index.html",
-            "static/ffv/manifest.json",
-            "static/icons/site.webmanifest",
+            rootPackageRepositoryPath,
+            rootElectronBuilderConfigPath,
+            rootFlatpakManifestPath,
+            rootAppIndexHtmlPath,
+            rootAlternativeFitViewIndexPath,
+            rootAlternativeFitViewManifestPath,
+            rootAppIconsSiteWebManifestPath,
             "docs/APPLICATION_LAYOUT.md",
         ]);
 
