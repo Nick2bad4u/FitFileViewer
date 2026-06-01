@@ -130,6 +130,10 @@ function getInfoBoxElement(container: HTMLElement): HTMLDivElement {
     return infoBox;
 }
 
+function getClassList(element: Element): string[] {
+    return [...element.classList];
+}
+
 describe(createUserDeviceInfoBox, () => {
     beforeEach(() => {
         vi.clearAllMocks();
@@ -139,7 +143,7 @@ describe(createUserDeviceInfoBox, () => {
     });
 
     it("creates info box with user profile and device sections when data present", () => {
-        expect.assertions(5);
+        expect.assertions(1);
 
         const container = makeContainer();
         setGlobalData({
@@ -163,15 +167,22 @@ describe(createUserDeviceInfoBox, () => {
 
         createUserDeviceInfoBox(container);
 
-        // Should append exactly one child (info box)
-        expect(container.children).toHaveLength(1);
         const infoBox = container.firstElementChild;
-        expect(infoBox?.classList.contains("user-device-info-box")).toBe(true);
-
-        // Contains some expected text fragments
-        expect(container.innerHTML).toMatch(/User Profile/);
-        expect(container.innerHTML).toMatch(/Device Information/);
-        expect(container.innerHTML).toMatch(/Connected Sensors/);
+        expect({
+            childCount: container.children.length,
+            classes: infoBox ? getClassList(infoBox) : [],
+            hasConnectedSensors:
+                container.innerHTML.includes("Connected Sensors"),
+            hasDeviceInformation:
+                container.innerHTML.includes("Device Information"),
+            hasUserProfile: container.innerHTML.includes("User Profile"),
+        }).toStrictEqual({
+            childCount: 1,
+            classes: ["user-device-info-box", "chart-info-section"],
+            hasConnectedSensors: true,
+            hasDeviceInformation: true,
+            hasUserProfile: true,
+        });
     });
 
     it("shows fallback message when no device info available", () => {
