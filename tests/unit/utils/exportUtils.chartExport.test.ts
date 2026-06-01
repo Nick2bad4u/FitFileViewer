@@ -702,10 +702,11 @@ describe("exportUtils chart export helpers", () => {
                 "Failed to copy combined charts to clipboard",
                 "error"
             );
-            expect(dependencyMocks.showNotification).not.toHaveBeenCalledWith(
-                expect.any(String),
-                "success"
-            );
+            expect(
+                dependencyMocks.showNotification.mock.calls.map(
+                    ([_message, type]) => type
+                )
+            ).not.toContain("success");
         });
 
         it("notifies for null charts parameter", async () => {

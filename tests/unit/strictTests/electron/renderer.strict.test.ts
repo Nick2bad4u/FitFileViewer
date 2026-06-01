@@ -349,11 +349,7 @@ describe("renderer.js strict behavior", () => {
         const duration = dev.PerformanceMonitor.end("strict_test_operation");
         const metrics = dev.getPerformanceMetrics();
         expect(metrics.strict_test_operation).toBe(duration);
-        expect(metrics).toEqual(
-            expect.objectContaining({
-                strict_test_operation: expect.any(Number),
-            })
-        );
+        expect(metrics.strict_test_operation).toBeTypeOf("number");
         expect(
             Object.keys(metrics).filter((key) => key.endsWith("_start"))
         ).toStrictEqual([]);

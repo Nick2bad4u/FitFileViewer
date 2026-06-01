@@ -174,9 +174,12 @@ describe(initFilenameAutoScroll, () => {
             expect(
                 filenameText.style.getPropertyValue("--scroll-distance")
             ).toBe("218px");
-            expect(filenameElement.__ffvFilenameAutoScrollState).toMatchObject({
-                timers: [expect.anything(), expect.anything()],
-            });
+            const autoScrollState =
+                filenameElement.__ffvFilenameAutoScrollState as
+                    | { timers?: unknown[] }
+                    | undefined;
+
+            expect(autoScrollState?.timers).toHaveLength(2);
 
             initFilenameAutoScroll();
 

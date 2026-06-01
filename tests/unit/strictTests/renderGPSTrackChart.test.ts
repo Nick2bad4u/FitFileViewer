@@ -418,16 +418,17 @@ describe(renderGPSTrackChart, () => {
         expect.assertions(3);
 
         withHarness(({ consoleError, container, runtimeGlobal }) => {
+            const chartCreationError = new Error("Chart creation failed");
             runtimeGlobal.Chart = class ThrowingChart {
                 public constructor() {
-                    throw new Error("Chart creation failed");
+                    throw chartCreationError;
                 }
             };
 
             renderGPSTrackChart(container, defaultData, defaultOptions);
             expect(consoleError).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering GPS track chart:",
-                expect.any(Error)
+                chartCreationError
             );
             expect(globalThis._chartjsInstances).toStrictEqual([]);
             expect(container.querySelector("canvas")).toBeInstanceOf(

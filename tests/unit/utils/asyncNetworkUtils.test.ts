@@ -143,9 +143,10 @@ describe("network utilities", () => {
 
         const timeoutCall = timeoutSpy.mock.calls[0] as TimeoutCall;
         const [timeoutHandler, timeoutMs] = timeoutCall;
+        const timeoutHandle = timeoutSpy.mock.results[0]?.value;
         expect(timeoutMs).toBe(100);
         expect(timeoutHandler).toBeTypeOf("function");
-        expect(clearSpy).toHaveBeenCalledWith(expect.anything());
+        expect(clearSpy).toHaveBeenCalledWith(timeoutHandle);
     });
 
     it("aborts the fetch signal when the timeout elapses", async () => {

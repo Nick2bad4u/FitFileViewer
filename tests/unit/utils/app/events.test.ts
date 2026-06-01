@@ -315,7 +315,7 @@ describe(setupListeners, () => {
             openButtonDisabled: false,
         });
         expect(globalAny.showFitData).toHaveBeenCalledWith(
-            expect.anything(),
+            { recordMesgs: [{ speed: 10 }] },
             "C:/rides/demo.fit"
         );
         expect(electronAPI.addRecentFile).toHaveBeenCalledWith(
