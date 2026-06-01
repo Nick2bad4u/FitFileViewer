@@ -125,10 +125,8 @@ describe("masterStateManager introspection", () => {
             const history = masterStateManager.getHistory();
             expect({
                 entries: history,
-                isArray: Array.isArray(history),
             }).toStrictEqual({
                 entries: [],
-                isArray: true,
             });
         });
 

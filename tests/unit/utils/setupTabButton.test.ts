@@ -175,9 +175,9 @@ describe(setupTabButton, () => {
             'Button with id "tab-removed" not found after cache refresh.'
         );
         expect({
-            hasRemovedButton: setupTabButtonWithCache.cache?.has("tab-removed"),
+            cachedButtonIds: [...(setupTabButtonWithCache.cache?.keys() ?? [])],
         }).toEqual({
-            hasRemovedButton: false,
+            cachedButtonIds: [],
         });
     });
 

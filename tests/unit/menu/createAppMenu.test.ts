@@ -187,10 +187,8 @@ describe("createAppMenu", () => {
             capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         const labels = tpl.map((i: any) => i.label);
         expect({
-            isArray: Array.isArray(tpl),
             labels,
         }).toStrictEqual({
-            isArray: true,
             labels: [
                 "📁 File",
                 "👁️ View",
@@ -236,10 +234,8 @@ describe("createAppMenu", () => {
         const tpl =
             capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         expect({
-            isArray: Array.isArray(tpl),
             labels: tpl.map((i: any) => i.label),
         }).toStrictEqual({
-            isArray: true,
             labels: [
                 "📁 File",
                 "👁️ View",
@@ -592,10 +588,8 @@ describe("createAppMenu", () => {
         const tpl =
             capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         expect({
-            isArray: Array.isArray(tpl),
             labels: (tpl || []).map((i: any) => i.label),
         }).toStrictEqual({
-            isArray: true,
             labels: [
                 "📁 File",
                 "👁️ View",
@@ -999,10 +993,8 @@ describe("createAppMenu", () => {
         createAppMenu(fakeWin as any, "dark", null);
         const tpl = (globalThis as any).__lastBuiltMenuTemplate as any[];
         expect({
-            isArray: Array.isArray(tpl),
             labels: tpl.map((item) => item.label),
         }).toStrictEqual({
-            isArray: true,
             labels: [
                 "📁 File",
                 "👁️ View",
@@ -1031,10 +1023,8 @@ describe("createAppMenu", () => {
         );
         const tpl = (globalThis as any).__lastBuiltMenuTemplate as any[];
         expect({
-            isArray: Array.isArray(tpl),
             labels: tpl.map((item) => item.label),
         }).toStrictEqual({
-            isArray: true,
             labels: [
                 "📁 File",
                 "👁️ View",
@@ -1125,10 +1115,8 @@ describe("createAppMenu", () => {
         );
         const tpl = (globalThis as any).__lastBuiltMenuTemplate as any[];
         expect({
-            isArray: Array.isArray(tpl),
             labels: tpl.map((item) => item.label),
         }).toStrictEqual({
-            isArray: true,
             labels: [
                 "📁 File",
                 "👁️ View",
