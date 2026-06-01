@@ -10,7 +10,7 @@ describe(convertDistanceUnits, () => {
     });
 
     it("converts meters to each supported distance unit", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         expect(convertDistanceUnits(1000, DISTANCE_UNITS.METERS)).toBe(1000);
         expect(convertDistanceUnits(1000, DISTANCE_UNITS.KILOMETERS)).toBe(1);
@@ -24,7 +24,7 @@ describe(convertDistanceUnits, () => {
     });
 
     it("preserves signed and infinite numeric values", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
@@ -42,7 +42,7 @@ describe(convertDistanceUnits, () => {
     });
 
     it("handles invalid-input meters by throwing TypeError", () => {
-        expect.hasAssertions();
+        expect.assertions(7);
 
         for (const value of [
             null,
@@ -60,7 +60,7 @@ describe(convertDistanceUnits, () => {
     });
 
     it("warns and returns meters unchanged for unknown units", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 

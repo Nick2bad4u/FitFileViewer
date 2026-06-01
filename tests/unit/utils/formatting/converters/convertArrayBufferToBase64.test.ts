@@ -77,7 +77,7 @@ describe(convertArrayBufferToBase64, () => {
             "DhAgAAAAAAAuRklUAAA=",
         ],
     ])("encodes %j as %s", (bytes, expected) => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         expect(convertArrayBufferToBase64(bufferFromBytes(bytes))).toBe(
             expected
@@ -85,7 +85,7 @@ describe(convertArrayBufferToBase64, () => {
     });
 
     it("throws for invalid-input values", () => {
-        expect.hasAssertions();
+        expect.assertions(7);
 
         const cases: Array<[unknown, string]> = [
             [null, "object"],
@@ -112,7 +112,7 @@ describe(convertArrayBufferToBase64, () => {
     });
 
     it("matches browser base64 encoding for text bytes", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const text = "Hello, World!";
         const bytes = Array.from(text, (character) => character.charCodeAt(0));
@@ -123,7 +123,7 @@ describe(convertArrayBufferToBase64, () => {
     });
 
     it("uses chunked encoding for buffers larger than the 32KB argument limit", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const buffer = patternedBuffer(0x80_00 + 1000);
         const result = convertArrayBufferToBase64(buffer);
