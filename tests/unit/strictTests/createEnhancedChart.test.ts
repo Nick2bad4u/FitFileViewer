@@ -1495,7 +1495,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             expect(result).toBe(chartInstanceMock);
             const dataset = Chart.mock.calls[0][1].data.datasets[0];
             expect(dataset.data).toStrictEqual([]);
-            expect(dataset.data).not.toContainEqual({ x: 0, y: 10 });
+            expect(dataset.data).not.toHaveLength(1);
         });
 
         it("should handle maximum smoothing value", () => {

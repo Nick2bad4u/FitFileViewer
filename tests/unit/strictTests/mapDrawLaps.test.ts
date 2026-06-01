@@ -243,11 +243,18 @@ describe(mapDrawLaps, () => {
                 options,
             })
         );
-        expect(fitBoundsCalls).toContainEqual({
-            clone: "function",
-            extend: "function",
-            options: { padding: [20, 20] },
-        });
+        expect(fitBoundsCalls).toStrictEqual([
+            {
+                clone: "function",
+                extend: "function",
+                options: { padding: [20, 20] },
+            },
+            {
+                clone: "function",
+                extend: "function",
+                options: { padding: [20, 20] },
+            },
+        ]);
         expect(leaflet.circleMarker).toHaveBeenCalledTimes(2);
         expect(mapWindow._ffvDataPointMarkers).toHaveLength(2);
         expect(mapWindow._mainPolyline).toBe(

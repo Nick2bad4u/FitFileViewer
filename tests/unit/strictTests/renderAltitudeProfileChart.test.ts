@@ -1009,7 +1009,9 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
                 { id: "zoomReset" },
                 { id: "backgroundColor" },
             ]);
-            expect(config.plugins).not.toContainEqual({ id: "unknownPlugin" });
+            expect(config.plugins.map((plugin) => plugin.id)).not.toStrictEqual(
+                ["zoomReset", "unknownPlugin"]
+            );
         });
 
         it("should configure chartBackgroundColorPlugin with theme colors", () => {

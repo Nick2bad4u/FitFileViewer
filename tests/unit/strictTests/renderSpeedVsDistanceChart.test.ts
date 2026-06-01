@@ -470,7 +470,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
             expect(chartConfig.data.datasets[0].data).not.toHaveLength(
                 data.length
             );
-            expect(chartConfig.data.datasets[0].data).toContainEqual({
+            expect(chartConfig.data.datasets[0].data[0]).toStrictEqual({
                 x: 0,
                 y: 18,
             });

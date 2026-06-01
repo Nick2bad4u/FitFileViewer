@@ -1207,7 +1207,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
         });
 
         it("should handle training data with power spikes", () => {
-            expect.assertions(3);
+            expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -1226,14 +1226,13 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
             const [canvas] = getLatestChartCall();
             expect(canvas).toBeInstanceOf(HTMLCanvasElement);
             const chartConfig = getLatestChartConfig();
-            expect(chartConfig.data.datasets[0].data).toContainEqual({
-                x: 165,
-                y: 450,
-            });
-            expect(chartConfig.data.datasets[0].data).toContainEqual({
-                x: 115,
-                y: 160,
-            });
+            expect(chartConfig.data.datasets[0].data).toStrictEqual([
+                { x: 130, y: 200 },
+                { x: 165, y: 450 },
+                { x: 125, y: 180 },
+                { x: 155, y: 350 },
+                { x: 115, y: 160 },
+            ]);
         });
     });
 });

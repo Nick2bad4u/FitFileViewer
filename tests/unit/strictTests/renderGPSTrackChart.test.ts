@@ -206,9 +206,7 @@ describe(renderGPSTrackChart, () => {
                 "[ChartJS] GPS track chart created successfully"
             );
             expect(consoleLog).toHaveBeenCalledWith(
-                expect.stringContaining(
-                    "Creating GPS track chart with 3 points"
-                )
+                "[ChartJS] Creating GPS track chart with 3 points"
             );
         });
     });
