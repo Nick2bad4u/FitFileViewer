@@ -97,7 +97,9 @@ function getAssetRelativeReferences(
 }
 
 function getAlternativeViewerAssetGraph(): {
+    knownAssetCount: number;
     missingReferences: Record<string, string[]>;
+    referencedAssetCount: number;
     unreferencedAssets: string[];
 } {
     const entryPath = "static/ffv/index.html";
@@ -154,7 +156,9 @@ function getAlternativeViewerAssetGraph(): {
     }
 
     return {
+        knownAssetCount: knownAssets.size,
         missingReferences,
+        referencedAssetCount: referencedAssets.size,
         unreferencedAssets: [...knownAssets]
             .filter((assetPath) => !referencedAssets.has(assetPath))
             .sort(),
@@ -297,7 +301,9 @@ describe("root app shell asset references", () => {
         expect.assertions(1);
 
         expect(getAlternativeViewerAssetGraph()).toStrictEqual({
+            knownAssetCount: 18,
             missingReferences: {},
+            referencedAssetCount: 18,
             unreferencedAssets: [],
         });
     });
