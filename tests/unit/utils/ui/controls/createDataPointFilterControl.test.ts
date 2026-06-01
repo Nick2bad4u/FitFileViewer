@@ -191,7 +191,7 @@ function requireElement<T extends Element>(
 
 describe(createDataPointFilterControl, () => {
     it("uses persisted configuration to seed summary without overwriting", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         globalThis.mapDataPointFilter = {
             enabled: true,
@@ -222,7 +222,7 @@ describe(createDataPointFilterControl, () => {
     });
 
     it("initializes defaults and updates global filter when none persisted", () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         const container = appendControl(createDataPointFilterControl());
         expect(updateGlobalFilter).toHaveBeenCalledOnce();
@@ -240,7 +240,7 @@ describe(createDataPointFilterControl, () => {
     });
 
     it("opens and closes the panel via toggle and outside clicks", async () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         const container = appendControl(createDataPointFilterControl());
         openPanel(container);
@@ -271,7 +271,7 @@ describe(createDataPointFilterControl, () => {
     });
 
     it("applies top percent filters successfully", async () => {
-        expect.hasAssertions();
+        expect.assertions(7);
 
         previewFilterResult.mockReturnValueOnce({
             isActive: true,
@@ -335,7 +335,7 @@ describe(createDataPointFilterControl, () => {
     });
 
     it("handles top percent previews that cannot be applied", async () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         previewFilterResult.mockReturnValueOnce({
             isActive: false,
@@ -380,7 +380,7 @@ describe(createDataPointFilterControl, () => {
     });
 
     it("clears top percent filters when the preview returns no points or reason", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         previewFilterResult.mockReturnValueOnce({
             isActive: true,
@@ -428,7 +428,7 @@ describe(createDataPointFilterControl, () => {
     });
 
     it("applies value range filters using range stats", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         computeRangeState.mockReturnValue({
             rangeValues: { min: 200, max: 500 },
@@ -498,7 +498,7 @@ describe(createDataPointFilterControl, () => {
     });
 
     it("clears range filters when preview returns an issue", async () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         computeRangeState.mockReturnValue({
             rangeValues: { min: 100, max: 200 },
@@ -563,7 +563,7 @@ describe(createDataPointFilterControl, () => {
     });
 
     it("stops value range application when range stats are unavailable", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         computeRangeState.mockReturnValue({
             stats: null,
@@ -602,7 +602,7 @@ describe(createDataPointFilterControl, () => {
     });
 
     it("disables value range filters when the preview returns no points or reason", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         computeRangeState.mockReturnValue({
             rangeValues: { min: 100, max: 400 },
@@ -659,7 +659,7 @@ describe(createDataPointFilterControl, () => {
     });
 
     it("uses metric stats when cached range values are undefined", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         computeRangeState.mockReturnValue({
             rangeValues: { min: undefined, max: undefined },
@@ -716,7 +716,7 @@ describe(createDataPointFilterControl, () => {
     });
 
     it("resets filter state appropriately for both modes", async () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         computeRangeState.mockReturnValue({
             rangeValues: { min: 10, max: 20 },
@@ -780,7 +780,7 @@ describe(createDataPointFilterControl, () => {
     });
 
     it("synchronizes range sliders and toggles mode when user adjusts values", async () => {
-        expect.hasAssertions();
+        expect.assertions(8);
 
         computeRangeState.mockReturnValue({
             rangeValues: { min: 100, max: 200 },
@@ -837,7 +837,7 @@ describe(createDataPointFilterControl, () => {
     });
 
     it("falls back to Promise microtasks when queueMicrotask is unavailable", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         computeRangeState.mockReturnValue({
             rangeValues: { min: 110, max: 190 },
@@ -888,7 +888,7 @@ describe(createDataPointFilterControl, () => {
     });
 
     it("promotes slider interaction to value range mode when starting in top-percent", async () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         globalThis.mapDataPointFilter = {
             enabled: true,
@@ -945,7 +945,7 @@ describe(createDataPointFilterControl, () => {
     });
 
     it("clamps percent input values on change events", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const container = appendControl(createDataPointFilterControl());
         openPanel(container);
@@ -973,7 +973,7 @@ describe(createDataPointFilterControl, () => {
     });
 
     it("applies value-range filters using preview-adjusted bounds", async () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         computeRangeState.mockReturnValue({
             rangeValues: { min: 140, max: 320 },
@@ -1045,7 +1045,7 @@ describe(createDataPointFilterControl, () => {
     });
 
     it("applies value-range filters falling back to computed stats when sliders untouched", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         computeRangeState.mockReturnValue({
             rangeValues: { min: undefined, max: undefined },
@@ -1105,7 +1105,7 @@ describe(createDataPointFilterControl, () => {
     });
 
     it("recomputes range stats on metric change without preserving selection", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const metricCalls: Array<{
             metric: string;
@@ -1157,7 +1157,7 @@ describe(createDataPointFilterControl, () => {
     });
 
     it("disables range controls when stats are unavailable", async () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         computeRangeState.mockReturnValue({
             stats: null,
@@ -1194,7 +1194,7 @@ describe(createDataPointFilterControl, () => {
     });
 
     it("handles non-numeric slider input gracefully", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const clampMock = vi
             .spyOn(stateHelpersModule, "clampRangeValue")
@@ -1273,7 +1273,7 @@ describe(createDataPointFilterControl, () => {
     });
 
     it("aligns the minimum slider when the maximum slider dips below it", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         computeRangeState.mockReturnValue({
             rangeValues: { min: 90, max: 140 },
@@ -1314,7 +1314,7 @@ describe(createDataPointFilterControl, () => {
     });
 
     it("toggling the top percent radio hides range controls", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         computeRangeState.mockReturnValue({
             rangeValues: { min: 10, max: 20 },
@@ -1358,7 +1358,7 @@ describe(createDataPointFilterControl, () => {
     });
 
     it("ignores viewport scroll events once the panel is closed", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const container = appendControl(createDataPointFilterControl());
         openPanel(container);
@@ -1382,7 +1382,7 @@ describe(createDataPointFilterControl, () => {
     });
 
     it("repositions the panel based on viewport constraints", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const container = appendControl(createDataPointFilterControl());
         const toggle = container.querySelector<HTMLButtonElement>(
@@ -1450,7 +1450,7 @@ describe(createDataPointFilterControl, () => {
     });
 
     it("clamps the panel arrow offset when positioned near viewport edges", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const originalWidth = window.innerWidth;
         const originalHeight = window.innerHeight;
@@ -1547,7 +1547,7 @@ describe(createDataPointFilterControl, () => {
     });
 
     it("skips repositioning when the panel reports zero dimensions", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const container = appendControl(createDataPointFilterControl());
         const toggle = container.querySelector<HTMLButtonElement>(
@@ -1596,7 +1596,7 @@ describe(createDataPointFilterControl, () => {
     });
 
     it("refreshes summary from cached results and handles escape key", async () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         const container = appendControl(createDataPointFilterControl());
         openPanel(container);
@@ -1658,7 +1658,7 @@ describe(createDataPointFilterControl, () => {
     });
 
     it("falls back to candidate values and default coverage in cached summaries", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const container = appendControl(createDataPointFilterControl());
         openPanel(container);
@@ -1701,7 +1701,7 @@ describe(createDataPointFilterControl, () => {
     });
 
     it("preserves summaries when filter stays active and swallows refresh errors", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const container = appendControl(createDataPointFilterControl());
         openPanel(container);
