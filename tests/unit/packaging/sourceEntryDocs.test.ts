@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -74,6 +74,43 @@ describe("source entrypoint documentation", () => {
 
         expect(layoutGuide).not.toMatch(
             /├── (?:logs|utils)\/\s+# (?:Application logs|Shared utilities \(legacy\))/u
+        );
+    });
+
+    it("documents only current root tooling files in the root layout guide", () => {
+        expect.assertions(3);
+
+        const layoutGuide = readWorkspaceFile("docs/APPLICATION_LAYOUT.md");
+        const documentedRootToolingFiles = [
+            ".gitignore",
+            "cliff.toml",
+            "codecov.yml",
+            "electron-builder.config.cjs",
+            "eslint.config.mjs",
+            "prettier.config.mjs",
+            "stylelint.config.mjs",
+            "vitest.config.ts",
+        ];
+
+        expect(
+            Object.fromEntries(
+                documentedRootToolingFiles.map((filePath) => [
+                    filePath,
+                    existsSync(path.join(process.cwd(), filePath)),
+                ])
+            )
+        ).toStrictEqual(
+            Object.fromEntries(
+                documentedRootToolingFiles.map((filePath) => [filePath, true])
+            )
+        );
+        expect(
+            documentedRootToolingFiles.every((filePath) =>
+                layoutGuide.includes(filePath)
+            )
+        ).toBe(true);
+        expect(layoutGuide).not.toMatch(
+            /├── \.(?:browserslistrc|editorconfig|gitattributes)\s+#/u
         );
     });
 });

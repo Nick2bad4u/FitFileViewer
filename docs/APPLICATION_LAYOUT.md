@@ -461,13 +461,14 @@ Application screenshots used by repository documentation live in
 
 ```text
 Root Level Files:
-├── .gitignore                      # Git ignore patterns
-├── .gitattributes                  # Git attributes
-├── .editorconfig                   # Editor configuration
-├── .browserslistrc                 # Browser compatibility
-├── cliff.toml                      # Changelog generation
-├── codecov.yml                     # Code coverage config
-└── [Various linter configurations]
+├── .gitignore                       # Git ignore patterns
+├── cliff.toml                       # Changelog generation
+├── codecov.yml                      # Code coverage config
+├── electron-builder.config.cjs      # Electron Builder targets and packaging policy
+├── eslint.config.mjs                # Root-owned ESLint configuration
+├── prettier.config.mjs              # Root-owned Prettier configuration
+├── stylelint.config.mjs             # Root-owned Stylelint configuration
+└── vitest.config.ts                 # Root-owned Vitest configuration
 ```
 
 ## Key File Responsibilities
