@@ -56,7 +56,7 @@ describe("build-docs script", () => {
     });
 
     it("runs docs build steps in order", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const commandRunner = vi
             .fn<CommandRunner>()
@@ -91,16 +91,25 @@ describe("build-docs script", () => {
             command: process.execPath,
             cwd: path.resolve(process.cwd()),
         });
+        expect(logger.mock.calls).toStrictEqual([
+            ["[build-docs] generate API docs"],
+            ["[build-docs] generate API categories"],
+        ]);
     });
 
     it("stops after the first failing docs build step", () => {
-        expect.assertions(1);
+        expect.assertions(3);
 
         const commandRunner = vi
             .fn<CommandRunner>()
             .mockReturnValueOnce({ status: 0 })
             .mockReturnValueOnce({ status: 6 });
-        const exitStatus = runBuildDocs(["--typedoc-only"], commandRunner);
+        const logger = vi.fn<(message: string) => void>();
+        const exitStatus = runBuildDocs(
+            ["--typedoc-only"],
+            commandRunner,
+            logger
+        );
 
         expect({
             commandCalls: commandRunner.mock.calls.length,
@@ -109,15 +118,49 @@ describe("build-docs script", () => {
             commandCalls: 2,
             status: 6,
         });
+        expect(
+            commandRunner.mock.calls.map(
+                ([
+                    ,
+                    args,
+                    options,
+                ]) => ({
+                    args,
+                    cwd: path.resolve(options.cwd),
+                })
+            )
+        ).toStrictEqual([
+            {
+                args: buildDocsSteps(["--typedoc-only"])[0]?.args,
+                cwd: path.resolve(process.cwd()),
+            },
+            {
+                args: [generateApiCategoriesScriptPath],
+                cwd: docusaurusWorkspacePath,
+            },
+        ]);
+        expect(logger.mock.calls).toStrictEqual([
+            ["[build-docs] generate API docs"],
+            ["[build-docs] generate API categories"],
+        ]);
     });
 
     it("throws when a docs build step cannot be started", () => {
-        expect.assertions(1);
+        expect.assertions(4);
 
+        const spawnError = new Error("spawn failed");
         const commandRunner = vi
             .fn<CommandRunner>()
-            .mockReturnValue({ error: new Error("spawn failed"), status: 0 });
+            .mockReturnValue({ error: spawnError, status: 0 });
+        const logger = vi.fn<(message: string) => void>();
 
-        expect(() => runBuildDocs([], commandRunner)).toThrow("spawn failed");
+        expect(() => runBuildDocs([], commandRunner, logger)).toThrow(
+            spawnError
+        );
+        expect(commandRunner).toHaveBeenCalledOnce();
+        expect(commandRunner.mock.calls[0]?.[1]).toStrictEqual(
+            buildDocsSteps([])[0]?.args
+        );
+        expect(logger).toHaveBeenCalledWith("[build-docs] generate API docs");
     });
 });

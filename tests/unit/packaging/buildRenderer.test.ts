@@ -73,7 +73,7 @@ describe("build-renderer script", () => {
     });
 
     it("returns a failing status from Vite", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const commandRunner = vi
             .fn<CommandRunner>()
@@ -88,16 +88,39 @@ describe("build-renderer script", () => {
             commandCalls: 1,
             status: 8,
         });
+        expect(commandRunner.mock.calls[0]?.[1]).toStrictEqual(
+            buildRendererArgs([])
+        );
     });
 
     it("throws when Vite cannot be started", () => {
-        expect.assertions(1);
+        expect.assertions(4);
 
+        const spawnError = new Error("spawn failed");
         const commandRunner = vi.fn<CommandRunner>().mockReturnValue({
-            error: new Error("spawn failed"),
+            error: spawnError,
             status: 0,
         });
 
-        expect(() => runViteBuild([], commandRunner)).toThrow("spawn failed");
+        expect(() => runViteBuild([], commandRunner)).toThrow(spawnError);
+        expect(commandRunner).toHaveBeenCalledOnce();
+
+        const [
+            command,
+            args,
+            options,
+        ] = commandRunner.mock.calls[0] ?? [];
+
+        expect({ args, command }).toStrictEqual({
+            args: buildRendererArgs([]),
+            command: process.execPath,
+        });
+        expect({
+            ...options,
+            cwd: path.resolve(options?.cwd ?? ""),
+        }).toStrictEqual({
+            cwd: path.resolve(process.cwd()),
+            stdio: "inherit",
+        });
     });
 });

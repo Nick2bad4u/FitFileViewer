@@ -44,7 +44,7 @@ describe("build-package script", () => {
     });
 
     it("returns zero when every package step succeeds", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const commandRunner = vi
             .fn<CommandRunner>()
@@ -77,10 +77,14 @@ describe("build-package script", () => {
             cwd: path.resolve(process.cwd()),
             stdio: "inherit",
         });
+        expect(logger.mock.calls).toStrictEqual([
+            ["[build-package] build runtime"],
+            ["[build-package] run electron-builder"],
+        ]);
     });
 
     it("stops after the first failing package step", () => {
-        expect.assertions(1);
+        expect.assertions(3);
 
         const commandRunner = vi
             .fn<CommandRunner>()
@@ -97,18 +101,30 @@ describe("build-package script", () => {
             loggerCalls: 1,
             status: 7,
         });
+        expect(commandRunner.mock.calls[0]?.[1]).toStrictEqual([
+            buildRuntimeScriptPath,
+        ]);
+        expect(logger.mock.calls).toStrictEqual([
+            ["[build-package] build runtime"],
+        ]);
     });
 
     it("throws when a package step runner reports a spawn error", () => {
-        expect.assertions(1);
+        expect.assertions(4);
 
+        const spawnError = new Error("spawn failed");
         const commandRunner = vi
             .fn<CommandRunner>()
-            .mockReturnValue({ error: new Error("spawn failed"), status: 0 });
+            .mockReturnValue({ error: spawnError, status: 0 });
         const logger = vi.fn<(message: string) => void>();
 
         expect(() => runBuildPackage([], commandRunner, logger)).toThrow(
-            "spawn failed"
+            spawnError
         );
+        expect(commandRunner).toHaveBeenCalledOnce();
+        expect(commandRunner.mock.calls[0]?.[1]).toStrictEqual([
+            buildRuntimeScriptPath,
+        ]);
+        expect(logger).toHaveBeenCalledWith("[build-package] build runtime");
     });
 });
