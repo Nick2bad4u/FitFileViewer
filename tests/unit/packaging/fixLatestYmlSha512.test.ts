@@ -104,7 +104,7 @@ describe("fix-latest-yml-sha512 script", () => {
     });
 
     it("rewrites files section hashes and top-level updater metadata", async () => {
-        expect.assertions(5);
+        expect.assertions(2);
 
         const { updateLatestYmlSha512 } = await importFixLatestYmlSha512();
         const releaseDistDirectory = makeTemporaryRoot();
@@ -142,9 +142,6 @@ describe("fix-latest-yml-sha512 script", () => {
         const secondHash = sha512Base64("package");
         const summary = updateLatestYmlSha512(latestYmlFile);
         const updatedLatestYml = fs.readFileSync(latestYmlFile, "utf8");
-        const topLevelSha512Line = updatedLatestYml
-            .split("\n")
-            .find((line) => line.startsWith("sha512:"));
 
         expect(summary).toStrictEqual({
             file: normalizeTestPath(latestYmlFile),
@@ -152,16 +149,26 @@ describe("fix-latest-yml-sha512 script", () => {
             missingCount: 0,
             updatedCount: 2,
         });
-        expect(updatedLatestYml).toContain(`    sha512: ${firstHash}`);
-        expect(updatedLatestYml).toContain(`    sha512: ${secondHash}`);
-        expect(updatedLatestYml).toContain(
-            "path: Fit-File-Viewer-30.0.0-x64.exe"
+        expect(updatedLatestYml).toBe(
+            [
+                "version: 30.0.0",
+                "files:",
+                "  - url: Fit-File-Viewer-30.0.0-x64.exe",
+                `    sha512: ${firstHash}`,
+                "    size: 123",
+                "  - url: fitfileviewer-30.0.0-x64.nsis.7z",
+                `    sha512: ${secondHash}`,
+                "    size: 456",
+                "path: Fit-File-Viewer-30.0.0-x64.exe",
+                `sha512: ${firstHash}`,
+                "releaseDate: 2026-05-27T00:00:00.000Z",
+                "",
+            ].join("\n")
         );
-        expect(topLevelSha512Line).toBe(`sha512: ${firstHash}`);
     });
 
     it("blanks missing file hashes without changing top-level metadata", async () => {
-        expect.assertions(4);
+        expect.assertions(2);
 
         const { updateLatestYmlSha512 } = await importFixLatestYmlSha512();
         const releaseDistDirectory = makeTemporaryRoot();
@@ -187,9 +194,16 @@ describe("fix-latest-yml-sha512 script", () => {
             missingCount: 1,
             updatedCount: 0,
         });
-        expect(updatedLatestYml).toContain("    sha512: \n");
-        expect(updatedLatestYml).toContain("path: original.exe");
-        expect(updatedLatestYml).toContain("sha512: original-top-level");
+        expect(updatedLatestYml).toBe(
+            [
+                "files:",
+                "  - url: missing.exe",
+                "    sha512: ",
+                "    size: 123",
+                "path: original.exe",
+                "sha512: original-top-level",
+            ].join("\n")
+        );
     });
 
     it("updates every latest yml file under release-dist", async () => {
@@ -227,29 +241,46 @@ describe("fix-latest-yml-sha512 script", () => {
             ].join("\n")
         );
 
+        const x64LatestYmlFile = path.join(
+            releaseDistDirectory,
+            "windows-latest-x64",
+            "latest.yml"
+        );
+        const ia32LatestYmlFile = path.join(
+            releaseDistDirectory,
+            "windows-latest-ia32",
+            "latest-win32.yml"
+        );
         const summaries = fixLatestYmlSha512(releaseDistDirectory);
 
-        expect(summaries).toHaveLength(2);
-        expect(
-            fs.readFileSync(
-                path.join(
-                    releaseDistDirectory,
-                    "windows-latest-x64",
-                    "latest.yml"
-                ),
-                "utf8"
-            )
-        ).toContain(sha512Base64("x64"));
-        expect(
-            fs.readFileSync(
-                path.join(
-                    releaseDistDirectory,
-                    "windows-latest-ia32",
-                    "latest-win32.yml"
-                ),
-                "utf8"
-            )
-        ).toContain(sha512Base64("ia32"));
+        expect(summaries).toStrictEqual([
+            {
+                file: normalizeTestPath(ia32LatestYmlFile),
+                fileCount: 1,
+                missingCount: 0,
+                updatedCount: 1,
+            },
+            {
+                file: normalizeTestPath(x64LatestYmlFile),
+                fileCount: 1,
+                missingCount: 0,
+                updatedCount: 1,
+            },
+        ]);
+        expect(fs.readFileSync(x64LatestYmlFile, "utf8")).toBe(
+            [
+                "files:",
+                "  - url: app.exe",
+                `    sha512: ${sha512Base64("x64")}`,
+            ].join("\n")
+        );
+        expect(fs.readFileSync(ia32LatestYmlFile, "utf8")).toBe(
+            [
+                "files:",
+                "  - url: app.exe",
+                `    sha512: ${sha512Base64("ia32")}`,
+            ].join("\n")
+        );
     });
 
     it("returns an empty result when release-dist is missing", async () => {
