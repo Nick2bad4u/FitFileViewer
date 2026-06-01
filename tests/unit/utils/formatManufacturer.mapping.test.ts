@@ -26,7 +26,7 @@ describe("formatManufacturer mapping behavior", () => {
     describe("basic manufacturer formatting", () => {
         describe("string-based manufacturer names", () => {
             it("should format known manufacturer names with proper capitalization", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
 
                 expect(
                     [
@@ -44,7 +44,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should format all cycling manufacturers correctly", () => {
-                expect.hasAssertions();
+                expect.assertions(6);
 
                 expect(formatManufacturer("wahoo")).toBe("Wahoo");
                 expect(formatManufacturer("polar")).toBe("Polar");
@@ -55,7 +55,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should format trainer manufacturers correctly", () => {
-                expect.hasAssertions();
+                expect.assertions(6);
 
                 expect(formatManufacturer("tacx")).toBe("Tacx");
                 expect(formatManufacturer("elite")).toBe("Elite");
@@ -66,7 +66,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should format power meter manufacturers correctly", () => {
-                expect.hasAssertions();
+                expect.assertions(5);
 
                 expect(formatManufacturer("powertap")).toBe("PowerTap");
                 expect(formatManufacturer("quarq")).toBe("Quarq");
@@ -76,7 +76,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should format software/app manufacturers correctly", () => {
-                expect.hasAssertions();
+                expect.assertions(3);
 
                 expect(formatManufacturer("zwift")).toBe("Zwift");
                 expect(formatManufacturer("trainerroad")).toBe("TrainerRoad");
@@ -84,7 +84,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should format GPS device manufacturers correctly", () => {
-                expect.hasAssertions();
+                expect.assertions(5);
 
                 expect(formatManufacturer("magene")).toBe("Magene");
                 expect(formatManufacturer("igpsport")).toBe("iGPSPORT");
@@ -94,7 +94,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should format bike component manufacturers correctly", () => {
-                expect.hasAssertions();
+                expect.assertions(5);
 
                 expect(formatManufacturer("look")).toBe("Look");
                 expect(formatManufacturer("speedplay")).toBe("Speedplay");
@@ -106,7 +106,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should format safety equipment manufacturers correctly", () => {
-                expect.hasAssertions();
+                expect.assertions(9);
 
                 expect(formatManufacturer("kask")).toBe("Kask");
                 expect(formatManufacturer("giro")).toBe("Giro");
@@ -120,7 +120,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should return original value for unknown manufacturers", () => {
-                expect.hasAssertions();
+                expect.assertions(4);
 
                 expect(formatManufacturer("unknownBrand")).toBe("unknownBrand");
                 expect(formatManufacturer("CustomManufacturer")).toBe(
@@ -135,7 +135,7 @@ describe("formatManufacturer mapping behavior", () => {
 
         describe("special categories and product lines", () => {
             it("should format bike brand manufacturers correctly", () => {
-                expect.hasAssertions();
+                expect.assertions(4);
 
                 expect(formatManufacturer("giant")).toBe("Giant");
                 expect(formatManufacturer("trek")).toBe("Trek");
@@ -144,7 +144,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should format electronics manufacturers correctly", () => {
-                expect.hasAssertions();
+                expect.assertions(4);
 
                 expect(formatManufacturer("faveroElectronics")).toBe(
                     "Favero Electronics"
@@ -159,7 +159,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should format trainer model names correctly", () => {
-                expect.hasAssertions();
+                expect.assertions(9);
 
                 expect(formatManufacturer("flux")).toBe("Tacx Flux");
                 expect(formatManufacturer("vortex")).toBe("Tacx Vortex");
@@ -173,7 +173,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should format Kinetic model names correctly", () => {
-                expect.hasAssertions();
+                expect.assertions(3);
 
                 expect(formatManufacturer("rock")).toBe("Kinetic Rock");
                 expect(formatManufacturer("road")).toBe("Kinetic Road");
@@ -181,7 +181,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should format CycleOps model names correctly", () => {
-                expect.hasAssertions();
+                expect.assertions(4);
 
                 expect(formatManufacturer("fluid2")).toBe("CycleOps Fluid2");
                 expect(formatManufacturer("magnus")).toBe("CycleOps Magnus");
@@ -190,7 +190,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should format development/testing manufacturers correctly", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
 
                 expect(formatManufacturer("development")).toBe("Development");
                 expect(formatManufacturer("computrainer")).toBe("CompuTrainer");
@@ -201,7 +201,7 @@ describe("formatManufacturer mapping behavior", () => {
     describe("numeric id-based manufacturer resolution", () => {
         describe("successful id resolution", () => {
             it("should resolve numeric IDs using external lookup service", () => {
-                expect.hasAssertions();
+                expect.assertions(3);
 
                 mockGetManufacturerName.mockReturnValue("Garmin");
                 expect(formatManufacturer(1)).toBe("Garmin");
@@ -210,7 +210,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should resolve string numeric IDs using external lookup service", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
 
                 mockGetManufacturerName.mockReturnValue("Wahoo");
                 expect(formatManufacturer("255")).toBe("Wahoo");
@@ -218,7 +218,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should apply formatting to resolved manufacturer names", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
 
                 mockGetManufacturerName.mockReturnValue("garmin");
                 expect(formatManufacturer(1)).toBe("Garmin");
@@ -226,7 +226,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should handle zero ID correctly", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
 
                 mockGetManufacturerName.mockReturnValue("0");
                 expect(formatManufacturer(0)).toBe("0");
@@ -234,7 +234,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should handle large manufacturer IDs", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
 
                 mockGetManufacturerName.mockReturnValue("65535");
                 expect(formatManufacturer(65535)).toBe("65535");
@@ -244,7 +244,7 @@ describe("formatManufacturer mapping behavior", () => {
 
         describe("id resolution fallbacks", () => {
             it("should fall back to original value when ID lookup returns same value", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
 
                 mockGetManufacturerName.mockReturnValue("123");
                 expect(formatManufacturer(123)).toBe("123");
@@ -252,7 +252,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should fall back to original value when ID lookup returns null", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
 
                 mockGetManufacturerName.mockReturnValue(null);
                 expect(formatManufacturer(999)).toBe("999");
@@ -260,7 +260,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should fall back to original value when ID lookup returns undefined", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
 
                 mockGetManufacturerName.mockReturnValue(undefined);
                 expect(formatManufacturer(888)).toBe("888");
@@ -268,7 +268,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should handle ID lookup service errors gracefully", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
 
                 mockGetManufacturerName.mockImplementation(() => {
                     throw new Error("ID lookup service unavailable");
@@ -281,7 +281,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should continue processing after ID lookup failure", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
 
                 mockGetManufacturerName.mockImplementation(() => {
                     throw new Error("Network error");
@@ -295,7 +295,7 @@ describe("formatManufacturer mapping behavior", () => {
     describe("input validation and error handling", () => {
         describe("null and undefined inputs", () => {
             it("should handle null input gracefully", () => {
-                expect.hasAssertions();
+                expect.assertions(3);
 
                 expect(formatManufacturer(null as any)).toBe(
                     "Unknown Manufacturer"
@@ -307,7 +307,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should handle undefined input gracefully", () => {
-                expect.hasAssertions();
+                expect.assertions(3);
 
                 expect(formatManufacturer(undefined as any)).toBe(
                     "Unknown Manufacturer"
@@ -321,7 +321,7 @@ describe("formatManufacturer mapping behavior", () => {
 
         describe("invalid data types", () => {
             it("should handle boolean inputs by converting to string", () => {
-                expect.hasAssertions();
+                expect.assertions(3);
 
                 expect(formatManufacturer(true as any)).toBe("true");
                 expect(formatManufacturer(false as any)).toBe("false");
@@ -329,7 +329,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should handle array inputs by converting to string", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
 
                 expect(formatManufacturer(["garmin"] as any)).toBe("Garmin");
                 expect(
@@ -342,7 +342,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should handle object inputs by converting to string", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
 
                 expect(formatManufacturer({ name: "garmin" } as any)).toBe(
                     "[object Object]"
@@ -350,7 +350,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should handle function inputs by converting to string", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
 
                 const func = () => "garmin";
                 const result = formatManufacturer(func as any);
@@ -360,46 +360,46 @@ describe("formatManufacturer mapping behavior", () => {
 
         describe("edge case values", () => {
             it("should handle empty string input", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
 
                 expect(formatManufacturer("")).toBe("");
             });
 
             it("should handle whitespace-only string input", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
 
                 expect(formatManufacturer("   ")).toBe("   ");
             });
 
             it("should handle numeric zero string", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
 
                 mockGetManufacturerName.mockReturnValue("0");
                 expect(formatManufacturer("0")).toBe("0");
             });
 
             it("should handle negative numbers", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
 
                 mockGetManufacturerName.mockReturnValue("-1");
                 expect(formatManufacturer(-1)).toBe("-1");
             });
 
             it("should handle floating point numbers", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
 
                 expect(formatManufacturer(1.5 as any)).toBe("1.5");
             });
 
             it("should handle very long strings", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
 
                 const longString = "a".repeat(1000);
                 expect(formatManufacturer(longString)).toBe(longString);
             });
 
             it("should handle special characters in manufacturer names", () => {
-                expect.hasAssertions();
+                expect.assertions(3);
 
                 expect(formatManufacturer("Mañufacturer-123_test")).toBe(
                     "Mañufacturer-123_test"
@@ -411,7 +411,7 @@ describe("formatManufacturer mapping behavior", () => {
 
         describe("general error handling", () => {
             it("should provide fallback value when all processing fails", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
 
                 // Test with input that could cause various errors
                 expect(formatManufacturer(Symbol("test") as any)).toBe(
@@ -424,7 +424,7 @@ describe("formatManufacturer mapping behavior", () => {
     describe("support functions", () => {
         describe("getAllManufacturerMappings", () => {
             it("should return a copy of all manufacturer mappings", () => {
-                expect.hasAssertions();
+                expect.assertions(4);
 
                 const mappings = getAllManufacturerMappings();
                 expect(mappings).toBeTypeOf("object");
@@ -434,7 +434,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should return an immutable copy (not reference)", () => {
-                expect.hasAssertions();
+                expect.assertions(3);
 
                 const mappings1 = getAllManufacturerMappings();
                 const mappings2 = getAllManufacturerMappings();
@@ -448,7 +448,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should include all major manufacturer categories", () => {
-                expect.hasAssertions();
+                expect.assertions(12);
 
                 const mappings = getAllManufacturerMappings();
 
@@ -474,7 +474,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should contain proper formatting for all entries", () => {
-                expect.hasAssertions();
+                expect.assertions(3);
 
                 const mappings = getAllManufacturerMappings();
                 const values = Object.values(mappings);
@@ -498,7 +498,7 @@ describe("formatManufacturer mapping behavior", () => {
 
         describe("hasManufacturerMapping", () => {
             it("should return true for manufacturers with defined mappings", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
 
                 expect(
                     [
@@ -520,7 +520,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should return false for manufacturers without defined mappings", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
 
                 expect(
                     [
@@ -538,7 +538,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should be case-insensitive for mapped manufacturers", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
 
                 expect(
                     [
@@ -560,7 +560,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should handle whitespace in manufacturer names", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
 
                 expect(
                     [
@@ -578,7 +578,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should handle non-string inputs gracefully", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
 
                 expect(
                     [
@@ -602,7 +602,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should handle empty and whitespace-only strings", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
 
                 expect(
                     [
@@ -624,7 +624,7 @@ describe("formatManufacturer mapping behavior", () => {
     describe("external dependency integration", () => {
         describe("formatAntNames integration", () => {
             it("should properly integrate with getManufacturerName function", () => {
-                expect.hasAssertions();
+                expect.assertions(3);
 
                 mockGetManufacturerName.mockReturnValue("Test Manufacturer");
                 const result = formatManufacturer(42);
@@ -637,7 +637,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should handle when getManufacturerName is not available", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
 
                 mockGetManufacturerName.mockImplementation(() => {
                     throw new Error("Function not available");
@@ -650,7 +650,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should work when getManufacturerName returns valid manufacturer names", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
 
                 mockGetManufacturerName.mockReturnValue("garmin");
                 expect(formatManufacturer(1)).toBe("Garmin");
@@ -664,7 +664,7 @@ describe("formatManufacturer mapping behavior", () => {
     describe("performance and edge cases", () => {
         describe("performance characteristics", () => {
             it("should handle rapid successive calls efficiently", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
 
                 const startTime = performance.now();
                 for (let i = 0; i < 1000; i++) {
@@ -675,7 +675,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should be consistent across multiple calls with same input", () => {
-                expect.hasAssertions();
+                expect.assertions(4);
 
                 const result1 = formatManufacturer("garmin");
                 const result2 = formatManufacturer("garmin");
@@ -690,7 +690,7 @@ describe("formatManufacturer mapping behavior", () => {
 
         describe("real-world data scenarios", () => {
             it("should handle typical FIT file manufacturer data", () => {
-                expect.hasAssertions();
+                expect.assertions(4);
 
                 // Test common manufacturer IDs from FIT files
                 mockGetManufacturerName.mockReturnValue("garmin");
@@ -706,7 +706,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should handle device string identifiers", () => {
-                expect.hasAssertions();
+                expect.assertions(3);
 
                 expect(formatManufacturer("Garmin Edge 1030")).toBe(
                     "Garmin Edge 1030"
@@ -720,7 +720,7 @@ describe("formatManufacturer mapping behavior", () => {
             });
 
             it("should handle mixed case manufacturer data from different sources", () => {
-                expect.hasAssertions();
+                expect.assertions(3);
 
                 expect(formatManufacturer("GARMIN")).toBe("Garmin");
                 expect(formatManufacturer("wahoo_fitness")).toBe(
