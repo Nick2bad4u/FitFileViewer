@@ -348,7 +348,7 @@ describe(renderSingleHRZoneBar, () => {
     });
 
     it("should handle custom options like title", () => {
-        expect.assertions(4);
+        expect.assertions(3);
         // Prepare test data
         const zoneData = [{ label: "Zone 1", value: 300, color: "#ff0000" }];
 
@@ -361,10 +361,10 @@ describe(renderSingleHRZoneBar, () => {
         const chartConfig = getCapturedChartConfig(view);
 
         // Verify title was set correctly
-        expect(chartConfig?.options?.plugins?.title?.display).toBe(true);
-        expect(chartConfig?.options?.plugins?.title?.text).toBe(
-            "Custom HR Zones Title"
-        );
+        expect(chartConfig?.options?.plugins?.title).toMatchObject({
+            display: true,
+            text: "Custom HR Zones Title",
+        });
     });
 
     it("should use zone colors from chartZoneColorUtils when colors not provided", () => {
@@ -484,7 +484,7 @@ describe(renderSingleHRZoneBar, () => {
         expect(
             renderSingleHRZoneBar(canvas, null as unknown as readonly unknown[])
         ).toBeNull();
-        expect(canvas.classList.contains("chart-canvas")).toBe(false);
+        expect([...canvas.classList]).not.toContain("chart-canvas");
         expect(window.showNotification.mock.calls).toStrictEqual([
             ["Failed to render HR zone bar", "error"],
         ]);
