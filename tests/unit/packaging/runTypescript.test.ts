@@ -21,14 +21,18 @@ type CommandRunner = (
 
 describe("run-typescript wrapper", () => {
     it("builds root-owned typecheck arguments", () => {
-        expect.assertions(4);
+        expect.assertions(2);
 
         const args = buildTypescriptArgs("typecheck", ["--pretty", "false"]);
 
         expect(args[0]).toMatch(/[\\/]typescript[\\/]bin[\\/]tsc$/u);
-        expect(args).toContain(rootElectronAppTsconfigPath);
-        expect(args).toContain("--noEmit");
-        expect(args).toContain("--pretty");
+        expect(args.slice(1)).toStrictEqual([
+            "--project",
+            rootElectronAppTsconfigPath,
+            "--noEmit",
+            "--pretty",
+            "false",
+        ]);
     });
 
     it("builds runtime compile arguments", () => {
@@ -87,7 +91,7 @@ describe("run-typescript wrapper", () => {
     });
 
     it("runs TypeScript from the repository root", () => {
-        expect.assertions(4);
+        expect.assertions(3);
 
         const commandRunner = vi
             .fn<CommandRunner>()
@@ -103,13 +107,14 @@ describe("run-typescript wrapper", () => {
 
         expect({
             command,
+            forwardedArgs: args?.slice(1),
             status,
         }).toStrictEqual({
             command: process.execPath,
+            forwardedArgs: ["--project", rootRuntimeTsconfigPath],
             status: 7,
         });
         expect(args?.[0]).toMatch(/[\\/]typescript[\\/]bin[\\/]tsc$/u);
-        expect(args).toContain(rootRuntimeTsconfigPath);
         expect({
             ...options,
             cwd: path.resolve(options?.cwd ?? ""),
