@@ -193,7 +193,7 @@ describe("build-ci-matrix script", () => {
         expect.assertions(1);
 
         const { buildCiMatrix } = await importBuildCiMatrix();
-        const commands: string[] = [];
+        const commandCalls: Array<{ args: string[]; command: string }> = [];
 
         const exitCode = buildCiMatrix(
             {
@@ -203,22 +203,27 @@ describe("build-ci-matrix script", () => {
             },
             {
                 runCommand(command, args) {
-                    commands.push([command, ...args].join(" "));
+                    commandCalls.push({ args, command });
                     return 0;
                 },
             }
         );
 
-        expect({ commands, exitCode }).toStrictEqual({
-            commands: [
-                expect.stringMatching(/npm(?:\.cmd)? run build:runtime-ts/u),
-                [
-                    process.execPath,
-                    runElectronBuilderScriptPath,
-                    "--win",
-                    "--publish",
-                    "never",
-                ].join(" "),
+        expect({ commandCalls, exitCode }).toStrictEqual({
+            commandCalls: [
+                {
+                    args: ["run", "build:runtime-ts"],
+                    command: expect.stringMatching(/^npm(?:\.cmd)?$/u),
+                },
+                {
+                    args: [
+                        runElectronBuilderScriptPath,
+                        "--win",
+                        "--publish",
+                        "never",
+                    ],
+                    command: process.execPath,
+                },
             ],
             exitCode: 0,
         });
@@ -228,7 +233,7 @@ describe("build-ci-matrix script", () => {
         expect.assertions(1);
 
         const { buildCiMatrix } = await importBuildCiMatrix();
-        const commands: string[] = [];
+        const commandCalls: Array<{ args: string[]; command: string }> = [];
 
         const exitCode = buildCiMatrix(
             {
@@ -238,15 +243,18 @@ describe("build-ci-matrix script", () => {
             },
             {
                 runCommand(command, args) {
-                    commands.push([command, ...args].join(" "));
+                    commandCalls.push({ args, command });
                     return 2;
                 },
             }
         );
 
-        expect({ commands, exitCode }).toStrictEqual({
-            commands: [
-                expect.stringMatching(/npm(?:\.cmd)? run build:runtime-ts/u),
+        expect({ commandCalls, exitCode }).toStrictEqual({
+            commandCalls: [
+                {
+                    args: ["run", "build:runtime-ts"],
+                    command: expect.stringMatching(/^npm(?:\.cmd)?$/u),
+                },
             ],
             exitCode: 2,
         });
@@ -256,40 +264,60 @@ describe("build-ci-matrix script", () => {
         expect.assertions(1);
 
         const { retryElectronBuilder } = await importBuildCiMatrix();
+        const commandCalls: Array<{ args: string[]; command: string }> = [];
+        const logMessages: string[] = [];
         const removedDirectories: string[] = [];
         const sleepDelays: number[] = [];
         const exitCodes = [1, 0];
+        const builderArgs = [
+            "--universal",
+            "--publish",
+            "never",
+        ];
 
-        const exitCode = retryElectronBuilder(
-            [
-                "--universal",
-                "--publish",
-                "never",
-            ],
-            {
-                initialRetryDelaySeconds: 15,
-                log() {},
-                maxAttempts: 3,
-                releaseDirectory: rootReleaseDistPath,
-                removeDirectory(directory) {
-                    removedDirectories.push(directory);
-                },
-                runCommand() {
-                    return exitCodes.shift() ?? 1;
-                },
-                sleep(delaySeconds) {
-                    sleepDelays.push(delaySeconds);
-                },
-            }
-        );
+        const exitCode = retryElectronBuilder(builderArgs, {
+            initialRetryDelaySeconds: 15,
+            log(message) {
+                logMessages.push(message);
+            },
+            maxAttempts: 3,
+            releaseDirectory: rootReleaseDistPath,
+            removeDirectory(directory) {
+                removedDirectories.push(directory);
+            },
+            runCommand(command, args) {
+                commandCalls.push({ args, command });
+                return exitCodes.shift() ?? 1;
+            },
+            sleep(delaySeconds) {
+                sleepDelays.push(delaySeconds);
+            },
+        });
 
         expect({
+            commandCalls,
             exitCode,
+            logMessages,
             remainingExitCodes: exitCodes,
             removedDirectories,
             sleepDelays,
         }).toStrictEqual({
+            commandCalls: [
+                {
+                    args: [runElectronBuilderScriptPath, ...builderArgs],
+                    command: process.execPath,
+                },
+                {
+                    args: [runElectronBuilderScriptPath, ...builderArgs],
+                    command: process.execPath,
+                },
+            ],
             exitCode: 0,
+            logMessages: [
+                "Running: node scripts/run-electron-builder.mjs --universal --publish never (attempt 1/3)",
+                "Command failed (exit code 1). Retrying in 15s...",
+                "Running: node scripts/run-electron-builder.mjs --universal --publish never (attempt 2/3)",
+            ],
             remainingExitCodes: [],
             removedDirectories: [rootReleaseDistPath, rootReleaseDistPath],
             sleepDelays: [15],
@@ -300,36 +328,48 @@ describe("build-ci-matrix script", () => {
         expect.assertions(1);
 
         const { retryElectronBuilder } = await importBuildCiMatrix();
+        const commandCalls: Array<{ args: string[]; command: string }> = [];
         const logMessages: string[] = [];
+        const builderArgs = [
+            "--arm64",
+            "--publish",
+            "never",
+        ];
 
-        const exitCode = retryElectronBuilder(
-            [
-                "--arm64",
-                "--publish",
-                "never",
+        const exitCode = retryElectronBuilder(builderArgs, {
+            initialRetryDelaySeconds: 1,
+            log(message) {
+                logMessages.push(message);
+            },
+            maxAttempts: 2,
+            releaseDirectory: rootReleaseDistPath,
+            removeDirectory() {},
+            runCommand(command, args) {
+                commandCalls.push({ args, command });
+                return 7;
+            },
+            sleep() {},
+        });
+
+        expect({ commandCalls, exitCode, logMessages }).toStrictEqual({
+            commandCalls: [
+                {
+                    args: [runElectronBuilderScriptPath, ...builderArgs],
+                    command: process.execPath,
+                },
+                {
+                    args: [runElectronBuilderScriptPath, ...builderArgs],
+                    command: process.execPath,
+                },
             ],
-            {
-                initialRetryDelaySeconds: 1,
-                log(message) {
-                    logMessages.push(message);
-                },
-                maxAttempts: 2,
-                releaseDirectory: rootReleaseDistPath,
-                removeDirectory() {},
-                runCommand() {
-                    return 7;
-                },
-                sleep() {},
-            }
-        );
-
-        expect({ exitCode, finalLogMessage: logMessages.at(-1) }).toStrictEqual(
-            {
-                exitCode: 7,
-                finalLogMessage:
-                    "Command failed after 2 attempts (exit code 7).",
-            }
-        );
+            exitCode: 7,
+            logMessages: [
+                "Running: node scripts/run-electron-builder.mjs --arm64 --publish never (attempt 1/2)",
+                "Command failed (exit code 7). Retrying in 1s...",
+                "Running: node scripts/run-electron-builder.mjs --arm64 --publish never (attempt 2/2)",
+                "Command failed after 2 attempts (exit code 7).",
+            ],
+        });
     });
 
     it("parses CLI arguments and environment defaults", async () => {
