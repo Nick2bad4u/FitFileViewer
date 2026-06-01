@@ -43,7 +43,7 @@ function getRootScripts(): Record<string, string> {
 
 describe("run-electron script", () => {
     it("defaults root launch commands to the root app manifest", async () => {
-        expect.assertions(4);
+        expect.assertions(3);
 
         const { defaultAppPath, parseArgs, withDefaultAppPath } =
             await importRunElectron();
@@ -57,7 +57,6 @@ describe("run-electron script", () => {
             electronArgs: ["--inspect=9229", "--remote-debugging-port=9222"],
             electronIsDev: undefined,
         });
-        expect(parsedArgs.electronArgs).not.toContain(".");
         expect(defaultAppPath).toBe(".");
         expect(withDefaultAppPath(parsedArgs.electronArgs)).toStrictEqual([
             "--inspect=9229",
