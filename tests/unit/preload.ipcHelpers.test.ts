@@ -119,7 +119,8 @@ describe("preload IPC helpers", () => {
         expect.assertions(4);
 
         const { helpers, ipcRenderer, preloadLog } = createHelpers();
-        ipcRenderer.invoke.mockRejectedValueOnce(new Error("invoke failed"));
+        const invokeError = new Error("invoke failed");
+        ipcRenderer.invoke.mockRejectedValueOnce(invokeError);
 
         await expect(
             helpers.createSafeInvokeHandler("app:test", "testInvoke")("payload")
@@ -129,9 +130,11 @@ describe("preload IPC helpers", () => {
         expect(preloadLog).toHaveBeenCalledWith(
             "error",
             "[preload.js] Error in testInvoke:",
-            expect.any(Error)
+            invokeError
         );
-        expect(preloadLog).not.toHaveBeenCalledWith("warn", expect.anything());
+        expect(
+            preloadLog.mock.calls.filter(([level]) => level === "warn")
+        ).toStrictEqual([]);
     });
 
     it("rethrows readFile ENOENT failures without logging preload noise", async () => {
@@ -160,8 +163,9 @@ describe("preload IPC helpers", () => {
         expect.assertions(3);
 
         const { helpers, ipcRenderer, preloadLog } = createHelpers();
+        const sendError = new Error("send failed");
         ipcRenderer.send.mockImplementationOnce(() => {
-            throw new Error("send failed");
+            throw sendError;
         });
 
         const returnValue = helpers.createSafeSendHandler(
@@ -174,7 +178,7 @@ describe("preload IPC helpers", () => {
         expect(preloadLog).toHaveBeenCalledWith(
             "error",
             "[preload.js] Error in testSend:",
-            expect.any(Error)
+            sendError
         );
     });
 
