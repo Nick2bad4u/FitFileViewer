@@ -969,9 +969,7 @@ describe("createShownFilesList", () => {
 
             firstItem.click();
 
-            expect(getOverlayState()).toMatchObject({
-                highlightedOverlayIdx: 1,
-            });
+            expect(getOverlayState().highlightedOverlayIdx).toBe(1);
             expect(
                 (global.window as any).updateOverlayHighlights
             ).toHaveBeenCalledWith();
@@ -988,9 +986,7 @@ describe("createShownFilesList", () => {
 
             firstItem.dispatchEvent(new MouseEvent("mouseenter"));
 
-            expect(getOverlayState()).toMatchObject({
-                highlightedOverlayIdx: 1,
-            });
+            expect(getOverlayState().highlightedOverlayIdx).toBe(1);
             expect(removeBtn.style.opacity).toBe("1");
             expect(removeBtn.style.opacity).not.toBe("0");
         });
@@ -1006,9 +1002,7 @@ describe("createShownFilesList", () => {
 
             firstItem.dispatchEvent(new MouseEvent("mouseleave"));
 
-            expect(getOverlayState()).toMatchObject({
-                highlightedOverlayIdx: null,
-            });
+            expect(getOverlayState().highlightedOverlayIdx).toBeNull();
             expect(removeBtn.style.opacity).toBe("0");
         });
 
@@ -1026,9 +1020,7 @@ describe("createShownFilesList", () => {
             firstItem.dispatchEvent(new MouseEvent("mouseenter"));
             firstItem.dispatchEvent(new MouseEvent("mouseleave"));
 
-            expect(getOverlayState()).toMatchObject({
-                overlayTooltipTimeout: null,
-            });
+            expect(getOverlayState().overlayTooltipTimeout).toBeNull();
 
             vi.useRealTimers();
         });
@@ -1367,9 +1359,7 @@ describe("createShownFilesList", () => {
 
             firstItem.click();
 
-            expect(getOverlayState()).toMatchObject({
-                highlightedOverlayIdx: 1,
-            });
+            expect(getOverlayState().highlightedOverlayIdx).toBe(1);
             expect(mockPolyline.bringToFront).toHaveBeenCalledWith();
         });
 
@@ -1389,9 +1379,7 @@ describe("createShownFilesList", () => {
 
             firstItem.click();
 
-            expect(getOverlayState()).toMatchObject({
-                highlightedOverlayIdx: 1,
-            });
+            expect(getOverlayState().highlightedOverlayIdx).toBe(1);
             expect(mockPolyline.bringToFront).toHaveBeenCalledWith();
             expect(mockMarker.bringToFront).toHaveBeenCalledWith();
         });
@@ -1434,9 +1422,7 @@ describe("createShownFilesList", () => {
 
             firstItem.click();
 
-            expect(getOverlayState()).toMatchObject({
-                highlightedOverlayIdx: 1,
-            });
+            expect(getOverlayState().highlightedOverlayIdx).toBe(1);
             expect(
                 (global.window as any)._leafletMapInstance.fitBounds
             ).toHaveBeenCalledWith(mockPolyline.getBounds(), {
@@ -1456,9 +1442,7 @@ describe("createShownFilesList", () => {
 
             firstItem.click();
 
-            expect(getOverlayState()).toMatchObject({
-                highlightedOverlayIdx: 1,
-            });
+            expect(getOverlayState().highlightedOverlayIdx).toBe(1);
             expect(
                 (global.window as any).updateOverlayHighlights
             ).toHaveBeenCalledWith();
@@ -1479,9 +1463,7 @@ describe("createShownFilesList", () => {
 
             firstItem.click();
 
-            expect(getOverlayState()).toMatchObject({
-                highlightedOverlayIdx: 1,
-            });
+            expect(getOverlayState().highlightedOverlayIdx).toBe(1);
             expect(mockPolyline.bringToFront).toHaveBeenCalledWith();
             expect(mockPolyline.getElement).toHaveBeenCalledWith();
         });
@@ -1498,9 +1480,7 @@ describe("createShownFilesList", () => {
 
             firstItem.click();
 
-            expect(getOverlayState()).toMatchObject({
-                highlightedOverlayIdx: 1,
-            });
+            expect(getOverlayState().highlightedOverlayIdx).toBe(1);
             expect(mockPolyline.bringToFront).toHaveBeenCalledWith();
             expect(
                 (global.window as any)._leafletMapInstance.fitBounds
@@ -1521,9 +1501,7 @@ describe("createShownFilesList", () => {
 
             firstItem.click();
 
-            expect(getOverlayState()).toMatchObject({
-                highlightedOverlayIdx: 1,
-            });
+            expect(getOverlayState().highlightedOverlayIdx).toBe(1);
             expect(mockPolyline.bringToFront).toHaveBeenCalledWith();
             expect(
                 (global.window as any)._leafletMapInstance.fitBounds
