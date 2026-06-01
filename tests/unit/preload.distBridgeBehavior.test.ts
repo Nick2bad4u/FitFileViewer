@@ -408,11 +408,14 @@ describe("preload.js dist bridge behavior", () => {
 
         it("getPreloadInfo should return preload information", () => {
             expect.assertions(2);
+            const mockDate = new Date("2026-06-01T12:00:00.000Z");
+            vi.useFakeTimers();
+            vi.setSystemTime(mockDate);
             executePreloadScript({ NODE_ENV: "development" });
 
             const preloadInfo = exposedDevTools.getPreloadInfo();
 
-            expect(preloadInfo).toMatchObject({
+            expect(preloadInfo).toStrictEqual({
                 apiMethods: Object.keys(exposedAPI),
                 constants: {
                     CHANNELS: EXPECTED_PRELOAD_CHANNELS,
@@ -422,10 +425,12 @@ describe("preload.js dist bridge behavior", () => {
                     },
                     EVENTS: EXPECTED_PRELOAD_EVENTS,
                 },
-                timestamp: expect.any(String),
+                timestamp: mockDate.toISOString(),
                 version: "1.0.0",
             });
             expect(preloadInfo.version).toBe("1.0.0");
+
+            vi.useRealTimers();
         });
 
         it("testIPC should test IPC communication", async () => {
@@ -443,7 +448,8 @@ describe("preload.js dist bridge behavior", () => {
 
         it("testIPC should handle IPC failures", async () => {
             expect.assertions(2);
-            mockIpcRenderer.invoke.mockRejectedValue(new Error("IPC failed"));
+            const ipcError = new Error("IPC failed");
+            mockIpcRenderer.invoke.mockRejectedValue(ipcError);
             executePreloadScript({ NODE_ENV: "development" });
 
             await expect(exposedDevTools.testIPC()).resolves.toStrictEqual(
@@ -451,7 +457,7 @@ describe("preload.js dist bridge behavior", () => {
             );
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] IPC test failed:",
-                expect.any(Error)
+                ipcError
             );
         });
     });
@@ -1160,8 +1166,9 @@ describe("preload.js dist bridge behavior", () => {
 
         it("should handle errors in event callbacks", () => {
             expect.assertions(3);
+            const callbackError = new Error("Callback error");
             const errorCallback = vi.fn<IpcListener>(() => {
-                throw new Error("Callback error");
+                throw callbackError;
             });
 
             exposedAPI.onMenuOpenFile(errorCallback);
@@ -1173,7 +1180,7 @@ describe("preload.js dist bridge behavior", () => {
             expect(result).toBeUndefined();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] Error in onMenuOpenFile callback:",
-                expect.any(Error)
+                callbackError
             );
             expect(errorCallback).toHaveBeenCalledWith("test-data");
         });
@@ -1196,8 +1203,9 @@ describe("preload.js dist bridge behavior", () => {
 
         it("should handle errors in onUpdateEvent callbacks", () => {
             expect.assertions(3);
+            const updateCallbackError = new Error("Update callback error");
             const errorCallback = vi.fn<IpcListener>(() => {
-                throw new Error("Update callback error");
+                throw updateCallbackError;
             });
 
             exposedAPI.onUpdateEvent("test-event", errorCallback);
@@ -1209,7 +1217,7 @@ describe("preload.js dist bridge behavior", () => {
             expect(result).toBeUndefined();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] Error in onUpdateEvent(test-event) callback:",
-                expect.any(Error)
+                updateCallbackError
             );
             expect(errorCallback).toHaveBeenCalledWith("test-data");
         });
@@ -1316,8 +1324,9 @@ describe("preload.js dist bridge behavior", () => {
 
         it("should handle contextBridge exposure failures", () => {
             expect.assertions(4);
+            const exposureError = new Error("Exposure failed");
             mockContextBridge.exposeInMainWorld.mockImplementation(() => {
-                throw new Error("Exposure failed");
+                throw exposureError;
             });
 
             const { mockProcess } = executePreloadScript();
@@ -1325,7 +1334,7 @@ describe("preload.js dist bridge behavior", () => {
             expect(exposedAPI).toBeUndefined();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] Failed to expose electronAPI:",
-                expect.any(Error)
+                exposureError
             );
             expect(getBeforeExitRegistration(mockProcess)).toStrictEqual({
                 eventName: "beforeExit",
@@ -1338,10 +1347,11 @@ describe("preload.js dist bridge behavior", () => {
 
         it("should handle development tools exposure failures in development", () => {
             expect.assertions(4);
+            const devToolsExposureError = new Error("DevTools exposure failed");
             mockContextBridge.exposeInMainWorld.mockImplementation(
                 (name: string) => {
                     if (name === developmentToolsGlobalName) {
-                        throw new Error("DevTools exposure failed");
+                        throw devToolsExposureError;
                     }
                 }
             );
@@ -1349,13 +1359,31 @@ describe("preload.js dist bridge behavior", () => {
             executePreloadScript({ NODE_ENV: "development" });
 
             expect(exposedDevTools).toBeUndefined();
-            expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith(
-                developmentToolsGlobalName,
-                expect.any(Object)
-            );
+            const [devToolsCallName, devToolsApi] =
+                mockContextBridge.exposeInMainWorld.mock.calls.find(
+                    ([name]) => name === developmentToolsGlobalName
+                ) ?? [];
+            expect({
+                devToolsCallName,
+                methodTypes: {
+                    getPreloadInfo: typeof (devToolsApi as ExposedDevToolsApi)
+                        ?.getPreloadInfo,
+                    logAPIState: typeof (devToolsApi as ExposedDevToolsApi)
+                        ?.logAPIState,
+                    testIPC: typeof (devToolsApi as ExposedDevToolsApi)
+                        ?.testIPC,
+                },
+            }).toStrictEqual({
+                devToolsCallName: developmentToolsGlobalName,
+                methodTypes: {
+                    getPreloadInfo: "function",
+                    logAPIState: "function",
+                    testIPC: "function",
+                },
+            });
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] Failed to expose development tools:",
-                expect.any(Error)
+                devToolsExposureError
             );
             expect(consoleSpy.log).toHaveBeenCalledWith(
                 "[preload.js] Successfully exposed electronAPI to main world"
