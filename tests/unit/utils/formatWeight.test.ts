@@ -7,7 +7,7 @@ describe(formatWeight, () => {
     });
 
     it("formats kilograms with rounded pounds", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         expect(formatWeight(0)).toBe("0 kg (0 lbs)");
         expect(formatWeight(70)).toBe("70 kg (154 lbs)");
@@ -15,7 +15,7 @@ describe(formatWeight, () => {
     });
 
     it("handles invalid-input weights with warnings", () => {
-        expect.hasAssertions();
+        expect.assertions(9);
 
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
@@ -39,7 +39,7 @@ describe(formatWeight, () => {
     });
 
     it("logs and returns the original value when formatting fails", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const errorSpy = vi
             .spyOn(console, "error")

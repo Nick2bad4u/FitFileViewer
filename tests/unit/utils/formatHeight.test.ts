@@ -7,7 +7,7 @@ describe(formatHeight, () => {
     });
 
     it("formats meters with feet and inches", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         expect(formatHeight(0)).toBe("0.00 m (0'0\")");
         expect(formatHeight(1)).toBe("1.00 m (3'3\")");
@@ -16,7 +16,7 @@ describe(formatHeight, () => {
     });
 
     it("handles invalid-input heights with warnings", () => {
-        expect.hasAssertions();
+        expect.assertions(10);
 
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
@@ -41,7 +41,7 @@ describe(formatHeight, () => {
     });
 
     it("logs and returns the original value when formatting fails", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const errorSpy = vi
             .spyOn(console, "error")

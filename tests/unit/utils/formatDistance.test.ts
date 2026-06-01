@@ -3,7 +3,7 @@ import { formatDistance } from "../../../electron-app/utils/formatting/formatter
 
 describe(formatDistance, () => {
     it("formats positive meters as kilometers and miles", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         expect(formatDistance(1000)).toBe("1.00 km / 0.62 mi");
         expect(formatDistance(5000)).toBe("5.00 km / 3.11 mi");
@@ -12,7 +12,7 @@ describe(formatDistance, () => {
     });
 
     it("handles invalid-input distances by returning an empty string", () => {
-        expect.hasAssertions();
+        expect.assertions(10);
 
         for (const value of [
             null,
