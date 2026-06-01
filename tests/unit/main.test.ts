@@ -617,7 +617,7 @@ describe("main.js - Electron Main Process", () => {
 
             mainModule.setupAutoUpdater(mockWindow, invalidUpdater);
 
-            expect(invalidUpdater).toMatchObject({ autoDownload: false });
+            expect(invalidUpdater).toStrictEqual({ autoDownload: false });
             expect(warnSpy).toHaveBeenCalledWith(
                 "Cannot setup auto-updater: autoUpdater.on is not a function"
             );
@@ -735,9 +735,11 @@ describe("main.js - Electron Main Process", () => {
             );
             expect(
                 JSON.parse(warnSpy.mock.calls[0]?.[1] as string)
-            ).toMatchObject({
+            ).toStrictEqual({
+                hasWebContents: true,
                 hasWindow: true,
                 isDestroyed: true,
+                webContentsDestroyed: false,
             });
         });
 
