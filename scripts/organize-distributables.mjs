@@ -76,10 +76,55 @@ export function organizeDistributables(options = {}) {
         };
     }
 
+    const artifactsToProcess = artifactEntries
+        .map((entry) => {
+            const artifactDirectory = path.join(artifactsDirectory, entry.name);
+            const childEntries = fs.readdirSync(artifactDirectory, {
+                withFileTypes: true,
+            });
+            const topLevelDistributableEntries = childEntries.filter(
+                (childEntry) =>
+                    childEntry.isFile() &&
+                    isTopLevelDistributable(childEntry.name)
+            );
+            const updaterSubdirectories = artifactSubdirectories.filter(
+                (subdirectory) =>
+                    childEntries.some(
+                        (childEntry) =>
+                            childEntry.isDirectory() &&
+                            childEntry.name === subdirectory
+                    )
+            );
+
+            return {
+                artifactDirectory,
+                entry,
+                topLevelDistributableEntries,
+                updaterSubdirectories,
+            };
+        })
+        .filter(
+            ({ topLevelDistributableEntries, updaterSubdirectories }) =>
+                topLevelDistributableEntries.length > 0 ||
+                updaterSubdirectories.length > 0
+        );
+
+    if (artifactsToProcess.length === 0) {
+        return {
+            copiedDirectories,
+            copiedFiles,
+            processedArtifacts,
+        };
+    }
+
     fs.mkdirSync(outputDirectory, { recursive: true });
 
-    for (const entry of artifactEntries) {
-        const artifactDirectory = path.join(artifactsDirectory, entry.name);
+    for (const {
+        artifactDirectory,
+        entry,
+        topLevelDistributableEntries,
+        updaterSubdirectories,
+    } of artifactsToProcess) {
         const platformArch = getArtifactPlatformArch(entry.name);
         const platformOutputDirectory = path.join(
             outputDirectory,
@@ -89,16 +134,7 @@ export function organizeDistributables(options = {}) {
         fs.mkdirSync(platformOutputDirectory, { recursive: true });
         processedArtifacts.push(normalizePath(artifactDirectory));
 
-        for (const childEntry of fs.readdirSync(artifactDirectory, {
-            withFileTypes: true,
-        })) {
-            if (
-                !childEntry.isFile() ||
-                !isTopLevelDistributable(childEntry.name)
-            ) {
-                continue;
-            }
-
+        for (const childEntry of topLevelDistributableEntries) {
             const sourcePath = path.join(artifactDirectory, childEntry.name);
             const destinationPath = path.join(
                 platformOutputDirectory,
@@ -127,13 +163,8 @@ export function organizeDistributables(options = {}) {
             });
         }
 
-        for (const subdirectory of artifactSubdirectories) {
+        for (const subdirectory of updaterSubdirectories) {
             const sourcePath = path.join(artifactDirectory, subdirectory);
-
-            if (!fs.existsSync(sourcePath)) {
-                continue;
-            }
-
             const destinationPath = path.join(
                 platformOutputDirectory,
                 subdirectory

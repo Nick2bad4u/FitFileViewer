@@ -308,6 +308,36 @@ describe("organize-distributables script", () => {
         expect(fs.existsSync(outputDirectory)).toBe(false);
     });
 
+    it("does not create output for dist artifacts without distributables", async () => {
+        expect.assertions(3);
+
+        const { organizeDistributables } = await importOrganizeDistributables();
+        const temporaryRoot = makeTemporaryRoot();
+        const artifactsDirectory = path.join(temporaryRoot, "artifacts");
+        const outputDirectory = path.join(temporaryRoot, "release-dist");
+
+        writeArtifact(
+            artifactsDirectory,
+            path.join("dist-windows-latest-x64", "debug.log"),
+            "ignore"
+        );
+
+        expect(
+            organizeDistributables({
+                artifactsDirectory,
+                outputDirectory,
+            })
+        ).toStrictEqual({
+            copiedDirectories: [],
+            copiedFiles: [],
+            processedArtifacts: [],
+        });
+        expect(fs.existsSync(outputDirectory)).toBe(false);
+        expect(
+            fs.existsSync(path.join(outputDirectory, "windows-latest-x64"))
+        ).toBe(false);
+    });
+
     it("parses artifacts and output directory arguments", async () => {
         expect.assertions(1);
 
