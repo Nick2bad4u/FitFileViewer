@@ -40,6 +40,10 @@ function writeFile(root: string, relativePath: string): string {
     return filePath;
 }
 
+function normalizeTestPath(filePath: string): string {
+    return filePath.split(path.sep).join("/");
+}
+
 afterEach(() => {
     for (const temporaryRoot of temporaryRoots.splice(0)) {
         fs.rmSync(temporaryRoot, { force: true, recursive: true });
@@ -97,26 +101,27 @@ describe("list-release-dist-files script", () => {
     });
 
     it("renders the same report sections as the workflow debug step", async () => {
-        expect.assertions(4);
+        expect.assertions(1);
 
         const { createReleaseDistFileReport } =
             await importListReleaseDistFiles();
         const releaseDistDirectory = makeTemporaryRoot();
 
-        writeFile(releaseDistDirectory, path.join("windows", "latest.yml"));
-
-        const fileListingText =
-            createReleaseDistFileReport(releaseDistDirectory);
-
-        expect(fileListingText).toContain(
-            `Listing all files in ${releaseDistDirectory} before deduplication:`
+        const latestYmlFile = writeFile(
+            releaseDistDirectory,
+            path.join("windows", "latest.yml")
         );
-        expect(fileListingText).toContain("windows/latest.yml");
-        expect(fileListingText).toContain(
-            `Deduplicating files in ${releaseDistDirectory}...`
-        );
-        expect(fileListingText).toContain(
-            `Final file list in ${releaseDistDirectory}:`
+
+        expect(createReleaseDistFileReport(releaseDistDirectory)).toBe(
+            [
+                `Listing all files in ${releaseDistDirectory} before deduplication:`,
+                normalizeTestPath(latestYmlFile),
+                "",
+                `Deduplicating files in ${releaseDistDirectory}...`,
+                "",
+                `Final file list in ${releaseDistDirectory}:`,
+                normalizeTestPath(latestYmlFile),
+            ].join("\n")
         );
     });
 
