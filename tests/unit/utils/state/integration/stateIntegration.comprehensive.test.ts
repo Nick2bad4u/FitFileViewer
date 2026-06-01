@@ -173,7 +173,7 @@ describe("stateIntegration comprehensive coverage", () => {
 
     describe("stateMigrationHelper class", () => {
         it("should create instance and manage migrations correctly", async () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             const { StateMigrationHelper } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
@@ -196,7 +196,7 @@ describe("stateIntegration comprehensive coverage", () => {
         });
 
         it("should run all migrations successfully", async () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             const { StateMigrationHelper } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
@@ -221,7 +221,7 @@ describe("stateIntegration comprehensive coverage", () => {
         });
 
         it("should continue after migration errors without throwing", async () => {
-            expect.hasAssertions();
+            expect.assertions(5);
 
             const { StateMigrationHelper } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
@@ -258,7 +258,7 @@ describe("stateIntegration comprehensive coverage", () => {
 
     describe("main initialization functions", () => {
         it("should initialize app state in production mode (smoke)", async () => {
-            expect.hasAssertions();
+            expect.assertions(6);
 
             setTestLocation({
                 hash: "",
@@ -297,7 +297,7 @@ describe("stateIntegration comprehensive coverage", () => {
         });
 
         it("should initialize app state in development mode (smoke)", async () => {
-            expect.hasAssertions();
+            expect.assertions(5);
 
             // Set development mode
             globalThis.__DEVELOPMENT__ = true;
@@ -325,7 +325,7 @@ describe("stateIntegration comprehensive coverage", () => {
         });
 
         it("should initialize complete state system (smoke)", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const { initializeCompleteStateSystem } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
@@ -357,7 +357,7 @@ describe("stateIntegration comprehensive coverage", () => {
 
     describe("integration functions", () => {
         it("should integrate with rendererUtils when available (smoke)", async () => {
-            expect.hasAssertions();
+            expect.assertions(6);
 
             const { integrateWithRendererUtils } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
@@ -411,7 +411,7 @@ describe("stateIntegration comprehensive coverage", () => {
         });
 
         it("should handle missing rendererUtils gracefully", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const { integrateWithRendererUtils } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
@@ -423,7 +423,7 @@ describe("stateIntegration comprehensive coverage", () => {
         });
 
         it("should migrate chartControlsState when available (smoke)", async () => {
-            expect.hasAssertions();
+            expect.assertions(5);
 
             const { migrateChartControlsState } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
@@ -468,7 +468,7 @@ describe("stateIntegration comprehensive coverage", () => {
         });
 
         it("should handle missing chartControlsState gracefully", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const { migrateChartControlsState } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
@@ -482,7 +482,7 @@ describe("stateIntegration comprehensive coverage", () => {
 
     describe("performance monitoring", () => {
         it("should set up performance monitoring with memory info (smoke)", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             vi.useFakeTimers();
             (globalThis as any).performance = mockPerformance;
@@ -537,7 +537,7 @@ describe("stateIntegration comprehensive coverage", () => {
         });
 
         it("should handle missing performance.memory gracefully", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             vi.useFakeTimers();
             (globalThis as any).performance = mockPerformance;
@@ -566,7 +566,7 @@ describe("stateIntegration comprehensive coverage", () => {
 
     describe("state persistence", () => {
         it("should set up state persistence and load existing state (smoke)", async () => {
-            expect.hasAssertions();
+            expect.assertions(6);
 
             vi.useFakeTimers();
 
@@ -639,7 +639,7 @@ describe("stateIntegration comprehensive coverage", () => {
         });
 
         it("should handle localStorage errors gracefully", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             mockLocalStorage.getItem.mockImplementation(() => {
                 throw new Error("localStorage not available");
@@ -664,7 +664,7 @@ describe("stateIntegration comprehensive coverage", () => {
         });
 
         it("should handle JSON parsing errors gracefully", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             mockLocalStorage.getItem.mockReturnValue("invalid json");
 
@@ -689,7 +689,7 @@ describe("stateIntegration comprehensive coverage", () => {
 
     describe("utility functions", () => {
         it("should handle nested value operations correctly", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             vi.useFakeTimers();
 
@@ -722,7 +722,7 @@ describe("stateIntegration comprehensive coverage", () => {
         });
 
         it("should detect development mode correctly - localhost", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             // Mock window.location for localhost
             Object.defineProperty(globalThis, "location", {
@@ -748,7 +748,7 @@ describe("stateIntegration comprehensive coverage", () => {
         });
 
         it("should detect development mode correctly - dev flag", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             globalThis.__DEVELOPMENT__ = true;
 
@@ -764,7 +764,7 @@ describe("stateIntegration comprehensive coverage", () => {
         });
 
         it("should detect development mode correctly - debug param", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             Object.defineProperty(globalThis, "location", {
                 value: {
@@ -789,7 +789,7 @@ describe("stateIntegration comprehensive coverage", () => {
         });
 
         it("should handle development mode detection errors", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             // Create a location object that throws on property access
             Object.defineProperty(globalThis, "location", {
@@ -811,7 +811,7 @@ describe("stateIntegration comprehensive coverage", () => {
 
     describe("backward compatibility", () => {
         it("should set up globalData property correctly (smoke)", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const { initializeAppState } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
@@ -832,7 +832,7 @@ describe("stateIntegration comprehensive coverage", () => {
         });
 
         it("should set up isChartRendered property correctly (smoke)", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const { initializeAppState } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
@@ -855,7 +855,7 @@ describe("stateIntegration comprehensive coverage", () => {
         });
 
         it("should set up AppState compatibility layer (smoke)", async () => {
-            expect.hasAssertions();
+            expect.assertions(6);
 
             const { initializeAppState } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
@@ -914,7 +914,7 @@ describe("stateIntegration comprehensive coverage", () => {
         });
 
         it("should not override existing properties", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             // Set existing properties
             globalThis.globalData = { existing: "data" };
@@ -933,7 +933,7 @@ describe("stateIntegration comprehensive coverage", () => {
 
     describe("debug utilities", () => {
         it("should set up debug utilities in development mode", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             globalThis.__DEVELOPMENT__ = true;
 
@@ -949,7 +949,7 @@ describe("stateIntegration comprehensive coverage", () => {
         });
 
         it("should expose debug utility functions and reject unknown actions", async () => {
-            expect.hasAssertions();
+            expect.assertions(6);
 
             globalThis.__DEVELOPMENT__ = true;
 
