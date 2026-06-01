@@ -205,7 +205,7 @@ describe("enableTabButtons behavior", () => {
 
     describe("setTabButtonsEnabled function", () => {
         it("should disable all tab buttons except open file button", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             appendTabButtons([
                 { id: "openFileBtn", text: "Open File" },
                 { id: "tab-summary", text: "Summary" },
@@ -242,7 +242,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should enable all tab buttons except open file button", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             appendTabButtons([
                 { id: "openFileBtn", text: "Open File" },
                 { id: "tab-summary", disabled: true, text: "Summary" },
@@ -270,7 +270,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should handle multiple open file button ID variants", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
             appendTabButtons([
                 { id: "open-file-btn", text: "Open File" },
                 {
@@ -298,7 +298,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should set window global state for debugging", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
             appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
             // Debug scope relationships
@@ -339,7 +339,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should apply comprehensive styling when disabling", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
             appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
             setTabButtonsEnabled(false);
@@ -357,7 +357,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should apply comprehensive styling when enabling", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
             appendTabButtons([
                 {
                     id: "tab-test",
@@ -386,7 +386,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should handle elements that are not HTMLElements gracefully", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
             // Mock isHTMLElement to return false
@@ -411,7 +411,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should handle nuclear option for stubborn disabled attributes", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             appendTabButtons([
                 { id: "tab-test", disabled: true, text: "Test" },
             ]);
@@ -442,7 +442,7 @@ describe("enableTabButtons behavior", () => {
 
     describe("initializeTabButtonState function", () => {
         it("should set up state subscription and initial disabled state", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
             initializeTabButtonState();
@@ -464,7 +464,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should enable tabs when globalData is present", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
             initializeTabButtonState();
@@ -490,7 +490,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should disable tabs when globalData is null/undefined", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
             appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
             initializeTabButtonState();
@@ -515,7 +515,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should set up MutationObserver when window is available", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
             appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
             const mockObserver = createMutationObserverMock();
@@ -564,7 +564,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should not create duplicate MutationObserver", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
             // Set up existing observer
@@ -587,7 +587,7 @@ describe("enableTabButtons behavior", () => {
 
     describe("areTabButtonsEnabled function", () => {
         it("should return current state value", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             mockGetState.mockReturnValue(true);
 
             const result = areTabButtonsEnabled();
@@ -597,7 +597,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should return false when state is falsy", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             mockGetState.mockReturnValue(null);
 
             const result = areTabButtonsEnabled();
@@ -609,7 +609,7 @@ describe("enableTabButtons behavior", () => {
 
     describe("debugTabButtons function", () => {
         it("should log debug information for all tab buttons", () => {
-            expect.hasAssertions();
+            expect.assertions(6);
             appendTabButtons([
                 { id: "openFileBtn", text: "Open File" },
                 { id: "tab-summary", text: "Summary" },
@@ -644,7 +644,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should handle buttons without IDs gracefully", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             appendTabButtons([{ text: "No ID" }]);
 
             debugTabButtons();
@@ -672,7 +672,7 @@ describe("enableTabButtons behavior", () => {
 
     describe("forceEnableTabButtons function", () => {
         it("should aggressively enable all tab buttons", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             appendTabButtons([
                 { id: "openFileBtn", text: "Open File" },
                 {
@@ -706,7 +706,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should skip open file buttons", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
             appendTabButtons([
                 { id: "openFileBtn", text: "Open File" },
                 { id: "tab-summary", text: "Summary" },
@@ -731,7 +731,7 @@ describe("enableTabButtons behavior", () => {
 
     describe("testTabButtonClicks function", () => {
         it("should add test click handlers to tab buttons", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             appendTabButtons([
                 { id: "openFileBtn", text: "Open File" },
                 { id: "tab-summary", text: "Summary" },
@@ -753,7 +753,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should skip open file buttons", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             appendTabButtons([{ id: "openFileBtn", text: "Open File" }]);
 
             testTabButtonClicks();
@@ -772,7 +772,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should remove test handlers after timeout", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             vi.useFakeTimers();
 
             appendTabButtons([{ id: "tab-summary", text: "Summary" }]);
@@ -800,7 +800,7 @@ describe("enableTabButtons behavior", () => {
 
     describe("debugTabState function", () => {
         it("should log current tab states and application state", () => {
-            expect.hasAssertions();
+            expect.assertions(6);
             appendTabButtons([
                 {
                     id: "tab-summary",
@@ -841,7 +841,7 @@ describe("enableTabButtons behavior", () => {
 
     describe("forceFixTabButtons function", () => {
         it("should aggressively fix all tab button states", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             appendTabButtons([
                 { id: "openFileBtn", text: "Open File" },
                 {
@@ -882,7 +882,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should log before and after states", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             appendTabButtons([{ id: "tab-summary", text: "Summary" }]);
 
             forceFixTabButtons();
@@ -901,7 +901,7 @@ describe("enableTabButtons behavior", () => {
 
     describe("edge cases and error conditions", () => {
         it("should handle empty DOM gracefully", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
             testContainer.replaceChildren();
 
             setTabButtonsEnabled(true);
@@ -925,7 +925,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should handle buttons without parent nodes in nuclear option", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             appendTabButtons([
                 { id: "tab-test", disabled: true, text: "Test" },
             ]);
@@ -946,7 +946,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should handle missing getComputedStyle", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
             // Mock getComputedStyle to throw an error - need to mock globalThis.getComputedStyle
             const originalGetComputedStyle = globalThis.getComputedStyle;
             vi.spyOn(globalThis, "getComputedStyle").mockImplementation(() => {
@@ -964,7 +964,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should handle undefined window object", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             const originalWindow = global.window;
             (global as any).window = undefined;
 
@@ -993,7 +993,7 @@ describe("enableTabButtons behavior", () => {
 
     describe("integration scenarios", () => {
         it("should handle complete enable/disable cycle", () => {
-            expect.hasAssertions();
+            expect.assertions(5);
             appendTabButtons([
                 { id: "tab-summary", text: "Summary" },
                 { id: "tab-chart", text: "Chart" },
@@ -1041,7 +1041,7 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should handle MutationObserver callback for unauthorized changes", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
             appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
             // Ensure clean state first
