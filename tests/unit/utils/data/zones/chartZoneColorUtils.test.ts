@@ -72,7 +72,7 @@ describe("chartZoneColorUtils", () => {
     });
 
     it("getZoneTypeFromField infers hr/power or null", async () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         const { getZoneTypeFromField } = await loadModule();
         expect(getZoneTypeFromField("hr_zone_doughnut")).toBe("hr");
@@ -83,7 +83,7 @@ describe("chartZoneColorUtils", () => {
     });
 
     it("getZoneColor falls back to defaults and wraps index", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const {
             getZoneColor,
@@ -104,7 +104,7 @@ describe("chartZoneColorUtils", () => {
     });
 
     it("saveZoneColor and persistence via getZoneColor", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const { saveZoneColor, getZoneColor, DEFAULT_HR_ZONE_COLORS } =
             await loadModule();
@@ -117,7 +117,7 @@ describe("chartZoneColorUtils", () => {
     });
 
     it("getChartSpecificZoneColor prefers chart-specific then zone default", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const {
             getChartSpecificZoneColor,
@@ -144,7 +144,7 @@ describe("chartZoneColorUtils", () => {
     });
 
     it("getChartSpecificZoneColors returns array for count", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const { getChartSpecificZoneColors, saveChartSpecificZoneColor } =
             await loadModule();
@@ -159,7 +159,7 @@ describe("chartZoneColorUtils", () => {
     });
 
     it("hasChartSpecificColors detects presence", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const { hasChartSpecificColors, saveChartSpecificZoneColor } =
             await loadModule();
@@ -169,7 +169,7 @@ describe("chartZoneColorUtils", () => {
     });
 
     it("resetChartSpecificZoneColors sets scheme to custom and writes defaults", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const { resetChartSpecificZoneColors } = await loadModule();
 
@@ -191,7 +191,7 @@ describe("chartZoneColorUtils", () => {
     });
 
     it("getZoneColors builds array via getZoneColor", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const { getZoneColors } = await loadModule();
         const hr = getZoneColors("hr", 4);
@@ -204,7 +204,7 @@ describe("chartZoneColorUtils", () => {
     });
 
     it("getChartZoneColors returns scheme colors for named schemes and custom uses saved/defaults", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const { getChartZoneColors, getColorSchemes, saveZoneColor } =
             await loadModule();
@@ -225,7 +225,7 @@ describe("chartZoneColorUtils", () => {
     });
 
     it("applyZoneColors maps zone.color using zoneIndex or array index", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const { applyZoneColors } = await loadModule();
         const result = applyZoneColors(
@@ -240,7 +240,7 @@ describe("chartZoneColorUtils", () => {
     });
 
     it("resetZoneColors writes defaults for given count", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const { resetZoneColors } = await loadModule();
         resetZoneColors("hr", 2);

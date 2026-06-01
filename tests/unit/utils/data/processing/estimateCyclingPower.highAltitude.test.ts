@@ -5,7 +5,7 @@ describe("estimateCyclingPower.js - High Altitude", () => {
     type FitMesg = Record<string, FitMesgValue>;
 
     it("should produce lower estimated power at high altitude compared to sea level for same speed/grade", async () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         const mod =
             await import("../../../../../electron-app/utils/data/processing/estimateCyclingPower.js");
