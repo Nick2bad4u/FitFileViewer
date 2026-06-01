@@ -80,13 +80,12 @@ describe("error handling utilities", () => {
                 fallback: "fallback value",
                 logLevel: "warn",
             });
+            const error = new AppError("Load failed", { operation: "load" });
 
-            expect(
-                handler(new AppError("Load failed", { operation: "load" }))
-            ).toBe("fallback value");
+            expect(handler(error)).toBe("fallback value");
             expect(warnSpy).toHaveBeenCalledWith(
                 "[ErrorHandler] Load failed | Operation: load",
-                expect.any(AppError)
+                error
             );
         });
 

@@ -729,7 +729,8 @@ describe("enableTabButtons behavior", () => {
             ]);
 
             testTabButtonClicks();
-            getRequiredButton("tab-summary").click();
+            const clickEvent = new PointerEvent("click", { bubbles: true });
+            getRequiredButton("tab-summary").dispatchEvent(clickEvent);
 
             expect(getRequiredButton("tab-summary").isConnected).toStrictEqual(
                 true
@@ -739,7 +740,7 @@ describe("enableTabButtons behavior", () => {
             );
             expect(consoleLogSpy).toHaveBeenCalledWith(
                 expect.stringContaining("TEST CLICK DETECTED on tab-summary!"),
-                expect.any(PointerEvent)
+                clickEvent
             );
         });
 

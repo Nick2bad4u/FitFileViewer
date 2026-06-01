@@ -568,8 +568,38 @@ describe("ensureChartSettingsDropdowns integration", () => {
         expect(getChartFieldVisibility("speed")).toBe("hidden");
         expect(getChartFieldVisibility("heartRate")).toBe("hidden");
 
-        // dispatched custom event for bulk change
-        expect(dispatchSpy).toHaveBeenCalledWith(expect.any(CustomEvent));
+        const fieldToggleEvents = dispatchSpy.mock.calls
+            .map(([event]) => event)
+            .filter(
+                (
+                    event
+                ): event is CustomEvent<{
+                    fields: string[];
+                    visibility: string;
+                }> =>
+                    event instanceof CustomEvent &&
+                    event.type === "fieldToggleChanged"
+            )
+            .map((event) => ({
+                hasDeveloperField: event.detail.fields.includes("dev_field1"),
+                hasHeartRate: event.detail.fields.includes("heartRate"),
+                hasSpeed: event.detail.fields.includes("speed"),
+                visibility: event.detail.visibility,
+            }));
+        expect(fieldToggleEvents).toStrictEqual([
+            {
+                hasDeveloperField: true,
+                hasHeartRate: true,
+                hasSpeed: true,
+                visibility: "visible",
+            },
+            {
+                hasDeveloperField: true,
+                hasHeartRate: true,
+                hasSpeed: true,
+                visibility: "hidden",
+            },
+        ]);
     });
 
     it("export section: no charts warns; with charts opens modal and calls export utils", () => {

@@ -109,6 +109,18 @@ describe(renderLapZoneCharts, () => {
     const getCanvasIds = (): string[] =>
         [...container.querySelectorAll("canvas")].map((canvas) => canvas.id);
 
+    const getLatestChartRenderCall = (
+        renderMock: ChartRenderMock
+    ): Parameters<ChartRenderFunction> => {
+        const call = renderMock.mock.calls.at(-1);
+
+        if (!call) {
+            throw new Error("Expected chart render mock to be called");
+        }
+
+        return call;
+    };
+
     describe("parameter validation", () => {
         it("should handle null container gracefully", () => {
             expect.assertions(3);
@@ -1249,11 +1261,16 @@ describe(renderLapZoneCharts, () => {
                 "[ChartJS] HR zone data after value mapping:",
                 expectedHrZones
             );
-            expect(renderSingleHRZoneBar).toHaveBeenCalledWith(
-                expect.any(HTMLCanvasElement),
-                expectedHrZones,
-                { title: "HR Zone by Lap (Individual)" }
-            );
+            const [
+                canvas,
+                zones,
+                options,
+            ] = getLatestChartRenderCall(renderSingleHRZoneBarMock);
+            expect({ canvasId: canvas.id, options, zones }).toStrictEqual({
+                canvasId: "chartjs-canvas-single-lap-hr",
+                options: { title: "HR Zone by Lap (Individual)" },
+                zones: expectedHrZones,
+            });
             expect(getCanvasIds()).toContain("chartjs-canvas-single-lap-hr");
         });
 
@@ -1289,14 +1306,19 @@ describe(renderLapZoneCharts, () => {
                     { color: "hr-zone-1", label: "HR Zone 2", value: 15 },
                 ]
             );
-            expect(renderSingleHRZoneBar).toHaveBeenCalledWith(
-                expect.any(HTMLCanvasElement),
-                [
+            const [
+                canvas,
+                zones,
+                options,
+            ] = getLatestChartRenderCall(renderSingleHRZoneBarMock);
+            expect({ canvasId: canvas.id, options, zones }).toStrictEqual({
+                canvasId: "chartjs-canvas-single-lap-hr",
+                options: { title: "HR Zone by Lap (Individual)" },
+                zones: [
                     { color: "hr-zone-0", label: "HR Zone 1", value: 15 },
                     { color: "hr-zone-1", label: "HR Zone 2", value: 15 },
                 ],
-                { title: "HR Zone by Lap (Individual)" }
-            );
+            });
             expect(getCanvasIds()).toContain("chartjs-canvas-single-lap-hr");
         });
 
@@ -1349,9 +1371,15 @@ describe(renderLapZoneCharts, () => {
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] Aggregating Power zone data from laps"
             );
-            expect(renderSinglePowerZoneBar).toHaveBeenCalledWith(
-                expect.any(HTMLCanvasElement),
-                [
+            const [
+                canvas,
+                zones,
+                options,
+            ] = getLatestChartRenderCall(renderSinglePowerZoneBarMock);
+            expect({ canvasId: canvas.id, options, zones }).toStrictEqual({
+                canvasId: "chartjs-canvas-single-lap-power",
+                options: { title: "Power Zone by Lap (Individual)" },
+                zones: [
                     {
                         color: "power-zone-0",
                         label: "Power Zone 1",
@@ -1363,8 +1391,7 @@ describe(renderLapZoneCharts, () => {
                         value: 12,
                     },
                 ],
-                { title: "Power Zone by Lap (Individual)" }
-            );
+            });
             expect(getCanvasIds()).toContain("chartjs-canvas-single-lap-power");
             expect(mockConsoleError).not.toHaveBeenCalled();
         });

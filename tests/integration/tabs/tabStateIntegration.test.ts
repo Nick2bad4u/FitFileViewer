@@ -293,10 +293,20 @@ describe("tab state management integration", () => {
             }).toStrictEqual({
                 tabButtonsEnabled: true,
             });
-            expect(mockState.subscribe).toHaveBeenCalledWith(
-                "ui.activeTab",
-                expect.any(Function)
-            );
+
+            const [subscribedKey, subscriber] =
+                mockState.subscribe.mock.calls[0] ?? [];
+
+            expect({
+                subscriberCount:
+                    mockState._subscribers.get("ui.activeTab")?.length,
+                subscriber,
+                subscribedKey,
+            }).toStrictEqual({
+                subscriberCount: 1,
+                subscriber: mockState._subscribers.get("ui.activeTab")?.[0],
+                subscribedKey: "ui.activeTab",
+            });
         });
 
         it("should handle state changes before initialization", () => {

@@ -101,6 +101,18 @@ function defineGlobalValue<K extends keyof TestGlobals>(
     });
 }
 
+function getCreatedBlob(createObjectURLSpy: {
+    mock: { calls: Parameters<typeof URL.createObjectURL>[] };
+}): Blob {
+    const createdUrlArgument = createObjectURLSpy.mock.calls[0]?.[0];
+
+    if (!(createdUrlArgument instanceof Blob)) {
+        throw new TypeError("Expected createObjectURL to receive a Blob");
+    }
+
+    return createdUrlArgument;
+}
+
 describe(setupListeners, () => {
     let openButton: HTMLButtonElement;
     let isOpeningFileRef: { current: boolean };
@@ -444,7 +456,7 @@ describe(setupListeners, () => {
     });
 
     it("exports CSV files using copyTableAsCSV", async () => {
-        expect.assertions(6);
+        expect.assertions(7);
         vi.useFakeTimers();
         const csv = "header\nvalue";
         const copyTableAsCSV = vi.fn<CopyTableAsCsv>(() => csv);
@@ -471,7 +483,9 @@ describe(setupListeners, () => {
             container: summaryContainer,
             data: globalAny.globalData,
         });
-        expect(createObjectURLSpy).toHaveBeenCalledWith(expect.any(Blob));
+        const csvBlob = getCreatedBlob(createObjectURLSpy);
+        expect(csvBlob.type).toBe("text/csv");
+        await expect(csvBlob.text()).resolves.toBe(csv);
         const anchor = requireElement(
             document.body.querySelector<HTMLAnchorElement>(
                 'a[download="export.csv"]'
@@ -512,7 +526,7 @@ describe(setupListeners, () => {
     });
 
     it("builds GPX export when records exist", async () => {
-        expect.assertions(6);
+        expect.assertions(7);
         vi.useFakeTimers();
         const exportHandler = requireHandler(
             ipcHandlers.get("export-file"),
@@ -536,7 +550,11 @@ describe(setupListeners, () => {
         const revokeSpy = vi.spyOn(URL, "revokeObjectURL");
 
         await exportHandler(undefined, "activity.gpx");
-        expect(createObjectURLSpy).toHaveBeenCalledWith(expect.any(Blob));
+        const gpxBlob = getCreatedBlob(createObjectURLSpy);
+        expect(gpxBlob.type).toBe("application/gpx+xml;charset=utf-8");
+        await expect(gpxBlob.text()).resolves.toContain(
+            "<name>Demo Ride</name>"
+        );
         const anchor = requireElement(
             document.body.querySelector<HTMLAnchorElement>("a[download]"),
             "GPX download anchor"

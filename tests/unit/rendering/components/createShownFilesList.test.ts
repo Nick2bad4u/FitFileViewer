@@ -7,6 +7,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
 type MockComputedStyle = { color: string };
+type MockGetComputedStyle = ReturnType<
+    typeof vi.fn<(element: Element) => MockComputedStyle>
+>;
 type ThemeColors = {
     border: string;
     surface: string;
@@ -57,6 +60,18 @@ function getOverlayState(): {
         highlightedOverlayIdx: (global.window as any)._highlightedOverlayIdx,
         overlayTooltipTimeout: (global.window as any)._overlayTooltipTimeout,
     };
+}
+
+function getComputedStyleSpan(
+    mockGetComputedStyle: MockGetComputedStyle
+): HTMLSpanElement {
+    const target = mockGetComputedStyle.mock.calls[0]?.[0];
+
+    if (!(target instanceof HTMLSpanElement)) {
+        throw new TypeError("Expected getComputedStyle to inspect a span");
+    }
+
+    return target;
 }
 
 describe("createShownFilesList", () => {
@@ -316,7 +331,7 @@ describe("createShownFilesList", () => {
 
             // Mock getComputedStyle for color testing
             const mockGetComputedStyle = vi
-                .fn<() => MockComputedStyle>()
+                .fn<(element: Element) => MockComputedStyle>()
                 .mockReturnValue({ color: "rgb(25, 118, 210)" });
             vi.stubGlobal("getComputedStyle", mockGetComputedStyle);
 
@@ -327,9 +342,9 @@ describe("createShownFilesList", () => {
             expect(firstItem).toBeInstanceOf(HTMLLIElement);
             expect(firstItem?.textContent).toContain("overlay.fit");
             // Verify that color accessibility was checked
-            expect(mockGetComputedStyle).toHaveBeenCalledWith(
-                expect.any(HTMLSpanElement)
-            );
+            expect(
+                getComputedStyleSpan(mockGetComputedStyle).style.display
+            ).toBe("none");
         });
 
         it("handles RGB color parsing correctly", () => {
@@ -343,7 +358,7 @@ describe("createShownFilesList", () => {
             ];
 
             const mockGetComputedStyle = vi
-                .fn<() => MockComputedStyle>()
+                .fn<(element: Element) => MockComputedStyle>()
                 .mockReturnValue({ color: "rgb(255, 255, 255)" });
             vi.stubGlobal("getComputedStyle", mockGetComputedStyle);
 
@@ -354,9 +369,9 @@ describe("createShownFilesList", () => {
             expect(firstItem).toBeInstanceOf(HTMLLIElement);
             expect(firstItem?.style.color).not.toBe("");
             expect(firstItem?.style.filter).toContain("invert");
-            expect(mockGetComputedStyle).toHaveBeenCalledWith(
-                expect.any(HTMLSpanElement)
-            );
+            expect(
+                getComputedStyleSpan(mockGetComputedStyle).style.display
+            ).toBe("none");
         });
 
         it("handles invalid color formats gracefully", () => {

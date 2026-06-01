@@ -81,11 +81,13 @@ vi.mock(import("@garmin/fitsdk"), () => mockFitSDK);
 describe("fitParser.js decoder behavior", () => {
     let fitParser: FitParserModule;
     let mockDecoder: MockFitSdkDecoder;
+    let mockRecordTimestamp: Date;
     let mockStream: MockFitSdkStream;
 
     beforeEach(async () => {
         // Reset all mocks
         vi.resetAllMocks();
+        mockRecordTimestamp = new Date("2024-01-02T03:04:05.000Z");
 
         // Setup mock decoder
         mockDecoder = {
@@ -101,7 +103,12 @@ describe("fitParser.js decoder behavior", () => {
                 .mockReturnValue({
                     messages: {
                         activity: [{ sport: "cycling" }],
-                        record: [{ timestamp: new Date(), heart_rate: 150 }],
+                        record: [
+                            {
+                                heart_rate: 150,
+                                timestamp: mockRecordTimestamp,
+                            },
+                        ],
                     },
                     errors: [],
                 }),
@@ -562,7 +569,7 @@ describe("fitParser.js decoder behavior", () => {
                         record: [
                             expect.objectContaining({
                                 heart_rate: 150,
-                                timestamp: expect.any(Date),
+                                timestamp: mockRecordTimestamp,
                             }),
                         ],
                     }),
@@ -580,7 +587,7 @@ describe("fitParser.js decoder behavior", () => {
                 record: [
                     expect.objectContaining({
                         heart_rate: 150,
-                        timestamp: expect.any(Date),
+                        timestamp: mockRecordTimestamp,
                     }),
                 ],
             });
