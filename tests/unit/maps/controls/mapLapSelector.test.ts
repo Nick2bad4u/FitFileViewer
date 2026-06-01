@@ -135,9 +135,21 @@ describe("mapLapSelector", () => {
         const toggle = getRequiredButton(container, "#multi-lap-toggle");
         const deselectAll = getRequiredButton(container, "#deselect-all-btn");
 
-        expect(getSelectorState(select)).toMatchObject({
+        expect(getSelectorState(select)).toStrictEqual({
             multiple: false,
             multipleAttribute: null,
+            optionLabels: [
+                "All",
+                "Lap 1",
+                "Lap 2",
+                "Lap 3",
+            ],
+            optionValues: [
+                "all",
+                "0",
+                "1",
+                "2",
+            ],
             selectedValues: ["all"],
             size: 1,
         });
@@ -152,9 +164,21 @@ describe("mapLapSelector", () => {
         select.options[2]!.selected = true;
         select.dispatchEvent(new Event("change"));
 
-        expect(getSelectorState(select)).toMatchObject({
+        expect(getSelectorState(select)).toStrictEqual({
             multiple: true,
             multipleAttribute: "",
+            optionLabels: [
+                "All",
+                "Lap 1",
+                "Lap 2",
+                "Lap 3",
+            ],
+            optionValues: [
+                "all",
+                "0",
+                "1",
+                "2",
+            ],
             selectedValues: ["0", "1"],
             size: 4,
         });
