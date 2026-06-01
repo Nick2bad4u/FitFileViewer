@@ -4,6 +4,7 @@ import process from "node:process";
 import { describe, expect, it, vi } from "vitest";
 
 import {
+    appPreloadBundleAbsolutePath,
     buildRuntimeScriptPath,
     rootIntegrationTestsPath,
     rootTabsTestsPath,
@@ -116,11 +117,15 @@ describe("run-vitest wrapper", () => {
     });
 
     it("skips the runtime build when the runtime dist sentinel exists", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const commandRunner = vi.fn<CommandRunner>(() => ({ status: 0 }));
+        const runtimeDistExists = vi.fn<() => boolean>(() => true);
 
-        expect(ensureRuntimeDist(commandRunner, () => true)).toBe(0);
+        expect(ensureRuntimeDist(commandRunner, runtimeDistExists)).toBe(0);
+        expect(runtimeDistExists).toHaveBeenCalledWith(
+            appPreloadBundleAbsolutePath
+        );
         expect(commandRunner).not.toHaveBeenCalled();
     });
 

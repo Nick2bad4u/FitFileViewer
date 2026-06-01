@@ -67,6 +67,11 @@ export const appLeafletMeasureLitePath = appSourceRepositoryPath(
     "renderer",
     "leafletMeasureLite.js"
 );
+export const appPreloadSourceAbsolutePath = appSourceAbsolutePath("preload.ts");
+export const appPreloadBundleAbsolutePath = appSourceAbsolutePath(
+    "dist",
+    "preload.js"
+);
 export const appRendererVendorGlobalsEntryPath = appSourceRepositoryPath(
     "renderer",
     "vendorGlobals.ts"
