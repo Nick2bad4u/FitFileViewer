@@ -128,7 +128,7 @@ describe("renderZoneChart", () => {
     });
 
     it("renders doughnut with data colors and pushes instance", async () => {
-        expect.hasAssertions();
+        expect.assertions(10);
 
         const { renderZoneChart } = await loadModule();
         const container = document.getElementById("root")!;
@@ -168,7 +168,7 @@ describe("renderZoneChart", () => {
     });
 
     it("renders bar config when chartType=bar and uses zoneType colors fallback", async () => {
-        expect.hasAssertions();
+        expect.assertions(8);
 
         vi.doMock(
             import("../../../../electron-app/utils/data/zones/chartZoneColorUtils.js"),
@@ -228,7 +228,7 @@ describe("renderZoneChart", () => {
     });
 
     it("gracefully returns on invalid inputs", async () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         const warnSpy = vi.spyOn(console, "warn").mockReturnValue(undefined);
         const { renderZoneChart } = await loadModule();

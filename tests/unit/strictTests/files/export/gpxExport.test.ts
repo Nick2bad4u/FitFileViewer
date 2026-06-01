@@ -8,7 +8,7 @@ import {
 
 describe("gpxExport", () => {
     it("returns null when the input list is empty or lacks coordinates", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         expect(buildGpxFromRecords(null as unknown as any[])).toBeNull();
         expect(buildGpxFromRecords([])).toBeNull();
@@ -21,7 +21,7 @@ describe("gpxExport", () => {
     });
 
     it("generates a GPX 1.1 document with metadata and extensions", () => {
-        expect.hasAssertions();
+        expect.assertions(20);
 
         const timestamp = new Date("2024-05-01T15:30:00Z");
         const records = [
@@ -98,7 +98,7 @@ describe("gpxExport", () => {
     });
 
     it("resolves track names from loaded fit file metadata", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const loaded = [
             { displayName: "Morning Loop", filePath: "C:/rides/morning.fit" },

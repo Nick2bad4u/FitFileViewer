@@ -62,7 +62,7 @@ describe("mapActionButtons additional branches", () => {
     });
 
     it("notifies when no valid bounds even with polyline", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const fitBounds = vi.fn<FitBoundsFn>();
         (window as any)._leafletMapInstance = {
@@ -94,7 +94,7 @@ describe("mapActionButtons additional branches", () => {
     });
 
     it("brings matching color markers to front when L.CircleMarker exists", async () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         const fitBounds = vi.fn<FitBoundsFn>();
         const getCenter = vi.fn<GetCenterFn>(() => ({ lat: 0, lng: 0 }));
@@ -143,7 +143,7 @@ describe("mapActionButtons additional branches", () => {
     });
 
     it("reapplies setup after updateShownFilesList is called", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         (window as any).updateShownFilesList = () => undefined;
         vi.spyOn(

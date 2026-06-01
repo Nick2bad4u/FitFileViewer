@@ -63,7 +63,7 @@ describe("export/print buttons", () => {
     });
 
     it("createPrintButton returns a button and handles click errors gracefully", async () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         const { createPrintButton } =
             await import("../../../../../electron-app/utils/files/export/createPrintButton.js");
@@ -93,7 +93,7 @@ describe("export/print buttons", () => {
     });
 
     it("createExportGPXButton notifies and skips download when recordMesgs are missing", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         ensureObjectUrlApi();
         const { createExportGPXButton } =
@@ -121,7 +121,7 @@ describe("export/print buttons", () => {
     });
 
     it("createExportGPXButton builds and triggers a download when recordMesgs exist", async () => {
-        expect.hasAssertions();
+        expect.assertions(8);
 
         vi.useFakeTimers();
         ensureObjectUrlApi();

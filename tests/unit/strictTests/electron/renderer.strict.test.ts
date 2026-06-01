@@ -215,7 +215,7 @@ describe("renderer.js strict behavior", () => {
     });
 
     it("initializes modules, wires electronAPI, and handles file input + theme/menu events", async () => {
-        expect.hasAssertions();
+        expect.assertions(10);
 
         const { api, listeners, spies } = await importRendererFresh();
 
@@ -258,7 +258,7 @@ describe("renderer.js strict behavior", () => {
     });
 
     it("handles global error events and shows notifications", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const { spies } = await importRendererFresh();
         // Ensure global error handlers are attached via full initialization
@@ -294,7 +294,7 @@ describe("renderer.js strict behavior", () => {
     });
 
     it("exposes dev helpers and performance metrics in development", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         await importRendererFresh();
         const dev = (window as any).__renderer_dev;

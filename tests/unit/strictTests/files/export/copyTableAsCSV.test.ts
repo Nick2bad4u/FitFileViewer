@@ -25,7 +25,7 @@ describe("copyTableAsCSV", () => {
     });
 
     it("copies using modern Clipboard API and stringifies nested objects", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const nav = globalThis.navigator as any;
         let copiedText = "";
@@ -52,7 +52,7 @@ describe("copyTableAsCSV", () => {
     });
 
     it("falls back when Clipboard API not available", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         // Remove clipboard to force fallback
         const nav = globalThis.navigator as any;
@@ -76,7 +76,7 @@ describe("copyTableAsCSV", () => {
     });
 
     it("throws on invalid table input", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const { copyTableAsCSV } =
             await import("../../../../../electron-app/utils/files/export/copyTableAsCSV.js");

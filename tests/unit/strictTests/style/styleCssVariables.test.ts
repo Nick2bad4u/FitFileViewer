@@ -14,7 +14,7 @@ const loadStyleSheet = () => {
 
 describe("style.css theme variables", () => {
     it("defines root theme variables before light overrides", () => {
-        expect.hasAssertions();
+        expect.assertions(8);
 
         const styleText = loadStyleSheet();
         const rootIndex = styleText.indexOf(":root");
@@ -36,7 +36,7 @@ describe("style.css theme variables", () => {
     });
 
     it("includes light theme overrides and background styling", () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         const styleText = loadStyleSheet();
         const lightIndex = styleText.indexOf("body.theme-light");
@@ -49,7 +49,7 @@ describe("style.css theme variables", () => {
     });
 
     it("defines base body styles and font size helpers", () => {
-        expect.hasAssertions();
+        expect.assertions(9);
 
         const styleText = loadStyleSheet();
         const bodyIndex = styleText.search(/(^|\n)body\s*\{/);

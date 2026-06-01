@@ -59,7 +59,7 @@ describe("renderSummary helpers + renderSummary", () => {
     });
 
     it("getStorageKey prefers window.globalData.cachedFilePath then data.cachedFilePath then activeFitFileName", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const { getStorageKey } = await importHelpers();
         const summaryWindow = getSummaryWindow();
@@ -83,7 +83,7 @@ describe("renderSummary helpers + renderSummary", () => {
     });
 
     it("save/load column preferences roundtrip", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const { saveColPrefs, loadColPrefs } = await importHelpers();
         const key = "summaryColSel_test";
@@ -100,7 +100,7 @@ describe("renderSummary helpers + renderSummary", () => {
     });
 
     it("renderSummary renders header, gear button opens modal, and table rows filter", async () => {
-        expect.hasAssertions();
+        expect.assertions(10);
 
         const { renderSummary } = await importRenderSummary();
         const data: SummaryRenderData = {

@@ -229,7 +229,7 @@ describe("renderMap core", () => {
     });
 
     it("returns early when no content-map container", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         document.body.innerHTML = "";
         const { renderMap } = await importSUT();
@@ -239,7 +239,7 @@ describe("renderMap core", () => {
     });
 
     it("creates map structure and UI controls, sets up zoom slider and layers button", async () => {
-        expect.hasAssertions();
+        expect.assertions(11);
 
         const { L, map, handlers } = makeLeafletStub();
         (globalThis as typeof globalThis & { L?: LeafletGlobalStub }).L = L;
@@ -317,7 +317,7 @@ describe("renderMap core", () => {
     });
 
     it("removes previous map instance and children to avoid stale state", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const { L, map } = makeLeafletStub();
         (globalThis as typeof globalThis & { L?: LeafletGlobalStub }).L = L;

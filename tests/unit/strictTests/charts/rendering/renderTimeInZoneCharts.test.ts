@@ -76,7 +76,7 @@ describe("renderTimeInZoneCharts", () => {
     });
 
     it("renders both HR and power when visible and data exists", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const { renderZoneChart } =
             await import("../../../../../electron-app/utils/charts/rendering/renderZoneChart.js");
@@ -111,7 +111,7 @@ describe("renderTimeInZoneCharts", () => {
     });
 
     it("skips rendering when the container is missing", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const { renderZoneChart } =
             await import("../../../../../electron-app/utils/charts/rendering/renderZoneChart.js");
@@ -123,7 +123,7 @@ describe("renderTimeInZoneCharts", () => {
     });
 
     it("respects per-zone visibility settings", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         visibilityMocks.getHRZoneVisibilitySettings.mockReturnValue({
             doughnutVisible: false,
