@@ -51,12 +51,12 @@ describe("run-docusaurus wrapper", () => {
         expect(args[0]).toMatch(
             /[\\/]@docusaurus[\\/]core[\\/]bin[\\/]docusaurus\.mjs$/u
         );
-        expect(args).toContain("build");
+        expect(args.slice(1)).toStrictEqual(["build"]);
         expect(args).not.toContain("sync-docusaurus-static-assets.mjs");
     });
 
     it("syncs static assets before running build-like commands", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const commandRunner = vi
             .fn<CommandRunner>()
@@ -92,18 +92,21 @@ describe("run-docusaurus wrapper", () => {
             args: [syncDocusaurusStaticAssetsScript],
         });
         expect({
-            args: docsArgs,
+            args: docsArgs?.slice(1),
             command: docsCommand,
             cwd: path.resolve(docsOptions?.cwd ?? ""),
         }).toStrictEqual({
-            args: expect.arrayContaining(["build"]),
+            args: ["build"],
             command: process.execPath,
             cwd: path.join(process.cwd(), "docusaurus"),
         });
+        expect(docsArgs?.[0]).toMatch(
+            /[\\/]@docusaurus[\\/]core[\\/]bin[\\/]docusaurus\.mjs$/u
+        );
     });
 
     it("runs non-build commands without syncing static assets", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const commandRunner = vi
             .fn<CommandRunner>()
@@ -124,11 +127,14 @@ describe("run-docusaurus wrapper", () => {
             options,
         ] = commandRunner.mock.calls[0] ?? [];
 
+        expect(args?.[0]).toMatch(
+            /[\\/]@docusaurus[\\/]core[\\/]bin[\\/]docusaurus\.mjs$/u
+        );
         expect({
-            args,
+            args: args?.slice(1),
             cwd: path.resolve(options?.cwd ?? ""),
         }).toStrictEqual({
-            args: expect.arrayContaining(["clear"]),
+            args: ["clear"],
             cwd: path.join(process.cwd(), "docusaurus"),
         });
     });

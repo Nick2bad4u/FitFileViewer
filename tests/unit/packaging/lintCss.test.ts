@@ -36,14 +36,12 @@ describe("lint-css wrapper", () => {
         const args = buildStylelintArgs(["--quiet"]);
 
         expect(args[0]).toMatch(/[\\/]stylelint[\\/]bin[\\/]stylelint\.mjs$/u);
-        expect(args).toEqual(
-            expect.arrayContaining([
-                "static/app/*.css",
-                "--config",
-                rootStylelintConfigPath,
-                "--quiet",
-            ])
-        );
+        expect(args.slice(1)).toStrictEqual([
+            "static/app/*.css",
+            "--config",
+            rootStylelintConfigPath,
+            "--quiet",
+        ]);
         expect(args.indexOf("--config")).toBeGreaterThan(
             args.indexOf("static/app/*.css")
         );
@@ -51,7 +49,7 @@ describe("lint-css wrapper", () => {
     });
 
     it("runs Stylelint from the repository root", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const commandRunner = vi
             .fn<CommandRunner>()
@@ -66,19 +64,22 @@ describe("lint-css wrapper", () => {
         ] = commandRunner.mock.calls[0] ?? [];
 
         expect({
-            args,
+            args: args?.slice(1),
             command,
             status: exitStatus,
         }).toStrictEqual({
-            args: expect.arrayContaining([
-                expect.stringMatching(
-                    /[\\/]stylelint[\\/]bin[\\/]stylelint\.mjs$/u
-                ),
+            args: [
+                "static/app/*.css",
+                "--config",
+                rootStylelintConfigPath,
                 "--fix",
-            ]),
+            ],
             command: process.execPath,
             status: 4,
         });
+        expect(args?.[0]).toMatch(
+            /[\\/]stylelint[\\/]bin[\\/]stylelint\.mjs$/u
+        );
         expect({
             ...options,
             cwd: path.resolve(options?.cwd ?? ""),
