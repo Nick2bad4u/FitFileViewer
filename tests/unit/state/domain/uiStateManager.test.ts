@@ -234,6 +234,36 @@ describe("uiStateManager - comprehensive coverage", () => {
         document.body.append(notification);
     }
 
+    function getElementClickListenerRegistration(
+        element: Element | null,
+        manager: UIStateManager
+    ) {
+        expect(element).toBeInstanceOf(Element);
+        if (!(element instanceof Element)) {
+            throw new Error("Expected element for click listener registration");
+        }
+
+        const callIndex = addEventListenerSpy.mock.calls.findIndex(
+            (call: unknown[], index: number) =>
+                addEventListenerSpy.mock.contexts[index] === element &&
+                call[0] === "click"
+        );
+
+        expect(callIndex).toBeGreaterThanOrEqual(0);
+        const [
+            ,
+            listener,
+            options,
+        ] = addEventListenerSpy.mock.calls[callIndex] ?? [];
+
+        expect(listener).toBeTypeOf("function");
+        expect(options).toStrictEqual({
+            signal: manager.eventListenerAbortController.signal,
+        });
+
+        return { listener, options };
+    }
+
     beforeEach(() => {
         // Set up DOM elements that UIStateManager expects
         setupFixtureDom();
@@ -349,27 +379,21 @@ describe("uiStateManager - comprehensive coverage", () => {
 
             const manager = new UIStateManager();
 
-            // Verify subscribe was called for each state property
-            expect(vi.mocked(subscribe)).toHaveBeenCalledWith(
-                "ui.activeTab",
-                expect.any(Function)
-            );
-            expect(vi.mocked(subscribe)).toHaveBeenCalledWith(
-                "ui.theme",
-                expect.any(Function)
-            );
-            expect(vi.mocked(subscribe)).toHaveBeenCalledWith(
-                "isLoading",
-                expect.any(Function)
-            );
-            expect(vi.mocked(subscribe)).toHaveBeenCalledWith(
-                "charts.controlsVisible",
-                expect.any(Function)
-            );
-            expect(vi.mocked(subscribe)).toHaveBeenCalledWith(
-                "map.measurementMode",
-                expect.any(Function)
-            );
+            const subscriptions = vi
+                .mocked(subscribe)
+                .mock.calls.map(([path, callback]) => [path, typeof callback]);
+
+            expect(subscriptions).toStrictEqual([
+                ["ui.activeTab", "function"],
+                ["ui.theme", "function"],
+                ["ui.unloadButtonVisible", "function"],
+                ["ui.fileInfo", "function"],
+                ["ui.loadingIndicator", "function"],
+                ["isLoading", "function"],
+                ["charts.controlsVisible", "function"],
+                ["map.measurementMode", "function"],
+                ["ui.dropOverlay.visible", "function"],
+            ]);
             expect(manager.eventListeners.size).toBe(0);
         });
     });
@@ -458,7 +482,9 @@ describe("uiStateManager - comprehensive coverage", () => {
 
             manager.applyTheme("system");
 
-            expect(addListener).toHaveBeenCalledWith(expect.any(Function));
+            const [listener] = addListener.mock.calls[0] ?? [];
+            expect(listener).toBe(manager.systemThemeListener);
+            expect(addListener).toHaveBeenCalledExactlyOnceWith(listener);
             expect(document.documentElement.getAttribute("data-theme")).toBe(
                 "light"
             );
@@ -508,13 +534,15 @@ describe("uiStateManager - comprehensive coverage", () => {
 
             // First apply system theme to set up listener
             manager.applyTheme("system");
+            const systemThemeListener = manager.systemThemeListener;
+            expect(systemThemeListener).toBeTypeOf("function");
 
             // Then switch to explicit theme
             manager.applyTheme("dark");
 
-            expect(removeEventListener).toHaveBeenCalledWith(
+            expect(removeEventListener).toHaveBeenCalledExactlyOnceWith(
                 "change",
-                expect.any(Function)
+                systemThemeListener
             );
             expect(manager.systemThemeListener).toBeNull();
         });
@@ -541,9 +569,13 @@ describe("uiStateManager - comprehensive coverage", () => {
 
             // Apply system theme then switch to explicit theme
             manager.applyTheme("system");
+            const systemThemeListener = manager.systemThemeListener;
+            expect(systemThemeListener).toBeTypeOf("function");
             manager.applyTheme("light");
 
-            expect(removeListener).toHaveBeenCalledWith(expect.any(Function));
+            expect(removeListener).toHaveBeenCalledExactlyOnceWith(
+                systemThemeListener
+            );
             expect(manager.systemThemeListener).toBeNull();
         });
     });
@@ -557,11 +589,7 @@ describe("uiStateManager - comprehensive coverage", () => {
             // Check that addEventListener was called on tab buttons
             const tabButton = document.querySelector('[data-tab="charts"]');
             expect(tabButton).toBeInstanceOf(HTMLButtonElement);
-            expect(addEventListenerSpy).toHaveBeenCalledWith(
-                "click",
-                expect.any(Function),
-                expect.objectContaining({ signal: expect.any(AbortSignal) })
-            );
+            getElementClickListenerRegistration(tabButton, manager);
             expect(manager.eventListenerAbortController.signal.aborted).toBe(
                 false
             );
@@ -590,11 +618,7 @@ describe("uiStateManager - comprehensive coverage", () => {
 
             const themeButton = document.querySelector('[data-theme="dark"]');
             expect(themeButton).toBeInstanceOf(HTMLButtonElement);
-            expect(addEventListenerSpy).toHaveBeenCalledWith(
-                "click",
-                expect.any(Function),
-                expect.objectContaining({ signal: expect.any(AbortSignal) })
-            );
+            getElementClickListenerRegistration(themeButton, manager);
             expect(manager.eventListenerAbortController.signal.aborted).toBe(
                 false
             );
@@ -625,11 +649,7 @@ describe("uiStateManager - comprehensive coverage", () => {
                 "#chart-controls-toggle"
             );
             expect(toggleButton).toBeInstanceOf(HTMLDivElement);
-            expect(addEventListenerSpy).toHaveBeenCalledWith(
-                "click",
-                expect.any(Function),
-                expect.objectContaining({ signal: expect.any(AbortSignal) })
-            );
+            getElementClickListenerRegistration(toggleButton, manager);
             expect(manager.eventListenerAbortController.signal.aborted).toBe(
                 false
             );
@@ -660,11 +680,7 @@ describe("uiStateManager - comprehensive coverage", () => {
                 "#measurement-mode-toggle"
             );
             expect(toggleButton).toBeInstanceOf(HTMLDivElement);
-            expect(addEventListenerSpy).toHaveBeenCalledWith(
-                "click",
-                expect.any(Function),
-                expect.objectContaining({ signal: expect.any(AbortSignal) })
-            );
+            getElementClickListenerRegistration(toggleButton, manager);
             expect(manager.eventListenerAbortController.signal.aborted).toBe(
                 false
             );
@@ -1296,12 +1312,14 @@ describe("uiStateManager - comprehensive coverage", () => {
 
             // Set up system theme listener
             manager.applyTheme("system");
+            const systemThemeListener = manager.systemThemeListener;
+            expect(systemThemeListener).toBeTypeOf("function");
 
             manager.cleanup();
 
-            expect(removeEventListener).toHaveBeenCalledWith(
+            expect(removeEventListener).toHaveBeenCalledExactlyOnceWith(
                 "change",
-                expect.any(Function)
+                systemThemeListener
             );
             expect([...manager.eventListeners]).toStrictEqual([]);
             expect(manager.systemThemeListener).not.toBe(removeEventListener);
