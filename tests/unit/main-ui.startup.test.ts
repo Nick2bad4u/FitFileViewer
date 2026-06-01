@@ -286,14 +286,13 @@ describe("main-ui.js - UI Controller and State Management", () => {
     });
 
     it("registers legacy globals and rejects invalid legacy FIT data", async () => {
-        expect.assertions(7);
+        expect.assertions(5);
 
         await import("../../electron-app/main-ui.js");
+        const { addEventListenerWithCleanup } =
+            await import("../../electron-app/utils/ui/mainUiDomUtils.js");
         const mainUiGlobal = getMainUiTestGlobal();
 
-        expect(mainUiGlobal.showFitData).toBeInstanceOf(Function);
-        expect(mainUiGlobal.renderChartJS).toBeInstanceOf(Function);
-        expect(mainUiGlobal.cleanupEventListeners).toBeInstanceOf(Function);
         expect(document.querySelectorAll(".tab-button")).toHaveLength(3);
 
         mainUiGlobal.showFitData?.(null);
@@ -306,10 +305,17 @@ describe("main-ui.js - UI Controller and State Management", () => {
         const targetContainer = createElement("div", { id: "chart-target" });
         mainUiGlobal.renderChartJS?.(targetContainer);
         expect(mocks.renderChartJS).toHaveBeenCalledWith(targetContainer);
+
+        const cleanupTarget = createElement("button");
+        const cleanupListener = vi.fn<() => void>();
+        addEventListenerWithCleanup(cleanupTarget, "click", cleanupListener);
+        mainUiGlobal.cleanupEventListeners?.();
+        cleanupTarget.click();
+        expect(cleanupListener).not.toHaveBeenCalled();
     });
 
     it("initializes UI side effects when loaded", async () => {
-        expect.assertions(17);
+        expect.assertions(15);
 
         const onIpc =
             vi.fn<NonNullable<MainUiTestGlobal["electronAPI"]>["onIpc"]>();
@@ -346,12 +352,10 @@ describe("main-ui.js - UI Controller and State Management", () => {
         expect(externalLinkOptions).toMatchObject({
             cleanupExternalLinkHandlers: null,
         });
-        expect(externalLinkOptions?.setCleanup).toBeInstanceOf(Function);
 
         expect(resourceManagerMock.addShutdownHook).toHaveBeenCalledOnce();
         const [shutdownHook] =
             resourceManagerMock.addShutdownHook.mock.calls[0] ?? [];
-        expect(shutdownHook).toBeInstanceOf(Function);
 
         const cleanupExternalLinks = vi.fn<() => void>();
         externalLinkOptions?.setCleanup(cleanupExternalLinks);
@@ -362,7 +366,7 @@ describe("main-ui.js - UI Controller and State Management", () => {
         expect(dragDropHandlerMock).toHaveBeenCalledOnce();
         const dragDropInstance = dragDropHandlerMock.mock.results[0]?.value;
         expect(getMainUiTestGlobal().dragDropHandler).toBe(dragDropInstance);
-        expect(dragDropInstance.dispose).toBeInstanceOf(Function);
+        expect(dragDropInstance.dispose).toBe(mocks.dragDropDispose);
         expect(onIpc).toHaveBeenCalledWith(
             "unload-fit-file",
             expect.any(Function)
