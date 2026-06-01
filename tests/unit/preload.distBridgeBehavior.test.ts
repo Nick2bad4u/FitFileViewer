@@ -299,10 +299,9 @@ describe("preload.js dist bridge behavior", () => {
 
             const mockProcess = createMockProcess({ NODE_ENV: "test" });
 
-            // Should not have been called since contextBridge is undefined
-            expect(() =>
-                runPreloadScript(mockRequire, mockProcess, console)
-            ).not.toThrow();
+            const result = runPreloadScript(mockRequire, mockProcess, console);
+
+            expect(result).toBeUndefined();
             expect({
                 exposedAPI,
                 hasContextBridge: mockContextBridge !== undefined,
@@ -705,7 +704,9 @@ describe("preload.js dist bridge behavior", () => {
         it("checkForUpdates should send correct event", () => {
             expect.assertions(2);
 
-            expect(() => exposedAPI.checkForUpdates()).not.toThrow();
+            const result = exposedAPI.checkForUpdates();
+
+            expect(result).toBeUndefined();
             expect(mockIpcRenderer.send).toHaveBeenCalledWith(
                 "menu-check-for-updates"
             );
@@ -714,7 +715,9 @@ describe("preload.js dist bridge behavior", () => {
         it("installUpdate should send correct event", () => {
             expect.assertions(2);
 
-            expect(() => exposedAPI.installUpdate()).not.toThrow();
+            const result = exposedAPI.installUpdate();
+
+            expect(result).toBeUndefined();
             expect(mockIpcRenderer.send).toHaveBeenCalledWith("install-update");
         });
 
@@ -722,7 +725,9 @@ describe("preload.js dist bridge behavior", () => {
             expect.assertions(2);
             const theme = "dark";
 
-            expect(() => exposedAPI.sendThemeChanged(theme)).not.toThrow();
+            const result = exposedAPI.sendThemeChanged(theme);
+
+            expect(result).toBeUndefined();
             expect(mockIpcRenderer.send).toHaveBeenCalledWith(
                 "theme-changed",
                 theme
@@ -733,7 +738,9 @@ describe("preload.js dist bridge behavior", () => {
             expect.assertions(2);
             const flag = true;
 
-            expect(() => exposedAPI.setFullScreen(flag)).not.toThrow();
+            const result = exposedAPI.setFullScreen(flag);
+
+            expect(result).toBeUndefined();
             expect(mockIpcRenderer.send).toHaveBeenCalledWith(
                 "set-fullscreen",
                 flag
@@ -747,7 +754,9 @@ describe("preload.js dist bridge behavior", () => {
                 throw error;
             });
 
-            expect(() => exposedAPI.checkForUpdates()).not.toThrow();
+            const result = exposedAPI.checkForUpdates();
+
+            expect(result).toBeUndefined();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] Error in checkForUpdates:",
                 error
@@ -882,14 +891,18 @@ describe("preload.js dist bridge behavior", () => {
             const channel = "test-channel";
             const args = ["arg1", "arg2"];
 
-            expect(() => exposedAPI.send(channel, ...args)).not.toThrow();
+            const result = exposedAPI.send(channel, ...args);
+
+            expect(result).toBeUndefined();
             expect(mockIpcRenderer.send).toHaveBeenCalledWith(channel, ...args);
         });
 
         it("send should reject invalid channels", () => {
             expect.assertions(3);
 
-            expect(() => exposedAPI.send(123)).not.toThrow();
+            const result = exposedAPI.send(123);
+
+            expect(result).toBeUndefined();
             expect(mockIpcRenderer.send).not.toHaveBeenCalled();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] send: channel must be a string"
@@ -982,7 +995,9 @@ describe("preload.js dist bridge behavior", () => {
                 throw error;
             });
 
-            expect(() => exposedAPI.checkForUpdates()).not.toThrow();
+            const result = exposedAPI.checkForUpdates();
+
+            expect(result).toBeUndefined();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] Error in checkForUpdates:",
                 error
@@ -1069,7 +1084,9 @@ describe("preload.js dist bridge behavior", () => {
         it("should validate channel in send method", () => {
             expect.assertions(3);
 
-            expect(() => exposedAPI.send(123)).not.toThrow();
+            const result = exposedAPI.send(123);
+
+            expect(result).toBeUndefined();
             expect(mockIpcRenderer.send).not.toHaveBeenCalled();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] send: channel must be a string"
@@ -1129,7 +1146,9 @@ describe("preload.js dist bridge behavior", () => {
 
             const registeredCallback = mockIpcRenderer.on.mock.calls[0][1];
 
-            expect(() => registeredCallback({}, "test-data")).not.toThrow();
+            const result = registeredCallback({}, "test-data");
+
+            expect(result).toBeUndefined();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] Error in onMenuOpenFile callback:",
                 expect.any(Error)
@@ -1146,9 +1165,9 @@ describe("preload.js dist bridge behavior", () => {
             const registeredCallback = mockIpcRenderer.on.mock.calls[0][1];
             const event = {};
 
-            expect(() =>
-                registeredCallback(event, "test-file-path")
-            ).not.toThrow();
+            const result = registeredCallback(event, "test-file-path");
+
+            expect(result).toBeUndefined();
             expect(callback).toHaveBeenCalledWith("test-file-path");
             expect(callback).not.toHaveBeenCalledWith(event, "test-file-path");
         });
@@ -1163,7 +1182,9 @@ describe("preload.js dist bridge behavior", () => {
 
             const registeredCallback = mockIpcRenderer.on.mock.calls[0][1];
 
-            expect(() => registeredCallback({}, "test-data")).not.toThrow();
+            const result = registeredCallback({}, "test-data");
+
+            expect(result).toBeUndefined();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] Error in onUpdateEvent(test-event) callback:",
                 expect.any(Error)
@@ -1186,9 +1207,9 @@ describe("preload.js dist bridge behavior", () => {
                 })
             );
 
-            expect(() =>
-                runPreloadScript(mockRequire, mockProcess, console)
-            ).not.toThrow();
+            const result = runPreloadScript(mockRequire, mockProcess, console);
+
+            expect(result).toBeUndefined();
             expect(mockProcess.once).toHaveBeenCalledWith(
                 "beforeExit",
                 expect.any(Function)
@@ -1275,16 +1296,21 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("should handle contextBridge exposure failures", () => {
-            expect.assertions(3);
+            expect.assertions(4);
             mockContextBridge.exposeInMainWorld.mockImplementation(() => {
                 throw new Error("Exposure failed");
             });
 
-            expect(() => executePreloadScript()).not.toThrow();
+            const { mockProcess } = executePreloadScript();
 
+            expect(exposedAPI).toBeUndefined();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] Failed to expose electronAPI:",
                 expect.any(Error)
+            );
+            expect(mockProcess.once).toHaveBeenCalledWith(
+                "beforeExit",
+                expect.any(Function)
             );
             expect(consoleSpy.log).not.toHaveBeenCalledWith(
                 "[preload.js] Successfully exposed electronAPI to main world"
@@ -1292,7 +1318,7 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("should handle development tools exposure failures in development", () => {
-            expect.assertions(3);
+            expect.assertions(4);
             mockContextBridge.exposeInMainWorld.mockImplementation(
                 (name: string) => {
                     if (name === developmentToolsGlobalName) {
@@ -1301,10 +1327,13 @@ describe("preload.js dist bridge behavior", () => {
                 }
             );
 
-            expect(() =>
-                executePreloadScript({ NODE_ENV: "development" })
-            ).not.toThrow();
+            executePreloadScript({ NODE_ENV: "development" });
 
+            expect(exposedDevTools).toBeUndefined();
+            expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith(
+                developmentToolsGlobalName,
+                expect.any(Object)
+            );
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] Failed to expose development tools:",
                 expect.any(Error)
