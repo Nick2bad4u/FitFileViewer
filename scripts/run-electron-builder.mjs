@@ -42,6 +42,10 @@ export function parseArgs(argv) {
 
         if (arg.startsWith("--node-env=")) {
             nodeEnv = arg.slice("--node-env=".length);
+            if (!nodeEnv) {
+                throw new Error("--node-env must not be empty");
+            }
+
             continue;
         }
 

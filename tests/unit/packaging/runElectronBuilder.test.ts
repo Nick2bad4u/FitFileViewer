@@ -35,7 +35,7 @@ async function importRunElectronBuilder(): Promise<RunElectronBuilderModule> {
 
 describe("run-electron-builder script", () => {
     it("builds electron-builder args from root-owned workspace metadata", async () => {
-        expect.assertions(3);
+        expect.assertions(2);
 
         const { electronBuilderBaseArgs, parseArgs } =
             await importRunElectronBuilder();
@@ -56,8 +56,21 @@ describe("run-electron-builder script", () => {
             builderArgs: ["--dir"],
             nodeEnv: "production",
         });
+    });
+
+    it("rejects invalid node environment arguments", async () => {
+        expect.assertions(3);
+
+        const { parseArgs } = await importRunElectronBuilder();
+
         expect(() => parseArgs(["--node-env"])).toThrow(
             "--node-env requires a value"
+        );
+        expect(() => parseArgs(["--node-env", "--dir"])).toThrow(
+            "--node-env requires a value"
+        );
+        expect(() => parseArgs(["--node-env="])).toThrow(
+            "--node-env must not be empty"
         );
     });
 
