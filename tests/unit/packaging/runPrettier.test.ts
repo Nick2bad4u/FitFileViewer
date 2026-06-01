@@ -40,34 +40,50 @@ describe("run-prettier wrapper", () => {
     it("keeps root-owned formatting targets for app and workspace metadata", () => {
         expect.assertions(2);
 
-        const requiredTargets = [
+        const expectedTargets = [
             rootPackageJsonPath,
             docusaurusPackageRepositoryPath,
-            rootPrettierConfigPath,
-            rootEslintConfigPath,
-            rootStylelintConfigPath,
+            "docusaurus/docusaurus.config.ts",
+            "docusaurus/sidebars.ts",
+            "docusaurus/tsconfig.json",
             rootTypedocConfigPath,
+            ".markdown-link-check.json",
+            ".markdownlint.json",
+            ".ncurc.json",
+            ".pre-commit-config.yaml",
+            ".secretlintrc.cjs",
+            "cliff.toml",
+            "cspell.json",
             rootElectronBuilderConfigPath,
-            rootElectronAppBaseTsconfigPath,
-            rootElectronAppEslintTsconfigPath,
-            rootElectronAppTsconfigPath,
-            rootEslintTsconfigPath,
-            rootRuntimeTsconfigPath,
-            rootDocusaurusTsconfigPath,
+            "mermaid.config.json",
+            rootPrettierConfigPath,
+            rootStylelintConfigPath,
+            ".remarkrc.mjs",
+            rootEslintConfigPath,
             rootPlaywrightConfigPath,
             rootViteRendererConfigPath,
             rootVitestConfigPath,
+            rootEslintTsconfigPath,
+            rootElectronAppBaseTsconfigPath,
+            rootElectronAppTsconfigPath,
+            rootRuntimeTsconfigPath,
+            rootDocusaurusTsconfigPath,
             rootVitestTypecheckTsconfigPath,
-            appLeafletMeasureLitePath,
-            ".pre-commit-config.yaml",
+            rootElectronAppEslintTsconfigPath,
+            "*.yml",
+            "*.yaml",
+            ".github/*.yml",
+            ".github/workflows/*.yml",
             "scripts/*.mjs",
             "tests/fixtures/**/*.{js,ts}",
             "tests/integration/**/*.ts",
+            "tests/unit/**/*.ts",
+            "tests/playwright/**/*.ts",
+            "tests/vitest/**/*.{cjs,mjs,ts}",
+            appLeafletMeasureLitePath,
         ];
 
-        expect(prettierTargets).toEqual(
-            expect.arrayContaining(requiredTargets)
-        );
+        expect(prettierTargets).toStrictEqual(expectedTargets);
         expect(
             prettierTargets.filter(
                 (target) => target === "electron-app/*.config.*"
@@ -76,24 +92,29 @@ describe("run-prettier wrapper", () => {
     });
 
     it("builds default check arguments with cached formatting options", () => {
-        expect.assertions(4);
+        expect.assertions(2);
 
         const args = buildPrettierArgs([]);
 
         expect(args[0]).toMatch(/[\\/]prettier[\\/]bin[\\/]prettier\.cjs$/u);
-        expect(args).toContain(rootPackageJsonPath);
-        expect(args).toEqual(expect.arrayContaining(prettierOptions));
-        expect(args.at(-1)).toBe("--check");
+        expect(args.slice(1)).toStrictEqual([
+            ...prettierTargets,
+            ...prettierOptions,
+            "--check",
+        ]);
     });
 
     it("uses explicit targets without adding the default target list", () => {
-        expect.assertions(3);
+        expect.assertions(2);
 
         const args = buildPrettierArgs(["--write", "scripts/run-prettier.mjs"]);
 
-        expect(args).toContain("scripts/run-prettier.mjs");
-        expect(args).not.toContain(rootPackageJsonPath);
-        expect(args.at(-1)).toBe("--write");
+        expect(args[0]).toMatch(/[\\/]prettier[\\/]bin[\\/]prettier\.cjs$/u);
+        expect(args.slice(1)).toStrictEqual([
+            "scripts/run-prettier.mjs",
+            ...prettierOptions,
+            "--write",
+        ]);
     });
 
     it("rejects invalid modes", () => {
@@ -105,7 +126,7 @@ describe("run-prettier wrapper", () => {
     });
 
     it("runs Prettier from the repository root", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const commandRunner = vi
             .fn<CommandRunner>()
@@ -123,11 +144,7 @@ describe("run-prettier wrapper", () => {
         expect({
             command,
             exitStatus,
-            mode: args?.at(-1),
-            prettierCliPath: args?.[0],
-            targetSample: {
-                rootPackage: args?.find((arg) => arg === rootPackageJsonPath),
-            },
+            args: args?.slice(1),
             options: {
                 ...options,
                 cwd: path.resolve(options?.cwd ?? ""),
@@ -135,17 +152,16 @@ describe("run-prettier wrapper", () => {
         }).toStrictEqual({
             command: process.execPath,
             exitStatus: 3,
-            mode: "--check",
-            prettierCliPath: expect.stringMatching(
-                /[\\/]prettier[\\/]bin[\\/]prettier\.cjs$/u
-            ),
-            targetSample: {
-                rootPackage: rootPackageJsonPath,
-            },
+            args: [
+                ...prettierTargets,
+                ...prettierOptions,
+                "--check",
+            ],
             options: {
                 cwd: path.resolve(process.cwd()),
                 stdio: "inherit",
             },
         });
+        expect(args?.[0]).toMatch(/[\\/]prettier[\\/]bin[\\/]prettier\.cjs$/u);
     });
 });
