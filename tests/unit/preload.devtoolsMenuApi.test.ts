@@ -68,7 +68,7 @@ describe("preload devtools menu API", () => {
 
         const result = await api.injectMenu("dark", "activity.fit");
 
-        expect(result ? "injected" : "skipped").toBe("injected");
+        expect(result).toBe(true);
         expect(invoke).toHaveBeenCalledWith(
             "devtools-inject-menu",
             "dark",
@@ -85,7 +85,7 @@ describe("preload devtools menu API", () => {
 
         const result = await api.injectMenu();
 
-        expect(result ? "injected" : "skipped").toBe("injected");
+        expect(result).toBe(true);
         expect(invoke).toHaveBeenCalledWith("devtools-inject-menu", null, null);
     });
 
@@ -97,14 +97,14 @@ describe("preload devtools menu API", () => {
         const invalidThemeResult = await api.injectMenu(123 as never, null);
         const invalidPathResult = await api.injectMenu("dark", 123 as never);
 
-        expect(invalidThemeResult ? "injected" : "skipped").toBe("skipped");
-        expect(invalidPathResult ? "injected" : "skipped").toBe("skipped");
+        expect(invalidThemeResult).toBe(false);
+        expect(invalidPathResult).toBe(false);
         expect(invoke).not.toHaveBeenCalled();
 
         invoke.mockResolvedValueOnce(false);
         const validCallResult = await api.injectMenu("dark", "activity.fit");
 
-        expect(validCallResult ? "injected" : "skipped").toBe("skipped");
+        expect(validCallResult).toBe(false);
     });
 
     it("logs IPC failures and resolves false", async () => {
@@ -115,7 +115,7 @@ describe("preload devtools menu API", () => {
 
         const result = await api.injectMenu("dark", null);
 
-        expect(result ? "injected" : "skipped").toBe("skipped");
+        expect(result).toBe(false);
         expect(preloadLog).toHaveBeenCalledWith(
             "error",
             "[preload.js] Error in injectMenu:",

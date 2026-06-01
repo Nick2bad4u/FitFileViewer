@@ -428,10 +428,10 @@ describe("renderChartJS.js state API", () => {
         it("should correctly detect hasData with various data states", () => {
             expect.hasAssertions();
 
-            expect((getChartStatus() as any).hasData).toBeNull();
+            expect(getChartStatus()).toMatchObject({ hasData: null });
 
             globalMockState.data.set("globalData", { recordMesgs: [{}] });
-            expect((getChartStatus() as any).hasData).toBe(true);
+            expect(getChartStatus()).toMatchObject({ hasData: true });
         });
     });
 
@@ -490,7 +490,7 @@ describe("chartActions object - State Actions", () => {
 
         chartActions.startRendering();
 
-        expect(chartState.isRendering).toBe(true);
+        expect(getChartStatus()).toMatchObject({ isRendering: true });
         expect(setState).toHaveBeenCalledWith("charts.isRendering", true, {
             silent: false,
             source: "chartActions.startRendering",
