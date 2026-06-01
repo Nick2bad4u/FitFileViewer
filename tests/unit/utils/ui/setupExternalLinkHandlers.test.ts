@@ -68,7 +68,10 @@ describe(setupExternalLinkHandlers, () => {
         expect(mocks.attachExternalLinkHandlers).toHaveBeenCalledOnce();
         const [attachOptions] = mocks.attachExternalLinkHandlers.mock
             .calls[0] as [AttachExternalLinkHandlersOptions];
-        expect(attachOptions).toMatchObject({ root: document });
+        expect(attachOptions).toStrictEqual({
+            onOpenExternalError: attachOptions.onOpenExternalError,
+            root: document,
+        });
         expect(attachOptions.onOpenExternalError).toBeTypeOf("function");
     });
 

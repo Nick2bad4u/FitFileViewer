@@ -145,18 +145,38 @@ describe(setupCreditsMarquee, () => {
         try {
             setupCreditsMarquee();
 
-            expect(addSpy).toHaveBeenCalledWith(
-                "resize",
-                expect.any(Function),
-                expect.objectContaining({ passive: true })
+            const addResizeCall = addSpy.mock.calls.find(
+                ([type]) => type === "resize"
             );
+            const resizeHandler = addResizeCall?.[1];
+            const resizeOptions = addResizeCall?.[2];
+            const resizeSignal =
+                resizeOptions instanceof Object && "signal" in resizeOptions
+                    ? resizeOptions.signal
+                    : null;
+            expect({
+                handlerType: typeof resizeHandler,
+                options:
+                    resizeOptions instanceof Object
+                        ? {
+                              passive: resizeOptions.passive,
+                              signalIsAbortSignal:
+                                  resizeSignal instanceof AbortSignal,
+                          }
+                        : resizeOptions,
+                type: addResizeCall?.[0],
+            }).toStrictEqual({
+                handlerType: "function",
+                options: {
+                    passive: true,
+                    signalIsAbortSignal: true,
+                },
+                type: "resize",
+            });
 
             teardownCreditsMarquee();
 
-            expect(removeSpy).toHaveBeenCalledWith(
-                "resize",
-                expect.any(Function)
-            );
+            expect(removeSpy).toHaveBeenCalledWith("resize", resizeHandler);
             expect(MockResizeObserver.instances).toHaveLength(0);
         } finally {
             globalThis.ResizeObserver = originalResizeObserver;

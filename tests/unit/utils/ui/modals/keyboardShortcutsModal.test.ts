@@ -277,9 +277,7 @@ describe("keyboardShortcutsModal", () => {
         });
         link.dispatchEvent(clickEvent);
 
-        expect(openExternal).toHaveBeenCalledWith(
-            expect.stringMatching(/^https:\/\/example\.com\/?$/)
-        );
-        expect(clickEvent).toMatchObject({ defaultPrevented: true });
+        expect(openExternal).toHaveBeenCalledWith("https://example.com");
+        expect(clickEvent.defaultPrevented).toBe(true);
     });
 });

@@ -145,7 +145,11 @@ describe("menu keyboard shortcuts IPC listener", () => {
             }).toStrictEqual({
                 categoryCount: 3,
                 legacyScriptCount: 0,
-                modalClasses: expect.arrayContaining(["show"]),
+                modalClasses: [
+                    "modal",
+                    "fancy-modal",
+                    "show",
+                ],
                 modalDisplay: "flex",
             });
             expect(getTestGlobal().showKeyboardShortcutsModal).toBeTypeOf(
