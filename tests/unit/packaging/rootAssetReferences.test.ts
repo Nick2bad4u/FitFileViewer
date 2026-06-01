@@ -27,6 +27,12 @@ function getDirectoryFileNames(relativePath: string): string[] {
         .sort();
 }
 
+function getRepositoryReferences(searchPaths: string[]): string {
+    return searchPaths
+        .map((relativePath) => readRepositoryFile(relativePath))
+        .join("\n");
+}
+
 function getHtmlRelativeAssetReferences(relativePath: string): string[] {
     const html = readRepositoryFile(relativePath);
     const references = [...html.matchAll(/\b(?:href|src)="([^"#:]+)"/gu)].map(
@@ -309,9 +315,21 @@ describe("root app shell asset references", () => {
     });
 
     it("keeps root static icons limited to packaged and shell-referenced assets", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
-        expect(getDirectoryFileNames("static/icons")).toStrictEqual([
+        const iconNames = getDirectoryFileNames("static/icons");
+        const iconReferenceSources = getRepositoryReferences([
+            "package.json",
+            "electron-builder.config.cjs",
+            "flatpak-build.yml",
+            "static/app/index.html",
+            "static/ffv/index.html",
+            "static/ffv/manifest.json",
+            "static/icons/site.webmanifest",
+            "docs/APPLICATION_LAYOUT.md",
+        ]);
+
+        expect(iconNames).toStrictEqual([
             "apple-touch-icon.png",
             "favicon-256x256.ico",
             "favicon-256x256.png",
@@ -325,5 +343,12 @@ describe("root app shell asset references", () => {
             "web-app-manifest-192x192.png",
             "web-app-manifest-512x512.png",
         ]);
+        expect(
+            iconNames.filter(
+                (iconName) =>
+                    iconName !== "harry.png" &&
+                    !iconReferenceSources.includes(iconName)
+            )
+        ).toStrictEqual([]);
     });
 });
