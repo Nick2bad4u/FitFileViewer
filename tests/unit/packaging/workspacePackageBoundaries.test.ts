@@ -88,6 +88,22 @@ describe("workspace package boundaries", () => {
         );
     });
 
+    it("keeps root package scripts from delegating Electron app work to a nested package", () => {
+        expect.assertions(1);
+
+        const rootPackage = readPackageJson("package.json");
+        const nestedElectronScriptPattern =
+            /(?:^|\s)(?:cd\s+electron-app|npm\s+(?:--prefix\s+electron-app|(?:run\s+)?-w\s+electron-app|(?:run\s+)?--workspace\s+electron-app))/u;
+
+        expect(
+            Object.entries(rootPackage.scripts ?? {})
+                .filter(([, script]) =>
+                    nestedElectronScriptPattern.test(script)
+                )
+                .map(([scriptName, script]) => `${scriptName}: ${script}`)
+        ).toStrictEqual([]);
+    });
+
     it("keeps the root app package as the runtime app manifest", () => {
         expect.assertions(13);
 
