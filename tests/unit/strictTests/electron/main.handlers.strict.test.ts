@@ -349,14 +349,18 @@ describe("main.js strict handlers and events", () => {
         );
 
         // IPC handler registration happened
-        expect(mockIpcMain.handle).toHaveBeenCalledWith(
-            "dialog:openFile",
-            expect.any(Function)
-        );
-        expect(mockIpcMain.on).toHaveBeenCalledWith(
-            "menu-check-for-updates",
-            expect.any(Function)
-        );
+        expect(
+            mockIpcMain.handle.mock.calls.map(([channel, handler]) => [
+                channel,
+                typeof handler,
+            ])
+        ).toContainEqual(["dialog:openFile", "function"]);
+        expect(
+            mockIpcMain.on.mock.calls.map(([channel, handler]) => [
+                channel,
+                typeof handler,
+            ])
+        ).toContainEqual(["menu-check-for-updates", "function"]);
     });
 
     it("handles dialog:openFile flow and recentFiles handlers", async () => {
@@ -567,10 +571,12 @@ describe("main.js strict handlers and events", () => {
             setWindowOpenHandler: vi.fn<(handler: EventHandler) => void>(),
         };
         appOnCall?.[1]({}, contents);
-        expect(contents.on).toHaveBeenCalledWith(
-            "will-navigate",
-            expect.any(Function)
-        );
+        expect(
+            contents.on.mock.calls.map(([eventName, handler]) => [
+                eventName,
+                typeof handler,
+            ])
+        ).toContainEqual(["will-navigate", "function"]);
         const willNavigateCall = contents.on.mock.calls.find(
             (c: any[]) => c[0] === "will-navigate"
         );
@@ -578,9 +584,11 @@ describe("main.js strict handlers and events", () => {
         const ev = { preventDefault: vi.fn<() => void>() } as any;
         willNavigateCall?.[1](ev, "https://malicious.example.com");
         expect(ev.preventDefault).toHaveBeenCalledOnce();
-        expect(contents.setWindowOpenHandler).toHaveBeenCalledWith(
-            expect.any(Function)
-        );
+        expect(
+            contents.setWindowOpenHandler.mock.calls.map(([handler]) => [
+                typeof handler,
+            ])
+        ).toContainEqual(["function"]);
         const windowOpenHandler =
             contents.setWindowOpenHandler.mock.calls[0][0];
         expect(windowOpenHandler({ url: "https://bad.example.com" })).toEqual({
