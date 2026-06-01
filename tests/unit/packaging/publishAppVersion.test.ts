@@ -59,6 +59,7 @@ type PublishAppVersionModule = {
 };
 
 type WorkspacesModule = {
+    rootPackageLockPath: string;
     rootPackageRepositoryPath: string;
 };
 
@@ -88,11 +89,12 @@ describe("publish-app-version script", () => {
         expect.assertions(1);
 
         const { defaultVersionFiles } = await importPublishAppVersion();
-        const { rootPackageRepositoryPath } = await importWorkspaces();
+        const { rootPackageLockPath, rootPackageRepositoryPath } =
+            await importWorkspaces();
 
         expect(defaultVersionFiles).toStrictEqual([
             rootPackageRepositoryPath,
-            "package-lock.json",
+            rootPackageLockPath,
         ]);
     });
 
@@ -100,7 +102,8 @@ describe("publish-app-version script", () => {
         expect.assertions(1);
 
         const { createPublishCommands } = await importPublishAppVersion();
-        const { rootPackageRepositoryPath } = await importWorkspaces();
+        const { rootPackageLockPath, rootPackageRepositoryPath } =
+            await importWorkspaces();
 
         expect(
             createPublishCommands({ branch: "main", version: "30.0.0" })
@@ -125,7 +128,7 @@ describe("publish-app-version script", () => {
                 args: [
                     "add",
                     rootPackageRepositoryPath,
-                    "package-lock.json",
+                    rootPackageLockPath,
                 ],
                 command: "git",
             },

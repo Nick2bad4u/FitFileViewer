@@ -6,12 +6,13 @@ import { pathToFileURL } from "node:url";
 import { readInlineOptionValue, readOptionValue } from "./lib/cli-options.mjs";
 import {
     repositoryRoot as defaultRepositoryRoot,
+    rootPackageLockPath,
     rootPackageRepositoryPath,
 } from "./lib/workspaces.mjs";
 
 export const defaultVersionFiles = [
     rootPackageRepositoryPath,
-    "package-lock.json",
+    rootPackageLockPath,
 ];
 export const githubActionsBot = {
     email: "41898282+github-actions[bot]@users.noreply.github.com",

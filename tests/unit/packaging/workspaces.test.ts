@@ -83,6 +83,7 @@ type WorkspacesModule = {
     rootFlatpakRepoPath: string;
     rootFlatpakZipPath: string;
     rootPackageJsonPath: string;
+    rootPackageLockPath: string;
     rootPackagePath: string;
     rootPackageRepositoryPath: string;
     rootPlaywrightConfigPath: string;
@@ -280,11 +281,12 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes root config paths", async () => {
-        expect.assertions(18);
+        expect.assertions(19);
 
         const workspaces = await importWorkspaces();
 
         expect(workspaces.rootPackageJsonPath).toBe("package.json");
+        expect(workspaces.rootPackageLockPath).toBe("package-lock.json");
         expect(workspaces.rootElectronBuilderConfigPath).toBe(
             "electron-builder.config.cjs"
         );

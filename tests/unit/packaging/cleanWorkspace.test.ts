@@ -21,6 +21,7 @@ import {
     rootFlatpakBundlePath,
     rootFlatpakRepoPath,
     rootFlatpakZipPath,
+    rootPackageLockPath,
     rootReleaseDistPath,
 } from "../../../scripts/lib/workspaces.mjs";
 
@@ -148,7 +149,7 @@ describe("clean-workspace script", () => {
                     ".vscode/mcp.json",
                     "docusaurus/node_modules",
                     "node_modules",
-                    "package-lock.json",
+                    rootPackageLockPath,
                 ].includes(target)
             )
         ).toStrictEqual([]);
