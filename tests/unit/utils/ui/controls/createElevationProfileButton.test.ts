@@ -85,7 +85,7 @@ describe(createElevationProfileButton, () => {
     });
 
     it("should create a button with correct properties", () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         // Create the button
         const button = createElevationProfileButton();
@@ -99,7 +99,7 @@ describe(createElevationProfileButton, () => {
     });
 
     it("should open a window with no files when clicked and no fit files are loaded", () => {
-        expect.hasAssertions();
+        expect.assertions(8);
 
         // Create the button and click it
         const button = createElevationProfileButton();
@@ -126,7 +126,7 @@ describe(createElevationProfileButton, () => {
     });
 
     it("should handle loadedFitFiles when available", () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         // Mock window.loadedFitFiles with test data
         (window as any).loadedFitFiles = [
@@ -162,7 +162,7 @@ describe(createElevationProfileButton, () => {
     });
 
     it("should handle globalData when no loadedFitFiles available", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         // Mock window.globalData with test data
         (window as any).globalData = {
@@ -191,7 +191,7 @@ describe(createElevationProfileButton, () => {
     });
 
     it("should handle globalData without recordMesgs", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         // Mock window.globalData without recordMesgs array
         (window as any).globalData = {
@@ -215,7 +215,7 @@ describe(createElevationProfileButton, () => {
     });
 
     it("should handle popup window being blocked", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         // Make window.open return null to simulate blocked popup
         openSpy.mockReturnValueOnce(null);
@@ -232,7 +232,7 @@ describe(createElevationProfileButton, () => {
     });
 
     it("should adapt to dark theme", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         // Set dark theme
         document.body.classList.add("theme-dark");
@@ -253,7 +253,7 @@ describe(createElevationProfileButton, () => {
     });
 
     it("should handle files without altitude data", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         // Mock window.loadedFitFiles with a file that has no altitude data
         (window as any).loadedFitFiles = [
@@ -279,7 +279,7 @@ describe(createElevationProfileButton, () => {
     });
 
     it("should use chartOverlayColorPalette from window.opener when available", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         // Mock window.loadedFitFiles with test data
         (window as any).loadedFitFiles = [
@@ -320,7 +320,7 @@ describe(createElevationProfileButton, () => {
     });
 
     it("should handle a mix of files with and without altitude data", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         // Mock window.loadedFitFiles with mix of files with and without altitude data
         (window as any).loadedFitFiles = [
