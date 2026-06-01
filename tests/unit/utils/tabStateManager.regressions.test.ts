@@ -149,7 +149,7 @@ describe("tabStateManager regressions", () => {
 
     describe("cleanup behavior", () => {
         it("should expose an idempotent cleanup method", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             expect(tabStateManager).toEqual(
                 expect.objectContaining({
@@ -173,7 +173,7 @@ describe("tabStateManager regressions", () => {
         });
 
         it("should unsubscribe tracked state listeners once across multiple cleanup calls", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             const unsubscribeActive = vi.fn<() => void>();
             const unsubscribeData = vi.fn<() => void>();
@@ -204,7 +204,7 @@ describe("tabStateManager regressions", () => {
 
     describe("state synchronization", () => {
         it("detects mismatched DOM and state active tabs", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const summaryBtn = document.getElementById("tab-summary");
 
@@ -230,7 +230,7 @@ describe("tabStateManager regressions", () => {
         });
 
         it("documents async handler failures that require awaiting", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             let asyncError = null;
 
@@ -265,7 +265,7 @@ describe("tabStateManager regressions", () => {
 
     describe("data validation edge cases", () => {
         it("treats malformed globalData as unavailable data", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const testCases = [
                 { recordMesgs: null },
@@ -306,7 +306,7 @@ describe("tabStateManager regressions", () => {
         });
 
         it("does not resolve configuration for invalid tab names", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             // Test with invalid tab name
             const invalidTabs = [
@@ -332,7 +332,7 @@ describe("tabStateManager regressions", () => {
 
     describe("dom manipulation security issues", () => {
         it("sets the AltFit iframe source when it is not loaded", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             document.body.append(
                 createElement("iframe", {
@@ -360,7 +360,7 @@ describe("tabStateManager regressions", () => {
         });
 
         it("moves background data content into the visible data container", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             setupContentMoveDom();
 
@@ -405,7 +405,7 @@ describe("tabStateManager regressions", () => {
 
     describe("performance and error handling", () => {
         it("keeps repeated tab DOM queries within a reasonable duration", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const performanceTest = () => {
                 const start = performance.now();
@@ -428,7 +428,7 @@ describe("tabStateManager regressions", () => {
         });
 
         it("documents async render failures that require awaiting", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             // Mock failing async functions
             vi.spyOn(window, "renderChartJS").mockRejectedValue(
@@ -459,7 +459,7 @@ describe("tabStateManager regressions", () => {
 
     describe("tab configuration validation", () => {
         it("validates tab configuration consistency", () => {
-            expect.hasAssertions();
+            expect.assertions(64);
 
             // Check for missing or invalid configurations
             const requiredProps = [
@@ -486,7 +486,7 @@ describe("tabStateManager regressions", () => {
         });
 
         it("documents duplicate chart handler assignments", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const handlers = Object.values(TAB_CONFIG)
                 .filter((config) => config.handler)
@@ -512,7 +512,7 @@ describe("tabStateManager regressions", () => {
 
     describe("integration issues", () => {
         it("keeps subscription callbacks bounded during recursive state updates", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             let recursionCount = 0;
             const maxRecursion = 3;
@@ -532,7 +532,7 @@ describe("tabStateManager regressions", () => {
         });
 
         it("reports invalid state when active tab has no configuration", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             // Test with state that doesn't match DOM
             mockGetState.mockReturnValue("nonexistent-tab");
