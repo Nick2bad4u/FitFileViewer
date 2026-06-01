@@ -141,9 +141,9 @@ describe("network utilities", () => {
         expect(init?.signal).toBeInstanceOf(AbortSignal);
         expect(init?.signal).toHaveProperty("aborted", false);
 
-        expect(timeoutSpy).toHaveBeenCalledWith(expect.any(Function), 100);
         const timeoutCall = timeoutSpy.mock.calls[0] as TimeoutCall;
-        const [timeoutHandler] = timeoutCall;
+        const [timeoutHandler, timeoutMs] = timeoutCall;
+        expect(timeoutMs).toBe(100);
         expect(timeoutHandler).toBeTypeOf("function");
         expect(clearSpy).toHaveBeenCalledWith(expect.anything());
     });
