@@ -14,86 +14,89 @@
  * - Export functionality testing
  *
  * TARGET COVERAGE IMPROVEMENT: 52.69% → 80%+ (27+ percentage point improvement)
- *
- * @file Comprehensive test suite for renderChartJS.js with Module Cache
- *   Injection
  */
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+type MockFn = (...args: unknown[]) => unknown;
+type VoidFn = (...args: unknown[]) => void;
+
 // Stable ESM mock for theme module before SUT import to avoid SSR init order issues
-vi.mock("../../../../../electron-app/utils/theming/core/theme.js", () => {
-    const getThemeConfig = vi.fn().mockReturnValue({
-        colors: {
-            text: "#000000",
-            textPrimary: "#333333",
-            backgroundAlt: "#f5f5f5",
-            border: "#cccccc",
-            error: "#ff0000",
-            primary: "#0066cc",
-            primaryAlpha: "rgba(0, 102, 204, 0.5)",
-        },
-        isDark: false,
-        isLight: true,
-        theme: "light",
-    });
-    return {
-        THEME_MODES: { AUTO: "auto", DARK: "dark", LIGHT: "light" },
-        applyTheme: vi.fn(),
-        getEffectiveTheme: vi.fn().mockReturnValue("light"),
-        getThemeConfig,
-        initializeTheme: vi.fn(),
-        listenForSystemThemeChange: vi.fn(),
-        listenForThemeChange: vi.fn(),
-        loadTheme: vi.fn().mockReturnValue("light"),
-        toggleTheme: vi.fn(),
-        default: { getThemeConfig },
-    };
-});
+vi.mock(
+    import("../../../../../electron-app/utils/theming/core/theme.js"),
+    () => {
+        const getThemeConfig = vi.fn<MockFn>().mockReturnValue({
+            colors: {
+                text: "#000000",
+                textPrimary: "#333333",
+                backgroundAlt: "#f5f5f5",
+                border: "#cccccc",
+                error: "#ff0000",
+                primary: "#0066cc",
+                primaryAlpha: "rgba(0, 102, 204, 0.5)",
+            },
+            isDark: false,
+            isLight: true,
+            theme: "light",
+        });
+        return {
+            THEME_MODES: { AUTO: "auto", DARK: "dark", LIGHT: "light" },
+            applyTheme: vi.fn<MockFn>(),
+            getEffectiveTheme: vi.fn<MockFn>().mockReturnValue("light"),
+            getThemeConfig,
+            initializeTheme: vi.fn<MockFn>(),
+            listenForSystemThemeChange: vi.fn<MockFn>(),
+            listenForThemeChange: vi.fn<MockFn>(),
+            loadTheme: vi.fn<MockFn>().mockReturnValue("light"),
+            toggleTheme: vi.fn<MockFn>(),
+            default: { getThemeConfig },
+        };
+    }
+);
 
 // Mock chart theme listener to avoid importing chartStateManager -> renderChartJS cycle
 vi.mock(
-    "../../../../../electron-app/utils/charts/theming/chartThemeListener.js",
+    import("../../../../../electron-app/utils/charts/theming/chartThemeListener.js"),
     () => ({
-        setupChartThemeListener: vi.fn(),
-        forceUpdateChartTheme: vi.fn(),
-        removeChartThemeListener: vi.fn(),
+        setupChartThemeListener: vi.fn<VoidFn>(),
+        forceUpdateChartTheme: vi.fn<VoidFn>(),
+        removeChartThemeListener: vi.fn<VoidFn>(),
     })
 );
 
 // Mock theme utils detectCurrentTheme to a stable value
 vi.mock(
-    "../../../../../electron-app/utils/charts/theming/chartThemeUtils.js",
+    import("../../../../../electron-app/utils/charts/theming/chartThemeUtils.js"),
     () => ({
-        detectCurrentTheme: vi.fn().mockReturnValue("light"),
+        detectCurrentTheme: vi.fn<MockFn>().mockReturnValue("light"),
     })
 );
 
 // Mock ensureChartSettingsDropdowns to avoid importing createSettingsHeader -> chartStateManager -> renderChartJS cycle
 vi.mock(
-    "../../../../../electron-app/utils/ui/components/ensureChartSettingsDropdowns.js",
+    import("../../../../../electron-app/utils/ui/components/ensureChartSettingsDropdowns.js"),
     () => ({
-        ensureChartSettingsDropdowns: vi.fn(() => ({})),
+        ensureChartSettingsDropdowns: vi.fn<MockFn>(() => ({})),
     })
 );
 
 // Mock createUserDeviceInfoBox to avoid theme import execution in rendering paths
 vi.mock(
-    "../../../../../electron-app/utils/rendering/components/createUserDeviceInfoBox.js",
+    import("../../../../../electron-app/utils/rendering/components/createUserDeviceInfoBox.js"),
     () => ({
-        createUserDeviceInfoBox: vi.fn(),
+        createUserDeviceInfoBox: vi.fn<VoidFn>(),
     })
 );
 
 // Mock createEnhancedChart to avoid circular import with renderChartJS (hexToRgba)
 vi.mock(
-    "../../../../../electron-app/utils/charts/components/createEnhancedChart.js",
+    import("../../../../../electron-app/utils/charts/components/createEnhancedChart.js"),
     () => ({
-        createEnhancedChart: vi.fn().mockReturnValue({
-            destroy: vi.fn(),
-            update: vi.fn(),
+        createEnhancedChart: vi.fn<MockFn>().mockReturnValue({
+            destroy: vi.fn<MockFn>(),
+            update: vi.fn<MockFn>(),
             toBase64Image: vi
-                .fn()
+                .fn<MockFn>()
                 .mockReturnValue("data:image/png;base64,mockimage"),
         }),
     })
@@ -137,18 +140,20 @@ function injectChartJSMocks() {
     // Mock all 27+ dependencies used by renderChartJS.js
     const mocks = {
         // App initialization imports
-        loadSharedConfiguration: { default: vi.fn() },
+        loadSharedConfiguration: { default: vi.fn<VoidFn>() },
         AppActions: {
             AppActions: {
-                notifyChartRenderComplete: vi.fn(),
+                notifyChartRenderComplete: vi.fn<MockFn>(),
             },
         },
 
         // Data lookups and processing imports
-        getUnitSymbol: { getUnitSymbol: vi.fn().mockReturnValue("km/h") },
-        setupZoneData: { setupZoneData: vi.fn() },
+        getUnitSymbol: {
+            getUnitSymbol: vi.fn<MockFn>().mockReturnValue("km/h"),
+        },
+        setupZoneData: { setupZoneData: vi.fn<MockFn>() },
         convertValueToUserUnits: {
-            convertValueToUserUnits: vi.fn((value) => value),
+            convertValueToUserUnits: vi.fn<MockFn>((value) => value),
         },
         formatChartFields: {
             fieldLabels: { speed: "Speed", elevation: "Elevation" },
@@ -161,30 +166,30 @@ function injectChartJSMocks() {
         },
 
         // Rendering components
-        createUserDeviceInfoBox: { createUserDeviceInfoBox: vi.fn() },
+        createUserDeviceInfoBox: { createUserDeviceInfoBox: vi.fn<MockFn>() },
 
         // State management imports - comprehensive mocking
         computedStateManager: {
             computedStateManager: {
-                invalidateComputed: vi.fn(),
-                getComputedValue: vi.fn().mockReturnValue({}),
-                registerComputed: vi.fn(),
+                invalidateComputed: vi.fn<MockFn>(),
+                getComputedValue: vi.fn<MockFn>().mockReturnValue({}),
+                registerComputed: vi.fn<MockFn>(),
             },
         },
         stateManager: {
-            getState: vi.fn(),
-            setState: vi.fn(),
-            subscribe: vi.fn(() => () => {}),
-            updateState: vi.fn(),
+            getState: vi.fn<MockFn>(),
+            setState: vi.fn<MockFn>(),
+            subscribe: vi.fn<MockFn>(() => () => {}),
+            updateState: vi.fn<MockFn>(),
         },
         stateMiddleware: {
             middlewareManager: {
-                apply: vi.fn(),
-                addMiddleware: vi.fn(),
+                apply: vi.fn<MockFn>(),
+                addMiddleware: vi.fn<MockFn>(),
             },
         },
         settingsStateManager: {
-            getChartSettings: vi.fn().mockReturnValue({
+            getChartSettings: vi.fn<MockFn>().mockReturnValue({
                 animation: "normal",
                 chartType: "line",
                 colors: [],
@@ -198,15 +203,15 @@ function injectChartJSMocks() {
                 showTitle: true,
                 smoothing: 0.1,
             }),
-            getChartFieldVisibility: vi.fn().mockReturnValue("visible"),
+            getChartFieldVisibility: vi.fn<MockFn>().mockReturnValue("visible"),
             setChartFieldVisibility: vi
-                .fn()
+                .fn<MockFn>()
                 .mockImplementation((field, visibility) => ({
                     [field]: visibility,
                 })),
-            updateChartSettings: vi.fn(),
+            updateChartSettings: vi.fn<MockFn>(),
             settingsStateManager: {
-                getChartSettings: vi.fn().mockReturnValue({
+                getChartSettings: vi.fn<MockFn>().mockReturnValue({
                     animation: "normal",
                     chartType: "line",
                     colors: [],
@@ -220,18 +225,18 @@ function injectChartJSMocks() {
                     showTitle: true,
                     smoothing: 0.1,
                 }),
-                updateChartSettings: vi.fn(),
+                updateChartSettings: vi.fn<MockFn>(),
             },
         },
         uiStateManager: {
             uiStateManager: {
-                updatePanelVisibility: vi.fn(),
+                updatePanelVisibility: vi.fn<MockFn>(),
             },
         },
 
         // Theme management
         theme: {
-            getThemeConfig: vi.fn().mockReturnValue({
+            getThemeConfig: vi.fn<MockFn>().mockReturnValue({
                 colors: {
                     text: "#000000",
                     textPrimary: "#333333",
@@ -245,58 +250,60 @@ function injectChartJSMocks() {
         },
 
         // UI components
-        ensureChartSettingsDropdowns: { ensureChartSettingsDropdowns: vi.fn() },
+        ensureChartSettingsDropdowns: {
+            ensureChartSettingsDropdowns: vi.fn<MockFn>(),
+        },
 
         // Notifications
-        showNotification: { showNotification: vi.fn() },
-        showRenderNotification: { showRenderNotification: vi.fn() },
+        showNotification: { showNotification: vi.fn<MockFn>() },
+        showRenderNotification: { showRenderNotification: vi.fn<MockFn>() },
 
         // Chart components
         createChartCanvas: {
             createChartCanvas: vi
-                .fn()
+                .fn<MockFn>()
                 .mockReturnValue(document.createElement("canvas")),
         },
         createEnhancedChart: {
-            createEnhancedChart: vi.fn().mockReturnValue({
-                destroy: vi.fn(),
-                update: vi.fn(),
+            createEnhancedChart: vi.fn<MockFn>().mockReturnValue({
+                destroy: vi.fn<MockFn>(),
+                update: vi.fn<MockFn>(),
                 toBase64Image: vi
-                    .fn()
+                    .fn<MockFn>()
                     .mockReturnValue("data:image/png;base64,mockimage"),
             }),
         },
 
         // Chart plugins
         addChartHoverEffects: {
-            addChartHoverEffects: vi.fn(),
-            addHoverEffectsToExistingCharts: vi.fn(),
-            removeChartHoverEffects: vi.fn(),
+            addChartHoverEffects: vi.fn<MockFn>(),
+            addHoverEffectsToExistingCharts: vi.fn<MockFn>(),
+            removeChartHoverEffects: vi.fn<MockFn>(),
         },
         chartBackgroundColorPlugin: { chartBackgroundColorPlugin: {} },
 
         // Chart rendering modules
-        renderEventMessagesChart: { renderEventMessagesChart: vi.fn() },
-        renderGPSTrackChart: { renderGPSTrackChart: vi.fn() },
-        renderLapZoneCharts: { renderLapZoneCharts: vi.fn() },
+        renderEventMessagesChart: { renderEventMessagesChart: vi.fn<MockFn>() },
+        renderGPSTrackChart: { renderGPSTrackChart: vi.fn<MockFn>() },
+        renderLapZoneCharts: { renderLapZoneCharts: vi.fn<MockFn>() },
         renderPerformanceAnalysisCharts: {
-            renderPerformanceAnalysisCharts: vi.fn(),
+            renderPerformanceAnalysisCharts: vi.fn<MockFn>(),
         },
-        renderTimeInZoneCharts: { renderTimeInZoneCharts: vi.fn() },
+        renderTimeInZoneCharts: { renderTimeInZoneCharts: vi.fn<MockFn>() },
 
         // Chart theming
-        setupChartThemeListener: { setupChartThemeListener: vi.fn() },
+        setupChartThemeListener: { setupChartThemeListener: vi.fn<MockFn>() },
         detectCurrentTheme: {
-            detectCurrentTheme: vi.fn().mockReturnValue("light"),
+            detectCurrentTheme: vi.fn<MockFn>().mockReturnValue("light"),
         },
     };
 
     // Mock Chart.js and related global objects
     globalThis.Chart = {
-        register: vi.fn(),
+        register: vi.fn<MockFn>(),
         registry: {
             plugins: {
-                get: vi.fn().mockReturnValue(false),
+                get: vi.fn<MockFn>().mockReturnValue(false),
             },
         },
         Zoom: {},
@@ -306,45 +313,45 @@ function injectChartJSMocks() {
     globalThis.ChartZoom = {};
     globalThis._chartjsInstances = [];
     globalThis._fitFileViewerChartListener = false;
-    globalThis.JSZip = vi.fn();
+    vi.stubGlobal("JSZip", vi.fn<MockFn>());
     globalThis.showNotification = mocks.showNotification.showNotification;
     globalThis.uiStateManager = mocks.uiStateManager.uiStateManager;
 
     vi.doMock(
-        "../../../../../electron-app/utils/app/initialization/loadSharedConfiguration.js",
+        import("../../../../../electron-app/utils/app/initialization/loadSharedConfiguration.js"),
         () => ({
             default: mocks.loadSharedConfiguration.default,
             loadSharedConfiguration: mocks.loadSharedConfiguration.default,
         })
     );
     vi.doMock(
-        "../../../../../electron-app/utils/app/lifecycle/appActions.js",
+        import("../../../../../electron-app/utils/app/lifecycle/appActions.js"),
         () => ({
             AppActions: mocks.AppActions.AppActions,
         })
     );
     vi.doMock(
-        "../../../../../electron-app/utils/app/lifecycle/resourceManager.js",
+        import("../../../../../electron-app/utils/app/lifecycle/resourceManager.js"),
         () => ({
             resourceManager: {
-                registerChart: vi.fn(),
+                registerChart: vi.fn<VoidFn>(),
             },
         })
     );
     vi.doMock(
-        "../../../../../electron-app/utils/formatting/display/formatChartFields.js",
+        import("../../../../../electron-app/utils/formatting/display/formatChartFields.js"),
         () => mocks.formatChartFields
     );
     vi.doMock(
-        "../../../../../electron-app/utils/formatting/converters/convertValueToUserUnits.js",
+        import("../../../../../electron-app/utils/formatting/converters/convertValueToUserUnits.js"),
         () => mocks.convertValueToUserUnits
     );
     vi.doMock(
-        "../../../../../electron-app/utils/data/processing/setupZoneData.js",
+        import("../../../../../electron-app/utils/data/processing/setupZoneData.js"),
         () => mocks.setupZoneData
     );
     vi.doMock(
-        "../../../../../electron-app/utils/state/core/stateManager.js",
+        import("../../../../../electron-app/utils/state/core/stateManager.js"),
         () => ({
             getState: mocks.stateManager.getState,
             setState: mocks.stateManager.setState,
@@ -353,118 +360,118 @@ function injectChartJSMocks() {
         })
     );
     vi.doMock(
-        "../../../../../electron-app/utils/state/core/stateMiddleware.js",
+        import("../../../../../electron-app/utils/state/core/stateMiddleware.js"),
         () => ({
             middlewareManager: mocks.stateMiddleware.middlewareManager,
         })
     );
     vi.doMock(
-        "../../../../../electron-app/utils/state/core/computedStateManager.js",
+        import("../../../../../electron-app/utils/state/core/computedStateManager.js"),
         () => mocks.computedStateManager
     );
     vi.doMock(
-        "../../../../../electron-app/utils/state/domain/settingsStateManager.js",
+        import("../../../../../electron-app/utils/state/domain/settingsStateManager.js"),
         () => ({
             getChartFieldVisibility:
                 mocks.settingsStateManager.getChartFieldVisibility,
-            getChartSetting: vi.fn(),
+            getChartSetting: vi.fn<MockFn>(),
             getChartSettings: mocks.settingsStateManager.getChartSettings,
-            getUserChartSettings: vi.fn().mockReturnValue({}),
+            getUserChartSettings: vi.fn<MockFn>().mockReturnValue({}),
             setChartFieldVisibility:
                 mocks.settingsStateManager.setChartFieldVisibility,
-            setChartSetting: vi.fn(),
+            setChartSetting: vi.fn<MockFn>(),
             settingsStateManager: {
-                getSetting: vi.fn(),
-                setSetting: vi.fn(),
+                getSetting: vi.fn<MockFn>(),
+                setSetting: vi.fn<MockFn>(),
             },
             updateChartSettings: mocks.settingsStateManager.updateChartSettings,
         })
     );
     vi.doMock(
-        "../../../../../electron-app/utils/ui/notifications/showNotification.js",
+        import("../../../../../electron-app/utils/ui/notifications/showNotification.js"),
         () => mocks.showNotification
     );
     vi.doMock(
-        "../../../../../electron-app/utils/ui/notifications/showRenderNotification.js",
+        import("../../../../../electron-app/utils/ui/notifications/showRenderNotification.js"),
         () => mocks.showRenderNotification
     );
     vi.doMock(
-        "../../../../../electron-app/utils/charts/components/createChartCanvas.js",
+        import("../../../../../electron-app/utils/charts/components/createChartCanvas.js"),
         () => mocks.createChartCanvas
     );
     vi.doMock(
-        "../../../../../electron-app/utils/charts/components/createEnhancedChart.js",
+        import("../../../../../electron-app/utils/charts/components/createEnhancedChart.js"),
         () => mocks.createEnhancedChart
     );
     vi.doMock(
-        "../../../../../electron-app/utils/charts/plugins/addChartHoverEffects.js",
+        import("../../../../../electron-app/utils/charts/plugins/addChartHoverEffects.js"),
         () => mocks.addChartHoverEffects
     );
     vi.doMock(
-        "../../../../../electron-app/utils/charts/plugins/chartBackgroundColorPlugin.js",
+        import("../../../../../electron-app/utils/charts/plugins/chartBackgroundColorPlugin.js"),
         () => mocks.chartBackgroundColorPlugin
     );
     vi.doMock(
-        "../../../../../electron-app/utils/charts/plugins/chartLegendItemBoxPlugin.js",
+        import("../../../../../electron-app/utils/charts/plugins/chartLegendItemBoxPlugin.js"),
         () => ({
             chartLegendItemBoxPlugin: {},
         })
     );
     vi.doMock(
-        "../../../../../electron-app/utils/charts/rendering/renderEventMessagesChart.js",
+        import("../../../../../electron-app/utils/charts/rendering/renderEventMessagesChart.js"),
         () => mocks.renderEventMessagesChart
     );
     vi.doMock(
-        "../../../../../electron-app/utils/charts/rendering/renderGPSTrackChart.js",
+        import("../../../../../electron-app/utils/charts/rendering/renderGPSTrackChart.js"),
         () => mocks.renderGPSTrackChart
     );
     vi.doMock(
-        "../../../../../electron-app/utils/charts/rendering/renderGPSTimeChart.js",
+        import("../../../../../electron-app/utils/charts/rendering/renderGPSTimeChart.js"),
         () => ({
-            renderGPSTimeChart: vi.fn(),
+            renderGPSTimeChart: vi.fn<VoidFn>(),
         })
     );
     vi.doMock(
-        "../../../../../electron-app/utils/charts/rendering/renderLapZoneCharts.js",
+        import("../../../../../electron-app/utils/charts/rendering/renderLapZoneCharts.js"),
         () => mocks.renderLapZoneCharts
     );
     vi.doMock(
-        "../../../../../electron-app/utils/charts/rendering/renderPerformanceAnalysisCharts.js",
+        import("../../../../../electron-app/utils/charts/rendering/renderPerformanceAnalysisCharts.js"),
         () => mocks.renderPerformanceAnalysisCharts
     );
     vi.doMock(
-        "../../../../../electron-app/utils/charts/rendering/renderTimeInZoneCharts.js",
+        import("../../../../../electron-app/utils/charts/rendering/renderTimeInZoneCharts.js"),
         () => mocks.renderTimeInZoneCharts
     );
     vi.doMock(
-        "../../../../../electron-app/utils/theming/core/theme.js",
+        import("../../../../../electron-app/utils/theming/core/theme.js"),
         () => ({
             THEME_MODES: { AUTO: "auto", DARK: "dark", LIGHT: "light" },
-            applyTheme: vi.fn(),
+            applyTheme: vi.fn<MockFn>(),
             default: { getThemeConfig: mocks.theme.getThemeConfig },
-            getEffectiveTheme: vi.fn().mockReturnValue("light"),
+            getEffectiveTheme: vi.fn<MockFn>().mockReturnValue("light"),
             getThemeConfig: mocks.theme.getThemeConfig,
-            initializeTheme: vi.fn(),
-            listenForSystemThemeChange: vi.fn(),
-            listenForThemeChange: vi.fn(),
-            loadTheme: vi.fn().mockReturnValue("light"),
-            toggleTheme: vi.fn(),
+            initializeTheme: vi.fn<MockFn>(),
+            listenForSystemThemeChange: vi.fn<MockFn>(),
+            listenForThemeChange: vi.fn<MockFn>(),
+            loadTheme: vi.fn<MockFn>().mockReturnValue("light"),
+            toggleTheme: vi.fn<MockFn>(),
         })
     );
     vi.doMock(
-        "../../../../../electron-app/utils/charts/theming/chartThemeUtils.js",
+        import("../../../../../electron-app/utils/charts/theming/chartThemeUtils.js"),
         () => mocks.detectCurrentTheme
     );
     vi.doMock(
-        "../../../../../electron-app/utils/charts/theming/chartThemeListener.js",
+        import("../../../../../electron-app/utils/charts/theming/chartThemeListener.js"),
         () => mocks.setupChartThemeListener
     );
     vi.doMock(
-        "../../../../../electron-app/utils/ui/components/ensureChartSettingsDropdowns.js",
+        import("../../../../../electron-app/utils/ui/components/ensureChartSettingsDropdowns.js"),
         () => mocks.ensureChartSettingsDropdowns
     );
     vi.doMock(
-        "../../../../../electron-app/utils/rendering/components/createUserDeviceInfoBox.js",
+        import("../../../../../electron-app/utils/rendering/components/createUserDeviceInfoBox.js"),
         () => mocks.createUserDeviceInfoBox
     );
 
@@ -515,14 +522,14 @@ function setupDOMEnvironment() {
         id: "",
         style: { cssText: "" },
         nodeType: 1, // Node.ELEMENT_NODE
-        appendChild: vi.fn(),
-        querySelector: vi.fn(),
-        querySelectorAll: vi.fn().mockReturnValue([]),
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-        getAttribute: vi.fn(),
-        setAttribute: vi.fn(),
-        getBoundingClientRect: vi.fn().mockReturnValue({
+        appendChild: vi.fn<MockFn>(),
+        querySelector: vi.fn<MockFn>(),
+        querySelectorAll: vi.fn<MockFn>().mockReturnValue([]),
+        addEventListener: vi.fn<MockFn>(),
+        removeEventListener: vi.fn<MockFn>(),
+        getAttribute: vi.fn<MockFn>(),
+        setAttribute: vi.fn<MockFn>(),
+        getBoundingClientRect: vi.fn<MockFn>().mockReturnValue({
             width: 800,
             height: 400,
             top: 0,
@@ -535,65 +542,67 @@ function setupDOMEnvironment() {
         clientWidth: 800,
         clientHeight: 400,
         parentNode: null,
-        insertBefore: vi.fn(),
+        insertBefore: vi.fn<MockFn>(),
     };
 
     global.document = {
-        createElement: vi.fn().mockReturnValue(mockElement),
-        getElementById: vi.fn().mockReturnValue(mockElement),
+        createElement: vi.fn<MockFn>().mockReturnValue(mockElement),
+        getElementById: vi.fn<MockFn>().mockReturnValue(mockElement),
         // Return null specifically for '#content-chart' to avoid fallback path that calls getThemeConfig in catch
-        querySelector: vi.fn((selector: string) =>
+        querySelector: vi.fn<MockFn>((selector: string) =>
             selector === "#content-chart" ? null : mockElement
         ),
-        querySelectorAll: vi.fn().mockReturnValue([mockElement]),
+        querySelectorAll: vi.fn<MockFn>().mockReturnValue([mockElement]),
         body: {
-            append: vi.fn(),
+            append: vi.fn<VoidFn>(),
             nodeType: 1,
             classList: {
-                add: vi.fn(),
-                remove: vi.fn(),
-                contains: vi.fn().mockReturnValue(false),
+                add: vi.fn<VoidFn>(),
+                remove: vi.fn<VoidFn>(),
+                contains: vi.fn<MockFn>().mockReturnValue(false),
             },
         },
         head: {
-            append: vi.fn(),
+            append: vi.fn<VoidFn>(),
         },
-        addEventListener: vi.fn(),
+        addEventListener: vi.fn<VoidFn>(),
     };
 
     global.window = {
-        addEventListener: vi.fn(),
+        addEventListener: vi.fn<MockFn>(),
         performance: {
-            now: vi.fn().mockReturnValue(1000),
+            now: vi.fn<MockFn>().mockReturnValue(1000),
         },
         localStorage: {
-            getItem: vi.fn().mockReturnValue("visible"),
-            setItem: vi.fn(),
+            getItem: vi.fn<MockFn>().mockReturnValue("visible"),
+            setItem: vi.fn<MockFn>(),
         },
-        matchMedia: vi.fn().mockReturnValue({
+        matchMedia: vi.fn<MockFn>().mockReturnValue({
             matches: false,
-            addEventListener: vi.fn(),
-            removeEventListener: vi.fn(),
+            addEventListener: vi.fn<MockFn>(),
+            removeEventListener: vi.fn<MockFn>(),
         }),
-        requestAnimationFrame: vi.fn((cb: FrameRequestCallback) =>
+        requestAnimationFrame: vi.fn<MockFn>((cb: FrameRequestCallback) =>
             setTimeout(cb, 0)
         ),
-        cancelAnimationFrame: vi.fn((id: number) =>
+        cancelAnimationFrame: vi.fn<MockFn>((id: number) =>
             clearTimeout(id as unknown as number)
         ),
     };
 
     // Do NOT overwrite globalThis; instead, patch properties to avoid clobbering Vitest internals
-    const g = /** @type {any} */ globalThis;
+    const g = globalThis as any;
     g.window = global.window;
     g.document = global.document;
-    if (typeof g.addEventListener !== "function") g.addEventListener = vi.fn();
+    if (typeof g.addEventListener !== "function")
+        vi.stubGlobal("addEventListener", vi.fn<VoidFn>());
     if (typeof g.setTimeout !== "function")
-        g.setTimeout = (fn: any) => {
+        g.setTimeout = (fn: () => void) => {
             fn();
             return 0;
         };
-    if (typeof g.clearTimeout !== "function") g.clearTimeout = vi.fn();
+    if (typeof g.clearTimeout !== "function")
+        vi.stubGlobal("clearTimeout", vi.fn<VoidFn>());
     g.performance = global.window.performance;
     g.Node = { ELEMENT_NODE: 1 };
     if (typeof g.requestAnimationFrame !== "function")
@@ -605,14 +614,18 @@ function setupDOMEnvironment() {
     // Ensure a stable process.nextTick exists for any code importing this module
     if (!g.process || typeof g.process !== "object") g.process = {} as any;
     if (typeof g.process.nextTick !== "function") {
-        g.process.nextTick = (cb: any, ...args: any[]) =>
-            Promise.resolve().then(() => {
+        g.process.nextTick = (
+            cb: (...args: unknown[]) => void,
+            ...args: unknown[]
+        ) => {
+            void Promise.resolve().then(() => {
                 try {
                     cb(...args);
                 } catch {
                     /* ignore */
                 }
             });
+        };
     }
 }
 
@@ -657,6 +670,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
     describe("chartSettingsManager Object", () => {
         it("should provide getFieldVisibility method with settings state manager", async () => {
+            expect.hasAssertions();
             const { chartSettingsManager } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -670,6 +684,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should provide getSettings method with state fallback", async () => {
+            expect.hasAssertions();
             const { chartSettingsManager } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -695,6 +710,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should provide setFieldVisibility with state updates", async () => {
+            expect.hasAssertions();
             const { chartSettingsManager } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -713,6 +729,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should provide updateSettings method with persistence", async () => {
+            expect.hasAssertions();
             const { chartSettingsManager } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -722,7 +739,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
             expect(
                 mocks.settingsStateManager.updateChartSettings
-            ).toHaveBeenCalled();
+            ).toHaveBeenCalledWith(expect.objectContaining(newSettings));
             expect(mocks.stateManager.updateState).toHaveBeenCalledWith(
                 "settings.charts",
                 expect.objectContaining(newSettings),
@@ -740,10 +757,11 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should skip cache invalidation for display-only changes", async () => {
+            expect.hasAssertions();
             const module =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
-            const listener = vi.fn();
+            const listener = vi.fn<VoidFn>();
             const view = module.addInvalidateChartRenderCacheListener(listener);
 
             module.chartSettingsManager.updateSettings({ showLegend: false });
@@ -761,10 +779,11 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should invalidate render caches when unit settings change", async () => {
+            expect.hasAssertions();
             const module =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
-            const listener = vi.fn();
+            const listener = vi.fn<VoidFn>();
             const view = module.addInvalidateChartRenderCacheListener(listener);
 
             module.chartSettingsManager.updateSettings({
@@ -783,10 +802,11 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
     });
 
-    describe("Chart Plugin Registration", () => {
+    describe("chart Plugin Registration", () => {
         it("should register Chart.js zoom plugin when available", async () => {
+            expect.hasAssertions();
             globalThis.Chart = {
-                register: vi.fn(),
+                register: vi.fn<MockFn>(),
                 Zoom: {},
             };
 
@@ -800,11 +820,12 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should register background color plugin when Chart.js available", async () => {
+            expect.hasAssertions();
             globalThis.Chart = {
-                register: vi.fn(),
+                register: vi.fn<MockFn>(),
                 registry: {
                     plugins: {
-                        get: vi.fn().mockReturnValue(false),
+                        get: vi.fn<MockFn>().mockReturnValue(false),
                     },
                 },
             };
@@ -812,11 +833,14 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             const chartModule =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
-            expect(globalThis.Chart.register).toHaveBeenCalled();
+            expect(globalThis.Chart.register).toHaveBeenCalledWith(
+                expect.any(Object)
+            );
             expect(chartModule.chartState.hasValidData).toBe(true);
         });
 
         it("should handle Chart.js not available scenario", async () => {
+            expect.hasAssertions();
             globalThis.Chart = null;
 
             const { chartActions, chartState } =
@@ -834,6 +858,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
     describe("chartState Object - Computed Properties", () => {
         it("should provide chartData from state", async () => {
+            expect.hasAssertions();
             const { chartState } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -846,6 +871,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should provide hasValidData computed property", async () => {
+            expect.hasAssertions();
             const { chartState } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -858,6 +884,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should handle invalid data in hasValidData", async () => {
+            expect.hasAssertions();
             mocks.stateManager.getState.mockReturnValue(null);
             const { chartState } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
@@ -868,6 +895,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should provide renderableFields with visibility filtering", async () => {
+            expect.hasAssertions();
             const { chartState } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -882,6 +910,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should handle no valid data in renderableFields", async () => {
+            expect.hasAssertions();
             mocks.stateManager.getState.mockReturnValue(null);
             const { chartState } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
@@ -894,7 +923,8 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
     describe("chartActions Object - State Management", () => {
         it("should clear charts and reset state", async () => {
-            const mockChart = { destroy: vi.fn() };
+            expect.hasAssertions();
+            const mockChart = { destroy: vi.fn<MockFn>() };
             globalThis._chartjsInstances = [mockChart];
 
             const { chartActions } =
@@ -902,7 +932,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
             chartActions.clearCharts();
 
-            expect(mockChart.destroy).toHaveBeenCalled();
+            expect(mockChart.destroy).toHaveBeenCalledWith();
             expect(mocks.stateManager.updateState).toHaveBeenCalledWith(
                 "charts",
                 {
@@ -919,8 +949,9 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should handle chart destruction errors gracefully", async () => {
+            expect.hasAssertions();
             const mockChart = {
-                destroy: vi.fn().mockImplementation(() => {
+                destroy: vi.fn<MockFn>().mockImplementation(() => {
                     throw new Error("Destroy failed");
                 }),
             };
@@ -934,6 +965,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should complete rendering with success", async () => {
+            expect.hasAssertions();
             const { chartActions } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -964,6 +996,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should complete rendering with failure", async () => {
+            expect.hasAssertions();
             const { chartActions } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -987,6 +1020,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should start rendering process", async () => {
+            expect.hasAssertions();
             const { chartActions } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -1011,6 +1045,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should select chart and trigger re-render when rendered", async () => {
+            expect.hasAssertions();
             mocks.stateManager.getState.mockImplementation((path) => {
                 if (path === "charts.isRendered") return true;
                 return null;
@@ -1035,6 +1070,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should toggle controls visibility", async () => {
+            expect.hasAssertions();
             const { chartActions } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -1059,6 +1095,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
     describe("exportChartsWithState Function", () => {
         it("should handle no rendered charts scenario", async () => {
+            expect.hasAssertions();
             mocks.stateManager.getState.mockImplementation((path) => {
                 if (path === "charts.isRendered") return false;
                 return null;
@@ -1075,6 +1112,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should export charts when available", async () => {
+            expect.hasAssertions();
             mocks.stateManager.getState.mockImplementation((path) => {
                 if (path === "charts.isRendered") return true;
                 return null;
@@ -1083,7 +1121,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             globalThis._chartjsInstances = [
                 {
                     toBase64Image: vi
-                        .fn()
+                        .fn<MockFn>()
                         .mockReturnValue("data:image/png;base64,mockimage"),
                 },
             ];
@@ -1097,8 +1135,9 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
     });
 
-    describe("Main renderChartJS Function - Core Rendering", () => {
+    describe("main renderChartJS Function - Core Rendering", () => {
         it("should execute chart rendering with valid data", async () => {
+            expect.hasAssertions();
             const { renderChartJS } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -1110,11 +1149,16 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                 true,
                 expect.any(Object)
             );
-            expect(mocks.setupZoneData.setupZoneData).toHaveBeenCalled();
+            expect(mocks.setupZoneData.setupZoneData).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    recordMesgs: expect.any(Array),
+                })
+            );
             expect(view).toBe(true);
         });
 
         it("should handle string container ID parameter", async () => {
+            expect.hasAssertions();
             global.document.getElementById.mockReturnValue(
                 document.createElement("div")
             );
@@ -1131,6 +1175,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should handle no valid data scenario", async () => {
+            expect.hasAssertions();
             mocks.stateManager.getState.mockImplementation((path) => {
                 if (path === "globalData") return null;
                 return null;
@@ -1151,6 +1196,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should handle Chart.js not available error", async () => {
+            expect.hasAssertions();
             globalThis.Chart = null;
 
             const { renderChartJS } =
@@ -1165,6 +1211,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should handle empty record messages", async () => {
+            expect.hasAssertions();
             mocks.stateManager.getState.mockImplementation((path) => {
                 if (path === "globalData") return { recordMesgs: [] };
                 return null;
@@ -1185,12 +1232,13 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should handle debouncing of rapid render calls", async () => {
+            expect.hasAssertions();
             const { renderChartJS } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
             // Mock Date.now to simulate rapid calls
             const originalDateNow = Date.now;
-            Date.now = vi.fn().mockReturnValue(1000);
+            vi.spyOn(Date, "now").mockImplementation().mockReturnValue(1000);
 
             try {
                 // First call
@@ -1210,6 +1258,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should handle critical error in chart rendering", async () => {
+            expect.hasAssertions();
             // Mock setupZoneData to throw error
             mocks.setupZoneData.setupZoneData.mockImplementation(() => {
                 throw new Error("Critical setup error");
@@ -1230,6 +1279,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should handle no container scenario with placeholder content", async () => {
+            expect.hasAssertions();
             mocks.stateManager.getState.mockImplementation((path) => {
                 if (path === "globalData") return { recordMesgs: [] };
                 return null;
@@ -1247,6 +1297,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
     describe("renderChartsWithData Function - Data Processing", () => {
         it("should process chart data with unit conversion", async () => {
+            expect.hasAssertions();
             // Test is implicitly covered by main renderChartJS function
             // Since renderChartsWithData is private, it's tested through public interface
 
@@ -1257,11 +1308,12 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
             expect(
                 mocks.convertValueToUserUnits.convertValueToUserUnits
-            ).toHaveBeenCalled();
+            ).toHaveBeenCalledWith(10, "speed");
             expect(view).toBe(true);
         });
 
         it("should handle settings validation and boolean conversion", async () => {
+            expect.hasAssertions();
             mocks.settingsStateManager.getChartSettings.mockReturnValue({
                 showFill: "on",
                 showGrid: "off",
@@ -1280,6 +1332,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should reuse cached chart series for display-only setting changes", async () => {
+            expect.hasAssertions();
             const sharedData = {
                 recordMesgs: [
                     { timestamp: 1000, speed: 10, elevation: 100 },
@@ -1345,7 +1398,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
             const afterStats = getChartSeriesCacheStats();
 
-            expect(secondRenderData.length).toBe(firstRenderData.length);
+            expect(secondRenderData).toHaveLength(firstRenderData.length);
             secondRenderData.forEach((data, index) => {
                 expect(data).toBe(firstRenderData[index]);
             });
@@ -1355,8 +1408,9 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
     });
 
-    describe("Performance and Monitoring", () => {
+    describe("performance and Monitoring", () => {
         it("should track performance timing", async () => {
+            expect.hasAssertions();
             global.window.performance.now
                 .mockReturnValueOnce(1000)
                 .mockReturnValueOnce(1500);
@@ -1366,11 +1420,12 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
             const view = await renderChartJS();
 
-            expect(global.window.performance.now).toHaveBeenCalled();
+            expect(global.window.performance.now).toHaveBeenCalledWith();
             expect(view).toBe(true);
         });
 
         it("should update performance state on completion", async () => {
+            expect.hasAssertions();
             const { renderChartJS } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -1390,11 +1445,12 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
     });
 
-    describe("Integration and Complex Workflows", () => {
+    describe("integration and Complex Workflows", () => {
         it("should handle complete chart lifecycle with all components", async () => {
+            expect.hasAssertions();
             globalThis._chartjsInstances = [
-                { destroy: vi.fn() },
-                { destroy: vi.fn() },
+                { destroy: vi.fn<MockFn>() },
+                { destroy: vi.fn<MockFn>() },
             ];
 
             const { renderChartJS } =
@@ -1408,19 +1464,32 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                 true,
                 expect.any(Object)
             );
-            expect(mocks.setupZoneData.setupZoneData).toHaveBeenCalled();
+            expect(mocks.setupZoneData.setupZoneData).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    recordMesgs: expect.any(Array),
+                })
+            );
             expect(
                 mocks.renderPerformanceAnalysisCharts
                     .renderPerformanceAnalysisCharts
-            ).toHaveBeenCalled();
+            ).toHaveProperty("mock.calls.length", expect.any(Number));
+            expect(
+                mocks.renderPerformanceAnalysisCharts
+                    .renderPerformanceAnalysisCharts.mock.calls.length
+            ).toBeGreaterThan(0);
             expect(
                 mocks.addChartHoverEffects.addHoverEffectsToExistingCharts
-            ).toHaveBeenCalled();
+            ).toHaveProperty("mock.calls.length", expect.any(Number));
+            expect(
+                mocks.addChartHoverEffects.addHoverEffectsToExistingCharts.mock
+                    .calls.length
+            ).toBeGreaterThan(0);
             expect(view).toBe(true);
             expect(view).not.toBe(false);
         });
 
         it("should handle theme configuration integration", async () => {
+            expect.hasAssertions();
             const themeMod =
                 await import("../../../../../electron-app/utils/theming/core/theme.js");
             const { renderChartJS } =
@@ -1428,11 +1497,12 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
             const view = await renderChartJS();
 
-            expect(themeMod.getThemeConfig).toHaveBeenCalled();
+            expect(themeMod.getThemeConfig).toHaveBeenCalledWith();
             expect(view).toBe(true);
         });
 
         it("should integrate with all chart rendering modules", async () => {
+            expect.hasAssertions();
             const { renderChartJS } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -1441,22 +1511,37 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             // Verify all chart types are rendered
             expect(
                 mocks.renderEventMessagesChart.renderEventMessagesChart
-            ).toHaveBeenCalled();
+            ).toHaveProperty("mock.calls.length", expect.any(Number));
+            expect(
+                mocks.renderEventMessagesChart.renderEventMessagesChart.mock
+                    .calls.length
+            ).toBeGreaterThan(0);
             expect(
                 mocks.renderGPSTrackChart.renderGPSTrackChart
-            ).toHaveBeenCalled();
+            ).toHaveProperty("mock.calls.length", expect.any(Number));
+            expect(
+                mocks.renderGPSTrackChart.renderGPSTrackChart.mock.calls.length
+            ).toBeGreaterThan(0);
             expect(
                 mocks.renderLapZoneCharts.renderLapZoneCharts
-            ).toHaveBeenCalled();
+            ).toHaveProperty("mock.calls.length", expect.any(Number));
+            expect(
+                mocks.renderLapZoneCharts.renderLapZoneCharts.mock.calls.length
+            ).toBeGreaterThan(0);
             expect(
                 mocks.renderTimeInZoneCharts.renderTimeInZoneCharts
-            ).toHaveBeenCalled();
+            ).toHaveProperty("mock.calls.length", expect.any(Number));
+            expect(
+                mocks.renderTimeInZoneCharts.renderTimeInZoneCharts.mock.calls
+                    .length
+            ).toBeGreaterThan(0);
             expect(view).toBe(true);
         });
     });
 
-    describe("Edge Cases and Error Scenarios", () => {
+    describe("edge Cases and Error Scenarios", () => {
         it("should handle malformed record messages", async () => {
+            expect.hasAssertions();
             mocks.stateManager.getState.mockImplementation((path) => {
                 if (path === "globalData")
                     return {
@@ -1478,6 +1563,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should handle missing field data gracefully", async () => {
+            expect.hasAssertions();
             mocks.formatChartFields.formatChartFields = [];
 
             const { renderChartJS } =
@@ -1489,11 +1575,16 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should handle DOM manipulation errors", async () => {
+            expect.hasAssertions();
             // Cause a DOM error inside the normal rendering path (try block)
-            const originalCreateElement = global.document.createElement;
-            global.document.createElement = vi.fn(() => {
-                throw new Error("DOM error");
-            });
+            const originalCreateElement = global.document.createElement.bind(
+                global.document
+            );
+            vi.spyOn(global.document, "createElement").mockImplementation(
+                () => {
+                    throw new Error("DOM error");
+                }
+            );
 
             const { renderChartJS } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
@@ -1508,8 +1599,9 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
     });
 
-    describe("State Utility Functions", () => {
+    describe("state Utility Functions", () => {
         it("should provide resetChartNotificationState function", async () => {
+            expect.hasAssertions();
             const { previousChartState, resetChartNotificationState } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -1526,6 +1618,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should provide updatePreviousChartState function", async () => {
+            expect.hasAssertions();
             const { previousChartState, updatePreviousChartState } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
