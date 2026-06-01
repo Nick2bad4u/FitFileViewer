@@ -284,7 +284,7 @@ describe("workspace package boundaries", () => {
     });
 
     it("keeps dependency update configuration rooted at the app package", () => {
-        expect.assertions(1);
+        expect.assertions(3);
 
         const ncuConfig = JSON.parse(
             readFileSync(path.join(process.cwd(), ".ncurc.json"), "utf8")
@@ -318,6 +318,14 @@ describe("workspace package boundaries", () => {
             target: "latest",
             workspaces: true,
         });
+        expect(path.posix.normalize(String(ncuConfig["packageFile"]))).toBe(
+            "package.json"
+        );
+        expect(
+            [ncuConfig["cacheFile"], ncuConfig["packageFile"]].filter(
+                (configPath) => String(configPath).startsWith("electron-app/")
+            )
+        ).toStrictEqual([]);
     });
 
     it("keeps Docusaurus setup guidance in maintained docs pages", () => {
