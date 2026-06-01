@@ -196,9 +196,12 @@ describe("fitParser.js decoder behavior", () => {
             expect(json.name).toBe("FitDecodeError");
             expect(json.message).toBe("Test error");
             expect(json.details).toEqual({ code: "TEST" });
-            expect(json.metadata).toMatchObject({
+            expect({
+                category: json.metadata.category,
+                timestampType: typeof json.metadata.timestamp,
+            }).toStrictEqual({
                 category: "fit_parsing",
-                timestamp: expect.any(String),
+                timestampType: "string",
             });
             expect(json.stack).toBeTypeOf("string");
         });
@@ -680,9 +683,17 @@ describe("fitParser.js decoder behavior", () => {
             await expect(fitParser.decodeFitFile(null)).rejects.toThrow(
                 "Input is not a valid Buffer or Uint8Array"
             );
-            expect(
-                mockFitFileStateManager.handleFileLoadingError
-            ).toHaveBeenCalledWith(expect.any(fitParser.FitDecodeError));
+            const [loadingError] =
+                mockFitFileStateManager.handleFileLoadingError.mock.calls[0] ??
+                [];
+            expect({
+                instance: loadingError instanceof fitParser.FitDecodeError,
+                message: loadingError?.message,
+            }).toStrictEqual({
+                instance: true,
+                message:
+                    "Input is not a valid Buffer or Uint8Array. Received type: object.",
+            });
         });
 
         it("should handle integrity check failure", async () => {
@@ -700,9 +711,17 @@ describe("fitParser.js decoder behavior", () => {
             const result = await fitParser.decodeFitFile(buffer);
 
             expect(result.error).toContain("FIT file integrity check failed");
-            expect(
-                mockFitFileStateManager.handleFileLoadingError
-            ).toHaveBeenCalledWith(expect.any(fitParser.FitDecodeError));
+            const [loadingError] =
+                mockFitFileStateManager.handleFileLoadingError.mock.calls[0] ??
+                [];
+            expect({
+                instance: loadingError instanceof fitParser.FitDecodeError,
+                message: loadingError?.message,
+            }).toStrictEqual({
+                instance: true,
+                message:
+                    'FIT file integrity check failed. Details: ["CRC mismatch"]',
+            });
         });
 
         it("should handle decoding errors", async () => {
@@ -722,9 +741,16 @@ describe("fitParser.js decoder behavior", () => {
             const result = await fitParser.decodeFitFile(buffer);
 
             expect(result.error).toContain("Decoding errors occurred");
-            expect(
-                mockFitFileStateManager.handleFileLoadingError
-            ).toHaveBeenCalledWith(expect.any(fitParser.FitDecodeError));
+            const [loadingError] =
+                mockFitFileStateManager.handleFileLoadingError.mock.calls[0] ??
+                [];
+            expect({
+                instance: loadingError instanceof fitParser.FitDecodeError,
+                message: loadingError?.message,
+            }).toStrictEqual({
+                instance: true,
+                message: "Decoding errors occurred",
+            });
         });
 
         it("should handle empty messages result", async () => {
@@ -744,9 +770,17 @@ describe("fitParser.js decoder behavior", () => {
             const result = await fitParser.decodeFitFile(buffer);
 
             expect(result.error).toContain("No valid messages decoded");
-            expect(
-                mockFitFileStateManager.handleFileLoadingError
-            ).toHaveBeenCalledWith(expect.any(fitParser.FitDecodeError));
+            const [loadingError] =
+                mockFitFileStateManager.handleFileLoadingError.mock.calls[0] ??
+                [];
+            expect({
+                instance: loadingError instanceof fitParser.FitDecodeError,
+                message: loadingError?.message,
+            }).toStrictEqual({
+                instance: true,
+                message:
+                    "No valid messages decoded, FIT file might be corrupted.",
+            });
         });
 
         it("should handle SDK import failure", async () => {
@@ -760,10 +794,13 @@ describe("fitParser.js decoder behavior", () => {
             ]);
 
             // Mock import failure by providing a mock SDK that throws
+            const sdkInitializationError = new Error(
+                "SDK initialization failed"
+            );
             const failingSDK = {
                 Decoder: vi.fn<(stream: FitSdkStream) => MockFitSdkDecoder>(
                     function FailingDecoder() {
-                        throw new Error("SDK initialization failed");
+                        throw sdkInitializationError;
                     }
                 ),
                 Stream: mockFitSDK.Stream,
@@ -778,7 +815,7 @@ describe("fitParser.js decoder behavior", () => {
             expect(result.error).toBe("SDK initialization failed");
             expect(
                 mockFitFileStateManager.handleFileLoadingError
-            ).toHaveBeenCalledWith(expect.any(Error));
+            ).toHaveBeenCalledWith(sdkInitializationError);
         });
 
         it("should handle state manager progress update failures gracefully", async () => {
@@ -790,9 +827,10 @@ describe("fitParser.js decoder behavior", () => {
                 0x43,
                 0x08,
             ]);
+            const stateUpdateError = new Error("State update failed");
             mockFitFileStateManager.updateLoadingProgress.mockImplementation(
                 () => {
-                    throw new Error("State update failed");
+                    throw stateUpdateError;
                 }
             );
 
@@ -801,7 +839,7 @@ describe("fitParser.js decoder behavior", () => {
             expect(result.activity).toEqual([{ sport: "cycling" }]);
             expect(console.warn).toHaveBeenCalledWith(
                 expect.stringContaining("Failed to update loading progress"),
-                expect.any(Error)
+                stateUpdateError
             );
         });
 
@@ -815,9 +853,12 @@ describe("fitParser.js decoder behavior", () => {
                 0x08,
             ]);
             mockDecoder.checkIntegrity.mockReturnValue(false);
+            const errorStateUpdateError = new Error(
+                "Error state update failed"
+            );
             mockFitFileStateManager.handleFileLoadingError.mockImplementation(
                 () => {
-                    throw new Error("Error state update failed");
+                    throw errorStateUpdateError;
                 }
             );
 
@@ -826,7 +867,7 @@ describe("fitParser.js decoder behavior", () => {
             expect(result.error).toContain("FIT file integrity check failed");
             expect(console.warn).toHaveBeenCalledWith(
                 expect.stringContaining("Failed to update error state"),
-                expect.any(Error)
+                errorStateUpdateError
             );
         });
 
@@ -839,8 +880,9 @@ describe("fitParser.js decoder behavior", () => {
                 0x43,
                 0x08,
             ]);
+            const unexpectedError = new Error("Unexpected error");
             mockFitSDK.Decoder.mockImplementation(function ThrowingDecoder() {
-                throw new Error("Unexpected error");
+                throw unexpectedError;
             });
 
             const result = await fitParser.decodeFitFile(buffer);
@@ -851,7 +893,7 @@ describe("fitParser.js decoder behavior", () => {
             );
             expect(console.error).toHaveBeenCalledWith(
                 "[FitParser] Failed to decode file",
-                expect.any(Error)
+                unexpectedError
             );
         });
 
@@ -1119,37 +1161,37 @@ describe("fitParser.js decoder behavior", () => {
             expect(schema.applyScaleAndOffset).toMatchObject({
                 type: "boolean",
                 default: true,
-                description: expect.any(String),
+                description: "Apply scale and offset transformations",
             });
             expect(schema.expandSubFields).toMatchObject({
                 type: "boolean",
                 default: true,
-                description: expect.any(String),
+                description: "Expand sub-fields in messages",
             });
             expect(schema.expandComponents).toMatchObject({
                 type: "boolean",
                 default: true,
-                description: expect.any(String),
+                description: "Expand component fields",
             });
             expect(schema.convertTypesToStrings).toMatchObject({
                 type: "boolean",
                 default: true,
-                description: expect.any(String),
+                description: "Convert enum types to strings",
             });
             expect(schema.convertDateTimesToDates).toMatchObject({
                 type: "boolean",
                 default: true,
-                description: expect.any(String),
+                description: "Convert timestamps to Date objects",
             });
             expect(schema.includeUnknownData).toMatchObject({
                 type: "boolean",
                 default: true,
-                description: expect.any(String),
+                description: "Include unknown message types",
             });
             expect(schema.mergeHeartRates).toMatchObject({
                 type: "boolean",
                 default: true,
-                description: expect.any(String),
+                description: "Merge heart rate data from multiple sources",
             });
         });
     });
