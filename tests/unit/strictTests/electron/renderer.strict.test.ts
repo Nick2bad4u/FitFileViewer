@@ -263,9 +263,7 @@ describe("renderer.js strict behavior", () => {
         const { spies } = await importRendererFresh();
         // Ensure global error handlers are attached via full initialization
         const dev: any = (window as any).__renderer_dev;
-        expect(dev).toEqual(
-            expect.objectContaining({ reinitialize: expect.any(Function) })
-        );
+        expect(dev.reinitialize).toBeTypeOf("function");
         await dev.reinitialize();
         // Give any queued work a chance to attach listeners
         await Promise.resolve();
@@ -298,31 +296,54 @@ describe("renderer.js strict behavior", () => {
 
         await importRendererFresh();
         const dev = (window as any).__renderer_dev;
-        expect(dev).toMatchObject({
+        expect({
+            APP_INFO: {
+                ...dev.APP_INFO,
+                getRuntimeInfo: typeof dev.APP_INFO.getRuntimeInfo,
+            },
+            PerformanceMonitor: {
+                end: typeof dev.PerformanceMonitor.end,
+                getMetrics: typeof dev.PerformanceMonitor.getMetrics,
+                metricsIsMap: dev.PerformanceMonitor.metrics instanceof Map,
+                start: typeof dev.PerformanceMonitor.start,
+            },
+            helpers: {
+                cleanup: typeof dev.cleanup,
+                debugState: typeof dev.debugState,
+                getPerformanceMetrics: typeof dev.getPerformanceMetrics,
+                getState: typeof dev.getState,
+                getStateHistory: typeof dev.getStateHistory,
+                reinitialize: typeof dev.reinitialize,
+                validateDOM: typeof dev.validateDOM,
+            },
+            appState: dev.appState,
+        }).toStrictEqual({
             APP_INFO: {
                 author: "FIT File Viewer Team",
                 description:
                     "Advanced FIT file analysis and visualization tool",
-                getRuntimeInfo: expect.any(Function),
+                getRuntimeInfo: "function",
                 license: "MIT",
                 name: "FIT File Viewer",
                 repository: "https://github.com/user/FitFileViewer",
                 version: "21.1.0",
             },
             PerformanceMonitor: {
-                end: expect.any(Function),
-                getMetrics: expect.any(Function),
-                metrics: expect.any(Map),
-                start: expect.any(Function),
+                end: "function",
+                getMetrics: "function",
+                metricsIsMap: true,
+                start: "function",
+            },
+            helpers: {
+                cleanup: "function",
+                debugState: "function",
+                getPerformanceMetrics: "function",
+                getState: "function",
+                getStateHistory: "function",
+                reinitialize: "function",
+                validateDOM: "function",
             },
             appState: null,
-            cleanup: expect.any(Function),
-            debugState: expect.any(Function),
-            getPerformanceMetrics: expect.any(Function),
-            getState: expect.any(Function),
-            getStateHistory: expect.any(Function),
-            reinitialize: expect.any(Function),
-            validateDOM: expect.any(Function),
         });
         dev.PerformanceMonitor.start("strict_test_operation");
         const duration = dev.PerformanceMonitor.end("strict_test_operation");
