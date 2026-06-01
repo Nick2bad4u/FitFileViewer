@@ -5,6 +5,7 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
+    repositoryRoot,
     rootFlatpakBundlePath,
     rootFlatpakZipPath,
 } from "../../../scripts/lib/workspaces.mjs";
@@ -165,18 +166,23 @@ describe("publish-flatpak-release-assets script", () => {
 
         expect(
             parseArgs(["--release-tag=v1"], { RELEASE_TAG: "v0" })
-        ).toMatchObject({
+        ).toStrictEqual({
             help: false,
             releaseTag: "v1",
+            root: repositoryRoot,
         });
         expect(
             parseArgs(["--root", root], { RELEASE_TAG: "v2" })
-        ).toMatchObject({
+        ).toStrictEqual({
             help: false,
             releaseTag: "v2",
             root,
         });
-        expect(parseArgs(["--help"], {})).toMatchObject({ help: true });
+        expect(parseArgs(["--help"], {})).toStrictEqual({
+            help: true,
+            releaseTag: undefined,
+            root: repositoryRoot,
+        });
         expect(() => parseArgs([], {})).toThrow(
             "--release-tag or RELEASE_TAG is required"
         );
