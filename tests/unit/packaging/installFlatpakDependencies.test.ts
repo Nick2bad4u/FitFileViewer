@@ -33,34 +33,54 @@ async function importInstallFlatpakDependencies(): Promise<InstallFlatpakDepende
 
 describe("install-flatpak-dependencies script", () => {
     it("returns the Flatpak dependency setup commands", async () => {
-        expect.assertions(5);
+        expect.assertions(1);
 
         const { getFlatpakDependencyCommands } =
             await importInstallFlatpakDependencies();
         const commands = getFlatpakDependencyCommands();
 
-        expect(commands[0]).toStrictEqual(["sudo", ["apt-get", "update"]]);
-        expect(commands[1]).toStrictEqual([
-            "sudo",
+        expect(commands).toStrictEqual([
+            ["sudo", ["apt-get", "update"]],
             [
-                "apt-get",
-                "install",
-                "-y",
-                "flatpak",
-                "flatpak-builder",
-                "elfutils",
+                "sudo",
+                [
+                    "apt-get",
+                    "install",
+                    "-y",
+                    "flatpak",
+                    "flatpak-builder",
+                    "elfutils",
+                ],
             ],
-        ]);
-        expect(commands[2]).toContain("flatpak");
-        expect(commands[2]?.[1]).toContain(
-            "https://flathub.org/repo/flathub.flatpakrepo"
-        );
-        expect(commands.at(-1)).toStrictEqual([
-            "flatpak",
             [
-                "update",
-                "-y",
-                "--user",
+                "flatpak",
+                [
+                    "remote-add",
+                    "--if-not-exists",
+                    "--user",
+                    "flathub",
+                    "https://flathub.org/repo/flathub.flatpakrepo",
+                ],
+            ],
+            [
+                "flatpak",
+                [
+                    "install",
+                    "-y",
+                    "--user",
+                    "flathub",
+                    "org.freedesktop.Platform//23.08",
+                    // eslint-disable-next-line case-police/string-check -- Flatpak uses this exact runtime identifier spelling.
+                    "org.freedesktop.Sdk//23.08",
+                ],
+            ],
+            [
+                "flatpak",
+                [
+                    "update",
+                    "-y",
+                    "--user",
+                ],
             ],
         ]);
     });
