@@ -85,10 +85,23 @@ describe("source entrypoint documentation", () => {
     });
 
     it("keeps the root layout guide from documenting removed top-level directories", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const layoutGuide = readWorkspaceFile("docs/APPLICATION_LAYOUT.md");
+        const currentRootDirectories = [
+            "docusaurus/",
+            "electron-app/",
+            "fit-test-files/",
+            "scripts/",
+            "static/",
+            "tests/",
+        ];
 
+        expect(
+            currentRootDirectories.filter(
+                (rootDirectory) => !layoutGuide.includes(rootDirectory)
+            )
+        ).toStrictEqual([]);
         expect(layoutGuide).not.toMatch(
             /├── (?:logs|utils)\/\s+# (?:Application logs|Shared utilities \(legacy\))/u
         );
