@@ -250,17 +250,16 @@ describe("root app shell asset references", () => {
             alternativeViewerManifestPath,
             alternativeViewerManifestIconReferences
         );
-        expect(
-            existsSync(
-                path.join(
-                    process.cwd(),
-                    "static",
-                    "ffv",
-                    "assets",
-                    "fabric-icons.css"
-                )
-            )
-        ).toBe(false);
+        const obsoleteFabricIconsPath = path.join(
+            process.cwd(),
+            "static",
+            "ffv",
+            "assets",
+            "fabric-icons.css"
+        );
+        expect({
+            obsoleteFabricIconsExists: existsSync(obsoleteFabricIconsPath),
+        }).toStrictEqual({ obsoleteFabricIconsExists: false });
     });
 
     it("keeps alternative FIT viewer generated assets internally reachable", () => {

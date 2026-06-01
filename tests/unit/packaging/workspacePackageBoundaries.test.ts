@@ -174,7 +174,7 @@ describe("workspace package boundaries", () => {
             npm: ">=11.15.0",
         });
         expect(docusaurusPackage).not.toHaveProperty("engines");
-        expect(docusaurusPackage.private).toBe(true);
+        expect(docusaurusPackage).toHaveProperty("private", true);
     });
 
     it("keeps setup docs aligned with root runtime engines", () => {

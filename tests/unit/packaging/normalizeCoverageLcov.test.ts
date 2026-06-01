@@ -111,7 +111,9 @@ describe("normalize-coverage-lcov script", () => {
             targetDirectory: targetCoverageDir,
         });
 
-        expect(fs.existsSync(targetCoverageDir)).toBe(false);
+        expect({
+            targetCoverageDirectoryExists: fs.existsSync(targetCoverageDir),
+        }).toStrictEqual({ targetCoverageDirectoryExists: false });
         expect(logger).toHaveBeenCalledWith(
             "normalize-coverage-lcov: no coverage directory found. Skipping normalization."
         );

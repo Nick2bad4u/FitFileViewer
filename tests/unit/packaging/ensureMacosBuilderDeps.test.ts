@@ -42,7 +42,12 @@ describe("ensure-macos-builder-deps script", () => {
             () => "node_modules/dmg-license/package.json"
         );
 
-        expect(isPackageAvailable(dmgLicensePackageName, resolver)).toBe(true);
+        expect({
+            packageAvailable: isPackageAvailable(
+                dmgLicensePackageName,
+                resolver
+            ),
+        }).toStrictEqual({ packageAvailable: true });
         expect(resolver).toHaveBeenCalledWith("dmg-license/package.json");
     });
 

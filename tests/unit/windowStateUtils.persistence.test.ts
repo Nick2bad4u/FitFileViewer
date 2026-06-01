@@ -187,7 +187,9 @@ describe("windowStateUtils persistence behavior", () => {
 
         mod.saveWindowState(win);
 
-        expect(existsSync(fallbackSettingsPath)).toBe(true);
+        expect({
+            fallbackSettingsFileExists: existsSync(fallbackSettingsPath),
+        }).toStrictEqual({ fallbackSettingsFileExists: true });
         expect({
             savedState: JSON.parse(readFileSync(fallbackSettingsPath, "utf8")),
             settingsPath: mod.settingsPath,
