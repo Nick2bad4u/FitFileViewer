@@ -16,6 +16,10 @@ function resetMapThemeToggleGlobals(): void {
     delete testGlobal.__ffvMapThemeToggleUpdate;
 }
 
+function getClassList(element: Element | undefined): string[] {
+    return element ? [...element.classList] : [];
+}
+
 describe("createMapThemeToggle renderer environment handling", () => {
     afterEach(() => {
         document.body.replaceChildren();
@@ -38,7 +42,7 @@ describe("createMapThemeToggle renderer environment handling", () => {
         }).not.toThrow();
 
         expect(toggle).toBeInstanceOf(HTMLElement);
-        expect(toggle?.classList.contains("map-theme-toggle")).toBe(true);
+        expect(getClassList(toggle)).toContain("map-theme-toggle");
         expect(toggle?.getAttribute("aria-label")).toBe("Toggle map theme");
     });
 
@@ -55,6 +59,6 @@ describe("createMapThemeToggle renderer environment handling", () => {
         }).not.toThrow();
 
         expect(toggle).toBeInstanceOf(HTMLElement);
-        expect(toggle?.classList.contains("map-theme-toggle")).toBe(true);
+        expect(getClassList(toggle)).toContain("map-theme-toggle");
     });
 });

@@ -3,6 +3,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // Note: use relative path from this test folder to module under test
 import * as theme from "../../../../../electron-app/utils/theming/core/theme.js";
 
+function getBodyClasses(): string[] {
+    return [...document.body.classList];
+}
+
 describe("utils/theming/core/theme.js - additional coverage", () => {
     const originalMatchMedia = globalThis.matchMedia as any;
     const originalElectronAPI = (globalThis as any).electronAPI;
@@ -60,7 +64,7 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
         // withTransition=false avoids timer for first part
         theme.applyTheme("dark", false);
         listenerController.abort();
-        expect(document.body.classList.contains("theme-dark")).toBe(true);
+        expect(getBodyClasses()).toContain("theme-dark");
         expect(localStorage.getItem("ffv-theme")).toBe("dark");
         expect(eventSpy.mock.calls.length).toBeGreaterThanOrEqual(1);
 
@@ -74,14 +78,10 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
         // Now test transition path (adds transient class and removes it after timeout)
         vi.useFakeTimers();
         theme.applyTheme("light", true);
-        expect(document.body.classList.contains("theme-transitioning")).toBe(
-            true
-        );
+        expect(getBodyClasses()).toContain("theme-transitioning");
         // fast-forward timer
         vi.advanceTimersByTime(300);
-        expect(document.body.classList.contains("theme-transitioning")).toBe(
-            false
-        );
+        expect(getBodyClasses()).not.toContain("theme-transitioning");
 
         // meta updated for light
         const meta2 = document.querySelector(
@@ -97,7 +97,7 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
         // Configure environment so getSystemTheme() resolves to light
         (globalThis as any).matchMedia = () => ({ matches: false }) as any;
         theme.applyTheme(theme.THEME_MODES.AUTO, false);
-        expect(document.body.classList.contains("theme-light")).toBe(true);
+        expect(getBodyClasses()).toContain("theme-light");
     });
 
     it("getEffectiveTheme respects auto and explicit values", () => {
@@ -156,7 +156,7 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
         expect(cfg.colors.fg).toBe("#111111");
         // ensure some computed fallback keys exist
         expect(cfg.colors.chartBackground).toBeTypeOf("string");
-        expect(Array.isArray(cfg.colors.zoneColors)).toBe(true);
+        expect(cfg.colors.zoneColors).toBeInstanceOf(Array);
     });
 
     it("listenForSystemThemeChange returns undefined when matchMedia is unavailable", () => {
@@ -197,7 +197,7 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
         theme.toggleTheme(false);
         // applyTheme should have persisted light and set class
         expect(localStorage.getItem("ffv-theme")).toBe("light");
-        expect(document.body.classList.contains("theme-light")).toBe(true);
+        expect(getBodyClasses()).toContain("theme-light");
     });
 
     it("initializeTheme applies saved theme, sets up listener and injects CSS", () => {
@@ -214,7 +214,7 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
 
         const cleanup = theme.initializeTheme();
         // body should reflect saved theme after initializeTheme
-        expect(document.body.classList.contains("theme-dark")).toBe(true);
+        expect(getBodyClasses()).toContain("theme-dark");
         // Style tag injected
         const styleEl = document.querySelector("#theme-transition-styles");
         expect(styleEl).toBeInstanceOf(HTMLStyleElement);

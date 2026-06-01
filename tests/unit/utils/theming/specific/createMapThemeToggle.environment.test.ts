@@ -41,6 +41,10 @@ function resetMapThemeToggleGlobals(): void {
     Reflect.deleteProperty(globalThis, "updateMapTheme");
 }
 
+function getClassList(element: Element): string[] {
+    return [...element.classList];
+}
+
 describe("createMapThemeToggle environment handling", () => {
     beforeEach(() => {
         document.body.replaceChildren();
@@ -71,7 +75,7 @@ describe("createMapThemeToggle environment handling", () => {
         const button = createMapThemeToggle();
 
         expect(button).toBeInstanceOf(HTMLButtonElement);
-        expect(button.classList.contains("map-theme-toggle")).toBe(true);
+        expect(getClassList(button)).toContain("map-theme-toggle");
         expect(button.title).toBe("Map: Dark theme (click for light theme)");
         expect(button.querySelector("svg")).toBeInstanceOf(SVGElement);
         expect(consoleError).not.toHaveBeenCalled();
@@ -92,7 +96,7 @@ describe("createMapThemeToggle environment handling", () => {
         const button = createMapThemeToggle();
 
         expect(button).toBeInstanceOf(HTMLButtonElement);
-        expect(button.classList.contains("active")).toBe(true);
+        expect(getClassList(button)).toContain("active");
         expect(consoleError).not.toHaveBeenCalled();
     });
 });
