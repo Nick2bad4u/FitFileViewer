@@ -10,12 +10,16 @@ async function fresh(): Promise<LoggingIndexModule> {
 
 describe("logWithLevel.strict", () => {
     afterEach(() => {
+        vi.useRealTimers();
         vi.restoreAllMocks();
         Reflect.deleteProperty(globalThis, "__vitest_object_keys_allow_throw");
     });
 
     it("logs at all levels with and without payload", async () => {
         expect.assertions(6);
+
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2026-01-02T03:04:05.006Z"));
 
         const { logWithLevel } = await fresh();
         const clog = vi.spyOn(console, "log").mockImplementation(() => {});
@@ -25,23 +29,23 @@ describe("logWithLevel.strict", () => {
 
         expect(logWithLevel("log", "hello")).toBeUndefined();
         expect(clog).toHaveBeenCalledWith(
-            expect.stringContaining("[FFV] hello")
+            "2026-01-02T03:04:05.006Z [FFV] hello"
         );
 
         logWithLevel("info", "world", { a: 1 });
         expect(cinfo).toHaveBeenCalledWith(
-            expect.stringContaining("[FFV] world"),
+            "2026-01-02T03:04:05.006Z [FFV] world",
             { a: 1 }
         );
 
         logWithLevel("warn", "w", {}); // empty object -> no payload
-        expect(cwarn).toHaveBeenCalledWith(expect.stringContaining("[FFV] w"));
+        expect(cwarn).toHaveBeenCalledWith("2026-01-02T03:04:05.006Z [FFV] w");
 
         logWithLevel("error", "e", [1, 2] as unknown as Record<
             string,
             unknown
         >); // array -> not treated as object
-        expect(cerr).toHaveBeenCalledWith(expect.stringContaining("[FFV] e"));
+        expect(cerr).toHaveBeenCalledWith("2026-01-02T03:04:05.006Z [FFV] e");
         expect(globalThis.__vitest_object_keys_allow_throw).toBe(false);
     });
 

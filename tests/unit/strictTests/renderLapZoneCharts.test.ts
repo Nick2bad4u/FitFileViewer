@@ -807,9 +807,12 @@ describe(renderLapZoneCharts, () => {
             expect(canvas.id).toBe("chartjs-canvas-lap-hr-zones");
             expect(data).toBeInstanceOf(Array);
             expect(options.title).toBe("HR Zone by Lap (Stacked)");
-            expect(window._chartjsInstances).toContainEqual({
-                id: "mock-chart",
-            });
+            expect(window._chartjsInstances).toStrictEqual([
+                { id: "mock-chart" },
+                { id: "mock-chart" },
+                { id: "mock-hr-bar" },
+                { id: "mock-power-bar" },
+            ]);
             expect(mockConsoleError).not.toHaveBeenCalled();
         });
 
