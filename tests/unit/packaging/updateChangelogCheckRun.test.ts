@@ -131,7 +131,7 @@ describe("update-changelog-check-run script", () => {
     });
 
     it("creates a check run and writes CHECKID to the GitHub environment", async () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const { createChangelogCheckRun } =
             await importUpdateChangelogCheckRun();
@@ -147,31 +147,45 @@ describe("update-changelog-check-run script", () => {
 
         expect({
             checkId,
-            commandCount: calls.length,
             envFile: fs.readFileSync(githubEnv, "utf8"),
-            requestPath: calls[0]?.args.find(
-                (arg) => arg === "/repos/Nick2bad4u/FitFileViewer/check-runs"
-            ),
-            requestPayload: JSON.parse(calls[0]?.options.input ?? "{}"),
         }).toStrictEqual({
             checkId: 12345,
-            commandCount: 1,
             envFile: "CHECKID=12345\n",
-            requestPath: "/repos/Nick2bad4u/FitFileViewer/check-runs",
-            requestPayload: {
-                head_sha: "abc123",
-                name: "Update ChangeLogs",
-                output: {
-                    summary: "Changelog update in progress",
-                    title: "Update ChangeLogs",
-                },
-                status: "in_progress",
-            },
         });
+        expect(calls).toStrictEqual([
+            {
+                args: [
+                    "api",
+                    "-X",
+                    "POST",
+                    "-H",
+                    "Accept: application/vnd.github+json",
+                    "-H",
+                    // eslint-disable-next-line case-police/string-check -- GitHub documents this exact API version header spelling.
+                    "X-GitHub-Api-Version: 2022-11-28",
+                    "/repos/Nick2bad4u/FitFileViewer/check-runs",
+                    "--input",
+                    "-",
+                ],
+                command: "gh",
+                options: {
+                    encoding: "utf8",
+                    input: `${JSON.stringify({
+                        head_sha: "abc123",
+                        name: "Update ChangeLogs",
+                        output: {
+                            summary: "Changelog update in progress",
+                            title: "Update ChangeLogs",
+                        },
+                        status: "in_progress",
+                    })}\n`,
+                },
+            },
+        ]);
     });
 
     it("updates the generated check run through gh api", async () => {
-        expect.assertions(4);
+        expect.assertions(1);
 
         const { markChangelogsGenerated } =
             await importUpdateChangelogCheckRun();
@@ -184,17 +198,35 @@ describe("update-changelog-check-run script", () => {
             version: "30.0.0",
         });
 
-        expect(calls).toHaveLength(1);
-        expect(calls[0]?.args).toContain("-X");
-        expect(calls[0]?.args).toContain("PATCH");
-        expect(JSON.parse(calls[0]?.options.input ?? "{}")).toStrictEqual({
-            output: {
-                summary:
-                    "Changelogs generated for v30.0.0 and committed to repository",
-                title: "Update ChangeLogs",
+        expect(calls).toStrictEqual([
+            {
+                args: [
+                    "api",
+                    "-X",
+                    "PATCH",
+                    "-H",
+                    "Accept: application/vnd.github+json",
+                    "-H",
+                    // eslint-disable-next-line case-police/string-check -- GitHub documents this exact API version header spelling.
+                    "X-GitHub-Api-Version: 2022-11-28",
+                    "/repos/Nick2bad4u/FitFileViewer/check-runs/12345",
+                    "--input",
+                    "-",
+                ],
+                command: "gh",
+                options: {
+                    encoding: "utf8",
+                    input: `${JSON.stringify({
+                        output: {
+                            summary:
+                                "Changelogs generated for v30.0.0 and committed to repository",
+                            title: "Update ChangeLogs",
+                        },
+                        status: "in_progress",
+                    })}\n`,
+                },
             },
-            status: "in_progress",
-        });
+        ]);
     });
 
     it("parses action-specific CLI arguments and environment defaults", async () => {
