@@ -1,13 +1,18 @@
 import fs from "node:fs";
 import path from "node:path";
+import process from "node:process";
+import { pathToFileURL } from "node:url";
 
-import { appSourceAbsolutePath, appSourcePath } from "./lib/workspaces.mjs";
+import {
+    appSourceAbsolutePath,
+    appSourceDirectoryName,
+    appSourcePath,
+} from "./lib/workspaces.mjs";
 
-const appDir = appSourcePath;
-const distDir = appSourceAbsolutePath("dist");
+export const defaultRuntimeDistPath = appSourceAbsolutePath("dist");
 
-function assertInsideElectronApp(targetPath) {
-    const resolvedRoot = path.resolve(appDir);
+export function assertInsideAppSource(targetPath, appRoot = appSourcePath) {
+    const resolvedRoot = path.resolve(appRoot);
     const resolvedTarget = path.resolve(targetPath);
     const relativePath = path.relative(resolvedRoot, resolvedTarget);
 
@@ -17,10 +22,25 @@ function assertInsideElectronApp(targetPath) {
         path.isAbsolute(relativePath)
     ) {
         throw new Error(
-            `Refusing to remove outside electron-app: ${targetPath}`
+            `Refusing to remove outside ${appSourceDirectoryName}: ${targetPath}`
         );
     }
 }
 
-assertInsideElectronApp(distDir);
-fs.rmSync(distDir, { force: true, recursive: true });
+export function cleanRuntimeDist({
+    appRoot = appSourcePath,
+    distPath = defaultRuntimeDistPath,
+    fileSystem = fs,
+} = {}) {
+    assertInsideAppSource(distPath, appRoot);
+    fileSystem.rmSync(distPath, { force: true, recursive: true });
+
+    return distPath;
+}
+
+if (
+    process.argv[1] &&
+    import.meta.url === pathToFileURL(process.argv[1]).href
+) {
+    cleanRuntimeDist();
+}
