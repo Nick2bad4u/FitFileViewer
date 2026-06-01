@@ -138,15 +138,17 @@ describe("registerFileSystemHandlers", () => {
             "Filesystem module unavailable"
         );
 
-        expect(logWithContext).toHaveBeenCalledWith(
-            "error",
-            "Error in file:read:",
-            expect.objectContaining({
-                error: "Filesystem module unavailable",
-                filePath: approvedPath,
-                authorizedPath: approvedPath,
-            })
-        );
+        expect(logWithContext.mock.calls).toStrictEqual([
+            [
+                "error",
+                "Error in file:read:",
+                {
+                    authorizedPath: approvedPath,
+                    error: "Filesystem module unavailable",
+                    filePath: approvedPath,
+                },
+            ],
+        ]);
     });
 
     it("rejects and logs when readFile errors", async () => {
@@ -164,15 +166,17 @@ describe("registerFileSystemHandlers", () => {
 
         await expect(handler({}, approvedPath)).rejects.toThrow("boom");
 
-        expect(logWithContext).toHaveBeenCalledWith(
-            "error",
-            "Error in file:read:",
-            expect.objectContaining({
-                error: "boom",
-                filePath: approvedPath,
-                authorizedPath: approvedPath,
-            })
-        );
+        expect(logWithContext.mock.calls).toStrictEqual([
+            [
+                "error",
+                "Error in file:read:",
+                {
+                    authorizedPath: approvedPath,
+                    error: "boom",
+                    filePath: approvedPath,
+                },
+            ],
+        ]);
     });
 
     it("rejects unapproved paths", async () => {
@@ -226,15 +230,17 @@ describe("registerFileSystemHandlers", () => {
             "File size exceeds 100MB limit"
         );
         expect(fileSystem.readFile).not.toHaveBeenCalled();
-        expect(logWithContext).toHaveBeenCalledWith(
-            "error",
-            "Error in file:read:",
-            expect.objectContaining({
-                authorizedPath: approvedPath,
-                error: "File size exceeds 100MB limit",
-                filePath: approvedPath,
-            })
-        );
+        expect(logWithContext.mock.calls).toStrictEqual([
+            [
+                "error",
+                "Error in file:read:",
+                {
+                    authorizedPath: approvedPath,
+                    error: "File size exceeds 100MB limit",
+                    filePath: approvedPath,
+                },
+            ],
+        ]);
     });
 
     it("rejects invalid filePath inputs early", async () => {
@@ -251,13 +257,26 @@ describe("registerFileSystemHandlers", () => {
         );
 
         expect(fileSystem.readFile).not.toHaveBeenCalled();
-        expect(logWithContext).toHaveBeenCalledWith(
-            "error",
-            "Error in file:read:",
-            expect.objectContaining({
-                error: "Invalid file path provided",
-            })
-        );
+        expect(logWithContext.mock.calls).toStrictEqual([
+            [
+                "error",
+                "Error in file:read:",
+                {
+                    authorizedPath: undefined,
+                    error: "Invalid file path provided",
+                    filePath: "   ",
+                },
+            ],
+            [
+                "error",
+                "Error in file:read:",
+                {
+                    authorizedPath: undefined,
+                    error: "Invalid file path provided",
+                    filePath: "null",
+                },
+            ],
+        ]);
     });
 
     it("rejects unexpected fs.readFile result types", async () => {
