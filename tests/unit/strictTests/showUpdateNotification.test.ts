@@ -20,6 +20,10 @@ function ensureNotificationDiv() {
     return el as HTMLDivElement;
 }
 
+function stripRendererLogPrefix(message: unknown): string {
+    return String(message).replace(/^\[[^\]]+\] \[renderer\] /u, "");
+}
+
 describe("showUpdateNotification strict", () => {
     let clock: ReturnType<typeof vi.useFakeTimers>;
 
@@ -139,14 +143,20 @@ describe("showUpdateNotification strict", () => {
         expect(btn).toBeInstanceOf(HTMLButtonElement);
         expect(btn?.textContent).toBe("Restart & Update");
         btn?.dispatchEvent(new MouseEvent("click"));
-        expect(logSpy).toHaveBeenCalledWith(
-            expect.stringContaining("electronAPI.installUpdate not available")
-        );
-        expect(errorSpy).toHaveBeenCalledWith(
-            expect.stringContaining(
-                "Cannot install update - electronAPI not available"
+        expect(
+            logSpy.mock.calls.map(([message]) =>
+                stripRendererLogPrefix(message)
             )
-        );
+        ).toStrictEqual([
+            "ShowUpdateNotification: electronAPI.installUpdate not available",
+        ]);
+        expect(
+            errorSpy.mock.calls.map(([message]) =>
+                stripRendererLogPrefix(message)
+            )
+        ).toStrictEqual([
+            "ShowUpdateNotification: Cannot install update - electronAPI not available",
+        ]);
         // No electronAPI, so nothing to assert besides no throw; ensure code continues
         expect(el.style.display).toBe("block");
     });
