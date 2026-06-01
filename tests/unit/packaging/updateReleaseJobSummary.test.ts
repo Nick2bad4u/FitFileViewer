@@ -69,17 +69,18 @@ describe("update-release-job-summary script", () => {
     it("appends the summary to GITHUB_STEP_SUMMARY", async () => {
         expect.assertions(1);
 
-        const { updateReleaseJobSummary } =
+        const { createReleaseJobSummary, updateReleaseJobSummary } =
             await importUpdateReleaseJobSummary();
         const summaryPath = path.join(makeTemporaryRoot(), "summary.md");
-
-        updateReleaseJobSummary({
+        const options = {
             githubStepSummary: summaryPath,
             jobStatus: "failure",
-        });
+        };
 
-        expect(fs.readFileSync(summaryPath, "utf8")).toContain(
-            "- Workflow completed with status: failure\n"
+        updateReleaseJobSummary(options);
+
+        expect(fs.readFileSync(summaryPath, "utf8")).toBe(
+            createReleaseJobSummary(options)
         );
     });
 

@@ -77,18 +77,19 @@ describe("update-changelog-job-summary script", () => {
     it("appends the summary to GITHUB_STEP_SUMMARY", async () => {
         expect.assertions(1);
 
-        const { updateChangelogJobSummary } =
+        const { createChangelogJobSummary, updateChangelogJobSummary } =
             await importUpdateChangelogJobSummary();
         const summaryPath = path.join(makeTemporaryRoot(), "summary.md");
-
-        updateChangelogJobSummary({
+        const options = {
             githubStepSummary: summaryPath,
             jobStatus: "failure",
             version: "30.0.0",
-        });
+        };
 
-        expect(fs.readFileSync(summaryPath, "utf8")).toContain(
-            "- **Status**: failure\n"
+        updateChangelogJobSummary(options);
+
+        expect(fs.readFileSync(summaryPath, "utf8")).toBe(
+            createChangelogJobSummary(options)
         );
     });
 
