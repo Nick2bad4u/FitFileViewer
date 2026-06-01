@@ -9,6 +9,7 @@ import {
     rootElectronAppTsconfigPath,
     rootEslintConfigPath,
     rootPackageRepositoryPath,
+    rootPlaywrightConfigPath,
     rootPrettierConfigPath,
     rootRuntimeTsconfigPath,
     rootVitestConfigPath,
@@ -261,6 +262,7 @@ describe("workspace package boundaries", () => {
             rootVitestConfigPath,
             rootElectronAppTsconfigPath,
             rootRuntimeTsconfigPath,
+            rootPlaywrightConfigPath,
         ];
         const appLocalToolingConfigs = [
             ".eslintrc",
@@ -293,5 +295,18 @@ describe("workspace package boundaries", () => {
                 appLocalToolingConfigs.map((configPath) => [configPath, false])
             )
         );
+    });
+
+    it("keeps the root Playwright smoke config strict", () => {
+        expect.assertions(3);
+
+        const playwrightConfig = readFileSync(
+            path.join(process.cwd(), rootPlaywrightConfigPath),
+            "utf8"
+        );
+
+        expect(playwrightConfig).toContain("forbidOnly: true");
+        expect(playwrightConfig).toContain('testDir: "./tests/playwright"');
+        expect(playwrightConfig).toContain("workers: 1");
     });
 });

@@ -1,7 +1,7 @@
 import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
-    forbidOnly: false,
+    forbidOnly: true,
     fullyParallel: false,
     reporter: [["list"]],
     testDir: "./tests/playwright",
