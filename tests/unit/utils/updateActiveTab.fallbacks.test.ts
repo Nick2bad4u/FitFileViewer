@@ -65,7 +65,7 @@ describe("updateActiveTab.js - environment fallbacks", () => {
     });
 
     it("uses __vitest_effective_stateManager__ when module functions are unavailable", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         // Arrange a normal JSDOM document for DOM operations
         document.body.replaceChildren();
@@ -103,7 +103,7 @@ describe("updateActiveTab.js - environment fallbacks", () => {
     });
 
     it("falls back to __vitest_effective_document__ when document/window are unavailable/invalid", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         // Create a separate JSDOM to act as the effective document
         const effDom = new JSDOM(
@@ -147,7 +147,7 @@ describe("updateActiveTab.js - environment fallbacks", () => {
     });
 
     it("uses window.document when document is undefined (window fallback)", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         // Prepare a fresh JSDOM to simulate window.document while document is undefined
         const dom = new JSDOM(
@@ -187,7 +187,7 @@ describe("updateActiveTab.js - environment fallbacks", () => {
     });
 
     it("subscribes and updates aria-selected via state callback (valid path)", async () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         // Standard DOM with two buttons
         document.body.replaceChildren();
@@ -250,7 +250,7 @@ describe("updateActiveTab.js - environment fallbacks", () => {
     });
 
     it('ignores clicks on aria-disabled="true" buttons (no disabled/class)', async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         document.body.replaceChildren();
         const tabMapButton = appendTabButton({
