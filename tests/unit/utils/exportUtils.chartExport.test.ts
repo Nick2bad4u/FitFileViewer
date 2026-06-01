@@ -507,7 +507,7 @@ describe("exportUtils chart export helpers", () => {
 
             await exportUtils.downloadChartAsPNG(chartFixture.chart);
 
-            expect(document.body.childElementCount).not.toBeGreaterThan(0);
+            expect(document.body.childElementCount).toBe(0);
             expect(dependencyMocks.showNotification).toHaveBeenCalledWith(
                 "Failed to export chart as PNG",
                 "error"
@@ -523,7 +523,7 @@ describe("exportUtils chart export helpers", () => {
 
             await exportUtils.createCombinedChartsImage([]);
 
-            expect(document.body.childElementCount).not.toBeGreaterThan(0);
+            expect(document.body.childElementCount).toBe(0);
             expect(dependencyMocks.showNotification).toHaveBeenCalledWith(
                 "Failed to create combined image",
                 "error"
@@ -694,16 +694,20 @@ describe("exportUtils chart export helpers", () => {
 
     describe("copyCombinedChartsToClipboard function", () => {
         it("notifies for empty charts array", async () => {
-            expect.assertions(2);
+            expect.assertions(3);
 
             setupDomHarness();
 
             await exportUtils.copyCombinedChartsToClipboard([]);
 
-            expect(document.body.childElementCount).not.toBeGreaterThan(0);
+            expect(document.body.childElementCount).toBe(0);
             expect(dependencyMocks.showNotification).toHaveBeenCalledWith(
                 "Failed to copy combined charts to clipboard",
                 "error"
+            );
+            expect(dependencyMocks.showNotification).not.toHaveBeenCalledWith(
+                expect.any(String),
+                "success"
             );
         });
 

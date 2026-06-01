@@ -236,7 +236,7 @@ describe(computeMetricStatistics, () => {
             count: 3,
             hasSamples: true,
         });
-        expect(stats?.step).toBeGreaterThan(0);
+        expect(stats?.step).toBe(0.01);
     });
 
     it("returns null for an unknown metric", () => {

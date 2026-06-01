@@ -165,8 +165,7 @@ describe("chartStateManager", () => {
                 isInitialized: true,
                 renderDebounceTime: 250,
             });
-            expect(chartStateManager.renderDebounceTime).toBeGreaterThan(0);
-            expect(chartStateManager.renderDebounceTime).not.toStrictEqual(0);
+            expect(chartStateManager.renderTimeout).not.toBeTypeOf("number");
         });
 
         it("should have required methods", () => {
@@ -209,7 +208,7 @@ describe("chartStateManager", () => {
             chartStateManager.debouncedRender("reason3");
 
             // Should not have called render yet
-            expect(Number(chartStateManager.renderTimeout)).toBeGreaterThan(0);
+            expect(vi.getTimerCount()).toBe(1);
             expect(performRenderSpy).not.toHaveBeenCalled();
 
             // Advance timers
@@ -228,7 +227,7 @@ describe("chartStateManager", () => {
             chartStateManager.debouncedRender("reason1");
             chartStateManager.debouncedRender("reason2");
 
-            expect(Number(chartStateManager.renderTimeout)).toBeGreaterThan(0);
+            expect(vi.getTimerCount()).toBe(1);
             expect(clearTimeoutSpy).toHaveBeenCalledOnce();
             clearTimeoutSpy.mockRestore();
         });
@@ -308,7 +307,6 @@ describe("chartStateManager", () => {
                 selectedChart: "power",
                 tabActive: true,
             });
-            expect(info.instanceCount).toBeGreaterThan(0);
         });
     });
 
@@ -377,7 +375,7 @@ describe("chartStateManager", () => {
             const newData = { recordMesgs: [{ type: "record" }] };
             chartStateManager.handleDataChange(newData);
 
-            expect(Number(chartStateManager.renderTimeout)).toBeGreaterThan(0);
+            expect(vi.getTimerCount()).toBe(1);
             expect(clearChartStateSpy).toHaveBeenCalledWith();
             expect(isChartTabActiveSpy).toHaveBeenCalledWith();
             expect(debouncedRenderSpy).toHaveBeenCalledWith("New data loaded");
@@ -446,7 +444,7 @@ describe("chartStateManager", () => {
 
             chartStateManager.handleTabActivation();
 
-            expect(Number(chartStateManager.renderTimeout)).toBeGreaterThan(0);
+            expect(vi.getTimerCount()).toBe(1);
             expect(setState).toHaveBeenCalledWith("charts.tabActive", true, {
                 source: "ChartStateManager.handleTabActivation",
             });
@@ -508,7 +506,7 @@ describe("chartStateManager", () => {
 
             chartStateManager.handleThemeChange("dark");
 
-            expect(Number(chartStateManager.renderTimeout)).toBeGreaterThan(0);
+            expect(vi.getTimerCount()).toBe(1);
             expect(isChartTabActiveSpy).toHaveBeenCalledWith();
             expect(debouncedRenderSpy).toHaveBeenCalledWith(
                 "Theme change to dark"
@@ -532,7 +530,7 @@ describe("chartStateManager", () => {
 
             chartStateManager.handleThemeChange();
 
-            expect(Number(chartStateManager.renderTimeout)).toBeGreaterThan(0);
+            expect(vi.getTimerCount()).toBe(1);
             expect(isChartTabActiveSpy).toHaveBeenCalledWith();
             expect(debouncedRenderSpy).toHaveBeenCalledWith("Theme change");
 

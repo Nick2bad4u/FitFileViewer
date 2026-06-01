@@ -871,12 +871,12 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 initializeCommonComputedValues();
 
                 const initialCount = computedStateManager.computedValues.size;
-                expect(initialCount).toBeGreaterThan(0);
+                expect(initialCount).toBe(8);
 
                 cleanupCommonComputedValues();
 
                 const finalCount = computedStateManager.computedValues.size;
-                expect(finalCount).toBeLessThan(initialCount);
+                expect(finalCount).toBe(0);
                 expect(
                     computedStateManager.computedValues.has("isFileLoaded")
                 ).not.toStrictEqual(true);

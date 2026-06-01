@@ -146,9 +146,10 @@ describe("settingsStateManager.js - simplified coverage", () => {
                 expect(settingsStateManager.initialized).toStrictEqual(false);
                 expect(settingsStateManager.migrationVersion).toBe("1.0.0");
                 expect(settingsStateManager.subscribers).toBeInstanceOf(Map);
+                expect(settingsStateManager.subscribers.size).toBe(0);
                 expect(
-                    settingsStateManager.subscribers.size
-                ).not.toBeGreaterThan(0);
+                    settingsStateManager.subscribers.has("missing")
+                ).not.toBe(true);
             });
         });
 
