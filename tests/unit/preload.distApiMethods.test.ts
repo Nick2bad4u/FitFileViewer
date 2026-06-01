@@ -19,10 +19,13 @@ interface ExposedPreloadApi {
 type ContextBridgeExpose = (name: string, api: unknown) => void;
 type IpcInvoke = (...args: unknown[]) => Promise<unknown>;
 type IpcListener = (...args: unknown[]) => void;
-type ProcessOnce = (
+type ProcessListener = (...args: unknown[]) => void;
+type ProcessListeners = (eventName: string) => ProcessListener[];
+type ProcessListenerMutation = (
     eventName: string,
-    listener: (...args: unknown[]) => void
+    listener: ProcessListener
 ) => void;
+type ProcessOnce = (eventName: string, listener: ProcessListener) => void;
 type RequireModule = (moduleName: string) => unknown;
 
 interface MockIpcRenderer {
@@ -123,6 +126,7 @@ describe("preload.js dist API methods", () => {
             NODE_ENV: "test",
             ...options,
         };
+        let beforeExitListeners: ProcessListener[] = [];
 
         const mockRequire = vi.fn<RequireModule>((moduleName) =>
             resolvePreloadScriptRequire(moduleName, {
@@ -133,7 +137,23 @@ describe("preload.js dist API methods", () => {
 
         const mockProcess = {
             env,
-            once: vi.fn<ProcessOnce>(),
+            listeners: vi.fn<ProcessListeners>((eventName) =>
+                eventName === "beforeExit" ? beforeExitListeners : []
+            ),
+            once: vi.fn<ProcessOnce>((eventName, listener) => {
+                if (eventName === "beforeExit") {
+                    beforeExitListeners.push(listener);
+                }
+            }),
+            removeListener: vi.fn<ProcessListenerMutation>(
+                (eventName, listener) => {
+                    if (eventName === "beforeExit") {
+                        beforeExitListeners = beforeExitListeners.filter(
+                            (currentListener) => currentListener !== listener
+                        );
+                    }
+                }
+            ),
         };
 
         const mockConsole = {
@@ -154,6 +174,7 @@ describe("preload.js dist API methods", () => {
             exposedAPI: mockContextBridge.exposeInMainWorld.mock
                 .calls[0]?.[1] as ExposedPreloadApi | undefined,
             devTools: mockContextBridge.exposeInMainWorld.mock.calls[1]?.[1],
+            getBeforeExitListeners: () => beforeExitListeners,
         };
     }
 
@@ -161,7 +182,9 @@ describe("preload.js dist API methods", () => {
         mockRequire: (moduleName: string) => unknown,
         mockProcess: {
             env: Record<string, unknown>;
+            listeners: ReturnType<typeof vi.fn<ProcessListeners>>;
             once: ReturnType<typeof vi.fn<ProcessOnce>>;
+            removeListener: ReturnType<typeof vi.fn<ProcessListenerMutation>>;
         },
         mockConsole: { error: unknown; log: unknown }
     ) {
@@ -178,23 +201,38 @@ describe("preload.js dist API methods", () => {
 
     describe("module Loading and Basic Structure", () => {
         it("should import and execute without errors", () => {
-            expect.assertions(5);
-            const { exposedAPI, mockProcess, mockRequire } =
-                createPreloadEnvironment();
+            expect.assertions(8);
+            const {
+                exposedAPI,
+                getBeforeExitListeners,
+                mockProcess,
+                mockRequire,
+            } = createPreloadEnvironment();
 
             expect(mockRequire).toHaveBeenCalledWith("electron");
             expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith(
                 "electronAPI",
-                expect.objectContaining({
-                    getChannelInfo: expect.any(Function),
-                    validateAPI: expect.any(Function),
-                })
+                exposedAPI
             );
+            expect(
+                Object.fromEntries(
+                    ["getChannelInfo", "validateAPI"].map((methodName) => [
+                        methodName,
+                        Object.hasOwn(exposedAPI ?? {}, methodName),
+                    ])
+                )
+            ).toEqual({
+                getChannelInfo: true,
+                validateAPI: true,
+            });
             expect(exposedAPI?.validateAPI()).toStrictEqual(true);
-            expect(mockProcess.once).toHaveBeenCalledWith(
+            expect(mockProcess.once.mock.calls[0]).toEqual([
                 "beforeExit",
-                expect.any(Function)
-            );
+                getBeforeExitListeners()[0],
+            ]);
+            expect(getBeforeExitListeners()).toHaveLength(1);
+            getBeforeExitListeners()[0]?.();
+            expect(getBeforeExitListeners()).toHaveLength(0);
             expect(consoleSpy.error).not.toHaveBeenCalled();
         });
 
@@ -223,13 +261,10 @@ describe("preload.js dist API methods", () => {
 
     describe("constants Structure", () => {
         it("should define all required channel constants", () => {
-            expect.assertions(2);
+            expect.assertions(1);
             const { exposedAPI } = createPreloadEnvironment();
-            expect(exposedAPI).toMatchObject({
-                getChannelInfo: expect.any(Function),
-            });
-
             const channelInfo = exposedAPI.getChannelInfo();
+
             expect(channelInfo).toMatchObject({
                 channels: EXPECTED_PRELOAD_CHANNELS,
                 events: EXPECTED_PRELOAD_EVENTS,
@@ -537,59 +572,85 @@ describe("preload.js dist API methods", () => {
 
     describe("event Handler Registration", () => {
         it("should provide onMenuOpenFile method", () => {
-            expect.assertions(2);
+            expect.assertions(3);
             const { exposedAPI } = createPreloadEnvironment();
             const callback = vi.fn<IpcListener>();
 
             const unsubscribe = exposedAPI.onMenuOpenFile(callback);
+            const [, registeredListener] =
+                mockIpcRenderer.on.mock.calls[0] ?? [];
 
-            expect(mockIpcRenderer.on).toHaveBeenCalledWith(
-                "menu-open-file",
-                expect.any(Function)
+            expect(mockIpcRenderer.on.mock.calls[0]?.[0]).toBe(
+                "menu-open-file"
             );
-            expect(unsubscribe).toBeTypeOf("function");
+            registeredListener?.({}, "activity.fit");
+            expect(callback).toHaveBeenCalledWith("activity.fit");
+            unsubscribe();
+            expect(mockIpcRenderer.removeListener).toHaveBeenCalledWith(
+                "menu-open-file",
+                registeredListener
+            );
         });
 
         it("should provide onMenuOpenOverlay method", () => {
-            expect.assertions(2);
+            expect.assertions(3);
             const { exposedAPI } = createPreloadEnvironment();
             const callback = vi.fn<IpcListener>();
 
             const unsubscribe = exposedAPI.onMenuOpenOverlay(callback);
+            const [, registeredListener] =
+                mockIpcRenderer.on.mock.calls[0] ?? [];
 
-            expect(mockIpcRenderer.on).toHaveBeenCalledWith(
-                "menu-open-overlay",
-                expect.any(Function)
+            expect(mockIpcRenderer.on.mock.calls[0]?.[0]).toBe(
+                "menu-open-overlay"
             );
-            expect(unsubscribe).toBeTypeOf("function");
+            registeredListener?.({}, "overlay.fit");
+            expect(callback).toHaveBeenCalledWith("overlay.fit");
+            unsubscribe();
+            expect(mockIpcRenderer.removeListener).toHaveBeenCalledWith(
+                "menu-open-overlay",
+                registeredListener
+            );
         });
 
         it("should provide onOpenRecentFile method", () => {
-            expect.assertions(2);
+            expect.assertions(3);
             const { exposedAPI } = createPreloadEnvironment();
             const callback = vi.fn<IpcListener>();
 
             const unsubscribe = exposedAPI.onOpenRecentFile(callback);
+            const [, registeredListener] =
+                mockIpcRenderer.on.mock.calls[0] ?? [];
 
-            expect(mockIpcRenderer.on).toHaveBeenCalledWith(
-                "open-recent-file",
-                expect.any(Function)
+            expect(mockIpcRenderer.on.mock.calls[0]?.[0]).toBe(
+                "open-recent-file"
             );
-            expect(unsubscribe).toBeTypeOf("function");
+            registeredListener?.({}, "recent.fit");
+            expect(callback).toHaveBeenCalledWith("recent.fit");
+            unsubscribe();
+            expect(mockIpcRenderer.removeListener).toHaveBeenCalledWith(
+                "open-recent-file",
+                registeredListener
+            );
         });
 
         it("should provide onSetTheme method", () => {
-            expect.assertions(2);
+            expect.assertions(3);
             const { exposedAPI } = createPreloadEnvironment();
             const callback = vi.fn<IpcListener>();
 
             const unsubscribe = exposedAPI.onSetTheme(callback);
+            const [, registeredListener] =
+                mockIpcRenderer.on.mock.calls[0] ?? [];
 
-            expect(mockIpcRenderer.on).toHaveBeenCalledWith(
+            expect(mockIpcRenderer.on.mock.calls[0]?.[0]).toBe("set-theme");
+            registeredListener?.({}, "dark");
+            expect(callback).toHaveBeenCalledWith("dark");
+            unsubscribe();
+            expect(mockIpcRenderer.removeListener).toHaveBeenCalledWith(
                 "set-theme",
-                expect.any(Function)
+                registeredListener
             );
-            expect(unsubscribe).toBeTypeOf("function");
         });
 
         it("should validate callback functions in event handlers", () => {
