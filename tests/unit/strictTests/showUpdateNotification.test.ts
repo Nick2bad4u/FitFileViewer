@@ -100,8 +100,10 @@ describe("showUpdateNotification strict", () => {
         const buttons = Array.from(el.querySelectorAll("button"));
         expect(buttons).toHaveLength(2);
 
-        const restart = buttons.find((b) => b.textContent?.includes("Restart"));
-        const later = buttons.find((b) => b.textContent?.includes("Later"));
+        const restart = buttons.find(
+            (b) => b.textContent === "Restart & Update"
+        );
+        const later = buttons.find((b) => b.textContent === "Later");
         expect(restart).toBeInstanceOf(HTMLButtonElement);
         expect(restart?.className).toBe("themed-btn");
         expect(restart?.textContent).toBe("Restart & Update");

@@ -539,10 +539,10 @@ describe("ensureChartSettingsDropdowns integration", () => {
 
         const wrapper = document.getElementById("chartjs-settings-wrapper")!;
         const enableAll = Array.from(wrapper.querySelectorAll("button")).find(
-            (b) => b.textContent?.includes("Enable All")
+            (b) => b.textContent?.trim() === "Enable All"
         ) as HTMLButtonElement;
         const disableAll = Array.from(wrapper.querySelectorAll("button")).find(
-            (b) => b.textContent?.includes("Disable All")
+            (b) => b.textContent?.trim() === "Disable All"
         ) as HTMLButtonElement;
 
         expect(enableAll).toBeInstanceOf(HTMLButtonElement);
@@ -586,7 +586,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
         const exportZipBtn = Array.from(
             wrapper.querySelectorAll("button")
         ).find((b) =>
-            b.textContent?.includes("Export ZIP")
+            b.textContent?.trim().endsWith("Export ZIP")
         ) as HTMLButtonElement;
         expect(exportZipBtn).toBeInstanceOf(HTMLButtonElement);
         exportZipBtn.click();
@@ -600,7 +600,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
         seedCharts(2);
 
         const savePngBtn = Array.from(wrapper.querySelectorAll("button")).find(
-            (b) => b.textContent?.includes("Save PNG")
+            (b) => b.textContent?.trim().endsWith("Save PNG")
         ) as HTMLButtonElement;
         expect(savePngBtn).toBeInstanceOf(HTMLButtonElement);
 
@@ -647,7 +647,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
 
         const header = document.querySelector(".settings-header")!;
         const resetBtn = Array.from(header.querySelectorAll("button")).find(
-            (b) => b.textContent?.includes("Reset")
+            (b) => b.textContent?.trim().endsWith("Reset")
         ) as HTMLButtonElement;
         expect(resetBtn).toBeInstanceOf(HTMLButtonElement);
 

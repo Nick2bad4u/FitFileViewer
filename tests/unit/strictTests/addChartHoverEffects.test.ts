@@ -398,7 +398,7 @@ describe(addChartHoverEffects, () => {
                 if (!(el instanceof HTMLElement)) {
                     return false;
                 }
-                return el.style.animation.includes("ripple-effect");
+                return el.style.animation === "ripple-effect 0.6s ease-out";
             }) as HTMLElement[];
             expect(ripples).toHaveLength(1);
             expect(ripples[0]?.style.cssText).toContain(
@@ -423,7 +423,7 @@ describe(addChartHoverEffects, () => {
             const ripples = Array.from(wrapper.children).filter((el) => {
                 return (
                     el instanceof HTMLElement &&
-                    el.style.animation.includes("ripple-effect")
+                    el.style.animation === "ripple-effect 0.6s ease-out"
                 );
             });
             expect(ripples).toStrictEqual([]);
@@ -476,9 +476,9 @@ describe(addChartHoverEffects, () => {
             await waitForTimers();
             await waitForTimers();
 
-            expect(
-                wrapper.classList.contains("chart-wrapper--overlay-fullscreen")
-            ).toStrictEqual(true);
+            expect([...wrapper.classList]).toContain(
+                "chart-wrapper--overlay-fullscreen"
+            );
             expect({
                 bodyClasses: [...document.body.classList],
                 wrapperClasses: [...wrapper.classList],
@@ -527,9 +527,9 @@ describe(addChartHoverEffects, () => {
             await waitForTimers();
             await waitForTimers();
 
-            expect(
-                wrapper.classList.contains("chart-wrapper--overlay-fullscreen")
-            ).toStrictEqual(true);
+            expect([...wrapper.classList]).toContain(
+                "chart-wrapper--overlay-fullscreen"
+            );
 
             fullscreenBtn.click();
             await waitForTimers();
