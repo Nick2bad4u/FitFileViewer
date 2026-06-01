@@ -60,9 +60,16 @@ describe(createMetricFilter, () => {
         expect.hasAssertions();
 
         const metric = getMetricDefinition("speed");
-        expect(metric).toMatchObject({
+        expect({
+            label: metric?.label,
+            resolvedMissingValue: metric?.resolver({ cadence: 80 }),
+            resolvedSpeed: metric?.resolver({ speed: 12 }),
+            key: metric?.key,
+        }).toStrictEqual({
             key: "speed",
             label: "Speed",
+            resolvedMissingValue: null,
+            resolvedSpeed: 12,
         });
         const coords = [
             [
@@ -220,15 +227,27 @@ describe(computeMetricStatistics, () => {
             ],
             "speed"
         );
-        expect(stats).toMatchObject({
+        expect(computeMetricStatistics([], "speed")).toBe(null);
+        expect(stats).not.toStrictEqual({
+            average: 0,
+            count: 0,
+            decimals: 0,
+            max: 0,
+            metric: "unknown",
+            metricLabel: "Unknown",
+            min: 0,
+            step: 1,
+        });
+        expect(stats).toStrictEqual({
+            average: 2.5,
             count: 3,
             decimals: 2,
+            max: 3.75,
             metric: "speed",
             metricLabel: "Speed",
+            min: 1.5,
+            step: 0.01,
         });
-        expect(stats?.min).toBeCloseTo(1.5);
-        expect(stats?.max).toBeCloseTo(3.75);
-        expect(stats?.average).toBeCloseTo((1.5 + 2.25 + 3.75) / 3);
         expect({
             count: stats?.count,
             hasSamples: (stats?.count ?? 0) > 0,
@@ -236,7 +255,6 @@ describe(computeMetricStatistics, () => {
             count: 3,
             hasSamples: true,
         });
-        expect(stats?.step).toBe(0.01);
     });
 
     it("returns null for an unknown metric", () => {

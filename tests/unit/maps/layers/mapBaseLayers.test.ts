@@ -62,7 +62,7 @@ describe("mapBaseLayers", () => {
     });
 
     it("exports the full ordered base layer catalog", async () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const { baseLayers } = await importBaseLayersWithLeaflet({
             maplibreGL: vi.fn<MockMaplibreFactory>((options) => ({
@@ -77,6 +77,7 @@ describe("mapBaseLayers", () => {
         });
 
         expect(Object.keys(baseLayers)).toEqual(EXPECTED_LAYER_NAMES);
+        expect(baseLayers).not.toHaveProperty("__missing_layer__");
     });
 
     it("creates representative raster and vector layers with expected source metadata", async () => {
@@ -101,11 +102,19 @@ describe("mapBaseLayers", () => {
 
         expect(tileLayer).toHaveBeenCalledTimes(28);
         expect(maplibreGL).toHaveBeenCalledTimes(5);
-        expect(baseLayers["OpenStreetMap"]).toMatchObject({
+        expect(baseLayers["OpenStreetMap"]).toStrictEqual({
+            options: {
+                attribution:
+                    '&copy; <a href="https://www.openstreetmap.org/copyright" data-external-link="true" rel="noopener noreferrer">OpenStreetMap</a> contributors',
+            },
             type: "raster",
             urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
         });
-        expect(baseLayers["Satellite"]).toMatchObject({
+        expect(baseLayers["Satellite"]).toStrictEqual({
+            options: {
+                attribution:
+                    'Tiles &copy; <a href="https://www.esri.com" data-external-link="true" rel="noopener noreferrer">Esri</a>',
+            },
             type: "raster",
             urlTemplate:
                 "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
@@ -116,16 +125,24 @@ describe("mapBaseLayers", () => {
             },
             type: "vector",
         });
-        expect(tileLayer).toHaveBeenCalledWith(
+        expect(
+            tileLayer.mock.calls.find(
+                ([urlTemplate]) =>
+                    urlTemplate ===
+                    "https://{s}.tile.openstreetmap.de/{z}/{x}/{y}.png"
+            )
+        ).toStrictEqual([
             "https://{s}.tile.openstreetmap.de/{z}/{x}/{y}.png",
-            expect.objectContaining({
+            {
+                attribution:
+                    'Tiles &copy; <a href="https://www.openstreetmap.org/copyright" data-external-link="true" rel="noopener noreferrer">OpenStreetMap</a> contributors',
                 subdomains: [
                     "a",
                     "b",
                     "c",
                 ],
-            })
-        );
+            },
+        ]);
         expect(maplibreGL).toHaveBeenCalledWith({
             style: "https://tiles.openfreemap.org/styles/liberty",
         });
