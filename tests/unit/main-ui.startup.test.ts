@@ -315,7 +315,7 @@ describe("main-ui.js - UI Controller and State Management", () => {
     });
 
     it("initializes UI side effects when loaded", async () => {
-        expect.assertions(15);
+        expect.assertions(16);
 
         const onIpc =
             vi.fn<NonNullable<MainUiTestGlobal["electronAPI"]>["onIpc"]>();
@@ -367,10 +367,13 @@ describe("main-ui.js - UI Controller and State Management", () => {
         const dragDropInstance = dragDropHandlerMock.mock.results[0]?.value;
         expect(getMainUiTestGlobal().dragDropHandler).toBe(dragDropInstance);
         expect(dragDropInstance.dispose).toBe(mocks.dragDropDispose);
-        expect(onIpc).toHaveBeenCalledWith(
+        const ipcHandlers = new Map(onIpc.mock.calls);
+        expect([...ipcHandlers.keys()]).toStrictEqual([
+            "open-summary-column-selector",
             "unload-fit-file",
-            expect.any(Function)
-        );
+        ]);
+        ipcHandlers.get("unload-fit-file")?.();
+        expect(mocks.clearData).toHaveBeenCalledTimes(2);
         expect(chartTabIntegration.getStatus).toHaveBeenCalledOnce();
     });
 });
