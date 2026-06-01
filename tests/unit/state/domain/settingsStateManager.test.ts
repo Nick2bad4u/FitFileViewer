@@ -531,17 +531,33 @@ describe("settingsStateManager.js - simplified coverage", () => {
                 expect.hasAssertions();
                 settingsStateManager.setupLocalStorageSync();
 
-                expect(mockSubscribe).toHaveBeenCalledWith(
-                    "settings",
-                    expect.any(Function)
-                );
-                expect(globalThis.addEventListener).toHaveBeenCalledWith(
-                    "storage",
-                    expect.any(Function),
-                    expect.objectContaining({
-                        signal: expect.any(AbortSignal),
-                    })
-                );
+                const [subscriptionPath, subscriptionCallback] =
+                    mockSubscribe.mock.calls[0] ?? [];
+                expect({
+                    subscriptionCallbackType: typeof subscriptionCallback,
+                    subscriptionPath,
+                }).toStrictEqual({
+                    subscriptionCallbackType: "function",
+                    subscriptionPath: "settings",
+                });
+                const [
+                    eventName,
+                    storageListener,
+                    options,
+                ] = vi.mocked(globalThis.addEventListener).mock.calls[0] ?? [];
+                const listenerOptions = options as
+                    | AddEventListenerOptions
+                    | undefined;
+                expect({
+                    eventName,
+                    listenerType: typeof storageListener,
+                    signalIsAbortSignal:
+                        listenerOptions?.signal instanceof AbortSignal,
+                }).toStrictEqual({
+                    eventName: "storage",
+                    listenerType: "function",
+                    signalIsAbortSignal: true,
+                });
                 expect(
                     settingsStateManager.storageSyncController.signal.aborted
                 ).toStrictEqual(false);
