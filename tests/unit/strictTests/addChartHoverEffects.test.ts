@@ -600,8 +600,16 @@ describe(addChartHoverEffects, () => {
                 ".chart-wrapper"
             ) as HTMLElement;
             expect(wrapper.className).toBe("chart-wrapper");
-            expect(getWrapperState(mockContainer, mockCanvas)).toMatchObject({
+            expect(getWrapperState(mockContainer, mockCanvas)).toStrictEqual({
                 canvasParentClass: "chart-wrapper",
+                containerChildClasses: ["chart-wrapper"],
+                wrapperChildClasses: [
+                    "chart-canvas",
+                    "chart-glow-overlay",
+                    "chart-title-overlay",
+                    "chart-zoom-hint",
+                    "chart-fullscreen-btn",
+                ],
                 wrapperCount: 1,
             });
             // Theme colors are applied via cssText, just verify wrapper exists
@@ -621,8 +629,16 @@ describe(addChartHoverEffects, () => {
             ) as HTMLElement;
             // Should use fallback values
             expect(wrapper.className).toBe("chart-wrapper");
-            expect(getWrapperState(mockContainer, mockCanvas)).toMatchObject({
+            expect(getWrapperState(mockContainer, mockCanvas)).toStrictEqual({
                 canvasParentClass: "chart-wrapper",
+                containerChildClasses: ["chart-wrapper"],
+                wrapperChildClasses: [
+                    "chart-canvas",
+                    "chart-glow-overlay",
+                    "chart-title-overlay",
+                    "chart-zoom-hint",
+                    "chart-fullscreen-btn",
+                ],
                 wrapperCount: 1,
             });
         });
@@ -922,8 +938,16 @@ describe("edge cases", () => {
 
         const wrapper = mockContainer.querySelector(".chart-wrapper");
         expect(wrapper).toBeInstanceOf(HTMLDivElement);
-        expect(getWrapperState(mockContainer, mockCanvas)).toMatchObject({
+        expect(getWrapperState(mockContainer, mockCanvas)).toStrictEqual({
             canvasParentClass: "chart-wrapper",
+            containerChildClasses: ["chart-wrapper"],
+            wrapperChildClasses: [
+                "chart-canvas",
+                "chart-glow-overlay",
+                "chart-title-overlay",
+                "chart-zoom-hint",
+                "chart-fullscreen-btn",
+            ],
             wrapperCount: 1,
         });
         expect(mockCanvas.style.height).toBe("400px");
