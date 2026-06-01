@@ -20,6 +20,8 @@ const legacyAppCoveragePath = appSourceRelativePath(rootCoveragePath);
 
 export const cleanupTargets = [
     ".cache",
+    ".eslintcache",
+    ".prettier-cache",
     ".stylelintcache",
     docusaurusWorkspaceRelativePath(".docusaurus"),
     docusaurusWorkspaceRelativePath("build"),
@@ -50,9 +52,13 @@ export const cleanupTargets = [
     rootFlatpakBuildPath,
     rootFlatpakRepoPath,
     rootCoveragePath,
+    "dist",
     "html",
+    "logs",
+    "out",
     "playwright-report",
     rootReleaseDistPath,
+    "temp",
     "test-results",
     legacyAppCoveragePath,
     appSourceRelativePath("dist"),

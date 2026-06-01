@@ -70,14 +70,22 @@ describe("clean-workspace script", () => {
 
         expect(cleanupTargets).toEqual(
             expect.arrayContaining([
+                ".cache",
+                ".eslintcache",
+                ".prettier-cache",
+                ".stylelintcache",
                 rootFlatpakBundlePath,
                 rootFlatpakZipPath,
                 rootArtifactsPath,
                 rootFlatpakBuildPath,
                 rootFlatpakRepoPath,
                 rootCoveragePath,
+                "dist",
                 "html",
+                "logs",
+                "out",
                 rootReleaseDistPath,
+                "temp",
                 appSourceRelativePath(rootCoveragePath),
                 appDistPath,
                 appSourceRelativePath("html"),
@@ -96,10 +104,18 @@ describe("clean-workspace script", () => {
         const { cleanWorkspace } = await importCleanWorkspace();
         const temporaryRoot = makeTemporaryRoot();
         const targets = [
+            ".cache",
+            ".eslintcache",
+            ".prettier-cache",
+            ".stylelintcache",
             rootFlatpakBundlePath,
             rootArtifactsPath,
             rootFlatpakRepoPath,
             rootReleaseDistPath,
+            "dist",
+            "logs",
+            "out",
+            "temp",
             appDistPath,
             docusaurusWorkspaceRelativePath("build"),
         ];
