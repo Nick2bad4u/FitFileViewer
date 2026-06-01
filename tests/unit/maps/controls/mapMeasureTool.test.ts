@@ -121,6 +121,19 @@ describe("mapMeasureTool.js", () => {
         return button.querySelector("span")?.textContent?.trim();
     }
 
+    function getMapClickHandler() {
+        const clickHandler = mockMap.on.mock.calls.find(
+            (call) => call[0] === "click"
+        )?.[1];
+
+        expect(clickHandler).toBeTypeOf("function");
+        if (typeof clickHandler !== "function") {
+            throw new Error("Map click handler was not registered");
+        }
+
+        return clickHandler;
+    }
+
     it("should add measure button to controls div", () => {
         addSimpleMeasureTool(mockMap, controlsDiv);
 
@@ -139,7 +152,7 @@ describe("mapMeasureTool.js", () => {
         button.click();
 
         // Check if map.on was called for click event
-        expect(mockMap.on).toHaveBeenCalledWith("click", expect.any(Function));
+        expect(mockMap.on).toHaveBeenCalledWith("click", getMapClickHandler());
 
         // Check if button title and content was updated
         expect(button.title).toBe("Cancel measurement mode");
@@ -164,9 +177,7 @@ describe("mapMeasureTool.js", () => {
         button.click();
 
         // Get the click handler
-        const clickHandler = mockMap.on.mock.calls.find(
-            (call) => call[0] === "click"
-        )[1];
+        const clickHandler = getMapClickHandler();
 
         // Simulate first point click
         clickHandler({ latlng: { lat: 0, lng: 0 } });
@@ -208,7 +219,7 @@ describe("mapMeasureTool.js", () => {
         expect(global.L.marker).toHaveBeenCalledTimes(2); // One for point and one for label
 
         // Measurement mode should be disabled after second click
-        expect(mockMap.off).toHaveBeenCalledWith("click", expect.any(Function));
+        expect(mockMap.off).toHaveBeenCalledWith("click", clickHandler);
     });
 
     it("should clear measurement when clicking twice in measure mode", () => {
@@ -220,9 +231,7 @@ describe("mapMeasureTool.js", () => {
         button.click();
 
         // Get the click handler
-        const clickHandler = mockMap.on.mock.calls.find(
-            (call) => call[0] === "click"
-        )[1];
+        const clickHandler = getMapClickHandler();
 
         // Add two points to complete a measurement
         clickHandler({ latlng: { lat: 0, lng: 0 } });
@@ -248,9 +257,7 @@ describe("mapMeasureTool.js", () => {
         button.click();
 
         // Get the click handler and make a point
-        const clickHandler = mockMap.on.mock.calls.find(
-            (call) => call[0] === "click"
-        )[1];
+        const clickHandler = getMapClickHandler();
         clickHandler({ latlng: { lat: 0, lng: 0 } });
 
         // Reset mocks
@@ -262,7 +269,7 @@ describe("mapMeasureTool.js", () => {
 
         // Should have removed the marker and disabled measurement mode
         expect(mockMap.removeLayer).toHaveBeenCalledOnce();
-        expect(mockMap.off).toHaveBeenCalledWith("click", expect.any(Function));
+        expect(mockMap.off).toHaveBeenCalledWith("click", clickHandler);
 
         // Button should be reset
         expect(getMeasureButtonLabel(button)).toBe("Measure");
@@ -278,7 +285,8 @@ describe("mapMeasureTool.js", () => {
         button.click();
 
         // Check that mode is enabled
-        expect(mockMap.on).toHaveBeenCalledWith("click", expect.any(Function));
+        const clickHandler = getMapClickHandler();
+        expect(mockMap.on).toHaveBeenCalledWith("click", clickHandler);
         expect(getMeasureButtonLabel(button)).toBe("Cancel");
 
         // Reset mocks
@@ -292,7 +300,7 @@ describe("mapMeasureTool.js", () => {
         button.click();
 
         // Check that mode is disabled
-        expect(mockMap.off).toHaveBeenCalledWith("click", expect.any(Function));
+        expect(mockMap.off).toHaveBeenCalledWith("click", clickHandler);
         expect(getMeasureButtonLabel(button)).toBe("Measure");
     });
 
@@ -302,9 +310,7 @@ describe("mapMeasureTool.js", () => {
         const button = getMeasureButton();
 
         button.click();
-        const clickHandler = mockMap.on.mock.calls.find(
-            (call) => call[0] === "click"
-        )[1];
+        const clickHandler = getMapClickHandler();
 
         clickHandler({ latlng: { lat: 0, lng: 0 } });
 
@@ -343,9 +349,7 @@ describe("mapMeasureTool.js", () => {
         button.click();
 
         // Get the click handler
-        const mapClickHandler = mockMap.on.mock.calls.find(
-            (call) => call[0] === "click"
-        )[1];
+        const mapClickHandler = getMapClickHandler();
 
         // Add two points to complete a measurement
         mapClickHandler({ latlng: { lat: 0, lng: 0 } });
