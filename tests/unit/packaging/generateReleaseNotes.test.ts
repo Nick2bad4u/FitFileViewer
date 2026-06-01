@@ -137,13 +137,17 @@ describe("generate-release-notes script", () => {
     });
 
     it("generates release notes from previous tag to current tag", async () => {
-        expect.assertions(4);
+        expect.assertions(2);
 
         const { generateReleaseNotes } = await importGenerateReleaseNotes();
-        const calls: string[] = [];
+        const calls: Array<{
+            args: string[];
+            command: string;
+            cwd: unknown;
+        }> = [];
         const result = generateReleaseNotes({
-            commandRunner(command, args) {
-                calls.push([command, ...args].join(" "));
+            commandRunner(command, args, options) {
+                calls.push({ args, command, cwd: options?.cwd });
 
                 if (args[0] === "describe") {
                     return "v29.9.0\n";
@@ -160,10 +164,45 @@ describe("generate-release-notes script", () => {
             version: "30.0.0",
         });
 
-        expect(result.currentTag).toBe("v30.0.0");
-        expect(result.previousTag).toBe("v29.9.0");
-        expect(result.rangeSpec).toBe("v29.9.0..v30.0.0");
-        expect(calls).toContain("git fetch --tags --force");
+        expect(result).toStrictEqual({
+            currentTag: "v30.0.0",
+            notes: "- Commit subject",
+            previousTag: "v29.9.0",
+            rangeSpec: "v29.9.0..v30.0.0",
+        });
+        expect(calls).toStrictEqual([
+            {
+                args: [
+                    "fetch",
+                    "--tags",
+                    "--force",
+                ],
+                command: "git",
+                cwd: ".",
+            },
+            {
+                args: [
+                    "describe",
+                    "--tags",
+                    "--match",
+                    "v*",
+                    "--abbrev=0",
+                    "v30.0.0^",
+                ],
+                command: "git",
+                cwd: ".",
+            },
+            {
+                args: [
+                    "log",
+                    "v29.9.0..v30.0.0",
+                    "--pretty=format:- %s%n  - Author: %an <%ae>%n  - Commit: [%h](https://github.com/Nick2bad4u/FitFileViewer/commit/%H)%n  - Date: %ad%n",
+                    "--date=short",
+                ],
+                command: "git",
+                cwd: ".",
+            },
+        ]);
     });
 
     it("refuses invalid versions", async () => {
