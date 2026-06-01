@@ -46,9 +46,7 @@ describe(removeExitFullscreenOverlay, () => {
         removeExitFullscreenOverlay(container);
 
         expect(debugSpy).toHaveBeenCalledWith(
-            expect.stringContaining(
-                "No exit fullscreen overlay found in container"
-            )
+            "[removeExitFullscreenOverlay] No exit fullscreen overlay found in container"
         );
 
         resetTestState(container);
@@ -92,9 +90,7 @@ describe(removeExitFullscreenOverlay, () => {
             "removal failed"
         );
         expect(errorSpy).toHaveBeenCalledWith(
-            expect.stringContaining(
-                "Failed to remove exit fullscreen overlay:"
-            ),
+            "[removeExitFullscreenOverlay] Failed to remove exit fullscreen overlay:",
             expect.any(Error)
         );
 

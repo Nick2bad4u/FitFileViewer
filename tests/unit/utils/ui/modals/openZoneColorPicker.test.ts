@@ -271,7 +271,19 @@ describe("openZoneColorPicker", () => {
         const resetSchemeCalls = setChartColorSchemeMock.mock.calls.slice(
             schemeCallCountBeforeReset
         );
-        expect(resetSchemeCalls).toContainEqual(["hr_zone", "custom"]);
+        expect(resetSchemeCalls).toStrictEqual([
+            ["hr_zone", "custom"],
+            ["power_zone", "custom"],
+            ["hr_lap_zone", "custom"],
+            ["power_lap_zone", "custom"],
+            ["hr_zone_doughnut", "custom"],
+            ["power_zone_doughnut", "custom"],
+            ["hr_lap_zone_stacked", "custom"],
+            ["hr_lap_zone_individual", "custom"],
+            ["power_lap_zone_stacked", "custom"],
+            ["power_lap_zone_individual", "custom"],
+            ["hr_zone", "custom"],
+        ]);
         expect(removeChartSpecificZoneColorMock).toHaveBeenCalledWith(
             "hr_zone",
             0

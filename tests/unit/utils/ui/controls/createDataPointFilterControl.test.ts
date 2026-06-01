@@ -331,7 +331,7 @@ describe(createDataPointFilterControl, () => {
             })
         );
         expect(showNotification).toHaveBeenCalledWith(
-            expect.stringContaining("top 100%"),
+            "Showing top 100% Speed data points",
             "success"
         );
         expect(onChange).toHaveBeenCalledWith(
@@ -497,7 +497,7 @@ describe(createDataPointFilterControl, () => {
             })
         );
         expect(showNotification).toHaveBeenCalledWith(
-            expect.stringContaining("Watts"),
+            "Showing Watts between 220 and 480 (55% coverage)",
             "success"
         );
         expect(onChange).toHaveBeenCalledWith(
@@ -1064,7 +1064,7 @@ describe(createDataPointFilterControl, () => {
         );
         expect(summary?.textContent).toBe("Power between 160 and 310");
         expect(showNotification).toHaveBeenLastCalledWith(
-            expect.stringContaining("160"),
+            "Showing Power between 160 and 310 (45% coverage)",
             "success"
         );
 

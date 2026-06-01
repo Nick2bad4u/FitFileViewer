@@ -103,7 +103,7 @@ describe("openPowerEstimationSettingsModal.js", () => {
         applyBtn?.click();
 
         expect(mockShowNotification).toHaveBeenCalledWith(
-            expect.stringContaining("Rider weight"),
+            "Rider weight must be a positive number.",
             "error"
         );
         expect(mockSetSettings).not.toHaveBeenCalled();
@@ -200,7 +200,7 @@ describe("openPowerEstimationSettingsModal.js", () => {
         applyBtn?.click();
 
         expect(mockShowNotification).toHaveBeenCalledWith(
-            expect.stringContaining("Rolling Resistance"),
+            "Rolling Resistance must be at least 0.001.",
             "error"
         );
         expect(mockSetSettings).not.toHaveBeenCalled();
