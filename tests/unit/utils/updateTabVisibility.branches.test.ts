@@ -54,7 +54,7 @@ describe("updateTabVisibility - additional branches", () => {
     });
 
     it("maps 'summary_content' pattern via extractTabNameFromContentId and sets activeTabContent", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         // Provide working module exports so primary branch exercised
         const setState =
@@ -96,7 +96,7 @@ describe("updateTabVisibility - additional branches", () => {
     });
 
     it("derives active content from an unknown content id without showing tracked content", async () => {
-        expect.hasAssertions();
+        expect.assertions(9);
 
         const setState =
             vi.fn<
@@ -136,7 +136,7 @@ describe("updateTabVisibility - additional branches", () => {
     });
 
     it("falls back to __vitest_effective_stateManager__ when module exports are unavailable", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         // Mock module with missing methods to fail the primary branch
         vi.doMock(

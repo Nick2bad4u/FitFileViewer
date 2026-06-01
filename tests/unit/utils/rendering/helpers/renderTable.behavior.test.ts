@@ -29,7 +29,7 @@ describe("renderTable behavior", () => {
     });
 
     it("renders headers, summary row from sessionMesgs, and lap rows with timestamp/startTime override", async () => {
-        expect.hasAssertions();
+        expect.assertions(8);
 
         const container = document.querySelector("#host") as HTMLElement;
         const gearBtn = document.createElement("button");
@@ -110,7 +110,7 @@ describe("renderTable behavior", () => {
     });
 
     it("filter selection persists on container and wheel changes selection triggering re-render", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const container = document.querySelector("#host") as any;
         const gearBtn = document.createElement("button");
@@ -151,7 +151,7 @@ describe("renderTable behavior", () => {
     });
 
     it("copy as CSV writes expected header and at least one row", async () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         const container = document.querySelector("#host") as HTMLElement;
         const gearBtn = document.createElement("button");

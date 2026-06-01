@@ -61,7 +61,7 @@ describe("setupTheme", () => {
     }
 
     it("applies theme from main process and reacts to change events", async () => {
-        expect.hasAssertions();
+        expect.assertions(12);
 
         const applyTheme = vi.fn<(theme: string) => void>();
         (globalThis as any).electronAPI = {
@@ -114,7 +114,7 @@ describe("setupTheme", () => {
     });
 
     it("uses stored theme when main process returns default", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const applyTheme = vi.fn<(theme: string) => void>();
         (globalThis as any).electronAPI = {
@@ -131,7 +131,7 @@ describe("setupTheme", () => {
     });
 
     it("defaults to stored theme when electron API is unavailable", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const applyTheme = vi.fn<(theme: string) => void>();
         (globalThis as any).electronAPI = undefined;
@@ -148,7 +148,7 @@ describe("setupTheme", () => {
     });
 
     it("logs warning when localStorage access fails", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const applyTheme = vi.fn<(theme: string) => void>();
         (globalThis as any).electronAPI = {
@@ -176,7 +176,7 @@ describe("setupTheme", () => {
     });
 
     it("returns default theme when applyTheme is invalid", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         (globalThis as any).electronAPI = {
             getTheme: vi.fn<() => Promise<string>>().mockResolvedValue("light"),

@@ -40,7 +40,7 @@ describe(createTables, () => {
     });
 
     it("renders tables without requiring Arquero", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const container = getContainer();
         createTables({ recordMesgs: [{ a: 1 }] }, container);
@@ -51,7 +51,7 @@ describe(createTables, () => {
     });
 
     it("returns early when container not found and no override provided", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         // Ensure DOM has no content-data element
         const other = document.createElement("div");
@@ -72,7 +72,7 @@ describe(createTables, () => {
     });
 
     it("renders only valid tables and in correct order (recordMesgs first)", () => {
-        expect.hasAssertions();
+        expect.assertions(14);
 
         const container = getContainer();
 
@@ -121,7 +121,7 @@ describe(createTables, () => {
     });
 
     it("orders numeric-only table keys last", () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         const container = getContainer();
 
@@ -149,7 +149,7 @@ describe(createTables, () => {
     });
 
     it("continues gracefully when renderTable throws for a table", () => {
-        expect.hasAssertions();
+        expect.assertions(8);
 
         const container = getContainer();
         const errorSpy = vi.spyOn(console, "error").mockReturnValue(undefined);
