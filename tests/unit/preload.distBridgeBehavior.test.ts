@@ -219,6 +219,46 @@ describe("preload.js dist bridge behavior", () => {
         };
     }
 
+    function getPreloadApiMethodTypes() {
+        return {
+            getChannelInfo: typeof exposedAPI.getChannelInfo,
+            validateAPI: typeof exposedAPI.validateAPI,
+        };
+    }
+
+    function getDevToolsMethodTypes() {
+        return {
+            getPreloadInfo: typeof exposedDevTools.getPreloadInfo,
+            logAPIState: typeof exposedDevTools["logAPIState"],
+            testIPC: typeof exposedDevTools.testIPC,
+        };
+    }
+
+    function getBeforeExitRegistration(mockProcess: MockProcessRef) {
+        const [eventName, listener] = mockProcess.once.mock.calls[0] ?? [];
+        return {
+            eventName,
+            listenerType: typeof listener,
+        };
+    }
+
+    function expectIpcRegistration(channel: string) {
+        const [registeredChannel, listener] =
+            mockIpcRenderer.on.mock.calls.find(
+                ([candidate]) => candidate === channel
+            ) ?? [];
+
+        expect({
+            registeredChannel,
+            listenerType: typeof listener,
+        }).toStrictEqual({
+            registeredChannel: channel,
+            listenerType: "function",
+        });
+
+        return listener;
+    }
+
     function runPreloadScript(
         mockRequire: (moduleName: string) => unknown,
         mockProcess: MockProcessRef,
@@ -241,13 +281,16 @@ describe("preload.js dist bridge behavior", () => {
             const { mockProcess, mockRequire } = executePreloadScript();
 
             expect(mockRequire).toHaveBeenCalledWith("electron");
-            expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith(
-                "electronAPI",
-                expect.objectContaining({
-                    getChannelInfo: expect.any(Function),
-                    validateAPI: expect.any(Function),
-                })
-            );
+            expect({
+                exposedApi: mockContextBridge.exposeInMainWorld.mock.calls[0],
+                methodTypes: getPreloadApiMethodTypes(),
+            }).toStrictEqual({
+                exposedApi: ["electronAPI", exposedAPI],
+                methodTypes: {
+                    getChannelInfo: "function",
+                    validateAPI: "function",
+                },
+            });
             expect(exposedAPI.validateAPI()).toStrictEqual(true);
             expect(exposedAPI.getChannelInfo()).toMatchObject({
                 channels: EXPECTED_PRELOAD_CHANNELS,
@@ -255,10 +298,10 @@ describe("preload.js dist bridge behavior", () => {
                 totalChannels: 27,
                 totalEvents: 10,
             });
-            expect(mockProcess.once).toHaveBeenCalledWith(
-                "beforeExit",
-                expect.any(Function)
-            );
+            expect(getBeforeExitRegistration(mockProcess)).toStrictEqual({
+                eventName: "beforeExit",
+                listenerType: "function",
+            });
             expect(consoleSpy.error).not.toHaveBeenCalled();
         });
 
@@ -270,9 +313,9 @@ describe("preload.js dist bridge behavior", () => {
                 "electronAPI",
                 exposedAPI
             );
-            expect(exposedAPI).toMatchObject({
-                getChannelInfo: expect.any(Function),
-                validateAPI: expect.any(Function),
+            expect(getPreloadApiMethodTypes()).toStrictEqual({
+                getChannelInfo: "function",
+                validateAPI: "function",
             });
             expect(exposedAPI.validateAPI()).toStrictEqual(true);
         });
@@ -311,10 +354,10 @@ describe("preload.js dist bridge behavior", () => {
                 hasContextBridge: false,
                 listenerRegistrations: 0,
             });
-            expect(mockProcess.once).toHaveBeenCalledWith(
-                "beforeExit",
-                expect.any(Function)
-            );
+            expect(getBeforeExitRegistration(mockProcess)).toStrictEqual({
+                eventName: "beforeExit",
+                listenerType: "function",
+            });
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] API validation failed - not exposing to main world"
             );
@@ -330,10 +373,10 @@ describe("preload.js dist bridge behavior", () => {
                 developmentToolsGlobalName,
                 exposedDevTools
             );
-            expect(exposedDevTools).toMatchObject({
-                getPreloadInfo: expect.any(Function),
-                logAPIState: expect.any(Function),
-                testIPC: expect.any(Function),
+            expect(getDevToolsMethodTypes()).toStrictEqual({
+                getPreloadInfo: "function",
+                logAPIState: "function",
+                testIPC: "function",
             });
         });
 
@@ -356,10 +399,10 @@ describe("preload.js dist bridge behavior", () => {
             expect.assertions(1);
             executePreloadScript({ NODE_ENV: "development" });
 
-            expect(exposedDevTools).toMatchObject({
-                getPreloadInfo: expect.any(Function),
-                logAPIState: expect.any(Function),
-                testIPC: expect.any(Function),
+            expect(getDevToolsMethodTypes()).toStrictEqual({
+                getPreloadInfo: "function",
+                logAPIState: "function",
+                testIPC: "function",
             });
         });
 
@@ -454,7 +497,7 @@ describe("preload.js dist bridge behavior", () => {
             ];
 
             expectedMethods.forEach((method) => {
-                expect(exposedAPI[method]).toEqual(expect.any(Function));
+                expect(exposedAPI[method]).toBeTypeOf("function");
             });
         });
 
@@ -774,10 +817,7 @@ describe("preload.js dist bridge behavior", () => {
             const callback = vi.fn<IpcListener>();
             const unsubscribe = exposedAPI.onMenuOpenFile(callback);
 
-            expect(mockIpcRenderer.on).toHaveBeenCalledWith(
-                "menu-open-file",
-                expect.any(Function)
-            );
+            expectIpcRegistration("menu-open-file");
             expect(unsubscribe).toBeTypeOf("function");
         });
 
@@ -786,10 +826,7 @@ describe("preload.js dist bridge behavior", () => {
             const callback = vi.fn<IpcListener>();
             const unsubscribe = exposedAPI.onMenuOpenOverlay(callback);
 
-            expect(mockIpcRenderer.on).toHaveBeenCalledWith(
-                "menu-open-overlay",
-                expect.any(Function)
-            );
+            expectIpcRegistration("menu-open-overlay");
             expect(unsubscribe).toBeTypeOf("function");
         });
 
@@ -798,10 +835,7 @@ describe("preload.js dist bridge behavior", () => {
             const callback = vi.fn<IpcListener>();
             const unsubscribe = exposedAPI.onOpenRecentFile(callback);
 
-            expect(mockIpcRenderer.on).toHaveBeenCalledWith(
-                "open-recent-file",
-                expect.any(Function)
-            );
+            expectIpcRegistration("open-recent-file");
             expect(unsubscribe).toBeTypeOf("function");
         });
 
@@ -811,10 +845,7 @@ describe("preload.js dist bridge behavior", () => {
             const unsubscribe =
                 exposedAPI.onOpenSummaryColumnSelector(callback);
 
-            expect(mockIpcRenderer.on).toHaveBeenCalledWith(
-                "open-summary-column-selector",
-                expect.any(Function)
-            );
+            expectIpcRegistration("open-summary-column-selector");
             expect(unsubscribe).toBeTypeOf("function");
         });
 
@@ -823,10 +854,7 @@ describe("preload.js dist bridge behavior", () => {
             const callback = vi.fn<IpcListener>();
             const unsubscribe = exposedAPI.onSetTheme(callback);
 
-            expect(mockIpcRenderer.on).toHaveBeenCalledWith(
-                "set-theme",
-                expect.any(Function)
-            );
+            expectIpcRegistration("set-theme");
             expect(unsubscribe).toBeTypeOf("function");
         });
 
@@ -836,10 +864,7 @@ describe("preload.js dist bridge behavior", () => {
             const callback = vi.fn<IpcListener>();
             const unsubscribe = exposedAPI.onUpdateEvent(eventName, callback);
 
-            expect(mockIpcRenderer.on).toHaveBeenCalledWith(
-                eventName,
-                expect.any(Function)
-            );
+            expectIpcRegistration(eventName);
             expect(unsubscribe).toBeTypeOf("function");
         });
 
@@ -849,10 +874,7 @@ describe("preload.js dist bridge behavior", () => {
             const callback = vi.fn<IpcListener>();
             const unsubscribe = exposedAPI.onIpc(channel, callback);
 
-            expect(mockIpcRenderer.on).toHaveBeenCalledWith(
-                channel,
-                expect.any(Function)
-            );
+            expectIpcRegistration(channel);
             expect(unsubscribe).toBeTypeOf("function");
         });
 
@@ -1210,14 +1232,13 @@ describe("preload.js dist bridge behavior", () => {
             const result = runPreloadScript(mockRequire, mockProcess, console);
 
             expect(result).toBeUndefined();
-            expect(mockProcess.once).toHaveBeenCalledWith(
-                "beforeExit",
-                expect.any(Function)
-            );
-            expect(mockProcess.once).not.toHaveBeenCalledWith(
-                "exit",
-                expect.any(Function)
-            );
+            expect(getBeforeExitRegistration(mockProcess)).toStrictEqual({
+                eventName: "beforeExit",
+                listenerType: "function",
+            });
+            expect(
+                mockProcess.once.mock.calls.map(([eventName]) => eventName)
+            ).not.toContain("exit");
         });
     });
 
@@ -1259,9 +1280,7 @@ describe("preload.js dist bridge behavior", () => {
             expect(consoleSpy.log).toHaveBeenCalledWith(
                 "[preload.js] Successfully exposed electronAPI to main world"
             );
-            expect(exposedDevTools).toMatchObject({
-                getPreloadInfo: expect.any(Function),
-            });
+            expect(exposedDevTools.getPreloadInfo).toBeTypeOf("function");
         });
 
         it("should not log in production mode", () => {
@@ -1308,10 +1327,10 @@ describe("preload.js dist bridge behavior", () => {
                 "[preload.js] Failed to expose electronAPI:",
                 expect.any(Error)
             );
-            expect(mockProcess.once).toHaveBeenCalledWith(
-                "beforeExit",
-                expect.any(Function)
-            );
+            expect(getBeforeExitRegistration(mockProcess)).toStrictEqual({
+                eventName: "beforeExit",
+                listenerType: "function",
+            });
             expect(consoleSpy.log).not.toHaveBeenCalledWith(
                 "[preload.js] Successfully exposed electronAPI to main world"
             );
