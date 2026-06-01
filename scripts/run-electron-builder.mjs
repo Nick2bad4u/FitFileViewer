@@ -21,6 +21,7 @@ export const electronBuilderBaseArgs = [
     "--config",
     rootElectronBuilderConfigPath,
 ];
+export { electronBuilderCliPath };
 
 export function parseArgs(argv) {
     const builderArgs = [];
@@ -50,9 +51,13 @@ export function parseArgs(argv) {
     return { builderArgs, nodeEnv };
 }
 
-export function runElectronBuilder(argv = process.argv.slice(2)) {
+export function runElectronBuilder(
+    argv = process.argv.slice(2),
+    commandRunner = spawnSync,
+    environment = process.env
+) {
     const { builderArgs, nodeEnv } = parseArgs(argv);
-    const result = spawnSync(
+    const result = commandRunner(
         process.execPath,
         [
             electronBuilderCliPath,
@@ -61,7 +66,7 @@ export function runElectronBuilder(argv = process.argv.slice(2)) {
         ],
         {
             cwd: repositoryRoot,
-            env: nodeEnv ? { ...process.env, NODE_ENV: nodeEnv } : process.env,
+            env: nodeEnv ? { ...environment, NODE_ENV: nodeEnv } : environment,
             stdio: "inherit",
         }
     );
