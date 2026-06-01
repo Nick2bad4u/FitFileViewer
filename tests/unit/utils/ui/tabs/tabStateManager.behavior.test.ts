@@ -1,23 +1,27 @@
-/**
- * @vitest-environment jsdom
- */
+// @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
+type MockFn = (...args: unknown[]) => unknown;
+type VoidFn = (...args: unknown[]) => void;
 
 // Create hoisted fns to be used inside vi.mock factory
 const { mockGetState, mockSetState, mockSubscribe, mockUpdateState } =
-    /** @type {any} */ vi.hoisted(() => ({
-        mockGetState: vi.fn(),
-        mockSetState: vi.fn(),
-        mockSubscribe: vi.fn(),
-        mockUpdateState: vi.fn(),
+    /* @type {any} */ vi.hoisted(() => ({
+        mockGetState: vi.fn<MockFn>(),
+        mockSetState: vi.fn<MockFn>(),
+        mockSubscribe: vi.fn<MockFn>(),
+        mockUpdateState: vi.fn<MockFn>(),
     }));
 
-vi.mock("../../../../../electron-app/utils/state/core/stateManager", () => ({
-    getState: mockGetState,
-    setState: mockSetState,
-    subscribe: mockSubscribe,
-    updateState: mockUpdateState,
-}));
+vi.mock(
+    import("../../../../../electron-app/utils/state/core/stateManager"),
+    () => ({
+        getState: mockGetState,
+        setState: mockSetState,
+        subscribe: mockSubscribe,
+        updateState: mockUpdateState,
+    })
+);
 
 // We won't mock showNotification path here to avoid path resolution mismatches.
 
@@ -28,13 +32,13 @@ import {
 } from "../../../../../electron-app/utils/ui/tabs/tabStateManager.js";
 
 describe("tabStateManager.behavior", () => {
-    /** @type {HTMLDivElement} */
+    /* @type {HTMLDivElement} */
     let root;
-    /** @type {any} */
+    /* @type {any} */
     let originalConsoleLog;
-    /** @type {any} */
+    /* @type {any} */
     let originalConsoleWarn;
-    /** @type {any} */
+    /* @type {any} */
     let originalConsoleError;
 
     beforeEach(() => {
@@ -48,7 +52,7 @@ describe("tabStateManager.behavior", () => {
         mockSubscribe.mockReset();
         mockUpdateState.mockReset();
 
-        mockGetState.mockImplementation((/** @type {any} */ key) => {
+        mockGetState.mockImplementation((/* @type {any} */ key) => {
             switch (key) {
                 case "ui.activeTab":
                     return "summary";
@@ -67,7 +71,7 @@ describe("tabStateManager.behavior", () => {
 
         // Ensure tabStateManager uses our mocks via its global fallback
         // eslint-disable-next-line no-underscore-dangle
-        /** @type {any} */ globalThis.__vitest_effective_stateManager__ = {
+        /* @type {any} */ globalThis.__vitest_effective_stateManager__ = {
             getState: mockGetState,
             setState: mockSetState,
             subscribe: mockSubscribe,
@@ -78,33 +82,32 @@ describe("tabStateManager.behavior", () => {
         originalConsoleLog = console.log;
         originalConsoleWarn = console.warn;
         originalConsoleError = console.error;
-        console.log = vi.fn();
-        console.warn = vi.fn();
-        console.error = vi.fn();
+        vi.spyOn(console, "log").mockImplementation();
+        vi.spyOn(console, "warn").mockImplementation();
+        vi.spyOn(console, "error").mockImplementation();
 
         // Provide globals used by handlers
         Object.assign(window, {
-            renderSummary: vi.fn(),
-            renderMap: vi.fn(),
-            createTables: vi.fn(),
+            renderSummary: vi.fn<MockFn>(),
+            renderMap: vi.fn<MockFn>(),
+            createTables: vi.fn<MockFn>(),
         });
     });
 
     afterEach(() => {
         root?.remove();
-        console.log = /** @type {any} */ originalConsoleLog;
-        console.warn = /** @type {any} */ originalConsoleWarn;
-        console.error = /** @type {any} */ originalConsoleError;
+        console.log = /* @type {any} */ originalConsoleLog;
+        console.warn = /* @type {any} */ originalConsoleWarn;
+        console.error = /* @type {any} */ originalConsoleError;
         vi.resetAllMocks();
         // Cleanup global fallback
         // eslint-disable-next-line no-underscore-dangle
         // @ts-ignore
-        delete (
-            /** @type {any} */ globalThis.__vitest_effective_stateManager__
-        );
+        delete (/* @type {any} */ globalThis.__vitest_effective_stateManager__);
     });
 
     it("extractTabName returns known ids and patterns, null for unknown", () => {
+        expect.hasAssertions();
         expect(tabStateManager.extractTabName("tab_data")).toBe("data");
         expect(tabStateManager.extractTabName("map_tab")).toBe("map");
         expect(tabStateManager.extractTabName("btn_summary")).toBe("summary");
@@ -116,50 +119,53 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleTabButtonClick ignores disabled buttons and prevents event", () => {
+        expect.hasAssertions();
         const btn = document.createElement("button");
         btn.id = "tab_map";
         btn.className = "tab-button tab-disabled";
         root.appendChild(btn);
 
-        const prevent = vi.fn();
-        const stop = vi.fn();
+        const prevent = vi.fn<VoidFn>();
+        const stop = vi.fn<VoidFn>();
         const evt = {
             currentTarget: btn,
             preventDefault: prevent,
             stopPropagation: stop,
         };
 
-        tabStateManager.handleTabButtonClick(/** @type {any} */ evt);
-        expect(prevent).toHaveBeenCalled();
-        expect(stop).toHaveBeenCalled();
+        tabStateManager.handleTabButtonClick(/* @type {any} */ evt);
+        expect(prevent).toHaveBeenCalledWith();
+        expect(stop).toHaveBeenCalledWith();
         expect(mockSetState).not.toHaveBeenCalled();
         expect(btn.classList.contains("tab-disabled")).toBe(true);
     });
 
     it("handleTabButtonClick ignores when disabled attribute present", () => {
+        expect.hasAssertions();
         const btn = document.createElement("button");
         btn.id = "tab_map";
         btn.className = "tab-button";
         btn.setAttribute("disabled", "");
         root.appendChild(btn);
 
-        const prevent = vi.fn();
-        const stop = vi.fn();
+        const prevent = vi.fn<VoidFn>();
+        const stop = vi.fn<VoidFn>();
         tabStateManager.handleTabButtonClick(
-            /** @type {any} */ {
+            /* @type {any} */ {
                 currentTarget: btn,
                 preventDefault: prevent,
                 stopPropagation: stop,
             }
         );
 
-        expect(prevent).toHaveBeenCalled();
-        expect(stop).toHaveBeenCalled();
+        expect(prevent).toHaveBeenCalledWith();
+        expect(stop).toHaveBeenCalledWith();
         expect(mockSetState).not.toHaveBeenCalled();
         expect(btn.hasAttribute("disabled")).toBe(true);
     });
 
     it("handleTabButtonClick ignores when disabled property is true", () => {
+        expect.hasAssertions();
         const btn = document.createElement("button");
         btn.id = "tab_map";
         btn.className = "tab-button";
@@ -167,10 +173,10 @@ describe("tabStateManager.behavior", () => {
         btn.disabled = true;
         root.appendChild(btn);
 
-        const prevent = vi.fn();
-        const stop = vi.fn();
+        const prevent = vi.fn<VoidFn>();
+        const stop = vi.fn<VoidFn>();
         tabStateManager.handleTabButtonClick(
-            /** @type {any} */ {
+            /* @type {any} */ {
                 currentTarget: btn,
                 preventDefault: prevent,
                 stopPropagation: stop,
@@ -182,19 +188,20 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleTabButtonClick honors data requirement and avoids state update when missing", () => {
+        expect.hasAssertions();
         const btn = document.createElement("button");
         btn.id = "tab_data"; // requiresData: true
         btn.className = "tab-button";
         root.appendChild(btn);
 
-        mockGetState.mockImplementation((/** @type {any} */ key) =>
+        mockGetState.mockImplementation((/* @type {any} */ key) =>
             key === "globalData" ? null : undefined
         );
 
-        const prevent = vi.fn();
-        const stop = vi.fn();
+        const prevent = vi.fn<VoidFn>();
+        const stop = vi.fn<VoidFn>();
         tabStateManager.handleTabButtonClick(
-            /** @type {any} */ {
+            /* @type {any} */ {
                 currentTarget: btn,
                 preventDefault: prevent,
                 stopPropagation: stop,
@@ -206,15 +213,16 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleTabButtonClick with unknown tab id returns early without state change", () => {
+        expect.hasAssertions();
         const btn = document.createElement("button");
         btn.id = "tab_nonexistent";
         btn.className = "tab-button";
         root.appendChild(btn);
 
-        const prevent = vi.fn();
-        const stop = vi.fn();
+        const prevent = vi.fn<VoidFn>();
+        const stop = vi.fn<VoidFn>();
         tabStateManager.handleTabButtonClick(
-            /** @type {any} */ {
+            /* @type {any} */ {
                 currentTarget: btn,
                 preventDefault: prevent,
                 stopPropagation: stop,
@@ -226,15 +234,16 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleTabButtonClick sets activeTab for valid click", () => {
+        expect.hasAssertions();
         const btn = document.createElement("button");
         btn.id = "tab_summary";
         btn.className = "tab-button";
         root.appendChild(btn);
 
-        const prevent = vi.fn();
-        const stop = vi.fn();
+        const prevent = vi.fn<VoidFn>();
+        const stop = vi.fn<VoidFn>();
         tabStateManager.handleTabButtonClick(
-            /** @type {any} */ {
+            /* @type {any} */ {
                 currentTarget: btn,
                 preventDefault: prevent,
                 stopPropagation: stop,
@@ -252,6 +261,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("updateTabButtonStates toggles active and aria-selected", () => {
+        expect.hasAssertions();
         const a = document.createElement("button");
         a.id = "tab_summary";
         a.className = "tab-button";
@@ -268,6 +278,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("updateContentVisibility hides all then shows active", () => {
+        expect.hasAssertions();
         Object.values(TAB_CONFIG).forEach((cfg) => {
             const el = document.createElement("div");
             el.id = cfg.contentId;
@@ -277,7 +288,7 @@ describe("tabStateManager.behavior", () => {
 
         tabStateManager.updateContentVisibility("map");
         Object.entries(TAB_CONFIG).forEach(([name, cfg]) => {
-            const el = /** @type {HTMLElement} */ document.getElementById(
+            const el = /* @type {HTMLElement} */ document.getElementById(
                 cfg.contentId
             );
             expect(el).toBeInstanceOf(HTMLElement);
@@ -286,6 +297,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleTabChange updates previousTab and calls state update helpers", async () => {
+        expect.hasAssertions();
         const spyBtns = vi.spyOn(tabStateManager, "updateTabButtonStates");
         const spyContent = vi.spyOn(tabStateManager, "updateContentVisibility");
         const spySpecific = vi
@@ -301,6 +313,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleAltFitTab sets iframe src safely", () => {
+        expect.hasAssertions();
         const iframe = document.createElement("iframe");
         iframe.id = "altfit_iframe";
         iframe.src = "about:blank";
@@ -311,6 +324,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleAltFitTab is idempotent when src already set", () => {
+        expect.hasAssertions();
         const iframe = document.createElement("iframe");
         iframe.id = "altfit_iframe";
         // Pre-set to expected value
@@ -323,6 +337,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleAltFitTab does nothing for non-iframe element", () => {
+        expect.hasAssertions();
         const div = document.createElement("div");
         div.id = "altfit_iframe";
         root.appendChild(div);
@@ -330,12 +345,11 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleSummaryTab renders when hash changes and stores lastDataHash", async () => {
+        expect.hasAssertions();
         const gd = { recordMesgs: [{ timestamp: 1 }, { timestamp: 2 }] };
         await tabStateManager.handleSummaryTab(gd);
         expect(gd.recordMesgs).toHaveLength(2);
-        expect(/** @type {any} */ window.renderSummary).toHaveBeenCalledWith(
-            gd
-        );
+        expect(/* @type {any} */ window.renderSummary).toHaveBeenCalledWith(gd);
         expect(mockSetState).toHaveBeenCalledWith(
             "summary.lastDataHash",
             expect.any(String),
@@ -348,6 +362,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("updateContentVisibility warns for unknown tab", () => {
+        expect.hasAssertions();
         const warnSpy = vi.spyOn(console, "warn");
         tabStateManager.updateContentVisibility("unknown");
         expect(TAB_CONFIG.unknown).toBeUndefined();
@@ -357,9 +372,13 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleTabSpecificLogic catches errors and continues (summary throws)", async () => {
-        const view = /** @type {any} */ window.renderSummary;
+        expect.hasAssertions();
+        const view = /* @type {any} */ window.renderSummary;
         try {
-            /** @type {any} */ window.renderSummary = vi.fn(() => {
+            /* @type {any} */ vi.spyOn(
+                window,
+                "renderSummary"
+            ).mockImplementation(() => {
                 throw new Error("boom");
             });
             await expect(
@@ -367,25 +386,27 @@ describe("tabStateManager.behavior", () => {
             ).resolves.toBeUndefined();
             expect(tabStateManager.previousTab).toBe("summary");
         } finally {
-            /** @type {any} */ window.renderSummary = view;
+            /* @type {any} */ window.renderSummary = view;
         }
     });
 
     it("handleTabSpecificLogic executes 'summary' branch normally and breaks", async () => {
+        expect.hasAssertions();
         // Ensure globalData present and summary hash differs so render occurs
         const gd = { recordMesgs: [{ timestamp: 1 }, { timestamp: 3 }] };
-        mockGetState.mockImplementation((/** @type {any} */ key) => {
+        mockGetState.mockImplementation((/* @type {any} */ key) => {
             if (key === "globalData") return gd;
             if (key === "summary.lastDataHash") return "different"; // force re-render
             return null;
         });
-        /** @type {any} */ window.renderSummary = vi.fn();
+        /* @type {any} */ vi.spyOn(
+            window,
+            "renderSummary"
+        ).mockImplementation();
         await expect(
             tabStateManager.handleTabSpecificLogic("summary")
         ).resolves.toBeUndefined();
-        expect(/** @type {any} */ window.renderSummary).toHaveBeenCalledWith(
-            gd
-        );
+        expect(/* @type {any} */ window.renderSummary).toHaveBeenCalledWith(gd);
         expect(mockSetState).toHaveBeenCalledWith(
             "summary.lastDataHash",
             expect.any(String),
@@ -398,10 +419,11 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleSummaryTab no-op without renderer", async () => {
-        const view = /** @type {any} */ window.renderSummary;
+        expect.hasAssertions();
+        const view = /* @type {any} */ window.renderSummary;
         // @ts-ignore
         // @ts-ignore
-        delete (/** @type {any} */ window.renderSummary);
+        delete (/* @type {any} */ window.renderSummary);
         await tabStateManager.handleSummaryTab({ recordMesgs: [{}] });
         expect("renderSummary" in window).toBe(false);
         // No throw and no setState
@@ -410,10 +432,11 @@ describe("tabStateManager.behavior", () => {
             expect.anything(),
             expect.anything()
         );
-        /** @type {any} */ window.renderSummary = view;
+        /* @type {any} */ window.renderSummary = view;
     });
 
     it("handleChartTab sets charts.tabActive true regardless of render state", async () => {
+        expect.hasAssertions();
         await tabStateManager.handleChartTab({ recordMesgs: [{}] });
         expect(mockGetState("ui.activeTab")).toBe("summary");
         expect(mockSetState).toHaveBeenCalledWith(
@@ -426,7 +449,7 @@ describe("tabStateManager.behavior", () => {
             })
         );
 
-        mockGetState.mockImplementation((/** @type {any} */ key) =>
+        mockGetState.mockImplementation((/* @type {any} */ key) =>
             key === "charts" ? { isRendered: true } : { recordMesgs: [{}] }
         );
         await tabStateManager.handleChartTab({ recordMesgs: [{}] });
@@ -439,9 +462,10 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleMapTab renders once and marks isRendered", async () => {
+        expect.hasAssertions();
         await tabStateManager.handleMapTab({ recordMesgs: [{}] });
         expect(mockGetState("ui.activeTab")).toBe("summary");
-        expect(/** @type {any} */ window.renderMap).toHaveBeenCalled();
+        expect(/* @type {any} */ window.renderMap).toHaveBeenCalledWith();
         expect(mockSetState).toHaveBeenCalledWith(
             "map.isRendered",
             true,
@@ -451,16 +475,18 @@ describe("tabStateManager.behavior", () => {
         );
 
         // Now report isRendered true – should not call render again
-        /** @type {any} */ window.renderMap = vi.fn();
-        mockGetState.mockImplementation((/** @type {any} */ key) =>
+        const renderMapSpy = vi.spyOn(window, "renderMap").mockImplementation();
+        renderMapSpy.mockClear();
+        mockGetState.mockImplementation((/* @type {any} */ key) =>
             key === "map" ? { isRendered: true } : { recordMesgs: [{}] }
         );
         await tabStateManager.handleMapTab({ recordMesgs: [{}] });
         expect(mockGetState("map")).toStrictEqual({ isRendered: true });
-        expect(/** @type {any} */ window.renderMap).not.toHaveBeenCalled();
+        expect(renderMapSpy).not.toHaveBeenCalled();
     });
 
     it("handleDataTab moves background content when present, otherwise renders fresh tables", async () => {
+        expect.hasAssertions();
         const bg = document.createElement("div");
         bg.id = "background_data_container";
         bg.appendChild(document.createElement("div"));
@@ -469,16 +495,17 @@ describe("tabStateManager.behavior", () => {
         root.append(bg, vis);
 
         await tabStateManager.handleDataTab({ recordMesgs: [{}] });
-        expect(vis.children.length).toBe(1);
+        expect(vis.children).toHaveLength(1);
 
         // No background content -> call createTables
         await tabStateManager.handleDataTab({ recordMesgs: [{}] });
-        expect(/** @type {any} */ window.createTables).toHaveBeenCalledWith({
+        expect(/* @type {any} */ window.createTables).toHaveBeenCalledWith({
             recordMesgs: [{}],
         });
     });
 
     it("handleChartTab/map/summary/data return early without data", async () => {
+        expect.hasAssertions();
         await tabStateManager.handleChartTab(null);
         await tabStateManager.handleMapTab(null);
         await tabStateManager.handleSummaryTab(null);
@@ -493,6 +520,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("setupTabButtonHandlers attaches DOMContentLoaded handler when document is loading", () => {
+        expect.hasAssertions();
         // Force readyState to loading
         const origDesc = Object.getOwnPropertyDescriptor(
             Document.prototype,
@@ -504,22 +532,36 @@ describe("tabStateManager.behavior", () => {
         });
         const addSpy = vi.spyOn(document, "addEventListener");
         tabStateManager.setupTabButtonHandlers();
-        expect(addSpy).toHaveBeenCalled();
+        expect(addSpy).toHaveBeenCalledWith(
+            "DOMContentLoaded",
+            expect.any(Function),
+            expect.any(Object)
+        );
         expect(addSpy.mock.calls[0][0]).toBe("DOMContentLoaded");
         expect(addSpy.mock.calls[0][1]).toBeInstanceOf(Function);
 
         // Cleanup should remove it
         const removeSpy = vi.spyOn(document, "removeEventListener");
         tabStateManager.cleanup();
-        expect(removeSpy).toHaveBeenCalled();
+        expect(removeSpy).toHaveBeenCalledWith(
+            "DOMContentLoaded",
+            expect.any(Function)
+        );
         expect(removeSpy.mock.calls[0][0]).toBe("DOMContentLoaded");
         expect(removeSpy.mock.calls[0][1]).toBeInstanceOf(Function);
 
         // Restore readyState
-        if (origDesc) Object.defineProperty(document, "readyState", origDesc);
+        expect(origDesc).toEqual(
+            expect.objectContaining({
+                configurable: true,
+                get: expect.any(Function),
+            })
+        );
+        Object.defineProperty(document, "readyState", origDesc!);
     });
 
     it("setupTabButtonHandlers attaches click listeners when document is ready", () => {
+        expect.hasAssertions();
         // Create some tab buttons
         const a = document.createElement("button");
         a.id = TAB_CONFIG.summary.id;
@@ -557,6 +599,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("updateTabAvailability toggles disabled state for requiresData tabs", () => {
+        expect.hasAssertions();
         // Create buttons for all tabs
         Object.values(TAB_CONFIG).forEach((cfg) => {
             const btn = document.createElement("button");
@@ -571,19 +614,20 @@ describe("tabStateManager.behavior", () => {
             (cfg) => cfg.requiresData
         );
         dataRequiredConfigs.forEach((cfg) => {
-            const el = /** @type {any} */ document.getElementById(cfg.id);
+            const el = /* @type {any} */ document.getElementById(cfg.id);
             expect(el.disabled).toBe(true);
         });
 
         // Non-empty -> enable
         tabStateManager.updateTabAvailability({ recordMesgs: [{}] });
         dataRequiredConfigs.forEach((cfg) => {
-            const el = /** @type {any} */ document.getElementById(cfg.id);
+            const el = /* @type {any} */ document.getElementById(cfg.id);
             expect(el.disabled).toBe(false);
         });
     });
 
     it("getActiveTabInfo returns elements and previous tab tracking", () => {
+        expect.hasAssertions();
         const btn = document.createElement("button");
         btn.id = "tab_map";
         btn.className = "tab-button";
@@ -591,20 +635,21 @@ describe("tabStateManager.behavior", () => {
         content.id = "content_map";
         root.append(btn, content);
 
-        mockGetState.mockImplementation((/** @type {any} */ key) =>
+        mockGetState.mockImplementation((/* @type {any} */ key) =>
             key === "ui.activeTab" ? "map" : null
         );
-        const info = /** @type {any} */ tabStateManager.getActiveTabInfo();
+        const info = /* @type {any} */ tabStateManager.getActiveTabInfo();
         expect(info.name).toBe("map");
         expect(info.element).toBe(btn);
         expect(info.contentElement).toBe(content);
     });
 
     it("getActiveTabInfo handles unknown activeTab gracefully", () => {
-        mockGetState.mockImplementationOnce((/** @type {any} */ key) =>
+        expect.hasAssertions();
+        mockGetState.mockImplementationOnce((/* @type {any} */ key) =>
             key === "ui.activeTab" ? "unknown" : null
         );
-        const info = /** @type {any} */ tabStateManager.getActiveTabInfo();
+        const info = /* @type {any} */ tabStateManager.getActiveTabInfo();
         expect(info.name).toBe("unknown");
         expect(info.config).toBeUndefined();
         expect(info.element).toBeNull();
@@ -612,6 +657,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("hashData handles nulls and missing timestamps", () => {
+        expect.hasAssertions();
         // @ts-ignore accessing class method
         expect(tabStateManager.hashData(null)).toBe("");
         // missing timestamps -> 0 fallback
@@ -622,6 +668,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("switchToTab validates name and sets state", () => {
+        expect.hasAssertions();
         expect(tabStateManager.switchToTab("nonexistent")).toBe(false);
         expect(mockSetState).not.toHaveBeenCalledWith(
             "ui.activeTab",
@@ -640,10 +687,11 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleTabButtonClick returns early when event has no currentTarget", () => {
+        expect.hasAssertions();
         // Should not throw and should not set state
         expect(() =>
             tabStateManager.handleTabButtonClick(
-                /** @type {any} */ {
+                /* @type {any} */ {
                     currentTarget: null,
                     preventDefault() {},
                     stopPropagation() {},
@@ -655,6 +703,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("getDoc returns a usable document for DOM operations", () => {
+        expect.hasAssertions();
         // Ensure a content element exists
         const content = document.createElement("div");
         content.id = "content_summary";
@@ -666,7 +715,8 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleTabSpecificLogic executes 'chartjs' branch and marks charts active", async () => {
-        mockGetState.mockImplementation((/** @type {any} */ key) => {
+        expect.hasAssertions();
+        mockGetState.mockImplementation((/* @type {any} */ key) => {
             if (key === "globalData") return { recordMesgs: [{}] };
             if (key === "charts") return { isRendered: false };
             return null;
@@ -685,52 +735,56 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleTabSpecificLogic executes 'map' branch and calls renderMap", async () => {
-        mockGetState.mockImplementation((/** @type {any} */ key) => {
+        expect.hasAssertions();
+        mockGetState.mockImplementation((/* @type {any} */ key) => {
             if (key === "globalData") return { recordMesgs: [{}] };
             if (key === "map") return { isRendered: false };
             return null;
         });
-        /** @type {any} */ window.renderMap = vi.fn();
+        /* @type {any} */ vi.spyOn(window, "renderMap").mockImplementation();
         await tabStateManager.handleTabSpecificLogic("map");
         expect(mockGetState("map")).toStrictEqual({ isRendered: false });
-        expect(/** @type {any} */ window.renderMap).toHaveBeenCalled();
+        expect(/* @type {any} */ window.renderMap).toHaveBeenCalledWith();
     });
 
     it("handleTabSpecificLogic executes 'data' branch and calls createTables when no background content", async () => {
+        expect.hasAssertions();
         // No background_data_container present, so it should render fresh tables
         const vis = document.createElement("div");
         vis.id = "content_data";
         root.appendChild(vis);
-        mockGetState.mockImplementation((/** @type {any} */ key) =>
+        mockGetState.mockImplementation((/* @type {any} */ key) =>
             key === "globalData" ? { recordMesgs: [{}] } : null
         );
-        /** @type {any} */ window.createTables = vi.fn();
+        /* @type {any} */ vi.spyOn(window, "createTables").mockImplementation();
         await tabStateManager.handleTabSpecificLogic("data");
         expect(vis.id).toBe("content_data");
-        expect(/** @type {any} */ window.createTables).toHaveBeenCalledWith({
+        expect(/* @type {any} */ window.createTables).toHaveBeenCalledWith({
             recordMesgs: [{}],
         });
     });
 
     it("handleTabSpecificLogic executes 'altfit' branch and calls handleAltFitTab", async () => {
+        expect.hasAssertions();
         const iframe = document.createElement("iframe");
         iframe.id = "altfit_iframe";
         root.appendChild(iframe);
         const spy = vi.spyOn(tabStateManager, "handleAltFitTab");
         await tabStateManager.handleTabSpecificLogic("altfit");
         expect(iframe.src).toContain("ffv/index.html");
-        expect(spy).toHaveBeenCalled();
+        expect(spy).toHaveBeenCalledWith();
         spy.mockRestore();
     });
 
     it("handleTabButtonClick returns early when button already active", () => {
+        expect.hasAssertions();
         const btn = document.createElement("button");
         btn.id = "tab_map";
         btn.className = "tab-button active";
         root.appendChild(btn);
 
         tabStateManager.handleTabButtonClick(
-            /** @type {any} */ {
+            /* @type {any} */ {
                 currentTarget: btn,
                 preventDefault() {},
                 stopPropagation() {},
@@ -746,29 +800,31 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleTabSpecificLogic returns early for unknown tab (no config)", async () => {
+        expect.hasAssertions();
         await expect(
-            tabStateManager.handleTabSpecificLogic(/** @type {any} */ "unknown")
+            tabStateManager.handleTabSpecificLogic(/* @type {any} */ "unknown")
         ).resolves.toBeUndefined();
         expect(TAB_CONFIG.unknown).toBeUndefined();
     });
 
     it("initializeSubscriptions callbacks invoke handlers when state changes", async () => {
+        expect.hasAssertions();
         // Re-initialize subscriptions after resetting mocks so calls are captured
         tabStateManager.initializeSubscriptions();
         // Retrieve the callbacks from the mock
         const calls = mockSubscribe.mock.calls;
         // Pick the most recent call for each key that provided a function callback
-        /** @type {any} */
+        /* @type {any} */
         const activeTabCall = [...calls]
             .filter(
-                (/** @type {any} */ c) =>
+                (/* @type {any} */ c) =>
                     c[0] === "ui.activeTab" && typeof c[1] === "function"
             )
             .at(-1);
-        /** @type {any} */
+        /* @type {any} */
         const dataFn = [...calls]
             .filter(
-                (/** @type {any} */ c) =>
+                (/* @type {any} */ c) =>
                     c[0] === "globalData" && typeof c[1] === "function"
             )
             .map((c) => c[1])
@@ -782,7 +838,7 @@ describe("tabStateManager.behavior", () => {
             .spyOn(tabStateManager, "handleTabChange")
             .mockResolvedValue();
         // Invoke activeTab callback with different values to trigger handleTabChange path
-        const activeTabCallback = /** @type {Function} */ activeTabCall[1];
+        const activeTabCallback = /* @type {Function} */ activeTabCall[1];
         activeTabCallback("map", "summary");
         expect(changeSpy).toHaveBeenCalledWith("map", "summary");
         changeSpy.mockRestore();
@@ -792,27 +848,26 @@ describe("tabStateManager.behavior", () => {
         btn.id = TAB_CONFIG.summary.id;
         btn.className = "tab-button";
         root.appendChild(btn);
-        if (typeof dataFn === "function") {
-            /** @type {any} */ dataFn({ recordMesgs: [{}] });
-        } else {
-            // Call directly to ensure branch under test is covered
-            tabStateManager.updateTabAvailability({ recordMesgs: [{}] });
-        }
+        expect(dataFn).toBeTypeOf("function");
+        (dataFn as (data: { recordMesgs: unknown[] }) => void)({
+            recordMesgs: [{}],
+        });
         // Should have toggled disabled to false for requiresData button
         expect(
-            /** @type {any} */ document.getElementById(TAB_CONFIG.summary.id)
+            /* @type {any} */ document.getElementById(TAB_CONFIG.summary.id)
                 .disabled
         ).toBe(false);
     });
 
     it("updateTabButtonStates tolerates per-button failures (catch path)", () => {
+        expect.hasAssertions();
         const a = document.createElement("button");
         a.id = "tab_summary";
         a.className = "tab-button";
         // Force classList.toggle to throw to exercise catch
         const origToggle = a.classList.toggle.bind(a.classList);
         // @ts-ignore
-        a.classList.toggle = /** @type {any} */ () => {
+        a.classList.toggle = /* @type {any} */ () => {
             throw new Error("boom");
         };
         const b = document.createElement("button");
@@ -830,6 +885,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleTabSpecificLogic default path logs for unsupported configured tab (zwift)", async () => {
+        expect.hasAssertions();
         const logSpy = vi.spyOn(console, "log");
         await expect(
             tabStateManager.handleTabSpecificLogic("zwift")
@@ -841,6 +897,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("cleanup marks uninitialized and removes listeners without throwing", () => {
+        expect.hasAssertions();
         // Add some tab buttons to attach listeners in setup
         Object.values(TAB_CONFIG).forEach((cfg) => {
             const btn = document.createElement("button");
