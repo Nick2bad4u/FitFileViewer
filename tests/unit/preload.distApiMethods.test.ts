@@ -19,7 +19,14 @@ interface ExposedPreloadApi {
 interface ExposedDevTools {
     getPreloadInfo: () => {
         apiMethods: string[];
-        constants: unknown;
+        constants: {
+            CHANNELS: Record<string, string>;
+            DEFAULT_VALUES: {
+                FIT_FILE_PATH: null | string;
+                THEME: null | string;
+            };
+            EVENTS: Record<string, string>;
+        };
         timestamp: string;
         version: string;
     };
@@ -278,7 +285,7 @@ describe("preload.js dist API methods", () => {
             const { exposedAPI } = createPreloadEnvironment();
             const channelInfo = exposedAPI.getChannelInfo();
 
-            expect(channelInfo).toMatchObject({
+            expect(channelInfo).toStrictEqual({
                 channels: EXPECTED_PRELOAD_CHANNELS,
                 events: EXPECTED_PRELOAD_EVENTS,
                 totalChannels: 27,
@@ -917,15 +924,18 @@ describe("preload.js dist API methods", () => {
 
     describe("debugging and Validation", () => {
         it("should provide validateAPI method", () => {
-            expect.assertions(2);
+            expect.assertions(3);
             const { exposedAPI } = createPreloadEnvironment();
             expect(exposedAPI.validateAPI()).toStrictEqual(true);
-            expect(exposedAPI.getChannelInfo()).toMatchObject({
+            expect(exposedAPI.getChannelInfo()).toStrictEqual({
                 channels: EXPECTED_PRELOAD_CHANNELS,
                 events: EXPECTED_PRELOAD_EVENTS,
                 totalChannels: 27,
                 totalEvents: 10,
             });
+            expect(exposedAPI.getChannelInfo().channels).not.toHaveProperty(
+                "UNKNOWN_CHANNEL"
+            );
         });
 
         it("should provide getChannelInfo with complete information", () => {
@@ -933,7 +943,7 @@ describe("preload.js dist API methods", () => {
             const { exposedAPI } = createPreloadEnvironment();
             const channelInfo = exposedAPI.getChannelInfo();
 
-            expect(channelInfo).toMatchObject({
+            expect(channelInfo).toStrictEqual({
                 channels: EXPECTED_PRELOAD_CHANNELS,
                 events: EXPECTED_PRELOAD_EVENTS,
                 totalChannels: 27,
@@ -965,25 +975,36 @@ describe("preload.js dist API methods", () => {
                 "logAPIState",
                 "testIPC",
             ]);
-            expect(preloadInfo).toMatchObject({
+            expect({
+                apiMethods: preloadInfo?.apiMethods,
+                channels: preloadInfo?.constants.CHANNELS,
+                events: preloadInfo?.constants.EVENTS,
+                version: preloadInfo?.version,
+            }).toStrictEqual({
                 apiMethods: Object.keys(exposedAPI ?? {}),
-                constants: {
-                    CHANNELS: EXPECTED_PRELOAD_CHANNELS,
-                    EVENTS: EXPECTED_PRELOAD_EVENTS,
-                },
+                channels: EXPECTED_PRELOAD_CHANNELS,
+                events: EXPECTED_PRELOAD_EVENTS,
                 version: "1.0.0",
             });
             expect(preloadInfo?.timestamp).toSatisfy((timestamp: string) =>
                 Number.isFinite(Date.parse(timestamp))
             );
             devTools?.logAPIState();
-            expect(consoleSpy.log).toHaveBeenCalledWith(
-                "[preload.js] Current API State:",
-                expect.objectContaining({
-                    electronAPI: "object",
-                    methodCount: Object.keys(exposedAPI ?? {}).length,
-                })
+            const apiStateLog = consoleSpy.log.mock.calls.find(
+                ([message]) => message === "[preload.js] Current API State:"
             );
+            const apiStatePayload = apiStateLog?.[1] as
+                | Record<string, unknown>
+                | undefined;
+            expect({
+                electronAPI: apiStatePayload?.electronAPI,
+                methodCount: apiStatePayload?.methodCount,
+                message: apiStateLog?.[0],
+            }).toStrictEqual({
+                electronAPI: "object",
+                methodCount: Object.keys(exposedAPI ?? {}).length,
+                message: "[preload.js] Current API State:",
+            });
             await expect(devTools?.testIPC()).resolves.toBe(true);
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
                 "getAppVersion"
@@ -1119,7 +1140,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should log successful initialization", () => {
-            expect.assertions(2);
+            expect.assertions(3);
             const { devTools } = createPreloadEnvironment({
                 NODE_ENV: "development",
             });
@@ -1127,7 +1148,10 @@ describe("preload.js dist API methods", () => {
             expect(consoleSpy.log).toHaveBeenCalledWith(
                 "[preload.js] Preload script initialized successfully"
             );
-            expect(devTools.getPreloadInfo()).toMatchObject({
+            expect(consoleSpy.error).not.toHaveBeenCalled();
+            expect({
+                version: devTools.getPreloadInfo().version,
+            }).toStrictEqual({
                 version: "1.0.0",
             });
         });
