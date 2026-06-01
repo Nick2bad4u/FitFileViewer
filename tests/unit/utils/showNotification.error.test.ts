@@ -67,8 +67,9 @@ describe("showNotification.js - error handling coverage", () => {
         expect.assertions(6);
 
         // Craft a queued notification with a resolveShown that throws
+        const resolveError = new Error("resolveShown failure");
         const throwingResolve = vi.fn<() => void>(() => {
-            throw new Error("resolveShown failure");
+            throw resolveError;
         });
 
         const notification = {
@@ -105,7 +106,7 @@ describe("showNotification.js - error handling coverage", () => {
         // Error should be logged and queue processing should not crash
         expect(console.error).toHaveBeenCalledWith(
             "Error displaying notification:",
-            expect.any(Error)
+            resolveError
         );
     });
 

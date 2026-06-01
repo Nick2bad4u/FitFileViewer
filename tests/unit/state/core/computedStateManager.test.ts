@@ -261,8 +261,9 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
             it("should handle computation errors gracefully", () => {
                 expect.hasAssertions();
+                const computationError = new Error("Computation failed");
                 const errorFn = vi.fn<() => never>(() => {
-                    throw new Error("Computation failed");
+                    throw computationError;
                 });
                 computedStateManager.addComputed("errorTest", errorFn, []);
 
@@ -274,7 +275,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                     expect.stringContaining(
                         'Error computing value for "errorTest"'
                     ),
-                    expect.any(Error)
+                    computationError
                 );
             });
 

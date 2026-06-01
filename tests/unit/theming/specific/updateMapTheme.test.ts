@@ -154,10 +154,11 @@ describe("updateMapTheme - comprehensive coverage", () => {
 
             // Setup - mock querySelector to throw
             const { mapElement, tilePane } = setupLeafletDom();
+            const domQueryError = new Error("DOM query error");
             const querySelectorSpy = vi
                 .spyOn(document, "querySelector")
                 .mockImplementation((): never => {
-                    throw new Error("DOM query error");
+                    throw domQueryError;
                 });
             mockGetMapThemeInverted.mockReturnValue(true);
 
@@ -167,7 +168,7 @@ describe("updateMapTheme - comprehensive coverage", () => {
                 // Verify error handling
                 expect(consoleErrorSpy).toHaveBeenCalledWith(
                     "[updateMapTheme] Error updating map theme:",
-                    expect.any(Error)
+                    domQueryError
                 );
                 expect(mockGetMapThemeInverted).not.toHaveBeenCalled();
                 expect(mapElement.parentElement).toBe(document.body);

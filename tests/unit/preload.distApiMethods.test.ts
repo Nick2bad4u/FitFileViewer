@@ -884,9 +884,8 @@ describe("preload.js dist API methods", () => {
 
         it("should handle injectMenu errors gracefully", async () => {
             expect.assertions(2);
-            mockIpcRenderer.invoke.mockRejectedValue(
-                new Error("Inject failed")
-            );
+            const injectError = new Error("Inject failed");
+            mockIpcRenderer.invoke.mockRejectedValue(injectError);
 
             const { exposedAPI } = createPreloadEnvironment();
 
@@ -895,7 +894,7 @@ describe("preload.js dist API methods", () => {
             );
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] Error in injectMenu:",
-                expect.any(Error)
+                injectError
             );
         });
 

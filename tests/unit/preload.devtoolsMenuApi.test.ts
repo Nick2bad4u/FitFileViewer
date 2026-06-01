@@ -116,7 +116,8 @@ describe("preload devtools menu API", () => {
         expect.assertions(3);
 
         const { api, invoke, preloadLog } = createApi();
-        invoke.mockRejectedValueOnce(new Error("inject failed"));
+        const injectError = new Error("inject failed");
+        invoke.mockRejectedValueOnce(injectError);
 
         const result = await api.injectMenu("dark", null);
 
@@ -124,7 +125,7 @@ describe("preload devtools menu API", () => {
         expect(preloadLog).toHaveBeenCalledWith(
             "error",
             "[preload.js] Error in injectMenu:",
-            expect.any(Error)
+            injectError
         );
         expect(invoke).toHaveBeenCalledWith(
             "devtools-inject-menu",

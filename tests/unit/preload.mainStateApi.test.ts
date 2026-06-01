@@ -215,14 +215,15 @@ describe("preload main-state API", () => {
         expect.assertions(3);
 
         const { api, invoke, preloadLog } = createApi();
-        invoke.mockRejectedValueOnce(new Error("metrics failed"));
+        const metricsError = new Error("metrics failed");
+        invoke.mockRejectedValueOnce(metricsError);
 
         await expect(api.getMetrics()).rejects.toThrow("metrics failed");
 
         expect(preloadLog).toHaveBeenCalledWith(
             "error",
             "[preload.js] Error in getMetrics:",
-            expect.any(Error)
+            metricsError
         );
         expect(invoke).toHaveBeenCalledWith("main-state:metrics");
     });

@@ -247,11 +247,12 @@ describe("preload API diagnostics", () => {
                     ...details: unknown[]
                 ) => void
             >();
+        const contextError = new Error("context failed");
         const diagnostics = createApiDiagnostics({
             channels: {},
             contextBridge: {
                 get exposeInMainWorld(): () => void {
-                    throw new Error("context failed");
+                    throw contextError;
                 },
             },
             events: {},
@@ -268,7 +269,7 @@ describe("preload API diagnostics", () => {
         expect(preloadLog).toHaveBeenCalledWith(
             "error",
             "[preload.js] API validation failed:",
-            expect.any(Error)
+            contextError
         );
     });
 });
