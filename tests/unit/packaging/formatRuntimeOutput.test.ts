@@ -146,7 +146,7 @@ describe("format-runtime-output script", () => {
     });
 
     it("formats all discovered runtime outputs", async () => {
-        expect.assertions(1);
+        expect.assertions(3);
 
         const repositoryRoot = makeTemporaryRoot();
         const tsconfigPath = path.join(repositoryRoot, "tsconfig.runtime.json");
@@ -155,6 +155,13 @@ describe("format-runtime-output script", () => {
             "electron-app",
             "dist",
             "main.js"
+        );
+        const nestedOutputFile = path.join(
+            repositoryRoot,
+            "electron-app",
+            "dist",
+            "utils",
+            "helper.js"
         );
         const prettierModule: FakePrettier = {
             format: vi.fn<FakePrettier["format"]>(async (source: string) =>
@@ -170,10 +177,17 @@ describe("format-runtime-output script", () => {
                 outDir: "electron-app/dist",
                 rootDir: "electron-app",
             },
-            files: ["electron-app/main.ts"],
+            files: [
+                "electron-app/main.ts",
+                "electron-app/utils/helper.ts",
+                "electron-app/missing.ts",
+                "electron-app/legacy.js",
+            ],
         });
         fs.mkdirSync(path.dirname(outputFile), { recursive: true });
+        fs.mkdirSync(path.dirname(nestedOutputFile), { recursive: true });
         fs.writeFileSync(outputFile, "const value=1;");
+        fs.writeFileSync(nestedOutputFile, "const helper=1;");
 
         await runFormatRuntimeOutput({
             prettierModule,
@@ -181,6 +195,16 @@ describe("format-runtime-output script", () => {
             tsconfigPath,
         });
 
-        expect(fs.readFileSync(outputFile, "utf8")).toBe("const value= 1;");
+        expect({
+            nestedOutput: fs.readFileSync(nestedOutputFile, "utf8"),
+            output: fs.readFileSync(outputFile, "utf8"),
+        }).toStrictEqual({
+            nestedOutput: "const helper= 1;",
+            output: "const value= 1;",
+        });
+        expect(prettierModule.format).toHaveBeenCalledTimes(2);
+        expect(
+            vi.mocked(prettierModule.resolveConfig).mock.calls
+        ).toStrictEqual([[outputFile], [nestedOutputFile]]);
     });
 });
