@@ -77,6 +77,14 @@ const staleNestedGeneratedAppPaths = [
     "electron-app/test-report.junit.xml",
 ] as const;
 
+const requiredRootToolingDevDependencies = [
+    "@vitest/ui",
+    "eslint-config-nick2bad4u",
+    "prettier-config-nick2bad4u",
+    "stylelint-config-nick2bad4u",
+    "vitest",
+] as const;
+
 function delegatesToNestedElectronPackage(script: string): boolean {
     return nestedElectronPackageDelegationPatterns.some((pattern) =>
         pattern.test(script)
@@ -98,12 +106,21 @@ describe("workspace package boundaries", () => {
             "test:ui": "node scripts/run-vitest.mjs --ui",
             "update-deps": "node scripts/update-deps.mjs",
         });
-        expect(rootPackage.devDependencies).toMatchObject({
-            "@vitest/ui": expect.any(String),
-            "eslint-config-nick2bad4u": expect.any(String),
-            "prettier-config-nick2bad4u": expect.any(String),
-            "stylelint-config-nick2bad4u": expect.any(String),
-            vitest: expect.any(String),
+        expect(
+            Object.fromEntries(
+                requiredRootToolingDevDependencies.map((dependencyName) => [
+                    dependencyName,
+                    Boolean(
+                        rootPackage.devDependencies?.[dependencyName]?.trim()
+                    ),
+                ])
+            )
+        ).toStrictEqual({
+            "@vitest/ui": true,
+            "eslint-config-nick2bad4u": true,
+            "prettier-config-nick2bad4u": true,
+            "stylelint-config-nick2bad4u": true,
+            vitest: true,
         });
         expect(
             Object.keys(rootPackage.dependencies ?? {}).sort()
