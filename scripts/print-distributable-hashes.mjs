@@ -4,6 +4,8 @@ import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
+import { repositoryRoot } from "./lib/workspaces.mjs";
+
 export const distributableExtensions = new Set([
     ".7z",
     ".AppImage",
@@ -69,7 +71,7 @@ export function findDistributableFiles(rootDirectory) {
     return files.sort((left, right) => left.localeCompare(right));
 }
 
-export function formatHashLine(filePath, baseDirectory = process.cwd()) {
+export function formatHashLine(filePath, baseDirectory = repositoryRoot) {
     const displayPath = path.relative(baseDirectory, filePath) || filePath;
     const hash = crypto.createHash("sha512");
 

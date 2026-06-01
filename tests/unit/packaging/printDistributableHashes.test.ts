@@ -5,7 +5,10 @@ import path from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
-import { rootReleaseDistPath } from "../../../scripts/lib/workspaces.mjs";
+import {
+    rootPackagePath,
+    rootReleaseDistPath,
+} from "../../../scripts/lib/workspaces.mjs";
 
 type PrintDistributableHashesModule = {
     findDistributableFiles: (rootDirectory: string) => string[];
@@ -119,6 +122,20 @@ describe("print-distributable-hashes script", () => {
 
         expect(formatHashLine(filePath, temporaryRoot)).toBe(
             `release/app.exe: ${expectedHash}`
+        );
+    });
+
+    it("defaults hash display paths to the repository root", async () => {
+        expect.assertions(1);
+
+        const { formatHashLine } = await importPrintDistributableHashes();
+        const expectedHash = crypto
+            .createHash("sha512")
+            .update(fs.readFileSync(rootPackagePath))
+            .digest("base64");
+
+        expect(formatHashLine(rootPackagePath)).toBe(
+            `package.json: ${expectedHash}`
         );
     });
 
