@@ -2,6 +2,7 @@ import path from "node:path";
 
 import { describe, expect, it, vi } from "vitest";
 
+import { docusaurusWorkspaceRepositoryPath } from "../../../scripts/lib/workspaces.mjs";
 import {
     buildMarkdownlintArgs,
     markdownlintTargets,
@@ -21,10 +22,10 @@ describe("lint-docusaurus-content script", () => {
         const args = buildMarkdownlintArgs(["--fix"]);
 
         expect(markdownlintTargets).toStrictEqual([
-            "docusaurus/docs/**/*.{md,mdx}",
-            "!docusaurus/docs/api/**/*.md",
-            "docusaurus/blog/**/*.{md,mdx}",
-            "docusaurus/src/**/*.{md,mdx}",
+            docusaurusWorkspaceRepositoryPath("docs/**/*.{md,mdx}"),
+            `!${docusaurusWorkspaceRepositoryPath("docs/api/**/*.md")}`,
+            docusaurusWorkspaceRepositoryPath("blog/**/*.{md,mdx}"),
+            docusaurusWorkspaceRepositoryPath("src/**/*.{md,mdx}"),
         ]);
         expect(args[0]).toMatch(
             /[\\/]markdownlint-cli2[\\/].*markdownlint-cli2(?:\.mjs|\.cjs|\.js)?$/u
