@@ -154,7 +154,7 @@ describe("handleOpenFile Module", () => {
 
     describe("module exports", () => {
         it("should export expected functions", () => {
-            expect.hasAssertions();
+            expect.assertions(5);
 
             expect(handleOpenFileModule.handleOpenFile).toBeTypeOf("function");
             expect(handleOpenFileModule.logWithContext).toBeTypeOf("function");
@@ -215,7 +215,7 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should handle exceptions when logging fails", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             // Force console.log to throw an error
             vi.spyOn(console, "info")
@@ -233,13 +233,13 @@ describe("handleOpenFile Module", () => {
 
     describe("validateElectronAPI", () => {
         it("should return true when electronAPI is available", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             expect(handleOpenFileModule.validateElectronAPI()).toBe(true);
         });
 
         it("should return false when electronAPI is not available", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const originalElectronAPI = getTestWindow().electronAPI;
             getTestWindow().electronAPI = undefined;
@@ -248,7 +248,7 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should return false when required methods are missing", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const originalElectronAPI = getTestWindow().electronAPI;
             getTestWindow().electronAPI = {
@@ -263,7 +263,7 @@ describe("handleOpenFile Module", () => {
 
     describe("updateUIState", () => {
         it("should update UI elements with loading and file info", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             // Reset stateManager mock
             stateManagerMock.setState.mockClear();
@@ -284,7 +284,7 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should update UI elements with completed status", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             // Reset stateManager mock
             stateManagerMock.setState.mockClear();
@@ -305,7 +305,7 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should handle missing UI elements", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             // Reset stateManager mock
             stateManagerMock.setState.mockClear();
@@ -327,7 +327,7 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should handle errors when updating UI state", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             // Reset mocks
             stateManagerMock.setState.mockClear();
@@ -363,7 +363,7 @@ describe("handleOpenFile Module", () => {
 
     describe("handleOpenFile", () => {
         it("should successfully handle a file open operation", async () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             const mockParams = createOpenFileParams();
 
@@ -386,7 +386,7 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should handle when user cancels file selection", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             getElectronAPI().openFile.mockResolvedValue(null);
 
@@ -399,7 +399,7 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should prevent multiple file opening operations", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const mockParams = {
                 isOpeningFileRef: { value: true }, // Already opening a file
@@ -419,7 +419,7 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should handle empty files", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             getElectronAPI().openFile.mockResolvedValue("test.fit");
             getElectronAPI().readFile.mockResolvedValue(new ArrayBuffer(0));
@@ -439,7 +439,7 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should handle file open errors", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             getElectronAPI().openFile.mockRejectedValue(
                 new Error("Open error")
@@ -458,7 +458,7 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should handle file read errors", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             getElectronAPI().openFile.mockResolvedValue("test.fit");
             getElectronAPI().readFile.mockRejectedValue(
@@ -478,7 +478,7 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should handle file parse errors", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             getElectronAPI().openFile.mockResolvedValue("test.fit");
             getElectronAPI().readFile.mockResolvedValue(new ArrayBuffer(100));
@@ -499,7 +499,7 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should handle parse result errors", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             getElectronAPI().openFile.mockResolvedValue("test.fit");
             getElectronAPI().readFile.mockResolvedValue(new ArrayBuffer(100));
@@ -521,7 +521,7 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should handle errors when displaying FIT data", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             getElectronAPI().openFile.mockResolvedValue("test.fit");
             getElectronAPI().readFile.mockResolvedValue(new ArrayBuffer(100));
@@ -548,7 +548,7 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should handle file path array", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             getElectronAPI().openFile.mockResolvedValue([
                 "test.fit",
@@ -569,7 +569,7 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should handle empty file path array", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             getElectronAPI().openFile.mockResolvedValue([]);
 
@@ -587,7 +587,7 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should handle debug mode output", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const mockData = {
                 data: {
@@ -619,7 +619,7 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should skip file size validation when option is disabled", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             // Empty file would normally fail
             getElectronAPI().openFile.mockResolvedValue("test.fit");
@@ -651,7 +651,7 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should handle optional function calls", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             // Save original window functions
             const originalShowFitData = getTestWindow().showFitData;
@@ -679,7 +679,7 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should correctly clean up isOpeningFileRef in finally block", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             // Force an error in the middle of processing
             getElectronAPI().parseFitFile.mockImplementationOnce(() => {
@@ -702,7 +702,7 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should handle invalid electronAPI", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const originalElectronAPI = getTestWindow().electronAPI;
             getTestWindow().electronAPI = undefined;
