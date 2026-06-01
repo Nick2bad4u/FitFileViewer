@@ -243,11 +243,11 @@ describe(registerMenuIpcListeners, () => {
                 "menu-keyboard-shortcuts"
             )();
 
-            expect(fallbackHtml).toContain("<h2>Keyboard Shortcuts</h2>");
+            const expectedFallbackHtml =
+                "<h2>Keyboard Shortcuts</h2><ul class=\"shortcut-list\"><li class='shortcut-list-item'><strong>Open File:</strong> <span class='shortcut-key'>Ctrl+O</span></li><li class='shortcut-list-item'><strong>Save As:</strong> <span class='shortcut-key'>Ctrl+S</span></li><li class='shortcut-list-item'><strong>Print:</strong> <span class='shortcut-key'>Ctrl+P</span></li><li class='shortcut-list-item'><strong>Close Window:</strong> <span class='shortcut-key'>Ctrl+W</span></li><li class='shortcut-list-item'><strong>Reload:</strong> <span class='shortcut-key'>Ctrl+R</span></li><li class='shortcut-list-item'><strong>Toggle DevTools:</strong> <span class='shortcut-key'>Ctrl+Shift+I</span></li><li class='shortcut-list-item'><strong>Toggle Fullscreen:</strong> <span class='shortcut-key'>F11</span></li><li class='shortcut-list-item'><strong>Export:</strong> <span class='shortcut-key'>No default</span></li><li class='shortcut-list-item'><strong>Theme: Dark/Light:</strong> <span class='shortcut-key'>Settings > Theme</span></li></ul>";
+            expect(fallbackHtml).toBe(expectedFallbackHtml);
             expect(fixture.showAboutModal).toHaveBeenCalledWith(
-                expect.stringContaining(
-                    "<li class='shortcut-list-item'><strong>Open File:</strong> <span class='shortcut-key'>Ctrl+O</span></li>"
-                )
+                expectedFallbackHtml
             );
             expect(fixture.debugMenuLog).toHaveBeenCalledWith(
                 "Keyboard shortcuts modal module loaded, but showKeyboardShortcutsModal is unavailable"

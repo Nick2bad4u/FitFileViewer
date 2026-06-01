@@ -64,9 +64,7 @@ describe(createTables, () => {
         expect(document.body.children).toHaveLength(1);
         expect(document.getElementById("other")).toBe(other);
         expect(errorSpy).toHaveBeenCalledWith(
-            expect.stringContaining(
-                'Container element with id "content_data" not found'
-            )
+            '[ERROR] Container element with id "content_data" not found. Please ensure the element exists in the DOM or provide a valid containerOverride.'
         );
         errorSpy.mockRestore();
     });
@@ -149,7 +147,7 @@ describe(createTables, () => {
     });
 
     it("continues gracefully when renderTable throws for a table", () => {
-        expect.assertions(8);
+        expect.assertions(10);
 
         const container = getContainer();
         const errorSpy = vi.spyOn(console, "error").mockReturnValue(undefined);
@@ -178,10 +176,12 @@ describe(createTables, () => {
         expect(vi.mocked(renderTable).mock.calls[0]?.[3]).toBe(0);
         expect(vi.mocked(renderTable).mock.calls[1]?.[3]).toBe(1);
         expect(vi.mocked(renderTable).mock.calls[2]?.[3]).toBe(2);
-        expect(errorSpy).toHaveBeenCalledWith(
-            expect.stringContaining("Failed to render table for key: aTable"),
-            expect.stringContaining("Error: boom")
+        expect(errorSpy).toHaveBeenCalledOnce();
+        const [errorMessage, errorStack] = errorSpy.mock.calls[0];
+        expect(errorMessage).toBe(
+            "[ERROR] Failed to render table for key: aTable. Error message: boom. Stack trace:"
         );
+        expect(String(errorStack).split("\n")[0]).toBe("Error: boom");
         errorSpy.mockRestore();
     });
 });

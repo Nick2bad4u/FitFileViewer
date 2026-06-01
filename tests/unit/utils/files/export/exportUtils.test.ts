@@ -294,7 +294,7 @@ describe("exportUtils", () => {
 
     describe("addCombinedCSVToZip", () => {
         it("should add combined CSV data to ZIP archive", async () => {
-            expect.assertions(4);
+            expect.assertions(2);
 
             const mockZip = createMockZip();
 
@@ -313,13 +313,13 @@ describe("exportUtils", () => {
 
             expect(mockZip.file).toHaveBeenCalledWith(
                 "combined-data.csv",
-                expect.stringContaining("timestamp,Speed,Heart Rate")
+                "timestamp,Speed,Heart Rate\n1000,25,150\n2000,30,\n3000,,160"
             );
 
             const csvContent = mockZip.file.mock.calls[0][1];
-            expect(csvContent).toContain("1000,25,150");
-            expect(csvContent).toContain("2000,30,");
-            expect(csvContent).toContain("3000,,160");
+            expect(csvContent).toBe(
+                "timestamp,Speed,Heart Rate\n1000,25,150\n2000,30,\n3000,,160"
+            );
         });
 
         it("should handle empty charts array", async () => {
