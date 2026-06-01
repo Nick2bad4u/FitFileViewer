@@ -502,9 +502,7 @@ describe("main.js strict handlers and events", () => {
 
         await expect(
             directFileRead({}, "C:/missing.fit")
-        ).rejects.toMatchObject({
-            code: "ENOENT",
-        });
+        ).rejects.toHaveProperty("code", "ENOENT");
         expect(directFs.readFile).not.toHaveBeenCalled();
         expect(directLog).not.toHaveBeenCalled();
 
