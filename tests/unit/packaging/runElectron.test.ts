@@ -154,14 +154,35 @@ describe("run-electron script", () => {
     });
 
     it("throws when Electron reports a spawn error", async () => {
-        expect.assertions(1);
+        expect.assertions(4);
 
-        const { runElectron } = await importRunElectron();
+        const spawnError = new Error("spawn failed");
+        const { electronCliPath, runElectron } = await importRunElectron();
         const commandRunner = vi.fn<CommandRunner>(() => ({
-            error: new Error("spawn failed"),
+            error: spawnError,
             status: 0,
         }));
 
-        expect(() => runElectron([], commandRunner)).toThrow("spawn failed");
+        expect(() => runElectron([], commandRunner)).toThrow(spawnError);
+        expect(commandRunner).toHaveBeenCalledOnce();
+
+        const [
+            command,
+            args,
+            options,
+        ] = commandRunner.mock.calls[0] ?? [];
+
+        expect({ args, command }).toStrictEqual({
+            args: [electronCliPath, "."],
+            command: process.execPath,
+        });
+        expect({
+            ...options,
+            cwd: path.resolve(options?.cwd ?? ""),
+        }).toStrictEqual({
+            cwd: path.resolve(process.cwd()),
+            env: process.env,
+            stdio: "inherit",
+        });
     });
 });

@@ -119,16 +119,42 @@ describe("run-electron-builder script", () => {
     });
 
     it("throws when electron-builder reports a spawn error", async () => {
-        expect.assertions(1);
+        expect.assertions(4);
 
-        const { runElectronBuilder } = await importRunElectronBuilder();
+        const spawnError = new Error("spawn failed");
+        const { electronBuilderCliPath, runElectronBuilder } =
+            await importRunElectronBuilder();
         const commandRunner = vi.fn<CommandRunner>(() => ({
-            error: new Error("spawn failed"),
+            error: spawnError,
             status: 0,
         }));
 
-        expect(() => runElectronBuilder([], commandRunner)).toThrow(
-            "spawn failed"
-        );
+        expect(() => runElectronBuilder([], commandRunner)).toThrow(spawnError);
+        expect(commandRunner).toHaveBeenCalledOnce();
+
+        const [
+            command,
+            args,
+            options,
+        ] = commandRunner.mock.calls[0] ?? [];
+
+        expect({ args, command }).toStrictEqual({
+            args: [
+                electronBuilderCliPath,
+                "--projectDir",
+                ".",
+                "--config",
+                rootElectronBuilderConfigPath,
+            ],
+            command: process.execPath,
+        });
+        expect({
+            ...options,
+            cwd: path.resolve(options?.cwd ?? ""),
+        }).toStrictEqual({
+            cwd: path.resolve(process.cwd()),
+            env: process.env,
+            stdio: "inherit",
+        });
     });
 });
