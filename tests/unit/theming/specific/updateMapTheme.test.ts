@@ -193,16 +193,32 @@ describe("updateMapTheme - comprehensive coverage", () => {
             expect(addSpy).not.toHaveBeenCalled();
             installUpdateMapThemeListeners();
 
-            expect(addSpy).toHaveBeenCalledWith(
-                "themechange",
-                expect.any(Function),
-                expect.objectContaining({ signal: expect.any(AbortSignal) })
-            );
-            expect(addSpy).toHaveBeenCalledWith(
-                "mapThemeChanged",
-                expect.any(Function),
-                expect.objectContaining({ signal: expect.any(AbortSignal) })
-            );
+            expect(
+                addSpy.mock.calls.map(
+                    ([
+                        eventName,
+                        listener,
+                        options,
+                    ]) => ({
+                        eventName,
+                        listenerType: typeof listener,
+                        signalIsAbortSignal:
+                            (options as AddEventListenerOptions | undefined)
+                                ?.signal instanceof AbortSignal,
+                    })
+                )
+            ).toEqual([
+                {
+                    eventName: "themechange",
+                    listenerType: "function",
+                    signalIsAbortSignal: true,
+                },
+                {
+                    eventName: "mapThemeChanged",
+                    listenerType: "function",
+                    signalIsAbortSignal: true,
+                },
+            ]);
             document.dispatchEvent(new Event("themechange"));
             expect(tilePane.style.filter).toBe(DARK_TILE_FILTER);
         });
