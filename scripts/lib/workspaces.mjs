@@ -84,10 +84,20 @@ export const rootPlaywrightAppUiSpecPath = path.posix.join(
     rootPlaywrightTestsPath,
     "app-ui.spec.ts"
 );
+export const rootVitestSupportPath = path.posix.join("tests", "vitest");
+export const rootVitestGlobalSetupPath = path.posix.join(
+    rootVitestSupportPath,
+    "globalSetup.mjs"
+);
+export const rootVitestSetupFilePath = path.posix.join(
+    rootVitestSupportPath,
+    "setupVitest.mjs"
+);
 export const rootTypedocConfigPath = "typedoc.json";
 export const rootUnitTestsPath = path.posix.join("tests", "unit");
 export const rootTabsTestsPath = path.posix.join(rootUnitTestsPath, "tabs");
 export const rootViteRendererConfigPath = "vite.renderer.config.mjs";
+export const rootVitestCachePath = path.posix.join(".cache", "vitest");
 export const rootVitestConfigPath = "vitest.config.ts";
 export const rootVitestTypecheckTsconfigPath = "tsconfig.vitest-typecheck.json";
 export const appSourcePath = path.join(repositoryRoot, appSourceDirectoryName);

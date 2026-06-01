@@ -128,7 +128,11 @@ type WorkspacesModule = {
     rootTypedocConfigPath: string;
     rootUnitTestsPath: string;
     rootViteRendererConfigPath: string;
+    rootVitestCachePath: string;
     rootVitestConfigPath: string;
+    rootVitestGlobalSetupPath: string;
+    rootVitestSetupFilePath: string;
+    rootVitestSupportPath: string;
     rootVitestTypecheckTsconfigPath: string;
     rootWin7ReleaseDistPath: string;
     runDocusaurusScriptPath: string;
@@ -326,7 +330,7 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes root config paths", async () => {
-        expect.assertions(16);
+        expect.assertions(17);
 
         const workspaces = await importWorkspaces();
 
@@ -372,6 +376,7 @@ describe("workspace path helpers", () => {
         expect(workspaces.rootViteRendererConfigPath).toBe(
             "vite.renderer.config.mjs"
         );
+        expect(workspaces.rootVitestCachePath).toBe(".cache/vitest");
         expect(workspaces.rootVitestConfigPath).toBe("vitest.config.ts");
         expect(workspaces.rootVitestTypecheckTsconfigPath).toBe(
             "tsconfig.vitest-typecheck.json"
@@ -443,7 +448,7 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes root generated output and test paths", async () => {
-        expect.assertions(16);
+        expect.assertions(19);
 
         const workspaces = await importWorkspaces();
 
@@ -467,6 +472,13 @@ describe("workspace path helpers", () => {
         expect(workspaces.rootPlaywrightTestsPath).toBe("tests/playwright");
         expect(workspaces.rootPlaywrightAppUiSpecPath).toBe(
             "tests/playwright/app-ui.spec.ts"
+        );
+        expect(workspaces.rootVitestSupportPath).toBe("tests/vitest");
+        expect(workspaces.rootVitestGlobalSetupPath).toBe(
+            "tests/vitest/globalSetup.mjs"
+        );
+        expect(workspaces.rootVitestSetupFilePath).toBe(
+            "tests/vitest/setupVitest.mjs"
         );
         expect(workspaces.rootUnitTestsPath).toBe("tests/unit");
         expect(workspaces.rootTabsTestsPath).toBe("tests/unit/tabs");

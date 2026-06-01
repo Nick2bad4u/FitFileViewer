@@ -6,8 +6,15 @@ import {
 } from "vitest/config";
 /* eslint-enable module-interop/no-require-esm -- Re-enable after the Vitest config import. */
 
-// eslint-disable-next-line module-interop/no-require-esm -- Vitest loads this config through its ESM-aware config loader.
-import { repositoryPath, repositoryRoot } from "./scripts/lib/workspaces.mjs";
+/* eslint-disable module-interop/no-require-esm -- Vitest loads this config through its ESM-aware config loader. */
+import {
+    repositoryPath,
+    repositoryRoot,
+    rootVitestCachePath,
+    rootVitestGlobalSetupPath,
+    rootVitestSetupFilePath,
+} from "./scripts/lib/workspaces.mjs";
+/* eslint-enable module-interop/no-require-esm -- Re-enable after the workspace helper import. */
 
 const electronStubPath = repositoryPath(
     "tests",
@@ -17,7 +24,7 @@ const electronStubPath = repositoryPath(
 );
 
 export default defineConfig({
-    cacheDir: ".cache/vitest",
+    cacheDir: rootVitestCachePath,
     resolve: {
         alias: {
             electron: electronStubPath,
@@ -160,7 +167,7 @@ export default defineConfig({
         ],
         // eslint-disable-next-line vite/no-vitest-globals -- Legacy tests still rely on global describe/it/expect.
         globals: true, // Enable global test functions (describe, it, expect)
-        globalSetup: ["tests/vitest/globalSetup.mjs"],
+        globalSetup: [rootVitestGlobalSetupPath],
         hookTimeout: 30_000,
         include: [
             "tests/integration/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
@@ -212,7 +219,7 @@ export default defineConfig({
                 ],
             },
         },
-        setupFiles: ["tests/vitest/setupVitest.mjs"],
+        setupFiles: [rootVitestSetupFilePath],
         slowTestThreshold: 1000,
         teardownTimeout: 30_000,
         testTimeout: 30_000,
