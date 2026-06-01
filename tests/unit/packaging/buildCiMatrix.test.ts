@@ -423,26 +423,68 @@ describe("build-ci-matrix script", () => {
     });
 
     it("rejects missing required matrix options", async () => {
-        expect.assertions(1);
+        expect.assertions(4);
 
         const { parseArgs } = await importBuildCiMatrix();
 
         expect(() => parseArgs(["--runner-os=Linux"], {})).toThrow(
             "--matrix-os or MATRIX_OS is required"
         );
+        expect(() => parseArgs(["--matrix-os=ubuntu-latest"], {})).toThrow(
+            "--runner-os or RUNNER_OS is required"
+        );
+        expect(() =>
+            parseArgs(["--runner-os=Linux", "--matrix-os=ubuntu-latest"], {})
+        ).toThrow("--arch or MATRIX_ARCH is required");
+        expect(parseArgs(["--help"], {})).toStrictEqual({
+            arch: undefined,
+            dryRun: false,
+            help: true,
+            initialRetryDelaySeconds: 15,
+            matrixOs: undefined,
+            maxMacosAttempts: 3,
+            releaseDirectory: rootReleaseDistPath,
+            runnerOs: undefined,
+        });
     });
 
     it("prints selected builder args in dry run mode", async () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
-        const { getDryRunSummary } = await importBuildCiMatrix();
+        const { buildCiMatrix, getDryRunSummary } = await importBuildCiMatrix();
+        const logMessages: string[] = [];
+        const commandCalls: Array<{ args: string[]; command: string }> = [];
+        const dryRunOptions = {
+            arch: "x64",
+            dryRun: true,
+            matrixOs: "ubuntu-latest",
+            runnerOs: "Linux",
+        };
 
-        expect(
-            getDryRunSummary({
-                arch: "x64",
-                matrixOs: "ubuntu-latest",
-                runnerOs: "Linux",
-            })
-        ).toContain("builderArgs=--linux --x64 --publish never");
+        const exitCode = buildCiMatrix(dryRunOptions, {
+            log(message) {
+                logMessages.push(message);
+            },
+            runCommand(command, args) {
+                commandCalls.push({ args, command });
+                return 0;
+            },
+        });
+
+        expect({ commandCalls, exitCode, logMessages }).toStrictEqual({
+            commandCalls: [],
+            exitCode: 0,
+            logMessages: [getDryRunSummary(dryRunOptions)],
+        });
+        expect(logMessages[0]).toBe(
+            [
+                "[build-ci-matrix] Dry run",
+                "runnerOs=Linux",
+                "matrixOs=ubuntu-latest",
+                "arch=x64",
+                "builderArgs=--linux --x64 --publish never",
+                "retry=false",
+            ].join("\n")
+        );
     });
 });
