@@ -123,23 +123,25 @@ describe(getUnitSymbol, () => {
         expect.assertions(2);
 
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+        const settingsError = new Error("settings unavailable");
         mockedGetChartSetting.mockImplementation(() => {
-            throw new Error("settings unavailable");
+            throw settingsError;
         });
 
         expect(getUnitSymbol("temperature")).toBe("°C");
 
         expect(warnSpy).toHaveBeenCalledWith(
             '[UnitSymbol] Error reading setting "temperatureUnits":',
-            expect.any(Error)
+            settingsError
         );
     });
 
     it("logs and returns an empty symbol when validation logging fails", () => {
         expect.assertions(2);
 
+        const warnError = new Error("console.warn failed");
         vi.spyOn(console, "warn").mockImplementationOnce(() => {
-            throw new Error("console.warn failed");
+            throw warnError;
         });
         const errorSpy = vi
             .spyOn(console, "error")
@@ -149,7 +151,7 @@ describe(getUnitSymbol, () => {
 
         expect(errorSpy).toHaveBeenCalledWith(
             '[UnitSymbol] Error getting unit symbol for field "null":',
-            expect.any(Error)
+            warnError
         );
     });
 });

@@ -102,10 +102,11 @@ describe(getLapNumForIdx, () => {
     it("logs and returns null when lap property access throws", () => {
         expect.assertions(2);
 
+        const propertyAccessError = new Error("property access failed");
         const laps = [
             {
                 get start_index() {
-                    throw new Error("property access failed");
+                    throw propertyAccessError;
                 },
                 end_index: 99,
             },
@@ -115,7 +116,7 @@ describe(getLapNumForIdx, () => {
 
         expect(errorSpy).toHaveBeenCalledWith(
             "[LapLookup] Error determining lap number for index 50:",
-            expect.any(Error)
+            propertyAccessError
         );
     });
 });

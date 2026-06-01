@@ -44,14 +44,15 @@ describe(formatWeight, () => {
         const errorSpy = vi
             .spyOn(console, "error")
             .mockImplementation(() => {});
+        const roundError = new Error("round failed");
         vi.spyOn(Math, "round").mockImplementationOnce(() => {
-            throw new Error("round failed");
+            throw roundError;
         });
 
         expect(formatWeight(70)).toBe("70");
         expect(errorSpy).toHaveBeenCalledWith(
             "[formatWeight] Weight formatting failed:",
-            expect.any(Error)
+            roundError
         );
     });
 });

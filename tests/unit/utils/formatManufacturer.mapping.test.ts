@@ -270,13 +270,14 @@ describe("formatManufacturer mapping behavior", () => {
             it("should handle ID lookup service errors gracefully", () => {
                 expect.assertions(2);
 
+                const lookupError = new Error("ID lookup service unavailable");
                 mockGetManufacturerName.mockImplementation(() => {
-                    throw new Error("ID lookup service unavailable");
+                    throw lookupError;
                 });
                 expect(formatManufacturer(1)).toBe("1");
                 expect(console.warn).toHaveBeenCalledWith(
                     "[formatManufacturer] Error looking up manufacturer by ID:",
-                    expect.any(Error)
+                    lookupError
                 );
             });
 
@@ -639,13 +640,14 @@ describe("formatManufacturer mapping behavior", () => {
             it("should handle when getManufacturerName is not available", () => {
                 expect.assertions(2);
 
+                const unavailableError = new Error("Function not available");
                 mockGetManufacturerName.mockImplementation(() => {
-                    throw new Error("Function not available");
+                    throw unavailableError;
                 });
                 expect(formatManufacturer(1)).toBe("1");
                 expect(console.warn).toHaveBeenCalledWith(
                     "[formatManufacturer] Error looking up manufacturer by ID:",
-                    expect.any(Error)
+                    unavailableError
                 );
             });
 

@@ -46,14 +46,15 @@ describe(formatHeight, () => {
         const errorSpy = vi
             .spyOn(console, "error")
             .mockImplementation(() => {});
+        const mathError = new Error("Math failed");
         vi.spyOn(Math, "floor").mockImplementationOnce(() => {
-            throw new Error("Math failed");
+            throw mathError;
         });
 
         expect(formatHeight(1.75)).toBe("1.75");
         expect(errorSpy).toHaveBeenCalledWith(
             "[formatHeight] Height formatting failed:",
-            expect.any(Error)
+            mathError
         );
     });
 });

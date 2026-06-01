@@ -58,14 +58,15 @@ describe(formatSpeedTooltip, () => {
         const errorSpy = vi
             .spyOn(console, "error")
             .mockImplementation(() => {});
+        const formatError = new Error("format failed");
         vi.spyOn(Number.prototype, "toFixed").mockImplementationOnce(() => {
-            throw new Error("format failed");
+            throw formatError;
         });
 
         expect(formatSpeedTooltip(5.5)).toBe(FALLBACK_SPEED_TOOLTIP);
         expect(errorSpy).toHaveBeenCalledWith(
             "[formatSpeedTooltip] Error formatting speed tooltip:",
-            expect.any(Error)
+            formatError
         );
     });
 });

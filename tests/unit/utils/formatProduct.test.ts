@@ -77,22 +77,24 @@ describe(formatProduct, () => {
 
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
+        const manufacturerLookupError = new Error("Manufacturer lookup failed");
         mockedGetManufacturerIdFromName.mockImplementationOnce(() => {
-            throw new Error("Manufacturer lookup failed");
+            throw manufacturerLookupError;
         });
         expect(formatProduct("garmin", 1735)).toBe("1735");
         expect(warnSpy).toHaveBeenCalledWith(
             expect.stringContaining("Error looking up manufacturer ID:"),
-            expect.any(Error)
+            manufacturerLookupError
         );
 
+        const productLookupError = new Error("Product lookup failed");
         mockedGetProductName.mockImplementationOnce(() => {
-            throw new Error("Product lookup failed");
+            throw productLookupError;
         });
         expect(formatProduct(1, 1735)).toBe("1735");
         expect(warnSpy).toHaveBeenCalledWith(
             expect.stringContaining("Error looking up product name:"),
-            expect.any(Error)
+            productLookupError
         );
     });
 });

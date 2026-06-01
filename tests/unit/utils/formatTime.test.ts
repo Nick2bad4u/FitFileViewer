@@ -98,14 +98,15 @@ describe(formatTime, () => {
         const errorSpy = vi
             .spyOn(console, "error")
             .mockImplementation(() => {});
+        const floorError = new Error("floor failed");
         vi.spyOn(Math, "floor").mockImplementationOnce(() => {
-            throw new Error("floor failed");
+            throw floorError;
         });
 
         expect(formatTime(3661)).toBe("0:00");
         expect(errorSpy).toHaveBeenCalledWith(
             "[formatTime] Time formatting failed:",
-            expect.any(Error)
+            floorError
         );
     });
 });

@@ -1,11 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+const { conversionError } = vi.hoisted(() => ({
+    conversionError: new Error("kmh-convert-fail"),
+}));
+
 // Mock the converters to simulate a conversion error
 vi.mock(
     import("../../../electron-app/utils/formatting/converters/convertMpsToKmh.js"),
     () => ({
         convertMpsToKmh: vi.fn<(mps: unknown) => number>(() => {
-            throw new Error("kmh-convert-fail");
+            throw conversionError;
         }),
     })
 );
@@ -41,7 +45,7 @@ describe("formatSpeedTooltip.js - conversion error branch", () => {
         expect(out).toBe("0.00 m/s (0.00 km/h, 0.00 mph)");
         expect(consoleErrorSpy).toHaveBeenCalledWith(
             "[formatSpeedTooltip] Error formatting speed tooltip:",
-            expect.any(Error)
+            conversionError
         );
     });
 });

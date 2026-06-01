@@ -147,9 +147,10 @@ describe("formatSensorName", () => {
     it("logs and falls back when formatter dependencies fail", async () => {
         expect.assertions(2);
 
+        const productError = new Error("Product error");
         const { formatSensorName } = await importFormatSensorNameWithMocks({
             formatProductImplementation: () => {
-                throw new Error("Product error");
+                throw productError;
             },
         });
         const errorSpy = vi
@@ -161,7 +162,7 @@ describe("formatSensorName", () => {
         );
         expect(errorSpy).toHaveBeenCalledWith(
             "[formatSensorName] Error formatting sensor name:",
-            expect.any(Error)
+            productError
         );
     });
 });
