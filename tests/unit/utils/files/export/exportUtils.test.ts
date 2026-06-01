@@ -294,7 +294,7 @@ describe("exportUtils", () => {
 
     describe("addCombinedCSVToZip", () => {
         it("should add combined CSV data to ZIP archive", async () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             const mockZip = createMockZip();
 
@@ -323,7 +323,7 @@ describe("exportUtils", () => {
         });
 
         it("should handle empty charts array", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const mockZip = createMockZip();
 
@@ -338,7 +338,7 @@ describe("exportUtils", () => {
         });
 
         it("should handle charts with no data", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const mockZip = createMockZip();
 
@@ -358,7 +358,7 @@ describe("exportUtils", () => {
         });
 
         it("should ignore invalid charts input without adding a file", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const consoleErrorSpy = vi
                 .spyOn(console, "error")
@@ -386,7 +386,7 @@ describe("exportUtils", () => {
 
     describe("authenticateWithGyazo", () => {
         it("should handle authentication failure when server fails to start", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             mockElectronAPI.startGyazoServer.mockResolvedValue({
                 success: false,
@@ -399,7 +399,7 @@ describe("exportUtils", () => {
         });
 
         it("should handle missing Gyazo credentials", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             // Mock localStorage to return null for credentials (but getGyazoConfig has defaults)
             // So we need to simulate a server start failure scenario instead
@@ -416,7 +416,7 @@ describe("exportUtils", () => {
 
     describe("downloadChartAsPNG", () => {
         it("should download chart as PNG file", async () => {
-            expect.hasAssertions();
+            expect.assertions(5);
 
             const chart = createMockChart();
             const mockLink = createMockLink();
@@ -437,7 +437,7 @@ describe("exportUtils", () => {
         });
 
         it("should handle chart without toBase64Image method", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const chart = { data: { datasets: [] } }; // Chart without toBase64Image
 
@@ -455,7 +455,7 @@ describe("exportUtils", () => {
 
     describe("exportChartDataAsCSV", () => {
         it("should export chart data as CSV using DOM download", async () => {
-            expect.hasAssertions();
+            expect.assertions(6);
 
             const chartData = [
                 { x: 1000, y: 25 },
@@ -484,7 +484,7 @@ describe("exportUtils", () => {
         });
 
         it("should handle empty data", async () => {
-            expect.hasAssertions();
+            expect.assertions(5);
 
             const chartData: Array<{ x: string; y: number }> = [];
             const fieldName = "Empty";
@@ -506,7 +506,7 @@ describe("exportUtils", () => {
         });
 
         it("should leave the link inactive when CSV export cannot create an object URL", async () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             const mockLink = createMockLink();
             mockCreateElement.mockReturnValue(mockLink);
@@ -526,7 +526,7 @@ describe("exportUtils", () => {
 
     describe("exportChartDataAsJSON", () => {
         it("should export chart data as JSON using DOM download", async () => {
-            expect.hasAssertions();
+            expect.assertions(6);
 
             const chartData = [
                 { x: 1000, y: 25 },
@@ -558,7 +558,7 @@ describe("exportUtils", () => {
         });
 
         it("should leave the link inactive when JSON export cannot create an object URL", async () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             const mockLink = createMockLink();
             mockCreateElement.mockReturnValue(mockLink);
@@ -578,7 +578,7 @@ describe("exportUtils", () => {
 
     describe("getGyazoConfig", () => {
         it("should return complete Gyazo configuration with stored credentials", () => {
-            expect.hasAssertions();
+            expect.assertions(5);
 
             mockLocalStorage.getItem.mockImplementation((key: string) => {
                 if (key === "gyazo_client_id") return "stored-client-id";
@@ -614,7 +614,7 @@ describe("exportUtils", () => {
         });
 
         it("should return default configuration when no credentials stored", () => {
-            expect.hasAssertions();
+            expect.assertions(10);
 
             mockLocalStorage.getItem.mockReturnValue(null);
 
@@ -649,7 +649,7 @@ describe("exportUtils", () => {
 
     describe("uploadToGyazo", () => {
         it("should upload base64 image to Gyazo", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             // NOTE: Must be valid base64 (no '-' characters) because production code uses atob.
             const base64Image = "data:image/png;base64,dGVzdA=="; // "test"
@@ -681,7 +681,7 @@ describe("exportUtils", () => {
         });
 
         it("should handle upload failure", async () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             // NOTE: Must be valid base64 (no '-' characters) because production code uses atob.
             const base64Image = "data:image/png;base64,dGVzdA=="; // "test"

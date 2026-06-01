@@ -117,7 +117,7 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
     });
 
     it("imgur account manager: save, setup guide, clear, close, ESC and click-outside", async () => {
-        expect.hasAssertions();
+        expect.assertions(14);
 
         const { exportUtils } = await loadExportUtils();
 
@@ -206,7 +206,7 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
     });
 
     it("imgur account manager: does not inject stored clientId as HTML", async () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         // Stored values are untrusted (localStorage can be manipulated).
         localStorage.setItem(
@@ -233,7 +233,7 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
     });
 
     it("imgur update status toggles UI", async () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         const { exportUtils } = await loadExportUtils();
         exportUtils.showImgurAccountManager();
@@ -268,7 +268,7 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
     });
 
     it("gyazo account manager: save creds, connect, disconnect, clear all, close, ESC and click-outside", async () => {
-        expect.hasAssertions();
+        expect.assertions(13);
 
         const { exportUtils } = await loadExportUtils();
         const notify = getShowNotificationMock();
@@ -361,7 +361,7 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
     });
 
     it("gyazo account manager: does not inject stored credentials as HTML", async () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         localStorage.setItem(
             "gyazo_client_id",
@@ -393,7 +393,7 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
     });
 
     it("createGyazoAuthModal: manual mode completes with code and can cancel/esc/click-outside", async () => {
-        expect.hasAssertions();
+        expect.assertions(7);
 
         const { exportUtils } = await loadExportUtils();
         const notify = getShowNotificationMock();
@@ -488,7 +488,7 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
     });
 
     it("createGyazoAuthModal: server mode stops server on cancel/esc/click-outside", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const { exportUtils } = await loadExportUtils();
         (globalThis as TestGlobal).electronAPI = {
