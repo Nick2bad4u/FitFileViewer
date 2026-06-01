@@ -349,8 +349,13 @@ describe("main-ui.js - UI Controller and State Management", () => {
         expect(mocks.setupExternalLinkHandlers).toHaveBeenCalledOnce();
         const [externalLinkOptions] =
             mocks.setupExternalLinkHandlers.mock.calls[0] ?? [];
-        expect(externalLinkOptions).toMatchObject({
+        expect({
+            cleanupExternalLinkHandlers:
+                externalLinkOptions?.cleanupExternalLinkHandlers,
+            setCleanupType: typeof externalLinkOptions?.setCleanup,
+        }).toStrictEqual({
             cleanupExternalLinkHandlers: null,
+            setCleanupType: "function",
         });
 
         expect(resourceManagerMock.addShutdownHook).toHaveBeenCalledOnce();
