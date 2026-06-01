@@ -720,11 +720,16 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 ["dep"]
             );
 
-            expect(descriptor).toMatchObject({
+            expect({
+                configurable: descriptor.configurable,
+                enumerable: descriptor.enumerable,
+                getType: typeof descriptor.get,
+            }).toStrictEqual({
                 configurable: true,
                 enumerable: true,
-                get: expect.any(Function),
+                getType: "function",
             });
+            expect("set" in descriptor).not.toBe(true);
 
             expect(descriptor.get()).toBe("reactive-value");
         });
@@ -898,10 +903,11 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             expect(getComputed("reactive")).toBe("default");
 
             // Test that the subscription was set up
-            expect(mockStateManager.subscribe).toHaveBeenCalledWith(
-                "globalData.test",
-                expect.any(Function)
-            );
+            expect(
+                mockStateManager.subscribe.mock.calls.map(
+                    ([path, callback]) => [path, typeof callback]
+                )
+            ).toContainEqual(["globalData.test", "function"]);
 
             mockStateManager.setState("globalData.test", "updated");
             mockStateManager.triggerSubscriptions("globalData.test");
@@ -927,14 +933,14 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
             expect(getComputed("multiDep")).toBe("undefined-undefined");
 
-            expect(mockStateManager.subscribe).toHaveBeenCalledWith(
-                "app.status",
-                expect.any(Function)
-            );
-            expect(mockStateManager.subscribe).toHaveBeenCalledWith(
-                "ui.mode",
-                expect.any(Function)
-            );
+            expect(
+                mockStateManager.subscribe.mock.calls.map(
+                    ([path, callback]) => [path, typeof callback]
+                )
+            ).toEqual([
+                ["app.status", "function"],
+                ["ui.mode", "function"],
+            ]);
 
             mockStateManager.setState("app.status", "ready");
             mockStateManager.setState("ui.mode", "edit");
