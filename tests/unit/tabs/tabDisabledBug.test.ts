@@ -137,6 +137,99 @@ function getButtonStates(buttons: HTMLButtonElement[]) {
     return buttons.map((button) => getButtonState(button));
 }
 
+const manuallyDisabledButtonStates = [
+    {
+        ariaDisabled: null,
+        disabled: true,
+        hasDisabledAttribute: true,
+        id: "tab-summary",
+        pointerEvents: "",
+    },
+    {
+        ariaDisabled: null,
+        disabled: true,
+        hasDisabledAttribute: true,
+        id: "tab-chart",
+        pointerEvents: "",
+    },
+    {
+        ariaDisabled: null,
+        disabled: true,
+        hasDisabledAttribute: true,
+        id: "tab-map",
+        pointerEvents: "",
+    },
+    {
+        ariaDisabled: null,
+        disabled: true,
+        hasDisabledAttribute: true,
+        id: "tab-table",
+        pointerEvents: "",
+    },
+] as const;
+
+const directlyEnabledButtonStates = [
+    {
+        ariaDisabled: null,
+        disabled: false,
+        hasDisabledAttribute: false,
+        id: "tab-summary",
+        pointerEvents: "",
+    },
+    {
+        ariaDisabled: null,
+        disabled: false,
+        hasDisabledAttribute: false,
+        id: "tab-chart",
+        pointerEvents: "",
+    },
+    {
+        ariaDisabled: null,
+        disabled: false,
+        hasDisabledAttribute: false,
+        id: "tab-map",
+        pointerEvents: "",
+    },
+    {
+        ariaDisabled: null,
+        disabled: false,
+        hasDisabledAttribute: false,
+        id: "tab-table",
+        pointerEvents: "",
+    },
+] as const;
+
+const runtimeEnabledButtonStates = [
+    {
+        ariaDisabled: "false",
+        disabled: false,
+        hasDisabledAttribute: false,
+        id: "tab-summary",
+        pointerEvents: "auto",
+    },
+    {
+        ariaDisabled: "false",
+        disabled: false,
+        hasDisabledAttribute: false,
+        id: "tab-chart",
+        pointerEvents: "auto",
+    },
+    {
+        ariaDisabled: "false",
+        disabled: false,
+        hasDisabledAttribute: false,
+        id: "tab-map",
+        pointerEvents: "auto",
+    },
+    {
+        ariaDisabled: "false",
+        disabled: false,
+        hasDisabledAttribute: false,
+        id: "tab-table",
+        pointerEvents: "auto",
+    },
+] as const;
+
 describe("tab disabled attribute bug investigation", () => {
     let mockButtons: HTMLButtonElement[] = [];
 
@@ -153,7 +246,7 @@ describe("tab disabled attribute bug investigation", () => {
     });
 
     it("should properly remove disabled attribute through direct DOM manipulation", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         // Manually add disabled attribute like it appears in the real app
         mockButtons.forEach((button) => {
@@ -161,28 +254,9 @@ describe("tab disabled attribute bug investigation", () => {
             button.disabled = true;
         });
 
-        expect(getButtonStates(mockButtons)).toMatchObject([
-            {
-                disabled: true,
-                hasDisabledAttribute: true,
-                id: "tab-summary",
-            },
-            {
-                disabled: true,
-                hasDisabledAttribute: true,
-                id: "tab-chart",
-            },
-            {
-                disabled: true,
-                hasDisabledAttribute: true,
-                id: "tab-map",
-            },
-            {
-                disabled: true,
-                hasDisabledAttribute: true,
-                id: "tab-table",
-            },
-        ]);
+        expect(getButtonStates(mockButtons)).toStrictEqual(
+            manuallyDisabledButtonStates
+        );
 
         // Try to remove the disabled attribute
         mockButtons.forEach((button) => {
@@ -190,28 +264,12 @@ describe("tab disabled attribute bug investigation", () => {
             button.removeAttribute("disabled");
         });
 
-        expect(getButtonStates(mockButtons)).toMatchObject([
-            {
-                disabled: false,
-                hasDisabledAttribute: false,
-                id: "tab-summary",
-            },
-            {
-                disabled: false,
-                hasDisabledAttribute: false,
-                id: "tab-chart",
-            },
-            {
-                disabled: false,
-                hasDisabledAttribute: false,
-                id: "tab-map",
-            },
-            {
-                disabled: false,
-                hasDisabledAttribute: false,
-                id: "tab-table",
-            },
-        ]);
+        expect(getButtonStates(mockButtons)).toStrictEqual(
+            directlyEnabledButtonStates
+        );
+        expect(mockButtons.map((button) => button.disabled)).not.toContain(
+            true
+        );
     });
 
     it("should detect if multiple systems are setting disabled attributes", () => {
@@ -287,28 +345,9 @@ describe("tab disabled attribute bug investigation", () => {
         });
 
         // Verify final state
-        expect(getButtonStates(mockButtons)).toMatchObject([
-            {
-                disabled: false,
-                hasDisabledAttribute: false,
-                id: "tab-summary",
-            },
-            {
-                disabled: false,
-                hasDisabledAttribute: false,
-                id: "tab-chart",
-            },
-            {
-                disabled: false,
-                hasDisabledAttribute: false,
-                id: "tab-map",
-            },
-            {
-                disabled: false,
-                hasDisabledAttribute: false,
-                id: "tab-table",
-            },
-        ]);
+        expect(getButtonStates(mockButtons)).toStrictEqual(
+            runtimeEnabledButtonStates
+        );
     });
 
     it("should test with the exact same DOM structure as real app", () => {
@@ -380,35 +419,8 @@ describe("tab disabled attribute bug investigation", () => {
         });
 
         // Verify final state
-        expect(getButtonStates(mockButtons)).toMatchObject([
-            {
-                ariaDisabled: "false",
-                disabled: false,
-                hasDisabledAttribute: false,
-                id: "tab-summary",
-                pointerEvents: "auto",
-            },
-            {
-                ariaDisabled: "false",
-                disabled: false,
-                hasDisabledAttribute: false,
-                id: "tab-chart",
-                pointerEvents: "auto",
-            },
-            {
-                ariaDisabled: "false",
-                disabled: false,
-                hasDisabledAttribute: false,
-                id: "tab-map",
-                pointerEvents: "auto",
-            },
-            {
-                ariaDisabled: "false",
-                disabled: false,
-                hasDisabledAttribute: false,
-                id: "tab-table",
-                pointerEvents: "auto",
-            },
-        ]);
+        expect(getButtonStates(mockButtons)).toStrictEqual(
+            runtimeEnabledButtonStates
+        );
     });
 });

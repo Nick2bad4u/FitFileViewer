@@ -37,6 +37,72 @@ function getTabButtonSnapshots() {
     );
 }
 
+const disabledTabButtonSnapshots = [
+    {
+        ariaDisabled: "true",
+        classes: [
+            "tab-button",
+            "active",
+            "tab-disabled",
+        ],
+        disabled: true,
+        hasDisabledAttribute: true,
+        id: "tab-summary",
+    },
+    {
+        ariaDisabled: "true",
+        classes: ["tab-button", "tab-disabled"],
+        disabled: true,
+        hasDisabledAttribute: true,
+        id: "tab-chart",
+    },
+    {
+        ariaDisabled: "true",
+        classes: ["tab-button", "tab-disabled"],
+        disabled: true,
+        hasDisabledAttribute: true,
+        id: "tab-map",
+    },
+    {
+        ariaDisabled: "true",
+        classes: ["tab-button", "tab-disabled"],
+        disabled: true,
+        hasDisabledAttribute: true,
+        id: "tab-table",
+    },
+] as const;
+
+const enabledTabButtonSnapshots = [
+    {
+        ariaDisabled: "false",
+        classes: ["tab-button", "active"],
+        disabled: false,
+        hasDisabledAttribute: false,
+        id: "tab-summary",
+    },
+    {
+        ariaDisabled: "false",
+        classes: ["tab-button"],
+        disabled: false,
+        hasDisabledAttribute: false,
+        id: "tab-chart",
+    },
+    {
+        ariaDisabled: "false",
+        classes: ["tab-button"],
+        disabled: false,
+        hasDisabledAttribute: false,
+        id: "tab-map",
+    },
+    {
+        ariaDisabled: "false",
+        classes: ["tab-button"],
+        disabled: false,
+        hasDisabledAttribute: false,
+        id: "tab-table",
+    },
+] as const;
+
 describe("enable tab buttons", () => {
     beforeEach(() => {
         createMockTabButtons();
@@ -53,45 +119,9 @@ describe("enable tab buttons", () => {
 
             setTabButtonsEnabled(false);
 
-            expect(getTabButtonSnapshots()).toMatchObject([
-                {
-                    ariaDisabled: "true",
-                    classes: expect.arrayContaining([
-                        "active",
-                        "tab-button",
-                        "tab-disabled",
-                    ]),
-                    disabled: true,
-                    id: "tab-summary",
-                },
-                {
-                    ariaDisabled: "true",
-                    classes: expect.arrayContaining([
-                        "tab-button",
-                        "tab-disabled",
-                    ]),
-                    disabled: true,
-                    id: "tab-chart",
-                },
-                {
-                    ariaDisabled: "true",
-                    classes: expect.arrayContaining([
-                        "tab-button",
-                        "tab-disabled",
-                    ]),
-                    disabled: true,
-                    id: "tab-map",
-                },
-                {
-                    ariaDisabled: "true",
-                    classes: expect.arrayContaining([
-                        "tab-button",
-                        "tab-disabled",
-                    ]),
-                    disabled: true,
-                    id: "tab-table",
-                },
-            ]);
+            expect(getTabButtonSnapshots()).toStrictEqual(
+                disabledTabButtonSnapshots
+            );
         });
 
         it("should enable all tab buttons when called with true", () => {
@@ -103,32 +133,9 @@ describe("enable tab buttons", () => {
             // Then enable them
             setTabButtonsEnabled(true);
 
-            expect(getTabButtonSnapshots()).toMatchObject([
-                {
-                    ariaDisabled: "false",
-                    classes: ["tab-button", "active"],
-                    disabled: false,
-                    id: "tab-summary",
-                },
-                {
-                    ariaDisabled: "false",
-                    classes: ["tab-button"],
-                    disabled: false,
-                    id: "tab-chart",
-                },
-                {
-                    ariaDisabled: "false",
-                    classes: ["tab-button"],
-                    disabled: false,
-                    id: "tab-map",
-                },
-                {
-                    ariaDisabled: "false",
-                    classes: ["tab-button"],
-                    disabled: false,
-                    id: "tab-table",
-                },
-            ]);
+            expect(getTabButtonSnapshots()).toStrictEqual(
+                enabledTabButtonSnapshots
+            );
         });
 
         it("should handle empty DOM gracefully", () => {
@@ -164,32 +171,9 @@ describe("enable tab buttons", () => {
             // Enable all
             setTabButtonsEnabled(true);
 
-            expect(getTabButtonSnapshots()).toMatchObject([
-                {
-                    ariaDisabled: "false",
-                    classes: ["tab-button", "active"],
-                    disabled: false,
-                    id: "tab-summary",
-                },
-                {
-                    ariaDisabled: "false",
-                    classes: ["tab-button"],
-                    disabled: false,
-                    id: "tab-chart",
-                },
-                {
-                    ariaDisabled: "false",
-                    classes: ["tab-button"],
-                    disabled: false,
-                    id: "tab-map",
-                },
-                {
-                    ariaDisabled: "false",
-                    classes: ["tab-button"],
-                    disabled: false,
-                    id: "tab-table",
-                },
-            ]);
+            expect(getTabButtonSnapshots()).toStrictEqual(
+                enabledTabButtonSnapshots
+            );
         });
 
         it("should preserve other classes when enabling/disabling", () => {
@@ -227,28 +211,9 @@ describe("enable tab buttons", () => {
             setTabButtonsEnabled(false);
             setTabButtonsEnabled(true);
 
-            expect(getTabButtonSnapshots()).toMatchObject([
-                {
-                    ariaDisabled: "false",
-                    disabled: false,
-                    id: "tab-summary",
-                },
-                {
-                    ariaDisabled: "false",
-                    disabled: false,
-                    id: "tab-chart",
-                },
-                {
-                    ariaDisabled: "false",
-                    disabled: false,
-                    id: "tab-map",
-                },
-                {
-                    ariaDisabled: "false",
-                    disabled: false,
-                    id: "tab-table",
-                },
-            ]);
+            expect(getTabButtonSnapshots()).toStrictEqual(
+                enabledTabButtonSnapshots
+            );
 
             // Should have logged the operations - check for the actual log messages
             expect(consoleSpy).toHaveBeenCalledWith(
@@ -274,32 +239,9 @@ describe("enable tab buttons", () => {
 
             setTabButtonsEnabled(false);
 
-            expect(getTabButtonSnapshots()).toMatchObject([
-                {
-                    classes: expect.arrayContaining(["tab-disabled"]),
-                    disabled: true,
-                    hasDisabledAttribute: true,
-                    id: "tab-summary",
-                },
-                {
-                    classes: expect.arrayContaining(["tab-disabled"]),
-                    disabled: true,
-                    hasDisabledAttribute: true,
-                    id: "tab-chart",
-                },
-                {
-                    classes: expect.arrayContaining(["tab-disabled"]),
-                    disabled: true,
-                    hasDisabledAttribute: true,
-                    id: "tab-map",
-                },
-                {
-                    classes: expect.arrayContaining(["tab-disabled"]),
-                    disabled: true,
-                    hasDisabledAttribute: true,
-                    id: "tab-table",
-                },
-            ]);
+            expect(getTabButtonSnapshots()).toStrictEqual(
+                disabledTabButtonSnapshots
+            );
         });
 
         it("should handle rapid enable/disable cycles", () => {
@@ -310,12 +252,9 @@ describe("enable tab buttons", () => {
             }
 
             // Final state should be disabled (i=9, 9%2=1, so setTabButtonsEnabled(false) was last call)
-            expect(getTabButtonSnapshots()).toMatchObject([
-                { disabled: true, id: "tab-summary" },
-                { disabled: true, id: "tab-chart" },
-                { disabled: true, id: "tab-map" },
-                { disabled: true, id: "tab-table" },
-            ]);
+            expect(getTabButtonSnapshots()).toStrictEqual(
+                disabledTabButtonSnapshots
+            );
             expect(
                 getTabButtonSnapshots().flatMap((snapshot) => snapshot.classes)
             ).not.toContain("active-disabled");
