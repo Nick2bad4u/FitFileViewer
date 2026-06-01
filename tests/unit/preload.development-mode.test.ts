@@ -77,7 +77,7 @@ describe("preload.js - Development mode coverage", () => {
     });
 
     it("exposes api and dev tools, logs dev messages, and handles beforeExit in development", async () => {
-        expect.assertions(18);
+        expect.assertions(13);
 
         const ipcRenderer = {
             invoke: vi
@@ -182,41 +182,28 @@ describe("preload.js - Development mode coverage", () => {
 
         // logAPIState should log current state
         devTools.logAPIState();
-        expect(logs.map((args) => String(args[0]))).toContainEqual(
-            expect.stringContaining("Current API State")
-        );
-
-        // Should have logged successful exposure and API structure messages
-        expect(logs.map((args) => String(args[0]))).toContainEqual(
-            expect.stringContaining(
-                "Successfully exposed electronAPI to main world"
-            )
-        );
-        expect(logs.map((args) => String(args[0]))).toContainEqual(
-            expect.stringContaining("API Structure:")
-        );
-        // Development tools exposed and final init log
-        expect(logs.map((args) => String(args[0]))).toContainEqual(
-            expect.stringContaining("Development tools exposed")
-        );
-        expect(logs.map((args) => String(args[0]))).toContainEqual(
-            expect.stringContaining("Preload script initialized successfully")
-        );
 
         // Simulate beforeExit to hit cleanup log
         const beforeExit = onceCalls.find((c) => c.event === "beforeExit");
-        expect(processOnceSpy.mock.calls).toContainEqual([
-            "beforeExit",
-            beforeExit?.cb,
+        expect(processOnceSpy.mock.calls).toStrictEqual([
+            ["beforeExit", beforeExit?.cb],
         ]);
         expect(beforeExit).toEqual({
             cb: beforeExit?.cb,
             event: "beforeExit",
         });
         beforeExit!.cb();
-        expect(logs.map((args) => String(args[0]))).toContainEqual(
-            expect.stringContaining("Process exiting, performing cleanup")
-        );
+        expect(logs.map((args) => String(args[0]))).toStrictEqual([
+            "[preload.js] API Validation:",
+            "[preload.js] Successfully exposed electronAPI to main world",
+            "[preload.js] API Structure:",
+            "[preload.js] Development tools exposed",
+            "[preload.js] Preload script initialized successfully",
+            "[preload.js] API Validation:",
+            "[preload.js] IPC test successful, app version:",
+            "[preload.js] Current API State:",
+            "[preload.js] Process exiting, performing cleanup...",
+        ]);
 
         // Ensure no unexpected errors were logged
         expect(errors).toStrictEqual([]);

@@ -178,9 +178,8 @@ describe("preload.js - Script Evaluation Test", () => {
         const beforeExit = onceCalls.find(
             (call) => call.event === "beforeExit"
         );
-        expect(processOnceSpy.mock.calls).toContainEqual([
-            "beforeExit",
-            beforeExit?.cb,
+        expect(processOnceSpy.mock.calls).toStrictEqual([
+            ["beforeExit", beforeExit?.cb],
         ]);
         expect(beforeExit).toEqual({
             cb: beforeExit?.cb,
@@ -190,7 +189,7 @@ describe("preload.js - Script Evaluation Test", () => {
         beforeExit!.cb();
 
         expect(consoleLogSpy).toHaveBeenCalledWith(
-            expect.stringContaining("Process exiting, performing cleanup...")
+            "[preload.js] Process exiting, performing cleanup..."
         );
     });
 
