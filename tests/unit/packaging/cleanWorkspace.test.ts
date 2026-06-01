@@ -229,4 +229,21 @@ describe("clean-workspace script", () => {
             fs.readFileSync(path.join(neighboringRoot, neighboringFile), "utf8")
         ).toBe("generated");
     });
+
+    it("validates all cleanup targets before removing any generated path", async () => {
+        expect.assertions(3);
+
+        const { cleanWorkspace } = await importCleanWorkspace();
+        const temporaryRoot = makeTemporaryRoot();
+        const generatedFile = ".cache/cache-entry.txt";
+        writePlaceholder(temporaryRoot, generatedFile);
+
+        expect(() => cleanWorkspace(temporaryRoot, [".cache", ".."])).toThrow(
+            `Refusing to remove outside repository: ${path.join(temporaryRoot, "..")}`
+        );
+        expect(
+            fs.readFileSync(path.join(temporaryRoot, generatedFile), "utf8")
+        ).toBe("generated");
+        expect(fs.existsSync(path.join(temporaryRoot, ".cache"))).toBe(true);
+    });
 });

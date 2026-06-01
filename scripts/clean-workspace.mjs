@@ -70,11 +70,17 @@ export function cleanWorkspace(
     targets = cleanupTargets
 ) {
     const removedTargets = [];
-
-    for (const relativeTarget of targets) {
+    const targetPaths = targets.map((relativeTarget) => {
         const targetPath = path.join(root, relativeTarget);
         assertInsideRepository(root, targetPath);
 
+        return {
+            relativeTarget,
+            targetPath,
+        };
+    });
+
+    for (const { relativeTarget, targetPath } of targetPaths) {
         if (fs.existsSync(targetPath)) {
             fs.rmSync(targetPath, { force: true, recursive: true });
             removedTargets.push(relativeTarget);
