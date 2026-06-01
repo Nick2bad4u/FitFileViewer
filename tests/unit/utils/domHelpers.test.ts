@@ -210,17 +210,27 @@ describe("dom helpers", () => {
 
         const bodyBefore = document.body.innerHTML;
 
-        expect(() => {
-            clearElement(null);
-            focus(null);
-            removeClass(null, "missing");
-            setChecked(null, true);
-            setData(null, "key", "value");
-            setDisabled(null, true);
-            setStyle(null, "color", "red");
-            setText(null, "value");
-            setValue(null, "value");
-        }).not.toThrow();
+        expect([
+            clearElement(null),
+            focus(null),
+            removeClass(null, "missing"),
+            setChecked(null, true),
+            setData(null, "key", "value"),
+            setDisabled(null, true),
+            setStyle(null, "color", "red"),
+            setText(null, "value"),
+            setValue(null, "value"),
+        ]).toStrictEqual([
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+        ]);
         expect(document.body.innerHTML).toBe(bodyBefore);
     });
 
@@ -259,7 +269,7 @@ describe("dom helpers", () => {
 
         const handler = vi.fn<(event: Event) => void>();
 
-        expect(() => on(null, "click", handler)).not.toThrow();
+        expect(on(null, "click", handler)).toBeUndefined();
         expect(handler).not.toHaveBeenCalled();
     });
 

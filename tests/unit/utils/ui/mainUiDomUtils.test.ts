@@ -55,13 +55,13 @@ describe("mainUiDomUtils", () => {
             }
         }
 
-        expect(() =>
+        expect(
             addEventListenerWithCleanup(
                 new FailingTarget(),
                 "drop",
                 vi.fn<(event: Event) => void>()
             )
-        ).not.toThrow();
+        ).toBeUndefined();
         expect(warnSpy).toHaveBeenCalledWith(
             "[main-ui] Failed to add event listener for drop",
             failure
