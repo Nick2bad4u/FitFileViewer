@@ -62,6 +62,10 @@ function expectHTMLElement<T extends HTMLElement>(
     return element;
 }
 
+function getClassList(element: Element): string[] {
+    return [...element.classList];
+}
+
 describe("keyboardShortcutsModal", () => {
     afterEach(() => {
         document.body.innerHTML = "";
@@ -99,7 +103,7 @@ describe("keyboardShortcutsModal", () => {
         );
         expect(keyboardShortcutsModal.id).toBe("keyboard-shortcuts-modal");
         expect(keyboardShortcutsModal.style.display).toBe("flex");
-        expect(keyboardShortcutsModal.classList.contains("show")).toBe(true);
+        expect(getClassList(keyboardShortcutsModal)).toContain("show");
 
         const closeBtn =
             keyboardShortcutsModal.querySelector<HTMLButtonElement>(
@@ -144,7 +148,7 @@ describe("keyboardShortcutsModal", () => {
         expectHTMLElement(closeBtn, "modal close button");
 
         closeKeyboardShortcutsModal();
-        expect(keyboardShortcutsModal.classList.contains("show")).toBe(false);
+        expect(getClassList(keyboardShortcutsModal)).not.toContain("show");
 
         vi.advanceTimersByTime(350);
 
@@ -191,7 +195,7 @@ describe("keyboardShortcutsModal", () => {
     });
 
     it("traps focus within the modal", async () => {
-        expect.assertions(8);
+        expect.assertions(6);
 
         const { showKeyboardShortcutsModal } = await loadModal();
         vi.useFakeTimers();
@@ -220,8 +224,13 @@ describe("keyboardShortcutsModal", () => {
             bubbles: true,
         });
         keyboardShortcutsModal.dispatchEvent(forwardTab);
-        expect(document.activeElement).toBe(first);
-        expect(forwardTab.defaultPrevented).toBe(true);
+        expect({
+            activeElement: document.activeElement,
+            defaultPrevented: forwardTab.defaultPrevented,
+        }).toStrictEqual({
+            activeElement: first,
+            defaultPrevented: true,
+        });
 
         first.focus();
         const reverseTab = new KeyboardEvent("keydown", {
@@ -230,8 +239,13 @@ describe("keyboardShortcutsModal", () => {
             bubbles: true,
         });
         keyboardShortcutsModal.dispatchEvent(reverseTab);
-        expect(document.activeElement).toBe(last);
-        expect(reverseTab.defaultPrevented).toBe(true);
+        expect({
+            activeElement: document.activeElement,
+            defaultPrevented: reverseTab.defaultPrevented,
+        }).toStrictEqual({
+            activeElement: last,
+            defaultPrevented: true,
+        });
     });
 
     it("opens external links via electron API", async () => {
@@ -266,6 +280,6 @@ describe("keyboardShortcutsModal", () => {
         expect(openExternal).toHaveBeenCalledWith(
             expect.stringMatching(/^https:\/\/example\.com\/?$/)
         );
-        expect(clickEvent.defaultPrevented).toBe(true);
+        expect(clickEvent).toMatchObject({ defaultPrevented: true });
     });
 });
