@@ -59,29 +59,55 @@ describe("run-playwright script", () => {
         const status = runPlaywright([], commandRunner, logger);
         expect({
             commandCalls: commandRunner.mock.calls.length,
-            loggerCalls: logger.mock.calls.length,
+            loggerMessages: logger.mock.calls.map(([message]) => message),
             status,
         }).toStrictEqual({
             commandCalls: 2,
-            loggerCalls: 2,
+            loggerMessages: [
+                "[run-playwright] build runtime",
+                "[run-playwright] run playwright",
+            ],
             status: 0,
         });
 
-        const [
-            command,
-            ,
-            options,
-        ] = commandRunner.mock.calls[0] ?? [];
-
-        expect({
-            command,
-            ...options,
-            cwd: path.resolve(options?.cwd ?? ""),
-        }).toStrictEqual({
-            command: process.execPath,
-            cwd: path.resolve(process.cwd()),
-            stdio: "inherit",
-        });
+        expect(
+            commandRunner.mock.calls.map(
+                ([
+                    command,
+                    args,
+                    options,
+                ]) => ({
+                    args,
+                    command,
+                    options: {
+                        ...options,
+                        cwd: path.resolve(options.cwd),
+                    },
+                })
+            )
+        ).toStrictEqual([
+            {
+                args: [buildRuntimeScriptPath],
+                command: process.execPath,
+                options: {
+                    cwd: path.resolve(process.cwd()),
+                    stdio: "inherit",
+                },
+            },
+            {
+                args: [
+                    playwrightCliPath,
+                    "test",
+                    "--config",
+                    rootPlaywrightConfigPath,
+                ],
+                command: process.execPath,
+                options: {
+                    cwd: path.resolve(process.cwd()),
+                    stdio: "inherit",
+                },
+            },
+        ]);
     });
 
     it("stops after the first failing Playwright step", () => {
