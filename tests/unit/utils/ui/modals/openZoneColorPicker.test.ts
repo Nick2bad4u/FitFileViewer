@@ -277,7 +277,7 @@ describe("openZoneColorPicker", () => {
             0
         );
         expect(removeZoneColorMock).toHaveBeenCalledWith("hr", 0);
-        expect(checkbox.checked).toBe(true);
+        expect(checkbox).toHaveProperty("checked", true);
         expect(resetAllSettingsMock).toHaveBeenCalledWith();
         expect(debouncedRenderMock).toHaveBeenCalledWith("Zone colors reset");
         expect(globalNotificationMock).toHaveBeenCalledWith(
@@ -303,7 +303,7 @@ describe("openZoneColorPicker", () => {
             "Heart Rate zone colors updated",
             "success"
         );
-        expect(document.body.contains(renderedOverlay)).toBe(false);
+        expect(renderedOverlay).toHaveProperty("isConnected", false);
     });
 });
 
