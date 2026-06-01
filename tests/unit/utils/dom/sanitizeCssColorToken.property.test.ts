@@ -11,7 +11,7 @@ const SAFE_COLOR_TOKEN_PATTERN =
 
 describe("sanitizeCssColorToken (property)", () => {
     it("never returns an unsafe token", () => {
-        expect.hasAssertions();
+        expect.assertions(3502);
 
         expect(
             sanitizeCssColorToken('url("javascript:alert(1)")', FALLBACK_COLOR)
