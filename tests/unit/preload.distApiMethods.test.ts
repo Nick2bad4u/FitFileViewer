@@ -413,7 +413,9 @@ describe("preload.js dist API methods", () => {
             expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
 
-            expect(() => exposedAPI.sendThemeChanged("light")).not.toThrow();
+            const result = exposedAPI.sendThemeChanged("light");
+
+            expect(result).toBeUndefined();
             expect(mockIpcRenderer.send).toHaveBeenCalledWith(
                 "theme-changed",
                 "light"
@@ -639,7 +641,9 @@ describe("preload.js dist API methods", () => {
             expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
 
-            expect(() => exposedAPI.checkForUpdates()).not.toThrow();
+            const result = exposedAPI.checkForUpdates();
+
+            expect(result).toBeUndefined();
             expect(mockIpcRenderer.send).toHaveBeenCalledWith(
                 "menu-check-for-updates"
             );
@@ -649,7 +653,9 @@ describe("preload.js dist API methods", () => {
             expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
 
-            expect(() => exposedAPI.installUpdate()).not.toThrow();
+            const result = exposedAPI.installUpdate();
+
+            expect(result).toBeUndefined();
             expect(mockIpcRenderer.send).toHaveBeenCalledWith("install-update");
         });
 
@@ -657,7 +663,9 @@ describe("preload.js dist API methods", () => {
             expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
 
-            expect(() => exposedAPI.setFullScreen(true)).not.toThrow();
+            const result = exposedAPI.setFullScreen(true);
+
+            expect(result).toBeUndefined();
             expect(mockIpcRenderer.send).toHaveBeenCalledWith(
                 "set-fullscreen",
                 true
@@ -669,8 +677,9 @@ describe("preload.js dist API methods", () => {
             const { exposedAPI, mockConsole } = createPreloadEnvironment();
             const callback = vi.fn<IpcListener>();
 
-            expect(() => exposedAPI.onUpdateEvent(123, callback)).not.toThrow();
+            const unsubscribe = exposedAPI.onUpdateEvent(123, callback);
 
+            expect(unsubscribe).toBeUndefined();
             expect(mockConsole.error).toHaveBeenCalledWith(
                 "[preload.js] onUpdateEvent: eventName must be a string"
             );
@@ -697,9 +706,9 @@ describe("preload.js dist API methods", () => {
             expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
 
-            expect(() =>
-                exposedAPI.send("custom-channel", "arg1", "arg2")
-            ).not.toThrow();
+            const result = exposedAPI.send("custom-channel", "arg1", "arg2");
+
+            expect(result).toBeUndefined();
             expect(mockIpcRenderer.send).toHaveBeenCalledWith(
                 "custom-channel",
                 "arg1",
@@ -724,8 +733,9 @@ describe("preload.js dist API methods", () => {
             const { exposedAPI, mockConsole } = createPreloadEnvironment();
 
             // Try with invalid channel (should trigger validateString error)
-            expect(() => exposedAPI.send(123, "data")).not.toThrow();
+            const result = exposedAPI.send(123, "data");
 
+            expect(result).toBeUndefined();
             expect(mockConsole.error).toHaveBeenCalledWith(
                 "[preload.js] send: channel must be a string"
             );
@@ -908,9 +918,13 @@ describe("preload.js dist API methods", () => {
                 .mockImplementation(() => {});
             const mockConsole = { log: consoleSpy, error: consoleSpy };
 
-            expect(() =>
-                runPreloadScript(mockRequire, mockProcess, mockConsole)
-            ).not.toThrow();
+            const result = runPreloadScript(
+                mockRequire,
+                mockProcess,
+                mockConsole
+            );
+
+            expect(result).toBeUndefined();
             expect(mockProcess.once).toHaveBeenCalledWith(
                 "beforeExit",
                 expect.any(Function)
@@ -934,7 +948,9 @@ describe("preload.js dist API methods", () => {
                 .mockImplementation(() => {});
             const { exposedAPI } = createPreloadEnvironment();
 
-            expect(() => exposedAPI.sendThemeChanged("dark")).not.toThrow();
+            const result = exposedAPI.sendThemeChanged("dark");
+
+            expect(result).toBeUndefined();
             expect(mockIpcRenderer.send).toHaveBeenCalledWith(
                 "theme-changed",
                 "dark"
