@@ -77,7 +77,7 @@ describe("preload.js - Development mode coverage", () => {
     });
 
     it("exposes api and dev tools, logs dev messages, and handles beforeExit in development", async () => {
-        expect.assertions(17);
+        expect.assertions(18);
 
         const ipcRenderer = {
             invoke: vi
@@ -129,24 +129,44 @@ describe("preload.js - Development mode coverage", () => {
 
         // electronAPI should be exposed
         const api = getExposedElectronAPI();
-        expect(api).toEqual(
-            expect.objectContaining({
-                getAppVersion: expect.any(Function),
-                injectMenu: expect.any(Function),
-                invoke: expect.any(Function),
-                validateAPI: expect.any(Function),
-            })
-        );
+        expect(
+            Object.fromEntries(
+                [
+                    "getAppVersion",
+                    "injectMenu",
+                    "invoke",
+                    "validateAPI",
+                ].map((methodName) => [
+                    methodName,
+                    Object.hasOwn(api, methodName),
+                ])
+            )
+        ).toEqual({
+            getAppVersion: true,
+            injectMenu: true,
+            invoke: true,
+            validateAPI: true,
+        });
+        expect(api.validateAPI()).toBe(true);
 
         // Development tools should be exposed in development
         const devTools = getExposedDevTools();
-        expect(devTools).toEqual(
-            expect.objectContaining({
-                getPreloadInfo: expect.any(Function),
-                logAPIState: expect.any(Function),
-                testIPC: expect.any(Function),
-            })
-        );
+        expect(
+            Object.fromEntries(
+                [
+                    "getPreloadInfo",
+                    "logAPIState",
+                    "testIPC",
+                ].map((methodName) => [
+                    methodName,
+                    Object.hasOwn(devTools, methodName),
+                ])
+            )
+        ).toEqual({
+            getPreloadInfo: true,
+            logAPIState: true,
+            testIPC: true,
+        });
 
         // getPreloadInfo returns structure with constants and exposed API methods
         const info = devTools.getPreloadInfo();
@@ -185,12 +205,12 @@ describe("preload.js - Development mode coverage", () => {
 
         // Simulate beforeExit to hit cleanup log
         const beforeExit = onceCalls.find((c) => c.event === "beforeExit");
-        expect(processOnceSpy).toHaveBeenCalledWith(
+        expect(processOnceSpy.mock.calls).toContainEqual([
             "beforeExit",
-            expect.any(Function)
-        );
+            beforeExit?.cb,
+        ]);
         expect(beforeExit).toEqual({
-            cb: expect.any(Function),
+            cb: beforeExit?.cb,
             event: "beforeExit",
         });
         beforeExit!.cb();
