@@ -222,11 +222,21 @@ describe("gyazoOAuthServer", () => {
             port: 3000,
             success: true,
         });
-        expect(mockServer.listen).toHaveBeenCalledWith(
+        const [
+            listenPort,
+            listenHost,
+            listenCallback,
+        ] = mockServer.listen.mock.calls[0] ?? [];
+        expect(listenCallback).toBeTypeOf("function");
+        expect(mockServer.listen).toHaveBeenCalledExactlyOnceWith(
             3000,
             "localhost",
-            expect.any(Function)
+            listenCallback
         );
+        expect({ listenHost, listenPort }).toStrictEqual({
+            listenHost: "localhost",
+            listenPort: 3000,
+        });
         expect(requestHandler).toBeTypeOf("function");
 
         const res = makeRes();
