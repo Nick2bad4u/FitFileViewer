@@ -21,6 +21,7 @@ import {
     rootFlatpakBundlePath,
     rootFlatpakRepoPath,
     rootFlatpakZipPath,
+    rootGitignorePath,
     rootPackageLockPath,
     rootReleaseDistPath,
 } from "../../../scripts/lib/workspaces.mjs";
@@ -129,7 +130,7 @@ describe("clean-workspace script", () => {
         expect.assertions(1);
 
         const gitignore = fs.readFileSync(
-            path.join(process.cwd(), ".gitignore"),
+            path.join(process.cwd(), rootGitignorePath),
             "utf8"
         );
 

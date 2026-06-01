@@ -8,6 +8,7 @@ import {
     rootCodecovConfigPath,
     rootElectronBuilderConfigPath,
     rootEslintConfigPath,
+    rootGitignorePath,
     rootPrettierConfigPath,
     rootStylelintConfigPath,
     rootVitestConfigPath,
@@ -122,7 +123,7 @@ describe("source entrypoint documentation", () => {
 
         const layoutGuide = readWorkspaceFile("docs/APPLICATION_LAYOUT.md");
         const documentedRootToolingFiles = [
-            ".gitignore",
+            rootGitignorePath,
             rootCliffConfigPath,
             rootCodecovConfigPath,
             rootElectronBuilderConfigPath,

@@ -12,11 +12,13 @@ import {
     rootElectronBuilderConfigPath,
     rootElectronAppTsconfigPath,
     rootEslintConfigPath,
+    rootGitignorePath,
     rootNcuConfigPath,
     rootPackageLockPath,
     rootPackageRepositoryPath,
     rootPlaywrightConfigPath,
     rootPrettierConfigPath,
+    rootPrettierIgnorePath,
     rootRuntimeTsconfigPath,
     rootStylelintConfigPath,
     rootViteRendererConfigPath,
@@ -420,8 +422,8 @@ describe("workspace package boundaries", () => {
         expect.assertions(2);
 
         const rootToolingIgnoreFiles = [
-            ".gitignore",
-            ".prettierignore",
+            rootGitignorePath,
+            rootPrettierIgnorePath,
             rootElectronAppTsconfigPath,
             rootStylelintConfigPath,
         ];
@@ -450,11 +452,11 @@ describe("workspace package boundaries", () => {
         expect.assertions(3);
 
         const prettierIgnore = readFileSync(
-            path.join(process.cwd(), ".prettierignore"),
+            path.join(process.cwd(), rootPrettierIgnorePath),
             "utf8"
         );
         const gitignore = readFileSync(
-            path.join(process.cwd(), ".gitignore"),
+            path.join(process.cwd(), rootGitignorePath),
             "utf8"
         );
         const appTypesIgnorePath = `${appTypesPath.replaceAll(path.sep, "/")}/`;

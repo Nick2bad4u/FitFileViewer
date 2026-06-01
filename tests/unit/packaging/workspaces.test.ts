@@ -83,6 +83,7 @@ type WorkspacesModule = {
     rootFlatpakManifestPath: string;
     rootFlatpakRepoPath: string;
     rootFlatpakZipPath: string;
+    rootGitignorePath: string;
     rootPackageJsonPath: string;
     rootPackageLockPath: string;
     rootPackagePath: string;
@@ -94,6 +95,7 @@ type WorkspacesModule = {
     rootMermaidConfigPath: string;
     rootNcuConfigPath: string;
     rootPrettierConfigPath: string;
+    rootPrettierIgnorePath: string;
     rootPreCommitConfigPath: string;
     rootRemarkConfigPath: string;
     rootReleaseDistPath: string;
@@ -293,12 +295,23 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes root config paths", async () => {
-        expect.assertions(19);
+        expect.assertions(17);
 
         const workspaces = await importWorkspaces();
 
-        expect(workspaces.rootPackageJsonPath).toBe("package.json");
-        expect(workspaces.rootPackageLockPath).toBe("package-lock.json");
+        expect({
+            gitignore: workspaces.rootGitignorePath,
+            packageJson: workspaces.rootPackageJsonPath,
+            packageLock: workspaces.rootPackageLockPath,
+            prettier: workspaces.rootPrettierConfigPath,
+            prettierIgnore: workspaces.rootPrettierIgnorePath,
+        }).toStrictEqual({
+            gitignore: ".gitignore",
+            packageJson: "package.json",
+            packageLock: "package-lock.json",
+            prettier: "prettier.config.mjs",
+            prettierIgnore: ".prettierignore",
+        });
         expect(workspaces.rootElectronBuilderConfigPath).toBe(
             "electron-builder.config.cjs"
         );
@@ -318,7 +331,6 @@ describe("workspace path helpers", () => {
         expect(workspaces.rootPlaywrightConfigPath).toBe(
             "playwright.config.ts"
         );
-        expect(workspaces.rootPrettierConfigPath).toBe("prettier.config.mjs");
         expect(workspaces.rootRuntimeTsconfigPath).toBe(
             "tsconfig.runtime.json"
         );
