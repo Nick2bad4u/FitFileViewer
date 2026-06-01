@@ -3,6 +3,8 @@ import fs from "node:fs";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
+import { repositoryRoot as defaultRepositoryRoot } from "./lib/workspaces.mjs";
+
 if (
     process.argv[1] &&
     import.meta.url === pathToFileURL(process.argv[1]).href
@@ -94,7 +96,7 @@ export function parseArgs(args) {
         githubOutput: false,
         help: false,
         repository: undefined,
-        repositoryRoot: process.cwd(),
+        repositoryRoot: defaultRepositoryRoot,
         version: undefined,
     };
 
@@ -239,7 +241,7 @@ function normalizeOptions(options) {
     return {
         commandRunner: options.commandRunner,
         repository: options.repository,
-        repositoryRoot: options.repositoryRoot ?? process.cwd(),
+        repositoryRoot: options.repositoryRoot ?? defaultRepositoryRoot,
         version: options.version,
     };
 }
@@ -250,7 +252,7 @@ function printUsage() {
 Options:
   --version <semver>          Current release version, with or without leading v.
   --repository <owner/name>   GitHub repository used for commit links.
-  --repository-root <path>    Git repository root. Defaults to the current directory.
+  --repository-root <path>    Git repository root. Defaults to this repository root.
   --github-output             Append notes to GITHUB_OUTPUT for GitHub Actions.
   -h, --help                  Show this help text.`);
 }

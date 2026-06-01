@@ -2,6 +2,8 @@ import { spawnSync } from "node:child_process";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
+import { repositoryRoot } from "./lib/workspaces.mjs";
+
 const BOT_EMAIL = "41898282+github-actions[bot]@users.noreply.github.com";
 const BOT_NAME = "github-actions[bot]";
 
@@ -23,7 +25,7 @@ export function createChangelogCommitMessage(version) {
 }
 
 export function commitChangelogWorkflow(options) {
-    const cwd = options.cwd ?? process.cwd();
+    const cwd = options.cwd ?? repositoryRoot;
     const log = options.log ?? console.log;
     const runCommand = options.runCommand ?? spawnSync;
 

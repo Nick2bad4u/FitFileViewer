@@ -4,9 +4,17 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { repositoryRoot } from "../../../scripts/lib/workspaces.mjs";
+
 type PublishCommand = {
     args: string[];
     command: string;
+};
+type PublishCommandCall = PublishCommand & {
+    options: {
+        cwd: string;
+        stdio?: "inherit";
+    };
 };
 
 type PublishAppVersionModule = {
@@ -27,6 +35,16 @@ type PublishAppVersionModule = {
     };
     publishAppVersion: (options: {
         branch?: string;
+        captureRunner?: (
+            command: string,
+            args: string[],
+            options: PublishCommandCall["options"]
+        ) => string;
+        commandRunner?: (
+            command: string,
+            args: string[],
+            options: PublishCommandCall["options"]
+        ) => void;
         dryRun?: boolean;
         repositoryRoot?: string;
         version?: string;
@@ -197,6 +215,37 @@ describe("publish-app-version script", () => {
         expect(result.tagName).toBe("v30.0.0");
         expect(result.commands).toHaveLength(7);
         expect(result.branch).toBe("main");
+    });
+
+    it("defaults publish commands to the repository root", async () => {
+        expect.assertions(1);
+
+        const { publishAppVersion } = await importPublishAppVersion();
+        const calls: PublishCommandCall[] = [];
+
+        publishAppVersion({
+            branch: "main",
+            captureRunner(command, args, options) {
+                calls.push({ args, command, options });
+
+                return "abc123";
+            },
+            commandRunner(command, args, options) {
+                calls.push({ args, command, options });
+            },
+            version: "30.0.0",
+        });
+
+        expect(calls.map((call) => call.options.cwd)).toStrictEqual([
+            repositoryRoot,
+            repositoryRoot,
+            repositoryRoot,
+            repositoryRoot,
+            repositoryRoot,
+            repositoryRoot,
+            repositoryRoot,
+            repositoryRoot,
+        ]);
     });
 
     it("writes the GitHub Actions output value", async () => {

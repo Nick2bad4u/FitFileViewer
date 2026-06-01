@@ -4,6 +4,8 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { repositoryRoot } from "../../../scripts/lib/workspaces.mjs";
+
 type GenerateReleaseNotesModule = {
     createCommitPrettyFormat: (repository: string) => string;
     createGitLogArgs: (rangeSpec: string, repository: string) => string[];
@@ -99,6 +101,39 @@ describe("generate-release-notes script", () => {
             repositoryRoot: ".",
             version: "30.0.0",
         });
+    });
+
+    it("defaults release note commands to the repository root", async () => {
+        expect.assertions(2);
+
+        const { generateReleaseNotes, parseArgs } =
+            await importGenerateReleaseNotes();
+        const commandCwds: unknown[] = [];
+
+        generateReleaseNotes({
+            commandRunner(_command, args, options) {
+                commandCwds.push(options?.cwd);
+
+                if (args[0] === "describe") {
+                    return "v29.9.0\n";
+                }
+
+                if (args[0] === "log") {
+                    return "- Commit subject";
+                }
+
+                return "";
+            },
+            repository: "Nick2bad4u/FitFileViewer",
+            version: "30.0.0",
+        });
+
+        expect(parseArgs([]).repositoryRoot).toBe(repositoryRoot);
+        expect(commandCwds).toStrictEqual([
+            repositoryRoot,
+            repositoryRoot,
+            repositoryRoot,
+        ]);
     });
 
     it("generates release notes from previous tag to current tag", async () => {

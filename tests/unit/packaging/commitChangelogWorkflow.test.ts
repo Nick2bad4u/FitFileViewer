@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { repositoryRoot } from "../../../scripts/lib/workspaces.mjs";
+
 type CommandCall = {
     args: string[];
     command: string;
@@ -19,7 +21,7 @@ type CommandRunner = (
 ) => CommandResult;
 type CommitChangelogWorkflowModule = {
     commitChangelogWorkflow: (options: {
-        cwd: string;
+        cwd?: string;
         log?: (message: string) => void;
         runCommand: CommandRunner;
         targetBranch: string;
@@ -150,6 +152,27 @@ describe("commit-changelog-workflow script", () => {
             didCommit: true,
             messages: ["Changelogs updated and pushed to repository"],
         });
+    });
+
+    it("defaults git commands to the repository root", async () => {
+        expect.assertions(1);
+
+        const { commitChangelogWorkflow } =
+            await importCommitChangelogWorkflow();
+        const { calls, runCommand } = makeCommandRecorder(0);
+
+        commitChangelogWorkflow({
+            runCommand,
+            targetBranch: "main",
+            version: "30.0.0",
+        });
+
+        expect(calls.map((call) => call.options.cwd)).toStrictEqual([
+            repositoryRoot,
+            repositoryRoot,
+            repositoryRoot,
+            repositoryRoot,
+        ]);
     });
 
     it("parses CLI arguments and environment defaults", async () => {

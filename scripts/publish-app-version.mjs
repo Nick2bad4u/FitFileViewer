@@ -3,7 +3,10 @@ import fs from "node:fs";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
-import { rootPackageRepositoryPath } from "./lib/workspaces.mjs";
+import {
+    repositoryRoot as defaultRepositoryRoot,
+    rootPackageRepositoryPath,
+} from "./lib/workspaces.mjs";
 
 export const defaultVersionFiles = [
     rootPackageRepositoryPath,
@@ -38,6 +41,7 @@ if (
 export function publishAppVersion(options) {
     const normalizedOptions = normalizePublishOptions(options);
     const commands = createPublishCommands(normalizedOptions);
+    const captureRunner = normalizedOptions.captureRunner ?? captureCommand;
     const commandRunner = normalizedOptions.commandRunner ?? runCommand;
 
     if (normalizedOptions.dryRun) {
@@ -57,7 +61,7 @@ export function publishAppVersion(options) {
         });
     }
 
-    const bumpSha = captureCommand("git", ["rev-parse", "HEAD"], {
+    const bumpSha = captureRunner("git", ["rev-parse", "HEAD"], {
         cwd: normalizedOptions.repositoryRoot,
     });
 
@@ -249,9 +253,10 @@ function normalizePublishOptions(options) {
 
     return {
         branch,
+        captureRunner: options.captureRunner,
         commandRunner: options.commandRunner,
         dryRun: options.dryRun === true,
-        repositoryRoot: options.repositoryRoot ?? process.cwd(),
+        repositoryRoot: options.repositoryRoot ?? defaultRepositoryRoot,
         version,
     };
 }
