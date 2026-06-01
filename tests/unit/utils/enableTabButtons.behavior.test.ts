@@ -339,25 +339,22 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should apply comprehensive styling when disabling", () => {
-            expect.assertions(1);
+            expect.assertions(3);
             appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
             setTabButtonsEnabled(false);
 
             const testBtn = document.getElementById("tab-test");
-            expect({
-                ariaDisabled: testBtn?.getAttribute("aria-disabled"),
-                classDisabled: testBtn?.classList.contains("tab-disabled"),
-                pointerEvents: testBtn?.style.pointerEvents,
-            }).toStrictEqual({
-                ariaDisabled: "true",
-                classDisabled: true,
-                pointerEvents: "none",
-            });
+            expect(testBtn?.getAttribute("aria-disabled")).toBe("true");
+            expect([...(testBtn?.classList ?? [])]).toStrictEqual([
+                "tab-button",
+                "tab-disabled",
+            ]);
+            expect(testBtn?.style.pointerEvents).toBe("none");
         });
 
         it("should apply comprehensive styling when enabling", () => {
-            expect.assertions(1);
+            expect.assertions(5);
             appendTabButtons([
                 {
                     id: "tab-test",
@@ -370,19 +367,13 @@ describe("enableTabButtons behavior", () => {
             setTabButtonsEnabled(true);
 
             const testBtn = document.getElementById("tab-test");
-            expect({
-                ariaDisabled: testBtn?.getAttribute("aria-disabled"),
-                classDisabled: testBtn?.classList.contains("tab-disabled"),
-                cursor: testBtn?.style.cursor,
-                opacity: testBtn?.style.opacity,
-                pointerEvents: testBtn?.style.pointerEvents,
-            }).toStrictEqual({
-                ariaDisabled: "false",
-                classDisabled: false,
-                cursor: "pointer",
-                opacity: "1",
-                pointerEvents: "auto",
-            });
+            expect(testBtn?.getAttribute("aria-disabled")).toBe("false");
+            expect([...(testBtn?.classList ?? [])]).toStrictEqual([
+                "tab-button",
+            ]);
+            expect(testBtn?.style.cursor).toBe("pointer");
+            expect(testBtn?.style.opacity).toBe("1");
+            expect(testBtn?.style.pointerEvents).toBe("auto");
         });
 
         it("should handle elements that are not HTMLElements gracefully", () => {
@@ -672,7 +663,7 @@ describe("enableTabButtons behavior", () => {
 
     describe("forceEnableTabButtons function", () => {
         it("should aggressively enable all tab buttons", () => {
-            expect.assertions(2);
+            expect.assertions(4);
             appendTabButtons([
                 { id: "openFileBtn", text: "Open File" },
                 {
@@ -686,15 +677,11 @@ describe("enableTabButtons behavior", () => {
             forceEnableTabButtons();
 
             const summaryBtn = document.getElementById("tab-summary");
-            expect({
-                classDisabled: summaryBtn?.classList.contains("tab-disabled"),
-                disabled: summaryBtn?.hasAttribute("disabled"),
-                pointerEvents: summaryBtn?.style.pointerEvents,
-            }).toStrictEqual({
-                classDisabled: false,
-                disabled: false,
-                pointerEvents: "auto",
-            });
+            expect([...(summaryBtn?.classList ?? [])]).toStrictEqual([
+                "tab-button",
+            ]);
+            expect(summaryBtn?.hasAttribute("disabled")).toStrictEqual(false);
+            expect(summaryBtn?.style.pointerEvents).toBe("auto");
 
             expect(mockSetState).toHaveBeenCalledWith(
                 "ui.tabButtonsEnabled",
@@ -841,7 +828,7 @@ describe("enableTabButtons behavior", () => {
 
     describe("forceFixTabButtons function", () => {
         it("should aggressively fix all tab button states", () => {
-            expect.assertions(3);
+            expect.assertions(8);
             appendTabButtons([
                 { id: "openFileBtn", text: "Open File" },
                 {
@@ -855,21 +842,14 @@ describe("enableTabButtons behavior", () => {
             forceFixTabButtons();
 
             const summaryBtn = document.getElementById("tab-summary");
-            expect({
-                classDisabled: summaryBtn?.classList.contains("tab-disabled"),
-                cursor: summaryBtn?.style.cursor,
-                disabled: summaryBtn?.hasAttribute("disabled"),
-                filter: summaryBtn?.style.filter,
-                opacity: summaryBtn?.style.opacity,
-                pointerEvents: summaryBtn?.style.pointerEvents,
-            }).toStrictEqual({
-                classDisabled: false,
-                cursor: "pointer",
-                disabled: false,
-                filter: "none",
-                opacity: "1",
-                pointerEvents: "auto",
-            });
+            expect([...(summaryBtn?.classList ?? [])]).toStrictEqual([
+                "tab-button",
+            ]);
+            expect(summaryBtn?.style.cursor).toBe("pointer");
+            expect(summaryBtn?.hasAttribute("disabled")).toStrictEqual(false);
+            expect(summaryBtn?.style.filter).toBe("none");
+            expect(summaryBtn?.style.opacity).toBe("1");
+            expect(summaryBtn?.style.pointerEvents).toBe("auto");
             expect(
                 document.getElementById("openFileBtn")?.style.pointerEvents
             ).not.toBe("auto");
