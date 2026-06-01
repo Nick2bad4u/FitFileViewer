@@ -51,7 +51,7 @@ describe("openPowerEstimationSettingsModal.js", () => {
     });
 
     it("should render modal and close on Escape", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const { openPowerEstimationSettingsModal } =
             await import("../../../../../electron-app/utils/ui/modals/openPowerEstimationSettingsModal.js");
@@ -66,7 +66,7 @@ describe("openPowerEstimationSettingsModal.js", () => {
     });
 
     it("should show real power note when hasRealPower is true", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const { openPowerEstimationSettingsModal } =
             await import("../../../../../electron-app/utils/ui/modals/openPowerEstimationSettingsModal.js");
@@ -80,7 +80,7 @@ describe("openPowerEstimationSettingsModal.js", () => {
     });
 
     it("should validate rider weight and prevent apply", async () => {
-        expect.hasAssertions();
+        expect.assertions(7);
 
         const { openPowerEstimationSettingsModal } =
             await import("../../../../../electron-app/utils/ui/modals/openPowerEstimationSettingsModal.js");
@@ -114,7 +114,7 @@ describe("openPowerEstimationSettingsModal.js", () => {
     });
 
     it("should persist settings and call onApply, then close", async () => {
-        expect.hasAssertions();
+        expect.assertions(8);
 
         const { openPowerEstimationSettingsModal } =
             await import("../../../../../electron-app/utils/ui/modals/openPowerEstimationSettingsModal.js");
@@ -152,7 +152,7 @@ describe("openPowerEstimationSettingsModal.js", () => {
     });
 
     it("should close when clicking Cancel", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const { openPowerEstimationSettingsModal } =
             await import("../../../../../electron-app/utils/ui/modals/openPowerEstimationSettingsModal.js");
@@ -173,7 +173,7 @@ describe("openPowerEstimationSettingsModal.js", () => {
     });
 
     it("should validate non-numeric CRR input and prevent apply", async () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         const { openPowerEstimationSettingsModal } =
             await import("../../../../../electron-app/utils/ui/modals/openPowerEstimationSettingsModal.js");
@@ -204,7 +204,7 @@ describe("openPowerEstimationSettingsModal.js", () => {
     });
 
     it("should close when clicking outside modal (overlay)", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const { openPowerEstimationSettingsModal } =
             await import("../../../../../electron-app/utils/ui/modals/openPowerEstimationSettingsModal.js");
@@ -221,7 +221,7 @@ describe("openPowerEstimationSettingsModal.js", () => {
     });
 
     it("should catch errors thrown by onApply and still close", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const { openPowerEstimationSettingsModal } =
             await import("../../../../../electron-app/utils/ui/modals/openPowerEstimationSettingsModal.js");

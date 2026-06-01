@@ -73,7 +73,7 @@ describe("updateTabVisibility globalData state subscription", () => {
 
     describe("globalData subscription", () => {
         it("switches to summary when data is cleared from another tab", async () => {
-            expect.hasAssertions();
+            expect.assertions(7);
 
             const { initializeTabVisibilityState } =
                 await import("../../../electron-app/utils/ui/tabs/updateTabVisibility.js");
@@ -137,7 +137,7 @@ describe("updateTabVisibility globalData state subscription", () => {
         });
 
         it("should not switch to summary when current tab is already summary", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const { initializeTabVisibilityState } =
                 await import("../../../electron-app/utils/ui/tabs/updateTabVisibility.js");
@@ -166,7 +166,7 @@ describe("updateTabVisibility globalData state subscription", () => {
         });
 
         it("should not switch when data exists", async () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const { initializeTabVisibilityState } =
                 await import("../../../electron-app/utils/ui/tabs/updateTabVisibility.js");
@@ -195,7 +195,7 @@ describe("updateTabVisibility globalData state subscription", () => {
         });
 
         it("should handle edge case data values", async () => {
-            expect.hasAssertions();
+            expect.assertions(6);
 
             const { initializeTabVisibilityState } =
                 await import("../../../electron-app/utils/ui/tabs/updateTabVisibility.js");

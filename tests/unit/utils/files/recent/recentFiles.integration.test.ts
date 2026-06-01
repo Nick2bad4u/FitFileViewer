@@ -85,7 +85,7 @@ describe("recentFiles integration coverage", () => {
     }
 
     it("derives the storage path from electron userData", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const userDataPath = fs.mkdtempSync(
             path.join(os.tmpdir(), "ffv-user-")
@@ -108,7 +108,7 @@ describe("recentFiles integration coverage", () => {
     });
 
     it("creates a temp-backed recent file when electron app is unavailable", () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         setElectronMock({});
         const exitHandlers: Array<() => void> = [];
@@ -161,7 +161,7 @@ describe("recentFiles integration coverage", () => {
     });
 
     it("saves and reloads recent files using the configured path", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const tempDir = path.join(os.tmpdir(), "ffv-recent-integration");
         fs.mkdirSync(tempDir, { recursive: true });
@@ -184,7 +184,7 @@ describe("recentFiles integration coverage", () => {
     });
 
     it("logs and continues when temp directory creation fails", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         setElectronMock({});
         const originalExists = fs.existsSync;

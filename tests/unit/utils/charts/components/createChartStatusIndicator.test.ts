@@ -44,7 +44,7 @@ describe(createChartStatusIndicator, () => {
     });
 
     it("creates an indicator for all-visible charts (✅) and appends breakdown to body", () => {
-        expect.hasAssertions();
+        expect.assertions(9);
 
         const indicator = createChartStatusIndicator();
         expect(indicator).toBeInstanceOf(HTMLElement);
@@ -69,7 +69,7 @@ describe(createChartStatusIndicator, () => {
     });
 
     it("shows warning (⚠️) when some charts are hidden and reveals breakdown on hover", () => {
-        expect.hasAssertions();
+        expect.assertions(8);
 
         mockGetChartCounts.mockReturnValue({
             available: 6,
@@ -106,7 +106,7 @@ describe(createChartStatusIndicator, () => {
     });
 
     it("click scrolls to fields section and briefly highlights it", () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         // Provide a fields section target
         const fields = document.createElement("div");
@@ -149,7 +149,7 @@ describe(createChartStatusIndicator, () => {
     });
 
     it("shows neutral message when no charts are available", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         mockGetChartCounts.mockReturnValue({
             available: 0,
@@ -172,7 +172,7 @@ describe(createChartStatusIndicator, () => {
     });
 
     it("uses error state (❌) when visible > available (invalid input)", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         mockGetChartCounts.mockReturnValue({
             available: 1,
@@ -193,7 +193,7 @@ describe(createChartStatusIndicator, () => {
     });
 
     it("returns a fallback element and logs an error when rendering throws", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         mockGetChartCounts.mockImplementationOnce(() => {
             throw new Error("boom");
@@ -210,7 +210,7 @@ describe(createChartStatusIndicator, () => {
     });
 
     it("does not leak duplicate breakdown tooltips across re-renders", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const first = createChartStatusIndicator();
         document.body.append(first);
