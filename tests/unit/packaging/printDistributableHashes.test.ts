@@ -150,7 +150,9 @@ describe("print-distributable-hashes script", () => {
         });
 
         expect(result).toStrictEqual([]);
-        expect(output[0]).toContain("No distributable files found");
+        expect(output).toStrictEqual([
+            "[print-distributable-hashes] No distributable files found under missing-directory.",
+        ]);
     });
 
     it("parses the target directory argument", async () => {
