@@ -38,13 +38,20 @@ describe("state manager subscriptions", () => {
 
         expect(getState("ui.activeTab")).toBe("map");
         expect(listener).toHaveBeenCalledWith("map", "summary", "ui.activeTab");
-        expect(getStateHistory()).toEqual([
-            expect.objectContaining({
+        expect(
+            getStateHistory().map(({ newValue, oldValue, path, source }) => ({
+                newValue,
+                oldValue,
+                path,
+                source,
+            }))
+        ).toStrictEqual([
+            {
                 newValue: "map",
                 oldValue: "summary",
                 path: "ui.activeTab",
                 source: "stateManager.subscriptions.test",
-            }),
+            },
         ]);
 
         unsubscribe();
