@@ -409,11 +409,16 @@ test.describe("FitFileViewer Electron UI", () => {
         expect(loadResult.activeFileName).toContain(
             path.basename(sampleFitPath)
         );
-        expect(loadResult).toMatchObject({
+        expect({
+            globalRecordCount: loadResult.globalRecordCount,
+            globalSessionCount: loadResult.globalSessionCount,
+            mapTabActive: loadResult.mapTabActive,
+        }).toStrictEqual({
             globalRecordCount: 1285,
             globalSessionCount: 1,
             mapTabActive: true,
         });
+        expect(loadResult.globalRecordCount).not.toBe(0);
         expect(loadResult.title).toContain(path.basename(sampleFitPath));
 
         await page.locator("#tab_map").click();
@@ -605,7 +610,7 @@ test.describe("FitFileViewer Electron UI", () => {
             }
         });
 
-        expect(elevationPopup).toMatchObject({
+        expect(elevationPopup).toStrictEqual({
             assignedChart: true,
             canvasCount: 1,
             containerExists: true,
