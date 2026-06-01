@@ -73,7 +73,7 @@ describe("recentFiles utility", () => {
     }
 
     it("loadRecentFiles returns empty array when file doesn't exist", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         // Setup
         vi.spyOn(cfs, "existsSync").mockReturnValue(false as any);
@@ -89,7 +89,7 @@ describe("recentFiles utility", () => {
     });
 
     it("loadRecentFiles returns parsed JSON when file exists", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         // Setup
         const testData = ["file1.fit", "file2.fit"];
@@ -108,7 +108,7 @@ describe("recentFiles utility", () => {
     });
 
     it("loadRecentFiles handles file read errors", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         // Setup
         vi.spyOn(cfs, "existsSync").mockReturnValue(true as any);
@@ -127,7 +127,7 @@ describe("recentFiles utility", () => {
         );
     });
     it("saveRecentFiles writes data to file", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const testData = ["file1.fit", "file2.fit"];
         const spy = vi.spyOn(cfs, "writeFileSync").mockImplementation(() => {});
@@ -140,7 +140,7 @@ describe("recentFiles utility", () => {
     });
 
     it("saveRecentFiles caps list to 10 items", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         // Setup: more than 10 items
         const testData = Array.from({ length: 15 }, (_, i) => `file${i}.fit`);
@@ -157,7 +157,7 @@ describe("recentFiles utility", () => {
     });
 
     it("saveRecentFiles handles write errors", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         // Setup: write throws error
         vi.spyOn(cfs, "writeFileSync").mockImplementation(() => {
@@ -175,7 +175,7 @@ describe("recentFiles utility", () => {
     });
 
     it("addRecentFile adds new file to beginning of list", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         // Setup: existing list
         const existingFiles = ["file1.fit", "file2.fit"];
@@ -200,7 +200,7 @@ describe("recentFiles utility", () => {
     });
 
     it("addRecentFile moves existing file to beginning", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         // Setup: existing list with file to be moved
         const existingFiles = [
@@ -229,7 +229,7 @@ describe("recentFiles utility", () => {
     });
 
     it("addRecentFile doesn't save if order hasn't changed", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         // Setup: file already at top
         const existingFiles = ["file1.fit", "file2.fit"];
@@ -247,7 +247,7 @@ describe("recentFiles utility", () => {
     });
 
     it("addRecentFile handles non-array data", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         // Setup: invalid data in file
         vi.spyOn(cfs, "existsSync").mockReturnValue(true as any);
@@ -268,7 +268,7 @@ describe("recentFiles utility", () => {
     });
 
     it("getShortRecentName handles empty input", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         // Setup - ensure console.warn is clear
         vi.spyOn(console, "warn").mockClear();
@@ -284,7 +284,7 @@ describe("recentFiles utility", () => {
     });
 
     it("getShortRecentName returns basename of file path", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         // Setup
         const filePath = "C:/path/to/file.fit";
@@ -310,7 +310,7 @@ describe("recentFiles utility", () => {
     }
 
     it("initializes RECENT_FILES_PATH from Electron userData when available", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         delete process.env.RECENT_FILES_PATH;
         // Force-inject a CommonJS cache entry for 'electron' so CJS require in implementation sees it
@@ -336,7 +336,7 @@ describe("recentFiles utility", () => {
     });
 
     it("prefers RECENT_FILES_PATH env when set", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         // Ensure module re-evaluates with env path
         process.env.RECENT_FILES_PATH = TEST_FILE_PATH;
@@ -359,7 +359,7 @@ describe("recentFiles utility", () => {
     });
 
     it("invokes cleanup handler and unlinks temp file when present", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         delete process.env.RECENT_FILES_PATH;
         // Ensure electron missing
@@ -398,7 +398,7 @@ describe("recentFiles utility", () => {
     });
 
     it("falls back when electron app.getPath throws", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         delete process.env.RECENT_FILES_PATH;
         // Provide electron with throwing getPath
@@ -426,7 +426,7 @@ describe("recentFiles utility", () => {
     });
 
     it("falls back to TEMP when electron app.getPath unavailable and registers cleanup", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         delete process.env.RECENT_FILES_PATH;
         // Ensure electron CJS cache does not provide app.getPath
@@ -465,7 +465,7 @@ describe("recentFiles utility", () => {
     });
 
     it("logs error if temp dir creation fails", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         delete process.env.RECENT_FILES_PATH;
         // Force fallback by clearing electron CJS cache
