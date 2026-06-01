@@ -29,7 +29,7 @@ describe("showNotification display failure handling", () => {
     });
 
     it("resolves the caller promise and clears queue state when display fails", async () => {
-        expect.assertions(6);
+        expect.assertions(8);
 
         const notificationElement =
             document.querySelector<HTMLElement>("#notification");
@@ -65,16 +65,12 @@ describe("showNotification display failure handling", () => {
         expect(notificationElement!.getAttribute("aria-label")).toBe(
             "Information: Display failure"
         );
-        expect({
-            isShowingNotification,
-            queueSize: notificationQueue.length,
-            visibleClassPresent:
-                notificationElement!.classList.contains("show"),
-        }).toEqual({
-            isShowingNotification: false,
-            queueSize: 0,
-            visibleClassPresent: false,
-        });
+        expect(isShowingNotification).toStrictEqual(false);
+        expect(notificationQueue).toHaveLength(0);
+        expect([...notificationElement!.classList]).toStrictEqual([
+            "notification",
+            "info",
+        ]);
     });
 
     it("rejects invalid messages without rendering notification content", async () => {
