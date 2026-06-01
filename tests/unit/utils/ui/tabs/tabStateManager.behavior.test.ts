@@ -255,13 +255,9 @@ describe("tabStateManager.behavior", () => {
         );
 
         expect(tabStateManager.extractTabName(btn.id)).toBe("summary");
-        expect(mockSetState).toHaveBeenCalledWith(
-            "ui.activeTab",
-            "summary",
-            expect.objectContaining({
-                source: expect.stringContaining("TabStateManager.buttonClick"),
-            })
-        );
+        expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "summary", {
+            source: "TabStateManager.buttonClick",
+        });
     });
 
     it("updateTabButtonStates toggles active and aria-selected", () => {
@@ -357,11 +353,7 @@ describe("tabStateManager.behavior", () => {
         expect(mockSetState).toHaveBeenCalledWith(
             "summary.lastDataHash",
             expect.any(String),
-            expect.objectContaining({
-                source: expect.stringContaining(
-                    "TabStateManager.handleSummaryTab"
-                ),
-            })
+            { source: "TabStateManager.handleSummaryTab" }
         );
     });
 
@@ -371,7 +363,7 @@ describe("tabStateManager.behavior", () => {
         tabStateManager.updateContentVisibility("unknown");
         expect(TAB_CONFIG.unknown).toBeUndefined();
         expect(warnSpy).toHaveBeenCalledWith(
-            expect.stringContaining("Unknown tab")
+            "[TabStateManager] Unknown tab: unknown"
         );
     });
 
@@ -414,11 +406,7 @@ describe("tabStateManager.behavior", () => {
         expect(mockSetState).toHaveBeenCalledWith(
             "summary.lastDataHash",
             expect.any(String),
-            expect.objectContaining({
-                source: expect.stringContaining(
-                    "TabStateManager.handleSummaryTab"
-                ),
-            })
+            { source: "TabStateManager.handleSummaryTab" }
         );
     });
 
@@ -443,15 +431,9 @@ describe("tabStateManager.behavior", () => {
         expect.assertions(4);
         await tabStateManager.handleChartTab({ recordMesgs: [{}] });
         expect(mockGetState("ui.activeTab")).toBe("summary");
-        expect(mockSetState).toHaveBeenCalledWith(
-            "charts.tabActive",
-            true,
-            expect.objectContaining({
-                source: expect.stringContaining(
-                    "TabStateManager.handleChartTab"
-                ),
-            })
-        );
+        expect(mockSetState).toHaveBeenCalledWith("charts.tabActive", true, {
+            source: "TabStateManager.handleChartTab",
+        });
 
         mockGetState.mockImplementation((/* @type {any} */ key) =>
             key === "charts" ? { isRendered: true } : { recordMesgs: [{}] }
@@ -470,13 +452,9 @@ describe("tabStateManager.behavior", () => {
         await tabStateManager.handleMapTab({ recordMesgs: [{}] });
         expect(mockGetState("ui.activeTab")).toBe("summary");
         expect(/* @type {any} */ window.renderMap).toHaveBeenCalledWith();
-        expect(mockSetState).toHaveBeenCalledWith(
-            "map.isRendered",
-            true,
-            expect.objectContaining({
-                source: expect.stringContaining("TabStateManager.handleMapTab"),
-            })
-        );
+        expect(mockSetState).toHaveBeenCalledWith("map.isRendered", true, {
+            source: "TabStateManager.handleMapTab",
+        });
 
         // Now report isRendered true – should not call render again
         const renderMapSpy = vi.spyOn(window, "renderMap").mockImplementation();
@@ -582,24 +560,16 @@ describe("tabStateManager.behavior", () => {
         const evt = new window.Event("click", { bubbles: true });
         a.dispatchEvent(evt);
         expect(a.id).toBe(TAB_CONFIG.summary.id);
-        expect(mockSetState).toHaveBeenCalledWith(
-            "ui.activeTab",
-            "summary",
-            expect.objectContaining({
-                source: expect.stringContaining("TabStateManager.buttonClick"),
-            })
-        );
+        expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "summary", {
+            source: "TabStateManager.buttonClick",
+        });
 
         mockSetState.mockClear();
         b.dispatchEvent(evt);
         expect(b.id).toBe(TAB_CONFIG.map.id);
-        expect(mockSetState).toHaveBeenCalledWith(
-            "ui.activeTab",
-            "map",
-            expect.objectContaining({
-                source: expect.stringContaining("TabStateManager.buttonClick"),
-            })
-        );
+        expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "map", {
+            source: "TabStateManager.buttonClick",
+        });
     });
 
     it("updateTabAvailability toggles disabled state for requiresData tabs", () => {
@@ -685,13 +655,9 @@ describe("tabStateManager.behavior", () => {
         expect({
             switchedToMapTab: tabStateManager.switchToTab("map"),
         }).toStrictEqual({ switchedToMapTab: true });
-        expect(mockSetState).toHaveBeenCalledWith(
-            "ui.activeTab",
-            "map",
-            expect.objectContaining({
-                source: expect.stringContaining("TabStateManager.switchToTab"),
-            })
-        );
+        expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "map", {
+            source: "TabStateManager.switchToTab",
+        });
     });
 
     it("handleTabButtonClick returns early when event has no currentTarget", () => {
@@ -731,15 +697,9 @@ describe("tabStateManager.behavior", () => {
         });
         await tabStateManager.handleTabSpecificLogic("chartjs");
         expect(mockGetState("charts")).toStrictEqual({ isRendered: false });
-        expect(mockSetState).toHaveBeenCalledWith(
-            "charts.tabActive",
-            true,
-            expect.objectContaining({
-                source: expect.stringContaining(
-                    "TabStateManager.handleChartTab"
-                ),
-            })
-        );
+        expect(mockSetState).toHaveBeenCalledWith("charts.tabActive", true, {
+            source: "TabStateManager.handleChartTab",
+        });
     });
 
     it("handleTabSpecificLogic executes 'map' branch and calls renderMap", async () => {
@@ -896,7 +856,7 @@ describe("tabStateManager.behavior", () => {
         ).resolves.toBeUndefined();
         expect(TAB_CONFIG.zwift.id).toBe("tab-zwift");
         expect(logSpy).toHaveBeenCalledWith(
-            expect.stringContaining("No specific handler for tab")
+            "[TabStateManager] No specific handler for tab: zwift"
         );
     });
 

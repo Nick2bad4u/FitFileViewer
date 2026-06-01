@@ -127,22 +127,14 @@ describe("tabStateManager.fallback", () => {
         expect(eff.setState).toHaveBeenCalledWith(
             "summary.lastDataHash",
             expect.any(String),
-            expect.objectContaining({
-                source: expect.stringContaining(
-                    "TabStateManager.handleSummaryTab"
-                ),
-            })
+            { source: "TabStateManager.handleSummaryTab" }
         );
 
         // Also exercise switchToTab via fallback
         const switchedToMap = instance.switchToTab("map");
-        expect(eff.setState).toHaveBeenCalledWith(
-            "ui.activeTab",
-            "map",
-            expect.objectContaining({
-                source: expect.stringContaining("TabStateManager.switchToTab"),
-            })
-        );
+        expect(eff.setState).toHaveBeenCalledWith("ui.activeTab", "map", {
+            source: "TabStateManager.switchToTab",
+        });
 
         const switchedToMissingTab = instance.switchToTab("missing-tab");
         expect({
