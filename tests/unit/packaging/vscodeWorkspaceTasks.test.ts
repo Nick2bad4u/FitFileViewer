@@ -33,6 +33,9 @@ describe("vs code workspace tasks", () => {
         const taskCommands = tasks.map((task) => task.command);
         const taskCwds = tasks.map((task) => task.options?.cwd);
         const taskArgs = tasks.flatMap((task) => task.args ?? []);
+        const nestedElectronTestArgs = taskArgs.filter((taskArg) =>
+            /^electron-app[\\/]tests[\\/]/u.test(taskArg)
+        );
 
         expect(taskLabels).toStrictEqual([
             "build runtime from root",
@@ -44,11 +47,7 @@ describe("vs code workspace tasks", () => {
         expect(new Set(taskCwds)).toStrictEqual(
             new Set(["${workspaceFolder}"])
         );
-        expect(taskArgs).not.toEqual(
-            expect.arrayContaining([
-                expect.stringMatching(/^electron-app[\\/]tests[\\/]/u),
-            ])
-        );
+        expect(nestedElectronTestArgs).toStrictEqual([]);
         expect(taskArgs.join(" ")).not.toMatch(
             /(?:--workspace|--prefix|-w)\s+electron-app/u
         );
