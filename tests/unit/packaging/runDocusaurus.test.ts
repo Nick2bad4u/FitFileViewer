@@ -3,6 +3,7 @@ import process from "node:process";
 
 import { describe, expect, it, vi } from "vitest";
 
+import { docusaurusWorkspacePath } from "../../../scripts/lib/workspaces.mjs";
 import {
     buildDocusaurusArgs,
     docusaurusCommandsThatSyncAssets,
@@ -98,7 +99,7 @@ describe("run-docusaurus wrapper", () => {
         }).toStrictEqual({
             args: ["build"],
             command: process.execPath,
-            cwd: path.join(process.cwd(), "docusaurus"),
+            cwd: docusaurusWorkspacePath,
         });
         expect(docsArgs?.[0]).toMatch(
             /[\\/]@docusaurus[\\/]core[\\/]bin[\\/]docusaurus\.mjs$/u
@@ -135,7 +136,7 @@ describe("run-docusaurus wrapper", () => {
             cwd: path.resolve(options?.cwd ?? ""),
         }).toStrictEqual({
             args: ["clear"],
-            cwd: path.join(process.cwd(), "docusaurus"),
+            cwd: docusaurusWorkspacePath,
         });
     });
 
@@ -192,7 +193,7 @@ describe("run-docusaurus wrapper", () => {
             ...options,
             cwd: path.resolve(options?.cwd ?? ""),
         }).toStrictEqual({
-            cwd: path.join(process.cwd(), "docusaurus"),
+            cwd: docusaurusWorkspacePath,
             stdio: "inherit",
         });
     });
