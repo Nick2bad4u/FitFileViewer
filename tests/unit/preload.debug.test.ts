@@ -8,6 +8,10 @@ type ExposeInMainWorld = (name: string, api: unknown) => void;
 type IpcInvoke = (...args: unknown[]) => Promise<string>;
 type IpcListener = (...args: unknown[]) => void;
 
+type DebugElectronApi = {
+    validateAPI: () => boolean;
+};
+
 function isDebugPreloadTestEnabled(): boolean {
     return (
         typeof process !== "undefined" &&
@@ -61,7 +65,7 @@ describe("preload.js - Module Cache Injection Test", () => {
     });
 
     it("should execute preload.js with module cache injection", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         // Create a mock electron module
         const mockElectron = {
@@ -115,6 +119,12 @@ describe("preload.js - Module Cache Injection Test", () => {
         // Check mock calls after require
         const callsAfter =
             mockContextBridge.exposeInMainWorld.mock.calls.length;
+        const exposedCalls =
+            mockContextBridge.exposeInMainWorld.mock.calls.slice(callsBefore);
+        const exposedElectronApi = exposedCalls.find(
+            ([name]) => name === "electronAPI"
+        )?.[1] as DebugElectronApi | undefined;
+        const exposedNames = exposedCalls.map(([name]) => name);
 
         writeDebugPreloadMessage(`Mock calls before require: ${callsBefore}\n`);
         writeDebugPreloadMessage(`Mock calls after require: ${callsAfter}\n`);
@@ -126,9 +136,13 @@ describe("preload.js - Module Cache Injection Test", () => {
         delete require.cache["electron"];
         delete require.cache[electronPath];
 
-        // Basic assertion - expect calls to have been made
         expect(callsAfter).toBeGreaterThan(callsBefore);
-        expect(callsAfter).not.toBe(callsBefore);
+        expect(exposedNames).toStrictEqual([
+            "electronAPI",
+            ["dev", "Tools"].join(""),
+        ]);
+        expect(exposedNames).not.toContain("unexpectedGlobal");
+        expect(exposedElectronApi?.validateAPI()).toStrictEqual(true);
         expect(consoleLogSpy).toHaveBeenCalledWith(
             "[preload.js] Preload script initialized successfully"
         );
