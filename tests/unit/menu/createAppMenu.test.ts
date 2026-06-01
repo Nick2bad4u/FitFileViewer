@@ -205,16 +205,22 @@ describe("createAppMenu", () => {
 
         // Find Open Recent submenu and verify it contains mapped items
         const fileMenu = tpl.find((i: any) => i.label === "📁 File");
-        expect(fileMenu).toMatchObject({
+        expect({
             label: "📁 File",
-            submenu: expect.any(Array),
+            submenuIsArray: Array.isArray(fileMenu.submenu),
+        }).toStrictEqual({
+            label: "📁 File",
+            submenuIsArray: true,
         });
         const openRecent = fileMenu.submenu.find(
             (i: any) => i.label === "🕑 Open Recent"
         );
-        expect(openRecent).toMatchObject({
+        expect({
             label: "🕑 Open Recent",
-            submenu: expect.any(Array),
+            submenuIsArray: Array.isArray(openRecent.submenu),
+        }).toStrictEqual({
+            label: "🕑 Open Recent",
+            submenuIsArray: true,
         });
         const recentLabels = openRecent.submenu.map((i: any) => i.label);
         expect(recentLabels).toStrictEqual([
@@ -411,10 +417,15 @@ describe("createAppMenu", () => {
             checked: true,
         });
         includeUnknown.click({ checked: false });
-        expect(send).toHaveBeenCalledWith(
-            "decoder-options-changed",
-            expect.objectContaining({ includeUnknownData: false })
-        );
+        expect(send).toHaveBeenCalledWith("decoder-options-changed", {
+            applyScaleAndOffset: true,
+            convertDateTimesToDates: true,
+            convertTypesToStrings: true,
+            expandComponents: true,
+            expandSubFields: true,
+            includeUnknownData: false,
+            mergeHeartRates: true,
+        });
     });
 
     it("persists decoder options after toggling", () => {
@@ -1033,9 +1044,12 @@ describe("createAppMenu", () => {
             ],
         });
         const fileMenu = tpl.find((i: any) => i.label === "📁 File");
-        expect(fileMenu).toMatchObject({
+        expect({
             label: "📁 File",
-            submenu: expect.any(Array),
+            submenuIsArray: Array.isArray(fileMenu.submenu),
+        }).toStrictEqual({
+            label: "📁 File",
+            submenuIsArray: true,
         });
         (globalThis as any).__electronHoistedMock = originalMock;
     });
@@ -1341,7 +1355,15 @@ describe("createAppMenu - additional robust branches", () => {
             expect.arrayContaining([
                 [
                     "decoder-options-changed",
-                    expect.objectContaining({ includeUnknownData: false }),
+                    {
+                        applyScaleAndOffset: true,
+                        convertDateTimesToDates: true,
+                        convertTypesToStrings: true,
+                        expandComponents: true,
+                        expandSubFields: true,
+                        includeUnknownData: false,
+                        mergeHeartRates: true,
+                    },
                 ],
             ])
         );
