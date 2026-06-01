@@ -174,12 +174,21 @@ describe("preload.js source execution", () => {
             );
             expect(preloadInfo?.apiMethods).toContain("getAppVersion");
             expect(preloadInfo?.apiMethods).toContain("validateAPI");
-            expect(preloadInfo?.constants.CHANNELS).toMatchObject({
+            expect({
+                APP_VERSION: preloadInfo?.constants.CHANNELS.APP_VERSION,
+                FIT_PARSE: preloadInfo?.constants.CHANNELS.FIT_PARSE,
+                THEME_GET: preloadInfo?.constants.CHANNELS.THEME_GET,
+            }).toStrictEqual({
                 APP_VERSION: "getAppVersion",
                 FIT_PARSE: "fit:parse",
                 THEME_GET: "theme:get",
             });
-            expect(preloadInfo?.constants.EVENTS).toMatchObject({
+            expect({
+                OPEN_RECENT_FILE:
+                    preloadInfo?.constants.EVENTS.OPEN_RECENT_FILE,
+                SET_THEME: preloadInfo?.constants.EVENTS.SET_THEME,
+                THEME_CHANGED: preloadInfo?.constants.EVENTS.THEME_CHANGED,
+            }).toStrictEqual({
                 OPEN_RECENT_FILE: "open-recent-file",
                 SET_THEME: "set-theme",
                 THEME_CHANGED: "theme-changed",
@@ -239,13 +248,23 @@ describe("preload.js source execution", () => {
             expect(channelInfo.totalEvents).toBe(
                 Object.keys(channelInfo.events).length
             );
-            expect(channelInfo.channels).toMatchObject({
+            expect({
+                APP_VERSION: channelInfo.channels.APP_VERSION,
+                FIT_DECODE: channelInfo.channels.FIT_DECODE,
+                FIT_PARSE: channelInfo.channels.FIT_PARSE,
+                THEME_GET: channelInfo.channels.THEME_GET,
+            }).toStrictEqual({
                 APP_VERSION: "getAppVersion",
                 FIT_DECODE: "fit:decode",
                 FIT_PARSE: "fit:parse",
                 THEME_GET: "theme:get",
             });
-            expect(channelInfo.events).toMatchObject({
+            expect({
+                MENU_OPEN_FILE: channelInfo.events.MENU_OPEN_FILE,
+                OPEN_RECENT_FILE: channelInfo.events.OPEN_RECENT_FILE,
+                SET_THEME: channelInfo.events.SET_THEME,
+                THEME_CHANGED: channelInfo.events.THEME_CHANGED,
+            }).toStrictEqual({
                 MENU_OPEN_FILE: "menu-open-file",
                 OPEN_RECENT_FILE: "open-recent-file",
                 SET_THEME: "set-theme",
