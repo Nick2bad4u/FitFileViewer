@@ -246,7 +246,7 @@ describe("error handling utilities", () => {
 
     describe("global error integration", () => {
         it("registers browser-level error listeners when available", () => {
-            expect.assertions(4);
+            expect.assertions(3);
 
             const listenerSpy = vi
                 .spyOn(globalRef, "addEventListener")
@@ -254,16 +254,32 @@ describe("error handling utilities", () => {
             const logSpy = vi.spyOn(console, "log").mockReturnValue(undefined);
 
             expect(initializeErrorHandling()).toBeUndefined();
-            expect(listenerSpy).toHaveBeenCalledWith(
-                "error",
-                expect.any(Function),
-                expect.objectContaining({ signal: expect.any(AbortSignal) })
-            );
-            expect(listenerSpy).toHaveBeenCalledWith(
-                "unhandledrejection",
-                expect.any(Function),
-                expect.objectContaining({ signal: expect.any(AbortSignal) })
-            );
+            expect(
+                listenerSpy.mock.calls.map(
+                    ([
+                        eventName,
+                        listener,
+                        options,
+                    ]) => ({
+                        eventName,
+                        listenerType: typeof listener,
+                        signalIsAbortSignal:
+                            (options as AddEventListenerOptions | undefined)
+                                ?.signal instanceof AbortSignal,
+                    })
+                )
+            ).toStrictEqual([
+                {
+                    eventName: "error",
+                    listenerType: "function",
+                    signalIsAbortSignal: true,
+                },
+                {
+                    eventName: "unhandledrejection",
+                    listenerType: "function",
+                    signalIsAbortSignal: true,
+                },
+            ]);
             expect(logSpy).toHaveBeenCalledWith(
                 "[ErrorHandling] Error handling system initialized"
             );
