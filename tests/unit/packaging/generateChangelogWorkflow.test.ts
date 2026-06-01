@@ -140,12 +140,19 @@ describe("generate-changelog-workflow script", () => {
             ],
             exitCode: 0,
         });
-        expect(messages).toEqual(
-            expect.arrayContaining([
-                "All changelog generation completed.",
-                "Found: CHANGELOG.md",
-            ])
-        );
+        expect(messages).toStrictEqual([
+            "Starting changelog generation...",
+            `Current directory: ${temporaryRoot}`,
+            "Available files:",
+            "- CHANGELOG.md",
+            "",
+            "Generating root CHANGELOG.md...",
+            "Root CHANGELOG.md generated, size: 6, lines: 2",
+            "",
+            "All changelog generation completed.",
+            "Files updated:",
+            "Found: CHANGELOG.md",
+        ]);
     });
 
     it("propagates a failed changelog generation status", async () => {
