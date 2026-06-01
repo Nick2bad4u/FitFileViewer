@@ -176,7 +176,7 @@ const devToolsComponentName = ["dev", "Tools"].join("");
 
 describe("masterStateManager comprehensive behavior", () => {
     it("constructs state accessors and reports initialization status", async () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         await withMasterStateHarness(async ({ mocks }) => {
             mocks.stateManager.getState.mockImplementation((path) => {
@@ -228,7 +228,7 @@ describe("masterStateManager comprehensive behavior", () => {
     });
 
     it("initializes all components in dependency order", async () => {
-        expect.hasAssertions();
+        expect.assertions(16);
 
         await withMasterStateHarness(
             async ({ mocks }) => {
@@ -291,7 +291,7 @@ describe("masterStateManager comprehensive behavior", () => {
     });
 
     it("skips duplicate initialization without invoking component startup", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         await withMasterStateHarness(async ({ mocks }) => {
             const manager = new MasterStateManager();
@@ -315,7 +315,7 @@ describe("masterStateManager comprehensive behavior", () => {
     });
 
     it("records component initialization failures and missing FIT manager errors", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         await withMasterStateHarness(async ({ mocks, moduleMocks }) => {
             const manager = new MasterStateManager();
@@ -345,7 +345,7 @@ describe("masterStateManager comprehensive behavior", () => {
     });
 
     it("detects development mode from runtime signals and production fallback", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         await withMasterStateHarness(
             async ({ location }) => {
@@ -368,7 +368,7 @@ describe("masterStateManager comprehensive behavior", () => {
     });
 
     it("sets up drag and drop handlers for valid and invalid dropped files", async () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         await withMasterStateHarness(
             async ({ bodyElement, documentListeners }) => {
@@ -430,7 +430,7 @@ describe("masterStateManager comprehensive behavior", () => {
     });
 
     it("routes keyboard shortcuts and window lifecycle events", async () => {
-        expect.hasAssertions();
+        expect.assertions(8);
 
         await withMasterStateHarness(
             async ({ documentListeners, mocks, windowListeners }) => {
@@ -502,7 +502,7 @@ describe("masterStateManager comprehensive behavior", () => {
     });
 
     it("connects error handling, integrations, performance monitoring, and cleanup", async () => {
-        expect.hasAssertions();
+        expect.assertions(15);
 
         await withMasterStateHarness(
             async ({
@@ -604,7 +604,7 @@ describe("masterStateManager comprehensive behavior", () => {
     });
 
     it("exports the singleton and startup convenience function", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const initializeSpy = vi
             .spyOn(masterStateManager, "initialize")
