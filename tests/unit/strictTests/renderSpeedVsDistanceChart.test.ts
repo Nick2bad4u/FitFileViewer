@@ -1107,9 +1107,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
                 showGrid: true,
             };
 
-            expect(() =>
-                renderSpeedVsDistanceChart(container, data, options)
-            ).not.toThrow();
+            renderSpeedVsDistanceChart(container, data, options);
 
             expect(console.error).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering speed vs distance chart:",
@@ -1146,9 +1144,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
             const container = document.createElement("div");
             const data = [{ speed: 5.5, distance: 1000 }];
 
-            expect(() =>
-                renderSpeedVsDistanceChart(container, data, { maxPoints: 100 })
-            ).not.toThrow();
+            renderSpeedVsDistanceChart(container, data, { maxPoints: 100 });
 
             expect(consoleSpy).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering speed vs distance chart:",
@@ -1177,13 +1173,11 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
                 showGrid: true,
             };
 
-            expect(() =>
-                renderSpeedVsDistanceChart(
-                    null as unknown as HTMLElement,
-                    data,
-                    options
-                )
-            ).not.toThrow();
+            renderSpeedVsDistanceChart(
+                null as unknown as HTMLElement,
+                data,
+                options
+            );
 
             expect(console.error).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering speed vs distance chart:",
