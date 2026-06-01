@@ -36,30 +36,74 @@ async function importInstallBuildDependencies(): Promise<InstallBuildDependencie
 
 describe("install-build-dependencies script", () => {
     it("returns the Linux build dependency commands", async () => {
-        expect.assertions(4);
+        expect.assertions(1);
 
         const { getBuildDependencyCommands } =
             await importInstallBuildDependencies();
         const commands = getBuildDependencyCommands("Linux");
 
-        expect(commands[0]).toStrictEqual(["sudo", ["apt-get", "update"]]);
-        expect(commands).toContainEqual([
-            "sudo",
+        expect(commands).toStrictEqual([
+            ["sudo", ["apt-get", "update"]],
             [
-                "gem",
-                "install",
-                "--no-document",
-                "fpm",
+                "sudo",
+                [
+                    "apt-get",
+                    "install",
+                    "-y",
+                    "rpm",
+                    "dpkg",
+                    "fakeroot",
+                    "xz-utils",
+                    "flatpak",
+                    "flatpak-builder",
+                    "ruby",
+                    "ruby-dev",
+                    "build-essential",
+                    "zlib1g-dev",
+                ],
             ],
-        ]);
-        expect(commands).toContainEqual(["which", ["bsdtar"]]);
-        expect(commands.at(-1)).toStrictEqual([
-            "sudo",
             [
-                "apt-get",
-                "install",
-                "-y",
-                "pacman",
+                "sudo",
+                [
+                    "gem",
+                    "install",
+                    "--no-document",
+                    "fpm",
+                ],
+            ],
+            [
+                "sudo",
+                [
+                    "apt-get",
+                    "install",
+                    "-y",
+                    "libarchive-tools",
+                ],
+            ],
+            [
+                "sudo",
+                [
+                    "apt-get",
+                    "install",
+                    "-y",
+                    "pkg-config",
+                    "pkgconf",
+                    "pkg-haskell-tools",
+                    "pkg-js-tools",
+                    "pkg-kde-tools",
+                    "pkg-perl-tools",
+                    "pkg-php-tools",
+                ],
+            ],
+            ["which", ["bsdtar"]],
+            [
+                "sudo",
+                [
+                    "apt-get",
+                    "install",
+                    "-y",
+                    "pacman",
+                ],
             ],
         ]);
     });
