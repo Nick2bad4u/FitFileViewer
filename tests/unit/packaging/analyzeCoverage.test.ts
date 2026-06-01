@@ -34,7 +34,7 @@ describe("analyze-coverage script", () => {
     });
 
     it("returns the first existing coverage file candidate", async () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const missingCoveragePath = path.join(
             rootCoverageAbsolutePath,
@@ -44,27 +44,45 @@ describe("analyze-coverage script", () => {
             rootCoverageAbsolutePath,
             "coverage-final.json"
         );
+        const checkedCandidatePaths: string[] = [];
 
         await expect(
             findCoveragePath({
                 candidatePaths: [missingCoveragePath, existingCoveragePath],
-                pathExistsFunction: async (candidatePath) =>
-                    candidatePath === existingCoveragePath,
+                pathExistsFunction: async (candidatePath) => {
+                    checkedCandidatePaths.push(candidatePath);
+                    return candidatePath === existingCoveragePath;
+                },
             })
         ).resolves.toBe(existingCoveragePath);
+        expect(checkedCandidatePaths).toStrictEqual([
+            missingCoveragePath,
+            existingCoveragePath,
+        ]);
     });
 
     it("throws a clear error when coverage output is missing", async () => {
-        expect.assertions(1);
+        expect.assertions(2);
+
+        const candidatePaths = createCoverageCandidatePaths({
+            environmentCoverageDirectory: "custom-coverage",
+            rootCoverageDirectory: "root-coverage",
+            temporaryDirectory: "tmp-root",
+        });
+        const checkedCandidatePaths: string[] = [];
 
         await expect(
             findCoveragePath({
-                candidatePaths: [],
-                pathExistsFunction: async () => false,
+                candidatePaths,
+                pathExistsFunction: async (candidatePath) => {
+                    checkedCandidatePaths.push(candidatePath);
+                    return false;
+                },
             })
         ).rejects.toThrow(
             "coverage-final.json not found. Checked VITEST_COVERAGE_DIR, OS temp ffv-vitest-coverage, and root coverage."
         );
+        expect(checkedCandidatePaths).toStrictEqual(candidatePaths);
     });
 
     it("derives line coverage from statement maps when lcov line counts are absent", () => {
