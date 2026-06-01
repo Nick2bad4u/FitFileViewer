@@ -211,7 +211,7 @@ describe("createChartStatusIndicatorFromCounts strict behavior", () => {
     });
 
     it("returns a fallback element for invalid count data", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         setupTestDom();
 
@@ -229,10 +229,14 @@ describe("createChartStatusIndicatorFromCounts strict behavior", () => {
 
             expect(indicator.textContent).toBe("Chart status unavailable");
             expect(indicator.className).toBe("chart-status-indicator");
-            expect(errorSpy).toHaveBeenCalledWith(
-                "[ChartStatus] Error creating chart status indicator from counts:",
-                expect.any(Error)
+            expect(errorSpy).toHaveBeenCalledOnce();
+
+            const [message, error] = errorSpy.mock.calls[0] ?? [];
+
+            expect(message).toBe(
+                "[ChartStatus] Error creating chart status indicator from counts:"
             );
+            expect(error).toBeInstanceOf(TypeError);
         } finally {
             cleanupTestDom();
         }

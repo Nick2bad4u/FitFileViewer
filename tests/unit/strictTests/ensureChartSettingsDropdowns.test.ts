@@ -326,25 +326,25 @@ function seedGlobalData() {
     };
 }
 
-function seedCharts(count = 2) {
-    getTestWindow()._chartjsInstances = Array.from(
-        { length: count },
-        (_, i) => ({
-            data: {
-                datasets: [
-                    {
-                        label: `Field ${i + 1}`,
-                        data: [
-                            1,
-                            2,
-                            3,
-                        ],
-                    },
-                ],
-            },
-            config: { type: "line" },
-        })
-    );
+function seedCharts(count = 2): ChartInstanceMock[] {
+    const chartInstances = Array.from({ length: count }, (_, i) => ({
+        data: {
+            datasets: [
+                {
+                    label: `Field ${i + 1}`,
+                    data: [
+                        1,
+                        2,
+                        3,
+                    ],
+                },
+            ],
+        },
+        config: { type: "line" },
+    }));
+    getTestWindow()._chartjsInstances = chartInstances;
+
+    return chartInstances;
 }
 
 beforeEach(() => {
@@ -597,7 +597,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
         expect(exportUtils.exportAllAsZip).not.toHaveBeenCalled();
 
         // Seed charts and click Save PNG and Combined
-        seedCharts(2);
+        const seededCharts = seedCharts(2);
 
         const savePngBtn = Array.from(wrapper.querySelectorAll("button")).find(
             (b) => b.textContent?.trim().endsWith("Save PNG")
@@ -619,7 +619,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
         // Click first chart -> downloadChartAsPNG called
         (chartButtons[0] as HTMLButtonElement).click();
         expect(exportUtils.downloadChartAsPNG).toHaveBeenCalledWith(
-            expect.any(Object),
+            seededCharts[0],
             "field-1-chart.png"
         );
 
@@ -633,7 +633,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
         expect(combinedBtn).toBeInstanceOf(HTMLButtonElement);
         combinedBtn.click();
         expect(exportUtils.createCombinedChartsImage).toHaveBeenCalledWith(
-            expect.any(Array),
+            seededCharts,
             "combined-charts.png"
         );
     });

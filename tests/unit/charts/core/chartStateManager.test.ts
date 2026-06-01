@@ -612,11 +612,12 @@ describe("chartStateManager", () => {
             const consoleWarnSpy = vi
                 .spyOn(console, "warn")
                 .mockImplementation(() => {});
+            const destroyError = new Error("Destroy failed");
             const mockCharts = [
                 { destroy: vi.fn<() => void>() },
                 {
                     destroy: vi.fn<() => void>().mockImplementation(() => {
-                        throw new Error("Destroy failed");
+                        throw destroyError;
                     }),
                 },
                 { destroy: vi.fn<() => void>() },
@@ -627,7 +628,7 @@ describe("chartStateManager", () => {
 
             expect(consoleWarnSpy).toHaveBeenCalledWith(
                 "[ChartStateManager] Error destroying chart 1:",
-                expect.any(Error)
+                destroyError
             );
             expect(testGlobal._chartjsInstances).toStrictEqual([]);
 
@@ -640,6 +641,8 @@ describe("chartStateManager", () => {
             expect.hasAssertions();
 
             vi.mocked(renderChartJS).mockResolvedValue(true);
+            const renderedAt = new Date("2026-06-01T12:00:00.000Z");
+            vi.setSystemTime(renderedAt);
             const destroyExistingChartsSpy = vi
                 .spyOn(chartStateManager, "destroyExistingCharts")
                 .mockImplementation(() => {});
@@ -652,7 +655,7 @@ describe("chartStateManager", () => {
             expect(renderChartJS).toHaveBeenCalledOnce();
             expect(setState).toHaveBeenCalledWith(
                 "charts.lastRenderTime",
-                expect.any(Number),
+                renderedAt.getTime(),
                 {
                     source: "ChartStateManager.performChartRender",
                 }
@@ -749,9 +752,8 @@ describe("chartStateManager", () => {
         it("should handle chart render errors", async () => {
             expect.hasAssertions();
 
-            vi.mocked(renderChartJS).mockRejectedValue(
-                new Error("Render failed")
-            );
+            const renderError = new Error("Render failed");
+            vi.mocked(renderChartJS).mockRejectedValue(renderError);
             const consoleErrorSpy = vi
                 .spyOn(console, "error")
                 .mockImplementation(() => {});
@@ -759,7 +761,7 @@ describe("chartStateManager", () => {
             await chartStateManager.performChartRender("Test reason");
             expect(consoleErrorSpy).toHaveBeenCalledWith(
                 "[ChartStateManager] Error during chart rendering:",
-                expect.any(Error)
+                renderError
             );
             expect(showNotification).toHaveBeenCalledWith(
                 "Failed to render charts",

@@ -1399,8 +1399,9 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         it("should handle Chart constructor throwing error", () => {
             expect.assertions(2);
 
-            Chart.mockImplementationOnce(() => {
-                throw new Error("Chart creation failed");
+            const chartCreationError = new Error("Chart creation failed");
+            Chart.mockImplementationOnce(function ChartConstructor() {
+                throw chartCreationError;
             });
 
             const canvas = document.createElement("canvas");
@@ -1427,15 +1428,16 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             expect(result).toBeNull();
             expect(console.error).toHaveBeenCalledWith(
                 "[ChartJS] Error creating chart for speed:",
-                expect.any(Error)
+                chartCreationError
             );
         });
 
         it("should return null and log when chart creation fails", () => {
             expect.assertions(2);
 
-            Chart.mockImplementationOnce(() => {
-                throw new Error("Chart creation failed");
+            const chartCreationError = new Error("Chart creation failed");
+            Chart.mockImplementationOnce(function ChartConstructor() {
+                throw chartCreationError;
             });
 
             const canvas = document.createElement("canvas");
@@ -1462,7 +1464,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             expect(createdChart).toBeNull();
             expect(console.error).toHaveBeenCalledWith(
                 "[ChartJS] Error creating chart for power:",
-                expect.any(Error)
+                chartCreationError
             );
         });
     });

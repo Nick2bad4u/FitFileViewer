@@ -578,13 +578,15 @@ describe("main-ui.js core flows", () => {
         expect(AppActions.setFileOpening).not.toHaveBeenCalled();
         expect(fitFileStateManager.startFileLoading).not.toHaveBeenCalled();
 
+        const droppedFileBuffer = new ArrayBuffer(4);
         const readSpy = vi
             .spyOn(handler, "readFileAsArrayBuffer")
-            .mockResolvedValue(new ArrayBuffer(4));
+            .mockResolvedValue(droppedFileBuffer);
         const api = getCurrentElectronAPI();
-        api.decodeFitFile.mockResolvedValue({
+        const decodedFitData = {
             recordMesgs: [{ positionLat: 1, positionLong: 2 }],
-        });
+        };
+        api.decodeFitFile.mockResolvedValue(decodedFitData);
         const sendAltSpy = vi
             .spyOn(window, "sendFitFileToAltFitReader")
             .mockResolvedValue(undefined);
@@ -594,13 +596,13 @@ describe("main-ui.js core flows", () => {
             path: "C:/rides/activity.fit",
         };
         await handler.processDroppedFile(absoluteFile);
-        expect(api.decodeFitFile).toHaveBeenCalledWith(expect.any(ArrayBuffer));
-        expect(sendAltSpy).toHaveBeenCalledWith(expect.any(ArrayBuffer));
+        expect(api.decodeFitFile).toHaveBeenCalledWith(droppedFileBuffer);
+        expect(sendAltSpy).toHaveBeenCalledWith(droppedFileBuffer);
         expect(fitFileStateManager.startFileLoading).toHaveBeenLastCalledWith(
             "C:/rides/activity.fit"
         );
         expect(showFitData).toHaveBeenCalledWith(
-            expect.anything(),
+            decodedFitData,
             "C:/rides/activity.fit"
         );
         expect(AppActions.setFileOpening).toHaveBeenLastCalledWith(false);

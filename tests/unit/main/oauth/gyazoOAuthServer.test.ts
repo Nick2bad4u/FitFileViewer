@@ -265,7 +265,9 @@ describe("gyazoOAuthServer", () => {
             statusHeaders: { "Content-Type": "text/plain" },
         });
         expect(res.body).toBe("Method Not Allowed");
-        expect(res.writeHead).toHaveBeenCalledWith(405, expect.any(Object));
+        expect(res.writeHead).toHaveBeenCalledWith(405, {
+            "Content-Type": "text/plain",
+        });
         expect(res.end).toHaveBeenCalledWith("Method Not Allowed");
     });
 

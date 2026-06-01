@@ -509,6 +509,8 @@ describe("chartActions object - State Actions", () => {
             await import("../../../electron-app/utils/state/core/stateManager.js");
         const { AppActions } =
             await import("../../../electron-app/utils/app/lifecycle/appActions.js");
+        const renderCompletedAt = 1_717_249_600_000;
+        vi.spyOn(Date, "now").mockReturnValue(renderCompletedAt);
 
         chartActions.completeRendering(true, 5, 250);
 
@@ -523,7 +525,7 @@ describe("chartActions object - State Actions", () => {
             {
                 isRendered: true,
                 isRendering: false,
-                lastRenderTime: expect.any(Number),
+                lastRenderTime: renderCompletedAt,
                 renderedCount: 5,
             },
             { silent: false, source: "chartActions.completeRendering" }

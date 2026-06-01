@@ -13,13 +13,17 @@ type Harness = {
 
 function createOverlayFile(name = "overlay.fit"): {
     arrayBuffer: () => Promise<ArrayBuffer>;
+    fileData: ArrayBuffer;
     name: string;
     size: number;
 } {
+    const fileData = new ArrayBuffer(16);
+
     return {
         arrayBuffer: vi
             .fn<() => Promise<ArrayBuffer>>()
-            .mockResolvedValue(new ArrayBuffer(16)),
+            .mockResolvedValue(fileData),
+        fileData,
         name,
         size: 16,
     };
@@ -55,14 +59,15 @@ describe(loadSingleOverlayFile, () => {
             };
             harness.decodeFitFile.mockResolvedValue(decodedMessages);
 
-            const result = await loadSingleOverlayFile(createOverlayFile());
+            const overlayFile = createOverlayFile();
+            const result = await loadSingleOverlayFile(overlayFile);
 
             expect(result).toStrictEqual({
                 data: decodedMessages,
                 success: true,
             });
             expect(harness.decodeFitFile).toHaveBeenCalledWith(
-                expect.any(ArrayBuffer)
+                overlayFile.fileData
             );
         });
     });

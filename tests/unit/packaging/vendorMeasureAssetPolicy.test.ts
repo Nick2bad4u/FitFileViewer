@@ -72,7 +72,7 @@ function getImportedBrowserPackages(source: string): Set<string> {
 
 describe("renderer vendor asset policy", () => {
     it("keeps renderer browser libraries npm-managed and bundled through the renderer entry", () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         const rootPackage = JSON.parse(
             readWorkspaceFile("package.json")
@@ -87,16 +87,23 @@ describe("renderer vendor asset policy", () => {
                 (packageName) =>
                     rootPackage.dependencies?.[packageName] !== undefined
             );
+        const browserPackagesMissingFromDevDependencies =
+            rendererBrowserPackages.filter(
+                (packageName) =>
+                    rootPackage.devDependencies?.[packageName] === undefined
+            );
+        const browserPackagesWithInvalidDevDependencyVersions =
+            rendererBrowserPackages.filter((packageName) => {
+                const version = rootPackage.devDependencies?.[packageName];
+
+                return typeof version !== "string" || version.length === 0;
+            });
         const vendorBrowserPackageImports =
             getImportedBrowserPackages(vendorBundleSource);
 
-        expect(rootPackage.devDependencies).toMatchObject(
-            Object.fromEntries(
-                rendererBrowserPackages.map((packageName) => [
-                    packageName,
-                    expect.any(String),
-                ])
-            )
+        expect(browserPackagesMissingFromDevDependencies).toStrictEqual([]);
+        expect(browserPackagesWithInvalidDevDependencyVersions).toStrictEqual(
+            []
         );
         expect(browserPackagesInProductionDependencies).toStrictEqual([]);
         expect(vendorBundleSource).toEqual(
