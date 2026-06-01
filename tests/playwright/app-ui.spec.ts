@@ -32,6 +32,12 @@ type ActivityUiState = {
     title: string;
 };
 
+type MapThemeToggleState = {
+    isActive: boolean;
+    storageValue: null | string;
+    title: string;
+};
+
 const mapTileHosts = new Set([
     "basemaps.cartocdn.com",
     "server.arcgisonline.com",
@@ -162,6 +168,52 @@ test.describe("FitFileViewer Electron UI", () => {
             sessionCount: window.globalData?.sessionMesgs?.length ?? 0,
             title: document.title,
         }));
+    }
+
+    async function armMapThemeEventRecorder(): Promise<void> {
+        await page.evaluate(() => {
+            const globalWindow = window as Window & {
+                __ffvPlaywrightMapThemeEvents?: unknown[];
+            };
+            const controller = new AbortController();
+
+            globalWindow.__ffvPlaywrightMapThemeEvents = [];
+            document.addEventListener(
+                "mapThemeChanged",
+                (event) => {
+                    globalWindow.__ffvPlaywrightMapThemeEvents?.push(
+                        (event as CustomEvent).detail
+                    );
+                },
+                { once: true, signal: controller.signal }
+            );
+        });
+    }
+
+    async function getMapThemeEvents(): Promise<unknown[]> {
+        return page.evaluate(() => {
+            const globalWindow = window as Window & {
+                __ffvPlaywrightMapThemeEvents?: unknown[];
+            };
+
+            return globalWindow.__ffvPlaywrightMapThemeEvents ?? [];
+        });
+    }
+
+    async function getMapThemeToggleState(): Promise<MapThemeToggleState> {
+        return page.evaluate(() => {
+            const button = document.querySelector(".map-theme-toggle");
+
+            if (!(button instanceof HTMLElement)) {
+                throw new Error("Map theme toggle was not rendered");
+            }
+
+            return {
+                isActive: button.classList.contains("active"),
+                storageValue: localStorage.getItem("ffv-map-theme-inverted"),
+                title: button.title,
+            };
+        });
     }
 
     async function openSampleFitThroughDialog(): Promise<ActivityUiState> {
@@ -476,6 +528,51 @@ test.describe("FitFileViewer Electron UI", () => {
             "Open Free Map Positron",
         ]);
         expect(mapRuntime.routeElementCount).toBe(58);
+
+        const mapThemeToggleButton = page.getByRole("button", {
+            name: /toggle map theme/iu,
+        });
+        const initialMapThemeState = await getMapThemeToggleState();
+        const toggledStorageValue = initialMapThemeState.isActive
+            ? "false"
+            : "true";
+        const restoredStorageValue = initialMapThemeState.isActive
+            ? "true"
+            : "false";
+
+        await armMapThemeEventRecorder();
+        await mapThemeToggleButton.click();
+        await expect
+            .poll(async () => getMapThemeToggleState())
+            .toStrictEqual({
+                isActive: !initialMapThemeState.isActive,
+                storageValue: toggledStorageValue,
+                title: initialMapThemeState.isActive
+                    ? "Map: Light theme (click for dark theme)"
+                    : "Map: Dark theme (click for light theme)",
+            });
+        expect(await getMapThemeEvents()).toStrictEqual([
+            { inverted: !initialMapThemeState.isActive },
+        ]);
+
+        await armMapThemeEventRecorder();
+        await mapThemeToggleButton.click();
+        await expect
+            .poll(async () => getMapThemeToggleState())
+            .toStrictEqual({
+                isActive: initialMapThemeState.isActive,
+                storageValue: restoredStorageValue,
+                title: initialMapThemeState.title,
+            });
+        expect(await getMapThemeEvents()).toStrictEqual([
+            { inverted: initialMapThemeState.isActive },
+        ]);
+
+        if (initialMapThemeState.storageValue === null) {
+            await page.evaluate(() => {
+                localStorage.removeItem("ffv-map-theme-inverted");
+            });
+        }
 
         const gpxExport = await page.evaluate(async () => {
             const clickedDownloads: Array<{
