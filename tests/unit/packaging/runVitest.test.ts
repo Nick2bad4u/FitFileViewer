@@ -10,7 +10,11 @@ import {
     rootUnitTestsPath,
     rootVitestConfigPath,
 } from "../../../scripts/lib/workspaces.mjs";
-import { buildVitestArgs, runVitest } from "../../../scripts/run-vitest.mjs";
+import {
+    buildVitestArgs,
+    ensureRuntimeDist,
+    runVitest,
+} from "../../../scripts/run-vitest.mjs";
 
 type CommandRunner = (
     command: string,
@@ -109,6 +113,39 @@ describe("run-vitest wrapper", () => {
         expect(() => buildVitestArgs(["--suite", "unknown"])).toThrow(
             'Unknown Vitest suite "unknown".'
         );
+    });
+
+    it("skips the runtime build when the runtime dist sentinel exists", () => {
+        expect.assertions(2);
+
+        const commandRunner = vi.fn<CommandRunner>(() => ({ status: 0 }));
+
+        expect(ensureRuntimeDist(commandRunner, () => true)).toBe(0);
+        expect(commandRunner).not.toHaveBeenCalled();
+    });
+
+    it("returns the runtime build failure before launching Vitest", () => {
+        expect.assertions(2);
+
+        const commandRunner = vi.fn<CommandRunner>(() => ({ status: 7 }));
+
+        const runStatus = runVitest(
+            ["--run", "--suite=unit"],
+            commandRunner,
+            () => false
+        );
+
+        expect(runStatus).toBe(7);
+        expect(commandRunner.mock.calls).toStrictEqual([
+            [
+                process.execPath,
+                [buildRuntimeScriptPath],
+                {
+                    cwd: process.cwd(),
+                    stdio: "inherit",
+                },
+            ],
+        ]);
     });
 
     it("runs Vitest from the repository root", () => {
