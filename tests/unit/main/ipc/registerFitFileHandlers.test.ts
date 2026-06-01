@@ -92,13 +92,13 @@ describe("registerFitFileHandlers", () => {
             registerIpcHandle,
         } = await createFitFileHandlerTestContext();
 
-        expect(() => {
+        expect(
             registerFitFileHandlers({
                 ensureFitParserStateIntegration,
                 logWithContext,
                 registerIpcHandle: undefined,
-            });
-        }).not.toThrow();
+            })
+        ).toBeUndefined();
 
         expect(registerIpcHandle).not.toHaveBeenCalled();
         expect(ensureFitParserStateIntegration).not.toHaveBeenCalled();

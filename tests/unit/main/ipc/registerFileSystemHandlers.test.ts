@@ -66,13 +66,13 @@ describe("registerFileSystemHandlers", () => {
     it("no-ops when registerIpcHandle is not a function", () => {
         expect.assertions(3);
 
-        expect(() => {
+        expect(
             registerFileSystemHandlers({
                 registerIpcHandle: null,
                 fs: fileSystem,
                 logWithContext,
-            });
-        }).not.toThrow();
+            })
+        ).toBeUndefined();
 
         expect(registerIpcHandle).not.toHaveBeenCalled();
         expect(fileSystem.readFile).not.toHaveBeenCalled();

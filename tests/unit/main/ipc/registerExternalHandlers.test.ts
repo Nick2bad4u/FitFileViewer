@@ -144,15 +144,15 @@ describe("registerExternalHandlers", () => {
         it("does not register handlers when registerIpcHandle is not a function", () => {
             expect.assertions(4);
 
-            expect(() => {
+            expect(
                 registerExternalHandlers({
                     registerIpcHandle: null,
                     shellRef: mockShellRef,
                     startGyazoOAuthServer: mockStartGyazoOAuthServer,
                     stopGyazoOAuthServer: mockStopGyazoOAuthServer,
                     logWithContext: mockLogWithContext,
-                });
-            }).not.toThrow();
+                })
+            ).toBeUndefined();
 
             expect(mockShellRef).not.toHaveBeenCalled();
             expect(mockStartGyazoOAuthServer).not.toHaveBeenCalled();
@@ -162,15 +162,15 @@ describe("registerExternalHandlers", () => {
         it("does not register handlers when registerIpcHandle is undefined", () => {
             expect.assertions(4);
 
-            expect(() => {
+            expect(
                 registerExternalHandlers({
                     registerIpcHandle: undefined,
                     shellRef: mockShellRef,
                     startGyazoOAuthServer: mockStartGyazoOAuthServer,
                     stopGyazoOAuthServer: mockStopGyazoOAuthServer,
                     logWithContext: mockLogWithContext,
-                });
-            }).not.toThrow();
+                })
+            ).toBeUndefined();
 
             expect(mockShellRef).not.toHaveBeenCalled();
             expect(mockStartGyazoOAuthServer).not.toHaveBeenCalled();
@@ -608,14 +608,14 @@ describe("registerExternalHandlers", () => {
         it("handles all dependencies being null/undefined during registration", () => {
             expect.assertions(2);
 
-            expect(() => {
+            expect(
                 registerDefaultHandlers({
                     shellRef: null,
                     startGyazoOAuthServer: null,
                     stopGyazoOAuthServer: null,
                     logWithContext: null,
-                });
-            }).not.toThrow();
+                })
+            ).toBeUndefined();
 
             expect(mockRegisterIpcHandle).toHaveBeenCalledTimes(3);
         });

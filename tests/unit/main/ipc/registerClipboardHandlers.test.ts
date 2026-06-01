@@ -130,14 +130,14 @@ describe("registerClipboardHandlers", () => {
     it("does nothing when registerIpcHandle is not a function", () => {
         expect.assertions(3);
 
-        expect(() => {
+        expect(
             registerClipboardHandlers({
                 registerIpcHandle: null,
                 clipboardRef: mockClipboardRef,
                 nativeImageRef: mockNativeImageRef,
                 logWithContext: mockLogWithContext,
-            });
-        }).not.toThrow();
+            })
+        ).toBeUndefined();
 
         expect(mockClipboardRef).not.toHaveBeenCalled();
         expect(mockRegisterIpcHandle).not.toHaveBeenCalled();

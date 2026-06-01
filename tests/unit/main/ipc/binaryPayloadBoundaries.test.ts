@@ -85,9 +85,14 @@ describe("binary IPC payload boundaries", () => {
     });
 
     it("validates file read byte lengths at the IPC boundary", () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
-        expect(() => fileReadPayload.assertFitFileByteLength(0)).not.toThrow();
+        expect(fileReadPayload.assertFitFileByteLength(0)).toBeUndefined();
+        expect(
+            fileReadPayload.assertFitFileByteLength(
+                fileReadPayload.MAX_FIT_FILE_BYTES
+            )
+        ).toBeUndefined();
         expect(() =>
             fileReadPayload.assertFitFileByteLength(
                 fileReadPayload.MAX_FIT_FILE_BYTES + 1
