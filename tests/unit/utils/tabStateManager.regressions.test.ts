@@ -266,45 +266,72 @@ describe("tabStateManager regressions", () => {
     });
 
     describe("data validation edge cases", () => {
-        it("treats malformed globalData as unavailable data", () => {
-            expect.assertions(2);
+        it("updates required tab availability from recordMesgs presence", () => {
+            expect.assertions(1);
 
-            const testCases = [
-                { recordMesgs: null },
-                { recordMesgs: undefined },
-                { recordMesgs: [] },
-                { recordMesgs: "not-array" },
-                { notRecordMesgs: [{}] },
-                null,
-                undefined,
-            ];
+            const requiredTabIds = Object.values(TAB_CONFIG)
+                .filter((config) => config.requiresData)
+                .map((config) => config.id);
+            const availabilityCases = [
+                { expectedDisabled: true, globalData: { recordMesgs: null } },
+                {
+                    expectedDisabled: true,
+                    globalData: { recordMesgs: undefined },
+                },
+                { expectedDisabled: false, globalData: { recordMesgs: [] } },
+                {
+                    expectedDisabled: false,
+                    globalData: { recordMesgs: "not-array" },
+                },
+                {
+                    expectedDisabled: true,
+                    globalData: { notRecordMesgs: [{}] },
+                },
+                { expectedDisabled: true, globalData: null },
+                { expectedDisabled: true, globalData: undefined },
+            ] as const;
 
-            const results = testCases.map((testData) => {
-                mockGetState.mockReturnValue(testData);
+            const tabStates = availabilityCases.map(
+                ({ expectedDisabled, globalData }) => {
+                    tabStateManager.updateTabAvailability(globalData as never);
 
-                // Test data validation logic
-                const hasValidData = () => {
-                    const globalData = mockGetState("globalData");
-                    return Boolean(
-                        globalData &&
-                        Array.isArray(globalData.recordMesgs) &&
-                        globalData.recordMesgs.length > 0
-                    );
-                };
+                    return {
+                        expectedDisabled,
+                        tabButtons: Object.fromEntries(
+                            requiredTabIds.map((tabId) => {
+                                const button = document.getElementById(
+                                    tabId
+                                ) as HTMLButtonElement;
 
-                return hasValidData();
-            });
+                                return [
+                                    tabId,
+                                    {
+                                        className: button.className,
+                                        disabled: button.disabled,
+                                    },
+                                ];
+                            })
+                        ),
+                    };
+                }
+            );
 
-            expect(results).toEqual([
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-            ]);
-            expect(results).not.toContain(true);
+            expect(tabStates).toStrictEqual(
+                availabilityCases.map(({ expectedDisabled }) => ({
+                    expectedDisabled,
+                    tabButtons: Object.fromEntries(
+                        requiredTabIds.map((tabId) => [
+                            tabId,
+                            {
+                                className: expectedDisabled
+                                    ? "tab-button disabled"
+                                    : "tab-button",
+                                disabled: expectedDisabled,
+                            },
+                        ])
+                    ),
+                }))
+            );
         });
 
         it("does not resolve configuration for invalid tab names", () => {
