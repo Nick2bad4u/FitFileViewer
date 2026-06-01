@@ -187,22 +187,24 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
 
         // Close button removes overlay
         (overlay2.querySelector("#imgur-close") as HTMLButtonElement).click();
-        expect(overlay2.isConnected).toBe(false);
+        expect(overlay2).toHaveProperty("isConnected", false);
 
         // Reopen and test ESC
         exportUtils.showImgurAccountManager();
         const overlay3 = document.querySelector(".imgur-account-manager-modal")
             ?.parentElement as HTMLElement;
-        expect(overlay3.contains(document.activeElement)).toBe(false);
+        expect(
+            document.activeElement?.closest(".imgur-account-manager-modal")
+        ).toBeNull();
         document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
-        expect(overlay3.isConnected).toBe(false);
+        expect(overlay3).toHaveProperty("isConnected", false);
 
         // Reopen and test click outside
         exportUtils.showImgurAccountManager();
         const overlay4 = document.querySelector(".imgur-account-manager-modal")
             ?.parentElement as HTMLElement;
         overlay4.click(); // event target is overlay
-        expect(overlay4.isConnected).toBe(false);
+        expect(overlay4).toHaveProperty("isConnected", false);
     });
 
     it("imgur account manager: does not inject stored clientId as HTML", async () => {
@@ -335,7 +337,7 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         (
             overlay1.querySelector("#clear-all-data") as HTMLButtonElement
         ).click();
-        expect(overlay1.isConnected).toBe(false);
+        expect(overlay1).toHaveProperty("isConnected", false);
         (globalThis as TestGlobal).confirm = oldConfirm;
 
         // Reopen then close button
@@ -343,21 +345,21 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         const overlay2 = document.querySelector(".gyazo-account-manager-modal")
             ?.parentElement as HTMLElement;
         (overlay2.querySelector("#gyazo-close") as HTMLButtonElement).click();
-        expect(overlay2.isConnected).toBe(false);
+        expect(overlay2).toHaveProperty("isConnected", false);
 
         // ESC
         exportUtils.showGyazoAccountManager();
         const overlay3 = document.querySelector(".gyazo-account-manager-modal")
             ?.parentElement as HTMLElement;
         document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
-        expect(overlay3.isConnected).toBe(false);
+        expect(overlay3).toHaveProperty("isConnected", false);
 
         // Click outside
         exportUtils.showGyazoAccountManager();
         const overlay4 = document.querySelector(".gyazo-account-manager-modal")
             ?.parentElement as HTMLElement;
         overlay4.click();
-        expect(overlay4.isConnected).toBe(false);
+        expect(overlay4).toHaveProperty("isConnected", false);
     });
 
     it("gyazo account manager: does not inject stored credentials as HTML", async () => {
