@@ -132,7 +132,7 @@ afterEach(() => {
 
 describe("renderZoneChartNew", () => {
     it("returns early when container is invalid or zone data is empty", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const { renderZoneChart } = await loadModule();
 
@@ -155,7 +155,7 @@ describe("renderZoneChartNew", () => {
     });
 
     it("creates a doughnut chart using provided zone colors and updates legend + tooltips", async () => {
-        expect.hasAssertions();
+        expect.assertions(17);
 
         const { renderZoneChart } = await loadModule();
 
@@ -213,7 +213,7 @@ describe("renderZoneChartNew", () => {
     });
 
     it("creates a bar chart using zone type colors and applies theme-aware settings", async () => {
-        expect.hasAssertions();
+        expect.assertions(12);
 
         detectCurrentThemeMock.mockReturnValue("dark");
         getThemeConfigMock.mockReturnValue({
@@ -279,7 +279,7 @@ describe("renderZoneChartNew", () => {
     });
 
     it("logs an error when chart creation fails", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         chartConstructorMock.mockImplementation(() => {
             throw new Error("chart boom");
