@@ -127,6 +127,15 @@ function getLatestChartConfig(): ChartConfig {
     return config;
 }
 
+function getLatestChartCall(): [HTMLCanvasElement, ChartConfig] {
+    const call = Chart.mock.calls[0];
+    if (!call) {
+        throw new Error("Expected Chart to be called");
+    }
+
+    return call;
+}
+
 function getRenderState(container: HTMLElement): {
     chartCalls: number;
     childCount: number;
@@ -319,10 +328,8 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
             renderPowerVsHeartRateChart(container, data, options);
 
-            expect(Chart).toHaveBeenCalledWith(
-                expect.any(HTMLCanvasElement),
-                expect.any(Object)
-            );
+            const [canvas] = getLatestChartCall();
+            expect(canvas).toBeInstanceOf(HTMLCanvasElement);
             const chartConfig = getLatestChartConfig();
             expect(chartConfig.data.datasets[0].data).toEqual([
                 { x: 120, y: 200 },
@@ -369,10 +376,8 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
             renderPowerVsHeartRateChart(container, data, options);
 
-            expect(Chart).toHaveBeenCalledWith(
-                expect.any(HTMLCanvasElement),
-                expect.any(Object)
-            );
+            const [canvas] = getLatestChartCall();
+            expect(canvas).toBeInstanceOf(HTMLCanvasElement);
             const chartConfig = getLatestChartConfig();
             expect(
                 chartConfig.data.datasets[0].data.length
@@ -396,10 +401,8 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
             renderPowerVsHeartRateChart(container, data, options);
 
-            expect(Chart).toHaveBeenCalledWith(
-                expect.any(HTMLCanvasElement),
-                expect.any(Object)
-            );
+            const [canvas] = getLatestChartCall();
+            expect(canvas).toBeInstanceOf(HTMLCanvasElement);
             const chartConfig = getLatestChartConfig();
             expect(chartConfig.data.datasets[0].data).toHaveLength(50);
             expect(chartConfig.data.datasets[0].data?.at(-1)).toStrictEqual({
@@ -423,10 +426,8 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
             renderPowerVsHeartRateChart(container, data, options);
 
-            expect(Chart).toHaveBeenCalledWith(
-                expect.any(HTMLCanvasElement),
-                expect.any(Object)
-            );
+            const [canvas] = getLatestChartCall();
+            expect(canvas).toBeInstanceOf(HTMLCanvasElement);
             const chartConfig = getLatestChartConfig();
             expect(chartConfig.data.datasets[0].data).toStrictEqual([
                 { x: 120, y: 200 },
@@ -497,10 +498,8 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
             renderPowerVsHeartRateChart(container, data, options);
 
-            expect(Chart).toHaveBeenCalledWith(
-                expect.any(HTMLCanvasElement),
-                expect.any(Object)
-            );
+            const [canvas] = getLatestChartCall();
+            expect(canvas).toBeInstanceOf(HTMLCanvasElement);
             const chartConfig = getLatestChartConfig();
 
             expect(chartConfig.type).toBe("scatter");
@@ -533,7 +532,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
             let chartConfig = getLatestChartConfig();
             expect(chartConfig.options.plugins.legend).toMatchObject({
                 display: true,
-                labels: { color: expect.any(String) },
+                labels: { color: "#fff" },
             });
 
             Chart.mockClear();
@@ -546,7 +545,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
             chartConfig = getLatestChartConfig();
             expect(chartConfig.options.plugins.legend).toMatchObject({
                 display: false,
-                labels: { color: expect.any(String) },
+                labels: { color: "#fff" },
             });
         });
 
@@ -829,7 +828,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
             expect(
                 chartConfig.options.plugins.chartBackgroundColorPlugin
             ).toStrictEqual({
-                backgroundColor: expect.any(String),
+                backgroundColor: "#181c24",
             });
         });
     });
@@ -897,8 +896,9 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
             expect.assertions(2);
 
             mockLocalStorage.getItem.mockReturnValue(null);
-            Chart.mockImplementation(() => {
-                throw new Error("Chart creation failed");
+            const chartCreationError = new Error("Chart creation failed");
+            Chart.mockImplementation(function ChartConstructor() {
+                throw chartCreationError;
             });
 
             const container = document.createElement("div");
@@ -909,7 +909,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
             expect(console.error).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering power vs heart rate chart:",
-                expect.any(Error)
+                chartCreationError
             );
             expect(global.window._chartjsInstances).toStrictEqual([]);
         });
@@ -948,10 +948,8 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
             renderPowerVsHeartRateChart(container, data, options);
 
-            expect(Chart).toHaveBeenCalledWith(
-                expect.any(HTMLCanvasElement),
-                expect.any(Object)
-            );
+            const [canvas] = getLatestChartCall();
+            expect(canvas).toBeInstanceOf(HTMLCanvasElement);
             const chartConfig = getLatestChartConfig();
             expect(chartConfig.data.datasets[0].data).toEqual([
                 { x: 120, y: 0 },
@@ -973,10 +971,8 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
             renderPowerVsHeartRateChart(container, data, options);
 
-            expect(Chart).toHaveBeenCalledWith(
-                expect.any(HTMLCanvasElement),
-                expect.any(Object)
-            );
+            const [canvas] = getLatestChartCall();
+            expect(canvas).toBeInstanceOf(HTMLCanvasElement);
             const chartConfig = getLatestChartConfig();
             expect(chartConfig.data.datasets[0].data).toEqual([
                 { x: 0, y: 200 },
@@ -998,10 +994,8 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
             renderPowerVsHeartRateChart(container, data, options);
 
-            expect(Chart).toHaveBeenCalledWith(
-                expect.any(HTMLCanvasElement),
-                expect.any(Object)
-            );
+            const [canvas] = getLatestChartCall();
+            expect(canvas).toBeInstanceOf(HTMLCanvasElement);
             const chartConfig = getLatestChartConfig();
             expect(
                 chartConfig.data.datasets[0].data.length
@@ -1026,10 +1020,8 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
             renderPowerVsHeartRateChart(container, data, options);
 
-            expect(Chart).toHaveBeenCalledWith(
-                expect.any(HTMLCanvasElement),
-                expect.any(Object)
-            );
+            const [canvas] = getLatestChartCall();
+            expect(canvas).toBeInstanceOf(HTMLCanvasElement);
             const chartConfig = getLatestChartConfig();
             expect(chartConfig.data.datasets[0].data).toEqual([
                 { x: 120, y: 200 },
@@ -1095,8 +1087,8 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
             expect(container.children).toHaveLength(1);
             expect(container.children[0].tagName).toBe("CANVAS");
             expect(getLatestChartConfig().data.datasets[0]).toMatchObject({
-                backgroundColor: expect.any(String),
-                borderColor: expect.any(String),
+                backgroundColor: "#f59e0b99",
+                borderColor: "#f59e0b",
                 data: [{ x: 120, y: 200 }],
             });
         });
@@ -1149,10 +1141,8 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
             renderPowerVsHeartRateChart(container, data, options);
 
-            expect(Chart).toHaveBeenCalledWith(
-                expect.any(HTMLCanvasElement),
-                expect.any(Object)
-            );
+            const [canvas] = getLatestChartCall();
+            expect(canvas).toBeInstanceOf(HTMLCanvasElement);
             const chartConfig = getLatestChartConfig();
             expect(chartConfig.data.datasets[0].data).toHaveLength(6);
             expect(chartConfig.data.datasets[0].label).toBe(
@@ -1180,10 +1170,8 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
             renderPowerVsHeartRateChart(container, data, options);
 
-            expect(Chart).toHaveBeenCalledWith(
-                expect.any(HTMLCanvasElement),
-                expect.any(Object)
-            );
+            const [canvas] = getLatestChartCall();
+            expect(canvas).toBeInstanceOf(HTMLCanvasElement);
             const chartConfig = getLatestChartConfig();
             expect(chartConfig.data.datasets[0].data).toContainEqual({
                 x: 165,
