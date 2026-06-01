@@ -21,7 +21,7 @@ describe("fitFileStateManager - domain logic and selectors", () => {
     });
 
     it("assessDataQuality handles missing/empty and computes coverage/flags", () => {
-        expect.hasAssertions();
+        expect.assertions(12);
 
         const mgr = new FitFileStateManager();
         // No data
@@ -63,7 +63,7 @@ describe("fitFileStateManager - domain logic and selectors", () => {
     });
 
     it("extractors handle null/valid objects", () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         const mgr = new FitFileStateManager();
         expect(mgr.extractActivityInfo(null as any)).toBeNull();
@@ -129,7 +129,7 @@ describe("fitFileStateManager - domain logic and selectors", () => {
     });
 
     it("getRecordCount handles null and arrays", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const mgr = new FitFileStateManager();
         expect(mgr.getRecordCount(null as any)).toBe(0);
@@ -148,7 +148,7 @@ describe("fitFileStateManager - domain logic and selectors", () => {
     });
 
     it("clearFileState sets all related paths and logs", () => {
-        expect.hasAssertions();
+        expect.assertions(9);
 
         const mgr = new FitFileStateManager();
         const spy = vi.spyOn(stateManager, "setState");
@@ -172,7 +172,7 @@ describe("fitFileStateManager - domain logic and selectors", () => {
     });
 
     it("startFileLoading sets loading flags and current file", () => {
-        expect.hasAssertions();
+        expect.assertions(9);
 
         const mgr = new FitFileStateManager();
         const spy = vi.spyOn(stateManager, "setState");
@@ -203,7 +203,7 @@ describe("fitFileStateManager - domain logic and selectors", () => {
     });
 
     it("handleFileLoaded updates domain + legacy slices and notifies", () => {
-        expect.hasAssertions();
+        expect.assertions(14);
 
         const mgr = new FitFileStateManager();
         const ss = vi.spyOn(stateManager, "setState");
@@ -308,7 +308,7 @@ describe("fitFileStateManager - domain logic and selectors", () => {
     });
 
     it("handleFileLoadingError records error once and notifies", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const mgr = new FitFileStateManager();
         const ss = vi.spyOn(stateManager, "setState");
@@ -339,7 +339,7 @@ describe("fitFileStateManager - domain logic and selectors", () => {
     });
 
     it("handleFileLoadingError ignores nullish and duplicate normalized values", () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         const mgr = new FitFileStateManager();
         const ss = vi.spyOn(stateManager, "setState");
@@ -381,7 +381,7 @@ describe("fitFileStateManager - domain logic and selectors", () => {
     });
 
     it("processFileData sets processedData; error path sets processingError", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const mgr = new FitFileStateManager();
         mgr.processFileData({ recordMesgs: [{ heart_rate: 100 }] });
@@ -417,7 +417,7 @@ describe("fitFileStateManager - domain logic and selectors", () => {
     });
 
     it("sets up subscriptions for processing, loading, and validation", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const subscribeCalls: Array<{ cb: StateListener; path: string }> = [];
         const subSpy = vi
@@ -475,7 +475,7 @@ describe("fitFileStateManager - domain logic and selectors", () => {
     });
 
     it("updateFileMetrics merges metrics into state", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const mgr = new FitFileStateManager();
         const uspy = vi.spyOn(stateManager, "updateState");
@@ -515,7 +515,7 @@ describe("fitFileStateManager - domain logic and selectors", () => {
     });
 
     it("updateLoadingProgress updates ui.loadingIndicator state", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const mgr = new FitFileStateManager();
         const uspy = vi.spyOn(stateManager, "updateState");
@@ -534,7 +534,7 @@ describe("fitFileStateManager - domain logic and selectors", () => {
     });
 
     it("validateFileData sets validation, shows error/warning/happy notifications", () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         const mgr = new FitFileStateManager();
         const ss = vi.spyOn(stateManager, "setState");
@@ -590,7 +590,7 @@ describe("fitFileStateManager - domain logic and selectors", () => {
     });
 
     it("fitFileSelectors read values from state", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         // Use real state manager setters
         stateManager.setState("fitFile.currentFile", "A", { source: "test" });
