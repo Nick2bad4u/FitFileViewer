@@ -15,16 +15,18 @@
 ```text
 FitFileViewer/                          # Root directory
 ├── .github/                            # GitHub configuration & workflows
-├── docs/                              # Documentation files
-├── electron-app/                      # Main application directory
-├── fit-test-files/                   # Test FIT files for development
-├── logs/                             # Application logs
-├── utils/                            # Shared utilities (legacy)
-├── README.md                         # Project overview & usage
-├── LICENSE.md                        # Project license
-├── CHANGELOG.md                      # Version history
-├── package.json                      # Root package configuration
-└── [Config Files]                    # Various configuration files
+├── docs/                               # Root engineering documentation
+├── docusaurus/                         # Documentation site workspace
+├── electron-app/                       # Electron source compiled by root scripts
+├── fit-test-files/                     # Real FIT files for development and smoke tests
+├── scripts/                            # Root-owned build, lint, test, and release helpers
+├── static/                             # Canonical app shell, icons, and embedded viewer assets
+├── tests/                              # Root-owned Vitest and Electron Playwright tests
+├── README.md                           # Project overview & usage
+├── LICENSE.md                          # Project license
+├── CHANGELOG.md                        # Version history
+├── package.json                        # Root app manifest, scripts, and dependencies
+└── [Config Files]                      # Root-owned lint, format, build, and TypeScript configs
 ```
 
 ## Core Application Files
@@ -49,7 +51,7 @@ electron-app/
 │   ├── Global event handlers
 │   └── Performance monitoring
 │
-├── preload.ts                        # Security bridge source bundled into dist/preload.js
+├── preload.ts                        # Security bridge source bundled into electron-app/dist/preload.js
 │   ├── Context bridge setup
 │   ├── IPC API exposure
 │   ├── Security validation
@@ -415,12 +417,12 @@ docs/
 
 ```text
 static/
-├── app/                            # Main HTML and CSS source copied into runtime dist
+├── app/                            # Main HTML and CSS source copied into electron-app/dist
 │   ├── index.html                  # Main application HTML
 │   ├── style.css                   # Application styling and themes
 │   └── elevProfile.css             # Elevation profile styling
-├── ffv/                            # Alternative FIT viewer web app source copied into runtime dist
-└── icons/                          # Application icon source copied into runtime dist
+├── ffv/                            # Alternative FIT viewer web app source copied into electron-app/dist
+└── icons/                          # Application icon source copied into electron-app/dist
     ├── favicon.ico                 # Main application icon
     ├── favicon-256x256.ico         # Windows icon
     ├── favicon-512x512.icns        # macOS icon
@@ -472,14 +474,14 @@ Root Level Files:
 
 ### Critical Application Files
 
-| File                                      | Size/Complexity           | Primary Responsibility               |
-| ----------------------------------------- | ------------------------- | ------------------------------------ |
-| `main.ts`                                 | Main entry source         | Electron main process, app lifecycle |
-| `utils/config/index.ts`                   | Root-built runtime source | Centralized configuration            |
-| `utils/errors/index.ts`                   | Root-built runtime source | Unified error handling               |
-| `utils/state/core/unifiedStateManager.ts` | Root-built runtime source | State management facade              |
-| `fitParser.ts`                            | Parser source             | FIT file parsing logic               |
-| `main-ui.ts`                              | UI source                 | UI management and tabs               |
+| File                                                   | Size/Complexity           | Primary Responsibility               |
+| ------------------------------------------------------ | ------------------------- | ------------------------------------ |
+| `electron-app/main.ts`                                 | Main entry source         | Electron main process, app lifecycle |
+| `electron-app/utils/config/index.ts`                   | Root-built runtime source | Centralized configuration            |
+| `electron-app/utils/errors/index.ts`                   | Root-built runtime source | Unified error handling               |
+| `electron-app/utils/state/core/unifiedStateManager.ts` | Root-built runtime source | State management facade              |
+| `electron-app/fitParser.ts`                            | Parser source             | FIT file parsing logic               |
+| `electron-app/main-ui.ts`                              | UI source                 | UI management and tabs               |
 
 ### Module Distribution
 

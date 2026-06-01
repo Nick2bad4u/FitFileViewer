@@ -33,7 +33,7 @@ This document provides a high-level tour of the FitFileViewer codebase, covering
 ## Runtime Architecture
 
 ```text
-Launcher → main.ts → BrowserWindow preload:dist/preload.js → renderer dist/renderer.js
+Launcher → main.ts → BrowserWindow preload:electron-app/dist/preload.js → renderer electron-app/dist/renderer.js
                        │                                    │
                        │ (IPC handlers, auto-update,        │ (State manager bootstrap,
                        │  recent files, menu, logging)      │  DOM hooks, UI modules)
@@ -42,7 +42,7 @@ Launcher → main.ts → BrowserWindow preload:dist/preload.js → renderer dist
 ```
 
 1. **Main process (`main.ts`)** builds application state, creates the BrowserWindow via `windowStateUtils`, instantiates menus, registers IPC handlers, and configures auto updates.
-2. **Preload (`preload.ts`)** is bundled by the root build into `dist/preload.js` and exposes a typed `electronAPI` surface (file dialogs, version info, recent files, FIT parsing, update events, theme events, etc.) using context isolation.
+2. **Preload (`preload.ts`)** is bundled by the root build into `electron-app/dist/preload.js` and exposes a typed `electronAPI` surface (file dialogs, version info, recent files, FIT parsing, update events, theme events, etc.) using context isolation.
 3. **Renderer (`renderer.ts`)** is compiled by the root runtime build, lazily resolves modules through `ensureCoreModules()`, initializes the master state manager, wires legacy compatibility proxies, registers DOM listeners, and orchestrates charts, maps, and notifications.
 4. **State management** is centralized in `utils/state/core/stateManager.js`, while domain-specific managers (e.g., `fitFileStateManager`, `uiStateManager`, `settingsStateManager`) sit under `utils/state/domain/`.
 

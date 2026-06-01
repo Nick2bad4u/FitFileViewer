@@ -52,4 +52,28 @@ describe("source entrypoint documentation", () => {
         expect(docs).not.toContain("├── main-ui.js");
         expect(docs).not.toContain("| `main.js`");
     });
+
+    it("documents runtime output under electron-app/dist instead of bare dist", () => {
+        expect.assertions(2);
+
+        const docs = [
+            readWorkspaceFile("docs/APPLICATION_LAYOUT.md"),
+            readWorkspaceFile("docs/APPLICATION_OVERVIEW.md"),
+        ].join("\n");
+
+        expect(docs).toContain("electron-app/dist/preload.js");
+        expect(docs).not.toMatch(
+            /(?:preload:dist\/preload\.js|(?<!electron-app\/)dist\/preload\.js|renderer dist\/renderer\.js|runtime dist)/u
+        );
+    });
+
+    it("keeps the root layout guide from documenting removed top-level directories", () => {
+        expect.assertions(1);
+
+        const layoutGuide = readWorkspaceFile("docs/APPLICATION_LAYOUT.md");
+
+        expect(layoutGuide).not.toMatch(
+            /├── (?:logs|utils)\/\s+# (?:Application logs|Shared utilities \(legacy\))/u
+        );
+    });
 });
