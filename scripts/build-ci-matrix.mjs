@@ -4,6 +4,11 @@ import process from "node:process";
 import { pathToFileURL } from "node:url";
 
 import {
+    readInlineOptionValue,
+    readOptionValue,
+    requireOption,
+} from "./lib/cli-options.mjs";
+import {
     repositoryRoot,
     rootReleaseDistPath,
     runElectronBuilderScriptPath,
@@ -334,26 +339,6 @@ Options:
   -h, --help                         Show this help text.`);
 }
 
-function readInlineOptionValue(arg, optionName) {
-    const value = arg.slice(`${optionName}=`.length);
-
-    if (!value) {
-        throw new Error(`${optionName} requires a value`);
-    }
-
-    return value;
-}
-
-function readOptionValue(args, index, optionName) {
-    const value = args[index + 1];
-
-    if (!value || value.startsWith("-")) {
-        throw new Error(`${optionName} requires a value`);
-    }
-
-    return value;
-}
-
 function readPositiveIntegerInlineOption(arg, optionName) {
     return toPositiveInteger(
         readInlineOptionValue(arg, optionName),
@@ -370,12 +355,6 @@ function readPositiveIntegerOption(args, index, optionName) {
 
 function removeDirectorySync(directory) {
     fs.rmSync(directory, { force: true, recursive: true });
-}
-
-function requireOption(value, optionName) {
-    if (!value) {
-        throw new Error(`${optionName} is required`);
-    }
 }
 
 function runCommandSync(command, args) {

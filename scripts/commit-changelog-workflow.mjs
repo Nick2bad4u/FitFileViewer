@@ -2,6 +2,11 @@ import { spawnSync } from "node:child_process";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
+import {
+    readInlineOptionValue,
+    readOptionValue,
+    requireOption,
+} from "./lib/cli-options.mjs";
 import { repositoryRoot } from "./lib/workspaces.mjs";
 
 const BOT_EMAIL = "41898282+github-actions[bot]@users.noreply.github.com";
@@ -161,32 +166,6 @@ Options:
   --version <version>              Changelog version. Defaults to CHANGELOG_VERSION.
   --target-branch <branch>         Branch to push to. Defaults to TARGET_BRANCH.
   -h, --help                       Show this help text.`);
-}
-
-function readInlineOptionValue(arg, optionName) {
-    const value = arg.slice(`${optionName}=`.length);
-
-    if (!value) {
-        throw new Error(`${optionName} requires a value`);
-    }
-
-    return value;
-}
-
-function readOptionValue(args, index, optionName) {
-    const value = args[index + 1];
-
-    if (!value || value.startsWith("-")) {
-        throw new Error(`${optionName} requires a value`);
-    }
-
-    return value;
-}
-
-function requireOption(value, optionName) {
-    if (!value) {
-        throw new Error(`${optionName} is required`);
-    }
 }
 
 function runGit(args, options) {

@@ -3,6 +3,7 @@ import fs from "node:fs";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
+import { readInlineOptionValue, readOptionValue } from "./lib/cli-options.mjs";
 import {
     repositoryRoot as defaultRepositoryRoot,
     rootPackageRepositoryPath,
@@ -270,26 +271,6 @@ Options:
   --github-output     Append bump_sha to GITHUB_OUTPUT for GitHub Actions.
   --dry-run           Print the planned publish result without running git.
   -h, --help          Show this help text.`);
-}
-
-function readInlineOptionValue(arg, optionName) {
-    const value = arg.slice(`${optionName}=`.length);
-
-    if (!value) {
-        throw new Error(`${optionName} requires a value`);
-    }
-
-    return value;
-}
-
-function readOptionValue(args, index, optionName) {
-    const value = args[index + 1];
-
-    if (!value || value.startsWith("-")) {
-        throw new Error(`${optionName} requires a value`);
-    }
-
-    return value;
 }
 
 function runCommand(command, args, options) {

@@ -3,6 +3,7 @@ import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
+import { readInlineOptionValue, readOptionValue } from "./lib/cli-options.mjs";
 import { rootArtifactsPath, rootReleaseDistPath } from "./lib/workspaces.mjs";
 
 export const defaultArtifactsDirectory = rootArtifactsPath;
@@ -260,24 +261,4 @@ Options:
   --artifacts-directory <path>  Artifacts directory. Defaults to artifacts.
   --output-directory <path>     Output directory. Defaults to release-dist.
   -h, --help                    Show this help text.`);
-}
-
-function readInlineOptionValue(arg, optionName) {
-    const value = arg.slice(`${optionName}=`.length);
-
-    if (!value) {
-        throw new Error(`${optionName} requires a value`);
-    }
-
-    return value;
-}
-
-function readOptionValue(args, index, optionName) {
-    const value = args[index + 1];
-
-    if (!value || value.startsWith("-")) {
-        throw new Error(`${optionName} requires a value`);
-    }
-
-    return value;
 }

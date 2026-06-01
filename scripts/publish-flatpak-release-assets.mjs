@@ -5,6 +5,11 @@ import process from "node:process";
 import { pathToFileURL } from "node:url";
 
 import {
+    readInlineOptionValue,
+    readOptionValue,
+    requireOption,
+} from "./lib/cli-options.mjs";
+import {
     repositoryRoot,
     rootFlatpakBundlePath,
     rootFlatpakZipPath,
@@ -136,30 +141,4 @@ Options:
   --release-tag <tag>  Release tag to upload to. Defaults to RELEASE_TAG.
   --root <path>        Workspace root containing ${rootFlatpakBundlePath}.
   -h, --help           Show this help text.`);
-}
-
-function readInlineOptionValue(arg, optionName) {
-    const value = arg.slice(`${optionName}=`.length);
-
-    if (!value) {
-        throw new Error(`${optionName} requires a value`);
-    }
-
-    return value;
-}
-
-function readOptionValue(args, index, optionName) {
-    const value = args[index + 1];
-
-    if (!value || value.startsWith("-")) {
-        throw new Error(`${optionName} requires a value`);
-    }
-
-    return value;
-}
-
-function requireOption(value, optionName) {
-    if (!value) {
-        throw new Error(`${optionName} is required`);
-    }
 }

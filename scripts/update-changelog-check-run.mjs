@@ -3,6 +3,12 @@ import fs from "node:fs";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
+import {
+    readInlineOptionValue,
+    readOptionValue,
+    requireOption,
+} from "./lib/cli-options.mjs";
+
 const CHECK_RUN_NAME = "Update ChangeLogs";
 const GITHUB_JSON_HEADERS = [
     "-H",
@@ -256,26 +262,6 @@ Options:
   -h, --help                       Show this help text.`);
 }
 
-function readInlineOptionValue(arg, optionName) {
-    const value = arg.slice(`${optionName}=`.length);
-
-    if (!value) {
-        throw new Error(`${optionName} requires a value`);
-    }
-
-    return value;
-}
-
-function readOptionValue(args, index, optionName) {
-    const value = args[index + 1];
-
-    if (!value || value.startsWith("-")) {
-        throw new Error(`${optionName} requires a value`);
-    }
-
-    return value;
-}
-
 function requireKnownAction(action) {
     if (
         ![
@@ -285,12 +271,6 @@ function requireKnownAction(action) {
         ].includes(action)
     ) {
         throw new Error(`Unknown action: ${action}`);
-    }
-}
-
-function requireOption(value, optionName) {
-    if (!value) {
-        throw new Error(`${optionName} is required`);
     }
 }
 

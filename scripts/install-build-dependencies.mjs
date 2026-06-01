@@ -2,6 +2,11 @@ import { execFileSync } from "node:child_process";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
+import {
+    readInlineOptionValue,
+    readOptionValue,
+    requireOption,
+} from "./lib/cli-options.mjs";
 import { repositoryRoot } from "./lib/workspaces.mjs";
 
 const linuxCommands = [
@@ -198,30 +203,4 @@ function printUsage() {
 Options:
   --platform <Linux|macOS|Windows>  Platform to install for. Defaults to RUNNER_OS.
   -h, --help                        Show this help text.`);
-}
-
-function readInlineOptionValue(arg, optionName) {
-    const value = arg.slice(`${optionName}=`.length);
-
-    if (!value) {
-        throw new Error(`${optionName} requires a value`);
-    }
-
-    return value;
-}
-
-function readOptionValue(args, index, optionName) {
-    const value = args[index + 1];
-
-    if (!value || value.startsWith("-")) {
-        throw new Error(`${optionName} requires a value`);
-    }
-
-    return value;
-}
-
-function requireOption(value, optionName) {
-    if (!value) {
-        throw new Error(`${optionName} is required`);
-    }
 }

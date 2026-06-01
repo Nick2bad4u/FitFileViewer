@@ -3,6 +3,7 @@ import fs from "node:fs";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
+import { readInlineOptionValue, readOptionValue } from "./lib/cli-options.mjs";
 import { repositoryRoot as defaultRepositoryRoot } from "./lib/workspaces.mjs";
 
 if (
@@ -255,24 +256,4 @@ Options:
   --repository-root <path>    Git repository root. Defaults to this repository root.
   --github-output             Append notes to GITHUB_OUTPUT for GitHub Actions.
   -h, --help                  Show this help text.`);
-}
-
-function readInlineOptionValue(arg, optionName) {
-    const value = arg.slice(`${optionName}=`.length);
-
-    if (!value) {
-        throw new Error(`${optionName} requires a value`);
-    }
-
-    return value;
-}
-
-function readOptionValue(args, index, optionName) {
-    const value = args[index + 1];
-
-    if (!value || value.startsWith("-")) {
-        throw new Error(`${optionName} requires a value`);
-    }
-
-    return value;
 }
