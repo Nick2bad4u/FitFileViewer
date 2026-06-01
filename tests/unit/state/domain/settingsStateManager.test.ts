@@ -263,13 +263,13 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
                 const result = settingsStateManager.getSetting("ui");
 
-                // Should include defaults plus the stored settings
-                expect(result).toEqual(
-                    expect.objectContaining({
-                        setting1: "value1",
-                        setting2: "value2",
-                    })
-                );
+                expect(result).toStrictEqual({
+                    animationsEnabled: true,
+                    compactMode: false,
+                    setting1: "value1",
+                    setting2: "value2",
+                    showAdvancedControls: false,
+                });
             });
 
             it("should get specific key from ui setting", () => {
@@ -421,27 +421,46 @@ describe("settingsStateManager.js - simplified coverage", () => {
         describe("initialize", () => {
             it("should initialize settings state manager", async () => {
                 expect.hasAssertions();
+                const mockDate = 1234567890;
+                vi.useFakeTimers();
+                vi.setSystemTime(new Date(mockDate));
+
                 await settingsStateManager.initialize();
 
                 expect(settingsStateManager.initialized).toStrictEqual(true);
                 expect(mockSetState).toHaveBeenCalledWith(
                     "settings",
-                    expect.objectContaining({
-                        chart: expect.any(Object),
-                        export: expect.any(Object),
+                    {
+                        chart: {},
+                        export: {
+                            format: "png",
+                            includeWatermark: false,
+                            quality: 0.9,
+                            theme: "auto",
+                        },
                         isLoading: false,
-                        lastModified: expect.any(Number),
-                        mapTheme: expect.any(Boolean),
+                        lastModified: mockDate,
+                        mapTheme: true,
                         migrationVersion: "1.0.0",
-                        theme: expect.any(String),
-                        ui: expect.any(Object),
-                        units: expect.any(Object),
-                    }),
+                        theme: "dark",
+                        ui: {
+                            animationsEnabled: true,
+                            compactMode: false,
+                            showAdvancedControls: false,
+                        },
+                        units: {
+                            distance: "metric",
+                            temperature: "celsius",
+                            time: "24h",
+                        },
+                    },
                     { source: "SettingsStateManager.initialize" }
                 );
                 expect(settingsStateManager.initialized).not.toStrictEqual(
                     false
                 );
+
+                vi.useRealTimers();
             });
 
             it("should skip if already initialized", async () => {
@@ -574,9 +593,9 @@ describe("settingsStateManager.js - simplified coverage", () => {
                 expect(mockSetState).toHaveBeenCalledWith(
                     "settings.theme",
                     "light",
-                    expect.objectContaining({
+                    {
                         source: "SettingsStateManager.syncFromLocalStorage",
-                    })
+                    }
                 );
             });
         });
@@ -777,16 +796,41 @@ describe("settingsStateManager.js - simplified coverage", () => {
             it("should delegate to settingsStateManager.exportSettings", () => {
                 expect.hasAssertions();
                 const { exportAllSettings } = settingsStateManagerModule;
+                const mockDate = 1234567890;
+                vi.useFakeTimers();
+                vi.setSystemTime(new Date(mockDate));
 
                 const result = exportAllSettings();
 
-                expect(result).toEqual(
-                    expect.objectContaining({
-                        version: "1.0.0",
-                        settings: expect.any(Object),
-                    })
-                );
-                expect(result.version).not.toBe("2.0.0");
+                expect(result).toStrictEqual({
+                    version: "1.0.0",
+                    timestamp: mockDate,
+                    settings: {
+                        chart: {},
+                        export: {
+                            format: "png",
+                            includeWatermark: false,
+                            quality: 0.9,
+                            theme: "auto",
+                        },
+                        mapTheme: true,
+                        powerEstimation: {},
+                        theme: "dark",
+                        ui: {
+                            animationsEnabled: true,
+                            compactMode: false,
+                            showAdvancedControls: false,
+                        },
+                        units: {
+                            distance: "metric",
+                            temperature: "celsius",
+                            time: "24h",
+                        },
+                    },
+                });
+                expect(result?.version).not.toBe("2.0.0");
+
+                vi.useRealTimers();
             });
         });
 
