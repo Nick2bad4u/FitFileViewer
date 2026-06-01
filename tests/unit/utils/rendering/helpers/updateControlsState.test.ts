@@ -167,7 +167,7 @@ describe(updateControlsState, () => {
                     source: "toggleChartControls",
                 }
             );
-            expect(currentControlsVisible).toBe(true);
+            expect(currentControlsVisible).toStrictEqual(true);
         });
 
         it("should toggle state from true to false", () => {
@@ -185,7 +185,7 @@ describe(updateControlsState, () => {
                     source: "toggleChartControls",
                 }
             );
-            expect(currentControlsVisible).toBe(false);
+            expect(currentControlsVisible).toStrictEqual(false);
         });
 
         it("should handle undefined state", () => {
@@ -202,7 +202,7 @@ describe(updateControlsState, () => {
                     source: "toggleChartControls",
                 }
             );
-            expect(currentControlsVisible).not.toBe(false);
+            expect(currentControlsVisible).not.toStrictEqual(false);
         });
     });
 
@@ -215,7 +215,7 @@ describe(updateControlsState, () => {
             updateControlsState();
 
             expect(mockSetState).not.toHaveBeenCalled();
-            expect(document.body.contains(mockWrapper)).toBe(true);
+            expect(mockWrapper).toHaveProperty("isConnected", true);
         });
 
         it("should return early if wrapper is missing", () => {
@@ -226,7 +226,7 @@ describe(updateControlsState, () => {
             updateControlsState();
 
             expect(mockSetState).not.toHaveBeenCalled();
-            expect(document.body.contains(mockToggleButton)).toBe(true);
+            expect(mockToggleButton).toHaveProperty("isConnected", true);
         });
 
         it("should detect visible controls and update state accordingly", () => {
@@ -245,7 +245,7 @@ describe(updateControlsState, () => {
                     source: "updateControlsState",
                 }
             );
-            expect(currentControlsVisible).toBe(true);
+            expect(currentControlsVisible).toStrictEqual(true);
             expect(mockToggleButton.textContent).toBe("▼ Hide Controls");
             expect(mockToggleButton.getAttribute("aria-expanded")).toBe("true");
             expect(mockWrapper.style.display).toBe("block");
@@ -267,7 +267,7 @@ describe(updateControlsState, () => {
                     source: "updateControlsState",
                 }
             );
-            expect(currentControlsVisible).toBe(false);
+            expect(currentControlsVisible).toStrictEqual(false);
             expect(mockToggleButton.textContent).toBe("▶ Show Controls");
             expect(mockToggleButton.getAttribute("aria-expanded")).toBe(
                 "false"
@@ -294,7 +294,7 @@ describe(updateControlsState, () => {
                     source: "updateControlsState",
                 }
             );
-            expect(currentControlsVisible).toBe(false);
+            expect(currentControlsVisible).toStrictEqual(false);
             expect(mockToggleButton.textContent).toBe("▶ Show Controls");
             expect(mockToggleButton.getAttribute("aria-expanded")).toBe(
                 "false"
@@ -318,7 +318,7 @@ describe(updateControlsState, () => {
                     source: "updateControlsState",
                 }
             );
-            expect(currentControlsVisible).toBe(false);
+            expect(currentControlsVisible).toStrictEqual(false);
             expect(mockToggleButton.textContent).toBe("▶ Show Controls");
             expect(mockToggleButton.getAttribute("aria-expanded")).toBe(
                 "false"
