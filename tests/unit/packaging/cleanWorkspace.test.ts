@@ -92,10 +92,45 @@ describe("clean-workspace script", () => {
                 appTypesPath,
                 docusaurusWorkspaceRelativePath("build"),
                 docusaurusWorkspaceRelativePath("docs", "api"),
+                docusaurusWorkspaceRelativePath("static", "favicon.ico"),
+                docusaurusWorkspaceRelativePath("static", "img", "favicon.ico"),
+                docusaurusWorkspaceRelativePath(
+                    "static",
+                    "img",
+                    "screenshots",
+                    "ChartsV3.png"
+                ),
+                docusaurusWorkspaceRelativePath(
+                    "static",
+                    "img",
+                    "screenshots",
+                    "DataV2.png"
+                ),
+                docusaurusWorkspaceRelativePath(
+                    "static",
+                    "img",
+                    "screenshots",
+                    "MapsV2.png"
+                ),
                 "playwright-report",
                 "test-results",
             ])
         );
+    });
+
+    it("does not treat dependency installs or local editor state as generated cleanup targets", async () => {
+        expect.assertions(1);
+
+        const { cleanupTargets } = await importCleanWorkspace();
+
+        expect(
+            [
+                ".vscode/mcp.json",
+                "docusaurus/node_modules",
+                "node_modules",
+                "package-lock.json",
+            ].filter((target) => cleanupTargets.includes(target))
+        ).toStrictEqual([]);
     });
 
     it("removes generated files and directories under the selected workspace root", async () => {
