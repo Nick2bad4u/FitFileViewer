@@ -53,6 +53,7 @@ export const docusaurusWorkspacePath = path.join(
 );
 export const appAlternativeFitViewPath = "ffv";
 export const appDistPath = appSourceRelativePath("dist");
+export const appDistAbsolutePath = appSourceAbsolutePath("dist");
 export const appDistRendererRepositoryPath = appSourceRepositoryPath(
     "dist",
     "renderer"
@@ -73,6 +74,7 @@ export const rendererVendorGlobalsScriptFileName = `${rendererVendorGlobalsBundl
 export const rendererVendorGlobalsStyleFileName = `${rendererVendorGlobalsBundleName}.css`;
 export const appStyleCssPath = "style.css";
 export const appTypesPath = appSourceRelativePath("types");
+export const appTypesAbsolutePath = appSourceAbsolutePath("types");
 export const docusaurusPackagePath =
     docusaurusWorkspaceAbsolutePath("package.json");
 export const docusaurusPackageRepositoryPath =

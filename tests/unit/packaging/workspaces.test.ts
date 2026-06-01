@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 type WorkspacesModule = {
     appAlternativeFitViewPath: string;
+    appDistAbsolutePath: string;
     appDistPath: string;
     appDistRendererRepositoryPath: string;
     appElevProfileCssPath: string;
@@ -12,6 +13,7 @@ type WorkspacesModule = {
     appLeafletMeasureLitePath: string;
     appRendererVendorGlobalsEntryPath: string;
     appStyleCssPath: string;
+    appTypesAbsolutePath: string;
     appTypesPath: string;
     appSourceAbsolutePath: (...segments: string[]) => string;
     appSourceDirectoryName: string;
@@ -95,7 +97,7 @@ async function importWorkspaces(): Promise<WorkspacesModule> {
 
 describe("workspace path helpers", () => {
     it("centralizes the app source root paths", async () => {
-        expect.assertions(13);
+        expect.assertions(15);
 
         const workspaces = await importWorkspaces();
 
@@ -112,12 +114,18 @@ describe("workspace path helpers", () => {
             path.join(process.cwd(), "docusaurus")
         );
         expect(workspaces.appDistPath).toBe(path.join("electron-app", "dist"));
+        expect(workspaces.appDistAbsolutePath).toBe(
+            path.join(process.cwd(), "electron-app", "dist")
+        );
         expect(workspaces.rootPackagePath).toBe(
             path.join(process.cwd(), "package.json")
         );
         expect(workspaces.rootPackageRepositoryPath).toBe("package.json");
         expect(workspaces.appTypesPath).toBe(
             path.join("electron-app", "types")
+        );
+        expect(workspaces.appTypesAbsolutePath).toBe(
+            path.join(process.cwd(), "electron-app", "types")
         );
         expect(workspaces.appSourceRepositoryPath("main.ts")).toBe(
             "electron-app/main.ts"

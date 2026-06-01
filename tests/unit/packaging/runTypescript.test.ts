@@ -8,6 +8,7 @@ import {
     runTypescriptTask,
 } from "../../../scripts/run-typescript.mjs";
 import {
+    appTypesPath,
     rootElectronAppTsconfigPath,
     rootRuntimeTsconfigPath,
 } from "../../../scripts/lib/workspaces.mjs";
@@ -56,7 +57,7 @@ describe("run-typescript wrapper", () => {
             "--declarationMap",
             "false",
             "--outDir",
-            `./${path.join("electron-app", "types")}`,
+            `./${appTypesPath}`,
         ]);
     });
 

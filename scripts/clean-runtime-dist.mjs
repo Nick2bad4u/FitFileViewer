@@ -4,12 +4,12 @@ import process from "node:process";
 import { pathToFileURL } from "node:url";
 
 import {
-    appSourceAbsolutePath,
+    appDistAbsolutePath,
     appSourceDirectoryName,
     appSourcePath,
 } from "./lib/workspaces.mjs";
 
-export const defaultRuntimeDistPath = appSourceAbsolutePath("dist");
+export const defaultRuntimeDistPath = appDistAbsolutePath;
 
 export function assertInsideAppSource(targetPath, appRoot = appSourcePath) {
     const resolvedRoot = path.resolve(appRoot);
