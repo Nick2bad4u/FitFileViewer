@@ -31,18 +31,24 @@ describe("run-typescript wrapper", () => {
     });
 
     it("builds runtime compile arguments", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
-        expect(buildTypescriptArgs("runtime").slice(1)).toStrictEqual([
+        const args = buildTypescriptArgs("runtime");
+
+        expect(args[0]).toMatch(/[\\/]typescript[\\/]bin[\\/]tsc$/u);
+        expect(args.slice(1)).toStrictEqual([
             "--project",
             rootRuntimeTsconfigPath,
         ]);
     });
 
     it("builds declaration output arguments for the app source directory", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
-        expect(buildTypescriptArgs("declarations").slice(1)).toStrictEqual([
+        const args = buildTypescriptArgs("declarations");
+
+        expect(args[0]).toMatch(/[\\/]typescript[\\/]bin[\\/]tsc$/u);
+        expect(args.slice(1)).toStrictEqual([
             "--project",
             rootElectronAppTsconfigPath,
             "--declaration",
