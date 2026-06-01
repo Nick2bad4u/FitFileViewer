@@ -392,7 +392,7 @@ describe("enableTabButtons behavior", () => {
             // Mock isHTMLElement to return false
             mockIsHTMLElement.mockReturnValue(false);
 
-            expect(() => setTabButtonsEnabled(false)).not.toThrow();
+            setTabButtonsEnabled(false);
 
             // Should still call setState
             expect(mockSetState).toHaveBeenCalledWith(
@@ -405,6 +405,9 @@ describe("enableTabButtons behavior", () => {
             expect(
                 document.getElementById("tab-test")?.hasAttribute("disabled")
             ).toStrictEqual(false);
+            expect(
+                document.getElementById("tab-test")?.hasAttribute("disabled")
+            ).not.toStrictEqual(true);
         });
 
         it("should handle nuclear option for stubborn disabled attributes", () => {
@@ -644,7 +647,22 @@ describe("enableTabButtons behavior", () => {
             expect.hasAssertions();
             appendTabButtons([{ text: "No ID" }]);
 
-            expect(() => debugTabButtons()).not.toThrow();
+            debugTabButtons();
+
+            const buttonWithoutId = testContainer.querySelector(".tab-button");
+            expect({
+                disabled:
+                    buttonWithoutId instanceof HTMLButtonElement
+                        ? buttonWithoutId.disabled
+                        : null,
+                id: buttonWithoutId?.id,
+                tabButtonCount:
+                    testContainer.querySelectorAll(".tab-button").length,
+            }).toStrictEqual({
+                disabled: false,
+                id: "",
+                tabButtonCount: 1,
+            });
             expect(consoleLogSpy).toHaveBeenCalledWith(
                 expect.stringContaining("Button No ID:"),
                 expect.objectContaining({ disabled: false })
@@ -719,9 +737,12 @@ describe("enableTabButtons behavior", () => {
                 { id: "tab-summary", text: "Summary" },
             ]);
 
-            expect(() => testTabButtonClicks()).not.toThrow();
+            testTabButtonClicks();
             getRequiredButton("tab-summary").click();
 
+            expect(getRequiredButton("tab-summary").isConnected).toStrictEqual(
+                true
+            );
             expect(consoleLogSpy).toHaveBeenCalledWith(
                 expect.stringContaining("Added test handler to: tab-summary")
             );
@@ -735,7 +756,16 @@ describe("enableTabButtons behavior", () => {
             expect.hasAssertions();
             appendTabButtons([{ id: "openFileBtn", text: "Open File" }]);
 
-            expect(() => testTabButtonClicks()).not.toThrow();
+            testTabButtonClicks();
+
+            const openFileButton = getRequiredButton("openFileBtn");
+            expect({
+                disabled: openFileButton.disabled,
+                pointerEvents: openFileButton.style.pointerEvents,
+            }).toStrictEqual({
+                disabled: false,
+                pointerEvents: "",
+            });
             expect(consoleLogSpy).not.toHaveBeenCalledWith(
                 expect.stringContaining("Added test handler to: openFileBtn")
             );
@@ -874,10 +904,24 @@ describe("enableTabButtons behavior", () => {
             expect.hasAssertions();
             testContainer.replaceChildren();
 
-            expect(() => setTabButtonsEnabled(true)).not.toThrow();
-            expect(() => debugTabButtons()).not.toThrow();
-            expect(() => forceEnableTabButtons()).not.toThrow();
+            setTabButtonsEnabled(true);
+            debugTabButtons();
+            forceEnableTabButtons();
+
             expect(testContainer.childElementCount).toStrictEqual(0);
+            expect(mockSetState).toHaveBeenCalledWith(
+                "ui.tabButtonsEnabled",
+                true,
+                { source: "setTabButtonsEnabled" }
+            );
+            expect(mockSetState).toHaveBeenCalledWith(
+                "ui.tabButtonsEnabled",
+                true,
+                { source: "forceEnableTabButtons" }
+            );
+            expect(consoleLogSpy).toHaveBeenCalledWith(
+                expect.stringContaining("DEBUG TAB BUTTONS")
+            );
         });
 
         it("should handle buttons without parent nodes in nuclear option", () => {
@@ -889,10 +933,16 @@ describe("enableTabButtons behavior", () => {
             const testBtn = getRequiredButton("tab-test");
             vi.spyOn(testBtn, "hasAttribute").mockReturnValue(true);
             vi.spyOn(testBtn, "parentNode", "get").mockReturnValue(null);
-            vi.spyOn(testBtn, "cloneNode").mockReturnValue(testBtn);
+            const cloneNodeSpy = vi
+                .spyOn(testBtn, "cloneNode")
+                .mockReturnValue(testBtn);
+            const replaceWithSpy = vi.spyOn(testBtn, "replaceWith");
 
-            expect(() => setTabButtonsEnabled(true)).not.toThrow();
+            setTabButtonsEnabled(true);
+
             expect(testBtn.style.pointerEvents).toBe("auto");
+            expect(cloneNodeSpy).toHaveBeenCalledWith(true);
+            expect(replaceWithSpy).not.toHaveBeenCalled();
         });
 
         it("should handle missing getComputedStyle", () => {
@@ -920,11 +970,22 @@ describe("enableTabButtons behavior", () => {
 
             appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
-            expect(() => setTabButtonsEnabled(true)).not.toThrow();
-            expect(() => initializeTabButtonState()).not.toThrow();
+            setTabButtonsEnabled(true);
+            initializeTabButtonState();
+
             expect(
                 document.getElementById("tab-test")?.hasAttribute("disabled")
             ).toStrictEqual(true);
+            expect(mockSetState).toHaveBeenCalledWith(
+                "ui.tabButtonsEnabled",
+                true,
+                { source: "setTabButtonsEnabled" }
+            );
+            expect(mockSetState).toHaveBeenCalledWith(
+                "ui.tabButtonsEnabled",
+                false,
+                { source: "setTabButtonsEnabled" }
+            );
 
             global.window = originalWindow;
         });
