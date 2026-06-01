@@ -72,38 +72,61 @@ describe("masterStateManager introspection", () => {
 
     describe("introspection methods", () => {
         it("should provide getState method", () => {
-            expect.assertions(7);
+            expect.assertions(8);
 
             expect(masterStateManager.getState).toBeTypeOf("function");
 
             // Test basic state access
             const initialState =
                 masterStateManager.getState() as RootStateSnapshot;
-            expect(initialState.charts).toMatchObject({
+            expect({
+                controlsVisible: initialState.charts.controlsVisible,
+                isRendered: initialState.charts.isRendered,
+                selectedChart: initialState.charts.selectedChart,
+                zoomLevel: initialState.charts.zoomLevel,
+            }).toStrictEqual({
                 controlsVisible: true,
                 isRendered: false,
                 selectedChart: "elevation",
                 zoomLevel: 1,
             });
-            expect(initialState.map).toMatchObject({
+            expect({
+                baseLayer: initialState.map.baseLayer,
+                trackVisible: initialState.map.trackVisible,
+                zoom: initialState.map.zoom,
+            }).toStrictEqual({
                 baseLayer: "openstreetmap",
                 trackVisible: true,
                 zoom: 13,
             });
-            expect(initialState.performance).toMatchObject({
+            expect({
+                lastLoadTime: initialState.performance.lastLoadTime,
+                memoryUsage: initialState.performance.memoryUsage,
+            }).toStrictEqual({
                 lastLoadTime: null,
                 memoryUsage: null,
             });
-            expect(initialState.tables).toMatchObject({
+            expect({
+                currentPage: initialState.tables.currentPage,
+                pageSize: initialState.tables.pageSize,
+                sortDirection: initialState.tables.sortDirection,
+            }).toStrictEqual({
                 currentPage: 1,
                 pageSize: 50,
                 sortDirection: "asc",
             });
-            expect(initialState.ui).toMatchObject({
+            expect({
+                activeTab: initialState.ui.activeTab,
+                theme: initialState.ui.theme,
+                unloadButtonVisible: initialState.ui.unloadButtonVisible,
+            }).toStrictEqual({
                 activeTab: "summary",
                 theme: "system",
                 unloadButtonVisible: false,
             });
+            expect(initialState as unknown as UnknownRecord).not.toHaveProperty(
+                "missing"
+            );
             expect({
                 hasMissingRoot: Object.hasOwn(
                     initialState as unknown as UnknownRecord,
