@@ -624,9 +624,9 @@ describe("main-ui.js core flows", () => {
             "error"
         );
         expect(notifications).toContain("error:Failed to load FIT file");
-        expect(fitFileStateManager.handleFileLoadingError).toHaveBeenCalledWith(
-            expect.objectContaining({ message: "bad file" })
-        );
+        const loadingError =
+            fitFileStateManager.handleFileLoadingError.mock.calls.at(-1)?.[0];
+        expect(loadingError).toStrictEqual(new Error("bad file"));
 
         const err = new Error("boom");
         api.decodeFitFile.mockRejectedValue(err);
@@ -716,7 +716,7 @@ describe("main-ui.js core flows", () => {
     });
 
     it("dev helpers injectMenu and devCleanup work", async () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const api = installElectronAPI();
         await importMainUI();
@@ -733,9 +733,20 @@ describe("main-ui.js core flows", () => {
         devCleanup();
         expect(AppActions.clearData).toHaveBeenCalledOnce();
         expect(chartTabIntegration.destroy).toHaveBeenCalledOnce();
-        expect(mockState).toMatchObject({
-            "charts.isRendered": false,
-            "ui.dragCounter": 0,
+        expect(setState).toHaveBeenCalledWith("charts.isRendered", false, {
+            silent: false,
+            source: "devCleanup",
+        });
+        expect(setState).toHaveBeenCalledWith("ui.dragCounter", 0, {
+            silent: false,
+            source: "devCleanup",
+        });
+        expect({
+            chartsIsRendered: mockState["charts.isRendered"],
+            dragCounter: mockState["ui.dragCounter"],
+        }).toStrictEqual({
+            chartsIsRendered: false,
+            dragCounter: 0,
         });
     });
 });
