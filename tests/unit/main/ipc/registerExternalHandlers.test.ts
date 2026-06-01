@@ -104,27 +104,25 @@ describe("registerExternalHandlers", () => {
 
     describe("registration", () => {
         it("registers all three IPC handlers when given valid registerIpcHandle", () => {
-            expect.assertions(8);
+            expect.assertions(6);
 
             registerDefaultHandlers();
 
             expect(mockRegisterIpcHandle).toHaveBeenCalledTimes(3);
-            expect(mockRegisterIpcHandle).toHaveBeenCalledWith(
-                "shell:openExternal",
-                expect.any(Function)
-            );
-            expect(mockRegisterIpcHandle).toHaveBeenCalledWith(
-                "gyazo:server:start",
-                expect.any(Function)
-            );
-            expect(mockRegisterIpcHandle).toHaveBeenCalledWith(
-                "gyazo:server:stop",
-                expect.any(Function)
-            );
 
             const registeredChannels = new Map(
                 mockRegisterIpcHandle.mock.calls
             );
+            expect(
+                mockRegisterIpcHandle.mock.calls.map(([channel, handler]) => [
+                    channel,
+                    registeredChannels.get(channel) === handler,
+                ])
+            ).toStrictEqual([
+                ["shell:openExternal", true],
+                ["gyazo:server:start", true],
+                ["gyazo:server:stop", true],
+            ]);
             expect(registeredChannels.get("shell:openExternal")).toBeTypeOf(
                 "function"
             );
