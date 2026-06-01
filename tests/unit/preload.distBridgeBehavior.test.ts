@@ -292,7 +292,7 @@ describe("preload.js dist bridge behavior", () => {
                 },
             });
             expect(exposedAPI.validateAPI()).toStrictEqual(true);
-            expect(exposedAPI.getChannelInfo()).toMatchObject({
+            expect(exposedAPI.getChannelInfo()).toStrictEqual({
                 channels: EXPECTED_PRELOAD_CHANNELS,
                 events: EXPECTED_PRELOAD_EVENTS,
                 totalChannels: 27,
@@ -513,7 +513,7 @@ describe("preload.js dist bridge behavior", () => {
 
             const channelInfo = exposedAPI.getChannelInfo();
 
-            expect(channelInfo).toMatchObject({
+            expect(channelInfo).toStrictEqual({
                 channels: EXPECTED_PRELOAD_CHANNELS,
                 events: EXPECTED_PRELOAD_EVENTS,
                 totalChannels: 27,
@@ -526,7 +526,7 @@ describe("preload.js dist bridge behavior", () => {
             executePreloadScript();
 
             expect(exposedAPI.validateAPI()).toStrictEqual(true);
-            expect(exposedAPI.getChannelInfo()).toMatchObject({
+            expect(exposedAPI.getChannelInfo()).toStrictEqual({
                 channels: EXPECTED_PRELOAD_CHANNELS,
                 events: EXPECTED_PRELOAD_EVENTS,
                 totalChannels: 27,
