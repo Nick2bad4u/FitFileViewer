@@ -1050,9 +1050,14 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
             renderSpeedVsDistanceChart(container, data, options);
 
             const chartConfig = getLatestChartConfig();
-            expect(chartConfig.plugins).toEqual([
-                expect.objectContaining({ id: "chartZoomResetPlugin" }),
-                expect.objectContaining({ id: "chartBackgroundColorPlugin" }),
+            const pluginIds = chartConfig.plugins?.map((plugin) =>
+                typeof plugin === "object" && plugin !== null && "id" in plugin
+                    ? plugin.id
+                    : undefined
+            );
+            expect(pluginIds).toStrictEqual([
+                "chartZoomResetPlugin",
+                "chartBackgroundColorPlugin",
             ]);
         });
 
