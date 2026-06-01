@@ -155,7 +155,7 @@ describe("recentFiles integration coverage", () => {
         expect(recent.loadRecentFiles()).toEqual([fitFilePath]);
         expect(exitHandlers).toHaveLength(1);
         exitHandlers[0]!();
-        expect(fs.existsSync(targetPath)).toBe(false);
+        expect(() => fs.statSync(targetPath)).toThrow(/ENOENT|no such file/u);
         processOn.mockRestore();
         writeSpy.mockRestore();
     });
