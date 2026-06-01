@@ -208,7 +208,9 @@ describe("masterStateManager comprehensive behavior", () => {
                 devToolsComponentName,
                 "integration",
             ]);
-            expect(manager.isInitialized).toBe(false);
+            expect({ initialized: manager.isInitialized }).toStrictEqual({
+                initialized: false,
+            });
             expect(manager.getState("ui.theme")).toBe("dark");
             expect(manager.getHistory()).toStrictEqual([]);
             expect(manager.getSubscriptions()).toStrictEqual({});
@@ -283,8 +285,10 @@ describe("masterStateManager comprehensive behavior", () => {
                     "globalData",
                     expect.any(Function)
                 );
-                expect(manager.isInitialized).toBe(true);
-                expect(manager.components.has("integration")).toBe(true);
+                expect({ initialized: manager.isInitialized }).toStrictEqual({
+                    initialized: true,
+                });
+                expect([...manager.components.keys()]).toContain("integration");
             },
             { appVersion: "30.0.0", development: true, localTheme: "auto" }
         );
@@ -310,7 +314,9 @@ describe("masterStateManager comprehensive behavior", () => {
                 true,
                 expect.any(Object)
             );
-            expect(manager.isInitialized).toBe(true);
+            expect({ initialized: manager.isInitialized }).toStrictEqual({
+                initialized: true,
+            });
         });
     });
 
@@ -351,7 +357,11 @@ describe("masterStateManager comprehensive behavior", () => {
             async ({ location }) => {
                 const manager = new MasterStateManager();
 
-                expect(manager.isDevelopmentMode()).toBe(true);
+                expect({
+                    developmentMode: manager.isDevelopmentMode(),
+                }).toStrictEqual({
+                    developmentMode: true,
+                });
 
                 location.hostname = "example.com";
                 location.href = "https://example.com/";
@@ -361,7 +371,11 @@ describe("masterStateManager comprehensive behavior", () => {
                 delete (globalThis as MasterStateGlobal).__DEVELOPMENT__;
                 delete (globalThis as MasterStateGlobal).electronAPI;
 
-                expect(manager.isDevelopmentMode()).toBe(false);
+                expect({
+                    developmentMode: manager.isDevelopmentMode(),
+                }).toStrictEqual({
+                    developmentMode: false,
+                });
             },
             { development: true }
         );
@@ -393,7 +407,7 @@ describe("masterStateManager comprehensive behavior", () => {
                     createDropEvent("ride.fit")
                 );
 
-                expect(bodyElement.classList.contains("drag-over")).toBe(true);
+                expect([...bodyElement.classList]).toContain("drag-over");
 
                 dispatchListeners(
                     documentListeners,
@@ -401,7 +415,7 @@ describe("masterStateManager comprehensive behavior", () => {
                     createDropEvent("ride.fit")
                 );
 
-                expect(bodyElement.classList.contains("drag-over")).toBe(false);
+                expect([...bodyElement.classList]).not.toContain("drag-over");
 
                 dispatchListeners(
                     documentListeners,
@@ -495,14 +509,18 @@ describe("masterStateManager comprehensive behavior", () => {
                     true,
                     { source: "windowEventListener" }
                 );
-                expect(manager.isDevelopmentMode()).toBe(true);
+                expect({
+                    developmentMode: manager.isDevelopmentMode(),
+                }).toStrictEqual({
+                    developmentMode: true,
+                });
             },
             { development: true }
         );
     });
 
     it("connects error handling, integrations, performance monitoring, and cleanup", async () => {
-        expect.assertions(15);
+        expect.assertions(14);
 
         await withMasterStateHarness(
             async ({
@@ -596,8 +614,13 @@ describe("masterStateManager comprehensive behavior", () => {
                     mocks.stateDevTools.cleanupStateDevTools
                 ).toHaveBeenCalledOnce();
                 expect(clearInterval).toHaveBeenCalledWith(12345);
-                expect(manager.components.size).toBe(0);
-                expect(manager.isInitialized).toBe(false);
+                expect({
+                    componentCount: manager.components.size,
+                    initialized: manager.isInitialized,
+                }).toStrictEqual({
+                    componentCount: 0,
+                    initialized: false,
+                });
             },
             { development: true }
         );
