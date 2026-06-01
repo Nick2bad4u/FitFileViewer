@@ -9,7 +9,11 @@ import {
     findSourceDir,
     normalizeCoverage,
 } from "../../../scripts/normalize-coverage-lcov.mjs";
-import { rootCoverageAbsolutePath } from "../../../scripts/lib/workspaces.mjs";
+import {
+    appSourceRelativePath,
+    appSourceRepositoryPath,
+    rootCoverageAbsolutePath,
+} from "../../../scripts/lib/workspaces.mjs";
 
 const temporaryRoots: string[] = [];
 
@@ -76,7 +80,10 @@ describe("normalize-coverage-lcov script", () => {
         const repositoryRoot = path.join(temporaryRoot, "repo");
         const sourceCoverageDir = path.join(temporaryRoot, "coverage-source");
         const targetCoverageDir = path.join(repositoryRoot, "coverage");
-        const sourceFile = path.join(repositoryRoot, "electron-app", "main.ts");
+        const sourceFile = path.join(
+            repositoryRoot,
+            appSourceRelativePath("main.ts")
+        );
 
         fs.mkdirSync(sourceCoverageDir, { recursive: true });
         fs.writeFileSync(
@@ -95,7 +102,9 @@ describe("normalize-coverage-lcov script", () => {
         );
         expect(
             fs.readFileSync(path.join(targetCoverageDir, "lcov.info"), "utf8")
-        ).toBe("TN:\nSF:electron-app/main.ts\nend_of_record\n");
+        ).toBe(
+            `TN:\nSF:${appSourceRepositoryPath("main.ts")}\nend_of_record\n`
+        );
     });
 
     it("logs and skips normalization when no coverage directory exists", () => {
