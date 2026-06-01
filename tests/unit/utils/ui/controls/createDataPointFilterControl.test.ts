@@ -264,7 +264,7 @@ describe(createDataPointFilterControl, () => {
             ".data-point-filter-control__panel"
         );
         const panelElement = requireElement(panel, "filter panel");
-        expect(panelElement.hidden).toBe(false);
+        expect(panelElement).toHaveProperty("hidden", false);
         expect(getClassList(container)).toContain(
             "data-point-filter-control--open"
         );
@@ -274,7 +274,7 @@ describe(createDataPointFilterControl, () => {
         outside.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
         await Promise.resolve();
 
-        expect(panelElement.hidden).toBe(true);
+        expect(panelElement).toHaveProperty("hidden", true);
         expect(getClassList(container)).not.toContain(
             "data-point-filter-control--open"
         );
@@ -771,14 +771,13 @@ describe(createDataPointFilterControl, () => {
                 ".data-point-filter-control__summary"
             )?.textContent
         ).toBe("Highlight the most intense sections of your ride.");
-        expect(
-            requireElement(
-                document.body.querySelector<HTMLDivElement>(
-                    ".data-point-filter-control__panel"
-                ),
-                "filter panel"
-            ).hidden
-        ).toBe(true);
+        const panelElement = requireElement(
+            document.body.querySelector<HTMLDivElement>(
+                ".data-point-filter-control__panel"
+            ),
+            "filter panel"
+        );
+        expect(panelElement).toHaveProperty("hidden", true);
 
         const rangeRadio = document.body.querySelector<HTMLInputElement>(
             "input[value='valueRange']"
@@ -1522,7 +1521,7 @@ describe(createDataPointFilterControl, () => {
             ".data-point-filter-control__panel"
         );
         const panelElement = requireElement(panel, "filter panel");
-        expect(panelElement.hidden).toBe(false);
+        expect(panelElement).toHaveProperty("hidden", false);
 
         panelElement.getBoundingClientRect = () =>
             ({
@@ -1688,7 +1687,8 @@ describe(createDataPointFilterControl, () => {
         const panel = document.body.querySelector<HTMLDivElement>(
             ".data-point-filter-control__panel"
         );
-        expect(requireElement(panel, "filter panel").hidden).toBe(true);
+        const panelElement = requireElement(panel, "filter panel");
+        expect(panelElement).toHaveProperty("hidden", true);
     });
 
     it("falls back to candidate values and default coverage in cached summaries", async () => {
