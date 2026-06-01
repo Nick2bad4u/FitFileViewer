@@ -31,6 +31,10 @@ import {
     TAB_CONFIG,
 } from "../../../../../electron-app/utils/ui/tabs/tabStateManager.js";
 
+function getClassList(element: Element): string[] {
+    return [...element.classList];
+}
+
 describe("tabStateManager.behavior", () => {
     /* @type {HTMLDivElement} */
     let root;
@@ -137,7 +141,7 @@ describe("tabStateManager.behavior", () => {
         expect(prevent).toHaveBeenCalledWith();
         expect(stop).toHaveBeenCalledWith();
         expect(mockSetState).not.toHaveBeenCalled();
-        expect(btn.classList.contains("tab-disabled")).toBe(true);
+        expect(getClassList(btn)).toContain("tab-disabled");
     });
 
     it("handleTabButtonClick ignores when disabled attribute present", () => {
@@ -271,9 +275,9 @@ describe("tabStateManager.behavior", () => {
         root.append(a, b);
 
         tabStateManager.updateTabButtonStates("map");
-        expect(a.classList.contains("active")).toBe(false);
+        expect(getClassList(a)).not.toContain("active");
         expect(a.getAttribute("aria-selected")).toBe("false");
-        expect(b.classList.contains("active")).toBe(true);
+        expect(getClassList(b)).toContain("active");
         expect(b.getAttribute("aria-selected")).toBe("true");
     });
 
@@ -796,7 +800,7 @@ describe("tabStateManager.behavior", () => {
             "map",
             expect.anything()
         );
-        expect(btn.classList.contains("active")).toBe(true);
+        expect(getClassList(btn)).toContain("active");
     });
 
     it("handleTabSpecificLogic returns early for unknown tab (no config)", async () => {
@@ -829,9 +833,7 @@ describe("tabStateManager.behavior", () => {
             )
             .map((c) => c[1])
             .at(-1);
-        expect(
-            Boolean(activeTabCall && typeof activeTabCall[1] === "function")
-        ).toBe(true);
+        expect(activeTabCall?.[1]).toBeTypeOf("function");
         // dataFn may be missing; that's acceptable in this environment
 
         const changeSpy = vi
@@ -878,7 +880,7 @@ describe("tabStateManager.behavior", () => {
         expect(() =>
             tabStateManager.updateTabButtonStates("map")
         ).not.toThrow();
-        expect(b.classList.contains("active")).toBe(true);
+        expect(getClassList(b)).toContain("active");
         // Restore to avoid affecting other tests
         // @ts-ignore
         a.classList.toggle = origToggle;
