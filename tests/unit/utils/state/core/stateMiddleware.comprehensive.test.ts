@@ -204,7 +204,9 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
         const perfSpy = vi
             .spyOn(performance, "now")
             .mockReturnValueOnce(0) // startTime
-            .mockReturnValueOnce(10); // duration = 10ms -> triggers slow log
+            .mockReturnValueOnce(10) // duration = 10ms -> triggers slow log
+            .mockReturnValueOnce(10) // bad startTime
+            .mockReturnValueOnce(10); // bad duration
 
         const onErrorCtx: any[] = [];
 
@@ -245,10 +247,10 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
         // ok ran then bad threw; context should reflect ok's modification
         expect(out.value).toBe(1);
         expect(warnSpy).toHaveBeenCalledWith(
-            expect.stringContaining('Slow middleware "ok.beforeSet"')
+            '[StateMiddleware] Slow middleware "ok.beforeSet": 10.00ms'
         );
         expect(errorSpy).toHaveBeenCalledWith(
-            expect.stringContaining('Handler error in "bad.beforeSet"'),
+            '[StateMiddleware] Handler error in "bad.beforeSet":',
             expect.any(Error)
         );
         // Both error handlers should have been invoked in sequence
@@ -605,12 +607,10 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         cleanupMiddleware();
         const msgs = logSpy.mock.calls.map((c) => String(c[0]));
-        expect(msgs).toEqual(
-            expect.arrayContaining([
-                expect.stringContaining("All middleware cleared"),
-                expect.stringContaining("Middleware system cleaned up"),
-            ])
-        );
+        expect(msgs).toEqual([
+            "[StateMiddleware] All middleware cleared",
+            "[StateMiddleware] Middleware system cleaned up",
+        ]);
         logSpy.mockRestore();
     });
 
