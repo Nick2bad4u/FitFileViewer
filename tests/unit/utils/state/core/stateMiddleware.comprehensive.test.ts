@@ -121,7 +121,7 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
     });
 
     it("supports enable/disable specific middleware and global disable", async () => {
-        expect.assertions(4);
+        expect.assertions(3);
 
         registerMiddleware(
             "only",
@@ -133,10 +133,13 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
             10
         );
 
-        // Disable unknown -> false
-        expect(enableMiddleware("missing", false)).toBe(false);
-        // Disable real -> true
-        expect(enableMiddleware("only", false)).toBe(true);
+        expect({
+            disabledKnown: enableMiddleware("only", false),
+            disabledMissing: enableMiddleware("missing", false),
+        }).toStrictEqual({
+            disabledKnown: true,
+            disabledMissing: false,
+        });
 
         let res = await executeMiddleware(MIDDLEWARE_PHASES.BEFORE_SET, {
             path: "p",
@@ -159,13 +162,18 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
     });
 
     it("unregisters middleware and clears all", async () => {
-        expect.assertions(4);
+        expect.assertions(3);
 
         registerMiddleware("a", { beforeSet: (c) => ({ ...c, value: 1 }) }, 10);
         registerMiddleware("b", { beforeSet: (c) => ({ ...c, value: 2 }) }, 20);
 
-        expect(unregisterMiddleware("c-absent")).toBe(false);
-        expect(unregisterMiddleware("a")).toBe(true);
+        expect({
+            removedExisting: unregisterMiddleware("a"),
+            removedMissing: unregisterMiddleware("c-absent"),
+        }).toStrictEqual({
+            removedExisting: true,
+            removedMissing: false,
+        });
 
         let res = await executeMiddleware(MIDDLEWARE_PHASES.BEFORE_SET, {
             path: "a",
@@ -323,7 +331,7 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
             await executeMiddleware(MIDDLEWARE_PHASES.AFTER_SET, ctx);
         }
         const perf = (globalThis as any)._statePerformance;
-        expect(Array.isArray(perf)).toBe(true);
+        expect(perf).toBeInstanceOf(Array);
         expect(perf).toHaveLength(100);
     });
 
@@ -471,7 +479,9 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
         );
 
         expect(globalDataContext.value).toEqual({ any: 1 });
-        expect(initializedContext.value).toBe(true);
+        expect({ initialized: initializedContext.value }).toStrictEqual({
+            initialized: true,
+        });
         expect(errorContext.value).toEqual({ message: "failure" });
     });
 
@@ -487,7 +497,7 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
             30
         );
         const info = getMiddlewareInfo();
-        expect(info.some((i) => i.name === "dup")).toBe(true);
+        expect(info.map((i) => i.name)).toContain("dup");
         expect(warnSpy).toHaveBeenCalledWith(
             '[StateMiddleware] Middleware "dup" already registered, replacing...'
         );
@@ -590,17 +600,17 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
     });
 
     it("cleanupMiddleware logs clearing and cleaned up messages", () => {
-        expect.assertions(2);
+        expect.assertions(1);
 
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         cleanupMiddleware();
         const msgs = logSpy.mock.calls.map((c) => String(c[0]));
-        expect(msgs.some((m) => m.includes("All middleware cleared"))).toBe(
-            true
+        expect(msgs).toEqual(
+            expect.arrayContaining([
+                expect.stringContaining("All middleware cleared"),
+                expect.stringContaining("Middleware system cleaned up"),
+            ])
         );
-        expect(
-            msgs.some((m) => m.includes("Middleware system cleaned up"))
-        ).toBe(true);
         logSpy.mockRestore();
     });
 
@@ -609,7 +619,7 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
 
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         const ok = enableMiddleware("__missing__", false);
-        expect(ok).toBe(false);
+        expect({ enabled: ok }).toStrictEqual({ enabled: false });
         expect(warnSpy).toHaveBeenCalledWith(
             '[StateMiddleware] Middleware "__missing__" not found'
         );
