@@ -1630,7 +1630,7 @@ describe("createAppMenu - additional robust branches", () => {
             const targetedIndex = calls.findIndex(
                 ([, prop]) => prop === "__FFV_createAppMenuExports"
             );
-            expect(targetedIndex).toBeGreaterThanOrEqual(0);
+            expect(targetedIndex).not.toBe(-1);
             const results = defineMock.mock.results as Array<{ type: string }>;
             expect(results[targetedIndex]?.type).toBe("throw");
         } finally {

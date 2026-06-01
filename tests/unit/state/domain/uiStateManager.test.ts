@@ -366,7 +366,7 @@ describe("uiStateManager - comprehensive coverage", () => {
                 "map.measurementMode",
                 expect.any(Function)
             );
-            expect(manager.eventListeners.size).toBeGreaterThanOrEqual(0);
+            expect(manager.eventListeners.size).toBe(0);
         });
     });
 

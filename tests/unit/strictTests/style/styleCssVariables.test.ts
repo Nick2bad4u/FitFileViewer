@@ -55,7 +55,7 @@ describe("style.css theme variables", () => {
         const bodyIndex = styleText.search(/(^|\n)body\s*\{/);
         const beforeIndex = styleText.indexOf("body::before");
 
-        expect(bodyIndex).toBeGreaterThanOrEqual(0);
+        expect(bodyIndex).not.toBe(-1);
         expect(beforeIndex).toBeGreaterThan(bodyIndex);
 
         const baseBodySegment = styleText.slice(bodyIndex, beforeIndex);
