@@ -112,6 +112,15 @@ function getLatestChartConfig(): ChartConfig {
     return config;
 }
 
+function getLatestChartCall(): [HTMLCanvasElement, ChartConfig] {
+    const call = Chart.mock.calls[0];
+    if (!call) {
+        throw new Error("Expected Chart to be called");
+    }
+
+    return call;
+}
+
 // Mock Chart.js
 let Chart: ChartConstructorMock;
 let chartInstanceMock: ChartInstanceMock;
@@ -380,10 +389,8 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            expect(Chart).toHaveBeenCalledWith(
-                expect.any(HTMLCanvasElement),
-                expect.any(Object)
-            );
+            const [canvas] = getLatestChartCall();
+            expect(canvas).toBeInstanceOf(HTMLCanvasElement);
             const chartData = getLatestChartConfig().data.datasets[0].data;
             expect(chartData).toEqual([
                 { x: 0, y: 100 },
@@ -577,10 +584,8 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            expect(Chart).toHaveBeenCalledWith(
-                expect.any(HTMLCanvasElement),
-                expect.any(Object)
-            );
+            const [canvas] = getLatestChartCall();
+            expect(canvas).toBeInstanceOf(HTMLCanvasElement);
             const config = getLatestChartConfig();
             expect(config.type).toBe("line");
             expect(config.type).not.toBe("bar");
@@ -1111,8 +1116,9 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
         it("should handle Chart.js constructor throwing error", () => {
             expect.assertions(3);
 
-            Chart.mockImplementationOnce(() => {
-                throw new Error("Chart creation failed");
+            const chartCreationError = new Error("Chart creation failed");
+            Chart.mockImplementationOnce(function ChartConstructor() {
+                throw chartCreationError;
             });
 
             const container = document.createElement("div");
@@ -1129,7 +1135,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             expect(console.error).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering altitude profile chart:",
-                expect.any(Error)
+                chartCreationError
             );
             expect(getChartTestWindow()._chartjsInstances).toStrictEqual([]);
             expect(
@@ -1179,10 +1185,8 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            expect(Chart).toHaveBeenCalledWith(
-                expect.any(HTMLCanvasElement),
-                expect.any(Object)
-            );
+            const [canvas] = getLatestChartCall();
+            expect(canvas).toBeInstanceOf(HTMLCanvasElement);
             const chartData = getLatestChartConfig().data.datasets[0].data;
             expect(chartData).toEqual([
                 { x: 0, y: 0 },
