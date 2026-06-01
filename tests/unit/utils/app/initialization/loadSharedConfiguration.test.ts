@@ -154,7 +154,7 @@ describe("loadSharedConfiguration.js", () => {
             await import("../../../../../electron-app/utils/app/initialization/loadSharedConfiguration.js");
 
         // Call the function
-        expect(() => loadSharedConfiguration()).not.toThrow();
+        expect(loadSharedConfiguration()).toBeUndefined();
 
         expect(mockSetChartFieldVisibility).toHaveBeenCalledWith(
             "heart_rate",
@@ -218,7 +218,7 @@ describe("loadSharedConfiguration.js", () => {
         const { loadSharedConfiguration } =
             await import("../../../../../electron-app/utils/app/initialization/loadSharedConfiguration.js");
 
-        expect(() => loadSharedConfiguration()).not.toThrow();
+        expect(loadSharedConfiguration()).toBeUndefined();
         // Advance timers to trigger fallback render
         vi.advanceTimersByTime(120);
         expect(mockRenderChartJS).toHaveBeenCalledWith();
@@ -256,7 +256,7 @@ describe("loadSharedConfiguration.js", () => {
             await import("../../../../../electron-app/utils/app/initialization/loadSharedConfiguration.js");
 
         // Call the function
-        expect(() => loadSharedConfiguration()).not.toThrow();
+        expect(loadSharedConfiguration()).toBeUndefined();
 
         expect(mockSetChartSetting).toHaveBeenCalledWith("smoothing", 10);
     });
@@ -277,7 +277,7 @@ describe("loadSharedConfiguration.js", () => {
             await import("../../../../../electron-app/utils/app/initialization/loadSharedConfiguration.js");
 
         // Call the function
-        expect(() => loadSharedConfiguration()).not.toThrow();
+        expect(loadSharedConfiguration()).toBeUndefined();
 
         expect(mockSetChartSetting).not.toHaveBeenCalled();
         expect(mockSetChartFieldVisibility).not.toHaveBeenCalled();
@@ -308,7 +308,7 @@ describe("loadSharedConfiguration.js", () => {
             await import("../../../../../electron-app/utils/app/initialization/loadSharedConfiguration.js");
 
         // Call the function
-        expect(() => loadSharedConfiguration()).not.toThrow();
+        expect(loadSharedConfiguration()).toBeUndefined();
 
         // Error should be logged
         expect(consoleErrorSpy).toHaveBeenCalledWith(
@@ -338,7 +338,7 @@ describe("loadSharedConfiguration.js", () => {
             await import("../../../../../electron-app/utils/app/initialization/loadSharedConfiguration.js");
 
         // Call the function
-        expect(() => loadSharedConfiguration()).not.toThrow();
+        expect(loadSharedConfiguration()).toBeUndefined();
 
         // Error should be logged
         expect(consoleErrorSpy).toHaveBeenCalledWith(
