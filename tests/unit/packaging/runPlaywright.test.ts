@@ -111,7 +111,7 @@ describe("run-playwright script", () => {
     });
 
     it("stops after the first failing Playwright step", () => {
-        expect.assertions(1);
+        expect.assertions(3);
 
         const commandRunner = vi
             .fn<CommandRunner>()
@@ -129,6 +129,19 @@ describe("run-playwright script", () => {
             loggerCalls: 2,
             status: 5,
         });
+        expect(commandRunner.mock.calls.map(([, args]) => args)).toStrictEqual([
+            [buildRuntimeScriptPath],
+            [
+                playwrightCliPath,
+                "test",
+                "--config",
+                rootPlaywrightConfigPath,
+            ],
+        ]);
+        expect(logger.mock.calls).toStrictEqual([
+            ["[run-playwright] build runtime"],
+            ["[run-playwright] run playwright"],
+        ]);
     });
 
     it("returns the runtime build failure before launching Playwright", () => {
@@ -155,15 +168,21 @@ describe("run-playwright script", () => {
     });
 
     it("throws when a Playwright step runner reports a spawn error", () => {
-        expect.assertions(1);
+        expect.assertions(4);
 
+        const spawnError = new Error("spawn failed");
         const commandRunner = vi
             .fn<CommandRunner>()
-            .mockReturnValue({ error: new Error("spawn failed"), status: 0 });
+            .mockReturnValue({ error: spawnError, status: 0 });
         const logger = vi.fn<(message: string) => void>();
 
         expect(() => runPlaywright([], commandRunner, logger)).toThrow(
-            "spawn failed"
+            spawnError
         );
+        expect(commandRunner).toHaveBeenCalledOnce();
+        expect(commandRunner.mock.calls[0]?.[1]).toStrictEqual([
+            buildRuntimeScriptPath,
+        ]);
+        expect(logger).toHaveBeenCalledWith("[run-playwright] build runtime");
     });
 });
