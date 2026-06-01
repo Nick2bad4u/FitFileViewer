@@ -164,7 +164,16 @@ describe(renderGPSTrackChart, () => {
             expect(canvas.getAttribute("role")).toBe("img");
             expect(container.children).toHaveLength(1);
             expect(container.firstElementChild).toBe(canvas);
-            expect(dataset).toMatchObject({
+            expect({
+                borderColor: dataset.borderColor,
+                borderWidth: dataset.borderWidth,
+                fill: dataset.fill,
+                label: dataset.label,
+                pointHoverRadius: dataset.pointHoverRadius,
+                pointRadius: dataset.pointRadius,
+                showLine: dataset.showLine,
+                tension: dataset.tension,
+            }).toStrictEqual({
                 borderColor: "#007bff",
                 borderWidth: 2,
                 fill: false,
@@ -176,11 +185,14 @@ describe(renderGPSTrackChart, () => {
             });
             expect(dataset.data).toHaveLength(3);
             expect(chartConfig.type).toBe("scatter");
-            expect(chartConfig.options.plugins.legend).toMatchObject({
+            expect(chartConfig.options.plugins.legend.display).toBe(true);
+            expect(chartConfig.options.plugins.title).toStrictEqual({
+                color: "#ffffff",
                 display: true,
-            });
-            expect(chartConfig.options.plugins.title).toMatchObject({
-                display: true,
+                font: {
+                    size: 16,
+                    weight: "bold",
+                },
                 text: "GPS Track",
             });
             expect(chartConfig.options.scales.x.title.text).toBe(
@@ -221,8 +233,8 @@ describe(renderGPSTrackChart, () => {
                 [firstPoint, secondPoint] = dataset.data;
 
             expect(dataset.data).toHaveLength(2);
-            expect(firstPoint).toMatchObject({ pointIndex: 0 });
-            expect(secondPoint).toMatchObject({ pointIndex: 3 });
+            expect(firstPoint?.pointIndex).toBe(0);
+            expect(secondPoint?.pointIndex).toBe(3);
             expect(firstPoint?.y).toBeCloseTo((429_496_730 * 180) / 2 ** 31, 6);
             expect(firstPoint?.x).toBeCloseTo(
                 (-859_993_460 * 180) / 2 ** 31,
@@ -251,8 +263,8 @@ describe(renderGPSTrackChart, () => {
                 getSingleChartCall(chartCalls)[1].data.datasets[0].data;
 
             expect(points).toHaveLength(10);
-            expect(points.at(0)).toMatchObject({ pointIndex: 0 });
-            expect(points.at(-1)).toMatchObject({ pointIndex: 45 });
+            expect(points.at(0)?.pointIndex).toBe(0);
+            expect(points.at(-1)?.pointIndex).toBe(45);
         });
     });
 
@@ -277,9 +289,7 @@ describe(renderGPSTrackChart, () => {
                 chartConfig.options.plugins.chartBackgroundColorPlugin
                     .backgroundColor
             ).toBe("#181c24");
-            expect(chartConfig.options.scales.x.grid).toMatchObject({
-                display: true,
-            });
+            expect(chartConfig.options.scales.x.grid.display).toBe(true);
         });
     });
 
@@ -297,9 +307,7 @@ describe(renderGPSTrackChart, () => {
 
             const chartConfig = getSingleChartCall(chartCalls)[1];
 
-            expect(chartConfig.data.datasets[0]).toMatchObject({
-                pointRadius: 1,
-            });
+            expect(chartConfig.data.datasets[0].pointRadius).toBe(1);
             expect([
                 chartConfig.options.plugins.legend.display,
                 chartConfig.options.plugins.title.display,
@@ -349,7 +357,11 @@ describe(renderGPSTrackChart, () => {
             const chartConfig = getSingleChartCall(chartCalls)[1],
                 zoom = chartConfig.options.plugins.zoom;
 
-            expect(zoom.pan).toMatchObject({ enabled: true, mode: "xy" });
+            expect(zoom.pan).toStrictEqual({
+                enabled: true,
+                mode: "xy",
+                modifierKey: null,
+            });
             expect([
                 zoom.zoom.wheel.enabled,
                 zoom.zoom.pinch.enabled,
