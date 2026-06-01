@@ -350,17 +350,15 @@ describe("main.js strict handlers and events", () => {
 
         // IPC handler registration happened
         expect(
-            mockIpcMain.handle.mock.calls.map(([channel, handler]) => [
-                channel,
-                typeof handler,
-            ])
-        ).toContainEqual(["dialog:openFile", "function"]);
+            mockIpcMain.handle.mock.calls
+                .map(([channel, handler]) => [channel, typeof handler])
+                .filter(([channel]) => channel === "dialog:openFile")
+        ).toStrictEqual([["dialog:openFile", "function"]]);
         expect(
-            mockIpcMain.on.mock.calls.map(([channel, handler]) => [
-                channel,
-                typeof handler,
-            ])
-        ).toContainEqual(["menu-check-for-updates", "function"]);
+            mockIpcMain.on.mock.calls
+                .map(([channel, handler]) => [channel, typeof handler])
+                .filter(([channel]) => channel === "menu-check-for-updates")
+        ).toStrictEqual([["menu-check-for-updates", "function"]]);
     });
 
     it("handles dialog:openFile flow and recentFiles handlers", async () => {
@@ -570,11 +568,10 @@ describe("main.js strict handlers and events", () => {
         };
         appOnCall?.[1]({}, contents);
         expect(
-            contents.on.mock.calls.map(([eventName, handler]) => [
-                eventName,
-                typeof handler,
-            ])
-        ).toContainEqual(["will-navigate", "function"]);
+            contents.on.mock.calls
+                .map(([eventName, handler]) => [eventName, typeof handler])
+                .filter(([eventName]) => eventName === "will-navigate")
+        ).toStrictEqual([["will-navigate", "function"]]);
         const willNavigateCall = contents.on.mock.calls.find(
             (c: any[]) => c[0] === "will-navigate"
         );
@@ -586,7 +583,7 @@ describe("main.js strict handlers and events", () => {
             contents.setWindowOpenHandler.mock.calls.map(([handler]) => [
                 typeof handler,
             ])
-        ).toContainEqual(["function"]);
+        ).toStrictEqual([["function"]]);
         const windowOpenHandler =
             contents.setWindowOpenHandler.mock.calls[0][0];
         expect(windowOpenHandler({ url: "https://bad.example.com" })).toEqual({
