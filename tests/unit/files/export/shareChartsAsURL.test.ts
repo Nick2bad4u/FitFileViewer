@@ -159,24 +159,23 @@ describe("shareChartsAsURL with Imgur fallback", () => {
     it("should call showChartSelectionModal when shareChartsAsURL is invoked", async () => {
         expect.assertions(4);
 
-        // Arrange
-        mockShowChartSelectionModal.mockImplementation(
-            (actionType, singleCallback, combinedCallback) => {
-                // We'll test that the function is called with correct parameters
-                expect(actionType).toBe("share URL");
-                expect(singleCallback).toBeTypeOf("function");
-                expect(combinedCallback).toBeTypeOf("function");
-            }
-        );
-
         // Act
         await exportUtils.shareChartsAsURL();
 
         // Assert
-        expect(mockShowChartSelectionModal).toHaveBeenCalledWith(
+        const [
+            actionType,
+            singleCallback,
+            combinedCallback,
+        ] = mockShowChartSelectionModal.mock.calls[0] ?? [];
+
+        expect(actionType).toBe("share URL");
+        expect(singleCallback).toBeTypeOf("function");
+        expect(combinedCallback).toBeTypeOf("function");
+        expect(mockShowChartSelectionModal).toHaveBeenCalledExactlyOnceWith(
             "share URL",
-            expect.any(Function),
-            expect.any(Function)
+            singleCallback,
+            combinedCallback
         );
     });
 
