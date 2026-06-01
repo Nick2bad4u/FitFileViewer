@@ -438,10 +438,12 @@ describe("enableTabButtons behavior", () => {
 
             initializeTabButtonState();
 
-            expect(mockSubscribe).toHaveBeenCalledWith(
-                "globalData",
-                expect.any(Function)
-            );
+            expect(
+                mockSubscribe.mock.calls.map(([path, callback]) => [
+                    path,
+                    typeof callback,
+                ])
+            ).toContainEqual(["globalData", "function"]);
             expect(mockSetState).toHaveBeenCalledWith(
                 "ui.tabButtonsEnabled",
                 false,
@@ -541,9 +543,11 @@ describe("enableTabButtons behavior", () => {
             global.MutationObserver = originalMutationObserver;
             global.window.MutationObserver = originalWindowMutationObserver;
 
-            expect(MutationObserverSpy).toHaveBeenCalledWith(
-                expect.any(Function)
-            );
+            expect(
+                MutationObserverSpy.mock.calls.map(([callback]) => [
+                    typeof callback,
+                ])
+            ).toContainEqual(["function"]);
             expect(mockObserver.observe).toHaveBeenCalledWith(
                 getRequiredButton("tab-test"),
                 {
@@ -775,10 +779,11 @@ describe("enableTabButtons behavior", () => {
             // Fast forward time
             vi.advanceTimersByTime(30000);
 
-            expect(removeEventListenerSpy).toHaveBeenCalledWith(
-                "click",
-                expect.any(Function)
-            );
+            expect(
+                removeEventListenerSpy.mock.calls.map(
+                    ([eventName, listener]) => [eventName, typeof listener]
+                )
+            ).toContainEqual(["click", "function"]);
             expect(summaryBtn.isConnected).toStrictEqual(true);
 
             vi.useRealTimers();
