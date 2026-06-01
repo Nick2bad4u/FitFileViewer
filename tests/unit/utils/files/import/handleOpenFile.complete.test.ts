@@ -113,6 +113,9 @@ function createOpenFileParams(): TestOpenFileParams {
 
 describe("handleOpenFile Module", () => {
     beforeEach(async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2026-01-02T03:04:05.006Z"));
+
         // Reset mocks
         vi.clearAllMocks();
 
@@ -152,6 +155,11 @@ describe("handleOpenFile Module", () => {
             await import("../../../../../electron-app/utils/files/import/handleOpenFile.js");
     });
 
+    afterEach(() => {
+        vi.useRealTimers();
+        vi.restoreAllMocks();
+    });
+
     describe("module exports", () => {
         it("should export expected functions", () => {
             expect.assertions(5);
@@ -176,7 +184,7 @@ describe("handleOpenFile Module", () => {
                 handleOpenFileModule.logWithContext("info message")
             ).not.toThrow();
             expect(console.info).toHaveBeenCalledWith(
-                expect.stringContaining("HandleOpenFile: info message")
+                "[2026-01-02T03:04:05.006Z] [renderer] HandleOpenFile: info message"
             );
         });
 
@@ -187,7 +195,7 @@ describe("handleOpenFile Module", () => {
                 handleOpenFileModule.logWithContext("warn message", "warn")
             ).not.toThrow();
             expect(console.warn).toHaveBeenCalledWith(
-                expect.stringContaining("HandleOpenFile: warn message")
+                "[2026-01-02T03:04:05.006Z] [renderer] HandleOpenFile: warn message"
             );
         });
 
@@ -198,7 +206,7 @@ describe("handleOpenFile Module", () => {
                 handleOpenFileModule.logWithContext("error message", "error")
             ).not.toThrow();
             expect(console.error).toHaveBeenCalledWith(
-                expect.stringContaining("HandleOpenFile: error message")
+                "[2026-01-02T03:04:05.006Z] [renderer] HandleOpenFile: error message"
             );
         });
 
@@ -209,7 +217,7 @@ describe("handleOpenFile Module", () => {
                 handleOpenFileModule.logWithContext("fallback message", "trace")
             ).not.toThrow();
             expect(console.info).toHaveBeenCalledWith(
-                expect.stringContaining("HandleOpenFile: fallback message")
+                "[2026-01-02T03:04:05.006Z] [renderer] HandleOpenFile: fallback message"
             );
             expect(console.log).not.toHaveBeenCalled();
         });
@@ -250,7 +258,7 @@ describe("handleOpenFile Module", () => {
                 apiAvailable: handleOpenFileModule.validateElectronAPI(),
             }).toStrictEqual({ apiAvailable: false });
             expect(console.error).toHaveBeenCalledWith(
-                expect.stringContaining("Electron API not available")
+                "[2026-01-02T03:04:05.006Z] [renderer] HandleOpenFile: Electron API not available"
             );
             getTestWindow().electronAPI = originalElectronAPI;
         });
@@ -268,8 +276,8 @@ describe("handleOpenFile Module", () => {
                 apiAvailable: handleOpenFileModule.validateElectronAPI(),
             }).toStrictEqual({ apiAvailable: false });
             expect(console.error).toHaveBeenCalledWith(
-                expect.stringContaining("Missing Electron API methods"),
-                expect.stringContaining("openFile")
+                "[2026-01-02T03:04:05.006Z] [renderer] HandleOpenFile: Missing Electron API methods",
+                '{"methods":["openFile"]}'
             );
             getTestWindow().electronAPI = originalElectronAPI;
         });
@@ -376,7 +384,7 @@ describe("handleOpenFile Module", () => {
 
             // Should log the error
             expect(console.error).toHaveBeenCalledWith(
-                expect.stringContaining("Error updating UI state")
+                "[2026-01-02T03:04:05.006Z] [renderer] HandleOpenFile: Error updating UI state: TypeError: Cannot set properties of null (setting 'disabled')"
             );
         });
     });
@@ -437,7 +445,7 @@ describe("handleOpenFile Module", () => {
                 fileOpened: false,
             });
             expect(mockParams.showNotification).toHaveBeenCalledWith(
-                expect.stringContaining("File opening is already in progress"),
+                "File opening is already in progress. Please wait.",
                 "warning"
             );
         });
@@ -480,7 +488,7 @@ describe("handleOpenFile Module", () => {
                 fileOpened: false,
             });
             expect(mockParams.showNotification).toHaveBeenCalledWith(
-                expect.stringContaining("Unable to open the file dialog"),
+                "Unable to open the file dialog. Please try again. Error details: Open error",
                 "error"
             );
         });
@@ -502,7 +510,7 @@ describe("handleOpenFile Module", () => {
                 fileOpened: false,
             });
             expect(mockParams.showNotification).toHaveBeenCalledWith(
-                expect.stringContaining("Error reading file"),
+                "Error reading file: Read error",
                 "error"
             );
         });
@@ -525,7 +533,7 @@ describe("handleOpenFile Module", () => {
                 fileOpened: false,
             });
             expect(mockParams.showNotification).toHaveBeenCalledWith(
-                expect.stringContaining("Error parsing FIT file"),
+                "Error parsing FIT file: Parse error",
                 "error"
             );
         });
@@ -576,7 +584,7 @@ describe("handleOpenFile Module", () => {
 
             expect({ fileOpened: result }).toStrictEqual({ fileOpened: true });
             expect(mockParams.showNotification).toHaveBeenCalledWith(
-                expect.stringContaining("Error displaying FIT data"),
+                "Error displaying FIT data: Display error",
                 "error"
             );
         });
@@ -648,9 +656,7 @@ describe("handleOpenFile Module", () => {
 
             expect({ fileOpened: result }).toStrictEqual({ fileOpened: true });
             expect(console.log).toHaveBeenCalledWith(
-                expect.stringContaining(
-                    "Debug: Parsed FIT data contains 2 sessions"
-                )
+                "[HandleOpenFile] Debug: Parsed FIT data contains 2 sessions"
             );
         });
 
@@ -681,7 +687,7 @@ describe("handleOpenFile Module", () => {
                 expect.any(ArrayBuffer)
             );
             expect(mockParams.showNotification).not.toHaveBeenCalledWith(
-                expect.stringContaining("Selected file appears to be empty"),
+                "Selected file appears to be empty",
                 "error"
             );
         });
