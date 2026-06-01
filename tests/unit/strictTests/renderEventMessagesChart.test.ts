@@ -918,9 +918,8 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
             const container = document.createElement("div");
 
-            expect(() =>
-                renderEventMessagesChart(container, {}, new Date())
-            ).not.toThrow();
+            renderEventMessagesChart(container, {}, new Date());
+
             expect(window.Chart).toHaveBeenCalledOnce();
             expect(window._chartjsInstances).toStrictEqual([]);
             expect(mockConsoleError).toHaveBeenCalledWith(
@@ -940,9 +939,8 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
             const container = document.createElement("div");
 
-            expect(() =>
-                renderEventMessagesChart(container, {}, new Date())
-            ).not.toThrow();
+            renderEventMessagesChart(container, {}, new Date());
+
             expect(getRenderState(container)).toStrictEqual({
                 chartCalls: 0,
                 childCount: 0,
@@ -983,9 +981,8 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             getEventMessagesWindow().Chart = mockChartConstructor as ChartMock;
             const container = document.createElement("div");
 
-            expect(() =>
-                renderEventMessagesChart(container, {}, new Date())
-            ).not.toThrow();
+            renderEventMessagesChart(container, {}, new Date());
+
             expect(mockChartConstructor).toHaveBeenCalledWith(
                 expect.any(HTMLCanvasElement),
                 expect.any(Object)
@@ -1022,14 +1019,15 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         it("should handle missing container gracefully", () => {
             expect.hasAssertions();
 
-            expect(() =>
-                renderEventMessagesChart(
-                    null as unknown as HTMLElement,
-                    {},
-                    new Date()
-                )
-            ).not.toThrow();
+            renderEventMessagesChart(
+                null as unknown as HTMLElement,
+                {},
+                new Date()
+            );
+
             expect(window.Chart).not.toHaveBeenCalled();
+            expect(document.body.childElementCount).toBe(0);
+            expect(window._chartjsInstances).toStrictEqual([]);
             expect(mockConsoleError).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering event messages chart:",
                 expect.any(Error)
@@ -1041,13 +1039,12 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
             const container = document.createElement("div");
 
-            expect(() =>
-                renderEventMessagesChart(
-                    container,
-                    undefined as unknown as Record<string, unknown>,
-                    new Date()
-                )
-            ).not.toThrow();
+            renderEventMessagesChart(
+                container,
+                undefined as unknown as Record<string, unknown>,
+                new Date()
+            );
+
             expect(getRenderState(container)).toStrictEqual({
                 chartCalls: 1,
                 childCount: 1,
