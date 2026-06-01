@@ -26,7 +26,7 @@ describe("createMarkerCountSelector", () => {
     });
 
     it("initializes with default and invokes onChange on select change", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const { createMarkerCountSelector } =
             await import("../../../../../electron-app/utils/ui/controls/createMarkerCountSelector.js");
@@ -43,7 +43,7 @@ describe("createMarkerCountSelector", () => {
     });
 
     it("falls back to the default for invalid marker count values", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const markerWindow = window as MarkerCountWindow;
         markerWindow.mapMarkerCount = 999;
@@ -60,7 +60,7 @@ describe("createMarkerCountSelector", () => {
     });
 
     it("supports wheel to change selection up/down", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const { createMarkerCountSelector } =
             await import("../../../../../electron-app/utils/ui/controls/createMarkerCountSelector.js");

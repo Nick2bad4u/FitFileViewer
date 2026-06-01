@@ -44,7 +44,7 @@ describe("renderTable", () => {
     });
 
     it("renders section, toggles visibility, and copies CSV via helper", async () => {
-        expect.hasAssertions();
+        expect.assertions(9);
 
         const { renderTable } = await loadModule();
         const root = document.getElementById("root")!;
@@ -77,7 +77,7 @@ describe("renderTable", () => {
     });
 
     it("falls back gracefully when jQuery is absent", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const { renderTable } = await loadModule();
         const root = document.getElementById("root")!;
@@ -97,7 +97,7 @@ describe("renderTable", () => {
     });
 
     it("sanitizes injected markup from table HTML", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const { renderTable } = await loadModule();
         const root = document.getElementById("root")!;
@@ -118,7 +118,7 @@ describe("renderTable", () => {
     });
 
     it("initializes DataTable when jQuery+DataTables present, destroying prior instance", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const calls: Array<{
             selector: string;

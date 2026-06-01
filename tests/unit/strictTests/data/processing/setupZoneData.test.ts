@@ -55,7 +55,7 @@ describe("setupZoneData", () => {
     });
 
     it("returns existing globals when no data", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         getFitWindow().heartRateZones = [{ zone: 1, time: 10 }];
         const { setupZoneData } = await importSetupZoneData();
@@ -66,7 +66,7 @@ describe("setupZoneData", () => {
     });
 
     it("uses timeInZoneMesgs session aggregate", async () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         const { setupZoneData } = await importSetupZoneData();
         const res = setupZoneData({
@@ -95,7 +95,7 @@ describe("setupZoneData", () => {
     });
 
     it("falls back to sessionMesgs when no timeInZoneMesgs", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const { setupZoneData } = await importSetupZoneData();
         const res = setupZoneData({
@@ -110,7 +110,7 @@ describe("setupZoneData", () => {
     });
 
     it("aggregates from lapMesgs as last resort", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const { setupZoneData } = await importSetupZoneData();
         const res = setupZoneData({

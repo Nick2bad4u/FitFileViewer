@@ -91,7 +91,7 @@ describe("about modal UI behaviors", () => {
     });
 
     it("ensures modal creation, shows with content, and closes via close button", async () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         const { ensureAboutModal, showAboutModal } = await importModules();
 
@@ -121,7 +121,7 @@ describe("about modal UI behaviors", () => {
     });
 
     it("renders features and system info together and loads version info", async () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         const { ensureAboutModal, showAboutModal } = await importModules();
         const { loadVersionInfo } =
@@ -145,7 +145,7 @@ describe("about modal UI behaviors", () => {
     });
 
     it("closes on Escape key via global handler", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const { ensureAboutModal, showAboutModal } = await importModules();
 
@@ -167,7 +167,7 @@ describe("about modal UI behaviors", () => {
     });
 
     it("handles external links using electronAPI when available", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const { ensureAboutModal, showAboutModal } = await importModules();
         const aboutWindow = window as AboutWindow;
@@ -187,7 +187,7 @@ describe("about modal UI behaviors", () => {
     });
 
     it("does not create duplicate modal elements when ensured multiple times", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const { ensureAboutModal } = await importModules();
         ensureAboutModal();

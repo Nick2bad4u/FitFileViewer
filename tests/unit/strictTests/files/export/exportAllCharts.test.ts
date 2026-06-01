@@ -29,7 +29,7 @@ describe("exportAllCharts", () => {
     });
 
     it("warns when no charts", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const { exportUtils } =
             await import("../../../../../electron-app/utils/files/export/exportUtils.js");
@@ -48,7 +48,7 @@ describe("exportAllCharts", () => {
     });
 
     it("warns when the chart registry is invalid", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const { exportUtils } =
             await import("../../../../../electron-app/utils/files/export/exportUtils.js");
@@ -70,7 +70,7 @@ describe("exportAllCharts", () => {
     });
 
     it("exports each chart and shows success", async () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         const { exportUtils } =
             await import("../../../../../electron-app/utils/files/export/exportUtils.js");
@@ -107,7 +107,7 @@ describe("exportAllCharts", () => {
     });
 
     it("handles errors gracefully and notifies", async () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         const { exportUtils } =
             await import("../../../../../electron-app/utils/files/export/exportUtils.js");

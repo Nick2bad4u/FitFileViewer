@@ -310,7 +310,7 @@ describe("main.js strict handlers and events", () => {
     });
 
     it("wires did-finish-load, auto-updater events, and IPC handlers", async () => {
-        expect.hasAssertions();
+        expect.assertions(9);
 
         await import("../../../../electron-app/main.js");
 
@@ -360,7 +360,7 @@ describe("main.js strict handlers and events", () => {
     });
 
     it("handles dialog:openFile flow and recentFiles handlers", async () => {
-        expect.hasAssertions();
+        expect.assertions(8);
 
         await import("../../../../electron-app/main.js");
 
@@ -413,7 +413,7 @@ describe("main.js strict handlers and events", () => {
     });
 
     it("validates shell:openExternal and file:read/fit handlers", async () => {
-        expect.hasAssertions();
+        expect.assertions(14);
 
         await import("../../../../electron-app/main.js");
         const handleCalls = mockIpcMain.handle.mock.calls;
@@ -518,7 +518,7 @@ describe("main.js strict handlers and events", () => {
     });
 
     it("menu events and fullscreen, security navigation guards", async () => {
-        expect.hasAssertions();
+        expect.assertions(14);
 
         await import("../../../../electron-app/main.js");
         const updater = (await import("electron-updater")).autoUpdater as any;

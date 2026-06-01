@@ -13,7 +13,7 @@ describe("createHRZoneControls", () => {
     });
 
     it("creates section and toggles collapse state", async () => {
-        expect.hasAssertions();
+        expect.assertions(10);
 
         const { createHRZoneControls } = await loadModule();
         const root = document.getElementById("root")!;
@@ -43,7 +43,7 @@ describe("createHRZoneControls", () => {
     });
 
     it("updateHRZoneControlsVisibility toggles display", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const { createHRZoneControls, updateHRZoneControlsVisibility } =
             await loadModule();
@@ -59,7 +59,7 @@ describe("createHRZoneControls", () => {
     });
 
     it("updateHRZoneControlsVisibility does not create controls when missing", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const { updateHRZoneControlsVisibility } = await loadModule();
 

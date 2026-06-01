@@ -48,7 +48,7 @@ describe("createMapThemeToggle", () => {
     });
 
     it("get/set preference defaults to dark, persists changes, and dispatches details", async () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         const eventController = new AbortController();
         const eventSpy = vi.fn<(event: Event) => void>();
@@ -76,7 +76,7 @@ describe("createMapThemeToggle", () => {
     });
 
     it("creates button and toggles state with click", async () => {
-        expect.hasAssertions();
+        expect.assertions(14);
 
         const appGlobal = globalThis as MapThemeToggleGlobal;
         const eventController = new AbortController();
@@ -126,7 +126,7 @@ describe("createMapThemeToggle", () => {
     });
 
     it("renders the persisted light preference without active dark-map affordances", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const { createMapThemeToggle, setMapThemeInverted } =
             await importCreateMapThemeToggle();

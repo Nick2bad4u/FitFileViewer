@@ -23,7 +23,7 @@ describe("showUpdateNotification", () => {
     });
 
     it("returns early when notification element missing", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const mod =
             await import("../../../../../electron-app/utils/ui/notifications/showUpdateNotification.js");
@@ -34,7 +34,7 @@ describe("showUpdateNotification", () => {
     });
 
     it("renders message and update downloaded buttons; actions work", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const host = document.createElement("div");
         host.id = "notification";
@@ -64,7 +64,7 @@ describe("showUpdateNotification", () => {
     });
 
     it("auto hides when withAction is true (single button) using timers", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const host = document.createElement("div");
         host.id = "notification";

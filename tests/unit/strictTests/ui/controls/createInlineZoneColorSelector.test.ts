@@ -225,7 +225,7 @@ describe(createInlineZoneColorSelector, () => {
     });
 
     it("creates HR zone selector and applies initial scheme when none customized", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const container = document.createElement("div");
         document.body.appendChild(container);
@@ -239,7 +239,7 @@ describe(createInlineZoneColorSelector, () => {
     });
 
     it("creates Power zone selector and scheme change updates generic colors and triggers rerender", () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         const container = document.createElement("div");
         document.body.appendChild(container);
@@ -269,7 +269,7 @@ describe(createInlineZoneColorSelector, () => {
     });
 
     it("changing a color switches scheme to custom and updates storages and preview", () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         const container = document.createElement("div");
         document.body.appendChild(container);
@@ -305,7 +305,7 @@ describe(createInlineZoneColorSelector, () => {
     });
 
     it("reset button clears storages and triggers rerender and update of all selectors", () => {
-        expect.hasAssertions();
+        expect.assertions(9);
 
         const container = document.createElement("div");
         document.body.appendChild(container);
@@ -342,7 +342,7 @@ describe(createInlineZoneColorSelector, () => {
     });
 
     it("helpers: remove and update inline selectors, clearZoneColorData and getCurrentColorScheme", () => {
-        expect.hasAssertions();
+        expect.assertions(9);
 
         const container = document.createElement("div");
         document.body.appendChild(container);

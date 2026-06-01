@@ -47,7 +47,7 @@ describe("showRenderNotification logic", () => {
     });
 
     it("shows when >10s since last render", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const mod =
             await import("../../../../../electron-app/utils/ui/notifications/showRenderNotification.js");
@@ -56,7 +56,7 @@ describe("showRenderNotification logic", () => {
     });
 
     it("shows when chart count changes significantly or from 0", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const rc = await importChartNotificationState();
         const previousChartState = mutablePreviousChartState(
@@ -74,7 +74,7 @@ describe("showRenderNotification logic", () => {
     });
 
     it("does not show for threshold-boundary changes", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const rc = await importChartNotificationState();
         const previousChartState = mutablePreviousChartState(
@@ -94,7 +94,7 @@ describe("showRenderNotification logic", () => {
     });
 
     it("shows when visible fields change significantly", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const rc = await importChartNotificationState();
         const previousChartState = mutablePreviousChartState(
