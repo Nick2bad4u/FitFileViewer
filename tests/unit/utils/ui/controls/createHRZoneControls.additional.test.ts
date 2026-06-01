@@ -46,7 +46,7 @@ describe("createHRZoneControls additional coverage", () => {
     });
 
     it("returns existing controls without creating a new section", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const existing = document.createElement("div");
         existing.id = "hr-zone-controls";
@@ -59,7 +59,7 @@ describe("createHRZoneControls additional coverage", () => {
     });
 
     it("honors persisted collapse state and updates hover styles", async () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         localStorage.setItem("hr-zone-controls-collapsed", "true");
         const { createHRZoneControls } = await loadModule();
@@ -85,7 +85,7 @@ describe("createHRZoneControls additional coverage", () => {
     });
 
     it("getHRZoneVisibilitySettings reflects stored visibility flags", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         setChartFieldVisibility("hr_zone_doughnut", "hidden");
         setChartFieldVisibility("hr_lap_zone_stacked", "hidden");
@@ -99,7 +99,7 @@ describe("createHRZoneControls additional coverage", () => {
     });
 
     it("updateHRZoneControlsVisibility gracefully handles missing section", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const { updateHRZoneControlsVisibility } = await loadModule();
         document.body.replaceChildren();
@@ -107,7 +107,7 @@ describe("createHRZoneControls additional coverage", () => {
     });
 
     it("warns when hr-zone-content is missing", async () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         const { moveHRZoneControlsToSection } = await loadModule();
@@ -131,7 +131,7 @@ describe("createHRZoneControls additional coverage", () => {
     });
 
     it("moves controls, adds spacing, and appends unified color picker", async () => {
-        expect.hasAssertions();
+        expect.assertions(9);
 
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         const { createHRZoneControls, moveHRZoneControlsToSection } =
@@ -177,7 +177,7 @@ describe("createHRZoneControls additional coverage", () => {
     });
 
     it("skips appending color picker when inline selector returns null", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         inlineSelectorMock.createInlineZoneColorSelector.mockReturnValueOnce(
             null

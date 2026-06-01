@@ -37,7 +37,7 @@ function clearElectronApi(): void {
 
 describe(loadSingleOverlayFile, () => {
     it("rejects non-FIT file names before reading or decoding", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const decodeFitFile =
             vi.fn<
@@ -63,7 +63,7 @@ describe(loadSingleOverlayFile, () => {
     });
 
     it("rejects empty files", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         setDecodeFitFile(async () => ({
             recordMesgs: [{ positionLat: 1, positionLong: 2 }],
@@ -84,7 +84,7 @@ describe(loadSingleOverlayFile, () => {
     });
 
     it("rejects oversized declared files before reading", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const file = {
             arrayBuffer: async () => new ArrayBuffer(1),
@@ -101,7 +101,7 @@ describe(loadSingleOverlayFile, () => {
     });
 
     it("reports a missing decoder bridge", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         clearElectronApi();
 
@@ -114,7 +114,7 @@ describe(loadSingleOverlayFile, () => {
     });
 
     it("returns parser errors from decoded FIT data", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         setDecodeFitFile(async () => ({
             error: "Parse failed",
@@ -134,7 +134,7 @@ describe(loadSingleOverlayFile, () => {
     });
 
     it("requires at least one record with numeric coordinates", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         setDecodeFitFile(async () => ({
             recordMesgs: [
@@ -156,7 +156,7 @@ describe(loadSingleOverlayFile, () => {
     });
 
     it("returns decoded FIT data when validation succeeds", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const decodedData: FitDecodeResult = {
             recordMesgs: [{ positionLat: 1, positionLong: 2 }],
@@ -176,7 +176,7 @@ describe(loadSingleOverlayFile, () => {
     });
 
     it("reports thrown read errors without leaking unhandled exceptions", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const consoleErrorSpy = vi
             .spyOn(console, "error")

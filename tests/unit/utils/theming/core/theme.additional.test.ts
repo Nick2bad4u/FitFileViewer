@@ -28,7 +28,7 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
     });
 
     it("loadTheme returns saved value and falls back to dark on error", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         localStorage.setItem("ffv-theme", "light");
         expect(theme.loadTheme()).toBe("light");
@@ -49,7 +49,7 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
     });
 
     it("applyTheme adds/removes classes, persists, dispatches event, updates meta", () => {
-        expect.hasAssertions();
+        expect.assertions(9);
 
         const listenerController = new AbortController();
         const eventSpy = vi.fn<(event: Event) => void>();
@@ -92,7 +92,7 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
     });
 
     it("applyTheme auto uses getSystemTheme result", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         // Configure environment so getSystemTheme() resolves to light
         (globalThis as any).matchMedia = () => ({ matches: false }) as any;
@@ -101,7 +101,7 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
     });
 
     it("getEffectiveTheme respects auto and explicit values", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const spy = vi.spyOn(theme, "getSystemTheme").mockReturnValue("dark");
         expect(theme.getEffectiveTheme("auto")).toBe("dark");
@@ -113,7 +113,7 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
     });
 
     it("getSystemTheme uses matchMedia and falls back when unavailable", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         // with matchMedia
         (globalThis as any).matchMedia = (query: string) =>
@@ -126,7 +126,7 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
     });
 
     it("getThemeConfig reads CSS variables and provides fallbacks", () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         // Provide getComputedStyle that returns values for our CSS vars
         const styles = new Map<string, string>([
@@ -160,7 +160,7 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
     });
 
     it("listenForSystemThemeChange returns undefined when matchMedia is unavailable", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         (globalThis as any).matchMedia = undefined;
         const cleanup = theme.listenForSystemThemeChange();
@@ -168,7 +168,7 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
     });
 
     it("listenForThemeChange hooks electronAPI and forwards theme", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const onSetTheme = vi.fn<(callback: (theme: string) => void) => void>(
             (callback) => {
@@ -191,7 +191,7 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
     });
 
     it("toggleTheme flips between dark and light and updates DOM/storage", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         localStorage.setItem("ffv-theme", "dark");
         theme.toggleTheme(false);
@@ -201,7 +201,7 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
     });
 
     it("initializeTheme applies saved theme, sets up listener and injects CSS", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         localStorage.setItem("ffv-theme", "dark");
         // Provide a minimal matchMedia impl so initializeTheme returns a cleanup function
