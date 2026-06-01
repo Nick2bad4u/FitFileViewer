@@ -207,8 +207,9 @@ describe("data ant manufacturer ID lookup", () => {
 
         expect(
             Object.getOwnPropertyDescriptor(dataAntManufacturerIDs, "1")
-        ).toMatchObject({
+        ).toStrictEqual({
             configurable: false,
+            enumerable: true,
             value: "garmin",
             writable: false,
         });

@@ -89,9 +89,13 @@ describe(PerformanceMonitor, () => {
             performanceMonitor.startTimer("singleton-operation");
 
             expect(performanceMonitor).toBeInstanceOf(PerformanceMonitor);
-            expect(
-                performanceMonitor.getTimer("singleton-operation")
-            ).toMatchObject({
+            const singletonTimer = performanceMonitor.getTimer(
+                "singleton-operation"
+            );
+            expect({
+                duration: singletonTimer?.duration,
+                end: singletonTimer?.end,
+            }).toStrictEqual({
                 duration: null,
                 end: null,
             });

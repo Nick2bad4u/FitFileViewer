@@ -59,7 +59,12 @@ describe("windowStateUtils strict tests (pure functions)", () => {
             y: 6,
         };
         const s2 = mod.sanitizeWindowState(stateWithCoordinates);
-        expect(s2).toMatchObject({
+        expect({
+            height: s2.height,
+            width: s2.width,
+            x: s2.x,
+            y: s2.y,
+        }).toStrictEqual({
             height: 700,
             width: 900,
             x: 5,
