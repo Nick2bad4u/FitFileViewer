@@ -219,27 +219,28 @@ describe("generic preload IPC API", () => {
     });
 
     it("wraps event callbacks and removes listeners through the shared remover", () => {
-        expect.assertions(4);
+        expect.assertions(7);
 
         const { api, ipcMock, removeIpcListener } = createApi();
         const callback =
             vi.fn<(event: object, ...args: IpcResponsePayload[]) => void>();
         const unsubscribe = api.onIpc("show-notification", callback);
-        const listener = ipcMock.on.mock.calls[0]?.[1];
+        const [registeredChannel, listener] = ipcMock.on.mock.calls[0] ?? [];
         const event = { id: "evt" };
+
+        expect(unsubscribe).toBeTypeOf("function");
+        expect(ipcMock.on).toHaveBeenCalledOnce();
+        expect(registeredChannel).toBe("show-notification");
+        expect(listener).toBeTypeOf("function");
+        expect(listener).not.toBe(callback);
 
         listener?.(event, "payload");
         unsubscribe?.();
 
-        expect(unsubscribe).toBeTypeOf("function");
         expect(callback).toHaveBeenCalledWith(event, "payload");
         expect(removeIpcListener).toHaveBeenCalledWith(
             "show-notification",
             listener
-        );
-        expect(ipcMock.on).toHaveBeenCalledWith(
-            "show-notification",
-            expect.any(Function)
         );
     });
 });
