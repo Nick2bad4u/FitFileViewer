@@ -3,6 +3,7 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
+import process from "node:process";
 import { pathToFileURL } from "node:url";
 
 import { repositoryRoot, rootWin7ReleaseDistPath } from "./lib/workspaces.mjs";
@@ -11,7 +12,7 @@ import { resolveCommandForPlatform } from "./lib/child-process.mjs";
 const require = createRequire(import.meta.url);
 const electronBuilderConfig = require("../electron-builder.config.cjs");
 export const outputDir = rootWin7ReleaseDistPath;
-const WIN7_ELECTRON_VERSION = "22.3.27";
+export const win7ElectronVersion = "22.3.27";
 export const rootPackageFiles = readElectronBuilderFiles();
 
 export function readElectronBuilderFiles(config = electronBuilderConfig) {
@@ -31,11 +32,8 @@ export function parseElectronBuilderFiles(parsed) {
     return parsed;
 }
 
-function assertInsideRepository(targetPath) {
-    const relativePath = path.relative(
-        repositoryRoot,
-        path.resolve(targetPath)
-    );
+export function assertInsideRepository(targetPath, root = repositoryRoot) {
+    const relativePath = path.relative(root, path.resolve(targetPath));
 
     if (
         relativePath === "" ||
@@ -48,38 +46,48 @@ function assertInsideRepository(targetPath) {
     }
 }
 
-function runNpmScript(scriptName) {
-    const npmCliPath = resolveNpmCliPath();
+export function runNpmScript(scriptName, options = {}) {
+    const commandRunner = options.commandRunner ?? execFileSync;
+    const executablePath = options.executablePath ?? process.execPath;
+    const npmCliPath = resolveNpmCliPath(options);
+    const root = options.repositoryRoot ?? repositoryRoot;
 
     if (npmCliPath) {
-        execFileSync(
-            process.execPath,
+        commandRunner(
+            executablePath,
             [
                 npmCliPath,
                 "run",
                 scriptName,
             ],
             {
-                cwd: repositoryRoot,
+                cwd: root,
                 stdio: "inherit",
             }
         );
         return;
     }
 
-    execFileSync(resolveCommandForPlatform("npm"), ["run", scriptName], {
-        cwd: repositoryRoot,
-        stdio: "inherit",
-    });
+    commandRunner(
+        resolveCommandForPlatform("npm", options.platform ?? process.platform),
+        ["run", scriptName],
+        {
+            cwd: root,
+            stdio: "inherit",
+        }
+    );
 }
 
-function resolveNpmCliPath() {
-    const npmExecPath = process.env.npm_execpath;
+export function resolveNpmCliPath(options = {}) {
+    const environment = options.environment ?? process.env;
+    const executablePath = options.executablePath ?? process.execPath;
+    const fileSystem = options.fileSystem ?? fs;
+    const npmExecPath = environment.npm_execpath;
     if (npmExecPath) {
         return npmExecPath;
     }
 
-    const nodeBinDir = path.dirname(process.execPath);
+    const nodeBinDir = path.dirname(executablePath);
     const candidate = path.join(
         nodeBinDir,
         "node_modules",
@@ -88,49 +96,79 @@ function resolveNpmCliPath() {
         "npm-cli.js"
     );
 
-    if (fs.existsSync(candidate)) {
+    if (fileSystem.existsSync(candidate)) {
         return candidate;
     }
 }
 
-async function run() {
-    console.log("[win7-build] Starting Windows 7 compatibility build...");
-    try {
-        assertInsideRepository(outputDir);
-        fs.rmSync(outputDir, { force: true, recursive: true });
-        runNpmScript("build:runtime-ts");
-
-        await build({
-            projectDir: repositoryRoot,
-            targets: Platform.WINDOWS.createTarget(["portable"], Arch.ia32),
-            config: {
-                electronVersion: WIN7_ELECTRON_VERSION,
-                npmRebuild: false,
-                publish: null,
-                asar: false,
-                files: rootPackageFiles,
-                directories: {
-                    output: outputDir,
-                },
-
-                artifactName: "Fit-File-Viewer-win7-${arch}-${version}.${ext}",
-                extraMetadata: {
-                    productName: "Fit File Viewer (Win7)",
-                },
-                win: {
-                    target: ["portable"],
-                    legalTrademarks: "Fit File Viewer",
-                    requestedExecutionLevel: "asInvoker",
-                },
+export function createWin7BuildConfig({
+    files = rootPackageFiles,
+    output = outputDir,
+    projectDir = repositoryRoot,
+} = {}) {
+    return {
+        projectDir,
+        targets: Platform.WINDOWS.createTarget(["portable"], Arch.ia32),
+        config: {
+            electronVersion: win7ElectronVersion,
+            npmRebuild: false,
+            publish: null,
+            asar: false,
+            files,
+            directories: {
+                output,
             },
+
+            artifactName: "Fit-File-Viewer-win7-${arch}-${version}.${ext}",
+            extraMetadata: {
+                productName: "Fit File Viewer (Win7)",
+            },
+            win: {
+                target: ["portable"],
+                legalTrademarks: "Fit File Viewer",
+                requestedExecutionLevel: "asInvoker",
+            },
+        },
+    };
+}
+
+export async function runWin7Build(options = {}) {
+    const builder = options.builder ?? build;
+    const commandRunner = options.commandRunner ?? execFileSync;
+    const errorLogger = options.errorLogger ?? console.error;
+    const executablePath = options.executablePath ?? process.execPath;
+    const fileSystem = options.fileSystem ?? fs;
+    const logger = options.logger ?? console.log;
+    const root = options.repositoryRoot ?? repositoryRoot;
+    const targetOutputDir = options.outputDir ?? outputDir;
+
+    logger("[win7-build] Starting Windows 7 compatibility build...");
+    try {
+        assertInsideRepository(targetOutputDir, root);
+        fileSystem.rmSync(targetOutputDir, { force: true, recursive: true });
+        runNpmScript("build:runtime-ts", {
+            commandRunner,
+            environment: options.environment,
+            executablePath,
+            fileSystem,
+            platform: options.platform,
+            repositoryRoot: root,
         });
-        console.log(
-            `🟢 [win7-build] Build finished. Artifacts available in ${outputDir}`
+
+        await builder(
+            createWin7BuildConfig({
+                files: options.files ?? rootPackageFiles,
+                output: targetOutputDir,
+                projectDir: root,
+            })
         );
+        logger(
+            `🟢 [win7-build] Build finished. Artifacts available in ${targetOutputDir}`
+        );
+        return 0;
     } catch (error) {
-        console.error("🔴 [win7-build] Build failed:", error);
-        // eslint-disable-next-line n/no-process-exit -- build script
-        process.exit(1);
+        errorLogger("🔴 [win7-build] Build failed:", error);
+        return 1;
     }
 }
 
@@ -138,5 +176,5 @@ if (
     process.argv[1] &&
     import.meta.url === pathToFileURL(process.argv[1]).href
 ) {
-    run();
+    process.exitCode = await runWin7Build();
 }
