@@ -46,7 +46,7 @@ function getFileExistence(relativePaths: string[]): Record<string, boolean> {
 
 describe("workspace package boundaries", () => {
     it("keeps shared tooling and local Vitest UI support in the root workspace", () => {
-        expect.assertions(7);
+        expect.assertions(9);
 
         const rootPackage = readPackageJson("package.json");
 
@@ -81,6 +81,10 @@ describe("workspace package boundaries", () => {
         );
         expect(rootPackage.devDependencies).not.toHaveProperty(
             "eslint-plugin-vue"
+        );
+        expect(rootPackage.devDependencies).not.toHaveProperty("fast-check");
+        expect(rootPackage.devDependencies).not.toHaveProperty(
+            "fast-xml-parser"
         );
     });
 

@@ -40,9 +40,9 @@ application.
 2. Create a new application.
 3. Use this redirect URI:
 
-```text
-http://localhost:3000/gyazo/callback
-```
+   ```text
+   http://localhost:3000/gyazo/callback
+   ```
 
 4. Copy the application `Client ID` and `Client Secret`.
 5. In FitFileViewer, open `Gyazo Settings`.
