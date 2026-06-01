@@ -303,7 +303,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
     describe("data validation and processing", () => {
         it("should return early when data has no altitude values", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const container = document.createElement("div");
             const data = [{ speed: 10 }, { heartRate: 120 }];
@@ -328,7 +328,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
         });
 
         it("should return early when field visibility is hidden (handled by chart state manager)", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const container = document.createElement("div");
             const data = [{ altitude: 100 }];
@@ -358,7 +358,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
         });
 
         it("should process data correctly with valid altitude values", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const container = document.createElement("div");
             const data = [
@@ -393,7 +393,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
         });
 
         it("should handle enhancedAltitude preference over altitude", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const container = document.createElement("div");
             const data = [
@@ -418,7 +418,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
         });
 
         it("should return early when no valid data points exist after filtering", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const container = document.createElement("div");
             const data = [{ altitude: null }, { altitude: undefined }];
@@ -443,7 +443,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
         });
 
         it("should handle mixed valid and invalid altitude values", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const container = document.createElement("div");
             const data = [
@@ -480,7 +480,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
     describe("data point limiting", () => {
         it("should apply data point limiting when maxPoints is exceeded", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const container = document.createElement("div");
             const data = Array.from({ length: 10 }, (_, i) => ({
@@ -508,7 +508,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
         });
 
         it("should not limit data when maxPoints is 'all'", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const container = document.createElement("div");
             const data = Array.from({ length: 5 }, (_, i) => ({
@@ -535,7 +535,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
         });
 
         it("should handle data point limiting with exact step calculation", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const container = document.createElement("div");
             const data = Array.from({ length: 6 }, (_, i) => ({
@@ -563,7 +563,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
     describe("chart configuration", () => {
         it("should create line chart with correct type and configuration", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             const container = document.createElement("div");
             const data = [{ altitude: 100 }];
@@ -594,7 +594,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
         });
 
         it("should configure dataset with gradient fill and correct styling", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const container = document.createElement("div");
             const data = [{ altitude: 100 }];
@@ -631,7 +631,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
         });
 
         it("should configure chart options based on provided options - all enabled", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const container = document.createElement("div");
             const data = [{ altitude: 100 }];
@@ -660,7 +660,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
         });
 
         it("should configure chart options based on provided options - all disabled", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const container = document.createElement("div");
             const data = [{ altitude: 100 }];
@@ -689,7 +689,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
         });
 
         it("should set correct axis titles and configuration", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             const container = document.createElement("div");
             const data = [{ altitude: 100 }];
@@ -711,7 +711,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
         });
 
         it("should configure zoom and pan options correctly", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const container = document.createElement("div");
             const data = [{ altitude: 100 }];
@@ -747,7 +747,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
     describe("canvas creation and styling", () => {
         it("should create canvas with correct ID and styling", () => {
-            expect.hasAssertions();
+            expect.assertions(5);
 
             const container = document.createElement("div");
             const data = [{ altitude: 100 }];
@@ -778,7 +778,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
         });
 
         it("should append canvas to container", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const container = document.createElement("div");
             const data = [{ altitude: 100 }];
@@ -804,7 +804,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
         });
 
         it("should apply theme-based canvas styling", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const container = document.createElement("div");
             const data = [{ altitude: 100 }];
@@ -828,7 +828,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
     describe("chart instance management", () => {
         it("should add chart instance to global instances array", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const container = document.createElement("div");
             const data = [{ altitude: 100 }];
@@ -854,7 +854,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
         });
 
         it("should initialize global instances array if it doesn't exist", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             delete getChartTestWindow()._chartjsInstances;
 
@@ -879,7 +879,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
         });
 
         it("should log success message when chart is created", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const container = document.createElement("div");
             const data = [{ altitude: 100 }];
@@ -902,7 +902,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
     describe("tooltip configuration", () => {
         it("should configure tooltip with altitude and time formatting", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const container = document.createElement("div");
             const data = [{ altitude: 100 }];
@@ -935,7 +935,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
         });
 
         it("should format tooltip title correctly", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const container = document.createElement("div");
             const data = [{ altitude: 100 }];
@@ -959,7 +959,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
         });
 
         it("should format tooltip label correctly", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const container = document.createElement("div");
             const data = [{ altitude: 100 }];
@@ -985,7 +985,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
     describe("plugin configuration", () => {
         it("should include chartZoomResetPlugin and chartBackgroundColorPlugin", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const container = document.createElement("div");
             const data = [{ altitude: 100 }];
@@ -1008,7 +1008,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
         });
 
         it("should configure chartBackgroundColorPlugin with theme colors", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const container = document.createElement("div");
             const data = [{ altitude: 100 }];
@@ -1030,7 +1030,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
         });
 
         it("should configure zoom plugin with drag styling", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const container = document.createElement("div");
             const data = [{ altitude: 100 }];
@@ -1062,7 +1062,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
     describe("scale configuration", () => {
         it("should configure x-axis with time formatting callback", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const container = document.createElement("div");
             const data = [{ altitude: 100 }];
@@ -1085,7 +1085,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
         });
 
         it("should configure y-axis ticks with theme colors", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             const container = document.createElement("div");
             const data = [{ altitude: 100 }];
@@ -1109,7 +1109,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
     describe("error handling", () => {
         it("should handle Chart.js constructor throwing error", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             Chart.mockImplementationOnce(() => {
                 throw new Error("Chart creation failed");
@@ -1140,7 +1140,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
     describe("edge cases", () => {
         it("should handle empty data array", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const container = document.createElement("div");
             const data: AltitudeDatum[] = [];
@@ -1165,7 +1165,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
         });
 
         it("should handle data with zero altitude values", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const container = document.createElement("div");
             const data = [{ altitude: 0 }, { altitude: 0 }];
@@ -1191,7 +1191,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
         });
 
         it("should handle fractional maxPoints calculation", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const container = document.createElement("div");
             const data = Array.from({ length: 7 }, (_, i) => ({
@@ -1217,7 +1217,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
         });
 
         it("should skip points without matching numeric labels", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const container = document.createElement("div");
             const data = [{ altitude: 100 }, { altitude: 200 }];
@@ -1236,7 +1236,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
         });
 
         it("should handle negative altitude values", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const container = document.createElement("div");
             const data = [{ altitude: -50 }, { altitude: 100 }];
