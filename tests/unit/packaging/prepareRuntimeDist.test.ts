@@ -139,29 +139,37 @@ describe("prepare-runtime-dist script", () => {
             getPathStates(distDir, [
                 path.join(appAlternativeFitViewPath, "index.html"),
                 path.join(appAlternativeFitViewPath, "assets", "app.js"),
+                appElevProfileCssPath,
                 path.join(appIconsPath, "favicon.ico"),
+                appIndexHtmlPath,
+                appStyleCssPath,
             ])
         ).toStrictEqual({
             [path.join(appAlternativeFitViewPath, "assets", "app.js")]:
                 "present",
             [path.join(appAlternativeFitViewPath, "index.html")]: "present",
+            [appElevProfileCssPath]: "present",
             [path.join(appIconsPath, "favicon.ico")]: "present",
+            [appIndexHtmlPath]: "present",
+            [appStyleCssPath]: "present",
         });
     });
 
     it("rejects dist paths outside the app directory", async () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const { prepareRuntimeDist } = await importPrepareRuntimeDist();
         const { appDir, staticDir } = makeTemporaryApp();
+        const distDir = path.join(appDir, "..", "outside-dist");
 
         expect(() =>
             prepareRuntimeDist({
                 appDir,
-                distDir: path.join(appDir, "..", "outside-dist"),
+                distDir,
                 staticDir,
             })
         ).toThrow("Refusing to operate outside app directory");
+        expect(fs.existsSync(distDir)).toBe(false);
     });
 
     it("rejects direct node_modules references in the runtime HTML", async () => {

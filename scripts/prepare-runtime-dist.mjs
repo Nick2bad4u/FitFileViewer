@@ -108,6 +108,7 @@ export function prepareRuntimeDist({
     distDir = defaultDistDir,
     staticDir = defaultStaticDir,
 } = {}) {
+    assertInsideAppDir(appDir, distDir);
     fs.mkdirSync(distDir, { recursive: true });
     copyIndexHtml(appDir, distDir, staticDir);
     for (const copy of directoryCopies) {
