@@ -1040,12 +1040,12 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                 true,
                 expect.any(Object)
             );
-            expect(
-                mocks.stateManager.setState.mock.calls.some(
+            const renderingStopCalls =
+                mocks.stateManager.setState.mock.calls.filter(
                     ([path, value]) =>
                         path === "charts.isRendering" && value === false
-                )
-            ).toBe(false);
+                );
+            expect(renderingStopCalls).toStrictEqual([]);
         });
 
         it("should select chart and trigger re-render when rendered", async () => {
@@ -1065,12 +1065,12 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                 "power",
                 expect.any(Object)
             );
-            expect(
-                mocks.stateManager.setState.mock.calls.some(
+            const staleSelectionCalls =
+                mocks.stateManager.setState.mock.calls.filter(
                     ([path, value]) =>
                         path === "charts.selectedChart" && value === "speed"
-                )
-            ).toBe(false);
+                );
+            expect(staleSelectionCalls).toStrictEqual([]);
         });
 
         it("should toggle controls visibility", async () => {
@@ -1088,18 +1088,18 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             expect(
                 mocks.uiStateManager.uiStateManager.updatePanelVisibility
             ).toHaveBeenCalledWith("chart-controls", false);
-            expect(
-                mocks.stateManager.setState.mock.calls.some(
+            const controlsVisibleCalls =
+                mocks.stateManager.setState.mock.calls.filter(
                     ([path, value]) =>
                         path === "charts.controlsVisible" && value === true
-                )
-            ).toBe(false);
+                );
+            expect(controlsVisibleCalls).toStrictEqual([]);
         });
     });
 
     describe("exportChartsWithState Function", () => {
         it("should handle no rendered charts scenario", async () => {
-            expect.assertions(2);
+            expect.assertions(3);
             mocks.stateManager.getState.mockImplementation((path) => {
                 if (path === "charts.isRendered") return false;
                 return null;
@@ -1111,8 +1111,18 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
             const exportSucceeded = await exportChartsWithState("png");
 
-            expect(exportSucceeded).toBe(false);
-            expect(exportSucceeded).not.toBe(true);
+            expect({ exportSucceeded }).toStrictEqual({
+                exportSucceeded: false,
+            });
+            await Promise.resolve();
+            expect(
+                mocks.showNotification.showNotification
+            ).toHaveBeenCalledWith("No charts available for export", "warning");
+            expect(mocks.stateManager.setState).not.toHaveBeenCalledWith(
+                "ui.isExporting",
+                true,
+                expect.any(Object)
+            );
         });
 
         it("should export charts when available", async () => {
@@ -1135,7 +1145,9 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
             const exportSucceeded = await exportChartsWithState("png");
 
-            expect(exportSucceeded).toBe(true);
+            expect({ exportSucceeded }).toStrictEqual({
+                exportSucceeded: true,
+            });
         });
     });
 
