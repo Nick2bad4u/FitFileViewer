@@ -18,7 +18,7 @@ describe("renderChartStateManagement", () => {
     });
 
     it("initializes charts state, computed values, and render middleware", async () => {
-        expect.assertions(10);
+        expect.assertions(8);
 
         const consoleLog = vi
             .spyOn(console, "log")
@@ -75,14 +75,22 @@ describe("renderChartStateManagement", () => {
                 source: "initializeChartStateManagement",
             }
         );
-        expect(computedValues.get("charts.hasData")?.()).toBe(true);
-        expect(computedValues.get("charts.renderableFieldCount")?.()).toBe(2);
-        expect(computedValues.get("charts.summary")?.()).toEqual({
-            chartCount: 3,
-            fieldCount: 2,
+        expect({
+            hasData: computedValues.get("charts.hasData")?.(),
+            renderableFieldCount: computedValues.get(
+                "charts.renderableFieldCount"
+            )?.(),
+            summary: computedValues.get("charts.summary")?.(),
+        }).toStrictEqual({
             hasData: true,
-            isRendered: false,
-            lastRender: 1234,
+            renderableFieldCount: 2,
+            summary: {
+                chartCount: 3,
+                fieldCount: 2,
+                hasData: true,
+                isRendered: false,
+                lastRender: 1234,
+            },
         });
         expect(register).toHaveBeenCalledWith(
             "chart-render",
@@ -112,7 +120,7 @@ describe("renderChartStateManagement", () => {
     });
 
     it("does not register duplicate chart render middleware", () => {
-        expect.assertions(3);
+        expect.assertions(2);
 
         const computedValues = new Map<string, () => unknown>();
         const register =
@@ -142,42 +150,50 @@ describe("renderChartStateManagement", () => {
         });
 
         expect(register).not.toHaveBeenCalled();
-        expect(computedValues.has("charts.hasData")).toBe(true);
-        expect(computedValues.has("charts.renderableFieldCount")).toBe(true);
+        expect([...computedValues.keys()]).toStrictEqual([
+            "charts.hasData",
+            "charts.renderableFieldCount",
+            "charts.summary",
+        ]);
     });
 
     it("requests refresh only when chart data is valid and rendering is idle", () => {
-        expect.assertions(5);
+        expect.assertions(2);
 
         const requestRerender = vi.fn<(reason: string) => void>();
 
-        expect(
-            refreshChartsIfNeeded({
-                hasValidData: () => true,
-                isRendering: () => false,
-                requestRerender,
-            })
-        ).toBe(true);
-        expect(requestRerender).toHaveBeenCalledWith(
-            "Manual refresh requested"
-        );
+        const validIdleResult = refreshChartsIfNeeded({
+            hasValidData: () => true,
+            isRendering: () => false,
+            requestRerender,
+        });
+
+        expect({
+            requestReason: requestRerender.mock.calls[0]?.[0],
+            result: validIdleResult,
+        }).toStrictEqual({
+            requestReason: "Manual refresh requested",
+            result: true,
+        });
 
         requestRerender.mockClear();
 
-        expect(
-            refreshChartsIfNeeded({
+        expect({
+            invalidDataResult: refreshChartsIfNeeded({
                 hasValidData: () => false,
                 isRendering: () => false,
                 requestRerender,
-            })
-        ).toBe(false);
-        expect(
-            refreshChartsIfNeeded({
+            }),
+            renderingResult: refreshChartsIfNeeded({
                 hasValidData: () => true,
                 isRendering: () => true,
                 requestRerender,
-            })
-        ).toBe(false);
-        expect(requestRerender).not.toHaveBeenCalled();
+            }),
+            requestCount: requestRerender.mock.calls.length,
+        }).toStrictEqual({
+            invalidDataResult: false,
+            renderingResult: false,
+            requestCount: 0,
+        });
     });
 });
