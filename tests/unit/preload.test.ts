@@ -226,8 +226,8 @@ function isBeforeExitCall(call: unknown[]): call is BeforeExitCall {
     return call[0] === "beforeExit" && typeof call[1] === "function";
 }
 
-function firstArgumentIncludes(call: unknown[], text: string): boolean {
-    return typeof call[0] === "string" && call[0].includes(text);
+function firstArgumentEquals(call: unknown[], text: string): boolean {
+    return call[0] === text;
 }
 
 function resolveIpcInvoke(channel: string): Promise<unknown> {
@@ -931,7 +931,7 @@ describe("preload.js - Comprehensive API Testing", () => {
 
             // Should log cleanup message
             const cleanupLogs = getMockCalls(consoleLogSpy).filter((call) =>
-                firstArgumentIncludes(
+                firstArgumentEquals(
                     call,
                     "[preload.js] Process exiting, performing cleanup..."
                 )
@@ -948,7 +948,7 @@ describe("preload.js - Comprehensive API Testing", () => {
             expect.assertions(2);
 
             const validationLogs = getMockCalls(consoleLogSpy).filter((call) =>
-                firstArgumentIncludes(call, "[preload.js] API Validation:")
+                firstArgumentEquals(call, "[preload.js] API Validation:")
             );
 
             expect(validationLogs).toEqual([
@@ -970,7 +970,10 @@ describe("preload.js - Comprehensive API Testing", () => {
             expect.assertions(1);
 
             const exposureLogs = getMockCalls(consoleLogSpy).filter((call) =>
-                firstArgumentIncludes(call, "[preload.js] Successfully exposed")
+                firstArgumentEquals(
+                    call,
+                    "[preload.js] Successfully exposed electronAPI to main world"
+                )
             );
 
             expect(exposureLogs).toEqual([
@@ -982,9 +985,9 @@ describe("preload.js - Comprehensive API Testing", () => {
             expect.assertions(1);
 
             const initLogs = getMockCalls(consoleLogSpy).filter((call) =>
-                firstArgumentIncludes(
+                firstArgumentEquals(
                     call,
-                    "[preload.js] Preload script initialized"
+                    "[preload.js] Preload script initialized successfully"
                 )
             );
 
@@ -997,7 +1000,7 @@ describe("preload.js - Comprehensive API Testing", () => {
             expect.assertions(1);
 
             const structureLogs = getMockCalls(consoleLogSpy).filter((call) =>
-                firstArgumentIncludes(call, "[preload.js] API Structure:")
+                firstArgumentEquals(call, "[preload.js] API Structure:")
             );
 
             expect(structureLogs).toEqual([

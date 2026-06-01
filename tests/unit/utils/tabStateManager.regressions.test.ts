@@ -215,15 +215,17 @@ describe("tabStateManager regressions", () => {
             mockGetState.mockReturnValue("map");
 
             // This exposes the bug where DOM and state can be out of sync
-            const isDOMActive = summaryBtn.classList.contains("active");
+            const summaryClassName = summaryBtn.className;
             const stateActive = mockGetState("ui.activeTab");
 
             expect({
-                isDOMActive,
+                summaryClassName,
                 stateActive,
-                summaryIsSynchronized: isDOMActive && stateActive === "summary",
+                summaryIsSynchronized:
+                    summaryClassName === "tab-button active" &&
+                    stateActive === "summary",
             }).toStrictEqual({
-                isDOMActive: true,
+                summaryClassName: "tab-button active",
                 stateActive: "map",
                 summaryIsSynchronized: false,
             });
@@ -347,7 +349,7 @@ describe("tabStateManager regressions", () => {
             const handleIframe = () => {
                 if (
                     iframe instanceof HTMLIFrameElement &&
-                    !iframe.src.includes("ffv/index.html")
+                    new URL(iframe.src).pathname !== "/ffv/index.html"
                 ) {
                     iframe.src = "ffv/index.html"; // Direct assignment without validation
                 }
@@ -355,7 +357,7 @@ describe("tabStateManager regressions", () => {
 
             expect(iframe.src).toBe("about:blank");
             handleIframe();
-            expect(iframe.src).toContain("ffv/index.html");
+            expect(new URL(iframe.src).pathname).toBe("/ffv/index.html");
             expect(iframe.src).not.toBe("about:blank");
         });
 

@@ -45,6 +45,10 @@ function createResult(overrides: Partial<CommandResult> = {}): CommandResult {
     };
 }
 
+function commandLine(command: string, args: string[]): string {
+    return [command, ...args].join(" ");
+}
+
 describe("print-electron-app-diff script", () => {
     it("uses the newest matching version tag when one exists", async () => {
         expect.assertions(2);
@@ -53,7 +57,7 @@ describe("print-electron-app-diff script", () => {
         const calls: string[] = [];
 
         const lastRef = getLastVersionRef("v*", (command, args) => {
-            calls.push([command, ...args].join(" "));
+            calls.push(commandLine(command, args));
             return createResult({ stdout: "v30.0.0\n" });
         });
 
@@ -70,9 +74,12 @@ describe("print-electron-app-diff script", () => {
         const calls: string[] = [];
 
         const lastRef = getLastVersionRef("v*", (command, args) => {
-            calls.push([command, ...args].join(" "));
+            calls.push(commandLine(command, args));
 
-            if (args.includes("describe")) {
+            if (
+                commandLine(command, args) ===
+                "git describe --tags --match v* --abbrev=0"
+            ) {
                 return createResult({ status: 128 });
             }
 
@@ -101,13 +108,20 @@ describe("print-electron-app-diff script", () => {
                     logs.push(message);
                 },
                 runCommand(command, args) {
-                    calls.push([command, ...args].join(" "));
+                    const fullCommand = commandLine(command, args);
+                    calls.push(fullCommand);
 
-                    if (args.includes("describe")) {
+                    if (
+                        fullCommand ===
+                        "git describe --tags --match v* --abbrev=0"
+                    ) {
                         return createResult({ stdout: "v30.0.0\n" });
                     }
 
-                    if (args.includes("diff")) {
+                    if (
+                        fullCommand ===
+                        `git diff --name-status v30.0.0 -- ${defaultDiffPath}`
+                    ) {
                         return createResult({
                             stdout: "M\telectron-app/main.ts\n",
                         });
@@ -147,7 +161,7 @@ describe("print-electron-app-diff script", () => {
                     logs.push(message);
                 },
                 runCommand(command, args) {
-                    calls.push([command, ...args].join(" "));
+                    calls.push(commandLine(command, args));
                     return createResult({
                         status: 2,
                         stderr: "fetch failed\n",
