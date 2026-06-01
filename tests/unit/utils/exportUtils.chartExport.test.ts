@@ -469,10 +469,7 @@ describe("exportUtils chart export helpers", () => {
             expect(linkFixture.link.href).toBe(
                 "data:image/png;base64,bW9jaw=="
             );
-            // eslint-disable-next-line vitest/prefer-to-be, vitest/prefer-to-be-falsy -- test-signal requires exact boolean assertions.
-            expect(document.body.contains(linkFixture.link)).toStrictEqual(
-                false
-            );
+            expect(linkFixture.link).toHaveProperty("isConnected", false);
             expect(chartFixture.chart.toBase64Image).toHaveBeenCalledWith(
                 "image/png",
                 1,
