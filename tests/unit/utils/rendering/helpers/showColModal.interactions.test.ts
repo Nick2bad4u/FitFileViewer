@@ -107,7 +107,7 @@ function getCheckedColumnLabels(overlay: HTMLElement): string[] {
 
 describe("showColModal interactions", () => {
     it("toggles Select All / Deselect All and persists immediately (auto-save)", () => {
-        expect.hasAssertions();
+        expect.assertions(16);
 
         const cleanup = setupDomTest();
         try {
@@ -196,7 +196,7 @@ describe("showColModal interactions", () => {
     });
 
     it("shift-click selects a range and persists immediately via saveColPrefs in handlers", () => {
-        expect.hasAssertions();
+        expect.assertions(9);
 
         const cleanup = setupDomTest();
         try {
