@@ -10,7 +10,7 @@ describe(convertTimeUnits, () => {
     });
 
     it("converts seconds to each supported time unit", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         expect(convertTimeUnits(3600, TIME_UNITS.SECONDS)).toBe(3600);
         expect(convertTimeUnits(90, TIME_UNITS.MINUTES)).toBe(1.5);
@@ -19,7 +19,7 @@ describe(convertTimeUnits, () => {
     });
 
     it("preserves signed and infinite numeric values", () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
@@ -33,7 +33,7 @@ describe(convertTimeUnits, () => {
     });
 
     it("handles invalid-input seconds by throwing TypeError", () => {
-        expect.hasAssertions();
+        expect.assertions(7);
 
         for (const value of [
             null,
@@ -51,7 +51,7 @@ describe(convertTimeUnits, () => {
     });
 
     it("warns and returns seconds unchanged for unknown units", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 

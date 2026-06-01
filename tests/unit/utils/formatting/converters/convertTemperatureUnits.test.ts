@@ -10,7 +10,7 @@ describe(convertTemperatureUnits, () => {
     });
 
     it("converts Celsius to the requested temperature unit", () => {
-        expect.hasAssertions();
+        expect.assertions(5);
 
         expect(convertTemperatureUnits(25, TEMPERATURE_UNITS.CELSIUS)).toBe(25);
         expect(convertTemperatureUnits(0, TEMPERATURE_UNITS.FAHRENHEIT)).toBe(
@@ -28,7 +28,7 @@ describe(convertTemperatureUnits, () => {
     });
 
     it("handles invalid-input temperatures by throwing TypeError", () => {
-        expect.hasAssertions();
+        expect.assertions(7);
 
         for (const value of [
             null,
@@ -46,7 +46,7 @@ describe(convertTemperatureUnits, () => {
     });
 
     it("warns and returns Celsius unchanged for unknown units", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 

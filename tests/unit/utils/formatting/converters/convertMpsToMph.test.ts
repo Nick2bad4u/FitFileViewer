@@ -16,7 +16,7 @@ describe(convertMpsToMph, () => {
         [29.06, 65.005_360_16],
         [1_000_000, 2_236_936],
     ])("converts %d m/s to %d mph", (mps, expected) => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         expect(convertMpsToMph(mps)).toBeCloseTo(expected, 10);
     });
@@ -30,7 +30,7 @@ describe(convertMpsToMph, () => {
         [[], "object"],
         [Number.NaN, "number"],
     ])("rejects %s input", (value, type) => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         expect(() => convertMpsToMph(value)).toThrow(
             `Expected mps to be a number, received ${type}`
@@ -38,7 +38,7 @@ describe(convertMpsToMph, () => {
     });
 
     it("warns but still converts negative speeds", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
 
@@ -57,7 +57,7 @@ describe(convertMpsToMph, () => {
     });
 
     it("preserves special numeric values and floating point precision", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         expect(convertMpsToMph(Infinity)).toBe(Infinity);
         expect(convertMpsToMph(0.0001)).toBeCloseTo(0.000_223_693_6, 10);
