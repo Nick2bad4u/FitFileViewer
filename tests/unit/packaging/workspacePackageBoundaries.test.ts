@@ -154,10 +154,21 @@ describe("workspace package boundaries", () => {
     });
 
     it("keeps root package scripts from delegating Electron app work to a nested package", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const rootPackage = readPackageJson("package.json");
 
+        expect(
+            [
+                "cd electron-app && npm run lint",
+                "npm --prefix electron-app run test",
+                "npm run -w electron-app build",
+            ].map((script) => delegatesToNestedElectronPackage(script))
+        ).toStrictEqual([
+            true,
+            true,
+            true,
+        ]);
         expect(
             Object.entries(rootPackage.scripts ?? {})
                 .filter(([, script]) =>
@@ -396,7 +407,7 @@ describe("workspace package boundaries", () => {
     });
 
     it("keeps root tooling ignores free of stale nested generated app paths", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const rootToolingIgnoreFiles = [
             ".gitignore",
@@ -404,6 +415,12 @@ describe("workspace package boundaries", () => {
             rootElectronAppTsconfigPath,
             rootStylelintConfigPath,
         ];
+
+        expect(getFileExistence(rootToolingIgnoreFiles)).toStrictEqual(
+            Object.fromEntries(
+                rootToolingIgnoreFiles.map((filePath) => [filePath, true])
+            )
+        );
 
         const staleReferences = rootToolingIgnoreFiles.flatMap((filePath) => {
             const content = readFileSync(
