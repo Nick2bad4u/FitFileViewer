@@ -148,7 +148,7 @@ describe("openZoneColorPicker", () => {
     });
 
     it("handles unknown zone field gracefully", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const { openZoneColorPicker } = await loadModule();
 
@@ -163,7 +163,7 @@ describe("openZoneColorPicker", () => {
     });
 
     it("warns when zone data is unavailable", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const { openZoneColorPicker } = await loadModule();
         (globalThis as any).heartRateZones = [];
@@ -179,7 +179,7 @@ describe("openZoneColorPicker", () => {
     });
 
     it("renders modal, updates colors, and applies changes for heart rate zones", async () => {
-        expect.hasAssertions();
+        expect.assertions(20);
 
         const settingsWrapper = document.createElement("div");
         settingsWrapper.id = "chartjs-settings-wrapper";
@@ -317,7 +317,7 @@ describe("updateZoneColorPreview", () => {
     });
 
     it("updates matching heart rate chart without animation", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const module = await loadModule();
         const updateMock = vi.fn<(mode?: string) => void>();
@@ -347,7 +347,7 @@ describe("updateZoneColorPreview", () => {
     });
 
     it("ignores non-matching datasets gracefully", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const module = await loadModule();
         const updateMock = vi.fn<(mode?: string) => void>();
