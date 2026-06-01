@@ -214,17 +214,20 @@ describe("windowStateUtils persistence behavior", () => {
     });
 
     it("devHelpers are exposed only in development", async () => {
-        expect.assertions(7);
+        expect.assertions(10);
 
         process.env.NODE_ENV = "development";
         try {
             const mod = await import("../../electron-app/windowStateUtils.js");
 
-            expect(mod.devHelpers).toEqual({
-                getConfig: expect.any(Function),
-                resetState: expect.any(Function),
-                validateSettings: expect.any(Function),
-            });
+            expect(Object.keys(mod.devHelpers).toSorted()).toStrictEqual([
+                "getConfig",
+                "resetState",
+                "validateSettings",
+            ]);
+            expect(mod.devHelpers.getConfig).toBeTypeOf("function");
+            expect(mod.devHelpers.resetState).toBeTypeOf("function");
+            expect(mod.devHelpers.validateSettings).toBeTypeOf("function");
 
             const info = mod.devHelpers.getConfig();
             expect(info.constants.DEFAULTS.WINDOW).toEqual(defaultState);
