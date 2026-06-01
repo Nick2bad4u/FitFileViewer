@@ -223,13 +223,18 @@ describe(mapDrawLaps, () => {
                 smoothFactor: 0,
             })
         );
-        expect(map.fitBounds).toHaveBeenCalledWith(
-            expect.objectContaining({
-                clone: expect.any(Function),
-                extend: expect.any(Function),
-            }),
-            { padding: [20, 20] }
+        const fitBoundsCalls = map.fitBounds.mock.calls.map(
+            ([bounds, options]) => ({
+                clone: typeof (bounds as BoundsStub).clone,
+                extend: typeof (bounds as BoundsStub).extend,
+                options,
+            })
         );
+        expect(fitBoundsCalls).toContainEqual({
+            clone: "function",
+            extend: "function",
+            options: { padding: [20, 20] },
+        });
         expect(leaflet.circleMarker).toHaveBeenCalledTimes(2);
         expect(mapWindow._ffvDataPointMarkers).toHaveLength(2);
         expect(mapWindow._mainPolyline).toBe(

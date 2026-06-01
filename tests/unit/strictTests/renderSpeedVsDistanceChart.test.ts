@@ -885,14 +885,9 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
             renderSpeedVsDistanceChart(container, data, options);
 
             const chartConfig = getLatestChartConfig();
-            expect(chartConfig.options.plugins.tooltip).toMatchObject({
-                callbacks: {
-                    label: expect.any(Function),
-                },
-            });
-            expect(
-                chartConfig.options.plugins.tooltip.callbacks.label
-            ).toBeTypeOf("function");
+            const { callbacks } = chartConfig.options.plugins.tooltip;
+            expect(callbacks.label).toBeTypeOf("function");
+            expect(callbacks).not.toHaveProperty("title");
         });
 
         it("should format tooltip correctly with kilometers distance units", () => {
