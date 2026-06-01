@@ -151,11 +151,7 @@ describe("tabStateManager regressions", () => {
         it("should expose an idempotent cleanup method", () => {
             expect.assertions(3);
 
-            expect(tabStateManager).toEqual(
-                expect.objectContaining({
-                    cleanup: expect.any(Function),
-                })
-            );
+            expect(tabStateManager.cleanup).toBeTypeOf("function");
 
             const consoleSpy = vi
                 .spyOn(console, "log")
@@ -186,9 +182,13 @@ describe("tabStateManager regressions", () => {
 
             const manager = new TabStateManager();
 
-            expect(mockSubscribe.mock.calls.slice(-2)).toEqual([
-                ["ui.activeTab", expect.any(Function)],
-                ["globalData", expect.any(Function)],
+            expect(
+                mockSubscribe.mock.calls
+                    .slice(-2)
+                    .map(([path, listener]) => [path, typeof listener])
+            ).toEqual([
+                ["ui.activeTab", "function"],
+                ["globalData", "function"],
             ]);
             manager.cleanup();
             manager.cleanup();
