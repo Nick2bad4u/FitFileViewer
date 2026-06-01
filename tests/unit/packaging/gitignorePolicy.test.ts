@@ -47,7 +47,7 @@ function createCleanupProbePath(target: string): string {
 
 describe("gitignore policy", () => {
     it("keeps root script helpers trackable while ignoring generated release output", () => {
-        expect.assertions(8);
+        expect.assertions(9);
 
         const scriptHelperIgnoreStatus = checkIgnore(
             "scripts/lib/new-helper.mjs",
@@ -61,11 +61,12 @@ describe("gitignore policy", () => {
         const releaseTrace = checkIgnore("release-dist/file", "-v");
         const htmlTrace = checkIgnore("html/index.html", "-v");
 
-        expect(scriptHelperIgnoreStatus).toMatchObject({
+        expect(scriptHelperIgnoreStatus).toStrictEqual({
             status: 1,
             stderr: "",
             stdout: "",
         });
+        expect(scriptHelperIgnoreStatus.status).not.toBe(0);
         expect(scriptHelperTrace.stdout).toMatch(
             /\.gitignore:\d+:!scripts\/lib\/\*\*\s+scripts\/lib\/new-helper\.mjs/u
         );
