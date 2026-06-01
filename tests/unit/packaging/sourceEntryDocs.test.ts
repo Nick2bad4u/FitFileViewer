@@ -91,6 +91,11 @@ describe("source entrypoint documentation", () => {
             "stylelint.config.mjs",
             "vitest.config.ts",
         ];
+        const staleRootToolingFiles = [
+            ".browserslistrc",
+            ".editorconfig",
+            ".gitattributes",
+        ];
 
         expect(
             Object.fromEntries(
@@ -105,12 +110,14 @@ describe("source entrypoint documentation", () => {
             )
         );
         expect(
-            documentedRootToolingFiles.every((filePath) =>
+            documentedRootToolingFiles.filter(
+                (filePath) => !layoutGuide.includes(filePath)
+            )
+        ).toStrictEqual([]);
+        expect(
+            staleRootToolingFiles.filter((filePath) =>
                 layoutGuide.includes(filePath)
             )
-        ).toBe(true);
-        expect(layoutGuide).not.toMatch(
-            /├── \.(?:browserslistrc|editorconfig|gitattributes)\s+#/u
-        );
+        ).toStrictEqual([]);
     });
 });
