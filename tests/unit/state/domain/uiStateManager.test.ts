@@ -132,6 +132,10 @@ describe("uiStateManager - comprehensive coverage", () => {
         );
     }
 
+    function getElementClassList(id: string): string[] {
+        return getClassState(id)[id] ?? [];
+    }
+
     function getElementClassState(elements: Record<string, Element | null>) {
         return Object.fromEntries(
             Object.entries(elements).map(([name, element]) => [
@@ -1363,11 +1367,9 @@ describe("uiStateManager - comprehensive coverage", () => {
 
             UIActions.toggleChartControls();
 
-            expect(
-                document
-                    .getElementById("chartjs-settings-wrapper")
-                    ?.classList.contains("visible")
-            ).toBe(true);
+            expect(getElementClassList("chartjs-settings-wrapper")).toContain(
+                "visible"
+            );
             expect(
                 vi.mocked(AppActions.toggleChartControls)
             ).toHaveBeenCalledWith();
@@ -1385,11 +1387,9 @@ describe("uiStateManager - comprehensive coverage", () => {
 
             UIActions.toggleMeasurementMode();
 
-            expect(
-                document
-                    .getElementById("map-container")
-                    ?.classList.contains("measurement-mode")
-            ).toBe(true);
+            expect(getElementClassList("map-container")).toContain(
+                "measurement-mode"
+            );
             expect(
                 vi.mocked(AppActions.toggleMeasurementMode)
             ).toHaveBeenCalledWith();
@@ -1405,11 +1405,9 @@ describe("uiStateManager - comprehensive coverage", () => {
             expect(document.getElementById("sidebar")?.className).toBe(
                 "collapsed"
             );
-            expect(
-                document
-                    .getElementById("main-content")
-                    ?.classList.contains("sidebar-collapsed")
-            ).toBe(true);
+            expect(getElementClassList("main-content")).toContain(
+                "sidebar-collapsed"
+            );
             expect(toggleSidebarSpy).toHaveBeenCalledWith(true);
         });
 

@@ -90,7 +90,13 @@ function getRequiredElement(id: string): HTMLElement {
 }
 
 function expectActiveState(id: string, expected: boolean): void {
-    expect(getRequiredElement(id).classList.contains("active")).toBe(expected);
+    const classList = [...getRequiredElement(id).classList];
+
+    if (expected) {
+        expect(classList).toContain("active");
+    } else {
+        expect(classList).not.toContain("active");
+    }
 }
 
 function getTabClassState(...ids: string[]) {
@@ -518,12 +524,12 @@ describe("updateActiveTab state behavior", () => {
             initializeActiveTabState();
             getSubscriptionCallback()("summary");
 
-            expect(
-                getRequiredElement("tab-summary").classList.contains("active")
-            ).toBe(true);
-            expect(
-                getRequiredElement("tab-chart").classList.contains("active")
-            ).toBe(false);
+            expect([...getRequiredElement("tab-summary").classList]).toContain(
+                "active"
+            );
+            expect([
+                ...getRequiredElement("tab-chart").classList,
+            ]).not.toContain("active");
             expect(mockSubscribe).toHaveBeenCalledWith(
                 "ui.activeTab",
                 expect.any(Function)
@@ -577,11 +583,9 @@ describe("updateActiveTab state behavior", () => {
             ).toStrictEqual(true);
 
             getRequiredElement("tab-chart").click();
-            expect(
-                getRequiredElement("tab-chart").classList.contains(
-                    "tab-disabled"
-                )
-            ).toStrictEqual(true);
+            expect([...getRequiredElement("tab-chart").classList]).toContain(
+                "tab-disabled"
+            );
             expect(mockSetState).toHaveBeenCalledTimes(0);
 
             getRequiredElement("tab-map").click();
@@ -706,9 +710,9 @@ describe("updateActiveTab state behavior", () => {
                 updateActiveTab("tab-summary");
             }
 
-            expect(
-                getRequiredElement("tab-summary").classList.contains("active")
-            ).toStrictEqual(true);
+            expect([...getRequiredElement("tab-summary").classList]).toContain(
+                "active"
+            );
             expect(mockSetState).toHaveBeenCalledTimes(100);
         });
 
