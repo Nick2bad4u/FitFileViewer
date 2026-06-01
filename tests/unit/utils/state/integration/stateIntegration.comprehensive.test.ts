@@ -453,7 +453,9 @@ describe("stateIntegration comprehensive coverage", () => {
 
             // Test getter/setter functionality
             mockStateManager.getState.mockReturnValue(false);
-            expect(globalThis.chartControlsState.isVisible).toBe(false);
+            expect({
+                chartControlsVisible: globalThis.chartControlsState.isVisible,
+            }).toStrictEqual({ chartControlsVisible: false });
 
             globalThis.chartControlsState.isVisible = true;
             expect(mockStateManager.setState).toHaveBeenCalledWith(
@@ -841,7 +843,11 @@ describe("stateIntegration comprehensive coverage", () => {
 
             // Test isChartRendered getter
             mockStateManager.getState.mockReturnValue(true);
-            expect(globalThis.isChartRendered).toBe(true);
+            expect({
+                isChartRendered: globalThis.isChartRendered,
+            }).toStrictEqual({
+                isChartRendered: true,
+            });
 
             // Test isChartRendered setter
             globalThis.isChartRendered = false;
