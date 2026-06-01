@@ -136,12 +136,13 @@ describe("format-runtime-output script", () => {
         expect(fs.readFileSync(outputFile, "utf8")).toBe("const value = 1;\n");
         expect(prettierModule.resolveConfig).toHaveBeenCalledWith(outputFile);
         expect(prettierModule.format).toHaveBeenCalledOnce();
-        expect(
-            vi.mocked(prettierModule.format).mock.calls[0]?.[1]
-        ).toMatchObject({
-            filepath: outputFile,
-            tabWidth: 4,
-        });
+        expect(vi.mocked(prettierModule.format).mock.calls[0]).toStrictEqual([
+            "const value = 1;   ",
+            {
+                filepath: outputFile,
+                tabWidth: 4,
+            },
+        ]);
     });
 
     it("formats all discovered runtime outputs", async () => {
