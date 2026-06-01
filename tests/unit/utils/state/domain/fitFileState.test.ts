@@ -21,7 +21,7 @@ describe("fitFileStateManager - domain logic and selectors", () => {
     });
 
     it("assessDataQuality handles missing/empty and computes coverage/flags", () => {
-        expect.assertions(12);
+        expect.assertions(7);
 
         const mgr = new FitFileStateManager();
         // No data
@@ -41,12 +41,21 @@ describe("fitFileStateManager - domain logic and selectors", () => {
                 { power: 200, altitude: 300 },
             ],
         });
-        expect(q3.hasGPS).toBe(true);
-        expect(q3.hasHeartRate).toBe(true);
-        expect(q3.hasAuxHeartRate).toBe(false);
-        expect(q3.hasPower).toBe(true);
-        expect(q3.hasCadence).toBe(true);
-        expect(q3.hasAltitude).toBe(true);
+        expect({
+            hasAltitude: q3.hasAltitude,
+            hasAuxHeartRate: q3.hasAuxHeartRate,
+            hasCadence: q3.hasCadence,
+            hasGPS: q3.hasGPS,
+            hasHeartRate: q3.hasHeartRate,
+            hasPower: q3.hasPower,
+        }).toStrictEqual({
+            hasAltitude: true,
+            hasAuxHeartRate: false,
+            hasCadence: true,
+            hasGPS: true,
+            hasHeartRate: true,
+            hasPower: true,
+        });
         // gpsCount=1, hrCount=1 => basicDataCount=1 of 3 => 33% rounded
         expect(q3.completeness).toBe(33);
         expect(q3.coverage).toEqual(
@@ -172,7 +181,7 @@ describe("fitFileStateManager - domain logic and selectors", () => {
     });
 
     it("startFileLoading sets loading flags and current file", () => {
-        expect.assertions(9);
+        expect.assertions(8);
 
         const mgr = new FitFileStateManager();
         const spy = vi.spyOn(stateManager, "setState");
@@ -193,8 +202,13 @@ describe("fitFileStateManager - domain logic and selectors", () => {
             0,
             expect.any(Object)
         );
-        expect(stateManager.getState("fitFile.isLoading")).toBe(true);
-        expect(stateManager.getState("isLoading")).toBe(true);
+        expect({
+            domainLoading: stateManager.getState("fitFile.isLoading"),
+            legacyLoading: stateManager.getState("isLoading"),
+        }).toStrictEqual({
+            domainLoading: true,
+            legacyLoading: true,
+        });
         expect(stateManager.getState("fitFile.currentFile")).toBe(
             "C:/file.fit"
         );
