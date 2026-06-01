@@ -107,6 +107,15 @@ function getLatestChartConfig(): ChartConfig {
     return config;
 }
 
+function getLatestChartCall(): [HTMLCanvasElement, ChartConfig] {
+    const call = getEventMessagesWindow().Chart?.mock.calls[0];
+    if (!call) {
+        throw new Error("Expected Chart to be called");
+    }
+
+    return call;
+}
+
 function getRenderState(container: HTMLElement): {
     chartCalls: number;
     childCount: number;
@@ -309,11 +318,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
             renderEventMessagesChart(container, {}, startTime);
 
-            expect(window.Chart).toHaveBeenCalledWith(
-                expect.any(HTMLCanvasElement),
-                expect.any(Object)
-            );
-            const chartConfig = getLatestChartConfig();
+            const [canvas, chartConfig] = getLatestChartCall();
+
+            expect(canvas).toBeInstanceOf(HTMLCanvasElement);
             expect(chartConfig.data.datasets[0].data).toHaveLength(3);
         });
 
@@ -523,12 +530,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
             renderEventMessagesChart(container, {}, new Date());
 
-            expect(window.Chart).toHaveBeenCalledWith(
-                expect.any(HTMLCanvasElement),
-                expect.any(Object)
-            );
-            const chartConfig = getLatestChartConfig();
+            const [canvas, chartConfig] = getLatestChartCall();
 
+            expect(canvas).toBeInstanceOf(HTMLCanvasElement);
             expect(chartConfig.type).toBe("scatter");
             expect(chartConfig.type).not.toBe("line");
             expect(chartConfig.data.datasets).toHaveLength(1);
@@ -910,9 +914,10 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         it("should handle Chart.js constructor throwing error", () => {
             expect.assertions(3);
 
+            const chartCreationError = new Error("Chart creation failed");
             getEventMessagesWindow().Chart = vi.fn<ChartConstructor>(
                 function ChartErrorMock() {
-                    throw new Error("Chart creation failed");
+                    throw chartCreationError;
                 }
             ) as ChartMock;
 
@@ -924,7 +929,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             expect(window._chartjsInstances).toStrictEqual([]);
             expect(mockConsoleError).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering event messages chart:",
-                expect.any(Error)
+                chartCreationError
             );
         });
 
@@ -933,8 +938,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
             const { getThemeConfig } =
                 await import("../../../electron-app/utils/theming/core/theme.js");
+            const themeConfigError = new Error("Theme config failed");
             (getThemeConfig as ThemeConfigMock).mockImplementation(() => {
-                throw new Error("Theme config failed");
+                throw themeConfigError;
             });
 
             const container = document.createElement("div");
@@ -948,7 +954,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             expect(window.Chart).not.toHaveBeenCalled();
             expect(mockConsoleError).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering event messages chart:",
-                expect.any(Error)
+                themeConfigError
             );
         });
     });
@@ -973,9 +979,12 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             expect.assertions(3);
 
             // Mock Chart constructor to throw an error or simulate failure
+            const chartConstructionError = new Error(
+                "Chart construction failed"
+            );
             const mockChartConstructor = vi.fn<ChartConstructor>(
                 function ChartErrorMock() {
-                    throw new Error("Chart construction failed");
+                    throw chartConstructionError;
                 }
             );
             getEventMessagesWindow().Chart = mockChartConstructor as ChartMock;
@@ -983,14 +992,13 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
             renderEventMessagesChart(container, {}, new Date());
 
-            expect(mockChartConstructor).toHaveBeenCalledWith(
-                expect.any(HTMLCanvasElement),
-                expect.any(Object)
-            );
+            const [canvas] = mockChartConstructor.mock.calls[0];
+
+            expect(canvas).toBeInstanceOf(HTMLCanvasElement);
             expect(window._chartjsInstances).toStrictEqual([]);
             expect(mockConsoleError).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering event messages chart:",
-                expect.any(Error)
+                chartConstructionError
             );
         });
 
@@ -1028,10 +1036,12 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             expect(window.Chart).not.toHaveBeenCalled();
             expect(document.body.childElementCount).toBe(0);
             expect(window._chartjsInstances).toStrictEqual([]);
-            expect(mockConsoleError).toHaveBeenCalledWith(
+            const [message, error] = mockConsoleError.mock.calls[0] ?? [];
+
+            expect([message, error instanceof TypeError]).toStrictEqual([
                 "[ChartJS] Error rendering event messages chart:",
-                expect.any(Error)
-            );
+                true,
+            ]);
         });
 
         it("should handle undefined options object", () => {
