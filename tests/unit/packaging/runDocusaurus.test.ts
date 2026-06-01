@@ -45,15 +45,16 @@ describe("run-docusaurus wrapper", () => {
     });
 
     it("builds Docusaurus CLI arguments from the workspace installation", () => {
-        expect.assertions(3);
+        expect.assertions(1);
 
         const args = buildDocusaurusArgs(["build"]);
 
-        expect(args[0]).toMatch(
-            /[\\/]@docusaurus[\\/]core[\\/]bin[\\/]docusaurus\.mjs$/u
-        );
-        expect(args.slice(1)).toStrictEqual(["build"]);
-        expect(args).not.toContain("sync-docusaurus-static-assets.mjs");
+        expect(args).toStrictEqual([
+            expect.stringMatching(
+                /[\\/]@docusaurus[\\/]core[\\/]bin[\\/]docusaurus\.mjs$/u
+            ),
+            "build",
+        ]);
     });
 
     it("syncs static assets before running build-like commands", () => {
