@@ -60,15 +60,25 @@ export function organizeDistributables(options = {}) {
         };
     }
 
+    const artifactEntries = fs
+        .readdirSync(artifactsDirectory, {
+            withFileTypes: true,
+        })
+        .filter(
+            (entry) => entry.isDirectory() && entry.name.startsWith("dist-")
+        );
+
+    if (artifactEntries.length === 0) {
+        return {
+            copiedDirectories,
+            copiedFiles,
+            processedArtifacts,
+        };
+    }
+
     fs.mkdirSync(outputDirectory, { recursive: true });
 
-    for (const entry of fs.readdirSync(artifactsDirectory, {
-        withFileTypes: true,
-    })) {
-        if (!entry.isDirectory() || !entry.name.startsWith("dist-")) {
-            continue;
-        }
-
+    for (const entry of artifactEntries) {
         const artifactDirectory = path.join(artifactsDirectory, entry.name);
         const platformArch = getArtifactPlatformArch(entry.name);
         const platformOutputDirectory = path.join(

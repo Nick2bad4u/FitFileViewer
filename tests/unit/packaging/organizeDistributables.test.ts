@@ -281,6 +281,33 @@ describe("organize-distributables script", () => {
         expect(fs.existsSync(outputDirectory)).toBe(false);
     });
 
+    it("does not create output when artifacts contain no dist directories", async () => {
+        expect.assertions(2);
+
+        const { organizeDistributables } = await importOrganizeDistributables();
+        const temporaryRoot = makeTemporaryRoot();
+        const artifactsDirectory = path.join(temporaryRoot, "artifacts");
+        const outputDirectory = path.join(temporaryRoot, "release-dist");
+
+        writeArtifact(
+            artifactsDirectory,
+            path.join("logs", "debug.log"),
+            "ignore"
+        );
+
+        expect(
+            organizeDistributables({
+                artifactsDirectory,
+                outputDirectory,
+            })
+        ).toStrictEqual({
+            copiedDirectories: [],
+            copiedFiles: [],
+            processedArtifacts: [],
+        });
+        expect(fs.existsSync(outputDirectory)).toBe(false);
+    });
+
     it("parses artifacts and output directory arguments", async () => {
         expect.assertions(1);
 
