@@ -33,7 +33,7 @@ describe("formatSpeedTooltip.js - conversion error branch", () => {
     });
 
     it("returns safe default string when converter throws", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const { formatSpeedTooltip } =
             await import("../../../electron-app/utils/formatting/display/formatSpeedTooltip.js");

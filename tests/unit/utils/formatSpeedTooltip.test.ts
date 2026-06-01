@@ -9,7 +9,7 @@ describe(formatSpeedTooltip, () => {
     });
 
     it("formats speed in meters per second, kilometers per hour, and miles per hour", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         expect(formatSpeedTooltip(0)).toBe(FALLBACK_SPEED_TOOLTIP);
         expect(formatSpeedTooltip(5.5)).toBe(
@@ -18,7 +18,7 @@ describe(formatSpeedTooltip, () => {
     });
 
     it("handles invalid-input speeds with a fallback tooltip", () => {
-        expect.hasAssertions();
+        expect.assertions(7);
 
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
@@ -40,7 +40,7 @@ describe(formatSpeedTooltip, () => {
     });
 
     it("warns for negative speeds but still formats the numeric value", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
@@ -53,7 +53,7 @@ describe(formatSpeedTooltip, () => {
     });
 
     it("logs and returns the fallback when number formatting fails", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const errorSpy = vi
             .spyOn(console, "error")
