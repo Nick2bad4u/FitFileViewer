@@ -83,12 +83,22 @@ describe("bump-app-version script", () => {
     });
 
     it("builds the root npm version command used by release automation", async () => {
-        expect.assertions(1);
+        expect.assertions(3);
 
-        const { createNpmVersionArgs } = await importBumpAppVersion();
+        const { createNpmVersionArgs, defaultWorkspace } =
+            await importBumpAppVersion();
 
+        expect(defaultWorkspace).toBeUndefined();
         expect(createNpmVersionArgs(undefined, "30.0.0")).toStrictEqual([
             "version",
+            "--no-git-tag-version",
+            "--ignore-scripts",
+            "30.0.0",
+        ]);
+        expect(createNpmVersionArgs("docusaurus", "30.0.0")).toStrictEqual([
+            "version",
+            "--workspace",
+            "docusaurus",
             "--no-git-tag-version",
             "--ignore-scripts",
             "30.0.0",
@@ -127,9 +137,10 @@ describe("bump-app-version script", () => {
     });
 
     it("runs npm version without shelling through Windows command parsing", async () => {
-        expect.assertions(4);
+        expect.assertions(3);
 
-        const { bumpAppVersion } = await importBumpAppVersion();
+        const { bumpAppVersion, createNpmVersionArgs } =
+            await importBumpAppVersion();
         const temporaryRoot = makeTemporaryRoot("29.9.0");
         const commandRunner =
             vi.fn<
@@ -145,9 +156,26 @@ describe("bump-app-version script", () => {
             repositoryRoot: temporaryRoot,
         });
 
-        expect(result.newVersion).toBe("30.0.0");
         expect(commandRunner).toHaveBeenCalledOnce();
-        expect(commandRunner.mock.calls[0]?.[0]).toMatch(/^npm(?:\.cmd)?$/u);
+        expect({
+            command: commandRunner.mock.calls[0]?.[0],
+            options: commandRunner.mock.calls[0]?.[2],
+            result,
+            versionArgs: commandRunner.mock.calls[0]?.[1],
+        }).toStrictEqual({
+            command: expect.stringMatching(/^npm(?:\.cmd)?$/u),
+            options: {
+                cwd: temporaryRoot,
+                stdio: "inherit",
+            },
+            result: {
+                currentVersion: "29.9.0",
+                newVersion: "30.0.0",
+                packagePath: path.join(temporaryRoot, "package.json"),
+                workspace: undefined,
+            },
+            versionArgs: createNpmVersionArgs(undefined, "30.0.0"),
+        });
         expect(commandRunner.mock.calls[0]?.[2]).not.toHaveProperty("shell");
     });
 
