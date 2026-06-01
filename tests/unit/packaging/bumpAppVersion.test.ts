@@ -73,13 +73,16 @@ describe("bump-app-version script", () => {
     });
 
     it("rejects unsupported package version strings", async () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const { calculateNextVersion } = await importBumpAppVersion();
 
         expect(() => calculateNextVersion("29.9.0-beta.1")).toThrow(
             "Unsupported package version"
         );
+        expect(() =>
+            calculateNextVersion(undefined as unknown as string)
+        ).toThrow(TypeError);
     });
 
     it("builds the root npm version command used by release automation", async () => {
@@ -106,7 +109,7 @@ describe("bump-app-version script", () => {
     });
 
     it("parses GitHub Actions release bump arguments", async () => {
-        expect.assertions(1);
+        expect.assertions(4);
 
         const { parseArgs } = await importBumpAppVersion();
 
@@ -116,14 +119,44 @@ describe("bump-app-version script", () => {
             help: false,
             workspace: undefined,
         });
+        expect(
+            parseArgs([
+                "--dry-run",
+                "--workspace",
+                "docusaurus",
+            ])
+        ).toStrictEqual({
+            dryRun: true,
+            githubOutput: false,
+            help: false,
+            workspace: "docusaurus",
+        });
+        expect(parseArgs(["--workspace=docusaurus"])).toStrictEqual({
+            dryRun: false,
+            githubOutput: false,
+            help: false,
+            workspace: "docusaurus",
+        });
+        expect(() => parseArgs(["--workspace"])).toThrow(
+            "--workspace requires a value"
+        );
     });
 
     it("computes the next version from the root app package", async () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const { bumpAppVersion } = await importBumpAppVersion();
         const temporaryRoot = makeTemporaryRoot("29.9.0");
+        const commandRunner =
+            vi.fn<
+                (
+                    command: string,
+                    args: string[],
+                    options: Record<string, unknown>
+                ) => void
+            >();
         const result = bumpAppVersion({
+            commandRunner,
             dryRun: true,
             repositoryRoot: temporaryRoot,
         });
@@ -134,6 +167,7 @@ describe("bump-app-version script", () => {
             packagePath: path.join(temporaryRoot, "package.json"),
             workspace: undefined,
         });
+        expect(commandRunner).not.toHaveBeenCalled();
     });
 
     it("runs npm version without shelling through Windows command parsing", async () => {
@@ -180,16 +214,20 @@ describe("bump-app-version script", () => {
     });
 
     it("writes the GitHub Actions output value", async () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const { writeGithubOutput } = await importBumpAppVersion();
         const temporaryRoot = makeTemporaryRoot("29.9.0");
         const outputPath = path.join(temporaryRoot, "github-output.txt");
 
+        fs.writeFileSync(outputPath, "existing=value\n");
         writeGithubOutput("30.0.0", outputPath);
 
         expect(fs.readFileSync(outputPath, "utf8")).toBe(
-            "new_version=30.0.0\n"
+            "existing=value\nnew_version=30.0.0\n"
+        );
+        expect(() => writeGithubOutput("30.0.0", "")).toThrow(
+            "--github-output requires GITHUB_OUTPUT to be set"
         );
     });
 });
