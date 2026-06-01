@@ -152,12 +152,14 @@ describe("ensure-macos-builder-deps script", () => {
     });
 
     it("throws when the install command reports a spawn error", async () => {
-        expect.assertions(1);
+        expect.assertions(4);
 
-        const { ensureMacosBuilderDependencies } =
+        const spawnError = new Error("spawn failed");
+        const { ensureMacosBuilderDependencies, installDmgLicenseArgs } =
             await importEnsureMacosBuilderDeps();
+        const logger = vi.fn<(message: string) => void>();
         const commandRunner = vi.fn<CommandRunner>(() => ({
-            error: new Error("spawn failed"),
+            error: spawnError,
             status: 0,
         }));
         const resolver = vi.fn<(specifier: string) => string>(() => {
@@ -167,10 +169,36 @@ describe("ensure-macos-builder-deps script", () => {
         expect(() =>
             ensureMacosBuilderDependencies({
                 commandRunner,
-                logger: vi.fn<(message: string) => void>(),
+                logger,
                 platform: "darwin",
                 resolver,
             })
-        ).toThrow("spawn failed");
+        ).toThrow(spawnError);
+        expect(commandRunner).toHaveBeenCalledOnce();
+
+        const [
+            command,
+            args,
+            options,
+        ] = commandRunner.mock.calls[0] ?? [];
+
+        expect({
+            args,
+            command,
+            options: {
+                ...options,
+                cwd: path.resolve(options?.cwd ?? ""),
+            },
+        }).toStrictEqual({
+            args: installDmgLicenseArgs,
+            command: "npm",
+            options: {
+                cwd: path.resolve(repositoryRoot),
+                stdio: "inherit",
+            },
+        });
+        expect(logger).toHaveBeenCalledWith(
+            "[ensure-macos-builder-deps] Installing dmg-license."
+        );
     });
 });

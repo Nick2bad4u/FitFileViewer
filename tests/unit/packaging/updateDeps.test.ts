@@ -135,7 +135,7 @@ describe("update-deps script", () => {
     });
 
     it("stops before npm install when npm-check-updates fails", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const commandRunner = vi
             .fn<CommandRunner>()
@@ -149,16 +149,44 @@ describe("update-deps script", () => {
             callCount: 1,
             status: 7,
         });
+        expect(commandRunner.mock.calls[0]).toStrictEqual([
+            process.execPath,
+            [ncuCliPath, ...buildNcuArgs([])],
+            {
+                cwd: process.cwd(),
+                stdio: "inherit",
+            },
+        ]);
     });
 
     it("throws when dependency update commands report spawn errors", () => {
-        expect.assertions(1);
+        expect.assertions(4);
 
+        const spawnError = new Error("spawn failed");
         const commandRunner = vi.fn<CommandRunner>().mockReturnValue({
-            error: new Error("spawn failed"),
+            error: spawnError,
             status: null,
         });
 
-        expect(() => runUpdateDeps([], commandRunner)).toThrow("spawn failed");
+        expect(() => runUpdateDeps([], commandRunner)).toThrow(spawnError);
+        expect(commandRunner).toHaveBeenCalledOnce();
+
+        const [
+            command,
+            args,
+            options,
+        ] = commandRunner.mock.calls[0] ?? [];
+
+        expect({ args, command }).toStrictEqual({
+            args: [ncuCliPath, ...buildNcuArgs([])],
+            command: process.execPath,
+        });
+        expect({
+            ...options,
+            cwd: path.resolve(options?.cwd ?? ""),
+        }).toStrictEqual({
+            cwd: path.resolve(process.cwd()),
+            stdio: "inherit",
+        });
     });
 });
