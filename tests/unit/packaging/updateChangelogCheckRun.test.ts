@@ -158,10 +158,15 @@ describe("update-changelog-check-run script", () => {
             commandCount: 1,
             envFile: "CHECKID=12345\n",
             requestPath: "/repos/Nick2bad4u/FitFileViewer/check-runs",
-            requestPayload: expect.objectContaining({
+            requestPayload: {
                 head_sha: "abc123",
                 name: "Update ChangeLogs",
-            }),
+                output: {
+                    summary: "Changelog update in progress",
+                    title: "Update ChangeLogs",
+                },
+                status: "in_progress",
+            },
         });
     });
 

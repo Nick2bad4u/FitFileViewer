@@ -303,18 +303,21 @@ describe("build-win7 script", () => {
             repositoryRoot,
         });
 
+        const loggedError = errorLogger.mock.calls[0]?.[1];
+
         expect({
             builderCalls: builder.mock.calls.length,
             commandCalls: calls.length,
-            errorMessage: errorLogger.mock.calls[0]?.[1],
+            errorMessage:
+                loggedError instanceof Error
+                    ? loggedError.message
+                    : String(loggedError),
             rmCalls: fileSystem.rmSync.mock.calls.length,
             status,
         }).toStrictEqual({
             builderCalls: 0,
             commandCalls: 0,
-            errorMessage: expect.objectContaining({
-                message: `Refusing to operate outside repository: ${output}`,
-            }),
+            errorMessage: `Refusing to operate outside repository: ${output}`,
             rmCalls: 0,
             status: 1,
         });
