@@ -404,8 +404,8 @@ describe("createAppMenu", () => {
             (i: any) => i.label === "💿 Decoder Options"
         );
         // Find an option, e.g., includeUnknownData
-        const includeUnknown = decoderMenu.submenu.find((i: any) =>
-            String(i.label).includes("includeUnknownData")
+        const includeUnknown = decoderMenu.submenu.find(
+            (i: any) => i.label === "❓ includeUnknownData"
         );
         expect(includeUnknown).toMatchObject({
             checked: true,
@@ -430,8 +430,8 @@ describe("createAppMenu", () => {
         let decoderMenu = settingsMenu.submenu.find(
             (i: any) => i.label === "💿 Decoder Options"
         );
-        const includeUnknown = decoderMenu.submenu.find((i: any) =>
-            String(i.label).includes("includeUnknownData")
+        const includeUnknown = decoderMenu.submenu.find(
+            (i: any) => i.label === "❓ includeUnknownData"
         );
         includeUnknown.click({ checked: false });
         createAppMenu(fakeWin as any, "dark", "C:/x.fit");
@@ -440,8 +440,8 @@ describe("createAppMenu", () => {
         decoderMenu = settingsMenu.submenu.find(
             (i: any) => i.label === "💿 Decoder Options"
         );
-        const refreshed = decoderMenu.submenu.find((i: any) =>
-            String(i.label).includes("includeUnknownData")
+        const refreshed = decoderMenu.submenu.find(
+            (i: any) => i.label === "❓ includeUnknownData"
         );
         expect(refreshed).toMatchObject({
             checked: false,
@@ -1332,8 +1332,8 @@ describe("createAppMenu - additional robust branches", () => {
         const decoderMenu = settingsMenu.submenu.find(
             (i: any) => i.label === "💿 Decoder Options"
         );
-        const includeUnknown = decoderMenu.submenu.find((i: any) =>
-            String(i.label).includes("includeUnknownData")
+        const includeUnknown = decoderMenu.submenu.find(
+            (i: any) => i.label === "❓ includeUnknownData"
         );
         includeUnknown.click({ checked: false });
         const ipcCalls: any[][] = (globalThis as any).__ipcCalls || [];
