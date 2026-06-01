@@ -92,10 +92,12 @@ describe("updateTabVisibility globalData state subscription", () => {
             );
 
             // Get the subscription callback for globalData
-            expect(mockSubscribe).toHaveBeenCalledWith(
-                "globalData",
-                expect.any(Function)
-            );
+            expect(
+                mockSubscribe.mock.calls.map(([path, callback]) => [
+                    path,
+                    typeof callback,
+                ])
+            ).toContainEqual(["globalData", "function"]);
             const globalDataSubscription = mockSubscribe.mock.calls.find(
                 (call: any[]) => call[0] === "globalData"
             );
