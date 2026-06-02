@@ -251,6 +251,31 @@ describe("publish-app-version script", () => {
         ]);
     });
 
+    it("normalizes relative publish command roots before running git", async () => {
+        expect.assertions(1);
+
+        const { publishAppVersion } = await importPublishAppVersion();
+        const calls: PublishCommandCall[] = [];
+
+        publishAppVersion({
+            branch: "main",
+            captureRunner(command, args, options) {
+                calls.push({ args, command, options });
+
+                return "abc123";
+            },
+            commandRunner(command, args, options) {
+                calls.push({ args, command, options });
+            },
+            repositoryRoot: ".",
+            version: "30.0.0",
+        });
+
+        expect(new Set(calls.map((call) => call.options.cwd))).toStrictEqual(
+            new Set([repositoryRoot])
+        );
+    });
+
     it("writes the GitHub Actions output value", async () => {
         expect.assertions(1);
 
