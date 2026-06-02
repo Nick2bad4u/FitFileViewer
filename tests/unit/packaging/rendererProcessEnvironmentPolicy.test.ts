@@ -74,6 +74,16 @@ describe("renderer process environment policy", () => {
 
         const scannedSourceFiles =
             SCANNED_SOURCE_PATHS.flatMap(collectSourceFiles);
+        const requiredScannedSourceFiles = [
+            "electron-app/main-ui.ts",
+            "electron-app/preload.ts",
+            "electron-app/preload/electronBridge.ts",
+            "electron-app/renderer.ts",
+            "electron-app/renderer/vendorGlobals.ts",
+            "electron-app/ui/modals/accentColorPicker.ts",
+            "electron-app/utils.ts",
+            "electron-app/utils/charts/core/renderChartRuntimeHelpers.ts",
+        ];
         const directProcessEnvAccesses = scannedSourceFiles
             .map((relativeFile) => ({
                 content: readFileSync(
@@ -85,15 +95,22 @@ describe("renderer process environment policy", () => {
             .filter(({ content }) => DIRECT_PROCESS_ENV_PATTERN.test(content))
             .map(({ relativeFile }) => relativeFile);
 
-        expect(scannedSourceFiles).toEqual(
-            expect.arrayContaining([
-                "electron-app/main-ui.ts",
-                "electron-app/preload.ts",
-                "electron-app/renderer.ts",
-                "electron-app/utils.ts",
-            ])
+        expect(
+            Object.fromEntries(
+                requiredScannedSourceFiles.map((relativeFile) => [
+                    relativeFile,
+                    scannedSourceFiles.includes(relativeFile),
+                ])
+            )
+        ).toStrictEqual(
+            Object.fromEntries(
+                requiredScannedSourceFiles.map((relativeFile) => [
+                    relativeFile,
+                    true,
+                ])
+            )
         );
-        expect(directProcessEnvAccesses).not.toContain(
+        expect(scannedSourceFiles).not.toContain(
             "electron-app/utils/runtime/processEnvironment.ts"
         );
         expect(directProcessEnvAccesses).toStrictEqual([]);
