@@ -7,11 +7,7 @@
  */
 
 import { updateAllChartStatusIndicators } from "../../charts/components/chartStatusIndicator.js";
-import { chartStateManager } from "../../charts/core/chartStateManager.js";
-import {
-    getChartRenderContainer,
-    getChartSettingsWrapper,
-} from "../../charts/dom/chartDomUtils.js";
+import { getChartSettingsWrapper } from "../../charts/dom/chartDomUtils.js";
 import { chartOptionsConfig } from "../../charts/plugins/chartOptionsConfig.js";
 import {
     isHTMLElement,
@@ -24,13 +20,16 @@ import {
     fieldColors,
     formatChartFields,
 } from "../../formatting/display/formatChartFields.js";
-import { setState } from "../../state/core/stateManager.js";
 import {
     getChartSettings,
     resetChartSettings,
 } from "../../state/domain/settingsStateManager.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
+import {
+    reRenderChartsAfterReset,
+    reRenderChartsAfterSettingChange as renderChartsAfterSettingChange,
+} from "./chartSettingsRender.js";
 import {
     parseStoredValue,
     type StoredSettingValue,
@@ -41,27 +40,6 @@ import {
  */
 export type ResettableElement = HTMLElement & {
     _updateFromReset: () => void;
-};
-
-type ChartActionsLike = {
-    clearCharts?: () => unknown;
-    requestRerender?: (reason: string) => unknown;
-};
-
-type ChartRenderManagerLike = {
-    debouncedRender: (reason: string) => unknown;
-};
-
-type DestroyableChart = {
-    destroy: () => unknown;
-};
-
-type ChartSettingsGlobal = typeof globalThis & {
-    _chartjsInstances?: unknown;
-    chartActions?: unknown;
-    chartStateManager?: unknown;
-    globalData?: null | { recordMesgs?: unknown };
-    renderChartJS?: (target?: Element | null) => unknown;
 };
 
 /**
@@ -112,48 +90,32 @@ function getErrorMessage(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
 }
 
-function getChartSettingsGlobal(): ChartSettingsGlobal {
-    return globalThis as ChartSettingsGlobal;
-}
-
-function isChartActionsLike(value: unknown): value is ChartActionsLike {
-    if (typeof value !== "object" || value === null) {
-        return false;
+function formatLogValue(value: unknown): string {
+    if (typeof value === "string") {
+        return value;
     }
 
-    return (
-        hasFunctionProperty(value, "clearCharts") ||
-        hasFunctionProperty(value, "requestRerender")
-    );
-}
-
-function isChartRenderManagerLike(
-    value: unknown
-): value is ChartRenderManagerLike {
-    if (typeof value !== "object" || value === null) {
-        return false;
+    if (
+        typeof value === "boolean" ||
+        typeof value === "bigint" ||
+        typeof value === "number"
+    ) {
+        return String(value);
     }
 
-    return hasFunctionProperty(value, "debouncedRender");
-}
-
-function isDestroyableChart(value: unknown): value is DestroyableChart {
-    if (typeof value !== "object" || value === null) {
-        return false;
+    if (value === null) {
+        return "null";
     }
 
-    return hasFunctionProperty(value, "destroy");
-}
-
-function hasFunctionProperty(
-    value: object,
-    key: "clearCharts" | "debouncedRender" | "destroy" | "requestRerender"
-): boolean {
-    if (!(key in value)) {
-        return false;
+    if (value === undefined) {
+        return "undefined";
     }
 
-    return typeof value[key as keyof typeof value] === "function";
+    if (value instanceof Error) {
+        return value.message;
+    }
+
+    return "[object]";
 }
 
 function isInputElement(value: unknown): value is HTMLInputElement {
@@ -281,134 +243,7 @@ export function reRenderChartsAfterSettingChange(
     settingName: string,
     newValue: unknown
 ): void {
-    try {
-        const chartGlobal = getChartSettingsGlobal();
-        // Check if chart data is available
-        if (!chartGlobal.globalData || !chartGlobal.globalData.recordMesgs) {
-            console.log(
-                `${LOG_PREFIX} No chart data available for re-rendering after ${settingName} change`
-            );
-            return;
-        }
-
-        console.log(
-            `${LOG_PREFIX} Re-rendering charts after ${settingName} changed to ${newValue}`
-        );
-
-        // CRITICAL: Clear cached settings from state management
-        // This ensures the chart rendering will read fresh settings from state manager
-        if (typeof setState === "function") {
-            setState("settings.charts", null, {
-                source: "reRenderChartsAfterSettingChange",
-            });
-            console.log(
-                `${LOG_PREFIX} Cleared cached chart settings from state`
-            );
-        }
-
-        const reason = `Setting change: ${settingName}`;
-        // Prefer the shared render pipeline (no destructive teardown on every tweak).
-        const managerCandidate = isChartRenderManagerLike(chartStateManager)
-            ? chartStateManager
-            : chartGlobal.chartStateManager;
-        if (isChartRenderManagerLike(managerCandidate)) {
-            managerCandidate.debouncedRender(reason);
-            console.log(
-                `${LOG_PREFIX} Delegated re-render to chartStateManager`
-            );
-            return;
-        }
-
-        const actions = isChartActionsLike(chartGlobal.chartActions)
-            ? chartGlobal.chartActions
-            : undefined;
-        if (typeof actions?.requestRerender === "function") {
-            actions.requestRerender(reason);
-            console.log(
-                `${LOG_PREFIX} Delegated re-render via chartActions.requestRerender`
-            );
-            return;
-        }
-
-        // LAST RESORT fallback (legacy): full teardown/rebuild.
-        if (typeof actions?.clearCharts === "function") {
-            actions.clearCharts();
-        } else if (Array.isArray(chartGlobal._chartjsInstances)) {
-            const chartInstances = chartGlobal._chartjsInstances;
-            console.log(
-                `${LOG_PREFIX} Destroying ${chartInstances.length} existing chart instances`
-            );
-            for (const [index, chart] of chartInstances.entries()) {
-                if (isDestroyableChart(chart)) {
-                    try {
-                        chart.destroy();
-                        console.log(
-                            `${LOG_PREFIX} Destroyed chart instance ${index}`
-                        );
-                    } catch (error) {
-                        console.warn(
-                            `${LOG_PREFIX} Error destroying chart ${index}:`,
-                            error
-                        );
-                    }
-                }
-            }
-            chartGlobal._chartjsInstances = [];
-        }
-
-        const existingCanvases = queryAll(
-            'canvas[id^="chart-"], canvas[id^="chartjs-canvas-"]'
-        );
-        console.log(
-            `${LOG_PREFIX} Removing ${existingCanvases.length} existing chart canvases`
-        );
-        for (const canvas of existingCanvases) {
-            if (canvas.parentNode) {
-                canvas.remove();
-            }
-        }
-
-        // Force a complete re-render - try multiple container approaches
-        const container = getChartRenderContainer(document);
-
-        console.log(
-            `${LOG_PREFIX} Using container: ${container ? container.id : "none found"}`
-        );
-
-        // Force re-render through modern state management
-        if (typeof chartGlobal.renderChartJS === "function") {
-            // Fallback: direct rendering for compatibility if globally exposed
-            const target =
-                container || getChartRenderContainer(document) || document.body;
-            chartGlobal.renderChartJS(target);
-        } else {
-            // Final fallback: dispatch a render request event handled elsewhere
-            console.log(
-                `${LOG_PREFIX} Dispatching render request event fallback`
-            );
-            chartGlobal.dispatchEvent(
-                new CustomEvent("ffv:request-render-charts", {
-                    detail: { reason: `setting-change:${settingName}` },
-                })
-            );
-        }
-
-        console.log(
-            `${LOG_PREFIX} Chart re-render completed for ${settingName} change (fallback path)`
-        );
-    } catch (error) {
-        const errorMessage = getErrorMessage(error);
-        console.error(
-            `${LOG_PREFIX} Error re-rendering charts after ${settingName} change:`,
-            errorMessage
-        );
-        if (typeof showNotification === "function") {
-            showNotification(
-                `Failed to update chart setting: ${errorMessage}`,
-                "error"
-            );
-        }
-    }
+    renderChartsAfterSettingChange(settingName, newValue);
 }
 
 /**
@@ -451,7 +286,7 @@ export function resetAllSettings(): boolean {
         reRenderChartsAfterReset();
 
         // Show success notification
-        showNotification("Settings reset to defaults", "success");
+        void showNotification("Settings reset to defaults", "success");
 
         console.log(`${LOG_PREFIX} Settings reset completed successfully`);
         return true;
@@ -460,7 +295,7 @@ export function resetAllSettings(): boolean {
             `${LOG_PREFIX} Error resetting settings:`,
             getErrorMessage(error)
         );
-        showNotification("Failed to reset settings", "error");
+        void showNotification("Failed to reset settings", "error");
         return false;
     }
 }
@@ -498,6 +333,72 @@ function scheduleResetTimer(callback: () => void, delay: number): void {
     resetTimerHandles.add(handle);
 }
 
+function updateRangeControlToDefault(option: ChartOptionConfig): boolean {
+    const slider = query(`#chartjs-${option.id}-slider`);
+    if (!isInputElement(slider) || slider.type !== "range") {
+        return false;
+    }
+
+    const defaultValue = option.default;
+    slider.value = String(defaultValue);
+
+    const valueDisplay = slider.parentElement?.querySelector("span");
+    if (valueDisplay && valueDisplay.style.position === "absolute") {
+        valueDisplay.textContent = String(defaultValue);
+    }
+
+    const numericDefault = Number(defaultValue);
+    if (Number.isFinite(numericDefault)) {
+        updateRangeSliderStyling(slider, option, numericDefault);
+    }
+
+    return true;
+}
+
+function updateSelectControlToDefault(option: ChartOptionConfig): boolean {
+    const select = query(`#chartjs-${option.id}-dropdown`);
+    if (!isSelectElement(select)) {
+        return false;
+    }
+
+    select.value = String(option.default);
+    return true;
+}
+
+function updateToggleControlsToDefault(): boolean {
+    let updated = false;
+    const containers = queryAll(".toggle-switch");
+    for (const toggle of containers) {
+        const parent = toggle.parentElement;
+        if (isResettable(parent)) {
+            parent._updateFromReset();
+            updated = true;
+        }
+    }
+
+    return updated;
+}
+
+function updateDirectControlToDefault(option: ChartOptionConfig): boolean {
+    switch (option.type) {
+        case "range": {
+            return updateRangeControlToDefault(option);
+        }
+
+        case "select": {
+            return updateSelectControlToDefault(option);
+        }
+
+        case "toggle": {
+            return updateToggleControlsToDefault();
+        }
+
+        default: {
+            return false;
+        }
+    }
+}
+
 /**
  * Performs direct control updates by specific selectors as fallback
  */
@@ -507,66 +408,11 @@ function performDirectControlUpdates(): void {
 
         // Direct updates for known control types
         for (const opt of chartOptionsConfig || []) {
-            let updated = false;
-
-            switch (opt.type) {
-                case "range": {
-                    const slider = query(`#chartjs-${opt.id}-slider`);
-                    if (isInputElement(slider) && slider.type === "range") {
-                        const defaultValue = opt.default;
-                        slider.value = String(defaultValue);
-
-                        // Update value display
-                        const valueDisplay =
-                            slider.parentElement?.querySelector("span");
-                        if (
-                            valueDisplay &&
-                            valueDisplay.style.position === "absolute"
-                        ) {
-                            valueDisplay.textContent = String(opt.default);
-                        }
-
-                        // Update visual styling
-                        const numericDefault = Number(defaultValue);
-                        if (Number.isFinite(numericDefault)) {
-                            updateRangeSliderStyling(
-                                slider,
-                                opt,
-                                numericDefault
-                            );
-                        }
-                        updated = true;
-                    }
-                    break;
-                }
-
-                case "select": {
-                    const select = query(`#chartjs-${opt.id}-dropdown`);
-                    if (isSelectElement(select)) {
-                        select.value = String(opt.default);
-                        updated = true;
-                    }
-                    break;
-                }
-
-                case "toggle": {
-                    // Custom toggles are handled by _updateFromReset method
-                    const containers = queryAll(".toggle-switch");
-                    for (const toggle of containers) {
-                        const parent = toggle.parentElement;
-                        if (isResettable(parent)) {
-                            parent._updateFromReset();
-                            updated = true;
-                        }
-                    }
-                    break;
-                }
-            }
-
+            const updated = updateDirectControlToDefault(opt);
             if (updated) {
-                updatedCount++;
+                updatedCount += 1;
                 console.log(
-                    `${LOG_PREFIX} Direct update: ${opt.id} = ${opt.default}`
+                    `${LOG_PREFIX} Direct update: ${opt.id} = ${formatLogValue(opt.default)}`
                 );
             }
         }
@@ -582,63 +428,133 @@ function performDirectControlUpdates(): void {
     }
 }
 
-/**
- * Re-renders charts after settings reset
- */
-function reRenderChartsAfterReset(): void {
-    try {
-        const chartGlobal = getChartSettingsGlobal();
-        // Check if chart data is available
-        if (!chartGlobal.globalData || !chartGlobal.globalData.recordMesgs) {
-            console.log(
-                `${LOG_PREFIX} No chart data available for re-rendering`
-            );
-            return;
+function findControlForOption(
+    wrapper: Element,
+    option: ChartOptionConfig
+): Element | null {
+    return (
+        query(`#chartjs-${option.id}`, wrapper) ||
+        query(`#chartjs-${option.id}-dropdown`, wrapper) ||
+        query(`#chartjs-${option.id}-slider`, wrapper) ||
+        query(`#chartjs-${option.id}-container`, wrapper) ||
+        query(`[data-option-id="${option.id}"]`, wrapper)
+    );
+}
+
+function resetFallbackControlsForOption(
+    wrapper: Element,
+    option: ChartOptionConfig
+): void {
+    const allControls = queryAll(
+        'select, input[type="range"], .toggle-switch',
+        wrapper
+    );
+    for (const element of allControls) {
+        if (!element.id || !element.id.includes(option.id)) {
+            continue;
         }
 
-        console.log(`${LOG_PREFIX} Re-rendering charts after settings reset`);
+        updateUIControl(element, option, option.default);
+        console.log(
+            `${LOG_PREFIX} Reset control ${option.id} via fallback search to: ${formatLogValue(option.default)}`
+        );
+    }
+}
 
-        // CRITICAL: Clear cached settings so chart rendering re-reads fresh defaults from state manager.
-        // This mirrors the behavior of reRenderChartsAfterSettingChange.
-        if (typeof setState === "function") {
-            setState("settings.charts", null, {
-                source: "reRenderChartsAfterReset",
-            });
+function resetPrimaryControlForOption(
+    wrapper: Element,
+    option: ChartOptionConfig
+): void {
+    const control = findControlForOption(wrapper, option);
+    if (!control) {
+        resetFallbackControlsForOption(wrapper, option);
+        return;
+    }
+
+    updateUIControl(control, option, option.default);
+    console.log(
+        `${LOG_PREFIX} Reset control ${option.id} to default: ${formatLogValue(option.default)}`
+    );
+}
+
+function updateToggleFromSettingRow(
+    parent: ResettableElement,
+    option: ChartOptionConfig
+): boolean {
+    const settingRow = parent.closest(".setting-row");
+    const label = settingRow?.querySelector(".setting-label");
+    const labelText = label?.textContent?.toLowerCase() ?? "";
+    if (!labelText.includes(option.label.toLowerCase())) {
+        return false;
+    }
+
+    parent._updateFromReset();
+    console.log(`${LOG_PREFIX} Updated toggle ${option.id} via context matching`);
+    return true;
+}
+
+function resetToggleControlForOption(
+    wrapper: Element,
+    option: ChartOptionConfig
+): void {
+    const toggleContainer =
+        wrapper.querySelector(`#chartjs-${option.id}`) ||
+        wrapper.querySelector(`[data-option-id="${option.id}"]`);
+    if (isResettable(toggleContainer)) {
+        toggleContainer._updateFromReset();
+        return;
+    }
+
+    const toggleSwitches = wrapper.querySelectorAll(".toggle-switch");
+    for (const toggleSwitch of toggleSwitches) {
+        const parent = toggleSwitch.parentElement;
+        if (isResettable(parent)) {
+            updateToggleFromSettingRow(parent, option);
         }
+    }
+}
 
-        // Get the charts container
-        const chartsContainer = getChartRenderContainer(document);
+function resetChartOptionControl(
+    wrapper: Element,
+    option: ChartOptionConfig
+): void {
+    resetPrimaryControlForOption(wrapper, option);
 
-        // Clear existing chart instances
-        if (Array.isArray(chartGlobal._chartjsInstances)) {
-            for (const chart of chartGlobal._chartjsInstances) {
-                if (isDestroyableChart(chart)) {
-                    chart.destroy();
-                }
-            }
-            chartGlobal._chartjsInstances = [];
+    if (option.type === "toggle") {
+        resetToggleControlForOption(wrapper, option);
+    }
+}
+
+function resetFieldToggles(wrapper: Element): void {
+    const fieldToggles = queryAll(
+        '.field-toggle input[type="checkbox"]',
+        wrapper
+    );
+    for (const toggle of fieldToggles) {
+        setChecked(toggle, true);
+    }
+    if (fieldToggles.length > 0) {
+        console.log(
+            `${LOG_PREFIX} Reset ${fieldToggles.length} field toggles to visible`
+        );
+    }
+}
+
+function resetColorPickers(wrapper: Element): void {
+    const colorPickers = queryAll('input[type="color"]', wrapper);
+    const defaultFieldColors: FieldColorMap = fieldColors;
+    for (const picker of colorPickers) {
+        const fieldName = picker.id
+            .replace("field-color-", "")
+            .replace("chartjs-", "");
+        const defaultColor = defaultFieldColors[fieldName];
+        if (defaultColor) {
+            setValue(picker, defaultColor);
         }
-
-        // Force a complete re-render through modern state management
-        if (isChartRenderManagerLike(chartStateManager)) {
-            chartStateManager.debouncedRender("Settings reset");
-        } else if (typeof chartGlobal.renderChartJS === "function") {
-            const target =
-                chartsContainer ||
-                getChartRenderContainer(document) ||
-                document.body;
-            chartGlobal.renderChartJS(target);
-        } else {
-            chartGlobal.dispatchEvent(
-                new CustomEvent("ffv:request-render-charts", {
-                    detail: { reason: "settings-reset" },
-                })
-            );
-        }
-    } catch (error) {
-        console.error(
-            `${LOG_PREFIX} Error re-rendering charts:`,
-            getErrorMessage(error)
+    }
+    if (colorPickers.length > 0) {
+        console.log(
+            `${LOG_PREFIX} Reset ${colorPickers.length} color pickers to defaults`
         );
     }
 }
@@ -661,104 +577,11 @@ function resetUIControlsToDefaults(wrapper: Element | null): void {
 
         // Reset all chart option controls to default values
         for (const opt of chartOptionsConfig || []) {
-            // Try multiple ways to find the control
-            const control =
-                query(`#chartjs-${opt.id}`, wrapper) ||
-                query(`#chartjs-${opt.id}-dropdown`, wrapper) ||
-                query(`#chartjs-${opt.id}-slider`, wrapper) ||
-                query(`#chartjs-${opt.id}-container`, wrapper) ||
-                query(`[data-option-id="${opt.id}"]`, wrapper);
-
-            if (control) {
-                updateUIControl(control, opt, opt.default);
-                console.log(
-                    `${LOG_PREFIX} Reset control ${opt.id} to default: ${opt.default}`
-                );
-            } else {
-                // Try to find by searching all elements that might contain the option
-                const allControls = queryAll(
-                    'select, input[type="range"], .toggle-switch',
-                    wrapper
-                );
-                for (const element of allControls) {
-                    if (element.id && element.id.includes(opt.id)) {
-                        updateUIControl(element, opt, opt.default);
-                        console.log(
-                            `${LOG_PREFIX} Reset control ${opt.id} via fallback search to: ${opt.default}`
-                        );
-                    }
-                }
-            }
-
-            // Handle custom toggle controls with _updateFromReset method
-            if (opt.type === "toggle") {
-                const toggleContainer =
-                    wrapper.querySelector(`#chartjs-${opt.id}`) ||
-                    wrapper.querySelector(`[data-option-id="${opt.id}"]`);
-                if (isResettable(toggleContainer)) {
-                    toggleContainer._updateFromReset();
-                } else {
-                    // Find toggle container by checking for toggle-switch elements
-                    const toggleSwitches =
-                        wrapper.querySelectorAll(".toggle-switch");
-                    for (const toggleSwitch of toggleSwitches) {
-                        const parent = toggleSwitch.parentElement;
-                        if (isResettable(parent)) {
-                            // Check if this toggle is for our option by looking at surrounding context
-                            const settingRow = parent.closest(".setting-row");
-                            if (settingRow) {
-                                const label =
-                                    settingRow.querySelector(".setting-label");
-                                // Guard label.textContent which can be null per DOM typings
-                                if (
-                                    label &&
-                                    (label.textContent || "")
-                                        .toLowerCase()
-                                        .includes(opt.label.toLowerCase())
-                                ) {
-                                    parent._updateFromReset();
-                                    console.log(
-                                        `${LOG_PREFIX} Updated toggle ${opt.id} via context matching`
-                                    );
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            resetChartOptionControl(wrapper, opt);
         }
 
-        // Reset all field toggles to visible (default state)
-        const fieldToggles = queryAll(
-            '.field-toggle input[type="checkbox"]',
-            wrapper
-        );
-        for (const toggle of fieldToggles) {
-            setChecked(toggle, true);
-        }
-        if (fieldToggles.length > 0) {
-            console.log(
-                `${LOG_PREFIX} Reset ${fieldToggles.length} field toggles to visible`
-            );
-        }
-
-        // Reset all color pickers to default colors
-        const colorPickers = queryAll('input[type="color"]', wrapper);
-        const defaultFieldColors: FieldColorMap = fieldColors;
-        for (const picker of colorPickers) {
-            const fieldName = picker.id
-                .replace("field-color-", "")
-                .replace("chartjs-", "");
-            const defaultColor = defaultFieldColors[fieldName];
-            if (defaultColor) {
-                setValue(picker, defaultColor);
-            }
-        }
-        if (colorPickers.length > 0) {
-            console.log(
-                `${LOG_PREFIX} Reset ${colorPickers.length} color pickers to defaults`
-            );
-        }
+        resetFieldToggles(wrapper);
+        resetColorPickers(wrapper);
 
         // Find and update any custom controls with _updateFromReset method
         updateCustomControlsFromReset(wrapper);
@@ -789,7 +612,7 @@ function updateCustomControlsFromReset(wrapper: Element): void {
         for (const element of allElements) {
             if (isResettable(element)) {
                 element._updateFromReset();
-                updatedCount++;
+                updatedCount += 1;
             }
         }
 
@@ -845,6 +668,101 @@ function updateRangeSliderStyling(
     }
 }
 
+function findRangeInput(
+    control: HTMLElement,
+    option: ChartOptionConfig
+): HTMLInputElement | null {
+    if (isInputElement(control) && control.type === "range") {
+        return control;
+    }
+
+    const nestedInput = control.querySelector("input[type='range']");
+    if (isInputElement(nestedInput) && nestedInput.type === "range") {
+        return nestedInput;
+    }
+
+    const fallbackInput = query(`#chartjs-${option.id}-slider`);
+    return isInputElement(fallbackInput) && fallbackInput.type === "range"
+        ? fallbackInput
+        : null;
+}
+
+function updateRangeUIControl(
+    control: HTMLElement,
+    option: ChartOptionConfig,
+    value: unknown
+): void {
+    const sliderEl = findRangeInput(control, option);
+    if (!sliderEl) {
+        return;
+    }
+
+    sliderEl.value = String(value);
+
+    const valueDisplay = sliderEl.parentElement?.querySelector("span");
+    if (valueDisplay && valueDisplay.style.position === "absolute") {
+        valueDisplay.textContent = String(value);
+    }
+
+    const numericValue = Number(value);
+    if (Number.isFinite(numericValue)) {
+        updateRangeSliderStyling(sliderEl, option, numericValue);
+    }
+    console.log(
+        `${LOG_PREFIX} Updated range ${option.id} to: ${formatLogValue(value)}`
+    );
+}
+
+function findSelectInput(
+    control: HTMLElement,
+    option: ChartOptionConfig
+): HTMLSelectElement | null {
+    if (isSelectElement(control)) {
+        return control;
+    }
+
+    const nestedSelect = control.querySelector("select");
+    if (isSelectElement(nestedSelect)) {
+        return nestedSelect;
+    }
+
+    const fallbackSelect = query(`#chartjs-${option.id}-dropdown`);
+    return isSelectElement(fallbackSelect) ? fallbackSelect : null;
+}
+
+function updateSelectUIControl(
+    control: HTMLElement,
+    option: ChartOptionConfig,
+    value: unknown
+): void {
+    const selectEl = findSelectInput(control, option);
+    if (!selectEl) {
+        return;
+    }
+
+    selectEl.value = String(value);
+    console.log(
+        `${LOG_PREFIX} Updated select ${option.id} to: ${formatLogValue(value)}`
+    );
+}
+
+function updateToggleUIControl(control: HTMLElement, value: unknown): void {
+    if (isInputElement(control) && control.type === "checkbox") {
+        control.checked = Boolean(value);
+        return;
+    }
+
+    if (isResettable(control)) {
+        control._updateFromReset();
+        return;
+    }
+
+    const parent = control.closest("[data-option-id]") || control.parentElement;
+    if (isResettable(parent)) {
+        parent._updateFromReset();
+    }
+}
+
 /**
  * Updates UI control to match setting value
  *
@@ -864,78 +782,21 @@ function updateUIControl(
     try {
         switch (option.type) {
             case "range": {
-                let sliderEl =
-                    isInputElement(control) && control.type === "range"
-                        ? control
-                        : control.querySelector("input[type='range']");
-                if (!sliderEl) {
-                    sliderEl = query(`#chartjs-${option.id}-slider`);
-                }
-                if (isInputElement(sliderEl) && sliderEl.type === "range") {
-                    sliderEl.value = String(value);
-
-                    const valueDisplay =
-                        sliderEl.parentElement?.querySelector("span");
-                    if (
-                        valueDisplay &&
-                        valueDisplay.style.position === "absolute"
-                    ) {
-                        valueDisplay.textContent = String(value);
-                    }
-
-                    // Update range slider visual styling
-                    const numericValue = Number(value);
-                    if (Number.isFinite(numericValue)) {
-                        updateRangeSliderStyling(
-                            sliderEl,
-                            option,
-                            numericValue
-                        );
-                    }
-                    console.log(
-                        `${LOG_PREFIX} Updated range ${option.id} to: ${value}`
-                    );
-                }
+                updateRangeUIControl(control, option, value);
                 break;
             }
 
             case "select": {
-                let selectEl = isSelectElement(control)
-                    ? control
-                    : control.querySelector("select");
-                if (!selectEl) {
-                    const fallbackSelect = query(
-                        `#chartjs-${option.id}-dropdown`
-                    );
-                    selectEl = isSelectElement(fallbackSelect)
-                        ? fallbackSelect
-                        : null;
-                }
-                if (isSelectElement(selectEl)) {
-                    selectEl.value = String(value);
-                    console.log(
-                        `${LOG_PREFIX} Updated select ${option.id} to: ${value}`
-                    );
-                }
+                updateSelectUIControl(control, option, value);
                 break;
             }
 
             case "toggle": {
-                // Handle both regular checkbox toggles and custom toggle controls
-                if (isInputElement(control) && control.type === "checkbox") {
-                    control.checked = Boolean(value);
-                } else if (isResettable(control)) {
-                    // For custom toggle controls, use their update method
-                    control._updateFromReset();
-                } else {
-                    // Try to find the parent container with the update method
-                    const parent =
-                        control.closest("[data-option-id]") ||
-                        control.parentElement;
-                    if (isResettable(parent)) {
-                        parent._updateFromReset();
-                    }
-                }
+                updateToggleUIControl(control, value);
+                break;
+            }
+
+            default: {
                 break;
             }
         }
