@@ -201,7 +201,7 @@ describe(createInlineZoneColorSelector, () => {
     beforeEach(() => {
         vi.useFakeTimers();
         vi.clearAllMocks();
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         const zoneWindow = window as ZoneSelectorWindow;
         zoneWindow._chartjsInstances = [];
         localStorage.clear();
@@ -221,7 +221,7 @@ describe(createInlineZoneColorSelector, () => {
 
     afterEach(() => {
         vi.useRealTimers();
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
     });
 
     it("creates HR zone selector and applies initial scheme when none customized", () => {
@@ -231,9 +231,7 @@ describe(createInlineZoneColorSelector, () => {
         document.body.appendChild(container);
         const el = createInlineZoneColorSelector("hr_zone", container);
         expect(el).toBeInstanceOf(HTMLDivElement);
-        expect([...(el?.classList ?? [])]).toContain(
-            "inline-zone-color-selector"
-        );
+        expect(el?.classList.contains("inline-zone-color-selector")).toBe(true);
         expect(container.querySelectorAll(".zone-color-item")).toHaveLength(3);
         // Initial timers apply scheme if not custom
         vi.advanceTimersByTime(20);
@@ -250,7 +248,7 @@ describe(createInlineZoneColorSelector, () => {
             container
         ) as InlineZoneSelectorElement;
         expect(el).toBeInstanceOf(HTMLDivElement);
-        expect([...el.classList]).toContain("inline-zone-color-selector");
+        expect(el.classList.contains("inline-zone-color-selector")).toBe(true);
         // Change scheme from default custom to vibrant
         const select = container.querySelector("select") as HTMLSelectElement;
         select.value = "vibrant";
@@ -280,7 +278,7 @@ describe(createInlineZoneColorSelector, () => {
             container
         ) as InlineZoneSelectorElement;
         expect(el).toBeInstanceOf(HTMLDivElement);
-        expect([...el.classList]).toContain("inline-zone-color-selector");
+        expect(el.classList.contains("inline-zone-color-selector")).toBe(true);
         const item = container.querySelector(".zone-color-item") as HTMLElement;
         const input = item.querySelector(
             ".zone-color-input"
@@ -316,14 +314,14 @@ describe(createInlineZoneColorSelector, () => {
             container
         ) as InlineZoneSelectorElement;
         expect(el).toBeInstanceOf(HTMLDivElement);
-        expect([...el.classList]).toContain("inline-zone-color-selector");
+        expect(el.classList.contains("inline-zone-color-selector")).toBe(true);
         // Add a second selector to verify updateInlineZoneColorSelectors behavior
         const el2 = createInlineZoneColorSelector(
             "hr_zone",
             container
         ) as InlineZoneSelectorElement;
         expect(el2).toBeInstanceOf(HTMLDivElement);
-        expect([...el2.classList]).toContain("inline-zone-color-selector");
+        expect(el2.classList.contains("inline-zone-color-selector")).toBe(true);
         // Spy the _updateDisplay on both
         const upd1 = vi.spyOn(el, "_updateDisplay");
         const upd2 = vi.spyOn(el2, "_updateDisplay");
@@ -353,7 +351,7 @@ describe(createInlineZoneColorSelector, () => {
             container
         ) as InlineZoneSelectorElement;
         expect(el).toBeInstanceOf(HTMLDivElement);
-        expect([...el.classList]).toContain("inline-zone-color-selector");
+        expect(el.classList.contains("inline-zone-color-selector")).toBe(true);
 
         // updateInlineZoneColorSelectors calls _updateDisplay
         const upd = vi.spyOn(el, "_updateDisplay");
