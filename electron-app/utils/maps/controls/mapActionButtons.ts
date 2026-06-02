@@ -81,9 +81,11 @@ type ActiveFileNameElement = HTMLElement & {
 };
 
 const activeTimers = new Set<ReturnType<typeof setTimeout>>();
+const CENTER_MAIN_MAX_ATTEMPTS = 8;
+const MAIN_POLYLINE_HIGHLIGHT_COLOR = "#1976d2";
 
 function getMapActionButtonsGlobal(): MapActionButtonsGlobal {
-    return globalThis as MapActionButtonsGlobal;
+    return globalThis;
 }
 
 function isMapLayer(value: unknown): value is MapLayer {
@@ -96,6 +98,184 @@ function scheduleMapActionTimeout(callback: () => void, delayMs: number): void {
         callback();
     }, delayMs);
     activeTimers.add(handle);
+}
+
+function clearCenterRetryTimer(w: MapActionButtonsGlobal): void {
+    if (w.__centerRetryHandle) {
+        globalThis.clearTimeout(w.__centerRetryHandle);
+    }
+    w.__centerRetryHandle = null;
+}
+
+function scheduleCenterMapRetry(w: MapActionButtonsGlobal): void {
+    clearCenterRetryTimer(w);
+    w.__centerRetryHandle = globalThis.setTimeout(() => {
+        w.__centerRetryHandle = null;
+        _centerMapOnMainFile();
+    }, 150);
+}
+
+function getCenterMapAttempts(w: MapActionButtonsGlobal): number {
+    return typeof w.__centerMainAttempts === "number" &&
+        Number.isInteger(w.__centerMainAttempts)
+        ? w.__centerMainAttempts
+        : 0;
+}
+
+function getMainPolyline(w: MapActionButtonsGlobal): MapPolyline | null {
+    if (w._mainPolyline) {
+        return w._mainPolyline;
+    }
+
+    const overlayCollection = w._overlayPolylines;
+    return overlayCollection?.[0] ?? overlayCollection?.["0"] ?? null;
+}
+
+function hasValidMainPolylineBounds(w: MapActionButtonsGlobal): boolean {
+    return Boolean(
+        w._mainPolylineOriginalBounds?.isValid &&
+            w._mainPolylineOriginalBounds.isValid()
+    );
+}
+
+function resetCenterMapState(w: MapActionButtonsGlobal): void {
+    clearCenterRetryTimer(w);
+    w.__centerMainAttempts = 0;
+    w.__centerStatusNotified = 0;
+}
+
+function handleMissingMainPolyline(
+    w: MapActionButtonsGlobal,
+    attempts: number
+): void {
+    if (attempts === 0) {
+        w.__centerStatusNotified = Date.now();
+        void showNotification("Centering map on main track...", "info");
+    }
+
+    if (w._leafletMapInstance && attempts < CENTER_MAIN_MAX_ATTEMPTS) {
+        w.__centerMainAttempts = attempts + 1;
+        scheduleCenterMapRetry(w);
+        return;
+    }
+
+    resetCenterMapState(w);
+
+    const noMap = !w._leafletMapInstance;
+    const logFn = noMap ? console.info : console.warn;
+    const message = noMap
+        ? "Map not ready for centering"
+        : "No main track to center on";
+    logFn(`[mapActionButtons] ${message}`);
+    void showNotification(message, "warning");
+}
+
+function bringAssociatedMarkersToFront(
+    w: MapActionButtonsGlobal,
+    polyline: MapPolyline
+): void {
+    const circleMarker = w.L?.CircleMarker;
+    if (!circleMarker || !polyline._map?._layers) {
+        return;
+    }
+
+    for (const layer of Object.values(polyline._map._layers)) {
+        try {
+            if (
+                layer instanceof circleMarker &&
+                isMapLayer(layer) &&
+                layer.options?.color === polyline.options?.color
+            ) {
+                layer.bringToFront?.();
+            }
+        } catch {
+            // Ignore bringToFront issues
+        }
+    }
+}
+
+function highlightMainPolyline(
+    w: MapActionButtonsGlobal,
+    polyline: MapPolyline
+): void {
+    const polyElem = polyline.getElement?.();
+    if (!polyElem) {
+        return;
+    }
+
+    const color = polyline.options?.color ?? MAIN_POLYLINE_HIGHLIGHT_COLOR;
+    polyElem.style.transition = "filter 0.2s";
+    polyElem.style.filter = `drop-shadow(0 0 16px ${color})`;
+
+    const highlightToken = Date.now();
+    w.__mainPolylineHighlightToken = highlightToken;
+
+    scheduleMapActionTimeout(() => {
+        const w2 = getMapActionButtonsGlobal();
+        if (w2.__mainPolylineHighlightToken === highlightToken) {
+            polyElem.style.filter = `drop-shadow(0 0 8px ${color})`;
+        }
+    }, 250);
+}
+
+function getMainPolylineBounds(
+    w: MapActionButtonsGlobal,
+    polyline: MapPolyline,
+    hasValidBounds: boolean
+): MapBounds | null | undefined {
+    if (hasValidBounds) {
+        console.log("[mapActionButtons] Using stored main polyline bounds");
+        return w._mainPolylineOriginalBounds;
+    }
+
+    if (polyline.getBounds) {
+        console.warn("[mapActionButtons] Using polyline getBounds as fallback");
+        return polyline.getBounds();
+    }
+
+    return null;
+}
+
+function logMapCenterAfterFit(w: MapActionButtonsGlobal): void {
+    scheduleMapActionTimeout(() => {
+        try {
+            const center = w._leafletMapInstance?.getCenter?.();
+            const zoom = w._leafletMapInstance?.getZoom?.();
+            const latitude = center ? String(center.lat) : "unknown";
+            const longitude = center ? String(center.lng) : "unknown";
+            const zoomText = typeof zoom === "number" ? String(zoom) : "unknown";
+            console.log(
+                `[mapActionButtons] Map centered at ${latitude}, ${longitude}, zoom: ${zoomText}`
+            );
+        } catch {
+            console.warn(
+                "[mapActionButtons] Error getting map state after centering (details suppressed)"
+            );
+        }
+    }, 200);
+}
+
+function fitMapToMainPolyline(
+    w: MapActionButtonsGlobal,
+    polyline: MapPolyline,
+    hasValidBounds: boolean
+): void {
+    if (!w._leafletMapInstance) {
+        console.warn("[mapActionButtons] Leaflet map instance not available");
+        void showNotification("Map not ready for centering", "warning");
+        return;
+    }
+
+    const bounds = getMainPolylineBounds(w, polyline, hasValidBounds);
+    if (bounds?.isValid?.()) {
+        console.log("[mapActionButtons] Fitting map to bounds");
+        w._leafletMapInstance.fitBounds(bounds, { padding: [20, 20] });
+        logMapCenterAfterFit(w);
+        return;
+    }
+
+    console.warn("[mapActionButtons] No valid bounds found for main polyline");
+    void showNotification("Could not determine track bounds", "warning");
 }
 
 /**
@@ -127,77 +307,16 @@ function _centerMapOnMainFile(): void {
         console.log("[mapActionButtons] Attempting to zoom to main polyline");
         const w = getMapActionButtonsGlobal();
 
-        const MAX_ATTEMPTS = 8;
-
-        const clearRetryTimer = (): void => {
-            if (
-                w.__centerRetryHandle &&
-                typeof globalThis.clearTimeout === "function"
-            ) {
-                globalThis.clearTimeout(w.__centerRetryHandle);
-            }
-            w.__centerRetryHandle = null;
-        };
-
-        const scheduleRetry = (): void => {
-            if (typeof globalThis.setTimeout === "function") {
-                clearRetryTimer();
-                w.__centerRetryHandle = globalThis.setTimeout(() => {
-                    w.__centerRetryHandle = null;
-                    _centerMapOnMainFile();
-                }, 150);
-            } else {
-                queueMicrotask(() => {
-                    _centerMapOnMainFile();
-                });
-            }
-        };
-
-        const attempts =
-            typeof w.__centerMainAttempts === "number" &&
-            Number.isInteger(w.__centerMainAttempts)
-                ? w.__centerMainAttempts
-                : 0;
-
-        let mainPolyline = w._mainPolyline;
-        if (!mainPolyline && w._overlayPolylines) {
-            const overlayCollection = w._overlayPolylines;
-            mainPolyline =
-                overlayCollection?.[0] ?? overlayCollection?.["0"] ?? null;
-        }
-        const hasValidBounds = Boolean(
-            w._mainPolylineOriginalBounds &&
-            typeof w._mainPolylineOriginalBounds.isValid === "function" &&
-            w._mainPolylineOriginalBounds.isValid()
-        );
+        const attempts = getCenterMapAttempts(w);
+        const mainPolyline = getMainPolyline(w);
+        const hasValidBounds = hasValidMainPolylineBounds(w);
 
         if (!mainPolyline) {
-            if (attempts === 0) {
-                w.__centerStatusNotified = Date.now();
-                showNotification("Centering map on main track…", "info");
-            }
-
-            if (w._leafletMapInstance && attempts < MAX_ATTEMPTS) {
-                w.__centerMainAttempts = attempts + 1;
-                scheduleRetry();
-                return;
-            }
-
-            clearRetryTimer();
-            w.__centerMainAttempts = 0;
-            w.__centerStatusNotified = 0;
-
-            const noMap = !w._leafletMapInstance;
-            const logFn = noMap ? console.info : console.warn;
-            const message = noMap
-                ? "Map not ready for centering"
-                : "No main track to center on";
-            logFn(`[mapActionButtons] ${message}`);
-            showNotification(message, "warning");
+            handleMissingMainPolyline(w, attempts);
             return;
         }
 
-        clearRetryTimer();
+        clearCenterRetryTimer(w);
         w.__centerMainAttempts = 0;
         const statusPending = Boolean(w.__centerStatusNotified);
         w.__centerStatusNotified = 0;
@@ -208,95 +327,23 @@ function _centerMapOnMainFile(): void {
         polyline.bringToFront?.();
 
         // Bring associated markers to front
-        const circleMarker = w.L?.CircleMarker;
-        if (circleMarker && polyline?._map && polyline._map._layers) {
-            for (const layer of Object.values(polyline._map._layers)) {
-                try {
-                    if (
-                        layer instanceof circleMarker &&
-                        isMapLayer(layer) &&
-                        layer.options?.color === polyline.options?.color
-                    ) {
-                        layer.bringToFront?.();
-                    }
-                } catch {
-                    // Ignore bringToFront issues
-                }
-            }
-        }
+        bringAssociatedMarkersToFront(w, polyline);
 
         // Add visual highlighting effect
-        const polyElem = polyline.getElement?.();
-        if (polyElem) {
-            polyElem.style.transition = "filter 0.2s";
-            polyElem.style.filter = `drop-shadow(0 0 16px ${polyline.options?.color || "#1976d2"})`;
-
-            const highlightToken = Date.now();
-            w.__mainPolylineHighlightToken = highlightToken;
-
-            scheduleMapActionTimeout(() => {
-                const w2 = getMapActionButtonsGlobal();
-                if (w2.__mainPolylineHighlightToken === highlightToken) {
-                    polyElem.style.filter = `drop-shadow(0 0 8px ${polyline.options?.color || "#1976d2"})`;
-                }
-            }, 250);
-        }
+        highlightMainPolyline(w, polyline);
 
         // Fit map bounds to main polyline only
-        if (w._leafletMapInstance) {
-            let bounds: MapBounds | null | undefined;
-
-            if (hasValidBounds) {
-                bounds = w._mainPolylineOriginalBounds;
-                console.log(
-                    "[mapActionButtons] Using stored main polyline bounds"
-                );
-            } else if (polyline.getBounds) {
-                bounds = polyline.getBounds();
-                console.warn(
-                    "[mapActionButtons] Using polyline getBounds as fallback"
-                );
-            }
-
-            if (bounds?.isValid?.()) {
-                console.log("[mapActionButtons] Fitting map to bounds");
-                w._leafletMapInstance.fitBounds(bounds, { padding: [20, 20] });
-
-                scheduleMapActionTimeout(() => {
-                    try {
-                        const center = w._leafletMapInstance?.getCenter?.(),
-                            zoom = w._leafletMapInstance?.getZoom?.();
-                        console.log(
-                            `[mapActionButtons] Map centered at ${center?.lat}, ${center?.lng}, zoom: ${zoom}`
-                        );
-                    } catch {
-                        console.warn(
-                            "[mapActionButtons] Error getting map state after centering (details suppressed)"
-                        );
-                    }
-                }, 200);
-            } else {
-                console.warn(
-                    "[mapActionButtons] No valid bounds found for main polyline"
-                );
-                showNotification("Could not determine track bounds", "warning");
-            }
-        } else {
-            console.warn(
-                "[mapActionButtons] Leaflet map instance not available"
-            );
-            showNotification("Map not ready for centering", "warning");
-        }
+        fitMapToMainPolyline(w, polyline, hasValidBounds);
 
         if (statusPending) {
-            showNotification("Centered on main track.", "success");
+            void showNotification("Centered on main track.", "success");
         }
     } catch (error) {
         console.error(
             "[mapActionButtons] Error centering map on main file:",
             error
         );
-        showNotification("Failed to center map on main file", "error");
+        void showNotification("Failed to center map on main file", "error");
     }
 }
 
@@ -314,7 +361,7 @@ function setupActiveFileNameMapActions(): void {
         const activeFileName = querySelectorByIdFlexible(
             document,
             "#active_file_name"
-        ) as ActiveFileNameElement | null;
+        );
         if (!activeFileName) {
             console.log(
                 "[mapActionButtons] #active_file_name not found in DOM"
@@ -327,15 +374,10 @@ function setupActiveFileNameMapActions(): void {
         activeFileName.title = "Click to center map on main file";
 
         // Remove any previous listeners to avoid stacking
-        activeFileName.onclick = null;
-        activeFileName.onmouseenter = null;
-        activeFileName.onmouseleave = null;
-        activeFileName.__ffvMapActionCleanup?.();
+        const activeFileNameElement = activeFileName as ActiveFileNameElement;
+        activeFileNameElement.__ffvMapActionCleanup?.();
 
-        const cleanupCallbacks: Array<() => void> = [];
-
-        // Click handler - center map on main file
-        cleanupCallbacks.push(
+        const cleanupCallbacks: Array<() => void> = [
             addEventListenerWithCleanup(activeFileName, "click", () => {
                 try {
                     console.log("[mapActionButtons] Active file name clicked");
@@ -366,13 +408,13 @@ function setupActiveFileNameMapActions(): void {
                         error
                     );
                     // Correct argument order: (message, type)
-                    showNotification("Failed to center map on file", "error");
+                    void showNotification(
+                        "Failed to center map on file",
+                        "error"
+                    );
                 }
-            })
-        );
+            }),
 
-        // Hover handlers for visual feedback using CSS classes
-        cleanupCallbacks.push(
             addEventListenerWithCleanup(activeFileName, "mouseenter", () => {
                 try {
                     console.log("[mapActionButtons] Active file name hover");
@@ -388,10 +430,8 @@ function setupActiveFileNameMapActions(): void {
                         error
                     );
                 }
-            })
-        );
+            }),
 
-        cleanupCallbacks.push(
             addEventListenerWithCleanup(activeFileName, "mouseleave", () => {
                 try {
                     console.log("[mapActionButtons] Active file name unhover");
@@ -407,14 +447,14 @@ function setupActiveFileNameMapActions(): void {
                         error
                     );
                 }
-            })
-        );
+            }),
+        ];
 
-        activeFileName.__ffvMapActionCleanup = () => {
+        activeFileNameElement.__ffvMapActionCleanup = () => {
             for (const cleanup of cleanupCallbacks) {
                 cleanup();
             }
-            delete activeFileName.__ffvMapActionCleanup;
+            delete activeFileNameElement.__ffvMapActionCleanup;
         };
     } catch (error) {
         console.error(
@@ -442,7 +482,9 @@ function setupActiveFileNameMapActions(): void {
                 addEventListenerWithCleanup(
                     document,
                     "DOMContentLoaded",
-                    initializeActiveFileName,
+                    () => {
+                        initializeActiveFileName();
+                    },
                     { once: true }
                 );
             }
@@ -480,7 +522,7 @@ getMapActionButtonsGlobal()._setupActiveFileNameMapActions =
         const w = getMapActionButtonsGlobal(),
             origUpdateShownFilesList = w.updateShownFilesList;
 
-        w.updateShownFilesList = function (
+        w.updateShownFilesList = function updateShownFilesList(
             this: unknown,
             ...args: unknown[]
         ): void {
@@ -510,4 +552,6 @@ getMapActionButtonsGlobal()._setupActiveFileNameMapActions =
 /**
  * Creates the map theme toggle control used by the map toolbar.
  */
-export const createMapThemeToggle = createMapThemeToggleImplementation;
+export function createMapThemeToggle(): HTMLElement {
+    return createMapThemeToggleImplementation();
+}
