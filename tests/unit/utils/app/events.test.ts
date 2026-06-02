@@ -645,22 +645,13 @@ describe(setupListeners, () => {
         const setContrast = ipcHandlers.get("set-high-contrast");
         document.body.className = "";
         setFont?.(undefined, "large");
-        expect([...document.body.classList]).toStrictEqual(["font-large"]);
+        expect(document.body.className).toBe("font-large");
         setContrast?.(undefined, "black");
-        expect([...document.body.classList]).toStrictEqual([
-            "font-large",
-            "high-contrast",
-        ]);
+        expect(document.body.className).toBe("font-large high-contrast");
         setContrast?.(undefined, "white");
-        expect([...document.body.classList]).toStrictEqual([
-            "font-large",
-            "high-contrast-white",
-        ]);
+        expect(document.body.className).toBe("font-large high-contrast-white");
         setContrast?.(undefined, "yellow");
-        expect([...document.body.classList]).toStrictEqual([
-            "font-large",
-            "high-contrast-yellow",
-        ]);
+        expect(document.body.className).toBe("font-large high-contrast-yellow");
     });
 
     it("forwards print and update menu IPC events", () => {

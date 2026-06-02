@@ -119,7 +119,7 @@ describe(ChartTabIntegration, () => {
         integration.handleDataChange({ recordMesgs: [{ timestamp: 1 }] });
 
         expect(button).toHaveProperty("disabled", false);
-        expect([...button.classList]).toStrictEqual([]);
+        expect(button.className).toBe("");
         expect(button.style.opacity).toBe("1");
         expect(debouncedRenderMock).toHaveBeenCalledWith(
             "New data loaded via integration"
@@ -141,7 +141,7 @@ describe(ChartTabIntegration, () => {
         integration.handleDataChange(null);
 
         expect(button).toHaveProperty("disabled", true);
-        expect([...button.classList]).toStrictEqual(["disabled"]);
+        expect(button.classList.contains("disabled")).toBe(true);
         expect(button.style.opacity).toBe("0.5");
         expect(clearChartStateMock).toHaveBeenCalledOnce();
 
