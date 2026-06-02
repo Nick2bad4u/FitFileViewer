@@ -31,8 +31,9 @@ import {
     TAB_CONFIG,
 } from "../../../../../electron-app/utils/ui/tabs/tabStateManager.js";
 
-function getClassList(element: Element): string[] {
-    return [...element.classList];
+function getAltFitIframePathname(iframe: HTMLIFrameElement): string {
+    const url = new URL(iframe.src);
+    return url.pathname;
 }
 
 describe("tabStateManager.behavior", () => {
@@ -141,7 +142,7 @@ describe("tabStateManager.behavior", () => {
         expect(prevent).toHaveBeenCalledWith();
         expect(stop).toHaveBeenCalledWith();
         expect(mockSetState).not.toHaveBeenCalled();
-        expect(getClassList(btn)).toContain("tab-disabled");
+        expect(btn.classList.contains("tab-disabled")).toBe(true);
     });
 
     it("handleTabButtonClick ignores when disabled attribute present", () => {
@@ -271,9 +272,9 @@ describe("tabStateManager.behavior", () => {
         root.append(a, b);
 
         tabStateManager.updateTabButtonStates("map");
-        expect(getClassList(a)).not.toContain("active");
+        expect(a.classList.contains("active")).toBe(false);
         expect(a.getAttribute("aria-selected")).toBe("false");
-        expect(getClassList(b)).toContain("active");
+        expect(b.classList.contains("active")).toBe(true);
         expect(b.getAttribute("aria-selected")).toBe("true");
     });
 
@@ -320,7 +321,7 @@ describe("tabStateManager.behavior", () => {
         root.appendChild(iframe);
 
         tabStateManager.handleAltFitTab();
-        expect(iframe.src).toContain("ffv/index.html");
+        expect(getAltFitIframePathname(iframe)).toBe("/ffv/index.html");
     });
 
     it("handleAltFitTab is idempotent when src already set", () => {
@@ -739,7 +740,7 @@ describe("tabStateManager.behavior", () => {
         root.appendChild(iframe);
         const spy = vi.spyOn(tabStateManager, "handleAltFitTab");
         await tabStateManager.handleTabSpecificLogic("altfit");
-        expect(iframe.src).toContain("ffv/index.html");
+        expect(getAltFitIframePathname(iframe)).toBe("/ffv/index.html");
         expect(spy).toHaveBeenCalledWith();
         spy.mockRestore();
     });
@@ -764,7 +765,7 @@ describe("tabStateManager.behavior", () => {
             "map",
             expect.anything()
         );
-        expect(getClassList(btn)).toContain("active");
+        expect(btn.classList.contains("active")).toBe(true);
     });
 
     it("handleTabSpecificLogic returns early for unknown tab (no config)", async () => {
@@ -842,7 +843,7 @@ describe("tabStateManager.behavior", () => {
         expect(() =>
             tabStateManager.updateTabButtonStates("map")
         ).not.toThrow();
-        expect(getClassList(b)).toContain("active");
+        expect(b.classList.contains("active")).toBe(true);
         // Restore to avoid affecting other tests
         // @ts-ignore
         a.classList.toggle = origToggle;
