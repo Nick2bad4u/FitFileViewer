@@ -19,16 +19,22 @@ function readTsconfig(fileName: string): Tsconfig {
 
 describe("typescript configuration policy", () => {
     it("does not point the app typecheck at removed electron-app source trees", () => {
-        expect.assertions(5);
+        expect.assertions(8);
 
         const config = readTsconfig("tsconfig.app.json");
         const paths = config.compilerOptions?.paths ?? {};
+        const includes = config.include ?? [];
 
         expect(paths).not.toHaveProperty("@app/*");
         expect(paths).not.toHaveProperty("@electron/*");
         expect(paths["@shared/*"]).toStrictEqual(["./electron-app/shared/*"]);
-        expect(config.include ?? []).not.toContain("electron-app/src/**/*");
+        expect(includes).toContain("global.d.ts");
+        expect(includes).not.toContain("electron-app/global.d.ts");
+        expect(includes).not.toContain("electron-app/src/**/*");
         expect(config.exclude ?? []).not.toContain("electron-app/electron");
+        expect(
+            includes.filter((entry) => entry.endsWith("global.d.ts"))
+        ).toStrictEqual(["global.d.ts"]);
     });
 
     it("keeps Vitest declaration typecheck rooted in tests", () => {
