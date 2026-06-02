@@ -29,6 +29,16 @@ function getRequiredNotificationMessage(element: HTMLElement): HTMLElement {
     return message as HTMLElement;
 }
 
+function getRequiredConsoleErrorCall(index = 0): unknown[] {
+    const call = vi.mocked(console.error).mock.calls[index];
+
+    if (!call) {
+        throw new Error(`Expected console.error call ${index}`);
+    }
+
+    return call;
+}
+
 function getClassPresence(
     element: HTMLElement,
     classNames: string[]
@@ -166,10 +176,9 @@ describe("showNotification.js - error handling coverage", () => {
             queueSize: 0,
         });
 
-        const loggedError = vi.mocked(console.error).mock.calls[0]?.[1];
-        expect(vi.mocked(console.error).mock.calls[0]?.[0]).toBe(
-            "Error displaying notification:"
-        );
+        const consoleErrorCall = getRequiredConsoleErrorCall();
+        const loggedError = consoleErrorCall[1];
+        expect(consoleErrorCall[0]).toBe("Error displaying notification:");
         expect(loggedError).toBeInstanceOf(Error);
         expect((loggedError as Error).message).toBe(
             "Simulated error in displayNotification"

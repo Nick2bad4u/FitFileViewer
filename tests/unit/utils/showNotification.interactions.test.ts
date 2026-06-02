@@ -19,6 +19,29 @@ function getNotificationState(element: HTMLElement) {
     };
 }
 
+function getRequiredNotificationElement(): HTMLElement {
+    const element = document.getElementById("notification");
+
+    if (!(element instanceof HTMLElement)) {
+        throw new Error("Expected #notification to exist");
+    }
+
+    return element;
+}
+
+function getRequiredButton(
+    element: HTMLElement,
+    selector: string
+): HTMLButtonElement {
+    const button = element.querySelector(selector);
+
+    if (!(button instanceof HTMLButtonElement)) {
+        throw new Error(`Expected button for selector: ${selector}`);
+    }
+
+    return button;
+}
+
 describe("showNotification interactions", () => {
     beforeEach(() => {
         vi.useFakeTimers();
@@ -46,7 +69,7 @@ describe("showNotification interactions", () => {
         const p = showNotification("Hello world", "info");
         // queue processed immediately; animation frame -> we just advance timers
         await p;
-        const el = document.getElementById("notification")!;
+        const el = getRequiredNotificationElement();
         expect(el.style.display).toBe("flex");
         // Advance past duration (default 4000) + animation 500
         vi.advanceTimersByTime(4500);
@@ -62,13 +85,11 @@ describe("showNotification interactions", () => {
 
         const p = notify.persistent("Stay", "warning");
         await p;
-        const el = document.getElementById("notification")!;
+        const el = getRequiredNotificationElement();
         expect(el.style.display).toBe("flex");
-        const close = el.querySelector(
-            ".notification-close"
-        ) as HTMLButtonElement;
-        expect(close?.getAttribute("aria-label")).toBe("Close notification");
-        expect(close?.textContent).toBe("×");
+        const close = getRequiredButton(el, ".notification-close");
+        expect(close.getAttribute("aria-label")).toBe("Close notification");
+        expect(close.textContent).toBe("×");
         close.click();
         // transition 300ms
         vi.advanceTimersByTime(300);
@@ -83,12 +104,10 @@ describe("showNotification interactions", () => {
             { text: "Do", onClick: onAct },
         ]);
         await p;
-        const el = document.getElementById("notification")!;
-        const btn = el.querySelector(
-            ".notification-actions button"
-        ) as HTMLButtonElement;
-        expect(btn?.textContent).toBe("Do");
-        expect(btn?.className).toBe("themed-btn");
+        const el = getRequiredNotificationElement();
+        const btn = getRequiredButton(el, ".notification-actions button");
+        expect(btn.textContent).toBe("Do");
+        expect(btn.className).toBe("themed-btn");
         btn.click();
         expect(onAct).toHaveBeenCalledOnce();
         vi.advanceTimersByTime(300);
@@ -104,7 +123,7 @@ describe("showNotification interactions", () => {
             persistent: true,
         });
         await p;
-        const el = document.getElementById("notification")!;
+        const el = getRequiredNotificationElement();
         el.click();
         expect(onClick).toHaveBeenCalledOnce();
         vi.advanceTimersByTime(300);
@@ -123,7 +142,7 @@ describe("showNotification interactions", () => {
         // unknown type
         const p = showNotification("Msg", "unknown" as any);
         await p;
-        const el = document.getElementById("notification")!;
+        const el = getRequiredNotificationElement();
         expect(vi.mocked(console.warn).mock.calls).toStrictEqual([
             ["showNotification: Invalid message provided"],
             [
@@ -146,7 +165,7 @@ describe("showNotification interactions", () => {
         expect.assertions(2);
 
         await showNotification("One", "info", 10000); // long duration to keep visible
-        const el = document.getElementById("notification")!;
+        const el = getRequiredNotificationElement();
         expect(el.style.display).toBe("flex");
         clearAllNotifications();
         vi.advanceTimersByTime(300);
@@ -160,7 +179,7 @@ describe("showNotification interactions", () => {
         const p1 = showNotification("First", "success", 500);
         const p2 = showNotification("Second", "error", 500);
         await p1; // first scheduled
-        let el = document.getElementById("notification")!;
+        let el = getRequiredNotificationElement();
         expect(el.style.display).toBe("flex");
         expect(getNotificationState(el).message).toBe("First");
         expect(el.className).toBe("notification success");
@@ -169,7 +188,7 @@ describe("showNotification interactions", () => {
         // allow queue processor to kick in
         vi.advanceTimersByTime(50);
         await p2;
-        el = document.getElementById("notification")!;
+        el = getRequiredNotificationElement();
         expect(getNotificationState(el).message).toBe("Second");
         expect(el.className).toBe("notification error");
         // finish second
@@ -180,7 +199,7 @@ describe("showNotification interactions", () => {
     it("resolves and logs when notification rendering throws", async () => {
         expect.assertions(4);
 
-        const el = document.getElementById("notification")!;
+        const el = getRequiredNotificationElement();
         const renderError = new Error("render failed");
         const replaceChildrenSpy = vi
             .spyOn(el, "replaceChildren")

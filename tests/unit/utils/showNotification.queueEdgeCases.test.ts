@@ -35,6 +35,26 @@ function getNotificationState(element: HTMLElement) {
     };
 }
 
+function getRequiredNotificationElement(): NotificationElement {
+    const element = document.getElementById("notification");
+
+    if (!(element instanceof HTMLDivElement)) {
+        throw new Error("Expected #notification to exist");
+    }
+
+    return element as NotificationElement;
+}
+
+function getRequiredConsoleErrorCall(index = 0): unknown[] {
+    const call = vi.mocked(console.error).mock.calls[index];
+
+    if (!call) {
+        throw new Error(`Expected console.error call ${index}`);
+    }
+
+    return call;
+}
+
 describe("showNotification queue edge cases", () => {
     beforeEach(() => {
         vi.useFakeTimers();
@@ -93,10 +113,9 @@ describe("showNotification queue edge cases", () => {
         const p = showNotification("Error test");
         await p;
         await vi.runAllTimersAsync();
-        const loggedError = vi.mocked(console.error).mock.calls[0]?.[1];
-        expect(vi.mocked(console.error).mock.calls[0]?.[0]).toBe(
-            "Error displaying notification:"
-        );
+        const consoleErrorCall = getRequiredConsoleErrorCall();
+        const loggedError = consoleErrorCall[1];
+        expect(consoleErrorCall[0]).toBe("Error displaying notification:");
         expect(loggedError).toBeInstanceOf(Error);
         expect((loggedError as Error).message).toBe("Simulated error");
         expect(notificationQueue).toStrictEqual([]);
@@ -107,19 +126,17 @@ describe("showNotification queue edge cases", () => {
         expect.assertions(4);
 
         const mockClearTimeout = vi.spyOn(window, "clearTimeout");
-        const notificationEl = document.getElementById(
-            "notification"
-        ) as NotificationElement | null;
+        const notificationEl = getRequiredNotificationElement();
 
         expect(notificationEl).toBeInstanceOf(HTMLDivElement);
         // Manually set a hideTimeout on the element
-        notificationEl!.hideTimeout = 123;
+        notificationEl.hideTimeout = 123;
 
         const p = showNotification("Testing clearTimeout");
         await p;
         expect(mockClearTimeout).toHaveBeenCalledWith(123);
-        expect(notificationEl?.style.display).toBe("flex");
-        expect(notificationEl?.hideTimeout).not.toStrictEqual(123);
+        expect(notificationEl.style.display).toBe("flex");
+        expect(notificationEl.hideTimeout).not.toStrictEqual(123);
     });
 
     it("handles all notification types through the notify object", async () => {
@@ -283,10 +300,9 @@ describe("showNotification queue edge cases", () => {
 
         // This shouldn't throw despite the error in resolveShown
         await processNotificationQueue();
-        const loggedError = vi.mocked(console.error).mock.calls[0]?.[1];
-        expect(vi.mocked(console.error).mock.calls[0]?.[0]).toBe(
-            "Error displaying notification:"
-        );
+        const consoleErrorCall = getRequiredConsoleErrorCall();
+        const loggedError = consoleErrorCall[1];
+        expect(consoleErrorCall[0]).toBe("Error displaying notification:");
         expect(loggedError).toBeInstanceOf(Error);
         expect((loggedError as Error).message).toBe("resolveShown error");
         expect(notificationQueue).toStrictEqual([]);
