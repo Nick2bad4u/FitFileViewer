@@ -53,9 +53,13 @@ function getMenuOpenOverlayHandler(
     const entry = electronAPI.onIpc.mock.calls.find(
         ([channel]) => channel === "menu-open-overlay"
     );
-    expect(entry?.[0]).toBe("menu-open-overlay");
+    if (!entry) {
+        throw new TypeError("Expected menu-open-overlay registration");
+    }
 
-    const handler = entry?.[1];
+    expect(entry[0]).toBe("menu-open-overlay");
+
+    const handler = entry[1];
     if (typeof handler !== "function") {
         throw new TypeError("Expected menu-open-overlay handler");
     }
