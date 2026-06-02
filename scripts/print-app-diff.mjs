@@ -130,13 +130,17 @@ export function printAppDiff(options = {}, dependencies = {}) {
     return diffResult.status;
 }
 
-function printUsage() {
-    console.log(`Usage: node scripts/print-app-diff.mjs [options]
+export function createUsageText(defaultPath = defaultDiffPath) {
+    return `Usage: node scripts/print-app-diff.mjs [options]
 
 Options:
-  --diff-path <path>     Repository path to diff. Defaults to electron-app/.
+  --diff-path <path>     Repository path to diff. Defaults to ${defaultPath}.
   --tag-pattern <glob>   Version tag pattern. Defaults to v*.
-  -h, --help             Show this help text.`);
+  -h, --help             Show this help text.`;
+}
+
+function printUsage() {
+    console.log(createUsageText());
 }
 
 function runCommandSync(command, args) {

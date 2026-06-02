@@ -9,6 +9,7 @@ type CommandResult = {
 };
 
 type PrintAppDiffModule = {
+    createUsageText: (defaultPath?: string) => string;
     defaultDiffPath: string;
     defaultTagPattern: string;
     getLastVersionRef: (
@@ -207,6 +208,16 @@ describe("print-app-diff script", () => {
 
         expect(() => parseArgs(["--diff-path"])).toThrow(
             "--diff-path requires a value"
+        );
+    });
+
+    it("keeps usage text aligned with the centralized default app diff path", async () => {
+        expect.assertions(1);
+
+        const { createUsageText, defaultDiffPath } = await importPrintAppDiff();
+
+        expect(createUsageText()).toContain(
+            `Defaults to ${defaultDiffPath}.`
         );
     });
 });
