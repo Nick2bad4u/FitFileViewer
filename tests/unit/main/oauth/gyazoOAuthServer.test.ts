@@ -265,7 +265,7 @@ describe("gyazoOAuthServer", () => {
         expect({
             statusCode: res.statusCode,
             statusHeaders: res.statusHeaders,
-        }).toEqual({
+        }).toStrictEqual({
             statusCode: 405,
             statusHeaders: { "Content-Type": "text/plain" },
         });
@@ -368,7 +368,7 @@ describe("gyazoOAuthServer", () => {
         expect({
             statusCode: res.statusCode,
             statusHeaders: res.statusHeaders,
-        }).toEqual({
+        }).toStrictEqual({
             statusCode: 200,
             statusHeaders: { "Content-Type": "text/html" },
         });

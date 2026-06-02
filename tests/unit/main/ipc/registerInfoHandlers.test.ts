@@ -184,7 +184,7 @@ describe("registerInfoHandlers", () => {
         );
         await expect(
             getHandler(handlers, "getPlatformInfo")()
-        ).resolves.toEqual({
+        ).resolves.toStrictEqual({
             arch: process.arch,
             platform: process.platform,
         });

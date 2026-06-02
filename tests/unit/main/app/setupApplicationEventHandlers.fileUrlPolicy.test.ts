@@ -158,10 +158,10 @@ describe("setupApplicationEventHandlers file:// policy", () => {
             "C:\\other\\secret.html"
         ).toString();
 
-        expect(windowOpenHandler({ url: allowedFileUrl })).toEqual({
+        expect(windowOpenHandler({ url: allowedFileUrl })).toStrictEqual({
             action: "allow",
         });
-        expect(windowOpenHandler({ url: disallowedFileUrl })).toEqual({
+        expect(windowOpenHandler({ url: disallowedFileUrl })).toStrictEqual({
             action: "deny",
         });
 
