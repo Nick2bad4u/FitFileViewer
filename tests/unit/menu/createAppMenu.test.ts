@@ -905,7 +905,7 @@ describe("createAppMenu", () => {
     });
 
     it("all high contrast options present; black option sends IPC", () => {
-        expect.assertions(5);
+        expect.assertions(2);
         const createAppMenu = importCreateAppMenu();
         const send = createMock();
         const fakeWin = { webContents: { send } };
@@ -926,17 +926,38 @@ describe("createAppMenu", () => {
         const white = hc.submenu.find((i: any) => i.label === "⬜ White");
         const yellow = hc.submenu.find((i: any) => i.label === "🟨 Yellow");
         const off = hc.submenu.find((i: any) => i.label === "🚫 Off");
-        expect(black.click).toBeTypeOf("function");
-        expect(white.click).toBeTypeOf("function");
-        expect(yellow.click).toBeTypeOf("function");
-        expect(off.click).toBeTypeOf("function");
-        // Execute the guarded 'black' handler to assert IPC without depending on BrowserWindow mock
+        expect(
+            [
+                black,
+                white,
+                yellow,
+                off,
+            ].map((item: any) => pickMenuFields(item, ["label", "type"]))
+        ).toStrictEqual([
+            {
+                label: "⬛ Black (Default)",
+                type: "radio",
+            },
+            {
+                label: "⬜ White",
+                type: "radio",
+            },
+            {
+                label: "🟨 Yellow",
+                type: "radio",
+            },
+            {
+                label: "🚫 Off",
+                type: "radio",
+            },
+        ]);
+
         black.click();
         expect(send).toHaveBeenCalledWith("set-high-contrast", "black");
     });
 
-    it("high contrast white/yellow/off items are present and clickable", () => {
-        expect.assertions(3);
+    it("high contrast white/yellow/off items send IPC values", () => {
+        expect.assertions(1);
         const createAppMenu = importCreateAppMenu();
         const fakeWin = { webContents: { send: createMock() } };
         createAppMenu(fakeWin as any, "dark", null);
@@ -955,12 +976,18 @@ describe("createAppMenu", () => {
             "🚫 Off",
         ]) {
             const item = hc.submenu.find((i: any) => i.label === lab);
-            expect(item.click).toBeTypeOf("function");
+            item.click();
         }
+
+        expect((globalThis as any).__ipcCalls).toStrictEqual([
+            ["set-high-contrast", "white"],
+            ["set-high-contrast", "yellow"],
+            ["set-high-contrast", "off"],
+        ]);
     });
 
     it("help external links are present and have click handlers", () => {
-        expect.assertions(4);
+        expect.assertions(1);
         const createAppMenu = importCreateAppMenu();
         const fakeWin = { webContents: { send: createMock() } };
         createAppMenu(fakeWin as any, "dark", null);
@@ -976,9 +1003,6 @@ describe("createAppMenu", () => {
         const issues = help.submenu.find(
             (i: any) => i.label === "❗Report an Issue"
         );
-        expect(docs.click).toBeTypeOf("function");
-        expect(repo.click).toBeTypeOf("function");
-        expect(issues.click).toBeTypeOf("function");
         // Exercise clicks to ensure the code paths are executed (shell is mocked globally)
         docs.click();
         repo.click();
@@ -993,8 +1017,8 @@ describe("createAppMenu", () => {
         ]);
     });
 
-    it("help > About and Keyboard Shortcuts are present and clickable", () => {
-        expect.assertions(2);
+    it("help > About and Keyboard Shortcuts send IPC", () => {
+        expect.assertions(1);
         const createAppMenu = importCreateAppMenu();
         const fakeWin = { webContents: { send: createMock() } };
         createAppMenu(fakeWin as any, "dark", null);
@@ -1005,13 +1029,26 @@ describe("createAppMenu", () => {
         const shortcuts = help.submenu.find(
             (i: any) => i.label === "⌨️ Keyboard Shortcuts"
         );
-        expect(about.click).toBeTypeOf("function");
-        expect(shortcuts.click).toBeTypeOf("function");
+        about.click();
+        shortcuts.click();
+
+        expect((globalThis as any).__ipcCalls).toStrictEqual([
+            ["menu-about"],
+            ["menu-keyboard-shortcuts"],
+        ]);
     });
 
-    it("file > Close Window item exists and is clickable", () => {
+    it("file > Close Window closes the focused window", () => {
         expect.assertions(1);
         const createAppMenu = importCreateAppMenu();
+        let closed = false;
+        (globalThis as any).__electronHoistedMock.BrowserWindow = {
+            getFocusedWindow: () => ({
+                close: () => {
+                    closed = true;
+                },
+            }),
+        };
         const fakeWin = { webContents: { send: createMock() } };
         createAppMenu(fakeWin as any, "dark", null);
         const tpl =
@@ -1020,7 +1057,9 @@ describe("createAppMenu", () => {
         const closeItem = fileMenu.submenu.find(
             (i: any) => i.label === "🚪 Close Window"
         );
-        expect(closeItem.click).toBeTypeOf("function");
+        closeItem.click();
+
+        expect(closed).toBe(true);
     });
 
     it("restart and Update click sends IPC even if disabled", () => {
