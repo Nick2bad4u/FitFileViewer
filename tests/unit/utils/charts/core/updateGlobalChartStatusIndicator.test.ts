@@ -22,7 +22,7 @@ function createIndicator(): HTMLElement {
 function resetTestState(): void {
     vi.restoreAllMocks();
     createGlobalChartStatusIndicatorMock.mockReset();
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
 }
 
 describe(updateGlobalChartStatusIndicator, () => {
