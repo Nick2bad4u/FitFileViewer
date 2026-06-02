@@ -24,13 +24,13 @@ import {
     createPowerZoneControls,
     movePowerZoneControlsToSection,
 } from "../controls/createPowerZoneControls.js";
-import { applySettingsPanelStyles } from "./createSettingsHeader.js";
 import {
+    applySettingsPanelStyles,
     createControlsSection,
     createExportSection,
-    createFieldTogglesSection,
     createSettingsHeader,
 } from "./createSettingsHeader.js";
+import { createFieldTogglesSection } from "./createFieldTogglesSection.js";
 
 const deferredZoneControlTimers = new Set<ReturnType<typeof setTimeout>>();
 
