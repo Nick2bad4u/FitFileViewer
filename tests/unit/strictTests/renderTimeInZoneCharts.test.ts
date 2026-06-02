@@ -167,7 +167,7 @@ describe("renderTimeInZoneCharts.js - Time in Zone Composite Renderer", () => {
                 chartId: chart.dataset.chartId,
                 title: chart.textContent,
             }))
-        ).toEqual([
+        ).toStrictEqual([
             {
                 chartId: "heart-rate-zones",
                 title: "HR Zone Distribution (Doughnut)",

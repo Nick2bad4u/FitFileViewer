@@ -351,8 +351,24 @@ describe("workspace package boundaries", () => {
         expect(appPackage.icon).toBe("dist/icons/favicon.ico");
         expect(appPackage.files).not.toContain("vendor/");
         expect(appPackage.files).not.toContain("node_modules/");
-        expect(getFileExistence(["electron-app/package.json"])).toStrictEqual({
+        expect(
+            getFileExistence([
+                "electron-app/bun.lock",
+                "electron-app/bun.lockb",
+                "electron-app/npm-shrinkwrap.json",
+                "electron-app/package-lock.json",
+                "electron-app/package.json",
+                "electron-app/pnpm-lock.yaml",
+                "electron-app/yarn.lock",
+            ])
+        ).toStrictEqual({
+            "electron-app/bun.lock": false,
+            "electron-app/bun.lockb": false,
+            "electron-app/npm-shrinkwrap.json": false,
+            "electron-app/package-lock.json": false,
             "electron-app/package.json": false,
+            "electron-app/pnpm-lock.yaml": false,
+            "electron-app/yarn.lock": false,
         });
     });
 

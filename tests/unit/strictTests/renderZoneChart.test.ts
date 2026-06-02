@@ -283,7 +283,7 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
         );
         const config = getLatestChartConfig();
         expect(config.type).toBe("doughnut");
-        expect(config.data.datasets[0].backgroundColor).toEqual([
+        expect(config.data.datasets[0].backgroundColor).toStrictEqual([
             "#ff0000",
             "#00ff00",
         ]);
@@ -297,7 +297,7 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
             dataIndex: 0,
         });
         expect(formatTimeMock).toHaveBeenCalledWith(120, true);
-        expect(tooltipLabel).toEqual([
+        expect(tooltipLabel).toStrictEqual([
             "Time: formatted-120",
             "Percentage: 33.3%",
         ]);
@@ -327,7 +327,7 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
 
         const config = getLatestChartConfig();
         expect(config.type).toBe("bar");
-        expect(config.data.datasets[0].backgroundColor).toEqual([
+        expect(config.data.datasets[0].backgroundColor).toStrictEqual([
             "#aaaaaa",
             "#bbbbbb",
         ]);

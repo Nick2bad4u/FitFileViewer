@@ -100,7 +100,7 @@ describe(initUnifiedControlBar, () => {
                     originalColorParent.children.length,
                 toolbarCount:
                     document.querySelectorAll(".app-control-bar").length,
-            }).toEqual({
+            }).toStrictEqual({
                 originalColorParentChildren: 0,
                 toolbarCount: 1,
             });
