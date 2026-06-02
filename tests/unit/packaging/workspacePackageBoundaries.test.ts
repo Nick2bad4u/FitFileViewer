@@ -372,58 +372,69 @@ describe("workspace package boundaries", () => {
     });
 
     it("keeps the root app package as the runtime app manifest", () => {
-        expect.assertions(13);
+        expect.assertions(1);
 
         const appPackage = readPackageJson(rootPackageRepositoryPath);
+        const nestedAppPackageManifestPaths = [
+            "electron-app/bun.lock",
+            "electron-app/bun.lockb",
+            "electron-app/npm-shrinkwrap.json",
+            "electron-app/package-lock.json",
+            "electron-app/package.json",
+            "electron-app/pnpm-lock.yaml",
+            "electron-app/yarn.lock",
+        ];
 
-        expect({ private: appPackage.private }).toStrictEqual({
-            private: true,
-        });
-        expect(appPackage).not.toHaveProperty("publishConfig");
-        expect(appPackage.scripts).toHaveProperty("build:runtime-ts");
-        expect(appPackage.devDependencies).toHaveProperty("vitest");
-        expect(Object.keys(appPackage.dependencies ?? {}).sort()).toStrictEqual(
-            [
+        expect({
+            dependencies: Object.keys(appPackage.dependencies ?? {}).sort(),
+            files: appPackage.files,
+            forbiddenPackageFileEntries: (appPackage.files ?? []).filter(
+                (fileEntry) => ["node_modules/", "vendor/"].includes(fileEntry)
+            ),
+            hasPublishConfig: Object.hasOwn(appPackage, "publishConfig"),
+            icon: appPackage.icon,
+            indexHtmlExport: getRequiredPackageEntries(
+                appPackage.exports,
+                "exports"
+            )["./index.html"],
+            main: appPackage.main,
+            nestedAppPackageManifestFiles: getFileExistence(
+                nestedAppPackageManifestPaths
+            ),
+            private: appPackage.private,
+            runtimeBuildScript: appPackage.scripts?.["build:runtime-ts"],
+            types: appPackage.types,
+            vitestDevDependency:
+                typeof appPackage.devDependencies?.vitest === "string" &&
+                appPackage.devDependencies.vitest.length > 0,
+        }).toStrictEqual({
+            dependencies: [
                 "@garmin/fitsdk",
                 "electron-conf",
                 "electron-log",
                 "electron-updater",
                 "zod",
-            ]
-        );
-        expect(appPackage.files).toStrictEqual([
-            "dist/",
-            "electron-app/global.d.ts",
-            "package.json",
-        ]);
-        expect(
-            getRequiredPackageEntries(appPackage.exports, "exports")[
-                "./index.html"
-            ]
-        ).toBe("./dist/index.html");
-        expect(appPackage.main).toBe("dist/main.js");
-        expect(appPackage.types).toBe("electron-app/global.d.ts");
-        expect(appPackage.icon).toBe("dist/icons/favicon.ico");
-        expect(appPackage.files).not.toContain("vendor/");
-        expect(appPackage.files).not.toContain("node_modules/");
-        expect(
-            getFileExistence([
-                "electron-app/bun.lock",
-                "electron-app/bun.lockb",
-                "electron-app/npm-shrinkwrap.json",
-                "electron-app/package-lock.json",
-                "electron-app/package.json",
-                "electron-app/pnpm-lock.yaml",
-                "electron-app/yarn.lock",
-            ])
-        ).toStrictEqual({
-            "electron-app/bun.lock": false,
-            "electron-app/bun.lockb": false,
-            "electron-app/npm-shrinkwrap.json": false,
-            "electron-app/package-lock.json": false,
-            "electron-app/package.json": false,
-            "electron-app/pnpm-lock.yaml": false,
-            "electron-app/yarn.lock": false,
+            ],
+            files: [
+                "dist/",
+                "electron-app/global.d.ts",
+                "package.json",
+            ],
+            forbiddenPackageFileEntries: [],
+            hasPublishConfig: false,
+            icon: "dist/icons/favicon.ico",
+            indexHtmlExport: "./dist/index.html",
+            main: "dist/main.js",
+            nestedAppPackageManifestFiles: Object.fromEntries(
+                nestedAppPackageManifestPaths.map((manifestPath) => [
+                    manifestPath,
+                    false,
+                ])
+            ),
+            private: true,
+            runtimeBuildScript: "node scripts/build-runtime.mjs",
+            types: "electron-app/global.d.ts",
+            vitestDevDependency: true,
         });
     });
 
