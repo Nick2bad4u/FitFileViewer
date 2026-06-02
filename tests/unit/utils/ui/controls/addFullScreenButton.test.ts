@@ -60,7 +60,7 @@ vi.mock(
 
 describe("addFullScreenButton", () => {
     it("creates fallback fullscreen button when screenfull is unavailable", async () => {
-        expect.assertions(5);
+        expect.assertions(4);
 
         resetTestState();
         controlMocks.getActiveTabContent.mockReturnValue(null);
@@ -78,8 +78,19 @@ describe("addFullScreenButton", () => {
             const button = getRequiredFullscreenButton();
 
             expect(button).toBeInstanceOf(HTMLButtonElement);
-            expect([...button.classList]).toContain("fullscreen-btn");
-            expect(button.dataset["tooltip"]).toBe("Fullscreen (F11)");
+            expect(getFullscreenButtonState(button)).toStrictEqual({
+                ariaLabel: "Toggle full screen mode",
+                classes: [
+                    "fullscreen-btn",
+                    "improved",
+                    "themed-btn",
+                ],
+                iconTitle: "Enter Fullscreen",
+                role: "button",
+                tabIndex: "0",
+                title: "",
+                tooltip: "Fullscreen (F11)",
+            });
 
             button.click();
 
@@ -90,7 +101,7 @@ describe("addFullScreenButton", () => {
     });
 
     it("uses Electron fullscreen IPC when available and updates overlay state", async () => {
-        expect.assertions(10);
+        expect.assertions(9);
 
         resetTestState();
         const storedHandlers: ScreenfullChangeHandler[] = [];
@@ -138,10 +149,11 @@ describe("addFullScreenButton", () => {
             expect(controlMocks.addExitFullscreenOverlay).toHaveBeenCalledWith(
                 activeContent
             );
-            expect(button.title).toBe("Exit Full Screen (F11)");
-            expect(
-                button.querySelector(".fullscreen-icon")?.innerHTML
-            ).toContain("Exit Fullscreen");
+            expect(getFullscreenButtonState(button)).toMatchObject({
+                ariaLabel: "Exit full screen mode",
+                iconTitle: "Exit Fullscreen",
+                title: "Exit Full Screen (F11)",
+            });
 
             screenfullMock.isFullscreen = false;
             changeHandler(new Event("change"));
@@ -199,7 +211,19 @@ describe("addFullScreenButton", () => {
 
             const fallbackButton = getRequiredFullscreenButton();
 
-            expect([...fallbackButton.classList]).toContain("fullscreen-btn");
+            expect(getFullscreenButtonState(fallbackButton)).toStrictEqual({
+                ariaLabel: "Toggle full screen mode",
+                classes: [
+                    "fullscreen-btn",
+                    "improved",
+                    "themed-btn",
+                ],
+                iconTitle: "Enter Fullscreen",
+                role: "button",
+                tabIndex: "-1",
+                title: "",
+                tooltip: "Load a file first",
+            });
 
             globalThis.dispatchEvent(createF11Event());
 
@@ -293,6 +317,18 @@ function getRequiredFullscreenButton(): HTMLButtonElement {
     }
 
     return button;
+}
+
+function getFullscreenButtonState(button: HTMLButtonElement) {
+    return {
+        ariaLabel: button.getAttribute("aria-label"),
+        classes: [...button.classList],
+        iconTitle: button.querySelector(".fullscreen-icon title")?.textContent,
+        role: button.getAttribute("role"),
+        tabIndex: button.getAttribute("tabindex"),
+        title: button.title,
+        tooltip: button.dataset["tooltip"],
+    };
 }
 
 function getTestGlobal(): FullscreenTestGlobal {
