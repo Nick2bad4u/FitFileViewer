@@ -323,10 +323,7 @@ describe("preload.js - Comprehensive API Testing", () => {
     }
 
     function expectIpcRegistration(channel: string): unknown {
-        const [registeredChannel, listener] =
-            electronMock.ipcRenderer.on.mock.calls.find(
-                ([candidate]) => candidate === channel
-            ) ?? [];
+        const { listener, registeredChannel } = getIpcRegistration(channel);
 
         expect({
             registeredChannel,
@@ -337,6 +334,50 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         return listener;
+    }
+
+    function getIpcRegistration(channel: string): {
+        listener: unknown;
+        registeredChannel: unknown;
+    } {
+        const [registeredChannel, listener] =
+            electronMock.ipcRenderer.on.mock.calls.find(
+                ([candidate]) => candidate === channel
+            ) ?? [];
+
+        return {
+            listener,
+            registeredChannel,
+        };
+    }
+
+    function getIpcFallbackLifecycle({
+        callback,
+        channel,
+        eventArgs = [],
+        unsubscribe,
+    }: {
+        callback: ReturnType<typeof vi.fn<IpcListener>>;
+        channel: string;
+        eventArgs?: unknown[];
+        unsubscribe: () => void;
+    }) {
+        const { listener, registeredChannel } = getIpcRegistration(channel);
+        const registeredListener = listener as IpcListener;
+
+        registeredListener({ sender: "main" }, ...eventArgs);
+        const unsubscribeResult = unsubscribe();
+
+        return {
+            callbackCalls: callback.mock.calls,
+            cleanupCalls:
+                electronMock.ipcRenderer.removeAllListeners.mock.calls,
+            registration: {
+                listenerType: typeof listener,
+                registeredChannel,
+            },
+            unsubscribeResult,
+        };
     }
 
     function getBeforeExitRegistration(): {
@@ -791,39 +832,103 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should register onMenuOpenFile handler", () => {
-            expect.assertions(2);
+            expect.assertions(1);
 
             const callback = vi.fn<IpcListener>();
-            const unsubscribe = electronAPI.onMenuOpenFile(callback);
-            expectIpcRegistration("menu-open-file");
-            expect(unsubscribe).toBeTypeOf("function");
+            const unsubscribe = electronAPI.onMenuOpenFile(
+                callback
+            ) as () => void;
+
+            expect(
+                getIpcFallbackLifecycle({
+                    callback,
+                    channel: "menu-open-file",
+                    unsubscribe,
+                })
+            ).toStrictEqual({
+                callbackCalls: [[]],
+                cleanupCalls: [["menu-open-file"]],
+                registration: {
+                    listenerType: "function",
+                    registeredChannel: "menu-open-file",
+                },
+                unsubscribeResult: undefined,
+            });
         });
 
         it("should register onMenuOpenOverlay handler", () => {
-            expect.assertions(2);
+            expect.assertions(1);
 
             const callback = vi.fn<IpcListener>();
-            const unsubscribe = electronAPI.onMenuOpenOverlay(callback);
-            expectIpcRegistration("menu-open-overlay");
-            expect(unsubscribe).toBeTypeOf("function");
+            const unsubscribe = electronAPI.onMenuOpenOverlay(
+                callback
+            ) as () => void;
+
+            expect(
+                getIpcFallbackLifecycle({
+                    callback,
+                    channel: "menu-open-overlay",
+                    unsubscribe,
+                })
+            ).toStrictEqual({
+                callbackCalls: [[]],
+                cleanupCalls: [["menu-open-overlay"]],
+                registration: {
+                    listenerType: "function",
+                    registeredChannel: "menu-open-overlay",
+                },
+                unsubscribeResult: undefined,
+            });
         });
 
         it("should register onOpenRecentFile handler", () => {
-            expect.assertions(2);
+            expect.assertions(1);
 
             const callback = vi.fn<IpcListener>();
-            const unsubscribe = electronAPI.onOpenRecentFile(callback);
-            expectIpcRegistration("open-recent-file");
-            expect(unsubscribe).toBeTypeOf("function");
+            const unsubscribe = electronAPI.onOpenRecentFile(
+                callback
+            ) as () => void;
+
+            expect(
+                getIpcFallbackLifecycle({
+                    callback,
+                    channel: "open-recent-file",
+                    eventArgs: ["ride.fit"],
+                    unsubscribe,
+                })
+            ).toStrictEqual({
+                callbackCalls: [["ride.fit"]],
+                cleanupCalls: [["open-recent-file"]],
+                registration: {
+                    listenerType: "function",
+                    registeredChannel: "open-recent-file",
+                },
+                unsubscribeResult: undefined,
+            });
         });
 
         it("should register onSetTheme handler", () => {
-            expect.assertions(2);
+            expect.assertions(1);
 
             const callback = vi.fn<IpcListener>();
-            const unsubscribe = electronAPI.onSetTheme(callback);
-            expectIpcRegistration("set-theme");
-            expect(unsubscribe).toBeTypeOf("function");
+            const unsubscribe = electronAPI.onSetTheme(callback) as () => void;
+
+            expect(
+                getIpcFallbackLifecycle({
+                    callback,
+                    channel: "set-theme",
+                    eventArgs: ["dark"],
+                    unsubscribe,
+                })
+            ).toStrictEqual({
+                callbackCalls: [["dark"]],
+                cleanupCalls: [["set-theme"]],
+                registration: {
+                    listenerType: "function",
+                    registeredChannel: "set-theme",
+                },
+                unsubscribeResult: undefined,
+            });
         });
 
         it("should register onUpdateEvent handler", () => {
@@ -839,13 +944,28 @@ describe("preload.js - Comprehensive API Testing", () => {
         });
 
         it("should register onOpenSummaryColumnSelector handler", () => {
-            expect.assertions(2);
+            expect.assertions(1);
 
             const callback = vi.fn<IpcListener>();
-            const unsubscribe =
-                electronAPI.onOpenSummaryColumnSelector(callback);
-            expectIpcRegistration("open-summary-column-selector");
-            expect(unsubscribe).toBeTypeOf("function");
+            const unsubscribe = electronAPI.onOpenSummaryColumnSelector(
+                callback
+            ) as () => void;
+
+            expect(
+                getIpcFallbackLifecycle({
+                    callback,
+                    channel: "open-summary-column-selector",
+                    unsubscribe,
+                })
+            ).toStrictEqual({
+                callbackCalls: [[]],
+                cleanupCalls: [["open-summary-column-selector"]],
+                registration: {
+                    listenerType: "function",
+                    registeredChannel: "open-summary-column-selector",
+                },
+                unsubscribeResult: undefined,
+            });
         });
 
         it("should reject invalid event callbacks", () => {
