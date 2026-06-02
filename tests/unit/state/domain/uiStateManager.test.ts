@@ -297,18 +297,31 @@ describe("uiStateManager - comprehensive coverage", () => {
             throw new Error("Expected element for click listener registration");
         }
 
-        const callIndex = addEventListenerSpy.mock.calls.findIndex(
-            (call: unknown[], index: number) =>
-                addEventListenerSpy.mock.contexts[index] === element &&
-                call[0] === "click"
-        );
+        const listenerRegistrations = addEventListenerSpy.mock.calls.flatMap(
+            (call: unknown[], index: number) => {
+                if (
+                    addEventListenerSpy.mock.contexts[index] !== element ||
+                    call[0] !== "click"
+                ) {
+                    return [];
+                }
 
-        expect(callIndex).toBeGreaterThanOrEqual(0);
-        const [
-            ,
-            listener,
-            options,
-        ] = addEventListenerSpy.mock.calls[callIndex] ?? [];
+                const [
+                    ,
+                    listener,
+                    options,
+                ] = call;
+
+                return [{ listener, options }];
+            }
+        );
+        expect(listenerRegistrations).toHaveLength(1);
+
+        const listenerRegistration = listenerRegistrations[0];
+        if (!listenerRegistration) {
+            throw new Error("Expected one click listener registration");
+        }
+        const { listener, options } = listenerRegistration;
 
         expect(listener).toBeTypeOf("function");
         expect(options).toStrictEqual({
