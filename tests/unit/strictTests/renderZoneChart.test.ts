@@ -4,6 +4,7 @@ import type { ZoneData } from "../../../electron-app/utils/types/sharedChartType
 
 interface RenderZoneChartOptions {
     readonly chartType?: string;
+    readonly showLegend?: boolean;
 }
 
 interface ZoneChartDataset {
@@ -14,11 +15,15 @@ interface ZoneChartDataset {
 interface ZoneChartConfig {
     readonly data: {
         readonly datasets: readonly ZoneChartDataset[];
+        readonly labels: string[];
     };
     readonly options: {
         readonly plugins: {
             readonly chartBackgroundColorPlugin?: {
                 readonly backgroundColor?: string;
+            };
+            readonly legend?: {
+                readonly display: boolean;
             };
             readonly tooltip: {
                 readonly callbacks: {
@@ -93,6 +98,17 @@ function getRenderedCanvas(container: HTMLElement): HTMLCanvasElement {
 
     if (!CanvasConstructor || !(canvas instanceof CanvasConstructor)) {
         throw new TypeError("Expected rendered zone chart canvas to exist");
+    }
+
+    return canvas as HTMLCanvasElement;
+}
+
+function getFirstChartCanvasArgument(): HTMLCanvasElement {
+    const canvas = Chart.mock.calls[0]?.[0];
+    const CanvasConstructor = getZoneChartGlobal().HTMLCanvasElement;
+
+    if (!CanvasConstructor || !(canvas instanceof CanvasConstructor)) {
+        throw new TypeError("Expected Chart constructor to receive canvas");
     }
 
     return canvas as HTMLCanvasElement;
@@ -264,7 +280,7 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
     });
 
     it("should render doughnut chart with colors provided in zone data", () => {
-        expect.assertions(7);
+        expect.assertions(14);
 
         const container = document.createElement("div");
         const zoneData: ZoneData[] = [
@@ -281,12 +297,22 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
             "heart-rate-zones",
             0
         );
+        const view = getRenderedCanvas(container);
+        expect(view).toBeInstanceOf(HTMLCanvasElement);
+        expect(getFirstChartCanvasArgument()).toBe(view);
+        expect(Chart).toHaveBeenCalledOnce();
+        expect(getZoneChartGlobal()._chartjsInstances).toStrictEqual([
+            chartInstanceMock,
+        ]);
         const config = getLatestChartConfig();
         expect(config.type).toBe("doughnut");
+        expect(config.data.labels).toStrictEqual(["Z1", "Z2"]);
+        expect(config.data.datasets[0].data).toStrictEqual([120, 240]);
         expect(config.data.datasets[0].backgroundColor).toStrictEqual([
             "#ff0000",
             "#00ff00",
         ]);
+        expect(config.options.plugins.legend).toHaveProperty("display", true);
 
         const tooltipLabel = config.options.plugins.tooltip.callbacks.label({
             dataset: {
@@ -301,12 +327,11 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
             "Time: formatted-120",
             "Percentage: 33.3%",
         ]);
-        const view = getRenderedCanvas(container);
         expect(view.style.borderRadius).toBe("12px");
     });
 
     it("should fallback to computed zone colors and render bar chart when requested", () => {
-        expect.assertions(7);
+        expect.assertions(11);
 
         const container = document.createElement("div");
         const zoneData: ZoneData[] = [
@@ -317,6 +342,7 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
 
         renderZoneChart(container, "Power Zones", zoneData, "power-zones", {
             chartType: "bar",
+            showLegend: false,
         });
 
         expect(getZoneTypeFromFieldMock).toHaveBeenCalledWith("power-zones");
@@ -327,10 +353,13 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
 
         const config = getLatestChartConfig();
         expect(config.type).toBe("bar");
+        expect(config.data.labels).toStrictEqual(["Z1", "Z2"]);
+        expect(config.data.datasets[0].data).toStrictEqual([150, 300]);
         expect(config.data.datasets[0].backgroundColor).toStrictEqual([
             "#aaaaaa",
             "#bbbbbb",
         ]);
+        expect(config.options.plugins.legend).toHaveProperty("display", false);
         expect(
             config.options.plugins.chartBackgroundColorPlugin.backgroundColor
         ).toBe("#ffffff");
@@ -340,5 +369,8 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
         });
         expect(formatTimeMock).toHaveBeenCalledWith(150, true);
         expect(label).toBe("Time: formatted-150");
+        expect(getZoneChartGlobal()._chartjsInstances).toStrictEqual([
+            chartInstanceMock,
+        ]);
     });
 });
