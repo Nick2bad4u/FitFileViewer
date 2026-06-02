@@ -128,8 +128,10 @@ function getAssetRelativeReferences(
 }
 
 function getAlternativeViewerAssetGraph(): {
+    knownAssets: string[];
     knownAssetCount: number;
     missingReferences: Record<string, string[]>;
+    referencedAssets: string[];
     referencedAssetCount: number;
     unreferencedAssets: string[];
 } {
@@ -192,8 +194,10 @@ function getAlternativeViewerAssetGraph(): {
     }
 
     return {
+        knownAssets: [...knownAssets].sort(),
         knownAssetCount: knownAssets.size,
         missingReferences,
+        referencedAssets: [...referencedAssets].sort(),
         referencedAssetCount: referencedAssets.size,
         unreferencedAssets: [...knownAssets]
             .filter((assetPath) => !referencedAssets.has(assetPath))
@@ -335,9 +339,32 @@ describe("root app shell asset references", () => {
     it("keeps alternative FIT viewer generated assets internally reachable", () => {
         expect.assertions(1);
 
+        const expectedAlternativeViewerAssets = [
+            "static/ffv/assets/Results-H2VOSWW7.js",
+            "static/ffv/assets/Sprite-BZ4Kwmf3.js",
+            "static/ffv/assets/binaryString-DLpsQS3c.js",
+            "static/ffv/assets/findFields-C7eiFatx.js",
+            "static/ffv/assets/fit2-B8wY8ZMb.png",
+            "static/ffv/assets/getMessagesForName-CXPND5Gu.js",
+            "static/ffv/assets/index-B6xcXKpx.js",
+            "static/ffv/assets/index-C1xoUegX.js",
+            "static/ffv/assets/index-CQWboq_8.js",
+            "static/ffv/assets/index-D4CCfpM1.js",
+            "static/ffv/assets/index-Dgihpmma.css",
+            "static/ffv/assets/index-LvWRIhnC.js",
+            "static/ffv/assets/index-mfP-sHfH.css",
+            "static/ffv/assets/isUnknown-BvXlyTdW.js",
+            "static/ffv/assets/jszip.min-Cw1MSAQl.js",
+            "static/ffv/assets/useMeasure-Df3vRnzU.js",
+            "static/ffv/assets/waypoint_icons_sprite-Dqa_dKt2.js",
+            "static/ffv/assets/waypoint_icons_sprite-YvDnYGeq.svg",
+        ];
+
         expect(getAlternativeViewerAssetGraph()).toStrictEqual({
+            knownAssets: expectedAlternativeViewerAssets,
             knownAssetCount: 18,
             missingReferences: {},
+            referencedAssets: expectedAlternativeViewerAssets,
             referencedAssetCount: 18,
             unreferencedAssets: [],
         });
@@ -374,7 +401,9 @@ describe("root app shell asset references", () => {
             "web-app-manifest-512x512.png",
         ]);
         expect(
-            iconNames.filter((iconName) => !iconReferenceSources.includes(iconName))
+            iconNames.filter(
+                (iconName) => !iconReferenceSources.includes(iconName)
+            )
         ).toStrictEqual([]);
     });
 
