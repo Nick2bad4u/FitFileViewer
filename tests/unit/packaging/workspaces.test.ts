@@ -105,6 +105,7 @@ type WorkspacesModule = {
     rootDocsScreenshotsPath: string;
     rootFitParserMigrationGuideDocPath: string;
     rootGyazoSetupDocPath: string;
+    rootLintNotesDocPath: string;
     rootAppTsconfigPath: string;
     rootEslintTsconfigPath: string;
     rootEslintConfigPath: string;
@@ -531,6 +532,7 @@ describe("workspace path helpers", () => {
             rootFitParserMigrationGuide:
                 workspaces.rootFitParserMigrationGuideDocPath,
             rootGyazoSetup: workspaces.rootGyazoSetupDocPath,
+            rootLintNotes: workspaces.rootLintNotesDocPath,
             rootReadme: workspaces.rootReadmePath,
         }).toStrictEqual({
             docusaurusAdvancedFitParserMigration:
@@ -572,6 +574,7 @@ describe("workspace path helpers", () => {
             rootDocsScreenshots: "docs/screenshots",
             rootFitParserMigrationGuide: "docs/FIT_PARSER_MIGRATION_GUIDE.md",
             rootGyazoSetup: "docs/GYAZO_SETUP.md",
+            rootLintNotes: "docs/lint-notes.md",
             rootReadme: "README.md",
         });
     });
@@ -602,8 +605,7 @@ describe("workspace path helpers", () => {
             tabsTests: workspaces.rootTabsTestsPath,
             unitTests: workspaces.rootUnitTestsPath,
             vitestGlobalSetup: workspaces.rootVitestGlobalSetupPath,
-            vitestPreloadDistHelper:
-                workspaces.rootVitestPreloadDistHelperPath,
+            vitestPreloadDistHelper: workspaces.rootVitestPreloadDistHelperPath,
             vitestSetupFile: workspaces.rootVitestSetupFilePath,
             vitestSupport: workspaces.rootVitestSupportPath,
             win7ReleaseDist: workspaces.rootWin7ReleaseDistPath,
@@ -628,8 +630,7 @@ describe("workspace path helpers", () => {
             tabsTests: "tests/unit/tabs",
             unitTests: "tests/unit",
             vitestGlobalSetup: "tests/vitest/globalSetup.mjs",
-            vitestPreloadDistHelper:
-                "tests/vitest/helpers/preloadDist.ts",
+            vitestPreloadDistHelper: "tests/vitest/helpers/preloadDist.ts",
             vitestSetupFile: "tests/vitest/setupVitest.mjs",
             vitestSupport: "tests/vitest",
             win7ReleaseDist: path.join(process.cwd(), "release-dist", "win7"),

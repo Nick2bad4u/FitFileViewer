@@ -9,6 +9,7 @@ import {
     docusaurusHomePagePath,
     appSourceRepositoryPath,
     docusaurusPackageRepositoryPath,
+    docusaurusWorkspaceRepositoryPath,
     rootAgentsPath,
     rootAppTsconfigPath,
     rootGitignorePath,
@@ -23,6 +24,7 @@ import {
     rootStylelintConfigPath,
     rootToolingConfigPaths,
     rootTypesPath,
+    rootLintNotesDocPath,
     rootDevelopmentGuideDocPath,
     docusaurusReadmeRepositoryPath,
 } from "../../../scripts/lib/workspaces.mjs";
@@ -92,6 +94,31 @@ const staleNestedGeneratedAppPaths = [
     "electron-app/release",
     "electron-app/temp-win7",
     "electron-app/test-report.junit.xml",
+] as const;
+
+const localToolingConfigNames = [
+    ".eslintignore",
+    ".eslintrc",
+    ".eslintrc.cjs",
+    ".eslintrc.js",
+    ".eslintrc.json",
+    ".markdown-link-check.json",
+    ".markdownlint.json",
+    ".ncurc.json",
+    ".prettierignore",
+    ".prettierrc",
+    ".prettierrc.cjs",
+    ".prettierrc.js",
+    ".prettierrc.json",
+    ".remarkrc.mjs",
+    ".secretlintrc.cjs",
+    ".stylelintrc",
+    ".stylelintrc.cjs",
+    ".stylelintrc.js",
+    ".stylelintrc.json",
+    "eslint.config.mjs",
+    "prettier.config.mjs",
+    "stylelint.config.mjs",
 ] as const;
 
 const requiredRootToolingDevDependencies = [
@@ -516,34 +543,15 @@ describe("workspace package boundaries", () => {
             ...rootToolingConfigPaths,
         ];
         const appLocalToolingConfigs = [
-            ".markdown-link-check.json",
-            ".markdownlint.json",
-            ".ncurc.json",
+            ...localToolingConfigNames,
             ".pre-commit-config.yaml",
-            ".eslintrc",
-            ".eslintrc.cjs",
-            ".eslintrc.js",
-            ".eslintrc.json",
-            ".prettierrc",
-            ".prettierrc.cjs",
-            ".prettierrc.js",
-            ".prettierrc.json",
-            ".stylelintrc",
-            ".stylelintrc.cjs",
-            ".stylelintrc.js",
-            ".stylelintrc.json",
-            ".remarkrc.mjs",
-            ".secretlintrc.cjs",
             "cliff.toml",
             "cspell.json",
             "electron-builder.config.cjs",
-            "eslint.config.mjs",
             "mermaid.config.json",
             rootPackageLockPath,
             "package.json",
             "playwright.config.ts",
-            "prettier.config.mjs",
-            "stylelint.config.mjs",
             "tsconfig.json",
             "tsconfig.app.base.json",
             "tsconfig.app.eslint.json",
@@ -567,6 +575,40 @@ describe("workspace package boundaries", () => {
             Object.fromEntries(
                 appLocalToolingConfigs.map((configPath) => [configPath, false])
             )
+        );
+    });
+
+    it("keeps Docusaurus lint and format tooling delegated to root wrappers", () => {
+        expect.assertions(5);
+
+        const docusaurusPackage = readPackageJson(
+            docusaurusPackageRepositoryPath
+        );
+        const lintNotes = readFileSync(
+            path.join(process.cwd(), rootLintNotesDocPath),
+            "utf8"
+        );
+        const docusaurusLocalToolingConfigs = localToolingConfigNames.map(
+            (configPath) => docusaurusWorkspaceRepositoryPath(configPath)
+        );
+
+        expect(getFileExistence(docusaurusLocalToolingConfigs)).toStrictEqual(
+            Object.fromEntries(
+                docusaurusLocalToolingConfigs.map((configPath) => [
+                    configPath,
+                    false,
+                ])
+            )
+        );
+        expect(docusaurusPackage.scripts ?? {}).toStrictEqual({});
+        expect(lintNotes).toContain(
+            "Docusaurus remains an npm workspace for its dependency graph only"
+        );
+        expect(lintNotes).toMatch(
+            /Do not add\s+Docusaurus-local ESLint, Prettier, Stylelint, Remark, Secretlint,\s+Markdownlint, or dependency-update config files/u
+        );
+        expect(lintNotes).toMatch(
+            /`npm run docs:\*` and\s+`npm run lint:docusaurus\*`/u
         );
     });
 

@@ -33,3 +33,12 @@ Run Docusaurus linting from the repository root:
   runs content linting.
 - `npm run lint:docusaurus:content` runs the Docusaurus markdown/content lint
   gate.
+
+## Workspace boundaries
+
+Docusaurus remains an npm workspace for its dependency graph only. Do not add
+Docusaurus-local ESLint, Prettier, Stylelint, Remark, Secretlint,
+Markdownlint, or dependency-update config files; root wrappers own those
+concerns for the whole repository. Use `npm run docs:*` and
+`npm run lint:docusaurus*` from the repository root instead of adding scripts to
+`docusaurus/package.json`.

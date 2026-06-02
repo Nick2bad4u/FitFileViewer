@@ -55,6 +55,10 @@ export const rootGyazoSetupDocPath = path.posix.join(
     rootDocsPath,
     "GYAZO_SETUP.md"
 );
+export const rootLintNotesDocPath = path.posix.join(
+    rootDocsPath,
+    "lint-notes.md"
+);
 export const rootFitParserMigrationGuideDocPath = path.posix.join(
     rootDocsPath,
     "FIT_PARSER_MIGRATION_GUIDE.md"
