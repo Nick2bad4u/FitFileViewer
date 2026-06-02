@@ -5,6 +5,17 @@ import {
     performanceMonitor,
 } from "../../../electron-app/utils/performance/performanceMonitor.js";
 
+function getRequiredTimer(
+    timer: ReturnType<PerformanceMonitor["getTimer"]>,
+    operation: string
+): NonNullable<ReturnType<PerformanceMonitor["getTimer"]>> {
+    if (!timer) {
+        throw new Error(`Expected timer for operation: ${operation}`);
+    }
+
+    return timer;
+}
+
 describe(PerformanceMonitor, () => {
     it("does not record timers while monitoring is disabled", () => {
         expect.assertions(1);
@@ -49,9 +60,12 @@ describe(PerformanceMonitor, () => {
                 end: 142.5,
                 start: 100,
             });
-            expect(monitor.getAllTimers().get("parse-fit")?.duration).toBe(
-                42.5
-            );
+            expect(
+                getRequiredTimer(
+                    monitor.getAllTimers().get("parse-fit") ?? null,
+                    "parse-fit"
+                ).duration
+            ).toBe(42.5);
             expect(consoleLog).toHaveBeenCalledWith(
                 "[Performance] parse-fit: 42.50ms"
             );

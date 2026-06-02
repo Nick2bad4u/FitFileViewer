@@ -2,6 +2,17 @@ import { describe, expect, it } from "vitest";
 
 import { sanitizeHtmlAllowlist } from "../../../../electron-app/utils/dom/index.js";
 
+function getRequiredElement<T extends Element>(
+    element: T | null,
+    selector: string
+): T {
+    if (!element) {
+        throw new Error(`Expected sanitized element for selector: ${selector}`);
+    }
+
+    return element;
+}
+
 describe(sanitizeHtmlAllowlist, () => {
     it("removes disallowed tags and keeps their textContent", () => {
         expect.assertions(2);
@@ -40,8 +51,9 @@ describe(sanitizeHtmlAllowlist, () => {
 
         const div = container.querySelector("div");
         expect(div).toBeInstanceOf(HTMLDivElement);
-        expect(div?.getAttribute("id")).toBe("x");
-        expect(div?.getAttribute("onclick")).toBeNull();
+        const requiredDiv = getRequiredElement(div, "div");
+        expect(requiredDiv.getAttribute("id")).toBe("x");
+        expect(requiredDiv.getAttribute("onclick")).toBeNull();
     });
 
     it("strips href/src/xlink:href attributes defensively", () => {
@@ -59,8 +71,9 @@ describe(sanitizeHtmlAllowlist, () => {
 
         const anchor = container.querySelector("a");
         expect(anchor).toBeInstanceOf(HTMLAnchorElement);
-        expect(anchor?.getAttribute("href")).toBeNull();
-        expect(anchor?.className).toBe("c");
+        const requiredAnchor = getRequiredElement(anchor, "a");
+        expect(requiredAnchor.getAttribute("href")).toBeNull();
+        expect(requiredAnchor.className).toBe("c");
     });
 
     it("removes style attributes containing url() when stripUrlInStyle is enabled", () => {
@@ -148,8 +161,9 @@ describe(sanitizeHtmlAllowlist, () => {
 
         const img = container.querySelector("img");
         expect(img).toBeInstanceOf(HTMLImageElement);
-        expect(img?.getAttribute("srcset")).toBeNull();
-        expect(img?.className).toBe("c");
+        const requiredImg = getRequiredElement(img, "img");
+        expect(requiredImg.getAttribute("srcset")).toBeNull();
+        expect(requiredImg.className).toBe("c");
     });
 
     it("removes forbidden tags (script/style/svg) even when the caller allowlists them", () => {

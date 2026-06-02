@@ -18,6 +18,26 @@ const pendingTimers = new Set<ReturnType<typeof setTimeout>>();
 type FetchCall = Parameters<typeof fetch>;
 type TimeoutCall = Parameters<typeof setTimeout>;
 
+function getRequiredFetchCall(calls: FetchCall[], index = 0): FetchCall {
+    const call = calls[index];
+
+    if (!call) {
+        throw new Error(`Expected fetch call ${index}`);
+    }
+
+    return call;
+}
+
+function getRequiredFetchInit(call: FetchCall): RequestInit {
+    const init = call[1];
+
+    if (!init) {
+        throw new Error("Expected fetch init options");
+    }
+
+    return init;
+}
+
 function delay(delayMs: number): Promise<void> {
     return new Promise((resolve) => {
         const timer = setTimeout(() => {
@@ -135,11 +155,12 @@ describe("network utilities", () => {
         ).resolves.toBe(response);
 
         expect(fetchSpy).toHaveBeenCalledOnce();
-        const fetchCall = fetchSpy.mock.calls[0] as FetchCall;
-        const [url, init] = fetchCall;
+        const fetchCall = getRequiredFetchCall(fetchSpy.mock.calls);
+        const [url] = fetchCall;
+        const requiredInit = getRequiredFetchInit(fetchCall);
         expect(url).toBe("https://example.test");
-        expect(init?.signal).toBeInstanceOf(AbortSignal);
-        expect(init?.signal).toHaveProperty("aborted", false);
+        expect(requiredInit.signal).toBeInstanceOf(AbortSignal);
+        expect(requiredInit.signal).toHaveProperty("aborted", false);
 
         const timeoutCall = timeoutSpy.mock.calls[0] as TimeoutCall;
         const [timeoutHandler, timeoutMs] = timeoutCall;
@@ -178,9 +199,10 @@ describe("network utilities", () => {
         await vi.advanceTimersByTimeAsync(1);
         expect(abortEvents).toStrictEqual(["abort"]);
 
-        const fetchCall = fetchSpy.mock.calls[0] as FetchCall;
+        const fetchCall = getRequiredFetchCall(fetchSpy.mock.calls);
+        const init = getRequiredFetchInit(fetchCall);
         expect(fetchCall[0]).toBe("https://example.test/slow");
-        expect(fetchCall[1]?.signal).toHaveProperty("aborted", true);
+        expect(init.signal).toHaveProperty("aborted", true);
     });
 
     it("detects abort errors and rejects unrelated values", () => {

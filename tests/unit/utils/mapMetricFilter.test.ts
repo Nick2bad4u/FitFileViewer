@@ -8,6 +8,18 @@ import {
     MAP_FILTER_METRICS,
 } from "../../../electron-app/utils/maps/filters/mapMetricFilter.js";
 
+function getRequiredMetricDefinition(
+    metricKey: string
+): NonNullable<ReturnType<typeof getMetricDefinition>> {
+    const definition = getMetricDefinition(metricKey);
+
+    if (!definition) {
+        throw new Error(`Expected metric definition for ${metricKey}`);
+    }
+
+    return definition;
+}
+
 describe("mapMetricFilter", () => {
     it("computes metric statistics for finite values only", () => {
         expect.assertions(1);
@@ -137,7 +149,9 @@ describe("mapMetricFilter", () => {
             "auxHeartRate",
             "altitude",
         ]);
-        expect(getMetricDefinition("heartRate")?.label).toBe("Heart Rate");
+        expect(getRequiredMetricDefinition("heartRate").label).toBe(
+            "Heart Rate"
+        );
         expect(getMetricDefinition("unknown")).toBeNull();
     });
 });
