@@ -65,7 +65,7 @@ async function detectCurrentThemeFromModule(): Promise<ChartTheme> {
 describe("detectCurrentTheme", () => {
     beforeEach(() => {
         document.body.className = "";
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         localStorage.clear();
         setMatchMedia(null);
         vi.restoreAllMocks();

@@ -207,7 +207,7 @@ vi.mock(
 
 beforeEach(() => {
     // Reset DOM
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
 
     // Mock Chart.js
     mockChart = {

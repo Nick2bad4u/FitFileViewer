@@ -121,11 +121,11 @@ beforeEach(() => {
     (globalThis as any).Chart = chartConstructorMock;
     delete (globalThis as any)._chartjsInstances;
 
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
 });
 
 afterEach(() => {
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
     delete (globalThis as any)._chartjsInstances;
     vi.clearAllMocks();
 });
