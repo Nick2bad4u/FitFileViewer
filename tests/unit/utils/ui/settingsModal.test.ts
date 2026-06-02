@@ -144,7 +144,7 @@ function cleanupFixture(): void {
 
 describe("settingsModal", () => {
     it("creates the modal, injects styles, and exposes global menu hooks", async () => {
-        expect.assertions(8);
+        expect.assertions(9);
 
         resetFixture();
 
@@ -154,11 +154,11 @@ describe("settingsModal", () => {
             vi.runOnlyPendingTimers();
 
             const modal = getRequiredElement<HTMLElement>("#settings-modal");
+            const modalTitle = getRequiredElement<HTMLElement>(".modal-title");
 
             expect(modal.style.display).toBe("flex");
-            expect(modal.querySelector(".modal-title")?.textContent).toBe(
-                "Settings"
-            );
+            expect(modal.classList).not.toContain("closing");
+            expect(modalTitle.textContent).toBe("Settings");
             expect(
                 getRequiredElement<HTMLSelectElement>("#theme-select").value
             ).toBe("dark");
@@ -189,7 +189,7 @@ describe("settingsModal", () => {
 
             closeSettingsModal();
 
-            expect([...modal.classList]).not.toContain("show");
+            expect(modal.classList.contains("show")).toBe(false);
             expect(modal.style.display).toBe("flex");
 
             vi.advanceTimersByTime(300);
