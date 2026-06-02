@@ -169,7 +169,15 @@ describe("prepare-runtime-dist script", () => {
                 staticDir,
             })
         ).toThrow("Refusing to operate outside app directory");
-        expect(fs.existsSync(distDir)).toBe(false);
+        expect(
+            getPathStates(path.dirname(appDir), [
+                "outside-dist",
+                path.join("electron-app", "dist"),
+            ])
+        ).toStrictEqual({
+            [path.join("electron-app", "dist")]: "missing",
+            "outside-dist": "missing",
+        });
     });
 
     it("rejects direct node_modules references in the runtime HTML", async () => {
