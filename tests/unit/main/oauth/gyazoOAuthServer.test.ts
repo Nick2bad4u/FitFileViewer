@@ -222,12 +222,14 @@ describe("gyazoOAuthServer", () => {
             port: 3000,
             success: true,
         });
+
+        const handler = withRequestHandler();
         const [
             listenPort,
             listenHost,
             listenCallback,
         ] = mockServer.listen.mock.calls[0] ?? [];
-        expect(listenCallback).toBeTypeOf("function");
+        expect(mockHttp.createServer).toHaveBeenCalledExactlyOnceWith(handler);
         expect(mockServer.listen).toHaveBeenCalledExactlyOnceWith(
             3000,
             "localhost",
@@ -237,10 +239,13 @@ describe("gyazoOAuthServer", () => {
             listenHost: "localhost",
             listenPort: 3000,
         });
-        expect(requestHandler).toBeTypeOf("function");
+        expect(getServerStateSnapshot()).toStrictEqual({
+            gyazoServer: mockServer,
+            gyazoServerPort: 3000,
+        });
 
         const res = makeRes();
-        withRequestHandler()({ method: "GET", url: "/not-found" }, res);
+        handler({ method: "GET", url: "/not-found" }, res);
 
         expect(getResponseHeaderSnapshot(res)).toStrictEqual({
             cacheControl: "no-store",
