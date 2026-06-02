@@ -96,6 +96,14 @@ const staleNestedGeneratedAppPaths = [
     "electron-app/test-report.junit.xml",
 ] as const;
 
+const rootManagedReleaseVersioningPaths = [
+    ".github/workflows/Build.yml",
+    "package.json",
+    "scripts/bump-app-version.mjs",
+    rootDevelopmentGuideDocPath,
+    docusaurusDevelopmentBuildReleaseDocPath,
+] as const;
+
 const localToolingConfigNames = [
     ".eslintignore",
     ".eslintrc",
@@ -319,6 +327,26 @@ describe("workspace package boundaries", () => {
                 )
                 .map(([scriptName, script]) => `${scriptName}: ${script}`)
         ).toStrictEqual([]);
+    });
+
+    it("keeps app release versioning rooted at the repository package", () => {
+        expect.assertions(2);
+
+        const rootPackage = readPackageJson(rootPackageRepositoryPath);
+        const releaseVersioningFilesWithWorkspaceFlags =
+            rootManagedReleaseVersioningPaths
+                .filter((relativePath) =>
+                    readFileSync(
+                        path.join(process.cwd(), relativePath),
+                        "utf8"
+                    ).includes("--workspace")
+                )
+                .sort();
+
+        expect(rootPackage.scripts?.["release:bump-version"]).toBe(
+            "node scripts/bump-app-version.mjs"
+        );
+        expect(releaseVersioningFilesWithWorkspaceFlags).toStrictEqual([]);
     });
 
     it("keeps agent guidance aligned with the root-managed workspace", () => {
