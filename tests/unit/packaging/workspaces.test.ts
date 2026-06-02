@@ -31,6 +31,7 @@ type WorkspacesModule = {
     docusaurusApiDocsPath: string;
     docusaurusApiDocsAbsolutePath: string;
     docusaurusApiIpcCommunicationDocPath: string;
+    docusaurusApiStateManagementDocPath: string;
     docusaurusApiUtilityApisDocPath: string;
     docusaurusArchitectureProcessModelDocPath: string;
     docusaurusArchitectureSecurityDocPath: string;
@@ -499,6 +500,8 @@ describe("workspace path helpers", () => {
             docusaurusApiCoreApis: workspaces.docusaurusApiCoreApisDocPath,
             docusaurusApiIpcCommunication:
                 workspaces.docusaurusApiIpcCommunicationDocPath,
+            docusaurusApiStateManagement:
+                workspaces.docusaurusApiStateManagementDocPath,
             docusaurusApiUtilityApis:
                 workspaces.docusaurusApiUtilityApisDocPath,
             docusaurusArchitectureOverview:
@@ -537,6 +540,8 @@ describe("workspace path helpers", () => {
             docusaurusApiCoreApis: "docusaurus/docs/api-reference/core-apis.md",
             docusaurusApiIpcCommunication:
                 "docusaurus/docs/api-reference/ipc-communication.md",
+            docusaurusApiStateManagement:
+                "docusaurus/docs/api-reference/state-management.md",
             docusaurusApiUtilityApis:
                 "docusaurus/docs/api-reference/utility-apis.md",
             docusaurusArchitectureOverview:

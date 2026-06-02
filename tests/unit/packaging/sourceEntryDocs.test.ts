@@ -8,6 +8,7 @@ import {
     docusaurusAdvancedPerformanceDocPath,
     docusaurusApiCoreApisDocPath,
     docusaurusApiIpcCommunicationDocPath,
+    docusaurusApiStateManagementDocPath,
     docusaurusApiUtilityApisDocPath,
     docusaurusArchitectureModuleSystemDocPath,
     docusaurusArchitectureOverviewDocPath,
@@ -59,6 +60,17 @@ const staleFlatUtilityApiReferences = [
     "./utils/state/stateManager.js",
     "./utils/state/themeManager.js",
     "./utils/state/fileStateManager.js",
+];
+
+const staleStateApiReferences = [
+    "./utils/state/stateManager.js",
+    "./utils/state/themeManager.js",
+    "./utils/state/fileStateManager.js",
+    "stateManager.remove(",
+    "stateManager.configurePersistence(",
+    "stateManager.loadPersistedState();",
+    "themeManager.",
+    "fileStateManager.",
 ];
 
 function readWorkspaceFile(relativePath: string): string {
@@ -366,6 +378,38 @@ describe("source entrypoint documentation", () => {
         expect(
             staleFlatUtilityApiReferences.filter((reference) =>
                 utilityApiReference.includes(reference)
+            )
+        ).toStrictEqual([]);
+    });
+
+    it("keeps the Docusaurus state API reference aligned with current state source", () => {
+        expect.assertions(3);
+
+        const stateApiReference = readWorkspaceFile(
+            docusaurusApiStateManagementDocPath
+        );
+        const currentStateSourceExamples = [
+            "electron-app/utils/state/core/stateManager.ts",
+            "electron-app/utils/state/domain/settingsStateManager.ts",
+            "electron-app/utils/state/domain/fitFileState.ts",
+        ];
+
+        expect(getPathStates(currentStateSourceExamples)).toStrictEqual(
+            Object.fromEntries(
+                currentStateSourceExamples.map((sourcePath) => [
+                    sourcePath,
+                    "present",
+                ])
+            )
+        );
+        expect(
+            currentStateSourceExamples.filter(
+                (sourcePath) => !stateApiReference.includes(sourcePath)
+            )
+        ).toStrictEqual([]);
+        expect(
+            staleStateApiReferences.filter((reference) =>
+                stateApiReference.includes(reference)
             )
         ).toStrictEqual([]);
     });

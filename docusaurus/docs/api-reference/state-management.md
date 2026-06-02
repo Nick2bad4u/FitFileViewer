@@ -8,186 +8,123 @@ description: State management API reference.
 
 # State Management
 
-Reference for the application state management system.
+FitFileViewer uses a root-built TypeScript state system under
+`electron-app/utils/state/`. Runtime imports use `.js` specifiers after the
+TypeScript build, but this page names the maintained source files.
 
-## Overview
+## Core State Manager
 
-FitFileViewer uses a centralized state management system for:
-
-- Current file data
-- User preferences
-- Theme settings
-- UI state
-
-## StateManager
-
-### Basic Usage
+Source: `electron-app/utils/state/core/stateManager.ts`
 
 ```javascript
-import { stateManager } from "./utils/state/stateManager.js";
+import {
+ getState,
+ setState,
+ subscribe,
+ updateState,
+} from "./utils/state/core/stateManager.js";
 
-// Store a value
-stateManager.set("key", value);
+setState("ui.activeTab", "map", { source: "tabStateManager" });
 
-// Retrieve a value
-const value = stateManager.get("key");
+const activeTab = getState("ui.activeTab");
 
-// Remove a value
-stateManager.remove("key");
-```
+const unsubscribe = subscribe("ui.activeTab", (newValue, oldValue, path) => {
+ console.log("State changed:", { newValue, oldValue, path });
+});
 
-### Subscription Pattern
+updateState("charts", { isRendered: false }, { source: "chartReset" });
 
-```javascript
-// Subscribe to changes
-const unsubscribe = stateManager.subscribe(
- "currentFile",
- (newValue, oldValue) => {
-  console.log("File changed:", { newValue, oldValue });
-  updateVisualization(newValue);
- }
-);
-
-// Later: unsubscribe
 unsubscribe();
 ```
 
-### State Keys
+The core manager exposes these public operations:
 
-| Key           | Type   | Description                |
-| ------------- | ------ | -------------------------- |
-| `currentFile` | object | Currently loaded file data |
-| `theme`       | string | 'light' or 'dark'          |
-| `recentFiles` | array  | Recent file paths          |
-| `preferences` | object | User preferences           |
+| API | Purpose |
+| --- | --- |
+| `getState(path?)` | Read a dot-notation state path or the root state. |
+| `setState(path, value, options?)` | Set a state value and notify subscribers. |
+| `updateState(path, updates, options?)` | Merge object updates into an existing state branch. |
+| `subscribe(path, callback)` | Subscribe to exact and parent-path state changes. |
+| `subscribeSingleton(path, id, callback)` | Replace an existing subscription with the same id. |
+| `initializeStateManager()` | Register compatibility globals and load persisted branches. |
+| `persistState(paths?)` | Persist selected state branches to local storage. |
+| `loadPersistedState(paths?)` | Load selected persisted branches from local storage. |
+| `resetState(path?)` | Reset all state or a specific branch. |
+| `getStateHistory()` | Read the bounded state mutation history. |
+| `clearStateHistory()` | Clear recorded state mutation history. |
+| `getSubscriptions()` | Inspect active state subscriptions. |
 
-## ThemeManager
+## Settings State Manager
 
-### Usage
-
-```javascript
-import { themeManager } from "./utils/state/themeManager.js";
-
-// Get current theme
-const theme = themeManager.getTheme();
-
-// Set theme
-themeManager.setTheme("dark");
-
-// Toggle theme
-themeManager.toggleTheme();
-
-// Subscribe to changes
-themeManager.onChange((theme) => {
- document.body.dataset.theme = theme;
-});
-```
-
-## FileStateManager
-
-### Usage
+Source: `electron-app/utils/state/domain/settingsStateManager.ts`
 
 ```javascript
-import { fileStateManager } from "./utils/state/fileStateManager.js";
+import {
+ getChartSetting,
+ getMapThemeSetting,
+ getThemeSetting,
+ setChartSetting,
+ setMapThemeSetting,
+ setThemeSetting,
+ subscribeToChartSettings,
+} from "./utils/state/domain/settingsStateManager.js";
 
-// Load file
-await fileStateManager.loadFile(filePath);
+setThemeSetting("dark");
+setMapThemeSetting(true);
+setChartSetting("distanceUnits", "kilometers");
 
-// Get current file
-const file = fileStateManager.getCurrentFile();
+const theme = getThemeSetting();
+const mapTilesInverted = getMapThemeSetting();
+const distanceUnits = getChartSetting("distanceUnits");
 
-// Check if file is loaded
-if (fileStateManager.hasFile()) {
- // File is loaded
-}
-
-// Clear current file
-fileStateManager.clearFile();
-```
-
-### File State Structure
-
-```javascript
-{
-    path: '/path/to/file.fit',
-    name: 'file.fit',
-    size: 1234567,
-    loadedAt: Date,
-    data: {
-        records: [],
-        laps: [],
-        sessions: [],
-        summary: {}
-    }
-}
-```
-
-## Persistence
-
-### LocalStorage Persistence
-
-State can be persisted to localStorage:
-
-```javascript
-// Configure persistence
-stateManager.configurePersistence({
- keys: ["theme", "preferences", "recentFiles"],
- storage: localStorage,
+const unsubscribe = subscribeToChartSettings((nextSettings) => {
+ console.log("Chart settings changed:", nextSettings);
 });
 
-// State automatically saved on change
-stateManager.set("theme", "dark");
-// → Saved to localStorage
-
-// State loaded on init
-stateManager.loadPersistedState();
+unsubscribe();
 ```
 
-### What Gets Persisted
+Settings helpers preserve the legacy settings boundary while storing values in
+the centralized state system. Use this domain API for chart, theme, map-theme,
+and power-estimation preferences.
 
-| Key           | Persisted | Reason          |
-| ------------- | --------- | --------------- |
-| `theme`       | ✅        | User preference |
-| `preferences` | ✅        | User settings   |
-| `recentFiles` | ✅        | Quick access    |
-| `currentFile` | ❌        | Too large       |
+## FIT File State
 
-## Best Practices
-
-### Do
+Source: `electron-app/utils/state/domain/fitFileState.ts`
 
 ```javascript
-// ✅ Use typed keys
-const KEYS = {
- THEME: "theme",
- FILE: "currentFile",
-};
-stateManager.set(KEYS.THEME, "dark");
+import {
+ FitFileSelectors,
+ fitFileStateManager,
+} from "./utils/state/domain/fitFileState.js";
 
-// ✅ Subscribe for specific keys
-stateManager.subscribe("theme", handleThemeChange);
+fitFileStateManager.startFileLoading(filePath);
+fitFileStateManager.handleFileLoaded(fitData, { filePath });
 
-// ✅ Clean up subscriptions
-useEffect(() => {
- const unsub = stateManager.subscribe("key", handler);
- return () => unsub();
-}, []);
+const currentFile = FitFileSelectors.getCurrentFile();
+const metrics = FitFileSelectors.getMetrics();
+const hasGps = FitFileSelectors.hasGPS();
 ```
 
-### Don't
+The FIT file state manager handles file loading lifecycle, raw FIT data,
+processed activity metadata, validation, quality metrics, and loading errors.
 
-```javascript
-// ❌ Store large data unnecessarily
-stateManager.set("rawBuffer", hugeArrayBuffer);
+## Persisted Branches
 
-// ❌ Forget to unsubscribe
-stateManager.subscribe("key", handler);
-// Never unsubscribed = memory leak
+The core state manager persists selected UI preferences by default:
 
-// ❌ Use magic strings
-stateManager.get("crrntFile"); // Typo!
-```
+| Branch | Purpose |
+| --- | --- |
+| `ui` | General UI preferences. |
+| `charts.controlsVisible` | Chart control visibility state. |
+| `map.baseLayer` | Selected map base layer. |
+| `browser.view` | FIT browser view preference. |
 
----
+Large activity payloads such as `globalData` and `fitFile.rawData` should stay
+in memory and should not be persisted.
 
-**Related:** [Architecture Overview](/docs/architecture/overview)
+## Related Pages
+
+- [Utility APIs](./utility-apis.md)
+- [Core APIs](./core-apis.md)
+- [Architecture Overview](/docs/architecture/overview)
