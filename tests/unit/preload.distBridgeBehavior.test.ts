@@ -243,10 +243,7 @@ describe("preload.js dist bridge behavior", () => {
     }
 
     function expectIpcRegistration(channel: string) {
-        const [registeredChannel, listener] =
-            mockIpcRenderer.on.mock.calls.find(
-                ([candidate]) => candidate === channel
-            ) ?? [];
+        const { listener, registeredChannel } = getIpcRegistration(channel);
 
         expect({
             registeredChannel,
@@ -257,6 +254,51 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         return listener;
+    }
+
+    function getIpcRegistration(channel: string) {
+        const [registeredChannel, listener] =
+            mockIpcRenderer.on.mock.calls.find(
+                ([candidate]) => candidate === channel
+            ) ?? [];
+
+        return {
+            listener,
+            registeredChannel,
+        };
+    }
+
+    function getIpcRegistrationLifecycle({
+        callback,
+        channel,
+        eventArgs = [],
+        unsubscribe,
+    }: {
+        callback: ReturnType<typeof vi.fn<IpcListener>>;
+        channel: string;
+        eventArgs?: unknown[];
+        unsubscribe: () => void;
+    }) {
+        const { listener, registeredChannel } = getIpcRegistration(channel);
+        const registeredListener = listener as IpcListener;
+
+        registeredListener({ sender: "main" }, ...eventArgs);
+        const unsubscribeResult = unsubscribe();
+        const [removedChannel, removedListener] =
+            mockIpcRenderer.removeListener.mock.calls.at(-1) ?? [];
+
+        return {
+            callbackCalls: callback.mock.calls,
+            cleanup: {
+                removedChannel,
+                removedRegisteredListener: removedListener === listener,
+            },
+            registration: {
+                registeredChannel,
+                listenerType: typeof listener,
+            },
+            unsubscribeResult,
+        };
     }
 
     function runPreloadScript(
@@ -819,77 +861,215 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("onMenuOpenFile should register event handler", () => {
-            expect.assertions(2);
+            expect.assertions(1);
             const callback = vi.fn<IpcListener>();
-            const unsubscribe = exposedAPI.onMenuOpenFile(callback);
+            const unsubscribe = exposedAPI.onMenuOpenFile(
+                callback
+            ) as () => void;
 
-            expectIpcRegistration("menu-open-file");
-            expect(unsubscribe).toBeTypeOf("function");
+            expect(
+                getIpcRegistrationLifecycle({
+                    callback,
+                    channel: "menu-open-file",
+                    unsubscribe,
+                })
+            ).toStrictEqual({
+                callbackCalls: [[]],
+                cleanup: {
+                    removedChannel: "menu-open-file",
+                    removedRegisteredListener: true,
+                },
+                registration: {
+                    listenerType: "function",
+                    registeredChannel: "menu-open-file",
+                },
+                unsubscribeResult: undefined,
+            });
         });
 
         it("onMenuOpenOverlay should register event handler", () => {
-            expect.assertions(2);
+            expect.assertions(1);
             const callback = vi.fn<IpcListener>();
-            const unsubscribe = exposedAPI.onMenuOpenOverlay(callback);
+            const unsubscribe = exposedAPI.onMenuOpenOverlay(
+                callback
+            ) as () => void;
 
-            expectIpcRegistration("menu-open-overlay");
-            expect(unsubscribe).toBeTypeOf("function");
+            expect(
+                getIpcRegistrationLifecycle({
+                    callback,
+                    channel: "menu-open-overlay",
+                    unsubscribe,
+                })
+            ).toStrictEqual({
+                callbackCalls: [[]],
+                cleanup: {
+                    removedChannel: "menu-open-overlay",
+                    removedRegisteredListener: true,
+                },
+                registration: {
+                    listenerType: "function",
+                    registeredChannel: "menu-open-overlay",
+                },
+                unsubscribeResult: undefined,
+            });
         });
 
         it("onOpenRecentFile should register event handler", () => {
-            expect.assertions(2);
+            expect.assertions(1);
             const callback = vi.fn<IpcListener>();
-            const unsubscribe = exposedAPI.onOpenRecentFile(callback);
+            const unsubscribe = exposedAPI.onOpenRecentFile(
+                callback
+            ) as () => void;
 
-            expectIpcRegistration("open-recent-file");
-            expect(unsubscribe).toBeTypeOf("function");
+            expect(
+                getIpcRegistrationLifecycle({
+                    callback,
+                    channel: "open-recent-file",
+                    eventArgs: ["ride.fit"],
+                    unsubscribe,
+                })
+            ).toStrictEqual({
+                callbackCalls: [["ride.fit"]],
+                cleanup: {
+                    removedChannel: "open-recent-file",
+                    removedRegisteredListener: true,
+                },
+                registration: {
+                    listenerType: "function",
+                    registeredChannel: "open-recent-file",
+                },
+                unsubscribeResult: undefined,
+            });
         });
 
         it("onOpenSummaryColumnSelector should register event handler", () => {
-            expect.assertions(2);
+            expect.assertions(1);
             const callback = vi.fn<IpcListener>();
-            const unsubscribe =
-                exposedAPI.onOpenSummaryColumnSelector(callback);
+            const unsubscribe = exposedAPI.onOpenSummaryColumnSelector(
+                callback
+            ) as () => void;
 
-            expectIpcRegistration("open-summary-column-selector");
-            expect(unsubscribe).toBeTypeOf("function");
+            expect(
+                getIpcRegistrationLifecycle({
+                    callback,
+                    channel: "open-summary-column-selector",
+                    unsubscribe,
+                })
+            ).toStrictEqual({
+                callbackCalls: [[]],
+                cleanup: {
+                    removedChannel: "open-summary-column-selector",
+                    removedRegisteredListener: true,
+                },
+                registration: {
+                    listenerType: "function",
+                    registeredChannel: "open-summary-column-selector",
+                },
+                unsubscribeResult: undefined,
+            });
         });
 
         it("onSetTheme should register event handler", () => {
-            expect.assertions(2);
+            expect.assertions(1);
             const callback = vi.fn<IpcListener>();
-            const unsubscribe = exposedAPI.onSetTheme(callback);
+            const unsubscribe = exposedAPI.onSetTheme(callback) as () => void;
 
-            expectIpcRegistration("set-theme");
-            expect(unsubscribe).toBeTypeOf("function");
+            expect(
+                getIpcRegistrationLifecycle({
+                    callback,
+                    channel: "set-theme",
+                    eventArgs: ["dark"],
+                    unsubscribe,
+                })
+            ).toStrictEqual({
+                callbackCalls: [["dark"]],
+                cleanup: {
+                    removedChannel: "set-theme",
+                    removedRegisteredListener: true,
+                },
+                registration: {
+                    listenerType: "function",
+                    registeredChannel: "set-theme",
+                },
+                unsubscribeResult: undefined,
+            });
         });
 
         it("onUpdateEvent should register event handler", () => {
-            expect.assertions(2);
+            expect.assertions(1);
             const eventName = "update-available";
             const callback = vi.fn<IpcListener>();
-            const unsubscribe = exposedAPI.onUpdateEvent(eventName, callback);
+            const unsubscribe = exposedAPI.onUpdateEvent(
+                eventName,
+                callback
+            ) as () => void;
 
-            expectIpcRegistration(eventName);
-            expect(unsubscribe).toBeTypeOf("function");
+            expect(
+                getIpcRegistrationLifecycle({
+                    callback,
+                    channel: eventName,
+                    eventArgs: ["1.2.3"],
+                    unsubscribe,
+                })
+            ).toStrictEqual({
+                callbackCalls: [["1.2.3"]],
+                cleanup: {
+                    removedChannel: eventName,
+                    removedRegisteredListener: true,
+                },
+                registration: {
+                    listenerType: "function",
+                    registeredChannel: eventName,
+                },
+                unsubscribeResult: undefined,
+            });
         });
 
         it("onIpc should register generic event handler", () => {
-            expect.assertions(2);
+            expect.assertions(1);
             const channel = "custom-channel";
             const callback = vi.fn<IpcListener>();
-            const unsubscribe = exposedAPI.onIpc(channel, callback);
+            const unsubscribe = exposedAPI.onIpc(
+                channel,
+                callback
+            ) as () => void;
 
-            expectIpcRegistration(channel);
-            expect(unsubscribe).toBeTypeOf("function");
+            expect(
+                getIpcRegistrationLifecycle({
+                    callback,
+                    channel,
+                    eventArgs: ["payload", 7],
+                    unsubscribe,
+                })
+            ).toStrictEqual({
+                callbackCalls: [
+                    [
+                        { sender: "main" },
+                        "payload",
+                        7,
+                    ],
+                ],
+                cleanup: {
+                    removedChannel: channel,
+                    removedRegisteredListener: true,
+                },
+                registration: {
+                    listenerType: "function",
+                    registeredChannel: channel,
+                },
+                unsubscribeResult: undefined,
+            });
         });
 
         it("onMenuOpenFile should reject invalid callbacks", () => {
-            expect.assertions(3);
-            const unsubscribe = exposedAPI.onMenuOpenFile("not-a-function");
+            expect.assertions(4);
+            const unsubscribe = exposedAPI.onMenuOpenFile(
+                "not-a-function"
+            ) as () => void;
 
-            expect(unsubscribe).toBeTypeOf("function");
+            expect(unsubscribe()).toBeUndefined();
             expect(mockIpcRenderer.on).not.toHaveBeenCalled();
+            expect(mockIpcRenderer.removeListener).not.toHaveBeenCalled();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] onMenuOpenFile: callback must be a function"
             );
