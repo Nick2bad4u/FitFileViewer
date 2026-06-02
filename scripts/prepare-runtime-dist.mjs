@@ -28,6 +28,7 @@ const runtimeTextAssetExtensions = new Set([
     ".mjs",
     ".svg",
 ]);
+const repositoryVendorReferencePattern = /(?:^|[\\/("'`=\s])vendor[\\/]/u;
 
 export const directoryCopies = [
     {
@@ -108,7 +109,7 @@ function assertNoForbiddenRuntimeReferences(repositoryDir, filePath) {
             `${repositoryRelativePath} must not reference node_modules directly`
         );
     }
-    if (content.includes("vendor/")) {
+    if (repositoryVendorReferencePattern.test(content)) {
         throw new Error(
             `${repositoryRelativePath} must not reference repository vendor assets directly`
         );
