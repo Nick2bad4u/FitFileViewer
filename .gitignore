@@ -372,4 +372,4 @@ docusaurus/static/img/screenshots/MapsV2.png
 docusaurus/docs/api/
 
 # Generated declaration output; source TypeScript files are authoritative.
-electron-app/types/
+types/

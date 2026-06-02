@@ -27,8 +27,8 @@ type PrepareRuntimeDistModule = {
     directoryCopies: RuntimeCopy[];
     fileCopies: RuntimeCopy[];
     prepareRuntimeDist: (options?: {
-        appDir?: string;
         distDir?: string;
+        repositoryDir?: string;
         staticDir?: string;
     }) => void;
 };
@@ -40,8 +40,8 @@ async function importPrepareRuntimeDist(): Promise<PrepareRuntimeDistModule> {
 }
 
 function makeTemporaryApp(): {
-    appDir: string;
     distDir: string;
+    repositoryDir: string;
     staticDir: string;
 } {
     const temporaryRoot = fs.mkdtempSync(
@@ -49,13 +49,11 @@ function makeTemporaryApp(): {
     );
     temporaryRoots.push(temporaryRoot);
 
-    const appDir = path.join(temporaryRoot, "electron-app");
     const staticDir = temporaryRoot;
 
     fs.mkdirSync(path.join(staticDir, rootAlternativeFitViewPath, "assets"), {
         recursive: true,
     });
-    fs.mkdirSync(appDir, { recursive: true });
     fs.mkdirSync(path.join(staticDir, rootStaticAssetsPath, "app"), {
         recursive: true,
     });
@@ -82,7 +80,11 @@ function makeTemporaryApp(): {
     );
     fs.writeFileSync(path.join(staticDir, rootAppStyleCssPath), "style");
 
-    return { appDir, distDir: path.join(appDir, "dist"), staticDir };
+    return {
+        distDir: path.join(temporaryRoot, "dist"),
+        repositoryDir: temporaryRoot,
+        staticDir,
+    };
 }
 
 function getPathStates(
@@ -111,9 +113,9 @@ describe("prepare-runtime-dist script", () => {
 
         const { directoryCopies, fileCopies, prepareRuntimeDist } =
             await importPrepareRuntimeDist();
-        const { appDir, distDir, staticDir } = makeTemporaryApp();
+        const { distDir, repositoryDir, staticDir } = makeTemporaryApp();
 
-        prepareRuntimeDist({ appDir, distDir, staticDir });
+        prepareRuntimeDist({ distDir, repositoryDir, staticDir });
 
         expect(directoryCopies).toStrictEqual([
             {
@@ -155,27 +157,27 @@ describe("prepare-runtime-dist script", () => {
         });
     });
 
-    it("rejects dist paths outside the app directory", async () => {
+    it("rejects dist paths outside the repository", async () => {
         expect.assertions(2);
 
         const { prepareRuntimeDist } = await importPrepareRuntimeDist();
-        const { appDir, staticDir } = makeTemporaryApp();
-        const distDir = path.join(appDir, "..", "outside-dist");
+        const { repositoryDir, staticDir } = makeTemporaryApp();
+        const distDir = path.join(repositoryDir, "..", "outside-dist");
 
         expect(() =>
             prepareRuntimeDist({
-                appDir,
                 distDir,
+                repositoryDir,
                 staticDir,
             })
-        ).toThrow("Refusing to operate outside app directory");
+        ).toThrow("Refusing to operate outside");
         expect(
-            getPathStates(path.dirname(appDir), [
+            getPathStates(path.dirname(repositoryDir), [
                 "outside-dist",
-                path.join("electron-app", "dist"),
+                path.join(path.basename(repositoryDir), "dist"),
             ])
         ).toStrictEqual({
-            [path.join("electron-app", "dist")]: "missing",
+            [path.join(path.basename(repositoryDir), "dist")]: "missing",
             "outside-dist": "missing",
         });
     });
@@ -184,7 +186,7 @@ describe("prepare-runtime-dist script", () => {
         expect.assertions(1);
 
         const { prepareRuntimeDist } = await importPrepareRuntimeDist();
-        const { appDir, distDir, staticDir } = makeTemporaryApp();
+        const { distDir, repositoryDir, staticDir } = makeTemporaryApp();
 
         fs.writeFileSync(
             path.join(staticDir, rootAppIndexHtmlPath),
@@ -192,7 +194,7 @@ describe("prepare-runtime-dist script", () => {
         );
 
         expect(() =>
-            prepareRuntimeDist({ appDir, distDir, staticDir })
+            prepareRuntimeDist({ distDir, repositoryDir, staticDir })
         ).toThrow("index.html must not reference node_modules directly");
     });
 });

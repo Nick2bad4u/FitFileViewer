@@ -22,7 +22,7 @@ const { version: electronVersion } = require("electron/package.json");
 
 const appPackage = /** @type {AppPackage} */ (require("./package.json"));
 
-const rootPackageFiles = ["electron-app/dist/**", "package.json"];
+const rootPackageFiles = ["dist/**", "package.json"];
 
 /**
  * @param {string} exportName

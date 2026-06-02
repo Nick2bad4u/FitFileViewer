@@ -180,7 +180,7 @@ describe("build-win7 script", () => {
         const output = path.join(repositoryRoot, "release-dist", "win7-test");
 
         const config = createWin7BuildConfig({
-            files: ["electron-app/dist/**", "package.json"],
+            files: ["dist/**", "package.json"],
             output,
             projectDir: repositoryRoot,
         });
@@ -198,7 +198,7 @@ describe("build-win7 script", () => {
             artifactName: "Fit-File-Viewer-win7-${arch}-${version}.${ext}",
             asar: false,
             electronVersion: win7ElectronVersion,
-            files: ["electron-app/dist/**", "package.json"],
+            files: ["dist/**", "package.json"],
             output,
             projectDir: repositoryRoot,
             requestedExecutionLevel: "asInvoker",
@@ -248,7 +248,7 @@ describe("build-win7 script", () => {
             status,
         }).toStrictEqual({
             buildElectronVersion: win7ElectronVersion,
-            buildFiles: ["electron-app/dist/**", "package.json"],
+            buildFiles: ["dist/**", "package.json"],
             buildOutput: output,
             buildProjectDir: repositoryRoot,
             commandCalls: [

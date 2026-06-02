@@ -9,7 +9,6 @@ import {
     appIndexHtmlPath,
     appStyleCssPath,
     appDistAbsolutePath,
-    appSourcePath,
     repositoryRoot,
     rootAlternativeFitViewPath,
     rootAppElevProfileCssPath,
@@ -18,7 +17,7 @@ import {
     rootAppStyleCssPath,
 } from "./lib/workspaces.mjs";
 
-const defaultAppDir = appSourcePath;
+const defaultRepositoryDir = repositoryRoot;
 const defaultDistDir = appDistAbsolutePath;
 const defaultStaticDir = repositoryRoot;
 
@@ -43,8 +42,8 @@ export const fileCopies = [
     },
 ];
 
-function assertInsideAppDir(appDir, targetPath) {
-    const resolvedRoot = path.resolve(appDir);
+function assertInsideDirectory(rootDir, targetPath) {
+    const resolvedRoot = path.resolve(rootDir);
     const resolvedTarget = path.resolve(targetPath);
     const relativePath = path.relative(resolvedRoot, resolvedTarget);
 
@@ -54,12 +53,12 @@ function assertInsideAppDir(appDir, targetPath) {
         path.isAbsolute(relativePath)
     ) {
         throw new Error(
-            `Refusing to operate outside app directory: ${targetPath}`
+            `Refusing to operate outside ${resolvedRoot}: ${targetPath}`
         );
     }
 }
 
-function copyDirectory(appDir, distDir, staticRootDir, copy) {
+function copyDirectory(distDir, staticRootDir, copy) {
     const source = path.join(staticRootDir, copy.source);
     const destination = path.join(distDir, copy.destination);
 
@@ -67,11 +66,11 @@ function copyDirectory(appDir, distDir, staticRootDir, copy) {
         return;
     }
 
-    assertInsideAppDir(appDir, destination);
+    assertInsideDirectory(distDir, destination);
     fs.cpSync(source, destination, { force: true, recursive: true });
 }
 
-function copyFile(appDir, distDir, staticRootDir, copy) {
+function copyFile(distDir, staticRootDir, copy) {
     const source = path.join(staticRootDir, copy.source);
     const destination = path.join(distDir, copy.destination);
 
@@ -79,43 +78,43 @@ function copyFile(appDir, distDir, staticRootDir, copy) {
         return;
     }
 
-    assertInsideAppDir(appDir, destination);
+    assertInsideDirectory(distDir, destination);
     fs.mkdirSync(path.dirname(destination), { recursive: true });
     fs.copyFileSync(source, destination);
 }
 
-function assertNoNodeModulesReference(appDir, filePath, content) {
+function assertNoNodeModulesReference(repositoryDir, filePath, content) {
     if (content.includes("node_modules")) {
         throw new Error(
-            `${path.relative(appDir, filePath)} must not reference node_modules directly`
+            `${path.relative(repositoryDir, filePath)} must not reference node_modules directly`
         );
     }
 }
 
-function copyIndexHtml(appDir, distDir, staticDir) {
+function copyIndexHtml(repositoryDir, distDir, staticDir) {
     const source = path.join(staticDir, rootAppIndexHtmlPath);
     const destination = path.join(distDir, appIndexHtmlPath);
     const html = fs.readFileSync(source, "utf8");
 
-    assertNoNodeModulesReference(appDir, source, html);
-    assertInsideAppDir(appDir, destination);
+    assertNoNodeModulesReference(repositoryDir, source, html);
+    assertInsideDirectory(distDir, destination);
     fs.writeFileSync(destination, html);
-    assertNoNodeModulesReference(appDir, destination, html);
+    assertNoNodeModulesReference(repositoryDir, destination, html);
 }
 
 export function prepareRuntimeDist({
-    appDir = defaultAppDir,
     distDir = defaultDistDir,
+    repositoryDir = defaultRepositoryDir,
     staticDir = defaultStaticDir,
 } = {}) {
-    assertInsideAppDir(appDir, distDir);
+    assertInsideDirectory(repositoryDir, distDir);
     fs.mkdirSync(distDir, { recursive: true });
-    copyIndexHtml(appDir, distDir, staticDir);
+    copyIndexHtml(repositoryDir, distDir, staticDir);
     for (const copy of directoryCopies) {
-        copyDirectory(appDir, distDir, staticDir, copy);
+        copyDirectory(distDir, staticDir, copy);
     }
     for (const copy of fileCopies) {
-        copyFile(appDir, distDir, staticDir, copy);
+        copyFile(distDir, staticDir, copy);
     }
 }
 

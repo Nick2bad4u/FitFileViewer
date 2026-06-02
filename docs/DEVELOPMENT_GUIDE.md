@@ -436,7 +436,7 @@ and artifact naming in the root config instead of adding a `build` block to
 
 ```js
 // electron-builder.config.cjs
-const rootPackageFiles = ["electron-app/dist/**", "package.json"];
+const rootPackageFiles = ["dist/**", "package.json"];
 
 module.exports = {
  appId: "io.github.nick2bad4u.fitfileviewer",

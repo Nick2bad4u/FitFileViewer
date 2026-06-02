@@ -5,7 +5,7 @@ const stylelintConfig = {
     ...sharedConfig,
     ignoreFiles: [
         "**/node_modules/**",
-        "electron-app/dist/**",
+        "dist/**",
         "static/ffv/assets/**",
     ],
     reportNeedlessDisables: false,

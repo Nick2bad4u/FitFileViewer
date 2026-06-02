@@ -137,11 +137,15 @@ type WorkspacesModule = {
     rootReleaseDistPath: string;
     rootReleaseDistAbsolutePath: string;
     rootReleaseDistRelativePath: (...segments: string[]) => string;
+    rootRuntimeDistAbsolutePath: string;
+    rootRuntimeDistPath: string;
     rootRuntimeTsconfigAbsolutePath: string;
     rootRuntimeTsconfigPath: string;
     rootSecretlintConfigPath: string;
     rootStaticAssetsPath: string;
     rootStylelintConfigPath: string;
+    rootTypesAbsolutePath: string;
+    rootTypesPath: string;
     rootTabsTestsPath: string;
     rootTypedocConfigPath: string;
     rootUnitTestsPath: string;
@@ -184,19 +188,17 @@ describe("workspace path helpers", () => {
         expect(workspaces.docusaurusWorkspacePath).toBe(
             path.join(process.cwd(), "docusaurus")
         );
-        expect(workspaces.appDistPath).toBe(path.join("electron-app", "dist"));
+        expect(workspaces.appDistPath).toBe("dist");
         expect(workspaces.appDistAbsolutePath).toBe(
-            path.join(process.cwd(), "electron-app", "dist")
+            path.join(process.cwd(), "dist")
         );
         expect(workspaces.rootPackagePath).toBe(
             path.join(process.cwd(), "package.json")
         );
         expect(workspaces.rootPackageRepositoryPath).toBe("package.json");
-        expect(workspaces.appTypesPath).toBe(
-            path.join("electron-app", "types")
-        );
+        expect(workspaces.appTypesPath).toBe("types");
         expect(workspaces.appTypesAbsolutePath).toBe(
-            path.join(process.cwd(), "electron-app", "types")
+            path.join(process.cwd(), "types")
         );
         expect(workspaces.appSourceRepositoryPath("main.ts")).toBe(
             "electron-app/main.ts"
@@ -274,9 +276,7 @@ describe("workspace path helpers", () => {
         const workspaces = await importWorkspaces();
 
         expect(workspaces.appAlternativeFitViewPath).toBe("ffv");
-        expect(workspaces.appDistRendererRepositoryPath).toBe(
-            "electron-app/dist/renderer"
-        );
+        expect(workspaces.appDistRendererRepositoryPath).toBe("dist/renderer");
         expect(workspaces.appElevProfileCssPath).toBe("elevProfile.css");
         expect(workspaces.appIconsPath).toBe("icons");
         expect(workspaces.appIndexHtmlPath).toBe("index.html");
@@ -287,12 +287,7 @@ describe("workspace path helpers", () => {
             bundle: workspaces.appPreloadBundleAbsolutePath,
             source: workspaces.appPreloadSourceAbsolutePath,
         }).toStrictEqual({
-            bundle: path.join(
-                process.cwd(),
-                "electron-app",
-                "dist",
-                "preload.js"
-            ),
+            bundle: path.join(process.cwd(), "dist", "preload.js"),
             source: path.join(process.cwd(), "electron-app", "preload.ts"),
         });
         expect(workspaces.appRendererVendorGlobalsCoreEntryPath).toBe(
@@ -574,40 +569,57 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes root generated output and test paths", async () => {
-        expect.assertions(19);
+        expect.assertions(2);
 
         const workspaces = await importWorkspaces();
 
-        expect(workspaces.rootArtifactsPath).toBe("artifacts");
-        expect(workspaces.rootCoveragePath).toBe("coverage");
-        expect(workspaces.rootCoverageAbsolutePath).toBe(
-            path.join(process.cwd(), "coverage")
-        );
-        expect(workspaces.rootFlatpakBuildPath).toBe("flatpak-build-dir");
-        expect(workspaces.rootFlatpakBundlePath).toBe("FitFileViewer.flatpak");
-        expect(workspaces.rootFlatpakRepoPath).toBe("flatpak-repo");
-        expect(workspaces.rootFlatpakZipPath).toBe("FitFileViewer.flatpak.zip");
-        expect(workspaces.rootReleaseDistPath).toBe("release-dist");
-        expect(workspaces.rootReleaseDistAbsolutePath).toBe(
-            path.join(process.cwd(), "release-dist")
-        );
-        expect(workspaces.rootWin7ReleaseDistPath).toBe(
-            path.join(process.cwd(), "release-dist", "win7")
-        );
-        expect(workspaces.rootIntegrationTestsPath).toBe("tests/integration");
-        expect(workspaces.rootPlaywrightTestsPath).toBe("tests/playwright");
-        expect(workspaces.rootPlaywrightAppUiSpecPath).toBe(
-            "tests/playwright/app-ui.spec.ts"
-        );
-        expect(workspaces.rootVitestSupportPath).toBe("tests/vitest");
-        expect(workspaces.rootVitestGlobalSetupPath).toBe(
-            "tests/vitest/globalSetup.mjs"
-        );
-        expect(workspaces.rootVitestSetupFilePath).toBe(
-            "tests/vitest/setupVitest.mjs"
-        );
-        expect(workspaces.rootUnitTestsPath).toBe("tests/unit");
-        expect(workspaces.rootTabsTestsPath).toBe("tests/unit/tabs");
+        expect({
+            artifacts: workspaces.rootArtifactsPath,
+            coverage: workspaces.rootCoveragePath,
+            coverageAbsolute: workspaces.rootCoverageAbsolutePath,
+            flatpakBuild: workspaces.rootFlatpakBuildPath,
+            flatpakBundle: workspaces.rootFlatpakBundlePath,
+            flatpakRepo: workspaces.rootFlatpakRepoPath,
+            flatpakZip: workspaces.rootFlatpakZipPath,
+            integrationTests: workspaces.rootIntegrationTestsPath,
+            playwrightAppUiSpec: workspaces.rootPlaywrightAppUiSpecPath,
+            playwrightTests: workspaces.rootPlaywrightTestsPath,
+            releaseDist: workspaces.rootReleaseDistPath,
+            releaseDistAbsolute: workspaces.rootReleaseDistAbsolutePath,
+            rootRuntimeDist: workspaces.rootRuntimeDistPath,
+            rootRuntimeDistAbsolute: workspaces.rootRuntimeDistAbsolutePath,
+            rootTypes: workspaces.rootTypesPath,
+            rootTypesAbsolute: workspaces.rootTypesAbsolutePath,
+            tabsTests: workspaces.rootTabsTestsPath,
+            unitTests: workspaces.rootUnitTestsPath,
+            vitestGlobalSetup: workspaces.rootVitestGlobalSetupPath,
+            vitestSetupFile: workspaces.rootVitestSetupFilePath,
+            vitestSupport: workspaces.rootVitestSupportPath,
+            win7ReleaseDist: workspaces.rootWin7ReleaseDistPath,
+        }).toStrictEqual({
+            artifacts: "artifacts",
+            coverage: "coverage",
+            coverageAbsolute: path.join(process.cwd(), "coverage"),
+            flatpakBuild: "flatpak-build-dir",
+            flatpakBundle: "FitFileViewer.flatpak",
+            flatpakRepo: "flatpak-repo",
+            flatpakZip: "FitFileViewer.flatpak.zip",
+            integrationTests: "tests/integration",
+            playwrightAppUiSpec: "tests/playwright/app-ui.spec.ts",
+            playwrightTests: "tests/playwright",
+            releaseDist: "release-dist",
+            releaseDistAbsolute: path.join(process.cwd(), "release-dist"),
+            rootRuntimeDist: "dist",
+            rootRuntimeDistAbsolute: path.join(process.cwd(), "dist"),
+            rootTypes: "types",
+            rootTypesAbsolute: path.join(process.cwd(), "types"),
+            tabsTests: "tests/unit/tabs",
+            unitTests: "tests/unit",
+            vitestGlobalSetup: "tests/vitest/globalSetup.mjs",
+            vitestSetupFile: "tests/vitest/setupVitest.mjs",
+            vitestSupport: "tests/vitest",
+            win7ReleaseDist: path.join(process.cwd(), "release-dist", "win7"),
+        });
         expect(
             workspaces.rootReleaseDistRelativePath(
                 "windows-latest-ia32",

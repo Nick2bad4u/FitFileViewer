@@ -11,5 +11,5 @@ coverage/
 # Ignore Change Logs
 
 .github/PROMPTS/
-electron-app/types/
+types/
 **/*.d.ts

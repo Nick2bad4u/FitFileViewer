@@ -311,7 +311,7 @@ describe("workspace package boundaries", () => {
             ]
         );
         expect(appPackage.files).toStrictEqual([
-            "electron-app/dist/",
+            "dist/",
             "electron-app/global.d.ts",
             "package.json",
         ]);
@@ -319,10 +319,10 @@ describe("workspace package boundaries", () => {
             getRequiredPackageEntries(appPackage.exports, "exports")[
                 "./index.html"
             ]
-        ).toBe("./electron-app/dist/index.html");
-        expect(appPackage.main).toBe("electron-app/dist/main.js");
+        ).toBe("./dist/index.html");
+        expect(appPackage.main).toBe("dist/main.js");
         expect(appPackage.types).toBe("electron-app/global.d.ts");
-        expect(appPackage.icon).toBe("electron-app/dist/icons/favicon.ico");
+        expect(appPackage.icon).toBe("dist/icons/favicon.ico");
         expect(appPackage.files).not.toContain("vendor/");
         expect(appPackage.files).not.toContain("node_modules/");
         expect(getFileExistence(["electron-app/package.json"])).toStrictEqual({
@@ -546,8 +546,8 @@ describe("workspace package boundaries", () => {
         expect(staleReferences).toStrictEqual([]);
     });
 
-    it("keeps generated declaration ignores pointed at the app output path", () => {
-        expect.assertions(3);
+    it("keeps generated declaration ignores pointed at the root output path", () => {
+        expect.assertions(4);
 
         const prettierIgnore = readFileSync(
             path.join(process.cwd(), rootPrettierIgnorePath),
@@ -561,7 +561,8 @@ describe("workspace package boundaries", () => {
 
         expect(prettierIgnore).toContain(appTypesIgnorePath);
         expect(gitignore).toContain(appTypesIgnorePath);
-        expect(prettierIgnore).not.toMatch(/^types\/$/mu);
+        expect(prettierIgnore).not.toContain("electron-app/types/");
+        expect(gitignore).not.toContain("electron-app/types/");
     });
 
     it("keeps the root Playwright smoke config strict", () => {

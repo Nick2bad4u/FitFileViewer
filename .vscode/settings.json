@@ -33,16 +33,16 @@
         ".cache": true,
         "artifacts": true,
         "coverage": true,
-        "electron-app/dist": true,
-        "electron-app/types": true,
+        "dist": true,
         "flatpak-build-dir": true,
         "flatpak-repo": true,
         "out": true,
         "playwright-report": true,
         "release-dist": true,
-        "test-results": true
+        "test-results": true,
+        "types": true
     },
-    "github.copilot.chat.codeGeneration.instructions": "Follow AGENTS.md and the root-owned npm scripts/configuration. FitFileViewer source lives in electron-app/ with TypeScript entrypoints electron-app/main.ts, electron-app/preload.ts, electron-app/renderer.ts, and electron-app/main-ui.ts; generated JavaScript belongs under electron-app/dist/. Keep tooling changes at the repository root unless a source module specifically belongs under electron-app/. Use existing utilities under electron-app/utils/, preserve context isolation and the preload bridge, and verify changes with the relevant root npm scripts. Ignore generated output, release artifacts, fit-test-files/, and node_modules/.",
+    "github.copilot.chat.codeGeneration.instructions": "Follow AGENTS.md and the root-owned npm scripts/configuration. FitFileViewer source lives in electron-app/ with TypeScript entrypoints electron-app/main.ts, electron-app/preload.ts, electron-app/renderer.ts, and electron-app/main-ui.ts; generated JavaScript belongs under dist/. Keep tooling changes at the repository root unless a source module specifically belongs under electron-app/. Use existing utilities under electron-app/utils/, preserve context isolation and the preload bridge, and verify changes with the relevant root npm scripts. Ignore generated output, release artifacts, fit-test-files/, and node_modules/.",
     "github.copilot.chat.localeOverride": "en",
     "github.copilot.chat.summarizeAgentConversationHistory.enabled": false,
     "github.copilot.enable": {
@@ -61,14 +61,14 @@
         ".cache": true,
         "artifacts": true,
         "coverage": true,
-        "electron-app/dist": true,
-        "electron-app/types": true,
+        "dist": true,
         "flatpak-build-dir": true,
         "flatpak-repo": true,
         "out": true,
         "playwright-report": true,
         "release-dist": true,
-        "test-results": true
+        "test-results": true,
+        "types": true
     },
     "sonarlint.connectedMode.project": {
         "connectionId": "nick2bad4u",

@@ -47,7 +47,7 @@ export default defineConfig({
             exclude: [
                 "node_modules/**",
                 // Exclude built artifacts and generated output
-                "electron-app/dist/**",
+                "dist/**",
                 "tests/**",
                 // Exclude any colocated test files under source folders
                 "**/*.test.*",

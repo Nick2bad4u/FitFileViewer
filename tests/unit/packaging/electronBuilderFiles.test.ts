@@ -65,10 +65,7 @@ describe("electron-builder file list", () => {
             (await import("../../../scripts/build-win7.mjs")) as Win7BuildModule;
         const sharedFileList = builderConfig.files;
 
-        expect(sharedFileList).toStrictEqual([
-            "electron-app/dist/**",
-            "package.json",
-        ]);
+        expect(sharedFileList).toStrictEqual(["dist/**", "package.json"]);
         expect(builderConfig.directories.output).toBe(rootReleaseDistPath);
         expect(win7Build.readElectronBuilderFiles()).toStrictEqual(
             sharedFileList

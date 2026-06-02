@@ -51,7 +51,7 @@ electron-app/
 │   ├── Global event handlers
 │   └── Performance monitoring
 │
-├── preload.ts                        # Security bridge source bundled into electron-app/dist/preload.js
+├── preload.ts                        # Security bridge source bundled into dist/preload.js
 │   ├── Context bridge setup
 │   ├── IPC API exposure
 │   ├── Security validation
@@ -417,12 +417,12 @@ docs/
 
 ```text
 static/
-├── app/                            # Main HTML and CSS source copied into electron-app/dist
+├── app/                            # Main HTML and CSS source copied into dist
 │   ├── index.html                  # Main application HTML
 │   ├── style.css                   # Application styling and themes
 │   └── elevProfile.css             # Elevation profile styling
-├── ffv/                            # Alternative FIT viewer web app source copied into electron-app/dist
-└── icons/                          # Application icon source copied into electron-app/dist
+├── ffv/                            # Alternative FIT viewer web app source copied into dist
+└── icons/                          # Application icon source copied into dist
     ├── favicon.ico                 # Main application icon
     ├── favicon-256x256.ico         # Windows icon
     ├── favicon-512x512.icns        # macOS icon

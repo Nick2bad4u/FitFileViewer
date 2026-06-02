@@ -96,6 +96,10 @@ export const rootPrettierIgnorePath = ".prettierignore";
 export const rootRemarkConfigPath = ".remarkrc.mjs";
 export const rootReleaseDistPath = "release-dist";
 export const rootReleaseDistAbsolutePath = repositoryPath(rootReleaseDistPath);
+export const rootRuntimeDistPath = "dist";
+export const rootRuntimeDistAbsolutePath = repositoryPath(rootRuntimeDistPath);
+export const rootTypesPath = "types";
+export const rootTypesAbsolutePath = repositoryPath(rootTypesPath);
 export const rootWin7ReleaseDistPath = repositoryPath(
     rootReleaseDistPath,
     "win7"
@@ -135,10 +139,10 @@ export const docusaurusWorkspacePath = path.join(
     docusaurusWorkspaceName
 );
 export const appAlternativeFitViewPath = "ffv";
-export const appDistPath = appSourceRelativePath("dist");
-export const appDistAbsolutePath = appSourceAbsolutePath("dist");
-export const appDistRendererRepositoryPath = appSourceRepositoryPath(
-    "dist",
+export const appDistPath = rootRuntimeDistPath;
+export const appDistAbsolutePath = rootRuntimeDistAbsolutePath;
+export const appDistRendererRepositoryPath = path.posix.join(
+    rootRuntimeDistPath,
     "renderer"
 );
 export const appElevProfileCssPath = "elevProfile.css";
@@ -149,8 +153,8 @@ export const appLeafletMeasureLitePath = appSourceRepositoryPath(
     "leafletMeasureLite.js"
 );
 export const appPreloadSourceAbsolutePath = appSourceAbsolutePath("preload.ts");
-export const appPreloadBundleAbsolutePath = appSourceAbsolutePath(
-    "dist",
+export const appPreloadBundleAbsolutePath = repositoryPath(
+    rootRuntimeDistPath,
     "preload.js"
 );
 export const appRendererVendorGlobalsCoreEntryPath = appSourceRepositoryPath(
@@ -165,8 +169,8 @@ export const rendererVendorGlobalsBundleName = "vendor-globals";
 export const rendererVendorGlobalsScriptFileName = `${rendererVendorGlobalsBundleName}.js`;
 export const rendererVendorGlobalsStyleFileName = `${rendererVendorGlobalsBundleName}.css`;
 export const appStyleCssPath = "style.css";
-export const appTypesPath = appSourceRelativePath("types");
-export const appTypesAbsolutePath = appSourceAbsolutePath("types");
+export const appTypesPath = rootTypesPath;
+export const appTypesAbsolutePath = rootTypesAbsolutePath;
 export const docusaurusPackagePath =
     docusaurusWorkspaceAbsolutePath("package.json");
 export const docusaurusPackageRepositoryPath =

@@ -138,7 +138,7 @@ describe("source entrypoint documentation", () => {
         expect(docs).not.toContain("// preload.js");
     });
 
-    it("documents runtime output under electron-app/dist instead of bare dist", () => {
+    it("documents runtime output under root dist", () => {
         expect.assertions(2);
 
         const docs = [
@@ -146,10 +146,8 @@ describe("source entrypoint documentation", () => {
             readWorkspaceFile(rootApplicationOverviewDocPath),
         ].join("\n");
 
-        expect(docs).toContain("electron-app/dist/preload.js");
-        expect(docs).not.toMatch(
-            /(?:preload:dist\/preload\.js|(?<!electron-app\/)dist\/preload\.js|renderer dist\/renderer\.js|runtime dist)/u
-        );
+        expect(docs).toContain("dist/preload.js");
+        expect(docs).not.toContain("electron-app/dist");
     });
 
     it("keeps FIT parser API docs aligned with current bridge and decode APIs", () => {

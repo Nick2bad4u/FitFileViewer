@@ -15,7 +15,7 @@ compatibility bundle:
 - `static/app/index.html` loads bundled renderer CSS from
   `renderer/vendor-globals.css`.
 - `scripts/prepare-runtime-dist.mjs` no longer copies a `vendor/` tree into
-  `electron-app/dist/`.
+  `dist/`.
 - The root `package.json` no longer includes a `vendor/` tree in the npm
   package file list.
 - Renderer modules consume browser libraries through globals such as
@@ -110,7 +110,7 @@ They need a specific replacement and runtime verification.
 
 ## Generated Runtime Output
 
-The build writes runtime output under `electron-app/dist/`.
+The build writes runtime output under `dist/`.
 
 Current `build:runtime-ts` flow:
 
@@ -135,10 +135,10 @@ The root `electron-builder.config.cjs` `files` list is the source of truth for
 the Electron Builder package surface. The Windows 7 build helper reads the same
 list from that config. Electron Builder packages only:
 
-- `electron-app/dist/`
+- `dist/`
 - `package.json`
 
-The runtime build copies these app assets into `electron-app/dist/` before
+The runtime build copies these app assets into `dist/` before
 packaging:
 
 - `elevProfile.css` from `static/app/elevProfile.css`

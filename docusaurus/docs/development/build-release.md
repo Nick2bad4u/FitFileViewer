@@ -59,11 +59,11 @@ Packaging is configured from the repository root:
 - The root `package.json` is the app manifest for version, runtime
   dependencies, exports, and publish metadata.
 - Packaged file inclusion is limited to root package metadata and
-  `electron-app/dist/` runtime output.
+  `dist/` runtime output.
 
 ```javascript
 // electron-builder.config.cjs
-const rootPackageFiles = ["electron-app/dist/**", "package.json"];
+const rootPackageFiles = ["dist/**", "package.json"];
 
 module.exports = {
  appId: appPackage.appid,

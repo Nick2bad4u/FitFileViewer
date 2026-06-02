@@ -4,14 +4,12 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
     appDistAbsolutePath,
-    appSourceDirectoryName,
     repositoryRoot,
 } from "../../../scripts/lib/workspaces.mjs";
 
 type CleanRuntimeDistModule = {
-    assertInsideAppSource: (targetPath: string, appRoot?: string) => void;
+    assertInsideRepository: (targetPath: string, root?: string) => void;
     cleanRuntimeDist: (options?: {
-        appRoot?: string;
         distPath?: string;
         fileSystem?: {
             rmSync: (
@@ -19,6 +17,7 @@ type CleanRuntimeDistModule = {
                 options: { force: boolean; recursive: boolean }
             ) => void;
         };
+        root?: string;
     }) => string;
     defaultRuntimeDistPath: string;
 };
@@ -28,7 +27,7 @@ async function importCleanRuntimeDist(): Promise<CleanRuntimeDistModule> {
 }
 
 describe("clean-runtime-dist script", () => {
-    it("defaults to the root-owned Electron app dist path", async () => {
+    it("defaults to the root runtime dist path", async () => {
         expect.assertions(1);
 
         const { defaultRuntimeDistPath } = await importCleanRuntimeDist();
@@ -40,8 +39,7 @@ describe("clean-runtime-dist script", () => {
         expect.assertions(2);
 
         const { cleanRuntimeDist } = await importCleanRuntimeDist();
-        const appRoot = path.join(repositoryRoot, appSourceDirectoryName);
-        const distPath = path.join(appRoot, "dist");
+        const distPath = path.join(repositoryRoot, "dist");
         const fileSystem = {
             rmSync: vi.fn<
                 (
@@ -52,7 +50,6 @@ describe("clean-runtime-dist script", () => {
         };
 
         const removedPath = cleanRuntimeDist({
-            appRoot,
             distPath,
             fileSystem,
         });
@@ -64,11 +61,10 @@ describe("clean-runtime-dist script", () => {
         });
     });
 
-    it("refuses to remove the app root or paths outside it", async () => {
+    it("refuses to remove the repository root or paths outside it", async () => {
         expect.assertions(3);
 
         const { cleanRuntimeDist } = await importCleanRuntimeDist();
-        const appRoot = path.join(repositoryRoot, appSourceDirectoryName);
         const fileSystem = {
             rmSync: vi.fn<
                 (
@@ -77,18 +73,14 @@ describe("clean-runtime-dist script", () => {
                 ) => void
             >(),
         };
-        const outsidePath = path.join(repositoryRoot, "dist");
+        const outsidePath = path.join(repositoryRoot, "..", "outside-dist");
 
         expect(() =>
-            cleanRuntimeDist({ appRoot, distPath: appRoot, fileSystem })
-        ).toThrow(
-            `Refusing to remove outside ${appSourceDirectoryName}: ${appRoot}`
-        );
+            cleanRuntimeDist({ distPath: repositoryRoot, fileSystem })
+        ).toThrow(`Refusing to remove outside repository: ${repositoryRoot}`);
         expect(() =>
-            cleanRuntimeDist({ appRoot, distPath: outsidePath, fileSystem })
-        ).toThrow(
-            `Refusing to remove outside ${appSourceDirectoryName}: ${outsidePath}`
-        );
+            cleanRuntimeDist({ distPath: outsidePath, fileSystem })
+        ).toThrow(`Refusing to remove outside repository: ${outsidePath}`);
         expect(fileSystem.rmSync).not.toHaveBeenCalled();
     });
 });

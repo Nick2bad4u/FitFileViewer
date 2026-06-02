@@ -17,7 +17,7 @@ const packageJsonSnippet = `{
   "workspaces": [
     "docusaurus"
   ],
-  "main": "electron-app/dist/main.js",
+  "main": "dist/main.js",
   "scripts": {
     "start": "node scripts/start-electron.mjs --inspect=9229 --remote-debugging-port=9222",
     "build": "node scripts/build-package.mjs",

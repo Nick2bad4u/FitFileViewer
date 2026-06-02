@@ -6,7 +6,7 @@
         "allowUnreachableCode": false,
         "allowUnusedLabels": false,
         "declaration": true,
-        "declarationDir": "./electron-app/types",
+        "declarationDir": "./types",
         "declarationMap": false,
         "disableSizeLimit": true,
         "incremental": true,
@@ -42,7 +42,7 @@
         "strictFunctionTypes": true,
         "strictNullChecks": true,
         "strictPropertyInitialization": true,
-        "tsBuildInfoFile": "./electron-app/dist/tsconfig.tsbuildinfo"
+        "tsBuildInfoFile": "./dist/tsconfig.tsbuildinfo"
     },
     "exclude": [
         "**/dist-electron",
@@ -56,9 +56,9 @@
         "**/node_modules/**",
         "**/node_modules/typescript/**",
         "coverage",
-        "electron-app/dist-electron",
-        "electron-app/dist",
-        "electron-app/dist-shared",
+        "dist-electron",
+        "dist",
+        "dist-shared",
         "**/dist-shared/**",
         "node_modules",
         "node_modules/**/*",

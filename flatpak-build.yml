@@ -11,8 +11,7 @@ modules:
     - build-commands:
           - cp -r ./node_modules /app/
           - install -Dm755 ./node_modules/electron/dist/electron /app/bin/electron
-          - mkdir -p /app/electron-app
-          - cp -r ./electron-app/dist /app/electron-app/
+          - cp -r ./dist /app/
           - install -Dm644 ./package.json /app/package.json
           - install -Dm644 ./static/app/index.html /app/index.html
           - install -Dm644 ./static/app/style.css /app/style.css

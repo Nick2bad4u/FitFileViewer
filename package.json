@@ -135,22 +135,22 @@
     "sideEffects": true,
     "type": "commonjs",
     "exports": {
-        ".": "./electron-app/dist/main.js",
-        "./fitParser.js": "./electron-app/dist/fitParser.js",
-        "./icons/favicon-256x256.ico": "./electron-app/dist/icons/favicon-256x256.ico",
-        "./icons/favicon-256x256.png": "./electron-app/dist/icons/favicon-256x256.png",
-        "./icons/favicon-512x512.icns": "./electron-app/dist/icons/favicon-512x512.icns",
-        "./icons/favicon.ico": "./electron-app/dist/icons/favicon.ico",
-        "./index.html": "./electron-app/dist/index.html",
-        "./main.js": "./electron-app/dist/main.js",
+        ".": "./dist/main.js",
+        "./fitParser.js": "./dist/fitParser.js",
+        "./icons/favicon-256x256.ico": "./dist/icons/favicon-256x256.ico",
+        "./icons/favicon-256x256.png": "./dist/icons/favicon-256x256.png",
+        "./icons/favicon-512x512.icns": "./dist/icons/favicon-512x512.icns",
+        "./icons/favicon.ico": "./dist/icons/favicon.ico",
+        "./index.html": "./dist/index.html",
+        "./main.js": "./dist/main.js",
         "./package.json": "./package.json",
-        "./preload.js": "./electron-app/dist/preload.js",
-        "./renderer.js": "./electron-app/dist/renderer.js"
+        "./preload.js": "./dist/preload.js",
+        "./renderer.js": "./dist/renderer.js"
     },
-    "main": "electron-app/dist/main.js",
+    "main": "dist/main.js",
     "types": "electron-app/global.d.ts",
     "files": [
-        "electron-app/dist/",
+        "dist/",
         "electron-app/global.d.ts",
         "package.json"
     ],
@@ -349,7 +349,7 @@
         "ia32",
         "x64"
     ],
-    "icon": "electron-app/dist/icons/favicon.ico",
+    "icon": "dist/icons/favicon.ico",
     "appid": "io.github.nick2bad4u.fitfileviewer",
     "companyName": "Nick2bad4u",
     "copyright": "Copyright © 2025 Nick2bad4u",

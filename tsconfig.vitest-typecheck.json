@@ -8,7 +8,7 @@
     "exclude": [
         ".cache/**",
         "coverage/**",
-        "electron-app/dist/**",
+        "dist/**",
         "node_modules/**"
     ],
     "extends": "./tsconfig.app.json",

@@ -45,7 +45,7 @@ describe("format-runtime-output script", () => {
         const repositoryRoot = makeTemporaryRoot();
         const tsconfig = {
             compilerOptions: {
-                outDir: "electron-app/dist",
+                outDir: "dist",
                 rootDir: "electron-app",
             },
         };
@@ -56,15 +56,7 @@ describe("format-runtime-output script", () => {
                 "electron-app/utils/example.ts",
                 repositoryRoot
             )
-        ).toBe(
-            path.join(
-                repositoryRoot,
-                "electron-app",
-                "dist",
-                "utils",
-                "example.js"
-            )
-        );
+        ).toBe(path.join(repositoryRoot, "dist", "utils", "example.js"));
     });
 
     it("finds existing runtime output files for TypeScript entries only", () => {
@@ -72,15 +64,10 @@ describe("format-runtime-output script", () => {
 
         const repositoryRoot = makeTemporaryRoot();
         const tsconfigPath = path.join(repositoryRoot, "tsconfig.runtime.json");
-        const existingOutput = path.join(
-            repositoryRoot,
-            "electron-app",
-            "dist",
-            "main.js"
-        );
+        const existingOutput = path.join(repositoryRoot, "dist", "main.js");
         writeJson(tsconfigPath, {
             compilerOptions: {
-                outDir: "electron-app/dist",
+                outDir: "dist",
                 rootDir: "electron-app",
             },
             files: [
@@ -113,12 +100,7 @@ describe("format-runtime-output script", () => {
         expect.assertions(4);
 
         const repositoryRoot = makeTemporaryRoot();
-        const outputFile = path.join(
-            repositoryRoot,
-            "electron-app",
-            "dist",
-            "main.js"
-        );
+        const outputFile = path.join(repositoryRoot, "dist", "main.js");
         const prettierModule: FakePrettier = {
             format: vi.fn<FakePrettier["format"]>(
                 async (source: string) => `${source.trim()}\n`
@@ -150,15 +132,9 @@ describe("format-runtime-output script", () => {
 
         const repositoryRoot = makeTemporaryRoot();
         const tsconfigPath = path.join(repositoryRoot, "tsconfig.runtime.json");
-        const outputFile = path.join(
-            repositoryRoot,
-            "electron-app",
-            "dist",
-            "main.js"
-        );
+        const outputFile = path.join(repositoryRoot, "dist", "main.js");
         const nestedOutputFile = path.join(
             repositoryRoot,
-            "electron-app",
             "dist",
             "utils",
             "helper.js"
@@ -174,7 +150,7 @@ describe("format-runtime-output script", () => {
 
         writeJson(tsconfigPath, {
             compilerOptions: {
-                outDir: "electron-app/dist",
+                outDir: "dist",
                 rootDir: "electron-app",
             },
             files: [

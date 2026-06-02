@@ -3,16 +3,12 @@ import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
-import {
-    appDistAbsolutePath,
-    appSourceDirectoryName,
-    appSourcePath,
-} from "./lib/workspaces.mjs";
+import { appDistAbsolutePath, repositoryRoot } from "./lib/workspaces.mjs";
 
 export const defaultRuntimeDistPath = appDistAbsolutePath;
 
-export function assertInsideAppSource(targetPath, appRoot = appSourcePath) {
-    const resolvedRoot = path.resolve(appRoot);
+export function assertInsideRepository(targetPath, root = repositoryRoot) {
+    const resolvedRoot = path.resolve(root);
     const resolvedTarget = path.resolve(targetPath);
     const relativePath = path.relative(resolvedRoot, resolvedTarget);
 
@@ -21,18 +17,16 @@ export function assertInsideAppSource(targetPath, appRoot = appSourcePath) {
         relativePath.startsWith("..") ||
         path.isAbsolute(relativePath)
     ) {
-        throw new Error(
-            `Refusing to remove outside ${appSourceDirectoryName}: ${targetPath}`
-        );
+        throw new Error(`Refusing to remove outside repository: ${targetPath}`);
     }
 }
 
 export function cleanRuntimeDist({
-    appRoot = appSourcePath,
     distPath = defaultRuntimeDistPath,
     fileSystem = fs,
+    root = repositoryRoot,
 } = {}) {
-    assertInsideAppSource(distPath, appRoot);
+    assertInsideRepository(distPath, root);
     fileSystem.rmSync(distPath, { force: true, recursive: true });
 
     return distPath;
