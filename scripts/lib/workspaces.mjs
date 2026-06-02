@@ -200,6 +200,8 @@ export const docusaurusAdvancedFitParserMigrationDocPath =
         "advanced",
         "fit-parser-migration.md"
     );
+export const docusaurusAdvancedPerformanceDocPath =
+    docusaurusWorkspaceRepositoryPath("docs", "advanced", "performance.md");
 export const docusaurusApiCoreApisDocPath = docusaurusWorkspaceRepositoryPath(
     "docs",
     "api-reference",

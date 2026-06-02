@@ -202,10 +202,10 @@ function simplifyRoute(points, tolerance = 0.0001) {
 ### Performance Monitoring
 
 ```javascript
-// Measure operation time
-function measurePerformance(name, fn) {
+// Measure async operation time
+async function measurePerformance(name, fn) {
  const start = performance.now();
- const result = fn();
+ const result = await fn();
  const end = performance.now();
 
  console.log(`${name}: ${(end - start).toFixed(2)}ms`);
@@ -213,8 +213,8 @@ function measurePerformance(name, fn) {
 }
 
 // Usage
-const data = measurePerformance("Parse FIT file", () => {
- return parseFitFile(buffer);
+const data = await measurePerformance("Parse FIT file", () => {
+ return window.electronAPI.parseFitFile(buffer);
 });
 ```
 

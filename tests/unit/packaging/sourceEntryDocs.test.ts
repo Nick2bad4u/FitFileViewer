@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 
 import {
     docusaurusAdvancedFitParserMigrationDocPath,
+    docusaurusAdvancedPerformanceDocPath,
     docusaurusApiCoreApisDocPath,
     docusaurusApiIpcCommunicationDocPath,
     docusaurusArchitectureModuleSystemDocPath,
@@ -40,6 +41,7 @@ const SOURCE_LAYOUT_DOCS = [
 const FIT_PARSER_API_DOCS = [
     rootFitParserMigrationGuideDocPath,
     docusaurusAdvancedFitParserMigrationDocPath,
+    docusaurusAdvancedPerformanceDocPath,
     docusaurusApiCoreApisDocPath,
     docusaurusApiIpcCommunicationDocPath,
 ];
@@ -140,14 +142,19 @@ describe("source entrypoint documentation", () => {
             "setupFitParserIPC",
             "setupFitParserPreload",
             "import { parseFitFile }",
-            "parseFitFile(buffer)",
             "// renderer.js",
             "// preload.js",
         ];
+        const staleDirectParserCall = /(^|[^.\w])parseFitFile\(buffer\)/u;
 
-        expect(
-            staleApiReferences.filter((reference) => docs.includes(reference))
-        ).toStrictEqual([]);
+        expect([
+            ...staleApiReferences.filter((reference) =>
+                docs.includes(reference)
+            ),
+            ...(staleDirectParserCall.test(docs)
+                ? ["direct parseFitFile(buffer)"]
+                : []),
+        ]).toStrictEqual([]);
     });
 
     it("keeps the root layout guide from documenting removed top-level directories", () => {

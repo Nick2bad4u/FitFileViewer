@@ -31,6 +31,7 @@ type WorkspacesModule = {
     bundlePreloadScriptPath: string;
     cleanRuntimeDistScriptPath: string;
     docusaurusAdvancedFitParserMigrationDocPath: string;
+    docusaurusAdvancedPerformanceDocPath: string;
     docusaurusArchitectureModuleSystemDocPath: string;
     docusaurusApiCoreApisDocPath: string;
     docusaurusApiDocsPath: string;
@@ -449,6 +450,8 @@ describe("workspace path helpers", () => {
         expect({
             docusaurusAdvancedFitParserMigration:
                 workspaces.docusaurusAdvancedFitParserMigrationDocPath,
+            docusaurusAdvancedPerformance:
+                workspaces.docusaurusAdvancedPerformanceDocPath,
             docusaurusApiCoreApis: workspaces.docusaurusApiCoreApisDocPath,
             docusaurusApiIpcCommunication:
                 workspaces.docusaurusApiIpcCommunicationDocPath,
@@ -480,6 +483,8 @@ describe("workspace path helpers", () => {
         }).toStrictEqual({
             docusaurusAdvancedFitParserMigration:
                 "docusaurus/docs/advanced/fit-parser-migration.md",
+            docusaurusAdvancedPerformance:
+                "docusaurus/docs/advanced/performance.md",
             docusaurusApiCoreApis: "docusaurus/docs/api-reference/core-apis.md",
             docusaurusApiIpcCommunication:
                 "docusaurus/docs/api-reference/ipc-communication.md",
