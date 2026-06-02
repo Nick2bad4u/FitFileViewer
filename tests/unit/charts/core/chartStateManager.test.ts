@@ -155,7 +155,7 @@ describe("chartStateManager", () => {
 
     describe("constructor and Initialization", () => {
         it("should create a ChartStateManager instance", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             expect(chartStateManager).toBeInstanceOf(ChartStateManager);
             expect({
@@ -169,7 +169,7 @@ describe("chartStateManager", () => {
         });
 
         it("should have required methods", () => {
-            expect.hasAssertions();
+            expect.assertions(6);
 
             expect(chartStateManager.debouncedRender).toBeTypeOf("function");
             expect(chartStateManager.forceRender).toBeTypeOf("function");
@@ -182,7 +182,7 @@ describe("chartStateManager", () => {
         });
 
         it("should expose instance to global scope when window is available", () => {
-            expect.hasAssertions();
+            expect.assertions(5);
 
             // jsdom environment has window, but the global assignment happens during module load
             // Since we're importing in test context, the global assignment might not persist
@@ -197,7 +197,7 @@ describe("chartStateManager", () => {
 
     describe("debounced Rendering", () => {
         it("should debounce multiple render calls", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const performRenderSpy = vi
                 .spyOn(chartStateManager, "performChartRender")
@@ -220,7 +220,7 @@ describe("chartStateManager", () => {
         });
 
         it("should clear existing timeout when called multiple times", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const clearTimeoutSpy = vi.spyOn(globalThis, "clearTimeout");
 
@@ -235,7 +235,7 @@ describe("chartStateManager", () => {
 
     describe("force Rendering", () => {
         it("should execute force render immediately", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const performRenderSpy = vi
                 .spyOn(chartStateManager, "performChartRender")
@@ -249,7 +249,7 @@ describe("chartStateManager", () => {
         });
 
         it("should clear existing timeout when force rendering", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const clearTimeoutSpy = vi.spyOn(globalThis, "clearTimeout");
 
@@ -264,7 +264,7 @@ describe("chartStateManager", () => {
 
     describe("chart Information", () => {
         it("should get chart info with default values", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             vi.mocked(getState).mockReturnValue({});
 
@@ -282,7 +282,7 @@ describe("chartStateManager", () => {
         });
 
         it("should get chart info with actual values", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const mockChartState = {
                 isRendered: true,
@@ -312,7 +312,7 @@ describe("chartStateManager", () => {
 
     describe("chart Tab Activity Detection", () => {
         it("should detect chartjs tab as active", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             vi.mocked(getState).mockReturnValue("chartjs");
 
@@ -328,7 +328,7 @@ describe("chartStateManager", () => {
         });
 
         it("should detect chart tab as active", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             vi.mocked(getState).mockReturnValue("chart");
 
@@ -342,7 +342,7 @@ describe("chartStateManager", () => {
         });
 
         it("should detect non-chart tab as inactive", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             vi.mocked(getState).mockReturnValue("map");
 
@@ -358,7 +358,7 @@ describe("chartStateManager", () => {
 
     describe("data Change Handling", () => {
         it("should handle data change with valid data and active tab", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             const debouncedRenderSpy = vi.spyOn(
                 chartStateManager,
@@ -386,7 +386,7 @@ describe("chartStateManager", () => {
         });
 
         it("should not render when data is invalid", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const debouncedRenderSpy = vi.spyOn(
                 chartStateManager,
@@ -408,7 +408,7 @@ describe("chartStateManager", () => {
         });
 
         it("should not render when chart tab is inactive", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const debouncedRenderSpy = vi.spyOn(
                 chartStateManager,
@@ -432,7 +432,7 @@ describe("chartStateManager", () => {
 
     describe("tab Activation Handling", () => {
         it("should handle tab activation", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const debouncedRenderSpy = vi.spyOn(
                 chartStateManager,
@@ -456,7 +456,7 @@ describe("chartStateManager", () => {
         });
 
         it("should not render if charts are already rendered", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             const debouncedRenderSpy = vi.spyOn(
                 chartStateManager,
@@ -493,7 +493,7 @@ describe("chartStateManager", () => {
 
     describe("theme Change Handling", () => {
         it("should handle theme change when charts are rendered and active", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const debouncedRenderSpy = vi.spyOn(
                 chartStateManager,
@@ -517,7 +517,7 @@ describe("chartStateManager", () => {
         });
 
         it("should handle theme change without theme parameter", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const debouncedRenderSpy = vi.spyOn(
                 chartStateManager,
@@ -539,7 +539,7 @@ describe("chartStateManager", () => {
         });
 
         it("should not render when charts are not rendered", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const debouncedRenderSpy = vi.spyOn(
                 chartStateManager,
@@ -558,7 +558,7 @@ describe("chartStateManager", () => {
 
     describe("chart State Management", () => {
         it("should clear chart state", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             const mockChart = { destroy: vi.fn<() => void>() };
             const destroyExistingChartsSpy = vi.spyOn(
@@ -588,7 +588,7 @@ describe("chartStateManager", () => {
         });
 
         it("should destroy existing charts", () => {
-            expect.hasAssertions();
+            expect.assertions(5);
 
             const mockCharts = [
                 { destroy: vi.fn<() => void>() },
@@ -607,7 +607,7 @@ describe("chartStateManager", () => {
         });
 
         it("should handle chart destruction errors", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const consoleWarnSpy = vi
                 .spyOn(console, "warn")
@@ -638,7 +638,7 @@ describe("chartStateManager", () => {
 
     describe("chart Rendering", () => {
         it("should perform chart render successfully", async () => {
-            expect.hasAssertions();
+            expect.assertions(6);
 
             vi.mocked(renderChartJS).mockResolvedValue(true);
             const renderedAt = new Date("2026-06-01T12:00:00.000Z");
@@ -673,7 +673,7 @@ describe("chartStateManager", () => {
         });
 
         it("should handle chart render failure", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             vi.mocked(renderChartJS).mockResolvedValue(false);
             const consoleWarnSpy = vi
@@ -709,7 +709,7 @@ describe("chartStateManager", () => {
         });
 
         it("should downgrade logging when render is skipped intentionally", async () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             vi.mocked(renderChartJS).mockResolvedValue(false);
             const consoleInfoSpy = vi
@@ -750,7 +750,7 @@ describe("chartStateManager", () => {
         });
 
         it("should handle chart render errors", async () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             const renderError = new Error("Render failed");
             vi.mocked(renderChartJS).mockRejectedValue(renderError);
@@ -780,7 +780,7 @@ describe("chartStateManager", () => {
         });
 
         it("should handle missing container", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             document.body.innerHTML = ""; // Remove mock container
             const consoleWarnSpy = vi
@@ -806,7 +806,7 @@ describe("chartStateManager", () => {
 
     describe("controls Visibility", () => {
         it("should update controls visibility to visible", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const controlsPanel = document.querySelector(
                 ".chart-controls"
@@ -818,7 +818,7 @@ describe("chartStateManager", () => {
         });
 
         it("should update controls visibility to hidden", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const controlsPanel = document.querySelector(
                 ".chart-controls"
@@ -830,7 +830,7 @@ describe("chartStateManager", () => {
         });
 
         it("should handle missing controls panel", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             document.body.innerHTML = ""; // Remove mock controls panel
 
@@ -843,7 +843,7 @@ describe("chartStateManager", () => {
 
     describe("cleanup and Destruction", () => {
         it("should cleanup (alias for destroy)", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const mockChart = { destroy: vi.fn<() => void>() };
             const destroySpy = vi.spyOn(chartStateManager, "destroy");
@@ -857,7 +857,7 @@ describe("chartStateManager", () => {
         });
 
         it("should destroy properly", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const clearTimeoutSpy = vi.spyOn(globalThis, "clearTimeout");
             const mockChart = { destroy: vi.fn<() => void>() };
@@ -882,7 +882,7 @@ describe("chartStateManager", () => {
         });
 
         it("should destroy without a pending render timeout", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const clearTimeoutSpy = vi.spyOn(globalThis, "clearTimeout");
             const mockChart = { destroy: vi.fn<() => void>() };
@@ -900,7 +900,7 @@ describe("chartStateManager", () => {
 
     describe("module Exports", () => {
         it("should export ChartStateManager as default", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             expect(chartStateManager).toBeInstanceOf(ChartStateManager);
             expect(chartStateManager.constructor.name).toBe(
@@ -910,7 +910,7 @@ describe("chartStateManager", () => {
         });
 
         it("should be an instance of ChartStateManager", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             expect(chartStateManager).toBeInstanceOf(ChartStateManager);
             expect({
@@ -921,7 +921,7 @@ describe("chartStateManager", () => {
         });
 
         it("should create singleton behavior through global exposure when window is available", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             // In test environment, verify singleton behavior exists
             expect(chartStateManager).toBeInstanceOf(ChartStateManager);
