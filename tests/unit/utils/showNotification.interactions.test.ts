@@ -6,11 +6,16 @@ import {
 } from "../../../electron-app/utils/ui/notifications/showNotification.js";
 
 function getNotificationState(element: HTMLElement) {
+    const message = element.querySelector(".notification-message");
+    if (!message) {
+        throw new Error("Expected .notification-message to exist");
+    }
+
     return {
         ariaLabel: element.getAttribute("aria-label"),
         classList: [...element.classList],
         display: element.style.display,
-        message: element.querySelector(".notification-message")?.textContent,
+        message: message.textContent,
     };
 }
 
@@ -157,9 +162,7 @@ describe("showNotification interactions", () => {
         await p1; // first scheduled
         let el = document.getElementById("notification")!;
         expect(el.style.display).toBe("flex");
-        expect(el.querySelector(".notification-message")?.textContent).toBe(
-            "First"
-        );
+        expect(getNotificationState(el).message).toBe("First");
         expect(el.className).toBe("notification success");
         // finish first
         vi.advanceTimersByTime(500 + 300);
@@ -167,9 +170,7 @@ describe("showNotification interactions", () => {
         vi.advanceTimersByTime(50);
         await p2;
         el = document.getElementById("notification")!;
-        expect(el.querySelector(".notification-message")?.textContent).toBe(
-            "Second"
-        );
+        expect(getNotificationState(el).message).toBe("Second");
         expect(el.className).toBe("notification error");
         // finish second
         vi.advanceTimersByTime(500 + 300);
