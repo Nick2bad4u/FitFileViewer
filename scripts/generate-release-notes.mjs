@@ -1,5 +1,6 @@
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
+import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
@@ -242,7 +243,9 @@ function normalizeOptions(options) {
     return {
         commandRunner: options.commandRunner,
         repository: options.repository,
-        repositoryRoot: options.repositoryRoot ?? defaultRepositoryRoot,
+        repositoryRoot: path.resolve(
+            options.repositoryRoot ?? defaultRepositoryRoot
+        ),
         version: options.version,
     };
 }

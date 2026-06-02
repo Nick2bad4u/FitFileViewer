@@ -178,7 +178,7 @@ describe("generate-release-notes script", () => {
                     "--force",
                 ],
                 command: "git",
-                cwd: ".",
+                cwd: repositoryRoot,
             },
             {
                 args: [
@@ -190,7 +190,7 @@ describe("generate-release-notes script", () => {
                     "v30.0.0^",
                 ],
                 command: "git",
-                cwd: ".",
+                cwd: repositoryRoot,
             },
             {
                 args: [
@@ -200,7 +200,7 @@ describe("generate-release-notes script", () => {
                     "--date=short",
                 ],
                 command: "git",
-                cwd: ".",
+                cwd: repositoryRoot,
             },
         ]);
     });
