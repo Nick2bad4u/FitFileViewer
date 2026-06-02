@@ -37,7 +37,7 @@ describe("sanitizeCssColorToken (property)", () => {
                 expect(lower).not.toContain("url(");
                 expect(lower).not.toContain("expression(");
                 expect(lower).not.toContain("@import");
-                expect({ isScriptScheme }).toEqual({
+                expect({ isScriptScheme }).toStrictEqual({
                     isScriptScheme: false,
                 });
             }),

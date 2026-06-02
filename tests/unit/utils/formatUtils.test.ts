@@ -28,7 +28,7 @@ describe(formatArray, () => {
 
         const objectValue = { value: 1 };
 
-        expect([formatArray(null), formatArray(undefined)]).toEqual([
+        expect([formatArray(null), formatArray(undefined)]).toStrictEqual([
             null,
             undefined,
         ]);

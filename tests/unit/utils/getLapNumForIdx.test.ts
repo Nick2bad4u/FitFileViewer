@@ -29,7 +29,7 @@ describe(getLapNumForIdx, () => {
             getLapNumForIdx(100, laps),
             getLapNumForIdx(150, laps),
             getLapNumForIdx(350, laps),
-        ]).toEqual([
+        ]).toStrictEqual([
             1,
             1,
             2,
@@ -47,7 +47,7 @@ describe(getLapNumForIdx, () => {
             { start_index: 100, end_index: 199 },
         ];
 
-        expect({ lapNumber: getLapNumForIdx(125, laps) }).toEqual({
+        expect({ lapNumber: getLapNumForIdx(125, laps) }).toStrictEqual({
             lapNumber: 1,
         });
     });
@@ -81,7 +81,7 @@ describe(getLapNumForIdx, () => {
             { start_index: 200, end_index: 299 },
         ];
 
-        expect({ lapNumber: getLapNumForIdx(250, laps) }).toEqual({
+        expect({ lapNumber: getLapNumForIdx(250, laps) }).toStrictEqual({
             lapNumber: 5,
         });
 
