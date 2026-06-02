@@ -102,10 +102,56 @@ function requireValue<T>(value: T | null | undefined, message: string) {
     return value;
 }
 
+function normalizeText(value: null | string | undefined): string {
+    return value?.replace(/\s+/gu, " ").trim() ?? "";
+}
+
+function getZoneColorPickerState(overlay: HTMLElement) {
+    const modal = overlay.querySelector(".zone-color-picker-modal");
+
+    return {
+        actionButtons: Array.from(
+            overlay.querySelectorAll<HTMLButtonElement>(
+                ".zone-color-actions button"
+            ),
+            (button) => ({
+                className: button.className,
+                text: button.textContent,
+                type: button.type,
+            })
+        ),
+        colorInputLabels: Array.from(
+            overlay.querySelectorAll<HTMLInputElement>(".zone-color-input"),
+            (input) => input.getAttribute("aria-label")
+        ),
+        colorInputValues: Array.from(
+            overlay.querySelectorAll<HTMLInputElement>(".zone-color-input"),
+            (input) => input.value
+        ),
+        colorPreviewCount: overlay.querySelectorAll(".zone-color-preview")
+            .length,
+        modalAriaLabelledBy: modal?.getAttribute("aria-labelledby"),
+        modalClassName: modal?.className,
+        modalRole: modal?.getAttribute("role"),
+        overlayClassName: overlay.className,
+        title: normalizeText(
+            overlay.querySelector("#zone-color-picker-title")?.textContent
+        ),
+        zoneLabels: Array.from(
+            overlay.querySelectorAll(".zone-color-label"),
+            (label) => normalizeText(label.textContent)
+        ),
+        zoneTimes: Array.from(
+            overlay.querySelectorAll(".zone-color-time"),
+            (time) => normalizeText(time.textContent)
+        ),
+    };
+}
+
 describe("openZoneColorPicker", () => {
     beforeEach(() => {
-        document.body.innerHTML = "";
-        document.head.innerHTML = "";
+        document.body.replaceChildren();
+        document.head.replaceChildren();
         localStorage.clear();
         delete (globalThis as any).heartRateZones;
         delete (globalThis as any).powerZones;
@@ -212,11 +258,34 @@ describe("openZoneColorPicker", () => {
         const overlay = document.querySelector<HTMLDivElement>(
             "#zone-color-picker-overlay"
         );
-        expect(overlay).toBeInstanceOf(HTMLDivElement);
         const renderedOverlay = requireElement(
             overlay,
             "Zone color picker overlay not rendered"
         );
+        expect(getZoneColorPickerState(renderedOverlay)).toStrictEqual({
+            actionButtons: [
+                {
+                    className: "reset-all-btn",
+                    text: "Reset All",
+                    type: "button",
+                },
+                {
+                    className: "zone-color-apply-btn",
+                    text: "Apply & Close",
+                    type: "button",
+                },
+            ],
+            colorInputLabels: ["Zone 1 color", "Zone 2 color"],
+            colorInputValues: ["#aa0000", "#aa0011"],
+            colorPreviewCount: 2,
+            modalAriaLabelledBy: "zone-color-picker-title",
+            modalClassName: "zone-color-picker-modal",
+            modalRole: "dialog",
+            overlayClassName: "zone-color-picker-overlay",
+            title: "Heart Rate Zone Colors - Zone Charts",
+            zoneLabels: ["Zone 1", "Zone 2"],
+            zoneTimes: ["Time: 00:30", "Time: 00:30"],
+        });
         expect(applyZoneColorsMock).toHaveBeenCalledWith(
             expect.any(Array),
             "heart rate"
@@ -297,11 +366,8 @@ describe("openZoneColorPicker", () => {
             "success"
         );
 
-        const applyButton = Array.from(
-            renderedOverlay.querySelectorAll<HTMLButtonElement>("button")
-        ).find(
-            (btn) =>
-                btn.textContent && btn.textContent.includes("Apply & Close")
+        const applyButton = renderedOverlay.querySelector<HTMLButtonElement>(
+            ".zone-color-apply-btn"
         );
         expect(applyButton).toBeInstanceOf(HTMLButtonElement);
         const renderedApplyButton = requireElement(
