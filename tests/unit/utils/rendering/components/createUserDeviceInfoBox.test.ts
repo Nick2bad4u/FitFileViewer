@@ -139,7 +139,12 @@ function normalizeText(value: null | string | undefined): string {
 }
 
 function getElementText(container: ParentNode, selector: string): string {
-    return normalizeText(container.querySelector(selector)?.textContent);
+    const element = container.querySelector(selector);
+    if (element === null) {
+        throw new TypeError(`Expected ${selector} to render`);
+    }
+
+    return normalizeText(element.textContent);
 }
 
 function getInfoBoxState(container: HTMLElement) {

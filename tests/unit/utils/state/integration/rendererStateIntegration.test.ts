@@ -142,15 +142,15 @@ beforeEach(() => {
     isMapRenderedMock.mockReturnValue(false);
     areTablesRenderedMock.mockReturnValue(false);
 
-    document.body.innerHTML = "";
-    document.head.innerHTML = "";
+    document.body.replaceChildren();
+    document.head.replaceChildren();
     delete (globalThis as any).electronAPI;
 });
 
 afterEach(() => {
     vi.useRealTimers();
-    document.body.innerHTML = "";
-    document.head.innerHTML = "";
+    document.body.replaceChildren();
+    document.head.replaceChildren();
     delete (globalThis as any).electronAPI;
 });
 
