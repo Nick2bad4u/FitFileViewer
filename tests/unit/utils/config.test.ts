@@ -42,10 +42,45 @@ describe("config/index.js", () => {
     });
 
     it("does not expose a duplicated app metadata constants group", () => {
-        expect.assertions(2);
+        expect.assertions(1);
 
-        expect(CONFIG).not.toHaveProperty("APP");
-        expect(config).not.toHaveProperty("APP_CONSTANTS");
+        expect({
+            configNamespaceKeys: Object.keys(config).sort(),
+            groupedConfigKeys: Object.keys(CONFIG).sort(),
+        }).toStrictEqual({
+            configNamespaceKeys: [
+                "CHART_CONSTANTS",
+                "CONFIG",
+                "CONVERSION_FACTORS",
+                "DEBUG_CONSTANTS",
+                "DISTANCE_UNITS",
+                "ERROR_CONSTANTS",
+                "FILE_CONSTANTS",
+                "MAP_CONSTANTS",
+                "PERFORMANCE_CONSTANTS",
+                "TEMPERATURE_UNITS",
+                "TIME_UNITS",
+                "UI_CONSTANTS",
+                "VALIDATION_CONSTANTS",
+                "getConfig",
+                "initializeConfig",
+                "validateConfig",
+            ],
+            groupedConfigKeys: [
+                "CHART",
+                "CONVERSION",
+                "DEBUG",
+                "DISTANCE_UNITS",
+                "ERROR",
+                "FILE",
+                "MAP",
+                "PERFORMANCE",
+                "TEMPERATURE_UNITS",
+                "TIME_UNITS",
+                "UI",
+                "VALIDATION",
+            ],
+        });
     });
 
     it("reads values by dot-notation path", () => {
