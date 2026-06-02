@@ -105,6 +105,11 @@ const expectedRootToolingScripts = {
     "update-deps": "node scripts/update-deps.mjs",
 } as const;
 
+const disallowedRootDevDependencyNamePatterns = [
+    /^@actions\//u,
+    /^eslint-plugin-/u,
+] as const;
+
 function delegatesToNestedElectronPackage(script: string): boolean {
     return nestedElectronPackageDelegationPatterns.some((pattern) =>
         pattern.test(script)
@@ -113,9 +118,16 @@ function delegatesToNestedElectronPackage(script: string): boolean {
 
 describe("workspace package boundaries", () => {
     it("keeps shared tooling and local Vitest UI support in the root workspace", () => {
-        expect.assertions(9);
+        expect.assertions(10);
 
         const rootPackage = readPackageJson("package.json");
+        const directDisallowedDevDependencies = Object.keys(
+            rootPackage.devDependencies ?? {}
+        ).filter((dependencyName) =>
+            disallowedRootDevDependencyNamePatterns.some((pattern) =>
+                pattern.test(dependencyName)
+            )
+        );
 
         expect(rootPackage.workspaces).toStrictEqual(["docusaurus"]);
         expect(
@@ -151,6 +163,7 @@ describe("workspace package boundaries", () => {
             "electron-updater",
             "zod",
         ]);
+        expect(directDisallowedDevDependencies).toStrictEqual([]);
         expect(rootPackage.devDependencies).not.toHaveProperty("@actions/core");
         expect(rootPackage.devDependencies).not.toHaveProperty(
             "eslint-plugin-unicorn"
