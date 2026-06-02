@@ -409,33 +409,20 @@ describe("preload.js dist API methods", () => {
     });
 
     describe("file Operations API", () => {
-        it("should provide openFile method", () => {
-            expect.assertions(2);
+        it("should route open file aliases through the dialog channel", async () => {
+            expect.assertions(3);
             const { exposedAPI } = createPreloadEnvironment();
-            expect(exposedAPI.openFile).toBeTypeOf("function");
-            expect(exposedAPI.openFileDialog).toBeTypeOf("function");
-        });
+            const results = await Promise.all([
+                exposedAPI.openFile(),
+                exposedAPI.openFileDialog(),
+            ]);
 
-        it("should handle openFile invocation", async () => {
-            expect.assertions(2);
-            const { exposedAPI } = createPreloadEnvironment();
-            const result = await exposedAPI.openFile();
-
-            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
-                "dialog:openFile"
-            );
-            expect(result).toBe("mock-result");
-        });
-
-        it("should provide openFileDialog alias", async () => {
-            expect.assertions(2);
-            const { exposedAPI } = createPreloadEnvironment();
-            const result = await exposedAPI.openFileDialog();
-
-            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
-                "dialog:openFile"
-            );
-            expect(result).toBe("mock-result");
+            expect(results).toStrictEqual(["mock-result", "mock-result"]);
+            expect(mockIpcRenderer.invoke).toHaveBeenCalledTimes(2);
+            expect(mockIpcRenderer.invoke.mock.calls).toStrictEqual([
+                ["dialog:openFile"],
+                ["dialog:openFile"],
+            ]);
         });
 
         it("should provide readFile method", async () => {
@@ -569,25 +556,28 @@ describe("preload.js dist API methods", () => {
     });
 
     describe("application Information API", () => {
-        it("should provide version information methods", () => {
-            expect.assertions(4);
-            const { exposedAPI } = createPreloadEnvironment();
-
-            expect(exposedAPI.getAppVersion).toBeTypeOf("function");
-            expect(exposedAPI.getElectronVersion).toBeTypeOf("function");
-            expect(exposedAPI.getNodeVersion).toBeTypeOf("function");
-            expect(exposedAPI.getChromeVersion).toBeTypeOf("function");
-        });
-
-        it("should handle version retrieval", async () => {
+        it("should route version information methods through their channels", async () => {
             expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
-            const result = await exposedAPI.getAppVersion();
+            const results = await Promise.all([
+                exposedAPI.getAppVersion(),
+                exposedAPI.getElectronVersion(),
+                exposedAPI.getNodeVersion(),
+                exposedAPI.getChromeVersion(),
+            ]);
 
-            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
-                "getAppVersion"
-            );
-            expect(result).toBe("mock-result");
+            expect(results).toStrictEqual([
+                "mock-result",
+                "mock-result",
+                "mock-result",
+                "mock-result",
+            ]);
+            expect(mockIpcRenderer.invoke.mock.calls).toStrictEqual([
+                ["getAppVersion"],
+                ["getElectronVersion"],
+                ["getNodeVersion"],
+                ["getChromeVersion"],
+            ]);
         });
 
         it("should provide getPlatformInfo method", async () => {
@@ -754,29 +744,25 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should validate callback functions in event handlers", () => {
-            expect.assertions(5);
+            expect.assertions(7);
             const { exposedAPI, mockConsole } = createPreloadEnvironment();
 
-            // Try to register with invalid callback
             const openFileUnsubscribe =
                 exposedAPI.onMenuOpenFile("not-a-function");
-
-            expect(mockConsole.error).toHaveBeenCalledWith(
-                "[preload.js] onMenuOpenFile: callback must be a function"
-            );
-            expect(openFileUnsubscribe).toBeTypeOf("function");
-
             const openOverlayUnsubscribe =
                 exposedAPI.onMenuOpenOverlay("not-a-function");
 
+            expect(openFileUnsubscribe()).toBeUndefined();
+            expect(openOverlayUnsubscribe()).toBeUndefined();
+            expect(mockConsole.error).toHaveBeenCalledWith(
+                "[preload.js] onMenuOpenFile: callback must be a function"
+            );
             expect(mockConsole.error).toHaveBeenCalledWith(
                 "[preload.js] onMenuOpenOverlay: callback must be a function"
             );
-            expect(openOverlayUnsubscribe).toBeTypeOf("function");
-            expect(mockIpcRenderer.on).not.toHaveBeenCalledWith(
-                "menu-open-file",
-                "not-a-function"
-            );
+            expect(mockIpcRenderer.on).not.toHaveBeenCalled();
+            expect(mockIpcRenderer.removeListener).not.toHaveBeenCalled();
+            expect(mockConsole.error).toHaveBeenCalledTimes(2);
         });
     });
 
