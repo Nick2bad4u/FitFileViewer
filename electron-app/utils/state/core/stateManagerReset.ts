@@ -1,4 +1,5 @@
 import { AppState, createResetAppState } from "./stateManagerDefaults.js";
+import { isTestEnvironment } from "../../runtime/processEnvironment.js";
 
 type MutableRecord = Record<string, unknown>;
 
@@ -17,7 +18,9 @@ export function resetState(path?: string): void {
         resetAllState();
     }
 
-    console.log(`[StateManager] State reset: ${path || "all"}`);
+    if (!isTestEnvironment()) {
+        console.log(`[StateManager] State reset: ${path || "all"}`);
+    }
 }
 
 function resetStatePath(path: string): void {

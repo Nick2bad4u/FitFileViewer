@@ -1,3 +1,5 @@
+import { isTestEnvironment } from "../../runtime/processEnvironment.js";
+
 /**
  * State change record stored for debugging.
  */
@@ -19,7 +21,9 @@ export const stateHistory: StateHistoryEntry[] = [];
  */
 export function clearStateHistory(): void {
     stateHistory.length = 0;
-    console.log("[StateManager] State history cleared");
+    if (!isTestEnvironment()) {
+        console.log("[StateManager] State history cleared");
+    }
 }
 
 /**

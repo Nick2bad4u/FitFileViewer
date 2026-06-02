@@ -7,6 +7,10 @@ type MockWithCalls = { mock: { calls: unknown[][] } };
 type IpcListener = (...args: unknown[]) => void;
 type Unsubscribe = (() => void) | undefined;
 type VoidMockHandler = (...args: unknown[]) => void;
+type UnhandledRejectionHandler = (
+    reason: unknown,
+    promise: Promise<unknown>
+) => void;
 
 interface ElectronMock {
     contextBridge: {
@@ -293,6 +297,7 @@ describe("preload.js - Comprehensive API Testing", () => {
     let electronMock: ElectronMock;
     let consoleLogSpy: MockWithCalls;
     let consoleErrorSpy: MockWithCalls;
+    let removeUnhandledRejectionHandler: (() => void) | undefined;
     let mockProcess: MockProcess;
 
     function findExposedCall(apiName: string): ExposeCall | undefined {
@@ -412,10 +417,20 @@ describe("preload.js - Comprehensive API Testing", () => {
         vi.clearAllMocks();
 
         // Add unhandled promise rejection handler for tests
-        process.on("unhandledRejection", (reason, promise) => {
+        const runtimeProcess = process;
+        const unhandledRejectionHandler: UnhandledRejectionHandler = (
+            reason
+        ) => {
             console.error("Unhandled Promise Rejection in test:", reason);
             // Don't throw to prevent test failures, just log
-        });
+        };
+        runtimeProcess.on("unhandledRejection", unhandledRejectionHandler);
+        removeUnhandledRejectionHandler = () => {
+            runtimeProcess.removeListener(
+                "unhandledRejection",
+                unhandledRejectionHandler
+            );
+        };
 
         // Create comprehensive electron mock
         electronMock = {
@@ -439,8 +454,11 @@ describe("preload.js - Comprehensive API Testing", () => {
         };
 
         // Mock console methods
-        consoleLogSpy = vi.spyOn(console, "log");
-        consoleErrorSpy = vi.spyOn(console, "error");
+        consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+        consoleErrorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
+        vi.spyOn(console, "warn").mockImplementation(() => {});
 
         // Mock process object
         const beforeExitListeners: VoidMockHandler[] = [];
@@ -499,8 +517,10 @@ describe("preload.js - Comprehensive API Testing", () => {
     });
 
     afterEach(() => {
-        // Cleanup is handled by vitest automatically
-        // process.removeAllListeners('unhandledRejection');
+        removeUnhandledRejectionHandler?.();
+        removeUnhandledRejectionHandler = undefined;
+        vi.restoreAllMocks();
+        vi.unstubAllGlobals();
     });
 
     describe("api exposure", () => {

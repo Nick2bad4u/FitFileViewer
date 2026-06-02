@@ -6,6 +6,7 @@ import {
     stateHistory,
 } from "./stateManagerHistory.js";
 import { getNestedValue, setNestedValue } from "./stateManagerPathUtils.js";
+import { isTestEnvironment } from "../../runtime/processEnvironment.js";
 import { resetState as resetStateImpl } from "./stateManagerReset.js";
 
 /** Listener invoked when a subscribed state path changes. */
@@ -90,7 +91,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 export function __clearAllListenersForTests(): void {
     try {
         stateListeners.clear();
-        console.log("[StateManager] All listeners cleared (tests)");
+        if (!isTestEnvironment()) {
+            console.log("[StateManager] All listeners cleared (tests)");
+        }
     } catch (error) {
         console.warn("[StateManager] Failed to clear listeners:", error);
     }
