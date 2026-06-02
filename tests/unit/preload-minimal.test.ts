@@ -208,7 +208,7 @@ describe("preload.js - Basic API Validation", () => {
     });
 
     it("should expose development tools API when validation passes", () => {
-        expect.assertions(8);
+        expect.assertions(4);
         const electronAPI = exposedGlobals.get("electronAPI") as Record<
                 string,
                 unknown
@@ -229,13 +229,19 @@ describe("preload.js - Basic API Validation", () => {
             "electronAPI",
             developmentToolsGlobalName,
         ]);
-        expect(devTools.getPreloadInfo).toBeTypeOf("function");
-        expect(preloadInfo.version).toBe("1.0.0");
-        expect(preloadInfo.apiMethods).toEqual(expectedApiMethods);
-        expect(preloadInfo.apiMethods).toContain("validateAPI");
-        expect(preloadInfo.apiMethods).toContain("getChannelInfo");
-        expect(preloadInfo.apiMethods).toContain("openFile");
-        expect(preloadInfo.apiMethods).toContain("readFile");
+        expect(preloadInfo).toMatchObject({
+            apiMethods: expectedApiMethods,
+            version: "1.0.0",
+        });
+        expect(preloadInfo.apiMethods).toEqual(
+            expect.arrayContaining([
+                "getChannelInfo",
+                "openFile",
+                "readFile",
+                "validateAPI",
+            ])
+        );
+        expect(preloadInfo.apiMethods).not.toContain("unsafeEval");
     });
 
     it("should register beforeExit handler", () => {
@@ -249,7 +255,12 @@ describe("preload.js - Basic API Validation", () => {
             beforeExitListeners[0],
         ]);
         expect(beforeExitListeners).toHaveLength(1);
-        expect(beforeExitListeners[0]).toBeTypeOf("function");
+        const registeredBeforeExit = beforeExitListeners[0];
+        registeredBeforeExit();
+        expect(currentProcess.removeListener).toHaveBeenCalledWith(
+            "beforeExit",
+            registeredBeforeExit
+        );
     });
 
     it("should log initialization message", () => {
