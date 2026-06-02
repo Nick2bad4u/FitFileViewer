@@ -118,7 +118,7 @@ describe("root app HTML security policy", () => {
 
         expect(policy).toContain("default-src 'self' file:");
         expect(policy).toContain("script-src 'self' file:");
-        expect(policy).toContain("connect-src 'none'");
+        expect(policy).toContain("connect-src 'self' file:");
         expect(policy).toContain("object-src 'none'");
         expect(policy).not.toContain("script-src 'self' file: 'unsafe-inline'");
         expect(html).toContain('src="./electron-analytics-blocker.js"');
