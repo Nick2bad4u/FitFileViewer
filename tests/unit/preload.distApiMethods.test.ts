@@ -37,6 +37,7 @@ interface ExposedDevTools {
 type ContextBridgeExpose = (name: string, api: unknown) => void;
 type IpcInvoke = (...args: unknown[]) => Promise<unknown>;
 type IpcListener = (...args: unknown[]) => void;
+type IpcOnCall = [string, IpcListener];
 type ProcessListener = (...args: unknown[]) => void;
 type ProcessListeners = (eventName: string) => ProcessListener[];
 type ProcessListenerMutation = (
@@ -139,6 +140,93 @@ describe("preload.js dist API methods", () => {
         vi.restoreAllMocks();
     });
 
+    function getRequiredExposeCall(name: string): [string, unknown] {
+        const call = mockContextBridge.exposeInMainWorld.mock.calls.find(
+            ([exposedName]) => exposedName === name
+        );
+
+        if (!call) {
+            throw new TypeError(`Expected ${name} exposure`);
+        }
+
+        return call;
+    }
+
+    function getOptionalExposedApi<T>(name: string): T | undefined {
+        const call = mockContextBridge.exposeInMainWorld.mock.calls.find(
+            ([exposedName]) => exposedName === name
+        );
+
+        return call ? (call[1] as T) : undefined;
+    }
+
+    function getRequiredExposedApi(): ExposedPreloadApi {
+        return getRequiredExposeCall("electronAPI")[1] as ExposedPreloadApi;
+    }
+
+    function getRequiredDevTools(
+        devTools: ExposedDevTools | undefined
+    ): ExposedDevTools {
+        if (!devTools) {
+            throw new TypeError("Expected development tools exposure");
+        }
+
+        return devTools;
+    }
+
+    function getRequiredIpcOnCall(): IpcOnCall {
+        const call = mockIpcRenderer.on.mock.calls.at(0);
+
+        if (!call) {
+            throw new TypeError("Expected ipcRenderer.on registration");
+        }
+
+        return call as IpcOnCall;
+    }
+
+    function getRequiredBeforeExitListener(
+        listeners: ProcessListener[]
+    ): ProcessListener {
+        const listener = listeners.at(0);
+
+        if (!listener) {
+            throw new TypeError("Expected beforeExit listener");
+        }
+
+        return listener;
+    }
+
+    function getRequiredConsoleLogCall(message: string): [unknown, unknown] {
+        const call = consoleSpy.log.mock.calls.find(
+            ([loggedMessage]) => loggedMessage === message
+        );
+
+        if (!call) {
+            throw new TypeError(`Expected console log for ${message}`);
+        }
+
+        return call as [unknown, unknown];
+    }
+
+    function getRequiredLoggedError(
+        calls: unknown[][],
+        message: string
+    ): Error {
+        const call = calls.find(([loggedMessage]) => loggedMessage === message);
+
+        if (!call) {
+            throw new TypeError(`Expected console error for ${message}`);
+        }
+
+        const error = call[1];
+
+        if (!(error instanceof Error)) {
+            throw new TypeError(`Expected Error payload for ${message}`);
+        }
+
+        return error;
+    }
+
     function createPreloadEnvironment(options = {}) {
         const env = {
             NODE_ENV: "test",
@@ -189,11 +277,10 @@ describe("preload.js dist API methods", () => {
             mockRequire,
             mockProcess,
             mockConsole,
-            exposedAPI: mockContextBridge.exposeInMainWorld.mock
-                .calls[0]?.[1] as ExposedPreloadApi | undefined,
-            devTools: mockContextBridge.exposeInMainWorld.mock.calls[1]?.[1] as
-                | ExposedDevTools
-                | undefined,
+            exposedAPI: getRequiredExposedApi(),
+            devTools: getOptionalExposedApi<ExposedDevTools>(
+                developmentToolsGlobalName
+            ),
             getBeforeExitListeners: () => beforeExitListeners,
         };
     }
@@ -238,20 +325,23 @@ describe("preload.js dist API methods", () => {
                 Object.fromEntries(
                     ["getChannelInfo", "validateAPI"].map((methodName) => [
                         methodName,
-                        Object.hasOwn(exposedAPI ?? {}, methodName),
+                        Object.hasOwn(exposedAPI, methodName),
                     ])
                 )
             ).toEqual({
                 getChannelInfo: true,
                 validateAPI: true,
             });
-            expect(exposedAPI?.validateAPI()).toStrictEqual(true);
+            expect(exposedAPI.validateAPI()).toStrictEqual(true);
+            const beforeExitListener = getRequiredBeforeExitListener(
+                getBeforeExitListeners()
+            );
             expect(mockProcess.once.mock.calls[0]).toEqual([
                 "beforeExit",
-                getBeforeExitListeners()[0],
+                beforeExitListener,
             ]);
             expect(getBeforeExitListeners()).toHaveLength(1);
-            getBeforeExitListeners()[0]?.();
+            beforeExitListener();
             expect(getBeforeExitListeners()).toHaveLength(0);
             expect(consoleSpy.error).not.toHaveBeenCalled();
         });
@@ -597,13 +687,10 @@ describe("preload.js dist API methods", () => {
             const callback = vi.fn<IpcListener>();
 
             const unsubscribe = exposedAPI.onMenuOpenFile(callback);
-            const [, registeredListener] =
-                mockIpcRenderer.on.mock.calls[0] ?? [];
+            const [channel, registeredListener] = getRequiredIpcOnCall();
 
-            expect(mockIpcRenderer.on.mock.calls[0]?.[0]).toBe(
-                "menu-open-file"
-            );
-            registeredListener?.({}, "activity.fit");
+            expect(channel).toBe("menu-open-file");
+            registeredListener({}, "activity.fit");
             expect(callback).toHaveBeenCalledWith("activity.fit");
             unsubscribe();
             expect(mockIpcRenderer.removeListener).toHaveBeenCalledWith(
@@ -618,13 +705,10 @@ describe("preload.js dist API methods", () => {
             const callback = vi.fn<IpcListener>();
 
             const unsubscribe = exposedAPI.onMenuOpenOverlay(callback);
-            const [, registeredListener] =
-                mockIpcRenderer.on.mock.calls[0] ?? [];
+            const [channel, registeredListener] = getRequiredIpcOnCall();
 
-            expect(mockIpcRenderer.on.mock.calls[0]?.[0]).toBe(
-                "menu-open-overlay"
-            );
-            registeredListener?.({}, "overlay.fit");
+            expect(channel).toBe("menu-open-overlay");
+            registeredListener({}, "overlay.fit");
             expect(callback).toHaveBeenCalledWith("overlay.fit");
             unsubscribe();
             expect(mockIpcRenderer.removeListener).toHaveBeenCalledWith(
@@ -639,13 +723,10 @@ describe("preload.js dist API methods", () => {
             const callback = vi.fn<IpcListener>();
 
             const unsubscribe = exposedAPI.onOpenRecentFile(callback);
-            const [, registeredListener] =
-                mockIpcRenderer.on.mock.calls[0] ?? [];
+            const [channel, registeredListener] = getRequiredIpcOnCall();
 
-            expect(mockIpcRenderer.on.mock.calls[0]?.[0]).toBe(
-                "open-recent-file"
-            );
-            registeredListener?.({}, "recent.fit");
+            expect(channel).toBe("open-recent-file");
+            registeredListener({}, "recent.fit");
             expect(callback).toHaveBeenCalledWith("recent.fit");
             unsubscribe();
             expect(mockIpcRenderer.removeListener).toHaveBeenCalledWith(
@@ -660,11 +741,10 @@ describe("preload.js dist API methods", () => {
             const callback = vi.fn<IpcListener>();
 
             const unsubscribe = exposedAPI.onSetTheme(callback);
-            const [, registeredListener] =
-                mockIpcRenderer.on.mock.calls[0] ?? [];
+            const [channel, registeredListener] = getRequiredIpcOnCall();
 
-            expect(mockIpcRenderer.on.mock.calls[0]?.[0]).toBe("set-theme");
-            registeredListener?.({}, "dark");
+            expect(channel).toBe("set-theme");
+            registeredListener({}, "dark");
             expect(callback).toHaveBeenCalledWith("dark");
             unsubscribe();
             expect(mockIpcRenderer.removeListener).toHaveBeenCalledWith(
@@ -710,15 +790,12 @@ describe("preload.js dist API methods", () => {
                 "update-available",
                 callback
             );
-            const [, registeredListener] =
-                mockIpcRenderer.on.mock.calls[0] ?? [];
+            const [channel, registeredListener] = getRequiredIpcOnCall();
 
-            expect(mockIpcRenderer.on.mock.calls[0]?.[0]).toBe(
-                "update-available"
-            );
-            registeredListener?.({}, { version: "29.9.0" });
+            expect(channel).toBe("update-available");
+            registeredListener({}, { version: "29.9.0" });
             expect(callback).toHaveBeenCalledWith({ version: "29.9.0" });
-            unsubscribe?.();
+            unsubscribe();
             expect(mockIpcRenderer.removeListener).toHaveBeenCalledWith(
                 "update-available",
                 registeredListener
@@ -782,16 +859,13 @@ describe("preload.js dist API methods", () => {
             const callback = vi.fn<IpcListener>();
 
             const unsubscribe = exposedAPI.onIpc("custom-channel", callback);
-            const [, registeredListener] =
-                mockIpcRenderer.on.mock.calls[0] ?? [];
+            const [channel, registeredListener] = getRequiredIpcOnCall();
             const ipcEvent = { senderId: 1 };
 
-            expect(mockIpcRenderer.on.mock.calls[0]?.[0]).toBe(
-                "custom-channel"
-            );
-            registeredListener?.(ipcEvent, "arg1", "arg2");
+            expect(channel).toBe("custom-channel");
+            registeredListener(ipcEvent, "arg1", "arg2");
             expect(callback).toHaveBeenCalledWith(ipcEvent, "arg1", "arg2");
-            unsubscribe?.();
+            unsubscribe();
             expect(mockIpcRenderer.removeListener).toHaveBeenCalledWith(
                 "custom-channel",
                 registeredListener
@@ -958,7 +1032,8 @@ describe("preload.js dist API methods", () => {
             const { devTools, exposedAPI } = createPreloadEnvironment({
                 NODE_ENV: "development",
             });
-            const preloadInfo = devTools?.getPreloadInfo();
+            const requiredDevTools = getRequiredDevTools(devTools);
+            const preloadInfo = requiredDevTools.getPreloadInfo();
 
             // Should expose both electronAPI and development tools.
             expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith(
@@ -967,45 +1042,43 @@ describe("preload.js dist API methods", () => {
             );
             expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith(
                 developmentToolsGlobalName,
-                devTools
+                requiredDevTools
             );
 
-            expect(Object.keys(devTools ?? {}).sort()).toEqual([
+            expect(Object.keys(requiredDevTools).sort()).toEqual([
                 "getPreloadInfo",
                 "logAPIState",
                 "testIPC",
             ]);
             expect({
-                apiMethods: preloadInfo?.apiMethods,
-                channels: preloadInfo?.constants.CHANNELS,
-                events: preloadInfo?.constants.EVENTS,
-                version: preloadInfo?.version,
+                apiMethods: preloadInfo.apiMethods,
+                channels: preloadInfo.constants.CHANNELS,
+                events: preloadInfo.constants.EVENTS,
+                version: preloadInfo.version,
             }).toStrictEqual({
-                apiMethods: Object.keys(exposedAPI ?? {}),
+                apiMethods: Object.keys(exposedAPI),
                 channels: EXPECTED_PRELOAD_CHANNELS,
                 events: EXPECTED_PRELOAD_EVENTS,
                 version: "1.0.0",
             });
-            expect(preloadInfo?.timestamp).toSatisfy((timestamp: string) =>
+            expect(preloadInfo.timestamp).toSatisfy((timestamp: string) =>
                 Number.isFinite(Date.parse(timestamp))
             );
-            devTools?.logAPIState();
-            const apiStateLog = consoleSpy.log.mock.calls.find(
-                ([message]) => message === "[preload.js] Current API State:"
+            requiredDevTools.logAPIState();
+            const apiStateLog = getRequiredConsoleLogCall(
+                "[preload.js] Current API State:"
             );
-            const apiStatePayload = apiStateLog?.[1] as
-                | Record<string, unknown>
-                | undefined;
+            const apiStatePayload = apiStateLog[1] as Record<string, unknown>;
             expect({
-                electronAPI: apiStatePayload?.electronAPI,
-                methodCount: apiStatePayload?.methodCount,
-                message: apiStateLog?.[0],
+                electronAPI: apiStatePayload.electronAPI,
+                methodCount: apiStatePayload.methodCount,
+                message: apiStateLog[0],
             }).toStrictEqual({
                 electronAPI: "object",
-                methodCount: Object.keys(exposedAPI ?? {}).length,
+                methodCount: Object.keys(exposedAPI).length,
                 message: "[preload.js] Current API State:",
             });
-            await expect(devTools?.testIPC()).resolves.toBe(true);
+            await expect(requiredDevTools.testIPC()).resolves.toBe(true);
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
                 "getAppVersion"
             );
@@ -1079,17 +1152,19 @@ describe("preload.js dist API methods", () => {
             );
 
             expect(result).toBeUndefined();
+            const beforeExitListener =
+                getRequiredBeforeExitListener(beforeExitListeners);
             expect(mockProcess.once.mock.calls[0]).toEqual([
                 "beforeExit",
-                beforeExitListeners[0],
+                beforeExitListener,
             ]);
             expect(beforeExitListeners).toHaveLength(1);
-            const exposureError = consoleSpy.mock.calls.find(
-                ([message]) =>
-                    message === "[preload.js] Failed to expose electronAPI:"
-            )?.[1];
+            const exposureError = getRequiredLoggedError(
+                consoleSpy.mock.calls,
+                "[preload.js] Failed to expose electronAPI:"
+            );
             expect(exposureError).toBeInstanceOf(Error);
-            expect((exposureError as Error).message).toBe("Exposure failed");
+            expect(exposureError.message).toBe("Exposure failed");
 
             consoleSpy.mockRestore();
         });
@@ -1112,12 +1187,12 @@ describe("preload.js dist API methods", () => {
                 "theme-changed",
                 "dark"
             );
-            const sendError = consoleSpy.mock.calls.find(
-                ([message]) =>
-                    message === "[preload.js] Error in sendThemeChanged:"
-            )?.[1];
+            const sendError = getRequiredLoggedError(
+                consoleSpy.mock.calls,
+                "[preload.js] Error in sendThemeChanged:"
+            );
             expect(sendError).toBeInstanceOf(Error);
-            expect((sendError as Error).message).toBe("Send failed");
+            expect(sendError.message).toBe("Send failed");
 
             consoleSpy.mockRestore();
         });
@@ -1128,13 +1203,16 @@ describe("preload.js dist API methods", () => {
             expect.assertions(4);
             const { getBeforeExitListeners, mockProcess } =
                 createPreloadEnvironment();
+            const beforeExitListener = getRequiredBeforeExitListener(
+                getBeforeExitListeners()
+            );
 
             expect(mockProcess.once.mock.calls[0]).toEqual([
                 "beforeExit",
-                getBeforeExitListeners()[0],
+                beforeExitListener,
             ]);
             expect(getBeforeExitListeners()).toHaveLength(1);
-            getBeforeExitListeners()[0]?.();
+            beforeExitListener();
             expect(getBeforeExitListeners()).toHaveLength(0);
             expect(mockProcess.env.NODE_ENV).toBe("test");
         });
@@ -1144,13 +1222,14 @@ describe("preload.js dist API methods", () => {
             const { devTools } = createPreloadEnvironment({
                 NODE_ENV: "development",
             });
+            const requiredDevTools = getRequiredDevTools(devTools);
 
             expect(consoleSpy.log).toHaveBeenCalledWith(
                 "[preload.js] Preload script initialized successfully"
             );
             expect(consoleSpy.error).not.toHaveBeenCalled();
             expect({
-                version: devTools.getPreloadInfo().version,
+                version: requiredDevTools.getPreloadInfo().version,
             }).toStrictEqual({
                 version: "1.0.0",
             });
