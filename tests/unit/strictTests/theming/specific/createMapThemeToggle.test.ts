@@ -1,7 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { showNotification } from "../../../../../electron-app/utils/ui/notifications/showNotification.js";
-
 vi.mock(
     import("../../../../../electron-app/utils/ui/notifications/showNotification.js"),
     () => ({
@@ -28,6 +26,23 @@ type MapThemeToggleGlobal = typeof globalThis & {
 
 async function importCreateMapThemeToggle(): Promise<CreateMapThemeToggleModule> {
     return import("../../../../../electron-app/utils/theming/specific/createMapThemeToggle.js");
+}
+
+async function importShowNotificationMock(): Promise<
+    typeof import("../../../../../electron-app/utils/ui/notifications/showNotification.js")
+> {
+    return import("../../../../../electron-app/utils/ui/notifications/showNotification.js");
+}
+
+function requireElement<TElement extends Element>(
+    root: ParentNode,
+    selector: string
+): TElement {
+    const element = root.querySelector<TElement>(selector);
+    if (!element) {
+        throw new Error(`Expected ${selector} to exist`);
+    }
+    return element;
 }
 
 describe("createMapThemeToggle", () => {
@@ -83,17 +98,18 @@ describe("createMapThemeToggle", () => {
         const eventSpy = vi.fn<(event: Event) => void>();
         const { createMapThemeToggle, MAP_THEME_EVENTS } =
             await importCreateMapThemeToggle();
+        const { showNotification } = await importShowNotificationMock();
 
         const btn = createMapThemeToggle();
 
         expect(btn.tagName).toBe("BUTTON");
         expect(btn.getAttribute("aria-label")).toBe("Toggle map theme");
         expect(btn.textContent).toContain("Map Theme");
-        expect([...btn.classList]).toContain("active");
+        expect(btn.classList.contains("active")).toBe(true);
         expect(btn.title).toBe("Map: Dark theme (click for light theme)");
-        expect(btn.querySelector("svg path")?.getAttribute("d")).toBe(
-            "M17 12.5A7.5 7.5 0 1 1 10 2.5a6 6 0 0 0 7 10z"
-        );
+        expect(
+            requireElement<SVGPathElement>(btn, "svg path").getAttribute("d")
+        ).toBe("M17 12.5A7.5 7.5 0 1 1 10 2.5a6 6 0 0 0 7 10z");
 
         appGlobal.updateMapTheme = () => {};
         const updateMapThemeSpy = vi
@@ -106,7 +122,7 @@ describe("createMapThemeToggle", () => {
         btn.click();
 
         expect(localStorage.getItem("ffv-map-theme-inverted")).toBe("false");
-        expect([...btn.classList]).not.toContain("active");
+        expect(btn.classList.contains("active")).toBe(false);
         expect(btn.title).toBe("Map: Light theme (click for dark theme)");
         expect(btn.querySelector("svg circle")).toMatchObject({
             namespaceURI: "http://www.w3.org/2000/svg",
@@ -134,7 +150,7 @@ describe("createMapThemeToggle", () => {
         setMapThemeInverted(false);
         const btn = createMapThemeToggle();
 
-        expect([...btn.classList]).not.toContain("active");
+        expect(btn.classList.contains("active")).toBe(false);
         expect(btn.title).toBe("Map: Light theme (click for dark theme)");
         expect(btn.querySelector("svg circle")).toMatchObject({
             namespaceURI: "http://www.w3.org/2000/svg",
