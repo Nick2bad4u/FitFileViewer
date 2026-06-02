@@ -271,6 +271,53 @@ describe("source entrypoint documentation", () => {
         ).toStrictEqual([]);
     });
 
+    it("keeps the Docusaurus module-system page aligned with current utility domains", () => {
+        expect.assertions(3);
+
+        const moduleSystemGuide = readWorkspaceFile(
+            docusaurusArchitectureModuleSystemDocPath
+        );
+        const currentSourceExamples = [
+            "electron-app/utils/formatting/formatters/formatDistance.ts",
+            "electron-app/utils/maps/core/renderMap.ts",
+            "electron-app/utils/charts/core/renderChartJS.ts",
+            "electron-app/utils/state/core/stateManager.ts",
+            "electron-app/utils/ui/tabs/tabStateManager.ts",
+        ];
+        const staleFlatModuleReferences = [
+            "| `formatDistance.js`",
+            "| `formatDuration.js`",
+            "| `formatSpeed.js`",
+            "| `renderMap.js`",
+            "| `renderChartJS.js`",
+            "| `stateManager.js`",
+            "| `tabManager.js`",
+            "./utils/formatting/formatDistance.js",
+            "./utils/maps/renderMap.js",
+            "./utils/charts/renderChartJS.js",
+            "./utils/state/stateManager.js",
+        ];
+
+        expect(getPathStates(currentSourceExamples)).toStrictEqual(
+            Object.fromEntries(
+                currentSourceExamples.map((sourcePath) => [
+                    sourcePath,
+                    "present",
+                ])
+            )
+        );
+        expect(
+            currentSourceExamples.filter(
+                (sourcePath) => !moduleSystemGuide.includes(sourcePath)
+            )
+        ).toStrictEqual([]);
+        expect(
+            staleFlatModuleReferences.filter((reference) =>
+                moduleSystemGuide.includes(reference)
+            )
+        ).toStrictEqual([]);
+    });
+
     it("documents only current root tooling files in the root layout guide", () => {
         expect.assertions(3);
 

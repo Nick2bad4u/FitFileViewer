@@ -8,175 +8,184 @@ description: Understanding the utility module system in FitFileViewer.
 
 # Module System
 
-FitFileViewer uses a modular architecture with 50+ utility modules organized by functionality.
+FitFileViewer uses root-owned build, lint, and test tooling with Electron source
+under `electron-app/`. Runtime modules are TypeScript-first and are compiled by
+root scripts into `dist/`.
 
 ## Module Organization
 
+```text
+electron-app/utils/
+├── app/          # Application lifecycle, menu, initialization, and performance helpers
+├── async/        # Small async compatibility helpers
+├── charts/       # Chart components, core rendering, plugins, and theming
+├── config/       # Shared constants and configuration exports
+├── data/         # Lookups, processors, derived metrics, and zone helpers
+├── debug/        # Debug overlays, state devtools, and diagnostics
+├── docs/         # Runtime documentation metadata helpers
+├── dom/          # DOM escaping and sanitization helpers
+├── errors/       # Error normalization and reporting helpers
+├── files/        # FIT import, export, recent-file, and file browser workflows
+├── formatting/   # Unit conversion and display formatters
+├── legacy/       # Temporary compatibility globals while old renderer code is retired
+├── logging/      # Renderer/main logging utilities
+├── maps/         # Leaflet controls, filters, layers, and map rendering
+├── net/          # Network and remote-resource helpers
+├── performance/  # Runtime performance helpers
+├── rendering/    # Summary, table, and shared render helpers
+├── runtime/      # Runtime environment guards such as process env access
+├── state/        # State core, domain managers, and main-process integration
+├── storage/      # Storage abstractions
+├── theming/      # Theme core and map-specific theme integration
+├── types/        # Shared lightweight runtime types
+└── ui/           # Controls, modals, notifications, tabs, browser tab, and layout helpers
 ```
-utils/
-├── formatting/        # Data formatting
-│   ├── formatDistance.js
-│   ├── formatDuration.js
-│   ├── formatSpeed.js
-│   └── ...
-├── maps/             # Map functionality
-│   ├── renderMap.js
-│   ├── mapBaseLayers.js
-│   ├── mapDrawLaps.js
-│   └── ...
-├── charts/           # Chart functionality
-│   ├── chartSpec.js
-│   ├── renderChartJS.js
-│   └── ...
-├── state/            # State management
-│   ├── core/
-│   └── managers/
-├── files/            # File operations
-│   ├── handleOpenFile.js
-│   ├── recentFiles.js
-│   └── ...
-├── ui/               # UI components
-│   ├── tabManager.js
-│   ├── fullscreen.js
-│   └── ...
-└── ...               # More modules
-```
+
+Use `rg --files electron-app/utils` for exact module names. Do not document
+generated JavaScript output as source files.
 
 ## Module Categories
 
-### Formatting Modules
+### Formatting
 
-Handle data display formatting:
+Formatting utilities live under `electron-app/utils/formatting/`:
 
-| Module              | Purpose           |
-| ------------------- | ----------------- |
-| `formatDistance.js` | Distance values   |
-| `formatDuration.js` | Time durations    |
-| `formatSpeed.js`    | Speed/pace        |
-| `formatUtils.js`    | General utilities |
+| Area         | Example source file                                                | Purpose                         |
+| ------------ | ------------------------------------------------------------------ | ------------------------------- |
+| Converters   | `electron-app/utils/formatting/converters/convertDistanceUnits.ts` | Unit conversion                 |
+| Display      | `electron-app/utils/formatting/display/formatTooltipData.ts`       | Chart and table display helpers |
+| Formatters   | `electron-app/utils/formatting/formatters/formatDistance.ts`       | User-facing value formatting    |
+| Domain index | `electron-app/utils/formatting/index.ts`                           | Public formatting exports       |
 
-### Map Modules
+### Maps
 
-Geographic visualization:
+Map modules are grouped by role:
 
-| Module                    | Purpose              |
-| ------------------------- | -------------------- |
-| `renderMap.js`            | Main map rendering   |
-| `mapBaseLayers.js`        | Tile layer providers |
-| `mapDrawLaps.js`          | Lap marker drawing   |
-| `mapFullscreenControl.js` | Fullscreen mode      |
-| `mapMeasureTool.js`       | Distance measurement |
+| Area     | Example source file                                     | Purpose                    |
+| -------- | ------------------------------------------------------- | -------------------------- |
+| Core     | `electron-app/utils/maps/core/renderMap.ts`             | Main map rendering         |
+| Controls | `electron-app/utils/maps/controls/mapMeasureTool.ts`    | User-facing map controls   |
+| Layers   | `electron-app/utils/maps/layers/mapBaseLayers.ts`       | Tile layers and route draw |
+| Filters  | `electron-app/utils/maps/filters/mapMetricFilter.ts`    | Route metric filtering     |
 
-### Chart Modules
+### Charts
 
-Data visualization:
+Chart modules are split between orchestration, rendering, plugins, DOM helpers,
+and theme integration:
 
-| Module             | Purpose             |
-| ------------------ | ------------------- |
-| `chartSpec.js`     | Chart configuration |
-| `renderChartJS.js` | Chart.js rendering  |
-| `vegaLiteUtils.js` | Vega-Lite charts    |
+| Area       | Example source file                                               | Purpose                        |
+| ---------- | ----------------------------------------------------------------- | ------------------------------ |
+| Core       | `electron-app/utils/charts/core/renderChartJS.ts`                 | Chart rendering orchestration  |
+| Rendering  | `electron-app/utils/charts/rendering/renderGPSTrackChart.ts`      | Specific chart renderers       |
+| Plugins    | `electron-app/utils/charts/plugins/chartZoomResetPlugin.ts`       | Chart.js plugin integration    |
+| Components | `electron-app/utils/charts/components/createEnhancedChart.ts`     | Chart DOM/component helpers    |
+| Theming    | `electron-app/utils/charts/theming/chartThemeUtils.ts`            | Chart theme and color handling |
 
-### State Modules
+### State
 
-Application state:
+State modules are organized by responsibility:
 
-| Module                | Purpose       |
-| --------------------- | ------------- |
-| `stateManager.js`     | Central state |
-| `themeManager.js`     | Theme state   |
-| `fileStateManager.js` | File state    |
+| Area        | Example source file                                                | Purpose                         |
+| ----------- | ------------------------------------------------------------------ | ------------------------------- |
+| Core        | `electron-app/utils/state/core/stateManager.ts`                    | Observable state store          |
+| Domain      | `electron-app/utils/state/domain/fitFileState.ts`                  | Domain-specific state workflows |
+| Integration | `electron-app/utils/state/integration/mainProcessStateClient.ts`   | Renderer/main state bridge      |
+| Index       | `electron-app/utils/state/index.ts`                                | Public state exports            |
 
-### UI Modules
+### UI
 
-User interface:
+UI utilities are grouped by workflow:
 
-| Module           | Purpose             |
-| ---------------- | ------------------- |
-| `tabManager.js`  | Tab navigation      |
-| `fullscreen.js`  | Fullscreen handling |
-| `setupWindow.js` | Window setup        |
+| Area          | Example source file                                             | Purpose                        |
+| ------------- | --------------------------------------------------------------- | ------------------------------ |
+| Controls      | `electron-app/utils/ui/controls/enableTabButtons.ts`            | Interactive control setup      |
+| Modals        | `electron-app/utils/ui/modals/ensureAboutModal.ts`              | Modal creation and behavior    |
+| Notifications | `electron-app/utils/ui/notifications/showNotification.ts`       | User notifications             |
+| Tabs          | `electron-app/utils/ui/tabs/tabStateManager.ts`                 | Tab coordination               |
+| Browser       | `electron-app/utils/ui/browser/initFitBrowserFeatureGate.ts`    | FIT browser feature gating     |
 
 ## Import Patterns
 
 ### Direct Import
 
-```javascript
-import { formatDistance } from "./utils/formatting/formatDistance.js";
+TypeScript source imports use runtime `.js` specifiers so the emitted modules
+resolve correctly:
+
+```typescript
+import { formatDistance } from "./utils/formatting/formatters/formatDistance.js";
 ```
 
 ### Barrel Export
 
-```javascript
-// utils/formatting/index.js
+```typescript
+// electron-app/utils/formatting/formatters/index.ts
 export { formatDistance } from "./formatDistance.js";
 export { formatDuration } from "./formatDuration.js";
 
-// Usage
+// Usage from a nearby source file
 import { formatDistance, formatDuration } from "./utils/formatting/index.js";
 ```
 
 ### Dynamic Import
 
-```javascript
-// Lazy loading for performance
-const { renderMap } = await import("./utils/maps/renderMap.js");
+```typescript
+const { renderMap } = await import("./utils/maps/core/renderMap.js");
 ```
 
 ## Module Standards
 
 ### Single Responsibility
 
-Each module has one clear purpose:
+Keep modules focused on one domain concern:
 
-```javascript
-// Good: Single responsibility
-// formatDistance.js
-export function formatDistance(meters, unit = "km") {
- // Only handles distance formatting
+```typescript
+export function formatDistance(meters: number): string {
+    // Only handles distance formatting
+}
+```
+
+Avoid mixing unrelated behavior in a single module:
+
+```typescript
+export function formatDistance(): string {
+    return "";
 }
 
-// Bad: Multiple responsibilities
-// formatters.js
-export function formatDistance() {}
-export function formatDuration() {}
-export function renderChart() {} // Unrelated
+export function renderChart(): void {
+    // Chart rendering belongs in the chart domain, not formatting.
+}
 ```
 
 ### Clear Exports
 
-```javascript
-// Named exports preferred
-export function formatDistance(meters) {}
-export function convertToMiles(meters) {}
+```typescript
+export function formatDistance(meters: number): string {
+    return `${meters} m`;
+}
 
-// Default export for main functionality
-export default function formatDistance(meters) {}
+export function convertToMiles(meters: number): number {
+    return meters / 1609.344;
+}
 ```
 
 ### Documentation
 
-```javascript
+```typescript
 /**
  * Formats a distance value for display.
  *
  * @example
- *  formatDistance(5000); // "5.00 km"
- *  formatDistance(5000, "mi"); // "3.11 mi"
+ * formatDistance(5000);
  *
- * @param {number} meters - Distance in meters
- * @param {string} unit - Target unit ('km' or 'mi')
- *
- * @returns {string} Formatted distance string
+ * @param meters - Distance in meters
+ * @returns Formatted distance string
  */
-export function formatDistance(meters, unit = "km") {
- // Implementation
+export function formatDistance(meters: number): string {
+    return `${(meters / 1000).toFixed(2)} km`;
 }
 ```
 
 ## Module Dependencies
-
-### Dependency Graph
 
 ```mermaid
 flowchart TD
@@ -194,9 +203,10 @@ flowchart TD
 
 ### Dependency Rules
 
-1. **No circular dependencies**
-2. **Lower modules don't import higher**
-3. **Formatting is a base layer**
+1. Keep generated output under root `dist/`; source stays under `electron-app/`.
+2. Prefer domain indexes for shared exports.
+3. Avoid circular dependencies between utility domains.
+4. Keep low-level helpers independent from UI and renderer orchestration.
 
 ---
 
