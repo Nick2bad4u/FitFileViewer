@@ -35,8 +35,6 @@ export * from "./rendering/renderPowerVsHeartRateChart.js";
 export * from "./rendering/renderSpeedVsDistanceChart.js";
 export * from "./rendering/renderTimeInZoneCharts.js";
 export * from "./rendering/renderZoneChart.js";
-// Avoid duplicate named export 'renderZoneChart' from legacy renderZoneChart.js.
-export { renderZoneChart as renderZoneChartNew } from "./rendering/renderZoneChartNew.js";
 // Chart theming.
 export * from "./theming/chartColorSchemes.js";
 export * from "./theming/chartOverlayColorPalette.js";

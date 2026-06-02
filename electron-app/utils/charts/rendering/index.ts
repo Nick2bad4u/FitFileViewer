@@ -13,5 +13,4 @@ export * from "./renderPowerVsHeartRateChart.js";
 export * from "./renderSpeedVsDistanceChart.js";
 export * from "./renderTimeInZoneCharts.js";
 export * from "./renderZoneChart.js";
-export { renderZoneChart as renderZoneChartNew } from "./renderZoneChartNew.js";
 /* eslint-enable no-barrel-files/no-barrel-files */

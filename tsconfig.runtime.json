@@ -308,7 +308,6 @@
         "electron-app/utils/charts/rendering/renderSpeedVsDistanceChart.ts",
         "electron-app/utils/charts/rendering/renderTimeInZoneCharts.ts",
         "electron-app/utils/charts/rendering/renderZoneChart.ts",
-        "electron-app/utils/charts/rendering/renderZoneChartNew.ts",
         "electron-app/utils/charts/rendering/index.ts",
         "electron-app/utils/charts/index.ts",
         "electron-app/utils/charts/theming/chartThemeUtils.ts",
