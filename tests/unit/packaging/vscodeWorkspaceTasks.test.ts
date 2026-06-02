@@ -17,7 +17,9 @@ type VsCodeTasksJson = {
 };
 
 type VsCodeWorkspaceSettings = {
+    "files.exclude"?: Record<string, boolean>;
     "github.copilot.chat.codeGeneration.instructions"?: string;
+    "search.exclude"?: Record<string, boolean>;
     "stylelint.configFile"?: string;
     "vitest.rootConfig"?: string;
 };
@@ -101,5 +103,35 @@ describe("vs code workspace tasks", () => {
         expect(instructions).not.toMatch(
             /\b(?:main|preload|renderer)\.js\b|vscode-extension\/|vis\//u
         );
+    });
+
+    it("keeps generated output hidden from editor views", () => {
+        expect.assertions(1);
+
+        const settings = readVsCodeSettings();
+        const generatedOutputExcludes = {
+            ".cache": true,
+            artifacts: true,
+            coverage: true,
+            "electron-app/dist": true,
+            "electron-app/types": true,
+            "flatpak-build-dir": true,
+            "flatpak-repo": true,
+            out: true,
+            "playwright-report": true,
+            "release-dist": true,
+            "test-results": true,
+        };
+
+        expect({
+            filesExclude: settings["files.exclude"],
+            searchExclude: settings["search.exclude"],
+        }).toStrictEqual({
+            filesExclude: {
+                ...generatedOutputExcludes,
+                "**/.git": false,
+            },
+            searchExclude: generatedOutputExcludes,
+        });
     });
 });
