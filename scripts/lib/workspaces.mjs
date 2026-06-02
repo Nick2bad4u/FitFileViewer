@@ -244,6 +244,10 @@ export const docusaurusStaticImageFaviconPath = docusaurusWorkspaceRelativePath(
     "img",
     "favicon.ico"
 );
+export const docusaurusStaticImageCoverageJsonPath =
+    docusaurusWorkspaceRelativePath("static", "img", "coverage.json");
+export const docusaurusStaticImageCoverageSvgPath =
+    docusaurusWorkspaceRelativePath("static", "img", "coverage.svg");
 export const docusaurusStaticScreenshotsPath = docusaurusWorkspaceRelativePath(
     "static",
     "img",

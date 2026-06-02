@@ -51,6 +51,8 @@ type WorkspacesModule = {
     docusaurusReadmeRepositoryPath: string;
     docusaurusSidebarsRepositoryPath: string;
     docusaurusStaticFaviconPath: string;
+    docusaurusStaticImageCoverageJsonPath: string;
+    docusaurusStaticImageCoverageSvgPath: string;
     docusaurusStaticImageFaviconPath: string;
     docusaurusStaticPath: string;
     docusaurusStaticScreenshotsPath: string;
@@ -674,5 +676,29 @@ describe("workspace path helpers", () => {
         expect(workspaces.rootDocusaurusTsconfigPath).toBe(
             "tsconfig.docusaurus.json"
         );
+    });
+
+    it("centralizes generated Docusaurus static coverage badge paths", async () => {
+        expect.assertions(1);
+
+        const workspaces = await importWorkspaces();
+
+        expect({
+            coverageJson: workspaces.docusaurusStaticImageCoverageJsonPath,
+            coverageSvg: workspaces.docusaurusStaticImageCoverageSvgPath,
+        }).toStrictEqual({
+            coverageJson: path.join(
+                "docusaurus",
+                "static",
+                "img",
+                "coverage.json"
+            ),
+            coverageSvg: path.join(
+                "docusaurus",
+                "static",
+                "img",
+                "coverage.svg"
+            ),
+        });
     });
 });
