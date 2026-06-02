@@ -94,10 +94,10 @@ describe("render chart runtime helpers", () => {
         processValue.nextTick((value: unknown) => {
             calls.push(value);
         }, "queued");
-        await Promise.resolve();
 
         expect(processValue.env.NODE_ENV).toBe("test");
-        expect(processValue.nextTick).toBeTypeOf("function");
+        expect(calls).toStrictEqual([]);
+        await Promise.resolve();
         expect(calls).toStrictEqual(["queued"]);
     });
 
