@@ -17,6 +17,7 @@ import {
 } from "../theming/core/theme.js";
 import { addEventListenerWithCleanup } from "./events/eventListenerManager.js";
 import { createAppIconElement } from "./icons/iconFactory.js";
+import { createModalFocusTrap } from "./modals/modalFocusTrap.js";
 import type { ElectronAPI } from "../../shared/preloadApi.js";
 
 const SETTINGS_MODAL_ID = "settings-modal";
@@ -30,6 +31,8 @@ type SettingsModalGlobal = typeof globalThis & {
 };
 
 let closeAnimationTimer: ReturnType<typeof setTimeout> | undefined;
+let focusTrapCleanup: (() => void) | undefined;
+let lastFocusedElement: HTMLElement | undefined;
 let showAnimationFrameId: number | undefined;
 
 function clearCloseAnimationTimer(): void {
@@ -44,7 +47,23 @@ function scheduleModalClose(modal: HTMLElement): void {
     closeAnimationTimer = setTimeout(() => {
         closeAnimationTimer = undefined;
         modal.style.display = "none";
+        restoreLastFocusedElement();
     }, ANIMATION_DURATION);
+}
+
+function cleanupFocusTrap(): void {
+    focusTrapCleanup?.();
+    focusTrapCleanup = undefined;
+}
+
+function restoreLastFocusedElement(): void {
+    try {
+        lastFocusedElement?.focus();
+    } catch {
+        /* Ignore focus restoration failures. */
+    } finally {
+        lastFocusedElement = undefined;
+    }
 }
 
 /**
@@ -53,6 +72,7 @@ function scheduleModalClose(modal: HTMLElement): void {
 export function closeSettingsModal(): void {
     const modal = document.getElementById(SETTINGS_MODAL_ID);
     if (modal) {
+        cleanupFocusTrap();
         modal.classList.remove("show");
         scheduleModalClose(modal);
     }
@@ -97,6 +117,10 @@ export async function showSettingsModal(): Promise<void> {
 
     // Set modal content
     modal.replaceChildren(createSettingsModalContent(safeTheme, safeAccent));
+    lastFocusedElement =
+        document.activeElement instanceof HTMLElement
+            ? document.activeElement
+            : undefined;
 
     // Show modal with animation
     modal.style.display = "flex";
@@ -110,6 +134,11 @@ export async function showSettingsModal(): Promise<void> {
 
     // Setup event handlers
     setupSettingsModalHandlers(modal, effectiveTheme);
+    cleanupFocusTrap();
+    focusTrapCleanup = createModalFocusTrap(
+        modal,
+        modal.querySelector<HTMLElement>("#settings-modal-close")
+    );
 }
 
 /**
@@ -586,10 +615,7 @@ function setupSettingsModalHandlers(
         "#settings-close-btn"
     );
 
-    const closeModal = () => {
-        modal.classList.remove("show");
-        scheduleModalClose(modal);
-    };
+    const closeModal = () => closeSettingsModal();
 
     if (closeBtn) {
         addEventListenerWithCleanup(closeBtn, "click", closeModal);

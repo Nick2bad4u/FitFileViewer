@@ -11,6 +11,7 @@ import { attachExternalLinkHandlers } from "../links/externalLinkHandlers.js";
 import { showNotification } from "../notifications/showNotification.js";
 import { ensureAboutModal } from "./ensureAboutModal.js";
 import { injectModalStyles } from "./injectModalStyles.js";
+import { createModalFocusTrap } from "./modalFocusTrap.js";
 
 // Constants for better maintainability
 const CONSTANTS = {
@@ -161,6 +162,7 @@ const TECH_BADGES: TechBadge[] = [
 // Module state
 let copyFeedbackTimer: ReturnType<typeof setTimeout> | null = null;
 let focusTimer: ReturnType<typeof setTimeout> | null = null;
+let focusTrapCleanup: (() => void) | null = null;
 let hideTimer: ReturnType<typeof setTimeout> | null = null;
 let lastFocusedElement: HTMLElement | null = null;
 let showAnimationFrame: number | null = null;
@@ -589,7 +591,8 @@ export function showAboutModal(html = ""): void {
             }
             focusTimer = setTimeout(() => {
                 focusTimer = null;
-                closeBtn.focus();
+                focusTrapCleanup?.();
+                focusTrapCleanup = createModalFocusTrap(modal, closeBtn);
             }, modalAnimationDuration);
 
             // Load version information after modal is displayed
@@ -649,6 +652,13 @@ function buildSystemInfoClipboardText(): string {
 function hideAboutModal(): void {
     const modal = document.querySelector<HTMLElement>("#about-modal");
     if (modal) {
+        focusTrapCleanup?.();
+        focusTrapCleanup = null;
+        if (focusTimer) {
+            clearTimeout(focusTimer);
+            focusTimer = null;
+        }
+
         // Start closing animation
         modal.classList.remove("show");
         if (showAnimationFrame !== null) {

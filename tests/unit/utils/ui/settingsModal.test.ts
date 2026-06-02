@@ -103,6 +103,10 @@ function click(element: HTMLElement): void {
     element.dispatchEvent(new MouseEvent("click", { bubbles: true }));
 }
 
+function keydown(event: KeyboardEvent): void {
+    document.dispatchEvent(event);
+}
+
 function getRequiredElement<T extends HTMLElement>(selector: string): T {
     const element = document.querySelector<T>(selector);
     if (!element) {
@@ -144,7 +148,7 @@ function cleanupFixture(): void {
 
 describe("settingsModal", () => {
     it("creates the modal, injects styles, and exposes global menu hooks", async () => {
-        expect.assertions(13);
+        expect.assertions(14);
 
         resetFixture();
 
@@ -165,6 +169,9 @@ describe("settingsModal", () => {
             expect(modal.classList).not.toContain("closing");
             expect(modalTitle.textContent).toBe("Settings");
             expect(modalTitle.id).toBe("settings-modal-title");
+            expect(document.activeElement).toBe(
+                getRequiredElement<HTMLButtonElement>("#settings-modal-close")
+            );
             expect(
                 getRequiredElement<HTMLSelectElement>("#theme-select").value
             ).toBe("dark");
@@ -183,11 +190,16 @@ describe("settingsModal", () => {
     });
 
     it("hides the modal after the close animation delay", async () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         resetFixture();
 
         try {
+            const launcher = document.createElement("button");
+            launcher.type = "button";
+            document.body.append(launcher);
+            launcher.focus();
+
             await showSettingsModal();
             await vi.dynamicImportSettled();
 
@@ -201,6 +213,47 @@ describe("settingsModal", () => {
             vi.advanceTimersByTime(300);
 
             expect(modal.style.display).toBe("none");
+            expect(document.activeElement).toBe(launcher);
+        } finally {
+            cleanupFixture();
+        }
+    });
+
+    it("keeps tab focus inside the open modal", async () => {
+        expect.assertions(4);
+
+        resetFixture();
+
+        try {
+            await showSettingsModal();
+            await vi.dynamicImportSettled();
+
+            const closeButton = getRequiredElement<HTMLButtonElement>(
+                "#settings-modal-close"
+            );
+            const footerCloseButton = getRequiredElement<HTMLButtonElement>(
+                "#settings-close-btn"
+            );
+
+            expect(document.activeElement).toBe(closeButton);
+
+            keydown(
+                new KeyboardEvent("keydown", {
+                    key: "Tab",
+                    shiftKey: true,
+                })
+            );
+
+            expect(document.activeElement).toBe(footerCloseButton);
+
+            keydown(new KeyboardEvent("keydown", { key: "Tab" }));
+
+            expect(document.activeElement).toBe(closeButton);
+
+            document.body.focus();
+            keydown(new KeyboardEvent("keydown", { key: "Tab" }));
+
+            expect(document.activeElement).toBe(closeButton);
         } finally {
             cleanupFixture();
         }
