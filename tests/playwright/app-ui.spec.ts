@@ -267,6 +267,13 @@ test.describe("FitFileViewer renderer environment fallbacks", () => {
                     themeToggle instanceof HTMLElement
                 );
             });
+            const noNodeEnvMapThemeToggle =
+                noNodeEnvPage.locator(".map-theme-toggle");
+            await expect(noNodeEnvMapThemeToggle).toHaveAttribute(
+                "aria-label",
+                "Toggle map theme"
+            );
+            await noNodeEnvMapThemeToggle.scrollIntoViewIfNeeded();
             await expect(
                 noNodeEnvPage.getByRole("button", {
                     name: /toggle map theme/iu,
