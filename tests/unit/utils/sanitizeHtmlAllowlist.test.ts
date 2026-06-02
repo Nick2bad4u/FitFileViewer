@@ -23,9 +23,19 @@ function serializeFragment(fragment: DocumentFragment): string {
     return host.textContent ?? "";
 }
 
+function getRequiredElement<T extends Element>(
+    fragment: DocumentFragment,
+    selector: string,
+    constructor: { new (...args: any[]): T }
+): T {
+    const element = fragment.querySelector(selector);
+    expect(element).toBeInstanceOf(constructor);
+    return element as T;
+}
+
 describe("html allowlist sanitization", () => {
     it("removes forbidden tags and unsafe attributes in fallback mode", () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         const globalRef = getDomPurifyGlobal();
         const previousPurifier = globalRef.DOMPurify;
@@ -42,15 +52,19 @@ describe("html allowlist sanitization", () => {
                     allowedTags: ["p"],
                 }
             );
-            const paragraph = fragment.querySelector("p");
+            const paragraph = getRequiredElement(
+                fragment,
+                "p",
+                HTMLParagraphElement
+            );
 
-            expect(paragraph?.getAttribute("class")).toBe("ok");
+            expect(paragraph.getAttribute("class")).toBe("ok");
             expect(
-                paragraph?.hasAttribute("onclick") ? "present" : "missing"
+                paragraph.hasAttribute("onclick") ? "present" : "missing"
             ).toBe("missing");
-            expect(
-                paragraph?.hasAttribute("href") ? "present" : "missing"
-            ).toBe("missing");
+            expect(paragraph.hasAttribute("href") ? "present" : "missing").toBe(
+                "missing"
+            );
             expect(fragment.querySelector("script")).toBeNull();
             expect(serializeFragment(fragment)).toBe("safekept");
         } finally {
@@ -59,7 +73,7 @@ describe("html allowlist sanitization", () => {
     });
 
     it("rejects css url primitives including escaped spellings", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const globalRef = getDomPurifyGlobal();
         const previousPurifier = globalRef.DOMPurify;
@@ -72,19 +86,23 @@ describe("html allowlist sanitization", () => {
                     allowedTags: ["p"],
                 }
             );
-            const paragraph = fragment.querySelector("p");
+            const paragraph = getRequiredElement(
+                fragment,
+                "p",
+                HTMLParagraphElement
+            );
 
             expect(
-                paragraph?.hasAttribute("style") ? "present" : "missing"
+                paragraph.hasAttribute("style") ? "present" : "missing"
             ).toBe("missing");
-            expect(paragraph?.textContent).toBe("safe");
+            expect(paragraph.textContent).toBe("safe");
         } finally {
             globalRef.DOMPurify = previousPurifier;
         }
     });
 
     it("preserves style attributes when style url stripping is disabled", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const globalRef = getDomPurifyGlobal();
         const previousPurifier = globalRef.DOMPurify;
@@ -98,11 +116,14 @@ describe("html allowlist sanitization", () => {
                     stripUrlInStyle: false,
                 }
             );
+            const paragraph = getRequiredElement(
+                fragment,
+                "p",
+                HTMLParagraphElement
+            );
 
             expect(
-                fragment.querySelector("p")?.hasAttribute("style")
-                    ? "present"
-                    : "missing"
+                paragraph.hasAttribute("style") ? "present" : "missing"
             ).toBe("present");
         } finally {
             globalRef.DOMPurify = previousPurifier;
@@ -110,7 +131,7 @@ describe("html allowlist sanitization", () => {
     });
 
     it("uses global dompurify when available and still strips unsafe styles", () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         const globalRef = getDomPurifyGlobal();
         const previousPurifier = globalRef.DOMPurify;
@@ -134,11 +155,11 @@ describe("html allowlist sanitization", () => {
                 allowedAttributes: ["style"],
                 allowedTags: ["span"],
             });
-            const span = fragment.querySelector("span");
+            const span = getRequiredElement(fragment, "span", HTMLSpanElement);
 
             expect(receivedHtml).toBe("<span>raw</span>");
-            expect(span?.textContent).toBe("purified");
-            expect(span?.hasAttribute("style") ? "present" : "missing").toBe(
+            expect(span.textContent).toBe("purified");
+            expect(span.hasAttribute("style") ? "present" : "missing").toBe(
                 "missing"
             );
             expect(fragment.querySelector("script")).toBeNull();
