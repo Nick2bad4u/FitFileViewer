@@ -5,6 +5,15 @@ import {
     clearAllNotifications,
 } from "../../../electron-app/utils/ui/notifications/showNotification.js";
 
+function getNotificationState(element: HTMLElement) {
+    return {
+        ariaLabel: element.getAttribute("aria-label"),
+        classList: [...element.classList],
+        display: element.style.display,
+        message: element.querySelector(".notification-message")?.textContent,
+    };
+}
+
 describe("showNotification interactions", () => {
     beforeEach(() => {
         vi.useFakeTimers();
@@ -98,7 +107,7 @@ describe("showNotification interactions", () => {
     });
 
     it("handles invalid inputs and unknown type fallback", async () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         // invalid message
         await showNotification(null as any);
@@ -110,7 +119,18 @@ describe("showNotification interactions", () => {
         const p = showNotification("Msg", "unknown" as any);
         await p;
         const el = document.getElementById("notification")!;
-        expect(el.className).toContain("notification");
+        expect(vi.mocked(console.warn).mock.calls).toStrictEqual([
+            ["showNotification: Invalid message provided"],
+            [
+                "showNotification: Unknown notification type 'unknown', falling back to 'info'",
+            ],
+        ]);
+        expect(getNotificationState(el)).toStrictEqual({
+            ariaLabel: "Information: Msg",
+            classList: ["notification", "info"],
+            display: "flex",
+            message: "Msg",
+        });
         // auto-hide default of info (4000)
         vi.advanceTimersByTime(4500);
         vi.advanceTimersByTime(300);
