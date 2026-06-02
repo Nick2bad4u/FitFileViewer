@@ -207,6 +207,70 @@ describe("source entrypoint documentation", () => {
         );
     });
 
+    it("keeps the root layout guide utility domains aligned with current source directories", () => {
+        expect.assertions(3);
+
+        const layoutGuide = readWorkspaceFile(rootApplicationLayoutDocPath);
+        const currentUtilityDirectoryNames = [
+            "app",
+            "async",
+            "charts",
+            "config",
+            "data",
+            "debug",
+            "docs",
+            "dom",
+            "errors",
+            "files",
+            "formatting",
+            "legacy",
+            "logging",
+            "maps",
+            "net",
+            "performance",
+            "rendering",
+            "runtime",
+            "state",
+            "storage",
+            "theming",
+            "types",
+            "ui",
+        ];
+        const currentUtilityDirectories = currentUtilityDirectoryNames.map(
+            (directoryName) =>
+                path.posix.join("electron-app", "utils", directoryName)
+        );
+        const staleFlatUtilityEntries = [
+            "aboutModal.js",
+            "appMenu.js",
+            "chartColors.js",
+            "notifications.js",
+            "renderChartJS.js",
+            "setupWindow.js",
+            "showNotification.js",
+            "tabManager.js",
+        ];
+
+        expect(getPathStates(currentUtilityDirectories)).toStrictEqual(
+            Object.fromEntries(
+                currentUtilityDirectories.map((directoryPath) => [
+                    directoryPath,
+                    "present",
+                ])
+            )
+        );
+        expect(
+            currentUtilityDirectoryNames.filter(
+                (directoryName) => !layoutGuide.includes(`── ${directoryName}/`)
+            )
+        ).toStrictEqual([]);
+        expect(
+            staleFlatUtilityEntries.filter((entryName) =>
+                layoutGuide.includes(entryName)
+            )
+        ).toStrictEqual([]);
+    });
+
     it("documents only current root tooling files in the root layout guide", () => {
         expect.assertions(3);
 
