@@ -14,6 +14,22 @@ import {
 
 type NotifyMethod = "error" | "info" | "success" | "warning";
 
+const EXPECTED_TYPE_ARIA_LABELS: Record<NotificationType, string> = {
+    error: "Error",
+    info: "Information",
+    success: "Success",
+    warning: "Warning",
+};
+
+function getNotificationState(element: HTMLElement) {
+    return {
+        ariaLabel: element.getAttribute("aria-label"),
+        classList: [...element.classList],
+        display: element.style.display,
+        message: element.querySelector(".notification-message")?.textContent,
+    };
+}
+
 describe("showNotification queue edge cases", () => {
     beforeEach(() => {
         vi.useFakeTimers();
@@ -102,7 +118,7 @@ describe("showNotification queue edge cases", () => {
     });
 
     it("handles all notification types through the notify object", async () => {
-        expect.assertions(8);
+        expect.assertions(4);
 
         const typeTests: Array<{
             readonly duration: number;
@@ -119,8 +135,16 @@ describe("showNotification queue edge cases", () => {
             const p = notify[test.method](`${test.type} notification`);
             await p;
             const el = document.getElementById("notification")!;
-            expect(el.style.display).toBe("flex");
-            expect(el.className).toContain(test.type);
+            expect(getNotificationState(el)).toStrictEqual({
+                ariaLabel: `${EXPECTED_TYPE_ARIA_LABELS[test.type]}: ${test.type} notification`,
+                classList: [
+                    "notification",
+                    test.type,
+                    "show",
+                ],
+                display: "flex",
+                message: `${test.type} notification`,
+            });
 
             // Clear notification before next test
             clearAllNotifications();
@@ -277,7 +301,7 @@ describe("showNotification queue edge cases", () => {
     });
 
     it("handles multiple notifications in queue properly", async () => {
-        expect.assertions(7);
+        expect.assertions(4);
 
         // Queue multiple notifications
         showNotification("First", "info", 100);
@@ -287,30 +311,48 @@ describe("showNotification queue edge cases", () => {
         // First should be displayed immediately
         await vi.advanceTimersByTimeAsync(10);
         let el = document.getElementById("notification")!;
-        expect(el.querySelector(".notification-message")!.textContent).toBe(
-            "First"
-        );
-        expect(el.className).toContain("info");
+        expect(getNotificationState(el)).toStrictEqual({
+            ariaLabel: "Information: First",
+            classList: [
+                "notification",
+                "info",
+                "show",
+            ],
+            display: "flex",
+            message: "First",
+        });
 
         // Advance past first notification duration + hide animation
         await vi.advanceTimersByTimeAsync(400);
 
         // Second should be displayed
         el = document.getElementById("notification")!;
-        expect(el.querySelector(".notification-message")!.textContent).toBe(
-            "Second"
-        );
-        expect(el.className).toContain("success");
+        expect(getNotificationState(el)).toStrictEqual({
+            ariaLabel: "Success: Second",
+            classList: [
+                "notification",
+                "success",
+                "show",
+            ],
+            display: "flex",
+            message: "Second",
+        });
 
         // Advance past second notification duration + hide animation
         await vi.advanceTimersByTimeAsync(400);
 
         // Third should be displayed
         el = document.getElementById("notification")!;
-        expect(el.querySelector(".notification-message")!.textContent).toBe(
-            "Third"
-        );
-        expect(el.className).toContain("error");
+        expect(getNotificationState(el)).toStrictEqual({
+            ariaLabel: "Error: Third",
+            classList: [
+                "notification",
+                "error",
+                "show",
+            ],
+            display: "flex",
+            message: "Third",
+        });
 
         // Clear everything
         await vi.advanceTimersByTimeAsync(400);

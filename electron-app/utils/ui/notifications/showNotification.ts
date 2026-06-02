@@ -44,6 +44,7 @@ type HideTimeout = number | ReturnType<typeof setTimeout>;
 /** Notification host element with an optional scheduled hide timer. */
 export type NotificationElement = HTMLElement & {
     hideTimeout?: HideTimeout;
+    notificationToken?: number;
 };
 
 // Notification queue for managing multiple notifications
@@ -51,6 +52,7 @@ let isShowingNotification = false;
 const notificationQueue: QueuedNotification[] = [];
 const activeAnimationFrames = new Set<number>();
 const activeTimeouts = new Set<HideTimeout>();
+let notificationDisplayToken = 0;
 
 // Notification type configurations with icons and default durations
 const NOTIFICATION_TYPES: Record<NotificationType, NotificationTypeConfig> = {
@@ -67,6 +69,7 @@ const NOTIFICATION_TYPES: Record<NotificationType, NotificationTypeConfig> = {
 export function __testResetNotifications(): void {
     notificationQueue.length = 0;
     isShowingNotification = false;
+    notificationDisplayToken = 0;
     clearScheduledWork();
     const el = document.querySelector<HTMLElement>(
         "#notification"
@@ -81,6 +84,7 @@ export function __testResetNotifications(): void {
         el.style.display = "none";
         el.onclick = null;
         el.style.cursor = "default";
+        delete el.notificationToken;
         el.replaceChildren();
     }
 }
@@ -318,6 +322,7 @@ async function displayNotification(
     await buildNotificationContent(notificationElement, notification);
 
     // Show notification with animation
+    notificationElement.notificationToken = notificationDisplayToken += 1;
     notificationElement.className = `notification ${notification.type}`;
     notificationElement.style.display = "flex";
 
@@ -354,6 +359,8 @@ async function displayNotification(
 
 /** Hides the notification with animation. */
 function hideNotification(element: NotificationElement): void {
+    const hideToken = element.notificationToken;
+
     if (element.hideTimeout) {
         clearNotificationTimeout(element.hideTimeout);
         delete element.hideTimeout;
@@ -363,9 +370,13 @@ function hideNotification(element: NotificationElement): void {
 
     // Hide element after animation completes
     scheduleNotificationTimeout(() => {
+        if (element.notificationToken !== hideToken) {
+            return;
+        }
         element.style.display = "none";
         element.onclick = null;
         element.style.cursor = "default";
+        delete element.notificationToken;
     }, 300); // Match CSS transition duration
 }
 
