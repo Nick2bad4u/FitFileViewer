@@ -407,7 +407,7 @@ describe("masterStateManager comprehensive behavior", () => {
                     createDropEvent("ride.fit")
                 );
 
-                expect([...bodyElement.classList]).toContain("drag-over");
+                expect(bodyElement.classList.contains("drag-over")).toBe(true);
 
                 dispatchListeners(
                     documentListeners,
@@ -415,7 +415,7 @@ describe("masterStateManager comprehensive behavior", () => {
                     createDropEvent("ride.fit")
                 );
 
-                expect([...bodyElement.classList]).not.toContain("drag-over");
+                expect(bodyElement.classList.contains("drag-over")).toBe(false);
 
                 dispatchListeners(
                     documentListeners,
