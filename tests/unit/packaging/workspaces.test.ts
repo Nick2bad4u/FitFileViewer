@@ -31,6 +31,7 @@ type WorkspacesModule = {
     docusaurusApiDocsPath: string;
     docusaurusApiDocsAbsolutePath: string;
     docusaurusApiIpcCommunicationDocPath: string;
+    docusaurusApiUtilityApisDocPath: string;
     docusaurusArchitectureProcessModelDocPath: string;
     docusaurusArchitectureSecurityDocPath: string;
     docusaurusBuildPath: string;
@@ -151,6 +152,7 @@ type WorkspacesModule = {
     rootVitestCachePath: string;
     rootVitestConfigPath: string;
     rootVitestGlobalSetupPath: string;
+    rootVitestPreloadDistHelperPath: string;
     rootVitestSetupFilePath: string;
     rootVitestSupportPath: string;
     rootVitestTypecheckTsconfigPath: string;
@@ -496,6 +498,8 @@ describe("workspace path helpers", () => {
             docusaurusApiCoreApis: workspaces.docusaurusApiCoreApisDocPath,
             docusaurusApiIpcCommunication:
                 workspaces.docusaurusApiIpcCommunicationDocPath,
+            docusaurusApiUtilityApis:
+                workspaces.docusaurusApiUtilityApisDocPath,
             docusaurusArchitectureOverview:
                 workspaces.docusaurusArchitectureOverviewDocPath,
             docusaurusArchitectureModuleSystem:
@@ -531,6 +535,8 @@ describe("workspace path helpers", () => {
             docusaurusApiCoreApis: "docusaurus/docs/api-reference/core-apis.md",
             docusaurusApiIpcCommunication:
                 "docusaurus/docs/api-reference/ipc-communication.md",
+            docusaurusApiUtilityApis:
+                "docusaurus/docs/api-reference/utility-apis.md",
             docusaurusArchitectureOverview:
                 "docusaurus/docs/architecture/overview.md",
             docusaurusArchitectureModuleSystem:
@@ -588,6 +594,8 @@ describe("workspace path helpers", () => {
             tabsTests: workspaces.rootTabsTestsPath,
             unitTests: workspaces.rootUnitTestsPath,
             vitestGlobalSetup: workspaces.rootVitestGlobalSetupPath,
+            vitestPreloadDistHelper:
+                workspaces.rootVitestPreloadDistHelperPath,
             vitestSetupFile: workspaces.rootVitestSetupFilePath,
             vitestSupport: workspaces.rootVitestSupportPath,
             win7ReleaseDist: workspaces.rootWin7ReleaseDistPath,
@@ -612,6 +620,8 @@ describe("workspace path helpers", () => {
             tabsTests: "tests/unit/tabs",
             unitTests: "tests/unit",
             vitestGlobalSetup: "tests/vitest/globalSetup.mjs",
+            vitestPreloadDistHelper:
+                "tests/vitest/helpers/preloadDist.ts",
             vitestSetupFile: "tests/vitest/setupVitest.mjs",
             vitestSupport: "tests/vitest",
             win7ReleaseDist: path.join(process.cwd(), "release-dist", "win7"),
