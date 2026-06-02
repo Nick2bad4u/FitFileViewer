@@ -78,37 +78,45 @@ describe("clean-workspace script", () => {
 
         const { cleanupTargets } = await importCleanWorkspace();
 
-        expect(cleanupTargets).toStrictEqual([
-            ".cache",
-            ".eslintcache",
-            ".prettier-cache",
-            ".stylelintcache",
-            docusaurusCachePath,
-            docusaurusBuildPath,
-            docusaurusApiDocsPath,
-            docusaurusStaticFaviconPath,
-            docusaurusStaticImageFaviconPath,
-            docusaurusStaticImageCoverageJsonPath,
-            docusaurusStaticImageCoverageSvgPath,
-            ...rootDocsScreenshotNames.map((screenshotName) =>
-                path.join(docusaurusStaticScreenshotsPath, screenshotName)
+        expect({
+            nestedElectronAppTargets: cleanupTargets.filter((target) =>
+                target.startsWith("electron-app/")
             ),
-            rootFlatpakBundlePath,
-            rootFlatpakZipPath,
-            rootArtifactsPath,
-            rootFlatpakBuildPath,
-            rootFlatpakRepoPath,
-            rootCoveragePath,
-            rootRuntimeDistPath,
-            "html",
-            "logs",
-            "out",
-            "playwright-report",
-            rootReleaseDistPath,
-            "temp",
-            "test-results",
-            rootTypesPath,
-        ]);
+            targets: cleanupTargets,
+        }).toStrictEqual({
+            nestedElectronAppTargets: [],
+            targets: [
+                ".cache",
+                ".eslintcache",
+                ".prettier-cache",
+                ".stylelintcache",
+                docusaurusCachePath,
+                docusaurusBuildPath,
+                docusaurusApiDocsPath,
+                docusaurusStaticFaviconPath,
+                docusaurusStaticImageFaviconPath,
+                docusaurusStaticImageCoverageJsonPath,
+                docusaurusStaticImageCoverageSvgPath,
+                ...rootDocsScreenshotNames.map((screenshotName) =>
+                    path.join(docusaurusStaticScreenshotsPath, screenshotName)
+                ),
+                rootFlatpakBundlePath,
+                rootFlatpakZipPath,
+                rootArtifactsPath,
+                rootFlatpakBuildPath,
+                rootFlatpakRepoPath,
+                rootCoveragePath,
+                rootRuntimeDistPath,
+                "html",
+                "logs",
+                "out",
+                "playwright-report",
+                rootReleaseDistPath,
+                "temp",
+                "test-results",
+                rootTypesPath,
+            ],
+        });
     });
 
     it("does not keep stale nested Electron app generated directories", async () => {
