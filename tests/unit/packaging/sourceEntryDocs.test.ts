@@ -4,7 +4,9 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
+    docusaurusArchitectureModuleSystemDocPath,
     docusaurusArchitectureOverviewDocPath,
+    docusaurusArchitectureProcessModelDocPath,
     rootAgentsPath,
     rootApplicationArchitectureDocPath,
     rootApplicationLayoutDocPath,
@@ -21,10 +23,12 @@ import {
 
 const SOURCE_LAYOUT_DOCS = [
     rootAgentsPath,
+    docusaurusArchitectureModuleSystemDocPath,
     rootApplicationArchitectureDocPath,
     rootApplicationLayoutDocPath,
     rootApplicationOverviewDocPath,
     docusaurusArchitectureOverviewDocPath,
+    docusaurusArchitectureProcessModelDocPath,
 ];
 
 function readWorkspaceFile(relativePath: string): string {
@@ -72,7 +76,7 @@ describe("source entrypoint documentation", () => {
     });
 
     it("does not present generated JavaScript files as source layout entries", () => {
-        expect.assertions(7);
+        expect.assertions(12);
 
         const docs = SOURCE_LAYOUT_DOCS.map((docPath) =>
             readWorkspaceFile(docPath)
@@ -85,6 +89,11 @@ describe("source entrypoint documentation", () => {
         expect(docs).not.toContain("├── main.js");
         expect(docs).not.toContain("├── main-ui.js");
         expect(docs).not.toContain("| `main.js`");
+        expect(docs).not.toContain("`main-ui.js`");
+        expect(docs).not.toContain("`renderer.js`");
+        expect(docs).not.toContain("A[renderer.js]");
+        expect(docs).not.toContain("B[main-ui.js]");
+        expect(docs).not.toContain("C[fitParser.js]");
     });
 
     it("documents runtime output under electron-app/dist instead of bare dist", () => {

@@ -311,7 +311,7 @@ electron-app/utils/
     ├── tabManager.js                # Tab management system
     ├── tooltipUtils.js              # Tooltip utilities
     ├── updateActiveTab.js           # Tab state updates
-    ├── updateTabVisibility.js       # Tab visibility management
+    ├── updateTabVisibility.ts       # Tab visibility management
     ├── uiHelpers.js                 # UI helper functions
     └── widgetUtils.js               # Widget utilities
 ```

@@ -176,6 +176,18 @@ export const docusaurusReadmeRepositoryPath =
     docusaurusWorkspaceRepositoryPath("README.md");
 export const docusaurusArchitectureOverviewDocPath =
     docusaurusWorkspaceRepositoryPath("docs", "architecture", "overview.md");
+export const docusaurusArchitectureModuleSystemDocPath =
+    docusaurusWorkspaceRepositoryPath(
+        "docs",
+        "architecture",
+        "module-system.md"
+    );
+export const docusaurusArchitectureProcessModelDocPath =
+    docusaurusWorkspaceRepositoryPath(
+        "docs",
+        "architecture",
+        "process-model.md"
+    );
 export const docusaurusDevelopmentBuildReleaseDocPath =
     docusaurusWorkspaceRepositoryPath(
         "docs",

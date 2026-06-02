@@ -99,17 +99,17 @@ runtime renderer output:
 1. **File selection:** Renderer triggers `electronAPI.openFile()`; main process updates recent files and reconstitutes menus.
 2. **Binary read:** `file:read` returns an ArrayBuffer via IPC.
 3. **Decode:** `fitParser.ts` loads Garmin’s FIT SDK (`@garmin/fitsdk`), validates integrity, tracks progress via `fitFileStateManager`, and records metadata.
-4. **State updates:** Successful decodes update `globalData`, propagate to charts/maps/tables (`showFitData.js`), and notify the main menu.
-5. **Overlays:** `loadOverlayFiles.js` allows additional FIT files to be displayed side-by-side, reusing the decode pipeline and maintaining `loadedFitFiles`.
+4. **State updates:** Successful decodes update `globalData`, propagate to charts/maps/tables (`showFitData.ts`), and notify the main menu.
+5. **Overlays:** `loadOverlayFiles.ts` allows additional FIT files to be displayed side-by-side, reusing the decode pipeline and maintaining `loadedFitFiles`.
 
 ## UI Systems
 
-- **Tabs & Layout:** `main-ui.js`, `tabStateManager.js`, and `updateTabVisibility.js` coordinate tab switching, drag/drop overlays, and responsive layout.
-- **Charts:** `renderChartJS.js`, `chartTabIntegration.js`, `renderSingleHRZoneBar.js`, etc. generate Chart.js configuration, using theme-aware colors and tooltips.
-- **Maps:** `renderMap.js` leverages Leaflet/MapLibre with base layers, lap selectors, overlays, and auxiliary controls.
-- **Tables & Summaries:** `renderTable.js`, `renderSummary.js`, and helpers manage DataTables integration and summary statistics.
-- **Modals & Notifications:** `showNotification.js`, `showAboutModal.js`, and toast helpers deliver consistent UX feedback.
-- **Controls:** `createExportGPXButton.js`, `copyTableAsCSV.js`, and fullscreen helpers round out the toolbar/functionality.
+- **Tabs & Layout:** `main-ui.ts`, `tabStateManager.ts`, and `updateTabVisibility.ts` coordinate tab switching, drag/drop overlays, and responsive layout.
+- **Charts:** `renderChartJS.ts`, `chartTabIntegration.ts`, `renderSingleHRZoneBar.ts`, etc. generate Chart.js configuration, using theme-aware colors and tooltips.
+- **Maps:** `renderMap.ts` leverages Leaflet/MapLibre with base layers, lap selectors, overlays, and auxiliary controls.
+- **Tables & Summaries:** `renderTable.ts`, `renderSummary.ts`, and helpers manage DataTables integration and summary statistics.
+- **Modals & Notifications:** `showNotification.ts`, `showAboutModal.ts`, and toast helpers deliver consistent UX feedback.
+- **Controls:** `createExportGPXButton.ts`, `copyTableAsCSV.ts`, and fullscreen helpers round out the toolbar/functionality.
 
 ## Theming & Styling
 

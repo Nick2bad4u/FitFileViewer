@@ -44,7 +44,7 @@ flowchart LR
 
 ## Main Process
 
-The main process (`main.js`) handles:
+The main-process source (`main.ts`) handles:
 
 ### App Lifecycle
 
@@ -87,7 +87,7 @@ ipcMain.handle("dialog:open-fit-file", async () => {
 
 ## Preload Script
 
-The preload script (`preload.js`) bridges main and renderer:
+The preload source (`preload.ts`) bridges main and renderer:
 
 ### Context Bridge
 
@@ -109,7 +109,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
 The renderer process handles the UI:
 
-### Entry Point (`renderer.js`)
+### Entry Point (`renderer.ts`)
 
 ```javascript
 // Initialize application
@@ -120,7 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 ```
 
-### UI Management (`main-ui.js`)
+### UI Management (`main-ui.ts`)
 
 - Tab navigation
 - User interactions
@@ -165,7 +165,7 @@ ipcMain.handle("dialog:open-fit-file", async () => {
 ### Context Isolation
 
 ```javascript
-// main.js - Window creation
+// main.ts - Window creation
 const mainWindow = new BrowserWindow({
  webPreferences: {
   contextIsolation: true,

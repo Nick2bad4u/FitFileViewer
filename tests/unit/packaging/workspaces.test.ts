@@ -30,8 +30,10 @@ type WorkspacesModule = {
     buildRuntimeScriptPath: string;
     bundlePreloadScriptPath: string;
     cleanRuntimeDistScriptPath: string;
+    docusaurusArchitectureModuleSystemDocPath: string;
     docusaurusApiDocsPath: string;
     docusaurusApiDocsAbsolutePath: string;
+    docusaurusArchitectureProcessModelDocPath: string;
     docusaurusBuildPath: string;
     docusaurusCachePath: string;
     docusaurusArchitectureOverviewDocPath: string;
@@ -442,6 +444,10 @@ describe("workspace path helpers", () => {
         expect({
             docusaurusArchitectureOverview:
                 workspaces.docusaurusArchitectureOverviewDocPath,
+            docusaurusArchitectureModuleSystem:
+                workspaces.docusaurusArchitectureModuleSystemDocPath,
+            docusaurusArchitectureProcessModel:
+                workspaces.docusaurusArchitectureProcessModelDocPath,
             docusaurusBuildRelease:
                 workspaces.docusaurusDevelopmentBuildReleaseDocPath,
             docusaurusDevelopmentSetup:
@@ -460,6 +466,10 @@ describe("workspace path helpers", () => {
         }).toStrictEqual({
             docusaurusArchitectureOverview:
                 "docusaurus/docs/architecture/overview.md",
+            docusaurusArchitectureModuleSystem:
+                "docusaurus/docs/architecture/module-system.md",
+            docusaurusArchitectureProcessModel:
+                "docusaurus/docs/architecture/process-model.md",
             docusaurusBuildRelease:
                 "docusaurus/docs/development/build-release.md",
             docusaurusDevelopmentSetup: "docusaurus/docs/development/setup.md",

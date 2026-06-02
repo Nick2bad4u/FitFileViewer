@@ -180,8 +180,8 @@ export function formatDistance(meters, unit = "km") {
 
 ```mermaid
 flowchart TD
-    A[renderer.js] --> B[main-ui.js]
-    A --> C[fitParser.js]
+    A[renderer.ts] --> B[main-ui.ts]
+    A --> C[fitParser.ts]
 
     B --> D[utils/maps/]
     B --> E[utils/charts/]
