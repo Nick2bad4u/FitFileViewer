@@ -5,10 +5,14 @@ import { describe, expect, it } from "vitest";
 
 const DIRECT_PROCESS_ENV_PATTERN = /\bprocess\.env\b/u;
 
-const SCANNED_SOURCE_ROOTS = [
+const SCANNED_SOURCE_PATHS = [
+    "electron-app/main-ui.ts",
     "electron-app/preload",
+    "electron-app/preload.ts",
     "electron-app/renderer",
+    "electron-app/renderer.ts",
     "electron-app/ui",
+    "electron-app/utils.ts",
     "electron-app/utils",
 ];
 
@@ -18,13 +22,26 @@ const EXCLUDED_RELATIVE_PATHS = new Set([
 
 const SOURCE_EXTENSIONS = new Set([".js", ".ts"]);
 
-function collectSourceFiles(relativeDirectory: string): string[] {
-    const absoluteDirectory = path.join(process.cwd(), relativeDirectory);
-    const entries = readdirSync(absoluteDirectory);
+function collectSourceFiles(relativePath: string): string[] {
+    const absolutePath = path.join(process.cwd(), relativePath);
+    const stat = statSync(absolutePath);
+
+    if (!stat.isDirectory()) {
+        if (!SOURCE_EXTENSIONS.has(path.extname(relativePath))) {
+            return [];
+        }
+
+        const normalizedRelativePath = relativePath.replaceAll(path.sep, "/");
+        return EXCLUDED_RELATIVE_PATHS.has(normalizedRelativePath)
+            ? []
+            : [normalizedRelativePath];
+    }
+
+    const entries = readdirSync(absolutePath);
     const sourceFiles: string[] = [];
 
     for (const entry of entries) {
-        const absoluteEntry = path.join(absoluteDirectory, entry);
+        const absoluteEntry = path.join(absolutePath, entry);
         const relativeEntry = path
             .relative(process.cwd(), absoluteEntry)
             .replaceAll(path.sep, "/");
@@ -53,11 +70,11 @@ function collectSourceFiles(relativeDirectory: string): string[] {
 
 describe("renderer process environment policy", () => {
     it("keeps renderer-adjacent source off direct process.env reads", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
-        const directProcessEnvAccesses = SCANNED_SOURCE_ROOTS.flatMap(
-            collectSourceFiles
-        )
+        const scannedSourceFiles =
+            SCANNED_SOURCE_PATHS.flatMap(collectSourceFiles);
+        const directProcessEnvAccesses = scannedSourceFiles
             .map((relativeFile) => ({
                 content: readFileSync(
                     path.join(process.cwd(), relativeFile),
@@ -68,6 +85,14 @@ describe("renderer process environment policy", () => {
             .filter(({ content }) => DIRECT_PROCESS_ENV_PATTERN.test(content))
             .map(({ relativeFile }) => relativeFile);
 
+        expect(scannedSourceFiles).toEqual(
+            expect.arrayContaining([
+                "electron-app/main-ui.ts",
+                "electron-app/preload.ts",
+                "electron-app/renderer.ts",
+                "electron-app/utils.ts",
+            ])
+        );
         expect(directProcessEnvAccesses).not.toContain(
             "electron-app/utils/runtime/processEnvironment.ts"
         );
