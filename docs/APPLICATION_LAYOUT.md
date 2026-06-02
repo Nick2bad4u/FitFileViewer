@@ -348,8 +348,9 @@ electron-app/utils/
 ```text
 /
 ├── node_modules/                    # Root npm install tree for the app and docs workspace
+├── dist/                            # Generated runtime output; remove with `npm run clean:workspace`
 └── electron-app/
-    └── dist/                        # Generated runtime output; remove with `npm run clean:workspace`
+    └── ...                          # Electron source tree
 ```
 
 ## Testing Infrastructure
