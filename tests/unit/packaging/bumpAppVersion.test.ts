@@ -75,13 +75,24 @@ afterEach(() => {
 
 describe("bump-app-version script", () => {
     it("keeps the release workflow version rollover behavior", async () => {
-        expect.assertions(3);
+        expect.assertions(1);
 
         const { calculateNextVersion } = await importBumpAppVersion();
 
-        expect(calculateNextVersion("29.8.12")).toBe("29.9.0");
-        expect(calculateNextVersion("29.9.0")).toBe("30.0.0");
-        expect(calculateNextVersion("30.0.0")).toBe("30.1.0");
+        expect(
+            [
+                "29.8.12",
+                "29.9.0",
+                "30.0.0",
+            ].map((currentVersion) => ({
+                currentVersion,
+                nextVersion: calculateNextVersion(currentVersion),
+            }))
+        ).toStrictEqual([
+            { currentVersion: "29.8.12", nextVersion: "29.9.0" },
+            { currentVersion: "29.9.0", nextVersion: "30.0.0" },
+            { currentVersion: "30.0.0", nextVersion: "30.1.0" },
+        ]);
     });
 
     it("rejects unsupported package version strings", async () => {
