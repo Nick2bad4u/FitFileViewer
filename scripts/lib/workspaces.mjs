@@ -188,6 +188,8 @@ export const docusaurusArchitectureProcessModelDocPath =
         "architecture",
         "process-model.md"
     );
+export const docusaurusArchitectureSecurityDocPath =
+    docusaurusWorkspaceRepositoryPath("docs", "architecture", "security.md");
 export const docusaurusDevelopmentBuildReleaseDocPath =
     docusaurusWorkspaceRepositoryPath(
         "docs",

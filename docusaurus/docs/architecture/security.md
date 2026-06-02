@@ -44,7 +44,7 @@ flowchart TB
 Renderer JavaScript runs in an isolated context:
 
 ```javascript
-// main.js
+// main.ts
 const mainWindow = new BrowserWindow({
  webPreferences: {
   contextIsolation: true, // Separate contexts
@@ -70,7 +70,7 @@ const mainWindow = new BrowserWindow({
 Only specific, validated operations are exposed:
 
 ```javascript
-// preload.js
+// preload.ts
 const validChannels = ["dialog:open-fit-file", "file:read", "app:get-version"];
 
 contextBridge.exposeInMainWorld("electronAPI", {
@@ -85,7 +85,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
 All inputs validated before processing:
 
 ```javascript
-// main.js
+// main.ts
 ipcMain.handle("file:read", async (event, filePath) => {
  // Validate file path
  if (!isValidFilePath(filePath)) {
@@ -164,7 +164,7 @@ const csp = [
 ### Prevent External Navigation
 
 ```javascript
-// main.js
+// main.ts
 mainWindow.webContents.on("will-navigate", (event, url) => {
  // Only allow same-origin navigation
  if (!url.startsWith("file://")) {

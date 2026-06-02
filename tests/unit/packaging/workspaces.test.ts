@@ -34,6 +34,7 @@ type WorkspacesModule = {
     docusaurusApiDocsPath: string;
     docusaurusApiDocsAbsolutePath: string;
     docusaurusArchitectureProcessModelDocPath: string;
+    docusaurusArchitectureSecurityDocPath: string;
     docusaurusBuildPath: string;
     docusaurusCachePath: string;
     docusaurusArchitectureOverviewDocPath: string;
@@ -448,6 +449,8 @@ describe("workspace path helpers", () => {
                 workspaces.docusaurusArchitectureModuleSystemDocPath,
             docusaurusArchitectureProcessModel:
                 workspaces.docusaurusArchitectureProcessModelDocPath,
+            docusaurusArchitectureSecurity:
+                workspaces.docusaurusArchitectureSecurityDocPath,
             docusaurusBuildRelease:
                 workspaces.docusaurusDevelopmentBuildReleaseDocPath,
             docusaurusDevelopmentSetup:
@@ -470,6 +473,8 @@ describe("workspace path helpers", () => {
                 "docusaurus/docs/architecture/module-system.md",
             docusaurusArchitectureProcessModel:
                 "docusaurus/docs/architecture/process-model.md",
+            docusaurusArchitectureSecurity:
+                "docusaurus/docs/architecture/security.md",
             docusaurusBuildRelease:
                 "docusaurus/docs/development/build-release.md",
             docusaurusDevelopmentSetup: "docusaurus/docs/development/setup.md",

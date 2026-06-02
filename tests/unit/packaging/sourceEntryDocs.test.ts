@@ -7,6 +7,7 @@ import {
     docusaurusArchitectureModuleSystemDocPath,
     docusaurusArchitectureOverviewDocPath,
     docusaurusArchitectureProcessModelDocPath,
+    docusaurusArchitectureSecurityDocPath,
     rootAgentsPath,
     rootApplicationArchitectureDocPath,
     rootApplicationLayoutDocPath,
@@ -29,6 +30,7 @@ const SOURCE_LAYOUT_DOCS = [
     rootApplicationOverviewDocPath,
     docusaurusArchitectureOverviewDocPath,
     docusaurusArchitectureProcessModelDocPath,
+    docusaurusArchitectureSecurityDocPath,
 ];
 
 function readWorkspaceFile(relativePath: string): string {
@@ -76,7 +78,7 @@ describe("source entrypoint documentation", () => {
     });
 
     it("does not present generated JavaScript files as source layout entries", () => {
-        expect.assertions(12);
+        expect.assertions(14);
 
         const docs = SOURCE_LAYOUT_DOCS.map((docPath) =>
             readWorkspaceFile(docPath)
@@ -94,6 +96,8 @@ describe("source entrypoint documentation", () => {
         expect(docs).not.toContain("A[renderer.js]");
         expect(docs).not.toContain("B[main-ui.js]");
         expect(docs).not.toContain("C[fitParser.js]");
+        expect(docs).not.toContain("// main.js");
+        expect(docs).not.toContain("// preload.js");
     });
 
     it("documents runtime output under electron-app/dist instead of bare dist", () => {
