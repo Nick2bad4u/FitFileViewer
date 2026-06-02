@@ -161,18 +161,25 @@ describe("fitParser.js decoder behavior", () => {
 
     describe("module exports", () => {
         it("should export all required functions and constants", () => {
-            expect.assertions(12);
+            expect.assertions(4);
 
-            expect(fitParser.decodeFitFile).toBeTypeOf("function");
-            expect(fitParser.FitDecodeError).toBeTypeOf("function");
-            expect(fitParser.applyUnknownMessageLabels).toBeTypeOf("function");
-            expect(fitParser.initializeStateManagement).toBeTypeOf("function");
-            expect(fitParser.updateDecoderOptions).toBeTypeOf("function");
-            expect(fitParser.getCurrentDecoderOptions).toBeTypeOf("function");
-            expect(fitParser.resetDecoderOptions).toBeTypeOf("function");
-            expect(fitParser.getPersistedDecoderOptions).toBeTypeOf("function");
-            expect(fitParser.getDefaultDecoderOptions).toBeTypeOf("function");
-            expect(fitParser.validateDecoderOptions).toBeTypeOf("function");
+            expect(Object.keys(fitParser).sort()).toStrictEqual([
+                "DECODER_OPTIONS_SCHEMA",
+                "FitDecodeError",
+                "applyUnknownMessageLabels",
+                "decodeFitFile",
+                "default",
+                "getCurrentDecoderOptions",
+                "getDefaultDecoderOptions",
+                "getPersistedDecoderOptions",
+                "initializeStateManagement",
+                "resetDecoderOptions",
+                "updateDecoderOptions",
+                "validateDecoderOptions",
+            ]);
+            expect(Object.keys(fitParser).sort()).not.toContain(
+                "decodeFitFileWithState"
+            );
             expect(
                 Object.keys(fitParser.DECODER_OPTIONS_SCHEMA).sort()
             ).toEqual([
@@ -184,7 +191,13 @@ describe("fitParser.js decoder behavior", () => {
                 "includeUnknownData",
                 "mergeHeartRates",
             ]);
-            expect(fitParser.DECODER_OPTIONS_SCHEMA).not.toStrictEqual({});
+            expect(
+                Object.fromEntries(
+                    Object.entries(fitParser.DECODER_OPTIONS_SCHEMA).map(
+                        ([key, value]) => [key, value.default]
+                    )
+                )
+            ).toStrictEqual(createExpectedDefaultDecoderOptions());
         });
     });
 
