@@ -111,16 +111,7 @@ describe("preload.js - Basic API Validation", () => {
         vi.stubGlobal("__electronHoistedMock", electronMock);
         vi.doMock(import("electron"), () => electronMock);
 
-        console.log("[TEST] About to import preload script...");
-
         await import("../../electron-app/preload.js");
-
-        console.log("[TEST] Preload script imported successfully");
-        console.log(
-            "[TEST] contextBridge.exposeInMainWorld was called",
-            electronMock.contextBridge.exposeInMainWorld.mock.calls.length,
-            "times"
-        );
     });
 
     afterEach(() => {
@@ -263,20 +254,34 @@ describe("preload.js - Basic API Validation", () => {
         );
     });
 
-    it("should log initialization message", () => {
+    it("should log preload initialization messages without test diagnostics", () => {
         expect.assertions(1);
         const logMessages = consoleLogSpy.mock.calls
             .map((call: unknown[]) => call[0])
             .filter(
                 (message): message is string => typeof message === "string"
             );
+        const requiredLogMessages = [
+            "[preload.js] Successfully exposed electronAPI to main world",
+            "[preload.js] Preload script initialized successfully",
+        ];
 
-        expect(
-            logMessages.some((message) =>
-                /\[preload\.js\] (Preload script initialized|Successfully exposed)/u.test(
-                    message
-                )
-            )
-        ).toBe(true);
+        expect({
+            requiredLogMessagesPresent: Object.fromEntries(
+                requiredLogMessages.map((message) => [
+                    message,
+                    logMessages.includes(message),
+                ])
+            ),
+            testDiagnostics: logMessages.filter((message) =>
+                message.startsWith("[TEST]")
+            ),
+        }).toStrictEqual({
+            requiredLogMessagesPresent: {
+                "[preload.js] Preload script initialized successfully": true,
+                "[preload.js] Successfully exposed electronAPI to main world": true,
+            },
+            testDiagnostics: [],
+        });
     });
 });
