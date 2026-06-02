@@ -73,8 +73,6 @@ describe("registerRecentFileHandlers", () => {
     ): RecentFileIpcHandler {
         const handler = handlers.get(channel);
 
-        expect(handler).toBeTypeOf("function");
-
         if (typeof handler !== "function") {
             throw new TypeError(`${channel} handler not registered`);
         }
@@ -124,7 +122,7 @@ describe("registerRecentFileHandlers", () => {
     });
 
     it("rejects invalid filePath types", async () => {
-        expect.assertions(3);
+        expect.assertions(2);
 
         registerDefaultHandlers();
 
@@ -148,7 +146,7 @@ describe("registerRecentFileHandlers", () => {
     });
 
     it("rejects unapproved paths", async () => {
-        expect.assertions(3);
+        expect.assertions(2);
 
         registerDefaultHandlers();
 
@@ -175,7 +173,7 @@ describe("registerRecentFileHandlers", () => {
     });
 
     it("accepts approved paths and calls addRecentFile", async () => {
-        expect.assertions(3);
+        expect.assertions(2);
 
         registerDefaultHandlers();
 
@@ -194,8 +192,55 @@ describe("registerRecentFileHandlers", () => {
         });
     });
 
+    it("refreshes the app menu after adding an approved recent file", async () => {
+        expect.assertions(4);
+
+        const recentFiles: string[] = ["C:/a.fit"];
+        const menuCalls: unknown[][] = [];
+        const focusedWindow = { marker: "focused-window" };
+        const approved = approveFilePath("C:/ok.fit", { source: "test" });
+
+        registerDefaultHandlers({
+            addRecentFile: (filePath) => {
+                added.push(filePath);
+                recentFiles.push(filePath);
+            },
+            browserWindowRef: () => ({
+                getFocusedWindow: () => focusedWindow as never,
+            }),
+            getAppState: () => "C:/loaded.fit",
+            getThemeFromRenderer: async () => "auto",
+            loadRecentFiles: () => [...recentFiles],
+            safeCreateAppMenu: (...args) => {
+                menuCalls.push(args);
+            },
+        });
+
+        const handler = getHandler("recentFiles:add");
+
+        await expect(handler({}, approved)).resolves.toStrictEqual([
+            "C:/a.fit",
+            approved,
+        ]);
+        expect(getRecentFileState([approved])).toStrictEqual({
+            added: [approved],
+            approvals: {
+                [approved]: true,
+            },
+            logs: [],
+        });
+        expect(menuCalls).toStrictEqual([
+            [
+                focusedWindow,
+                "auto",
+                "C:/loaded.fit",
+            ],
+        ]);
+        expect(logs).toStrictEqual([]);
+    });
+
     it("recentFiles:get does not implicitly approve file reads", async () => {
-        expect.assertions(3);
+        expect.assertions(2);
 
         registerDefaultHandlers({
             addRecentFile: () => void 0,
@@ -212,7 +257,7 @@ describe("registerRecentFileHandlers", () => {
     });
 
     it("recentFiles:approve approves only paths in the recent list", async () => {
-        expect.assertions(4);
+        expect.assertions(3);
 
         registerDefaultHandlers({
             addRecentFile: () => void 0,
