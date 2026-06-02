@@ -5,7 +5,6 @@ import { describe, expect, it } from "vitest";
 type WorkspacesModule = {
     adHocEslintCachePath: string;
     appAlternativeFitViewPath: string;
-    appCoveragePath: string;
     appDistAbsolutePath: string;
     appDistPath: string;
     appDistRendererRepositoryPath: string;
@@ -165,7 +164,7 @@ async function importWorkspaces(): Promise<WorkspacesModule> {
 
 describe("workspace path helpers", () => {
     it("centralizes the app source root paths", async () => {
-        expect.assertions(16);
+        expect.assertions(15);
 
         const workspaces = await importWorkspaces();
 
@@ -194,9 +193,6 @@ describe("workspace path helpers", () => {
         );
         expect(workspaces.appTypesAbsolutePath).toBe(
             path.join(process.cwd(), "electron-app", "types")
-        );
-        expect(workspaces.appCoveragePath).toBe(
-            path.join("electron-app", "coverage")
         );
         expect(workspaces.appSourceRepositoryPath("main.ts")).toBe(
             "electron-app/main.ts"

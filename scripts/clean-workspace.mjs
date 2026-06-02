@@ -4,7 +4,6 @@ import process from "node:process";
 import { pathToFileURL } from "node:url";
 
 import {
-    appCoveragePath,
     appDistPath,
     appTypesPath,
     docusaurusApiDocsPath,
@@ -50,7 +49,6 @@ export const cleanupTargets = [
     rootReleaseDistPath,
     "temp",
     "test-results",
-    appCoveragePath,
     appDistPath,
     appTypesPath,
 ];

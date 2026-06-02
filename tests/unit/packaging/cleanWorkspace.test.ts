@@ -5,7 +5,6 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
-    appCoveragePath,
     appDistPath,
     appTypesPath,
     appSourceRelativePath,
@@ -103,7 +102,6 @@ describe("clean-workspace script", () => {
             rootReleaseDistPath,
             "temp",
             "test-results",
-            appCoveragePath,
             appDistPath,
             appTypesPath,
         ]);
@@ -119,6 +117,7 @@ describe("clean-workspace script", () => {
                 [
                     appSourceRelativePath("html"),
                     appSourceRelativePath("logs"),
+                    appSourceRelativePath("coverage"),
                     appSourceRelativePath("release"),
                     appSourceRelativePath("temp-win7"),
                 ].includes(target)
