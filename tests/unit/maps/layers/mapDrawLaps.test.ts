@@ -191,7 +191,7 @@ describe("mapDrawLaps", () => {
 
     describe("drawOverlayForFitFile", () => {
         it("should draw polyline for valid GPS data", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             const mockFitData = {
                 recordMesgs: [
@@ -224,7 +224,7 @@ describe("mapDrawLaps", () => {
         });
 
         it("should handle fitData with no GPS data", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const mockFitData = {
                 recordMesgs: [
@@ -251,7 +251,7 @@ describe("mapDrawLaps", () => {
         });
 
         it("should handle null/undefined fitData", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const result1 = drawOverlayForFitFile({
                 map: mockMap,
@@ -270,7 +270,7 @@ describe("mapDrawLaps", () => {
         });
 
         it("should use correct color based on overlayIdx", () => {
-            expect.hasAssertions();
+            expect.assertions(5);
 
             const mockFitData = {
                 recordMesgs: [
@@ -310,7 +310,7 @@ describe("mapDrawLaps", () => {
         });
 
         it("should handle fitData with mixed GPS and non-GPS records", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const mockFitData = {
                 recordMesgs: [
@@ -345,7 +345,7 @@ describe("mapDrawLaps", () => {
 
     describe("mapDrawLaps", () => {
         it("should not clear overlay state (overlays/tool layers persist)", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             (globalThis as any)._overlayPolylines = { existing: "data" };
             (globalThis as any)._mainPolylineOriginalBounds = {
@@ -380,7 +380,7 @@ describe("mapDrawLaps", () => {
         });
 
         it("should not remove non-activity layers from map", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const mapContainer = document.createElement("div");
 
@@ -404,7 +404,7 @@ describe("mapDrawLaps", () => {
         });
 
         it("should handle missing fitFile gracefully", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const mapContainer = document.createElement("div");
 
@@ -426,7 +426,7 @@ describe("mapDrawLaps", () => {
         });
 
         it("should use active file from loadedFitFiles when idx differs", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const mapContainer = document.createElement("div");
 
@@ -457,7 +457,7 @@ describe("mapDrawLaps", () => {
         });
 
         it("should store overlay polyline when created", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const mapContainer = document.createElement("div");
 
@@ -488,7 +488,7 @@ describe("mapDrawLaps", () => {
         });
 
         it("should update overlay highlights when function exists", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const mapContainer = document.createElement("div");
 
@@ -520,7 +520,7 @@ describe("mapDrawLaps", () => {
         });
 
         it('should handle lapIdx="all" with valid GPS data', () => {
-            expect.hasAssertions();
+            expect.assertions(11);
 
             // Setup comprehensive mock data for "all" laps scenario
             const mockRecordMesgs = [
@@ -637,7 +637,7 @@ describe("mapDrawLaps", () => {
         });
 
         it("should handle lapIdx=0 for single lap selection", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             // Setup mock data for single lap testing
             const mockRecordMesgs = [
@@ -714,7 +714,7 @@ describe("mapDrawLaps", () => {
         });
 
         it("should handle lapIdx=[0,1] for multi-lap selection", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             // Setup mock data for multi-lap testing
             const mockRecordMesgs = [
@@ -804,7 +804,7 @@ describe("mapDrawLaps", () => {
         });
 
         it('should handle lapIdx=["all"] same as string "all"', () => {
-            expect.hasAssertions();
+            expect.assertions(5);
 
             const mockRecordMesgs = [
                 {
@@ -856,7 +856,7 @@ describe("mapDrawLaps", () => {
         });
 
         it("should handle overlay files with multiple loaded files", () => {
-            expect.hasAssertions();
+            expect.assertions(5);
 
             // Setup main file data
             (globalThis as any).globalData = {
@@ -927,7 +927,7 @@ describe("mapDrawLaps", () => {
         });
 
         it("should handle invalid lap index gracefully", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             (globalThis as any).globalData = {
                 recordMesgs: [
@@ -971,7 +971,7 @@ describe("mapDrawLaps", () => {
         });
 
         it("should handle missing position data in records", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             (globalThis as any).globalData = {
                 recordMesgs: [
