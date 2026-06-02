@@ -34,12 +34,12 @@
         {
             "args": [
                 "run",
-                "lint:electron-app"
+                "lint:app"
             ],
             "command": "npm",
             "group": "test",
             "isBackground": false,
-            "label": "lint electron app from root",
+            "label": "lint app from root",
             "options": {
                 "cwd": "${workspaceFolder}"
             },

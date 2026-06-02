@@ -39,15 +39,26 @@ function readVsCodeTasks(): VsCodeTask[] {
     return tasksJson.tasks ?? [];
 }
 
+function getTaskByLabel(tasks: VsCodeTask[], label: string): VsCodeTask {
+    const task = tasks.find((candidate) => candidate.label === label);
+
+    if (!task) {
+        throw new Error(`Expected VS Code task: ${label}`);
+    }
+
+    return task;
+}
+
 describe("vs code workspace tasks", () => {
     it("keeps editor tasks aligned with root-owned npm scripts", () => {
-        expect.assertions(5);
+        expect.assertions(7);
 
         const tasks = readVsCodeTasks();
         const taskLabels = tasks.map((task) => task.label);
         const taskCommands = tasks.map((task) => task.command);
         const taskCwds = tasks.map((task) => task.options?.cwd);
         const taskArgs = tasks.flatMap((task) => task.args ?? []);
+        const lintAppTask = getTaskByLabel(tasks, "lint app from root");
         const nestedElectronTestArgs = taskArgs.filter((taskArg) =>
             /^electron-app[\\/]tests[\\/]/u.test(taskArg)
         );
@@ -55,9 +66,11 @@ describe("vs code workspace tasks", () => {
         expect(taskLabels).toStrictEqual([
             "build runtime from root",
             "test from root",
-            "lint electron app from root",
+            "lint app from root",
             "typecheck from root",
         ]);
+        expect(lintAppTask.args).toStrictEqual(["run", "lint:app"]);
+        expect(taskArgs).not.toContain("lint:electron-app");
         expect(new Set(taskCommands)).toStrictEqual(new Set(["npm"]));
         expect(new Set(taskCwds)).toStrictEqual(
             new Set(["${workspaceFolder}"])
