@@ -129,6 +129,25 @@ describe("install-flatpak-dependencies script", () => {
         });
     });
 
+    it("normalizes relative Flatpak dependency roots before running commands", async () => {
+        expect.assertions(1);
+
+        const { installFlatpakDependencies } =
+            await importInstallFlatpakDependencies();
+        const calls: CommandCall[] = [];
+
+        installFlatpakDependencies(
+            (command, args, options) => {
+                calls.push({ args, command, options });
+            },
+            { repositoryRoot: "." }
+        );
+
+        expect(new Set(calls.map((call) => call.options.cwd))).toStrictEqual(
+            new Set([repositoryRoot])
+        );
+    });
+
     it("parses help and rejects unknown options", async () => {
         expect.assertions(2);
 

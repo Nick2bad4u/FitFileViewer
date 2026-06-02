@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
@@ -136,7 +137,7 @@ export function getBuildDependencyCommands(platform) {
 export function installBuildDependencies(options) {
     const commands = getBuildDependencyCommands(options.platform);
     const runCommand = options.runCommand ?? execFileSync;
-    const root = options.repositoryRoot ?? repositoryRoot;
+    const root = path.resolve(options.repositoryRoot ?? repositoryRoot);
 
     for (const [command, args] of commands) {
         runCommand(command, args, { cwd: root, stdio: "inherit" });

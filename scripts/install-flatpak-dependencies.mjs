@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
@@ -70,7 +71,7 @@ export function installFlatpakDependencies(
     runCommand = execFileSync,
     options = {}
 ) {
-    const root = options.repositoryRoot ?? repositoryRoot;
+    const root = path.resolve(options.repositoryRoot ?? repositoryRoot);
 
     for (const [command, args] of flatpakDependencyCommands) {
         runCommand(command, args, { cwd: root, stdio: "inherit" });

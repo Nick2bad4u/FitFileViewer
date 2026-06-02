@@ -195,6 +195,26 @@ describe("install-build-dependencies script", () => {
         });
     });
 
+    it("normalizes relative build dependency roots before running commands", async () => {
+        expect.assertions(1);
+
+        const { installBuildDependencies } =
+            await importInstallBuildDependencies();
+        const calls: CommandCall[] = [];
+
+        installBuildDependencies({
+            platform: "Windows",
+            repositoryRoot: ".",
+            runCommand(command, args, options) {
+                calls.push({ args, command, options });
+            },
+        });
+
+        expect(new Set(calls.map((call) => call.options.cwd))).toStrictEqual(
+            new Set([repositoryRoot])
+        );
+    });
+
     it("parses CLI arguments and environment defaults", async () => {
         expect.assertions(3);
 
