@@ -17,11 +17,26 @@ type Subscribe = (
     callback: (newValue: unknown, oldValue?: unknown, path?: string) => void
 ) => unknown;
 
+type SubscriptionCall = Parameters<Subscribe>;
+
 // Utility to cleanly reset modules between environment permutations
 const resetAll = async () => {
     vi.clearAllMocks();
     vi.resetModules();
 };
+
+function getRequiredSubscriptionCall(
+    calls: SubscriptionCall[],
+    path: string
+): SubscriptionCall {
+    const call = calls.find(([subscribedPath]) => subscribedPath === path);
+
+    if (!call) {
+        throw new Error(`Expected subscription for ${path}`);
+    }
+
+    return call;
+}
 
 function appendTabButton({
     ariaDisabled,
@@ -237,11 +252,12 @@ describe("updateActiveTab.js - environment fallbacks", () => {
                 typeof callback,
             ])
         ).toStrictEqual([["ui.activeTab", "function"]]);
-        const call = subscribe.mock.calls.find(
-            ([path]) => path === "ui.activeTab"
+        const requiredCall = getRequiredSubscriptionCall(
+            subscribe.mock.calls,
+            "ui.activeTab"
         );
-        expect(call?.[1]).toBeTypeOf("function");
-        const cb = call?.[1] as (val: string) => void;
+        expect(requiredCall[1]).toBeTypeOf("function");
+        const cb = requiredCall[1] as (val: string) => void;
 
         // Act: make "data" active via state
         cb("data");

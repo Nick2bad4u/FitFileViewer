@@ -9,6 +9,16 @@ import {
 
 const ELECTRON_API_PROPERTY = "electronAPI";
 
+function getRequiredMockCall<T extends unknown[]>(calls: T[], index = 0): T {
+    const call = calls[index];
+
+    if (!call) {
+        throw new Error(`Expected mock call ${index}`);
+    }
+
+    return call;
+}
+
 function resetTestState(): void {
     cleanupEventListeners();
     document.body.replaceChildren();
@@ -32,7 +42,7 @@ describe("mainUiDomUtils", () => {
         button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
 
         expect(handler).toHaveBeenCalledOnce();
-        expect(handler.mock.calls[0]?.[0].type).toBe("click");
+        expect(getRequiredMockCall(handler.mock.calls)[0].type).toBe("click");
 
         resetTestState();
     });

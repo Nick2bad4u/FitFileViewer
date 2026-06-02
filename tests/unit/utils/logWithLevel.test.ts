@@ -8,6 +8,19 @@ type ConsoleEntry = {
     level: "error" | "info" | "log" | "warn";
 };
 
+function getRequiredConsoleEntry(
+    entries: ConsoleEntry[],
+    index = 0
+): ConsoleEntry {
+    const entry = entries[index];
+
+    if (!entry) {
+        throw new Error(`Expected console entry ${index}`);
+    }
+
+    return entry;
+}
+
 describe(logWithLevel, () => {
     let errorSpy: ReturnType<typeof vi.spyOn>;
     let infoSpy: ReturnType<typeof vi.spyOn>;
@@ -106,7 +119,9 @@ describe(logWithLevel, () => {
             { args: [`${expectedBase} Empty context`], level: "info" },
             { args: [`${expectedBase} Array context`], level: "info" },
         ]);
-        expect(consoleEntries[0]?.args[1]).not.toBe(context);
+        expect(getRequiredConsoleEntry(consoleEntries).args[1]).not.toBe(
+            context
+        );
     });
 
     it("skips context properties whose getters throw", () => {

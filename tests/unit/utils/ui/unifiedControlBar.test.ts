@@ -28,6 +28,17 @@ function cleanupDomAndMocks(): void {
     vi.useRealTimers();
 }
 
+function getRequiredElement<T extends Element>(
+    element: T | null,
+    selector: string
+): T {
+    if (!element) {
+        throw new Error(`Expected element for selector: ${selector}`);
+    }
+
+    return element;
+}
+
 function getFilenameScrollState(
     filenameElement: HTMLElement & {
         __ffvFilenameAutoScrollState?: { timers?: unknown[] };
@@ -71,12 +82,16 @@ describe(initUnifiedControlBar, () => {
                 document.querySelector<HTMLElement>(".app-control-bar");
 
             expect(toolbar).toBeInstanceOf(HTMLElement);
-            expect(toolbar?.getAttribute("role")).toBe("toolbar");
-            expect(toolbar?.getAttribute("aria-label")).toBe(
+            const requiredToolbar = getRequiredElement(
+                toolbar,
+                ".app-control-bar"
+            );
+            expect(requiredToolbar.getAttribute("role")).toBe("toolbar");
+            expect(requiredToolbar.getAttribute("aria-label")).toBe(
                 "Application controls"
             );
-            expect(toolbar?.children[0]).toBe(colorSwitcher);
-            expect(toolbar?.children[1]).toBe(fullscreenWrapper);
+            expect(requiredToolbar.children[0]).toBe(colorSwitcher);
+            expect(requiredToolbar.children[1]).toBe(fullscreenWrapper);
 
             initUnifiedControlBar();
 
@@ -115,8 +130,12 @@ describe(initUnifiedControlBar, () => {
                 document.querySelector<HTMLElement>(".app-control-bar");
 
             expect(toolbar).toBeInstanceOf(HTMLElement);
-            expect(toolbar?.children[0]).toBe(colorSwitcher);
-            expect(toolbar?.children[1]).toBe(fullscreenWrapper);
+            const requiredToolbar = getRequiredElement(
+                toolbar,
+                ".app-control-bar"
+            );
+            expect(requiredToolbar.children[0]).toBe(colorSwitcher);
+            expect(requiredToolbar.children[1]).toBe(fullscreenWrapper);
         } finally {
             cleanupDomAndMocks();
         }

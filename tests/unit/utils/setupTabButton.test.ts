@@ -18,6 +18,16 @@ type ClickHandler = () => void;
 
 const setupTabButtonWithCache = setupTabButton as SetupTabButtonWithCache;
 
+function getRequiredButtonCache(): Map<string, HTMLElement> {
+    const { cache } = setupTabButtonWithCache;
+
+    if (!cache) {
+        throw new Error("Expected tab button cache to be initialized");
+    }
+
+    return cache;
+}
+
 describe(setupTabButton, () => {
     let container: HTMLDivElement, warnSpy: ReturnType<typeof vi.spyOn>;
 
@@ -134,7 +144,7 @@ describe(setupTabButton, () => {
         setupTabButton("tab-data", secondHandler);
 
         expect(getElementByIdSpy).not.toHaveBeenCalled();
-        expect(setupTabButtonWithCache.cache?.get("tab-data")).toBe(button);
+        expect(getRequiredButtonCache().get("tab-data")).toBe(button);
     });
 
     it("refreshes stale cached buttons when a DOM replacement exists", () => {
@@ -155,9 +165,7 @@ describe(setupTabButton, () => {
         );
         expect(firstHandler).not.toHaveBeenCalled();
         expect(secondHandler).toHaveBeenCalledOnce();
-        expect(setupTabButtonWithCache.cache?.get("tab-replaced")).toBe(
-            newButton
-        );
+        expect(getRequiredButtonCache().get("tab-replaced")).toBe(newButton);
     });
 
     it("removes stale cache entries when a DOM replacement is missing", () => {

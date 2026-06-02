@@ -41,6 +41,16 @@ describe("updateTabVisibility - additional branches", () => {
         );
     };
 
+    const getRequiredElement = (id: string): HTMLElement => {
+        const element = document.getElementById(id);
+
+        if (!(element instanceof HTMLElement)) {
+            throw new Error(`Expected #${id} to exist in the test DOM`);
+        }
+
+        return element;
+    };
+
     beforeEach(() => {
         vi.resetModules();
         createContentDom();
@@ -131,7 +141,7 @@ describe("updateTabVisibility - additional branches", () => {
             { source: "updateTabVisibility" }
         );
         for (const id of contentIds) {
-            expect(document.getElementById(id)?.style.display).toBe("none");
+            expect(getRequiredElement(id).style.display).toBe("none");
         }
     });
 

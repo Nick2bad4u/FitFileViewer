@@ -21,6 +21,20 @@ describe("updateTabVisibility globalData state subscription", () => {
     let currentGlobalData: unknown;
     let currentIsLoading: boolean;
 
+    function getRequiredSubscription(
+        path: string
+    ): [string, (data: unknown) => void] {
+        const subscription = mockSubscribe.mock.calls.find(
+            ([subscribedPath]) => subscribedPath === path
+        );
+
+        if (!subscription) {
+            throw new Error(`Expected subscription for ${path}`);
+        }
+
+        return subscription;
+    }
+
     beforeEach(() => {
         const dom = new JSDOM("<!DOCTYPE html><html><body></body></html>");
         mockWindow = dom.window;
@@ -101,15 +115,12 @@ describe("updateTabVisibility globalData state subscription", () => {
                 ["ui.activeTab", "function"],
                 ["globalData", "function"],
             ]);
-            const globalDataSubscription = mockSubscribe.mock.calls.find(
-                (call: any[]) => call[0] === "globalData"
-            );
-            expect(globalDataSubscription?.[0]).toBe("globalData");
-            expect(globalDataSubscription?.[1]).toBeTypeOf("function");
+            const requiredGlobalDataSubscription =
+                getRequiredSubscription("globalData");
+            expect(requiredGlobalDataSubscription[0]).toBe("globalData");
+            expect(requiredGlobalDataSubscription[1]).toBeTypeOf("function");
 
-            const globalDataCallback = globalDataSubscription[1] as (
-                data: unknown
-            ) => void;
+            const globalDataCallback = requiredGlobalDataSubscription[1];
 
             // Trigger the state change when data is cleared.
             currentActiveTab = "chart";
@@ -154,12 +165,7 @@ describe("updateTabVisibility globalData state subscription", () => {
             initializeTabVisibilityState();
 
             // Get the globalData subscription callback
-            const globalDataSubscription = mockSubscribe.mock.calls.find(
-                (call: any[]) => call[0] === "globalData"
-            );
-            const globalDataCallback = globalDataSubscription[1] as (
-                data: unknown
-            ) => void;
+            const globalDataCallback = getRequiredSubscription("globalData")[1];
 
             // Call with no data when already on summary tab
             globalDataCallback(null);
@@ -182,12 +188,7 @@ describe("updateTabVisibility globalData state subscription", () => {
             initializeTabVisibilityState();
 
             // Get the globalData subscription callback
-            const globalDataSubscription = mockSubscribe.mock.calls.find(
-                (call: any[]) => call[0] === "globalData"
-            );
-            const globalDataCallback = globalDataSubscription[1] as (
-                data: unknown
-            ) => void;
+            const globalDataCallback = getRequiredSubscription("globalData")[1];
 
             // Call with valid data
             currentGlobalData = { some: "data" };
@@ -211,12 +212,7 @@ describe("updateTabVisibility globalData state subscription", () => {
             initializeTabVisibilityState();
 
             // Get the globalData subscription callback
-            const globalDataSubscription = mockSubscribe.mock.calls.find(
-                (call: any[]) => call[0] === "globalData"
-            );
-            const globalDataCallback = globalDataSubscription[1] as (
-                data: unknown
-            ) => void;
+            const globalDataCallback = getRequiredSubscription("globalData")[1];
 
             // Test with falsy values that are NOT null/undefined - these should NOT trigger the switch
             globalDataCallback(false);
