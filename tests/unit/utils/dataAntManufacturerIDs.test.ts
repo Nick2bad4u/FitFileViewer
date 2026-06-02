@@ -60,7 +60,9 @@ describe("data ant manufacturer ID lookup", () => {
         const entries = Object.entries(dataAntManufacturerIDs);
         const keys = Object.keys(dataAntManufacturerIDs);
 
-        expect(dataAntManufacturerIDs).toBeTypeOf("object");
+        expect(Object.getPrototypeOf(dataAntManufacturerIDs)).toBe(
+            Object.prototype
+        );
         expect(Object.isFrozen(dataAntManufacturerIDs)).toStrictEqual(true);
         expect(() => {
             (manufacturerLookup as Record<string, string>)["999999"] =
@@ -88,7 +90,7 @@ describe("data ant manufacturer ID lookup", () => {
                 isInteger: true,
             });
             expect(numericKey).toBeGreaterThanOrEqual(1);
-            expect(value).toBeTypeOf("string");
+            expect(value).toEqual(expect.stringMatching(/\S/u));
             expect(value.trim()).toBe(value);
             expect(value).not.toBe("");
         }

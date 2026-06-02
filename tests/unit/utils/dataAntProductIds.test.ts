@@ -84,7 +84,7 @@ describe("data ant product ID lookup", () => {
 
         const entries = Object.entries(dataAntProductIds);
 
-        expect(dataAntProductIds).toBeTypeOf("object");
+        expect(Object.getPrototypeOf(dataAntProductIds)).toBe(Object.prototype);
         expect(Object.keys(dataAntProductIds)).toStrictEqual([
             "1",
             "32",
@@ -93,8 +93,8 @@ describe("data ant product ID lookup", () => {
             "280",
         ]);
         expect(entries).toHaveLength(5);
-        expect(productLookup["1"]).toBeTypeOf("object");
-        expect(productLookup["32"]).toBeTypeOf("object");
+        expect(productLookup["1"]).toHaveProperty("1036", "edge500");
+        expect(productLookup["32"]).toHaveProperty("3", "kickr_core");
         expect(productLookup).not.toHaveProperty("99999");
     });
 
@@ -111,7 +111,7 @@ describe("data ant product ID lookup", () => {
                 Math.trunc(numericManufacturerId)
             );
             expect(numericManufacturerId).toBeGreaterThanOrEqual(1);
-            expect(products).toBeTypeOf("object");
+            expect(Object.values(products)).not.toHaveLength(0);
 
             for (const [productId, productName] of Object.entries(products)) {
                 const numericProductId = Number(productId);
@@ -122,7 +122,7 @@ describe("data ant product ID lookup", () => {
                     productIdIsInteger: true,
                 });
                 expect(numericProductId).toBeGreaterThanOrEqual(1);
-                expect(productName).toBeTypeOf("string");
+                expect(productName).toEqual(expect.stringMatching(/\S/u));
                 expect(productName.trim()).toBe(productName);
                 expect(productName).not.toBe("");
             }
