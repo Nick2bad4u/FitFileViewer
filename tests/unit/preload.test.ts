@@ -994,21 +994,25 @@ describe("preload.js - Comprehensive API Testing", () => {
             expect.assertions(2);
 
             expect(electronAPI).toHaveProperty("getChannelInfo");
-            expect(electronAPI.getChannelInfo).toBeTypeOf("function");
+            expect(electronAPI.getChannelInfo()).toStrictEqual({
+                channels: EXPECTED_PRELOAD_CHANNELS,
+                events: EXPECTED_PRELOAD_EVENTS,
+                totalChannels: Object.keys(EXPECTED_PRELOAD_CHANNELS).length,
+                totalEvents: Object.keys(EXPECTED_PRELOAD_EVENTS).length,
+            });
         });
 
         it("should return channel info with proper structure", () => {
-            expect.assertions(8);
+            expect.assertions(1);
 
             const channelInfo = electronAPI.getChannelInfo();
-            expect(channelInfo).toHaveProperty("channels");
-            expect(channelInfo).toHaveProperty("events");
-            expect(channelInfo).toHaveProperty("totalChannels");
-            expect(channelInfo).toHaveProperty("totalEvents");
-            expect(channelInfo.channels).toBeTypeOf("object");
-            expect(channelInfo.events).toBeTypeOf("object");
-            expect(channelInfo.totalChannels).toBeTypeOf("number");
-            expect(channelInfo.totalEvents).toBeTypeOf("number");
+
+            expect(channelInfo).toStrictEqual({
+                channels: EXPECTED_PRELOAD_CHANNELS,
+                events: EXPECTED_PRELOAD_EVENTS,
+                totalChannels: Object.keys(EXPECTED_PRELOAD_CHANNELS).length,
+                totalEvents: Object.keys(EXPECTED_PRELOAD_EVENTS).length,
+            });
         });
 
         it("should include expected channel names", () => {
@@ -1069,16 +1073,11 @@ describe("preload.js - Comprehensive API Testing", () => {
         it("should log cleanup message on beforeExit", () => {
             expect.assertions(2);
 
-            // Get the beforeExit callback
             const beforeExitCall = getRequiredBeforeExitCall();
-            expect(beforeExitCall[1]).toBeTypeOf("function");
-
             const beforeExitCallback = beforeExitCall[1];
 
-            // Execute the callback
             beforeExitCallback();
 
-            // Should log cleanup message
             const cleanupLogs = getMockCalls(consoleLogSpy).filter((call) =>
                 firstArgumentEquals(
                     call,
@@ -1088,6 +1087,9 @@ describe("preload.js - Comprehensive API Testing", () => {
 
             expect(cleanupLogs).toEqual([
                 ["[preload.js] Process exiting, performing cleanup..."],
+            ]);
+            expect(getMockCalls(mockProcess.removeListener)).toStrictEqual([
+                ["beforeExit", beforeExitCallback],
             ]);
         });
     });
