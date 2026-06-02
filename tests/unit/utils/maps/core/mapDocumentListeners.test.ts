@@ -78,15 +78,19 @@ describe(ensureMapDocumentListenersInstalled, () => {
 
             mouseDown(mapTypeButton);
 
-            expect([...layersPanel.classList]).toContain(
-                "leaflet-control-layers-expanded"
-            );
+            expect(
+                layersPanel.classList.contains(
+                    "leaflet-control-layers-expanded"
+                )
+            ).toBe(true);
 
             mouseDown(outsideButton);
 
-            expect([...layersPanel.classList]).not.toContain(
-                "leaflet-control-layers-expanded"
-            );
+            expect(
+                layersPanel.classList.contains(
+                    "leaflet-control-layers-expanded"
+                )
+            ).toBe(false);
             expect(layersPanel.style.zIndex).toBe("");
             expect(layersPanel.style.maxHeight).toBe("");
             expect(layersPanel.style.overflowY).toBe("");

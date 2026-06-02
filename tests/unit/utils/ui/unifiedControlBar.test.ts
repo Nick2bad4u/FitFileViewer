@@ -255,7 +255,9 @@ describe(initFilenameAutoScroll, () => {
                 scrollDistance: "",
                 timerCount: 2,
             });
-            expect([...filenameElement.classList]).not.toContain("scrolling");
+            expect(filenameElement.classList.contains("scrolling")).not.toBe(
+                true
+            );
         } finally {
             cleanupDomAndMocks();
         }

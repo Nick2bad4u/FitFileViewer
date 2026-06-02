@@ -108,6 +108,10 @@ function normalizeText(value: null | string | undefined): string {
 
 function getZoneColorPickerState(overlay: HTMLElement) {
     const modal = overlay.querySelector(".zone-color-picker-modal");
+    const title = requireElement(
+        overlay.querySelector("#zone-color-picker-title"),
+        "Zone color picker title not rendered"
+    );
 
     return {
         actionButtons: Array.from(
@@ -134,9 +138,7 @@ function getZoneColorPickerState(overlay: HTMLElement) {
         modalClassName: modal?.className,
         modalRole: modal?.getAttribute("role"),
         overlayClassName: overlay.className,
-        title: normalizeText(
-            overlay.querySelector("#zone-color-picker-title")?.textContent
-        ),
+        title: normalizeText(title.textContent),
         zoneLabels: Array.from(
             overlay.querySelectorAll(".zone-color-label"),
             (label) => normalizeText(label.textContent)
