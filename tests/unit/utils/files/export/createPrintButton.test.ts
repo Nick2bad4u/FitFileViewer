@@ -21,9 +21,22 @@ vi.mock(
     })
 );
 
+function getRequiredButtonIcon(button: HTMLButtonElement): SVGSVGElement {
+    const svg = button.querySelector("svg.icon");
+    expect(svg).toBeInstanceOf(SVGSVGElement);
+    return svg as SVGSVGElement;
+}
+
+function getRequiredFirstIconRect(svg: SVGSVGElement): SVGElement {
+    const rect = svg.querySelector("rect");
+    expect(rect).toBeInstanceOf(SVGElement);
+    expect(rect?.tagName).toBe("rect");
+    return rect as SVGElement;
+}
+
 describe("createPrintButton", () => {
     it("creates an accessible print button using theme colors", async () => {
-        expect.assertions(5);
+        expect.assertions(9);
 
         mocks.getThemeColors.mockReturnValue({
             primary: "#111111",
@@ -35,17 +48,15 @@ describe("createPrintButton", () => {
             await import("../../../../../electron-app/utils/files/export/createPrintButton.js");
 
         const button = createPrintButton();
-        const svg = button.querySelector("svg");
-        const firstRect = svg?.querySelector("rect");
+        const svg = getRequiredButtonIcon(button);
+        const firstRect = getRequiredFirstIconRect(svg);
 
         expect(button).toBeInstanceOf(HTMLButtonElement);
-        expect([...button.classList]).toStrictEqual([
-            "map-action-btn",
-            "print-button",
-        ]);
+        expect(button.classList.contains("map-action-btn")).toBe(true);
+        expect(button.classList.contains("print-button")).toBe(true);
         expect(button.getAttribute("aria-label")).toBe("Print or export map");
         expect(button.textContent).toBe("Print");
-        expect(firstRect?.getAttribute("stroke")).toBe("#111111");
+        expect(firstRect.getAttribute("stroke")).toBe("#111111");
     });
 
     it("prints when clicked", async () => {
