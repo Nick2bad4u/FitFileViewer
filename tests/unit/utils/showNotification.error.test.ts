@@ -17,6 +17,30 @@ function createNotificationFixture(): HTMLDivElement {
     return notificationElement;
 }
 
+function getRequiredNotificationElement(): HTMLDivElement {
+    const element = document.getElementById("notification");
+    expect(element).toBeInstanceOf(HTMLDivElement);
+    return element as HTMLDivElement;
+}
+
+function getRequiredNotificationMessage(element: HTMLElement): HTMLElement {
+    const message = element.querySelector(".notification-message");
+    expect(message).toBeInstanceOf(HTMLElement);
+    return message as HTMLElement;
+}
+
+function getClassPresence(
+    element: HTMLElement,
+    classNames: string[]
+): Record<string, boolean> {
+    return Object.fromEntries(
+        classNames.map((className) => [
+            className,
+            element.classList.contains(className),
+        ])
+    );
+}
+
 function captureWindowErrors(): {
     errors: Error[];
     stop: () => void;
@@ -64,7 +88,7 @@ describe("showNotification.js - error handling coverage", () => {
     });
 
     it("handles errors when resolveShown throws", async () => {
-        expect.assertions(6);
+        expect.assertions(7);
 
         // Craft a queued notification with a resolveShown that throws
         const resolveError = new Error("resolveShown failure");
@@ -88,13 +112,22 @@ describe("showNotification.js - error handling coverage", () => {
         notificationQueue.push(notification);
         await processNotificationQueue();
 
-        const element = document.getElementById("notification");
-        expect(element).toBeInstanceOf(HTMLDivElement);
-        expect(element?.style.display).toBe("flex");
-        expect(element?.className).toBe("notification info show");
+        const element = getRequiredNotificationElement();
+        expect(element.style.display).toBe("flex");
         expect(
-            element?.querySelector(".notification-message")?.textContent
-        ).toBe("Throwing resolveShown");
+            getClassPresence(element, [
+                "notification",
+                "info",
+                "show",
+            ])
+        ).toEqual({
+            notification: true,
+            info: true,
+            show: true,
+        });
+        expect(getRequiredNotificationMessage(element).textContent).toBe(
+            "Throwing resolveShown"
+        );
         expect({
             queueSize: notificationQueue.length,
             resolveShown: notification.resolveShown,
@@ -122,11 +155,10 @@ describe("showNotification.js - error handling coverage", () => {
         // This should trigger the catch block in processNotificationQueue
         await showNotification("Display error test");
 
-        const element = document.getElementById("notification");
-        expect(element).toBeInstanceOf(HTMLDivElement);
+        const element = getRequiredNotificationElement();
         expect({
-            childCount: element?.childElementCount,
-            display: element?.style.display,
+            childCount: element.childElementCount,
+            display: element.style.display,
             queueSize: notificationQueue.length,
         }).toEqual({
             childCount: 0,
@@ -145,7 +177,7 @@ describe("showNotification.js - error handling coverage", () => {
     });
 
     it("handles errors in notification click handlers", async () => {
-        expect.assertions(6);
+        expect.assertions(7);
 
         // Create a notification with an onClick handler that throws
         const errorHandler = vi.fn<() => void>().mockImplementation(() => {
@@ -158,7 +190,7 @@ describe("showNotification.js - error handling coverage", () => {
             persistent: true,
         });
 
-        const el = document.getElementById("notification")!;
+        const el = getRequiredNotificationElement();
         el.click();
         captured.stop();
 
@@ -168,18 +200,24 @@ describe("showNotification.js - error handling coverage", () => {
         ]);
         expect(el.style.cursor).toBe("pointer");
         expect(el.style.display).toBe("flex");
-        expect([...el.classList]).toStrictEqual([
-            "notification",
-            "info",
-            "show",
-        ]);
+        expect(
+            getClassPresence(el, [
+                "notification",
+                "info",
+                "show",
+            ])
+        ).toEqual({
+            notification: true,
+            info: true,
+            show: true,
+        });
         expect(el.querySelector(".notification-close")).toBeInstanceOf(
             HTMLButtonElement
         );
     });
 
     it("handles errors in action button click handlers", async () => {
-        expect.assertions(8);
+        expect.assertions(10);
 
         // Create action with handler that throws
         const errorActionHandler = vi
@@ -193,16 +231,15 @@ describe("showNotification.js - error handling coverage", () => {
             { text: "Error Button", onClick: errorActionHandler },
         ]);
 
-        const el = document.getElementById("notification")!;
-        const btn = el.querySelector(
-            ".notification-actions button"
-        ) as HTMLButtonElement;
+        const el = getRequiredNotificationElement();
+        const btn = el.querySelector(".notification-actions button");
 
         expect(btn).toBeInstanceOf(HTMLButtonElement);
-        expect(btn.textContent).toBe("Error Button");
-        expect(btn.className).toBe("themed-btn");
+        const actionButton = btn as HTMLButtonElement;
+        expect(actionButton.textContent).toBe("Error Button");
+        expect(actionButton.classList.contains("themed-btn")).toBe(true);
 
-        btn.click();
+        actionButton.click();
         captured.stop();
 
         expect(errorActionHandler).toHaveBeenCalledOnce();
@@ -210,12 +247,18 @@ describe("showNotification.js - error handling coverage", () => {
             "Error in action handler",
         ]);
         expect(el.style.display).toBe("flex");
-        expect([...el.classList]).toStrictEqual([
-            "notification",
-            "info",
-            "show",
-        ]);
-        expect(el.querySelector(".notification-message")?.textContent).toBe(
+        expect(
+            getClassPresence(el, [
+                "notification",
+                "info",
+                "show",
+            ])
+        ).toEqual({
+            notification: true,
+            info: true,
+            show: true,
+        });
+        expect(getRequiredNotificationMessage(el).textContent).toBe(
             "Action error test"
         );
     });
