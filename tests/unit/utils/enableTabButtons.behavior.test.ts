@@ -111,6 +111,15 @@ function getRequiredButton(id: string): HTMLButtonElement {
     return button;
 }
 
+function queryRequiredButton(selector: string): HTMLButtonElement {
+    const button = testContainer.querySelector(selector);
+    if (!(button instanceof HTMLButtonElement)) {
+        throw new Error(`Expected button ${selector} to exist`);
+    }
+
+    return button;
+}
+
 describe("enableTabButtons behavior", () => {
     let originalConsoleLog: typeof console.log;
     let originalConsoleWarn: typeof console.warn;
@@ -215,16 +224,16 @@ describe("enableTabButtons behavior", () => {
 
             setTabButtonsEnabled(false);
 
-            const openFileBtn = document.getElementById("openFileBtn");
-            const summaryBtn = document.getElementById("tab-summary");
-            const chartBtn = document.getElementById("tab-chart");
-            const mapBtn = document.getElementById("tab-map");
+            const openFileBtn = getRequiredButton("openFileBtn");
+            const summaryBtn = getRequiredButton("tab-summary");
+            const chartBtn = getRequiredButton("tab-chart");
+            const mapBtn = getRequiredButton("tab-map");
 
             expect({
-                chartDisabled: chartBtn?.hasAttribute("disabled"),
-                mapDisabled: mapBtn?.hasAttribute("disabled"),
-                openFileDisabled: openFileBtn?.hasAttribute("disabled"),
-                summaryDisabled: summaryBtn?.hasAttribute("disabled"),
+                chartDisabled: chartBtn.hasAttribute("disabled"),
+                mapDisabled: mapBtn.hasAttribute("disabled"),
+                openFileDisabled: openFileBtn.hasAttribute("disabled"),
+                summaryDisabled: summaryBtn.hasAttribute("disabled"),
             }).toStrictEqual({
                 chartDisabled: true,
                 mapDisabled: true,
@@ -251,12 +260,12 @@ describe("enableTabButtons behavior", () => {
 
             setTabButtonsEnabled(true);
 
-            const summaryBtn = document.getElementById("tab-summary");
-            const chartBtn = document.getElementById("tab-chart");
+            const summaryBtn = getRequiredButton("tab-summary");
+            const chartBtn = getRequiredButton("tab-chart");
 
             expect({
-                chartDisabled: chartBtn?.hasAttribute("disabled"),
-                summaryDisabled: summaryBtn?.hasAttribute("disabled"),
+                chartDisabled: chartBtn.hasAttribute("disabled"),
+                summaryDisabled: summaryBtn.hasAttribute("disabled"),
             }).toStrictEqual({
                 chartDisabled: false,
                 summaryDisabled: false,
@@ -282,14 +291,14 @@ describe("enableTabButtons behavior", () => {
 
             setTabButtonsEnabled(false);
 
-            const openFileBtn1 = document.getElementById("open-file-btn");
-            const openFileBtn2 = document.querySelector(".open-file-btn");
-            const summaryBtn = document.getElementById("tab-summary");
+            const openFileBtn1 = getRequiredButton("open-file-btn");
+            const openFileBtn2 = queryRequiredButton(".open-file-btn");
+            const summaryBtn = getRequiredButton("tab-summary");
 
             expect({
-                openFileButtonDisabled: openFileBtn1?.hasAttribute("disabled"),
-                openFileClassDisabled: openFileBtn2?.hasAttribute("disabled"),
-                summaryDisabled: summaryBtn?.hasAttribute("disabled"),
+                openFileButtonDisabled: openFileBtn1.hasAttribute("disabled"),
+                openFileClassDisabled: openFileBtn2.hasAttribute("disabled"),
+                summaryDisabled: summaryBtn.hasAttribute("disabled"),
             }).toStrictEqual({
                 openFileButtonDisabled: false,
                 openFileClassDisabled: false,
@@ -344,13 +353,13 @@ describe("enableTabButtons behavior", () => {
 
             setTabButtonsEnabled(false);
 
-            const testBtn = document.getElementById("tab-test");
-            expect(testBtn?.getAttribute("aria-disabled")).toBe("true");
-            expect([...(testBtn?.classList ?? [])]).toStrictEqual([
+            const testBtn = getRequiredButton("tab-test");
+            expect(testBtn.getAttribute("aria-disabled")).toBe("true");
+            expect([...testBtn.classList]).toStrictEqual([
                 "tab-button",
                 "tab-disabled",
             ]);
-            expect(testBtn?.style.pointerEvents).toBe("none");
+            expect(testBtn.style.pointerEvents).toBe("none");
         });
 
         it("should apply comprehensive styling when enabling", () => {
@@ -366,14 +375,12 @@ describe("enableTabButtons behavior", () => {
 
             setTabButtonsEnabled(true);
 
-            const testBtn = document.getElementById("tab-test");
-            expect(testBtn?.getAttribute("aria-disabled")).toBe("false");
-            expect([...(testBtn?.classList ?? [])]).toStrictEqual([
-                "tab-button",
-            ]);
-            expect(testBtn?.style.cursor).toBe("pointer");
-            expect(testBtn?.style.opacity).toBe("1");
-            expect(testBtn?.style.pointerEvents).toBe("auto");
+            const testBtn = getRequiredButton("tab-test");
+            expect(testBtn.getAttribute("aria-disabled")).toBe("false");
+            expect([...testBtn.classList]).toStrictEqual(["tab-button"]);
+            expect(testBtn.style.cursor).toBe("pointer");
+            expect(testBtn.style.opacity).toBe("1");
+            expect(testBtn.style.pointerEvents).toBe("auto");
         });
 
         it("should handle elements that are not HTMLElements gracefully", () => {
@@ -394,10 +401,10 @@ describe("enableTabButtons behavior", () => {
                 }
             );
             expect(
-                document.getElementById("tab-test")?.hasAttribute("disabled")
+                getRequiredButton("tab-test").hasAttribute("disabled")
             ).toStrictEqual(false);
             expect(
-                document.getElementById("tab-test")?.hasAttribute("disabled")
+                getRequiredButton("tab-test").hasAttribute("disabled")
             ).not.toStrictEqual(true);
         });
 
@@ -427,7 +434,7 @@ describe("enableTabButtons behavior", () => {
             expect(consoleLogSpy).toHaveBeenCalledWith(
                 "[TabButtons] CRITICAL: Using nuclear option for tab-test"
             );
-            expect(testBtn?.style.pointerEvents).toBe("auto");
+            expect(testBtn.style.pointerEvents).toBe("auto");
         });
     });
 
@@ -452,7 +459,7 @@ describe("enableTabButtons behavior", () => {
                 }
             );
             expect(
-                document.getElementById("tab-test")?.hasAttribute("disabled")
+                getRequiredButton("tab-test").hasAttribute("disabled")
             ).toStrictEqual(true);
         });
 
@@ -471,7 +478,7 @@ describe("enableTabButtons behavior", () => {
             subscriptionCallback?.({ someData: true });
 
             expect(
-                document.getElementById("tab-test")?.hasAttribute("disabled")
+                getRequiredButton("tab-test").hasAttribute("disabled")
             ).toStrictEqual(false);
             expect(mockSetState).toHaveBeenCalledWith(
                 "ui.tabButtonsEnabled",
@@ -495,10 +502,10 @@ describe("enableTabButtons behavior", () => {
 
             subscriptionCallback?.(null);
             expect(
-                document.getElementById("tab-test")?.hasAttribute("disabled")
+                getRequiredButton("tab-test").hasAttribute("disabled")
             ).toStrictEqual(true);
 
-            document.getElementById("tab-test")?.removeAttribute("disabled");
+            getRequiredButton("tab-test").removeAttribute("disabled");
             subscriptionCallback?.(undefined);
 
             expect(getRequiredButton("tab-test").disabled).toStrictEqual(true);
@@ -686,12 +693,10 @@ describe("enableTabButtons behavior", () => {
 
             forceEnableTabButtons();
 
-            const summaryBtn = document.getElementById("tab-summary");
-            expect([...(summaryBtn?.classList ?? [])]).toStrictEqual([
-                "tab-button",
-            ]);
-            expect(summaryBtn?.hasAttribute("disabled")).toStrictEqual(false);
-            expect(summaryBtn?.style.pointerEvents).toBe("auto");
+            const summaryBtn = getRequiredButton("tab-summary");
+            expect([...summaryBtn.classList]).toStrictEqual(["tab-button"]);
+            expect(summaryBtn.hasAttribute("disabled")).toStrictEqual(false);
+            expect(summaryBtn.style.pointerEvents).toBe("auto");
 
             expect(mockSetState).toHaveBeenCalledWith(
                 "ui.tabButtonsEnabled",
@@ -712,11 +717,11 @@ describe("enableTabButtons behavior", () => {
             forceEnableTabButtons();
 
             expect(
-                document.getElementById("openFileBtn")?.style.pointerEvents
+                getRequiredButton("openFileBtn").style.pointerEvents
             ).not.toBe("auto");
-            expect(
-                document.getElementById("tab-summary")?.style.pointerEvents
-            ).toBe("auto");
+            expect(getRequiredButton("tab-summary").style.pointerEvents).toBe(
+                "auto"
+            );
             expect(consoleLogSpy).not.toHaveBeenCalledWith(
                 "[TabButtons] Force enabled: openFileBtn"
             );
@@ -853,17 +858,15 @@ describe("enableTabButtons behavior", () => {
 
             forceFixTabButtons();
 
-            const summaryBtn = document.getElementById("tab-summary");
-            expect([...(summaryBtn?.classList ?? [])]).toStrictEqual([
-                "tab-button",
-            ]);
-            expect(summaryBtn?.style.cursor).toBe("pointer");
-            expect(summaryBtn?.hasAttribute("disabled")).toStrictEqual(false);
-            expect(summaryBtn?.style.filter).toBe("none");
-            expect(summaryBtn?.style.opacity).toBe("1");
-            expect(summaryBtn?.style.pointerEvents).toBe("auto");
+            const summaryBtn = getRequiredButton("tab-summary");
+            expect([...summaryBtn.classList]).toStrictEqual(["tab-button"]);
+            expect(summaryBtn.style.cursor).toBe("pointer");
+            expect(summaryBtn.hasAttribute("disabled")).toStrictEqual(false);
+            expect(summaryBtn.style.filter).toBe("none");
+            expect(summaryBtn.style.opacity).toBe("1");
+            expect(summaryBtn.style.pointerEvents).toBe("auto");
             expect(
-                document.getElementById("openFileBtn")?.style.pointerEvents
+                getRequiredButton("openFileBtn").style.pointerEvents
             ).not.toBe("auto");
 
             expect(mockSetState).toHaveBeenCalledWith(
@@ -879,9 +882,9 @@ describe("enableTabButtons behavior", () => {
 
             forceFixTabButtons();
 
-            expect(
-                document.getElementById("tab-summary")?.style.pointerEvents
-            ).toBe("auto");
+            expect(getRequiredButton("tab-summary").style.pointerEvents).toBe(
+                "auto"
+            );
             expect(consoleLogSpy).toHaveBeenCalledWith(
                 "[TabButtons] BEFORE FIX: tab-summary disabled=false"
             );
@@ -966,7 +969,7 @@ describe("enableTabButtons behavior", () => {
             initializeTabButtonState();
 
             expect(
-                document.getElementById("tab-test")?.hasAttribute("disabled")
+                getRequiredButton("tab-test").hasAttribute("disabled")
             ).toStrictEqual(true);
             expect(mockSetState).toHaveBeenCalledWith(
                 "ui.tabButtonsEnabled",
@@ -994,24 +997,24 @@ describe("enableTabButtons behavior", () => {
             // Start with disable
             setTabButtonsEnabled(false);
 
-            const summaryBtn = document.getElementById("tab-summary");
-            const chartBtn = document.getElementById("tab-chart");
+            const summaryBtn = getRequiredButton("tab-summary");
+            const chartBtn = getRequiredButton("tab-chart");
 
             expect({
-                chartDisabled: chartBtn?.hasAttribute("disabled"),
-                summaryDisabled: summaryBtn?.hasAttribute("disabled"),
+                chartDisabled: chartBtn.hasAttribute("disabled"),
+                summaryDisabled: summaryBtn.hasAttribute("disabled"),
             }).toStrictEqual({
                 chartDisabled: true,
                 summaryDisabled: true,
             });
-            expect(summaryBtn?.style.pointerEvents).not.toBe("auto");
+            expect(summaryBtn.style.pointerEvents).not.toBe("auto");
 
             // Then enable
             setTabButtonsEnabled(true);
 
             expect({
-                chartDisabled: chartBtn?.hasAttribute("disabled"),
-                summaryDisabled: summaryBtn?.hasAttribute("disabled"),
+                chartDisabled: chartBtn.hasAttribute("disabled"),
+                summaryDisabled: summaryBtn.hasAttribute("disabled"),
             }).toStrictEqual({
                 chartDisabled: false,
                 summaryDisabled: false,
