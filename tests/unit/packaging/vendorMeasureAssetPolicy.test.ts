@@ -9,12 +9,13 @@ import {
     appRendererVendorGlobalsEntryPath,
     appSourceRepositoryPath,
     rootAppIndexHtmlPath,
+    rootDocsPath,
     rootPackageRepositoryPath,
     rootStaticAssetsPath,
 } from "../../../scripts/lib/workspaces.mjs";
 
 const repositoryRoot = process.cwd();
-const rendererBrowserPackages = [
+const rendererImportedBrowserPackages = [
     "@maplibre/maplibre-gl-leaflet",
     "arquero",
     "chart.js",
@@ -35,6 +36,15 @@ const rendererBrowserPackages = [
     "maplibre-gl",
     "screenfull",
 ] as const;
+const rendererCompanionBrowserPackages = ["date-fns"] as const;
+const rendererManagedBrowserPackages = [
+    ...rendererImportedBrowserPackages,
+    ...rendererCompanionBrowserPackages,
+] as const;
+const rendererDependencyInventoryPath = path.posix.join(
+    rootDocsPath,
+    "RENDERER_DEPENDENCY_INVENTORY.md"
+);
 
 const fromImportSpecifierPattern =
     /^\s*import\s+[^"\n].*?\s+from\s+"([^"]+)";/gmu;
@@ -72,7 +82,7 @@ function getImportedBrowserPackages(source: string): Set<string> {
     ].map((match) => match[1]);
 
     for (const importSpecifier of importSpecifiers) {
-        const packageName = rendererBrowserPackages.find(
+        const packageName = rendererImportedBrowserPackages.find(
             (candidate) =>
                 importSpecifier === candidate ||
                 importSpecifier.startsWith(`${candidate}/`)
@@ -86,30 +96,45 @@ function getImportedBrowserPackages(source: string): Set<string> {
     return importedPackages;
 }
 
+function getDocumentedBrowserPackages(markdown: string): string[] {
+    const browserPackagesSection =
+        markdown.match(
+            /## Browser Libraries Kept In Dev Dependencies\n(?<section>[\S\s]*?)\n## Tooling And Test Dependencies/u
+        )?.groups?.section ?? "";
+
+    return [...browserPackagesSection.matchAll(/^\| `([^`]+)`/gmu)]
+        .map((match) => match[1])
+        .filter((packageName): packageName is string => Boolean(packageName))
+        .sort();
+}
+
 describe("renderer vendor asset policy", () => {
     it("keeps renderer browser libraries npm-managed and bundled through the renderer entry", () => {
-        expect.assertions(6);
+        expect.assertions(7);
 
         const rootPackage = JSON.parse(
             readWorkspaceFile(rootPackageRepositoryPath)
         ) as PackageJson;
         const staticAppIndex = readWorkspaceFile(rootAppIndexHtmlPath);
+        const dependencyInventory = readWorkspaceFile(
+            rendererDependencyInventoryPath
+        );
         const vendorBundleSource = [
             readWorkspaceFile(appRendererVendorGlobalsCoreEntryPath),
             readWorkspaceFile(appRendererVendorGlobalsEntryPath),
         ].join("\n");
         const browserPackagesInProductionDependencies =
-            rendererBrowserPackages.filter(
+            rendererManagedBrowserPackages.filter(
                 (packageName) =>
                     rootPackage.dependencies?.[packageName] !== undefined
             );
         const browserPackagesMissingFromDevDependencies =
-            rendererBrowserPackages.filter(
+            rendererManagedBrowserPackages.filter(
                 (packageName) =>
                     rootPackage.devDependencies?.[packageName] === undefined
             );
         const browserPackagesWithInvalidDevDependencyVersions =
-            rendererBrowserPackages.filter((packageName) => {
+            rendererManagedBrowserPackages.filter((packageName) => {
                 const version = rootPackage.devDependencies?.[packageName];
 
                 return typeof version !== "string" || version.length === 0;
@@ -129,7 +154,10 @@ describe("renderer vendor asset policy", () => {
             )
         ).toStrictEqual([]);
         expect(vendorBrowserPackageImports).toStrictEqual(
-            new Set(rendererBrowserPackages)
+            new Set(rendererImportedBrowserPackages)
+        );
+        expect(getDocumentedBrowserPackages(dependencyInventory)).toStrictEqual(
+            [...rendererManagedBrowserPackages].sort()
         );
         expect(staticAppIndex).toContain('src="renderer/vendor-globals.js"');
     });
