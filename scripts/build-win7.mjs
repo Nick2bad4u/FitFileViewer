@@ -50,7 +50,7 @@ export function runNpmScript(scriptName, options = {}) {
     const commandRunner = options.commandRunner ?? execFileSync;
     const executablePath = options.executablePath ?? process.execPath;
     const npmCliPath = resolveNpmCliPath(options);
-    const root = options.repositoryRoot ?? repositoryRoot;
+    const root = path.resolve(options.repositoryRoot ?? repositoryRoot);
 
     if (npmCliPath) {
         commandRunner(
@@ -139,7 +139,7 @@ export async function runWin7Build(options = {}) {
     const executablePath = options.executablePath ?? process.execPath;
     const fileSystem = options.fileSystem ?? fs;
     const logger = options.logger ?? console.log;
-    const root = options.repositoryRoot ?? repositoryRoot;
+    const root = path.resolve(options.repositoryRoot ?? repositoryRoot);
     const targetOutputDir = options.outputDir ?? outputDir;
 
     logger("[win7-build] Starting Windows 7 compatibility build...");

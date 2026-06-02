@@ -204,6 +204,26 @@ describe("build-win7 script", () => {
         ]);
     });
 
+    it("normalizes relative npm script roots before running commands", async () => {
+        expect.assertions(1);
+
+        const { runNpmScript } = await importWin7Build();
+        const { calls, commandRunner } = makeCommandRecorder();
+
+        runNpmScript("build:runtime-ts", {
+            commandRunner,
+            environment: {},
+            executablePath: "C:/node/node.exe",
+            fileSystem: { existsSync: () => false },
+            platform: "linux",
+            repositoryRoot: ".",
+        });
+
+        expect(calls.map((call) => call.options.cwd)).toStrictEqual([
+            repositoryRoot,
+        ]);
+    });
+
     it("creates the Electron 22 ia32 portable build config from root package files", async () => {
         expect.assertions(1);
 
@@ -306,6 +326,47 @@ describe("build-win7 script", () => {
                     },
                 ],
             ],
+            status: 0,
+        });
+    });
+
+    it("normalizes relative Win7 build roots before cleanup and build config", async () => {
+        expect.assertions(1);
+
+        const { runWin7Build } = await importWin7Build();
+        const { calls, commandRunner } = makeCommandRecorder();
+        const output = path.join(repositoryRoot, "release-dist", "win7-test");
+        const fileSystem = {
+            existsSync: () => false,
+            rmSync: vi.fn<FileSystem["rmSync"]>(),
+        };
+        const builder = vi.fn<(options: unknown) => Promise<void>>(
+            async () => {}
+        );
+
+        const status = await runWin7Build({
+            builder,
+            commandRunner,
+            environment: {},
+            executablePath: process.execPath,
+            fileSystem,
+            logger: vi.fn<(message: string) => void>(),
+            outputDir: output,
+            platform: "linux",
+            repositoryRoot: ".",
+        });
+
+        const buildOptions = builder.mock.calls[0]?.[0] as ReturnType<
+            Win7BuildModule["createWin7BuildConfig"]
+        >;
+
+        expect({
+            buildProjectDir: buildOptions.projectDir,
+            commandCwds: calls.map((call) => call.options.cwd),
+            status,
+        }).toStrictEqual({
+            buildProjectDir: repositoryRoot,
+            commandCwds: [repositoryRoot],
             status: 0,
         });
     });
