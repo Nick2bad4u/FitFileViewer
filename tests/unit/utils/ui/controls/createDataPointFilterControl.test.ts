@@ -123,7 +123,7 @@ beforeEach(() => {
     previewFilterResult.mockReturnValue(null);
     (showNotification as any).mockReset?.();
 
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
     globalThis.mapDataPointFilter = undefined;
     globalThis.mapDataPointFilterLastResult = undefined;
     globalThis.globalData = {

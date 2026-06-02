@@ -8,9 +8,20 @@ import {
 } from "../../../../../electron-app/utils/ui/controls/createPowerZoneControlsSimple.js";
 import { setChartFieldVisibility } from "../../../../../electron-app/utils/state/domain/settingsStateManager.js";
 
+function requireElement<TElement extends Element>(
+    element: TElement | null,
+    label: string
+): TElement {
+    if (element === null) {
+        throw new Error(`${label} was not rendered`);
+    }
+
+    return element;
+}
+
 describe("createPowerZoneControlsSimple", () => {
     beforeEach(() => {
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         localStorage.clear();
     });
 
@@ -42,30 +53,34 @@ describe("createPowerZoneControlsSimple", () => {
         const controls = createPowerZoneControls(parent);
         expect([...parent.children]).toContain(controls);
 
-        const collapseBtn = controls.querySelector<HTMLButtonElement>(
-            ".power-zone-collapse-btn"
+        const collapseBtn = requireElement(
+            controls.querySelector<HTMLButtonElement>(
+                ".power-zone-collapse-btn"
+            ),
+            "power zone collapse button"
         );
-        const content = controls.querySelector<HTMLElement>(
-            "#power-zone-content"
+        const content = requireElement(
+            controls.querySelector<HTMLElement>("#power-zone-content"),
+            "power zone content"
         );
         expect(collapseBtn).toBeInstanceOf(HTMLButtonElement);
         expect(content).toBeInstanceOf(HTMLDivElement);
-        expect(collapseBtn?.getAttribute("aria-expanded")).toBe("true");
-        expect(content?.style.maxHeight).toBe("500px");
+        expect(collapseBtn.getAttribute("aria-expanded")).toBe("true");
+        expect(content.style.maxHeight).toBe("500px");
 
-        collapseBtn?.click();
+        collapseBtn.click();
         expect(localStorage.getItem("power-zone-controls-collapsed")).toBe(
             "true"
         );
-        expect(collapseBtn?.getAttribute("aria-expanded")).toBe("false");
-        expect(content?.style.maxHeight).toBe("0px");
+        expect(collapseBtn.getAttribute("aria-expanded")).toBe("false");
+        expect(content.style.maxHeight).toBe("0px");
 
-        collapseBtn?.click();
+        collapseBtn.click();
         expect(localStorage.getItem("power-zone-controls-collapsed")).toBe(
             "false"
         );
-        expect(collapseBtn?.textContent).toBe("▼");
-        expect(content?.style.opacity).toBe("1");
+        expect(collapseBtn.textContent).toBe("▼");
+        expect(content.style.opacity).toBe("1");
     });
 
     it("applies hover styles when the section is hovered", () => {
@@ -94,14 +109,18 @@ describe("createPowerZoneControlsSimple", () => {
         document.body.append(parent);
 
         const controls = createPowerZoneControls(parent);
-        const collapseBtn = controls.querySelector<HTMLButtonElement>(
-            ".power-zone-collapse-btn"
+        const collapseBtn = requireElement(
+            controls.querySelector<HTMLButtonElement>(
+                ".power-zone-collapse-btn"
+            ),
+            "power zone collapse button"
         );
-        const content = controls.querySelector<HTMLElement>(
-            "#power-zone-content"
+        const content = requireElement(
+            controls.querySelector<HTMLElement>("#power-zone-content"),
+            "power zone content"
         );
-        expect(collapseBtn?.getAttribute("aria-expanded")).toBe("false");
-        expect(content?.style.maxHeight).toBe("0px");
+        expect(collapseBtn.getAttribute("aria-expanded")).toBe("false");
+        expect(content.style.maxHeight).toBe("0px");
     });
 
     it("moves power zone controls into dedicated section and adjusts spacing", () => {
@@ -110,14 +129,15 @@ describe("createPowerZoneControlsSimple", () => {
         const parent = document.createElement("div");
         document.body.append(parent);
         const controls = createPowerZoneControls(parent);
-        const content = controls.querySelector<HTMLElement>(
-            "#power-zone-content"
+        const content = requireElement(
+            controls.querySelector<HTMLElement>("#power-zone-content"),
+            "power zone content"
         );
         expect(content).toBeInstanceOf(HTMLDivElement);
 
         const existing = document.createElement("div");
         existing.textContent = "existing";
-        content?.append(existing);
+        content.append(existing);
 
         const fieldContainer = document.createElement("div");
         const toggle = document.createElement("button");
@@ -129,7 +149,7 @@ describe("createPowerZoneControlsSimple", () => {
 
         movePowerZoneControlsToSection();
 
-        expect([...(content?.children ?? [])]).toContain(fieldContainer);
+        expect([...content.children]).toContain(fieldContainer);
         expect(logSpy).toHaveBeenCalledWith(
             "[PowerZoneControls] Moved power_zone_doughnut control to power zone section"
         );
