@@ -33,25 +33,47 @@ function restoreGlobalProcess(): void {
 function getEnvironmentSnapshot(): {
     isDevelopment: boolean;
     isNodeDevelopment: boolean;
+    isNodeTest: boolean;
     isTest: boolean;
 } {
     return {
         isDevelopment: isDevelopmentEnvironment(),
         isNodeDevelopment: isNodeEnv("development"),
+        isNodeTest: isNodeEnv("test"),
         isTest: isTestEnvironment(),
     };
 }
 
 describe("render chart runtime helpers", () => {
+    const originalWindowDescriptor = Object.getOwnPropertyDescriptor(
+        globalThis,
+        "window"
+    );
+
     afterEach(() => {
         restoreGlobalProcess();
         Reflect.deleteProperty(globalThis, "_chartjsInstances");
+        if (originalWindowDescriptor) {
+            Object.defineProperty(
+                globalThis,
+                "window",
+                originalWindowDescriptor
+            );
+            return;
+        }
+
+        Reflect.deleteProperty(globalThis, "window");
     });
 
     it("handles missing process globals without touching process.env directly", () => {
         expect.assertions(1);
 
-        const snapshots = [undefined, {}].map((processValue) => {
+        const snapshots = [
+            undefined,
+            {},
+            { env: undefined },
+            { env: { NODE_ENV: 1 } },
+        ].map((processValue) => {
             setGlobalProcess(processValue);
             return getEnvironmentSnapshot();
         });
@@ -60,25 +82,49 @@ describe("render chart runtime helpers", () => {
             {
                 isDevelopment: false,
                 isNodeDevelopment: false,
+                isNodeTest: false,
                 isTest: false,
             },
             {
                 isDevelopment: false,
                 isNodeDevelopment: false,
+                isNodeTest: false,
+                isTest: false,
+            },
+            {
+                isDevelopment: false,
+                isNodeDevelopment: false,
+                isNodeTest: false,
+                isTest: false,
+            },
+            {
+                isDevelopment: false,
+                isNodeDevelopment: false,
+                isNodeTest: false,
                 isTest: false,
             },
         ]);
     });
 
     it("reads chart runtime environment state through the shared runtime boundary", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         setGlobalProcess({ env: { NODE_ENV: "development" } });
 
         expect(getEnvironmentSnapshot()).toStrictEqual({
             isDevelopment: true,
             isNodeDevelopment: true,
+            isNodeTest: false,
             isTest: false,
+        });
+
+        setGlobalProcess({ env: { NODE_ENV: "test" } });
+
+        expect(getEnvironmentSnapshot()).toStrictEqual({
+            isDevelopment: false,
+            isNodeDevelopment: false,
+            isNodeTest: true,
+            isTest: true,
         });
     });
 
@@ -102,21 +148,35 @@ describe("render chart runtime helpers", () => {
     });
 
     it("returns chart instances only when the resolved global value is an array", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const chartGlobal = globalThis as typeof globalThis & {
             _chartjsInstances?: unknown[];
+            window?: { _chartjsInstances?: unknown[] };
         };
 
         expect(getGlobalChartInstances(["fallback"])).toStrictEqual([
             "fallback",
         ]);
 
+        Object.defineProperty(globalThis, "window", {
+            configurable: true,
+            value: { _chartjsInstances: ["window"] },
+            writable: true,
+        });
+
+        expect(getGlobalChartInstances(["fallback"])).toStrictEqual(["window"]);
+
         chartGlobal._chartjsInstances = ["global"];
 
         expect(getGlobalChartInstances(["fallback"])).toStrictEqual(["global"]);
 
         chartGlobal._chartjsInstances = undefined;
+        Object.defineProperty(globalThis, "window", {
+            configurable: true,
+            value: {},
+            writable: true,
+        });
 
         expect(getGlobalChartInstances("invalid")).toStrictEqual([]);
     });
