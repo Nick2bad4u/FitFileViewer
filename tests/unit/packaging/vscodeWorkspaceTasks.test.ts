@@ -114,12 +114,17 @@ describe("vs code workspace tasks", () => {
             artifacts: true,
             coverage: true,
             dist: true,
+            "FitFileViewer*.flatpak": true,
+            "FitFileViewer*.flatpak.zip": true,
             types: true,
             "flatpak-build-dir": true,
             "flatpak-repo": true,
+            html: true,
+            logs: true,
             out: true,
             "playwright-report": true,
             "release-dist": true,
+            temp: true,
             "test-results": true,
         };
 

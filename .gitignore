@@ -12,20 +12,6 @@ yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
 
-# Repo-root generated test artifacts
-test-results/
-playwright-report/
-html/
-
-# Repo-root transient outputs
-temp/
-artifacts/
-release-dist/
-flatpak-repo/
-flatpak-build-dir/
-FitFileViewer*.flatpak
-FitFileViewer*.flatpak.zip
-
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
@@ -345,6 +331,19 @@ pyrightconfig.json
 
 # Custom rules (everything added below won't be overriden by 'Generate .gitignore File' if you use 'Update' option)
 
+# Repo-root generated outputs
+artifacts/
+flatpak-build-dir/
+flatpak-repo/
+FitFileViewer*.flatpak
+FitFileViewer*.flatpak.zip
+html/
+playwright-report/
+release-dist/
+temp/
+test-results/
+types/
+
 src/test/*.fit
 .DS_Store
 vis
@@ -370,6 +369,3 @@ docusaurus/static/img/screenshots/MapsV2.png
 
 # Docusaurus generated API docs
 docusaurus/docs/api/
-
-# Generated declaration output; source TypeScript files are authoritative.
-types/

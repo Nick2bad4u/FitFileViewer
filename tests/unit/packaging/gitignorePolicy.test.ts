@@ -33,6 +33,10 @@ function checkIgnore(path: string, mode: "-q" | "-v"): GitIgnoreResult {
     };
 }
 
+function escapeRegExp(value: string): string {
+    return value.replaceAll(/[.*+?^${}()|[\]\\]/gu, String.raw`\$&`);
+}
+
 function createCleanupProbePath(target: string): string {
     const normalizedTarget = target.replaceAll(path.sep, "/");
     const basename = path.posix.basename(normalizedTarget);
@@ -46,8 +50,8 @@ function createCleanupProbePath(target: string): string {
 }
 
 describe("gitignore policy", () => {
-    it("keeps root script helpers trackable while ignoring generated release output", () => {
-        expect.assertions(9);
+    it("keeps root script helpers trackable", () => {
+        expect.assertions(3);
 
         const scriptHelperIgnoreStatus = checkIgnore(
             "scripts/lib/new-helper.mjs",
@@ -57,9 +61,6 @@ describe("gitignore policy", () => {
             "scripts/lib/new-helper.mjs",
             "-v"
         );
-        const artifactTrace = checkIgnore("artifacts/file", "-v");
-        const releaseTrace = checkIgnore("release-dist/file", "-v");
-        const htmlTrace = checkIgnore("html/index.html", "-v");
 
         expect(scriptHelperIgnoreStatus).toStrictEqual({
             status: 1,
@@ -70,26 +71,51 @@ describe("gitignore policy", () => {
         expect(scriptHelperTrace.stdout).toMatch(
             /\.gitignore:\d+:!scripts\/lib\/\*\*\s+scripts\/lib\/new-helper\.mjs/u
         );
-        expect({
-            stderr: artifactTrace.stderr,
-            status: artifactTrace.status,
-        }).toStrictEqual({ stderr: "", status: 0 });
-        expect(artifactTrace.stdout).toMatch(
-            /\.gitignore:\d+:artifacts\/\s+artifacts\/file/u
+    });
+
+    it("keeps root-specific generated outputs ignored by git", () => {
+        expect.assertions(1);
+
+        const generatedOutputIgnores = [
+            ["artifacts/", "artifacts/file"],
+            ["flatpak-build-dir/", "flatpak-build-dir/file"],
+            ["flatpak-repo/", "flatpak-repo/file"],
+            ["FitFileViewer*.flatpak", "FitFileViewer.flatpak"],
+            ["FitFileViewer*.flatpak.zip", "FitFileViewer.flatpak.zip"],
+            ["html/", "html/index.html"],
+            ["playwright-report/", "playwright-report/index.html"],
+            ["release-dist/", "release-dist/file"],
+            ["temp/", "temp/file"],
+            ["test-results/", "test-results/results.json"],
+            ["types/", "types/main.d.ts"],
+        ] as const;
+
+        const generatedOutputTraceResults = generatedOutputIgnores.map(
+            ([pattern, probePath]) => {
+                const trace = checkIgnore(probePath, "-v");
+                const gitignoreTracePattern = new RegExp(
+                    String.raw`\.gitignore:\d+:${escapeRegExp(pattern)}\s+${escapeRegExp(probePath)}`,
+                    "u"
+                );
+
+                return {
+                    matchesExpectedPattern: gitignoreTracePattern.test(
+                        trace.stdout
+                    ),
+                    probePath,
+                    status: trace.status,
+                    stderr: trace.stderr,
+                };
+            }
         );
-        expect({
-            stderr: releaseTrace.stderr,
-            status: releaseTrace.status,
-        }).toStrictEqual({ stderr: "", status: 0 });
-        expect(releaseTrace.stdout).toMatch(
-            /\.gitignore:\d+:release-dist\/\s+release-dist\/file/u
-        );
-        expect({
-            stderr: htmlTrace.stderr,
-            status: htmlTrace.status,
-        }).toStrictEqual({ stderr: "", status: 0 });
-        expect(htmlTrace.stdout).toMatch(
-            /\.gitignore:\d+:html\/\s+html\/index\.html/u
+
+        expect(generatedOutputTraceResults).toStrictEqual(
+            generatedOutputIgnores.map(([, probePath]) => ({
+                matchesExpectedPattern: true,
+                probePath,
+                status: 0,
+                stderr: "",
+            }))
         );
     });
 
