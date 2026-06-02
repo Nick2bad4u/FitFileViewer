@@ -90,31 +90,52 @@ describe("clean-releases script", () => {
     });
 
     it("parses dry-run release cleanup arguments", async () => {
-        expect.assertions(2);
+        expect.assertions(1);
 
         const { parseArgs } = await importCleanReleases();
+        const parseCases = [
+            {
+                args: [
+                    "--keep-last=3",
+                    "--delete-tags",
+                    "--releases-json",
+                    "tmp/releases.json",
+                ],
+                label: "explicit keep count and tag deletion",
+            },
+            {
+                args: ["--releases-json=tmp/releases.json"],
+                label: "release JSON dry run with default keep count",
+            },
+        ];
 
         expect(
-            parseArgs([
-                "--keep-last=3",
-                "--delete-tags",
-                "--releases-json",
-                "tmp/releases.json",
-            ])
-        ).toStrictEqual({
-            deleteTags: true,
-            help: false,
-            keepLast: 3,
-            releasesJsonPath: "tmp/releases.json",
-            yes: false,
-        });
-        expect(parseArgs(["--releases-json=tmp/releases.json"])).toStrictEqual({
-            deleteTags: false,
-            help: false,
-            keepLast: 5,
-            releasesJsonPath: "tmp/releases.json",
-            yes: false,
-        });
+            parseCases.map(({ args, label }) => ({
+                label,
+                parsed: parseArgs(args),
+            }))
+        ).toStrictEqual([
+            {
+                label: "explicit keep count and tag deletion",
+                parsed: {
+                    deleteTags: true,
+                    help: false,
+                    keepLast: 3,
+                    releasesJsonPath: "tmp/releases.json",
+                    yes: false,
+                },
+            },
+            {
+                label: "release JSON dry run with default keep count",
+                parsed: {
+                    deleteTags: false,
+                    help: false,
+                    keepLast: 5,
+                    releasesJsonPath: "tmp/releases.json",
+                    yes: false,
+                },
+            },
+        ]);
     });
 
     it("rejects applying deletions against mocked release JSON", async () => {
