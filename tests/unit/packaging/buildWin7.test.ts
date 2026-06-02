@@ -117,7 +117,7 @@ describe("build-win7 script", () => {
     });
 
     it("runs npm scripts from the repository root through the node npm CLI when available", async () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const { runNpmScript } = await importWin7Build();
         const { calls, commandRunner } = makeCommandRecorder();
@@ -141,6 +141,22 @@ describe("build-win7 script", () => {
                     cwd: repositoryRoot,
                     stdio: "inherit",
                 },
+            },
+        ]);
+        expect(
+            calls.map((call) => ({
+                cwdIsNestedElectronApp: path
+                    .resolve(call.options.cwd)
+                    .includes(`${path.sep}electron-app${path.sep}`),
+                cwdRelativeToRepository: path.relative(
+                    repositoryRoot,
+                    path.resolve(call.options.cwd)
+                ),
+            }))
+        ).toStrictEqual([
+            {
+                cwdIsNestedElectronApp: false,
+                cwdRelativeToRepository: "",
             },
         ]);
     });
