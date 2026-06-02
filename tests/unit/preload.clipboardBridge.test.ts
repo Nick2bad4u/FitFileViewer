@@ -77,38 +77,62 @@ function createBridge() {
     };
 }
 
+function getBridgeCallState({
+    invoke,
+    preloadLog,
+    result,
+}: {
+    invoke: ReturnType<typeof vi.fn>;
+    preloadLog: ReturnType<typeof vi.fn>;
+    result: ClipboardResponsePayload;
+}): {
+    invokeCalls: unknown[][];
+    preloadLogCalls: unknown[][];
+    result: ClipboardResponsePayload;
+} {
+    return {
+        invokeCalls: invoke.mock.calls,
+        preloadLogCalls: preloadLog.mock.calls,
+        result,
+    };
+}
+
 describe("preload clipboard bridge", () => {
     it("writes text through the clipboard IPC channel", async () => {
-        expect.assertions(3);
+        expect.assertions(2);
 
         const { bridge, invoke, preloadLog } = createBridge();
         invoke.mockResolvedValueOnce(1);
 
         const result = await bridge.writeClipboardText("hello");
 
-        expect(result).toBe(true);
-        expect(invoke).toHaveBeenCalledWith("clipboard:writeText", "hello");
+        expect(getBridgeCallState({ invoke, preloadLog, result })).toEqual({
+            invokeCalls: [["clipboard:writeText", "hello"]],
+            preloadLogCalls: [],
+            result: true,
+        });
         expect(preloadLog).not.toHaveBeenCalled();
     });
 
     it("writes PNG data URLs and coerces falsy IPC results to false", async () => {
         expect.assertions(2);
 
-        const { bridge, invoke } = createBridge();
+        const { bridge, invoke, preloadLog } = createBridge();
         const dataUrl = "data:image/png;base64,abc";
         invoke.mockResolvedValueOnce("");
 
         const result = await bridge.writeClipboardPngDataUrl(dataUrl);
 
-        expect(result).toBe(false);
-        expect(invoke).toHaveBeenCalledWith(
-            "clipboard:writePngDataUrl",
-            dataUrl
-        );
+        expect(getBridgeCallState({ invoke, preloadLog, result })).toEqual({
+            invokeCalls: [["clipboard:writePngDataUrl", dataUrl]],
+            preloadLogCalls: [],
+            result: false,
+        });
+        expect(preloadLog).not.toHaveBeenCalled();
     });
 
     it("logs text clipboard failures and resolves false", async () => {
-        expect.assertions(3);
+        expect.assertions(1);
 
         const { bridge, invoke, preloadLog } = createBridge();
         const clipboardError = new Error("clipboard failed");
@@ -116,17 +140,21 @@ describe("preload clipboard bridge", () => {
 
         const result = await bridge.writeClipboardText("hello");
 
-        expect(result).toBe(false);
-        expect(preloadLog).toHaveBeenCalledWith(
-            "error",
-            "[preload.js] writeClipboardText failed:",
-            clipboardError
-        );
-        expect(invoke).toHaveBeenCalledWith("clipboard:writeText", "hello");
+        expect(getBridgeCallState({ invoke, preloadLog, result })).toEqual({
+            invokeCalls: [["clipboard:writeText", "hello"]],
+            preloadLogCalls: [
+                [
+                    "error",
+                    "[preload.js] writeClipboardText failed:",
+                    clipboardError,
+                ],
+            ],
+            result: false,
+        });
     });
 
     it("logs PNG clipboard failures and resolves false", async () => {
-        expect.assertions(3);
+        expect.assertions(1);
 
         const { bridge, invoke, preloadLog } = createBridge();
         const dataUrl = "data:image/png;base64,abc";
@@ -135,15 +163,16 @@ describe("preload clipboard bridge", () => {
 
         const result = await bridge.writeClipboardPngDataUrl(dataUrl);
 
-        expect(result).toBe(false);
-        expect(preloadLog).toHaveBeenCalledWith(
-            "error",
-            "[preload.js] writeClipboardPngDataUrl failed:",
-            clipboardError
-        );
-        expect(invoke).toHaveBeenCalledWith(
-            "clipboard:writePngDataUrl",
-            dataUrl
-        );
+        expect(getBridgeCallState({ invoke, preloadLog, result })).toEqual({
+            invokeCalls: [["clipboard:writePngDataUrl", dataUrl]],
+            preloadLogCalls: [
+                [
+                    "error",
+                    "[preload.js] writeClipboardPngDataUrl failed:",
+                    clipboardError,
+                ],
+            ],
+            result: false,
+        });
     });
 });
