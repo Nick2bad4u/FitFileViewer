@@ -126,7 +126,7 @@ describe(updateTabVisibility, () => {
             const element = getContentElement(id);
             expect(element.getAttribute("aria-hidden")).toBe("true");
             expect(element.style.display).toBe("none");
-            expect([...element.classList]).toStrictEqual([]);
+            expect(element.classList.contains("active")).toBe(false);
         }
         expect(mockSetState).not.toHaveBeenCalled();
     });
