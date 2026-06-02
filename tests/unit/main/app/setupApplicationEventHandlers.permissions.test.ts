@@ -110,7 +110,7 @@ describe("setupApplicationEventHandlers permission hardening", () => {
     });
 
     it("registers permission handlers on web-contents-created (geolocation allowed in test mode)", async () => {
-        expect.hasAssertions();
+        expect.assertions(9);
 
         const handlers = new Map<string, AppEventHandler>();
 
@@ -194,7 +194,7 @@ describe("setupApplicationEventHandlers permission hardening", () => {
     });
 
     it("replaces app listeners (no EventEmitter listener leaks)", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         class MockApp extends EventEmitter {
             quit() {
