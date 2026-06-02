@@ -465,33 +465,36 @@ describe("tabStateManager regressions", () => {
             expect(duration).toBeLessThan(100);
         });
 
-        it("documents async render failures that require awaiting", async () => {
-            expect.assertions(2);
+        it("catches chart tab render failures and notifies the user", async () => {
+            expect.assertions(5);
 
-            // Mock failing async functions
-            vi.spyOn(window, "renderChartJS").mockRejectedValue(
-                new Error("Chart render failed")
+            const manager = new TabStateManager();
+            const activityData = { recordMesgs: [{ timestamp: 1 }] };
+            const renderError = new Error("Chart render failed");
+            const consoleSpy = vi
+                .spyOn(console, "error")
+                .mockImplementation(() => {});
+            vi.spyOn(manager, "handleChartTab").mockRejectedValue(renderError);
+            mockGetState.mockImplementation((path?: string) =>
+                path === "globalData" ? activityData : "chart"
             );
 
-            let caughtError = null;
+            const result = await manager.handleTabSpecificLogic("chart");
 
-            // Simulate the actual error handling (or lack thereof)
-            try {
-                window.renderChartJS(); // Missing await in real code
-            } catch (error) {
-                caughtError = error; // Won't catch async errors
-            }
+            expect(result).toBeUndefined();
+            expect(manager.handleChartTab).toHaveBeenCalledWith(activityData);
+            expect(consoleSpy).toHaveBeenCalledWith(
+                "[TabStateManager] Error handling tab chart:",
+                renderError
+            );
+            expect(mockShowNotification).toHaveBeenCalledWith(
+                "Error loading Charts tab",
+                "error"
+            );
+            expect(window.renderChartJS).not.toHaveBeenCalled();
 
-            expect(caughtError).toBeNull(); // Error is lost
-
-            // Proper error handling would catch it
-            try {
-                await window.renderChartJS();
-            } catch (error) {
-                caughtError = error;
-            }
-
-            expect(caughtError).toBeInstanceOf(Error);
+            manager.cleanup();
+            consoleSpy.mockRestore();
         });
     });
 
