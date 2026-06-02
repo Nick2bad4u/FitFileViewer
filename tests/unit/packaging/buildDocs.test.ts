@@ -64,12 +64,43 @@ describe("build-docs script", () => {
             /[\\/]typedoc[\\/]bin[\\/]typedoc$/u
         );
         expect({
+            stepCwds: steps.map((step) => ({
+                cwd: path.resolve(step.cwd),
+                cwdIsNestedElectronApp: path
+                    .resolve(step.cwd)
+                    .includes(`${path.sep}electron-app${path.sep}`),
+                cwdRelativeToRepository: path.relative(
+                    process.cwd(),
+                    path.resolve(step.cwd)
+                ),
+                label: step.label,
+            })),
             step0Args: typedocStep.args.slice(1),
             step0Cwd: path.resolve(typedocStep.cwd),
             step1Args: apiCategoriesStep.args,
             step1Cwd: path.resolve(apiCategoriesStep.cwd),
             step2Args: docusaurusStep.args,
         }).toStrictEqual({
+            stepCwds: [
+                {
+                    cwd: path.resolve(process.cwd()),
+                    cwdIsNestedElectronApp: false,
+                    cwdRelativeToRepository: "",
+                    label: "generate API docs",
+                },
+                {
+                    cwd: docusaurusWorkspacePath,
+                    cwdIsNestedElectronApp: false,
+                    cwdRelativeToRepository: "docusaurus",
+                    label: "generate API categories",
+                },
+                {
+                    cwd: path.resolve(process.cwd()),
+                    cwdIsNestedElectronApp: false,
+                    cwdRelativeToRepository: "",
+                    label: "build Docusaurus site",
+                },
+            ],
             step0Args: ["--options", typedocConfigPath],
             step0Cwd: path.resolve(process.cwd()),
             step1Args: [generateApiCategoriesScriptPath],
