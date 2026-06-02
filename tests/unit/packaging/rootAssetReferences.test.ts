@@ -23,6 +23,7 @@ import {
     rootElectronBuilderConfigPath,
     rootFlatpakManifestPath,
     rootPackageRepositoryPath,
+    rootReadmePath,
 } from "../../../scripts/lib/workspaces.mjs";
 
 const staleAppShellAssetPaths = [
@@ -355,6 +356,7 @@ describe("root app shell asset references", () => {
             rootAlternativeFitViewManifestPath,
             rootAppIconsSiteWebManifestPath,
             rootApplicationLayoutDocPath,
+            rootReadmePath,
         ]);
 
         expect(iconNames).toStrictEqual([
@@ -372,11 +374,7 @@ describe("root app shell asset references", () => {
             "web-app-manifest-512x512.png",
         ]);
         expect(
-            iconNames.filter(
-                (iconName) =>
-                    iconName !== "harry.png" &&
-                    !iconReferenceSources.includes(iconName)
-            )
+            iconNames.filter((iconName) => !iconReferenceSources.includes(iconName))
         ).toStrictEqual([]);
     });
 

@@ -116,6 +116,7 @@ type WorkspacesModule = {
     rootPackageLockPath: string;
     rootPackagePath: string;
     rootPackageRepositoryPath: string;
+    rootReadmePath: string;
     rootPlaywrightConfigPath: string;
     rootPlaywrightAppUiSpecPath: string;
     rootPlaywrightTestsPath: string;
@@ -521,6 +522,7 @@ describe("workspace path helpers", () => {
             rootFitParserMigrationGuide:
                 workspaces.rootFitParserMigrationGuideDocPath,
             rootGyazoSetup: workspaces.rootGyazoSetupDocPath,
+            rootReadme: workspaces.rootReadmePath,
         }).toStrictEqual({
             docusaurusAdvancedFitParserMigration:
                 "docusaurus/docs/advanced/fit-parser-migration.md",
@@ -556,6 +558,7 @@ describe("workspace path helpers", () => {
             rootDocsScreenshots: "docs/screenshots",
             rootFitParserMigrationGuide: "docs/FIT_PARSER_MIGRATION_GUIDE.md",
             rootGyazoSetup: "docs/GYAZO_SETUP.md",
+            rootReadme: "README.md",
         });
     });
 
