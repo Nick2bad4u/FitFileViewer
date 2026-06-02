@@ -31,6 +31,16 @@ function createHarness(): Harness {
     };
 }
 
+function getRequiredLoadingError(harness: Harness): Error {
+    const loadingError = harness.handleFileLoadingError.mock.calls.at(0)?.[0];
+
+    if (!loadingError) {
+        throw new TypeError("Expected file loading error");
+    }
+
+    return loadingError;
+}
+
 async function withOpenFitFileHarness(
     runTest: (harness: Harness) => Promise<void>
 ): Promise<void> {
@@ -116,10 +126,9 @@ describe(openFitFileFromPath, () => {
                 "error",
                 8000
             );
-            const loadingError =
-                harness.handleFileLoadingError.mock.calls[0]?.[0];
+            const loadingError = getRequiredLoadingError(harness);
             expect(loadingError).toBeInstanceOf(Error);
-            expect(loadingError?.message).toBe("FIT decode failed\nbad header");
+            expect(loadingError.message).toBe("FIT decode failed\nbad header");
         });
     });
 
