@@ -4,6 +4,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 const DIRECT_PROCESS_ENV_PATTERN = /\bprocess\.env\b/u;
+const RENDERER_ENTRYPOINT = "electron-app/renderer.ts";
 
 const SCANNED_SOURCE_PATHS = [
     "electron-app/main-ui.ts",
@@ -114,5 +115,26 @@ describe("renderer process environment policy", () => {
             "electron-app/utils/runtime/processEnvironment.ts"
         );
         expect(directProcessEnvAccesses).toStrictEqual([]);
+    });
+
+    it("keeps file-url runtime metadata away from navigator.cookieEnabled", () => {
+        expect.assertions(4);
+
+        const rendererSource = readFileSync(
+            path.join(process.cwd(), RENDERER_ENTRYPOINT),
+            "utf8"
+        );
+        const cookieAccessIndex = rendererSource.indexOf('"cookieEnabled"');
+        const httpProtocolGuardIndex = rendererSource.indexOf(
+            'protocol === "http:"'
+        );
+        const httpsProtocolGuardIndex = rendererSource.indexOf(
+            'protocol === "https:"'
+        );
+
+        expect(rendererSource).not.toContain("navigator.cookieEnabled");
+        expect(cookieAccessIndex).toBeGreaterThan(-1);
+        expect(httpProtocolGuardIndex).toBeLessThan(cookieAccessIndex);
+        expect(httpsProtocolGuardIndex).toBeLessThan(cookieAccessIndex);
     });
 });
