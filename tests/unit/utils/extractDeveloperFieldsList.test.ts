@@ -14,7 +14,7 @@ describe(extractDeveloperFieldsList, () => {
                 {},
                 true,
             ].map((value) => extractDeveloperFieldsList(value))
-        ).toEqual([
+        ).toStrictEqual([
             [],
             [],
             [],
@@ -32,7 +32,7 @@ describe(extractDeveloperFieldsList, () => {
             { developerFields: '{"3": 0, "4": -12.5}' },
         ];
 
-        expect(extractDeveloperFieldsList(records)).toEqual([
+        expect(extractDeveloperFieldsList(records)).toStrictEqual([
             "dev_1",
             "dev_2_0",
             "dev_2_1",
@@ -55,7 +55,7 @@ describe(extractDeveloperFieldsList, () => {
             { developerFields: '{"7": 700}' },
         ];
 
-        expect(extractDeveloperFieldsList(records)).toEqual(["dev_7"]);
+        expect(extractDeveloperFieldsList(records)).toStrictEqual(["dev_7"]);
     });
 
     it("ignores non-numeric scalar values while preserving array index fields", () => {
@@ -79,7 +79,7 @@ describe(extractDeveloperFieldsList, () => {
             },
         ];
 
-        expect(extractDeveloperFieldsList(records)).toEqual([
+        expect(extractDeveloperFieldsList(records)).toStrictEqual([
             "dev_6_0",
             "dev_6_1",
             "dev_6_2",
@@ -95,7 +95,7 @@ describe(extractDeveloperFieldsList, () => {
             { developerFields: '{"2": [1, 2, 3], "1": 1, "10": 20}' },
         ];
 
-        expect(extractDeveloperFieldsList(records)).toEqual([
+        expect(extractDeveloperFieldsList(records)).toStrictEqual([
             "dev_1",
             "dev_2_0",
             "dev_2_1",
