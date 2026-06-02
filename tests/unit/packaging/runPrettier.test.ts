@@ -51,6 +51,9 @@ type CommandRunner = (
     options: { cwd: string; stdio: string }
 ) => { error?: Error; status: number | null };
 
+const appLocalPackageOrConfigTargetPattern =
+    /^electron-app\/(?:package(?:-lock)?\.json|(?:electron-builder|eslint|prettier|stylelint|vite|vitest)\.config\.[cm]?[jt]s|tsconfig(?:\.[\w-]+)?\.json)$/u;
+
 describe("run-prettier wrapper", () => {
     it("keeps root-owned formatting targets for app and workspace metadata", () => {
         expect.assertions(2);
@@ -100,8 +103,8 @@ describe("run-prettier wrapper", () => {
 
         expect(prettierTargets).toStrictEqual(expectedTargets);
         expect(
-            prettierTargets.filter(
-                (target) => target === "electron-app/*.config.*"
+            prettierTargets.filter((target) =>
+                appLocalPackageOrConfigTargetPattern.test(target)
             )
         ).toStrictEqual([]);
     });
