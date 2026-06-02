@@ -144,6 +144,7 @@ type WorkspacesModule = {
     rootTypesPath: string;
     rootTabsTestsPath: string;
     rootTypedocConfigPath: string;
+    rootToolingConfigPaths: string[];
     rootUnitTestsPath: string;
     rootViteRendererConfigPath: string;
     rootVitestCachePath: string;
@@ -399,7 +400,7 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes root tooling metadata paths", async () => {
-        expect.assertions(11);
+        expect.assertions(12);
 
         const workspaces = await importWorkspaces();
 
@@ -420,21 +421,7 @@ describe("workspace path helpers", () => {
         );
         expect(workspaces.rootRemarkConfigPath).toBe(".remarkrc.mjs");
         expect(workspaces.rootSecretlintConfigPath).toBe(".secretlintrc.cjs");
-    });
-
-    it("centralizes repository prettier targets", async () => {
-        expect.assertions(2);
-
-        const workspaces = await importWorkspaces();
-        const appLocalPackageOrConfigTargetPattern =
-            /^electron-app\/(?:package(?:-lock)?\.json|(?:electron-builder|eslint|prettier|stylelint|vite|vitest)\.config\.[cm]?[jt]s|tsconfig(?:\.[\w-]+)?\.json)$/u;
-
-        expect(workspaces.repositoryPrettierTargets).toStrictEqual([
-            "package.json",
-            "docusaurus/package.json",
-            "docusaurus/docusaurus.config.ts",
-            "docusaurus/sidebars.ts",
-            "docusaurus/tsconfig.json",
+        expect(workspaces.rootToolingConfigPaths).toStrictEqual([
             "typedoc.json",
             ".markdown-link-check.json",
             ".markdownlint.json",
@@ -459,6 +446,23 @@ describe("workspace path helpers", () => {
             "tsconfig.docusaurus.json",
             "tsconfig.vitest-typecheck.json",
             "tsconfig.app.eslint.json",
+        ]);
+    });
+
+    it("centralizes repository prettier targets", async () => {
+        expect.assertions(2);
+
+        const workspaces = await importWorkspaces();
+        const appLocalPackageOrConfigTargetPattern =
+            /^electron-app\/(?:package(?:-lock)?\.json|(?:electron-builder|eslint|prettier|stylelint|vite|vitest)\.config\.[cm]?[jt]s|tsconfig(?:\.[\w-]+)?\.json)$/u;
+
+        expect(workspaces.repositoryPrettierTargets).toStrictEqual([
+            "package.json",
+            "docusaurus/package.json",
+            "docusaurus/docusaurus.config.ts",
+            "docusaurus/sidebars.ts",
+            "docusaurus/tsconfig.json",
+            ...workspaces.rootToolingConfigPaths,
             "*.yml",
             "*.yaml",
             ".github/*.yml",
