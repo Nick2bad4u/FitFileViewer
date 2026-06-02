@@ -17,6 +17,20 @@ type CommandRunner = (
     args: string[],
     options: { cwd: string; stdio: string }
 ) => { error?: Error; status: number };
+type CommandCall = Parameters<CommandRunner>;
+
+function getRequiredCommandCall(
+    commandRunner: ReturnType<typeof vi.fn<CommandRunner>>,
+    index: number
+): CommandCall {
+    const commandCall = commandRunner.mock.calls.at(index);
+
+    if (!commandCall) {
+        throw new TypeError(`Expected command call at index ${index}`);
+    }
+
+    return commandCall;
+}
 
 describe("build-package script", () => {
     it("runs the package pipeline through root-owned scripts", () => {
@@ -66,12 +80,12 @@ describe("build-package script", () => {
             command,
             ,
             options,
-        ] = commandRunner.mock.calls[0] ?? [];
+        ] = getRequiredCommandCall(commandRunner, 0);
 
         expect({
             command,
             ...options,
-            cwd: path.resolve(options?.cwd ?? ""),
+            cwd: path.resolve(options.cwd),
         }).toStrictEqual({
             command: process.execPath,
             cwd: path.resolve(process.cwd()),
@@ -101,7 +115,7 @@ describe("build-package script", () => {
             loggerCalls: 1,
             status: 7,
         });
-        expect(commandRunner.mock.calls[0]?.[1]).toStrictEqual([
+        expect(getRequiredCommandCall(commandRunner, 0)[1]).toStrictEqual([
             buildRuntimeScriptPath,
         ]);
         expect(logger.mock.calls).toStrictEqual([
@@ -122,7 +136,7 @@ describe("build-package script", () => {
             spawnError
         );
         expect(commandRunner).toHaveBeenCalledOnce();
-        expect(commandRunner.mock.calls[0]?.[1]).toStrictEqual([
+        expect(getRequiredCommandCall(commandRunner, 0)[1]).toStrictEqual([
             buildRuntimeScriptPath,
         ]);
         expect(logger).toHaveBeenCalledWith("[build-package] build runtime");

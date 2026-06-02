@@ -16,6 +16,20 @@ type CommandRunner = (
     args: string[],
     options: { cwd: string; stdio: string }
 ) => { error?: Error; status: number | null };
+type CommandCall = Parameters<CommandRunner>;
+
+function getRequiredCommandCall(
+    commandRunner: ReturnType<typeof vi.fn<CommandRunner>>,
+    index: number
+): CommandCall {
+    const commandCall = commandRunner.mock.calls.at(index);
+
+    if (!commandCall) {
+        throw new TypeError(`Expected command call at index ${index}`);
+    }
+
+    return commandCall;
+}
 
 describe("build-renderer script", () => {
     it("builds renderer Vite args from root-owned config", () => {
@@ -52,7 +66,7 @@ describe("build-renderer script", () => {
             command,
             args,
             options,
-        ] = commandRunner.mock.calls[0] ?? [];
+        ] = getRequiredCommandCall(commandRunner, 0);
 
         expect({
             args,
@@ -65,7 +79,7 @@ describe("build-renderer script", () => {
         });
         expect({
             ...options,
-            cwd: path.resolve(options?.cwd ?? ""),
+            cwd: path.resolve(options.cwd),
         }).toStrictEqual({
             cwd: path.resolve(process.cwd()),
             stdio: "inherit",
@@ -88,7 +102,7 @@ describe("build-renderer script", () => {
             commandCalls: 1,
             status: 8,
         });
-        expect(commandRunner.mock.calls[0]?.[1]).toStrictEqual(
+        expect(getRequiredCommandCall(commandRunner, 0)[1]).toStrictEqual(
             buildRendererArgs([])
         );
     });
@@ -109,7 +123,7 @@ describe("build-renderer script", () => {
             command,
             args,
             options,
-        ] = commandRunner.mock.calls[0] ?? [];
+        ] = getRequiredCommandCall(commandRunner, 0);
 
         expect({ args, command }).toStrictEqual({
             args: buildRendererArgs([]),
@@ -117,7 +131,7 @@ describe("build-renderer script", () => {
         });
         expect({
             ...options,
-            cwd: path.resolve(options?.cwd ?? ""),
+            cwd: path.resolve(options.cwd),
         }).toStrictEqual({
             cwd: path.resolve(process.cwd()),
             stdio: "inherit",
