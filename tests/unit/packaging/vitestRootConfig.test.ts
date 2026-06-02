@@ -29,6 +29,16 @@ async function importVitestConfig(): Promise<VitestConfigModule> {
     return (await import("../../../vitest.config")) as VitestConfigModule;
 }
 
+function getRequiredVitestTestConfig(
+    config: VitestConfigModule["default"]
+): NonNullable<VitestConfigModule["default"]["test"]> {
+    if (!config.test) {
+        throw new Error("Expected Vitest test config");
+    }
+
+    return config.test;
+}
+
 function getRootScripts(): Record<string, string> {
     const packageJson = JSON.parse(
         readFileSync(
@@ -45,16 +55,15 @@ describe("vitest root config", () => {
         expect.assertions(8);
 
         const { default: config } = await importVitestConfig();
+        const testConfig = getRequiredVitestTestConfig(config);
 
         expect(config.root).toBe(process.cwd());
         expect(config.root).not.toBe(appSourcePath);
         expect(config.cacheDir).toBe(rootVitestCachePath);
-        expect(config.test?.globalSetup).toStrictEqual([
+        expect(testConfig.globalSetup).toStrictEqual([
             rootVitestGlobalSetupPath,
         ]);
-        expect(config.test?.setupFiles).toStrictEqual([
-            rootVitestSetupFilePath,
-        ]);
+        expect(testConfig.setupFiles).toStrictEqual([rootVitestSetupFilePath]);
         expect(getRootScripts()["test:unit"]).toBe(
             "node scripts/run-vitest.mjs --run --suite unit --maxWorkers 1"
         );

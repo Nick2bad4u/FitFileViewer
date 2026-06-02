@@ -53,6 +53,17 @@ function readPackageJson(relativePath: string): PackageJson {
     ) as PackageJson;
 }
 
+function getRequiredPackageEntries(
+    entries: Record<string, string> | undefined,
+    label: string
+): Record<string, string> {
+    if (!entries) {
+        throw new Error(`Expected package ${label}`);
+    }
+
+    return entries;
+}
+
 function getFileExistence(relativePaths: string[]): Record<string, boolean> {
     return Object.fromEntries(
         relativePaths.map((relativePath) => [
@@ -249,9 +260,11 @@ describe("workspace package boundaries", () => {
             "electron-app/global.d.ts",
             "package.json",
         ]);
-        expect(appPackage.exports?.["./index.html"]).toBe(
-            "./electron-app/dist/index.html"
-        );
+        expect(
+            getRequiredPackageEntries(appPackage.exports, "exports")[
+                "./index.html"
+            ]
+        ).toBe("./electron-app/dist/index.html");
         expect(appPackage.main).toBe("electron-app/dist/main.js");
         expect(appPackage.types).toBe("electron-app/global.d.ts");
         expect(appPackage.icon).toBe("electron-app/dist/icons/favicon.ico");

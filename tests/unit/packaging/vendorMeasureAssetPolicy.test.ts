@@ -61,6 +61,17 @@ type PackageJson = {
     devDependencies?: Record<string, string>;
 };
 
+function getRequiredPackageEntries(
+    entries: Record<string, string> | undefined,
+    label: string
+): Record<string, string> {
+    if (!entries) {
+        throw new Error(`Expected package ${label}`);
+    }
+
+    return entries;
+}
+
 function readWorkspaceFile(relativePath: string): string {
     return readFileSync(path.join(repositoryRoot, relativePath), "utf8");
 }
@@ -196,9 +207,12 @@ describe("renderer vendor asset policy", () => {
         );
         const measureLite = readWorkspaceFile(appLeafletMeasureLitePath);
 
-        expect(rootPackage.devDependencies?.["leaflet-measure"]).toEqual(
-            expect.stringMatching(/\S/u)
-        );
+        expect(
+            getRequiredPackageEntries(
+                rootPackage.devDependencies,
+                "devDependencies"
+            )["leaflet-measure"]
+        ).toEqual(expect.stringMatching(/\S/u));
         expect(vendorGlobalsCore).toContain(
             'import "leaflet-measure/dist/leaflet-measure.css";'
         );
