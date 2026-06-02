@@ -58,6 +58,11 @@ export const rootDocsScreenshotsPath = path.posix.join(
     rootDocsPath,
     "screenshots"
 );
+export const rootDocsScreenshotNames = [
+    "MapsV2.png",
+    "DataV2.png",
+    "ChartsV3.png",
+];
 export const rootElectronBuilderConfigPath = "electron-builder.config.cjs";
 export const rootAppBaseTsconfigPath = "tsconfig.app.base.json";
 export const rootAppEslintTsconfigPath = "tsconfig.app.eslint.json";

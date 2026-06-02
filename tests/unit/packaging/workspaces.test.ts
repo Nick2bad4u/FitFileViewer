@@ -103,6 +103,7 @@ type WorkspacesModule = {
     rootCachePath: string;
     rootDevelopmentGuideDocPath: string;
     rootDocsPath: string;
+    rootDocsScreenshotNames: string[];
     rootDocsScreenshotsPath: string;
     rootFitParserMigrationGuideDocPath: string;
     rootGyazoSetupDocPath: string;
@@ -529,6 +530,7 @@ describe("workspace path helpers", () => {
             rootAgents: workspaces.rootAgentsPath,
             rootDevelopmentGuide: workspaces.rootDevelopmentGuideDocPath,
             rootDocs: workspaces.rootDocsPath,
+            rootDocsScreenshotNames: workspaces.rootDocsScreenshotNames,
             rootDocsScreenshots: workspaces.rootDocsScreenshotsPath,
             rootFitParserMigrationGuide:
                 workspaces.rootFitParserMigrationGuideDocPath,
@@ -560,6 +562,11 @@ describe("workspace path helpers", () => {
             rootAgents: "AGENTS.md",
             rootDevelopmentGuide: "docs/DEVELOPMENT_GUIDE.md",
             rootDocs: "docs",
+            rootDocsScreenshotNames: [
+                "MapsV2.png",
+                "DataV2.png",
+                "ChartsV3.png",
+            ],
             rootDocsScreenshots: "docs/screenshots",
             rootFitParserMigrationGuide: "docs/FIT_PARSER_MIGRATION_GUIDE.md",
             rootGyazoSetup: "docs/GYAZO_SETUP.md",

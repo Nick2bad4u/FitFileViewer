@@ -21,6 +21,7 @@ import {
     rootFlatpakBundlePath,
     rootFlatpakRepoPath,
     rootFlatpakZipPath,
+    rootDocsScreenshotNames,
     rootReleaseDistPath,
 } from "./lib/workspaces.mjs";
 
@@ -36,9 +37,9 @@ export const cleanupTargets = [
     docusaurusStaticImageFaviconPath,
     docusaurusStaticImageCoverageJsonPath,
     docusaurusStaticImageCoverageSvgPath,
-    path.join(docusaurusStaticScreenshotsPath, "ChartsV3.png"),
-    path.join(docusaurusStaticScreenshotsPath, "DataV2.png"),
-    path.join(docusaurusStaticScreenshotsPath, "MapsV2.png"),
+    ...rootDocsScreenshotNames.map((screenshotName) =>
+        path.join(docusaurusStaticScreenshotsPath, screenshotName)
+    ),
     rootFlatpakBundlePath,
     rootFlatpakZipPath,
     rootArtifactsPath,

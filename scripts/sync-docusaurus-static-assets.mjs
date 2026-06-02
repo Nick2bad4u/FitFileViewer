@@ -8,14 +8,11 @@ import {
     docusaurusStaticScreenshotsPath,
     repositoryRoot,
     rootAppFaviconPath,
+    rootDocsScreenshotNames,
     rootDocsScreenshotsPath,
 } from "./lib/workspaces.mjs";
 
-export const screenshotNames = [
-    "MapsV2.png",
-    "DataV2.png",
-    "ChartsV3.png",
-];
+export const screenshotNames = rootDocsScreenshotNames;
 
 export function createStaticAssetPlan(root = repositoryRoot) {
     const screenshotSourceDir = path.join(root, rootDocsScreenshotsPath);

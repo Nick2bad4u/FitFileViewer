@@ -18,6 +18,8 @@ import {
     rootAppStyleCssPath,
     rootApplicationLayoutDocPath,
     rootCodecovConfigPath,
+    rootDocsScreenshotNames,
+    rootDocsScreenshotsPath,
     rootElectronBuilderConfigPath,
     rootFlatpakManifestPath,
     rootPackageRepositoryPath,
@@ -376,5 +378,13 @@ describe("root app shell asset references", () => {
                     !iconReferenceSources.includes(iconName)
             )
         ).toStrictEqual([]);
+    });
+
+    it("keeps docs screenshots limited to canonical referenced images", () => {
+        expect.assertions(1);
+
+        expect(getDirectoryFileNames(rootDocsScreenshotsPath)).toStrictEqual(
+            [...rootDocsScreenshotNames].sort()
+        );
     });
 });

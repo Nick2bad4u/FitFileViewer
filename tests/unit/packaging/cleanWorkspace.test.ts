@@ -22,6 +22,7 @@ import {
     rootFlatpakBundlePath,
     rootFlatpakRepoPath,
     rootFlatpakZipPath,
+    rootDocsScreenshotNames,
     rootGitignorePath,
     rootPackageLockPath,
     rootReleaseDistPath,
@@ -89,9 +90,9 @@ describe("clean-workspace script", () => {
             docusaurusStaticImageFaviconPath,
             docusaurusStaticImageCoverageJsonPath,
             docusaurusStaticImageCoverageSvgPath,
-            path.join(docusaurusStaticScreenshotsPath, "ChartsV3.png"),
-            path.join(docusaurusStaticScreenshotsPath, "DataV2.png"),
-            path.join(docusaurusStaticScreenshotsPath, "MapsV2.png"),
+            ...rootDocsScreenshotNames.map((screenshotName) =>
+                path.join(docusaurusStaticScreenshotsPath, screenshotName)
+            ),
             rootFlatpakBundlePath,
             rootFlatpakZipPath,
             rootArtifactsPath,
