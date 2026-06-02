@@ -28,7 +28,7 @@ function requireElement<TElement extends Element>(
 
 describe(createChartStatusIndicator, () => {
     beforeEach(() => {
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
 
         // Default: all visible, with detailed categories to satisfy template
         mockGetChartCounts.mockReset();
@@ -49,7 +49,7 @@ describe(createChartStatusIndicator, () => {
     });
 
     afterEach(() => {
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         vi.restoreAllMocks();
         vi.useRealTimers();
     });
@@ -61,9 +61,12 @@ describe(createChartStatusIndicator, () => {
         expect(indicator).toBeInstanceOf(HTMLElement);
         expect(indicator.id).toBe("chart-status-indicator");
 
-        const icon = indicator.querySelector(".status-icon");
-        expect(icon?.textContent).toBe("✅");
-        expect(icon?.getAttribute("title")).toContain(
+        const icon = requireElement(
+            indicator.querySelector(".status-icon"),
+            ".status-icon"
+        );
+        expect(icon.textContent).toBe("✅");
+        expect(icon.getAttribute("title")).toContain(
             "All available charts are visible"
         );
 
@@ -85,11 +88,14 @@ describe(createChartStatusIndicator, () => {
         ]);
 
         // Breakdown tooltip should be appended to document.body
-        const breakdown = document.querySelector(".status-breakdown");
+        const breakdown = requireElement(
+            document.querySelector(".status-breakdown"),
+            ".status-breakdown"
+        );
         expect(breakdown).toBeInstanceOf(HTMLElement);
-        expect(breakdown?.id).toBe("chart-status-indicator-breakdown");
+        expect(breakdown.id).toBe("chart-status-indicator-breakdown");
         // Should not include enable-more tip when nothing hidden
-        expect(breakdown?.innerHTML).not.toContain("Enable more charts");
+        expect(breakdown.innerHTML).not.toContain("Enable more charts");
     });
 
     it("shows warning (⚠️) when some charts are hidden and reveals breakdown on hover", () => {
@@ -107,26 +113,31 @@ describe(createChartStatusIndicator, () => {
         });
 
         const indicator = createChartStatusIndicator();
-        const icon = indicator.querySelector(".status-icon");
-        expect(icon?.textContent).toBe("⚠️");
+        const icon = requireElement(
+            indicator.querySelector(".status-icon"),
+            ".status-icon"
+        );
+        expect(icon.textContent).toBe("⚠️");
 
-        const breakdown =
-            document.querySelector<HTMLElement>(".status-breakdown");
+        const breakdown = requireElement(
+            document.querySelector<HTMLElement>(".status-breakdown"),
+            ".status-breakdown"
+        );
 
         // Hover in
         indicator.dispatchEvent(new Event("mouseenter"));
         expect(indicator.style.transform).toBe("translateY(-1px)");
-        expect(breakdown?.style.visibility).toBe("visible");
-        expect(breakdown?.style.opacity).toBe("1");
+        expect(breakdown.style.visibility).toBe("visible");
+        expect(breakdown.style.opacity).toBe("1");
 
         // Hover out
         indicator.dispatchEvent(new Event("mouseleave"));
         expect(indicator.style.transform).toBe("translateY(0)");
-        expect(breakdown?.style.visibility).toBe("hidden");
-        expect(breakdown?.style.opacity).toBe("0");
+        expect(breakdown.style.visibility).toBe("hidden");
+        expect(breakdown.style.opacity).toBe("0");
 
         // Breakdown content should include guidance tip when hidden charts exist
-        expect(breakdown?.textContent).toContain("Enable more charts");
+        expect(breakdown.textContent).toContain("Enable more charts");
     });
 
     it("click scrolls to fields section and briefly highlights it", () => {
@@ -187,12 +198,18 @@ describe(createChartStatusIndicator, () => {
         });
 
         const indicator = createChartStatusIndicator();
-        const icon = indicator.querySelector(".status-icon");
-        expect(icon?.textContent).toBe("❌");
+        const icon = requireElement(
+            indicator.querySelector(".status-icon"),
+            ".status-icon"
+        );
+        expect(icon.textContent).toBe("❌");
 
-        const statusText = indicator.querySelector<HTMLElement>(".status-text");
-        expect(statusText?.textContent).toBe("No charts available");
-        expect(statusText?.style.color).toBe("var(--color-fg-muted)");
+        const statusText = requireElement(
+            indicator.querySelector<HTMLElement>(".status-text"),
+            ".status-text"
+        );
+        expect(statusText.textContent).toBe("No charts available");
+        expect(statusText.style.color).toBe("var(--color-fg-muted)");
     });
 
     it("uses error state (❌) when visible > available (invalid input)", () => {
@@ -209,17 +226,21 @@ describe(createChartStatusIndicator, () => {
             },
         });
         const indicator = createChartStatusIndicator();
-        const icon = indicator.querySelector(".status-icon");
-        expect(icon?.textContent).toBe("❌");
+        const icon = requireElement(
+            indicator.querySelector(".status-icon"),
+            ".status-icon"
+        );
+        expect(icon.textContent).toBe("❌");
 
         const statusText = requireElement(
             indicator.querySelector(".status-text"),
             ".status-text"
         );
         expect(statusText.textContent).toBe("2 / 1 charts visible");
-        expect(statusText.querySelector("span")?.style.color).toBe(
-            "var(--color-error)"
-        );
+        expect(
+            requireElement(statusText.querySelector("span"), "status count")
+                .style.color
+        ).toBe("var(--color-error)");
     });
 
     it("returns a fallback element and logs an error when rendering throws", () => {
