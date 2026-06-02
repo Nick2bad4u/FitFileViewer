@@ -656,10 +656,14 @@ describe("main.js strict handlers and events", () => {
         ).toStrictEqual([["function"]]);
         const windowOpenHandler =
             contents.setWindowOpenHandler.mock.calls[0][0];
-        expect(windowOpenHandler({ url: "https://bad.example.com" })).toEqual({
+        expect(
+            windowOpenHandler({ url: "https://bad.example.com" })
+        ).toStrictEqual({
             action: "deny",
         });
-        expect(windowOpenHandler({ url: "file://index.html" })).toEqual({
+        expect(
+            windowOpenHandler({ url: "file://index.html" })
+        ).toStrictEqual({
             action: "allow",
         });
     });

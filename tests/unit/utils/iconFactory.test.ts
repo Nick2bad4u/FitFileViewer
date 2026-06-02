@@ -35,7 +35,9 @@ describe("iconFactory", () => {
         expect(
             getRequiredSvgChild<SVGTitleElement>(icon, "title").textContent
         ).toBe("<Timer>");
-        expect(Array.from(icon.children, (child) => child.tagName)).toEqual([
+        expect(
+            Array.from(icon.children, (child) => child.tagName)
+        ).toStrictEqual([
             "title",
             "circle",
             "path",

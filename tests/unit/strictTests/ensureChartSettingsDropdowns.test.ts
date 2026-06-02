@@ -403,7 +403,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
 
         setupDOM(false);
         const result = ensureChartSettingsDropdowns("chartjs-chart-container");
-        expect(result).toEqual({ defaultSettings: true });
+        expect(result).toStrictEqual({ defaultSettings: true });
     });
 
     it("creates panel, toggle button, and sections; moves zone controls after timeout", async () => {
@@ -413,7 +413,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
         seedGlobalData();
 
         const result = ensureChartSettingsDropdowns("chartjs-chart-container");
-        expect(result).toEqual({ from: "getCurrentSettings" });
+        expect(result).toStrictEqual({ from: "getCurrentSettings" });
 
         // Toggle button exists and points to wrapper
         const toggleBtn = getRequiredElementById(

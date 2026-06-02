@@ -329,7 +329,7 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
             datasetIndex: 0,
             raw: secondLatPoint,
         });
-        expect(tooltipLabel).toEqual([
+        expect(tooltipLabel).toStrictEqual([
             "Latitude: -90.000000°",
             "Elapsed: 2s",
             "Point: 2",
@@ -342,7 +342,7 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
             new Date(secondLatPoint.timestamp).toLocaleString()
         );
 
-        expect(config.plugins[0]).toEqual({ id: "zoom-reset" });
+        expect(config.plugins[0]).toStrictEqual({ id: "zoom-reset" });
         const view = getRenderedCanvas(container);
         expect(view.style.borderRadius).toBe("12px");
         expect(view.style.background).toBe("rgb(16, 16, 16)");
