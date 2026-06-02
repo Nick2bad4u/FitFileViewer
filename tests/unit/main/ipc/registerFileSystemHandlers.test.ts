@@ -63,10 +63,41 @@ describe("registerFileSystemHandlers", () => {
         });
     }
 
-    function getFileReadHandler(): FileSystemIpcHandler {
-        const handler = registerIpcHandle.mock.calls.find(
+    function getRequiredMockCall<T extends unknown[]>(
+        calls: T[],
+        label: string
+    ): T {
+        const call = calls.at(0);
+
+        if (!call) {
+            throw new TypeError(`Expected ${label} call`);
+        }
+
+        return call;
+    }
+
+    function getRequiredStatMock(): NonNullable<FileSystemModule["stat"]> {
+        const stat = fileSystem.stat;
+
+        if (!stat) {
+            throw new TypeError("Expected fs.stat mock");
+        }
+
+        return stat;
+    }
+
+    function getFileReadHandler(
+        handleMock: Mock<RegisterIpcHandle> = registerIpcHandle
+    ): FileSystemIpcHandler {
+        const registration = handleMock.mock.calls.find(
             ([channel]) => channel === "file:read"
-        )?.[1];
+        );
+
+        if (!registration) {
+            throw new TypeError("file:read handler was not registered");
+        }
+
+        const handler = registration[1];
 
         expect(handler).toBeTypeOf("function");
 
@@ -109,7 +140,12 @@ describe("registerFileSystemHandlers", () => {
         const approvedPath = approveFilePath("C:/test.fit", { source: "test" });
         const result = await handler({}, approvedPath);
 
-        expect(fileSystem.readFile.mock.calls[0]?.[0]).toBe(approvedPath);
+        expect(
+            getRequiredMockCall(
+                fileSystem.readFile.mock.calls,
+                "fs.readFile"
+            )[0]
+        ).toBe(approvedPath);
         expect(result).toBeInstanceOf(ArrayBuffer);
         expect(Buffer.from(result as ArrayBuffer).toString()).toBe(
             "hello-world"
@@ -127,14 +163,13 @@ describe("registerFileSystemHandlers", () => {
             logWithContext,
         });
 
-        const handler = handlerRegister.mock.calls[0]?.[1];
-        expect(handler).toBeTypeOf("function");
+        const handler = getFileReadHandler(handlerRegister);
 
         const approvedPath = approveFilePath("C:/missing.fit", {
             source: "test",
         });
 
-        await expect(handler?.({}, approvedPath)).rejects.toThrow(
+        await expect(handler({}, approvedPath)).rejects.toThrow(
             "Filesystem module unavailable"
         );
 
@@ -199,7 +234,8 @@ describe("registerFileSystemHandlers", () => {
             new Error("ENOENT: no such file or directory"),
             { code: "ENOENT" }
         );
-        fileSystem.stat?.mockImplementation((_path, callback) =>
+        const stat = getRequiredStatMock();
+        stat.mockImplementation((_path, callback) =>
             callback(missingFileError)
         );
 
@@ -208,7 +244,9 @@ describe("registerFileSystemHandlers", () => {
         });
 
         await expect(handler({}, approvedPath)).rejects.toThrow("ENOENT");
-        expect(fileSystem.stat?.mock.calls[0]?.[0]).toBe(approvedPath);
+        expect(getRequiredMockCall(stat.mock.calls, "fs.stat")[0]).toBe(
+            approvedPath
+        );
         expect(fileSystem.readFile).not.toHaveBeenCalled();
         expect(logWithContext).not.toHaveBeenCalled();
     });
@@ -218,7 +256,7 @@ describe("registerFileSystemHandlers", () => {
 
         registerDefaultHandlers();
         const handler = getFileReadHandler();
-        fileSystem.stat?.mockImplementation((_path, callback) =>
+        getRequiredStatMock().mockImplementation((_path, callback) =>
             callback(null, { size: MAX_FIT_FILE_BYTES + 1 })
         );
 
