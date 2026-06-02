@@ -25,6 +25,15 @@ function getExitSvg(icon: HTMLSpanElement): SVGSVGElement {
     return svg as SVGSVGElement;
 }
 
+function getSvgTitle(svg: SVGSVGElement): string {
+    const title = svg.querySelector("title");
+    if (!title) {
+        throw new Error("Missing exit fullscreen SVG title");
+    }
+
+    return title.textContent ?? "";
+}
+
 function getSvgState(svg: SVGSVGElement) {
     return {
         fill: svg.getAttribute("fill"),
@@ -36,9 +45,17 @@ function getSvgState(svg: SVGSVGElement) {
             stroke: path.getAttribute("stroke"),
             strokeWidth: path.getAttribute("stroke-width"),
         })),
-        title: svg.querySelector("title")?.textContent ?? null,
+        title: getSvgTitle(svg),
         viewBox: svg.getAttribute("viewBox"),
         width: svg.getAttribute("width"),
+    };
+}
+
+function getButtonClassState(button: HTMLButtonElement) {
+    return {
+        exitFullscreenButton: button.classList.contains("exit-fullscreen-btn"),
+        overlay: button.classList.contains("exit-fullscreen-overlay"),
+        themedButton: button.classList.contains("themed-btn"),
     };
 }
 
@@ -83,11 +100,11 @@ describe(addExitFullscreenOverlay, () => {
             expect(button.type).toBe("button");
             expect(button.title).toBe("Exit Fullscreen");
             expect(button.getAttribute("aria-label")).toBe("Exit Fullscreen");
-            expect([...button.classList]).toStrictEqual([
-                "exit-fullscreen-overlay",
-                "themed-btn",
-                "exit-fullscreen-btn",
-            ]);
+            expect(getButtonClassState(button)).toStrictEqual({
+                exitFullscreenButton: true,
+                overlay: true,
+                themedButton: true,
+            });
             expect(icon.getAttribute("aria-hidden")).toBe("true");
             expect(getSvgState(svg)).toStrictEqual({
                 fill: "none",
