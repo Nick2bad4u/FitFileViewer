@@ -57,9 +57,44 @@ function requireElement<TElement extends Element>(
     return element;
 }
 
+function getIndicatorState(indicator: HTMLElement) {
+    const statusInfo = requireElement(
+        indicator.firstElementChild,
+        "status info"
+    );
+    const icon = requireElement(statusInfo.children[0], "status icon");
+    const statusText = requireElement(statusInfo.children[1], "status text");
+    const quickAction = requireElement(
+        indicator.querySelector("button"),
+        "quick action"
+    );
+    const breakdown = requireElement(
+        indicator.querySelector(".global-breakdown"),
+        ".global-breakdown"
+    );
+    const breakdownGrid = requireElement(
+        breakdown.children[1],
+        "breakdown grid"
+    );
+
+    return {
+        breakdownRows: [...breakdownGrid.children].map(
+            (row) => row.textContent
+        ),
+        breakdownTitle: breakdown.firstElementChild?.textContent ?? null,
+        hintText: breakdown.children[2]?.textContent ?? null,
+        iconText: icon.textContent,
+        iconTitle: icon.getAttribute("title"),
+        quickActionActionable: quickAction.getAttribute("data-actionable"),
+        quickActionText: quickAction.textContent,
+        quickActionTitle: quickAction.getAttribute("title"),
+        statusText: statusText.textContent,
+    };
+}
+
 describe("global chart status indicator from counts", () => {
     it("creates all-visible status content without HTML string insertion", () => {
-        expect.assertions(6);
+        expect.assertions(5);
 
         setupChartContent();
 
@@ -76,17 +111,28 @@ describe("global chart status indicator from counts", () => {
                 indicator.querySelector(".global-breakdown"),
                 ".global-breakdown"
             );
+            const state = getIndicatorState(indicator);
 
             expect(indicator).toBeInstanceOf(HTMLElement);
             expect(indicator.id).toBe("global-chart-status");
-            expect(indicator.textContent).toContain(
-                "Showing 4 of 4 available charts"
-            );
-            expect(quickAction.textContent).toContain("Charts Ready");
-            expect(breakdown.textContent).toContain("Metrics: 1/1");
-            expect(breakdown.textContent).not.toContain(
-                "Use settings panel below"
-            );
+            expect(state).toStrictEqual({
+                breakdownRows: [
+                    "📊 Metrics: 1/1",
+                    "📈 Analysis: 1/1",
+                    "🎯 Zones: 1/1",
+                    "🗺️ GPS: 1/1",
+                ],
+                breakdownTitle: "Chart Categories",
+                hintText: null,
+                iconText: "✅",
+                iconTitle: "All available charts are visible",
+                quickActionActionable: "false",
+                quickActionText: "✨ Charts Ready",
+                quickActionTitle: "All available charts are visible",
+                statusText: "Showing 4 of 4 available charts",
+            });
+            expect(quickAction).toBeInstanceOf(HTMLButtonElement);
+            expect(breakdown).toBeInstanceOf(HTMLDivElement);
         } finally {
             cleanupTestDom();
         }
@@ -155,7 +201,21 @@ describe("global chart status indicator from counts", () => {
                 ".global-breakdown"
             );
 
-            expect(quickAction.textContent).toContain("Show Settings");
+            expect(getIndicatorState(indicator)).toMatchObject({
+                breakdownRows: [
+                    "📊 Metrics: 2/3",
+                    "📈 Analysis: 0/1",
+                    "🎯 Zones: 1/1",
+                    "🗺️ GPS: 0/1",
+                ],
+                hintText: "💡 Use settings panel below to enable more charts",
+                iconText: "⚠️",
+                iconTitle: "Some charts are hidden",
+                quickActionActionable: "true",
+                quickActionText: "⚙️ Show Settings",
+                quickActionTitle: "Open chart settings to enable more charts",
+                statusText: "Showing 3 of 6 available charts",
+            });
 
             quickAction.dispatchEvent(new MouseEvent("mouseenter"));
 
@@ -164,7 +224,7 @@ describe("global chart status indicator from counts", () => {
             quickAction.dispatchEvent(new MouseEvent("click"));
 
             expect(settingsWrapper.style.display).toBe("block");
-            expect(toggleButton.textContent).toContain("Hide Controls");
+            expect(toggleButton.textContent).toBe("▼ Hide Controls");
             expect(toggleButton.getAttribute("aria-expanded")).toBe("true");
 
             cleanupGlobalChartStatusIndicatorFromCounts(indicator);
@@ -177,7 +237,7 @@ describe("global chart status indicator from counts", () => {
     });
 
     it("uses a load-file state when no charts are available", () => {
-        expect.assertions(3);
+        expect.assertions(2);
 
         setupChartContent();
 
@@ -199,13 +259,15 @@ describe("global chart status indicator from counts", () => {
                 "#global-chart-status"
             );
 
-            expect(indicator.querySelector("span")?.textContent).toBe("❌");
-            expect(indicator.textContent).toContain(
-                "No chart data available in this FIT file"
-            );
-            expect(indicator.querySelector("button")?.textContent).toContain(
-                "Load FIT"
-            );
+            expect(indicator).toBeInstanceOf(HTMLElement);
+            expect(getIndicatorState(indicator)).toMatchObject({
+                iconText: "❌",
+                iconTitle: "No charts are available",
+                quickActionActionable: "false",
+                quickActionText: "📂 Load FIT",
+                quickActionTitle: "Load a FIT file to see charts",
+                statusText: "No chart data available in this FIT file",
+            });
         } finally {
             cleanupTestDom();
         }
