@@ -64,6 +64,7 @@ type WorkspacesModule = {
     generateApiCategoriesScriptPath: string;
     generateChangelogScriptPath: string;
     prepareRuntimeDistScriptPath: string;
+    repositoryPrettierTargets: string[];
     repositoryRoot: string;
     repositoryPath: (...segments: string[]) => string;
     repositoryScriptPath: (...segments: string[]) => string;
@@ -434,6 +435,62 @@ describe("workspace path helpers", () => {
         );
         expect(workspaces.rootRemarkConfigPath).toBe(".remarkrc.mjs");
         expect(workspaces.rootSecretlintConfigPath).toBe(".secretlintrc.cjs");
+    });
+
+    it("centralizes repository prettier targets", async () => {
+        expect.assertions(2);
+
+        const workspaces = await importWorkspaces();
+        const appLocalPackageOrConfigTargetPattern =
+            /^electron-app\/(?:package(?:-lock)?\.json|(?:electron-builder|eslint|prettier|stylelint|vite|vitest)\.config\.[cm]?[jt]s|tsconfig(?:\.[\w-]+)?\.json)$/u;
+
+        expect(workspaces.repositoryPrettierTargets).toStrictEqual([
+            "package.json",
+            "docusaurus/package.json",
+            "docusaurus/docusaurus.config.ts",
+            "docusaurus/sidebars.ts",
+            "docusaurus/tsconfig.json",
+            "typedoc.json",
+            ".markdown-link-check.json",
+            ".markdownlint.json",
+            ".ncurc.json",
+            ".pre-commit-config.yaml",
+            ".secretlintrc.cjs",
+            "cliff.toml",
+            "cspell.json",
+            "electron-builder.config.cjs",
+            "mermaid.config.json",
+            "prettier.config.mjs",
+            "stylelint.config.mjs",
+            ".remarkrc.mjs",
+            "eslint.config.mjs",
+            "playwright.config.ts",
+            "vite.renderer.config.mjs",
+            "vitest.config.ts",
+            "tsconfig.eslint.json",
+            "tsconfig.app.base.json",
+            "tsconfig.app.json",
+            "tsconfig.runtime.json",
+            "tsconfig.docusaurus.json",
+            "tsconfig.vitest-typecheck.json",
+            "tsconfig.app.eslint.json",
+            "*.yml",
+            "*.yaml",
+            ".github/*.yml",
+            ".github/workflows/*.yml",
+            "scripts/*.mjs",
+            "tests/fixtures/**/*.{js,ts}",
+            "tests/integration/**/*.ts",
+            "tests/unit/**/*.ts",
+            "tests/playwright/**/*.ts",
+            "tests/vitest/**/*.{cjs,mjs,ts}",
+            "electron-app/renderer/leafletMeasureLite.js",
+        ]);
+        expect(
+            workspaces.repositoryPrettierTargets.filter((target) =>
+                appLocalPackageOrConfigTargetPattern.test(target)
+            )
+        ).toStrictEqual([]);
     });
 
     it("centralizes root and Docusaurus docs paths", async () => {

@@ -10,39 +10,8 @@ import {
     runPrettier,
 } from "../../../scripts/run-prettier.mjs";
 import {
-    appLeafletMeasureLitePath,
-    docusaurusConfigRepositoryPath,
-    docusaurusPackageRepositoryPath,
-    docusaurusSidebarsRepositoryPath,
-    docusaurusTsconfigRepositoryPath,
-    rootCliffConfigPath,
-    rootCspellConfigPath,
-    rootDocusaurusTsconfigPath,
-    rootAppBaseTsconfigPath,
-    rootAppEslintTsconfigPath,
-    rootElectronBuilderConfigPath,
-    rootAppTsconfigPath,
-    rootEslintTsconfigPath,
-    rootEslintConfigPath,
-    rootMarkdownLinkCheckConfigPath,
-    rootMarkdownlintConfigPath,
-    rootMermaidConfigPath,
-    rootNcuConfigPath,
-    rootPackageJsonPath,
-    rootPlaywrightConfigPath,
-    rootPlaywrightTestsPath,
-    rootPreCommitConfigPath,
+    repositoryPrettierTargets,
     rootPrettierCachePath,
-    rootPrettierConfigPath,
-    rootRemarkConfigPath,
-    rootRuntimeTsconfigPath,
-    rootSecretlintConfigPath,
-    rootStylelintConfigPath,
-    rootTypedocConfigPath,
-    rootViteRendererConfigPath,
-    rootVitestConfigPath,
-    rootVitestSupportPath,
-    rootVitestTypecheckTsconfigPath,
 } from "../../../scripts/lib/workspaces.mjs";
 
 type CommandRunner = (
@@ -69,52 +38,10 @@ const appLocalPackageOrConfigTargetPattern =
 
 describe("run-prettier wrapper", () => {
     it("keeps root-owned formatting targets for app and workspace metadata", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
-        const expectedTargets = [
-            rootPackageJsonPath,
-            docusaurusPackageRepositoryPath,
-            docusaurusConfigRepositoryPath,
-            docusaurusSidebarsRepositoryPath,
-            docusaurusTsconfigRepositoryPath,
-            rootTypedocConfigPath,
-            rootMarkdownLinkCheckConfigPath,
-            rootMarkdownlintConfigPath,
-            rootNcuConfigPath,
-            rootPreCommitConfigPath,
-            rootSecretlintConfigPath,
-            rootCliffConfigPath,
-            rootCspellConfigPath,
-            rootElectronBuilderConfigPath,
-            rootMermaidConfigPath,
-            rootPrettierConfigPath,
-            rootStylelintConfigPath,
-            rootRemarkConfigPath,
-            rootEslintConfigPath,
-            rootPlaywrightConfigPath,
-            rootViteRendererConfigPath,
-            rootVitestConfigPath,
-            rootEslintTsconfigPath,
-            rootAppBaseTsconfigPath,
-            rootAppTsconfigPath,
-            rootRuntimeTsconfigPath,
-            rootDocusaurusTsconfigPath,
-            rootVitestTypecheckTsconfigPath,
-            rootAppEslintTsconfigPath,
-            "*.yml",
-            "*.yaml",
-            ".github/*.yml",
-            ".github/workflows/*.yml",
-            "scripts/*.mjs",
-            "tests/fixtures/**/*.{js,ts}",
-            "tests/integration/**/*.ts",
-            "tests/unit/**/*.ts",
-            `${rootPlaywrightTestsPath}/**/*.ts`,
-            `${rootVitestSupportPath}/**/*.{cjs,mjs,ts}`,
-            appLeafletMeasureLitePath,
-        ];
-
-        expect(prettierTargets).toStrictEqual(expectedTargets);
+        expect(prettierTargets).toBe(repositoryPrettierTargets);
+        expect(prettierTargets).toContain("electron-builder.config.cjs");
         expect(
             prettierTargets.filter((target) =>
                 appLocalPackageOrConfigTargetPattern.test(target)
