@@ -18,7 +18,7 @@ async function importSystemInfoModule(): Promise<SystemInfoModule> {
 }
 
 function createFields(count = 7): void {
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
     const container = document.createElement("div");
 
     for (let i = 0; i < count; i++) {
@@ -33,7 +33,6 @@ describe("updateSystemInfo", () => {
     it("maps fields in order to DOM and returns true", async () => {
         expect.assertions(2);
 
-        document.body.innerHTML = "";
         vi.resetModules();
         createFields(7);
 
@@ -61,7 +60,6 @@ describe("updateSystemInfo", () => {
     it("warns when DOM count mismatches and still sets available", async () => {
         expect.assertions(2);
 
-        document.body.innerHTML = "";
         vi.resetModules();
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
@@ -92,7 +90,7 @@ describe("updateSystemInfo", () => {
     it("returns false with invalid info object and when no DOM elements", async () => {
         expect.assertions(2);
 
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         vi.resetModules();
 
         const errorSpy = vi
@@ -118,7 +116,6 @@ describe("updateSystemInfo", () => {
     it("clears cache and re-initializes on next call", async () => {
         expect.assertions(1);
 
-        document.body.innerHTML = "";
         vi.resetModules();
         createFields(7);
 
