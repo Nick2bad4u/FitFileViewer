@@ -102,6 +102,8 @@ const staleNestedGeneratedAppPaths = [
 const requiredRootToolingDevDependencies = [
     "@vitest/ui",
     "eslint-config-nick2bad4u",
+    "fast-check",
+    "fast-xml-parser",
     "prettier-config-nick2bad4u",
     "stylelint-config-nick2bad4u",
     "vitest",
@@ -129,7 +131,7 @@ function delegatesToNestedElectronPackage(script: string): boolean {
 
 describe("workspace package boundaries", () => {
     it("keeps shared tooling and local Vitest UI support in the root workspace", () => {
-        expect.assertions(12);
+        expect.assertions(10);
 
         const rootPackage = readPackageJson("package.json");
         const directDisallowedDevDependencies = Object.keys(
@@ -161,6 +163,8 @@ describe("workspace package boundaries", () => {
         ).toStrictEqual({
             "@vitest/ui": true,
             "eslint-config-nick2bad4u": true,
+            "fast-check": true,
+            "fast-xml-parser": true,
             "prettier-config-nick2bad4u": true,
             "stylelint-config-nick2bad4u": true,
             vitest: true,
@@ -181,10 +185,6 @@ describe("workspace package boundaries", () => {
         );
         expect(rootPackage.devDependencies).not.toHaveProperty(
             "eslint-plugin-vue"
-        );
-        expect(rootPackage.devDependencies).not.toHaveProperty("fast-check");
-        expect(rootPackage.devDependencies).not.toHaveProperty(
-            "fast-xml-parser"
         );
         expect(rootPackage.devDependencies).not.toHaveProperty(
             "@types/leaflet-draw"
