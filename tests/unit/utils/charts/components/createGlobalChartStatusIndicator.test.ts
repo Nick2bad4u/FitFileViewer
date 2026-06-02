@@ -76,8 +76,7 @@ describe(createGlobalChartStatusIndicator, () => {
         vi.useFakeTimers();
         vi.setSystemTime(new Date("2026-01-02T03:04:05.006Z"));
 
-        // DOM reset
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         root = document.createElement("div");
         root.id = "root";
         document.body.appendChild(root);
@@ -100,7 +99,7 @@ describe(createGlobalChartStatusIndicator, () => {
 
     afterEach(() => {
         vi.useRealTimers();
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         vi.resetAllMocks();
         vi.restoreAllMocks();
     });
