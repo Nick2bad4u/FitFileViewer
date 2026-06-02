@@ -19,7 +19,7 @@ function readTsconfig(fileName: string): Tsconfig {
 
 describe("typescript configuration policy", () => {
     it("does not point the app typecheck at removed electron-app source trees", () => {
-        expect.assertions(8);
+        expect.assertions(10);
 
         const config = readTsconfig("tsconfig.app.json");
         const paths = config.compilerOptions?.paths ?? {};
@@ -29,7 +29,11 @@ describe("typescript configuration policy", () => {
         expect(paths).not.toHaveProperty("@electron/*");
         expect(paths["@shared/*"]).toStrictEqual(["./electron-app/shared/*"]);
         expect(includes).toContain("global.d.ts");
+        expect(includes).toContain("renderer-style-imports.d.ts");
         expect(includes).not.toContain("electron-app/global.d.ts");
+        expect(includes).not.toContain(
+            "electron-app/renderer/styleImports.d.ts"
+        );
         expect(includes).not.toContain("electron-app/src/**/*");
         expect(config.exclude ?? []).not.toContain("electron-app/electron");
         expect(

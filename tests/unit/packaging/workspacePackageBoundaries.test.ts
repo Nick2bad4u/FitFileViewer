@@ -21,6 +21,7 @@ import {
     rootPlaywrightAppUiSpecPath,
     rootPlaywrightConfigPath,
     rootPrettierIgnorePath,
+    rootRendererStyleImportsTypesPath,
     rootRuntimeTsconfigPath,
     rootStylelintConfigPath,
     rootToolingConfigPaths,
@@ -488,6 +489,20 @@ describe("workspace package boundaries", () => {
             [...expectedElectronAppRootEntries].sort()
         );
         expect(electronAppRootEntries).not.toContain("package.json");
+    });
+
+    it("keeps renderer declaration shims rooted with app type support", () => {
+        expect.assertions(1);
+
+        expect(
+            getFileExistence([
+                rootRendererStyleImportsTypesPath,
+                appSourceRepositoryPath("renderer", "styleImports.d.ts"),
+            ])
+        ).toStrictEqual({
+            [appSourceRepositoryPath("renderer", "styleImports.d.ts")]: false,
+            [rootRendererStyleImportsTypesPath]: true,
+        });
     });
 
     it("keeps private workspace runtime policy centralized at the root", () => {

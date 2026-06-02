@@ -73,6 +73,7 @@
         "electron-app/*.ts",
         "electron-app/**/*.js",
         "global.d.ts",
+        "renderer-style-imports.d.ts",
         "electron-app/shared/**/*.ts",
         "electron-app/main/**/*.ts",
         "electron-app/preload/**/*.ts",

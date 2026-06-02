@@ -138,6 +138,7 @@ type WorkspacesModule = {
     rootReleaseDistPath: string;
     rootReleaseDistAbsolutePath: string;
     rootReleaseDistRelativePath: (...segments: string[]) => string;
+    rootRendererStyleImportsTypesPath: string;
     rootRuntimeDistAbsolutePath: string;
     rootRuntimeDistPath: string;
     rootRuntimeRendererRepositoryPath: string;
@@ -602,6 +603,8 @@ describe("workspace path helpers", () => {
             playwrightTests: workspaces.rootPlaywrightTestsPath,
             releaseDist: workspaces.rootReleaseDistPath,
             releaseDistAbsolute: workspaces.rootReleaseDistAbsolutePath,
+            rendererStyleImportsTypes:
+                workspaces.rootRendererStyleImportsTypesPath,
             rootRuntimeDist: workspaces.rootRuntimeDistPath,
             rootRuntimeDistAbsolute: workspaces.rootRuntimeDistAbsolutePath,
             rootRuntimeRenderer: workspaces.rootRuntimeRendererRepositoryPath,
@@ -628,6 +631,7 @@ describe("workspace path helpers", () => {
             playwrightTests: "tests/playwright",
             releaseDist: "release-dist",
             releaseDistAbsolute: path.join(process.cwd(), "release-dist"),
+            rendererStyleImportsTypes: "renderer-style-imports.d.ts",
             rootRuntimeDist: "dist",
             rootRuntimeDistAbsolute: path.join(process.cwd(), "dist"),
             rootRuntimeRenderer: "dist/renderer",
