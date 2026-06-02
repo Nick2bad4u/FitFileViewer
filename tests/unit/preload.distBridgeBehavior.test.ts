@@ -363,11 +363,19 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("should validate API before exposing", () => {
-            expect.assertions(2);
+            expect.assertions(3);
             executePreloadScript();
 
-            expect(exposedAPI.validateAPI).toBeTypeOf("function");
+            expect(
+                mockContextBridge.exposeInMainWorld
+            ).toHaveBeenCalledExactlyOnceWith("electronAPI", exposedAPI);
             expect(exposedAPI.validateAPI()).toStrictEqual(true);
+            expect(exposedAPI.getChannelInfo()).toStrictEqual({
+                channels: EXPECTED_PRELOAD_CHANNELS,
+                events: EXPECTED_PRELOAD_EVENTS,
+                totalChannels: 27,
+                totalEvents: 10,
+            });
         });
 
         it("should not expose API if validation fails", () => {
@@ -506,7 +514,7 @@ describe("preload.js dist bridge behavior", () => {
 
     describe("api structure and methods", () => {
         it("should have all expected API methods", () => {
-            expect.assertions(32);
+            expect.assertions(2);
             executePreloadScript();
 
             const expectedMethods = [
@@ -543,10 +551,23 @@ describe("preload.js dist bridge behavior", () => {
                 "stopGyazoServer",
                 "validateAPI",
             ];
+            const expectedMethodTypes = Object.fromEntries(
+                expectedMethods.map((method) => [method, "function"])
+            );
 
-            expectedMethods.forEach((method) => {
-                expect(exposedAPI[method]).toBeTypeOf("function");
-            });
+            expect(
+                expectedMethods.filter((method) =>
+                    Object.hasOwn(exposedAPI, method)
+                )
+            ).toStrictEqual(expectedMethods);
+            expect(
+                Object.fromEntries(
+                    expectedMethods.map((method) => [
+                        method,
+                        typeof exposedAPI[method],
+                    ])
+                )
+            ).toStrictEqual(expectedMethodTypes);
         });
 
         it("getChannelInfo should return channel information", () => {
@@ -1213,15 +1234,22 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("should handle event registration errors", () => {
-            expect.assertions(2);
+            expect.assertions(4);
             const error = new Error("Event error");
             mockIpcRenderer.on.mockImplementation(() => {
                 throw error;
             });
 
-            const unsubscribe = exposedAPI.onMenuOpenFile(vi.fn<IpcListener>());
+            const unsubscribe = exposedAPI.onMenuOpenFile(
+                vi.fn<IpcListener>()
+            ) as () => void;
 
-            expect(unsubscribe).toBeTypeOf("function");
+            expect(unsubscribe()).toBeUndefined();
+            expect(mockIpcRenderer.removeListener).not.toHaveBeenCalled();
+            expect(mockIpcRenderer.on).toHaveBeenCalledWith(
+                "menu-open-file",
+                expect.any(Function)
+            );
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] Error setting up onMenuOpenFile event handler:",
                 error
@@ -1229,11 +1257,14 @@ describe("preload.js dist bridge behavior", () => {
         });
 
         it("should validate callback in event handlers", () => {
-            expect.assertions(3);
-            const unsubscribe = exposedAPI.onMenuOpenFile("not-a-function");
+            expect.assertions(4);
+            const unsubscribe = exposedAPI.onMenuOpenFile(
+                "not-a-function"
+            ) as () => void;
 
-            expect(unsubscribe).toBeTypeOf("function");
+            expect(unsubscribe()).toBeUndefined();
             expect(mockIpcRenderer.on).not.toHaveBeenCalled();
+            expect(mockIpcRenderer.removeListener).not.toHaveBeenCalled();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] onMenuOpenFile: callback must be a function"
             );
@@ -1464,11 +1495,14 @@ describe("preload.js dist bridge behavior", () => {
         it("should log in development mode", () => {
             expect.assertions(2);
             executePreloadScript({ NODE_ENV: "development" });
+            const preloadInfo = exposedDevTools.getPreloadInfo();
 
             expect(consoleSpy.log).toHaveBeenCalledWith(
                 "[preload.js] Successfully exposed electronAPI to main world"
             );
-            expect(exposedDevTools.getPreloadInfo).toBeTypeOf("function");
+            expect(preloadInfo.apiMethods.toSorted()).toStrictEqual(
+                Object.keys(exposedAPI).toSorted()
+            );
         });
 
         it("should not log in production mode", () => {
