@@ -24,6 +24,21 @@ function writeDebugPreloadMessage(message: string): void {
     if (isDebugPreloadTestEnabled()) process.stdout.write(message);
 }
 
+function getRequiredExposedApi(
+    exposedCalls: [string, unknown][],
+    name: string
+): DebugElectronApi {
+    const exposedCall = exposedCalls.find(
+        ([exposedName]) => exposedName === name
+    );
+
+    if (!exposedCall) {
+        throw new TypeError(`Expected ${name} to be exposed`);
+    }
+
+    return exposedCall[1] as DebugElectronApi;
+}
+
 // Create inline mocks
 const mockContextBridge = {
     exposeInMainWorld: vi.fn<ExposeInMainWorld>(),
@@ -121,9 +136,10 @@ describe("preload.js - Module Cache Injection Test", () => {
             mockContextBridge.exposeInMainWorld.mock.calls.length;
         const exposedCalls =
             mockContextBridge.exposeInMainWorld.mock.calls.slice(callsBefore);
-        const exposedElectronApi = exposedCalls.find(
-            ([name]) => name === "electronAPI"
-        )?.[1] as DebugElectronApi | undefined;
+        const exposedElectronApi = getRequiredExposedApi(
+            exposedCalls,
+            "electronAPI"
+        );
         const exposedNames = exposedCalls.map(([name]) => name);
 
         writeDebugPreloadMessage(`Mock calls before require: ${callsBefore}\n`);
@@ -142,7 +158,7 @@ describe("preload.js - Module Cache Injection Test", () => {
             ["dev", "Tools"].join(""),
         ]);
         expect(exposedNames).not.toContain("unexpectedGlobal");
-        expect(exposedElectronApi?.validateAPI()).toStrictEqual(true);
+        expect(exposedElectronApi.validateAPI()).toStrictEqual(true);
         expect(consoleLogSpy).toHaveBeenCalledWith(
             "[preload.js] Preload script initialized successfully"
         );
