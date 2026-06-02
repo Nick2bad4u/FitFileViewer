@@ -6,6 +6,17 @@ import {
     getAppIconSvg,
 } from "../../../electron-app/utils/ui/icons/iconFactory.js";
 
+function getRequiredSvgChild<T extends SVGElement>(
+    icon: SVGSVGElement,
+    selector: string
+): T {
+    const element = icon.querySelector<T>(selector);
+    if (!element) {
+        throw new Error(`Missing expected SVG child: ${selector}`);
+    }
+    return element;
+}
+
 describe("iconFactory", () => {
     it("creates inline SVG elements without parsing markup", () => {
         expect.assertions(6);
@@ -18,13 +29,12 @@ describe("iconFactory", () => {
         });
 
         expect(icon.tagName.toLowerCase()).toBe("svg");
-        expect(Array.from(icon.classList)).toStrictEqual([
-            "lap-control-icon",
-            "extra",
-        ]);
+        expect(icon.className.baseVal).toBe("lap-control-icon extra");
         expect(icon.getAttribute("width")).toBe("18");
         expect(icon.getAttribute("stroke-width")).toBe("3");
-        expect(icon.querySelector("title")?.textContent).toBe("<Timer>");
+        expect(
+            getRequiredSvgChild<SVGTitleElement>(icon, "title").textContent
+        ).toBe("<Timer>");
         expect(Array.from(icon.children, (child) => child.tagName)).toEqual([
             "title",
             "circle",
