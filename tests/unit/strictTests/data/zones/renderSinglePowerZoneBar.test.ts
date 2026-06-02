@@ -87,7 +87,7 @@ const testGlobal = globalThis as typeof globalThis &
 
 describe("renderSinglePowerZoneBar", () => {
     beforeEach(() => {
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         delete testGlobal.Chart;
         delete testGlobal.showNotification;
         vi.resetModules();

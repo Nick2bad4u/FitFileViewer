@@ -290,7 +290,7 @@ describe(renderSingleHRZoneBar, () => {
 
         // Clean up DOM
         if (global.document && global.document.body) {
-            document.body.innerHTML = "";
+            document.body.replaceChildren();
         }
 
         // Clean up JSDOM
@@ -484,7 +484,7 @@ describe(renderSingleHRZoneBar, () => {
         expect(
             renderSingleHRZoneBar(canvas, null as unknown as readonly unknown[])
         ).toBeNull();
-        expect([...canvas.classList]).not.toContain("chart-canvas");
+        expect(canvas.classList.contains("chart-canvas")).toBe(false);
         expect(window.showNotification.mock.calls).toStrictEqual([
             ["Failed to render HR zone bar", "error"],
         ]);
