@@ -83,7 +83,7 @@ and should stay in `devDependencies`.
 | TypeScript/build helpers | `esbuild`, `globals`, `typescript`, `vite`                                                                                                                                                                                   |
 | Lint/format/docs         | `eslint`, `eslint-config-nick2bad4u`, `prettier`, `prettier-config-nick2bad4u`, `remark`, `remark-cli`, `remark-config-nick2bad4u`, `secretlint`, `secretlint-config-nick2bad4u`, `stylelint`, `stylelint-config-nick2bad4u` |
 | Tests                    | `vitest`, `@vitest/coverage-v8`, `@vitest/ui`, `@playwright/test`, `jsdom`                                                                                                                                                   |
-| Types                    | `@types/hammerjs`, `@types/jquery`, `@types/jsdom`, `@types/leaflet`, `@types/leaflet-draw`, `@types/leaflet.markercluster`, `@types/node`                                                                                   |
+| Types                    | `@types/hammerjs`, `@types/jquery`, `@types/jsdom`, `@types/leaflet`, `@types/node`                                                                                                                                          |
 | Release/dependency tools | `git-cliff`, `npm-check-updates`                                                                                                                                                                                             |
 
 `@vitest/ui` is intentionally retained for the local Vitest UI and VS Code

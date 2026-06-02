@@ -129,7 +129,7 @@ function delegatesToNestedElectronPackage(script: string): boolean {
 
 describe("workspace package boundaries", () => {
     it("keeps shared tooling and local Vitest UI support in the root workspace", () => {
-        expect.assertions(10);
+        expect.assertions(12);
 
         const rootPackage = readPackageJson("package.json");
         const directDisallowedDevDependencies = Object.keys(
@@ -185,6 +185,12 @@ describe("workspace package boundaries", () => {
         expect(rootPackage.devDependencies).not.toHaveProperty("fast-check");
         expect(rootPackage.devDependencies).not.toHaveProperty(
             "fast-xml-parser"
+        );
+        expect(rootPackage.devDependencies).not.toHaveProperty(
+            "@types/leaflet-draw"
+        );
+        expect(rootPackage.devDependencies).not.toHaveProperty(
+            "@types/leaflet.markercluster"
         );
     });
 
