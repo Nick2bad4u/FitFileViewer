@@ -261,6 +261,6 @@ describe(computeMetricStatistics, () => {
         expect.assertions(1);
 
         const stats = computeMetricStatistics([{ speed: 1.5 }], "unknown");
-        expect(stats).toEqual(null);
+        expect(stats).toBeNull();
     });
 });

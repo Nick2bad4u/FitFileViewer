@@ -50,7 +50,7 @@ describe(convertValueToUserUnits, () => {
         expect({
             emptyField: convertValueToUserUnits(1000, ""),
             nullField: convertValueToUserUnits(1000, null),
-        }).toEqual({
+        }).toStrictEqual({
             emptyField: 1000,
             nullField: 1000,
         });
@@ -87,7 +87,7 @@ describe(convertValueToUserUnits, () => {
 
         expect({
             distance: convertValueToUserUnits(1000, "distance"),
-        }).toEqual({
+        }).toStrictEqual({
             distance: 1,
         });
     });
@@ -98,7 +98,7 @@ describe(convertValueToUserUnits, () => {
         mockGetChartSetting.mockReturnValue("kilometers");
         expect({
             metricSpeed: convertValueToUserUnits(10, "speed"),
-        }).toEqual({
+        }).toStrictEqual({
             metricSpeed: 36,
         });
 
@@ -115,7 +115,7 @@ describe(convertValueToUserUnits, () => {
 
         expect({
             temperature: convertValueToUserUnits(25, "temperature"),
-        }).toEqual({
+        }).toStrictEqual({
             temperature: 77,
         });
         expect(mockGetChartSetting).toHaveBeenCalledWith("temperatureUnits");
@@ -127,7 +127,7 @@ describe(convertValueToUserUnits, () => {
         expect({
             heartRate: convertValueToUserUnits(150, "heartRate"),
             power: convertValueToUserUnits(250, "power"),
-        }).toEqual({
+        }).toStrictEqual({
             heartRate: 150,
             power: 250,
         });
@@ -145,7 +145,7 @@ describe(convertValueToUserUnits, () => {
 
         expect({
             distance: convertValueToUserUnits(1000, "distance"),
-        }).toEqual({
+        }).toStrictEqual({
             distance: 1000,
         });
         expect(errorSpy).toHaveBeenCalledWith(

@@ -61,7 +61,7 @@ describe("config/index.js", () => {
         expect({
             missingGroup: getConfig("MISSING_GROUP.VALUE", 42),
             missingValue: getConfig("UI_CONSTANTS.DOES_NOT_EXIST", "fallback"),
-        }).toEqual({
+        }).toStrictEqual({
             missingGroup: 42,
             missingValue: "fallback",
         });
