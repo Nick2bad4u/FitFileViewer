@@ -15,18 +15,37 @@ import {
 
 describe("analyze-coverage script", () => {
     it("builds coverage file candidates from root-owned workspace paths", () => {
-        expect.assertions(1);
+        expect.assertions(3);
 
         const candidates = createCoverageCandidatePaths({
             environmentCoverageDirectory: "custom-coverage",
             temporaryDirectory: "tmp-root",
         });
+        const rootCoverageCandidate = candidates.at(-1);
 
         expect(candidates).toStrictEqual([
             path.join("custom-coverage", "coverage-final.json"),
             path.join("tmp-root", "ffv-vitest-coverage", "coverage-final.json"),
             path.join(rootCoverageAbsolutePath, "coverage-final.json"),
         ]);
+        expect(rootCoverageCandidate).toBe(
+            path.join(rootCoverageAbsolutePath, "coverage-final.json")
+        );
+        expect({
+            isNestedElectronAppCoverage: rootCoverageCandidate?.includes(
+                `${path.sep}electron-app${path.sep}`
+            ),
+            rootCoverageRelativePath: path.relative(
+                repositoryRoot,
+                rootCoverageCandidate ?? ""
+            ),
+        }).toStrictEqual({
+            isNestedElectronAppCoverage: false,
+            rootCoverageRelativePath: path.join(
+                "coverage",
+                "coverage-final.json"
+            ),
+        });
     });
 
     it("returns the first existing coverage file candidate", async () => {
