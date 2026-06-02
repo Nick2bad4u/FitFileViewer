@@ -106,6 +106,17 @@ function getLatestChartConfig(): ChartConfig {
     return config;
 }
 
+function getRenderedCanvas(container: HTMLElement): HTMLCanvasElement {
+    const canvas = container.querySelector("canvas");
+    const CanvasConstructor = getGPSTimeGlobal().HTMLCanvasElement;
+
+    if (!CanvasConstructor || !(canvas instanceof CanvasConstructor)) {
+        throw new TypeError("Expected rendered GPS time canvas to exist");
+    }
+
+    return canvas as HTMLCanvasElement;
+}
+
 let renderGPSTimeChart: RenderGPSTimeChart;
 let Chart: ChartConstructorMock;
 let chartInstanceMock: ChartInstanceMock;
@@ -332,8 +343,8 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
         );
 
         expect(config.plugins[0]).toEqual({ id: "zoom-reset" });
-        const canvas = container.querySelector("canvas");
-        expect(canvas?.style.borderRadius).toBe("12px");
-        expect(canvas?.style.background).toBe("rgb(16, 16, 16)");
+        const view = getRenderedCanvas(container);
+        expect(view.style.borderRadius).toBe("12px");
+        expect(view.style.background).toBe("rgb(16, 16, 16)");
     });
 });
