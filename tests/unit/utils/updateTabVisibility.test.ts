@@ -13,6 +13,12 @@ type InvalidateSizeOptions = {
     pan: boolean;
 };
 type InvalidateSize = (options?: InvalidateSizeOptions) => void;
+type ContentSectionState = {
+    ariaHidden: null | string;
+    classes: string[];
+    display: string;
+    id: string;
+};
 
 const EXPECTED_INVALIDATE_SIZE_OPTIONS = {
     animate: false,
@@ -86,6 +92,56 @@ function getContentElement(id: (typeof contentIds)[number]): HTMLElement {
     return element;
 }
 
+function getContentSectionState(
+    id: (typeof contentIds)[number]
+): ContentSectionState {
+    const element = getContentElement(id);
+
+    return {
+        ariaHidden: element.getAttribute("aria-hidden"),
+        classes: [...element.classList],
+        display: element.style.display,
+        id: element.id,
+    };
+}
+
+function getAllContentSectionStates(): ContentSectionState[] {
+    return contentIds.map((id) => getContentSectionState(id));
+}
+
+function getHiddenContentState(
+    id: (typeof contentIds)[number]
+): ContentSectionState {
+    return {
+        ariaHidden: "true",
+        classes: [],
+        display: "none",
+        id,
+    };
+}
+
+function getInitialHiddenContentState(
+    id: (typeof contentIds)[number]
+): ContentSectionState {
+    return {
+        ariaHidden: null,
+        classes: [],
+        display: "none",
+        id,
+    };
+}
+
+function getVisibleContentState(
+    id: (typeof contentIds)[number]
+): ContentSectionState {
+    return {
+        ariaHidden: "false",
+        classes: ["active"],
+        display: "flex",
+        id,
+    };
+}
+
 function getSubscription(path: string): (value: unknown) => void {
     const callback = mockSubscribe.mock.calls.find(
         ([subscriptionPath]) => subscriptionPath === path
@@ -118,29 +174,28 @@ describe(updateTabVisibility, () => {
     });
 
     it("hides every tracked content section when no target is provided", () => {
-        expect.assertions(22);
+        expect.assertions(2);
 
         updateTabVisibility(null);
 
-        for (const id of contentIds) {
-            const element = getContentElement(id);
-            expect(element.getAttribute("aria-hidden")).toBe("true");
-            expect(element.style.display).toBe("none");
-            expect(element.classList.contains("active")).toBe(false);
-        }
+        expect(getAllContentSectionStates()).toStrictEqual(
+            contentIds.map((id) => getHiddenContentState(id))
+        );
         expect(mockSetState).not.toHaveBeenCalled();
     });
 
     it("shows only the requested content section and stores the active content name", () => {
-        expect.assertions(4);
+        expect.assertions(2);
 
         updateTabVisibility("content_summary");
 
-        expect(getContentElement("content_summary").style.display).toBe("flex");
-        expect(
-            getContentElement("content_summary").getAttribute("aria-hidden")
-        ).toBe("false");
-        expect(getContentElement("content_map").style.display).toBe("none");
+        expect({
+            map: getContentSectionState("content_map"),
+            summary: getContentSectionState("content_summary"),
+        }).toStrictEqual({
+            map: getHiddenContentState("content_map"),
+            summary: getVisibleContentState("content_summary"),
+        });
         expect(mockSetState).toHaveBeenCalledWith(
             "ui.activeTabContent",
             "summary",
@@ -188,13 +243,13 @@ describe(updateTabVisibility, () => {
     });
 
     it("keeps all tracked sections hidden for unknown content ids but stores derived content names", () => {
-        expect.assertions(8);
+        expect.assertions(2);
 
         updateTabVisibility("content_missing");
 
-        for (const id of contentIds) {
-            expect(getContentElement(id).style.display).toBe("none");
-        }
+        expect(getAllContentSectionStates()).toStrictEqual(
+            contentIds.map((id) => getHiddenContentState(id))
+        );
         expect(mockSetState).toHaveBeenCalledWith(
             "ui.activeTabContent",
             "missing",
@@ -253,27 +308,27 @@ describe(updateTabVisibility, () => {
     });
 
     it("does not show content when the active-tab subscription receives a non-string value", () => {
-        expect.assertions(8);
+        expect.assertions(2);
 
         initializeTabVisibilityState();
 
         getSubscription("ui.activeTab")(null);
 
-        for (const id of contentIds) {
-            expect(getContentElement(id).style.display).toBe("none");
-        }
+        expect(getAllContentSectionStates()).toStrictEqual(
+            contentIds.map((id) => getInitialHiddenContentState(id))
+        );
         expect(mockSetState).not.toHaveBeenCalled();
     });
 
     it("hides all content through the helper", () => {
-        expect.assertions(7);
+        expect.assertions(1);
 
         updateTabVisibility("content_summary");
         hideAllTabContent();
 
-        for (const id of contentIds) {
-            expect(getContentElement(id).style.display).toBe("none");
-        }
+        expect(getAllContentSectionStates()).toStrictEqual(
+            contentIds.map((id) => getHiddenContentState(id))
+        );
     });
 
     it("refreshes Leaflet map layout when showing the map tab", () => {
@@ -291,7 +346,9 @@ describe(updateTabVisibility, () => {
         updateTabVisibility("content_map");
         vi.runAllTimers();
 
-        expect(getContentElement("content_map").style.display).toBe("flex");
+        expect(getContentSectionState("content_map")).toStrictEqual(
+            getVisibleContentState("content_map")
+        );
         expect(globals._leafletMapInstance.invalidateSize).toHaveBeenCalledWith(
             EXPECTED_INVALIDATE_SIZE_OPTIONS
         );
