@@ -47,6 +47,62 @@ function getOverlayItems(container: HTMLElement): HTMLLIElement[] {
     );
 }
 
+function getRequiredOverlayItem(
+    container: HTMLElement,
+    index = 0
+): HTMLLIElement {
+    const item = getOverlayItems(container)[index];
+
+    if (!item) {
+        throw new Error(`Expected overlay item ${index}`);
+    }
+
+    return item;
+}
+
+function getRequiredElement<T extends Element>(
+    element: T | null | undefined,
+    description: string
+): T {
+    if (!element) {
+        throw new Error(`Expected ${description}`);
+    }
+
+    return element;
+}
+
+function getRequiredRemoveButton(item: HTMLLIElement): HTMLElement {
+    const button = item.querySelector<HTMLElement>(".overlay-remove-btn");
+
+    if (!button) {
+        throw new Error("Expected overlay remove button");
+    }
+
+    return button;
+}
+
+function getRequiredEventListenerOptions(
+    call:
+        | [
+              string,
+              EventListenerOrEventListenerObject,
+              (AddEventListenerOptions | boolean | undefined)?,
+          ]
+        | undefined,
+    eventName: string
+): AddEventListenerOptions {
+    if (!call) {
+        throw new Error(`Expected ${eventName} listener`);
+    }
+
+    const options = call[2];
+    if (!options || typeof options === "boolean") {
+        throw new Error(`Expected ${eventName} listener options`);
+    }
+
+    return options;
+}
+
 function getOverlayText(container: HTMLElement): string[] {
     return getOverlayItems(container).map((item) =>
         String(item.textContent ?? "").trim()
@@ -478,16 +534,14 @@ describe("createShownFilesList", () => {
 
             (global.window as any).updateShownFilesList();
 
-            const firstItem = container.querySelector("#shown-files-ul li");
+            const firstItem = getRequiredOverlayItem(container);
 
             expect(firstItem).toBeInstanceOf(HTMLLIElement);
-            expect(
-                getOverlayItemState(firstItem as HTMLLIElement | undefined)
-            ).toMatchObject({
+            expect(getOverlayItemState(firstItem)).toMatchObject({
                 filter: "invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1)",
                 text: "File: overlay.fit×",
             });
-            expect(firstItem?.style.color).not.toBe("");
+            expect(firstItem.style.color).not.toBe("");
             expect(
                 getComputedStyleSpan(mockGetComputedStyle).style.display
             ).toBe("none");
@@ -512,7 +566,9 @@ describe("createShownFilesList", () => {
 
             const items = getOverlayItems(container);
             expect(items).toHaveLength(1);
-            expect(items[0]?.textContent?.trim()).toBe("File: overlay.fit×");
+            expect(
+                String(getRequiredOverlayItem(container).textContent).trim()
+            ).toBe("File: overlay.fit×");
             expect(container.getAttribute("aria-disabled")).toBe("false");
         });
 
@@ -617,8 +673,8 @@ describe("createShownFilesList", () => {
 
             (global.window as any).updateShownFilesList();
 
-            const firstItem = getOverlayItems(container)[0];
-            expect(firstItem?.style.color).toMatch(
+            const firstItem = getRequiredOverlayItem(container);
+            expect(firstItem.style.color).toMatch(
                 /(#abc|rgb\(170,\s*187,\s*204\))/
             );
             expect(getOverlayItemState(firstItem)).toMatchObject({
@@ -637,8 +693,8 @@ describe("createShownFilesList", () => {
 
             (global.window as any).updateShownFilesList();
 
-            const firstItem = getOverlayItems(container)[0];
-            expect(firstItem?.style.color).toMatch(
+            const firstItem = getRequiredOverlayItem(container);
+            expect(firstItem.style.color).toMatch(
                 /(#aabbcc|rgb\(170,\s*187,\s*204\))/
             );
             expect(getOverlayItemState(firstItem)).toMatchObject({
@@ -690,8 +746,10 @@ describe("createShownFilesList", () => {
                     text: "File: overlay2.fit×",
                 },
             ]);
-            expect(getOverlayItemStates(container)[0]?.color).not.toBe(
-                getOverlayItemStates(container)[1]?.color
+            expect(
+                getOverlayItemState(getRequiredOverlayItem(container, 0)).color
+            ).not.toBe(
+                getOverlayItemState(getRequiredOverlayItem(container, 1)).color
             );
         });
 
@@ -719,7 +777,7 @@ describe("createShownFilesList", () => {
                 tabIndex: -1,
                 text: "File: overlay1.fit×",
             });
-            expect(getOverlayItems(container)[0]?.style.position).toBe(
+            expect(getRequiredOverlayItem(container).style.position).toBe(
                 "relative"
             );
         });
@@ -771,17 +829,14 @@ describe("createShownFilesList", () => {
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
 
-            const ul = container.querySelector("#shown-files-ul");
-            const firstItem = ul?.querySelector("li");
-            const removeBtn = firstItem?.querySelector("span");
+            const firstItem = getRequiredOverlayItem(container);
+            const removeBtn = getRequiredRemoveButton(firstItem);
 
-            expect(
-                getOverlayItemState(firstItem as HTMLLIElement | undefined)
-            ).toMatchObject({
+            expect(getOverlayItemState(firstItem)).toMatchObject({
                 filter: "invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1)",
                 text: "File: overlay1.fit×",
             });
-            expect(removeBtn?.style.color).toMatch(
+            expect(removeBtn.style.color).toMatch(
                 /(#ff5252|rgb\(255,\s*82,\s*82\))/
             );
         });
@@ -793,11 +848,11 @@ describe("createShownFilesList", () => {
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
 
-            const ul = container.querySelector("#shown-files-ul");
-            const firstItem = ul?.querySelector("li");
-            const removeBtn = firstItem?.querySelector("span");
+            const removeBtn = getRequiredRemoveButton(
+                getRequiredOverlayItem(container)
+            );
 
-            expect(removeBtn?.style.color).toMatch(
+            expect(removeBtn.style.color).toMatch(
                 /(#e53935|rgb\(229,\s*57,\s*53\))/
             );
         });
@@ -992,8 +1047,11 @@ describe("createShownFilesList", () => {
             (global.window as any).updateShownFilesList();
 
             // Should not throw when trying to remove
-            const ul = container.querySelector("#shown-files-ul");
-            expect(Array.from(ul?.children ?? [])).toStrictEqual([]);
+            const ul = getRequiredElement(
+                container.querySelector("#shown-files-ul"),
+                "shown files list"
+            );
+            expect(Array.from(ul.children)).toStrictEqual([]);
         });
     });
 
@@ -1133,8 +1191,7 @@ describe("createShownFilesList", () => {
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
 
-            const ul = container.querySelector("#shown-files-ul");
-            const firstItem = ul?.querySelector("li") as HTMLElement;
+            const firstItem = getRequiredOverlayItem(container);
 
             firstItem.click();
 
@@ -1373,9 +1430,12 @@ describe("createShownFilesList", () => {
             );
             vi.advanceTimersByTime(350);
 
-            const tooltip = document.querySelector(".overlay-filename-tooltip");
+            const tooltip = getRequiredElement(
+                document.querySelector(".overlay-filename-tooltip"),
+                "overlay filename tooltip"
+            );
             // Check for the actual warning text from the source code
-            expect(tooltip?.innerHTML).toContain(
+            expect(tooltip.innerHTML).toContain(
                 "⚠️ This color may be hard to read in this theme."
             );
 
@@ -1772,11 +1832,13 @@ describe("createShownFilesList", () => {
 
             (global.window as any).updateShownFilesList();
 
-            const firstItem = getOverlayItems(container)[0];
-            expect(firstItem?.style.color).toMatch(
+            const firstItem = getRequiredOverlayItem(container);
+            expect(firstItem.style.color).toMatch(
                 /(#1976d2|rgb\(25,\s*118,\s*210\))/
             );
-            expect(firstItem?.textContent?.trim()).toBe("File: overlay1.fit×");
+            expect(String(firstItem.textContent).trim()).toBe(
+                "File: overlay1.fit×"
+            );
         });
 
         it("prevents memory leaks by aborting event listeners", () => {
@@ -1803,12 +1865,13 @@ describe("createShownFilesList", () => {
             const mouseMoveCall = addEventListenerSpy.mock.calls.find(
                 ([eventName]) => eventName === "mousemove"
             );
-            const mouseMoveOptions = mouseMoveCall?.[2] as
-                | AddEventListenerOptions
-                | undefined;
-            expect(mouseMoveOptions?.signal).toBeInstanceOf(AbortSignal);
+            const mouseMoveOptions = getRequiredEventListenerOptions(
+                mouseMoveCall,
+                "mousemove"
+            );
+            expect(mouseMoveOptions.signal).toBeInstanceOf(AbortSignal);
             expect({
-                aborted: mouseMoveOptions?.signal?.aborted,
+                aborted: mouseMoveOptions.signal?.aborted,
             }).toStrictEqual({
                 aborted: false,
             });
@@ -1817,7 +1880,7 @@ describe("createShownFilesList", () => {
             firstItem.dispatchEvent(new MouseEvent("mouseleave"));
 
             expect({
-                aborted: mouseMoveOptions?.signal?.aborted,
+                aborted: mouseMoveOptions.signal?.aborted,
             }).toStrictEqual({
                 aborted: true,
             });
