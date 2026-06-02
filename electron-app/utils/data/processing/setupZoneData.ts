@@ -49,8 +49,16 @@ interface SetupZoneDataResult {
     readonly powerZones: ZoneEntry[];
 }
 
+type LooseRecord = Record<string, unknown>;
 type NullishNumber = null | number | undefined;
 type ZoneType = "hr" | "power";
+
+interface ZoneDataState {
+    hasHRZoneData: boolean;
+    hasPowerZoneData: boolean;
+    heartRateZones: ZoneEntry[];
+    powerZones: ZoneEntry[];
+}
 
 const zoneGlobal = globalThis as typeof globalThis & ZoneGlobals;
 
@@ -92,12 +100,13 @@ function sumLapZoneTimes(
 
     for (const lap of laps) {
         const lapZoneTimes = lap[fieldName];
-        if (!Array.isArray(lapZoneTimes)) {
+        if (!lapZoneTimes) {
             continue;
         }
 
         for (const [index, time] of lapZoneTimes.entries()) {
-            zoneTimes[index] = (zoneTimes[index] ?? 0) + (time ?? 0);
+            const currentTime = typeof time === "number" ? time : 0;
+            zoneTimes[index] = (zoneTimes[index] ?? 0) + currentTime;
         }
     }
 
@@ -129,28 +138,253 @@ function logZoneData(message: string, data?: unknown): void {
     }
 }
 
+function isLooseRecord(value: unknown): value is LooseRecord {
+    return typeof value === "object" && value !== null;
+}
+
+function getRecordArray(value: unknown): readonly LooseRecord[] | undefined {
+    if (!Array.isArray(value)) {
+        return undefined;
+    }
+
+    return value.filter(isLooseRecord);
+}
+
+function getZoneTimeArray(value: unknown): readonly NullishNumber[] | undefined {
+    if (!Array.isArray(value)) {
+        return undefined;
+    }
+
+    return value.map((time) => (typeof time === "number" ? time : null));
+}
+
+function normalizeTimeInZoneMesg(record: LooseRecord): TimeInZoneMesg {
+    const timeInHrZone = getZoneTimeArray(record["timeInHrZone"]);
+    const timeInPowerZone = getZoneTimeArray(record["timeInPowerZone"]);
+
+    return {
+        ...(typeof record["referenceMesg"] === "string"
+            ? { referenceMesg: record["referenceMesg"] }
+            : {}),
+        ...(timeInHrZone ? { timeInHrZone } : {}),
+        ...(timeInPowerZone ? { timeInPowerZone } : {}),
+    };
+}
+
+function normalizeSessionMesg(record: LooseRecord): SessionMesg {
+    const timeInHrZone = getZoneTimeArray(record["time_in_hr_zone"]);
+    const timeInPowerZone = getZoneTimeArray(record["time_in_power_zone"]);
+
+    return {
+        ...(timeInHrZone ? { time_in_hr_zone: timeInHrZone } : {}),
+        ...(timeInPowerZone ? { time_in_power_zone: timeInPowerZone } : {}),
+    };
+}
+
+function normalizeGlobalData(globalData: unknown): GlobalData | null {
+    if (!isLooseRecord(globalData)) {
+        return null;
+    }
+
+    const lapMesgs = getRecordArray(globalData["lapMesgs"]);
+    const sessionMesgs = getRecordArray(globalData["sessionMesgs"]);
+    const timeInZoneMesgs = getRecordArray(globalData["timeInZoneMesgs"]);
+
+    return {
+        ...(lapMesgs
+            ? {
+                  lapMesgs: lapMesgs.map((lapMesg) =>
+                      normalizeSessionMesg(lapMesg)
+                  ),
+              }
+            : {}),
+        ...(sessionMesgs
+            ? {
+                  sessionMesgs: sessionMesgs.map((sessionMesg) =>
+                      normalizeSessionMesg(sessionMesg)
+                  ),
+              }
+            : {}),
+        ...(timeInZoneMesgs
+            ? {
+                  timeInZoneMesgs: timeInZoneMesgs.map((timeInZoneMesg) =>
+                      normalizeTimeInZoneMesg(timeInZoneMesg)
+                  ),
+              }
+            : {}),
+    };
+}
+
+function createInitialZoneState(): ZoneDataState {
+    const heartRateZones = getExistingZones("hr");
+    const powerZones = getExistingZones("power");
+    return {
+        hasHRZoneData: heartRateZones.length > 0,
+        hasPowerZoneData: powerZones.length > 0,
+        heartRateZones,
+        powerZones,
+    };
+}
+
+function applyZoneTimes(
+    state: ZoneDataState,
+    zoneType: ZoneType,
+    zoneTimes: readonly NullishNumber[] | undefined,
+    logMessage: string
+): void {
+    if (!zoneTimes) {
+        return;
+    }
+
+    const zones = colorizeZones(buildZones(zoneTimes), zoneType);
+    if (zones.length === 0) {
+        return;
+    }
+
+    setGlobalZones(zoneType, zones);
+    if (zoneType === "hr") {
+        state.heartRateZones = zones;
+        state.hasHRZoneData = true;
+        logZoneData(logMessage, state.heartRateZones);
+        return;
+    }
+
+    state.powerZones = zones;
+    state.hasPowerZoneData = true;
+    logZoneData(logMessage, state.powerZones);
+}
+
+function logTimeInZoneMessages(
+    timeInZoneMesgs: readonly TimeInZoneMesg[]
+): void {
+    if (!isDebugLoggingEnabled()) {
+        return;
+    }
+
+    for (const [index, zoneMessage] of timeInZoneMesgs.entries()) {
+        console.log(
+            `[ChartJS] TimeInZone ${index} fields:`,
+            Object.keys(zoneMessage)
+        );
+
+        if (shouldLogVerboseZoneData()) {
+            console.log(`[ChartJS] TimeInZone ${index} data:`, zoneMessage);
+        }
+    }
+}
+
+function applyTimeInZoneMesgs(
+    state: ZoneDataState,
+    timeInZoneMesgs: readonly TimeInZoneMesg[] | undefined
+): void {
+    if (!timeInZoneMesgs) {
+        return;
+    }
+
+    logZoneData("[ChartJS] Found timeInZoneMesgs:", timeInZoneMesgs.length);
+    logTimeInZoneMessages(timeInZoneMesgs);
+
+    const sessionZoneData = timeInZoneMesgs.find(
+        (zoneMessage) => zoneMessage.referenceMesg === "session"
+    );
+    applyZoneTimes(
+        state,
+        "hr",
+        sessionZoneData?.timeInHrZone,
+        "[ChartJS] Heart rate zones data set:"
+    );
+    applyZoneTimes(
+        state,
+        "power",
+        sessionZoneData?.timeInPowerZone,
+        "[ChartJS] Power zones data set:"
+    );
+}
+
+function applySessionZoneMesgs(
+    state: ZoneDataState,
+    sessionMesgs: readonly SessionMesg[] | undefined
+): void {
+    if (!sessionMesgs) {
+        return;
+    }
+
+    if (state.heartRateZones.length === 0) {
+        const sessionWithHrZones = sessionMesgs.find(
+            (session) => session.time_in_hr_zone
+        );
+        applyZoneTimes(
+            state,
+            "hr",
+            sessionWithHrZones?.time_in_hr_zone,
+            "[ChartJS] HR zones from sessionMesgs:"
+        );
+    }
+
+    if (state.powerZones.length === 0) {
+        const sessionWithPowerZones = sessionMesgs.find(
+            (session) => session.time_in_power_zone
+        );
+        applyZoneTimes(
+            state,
+            "power",
+            sessionWithPowerZones?.time_in_power_zone,
+            "[ChartJS] Power zones from sessionMesgs:"
+        );
+    }
+}
+
+function applyLapZoneMesgs(
+    state: ZoneDataState,
+    lapMesgs: readonly LapMesg[] | undefined
+): void {
+    if (
+        state.heartRateZones.length > 0 ||
+        state.powerZones.length > 0 ||
+        !lapMesgs ||
+        lapMesgs.length === 0
+    ) {
+        return;
+    }
+
+    logZoneData("[ChartJS] Aggregating zone data from lapMesgs");
+
+    const hrZoneTimes = sumLapZoneTimes(lapMesgs, "time_in_hr_zone");
+    if (hasPositiveZoneTimes(hrZoneTimes)) {
+        applyZoneTimes(state, "hr", hrZoneTimes, "[ChartJS] HR zones from laps:");
+    }
+
+    const powerZoneTimes = sumLapZoneTimes(lapMesgs, "time_in_power_zone");
+    if (hasPositiveZoneTimes(powerZoneTimes)) {
+        applyZoneTimes(
+            state,
+            "power",
+            powerZoneTimes,
+            "[ChartJS] Power zones from laps:"
+        );
+    }
+}
+
+function toSetupZoneDataResult(state: ZoneDataState): SetupZoneDataResult {
+    return {
+        hasHRZoneData: state.hasHRZoneData,
+        hasPowerZoneData: state.hasPowerZoneData,
+        heartRateZones: state.heartRateZones,
+        powerZones: state.powerZones,
+    };
+}
+
 /**
  * Extracts zone data from FIT globals and updates window.heartRateZones /
  * window.powerZones for existing chart modules.
  */
 export function setupZoneData(globalData: unknown): SetupZoneDataResult {
-    const zoneData =
-        globalData !== null && typeof globalData === "object"
-            ? (globalData as GlobalData)
-            : null;
-    let heartRateZones = getExistingZones("hr");
-    let powerZones = getExistingZones("power");
-    let hasHRZoneData = heartRateZones.length > 0;
-    let hasPowerZoneData = powerZones.length > 0;
+    const state = createInitialZoneState();
+    const zoneData = normalizeGlobalData(globalData);
 
     try {
         if (!zoneData) {
-            return {
-                hasHRZoneData,
-                hasPowerZoneData,
-                heartRateZones,
-                powerZones,
-            };
+            return toSetupZoneDataResult(state);
         }
 
         logZoneData(
@@ -158,155 +392,12 @@ export function setupZoneData(globalData: unknown): SetupZoneDataResult {
             zoneData
         );
 
-        if (Array.isArray(zoneData.timeInZoneMesgs)) {
-            logZoneData(
-                "[ChartJS] Found timeInZoneMesgs:",
-                zoneData.timeInZoneMesgs.length
-            );
+        applyTimeInZoneMesgs(state, zoneData.timeInZoneMesgs);
+        applySessionZoneMesgs(state, zoneData.sessionMesgs);
+        applyLapZoneMesgs(state, zoneData.lapMesgs);
 
-            if (isDebugLoggingEnabled()) {
-                for (const [
-                    index,
-                    zoneMessage,
-                ] of zoneData.timeInZoneMesgs.entries()) {
-                    console.log(
-                        `[ChartJS] TimeInZone ${index} fields:`,
-                        Object.keys(zoneMessage || {})
-                    );
-
-                    if (shouldLogVerboseZoneData()) {
-                        console.log(
-                            `[ChartJS] TimeInZone ${index} data:`,
-                            zoneMessage
-                        );
-                    }
-                }
-            }
-
-            const sessionZoneData = zoneData.timeInZoneMesgs.find(
-                (zoneMessage) => zoneMessage.referenceMesg === "session"
-            );
-
-            if (sessionZoneData?.timeInHrZone) {
-                const hrZones = buildZones(sessionZoneData.timeInHrZone);
-                if (hrZones.length > 0) {
-                    heartRateZones = colorizeZones(hrZones, "hr");
-                    setGlobalZones("hr", heartRateZones);
-                    hasHRZoneData = true;
-                    logZoneData(
-                        "[ChartJS] Heart rate zones data set:",
-                        heartRateZones
-                    );
-                }
-            }
-
-            if (sessionZoneData?.timeInPowerZone) {
-                const coloredPowerZones = colorizeZones(
-                    buildZones(sessionZoneData.timeInPowerZone),
-                    "power"
-                );
-                if (coloredPowerZones.length > 0) {
-                    powerZones = coloredPowerZones;
-                    setGlobalZones("power", powerZones);
-                    hasPowerZoneData = true;
-                    logZoneData("[ChartJS] Power zones data set:", powerZones);
-                }
-            }
-        }
-
-        if (
-            heartRateZones.length === 0 &&
-            Array.isArray(zoneData.sessionMesgs)
-        ) {
-            const sessionWithHrZones = zoneData.sessionMesgs.find((session) =>
-                Array.isArray(session.time_in_hr_zone)
-            );
-            if (sessionWithHrZones?.time_in_hr_zone) {
-                const coloredHrZones = colorizeZones(
-                    buildZones(sessionWithHrZones.time_in_hr_zone),
-                    "hr"
-                );
-                if (coloredHrZones.length > 0) {
-                    heartRateZones = coloredHrZones;
-                    setGlobalZones("hr", heartRateZones);
-                    hasHRZoneData = true;
-                    logZoneData(
-                        "[ChartJS] HR zones from sessionMesgs:",
-                        heartRateZones
-                    );
-                }
-            }
-        }
-
-        if (powerZones.length === 0 && Array.isArray(zoneData.sessionMesgs)) {
-            const sessionWithPowerZones = zoneData.sessionMesgs.find(
-                (session) => Array.isArray(session.time_in_power_zone)
-            );
-            if (sessionWithPowerZones?.time_in_power_zone) {
-                const coloredPowerZones = colorizeZones(
-                    buildZones(sessionWithPowerZones.time_in_power_zone),
-                    "power"
-                );
-                if (coloredPowerZones.length > 0) {
-                    powerZones = coloredPowerZones;
-                    setGlobalZones("power", powerZones);
-                    hasPowerZoneData = true;
-                    logZoneData(
-                        "[ChartJS] Power zones from sessionMesgs:",
-                        powerZones
-                    );
-                }
-            }
-        }
-
-        if (
-            heartRateZones.length === 0 &&
-            powerZones.length === 0 &&
-            Array.isArray(zoneData.lapMesgs) &&
-            zoneData.lapMesgs.length > 0
-        ) {
-            logZoneData("[ChartJS] Aggregating zone data from lapMesgs");
-
-            const hrZoneTimes = sumLapZoneTimes(
-                zoneData.lapMesgs,
-                "time_in_hr_zone"
-            );
-            if (hasPositiveZoneTimes(hrZoneTimes)) {
-                const coloredHrZones = colorizeZones(
-                    buildZones(hrZoneTimes),
-                    "hr"
-                );
-                if (coloredHrZones.length > 0) {
-                    heartRateZones = coloredHrZones;
-                    setGlobalZones("hr", heartRateZones);
-                    hasHRZoneData = true;
-                    logZoneData(
-                        "[ChartJS] HR zones from laps:",
-                        heartRateZones
-                    );
-                }
-            }
-
-            const powerZoneTimes = sumLapZoneTimes(
-                zoneData.lapMesgs,
-                "time_in_power_zone"
-            );
-            if (hasPositiveZoneTimes(powerZoneTimes)) {
-                const coloredPowerZones = colorizeZones(
-                    buildZones(powerZoneTimes),
-                    "power"
-                );
-                if (coloredPowerZones.length > 0) {
-                    powerZones = coloredPowerZones;
-                    setGlobalZones("power", powerZones);
-                    hasPowerZoneData = true;
-                    logZoneData("[ChartJS] Power zones from laps:", powerZones);
-                }
-            }
-        }
-
-        updatePowerZoneControlsVisibility(hasPowerZoneData);
-        updateHRZoneControlsVisibility(hasHRZoneData);
+        updatePowerZoneControlsVisibility(state.hasPowerZoneData);
+        updateHRZoneControlsVisibility(state.hasHRZoneData);
     } catch (error) {
         console.error(
             "[ChartJS] Error setting up zone data:",
@@ -314,10 +405,5 @@ export function setupZoneData(globalData: unknown): SetupZoneDataResult {
         );
     }
 
-    return {
-        hasHRZoneData,
-        hasPowerZoneData,
-        heartRateZones,
-        powerZones,
-    };
+    return toSetupZoneDataResult(state);
 }
