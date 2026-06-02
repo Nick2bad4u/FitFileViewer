@@ -1,6 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderTable } from "../../../../../electron-app/utils/rendering/helpers/renderSummaryHelpers.js";
 
+function getRequiredElement<T extends Element>(
+    container: ParentNode,
+    selector: string
+): T {
+    const element = container.querySelector<T>(selector);
+    if (!element) {
+        throw new Error(`Missing expected element: ${selector}`);
+    }
+    return element;
+}
+
+function getCellTexts(row: HTMLTableRowElement): string[] {
+    return Array.from(row.querySelectorAll("td"), (td) => td.textContent ?? "");
+}
+
 describe("renderTable behavior", () => {
     beforeEach(() => {
         const host = document.createElement("div");
@@ -31,7 +46,7 @@ describe("renderTable behavior", () => {
     it("renders headers, summary row from sessionMesgs, and lap rows with timestamp/startTime override", async () => {
         expect.assertions(8);
 
-        const container = document.querySelector("#host") as HTMLElement;
+        const container = getRequiredElement<HTMLElement>(document, "#host");
         const gearBtn = document.createElement("button");
         const data = {
             sessionMesgs: [
@@ -78,10 +93,11 @@ describe("renderTable behavior", () => {
             setVisibleColumns,
             visibleColumns,
         });
-        const section = container.querySelector(
+        const section = getRequiredElement<HTMLElement>(
+            container,
             ".summary-section"
-        ) as HTMLElement;
-        expect(section).toBeInstanceOf(HTMLElement);
+        );
+        expect(section.classList.contains("summary-section")).toBe(true);
         // Header should include Type + visible columns
         const headers = Array.from(
             section.querySelectorAll("thead th"),
@@ -90,18 +106,18 @@ describe("renderTable behavior", () => {
         expect(headers).toEqual(["Type", ...visibleColumns]);
         expect(headers).not.toContain("hidden_field");
 
-        // Summary row exists and has "Summary" as first cell label
-        const firstRow = section.querySelector("tbody tr");
-        expect(firstRow?.querySelector("td")?.textContent).toBe("Summary");
+        const summaryRow = getRequiredElement<HTMLTableRowElement>(
+            section,
+            ".summary-summary-body tr"
+        );
+        expect(getCellTexts(summaryRow)[0]).toBe("Summary");
 
         // Lap rows exist and have label and timestamp override by startTime
-        const rows = section.querySelectorAll("tbody tr");
-        expect(rows.length).toBeGreaterThanOrEqual(1 + data.lapMesgs.length);
-        const lap1 = rows[1];
-        const lap1Cells = Array.from(
-            lap1.querySelectorAll("td"),
-            (td) => td.textContent
+        const lapRows = section.querySelectorAll<HTMLTableRowElement>(
+            ".summary-lap-body tr"
         );
+        expect(lapRows).toHaveLength(data.lapMesgs.length);
+        const lap1Cells = getCellTexts(lapRows[0]);
         expect(lap1Cells[0]).toBe("Lap 1");
         // timestamp column should show startTime per implementation
         const tsIdx = headers.indexOf("timestamp");
