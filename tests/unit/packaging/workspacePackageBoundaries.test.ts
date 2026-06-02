@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -94,6 +94,23 @@ const staleNestedGeneratedAppPaths = [
     "electron-app/release",
     "electron-app/temp-win7",
     "electron-app/test-report.junit.xml",
+] as const;
+
+const expectedElectronAppRootEntries = [
+    "fitParser.ts",
+    "global.d.ts",
+    "main",
+    "main-ui.ts",
+    "main.ts",
+    "preload",
+    "preload.ts",
+    "renderer",
+    "renderer.ts",
+    "shared",
+    "ui",
+    "utils",
+    "utils.ts",
+    "windowStateUtils.ts",
 ] as const;
 
 const rootManagedReleaseVersioningPaths = [
@@ -436,6 +453,19 @@ describe("workspace package boundaries", () => {
             types: "electron-app/global.d.ts",
             vitestDevDependency: true,
         });
+    });
+
+    it("keeps the Electron app root limited to runtime source entries", () => {
+        expect.assertions(2);
+
+        const electronAppRootEntries = readdirSync(
+            path.join(process.cwd(), "electron-app")
+        ).sort();
+
+        expect(electronAppRootEntries).toStrictEqual(
+            [...expectedElectronAppRootEntries].sort()
+        );
+        expect(electronAppRootEntries).not.toContain("package.json");
     });
 
     it("keeps private workspace runtime policy centralized at the root", () => {
