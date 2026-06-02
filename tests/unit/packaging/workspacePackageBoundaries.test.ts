@@ -17,6 +17,7 @@ import {
     rootElectronAppTsconfigPath,
     rootEslintConfigPath,
     rootGitignorePath,
+    rootDocsPath,
     rootNcuConfigPath,
     rootPackageLockPath,
     rootPackageRepositoryPath,
@@ -109,6 +110,21 @@ const requiredRootToolingDevDependencies = [
     "vitest",
 ] as const;
 
+const requiredDocumentedTestDependencies = [
+    "@playwright/test",
+    "@vitest/coverage-v8",
+    "@vitest/ui",
+    "fast-check",
+    "fast-xml-parser",
+    "jsdom",
+    "vitest",
+] as const;
+
+const rendererDependencyInventoryPath = path.posix.join(
+    rootDocsPath,
+    "RENDERER_DEPENDENCY_INVENTORY.md"
+);
+
 const expectedRootToolingScripts = {
     "lint:electron-app":
         "node scripts/run-eslint.mjs electronApp && node scripts/run-typescript.mjs typecheck",
@@ -127,6 +143,23 @@ function delegatesToNestedElectronPackage(script: string): boolean {
     return nestedElectronPackageDelegationPatterns.some((pattern) =>
         pattern.test(script)
     );
+}
+
+function getInventoryCategoryPackages(
+    markdown: string,
+    category: string
+): string[] {
+    const escapedCategory = category.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
+    const rowPattern = new RegExp(
+        String.raw`^\| ${escapedCategory}\s+\|(?<packages>.*?)\|$`,
+        "mu"
+    );
+    const rowPackages = markdown.match(rowPattern)?.groups?.packages ?? "";
+
+    return [...rowPackages.matchAll(/`([^`]+)`/gu)]
+        .map((match) => match[1])
+        .filter((packageName): packageName is string => Boolean(packageName))
+        .sort();
 }
 
 describe("workspace package boundaries", () => {
@@ -192,6 +225,19 @@ describe("workspace package boundaries", () => {
         expect(rootPackage.devDependencies).not.toHaveProperty(
             "@types/leaflet.markercluster"
         );
+    });
+
+    it("keeps renderer dependency inventory aligned with root test packages", () => {
+        expect.assertions(1);
+
+        const dependencyInventory = readFileSync(
+            path.join(process.cwd(), rendererDependencyInventoryPath),
+            "utf8"
+        );
+
+        expect(
+            getInventoryCategoryPackages(dependencyInventory, "Tests")
+        ).toStrictEqual([...requiredDocumentedTestDependencies].sort());
     });
 
     it("keeps root package scripts from delegating Electron app work to a nested package", () => {
