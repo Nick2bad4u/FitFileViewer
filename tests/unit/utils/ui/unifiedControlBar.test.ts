@@ -28,6 +28,21 @@ function cleanupDomAndMocks(): void {
     vi.useRealTimers();
 }
 
+function getFilenameScrollState(
+    filenameElement: HTMLElement & {
+        __ffvFilenameAutoScrollState?: { timers?: unknown[] };
+    },
+    filenameText: HTMLElement
+) {
+    return {
+        classList: [...filenameElement.classList],
+        scrollDistance:
+            filenameText.style.getPropertyValue("--scroll-distance"),
+        timerCount:
+            filenameElement.__ffvFilenameAutoScrollState?.timers?.length,
+    };
+}
+
 describe(initUnifiedControlBar, () => {
     it("moves existing controls into one toolbar once the startup delay elapses", () => {
         expect.assertions(7);
@@ -110,7 +125,7 @@ describe(initUnifiedControlBar, () => {
 
 describe(initFilenameAutoScroll, () => {
     it("enables filename scrolling and records observer cleanup state", () => {
-        expect.assertions(6);
+        expect.assertions(4);
 
         vi.useFakeTimers();
 
@@ -170,16 +185,13 @@ describe(initFilenameAutoScroll, () => {
                     target: filenameElement,
                 },
             ]);
-            expect([...filenameElement.classList]).toContain("scrolling");
             expect(
-                filenameText.style.getPropertyValue("--scroll-distance")
-            ).toBe("218px");
-            const autoScrollState =
-                filenameElement.__ffvFilenameAutoScrollState as
-                    | { timers?: unknown[] }
-                    | undefined;
-
-            expect(autoScrollState?.timers).toHaveLength(2);
+                getFilenameScrollState(filenameElement, filenameText)
+            ).toStrictEqual({
+                classList: ["scrolling"],
+                scrollDistance: "218px",
+                timerCount: 2,
+            });
 
             initFilenameAutoScroll();
 
@@ -190,7 +202,7 @@ describe(initFilenameAutoScroll, () => {
     });
 
     it("removes the scrolling class when the filename fits its container", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         vi.useFakeTimers();
 
@@ -236,6 +248,13 @@ describe(initFilenameAutoScroll, () => {
             vi.advanceTimersByTime(500);
 
             expect(mutationObserverConstructor).toHaveBeenCalledOnce();
+            expect(
+                getFilenameScrollState(filenameElement, filenameText)
+            ).toStrictEqual({
+                classList: [],
+                scrollDistance: "",
+                timerCount: 2,
+            });
             expect([...filenameElement.classList]).not.toContain("scrolling");
         } finally {
             cleanupDomAndMocks();
