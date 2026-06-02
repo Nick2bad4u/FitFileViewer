@@ -72,7 +72,7 @@
     "include": [
         "electron-app/*.ts",
         "electron-app/**/*.js",
-        "electron-app/global.d.ts",
+        "global.d.ts",
         "electron-app/shared/**/*.ts",
         "electron-app/main/**/*.ts",
         "electron-app/preload/**/*.ts",

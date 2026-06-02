@@ -148,10 +148,10 @@
         "./renderer.js": "./dist/renderer.js"
     },
     "main": "dist/main.js",
-    "types": "electron-app/global.d.ts",
+    "types": "global.d.ts",
     "files": [
         "dist/",
-        "electron-app/global.d.ts",
+        "global.d.ts",
         "package.json"
     ],
     "workspaces": [

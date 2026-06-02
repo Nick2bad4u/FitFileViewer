@@ -18,6 +18,7 @@ export const rootPackageJsonPath = "package.json";
 export const rootPackageLockPath = "package-lock.json";
 export const rootPackagePath = repositoryPath(rootPackageJsonPath);
 export const rootPackageRepositoryPath = rootPackageJsonPath;
+export const rootGlobalTypesPath = "global.d.ts";
 export const rootReadmePath = "README.md";
 export const rootMarkdownLinkCheckConfigPath = ".markdown-link-check.json";
 export const rootMarkdownlintConfigPath = ".markdownlint.json";

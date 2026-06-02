@@ -116,6 +116,7 @@ type WorkspacesModule = {
     rootFlatpakRepoPath: string;
     rootFlatpakZipPath: string;
     rootGitignorePath: string;
+    rootGlobalTypesPath: string;
     rootPackageJsonPath: string;
     rootPackageLockPath: string;
     rootPackagePath: string;
@@ -595,6 +596,7 @@ describe("workspace path helpers", () => {
             flatpakBundle: workspaces.rootFlatpakBundlePath,
             flatpakRepo: workspaces.rootFlatpakRepoPath,
             flatpakZip: workspaces.rootFlatpakZipPath,
+            globalTypes: workspaces.rootGlobalTypesPath,
             integrationTests: workspaces.rootIntegrationTestsPath,
             playwrightAppUiSpec: workspaces.rootPlaywrightAppUiSpecPath,
             playwrightTests: workspaces.rootPlaywrightTestsPath,
@@ -620,6 +622,7 @@ describe("workspace path helpers", () => {
             flatpakBundle: "FitFileViewer.flatpak",
             flatpakRepo: "flatpak-repo",
             flatpakZip: "FitFileViewer.flatpak.zip",
+            globalTypes: "global.d.ts",
             integrationTests: "tests/integration",
             playwrightAppUiSpec: "tests/playwright/app-ui.spec.ts",
             playwrightTests: "tests/playwright",

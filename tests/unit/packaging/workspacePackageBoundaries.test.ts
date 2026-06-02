@@ -13,6 +13,7 @@ import {
     rootAgentsPath,
     rootAppTsconfigPath,
     rootGitignorePath,
+    rootGlobalTypesPath,
     rootDocsPath,
     rootNcuConfigPath,
     rootPackageLockPath,
@@ -98,7 +99,6 @@ const staleNestedGeneratedAppPaths = [
 
 const expectedElectronAppRootEntries = [
     "fitParser.ts",
-    "global.d.ts",
     "main",
     "main-ui.ts",
     "main.ts",
@@ -456,7 +456,7 @@ describe("workspace package boundaries", () => {
             ],
             files: [
                 "dist/",
-                "electron-app/global.d.ts",
+                rootGlobalTypesPath,
                 "package.json",
             ],
             forbiddenPackageFileEntries: [],
@@ -472,7 +472,7 @@ describe("workspace package boundaries", () => {
             ),
             private: true,
             runtimeBuildScript: "node scripts/build-runtime.mjs",
-            types: "electron-app/global.d.ts",
+            types: rootGlobalTypesPath,
             vitestDevDependency: true,
         });
     });

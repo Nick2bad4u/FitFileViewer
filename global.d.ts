@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/prefer-readonly-parameter-types, capitalized-comments, no-underscore-dangle, perfectionist/sort-imports, perfectionist/sort-interfaces, perfectionist/sort-union-types, unicorn/require-module-specifiers, vars-on-top -- Legacy ambient declarations mirror external global names and grouped API docs during migration. */
 import type {
     FitDecodeResult,
-} from "./shared/fit";
-import type { ElectronAPIWithDevFlags } from "./shared/preloadApi";
+} from "./electron-app/shared/fit";
+import type { ElectronAPIWithDevFlags } from "./electron-app/shared/preloadApi";
 import type * as Leaflet from "leaflet";
 import type screenfull from "screenfull";
 

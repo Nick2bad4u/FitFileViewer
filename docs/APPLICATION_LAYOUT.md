@@ -123,6 +123,7 @@ for exact module names when adding or changing utilities.
 ├── tsconfig.vitest-typecheck.json   # Root-owned Vitest typecheck configuration
 ├── tsconfig.app.eslint.json # Root-owned ESLint parser project for electron-app
 ├── electron-builder.config.cjs      # Root-owned Electron Builder targets, file associations, and package allowlist
+├── global.d.ts                      # Root-owned shared renderer/main global type declarations
 ├── scripts/
 │   ├── analyze-coverage.mjs         # Root-owned coverage analysis helper
 │   ├── build-win7.mjs               # Root-owned Windows 7 compatibility build helper
@@ -132,8 +133,7 @@ for exact module names when adding or changing utilities.
 │   ├── generate-api-categories.mjs  # Root-owned generated API docs category helper
 │   ├── normalize-coverage-lcov.mjs  # Root-owned coverage path normalization helper
 │   └── prepare-runtime-dist.mjs     # Root-owned runtime package asset helper
-└── electron-app/
-    └── global.d.ts                  # Shared renderer/main global type declarations
+└── electron-app/                    # Runtime Electron source tree
 ```
 
 ### Environment Configuration
@@ -188,8 +188,7 @@ tests/vitest/
 ### Test Support Files
 
 ```text
-electron-app/
-└── global.d.ts                      # Global type definitions
+global.d.ts                          # Root-owned ambient app and renderer globals
 ```
 
 ## Documentation & Assets

@@ -125,7 +125,6 @@ const config = [
         },
     },
     {
-        basePath: electronAppBasePath,
         files: ["global.d.ts"],
         rules: {
             "n/no-extraneous-import": "off",
