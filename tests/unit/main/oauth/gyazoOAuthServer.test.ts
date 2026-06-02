@@ -271,6 +271,61 @@ describe("gyazoOAuthServer", () => {
         expect(res.end).toHaveBeenCalledWith("Method Not Allowed");
     });
 
+    it("rejects malformed request URLs before OAuth handling", async () => {
+        expect.assertions(3);
+
+        const { startGyazoOAuthServer } = requireGyazoOAuthServer();
+        await startGyazoOAuthServer(3000);
+
+        const res = makeRes();
+        const malformedUrl = ["http", "://[invalid-host"].join("");
+        withRequestHandler()({ method: "GET", url: malformedUrl }, res);
+
+        expect({
+            body: res.body,
+            statusCode: res.statusCode,
+            statusHeaders: res.statusHeaders,
+        }).toStrictEqual({
+            body: "Bad Request",
+            statusCode: 400,
+            statusHeaders: { "Content-Type": "text/plain" },
+        });
+        expect(getResponseHeaderSnapshot(res)).toStrictEqual({
+            cacheControl: "no-store",
+            corsHeaders: [],
+            xContentTypeOptions: "nosniff",
+        });
+        expect(mockSend).not.toHaveBeenCalled();
+    });
+
+    it("rejects incomplete OAuth callbacks without notifying renderer", async () => {
+        expect.assertions(4);
+
+        const { startGyazoOAuthServer } = requireGyazoOAuthServer();
+        state.set("mainWindow", getWindowLike());
+
+        await startGyazoOAuthServer(3000);
+
+        const res = makeRes();
+        withRequestHandler()(
+            { method: "GET", url: "/gyazo/callback?code=abc" },
+            res
+        );
+
+        expect({
+            statusCode: res.statusCode,
+            statusHeaders: res.statusHeaders,
+        }).toStrictEqual({
+            statusCode: 400,
+            statusHeaders: { "Content-Type": "text/html" },
+        });
+        expect(String(res.body)).toContain("Invalid Request");
+        expect(String(res.body)).toContain(
+            "Missing authorization code or state parameter"
+        );
+        expect(mockSend).not.toHaveBeenCalled();
+    });
+
     it("escapes error parameter in HTML response", async () => {
         expect.assertions(2);
 
