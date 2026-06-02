@@ -22,11 +22,16 @@ const EXPECTED_TYPE_ARIA_LABELS: Record<NotificationType, string> = {
 };
 
 function getNotificationState(element: HTMLElement) {
+    const message = element.querySelector(".notification-message");
+    if (!message) {
+        throw new Error("Expected .notification-message to exist");
+    }
+
     return {
         ariaLabel: element.getAttribute("aria-label"),
         classList: [...element.classList],
         display: element.style.display,
-        message: element.querySelector(".notification-message")?.textContent,
+        message: message.textContent,
     };
 }
 
