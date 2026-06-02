@@ -35,6 +35,16 @@ function createMockElement(id: string): HTMLElement {
     return element;
 }
 
+function getRequiredElementById(id: string): HTMLElement {
+    const element = document.getElementById(id);
+
+    if (!(element instanceof window.HTMLElement)) {
+        throw new TypeError(`Expected #${id} to exist`);
+    }
+
+    return element;
+}
+
 function noop(): void {
     return;
 }
@@ -430,9 +440,10 @@ describe("chartStatusIndicator.js", () => {
                 "[ChartStatus] Error updating chart status indicator:",
                 expect.any(Error)
             );
-            expect(document.getElementById("chart-status-indicator")?.id).toBe(
+            const currentIndicator = getRequiredElementById(
                 "chart-status-indicator"
             );
+            expect(currentIndicator.id).toBe("chart-status-indicator");
         });
     });
 

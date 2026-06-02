@@ -68,7 +68,9 @@ describe("dom helpers", () => {
         section.append(primaryButton, secondaryButton);
         container.append(section);
 
-        expect(query("#primary", container)?.textContent).toBe("Primary");
+        expect(requireElement("#primary", container).textContent).toBe(
+            "Primary"
+        );
         expect(query(".missing", container)).toBeNull();
         expect({
             actionTexts: queryAll(".action", container).map(
@@ -261,7 +263,8 @@ describe("dom helpers", () => {
         button.click();
 
         expect(handler).toHaveBeenCalledOnce();
-        expect(handler.mock.calls[0]?.[0]).toBeInstanceOf(MouseEvent);
+        const [event] = handler.mock.calls[0] ?? [];
+        expect(event).toBeInstanceOf(MouseEvent);
     });
 
     it("returns undefined when attaching an event to invalid targets", () => {

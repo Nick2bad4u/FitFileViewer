@@ -30,8 +30,11 @@ function getRequiredButtonIcon(button: HTMLButtonElement): SVGSVGElement {
 function getRequiredFirstIconRect(svg: SVGSVGElement): SVGElement {
     const rect = svg.querySelector("rect");
     expect(rect).toBeInstanceOf(SVGElement);
-    expect(rect?.tagName).toBe("rect");
-    return rect as SVGElement;
+    if (!(rect instanceof SVGElement)) {
+        throw new TypeError("Expected print icon rect to exist");
+    }
+    expect(rect.tagName).toBe("rect");
+    return rect;
 }
 
 describe("createPrintButton", () => {

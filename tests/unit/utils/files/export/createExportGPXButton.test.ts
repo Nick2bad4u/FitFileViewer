@@ -39,6 +39,16 @@ function cleanupTestGlobals(): void {
     vi.restoreAllMocks();
 }
 
+function queryRequiredAnchor(selector: string): HTMLAnchorElement {
+    const link = document.querySelector(selector);
+
+    if (!(link instanceof HTMLAnchorElement)) {
+        throw new TypeError(`Expected ${selector} anchor to exist`);
+    }
+
+    return link;
+}
+
 describe(createExportGPXButton, () => {
     it("notifies when no record data is available", () => {
         expect.assertions(4);
@@ -94,14 +104,12 @@ describe(createExportGPXButton, () => {
             button.click();
 
             const [[blob]] = createObjectURL.mock.calls as [[Blob]];
-            const link = document.querySelector(
-                "a[download='Morning_Ride.gpx']"
-            );
+            const link = queryRequiredAnchor("a[download='Morning_Ride.gpx']");
 
             await expect(blob.text()).resolves.toContain("<gpx ");
             expect(link).toBeInstanceOf(HTMLAnchorElement);
             expect(clickSpy).toHaveBeenCalledOnce();
-            expect(link?.getAttribute("href")).toBe("blob:track");
+            expect(link.getAttribute("href")).toBe("blob:track");
 
             vi.runAllTimers();
 
