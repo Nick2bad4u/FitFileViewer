@@ -51,7 +51,6 @@ function assertFunction<T extends (...args: unknown[]) => unknown>(
     candidate: unknown,
     label: string
 ): asserts candidate is T {
-    expect(candidate).toBeTypeOf("function");
     if (typeof candidate !== "function") {
         throw new TypeError(`${label} was not registered`);
     }
@@ -101,7 +100,7 @@ describe("setupApplicationEventHandlers file:// policy", () => {
     });
 
     it("denies file:// URLs outside the app bundle in production", async () => {
-        expect.assertions(7);
+        expect.assertions(4);
 
         const handlers = new Map<string, AppEventHandler>();
         const mockElectron = createMockElectron(handlers);
@@ -176,7 +175,7 @@ describe("setupApplicationEventHandlers file:// policy", () => {
     });
 
     it("allows blob: downloads but blocks http(s) downloads", async () => {
-        expect.assertions(10);
+        expect.assertions(8);
 
         const handlers = new Map<string, AppEventHandler>();
         const mockElectron = createMockElectron(handlers);

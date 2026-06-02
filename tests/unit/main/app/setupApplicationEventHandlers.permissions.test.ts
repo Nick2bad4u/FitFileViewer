@@ -57,7 +57,6 @@ function assertFunction<T extends (...args: unknown[]) => unknown>(
     candidate: unknown,
     label: string
 ): asserts candidate is T {
-    expect(candidate).toBeTypeOf("function");
     if (typeof candidate !== "function") {
         throw new TypeError(`${label} was not registered`);
     }
@@ -110,7 +109,7 @@ describe("setupApplicationEventHandlers permission hardening", () => {
     });
 
     it("registers permission handlers on web-contents-created (geolocation allowed in test mode)", async () => {
-        expect.assertions(9);
+        expect.assertions(6);
 
         const handlers = new Map<string, AppEventHandler>();
 
