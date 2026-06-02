@@ -6,7 +6,7 @@ import { pathToFileURL } from "node:url";
 import {
     appTypesPath,
     repositoryRoot,
-    rootElectronAppTsconfigPath,
+    rootAppTsconfigPath,
     rootRuntimeTsconfigPath,
 } from "./lib/workspaces.mjs";
 
@@ -18,7 +18,7 @@ export const typescriptTasks = new Map([
         "declarations",
         [
             "--project",
-            rootElectronAppTsconfigPath,
+            rootAppTsconfigPath,
             "--declaration",
             "--emitDeclarationOnly",
             "--declarationMap",
@@ -32,7 +32,7 @@ export const typescriptTasks = new Map([
         "typecheck",
         [
             "--project",
-            rootElectronAppTsconfigPath,
+            rootAppTsconfigPath,
             "--noEmit",
         ],
     ],

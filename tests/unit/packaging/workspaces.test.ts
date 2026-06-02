@@ -75,8 +75,8 @@ type WorkspacesModule = {
     rootCliffConfigPath: string;
     rootCodecovConfigPath: string;
     rootCspellConfigPath: string;
-    rootElectronAppBaseTsconfigPath: string;
-    rootElectronAppEslintTsconfigPath: string;
+    rootAppBaseTsconfigPath: string;
+    rootAppEslintTsconfigPath: string;
     rootAlternativeFitViewPath: string;
     rootAlternativeFitViewAssetsPath: string;
     rootAlternativeFitViewIndexPath: string;
@@ -103,7 +103,7 @@ type WorkspacesModule = {
     rootDocsScreenshotsPath: string;
     rootFitParserMigrationGuideDocPath: string;
     rootGyazoSetupDocPath: string;
-    rootElectronAppTsconfigPath: string;
+    rootAppTsconfigPath: string;
     rootEslintTsconfigPath: string;
     rootEslintConfigPath: string;
     rootEslintCachePath: string;
@@ -361,15 +361,13 @@ describe("workspace path helpers", () => {
         expect(workspaces.rootElectronBuilderConfigPath).toBe(
             "electron-builder.config.cjs"
         );
-        expect(workspaces.rootElectronAppBaseTsconfigPath).toBe(
-            "tsconfig.electron-app.base.json"
+        expect(workspaces.rootAppBaseTsconfigPath).toBe(
+            "tsconfig.app.base.json"
         );
-        expect(workspaces.rootElectronAppEslintTsconfigPath).toBe(
-            "tsconfig.electron-app.eslint.json"
+        expect(workspaces.rootAppEslintTsconfigPath).toBe(
+            "tsconfig.app.eslint.json"
         );
-        expect(workspaces.rootElectronAppTsconfigPath).toBe(
-            "tsconfig.electron-app.json"
-        );
+        expect(workspaces.rootAppTsconfigPath).toBe("tsconfig.app.json");
         expect(workspaces.rootEslintTsconfigPath).toBe("tsconfig.eslint.json");
         expect(workspaces.rootEslintConfigPath).toBe("eslint.config.mjs");
         expect(workspaces.rootFlatpakManifestPath).toBe("flatpak-build.yml");

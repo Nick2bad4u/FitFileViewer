@@ -9,7 +9,7 @@ import {
 } from "../../../scripts/run-typescript.mjs";
 import {
     appTypesPath,
-    rootElectronAppTsconfigPath,
+    rootAppTsconfigPath,
     rootRuntimeTsconfigPath,
 } from "../../../scripts/lib/workspaces.mjs";
 
@@ -41,7 +41,7 @@ describe("run-typescript wrapper", () => {
         expect(args[0]).toMatch(/[\\/]typescript[\\/]bin[\\/]tsc$/u);
         expect(args.slice(1)).toStrictEqual([
             "--project",
-            rootElectronAppTsconfigPath,
+            rootAppTsconfigPath,
             "--noEmit",
             "--pretty",
             "false",
@@ -68,7 +68,7 @@ describe("run-typescript wrapper", () => {
         expect(args[0]).toMatch(/[\\/]typescript[\\/]bin[\\/]tsc$/u);
         expect(args.slice(1)).toStrictEqual([
             "--project",
-            rootElectronAppTsconfigPath,
+            rootAppTsconfigPath,
             "--declaration",
             "--emitDeclarationOnly",
             "--declarationMap",
@@ -168,7 +168,7 @@ describe("run-typescript wrapper", () => {
             command: process.execPath,
             forwardedArgs: [
                 "--project",
-                rootElectronAppTsconfigPath,
+                rootAppTsconfigPath,
                 "--noEmit",
             ],
             options: {

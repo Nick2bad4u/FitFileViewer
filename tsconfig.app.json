@@ -68,7 +68,7 @@
         "**/tests/**",
         "**/assets/**"
     ],
-    "extends": "./tsconfig.electron-app.base.json",
+    "extends": "./tsconfig.app.base.json",
     "include": [
         "electron-app/*.ts",
         "electron-app/**/*.js",

@@ -81,7 +81,7 @@ TypeDoc processes:
 
 This config:
 
-- Use `tsconfig.electron-app.json` for type context
+- Use `tsconfig.app.json` for type context
 - Exclude tests, build outputs, and generated types
 - Enable JSDoc compatibility mode
 - Skip problematic files with broken type imports

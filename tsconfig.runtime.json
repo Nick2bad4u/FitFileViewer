@@ -14,7 +14,7 @@
         "noEmit": false,
         "sourceMap": false
     },
-    "extends": "./tsconfig.electron-app.base.json",
+    "extends": "./tsconfig.app.base.json",
     "files": [
         "electron-app/main.ts",
         "electron-app/main-ui.ts",

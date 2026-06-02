@@ -21,7 +21,7 @@ describe("typescript configuration policy", () => {
     it("does not point the app typecheck at removed electron-app source trees", () => {
         expect.assertions(5);
 
-        const config = readTsconfig("tsconfig.electron-app.json");
+        const config = readTsconfig("tsconfig.app.json");
         const paths = config.compilerOptions?.paths ?? {};
 
         expect(paths).not.toHaveProperty("@app/*");

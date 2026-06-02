@@ -59,11 +59,9 @@ export const rootDocsScreenshotsPath = path.posix.join(
     "screenshots"
 );
 export const rootElectronBuilderConfigPath = "electron-builder.config.cjs";
-export const rootElectronAppBaseTsconfigPath =
-    "tsconfig.electron-app.base.json";
-export const rootElectronAppEslintTsconfigPath =
-    "tsconfig.electron-app.eslint.json";
-export const rootElectronAppTsconfigPath = "tsconfig.electron-app.json";
+export const rootAppBaseTsconfigPath = "tsconfig.app.base.json";
+export const rootAppEslintTsconfigPath = "tsconfig.app.eslint.json";
+export const rootAppTsconfigPath = "tsconfig.app.json";
 export const rootEslintTsconfigPath = "tsconfig.eslint.json";
 export const rootEslintConfigPath = "eslint.config.mjs";
 export const rootEslintCachePath = path.posix.join(

@@ -173,7 +173,7 @@ export { default } from "prettier-config-nick2bad4u";
 ### TypeScript
 
 ```json
-// tsconfig.electron-app.json
+// tsconfig.app.json
 {
  "compilerOptions": {
   "noEmit": true

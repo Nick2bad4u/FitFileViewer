@@ -8,7 +8,7 @@
         "isolatedDeclarations": false,
         "noCheck": false,
         "noEmit": true,
-        "tsBuildInfoFile": "./.cache/tsbuildinfo/tsconfig.electron-app.eslint.tsbuildinfo"
+        "tsBuildInfoFile": "./.cache/tsbuildinfo/tsconfig.app.eslint.tsbuildinfo"
     },
     "exclude": [
         "**/_nuxt/**",
@@ -71,7 +71,7 @@
         "docusaurus/typedoc-plugins/*.d.mts",
         "eslint.config.bundled_*.mjs"
     ],
-    "extends": "./tsconfig.electron-app.json",
+    "extends": "./tsconfig.app.json",
     "include": [
         "electron-app/**/*",
         "electron-app/**/.*"

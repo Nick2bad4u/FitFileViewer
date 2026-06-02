@@ -174,7 +174,7 @@
         "alphabetical"
     ],
     "treatWarningsAsErrors": false,
-    "tsconfig": "tsconfig.electron-app.json",
+    "tsconfig": "tsconfig.app.json",
     "validation": {
         "invalidLink": false,
         "notDocumented": false,

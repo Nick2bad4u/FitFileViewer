@@ -328,7 +328,7 @@ electron-app/utils/
 ├── vite.renderer.config.mjs         # Root-owned renderer compatibility bundle configuration
 ├── vitest.config.ts                 # Root-owned Vitest configuration for electron-app tests
 ├── tsconfig.vitest-typecheck.json   # Root-owned Vitest typecheck configuration
-├── tsconfig.electron-app.eslint.json # Root-owned ESLint parser project for electron-app
+├── tsconfig.app.eslint.json # Root-owned ESLint parser project for electron-app
 ├── electron-builder.config.cjs      # Root-owned Electron Builder targets, file associations, and package allowlist
 ├── scripts/
 │   ├── analyze-coverage.mjs         # Root-owned coverage analysis helper

@@ -11,7 +11,7 @@
         "electron-app/dist/**",
         "node_modules/**"
     ],
-    "extends": "./tsconfig.electron-app.json",
+    "extends": "./tsconfig.app.json",
     "include": [
         "tests/**/*.test-d.ts",
         "tests/**/*.test-d.mts",
