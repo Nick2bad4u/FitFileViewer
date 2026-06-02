@@ -3,6 +3,19 @@ import { describe, expect, it } from "vitest";
 
 import { openAccentColorPicker } from "../../../../electron-app/ui/modals/accentColorPicker.js";
 
+const EXPECTED_PRESET_COLORS = [
+    { hex: "#3b82f6", name: "Blue" },
+    { hex: "#ef4444", name: "Red" },
+    { hex: "#22c55e", name: "Green" },
+    { hex: "#f59e0b", name: "Amber" },
+    { hex: "#8b5cf6", name: "Purple" },
+    { hex: "#ec4899", name: "Pink" },
+    { hex: "#06b6d4", name: "Cyan" },
+    { hex: "#f97316", name: "Orange" },
+    { hex: "#14b8a6", name: "Teal" },
+    { hex: "#6366f1", name: "Indigo" },
+] as const;
+
 function requireElement<TElement extends Element>(
     selector: string,
     root: ParentNode = document
@@ -13,6 +26,37 @@ function requireElement<TElement extends Element>(
     }
 
     return element;
+}
+
+function getPresetButtonStates(): {
+    className: string;
+    hex: string | undefined;
+    selected: boolean;
+    title: string;
+    type: string;
+}[] {
+    return [
+        ...document.querySelectorAll<HTMLButtonElement>(".preset-color"),
+    ].map((button) => ({
+        className: button.className,
+        hex: button.dataset["hex"],
+        selected: button.classList.contains("selected"),
+        title: button.title,
+        type: button.type,
+    }));
+}
+
+function createExpectedPresetButtonStates(selectedHex: string) {
+    return EXPECTED_PRESET_COLORS.map((preset) => ({
+        className:
+            preset.hex === selectedHex
+                ? "preset-color selected"
+                : "preset-color",
+        hex: preset.hex,
+        selected: preset.hex === selectedHex,
+        title: preset.name,
+        type: "button",
+    }));
 }
 
 function setupFixture(): void {
@@ -54,7 +98,9 @@ describe("accentColorPicker", () => {
         expect(customPicker.value).toBe("#3b82f6");
         expect(customText.value).toBe("#3b82f6");
         expect(resetButton).toHaveProperty("disabled", true);
-        expect(presetButtons[0]?.className).toContain("selected");
+        expect(getPresetButtonStates()).toStrictEqual(
+            createExpectedPresetButtonStates("#3b82f6")
+        );
 
         customText.value = "#ef4444";
         customText.dispatchEvent(new Event("input", { bubbles: true }));
@@ -63,7 +109,9 @@ describe("accentColorPicker", () => {
         expect(customPicker.value).toBe("#ef4444");
         expect(hex.textContent).toBe("#EF4444");
         expect(resetButton).toHaveProperty("disabled", false);
-        expect(presetButtons[1]?.className).toContain("selected");
+        expect(getPresetButtonStates()).toStrictEqual(
+            createExpectedPresetButtonStates("#ef4444")
+        );
 
         resetButton.click();
 
