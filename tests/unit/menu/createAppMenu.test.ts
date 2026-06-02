@@ -372,7 +372,9 @@ describe("createAppMenu", () => {
             (i: any) => i.label === "🕑 Open Recent"
         );
         const firstRecent = openRecent.submenu[0];
-        expect(firstRecent.click).toBeTypeOf("function");
+        expect(pickMenuFields(firstRecent, ["label"])).toStrictEqual({
+            label: "activity1.fit",
+        });
         firstRecent.click();
         expect(send).toHaveBeenCalledWith(
             "open-recent-file",
@@ -539,7 +541,7 @@ describe("createAppMenu", () => {
     });
 
     it("help menu contains external links and other items send IPC", () => {
-        expect.assertions(5);
+        expect.assertions(2);
         const createAppMenu = importCreateAppMenu();
         const send = createMock();
         const fakeWin = { webContents: { send } };
@@ -556,20 +558,33 @@ describe("createAppMenu", () => {
         const issues = help.submenu.find(
             (i: any) => i.label === "❗Report an Issue"
         );
-        // Ensure items exist and are callable. Electron wiring for shell is mocked elsewhere and can be flaky; we assert structure.
-        expect(docs.click).toBeTypeOf("function");
-        expect(repo.click).toBeTypeOf("function");
-        expect(issues.click).toBeTypeOf("function");
+        docs.click();
+        repo.click();
+        issues.click();
+        expect(
+            ((globalThis as any).__shellOpenCalls || []).map(
+                (call: any[]) => call[0]
+            )
+        ).toStrictEqual([
+            "https://github.com/Nick2bad4u/FitFileViewer#readme",
+            "https://github.com/Nick2bad4u/FitFileViewer",
+            "https://github.com/Nick2bad4u/FitFileViewer/issues",
+        ]);
+
         const about = help.submenu.find((i: any) => i.label === "ℹ️ About");
         const shortcuts = help.submenu.find(
             (i: any) => i.label === "⌨️ Keyboard Shortcuts"
         );
-        expect(about.click).toBeTypeOf("function");
-        expect(shortcuts.click).toBeTypeOf("function");
+        about.click();
+        shortcuts.click();
+        expect((globalThis as any).__ipcCalls).toStrictEqual([
+            ["menu-about"],
+            ["menu-keyboard-shortcuts"],
+        ]);
     });
 
     it("help > About and Keyboard Shortcuts items are present and clickable", () => {
-        expect.assertions(3);
+        expect.assertions(1);
         const createAppMenu = importCreateAppMenu();
         const fakeWin = { webContents: { send: createMock() } };
         createAppMenu(fakeWin as any, "dark", null);
@@ -580,9 +595,6 @@ describe("createAppMenu", () => {
         const shortcuts = help.submenu.find(
             (i: any) => i.label === "⌨️ Keyboard Shortcuts"
         );
-        expect(about.click).toBeTypeOf("function");
-        expect(shortcuts.click).toBeTypeOf("function");
-        // Exercise click handlers and assert IPC
         about.click();
         shortcuts.click();
         const ipcCalls: any[][] = (globalThis as any).__ipcCalls || [];
@@ -595,6 +607,14 @@ describe("createAppMenu", () => {
     it("file > Close Window item is present and clickable", () => {
         expect.assertions(1);
         const createAppMenu = importCreateAppMenu();
+        let closed = false;
+        (globalThis as any).__electronHoistedMock.BrowserWindow = {
+            getFocusedWindow: () => ({
+                close: () => {
+                    closed = true;
+                },
+            }),
+        };
         const fakeWin = { webContents: { send: createMock() } };
         createAppMenu(fakeWin as any, "dark", null);
         const tpl =
@@ -603,7 +623,9 @@ describe("createAppMenu", () => {
         const closeItem = fileMenu.submenu.find(
             (i: any) => i.label === "🚪 Close Window"
         );
-        expect(closeItem.click).toBeTypeOf("function");
+        closeItem.click();
+
+        expect(closed).toBe(true);
     });
 
     // Note: macOS-specific App menu is covered indirectly via code paths; explicit darwin test can be flaky in CI mocks.
