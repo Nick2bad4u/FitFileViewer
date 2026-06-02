@@ -162,7 +162,7 @@ describe("build-win7 script", () => {
     });
 
     it("falls back to the platform npm command when no npm CLI path exists", async () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const { runNpmScript } = await importWin7Build();
         const { calls, commandRunner } = makeCommandRecorder();
@@ -184,6 +184,22 @@ describe("build-win7 script", () => {
                     cwd: repositoryRoot,
                     stdio: "inherit",
                 },
+            },
+        ]);
+        expect(
+            calls.map((call) => ({
+                cwdIsNestedElectronApp: path
+                    .resolve(call.options.cwd)
+                    .includes(`${path.sep}electron-app${path.sep}`),
+                cwdRelativeToRepository: path.relative(
+                    repositoryRoot,
+                    path.resolve(call.options.cwd)
+                ),
+            }))
+        ).toStrictEqual([
+            {
+                cwdIsNestedElectronApp: false,
+                cwdRelativeToRepository: "",
             },
         ]);
     });
