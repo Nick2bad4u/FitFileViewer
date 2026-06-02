@@ -51,14 +51,14 @@ function writePlaceholder(root: string, relativePath: string): void {
     fs.writeFileSync(targetPath, "generated");
 }
 
-function getTargetExistence(
+function getPathStates(
     root: string,
     targets: string[]
-): Record<string, boolean> {
+): Record<string, "missing" | "present"> {
     return Object.fromEntries(
         targets.map((target) => [
             target,
-            fs.existsSync(path.join(root, target)),
+            fs.existsSync(path.join(root, target)) ? "present" : "missing",
         ])
     );
 }
@@ -183,15 +183,15 @@ describe("clean-workspace script", () => {
         }
         writePlaceholder(temporaryRoot, unrelatedFile);
 
-        expect(getTargetExistence(temporaryRoot, targets)).toStrictEqual(
-            Object.fromEntries(targets.map((target) => [target, true]))
+        expect(getPathStates(temporaryRoot, targets)).toStrictEqual(
+            Object.fromEntries(targets.map((target) => [target, "present"]))
         );
 
         const removedTargets = cleanWorkspace(temporaryRoot, targets);
 
         expect(removedTargets).toStrictEqual(targets);
-        expect(getTargetExistence(temporaryRoot, targets)).toStrictEqual(
-            Object.fromEntries(targets.map((target) => [target, false]))
+        expect(getPathStates(temporaryRoot, targets)).toStrictEqual(
+            Object.fromEntries(targets.map((target) => [target, "missing"]))
         );
         expect(
             fs.readFileSync(path.join(temporaryRoot, unrelatedFile), "utf8")
@@ -236,6 +236,8 @@ describe("clean-workspace script", () => {
         expect(
             fs.readFileSync(path.join(temporaryRoot, generatedFile), "utf8")
         ).toBe("generated");
-        expect(fs.existsSync(path.join(temporaryRoot, ".cache"))).toBe(true);
+        expect(getPathStates(temporaryRoot, [".cache"])).toStrictEqual({
+            ".cache": "present",
+        });
     });
 });
