@@ -459,8 +459,11 @@ describe("workspace path helpers", () => {
         expect.assertions(2);
 
         const workspaces = await importWorkspaces();
-        const appLocalPackageOrConfigTargetPattern =
-            /^electron-app\/(?:package(?:-lock)?\.json|(?:electron-builder|eslint|prettier|stylelint|vite|vitest)\.config\.[cm]?[jt]s|tsconfig(?:\.[\w-]+)?\.json)$/u;
+        const appLocalPackageOrConfigTargets = [
+            workspaces.rootPackageJsonPath,
+            workspaces.rootPackageLockPath,
+            ...workspaces.rootToolingConfigPaths,
+        ].map((configPath) => workspaces.appSourceRepositoryPath(configPath));
 
         expect(workspaces.repositoryPrettierTargets).toStrictEqual([
             "package.json",
@@ -482,8 +485,8 @@ describe("workspace path helpers", () => {
             "electron-app/renderer/leafletMeasureLite.js",
         ]);
         expect(
-            workspaces.repositoryPrettierTargets.filter((target) =>
-                appLocalPackageOrConfigTargetPattern.test(target)
+            appLocalPackageOrConfigTargets.filter((target) =>
+                workspaces.repositoryPrettierTargets.includes(target)
             )
         ).toStrictEqual([]);
     });
