@@ -171,7 +171,9 @@ describe("mapActionButtons", () => {
             updateOverlayHighlights.mockClear();
             activeFileName.dispatchEvent(new MouseEvent("mouseleave"));
 
-            expect([...activeFileName.classList]).not.toContain("highlighted");
+            expect(activeFileName.classList.contains("highlighted")).toBe(
+                false
+            );
             expect(getTestGlobal()._highlightedOverlayIdx).toBeNull();
             expect(updateOverlayHighlights).toHaveBeenCalledOnce();
 
