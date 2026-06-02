@@ -32,25 +32,48 @@ const getPopupChartContainer = (mockWin: MockElevationPopupWindow) => {
     return container;
 };
 
+const requirePopupElement = <TElement extends Element>(
+    element: TElement | null,
+    label: string
+): TElement => {
+    if (element === null) {
+        throw new TypeError(`Expected ${label}`);
+    }
+
+    return element;
+};
+
 const getElevationButtonState = (button: HTMLButtonElement) => {
-    const icon = button.querySelector("svg.icon"),
-        polyline = icon?.querySelector("polyline");
+    const icon = requirePopupElement(
+            button.querySelector("svg.icon"),
+            "elevation button icon"
+        ),
+        polyline = requirePopupElement(
+            icon.querySelector("polyline"),
+            "elevation button polyline"
+        );
 
     return {
         className: button.className,
-        dotCount: icon?.querySelectorAll("circle").length ?? 0,
-        iconHeight: icon?.getAttribute("height"),
-        iconViewBox: icon?.getAttribute("viewBox"),
-        iconWidth: icon?.getAttribute("width"),
-        polylinePoints: polyline?.getAttribute("points"),
+        dotCount: icon.querySelectorAll("circle").length,
+        iconHeight: icon.getAttribute("height"),
+        iconViewBox: icon.getAttribute("viewBox"),
+        iconWidth: icon.getAttribute("width"),
+        polylinePoints: polyline.getAttribute("points"),
         text: button.textContent,
         title: button.title,
     };
 };
 
 const getPopupHeaderState = (mockWin: MockElevationPopupWindow) => ({
-    fileCount: mockWin.document.querySelector("header span")?.textContent,
-    heading: mockWin.document.querySelector("header h2")?.textContent,
+    fileCount: requirePopupElement(
+        mockWin.document.querySelector("header span"),
+        "popup file count"
+    ).textContent,
+    heading: requirePopupElement(
+        mockWin.document.querySelector("header h2"),
+        "popup heading"
+    ).textContent,
 });
 
 const getPopupFileLabels = (mockWin: MockElevationPopupWindow) =>
@@ -75,7 +98,7 @@ describe(createElevationProfileButton, () => {
         originalWindow = { ...window };
 
         // Mock document.createElement
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         document.body.classList.remove("theme-dark");
         vi.spyOn(getThemeColorsModule, "getThemeColors").mockReturnValue({
             primary: "#3b82f6",
@@ -291,9 +314,12 @@ describe(createElevationProfileButton, () => {
         const mockWin = getPopupWindow();
 
         expect(mockWin.document.body.className).toBe("theme-dark");
-        expect(mockWin.document.querySelector("style")?.textContent).toContain(
-            "text-shadow: 0 0 2px #000"
-        );
+        expect(
+            requirePopupElement(
+                mockWin.document.querySelector("style"),
+                "popup style"
+            ).textContent
+        ).toContain("text-shadow: 0 0 2px #000");
     });
 
     it("should handle files without altitude data", () => {

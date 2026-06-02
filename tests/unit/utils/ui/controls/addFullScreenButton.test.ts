@@ -269,7 +269,7 @@ function cleanupTestState(): void {
     cleanupStoredEventHandlers();
     Reflect.deleteProperty(getTestGlobal(), "screenfull");
     Reflect.deleteProperty(getTestGlobal(), "electronAPI");
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
     document.body.style.overflow = "";
     vi.resetModules();
 }
@@ -319,11 +319,22 @@ function getRequiredFullscreenButton(): HTMLButtonElement {
     return button;
 }
 
+function getRequiredFullscreenIconTitle(
+    button: HTMLButtonElement
+): SVGTitleElement {
+    const title = button.querySelector(".fullscreen-icon title");
+    if (!(title instanceof SVGTitleElement)) {
+        throw new TypeError("Expected fullscreen icon title to be mounted.");
+    }
+
+    return title;
+}
+
 function getFullscreenButtonState(button: HTMLButtonElement) {
     return {
         ariaLabel: button.getAttribute("aria-label"),
         classes: [...button.classList],
-        iconTitle: button.querySelector(".fullscreen-icon title")?.textContent,
+        iconTitle: getRequiredFullscreenIconTitle(button).textContent,
         role: button.getAttribute("role"),
         tabIndex: button.getAttribute("tabindex"),
         title: button.title,
