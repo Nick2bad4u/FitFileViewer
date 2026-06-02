@@ -214,7 +214,7 @@ describe("tabStateManager regressions", () => {
 
     describe("state synchronization", () => {
         it("detects mismatched DOM and state active tabs", () => {
-            expect.assertions(1);
+            expect.assertions(2);
 
             const summaryBtn = document.getElementById("tab-summary");
 
@@ -228,12 +228,15 @@ describe("tabStateManager regressions", () => {
             const summaryClassName = summaryBtn.className;
             const stateActive = mockGetState("ui.activeTab");
 
+            const summaryIsSynchronized =
+                summaryClassName === "tab-button active" &&
+                stateActive === "summary";
+
+            expect(summaryIsSynchronized).not.toBe(true);
             expect({
                 summaryClassName,
                 stateActive,
-                summaryIsSynchronized:
-                    summaryClassName === "tab-button active" &&
-                    stateActive === "summary",
+                summaryIsSynchronized,
             }).toStrictEqual({
                 summaryClassName: "tab-button active",
                 stateActive: "map",
@@ -241,37 +244,33 @@ describe("tabStateManager regressions", () => {
             });
         });
 
-        it("documents async handler failures that require awaiting", async () => {
-            expect.assertions(2);
+        it("catches async tab handler failures and notifies the user", async () => {
+            expect.assertions(4);
 
-            let asyncError = null;
+            const manager = new TabStateManager();
+            const handlerError = new Error("Async operation failed");
+            const consoleSpy = vi
+                .spyOn(console, "error")
+                .mockImplementation(() => {});
+            vi.spyOn(manager, "handleBrowserTab").mockRejectedValue(
+                handlerError
+            );
 
-            // Simulate async handler that fails
-            const asyncHandler = async () => {
-                throw new Error("Async operation failed");
-            };
+            const result = await manager.handleTabSpecificLogic("browser");
 
-            // The real code doesn't await async handlers
-            try {
-                // Handle the promise to prevent unhandled rejection
-                await asyncHandler().catch((error) => {
-                    // This demonstrates the bug - errors are lost without proper handling
-                });
-            } catch (error) {
-                asyncError = error; // Won't catch async errors
-            }
+            expect(result).toBeUndefined();
+            expect(consoleSpy).toHaveBeenCalledWith(
+                "[TabStateManager] Error handling tab browser:",
+                handlerError
+            );
+            expect(mockShowNotification).toHaveBeenCalledWith(
+                "Error loading Browser tab",
+                "error"
+            );
+            expect(manager.handleBrowserTab).toHaveBeenCalledOnce();
 
-            // Error is lost in real implementation
-            expect(asyncError).toBeNull();
-
-            // Proper handling would catch the error
-            try {
-                await asyncHandler();
-            } catch (error) {
-                asyncError = error;
-            }
-
-            expect(asyncError).toBeInstanceOf(Error);
+            manager.cleanup();
+            consoleSpy.mockRestore();
         });
     });
 
@@ -526,28 +525,61 @@ describe("tabStateManager regressions", () => {
             });
         });
 
-        it("documents duplicate chart handler assignments", () => {
-            expect.assertions(2);
+        it("keeps duplicate tab handlers limited to the chart compatibility alias", () => {
+            expect.assertions(3);
 
-            const handlers = Object.values(TAB_CONFIG)
-                .filter((config) => config.handler)
-                .map((config) => config.handler);
+            const handlerGroups = Object.entries(TAB_CONFIG)
+                .filter(([, config]) => config.handler)
+                .reduce<Record<string, string[]>>(
+                    (groups, [tabName, config]) => {
+                        const { handler } = config;
+                        if (handler) {
+                            groups[handler] ??= [];
+                            groups[handler].push(tabName);
+                        }
+                        return groups;
+                    },
+                    {}
+                );
 
-            const handlerCounts = {};
-            handlers.forEach((handler) => {
-                handlerCounts[handler] = (handlerCounts[handler] || 0) + 1;
-            });
-
-            const duplicates = Object.entries(handlerCounts).filter(
-                ([, count]) => count > 1
+            const duplicateHandlerGroups = Object.entries(handlerGroups).filter(
+                ([, tabNames]) => tabNames.length > 1
             );
 
-            expect(duplicates).toStrictEqual([["renderChartJS", 2]]);
-            expect(
-                Object.entries(TAB_CONFIG)
-                    .filter(([, config]) => config.handler === "renderChartJS")
-                    .map(([tabName]) => tabName)
-            ).toStrictEqual(["chart", "chartjs"]);
+            expect(duplicateHandlerGroups).toStrictEqual([
+                ["renderChartJS", ["chart", "chartjs"]],
+            ]);
+            expect(new Set(Object.keys(TAB_CONFIG))).toStrictEqual(
+                new Set([
+                    "altfit",
+                    "browser",
+                    "chart",
+                    "chartjs",
+                    "data",
+                    "map",
+                    "summary",
+                    "zwift",
+                ])
+            );
+            expect({
+                chart: TAB_CONFIG.chart,
+                chartjs: TAB_CONFIG.chartjs,
+            }).toStrictEqual({
+                chart: {
+                    contentId: "content-chartjs",
+                    handler: "renderChartJS",
+                    id: "tab-chart",
+                    label: "Charts",
+                    requiresData: true,
+                },
+                chartjs: {
+                    contentId: "content-chartjs",
+                    handler: "renderChartJS",
+                    id: "tab-chartjs",
+                    label: "Charts",
+                    requiresData: true,
+                },
+            });
         });
     });
 
