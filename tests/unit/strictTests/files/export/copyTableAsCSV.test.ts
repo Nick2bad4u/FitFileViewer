@@ -1,27 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-// Minimal Arquero-like API used by the module
-(window as any).aq = {
-    from: (rows: any[]) => ({
-        toCSV: ({ header }: { header: boolean }) => {
-            const keys = Object.keys(rows[0] ?? {});
-            const serialize = (v: any) =>
-                typeof v === "string" ? v : String(v);
-            const lines = rows.map((r) =>
-                keys.map((k) => serialize(r[k] ?? "")).join(",")
-            );
-            return (
-                (header
-                    ? `${keys.join(",")}` + (lines.length ? "\n" : "")
-                    : "") + lines.join("\n")
-            );
-        },
-    }),
-};
-
 describe("copyTableAsCSV", () => {
     beforeEach(() => {
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
     });
 
     it("copies using modern Clipboard API and stringifies nested objects", async () => {
@@ -52,7 +33,7 @@ describe("copyTableAsCSV", () => {
     });
 
     it("falls back when Clipboard API not available", async () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         // Remove clipboard to force fallback
         const nav = globalThis.navigator as any;
@@ -61,9 +42,13 @@ describe("copyTableAsCSV", () => {
         let copiedText = "";
         (document as any).execCommand = (command: string) => {
             copiedCommand = command;
-            copiedText =
-                document.querySelector<HTMLTextAreaElement>("textarea")
-                    ?.value ?? "";
+            const textarea =
+                document.querySelector<HTMLTextAreaElement>("textarea");
+            expect(textarea).toBeInstanceOf(HTMLTextAreaElement);
+            if (!(textarea instanceof HTMLTextAreaElement)) {
+                throw new TypeError("Expected fallback textarea");
+            }
+            copiedText = textarea.value;
             return true;
         };
         const { copyTableAsCSV } =
