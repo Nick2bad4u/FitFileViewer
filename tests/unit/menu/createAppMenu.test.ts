@@ -499,7 +499,7 @@ describe("createAppMenu", () => {
         const xs = fontSize.submenu.find(
             (i: any) => i.label === "🅰️ Extra Small"
         );
-        expect(fontSize.submenu.map((i: any) => i.label)).toEqual([
+        expect(fontSize.submenu.map((i: any) => i.label)).toStrictEqual([
             "🅰️ Extra Small",
             "🔠 Small",
             "🔤 Medium",
@@ -921,7 +921,7 @@ describe("createAppMenu", () => {
             item.click();
             expect(send).toHaveBeenCalledWith("set-font-size", s.val);
         }
-        expect(fontSize.submenu.map((i: any) => i.label)).toEqual(
+        expect(fontSize.submenu.map((i: any) => i.label)).toStrictEqual(
             sizes.map((s) => s.label)
         );
     });
@@ -1191,7 +1191,7 @@ describe("createAppMenu", () => {
         createAppMenu(fakeWin as any, "dark", null);
         const tpl =
             capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
-        expect(tpl.map((i: any) => i.label)).toEqual([
+        expect(tpl.map((i: any) => i.label)).toStrictEqual([
             "📁 File",
             "👁️ View",
             "⚙️ Settings",
@@ -1542,7 +1542,7 @@ describe("createAppMenu - additional robust branches", () => {
         hc.submenu.find((i: any) => i.label === "⬜ White").click();
         hc.submenu.find((i: any) => i.label === "🟨 Yellow").click();
         hc.submenu.find((i: any) => i.label === "🚫 Off").click();
-        expect(help.submenu.map((i: any) => i.label ?? i.type)).toEqual([
+        expect(help.submenu.map((i: any) => i.label ?? i.type)).toStrictEqual([
             "ℹ️ About",
             "separator",
             "📖 Documentation",
@@ -1552,7 +1552,7 @@ describe("createAppMenu - additional robust branches", () => {
             "⌨️ Keyboard Shortcuts",
             "🔄 Restart and Update",
         ]);
-        expect(hc.submenu.map((i: any) => i.label)).toEqual([
+        expect(hc.submenu.map((i: any) => i.label)).toStrictEqual([
             "⬛ Black (Default)",
             "⬜ White",
             "🟨 Yellow",
