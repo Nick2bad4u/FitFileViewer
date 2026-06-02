@@ -387,7 +387,74 @@ function getRegisteredIpcHandler(channel: string) {
     const registration = mockElectron.ipcMain.handle.mock.calls.find(
         ([registeredChannel]) => registeredChannel === channel
     );
-    return registration?.[1];
+
+    return registration ? registration[1] : undefined;
+}
+
+function getRequiredIpcHandler(channel: string) {
+    const handler = getRegisteredIpcHandler(channel);
+
+    if (typeof handler !== "function") {
+        throw new TypeError(`Expected ${channel} IPC handler`);
+    }
+
+    return handler;
+}
+
+function getRequiredWebContentsOnCall(
+    eventName: string
+): [string, (...args: unknown[]) => void] {
+    const call = mockWindow.webContents.on.mock.calls.find(
+        ([registeredEventName]) => registeredEventName === eventName
+    );
+
+    if (!call) {
+        throw new TypeError(`Expected webContents ${eventName} listener`);
+    }
+
+    return call;
+}
+
+function getRequiredDevHelpers(): DevHelpers {
+    const { devHelpers } = testGlobals;
+
+    if (!devHelpers) {
+        throw new TypeError("Expected development helpers");
+    }
+
+    return devHelpers;
+}
+
+function getRequiredWarnCall(): unknown[] {
+    const call = vi.mocked(console.warn).mock.calls.at(0);
+
+    if (!call) {
+        throw new TypeError("Expected console.warn call");
+    }
+
+    return call;
+}
+
+function getRequiredWebRequestHandler(): (
+    details: { url: string },
+    callback: (response: Record<string, unknown>) => void
+) => void {
+    const call =
+        mockElectron.session.defaultSession.webRequest.onBeforeRequest.mock.calls.at(
+            0
+        );
+
+    if (!call) {
+        throw new TypeError("Expected webRequest onBeforeRequest registration");
+    }
+
+    const handler = call[0];
+
+    if (typeof handler !== "function") {
+        throw new TypeError("Expected webRequest onBeforeRequest handler");
+    }
+
+    return handler;
 }
 
 function resetMockImplementations() {
@@ -522,13 +589,11 @@ describe("main.js - Electron Main Process", () => {
             expect.assertions(3);
 
             const mainModule = await importMainModule();
-            const loadHandler = mockWindow.webContents.on.mock.calls.find(
-                ([eventName]) => eventName === "did-finish-load"
-            );
+            const loadHandler = getRequiredWebContentsOnCall("did-finish-load");
 
             expect(mainModule.getAppState("mainWindow")).toBe(mockWindow);
-            expect(loadHandler?.[0]).toBe("did-finish-load");
-            expect(loadHandler?.[1]).toBeTypeOf("function");
+            expect(loadHandler[0]).toBe("did-finish-load");
+            expect(loadHandler[1]).toBeTypeOf("function");
         });
 
         it("should handle missing electron gracefully", async () => {
@@ -660,9 +725,9 @@ describe("main.js - Electron Main Process", () => {
 
             try {
                 const mainModule = await importMainModule();
-                const devHelpers = testGlobals.devHelpers;
+                const devHelpers = getRequiredDevHelpers();
 
-                expect(Object.keys(devHelpers ?? {}).sort()).toStrictEqual([
+                expect(Object.keys(devHelpers).sort()).toStrictEqual([
                     "cleanupEventHandlers",
                     "getAppState",
                     "logState",
@@ -670,10 +735,10 @@ describe("main.js - Electron Main Process", () => {
                 ]);
 
                 mainModule.setAppState("loadedFitFilePath", "dev-activity.fit");
-                const devState = devHelpers?.getAppState();
+                const devState = devHelpers.getAppState();
 
-                expect(devState?.loadedFitFilePath).toBe("dev-activity.fit");
-                expect(devState?.mainWindow).toBe(mockWindow);
+                expect(devState.loadedFitFilePath).toBe("dev-activity.fit");
+                expect(devState.mainWindow).toBe(mockWindow);
 
                 const handler = vi.fn<() => void>();
                 const removeListener =
@@ -691,14 +756,14 @@ describe("main.js - Electron Main Process", () => {
                         ],
                     ])
                 );
-                expect(devHelpers?.getAppState().eventHandlers.size).toBe(1);
+                expect(devHelpers.getAppState().eventHandlers.size).toBe(1);
 
-                devHelpers?.cleanupEventHandlers();
+                devHelpers.cleanupEventHandlers();
                 expect(removeListener).toHaveBeenCalledWith(
                     "dev-event",
                     handler
                 );
-                expect(devHelpers?.getAppState().eventHandlers.size).toBe(0);
+                expect(devHelpers.getAppState().eventHandlers.size).toBe(0);
             } finally {
                 process.argv = originalArgv;
             }
@@ -730,12 +795,11 @@ describe("main.js - Electron Main Process", () => {
             expect(
                 mainModule.validateWindow(destroyedWindow, "destroyed window")
             ).toStrictEqual(false);
-            expect(warnSpy.mock.calls[0]?.[0]).toContain(
+            const warnCall = getRequiredWarnCall();
+            expect(warnCall[0]).toContain(
                 "Window validation failed during destroyed window"
             );
-            expect(
-                JSON.parse(warnSpy.mock.calls[0]?.[1] as string)
-            ).toStrictEqual({
+            expect(JSON.parse(warnCall[1] as string)).toStrictEqual({
                 hasWebContents: true,
                 hasWindow: true,
                 isDestroyed: true,
@@ -747,7 +811,7 @@ describe("main.js - Electron Main Process", () => {
             expect.assertions(2);
 
             await importMainModule();
-            const fileReadHandler = getRegisteredIpcHandler("file:read");
+            const fileReadHandler = getRequiredIpcHandler("file:read");
 
             expect(fileReadHandler).toBeTypeOf("function");
             await expect(fileReadHandler({}, "")).rejects.toThrow(
@@ -781,9 +845,7 @@ describe("main.js - Electron Main Process", () => {
             expect.assertions(3);
 
             await importMainModule();
-            const requestHandler =
-                mockElectron.session.defaultSession.webRequest.onBeforeRequest
-                    .mock.calls[0]?.[0];
+            const requestHandler = getRequiredWebRequestHandler();
             const blockedCallback =
                 vi.fn<(response: Record<string, unknown>) => void>();
             const allowedCallback =
