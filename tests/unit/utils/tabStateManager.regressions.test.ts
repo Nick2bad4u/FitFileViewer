@@ -442,27 +442,29 @@ describe("tabStateManager regressions", () => {
     });
 
     describe("performance and error handling", () => {
-        it("keeps repeated tab DOM queries within a reasonable duration", () => {
+        it("resolves active tab elements from current state", () => {
             expect.assertions(1);
 
-            const performanceTest = () => {
-                const start = performance.now();
+            mockGetState.mockReturnValue("chart");
 
-                // Simulate multiple DOM queries like in real code
-                for (let i = 0; i < 50; i++) {
-                    document.querySelectorAll(".tab-button");
-                    Object.values(TAB_CONFIG).forEach((config) => {
-                        document.getElementById(config.contentId);
-                    });
-                }
+            const manager = new TabStateManager();
+            const activeTabInfo = manager.getActiveTabInfo();
 
-                return performance.now() - start;
-            };
+            expect({
+                contentElementId: activeTabInfo.contentElement?.id,
+                elementId: activeTabInfo.element?.id,
+                label: activeTabInfo.config?.label,
+                name: activeTabInfo.name,
+                previous: activeTabInfo.previous,
+            }).toStrictEqual({
+                contentElementId: "content-chartjs",
+                elementId: "tab-chart",
+                label: "Charts",
+                name: "chart",
+                previous: null,
+            });
 
-            const duration = performanceTest();
-
-            // Should complete reasonably fast, but this exposes the inefficiency
-            expect(duration).toBeLessThan(100);
+            manager.cleanup();
         });
 
         it("catches chart tab render failures and notifies the user", async () => {
