@@ -24,6 +24,13 @@ type VsCodeWorkspaceSettings = {
     "vitest.rootConfig"?: string;
 };
 
+const expectedRootTaskCommands = {
+    "build runtime from root": ["run", "build:runtime-ts"],
+    "lint app from root": ["run", "lint:app"],
+    "test from root": ["test"],
+    "typecheck from root": ["run", "typecheck"],
+} as const;
+
 function readVsCodeSettings(): VsCodeWorkspaceSettings {
     return JSON.parse(
         readFileSync(
@@ -51,19 +58,31 @@ function getTaskByLabel(tasks: VsCodeTask[], label: string): VsCodeTask {
     return task;
 }
 
+function getTaskCommandMap(tasks: VsCodeTask[]): Record<string, string[]> {
+    return Object.fromEntries(
+        tasks.map((task) => [task.label, task.args ?? []])
+    );
+}
+
+function delegatesToElectronAppPackage(task: VsCodeTask): boolean {
+    const args = task.args ?? [];
+    const commandParts = [task.command ?? "", ...args];
+
+    return commandParts.some((part) =>
+        /(?:^|[\\/])electron-app(?:[\\/]|$)|^(?:--workspace|--prefix|-w)$/u.test(
+            part
+        )
+    );
+}
+
 describe("vs code workspace tasks", () => {
     it("keeps editor tasks aligned with root-owned npm scripts", () => {
-        expect.assertions(7);
+        expect.assertions(5);
 
         const tasks = readVsCodeTasks();
         const taskLabels = tasks.map((task) => task.label);
         const taskCommands = tasks.map((task) => task.command);
         const taskCwds = tasks.map((task) => task.options?.cwd);
-        const taskArgs = tasks.flatMap((task) => task.args ?? []);
-        const lintAppTask = getTaskByLabel(tasks, "lint app from root");
-        const nestedElectronTestArgs = taskArgs.filter((taskArg) =>
-            /^electron-app[\\/]tests[\\/]/u.test(taskArg)
-        );
 
         expect(taskLabels).toStrictEqual([
             "build runtime from root",
@@ -71,15 +90,27 @@ describe("vs code workspace tasks", () => {
             "lint app from root",
             "typecheck from root",
         ]);
-        expect(lintAppTask.args).toStrictEqual(["run", "lint:app"]);
-        expect(taskArgs).not.toContain("lint:electron-app");
+        expect(getTaskCommandMap(tasks)).toStrictEqual(
+            expectedRootTaskCommands
+        );
         expect(new Set(taskCommands)).toStrictEqual(new Set(["npm"]));
         expect(new Set(taskCwds)).toStrictEqual(
             new Set(["${workspaceFolder}"])
         );
-        expect(nestedElectronTestArgs).toStrictEqual([]);
-        expect(taskArgs.join(" ")).not.toMatch(
-            /(?:--workspace|--prefix|-w)\s+electron-app/u
+        expect(tasks.filter(delegatesToElectronAppPackage)).toStrictEqual([]);
+    });
+
+    it("keeps lint app task using the root lint script", () => {
+        expect.assertions(1);
+
+        expect(getTaskByLabel(readVsCodeTasks(), "lint app from root")).toMatchObject(
+            {
+                args: ["run", "lint:app"],
+                command: "npm",
+                options: {
+                    cwd: "${workspaceFolder}",
+                },
+            }
         );
     });
 
