@@ -49,14 +49,28 @@ describe("format-runtime-output script", () => {
                 rootDir: "electron-app",
             },
         };
+        const outputPath = resolveOutputPath(
+            tsconfig,
+            "electron-app/utils/example.ts",
+            repositoryRoot
+        );
 
-        expect(
-            resolveOutputPath(
-                tsconfig,
-                "electron-app/utils/example.ts",
-                repositoryRoot
-            )
-        ).toBe(path.join(repositoryRoot, "dist", "utils", "example.js"));
+        expect({
+            absolutePath: outputPath,
+            isNestedElectronAppOutput: outputPath.includes(
+                `${path.sep}electron-app${path.sep}`
+            ),
+            repositoryPath: path.relative(repositoryRoot, outputPath),
+        }).toStrictEqual({
+            absolutePath: path.join(
+                repositoryRoot,
+                "dist",
+                "utils",
+                "example.js"
+            ),
+            isNestedElectronAppOutput: false,
+            repositoryPath: path.join("dist", "utils", "example.js"),
+        });
     });
 
     it("finds existing runtime output files for TypeScript entries only", () => {
