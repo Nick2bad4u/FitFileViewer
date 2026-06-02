@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -51,6 +51,15 @@ function readWorkspaceFile(relativePath: string): string {
 }
 
 describe("source entrypoint documentation", () => {
+    it("uses the case-exact root agent instructions path", () => {
+        expect.assertions(2);
+
+        const rootEntries = new Set(readdirSync(process.cwd()));
+
+        expect(rootAgentsPath).toBe("AGENTS.md");
+        expect(rootEntries.has(rootAgentsPath)).toBe(true);
+    });
+
     it("documents TypeScript source entrypoints for the Electron app", () => {
         expect.assertions(2);
 

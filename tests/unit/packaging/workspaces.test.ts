@@ -504,7 +504,7 @@ describe("workspace path helpers", () => {
             rootApplicationArchitecture: "docs/APPLICATION_ARCHITECTURE.md",
             rootApplicationLayout: "docs/APPLICATION_LAYOUT.md",
             rootApplicationOverview: "docs/APPLICATION_OVERVIEW.md",
-            rootAgents: "agents.md",
+            rootAgents: "AGENTS.md",
             rootDevelopmentGuide: "docs/DEVELOPMENT_GUIDE.md",
             rootDocs: "docs",
             rootDocsScreenshots: "docs/screenshots",
