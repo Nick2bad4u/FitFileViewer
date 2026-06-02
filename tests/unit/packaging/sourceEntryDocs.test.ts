@@ -8,6 +8,7 @@ import {
     docusaurusAdvancedPerformanceDocPath,
     docusaurusApiCoreApisDocPath,
     docusaurusApiIpcCommunicationDocPath,
+    docusaurusApiUtilityApisDocPath,
     docusaurusArchitectureModuleSystemDocPath,
     docusaurusArchitectureOverviewDocPath,
     docusaurusArchitectureProcessModelDocPath,
@@ -314,6 +315,56 @@ describe("source entrypoint documentation", () => {
         expect(
             staleFlatModuleReferences.filter((reference) =>
                 moduleSystemGuide.includes(reference)
+            )
+        ).toStrictEqual([]);
+    });
+
+    it("keeps the Docusaurus utility API reference aligned with current utility source", () => {
+        expect.assertions(3);
+
+        const utilityApiReference = readWorkspaceFile(
+            docusaurusApiUtilityApisDocPath
+        );
+        const currentApiSourceExamples = [
+            "electron-app/utils/formatting/formatters/formatDistance.ts",
+            "electron-app/utils/formatting/formatters/formatDuration.ts",
+            "electron-app/utils/formatting/formatters/formatTime.ts",
+            "electron-app/utils/maps/core/renderMap.ts",
+            "electron-app/utils/maps/layers/mapDrawLaps.ts",
+            "electron-app/utils/charts/core/renderChartJS.ts",
+            "electron-app/utils/charts/core/chartSpecFactory.ts",
+            "electron-app/utils/state/core/stateManager.ts",
+            "electron-app/utils/state/domain/settingsStateManager.ts",
+        ];
+        const staleApiReferences = [
+            "./utils/formatting/formatDistance.js",
+            "./utils/formatting/formatDuration.js",
+            "./utils/formatting/formatSpeed.js",
+            "./utils/maps/renderMap.js",
+            "./utils/maps/mapDrawLaps.js",
+            "./utils/charts/renderChartJS.js",
+            "./utils/charts/chartSpec.js",
+            "./utils/state/stateManager.js",
+            "./utils/state/themeManager.js",
+            "./utils/state/fileStateManager.js",
+        ];
+
+        expect(getPathStates(currentApiSourceExamples)).toStrictEqual(
+            Object.fromEntries(
+                currentApiSourceExamples.map((sourcePath) => [
+                    sourcePath,
+                    "present",
+                ])
+            )
+        );
+        expect(
+            currentApiSourceExamples.filter(
+                (sourcePath) => !utilityApiReference.includes(sourcePath)
+            )
+        ).toStrictEqual([]);
+        expect(
+            staleApiReferences.filter((reference) =>
+                utilityApiReference.includes(reference)
             )
         ).toStrictEqual([]);
     });

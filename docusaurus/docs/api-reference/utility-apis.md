@@ -8,159 +8,197 @@ description: Utility module API reference.
 
 # Utility APIs
 
-Reference for utility modules.
+FitFileViewer utility source lives under `electron-app/utils/` and is compiled
+by root-owned build scripts into `dist/`. Source files are TypeScript-first.
+Runtime import specifiers still use `.js` extensions so compiled ESM resolves
+correctly.
 
 ## Formatting Utilities
 
+Formatting source is grouped under `electron-app/utils/formatting/`.
+
 ### formatDistance
 
-```javascript
-import { formatDistance } from "./utils/formatting/formatDistance.js";
+Source: `electron-app/utils/formatting/formatters/formatDistance.ts`
 
-formatDistance(5000); // "5.00 km"
-formatDistance(5000, "mi"); // "3.11 mi"
-formatDistance(5000, "km", 1); // "5.0 km"
+```typescript
+import { formatDistance } from "./utils/formatting/formatters/formatDistance.js";
+
+formatDistance(5000); // "5.00 km / 3.11 mi"
+formatDistance(0); // ""
+formatDistance(Number.NaN); // ""
 ```
 
 **Parameters:**
 
-- `meters` (number) - Distance in meters
-- `unit` (string) - 'km' or 'mi' (default: 'km')
-- `decimals` (number) - Decimal places (default: 2)
+- `meters` (`unknown`) - Distance in meters.
 
-**Returns:** Formatted string
+**Returns:** A combined kilometer/mile string, or an empty string for invalid,
+zero, or negative input.
 
 ### formatDuration
 
-```javascript
-import { formatDuration } from "./utils/formatting/formatDuration.js";
+Source: `electron-app/utils/formatting/formatters/formatDuration.ts`
 
-formatDuration(3661); // "1:01:01"
-formatDuration(125); // "2:05"
-formatDuration(45); // "0:45"
+```typescript
+import { formatDuration } from "./utils/formatting/formatters/formatDuration.js";
+
+formatDuration(45); // "45 sec"
+formatDuration(125); // "2 min 5 sec"
+formatDuration(3661); // "1 hr 1 min"
 ```
 
 **Parameters:**
 
-- `seconds` (number) - Duration in seconds
+- `seconds` (`number | string | null | undefined`) - Duration in seconds.
 
-**Returns:** Formatted string (HH:MM:SS or MM:SS)
+**Returns:** A human-readable duration string.
 
-### formatSpeed
+**Throws:** `Error` for non-finite, empty-string, or negative values.
 
-```javascript
-import { formatSpeed } from "./utils/formatting/formatSpeed.js";
+### formatTime
 
-formatSpeed(4.17); // "15.0 km/h"
-formatSpeed(4.17, "mph"); // "9.3 mph"
-formatSpeed(4.17, "pace"); // "4:00 /km"
+Source: `electron-app/utils/formatting/formatters/formatTime.ts`
+
+```typescript
+import { formatTime } from "./utils/formatting/formatters/formatTime.js";
+
+formatTime(45); // "0:45"
+formatTime(3661); // "1:01:01"
+formatTime(undefined); // "0:00"
 ```
 
 **Parameters:**
 
-- `metersPerSecond` (number) - Speed in m/s
-- `format` (string) - 'kmh', 'mph', or 'pace'
+- `seconds` (`unknown`) - Duration in seconds.
+- `useUserUnits` (`boolean`) - Whether to format using the current time-unit
+  setting.
 
-**Returns:** Formatted string
+**Returns:** A time string, or `"0:00"` for invalid input.
 
 ## Map Utilities
 
 ### renderMap
 
-```javascript
-import { renderMap } from "./utils/maps/renderMap.js";
+Source: `electron-app/utils/maps/core/renderMap.ts`
 
-const map = renderMap("map-container", {
- center: [51.505, -0.09],
- zoom: 13,
-});
+```typescript
+import { renderMap } from "./utils/maps/core/renderMap.js";
+
+renderMap();
 ```
 
-**Parameters:**
+`renderMap` reads the current FIT data and map/UI state, creates or refreshes
+the Leaflet map, installs controls, applies theming, and draws the active route
+and overlays.
 
-- `containerId` (string) - DOM element ID
-- `options` (object) - Leaflet map options
+### mapDrawLaps
 
-**Returns:** Leaflet map instance
+Source: `electron-app/utils/maps/layers/mapDrawLaps.ts`
 
-### drawRoute
+```typescript
+import { mapDrawLaps } from "./utils/maps/layers/mapDrawLaps.js";
 
-```javascript
-import { drawRoute } from "./utils/maps/mapDrawLaps.js";
-
-drawRoute(map, gpsPoints, {
- color: "blue",
- weight: 3,
-});
+mapDrawLaps(fitData, map, leaflet, targetLayer);
 ```
 
-**Parameters:**
-
-- `map` (L.Map) - Leaflet map instance
-- `points` (array) - Array of [lat, lng] points
-- `options` (object) - Polyline options
+`mapDrawLaps` draws route segments from FIT record and lap messages. Overlay
+support is handled by `drawOverlayForFitFile` in the same module.
 
 ## Chart Utilities
 
-### renderChart
+### renderChartJS
 
-```javascript
-import { renderChart } from "./utils/charts/renderChartJS.js";
+Source: `electron-app/utils/charts/core/renderChartJS.ts`
 
-const chart = renderChart("chart-container", {
- type: "line",
- data: chartData,
- options: chartOptions,
+```typescript
+import { renderChartJS } from "./utils/charts/core/renderChartJS.js";
+
+const rendered = await renderChartJS("#charts-tab", {
+    allowInactiveTab: true,
+    renderMode: "foreground",
 });
 ```
 
 **Parameters:**
 
-- `containerId` (string) - Canvas element ID
-- `config` (object) - Chart.js configuration
+- `targetContainer` (`Element | string | null | undefined`) - Optional chart
+  container target.
+- `options` - Render-mode and inactive-tab controls.
 
-**Returns:** Chart.js instance
+**Returns:** `Promise<boolean>` indicating whether rendering completed.
 
-### createChartSpec
+### Chart Spec Factory
 
-```javascript
-import { createChartSpec } from "./utils/charts/chartSpec.js";
+Source: `electron-app/utils/charts/core/chartSpecFactory.ts`
 
-const spec = createChartSpec("speed", data);
+```typescript
+import {
+    buildChartConfigFromSpec,
+    buildChartSpecFromDefinition,
+} from "./utils/charts/core/chartSpecFactory.js";
+
+const spec = buildChartSpecFromDefinition(definition, records);
+const config = buildChartConfigFromSpec(spec, themeConfig);
 ```
 
-**Parameters:**
-
-- `type` (string) - Chart type ('speed', 'heartRate', 'elevation')
-- `data` (array) - Record data
-
-**Returns:** Chart configuration object
+The chart spec factory converts declarative chart definitions into Chart.js
+configuration objects.
 
 ## State Management
 
-### StateManager
+### Core State Manager
 
-```javascript
-import { stateManager } from "./utils/state/stateManager.js";
+Source: `electron-app/utils/state/core/stateManager.ts`
 
-// Set value
-stateManager.set("currentFile", fileData);
+```typescript
+import {
+    getState,
+    setState,
+    subscribe,
+    updateState,
+} from "./utils/state/core/stateManager.js";
 
-// Get value
-const file = stateManager.get("currentFile");
+setState("ui.activeTab", "chart");
+const activeTab = getState<string>("ui.activeTab");
 
-// Subscribe to changes
-stateManager.subscribe("currentFile", (newValue) => {
- console.log("File changed:", newValue);
+const unsubscribe = subscribe("ui.activeTab", (newValue, oldValue, path) => {
+    console.log("State changed:", { newValue, oldValue, path });
+});
+
+updateState("charts", { controlsVisible: true }, { merge: true });
+unsubscribe();
+```
+
+**Common exports:**
+
+- `getState(path?)` - Read the full state tree or one path.
+- `setState(path, value, options?)` - Replace or merge state at a path.
+- `updateState(path, updates, options?)` - Convenience update helper.
+- `subscribe(path, listener)` - Listen for state changes and receive an
+  unsubscribe function.
+- `resetState(path?)` - Reset all state or a specific path.
+
+### Settings State
+
+Source: `electron-app/utils/state/domain/settingsStateManager.ts`
+
+```typescript
+import {
+    getChartSetting,
+    setChartSetting,
+    subscribeToChartSettings,
+} from "./utils/state/domain/settingsStateManager.js";
+
+setChartSetting("maxpoints", 5000);
+const maxPoints = getChartSetting("maxpoints");
+
+const unsubscribe = subscribeToChartSettings((settings) => {
+    console.log("Chart settings changed:", settings);
 });
 ```
 
-**Methods:**
-
-- `set(key, value)` - Store a value
-- `get(key)` - Retrieve a value
-- `subscribe(key, callback)` - Listen for changes
-- `unsubscribe(key, callback)` - Remove listener
+Settings state owns chart, theme, map-theme, and power-estimation settings.
 
 ---
 

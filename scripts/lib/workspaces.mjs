@@ -247,6 +247,12 @@ export const docusaurusApiIpcCommunicationDocPath =
         "api-reference",
         "ipc-communication.md"
     );
+export const docusaurusApiUtilityApisDocPath =
+    docusaurusWorkspaceRepositoryPath(
+        "docs",
+        "api-reference",
+        "utility-apis.md"
+    );
 export const docusaurusDevelopmentBuildReleaseDocPath =
     docusaurusWorkspaceRepositoryPath(
         "docs",
