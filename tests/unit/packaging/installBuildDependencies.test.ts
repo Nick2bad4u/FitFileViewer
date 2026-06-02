@@ -1,3 +1,5 @@
+import path from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import { repositoryRoot } from "../../../scripts/lib/workspaces.mjs";
@@ -162,12 +164,32 @@ describe("install-build-dependencies script", () => {
 
         expect({
             commands: calls.map((call) => call.command),
-            cwds: calls.map((call) => call.options.cwd),
+            cwdChecks: calls.map((call) => ({
+                cwd: call.options.cwd,
+                cwdIsNestedElectronApp: path
+                    .resolve(call.options.cwd)
+                    .includes(`${path.sep}electron-app${path.sep}`),
+                cwdRelativeToRepository: path.relative(
+                    repositoryRoot,
+                    path.resolve(call.options.cwd)
+                ),
+            })),
             installedCommandCount,
             stdioModes: calls.map((call) => call.options.stdio),
         }).toStrictEqual({
             commands: ["choco", "choco"],
-            cwds: [repositoryRoot, repositoryRoot],
+            cwdChecks: [
+                {
+                    cwd: repositoryRoot,
+                    cwdIsNestedElectronApp: false,
+                    cwdRelativeToRepository: "",
+                },
+                {
+                    cwd: repositoryRoot,
+                    cwdIsNestedElectronApp: false,
+                    cwdRelativeToRepository: "",
+                },
+            ],
             installedCommandCount: 2,
             stdioModes: ["inherit", "inherit"],
         });
