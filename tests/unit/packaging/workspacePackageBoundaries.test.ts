@@ -72,6 +72,46 @@ function getFileExistence(relativePaths: string[]): Record<string, boolean> {
     );
 }
 
+function findMatchingRepositoryFiles(
+    rootRelativePath: string,
+    predicate: (repositoryPath: string, fileName: string) => boolean
+): string[] {
+    const rootAbsolutePath = path.join(process.cwd(), rootRelativePath);
+    const matches: string[] = [];
+
+    if (!existsSync(rootAbsolutePath)) {
+        return matches;
+    }
+
+    function visitDirectory(repositoryDirectoryPath: string): void {
+        const absoluteDirectoryPath = path.join(
+            process.cwd(),
+            repositoryDirectoryPath
+        );
+
+        for (const entry of readdirSync(absoluteDirectoryPath, {
+            withFileTypes: true,
+        })) {
+            const repositoryEntryPath = path.posix.join(
+                repositoryDirectoryPath,
+                entry.name
+            );
+
+            if (entry.isDirectory()) {
+                visitDirectory(repositoryEntryPath);
+                continue;
+            }
+
+            if (entry.isFile() && predicate(repositoryEntryPath, entry.name)) {
+                matches.push(repositoryEntryPath);
+            }
+        }
+    }
+
+    visitDirectory(rootRelativePath);
+    return matches.sort();
+}
+
 function createEngineDocsPattern(engineRange: string | undefined): RegExp {
     if (!engineRange) {
         throw new Error("Expected package engine range to be defined");
@@ -679,6 +719,24 @@ describe("workspace package boundaries", () => {
                 appLocalToolingConfigs.map((configPath) => [configPath, false])
             )
         );
+    });
+
+    it("keeps local package config and declaration shims out of Electron runtime source", () => {
+        expect.assertions(1);
+
+        const sourceLocalWorkspaceFileNames = new Set([
+            ...localPackageManagerManifestNames,
+            ...localToolingConfigNames,
+        ]);
+
+        expect(
+            findMatchingRepositoryFiles(
+                "electron-app",
+                (_repositoryPath, fileName) =>
+                    fileName.endsWith(".d.ts") ||
+                    sourceLocalWorkspaceFileNames.has(fileName)
+            )
+        ).toStrictEqual([]);
     });
 
     it("keeps Docusaurus lint and format tooling delegated to root wrappers", () => {
