@@ -27,6 +27,16 @@ type CommandRunner = (
     options: { cwd: string; env: NodeJS.ProcessEnv; stdio: string }
 ) => void;
 
+function getRequiredCommandCall(commands: CommandCall[], index: number) {
+    const command = commands.at(index);
+
+    if (!command) {
+        throw new TypeError(`Expected command at index ${index}`);
+    }
+
+    return command;
+}
+
 describe("build-flatpak script", () => {
     it("keeps generated Flatpak paths under the repository root", () => {
         expect.assertions(4);
@@ -71,7 +81,7 @@ describe("build-flatpak script", () => {
             "flatpak-builder",
             "flatpak",
         ]);
-        expect(commands[0]?.args).toStrictEqual([
+        expect(getRequiredCommandCall(commands, 0).args).toStrictEqual([
             `--repo=${rootFlatpakRepoPath}`,
             "--force-clean",
             rootFlatpakBuildPath,
