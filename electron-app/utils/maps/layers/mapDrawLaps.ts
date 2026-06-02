@@ -329,17 +329,13 @@ export function drawOverlayForFitFile({
                 marker.addTo(map);
             }
 
-            let lapDisplay;
-            if (
+            const lapDisplay =
                 getLapNumForIdx &&
                 sourceFitData &&
                 Array.isArray(sourceFitData.lapMesgs) &&
                 sourceFitData.lapMesgs.length > 0
-            ) {
-                lapDisplay = getLapNumForIdx(c[6], sourceFitData.lapMesgs) ?? 1;
-            } else {
-                lapDisplay = c[8] || 1;
-            }
+                    ? (getLapNumForIdx(c[6], sourceFitData.lapMesgs) ?? 1)
+                    : c[8] || 1;
 
             let tooltip = formatTooltipData
                 ? formatTooltipData(c[6], c[7], lapDisplay, recordMesgs)
@@ -629,7 +625,7 @@ export function mapDrawLaps(
                     let lapNum = 1;
                     if (getLapNumForIdx) {
                         lapNum = getLapNumForIdx(idx, lapMesgs) ?? 1;
-                        if (!lapNum || isNaN(lapNum)) {
+                        if (!lapNum || Number.isNaN(lapNum)) {
                             lapNum = 1;
                         }
                     }
@@ -745,7 +741,7 @@ export function mapDrawLaps(
                     lapVal = c[8],
                     row = c[7];
                 let lapDisplay = lapVal;
-                if (!lapDisplay || isNaN(lapDisplay)) {
+                if (!lapDisplay || Number.isNaN(lapDisplay)) {
                     lapDisplay = 1;
                 }
                 const marker = L.circleMarker([c[0], c[1]], {
@@ -860,7 +856,7 @@ export function mapDrawLaps(
                         let lapNum = 1;
                         if (getLapNumForIdx) {
                             lapNum = getLapNumForIdx(idx, lapMesgs) ?? 1;
-                            if (!lapNum || isNaN(lapNum)) {
+                            if (!lapNum || Number.isNaN(lapNum)) {
                                 lapNum = 1;
                             }
                         }
@@ -966,7 +962,7 @@ export function mapDrawLaps(
                         lapVal2 = c[8],
                         row2 = c[7];
                     let lapDisplay = lapVal2;
-                    if (!lapDisplay || isNaN(lapDisplay)) {
+                    if (!lapDisplay || Number.isNaN(lapDisplay)) {
                         lapDisplay = 1;
                     }
                     const marker = L.circleMarker([c[0], c[1]], {
@@ -1167,7 +1163,7 @@ export function mapDrawLaps(
                                 lapVal3 = c[8],
                                 row3 = c[7];
                             let lapDisplay = lapVal3;
-                            if (!lapDisplay || isNaN(lapDisplay)) {
+                            if (!lapDisplay || Number.isNaN(lapDisplay)) {
                                 lapDisplay = 1;
                             }
                             const marker = L.circleMarker([c[0], c[1]], {
@@ -1468,7 +1464,7 @@ export function mapDrawLaps(
                 lapVal4 = c[8],
                 row4 = c[7];
             let lapDisplay = lapVal4;
-            if (!lapDisplay || isNaN(lapDisplay)) {
+            if (!lapDisplay || Number.isNaN(lapDisplay)) {
                 lapDisplay = 1;
             }
             const marker = L.circleMarker([c[0], c[1]], {
@@ -1720,7 +1716,7 @@ function selectDefaultMarkerCoordinates(
         return [];
     }
     if (markerLimit === 0 || markerLimit >= coordsArray.length) {
-        return coordsArray.slice();
+        return [...coordsArray];
     }
     const effectiveStep =
         markerLimit === 0
