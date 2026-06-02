@@ -123,6 +123,38 @@ describe("uiStateManager - comprehensive coverage", () => {
         return element;
     }
 
+    function getRequiredElement(id: string): HTMLElement {
+        const element = document.getElementById(id);
+
+        if (!(element instanceof HTMLElement)) {
+            throw new Error(`Expected #${id} to exist`);
+        }
+
+        return element;
+    }
+
+    function removeElementIfPresent(id: string): void {
+        const element = document.getElementById(id);
+
+        if (element) {
+            element.remove();
+        }
+    }
+
+    function getRequiredDescendant<T extends Element>(
+        parent: Element,
+        selector: string,
+        constructor: new (...args: any[]) => T
+    ): T {
+        const element = parent.querySelector(selector);
+
+        if (!(element instanceof constructor)) {
+            throw new Error(`Expected descendant ${selector}`);
+        }
+
+        return element;
+    }
+
     function getClassState(...ids: string[]) {
         return Object.fromEntries(
             ids.map((id) => {
@@ -728,8 +760,8 @@ describe("uiStateManager - comprehensive coverage", () => {
             expect.hasAssertions();
 
             // Remove some elements
-            document.getElementById("chart-controls-toggle")?.remove();
-            document.getElementById("measurement-mode-toggle")?.remove();
+            removeElementIfPresent("chart-controls-toggle");
+            removeElementIfPresent("measurement-mode-toggle");
 
             const manager = new UIStateManager();
 
@@ -772,8 +804,12 @@ describe("uiStateManager - comprehensive coverage", () => {
             // Verify malicious markup did not become DOM.
             expect(fileSpan.querySelector("img")).toBeNull();
 
-            const nameNode = fileSpan.querySelector(".filename-text");
-            expect(nameNode?.textContent).toBe(displayName);
+            const nameNode = getRequiredDescendant(
+                fileSpan,
+                ".filename-text",
+                HTMLElement
+            );
+            expect(nameNode.textContent).toBe(displayName);
             expect(fileSpan.title).toBe(displayName);
         });
     });
@@ -1002,8 +1038,8 @@ describe("uiStateManager - comprehensive coverage", () => {
                 expect.hasAssertions();
 
                 const manager = new UIStateManager();
-                document.getElementById("chartjs-settings-wrapper")?.remove();
-                document.getElementById("chart-controls-toggle")?.remove();
+                removeElementIfPresent("chartjs-settings-wrapper");
+                removeElementIfPresent("chart-controls-toggle");
 
                 manager.updateChartControlsUI(true);
 
@@ -1059,8 +1095,8 @@ describe("uiStateManager - comprehensive coverage", () => {
                 expect.hasAssertions();
 
                 const manager = new UIStateManager();
-                document.getElementById("loading-indicator")?.remove();
-                document.getElementById("main-content")?.remove();
+                removeElementIfPresent("loading-indicator");
+                removeElementIfPresent("main-content");
 
                 manager.updateLoadingIndicator(true);
 
@@ -1237,9 +1273,9 @@ describe("uiStateManager - comprehensive coverage", () => {
                 "main-content": [],
                 sidebar: [],
             });
-            expect([
-                ...(document.getElementById("main-content")?.classList ?? []),
-            ]).not.toContain("sidebar-collapsed");
+            expect(getElementClassList("main-content")).not.toContain(
+                "sidebar-collapsed"
+            );
         });
 
         it("should update sidebar DOM elements", () => {
@@ -1467,9 +1503,7 @@ describe("uiStateManager - comprehensive coverage", () => {
 
             UIActions.toggleSidebar(true);
 
-            expect(document.getElementById("sidebar")?.className).toBe(
-                "collapsed"
-            );
+            expect(getRequiredElement("sidebar").className).toBe("collapsed");
             expect(getElementClassList("main-content")).toContain(
                 "sidebar-collapsed"
             );
