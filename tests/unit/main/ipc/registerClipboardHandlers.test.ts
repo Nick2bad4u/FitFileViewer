@@ -79,8 +79,6 @@ describe("registerClipboardHandlers", () => {
             ([registeredChannel]) => registeredChannel === channel
         )?.[1];
 
-        expect(handler).toBeTypeOf("function");
-
         if (typeof handler !== "function") {
             throw new TypeError(`${channel} handler was not registered`);
         }
@@ -99,7 +97,7 @@ describe("registerClipboardHandlers", () => {
     }
 
     it("registers clipboard handlers", () => {
-        expect.assertions(5);
+        expect.assertions(3);
 
         const handlers = captureClipboardHandlers();
 
@@ -120,8 +118,6 @@ describe("registerClipboardHandlers", () => {
             ["clipboard:writeText", true],
             ["clipboard:writePngDataUrl", true],
         ]);
-        expect(handlers["clipboard:writeText"]).toBeTypeOf("function");
-        expect(handlers["clipboard:writePngDataUrl"]).toBeTypeOf("function");
         expect(Object.keys(handlers).sort()).toStrictEqual([
             "clipboard:writePngDataUrl",
             "clipboard:writeText",
@@ -145,7 +141,7 @@ describe("registerClipboardHandlers", () => {
     });
 
     it("clipboard:writeText writes to clipboard", async () => {
-        expect.assertions(2);
+        expect.assertions(1);
 
         registerClipboardHandlers({
             registerIpcHandle: mockRegisterIpcHandle,
@@ -170,7 +166,7 @@ describe("registerClipboardHandlers", () => {
     });
 
     it("clipboard:writeText returns false when clipboard is unavailable", async () => {
-        expect.assertions(2);
+        expect.assertions(1);
 
         mockClipboardRef.mockReturnValue(null);
 
@@ -196,8 +192,35 @@ describe("registerClipboardHandlers", () => {
         });
     });
 
-    it("clipboard:writePngDataUrl writes image to clipboard", async () => {
+    it("clipboard:writeText logs and returns false when the write fails", async () => {
         expect.assertions(3);
+
+        const writeError = new Error("clipboard locked");
+        mockClipboard.writeText.mockImplementationOnce(() => {
+            throw writeError;
+        });
+
+        registerClipboardHandlers({
+            registerIpcHandle: mockRegisterIpcHandle,
+            clipboardRef: mockClipboardRef,
+            nativeImageRef: mockNativeImageRef,
+            logWithContext: mockLogWithContext,
+        });
+
+        const handler = getRegisteredHandler("clipboard:writeText");
+        const ok = await handler({}, "hello");
+
+        expect(ok).toBe(false);
+        expect(mockClipboard.writeText).toHaveBeenCalledWith("hello");
+        expect(mockLogWithContext).toHaveBeenCalledWith(
+            "warn",
+            "clipboard:writeText failed",
+            { error: "clipboard locked" }
+        );
+    });
+
+    it("clipboard:writePngDataUrl writes image to clipboard", async () => {
+        expect.assertions(2);
 
         registerClipboardHandlers({
             registerIpcHandle: mockRegisterIpcHandle,
@@ -227,7 +250,7 @@ describe("registerClipboardHandlers", () => {
     });
 
     it("clipboard:writePngDataUrl returns false for non-png data URLs", async () => {
-        expect.assertions(2);
+        expect.assertions(1);
 
         registerClipboardHandlers({
             registerIpcHandle: mockRegisterIpcHandle,
@@ -249,5 +272,27 @@ describe("registerClipboardHandlers", () => {
                 textWrites: [],
             },
         });
+    });
+
+    it("clipboard:writePngDataUrl returns false when native image support is unavailable", async () => {
+        expect.assertions(3);
+
+        mockNativeImageRef.mockReturnValue(null);
+
+        registerClipboardHandlers({
+            registerIpcHandle: mockRegisterIpcHandle,
+            clipboardRef: mockClipboardRef,
+            nativeImageRef: mockNativeImageRef,
+            logWithContext: mockLogWithContext,
+        });
+
+        const handler = getRegisteredHandler("clipboard:writePngDataUrl");
+        const pngDataUrl =
+            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB";
+        const ok = await handler({}, pngDataUrl);
+
+        expect(ok).toBe(false);
+        expect(mockNativeImage.createFromDataURL).not.toHaveBeenCalled();
+        expect(mockClipboard.writeImage).not.toHaveBeenCalled();
     });
 });
