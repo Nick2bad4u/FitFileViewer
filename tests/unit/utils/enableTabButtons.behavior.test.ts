@@ -310,41 +310,43 @@ describe("enableTabButtons behavior", () => {
             expect.assertions(1);
             appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
-            // Debug scope relationships
-            console.log("Before setTabButtonsEnabled:");
-            console.log(
-                "globalThis === global.window:",
-                globalThis === (global as any).window
-            );
-            console.log(
-                "globalThis.window === global.window:",
-                globalThis.window === (global as any).window
-            );
-            console.log(
-                "window === global.window:",
-                window === (global as any).window
-            );
-
             setTabButtonsEnabled(true);
 
-            // Debug what gets set where
-            console.log("After setTabButtonsEnabled:");
-            console.log(
-                "globalThis.tabButtonsCurrentlyEnabled:",
-                (globalThis as any).tabButtonsCurrentlyEnabled
-            );
-            console.log(
-                "window.tabButtonsCurrentlyEnabled:",
-                (window as any).tabButtonsCurrentlyEnabled
-            );
-            console.log(
-                "global.window.tabButtonsCurrentlyEnabled:",
-                (global as any).window.tabButtonsCurrentlyEnabled
-            );
+            const tabButtonGlobal = globalThis as typeof globalThis & {
+                tabButtonsCurrentlyEnabled?: boolean;
+            };
+            const tabButtonWindow = window as Window & {
+                tabButtonsCurrentlyEnabled?: boolean;
+            };
+            const nodeGlobalWindow = (
+                global as typeof globalThis & {
+                    window: Window & { tabButtonsCurrentlyEnabled?: boolean };
+                }
+            ).window;
 
-            expect(
-                (global as any).window.tabButtonsCurrentlyEnabled
-            ).toStrictEqual(true);
+            expect({
+                globalThisTabButtonsEnabled:
+                    tabButtonGlobal.tabButtonsCurrentlyEnabled,
+                globalThisWindowIsNodeGlobalWindow:
+                    globalThis.window === nodeGlobalWindow,
+                nodeGlobalWindowTabButtonsEnabled:
+                    nodeGlobalWindow.tabButtonsCurrentlyEnabled,
+                stateWrite: mockSetState.mock.calls.at(-1),
+                windowIsNodeGlobalWindow: window === nodeGlobalWindow,
+                windowTabButtonsEnabled:
+                    tabButtonWindow.tabButtonsCurrentlyEnabled,
+            }).toStrictEqual({
+                globalThisTabButtonsEnabled: true,
+                globalThisWindowIsNodeGlobalWindow: true,
+                nodeGlobalWindowTabButtonsEnabled: true,
+                stateWrite: [
+                    "ui.tabButtonsEnabled",
+                    true,
+                    { source: "setTabButtonsEnabled" },
+                ],
+                windowIsNodeGlobalWindow: true,
+                windowTabButtonsEnabled: true,
+            });
         });
 
         it("should apply comprehensive styling when disabling", () => {
