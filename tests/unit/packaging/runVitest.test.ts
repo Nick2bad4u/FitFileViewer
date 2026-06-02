@@ -21,7 +21,7 @@ type CommandRunner = (
     command: string,
     args: string[],
     options: { cwd: string; stdio: string }
-) => { status: number };
+) => { error?: Error; status: number | null };
 
 describe("run-vitest wrapper", () => {
     it("expands named unit suite paths", () => {
@@ -153,6 +153,29 @@ describe("run-vitest wrapper", () => {
         ]);
     });
 
+    it("throws when the runtime build cannot be started", () => {
+        expect.assertions(3);
+
+        const spawnError = new Error("spawn failed");
+        const commandRunner = vi.fn<CommandRunner>(() => ({
+            error: spawnError,
+            status: null,
+        }));
+
+        expect(() => ensureRuntimeDist(commandRunner, () => false)).toThrow(
+            spawnError
+        );
+        expect(commandRunner).toHaveBeenCalledOnce();
+        expect(commandRunner.mock.calls[0]).toStrictEqual([
+            process.execPath,
+            [buildRuntimeScriptPath],
+            {
+                cwd: process.cwd(),
+                stdio: "inherit",
+            },
+        ]);
+    });
+
     it("runs Vitest from the repository root", () => {
         expect.assertions(2);
 
@@ -218,6 +241,50 @@ describe("run-vitest wrapper", () => {
                     cwd: process.cwd(),
                     stdio: "inherit",
                 },
+            },
+        });
+    });
+
+    it("throws when Vitest cannot be started after runtime output exists", () => {
+        expect.assertions(3);
+
+        const spawnError = new Error("spawn failed");
+        const commandRunner = vi.fn<CommandRunner>(() => ({
+            error: spawnError,
+            status: null,
+        }));
+
+        expect(() =>
+            runVitest(["--run", "--suite=tabs"], commandRunner, () => true)
+        ).toThrow(spawnError);
+        expect(commandRunner).toHaveBeenCalledOnce();
+
+        const [
+            command,
+            args,
+            options,
+        ] = commandRunner.mock.calls[0];
+
+        expect({
+            args,
+            command,
+            options: {
+                ...options,
+                cwd: path.resolve(options.cwd),
+            },
+        }).toStrictEqual({
+            args: [
+                "--max-old-space-size=8192",
+                expect.stringMatching(/[\\/]vitest[\\/]vitest\.mjs$/u),
+                "--config",
+                rootVitestConfigPath,
+                "--run",
+                rootTabsTestsPath,
+            ],
+            command: process.execPath,
+            options: {
+                cwd: path.resolve(process.cwd()),
+                stdio: "inherit",
             },
         });
     });
