@@ -1,24 +1,46 @@
 import { readFileSync } from "node:fs";
-import path from "node:path";
-
+import * as path from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { rootAppIndexHtmlPath } from "../../../scripts/lib/workspaces.mjs";
-
-function readRootAppHtml(): string {
-    return readFileSync(path.join(process.cwd(), rootAppIndexHtmlPath), "utf8");
-}
+import {
+    rootAlternativeFitViewIndexPath,
+    rootAlternativeFitViewPath,
+    rootAppIndexHtmlPath,
+} from "../../../scripts/lib/workspaces.mjs";
 
 function getContentSecurityPolicy(html: string): string {
-    const match = html.match(
-        /<meta\s+content="([^"]+)"\s+http-equiv="Content-Security-Policy"\s*\/?>/u
-    );
+    const match =
+        /<meta\s+content="(?<policy>[^"]+)"\s+http-equiv="Content-Security-Policy"\s*\/?>/v.exec(
+            html
+        );
 
-    if (!match?.[1]) {
+    if (!match?.groups?.policy) {
         throw new Error("Content-Security-Policy meta tag not found");
     }
 
-    return match[1];
+    return match.groups.policy;
+}
+
+function readAltFitBridge(): string {
+    return readFileSync(
+        path.join(
+            process.cwd(),
+            rootAlternativeFitViewPath,
+            "electron-altfit-bridge.js"
+        ),
+        "utf8"
+    );
+}
+
+function readAltFitHtml(): string {
+    return readFileSync(
+        path.join(process.cwd(), rootAlternativeFitViewIndexPath),
+        "utf8"
+    );
+}
+
+function readRootAppHtml(): string {
+    return readFileSync(path.join(process.cwd(), rootAppIndexHtmlPath), "utf8");
 }
 
 describe("root app HTML security policy", () => {
@@ -62,12 +84,12 @@ describe("root app HTML security policy", () => {
         expect(
             tabIds.map((tabId) => {
                 const buttonPattern = new RegExp(
-                    `<button[\\s\\S]*id="tab_${tabId}"[\\s\\S]*type="button"[\\s\\S]*aria-controls="content_${tabId}"[\\s\\S]*role="tab"[\\s\\S]*>[\\s\\S]*?<\\/button>`,
-                    "u"
+                    String.raw`<button[\s\S]*id="tab_${tabId}"[\s\S]*type="button"[\s\S]*aria-controls="content_${tabId}"[\s\S]*role="tab"[\s\S]*>[\s\S]*?<\/button>`,
+                    "v"
                 );
                 const panelPattern = new RegExp(
-                    `<div[\\s\\S]*id="content_${tabId}"[\\s\\S]*aria-labelledby="tab_${tabId}"[\\s\\S]*role="tabpanel"[\\s\\S]*tabindex="0"`,
-                    "u"
+                    String.raw`<div[\s\S]*id="content_${tabId}"[\s\S]*aria-labelledby="tab_${tabId}"[\s\S]*role="tabpanel"[\s\S]*tabindex="0"`,
+                    "v"
                 );
 
                 return {
@@ -86,5 +108,31 @@ describe("root app HTML security policy", () => {
         expect(html).not.toContain(
             'class="tab-button"\n                aria-selected="false"\n                role="tab"\n                tabindex="0"'
         );
+    });
+
+    it("keeps the embedded AltFit bridge on external scripts with a restrictive CSP", () => {
+        expect.assertions(8);
+
+        const html = readAltFitHtml();
+        const policy = getContentSecurityPolicy(html);
+
+        expect(policy).toContain("default-src 'self' file:");
+        expect(policy).toContain("script-src 'self' file:");
+        expect(policy).toContain("connect-src 'none'");
+        expect(policy).toContain("object-src 'none'");
+        expect(policy).not.toContain("script-src 'self' file: 'unsafe-inline'");
+        expect(html).toContain('src="./electron-analytics-blocker.js"');
+        expect(html).toContain('src="./electron-altfit-bridge.js"');
+        expect(html).not.toMatch(/<script(?:\s[^>]*)?>\s*[^\s<]/v);
+    });
+
+    it("accepts AltFit file data only from the parent frame", () => {
+        expect.assertions(3);
+
+        const bridge = readAltFitBridge();
+
+        expect(bridge).toContain("event.source !== window.parent");
+        expect(bridge).toContain("event.origin === window.location.origin");
+        expect(bridge).not.toContain("innerHTML");
     });
 });
