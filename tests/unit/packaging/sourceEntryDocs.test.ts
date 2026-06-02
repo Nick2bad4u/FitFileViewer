@@ -345,6 +345,43 @@ describe("source entrypoint documentation", () => {
         ).toStrictEqual([]);
     });
 
+    it("keeps the Docusaurus process model module-loading examples current", () => {
+        expect.assertions(4);
+
+        const processModelGuide = readWorkspaceFile(
+            docusaurusArchitectureProcessModelDocPath
+        );
+        const currentProcessModelSourceExamples = [
+            "electron-app/utils/maps/core/renderMap.ts",
+            "electron-app/utils/charts/core/renderChartJS.ts",
+        ];
+        const staleProcessModelReferences = [
+            "./utils/maps/renderMap.js",
+            "./utils/charts/renderChart.js",
+            "renderChart }",
+        ];
+
+        expect(getPathStates(currentProcessModelSourceExamples)).toStrictEqual(
+            Object.fromEntries(
+                currentProcessModelSourceExamples.map((sourcePath) => [
+                    sourcePath,
+                    "present",
+                ])
+            )
+        );
+        expect(processModelGuide).toContain(
+            './utils/maps/core/renderMap.js'
+        );
+        expect(processModelGuide).toContain(
+            './utils/charts/core/renderChartJS.js'
+        );
+        expect(
+            staleProcessModelReferences.filter((reference) =>
+                processModelGuide.includes(reference)
+            )
+        ).toStrictEqual([]);
+    });
+
     it("keeps the root architecture guide aligned with current utility source", () => {
         expect.assertions(4);
 

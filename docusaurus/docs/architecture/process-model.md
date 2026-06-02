@@ -130,8 +130,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
 ```javascript
 // Dynamic imports for code splitting
-const { renderMap } = await import("./utils/maps/renderMap.js");
-const { renderChart } = await import("./utils/charts/renderChart.js");
+const { renderMap } = await import("./utils/maps/core/renderMap.js");
+const { renderChartJS } = await import(
+ "./utils/charts/core/renderChartJS.js"
+);
 ```
 
 ## IPC Communication
