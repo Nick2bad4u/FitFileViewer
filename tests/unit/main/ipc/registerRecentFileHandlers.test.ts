@@ -115,7 +115,7 @@ describe("registerRecentFileHandlers", () => {
         expect({
             handlerChannels: [...handlers.keys()],
             handlerCount: handlers.size,
-        }).toEqual({
+        }).toStrictEqual({
             handlerChannels: [],
             handlerCount: 0,
         });
@@ -129,7 +129,7 @@ describe("registerRecentFileHandlers", () => {
         const handler = getHandler("recentFiles:add");
         const result = await handler({}, 123);
 
-        expect(result).toEqual(["C:/a.fit"]);
+        expect(result).toStrictEqual(["C:/a.fit"]);
         expect(getRecentFileState()).toStrictEqual({
             added: [],
             approvals: {},
@@ -152,7 +152,7 @@ describe("registerRecentFileHandlers", () => {
 
         const handler = getHandler("recentFiles:add");
 
-        await expect(handler({}, "C:/unapproved.fit")).resolves.toEqual([
+        await expect(handler({}, "C:/unapproved.fit")).resolves.toStrictEqual([
             "C:/a.fit",
         ]);
         expect(getRecentFileState(["C:/unapproved.fit"])).toStrictEqual({
@@ -182,7 +182,7 @@ describe("registerRecentFileHandlers", () => {
         const handler = getHandler("recentFiles:add");
         const result = await handler({}, approved);
 
-        expect(result).toEqual(["C:/a.fit"]);
+        expect(result).toStrictEqual(["C:/a.fit"]);
         expect(getRecentFileState([approved])).toStrictEqual({
             added: [approved],
             approvals: {
@@ -250,7 +250,7 @@ describe("registerRecentFileHandlers", () => {
         const getHandlerResult = getHandler("recentFiles:get");
 
         const list = await getHandlerResult();
-        expect(list).toEqual(["C:/a.fit"]);
+        expect(list).toStrictEqual(["C:/a.fit"]);
         expect(getRecentFileState(["C:/a.fit"]).approvals).toStrictEqual({
             "C:/a.fit": false,
         });
