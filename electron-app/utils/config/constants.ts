@@ -245,10 +245,9 @@ export const DEBUG_CONSTANTS = {
 } as const;
 
 /**
- * Application metadata constants.
+ * Application event and IPC constants.
  */
 export const APP_CONSTANTS = {
-    AUTHOR: "FitFileViewer Development Team",
     EVENTS: {
         INSTALL_UPDATE: "install-update",
         MENU_OPEN_FILE: "menu-open-file",
@@ -270,8 +269,6 @@ export const APP_CONSTANTS = {
         SHELL_OPEN_EXTERNAL: "shell:openExternal",
         THEME_GET: "theme:get",
     },
-    NAME: "FitFileViewer",
-    VERSION: "26.8.0",
 } as const;
 
 const MODULE_EXPORTS = {
