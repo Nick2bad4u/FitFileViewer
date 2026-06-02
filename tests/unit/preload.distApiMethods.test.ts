@@ -328,7 +328,7 @@ describe("preload.js dist API methods", () => {
                         Object.hasOwn(exposedAPI, methodName),
                     ])
                 )
-            ).toEqual({
+            ).toStrictEqual({
                 getChannelInfo: true,
                 validateAPI: true,
             });
@@ -336,7 +336,7 @@ describe("preload.js dist API methods", () => {
             const beforeExitListener = getRequiredBeforeExitListener(
                 getBeforeExitListeners()
             );
-            expect(mockProcess.once.mock.calls[0]).toEqual([
+            expect(mockProcess.once.mock.calls[0]).toStrictEqual([
                 "beforeExit",
                 beforeExitListener,
             ]);
@@ -1031,7 +1031,7 @@ describe("preload.js dist API methods", () => {
                 requiredDevTools
             );
 
-            expect(Object.keys(requiredDevTools).sort()).toEqual([
+            expect(Object.keys(requiredDevTools).sort()).toStrictEqual([
                 "getPreloadInfo",
                 "logAPIState",
                 "testIPC",
@@ -1140,7 +1140,7 @@ describe("preload.js dist API methods", () => {
             expect(result).toBeUndefined();
             const beforeExitListener =
                 getRequiredBeforeExitListener(beforeExitListeners);
-            expect(mockProcess.once.mock.calls[0]).toEqual([
+            expect(mockProcess.once.mock.calls[0]).toStrictEqual([
                 "beforeExit",
                 beforeExitListener,
             ]);
@@ -1193,7 +1193,7 @@ describe("preload.js dist API methods", () => {
                 getBeforeExitListeners()
             );
 
-            expect(mockProcess.once.mock.calls[0]).toEqual([
+            expect(mockProcess.once.mock.calls[0]).toStrictEqual([
                 "beforeExit",
                 beforeExitListener,
             ]);
