@@ -99,7 +99,7 @@ describe("preload.js - Script Evaluation Test", () => {
         const electronAPI = exposeCalls[0]?.[1] as ExposedElectronApi;
         const devTools = exposeCalls[1]?.[1] as ExposedDevTools;
 
-        expect(exposeCalls.map((call: unknown[]) => call[0])).toEqual([
+        expect(exposeCalls.map((call: unknown[]) => call[0])).toStrictEqual([
             "electronAPI",
             devToolsApiName,
         ]);
@@ -114,7 +114,7 @@ describe("preload.js - Script Evaluation Test", () => {
                     Object.hasOwn(electronAPI, methodName),
                 ])
             )
-        ).toEqual({
+        ).toStrictEqual({
             getAppVersion: true,
             invoke: true,
             validateAPI: true,
@@ -131,7 +131,7 @@ describe("preload.js - Script Evaluation Test", () => {
                     Object.hasOwn(devTools, methodName),
                 ])
             )
-        ).toEqual({
+        ).toStrictEqual({
             getPreloadInfo: true,
             logAPIState: true,
             testIPC: true,
@@ -181,7 +181,7 @@ describe("preload.js - Script Evaluation Test", () => {
         expect(processOnceSpy.mock.calls).toStrictEqual([
             ["beforeExit", beforeExit?.cb],
         ]);
-        expect(beforeExit).toEqual({
+        expect(beforeExit).toStrictEqual({
             cb: beforeExit?.cb,
             event: "beforeExit",
         });

@@ -150,7 +150,7 @@ describe("preload.js source execution", () => {
                         Object.hasOwn(electronAPI, methodName),
                     ])
                 )
-            ).toEqual({
+            ).toStrictEqual({
                 addRecentFile: true,
                 getAppVersion: true,
                 getChannelInfo: true,
@@ -176,7 +176,7 @@ describe("preload.js source execution", () => {
                         Object.hasOwn(devTools, methodName),
                     ])
                 )
-            ).toEqual({
+            ).toStrictEqual({
                 getPreloadInfo: true,
                 logAPIState: true,
                 testIPC: true,
@@ -229,7 +229,7 @@ describe("preload.js source execution", () => {
 
             // Get the exposed electronAPI from the mock call
             const electronAPICall = getRequiredExposeCall("electronAPI");
-            expect(electronAPICall).toEqual([
+            expect(electronAPICall).toStrictEqual([
                 "electronAPI",
                 electronAPICall[1],
             ]);
@@ -242,7 +242,7 @@ describe("preload.js source execution", () => {
                         Object.hasOwn(electronAPI, methodName),
                     ])
                 )
-            ).toEqual({
+            ).toStrictEqual({
                 getChannelInfo: true,
                 validateAPI: true,
             });
@@ -319,7 +319,7 @@ describe("preload.js source execution", () => {
 
             // Verify electronAPI was exposed
             const electronAPICall = getRequiredExposeCall("electronAPI");
-            expect(electronAPICall).toEqual([
+            expect(electronAPICall).toStrictEqual([
                 "electronAPI",
                 electronAPICall[1],
             ]);
@@ -331,7 +331,7 @@ describe("preload.js source execution", () => {
                         Object.hasOwn(electronAPI, methodName),
                     ])
                 )
-            ).toEqual({
+            ).toStrictEqual({
                 getChannelInfo: true,
                 validateAPI: true,
             });
