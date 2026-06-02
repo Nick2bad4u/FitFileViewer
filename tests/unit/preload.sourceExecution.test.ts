@@ -55,6 +55,38 @@ const mockIpcRenderer = {
     removeAllListeners: vi.fn<(channel: string) => void>(),
 };
 
+function getRequiredExposeCall(apiName: string): [string, unknown] {
+    const call = mockContextBridge.exposeInMainWorld.mock.calls.find(
+        ([name]) => name === apiName
+    );
+
+    if (!call) {
+        throw new TypeError(`Expected ${apiName} exposure`);
+    }
+
+    return call;
+}
+
+function getRequiredElectronAPI(): ExposedElectronAPI {
+    return getRequiredExposeCall("electronAPI")[1] as ExposedElectronAPI;
+}
+
+function getRequiredDevTools(): ExposedDevTools {
+    return getRequiredExposeCall("devTools")[1] as ExposedDevTools;
+}
+
+function getRequiredPreloadInfo(
+    devTools: ExposedDevTools
+): ReturnType<ExposedDevTools["getPreloadInfo"]> {
+    const preloadInfo = devTools.getPreloadInfo();
+
+    if (!preloadInfo) {
+        throw new TypeError("Expected preload info");
+    }
+
+    return preloadInfo;
+}
+
 vi.mock(import("electron"), () => ({
     contextBridge: mockContextBridge,
     ipcRenderer: mockIpcRenderer,
@@ -95,18 +127,8 @@ describe("preload.js source execution", () => {
 
             await import("../../electron-app/preload.js");
 
-            const electronAPICall =
-                mockContextBridge.exposeInMainWorld.mock.calls.find(
-                    (call) => call[0] === "electronAPI"
-                );
-            const devToolsCall =
-                mockContextBridge.exposeInMainWorld.mock.calls.find(
-                    (call) => call[0] === "devTools"
-                );
-            const electronAPI = electronAPICall?.[1] as
-                | ExposedElectronAPI
-                | undefined;
-            const devTools = devToolsCall?.[1] as ExposedDevTools | undefined;
+            const electronAPI = getRequiredElectronAPI();
+            const devTools = getRequiredDevTools();
 
             // Verify contextBridge.exposeInMainWorld was called for electronAPI
             expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith(
@@ -125,7 +147,7 @@ describe("preload.js source execution", () => {
                         "validateAPI",
                     ].map((methodName) => [
                         methodName,
-                        Object.hasOwn(electronAPI ?? {}, methodName),
+                        Object.hasOwn(electronAPI, methodName),
                     ])
                 )
             ).toEqual({
@@ -151,7 +173,7 @@ describe("preload.js source execution", () => {
                         "testIPC",
                     ].map((methodName) => [
                         methodName,
-                        Object.hasOwn(devTools ?? {}, methodName),
+                        Object.hasOwn(devTools, methodName),
                     ])
                 )
             ).toEqual({
@@ -165,37 +187,36 @@ describe("preload.js source execution", () => {
                 "[preload.js] Successfully exposed electronAPI to main world"
             );
 
-            expect(electronAPI?.validateAPI()).toStrictEqual(true);
-            const preloadInfo = devTools?.getPreloadInfo();
-            expect(preloadInfo?.apiMethods).toStrictEqual(
-                Object.keys(electronAPI!)
+            expect(electronAPI.validateAPI()).toStrictEqual(true);
+            const preloadInfo = getRequiredPreloadInfo(devTools);
+            expect(preloadInfo.apiMethods).toStrictEqual(
+                Object.keys(electronAPI)
             );
-            expect(preloadInfo?.apiMethods).toContain("getAppVersion");
-            expect(preloadInfo?.apiMethods).toContain("validateAPI");
+            expect(preloadInfo.apiMethods).toContain("getAppVersion");
+            expect(preloadInfo.apiMethods).toContain("validateAPI");
             expect({
-                APP_VERSION: preloadInfo?.constants.CHANNELS.APP_VERSION,
-                FIT_PARSE: preloadInfo?.constants.CHANNELS.FIT_PARSE,
-                THEME_GET: preloadInfo?.constants.CHANNELS.THEME_GET,
+                APP_VERSION: preloadInfo.constants.CHANNELS.APP_VERSION,
+                FIT_PARSE: preloadInfo.constants.CHANNELS.FIT_PARSE,
+                THEME_GET: preloadInfo.constants.CHANNELS.THEME_GET,
             }).toStrictEqual({
                 APP_VERSION: "getAppVersion",
                 FIT_PARSE: "fit:parse",
                 THEME_GET: "theme:get",
             });
             expect({
-                OPEN_RECENT_FILE:
-                    preloadInfo?.constants.EVENTS.OPEN_RECENT_FILE,
-                SET_THEME: preloadInfo?.constants.EVENTS.SET_THEME,
-                THEME_CHANGED: preloadInfo?.constants.EVENTS.THEME_CHANGED,
+                OPEN_RECENT_FILE: preloadInfo.constants.EVENTS.OPEN_RECENT_FILE,
+                SET_THEME: preloadInfo.constants.EVENTS.SET_THEME,
+                THEME_CHANGED: preloadInfo.constants.EVENTS.THEME_CHANGED,
             }).toStrictEqual({
                 OPEN_RECENT_FILE: "open-recent-file",
                 SET_THEME: "set-theme",
                 THEME_CHANGED: "theme-changed",
             });
-            expect(preloadInfo?.constants.DEFAULT_VALUES).toStrictEqual({
+            expect(preloadInfo.constants.DEFAULT_VALUES).toStrictEqual({
                 FIT_FILE_PATH: null,
                 THEME: null,
             });
-            expect(preloadInfo?.version).toBe("1.0.0");
+            expect(preloadInfo.version).toBe("1.0.0");
         });
 
         it("should provide working API methods when executed", async () => {
@@ -207,17 +228,13 @@ describe("preload.js source execution", () => {
             await import("../../electron-app/preload.js");
 
             // Get the exposed electronAPI from the mock call
-            const exposeMainWorldCalls =
-                mockContextBridge.exposeInMainWorld.mock.calls;
-            const electronAPICall = exposeMainWorldCalls.find(
-                (call) => call[0] === "electronAPI"
-            );
+            const electronAPICall = getRequiredExposeCall("electronAPI");
             expect(electronAPICall).toEqual([
                 "electronAPI",
-                electronAPICall?.[1],
+                electronAPICall[1],
             ]);
 
-            const electronAPI = electronAPICall![1] as ExposedElectronAPI;
+            const electronAPI = electronAPICall[1] as ExposedElectronAPI;
             expect(
                 Object.fromEntries(
                     ["getChannelInfo", "validateAPI"].map((methodName) => [
@@ -280,12 +297,7 @@ describe("preload.js source execution", () => {
 
             await import("../../electron-app/preload.js");
 
-            const exposeMainWorldCalls =
-                mockContextBridge.exposeInMainWorld.mock.calls;
-            const electronAPICall = exposeMainWorldCalls.find(
-                (call) => call[0] === "electronAPI"
-            );
-            const electronAPI = electronAPICall![1];
+            const electronAPI = getRequiredElectronAPI();
 
             // Test an invoke-based method
             const result = await electronAPI.getAppVersion();
@@ -306,22 +318,17 @@ describe("preload.js source execution", () => {
             await import("../../electron-app/preload.js");
 
             // Verify electronAPI was exposed
-            const electronAPICall =
-                mockContextBridge.exposeInMainWorld.mock.calls.find(
-                    (call) => call[0] === "electronAPI"
-                );
+            const electronAPICall = getRequiredExposeCall("electronAPI");
             expect(electronAPICall).toEqual([
                 "electronAPI",
-                electronAPICall?.[1],
+                electronAPICall[1],
             ]);
-            const electronAPI = electronAPICall?.[1] as
-                | ExposedElectronAPI
-                | undefined;
+            const electronAPI = electronAPICall[1] as ExposedElectronAPI;
             expect(
                 Object.fromEntries(
                     ["getChannelInfo", "validateAPI"].map((methodName) => [
                         methodName,
-                        Object.hasOwn(electronAPI ?? {}, methodName),
+                        Object.hasOwn(electronAPI, methodName),
                     ])
                 )
             ).toEqual({
