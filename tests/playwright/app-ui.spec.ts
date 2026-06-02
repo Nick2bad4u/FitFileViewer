@@ -3,13 +3,36 @@ import type { ElectronApplication, Page } from "@playwright/test";
 import fs from "node:fs";
 import path from "node:path";
 
+type ActivityUiState = {
+    activeFileName: string;
+    recordCount: number;
+    sessionCount: number;
+    title: string;
+};
+
+type FitFixtureFileState =
+    | {
+          byteLength: number;
+          exists: true;
+      }
+    | {
+          byteLength: null;
+          exists: false;
+      };
+
 const repositoryRoot = path.resolve(__dirname, "../..");
+const sampleFitFixture = {
+    byteLength: 185_291,
+    fileName: "_Fenton_Michigan_Afternoon_Ride_5_27_miles.fit",
+    recordCount: 1285,
+    sessionCount: 1,
+} as const;
 const sampleFitPath = path.join(
     repositoryRoot,
     "fit-test-files",
-    "_Fenton_Michigan_Afternoon_Ride_5_27_miles.fit"
+    sampleFitFixture.fileName
 );
-const sampleFitFileName = path.basename(sampleFitPath);
+const sampleFitFileName = sampleFitFixture.fileName;
 const missingFitPath = path.join(
     repositoryRoot,
     "fit-test-files",
@@ -17,8 +40,8 @@ const missingFitPath = path.join(
 );
 const sampleFitActivityState: ActivityUiState = {
     activeFileName: `Active:${sampleFitFileName}`,
-    recordCount: 1285,
-    sessionCount: 1,
+    recordCount: sampleFitFixture.recordCount,
+    sessionCount: sampleFitFixture.sessionCount,
     title: `Fit File Viewer - ${sampleFitFileName}`,
 };
 
@@ -29,13 +52,6 @@ const reportedFailureNeedles = [
     "createMapThemeToggle] Error",
     "Error during chart rendering",
 ] as const;
-
-type ActivityUiState = {
-    activeFileName: string;
-    recordCount: number;
-    sessionCount: number;
-    title: string;
-};
 
 type MapThemeToggleState = {
     isActive: boolean;
@@ -76,6 +92,20 @@ function getRequiredCapturedDownload(
     }
 
     return download;
+}
+
+function getFitFixtureFileState(filePath: string): FitFixtureFileState {
+    if (!fs.existsSync(filePath)) {
+        return {
+            byteLength: null,
+            exists: false,
+        };
+    }
+
+    return {
+        byteLength: fs.statSync(filePath).size,
+        exists: true,
+    };
 }
 
 const mapTileHosts = new Set([
@@ -252,13 +282,33 @@ test.describe("FitFileViewer renderer environment fallbacks", () => {
                 "NODE_ENV-unset renderer failures",
                 matchedReports
             );
-            expectNoCollectedEntries(
-                "NODE_ENV-unset page errors",
-                pageErrors
-            );
+            expectNoCollectedEntries("NODE_ENV-unset page errors", pageErrors);
         } finally {
             await noNodeEnvApp.close();
         }
+    });
+});
+
+test.describe("FitFileViewer Playwright fixtures", () => {
+    test("keeps the sample FIT file stable", () => {
+        expect({
+            activityState: sampleFitActivityState,
+            fileName: sampleFitFileName,
+            fileState: getFitFixtureFileState(sampleFitPath),
+        }).toStrictEqual({
+            activityState: {
+                activeFileName:
+                    "Active:_Fenton_Michigan_Afternoon_Ride_5_27_miles.fit",
+                recordCount: 1285,
+                sessionCount: 1,
+                title: "Fit File Viewer - _Fenton_Michigan_Afternoon_Ride_5_27_miles.fit",
+            },
+            fileName: "_Fenton_Michigan_Afternoon_Ride_5_27_miles.fit",
+            fileState: {
+                byteLength: sampleFitFixture.byteLength,
+                exists: true,
+            },
+        });
     });
 });
 
@@ -570,7 +620,10 @@ test.describe("FitFileViewer Electron UI", () => {
     });
 
     test("reports a missing FIT file without changing the current activity", async () => {
-        expect(fs.existsSync(missingFitPath)).toBe(false);
+        expect(getFitFixtureFileState(missingFitPath)).toStrictEqual({
+            byteLength: null,
+            exists: false,
+        });
 
         await mockOpenFileDialog({
             canceled: false,
