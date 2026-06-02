@@ -134,7 +134,7 @@ describe("preload.js - Basic API Validation", () => {
                 ([name]) => name === "electronAPI"
             );
 
-        expect(electronApiExposure).toEqual([
+        expect(electronApiExposure).toStrictEqual([
             "electronAPI",
             exposedGlobals.get("electronAPI"),
         ]);
@@ -155,7 +155,7 @@ describe("preload.js - Basic API Validation", () => {
                     Object.hasOwn(electronAPI, methodName),
                 ])
             )
-        ).toEqual({
+        ).toStrictEqual({
             getChannelInfo: true,
             openFile: true,
             readFile: true,
@@ -164,7 +164,7 @@ describe("preload.js - Basic API Validation", () => {
         expect({
             exposedElectronAPI: exposedGlobals.get("electronAPI"),
             validationResult: electronAPI.validateAPI(),
-        }).toEqual({
+        }).toStrictEqual({
             exposedElectronAPI: electronAPI,
             validationResult: true,
         });
@@ -225,7 +225,7 @@ describe("preload.js - Basic API Validation", () => {
                 }
             )();
 
-        expect([...exposedGlobals.keys()]).toEqual([
+        expect([...exposedGlobals.keys()]).toStrictEqual([
             "electronAPI",
             developmentToolsGlobalName,
         ]);
@@ -250,7 +250,7 @@ describe("preload.js - Basic API Validation", () => {
         const currentProcess =
             globalThis.process as unknown as PreloadMinimalProcess;
 
-        expect(currentProcess.once.mock.calls[0]).toEqual([
+        expect(currentProcess.once.mock.calls[0]).toStrictEqual([
             "beforeExit",
             beforeExitListeners[0],
         ]);

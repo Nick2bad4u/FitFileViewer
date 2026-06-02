@@ -141,7 +141,7 @@ describe("preload.js - Development mode coverage", () => {
                     Object.hasOwn(api, methodName),
                 ])
             )
-        ).toEqual({
+        ).toStrictEqual({
             getAppVersion: true,
             injectMenu: true,
             invoke: true,
@@ -162,7 +162,7 @@ describe("preload.js - Development mode coverage", () => {
                     Object.hasOwn(devTools, methodName),
                 ])
             )
-        ).toEqual({
+        ).toStrictEqual({
             getPreloadInfo: true,
             logAPIState: true,
             testIPC: true,
@@ -188,7 +188,7 @@ describe("preload.js - Development mode coverage", () => {
         expect(processOnceSpy.mock.calls).toStrictEqual([
             ["beforeExit", beforeExit?.cb],
         ]);
-        expect(beforeExit).toEqual({
+        expect(beforeExit).toStrictEqual({
             cb: beforeExit?.cb,
             event: "beforeExit",
         });

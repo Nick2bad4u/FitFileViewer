@@ -106,7 +106,9 @@ describe("preload clipboard bridge", () => {
 
         const result = await bridge.writeClipboardText("hello");
 
-        expect(getBridgeCallState({ invoke, preloadLog, result })).toEqual({
+        expect(
+            getBridgeCallState({ invoke, preloadLog, result })
+        ).toStrictEqual({
             invokeCalls: [["clipboard:writeText", "hello"]],
             preloadLogCalls: [],
             result: true,
@@ -123,7 +125,9 @@ describe("preload clipboard bridge", () => {
 
         const result = await bridge.writeClipboardPngDataUrl(dataUrl);
 
-        expect(getBridgeCallState({ invoke, preloadLog, result })).toEqual({
+        expect(
+            getBridgeCallState({ invoke, preloadLog, result })
+        ).toStrictEqual({
             invokeCalls: [["clipboard:writePngDataUrl", dataUrl]],
             preloadLogCalls: [],
             result: false,
@@ -140,7 +144,9 @@ describe("preload clipboard bridge", () => {
 
         const result = await bridge.writeClipboardText("hello");
 
-        expect(getBridgeCallState({ invoke, preloadLog, result })).toEqual({
+        expect(
+            getBridgeCallState({ invoke, preloadLog, result })
+        ).toStrictEqual({
             invokeCalls: [["clipboard:writeText", "hello"]],
             preloadLogCalls: [
                 [
@@ -163,7 +169,9 @@ describe("preload clipboard bridge", () => {
 
         const result = await bridge.writeClipboardPngDataUrl(dataUrl);
 
-        expect(getBridgeCallState({ invoke, preloadLog, result })).toEqual({
+        expect(
+            getBridgeCallState({ invoke, preloadLog, result })
+        ).toStrictEqual({
             invokeCalls: [["clipboard:writePngDataUrl", dataUrl]],
             preloadLogCalls: [
                 [

@@ -250,7 +250,7 @@ describe("preload edge cases", () => {
             validationErrors: consoleErrorSpy.mock.calls.map(
                 ([message]) => message
             ),
-        }).toEqual({
+        }).toStrictEqual({
             result: false,
             validationErrors: [
                 "[preload.js] injectMenu: fitFilePath must be a string or null",
@@ -292,7 +292,7 @@ describe("preload edge cases", () => {
         api.onUpdateEvent("evt", vi.fn<UpdateEventCallback>());
         expect(
             ipcRenderer.on.mock.calls.slice(before).map(([channel]) => channel)
-        ).toEqual(["evt"]);
+        ).toStrictEqual(["evt"]);
 
         consoleErrorSpy.mockRestore();
     });
