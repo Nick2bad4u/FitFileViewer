@@ -99,8 +99,6 @@ describe("registerFileSystemHandlers", () => {
 
         const handler = registration[1];
 
-        expect(handler).toBeTypeOf("function");
-
         if (typeof handler !== "function") {
             throw new TypeError("file:read handler was not registered");
         }
@@ -124,7 +122,7 @@ describe("registerFileSystemHandlers", () => {
     });
 
     it("registers file:read handler and resolves buffer slice on success", async () => {
-        expect.assertions(6);
+        expect.assertions(5);
 
         registerDefaultHandlers();
 
@@ -154,7 +152,7 @@ describe("registerFileSystemHandlers", () => {
     });
 
     it("rejects and logs when fs.readFile is unavailable", async () => {
-        expect.assertions(3);
+        expect.assertions(2);
 
         const handlerRegister = vi.fn<RegisterIpcHandle>();
         registerFileSystemHandlers({
@@ -187,7 +185,7 @@ describe("registerFileSystemHandlers", () => {
     });
 
     it("rejects and logs when readFile errors", async () => {
-        expect.assertions(3);
+        expect.assertions(2);
 
         const error = new Error("boom");
         fileSystem.readFile.mockImplementation((_path, callback) =>
@@ -215,7 +213,7 @@ describe("registerFileSystemHandlers", () => {
     });
 
     it("rejects unapproved paths", async () => {
-        expect.assertions(2);
+        expect.assertions(1);
 
         registerDefaultHandlers();
         const handler = getFileReadHandler();
@@ -226,7 +224,7 @@ describe("registerFileSystemHandlers", () => {
     });
 
     it("rejects missing files without logging expected ENOENT failures", async () => {
-        expect.assertions(5);
+        expect.assertions(4);
 
         registerDefaultHandlers();
         const handler = getFileReadHandler();
@@ -252,7 +250,7 @@ describe("registerFileSystemHandlers", () => {
     });
 
     it("rejects oversized files before reading file contents", async () => {
-        expect.assertions(4);
+        expect.assertions(3);
 
         registerDefaultHandlers();
         const handler = getFileReadHandler();
@@ -281,8 +279,47 @@ describe("registerFileSystemHandlers", () => {
         ]);
     });
 
+    it("falls back to readFile when stat fails for a non-missing file reason", async () => {
+        expect.assertions(4);
+
+        registerDefaultHandlers();
+        const handler = getFileReadHandler();
+        const stat = getRequiredStatMock();
+        const mockBuffer = Buffer.from("stat-fallback");
+
+        stat.mockImplementation((_path, callback) =>
+            callback(
+                Object.assign(new Error("permission probe failed"), {
+                    code: "EACCES",
+                })
+            )
+        );
+        fileSystem.readFile.mockImplementation((_path, callback) =>
+            callback(null, mockBuffer)
+        );
+
+        const approvedPath = approveFilePath("C:/fallback.fit", {
+            source: "test",
+        });
+        const result = await handler({}, approvedPath);
+
+        expect(getRequiredMockCall(stat.mock.calls, "fs.stat")[0]).toBe(
+            approvedPath
+        );
+        expect(
+            getRequiredMockCall(
+                fileSystem.readFile.mock.calls,
+                "fs.readFile"
+            )[0]
+        ).toBe(approvedPath);
+        expect(Buffer.from(result as ArrayBuffer).toString()).toBe(
+            "stat-fallback"
+        );
+        expect(logWithContext).not.toHaveBeenCalled();
+    });
+
     it("rejects invalid filePath inputs early", async () => {
-        expect.assertions(5);
+        expect.assertions(4);
 
         registerDefaultHandlers();
         const handler = getFileReadHandler();
@@ -318,7 +355,7 @@ describe("registerFileSystemHandlers", () => {
     });
 
     it("rejects unexpected fs.readFile result types", async () => {
-        expect.assertions(2);
+        expect.assertions(1);
 
         registerDefaultHandlers();
         const handler = getFileReadHandler();
