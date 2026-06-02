@@ -5,9 +5,8 @@
     type IpcResponsePayload = import("../shared/ipc").IpcResponsePayload;
     type InvokeRequestArgs<Channel extends GenericInvokeChannel> =
         import("../shared/ipc").InvokeRequestArgs<Channel>;
-    type InvokeResponsePayloadForChannel<
-        Channel extends GenericInvokeChannel,
-    > = import("../shared/ipc").InvokeResponsePayloadForChannel<Channel>;
+    type InvokeResponsePayloadForChannel<Channel extends GenericInvokeChannel> =
+        import("../shared/ipc").InvokeResponsePayloadForChannel<Channel>;
 
     type IpcListener = (event: object, ...args: IpcResponsePayload[]) => void;
     type PreloadLog = (
@@ -31,7 +30,9 @@
         createSafeEventHandler: (
             channel: string,
             methodName: string,
-            transform?: (...args: IpcResponsePayload[]) => IpcResponsePayload | null
+            transform?: (
+                ...args: IpcResponsePayload[]
+            ) => IpcResponsePayload | null
         ) => (callback: UnknownCallback) => () => void;
         createSafeInvokeHandler: <Channel extends GenericInvokeChannel>(
             channel: Channel,
@@ -61,7 +62,12 @@
         validateCallback,
     }: PreloadIpcHelpersOptions): PreloadIpcHelpers {
         function isMissingFileError(error: unknown): boolean {
-            const message = error instanceof Error ? error.message : String(error);
+            if (error && typeof error === "object" && "code" in error) {
+                return (error as { code?: unknown }).code === "ENOENT";
+            }
+
+            const message =
+                error instanceof Error ? error.message : String(error);
             return /\bENOENT\b/u.test(message);
         }
 
@@ -79,7 +85,9 @@
         function createSafeEventHandler(
             channel: string,
             methodName: string,
-            transform?: (...args: IpcResponsePayload[]) => IpcResponsePayload | null
+            transform?: (
+                ...args: IpcResponsePayload[]
+            ) => IpcResponsePayload | null
         ): (callback: UnknownCallback) => () => void {
             return (callback) => {
                 if (!validateCallback(callback, methodName)) {
@@ -170,7 +178,10 @@
             return undefined;
         }
 
-        function removeIpcListener(channel: string, handler: IpcListener): void {
+        function removeIpcListener(
+            channel: string,
+            handler: IpcListener
+        ): void {
             if (typeof ipcRenderer.removeListener === "function") {
                 ipcRenderer.removeListener(channel, handler);
                 return;

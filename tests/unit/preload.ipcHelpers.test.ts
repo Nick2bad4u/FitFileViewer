@@ -138,12 +138,20 @@ describe("preload IPC helpers", () => {
     });
 
     it("rethrows readFile ENOENT failures without logging preload noise", async () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const { helpers, ipcRenderer, preloadLog } = createHelpers();
-        ipcRenderer.invoke.mockRejectedValueOnce(
-            new Error("ENOENT: no such file or directory, open 'missing.fit'")
+        const missingFileError = new Error(
+            "ENOENT: no such file or directory, open 'missing.fit'"
         );
+        const codedMissingFileError = new Error("File not found");
+        Object.defineProperty(codedMissingFileError, "code", {
+            configurable: true,
+            value: "ENOENT",
+        });
+        ipcRenderer.invoke
+            .mockRejectedValueOnce(missingFileError)
+            .mockRejectedValueOnce(codedMissingFileError);
 
         await expect(
             helpers.createSafeInvokeHandler(
@@ -151,11 +159,17 @@ describe("preload IPC helpers", () => {
                 "readFile"
             )("missing.fit")
         ).rejects.toThrow("ENOENT");
+        await expect(
+            helpers.createSafeInvokeHandler(
+                "file:read",
+                "readFile"
+            )("coded-missing.fit")
+        ).rejects.toThrow("File not found");
 
-        expect(ipcRenderer.invoke).toHaveBeenCalledWith(
-            "file:read",
-            "missing.fit"
-        );
+        expect(ipcRenderer.invoke.mock.calls).toStrictEqual([
+            ["file:read", "missing.fit"],
+            ["file:read", "coded-missing.fit"],
+        ]);
         expect(preloadLog).not.toHaveBeenCalled();
     });
 
