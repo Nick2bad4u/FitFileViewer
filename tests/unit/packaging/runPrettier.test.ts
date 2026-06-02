@@ -51,6 +51,19 @@ type CommandRunner = (
     options: { cwd: string; stdio: string }
 ) => { error?: Error; status: number | null };
 
+function getRequiredCommandCall(
+    calls: Parameters<CommandRunner>[],
+    index = 0
+): Parameters<CommandRunner> {
+    const call = calls[index];
+
+    if (!call) {
+        throw new Error(`Expected command call ${index}`);
+    }
+
+    return call;
+}
+
 const appLocalPackageOrConfigTargetPattern =
     /^electron-app\/(?:package(?:-lock)?\.json|(?:electron-builder|eslint|prettier|stylelint|vite|vitest)\.config\.[cm]?[jt]s|tsconfig(?:\.[\w-]+)?\.json)$/u;
 
@@ -156,16 +169,16 @@ describe("run-prettier wrapper", () => {
             command,
             args,
             options,
-        ] = commandRunner.mock.calls[0] ?? [];
+        ] = getRequiredCommandCall(commandRunner.mock.calls);
 
         expect(commandRunner).toHaveBeenCalledOnce();
         expect({
             command,
             exitStatus,
-            args: args?.slice(1),
+            args: args.slice(1),
             options: {
                 ...options,
-                cwd: path.resolve(options?.cwd ?? ""),
+                cwd: path.resolve(options.cwd),
             },
         }).toStrictEqual({
             command: process.execPath,
@@ -180,7 +193,7 @@ describe("run-prettier wrapper", () => {
                 stdio: "inherit",
             },
         });
-        expect(args?.[0]).toMatch(/[\\/]prettier[\\/]bin[\\/]prettier\.cjs$/u);
+        expect(args[0]).toMatch(/[\\/]prettier[\\/]bin[\\/]prettier\.cjs$/u);
     });
 
     it("throws when Prettier cannot be started", () => {
@@ -201,14 +214,14 @@ describe("run-prettier wrapper", () => {
             command,
             args,
             options,
-        ] = commandRunner.mock.calls[0] ?? [];
+        ] = getRequiredCommandCall(commandRunner.mock.calls);
 
         expect({
-            args: args?.slice(1),
+            args: args.slice(1),
             command,
             options: {
                 ...options,
-                cwd: path.resolve(options?.cwd ?? ""),
+                cwd: path.resolve(options.cwd),
             },
         }).toStrictEqual({
             args: [
@@ -222,7 +235,7 @@ describe("run-prettier wrapper", () => {
                 stdio: "inherit",
             },
         });
-        expect(args?.[0]).toMatch(/[\\/]prettier[\\/]bin[\\/]prettier\.cjs$/u);
+        expect(args[0]).toMatch(/[\\/]prettier[\\/]bin[\\/]prettier\.cjs$/u);
     });
 
     it("keeps cache output rooted in the shared workspace cache directory", () => {

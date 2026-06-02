@@ -18,6 +18,19 @@ type CommandRunner = (
     options: { cwd: string; stdio: string }
 ) => { error?: Error; status: number | null };
 
+function getRequiredCommandCall(
+    calls: Parameters<CommandRunner>[],
+    index = 0
+): Parameters<CommandRunner> {
+    const call = calls[index];
+
+    if (!call) {
+        throw new Error(`Expected command call ${index}`);
+    }
+
+    return call;
+}
+
 type RunEslintModule = {
     buildEslintArgs: (targetName: string, userArgs?: string[]) => string[];
     runEslintTarget: (
@@ -114,17 +127,17 @@ describe("run-eslint script", () => {
             command,
             args,
             options,
-        ] = commandRunner.mock.calls[0] ?? [];
+        ] = getRequiredCommandCall(commandRunner.mock.calls);
 
         expect(commandRunner).toHaveBeenCalledOnce();
         expect({
             command,
-            eslintCliPath: args?.[0],
+            eslintCliPath: args[0],
             exitStatus,
-            forwardedArgs: args?.slice(1),
+            forwardedArgs: args.slice(1),
             options: {
                 ...options,
-                cwd: path.resolve(options?.cwd ?? ""),
+                cwd: path.resolve(options.cwd),
             },
         }).toStrictEqual({
             command: process.execPath,
@@ -171,15 +184,15 @@ describe("run-eslint script", () => {
             command,
             args,
             options,
-        ] = commandRunner.mock.calls[0] ?? [];
+        ] = getRequiredCommandCall(commandRunner.mock.calls);
 
         expect({
             command,
-            eslintCliPath: args?.[0],
-            forwardedArgs: args?.slice(1),
+            eslintCliPath: args[0],
+            forwardedArgs: args.slice(1),
             options: {
                 ...options,
-                cwd: path.resolve(options?.cwd ?? ""),
+                cwd: path.resolve(options.cwd),
             },
         }).toStrictEqual({
             command: process.execPath,
@@ -203,6 +216,6 @@ describe("run-eslint script", () => {
                 stdio: "inherit",
             },
         });
-        expect(args?.[0]).toMatch(/[\\/]eslint[\\/]bin[\\/]eslint\.js$/u);
+        expect(args[0]).toMatch(/[\\/]eslint[\\/]bin[\\/]eslint\.js$/u);
     });
 });

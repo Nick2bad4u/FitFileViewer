@@ -35,10 +35,29 @@ type BumpAppVersionModule = {
     writeGithubOutput: (newVersion: string, outputPath?: string) => void;
 };
 
+type CommandRunner = (
+    command: string,
+    args: string[],
+    options: Record<string, unknown>
+) => void;
+
 const temporaryRoots: string[] = [];
 
 async function importBumpAppVersion(): Promise<BumpAppVersionModule> {
     return (await import("../../../scripts/bump-app-version.mjs")) as BumpAppVersionModule;
+}
+
+function getRequiredCommandCall(
+    calls: Parameters<CommandRunner>[],
+    index = 0
+): Parameters<CommandRunner> {
+    const call = calls[index];
+
+    if (!call) {
+        throw new Error(`Expected command call ${index}`);
+    }
+
+    return call;
 }
 
 function makeTemporaryRoot(version: string): string {
@@ -147,14 +166,7 @@ describe("bump-app-version script", () => {
 
         const { bumpAppVersion } = await importBumpAppVersion();
         const temporaryRoot = makeTemporaryRoot("29.9.0");
-        const commandRunner =
-            vi.fn<
-                (
-                    command: string,
-                    args: string[],
-                    options: Record<string, unknown>
-                ) => void
-            >();
+        const commandRunner = vi.fn<CommandRunner>();
         const result = bumpAppVersion({
             commandRunner,
             dryRun: true,
@@ -176,26 +188,24 @@ describe("bump-app-version script", () => {
         const { bumpAppVersion, createNpmVersionArgs } =
             await importBumpAppVersion();
         const temporaryRoot = makeTemporaryRoot("29.9.0");
-        const commandRunner =
-            vi.fn<
-                (
-                    command: string,
-                    args: string[],
-                    options: Record<string, unknown>
-                ) => void
-            >();
+        const commandRunner = vi.fn<CommandRunner>();
 
         const result = bumpAppVersion({
             commandRunner,
             repositoryRoot: temporaryRoot,
         });
+        const [
+            command,
+            versionArgs,
+            options,
+        ] = getRequiredCommandCall(commandRunner.mock.calls);
 
         expect(commandRunner).toHaveBeenCalledOnce();
         expect({
-            command: commandRunner.mock.calls[0]?.[0],
-            options: commandRunner.mock.calls[0]?.[2],
+            command,
+            options,
             result,
-            versionArgs: commandRunner.mock.calls[0]?.[1],
+            versionArgs,
         }).toStrictEqual({
             command: expect.stringMatching(/^npm(?:\.cmd)?$/u),
             options: {
@@ -210,7 +220,7 @@ describe("bump-app-version script", () => {
             },
             versionArgs: createNpmVersionArgs(undefined, "30.0.0"),
         });
-        expect(commandRunner.mock.calls[0]?.[2]).not.toHaveProperty("shell");
+        expect(options).not.toHaveProperty("shell");
     });
 
     it("writes the GitHub Actions output value", async () => {

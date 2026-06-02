@@ -18,6 +18,19 @@ type CommandRunner = (
     options: { cwd: string; stdio: string }
 ) => { error?: Error; status: number };
 
+function getRequiredCommandCall(
+    calls: Parameters<CommandRunner>[],
+    index = 0
+): Parameters<CommandRunner> {
+    const call = calls[index];
+
+    if (!call) {
+        throw new Error(`Expected command call ${index}`);
+    }
+
+    return call;
+}
+
 describe("start-electron script", () => {
     it("runs the Electron startup pipeline through root-owned scripts", () => {
         expect.assertions(2);
@@ -64,12 +77,12 @@ describe("start-electron script", () => {
             command,
             ,
             options,
-        ] = commandRunner.mock.calls[0] ?? [];
+        ] = getRequiredCommandCall(commandRunner.mock.calls);
 
         expect({
             command,
             ...options,
-            cwd: path.resolve(options?.cwd ?? ""),
+            cwd: path.resolve(options.cwd),
         }).toStrictEqual({
             command: process.execPath,
             cwd: path.resolve(process.cwd()),
@@ -99,9 +112,9 @@ describe("start-electron script", () => {
             loggerCalls: 1,
             status: 4,
         });
-        expect(commandRunner.mock.calls[0]?.[1]).toStrictEqual([
-            buildRuntimeScriptPath,
-        ]);
+        expect(
+            getRequiredCommandCall(commandRunner.mock.calls)[1]
+        ).toStrictEqual([buildRuntimeScriptPath]);
         expect(logger.mock.calls).toStrictEqual([
             ["[start-electron] build runtime"],
         ]);
@@ -120,9 +133,9 @@ describe("start-electron script", () => {
             spawnError
         );
         expect(commandRunner).toHaveBeenCalledOnce();
-        expect(commandRunner.mock.calls[0]?.[1]).toStrictEqual([
-            buildRuntimeScriptPath,
-        ]);
+        expect(
+            getRequiredCommandCall(commandRunner.mock.calls)[1]
+        ).toStrictEqual([buildRuntimeScriptPath]);
         expect(logger).toHaveBeenCalledWith("[start-electron] build runtime");
     });
 });

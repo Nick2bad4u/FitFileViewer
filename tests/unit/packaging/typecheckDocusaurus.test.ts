@@ -17,6 +17,19 @@ type CommandRunner = (
     options: { cwd: string; stdio: string }
 ) => { error?: Error; status: number | null };
 
+function getRequiredCommandCall(
+    calls: Parameters<CommandRunner>[],
+    index = 0
+): Parameters<CommandRunner> {
+    const call = calls[index];
+
+    if (!call) {
+        throw new Error(`Expected command call ${index}`);
+    }
+
+    return call;
+}
+
 describe("typecheck-docusaurus script", () => {
     it("builds Docusaurus TypeScript args from the root-owned project", () => {
         expect.assertions(2);
@@ -54,7 +67,7 @@ describe("typecheck-docusaurus script", () => {
             command,
             args,
             options,
-        ] = commandRunner.mock.calls[0] ?? [];
+        ] = getRequiredCommandCall(commandRunner.mock.calls);
 
         expect({
             args,
@@ -67,7 +80,7 @@ describe("typecheck-docusaurus script", () => {
         });
         expect({
             ...options,
-            cwd: path.resolve(options?.cwd ?? ""),
+            cwd: path.resolve(options.cwd),
         }).toStrictEqual({
             cwd: path.resolve(process.cwd()),
             stdio: "inherit",
@@ -90,9 +103,9 @@ describe("typecheck-docusaurus script", () => {
             commandCalls: 1,
             status: 2,
         });
-        expect(commandRunner.mock.calls[0]?.[1]).toStrictEqual(
-            buildDocusaurusTypecheckArgs([])
-        );
+        expect(
+            getRequiredCommandCall(commandRunner.mock.calls)[1]
+        ).toStrictEqual(buildDocusaurusTypecheckArgs([]));
     });
 
     it("throws when TypeScript cannot be started", () => {
@@ -113,7 +126,7 @@ describe("typecheck-docusaurus script", () => {
             command,
             args,
             options,
-        ] = commandRunner.mock.calls[0] ?? [];
+        ] = getRequiredCommandCall(commandRunner.mock.calls);
 
         expect({ args, command }).toStrictEqual({
             args: buildDocusaurusTypecheckArgs([]),
@@ -121,7 +134,7 @@ describe("typecheck-docusaurus script", () => {
         });
         expect({
             ...options,
-            cwd: path.resolve(options?.cwd ?? ""),
+            cwd: path.resolve(options.cwd),
         }).toStrictEqual({
             cwd: path.resolve(process.cwd()),
             stdio: "inherit",

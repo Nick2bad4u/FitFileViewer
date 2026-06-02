@@ -19,6 +19,19 @@ type CommandRunner = (
     options: { cwd: string; stdio: string }
 ) => { error?: Error; status: number };
 
+function getRequiredCommandCall(
+    calls: Parameters<CommandRunner>[],
+    index = 0
+): Parameters<CommandRunner> {
+    const call = calls[index];
+
+    if (!call) {
+        throw new Error(`Expected command call ${index}`);
+    }
+
+    return call;
+}
+
 describe("run-docusaurus wrapper", () => {
     it("keeps the docs commands that require asset sync explicit", () => {
         expect.assertions(2);
@@ -77,16 +90,16 @@ describe("run-docusaurus wrapper", () => {
             syncCommand,
             syncArgs,
             syncOptions,
-        ] = commandRunner.mock.calls[0] ?? [];
+        ] = getRequiredCommandCall(commandRunner.mock.calls);
         const [
             docsCommand,
             docsArgs,
             docsOptions,
-        ] = commandRunner.mock.calls[1] ?? [];
+        ] = getRequiredCommandCall(commandRunner.mock.calls, 1);
 
         expect({
             command: syncCommand,
-            cwd: path.resolve(syncOptions?.cwd ?? ""),
+            cwd: path.resolve(syncOptions.cwd),
             args: syncArgs,
         }).toStrictEqual({
             command: process.execPath,
@@ -94,15 +107,15 @@ describe("run-docusaurus wrapper", () => {
             args: [syncDocusaurusStaticAssetsScript],
         });
         expect({
-            args: docsArgs?.slice(1),
+            args: docsArgs.slice(1),
             command: docsCommand,
-            cwd: path.resolve(docsOptions?.cwd ?? ""),
+            cwd: path.resolve(docsOptions.cwd),
         }).toStrictEqual({
             args: ["build"],
             command: process.execPath,
             cwd: docusaurusWorkspacePath,
         });
-        expect(docsArgs?.[0]).toMatch(
+        expect(docsArgs[0]).toMatch(
             /[\\/]@docusaurus[\\/]core[\\/]bin[\\/]docusaurus\.mjs$/u
         );
     });
@@ -127,14 +140,14 @@ describe("run-docusaurus wrapper", () => {
             ,
             args,
             options,
-        ] = commandRunner.mock.calls[0] ?? [];
+        ] = getRequiredCommandCall(commandRunner.mock.calls);
 
-        expect(args?.[0]).toMatch(
+        expect(args[0]).toMatch(
             /[\\/]@docusaurus[\\/]core[\\/]bin[\\/]docusaurus\.mjs$/u
         );
         expect({
-            args: args?.slice(1),
-            cwd: path.resolve(options?.cwd ?? ""),
+            args: args.slice(1),
+            cwd: path.resolve(options.cwd),
         }).toStrictEqual({
             args: ["clear"],
             cwd: docusaurusWorkspacePath,
@@ -184,7 +197,7 @@ describe("run-docusaurus wrapper", () => {
             command,
             args,
             options,
-        ] = commandRunner.mock.calls[0] ?? [];
+        ] = getRequiredCommandCall(commandRunner.mock.calls);
 
         expect({ args, command }).toStrictEqual({
             args: buildDocusaurusArgs(["clear"]),
@@ -192,7 +205,7 @@ describe("run-docusaurus wrapper", () => {
         });
         expect({
             ...options,
-            cwd: path.resolve(options?.cwd ?? ""),
+            cwd: path.resolve(options.cwd),
         }).toStrictEqual({
             cwd: docusaurusWorkspacePath,
             stdio: "inherit",

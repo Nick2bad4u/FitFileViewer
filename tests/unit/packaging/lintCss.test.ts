@@ -20,6 +20,19 @@ type CommandRunner = (
     options: { cwd: string; stdio: string }
 ) => { error?: Error; status: number };
 
+function getRequiredCommandCall(
+    calls: Parameters<CommandRunner>[],
+    index = 0
+): Parameters<CommandRunner> {
+    const call = calls[index];
+
+    if (!call) {
+        throw new Error(`Expected command call ${index}`);
+    }
+
+    return call;
+}
+
 describe("lint-css wrapper", () => {
     it("keeps root-owned Stylelint targets for app styles", () => {
         expect.assertions(1);
@@ -64,10 +77,10 @@ describe("lint-css wrapper", () => {
             command,
             args,
             options,
-        ] = commandRunner.mock.calls[0] ?? [];
+        ] = getRequiredCommandCall(commandRunner.mock.calls);
 
         expect({
-            args: args?.slice(1),
+            args: args.slice(1),
             command,
             status: exitStatus,
         }).toStrictEqual({
@@ -80,12 +93,10 @@ describe("lint-css wrapper", () => {
             command: process.execPath,
             status: 4,
         });
-        expect(args?.[0]).toMatch(
-            /[\\/]stylelint[\\/]bin[\\/]stylelint\.mjs$/u
-        );
+        expect(args[0]).toMatch(/[\\/]stylelint[\\/]bin[\\/]stylelint\.mjs$/u);
         expect({
             ...options,
-            cwd: path.resolve(options?.cwd ?? ""),
+            cwd: path.resolve(options.cwd),
         }).toStrictEqual({
             cwd: path.resolve(process.cwd()),
             stdio: "inherit",
@@ -107,7 +118,7 @@ describe("lint-css wrapper", () => {
             command,
             args,
             options,
-        ] = commandRunner.mock.calls[0] ?? [];
+        ] = getRequiredCommandCall(commandRunner.mock.calls);
 
         expect({ args, command }).toStrictEqual({
             args: buildStylelintArgs([]),
@@ -115,7 +126,7 @@ describe("lint-css wrapper", () => {
         });
         expect({
             ...options,
-            cwd: path.resolve(options?.cwd ?? ""),
+            cwd: path.resolve(options.cwd),
         }).toStrictEqual({
             cwd: path.resolve(process.cwd()),
             stdio: "inherit",

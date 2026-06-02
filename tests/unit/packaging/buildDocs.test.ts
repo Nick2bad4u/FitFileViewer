@@ -20,24 +20,55 @@ type CommandRunner = (
     options: { cwd: string; stdio: string }
 ) => { error?: Error; status: number };
 
+function getRequiredCommandCall(
+    calls: Parameters<CommandRunner>[],
+    index = 0
+): Parameters<CommandRunner> {
+    const call = calls[index];
+
+    if (!call) {
+        throw new Error(`Expected command call ${index}`);
+    }
+
+    return call;
+}
+
+function getRequiredDocsStep(
+    steps: ReturnType<typeof buildDocsSteps>,
+    index: number
+): ReturnType<typeof buildDocsSteps>[number] {
+    const step = steps[index];
+
+    if (!step) {
+        throw new Error(`Expected docs step ${index}`);
+    }
+
+    return step;
+}
+
 describe("build-docs script", () => {
     it("builds the full docs pipeline through root-owned scripts", () => {
         expect.assertions(3);
 
         const steps = buildDocsSteps([]);
+        const typedocStep = getRequiredDocsStep(steps, 0);
+        const apiCategoriesStep = getRequiredDocsStep(steps, 1);
+        const docusaurusStep = getRequiredDocsStep(steps, 2);
 
         expect(steps.map((step) => step.label)).toStrictEqual([
             "generate API docs",
             "generate API categories",
             "build Docusaurus site",
         ]);
-        expect(steps[0]?.args[0]).toMatch(/[\\/]typedoc[\\/]bin[\\/]typedoc$/u);
+        expect(typedocStep.args[0]).toMatch(
+            /[\\/]typedoc[\\/]bin[\\/]typedoc$/u
+        );
         expect({
-            step0Args: steps[0]?.args.slice(1),
-            step0Cwd: path.resolve(steps[0]?.cwd ?? ""),
-            step1Args: steps[1]?.args,
-            step1Cwd: path.resolve(steps[1]?.cwd ?? ""),
-            step2Args: steps[2]?.args,
+            step0Args: typedocStep.args.slice(1),
+            step0Cwd: path.resolve(typedocStep.cwd),
+            step1Args: apiCategoriesStep.args,
+            step1Cwd: path.resolve(apiCategoriesStep.cwd),
+            step2Args: docusaurusStep.args,
         }).toStrictEqual({
             step0Args: ["--options", typedocConfigPath],
             step0Cwd: path.resolve(process.cwd()),
@@ -82,11 +113,11 @@ describe("build-docs script", () => {
             command,
             ,
             options,
-        ] = commandRunner.mock.calls[0] ?? [];
+        ] = getRequiredCommandCall(commandRunner.mock.calls);
 
         expect({
             command,
-            cwd: path.resolve(options?.cwd ?? ""),
+            cwd: path.resolve(options.cwd),
         }).toStrictEqual({
             command: process.execPath,
             cwd: path.resolve(process.cwd()),
@@ -131,7 +162,8 @@ describe("build-docs script", () => {
             )
         ).toStrictEqual([
             {
-                args: buildDocsSteps(["--typedoc-only"])[0]?.args,
+                args: getRequiredDocsStep(buildDocsSteps(["--typedoc-only"]), 0)
+                    .args,
                 cwd: path.resolve(process.cwd()),
             },
             {
@@ -158,9 +190,9 @@ describe("build-docs script", () => {
             spawnError
         );
         expect(commandRunner).toHaveBeenCalledOnce();
-        expect(commandRunner.mock.calls[0]?.[1]).toStrictEqual(
-            buildDocsSteps([])[0]?.args
-        );
+        expect(
+            getRequiredCommandCall(commandRunner.mock.calls)[1]
+        ).toStrictEqual(getRequiredDocsStep(buildDocsSteps([]), 0).args);
         expect(logger).toHaveBeenCalledWith("[build-docs] generate API docs");
     });
 });

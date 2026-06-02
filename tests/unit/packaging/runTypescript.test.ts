@@ -19,6 +19,19 @@ type CommandRunner = (
     options: { cwd: string; stdio: string }
 ) => { error?: Error; status: number | null };
 
+function getRequiredCommandCall(
+    calls: Parameters<CommandRunner>[],
+    index = 0
+): Parameters<CommandRunner> {
+    const call = calls[index];
+
+    if (!call) {
+        throw new Error(`Expected command call ${index}`);
+    }
+
+    return call;
+}
+
 describe("run-typescript wrapper", () => {
     it("builds root-owned typecheck arguments", () => {
         expect.assertions(2);
@@ -103,21 +116,21 @@ describe("run-typescript wrapper", () => {
             command,
             args,
             options,
-        ] = commandRunner.mock.calls[0] ?? [];
+        ] = getRequiredCommandCall(commandRunner.mock.calls);
 
         expect({
             command,
-            forwardedArgs: args?.slice(1),
+            forwardedArgs: args.slice(1),
             status,
         }).toStrictEqual({
             command: process.execPath,
             forwardedArgs: ["--project", rootRuntimeTsconfigPath],
             status: 7,
         });
-        expect(args?.[0]).toMatch(/[\\/]typescript[\\/]bin[\\/]tsc$/u);
+        expect(args[0]).toMatch(/[\\/]typescript[\\/]bin[\\/]tsc$/u);
         expect({
             ...options,
-            cwd: path.resolve(options?.cwd ?? ""),
+            cwd: path.resolve(options.cwd),
         }).toStrictEqual({
             cwd: path.resolve(process.cwd()),
             stdio: "inherit",
@@ -142,14 +155,14 @@ describe("run-typescript wrapper", () => {
             command,
             args,
             options,
-        ] = commandRunner.mock.calls[0] ?? [];
+        ] = getRequiredCommandCall(commandRunner.mock.calls);
 
         expect({
             command,
-            forwardedArgs: args?.slice(1),
+            forwardedArgs: args.slice(1),
             options: {
                 ...options,
-                cwd: path.resolve(options?.cwd ?? ""),
+                cwd: path.resolve(options.cwd),
             },
         }).toStrictEqual({
             command: process.execPath,
@@ -163,6 +176,6 @@ describe("run-typescript wrapper", () => {
                 stdio: "inherit",
             },
         });
-        expect(args?.[0]).toMatch(/[\\/]typescript[\\/]bin[\\/]tsc$/u);
+        expect(args[0]).toMatch(/[\\/]typescript[\\/]bin[\\/]tsc$/u);
     });
 });

@@ -19,6 +19,32 @@ type CommandRunner = (
     options: { cwd: string; stdio: string }
 ) => { error?: Error; status: number };
 
+function getRequiredCommandCall(
+    calls: Parameters<CommandRunner>[],
+    index = 0
+): Parameters<CommandRunner> {
+    const call = calls[index];
+
+    if (!call) {
+        throw new Error(`Expected command call ${index}`);
+    }
+
+    return call;
+}
+
+function getRequiredPlaywrightStep(
+    steps: ReturnType<typeof runPlaywrightSteps>,
+    index: number
+): ReturnType<typeof runPlaywrightSteps>[number] {
+    const step = steps[index];
+
+    if (!step) {
+        throw new Error(`Expected Playwright step ${index}`);
+    }
+
+    return step;
+}
+
 describe("run-playwright script", () => {
     it("runs the Playwright pipeline through root-owned scripts", () => {
         expect.assertions(4);
@@ -28,13 +54,15 @@ describe("run-playwright script", () => {
             "--project",
             "electron",
         ]);
+        const runtimeBuildStep = getRequiredPlaywrightStep(steps, 0);
+        const playwrightStep = getRequiredPlaywrightStep(steps, 1);
 
         expect(steps.map((step) => step.label)).toStrictEqual([
             "build runtime",
             "run playwright",
         ]);
-        expect(steps[0]?.args).toStrictEqual([buildRuntimeScriptPath]);
-        expect(steps[1]?.args).toStrictEqual([
+        expect(runtimeBuildStep.args).toStrictEqual([buildRuntimeScriptPath]);
+        expect(playwrightStep.args).toStrictEqual([
             playwrightCliPath,
             "test",
             "--config",
@@ -180,9 +208,9 @@ describe("run-playwright script", () => {
             spawnError
         );
         expect(commandRunner).toHaveBeenCalledOnce();
-        expect(commandRunner.mock.calls[0]?.[1]).toStrictEqual([
-            buildRuntimeScriptPath,
-        ]);
+        expect(
+            getRequiredCommandCall(commandRunner.mock.calls)[1]
+        ).toStrictEqual([buildRuntimeScriptPath]);
         expect(logger).toHaveBeenCalledWith("[run-playwright] build runtime");
     });
 });
