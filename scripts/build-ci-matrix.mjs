@@ -357,9 +357,9 @@ function removeDirectorySync(directory) {
     fs.rmSync(directory, { force: true, recursive: true });
 }
 
-function runCommandSync(command, args) {
+function runCommandSync(command, args, options = { cwd: repositoryRoot }) {
     const result = spawnSync(command, args, {
-        cwd: repositoryRoot,
+        cwd: options.cwd,
         stdio: "inherit",
     });
 
@@ -371,14 +371,17 @@ function runCommandSync(command, args) {
 }
 
 function runElectronBuilder(builderArgs, { runCommand }) {
-    return runCommand(process.execPath, [
-        runElectronBuilderScriptPath,
-        ...builderArgs,
-    ]);
+    return runCommand(
+        process.execPath,
+        [runElectronBuilderScriptPath, ...builderArgs],
+        { cwd: repositoryRoot }
+    );
 }
 
 function runRuntimeBuild({ runCommand }) {
-    return runCommand(npmCommand(), ["run", "build:runtime-ts"]);
+    return runCommand(npmCommand(), ["run", "build:runtime-ts"], {
+        cwd: repositoryRoot,
+    });
 }
 
 function sleepSync(delaySeconds) {

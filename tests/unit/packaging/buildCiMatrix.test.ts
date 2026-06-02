@@ -1,9 +1,20 @@
 import { describe, expect, it } from "vitest";
 
 import {
+    repositoryRoot,
     rootReleaseDistPath,
     runElectronBuilderScriptPath,
 } from "../../../scripts/lib/workspaces.mjs";
+
+type CommandRunOptions = {
+    cwd: string;
+};
+
+type CommandCall = {
+    args: string[];
+    command: string;
+    cwd: string | undefined;
+};
 
 type BuildCiMatrixModule = {
     buildCiMatrix: (
@@ -19,7 +30,11 @@ type BuildCiMatrixModule = {
         dependencies?: {
             log?: (message: string) => void;
             removeDirectory?: (directory: string) => void;
-            runCommand?: (command: string, args: string[]) => number;
+            runCommand?: (
+                command: string,
+                args: string[],
+                options: CommandRunOptions
+            ) => number;
             sleep?: (delaySeconds: number) => void;
         }
     ) => number;
@@ -55,7 +70,11 @@ type BuildCiMatrixModule = {
             maxAttempts: number;
             releaseDirectory: string;
             removeDirectory: (directory: string) => void;
-            runCommand: (command: string, args: string[]) => number;
+            runCommand: (
+                command: string,
+                args: string[],
+                options: CommandRunOptions
+            ) => number;
             sleep: (delaySeconds: number) => void;
         }
     ) => number;
@@ -200,7 +219,7 @@ describe("build-ci-matrix script", () => {
         expect.assertions(1);
 
         const { buildCiMatrix } = await importBuildCiMatrix();
-        const commandCalls: Array<{ args: string[]; command: string }> = [];
+        const commandCalls: CommandCall[] = [];
 
         const exitCode = buildCiMatrix(
             {
@@ -209,8 +228,8 @@ describe("build-ci-matrix script", () => {
                 runnerOs: "Windows",
             },
             {
-                runCommand(command, args) {
-                    commandCalls.push({ args, command });
+                runCommand(command, args, options) {
+                    commandCalls.push({ args, command, cwd: options.cwd });
                     return 0;
                 },
             }
@@ -221,6 +240,7 @@ describe("build-ci-matrix script", () => {
                 {
                     args: ["run", "build:runtime-ts"],
                     command: expect.stringMatching(/^npm(?:\.cmd)?$/u),
+                    cwd: repositoryRoot,
                 },
                 {
                     args: [
@@ -230,6 +250,7 @@ describe("build-ci-matrix script", () => {
                         "never",
                     ],
                     command: process.execPath,
+                    cwd: repositoryRoot,
                 },
             ],
             exitCode: 0,
@@ -240,7 +261,7 @@ describe("build-ci-matrix script", () => {
         expect.assertions(1);
 
         const { buildCiMatrix } = await importBuildCiMatrix();
-        const commandCalls: Array<{ args: string[]; command: string }> = [];
+        const commandCalls: CommandCall[] = [];
 
         const exitCode = buildCiMatrix(
             {
@@ -249,8 +270,8 @@ describe("build-ci-matrix script", () => {
                 runnerOs: "Windows",
             },
             {
-                runCommand(command, args) {
-                    commandCalls.push({ args, command });
+                runCommand(command, args, options) {
+                    commandCalls.push({ args, command, cwd: options.cwd });
                     return 2;
                 },
             }
@@ -261,6 +282,7 @@ describe("build-ci-matrix script", () => {
                 {
                     args: ["run", "build:runtime-ts"],
                     command: expect.stringMatching(/^npm(?:\.cmd)?$/u),
+                    cwd: repositoryRoot,
                 },
             ],
             exitCode: 2,
@@ -271,7 +293,7 @@ describe("build-ci-matrix script", () => {
         expect.assertions(1);
 
         const { retryElectronBuilder } = await importBuildCiMatrix();
-        const commandCalls: Array<{ args: string[]; command: string }> = [];
+        const commandCalls: CommandCall[] = [];
         const logMessages: string[] = [];
         const removedDirectories: string[] = [];
         const sleepDelays: number[] = [];
@@ -292,8 +314,8 @@ describe("build-ci-matrix script", () => {
             removeDirectory(directory) {
                 removedDirectories.push(directory);
             },
-            runCommand(command, args) {
-                commandCalls.push({ args, command });
+            runCommand(command, args, options) {
+                commandCalls.push({ args, command, cwd: options.cwd });
                 return exitCodes.shift() ?? 1;
             },
             sleep(delaySeconds) {
@@ -313,10 +335,12 @@ describe("build-ci-matrix script", () => {
                 {
                     args: [runElectronBuilderScriptPath, ...builderArgs],
                     command: process.execPath,
+                    cwd: repositoryRoot,
                 },
                 {
                     args: [runElectronBuilderScriptPath, ...builderArgs],
                     command: process.execPath,
+                    cwd: repositoryRoot,
                 },
             ],
             exitCode: 0,
@@ -335,7 +359,7 @@ describe("build-ci-matrix script", () => {
         expect.assertions(1);
 
         const { retryElectronBuilder } = await importBuildCiMatrix();
-        const commandCalls: Array<{ args: string[]; command: string }> = [];
+        const commandCalls: CommandCall[] = [];
         const logMessages: string[] = [];
         const builderArgs = [
             "--arm64",
@@ -351,8 +375,8 @@ describe("build-ci-matrix script", () => {
             maxAttempts: 2,
             releaseDirectory: rootReleaseDistPath,
             removeDirectory() {},
-            runCommand(command, args) {
-                commandCalls.push({ args, command });
+            runCommand(command, args, options) {
+                commandCalls.push({ args, command, cwd: options.cwd });
                 return 7;
             },
             sleep() {},
@@ -363,10 +387,12 @@ describe("build-ci-matrix script", () => {
                 {
                     args: [runElectronBuilderScriptPath, ...builderArgs],
                     command: process.execPath,
+                    cwd: repositoryRoot,
                 },
                 {
                     args: [runElectronBuilderScriptPath, ...builderArgs],
                     command: process.execPath,
+                    cwd: repositoryRoot,
                 },
             ],
             exitCode: 7,
@@ -460,7 +486,7 @@ describe("build-ci-matrix script", () => {
 
         const { buildCiMatrix, getDryRunSummary } = await importBuildCiMatrix();
         const logMessages: string[] = [];
-        const commandCalls: Array<{ args: string[]; command: string }> = [];
+        const commandCalls: CommandCall[] = [];
         const dryRunOptions = {
             arch: "x64",
             dryRun: true,
@@ -472,8 +498,8 @@ describe("build-ci-matrix script", () => {
             log(message) {
                 logMessages.push(message);
             },
-            runCommand(command, args) {
-                commandCalls.push({ args, command });
+            runCommand(command, args, options) {
+                commandCalls.push({ args, command, cwd: options.cwd });
                 return 0;
             },
         });
