@@ -66,6 +66,14 @@ function getClassList(element: Element): string[] {
     return [...element.classList];
 }
 
+function getModalDisplayState(modal: HTMLElement) {
+    return {
+        classList: getClassList(modal),
+        display: modal.style.display,
+        id: modal.id,
+    };
+}
+
 describe("keyboardShortcutsModal", () => {
     afterEach(() => {
         document.body.innerHTML = "";
@@ -78,7 +86,7 @@ describe("keyboardShortcutsModal", () => {
     });
 
     it("creates and displays the modal when triggered", async () => {
-        expect.assertions(10);
+        expect.assertions(8);
 
         const { showKeyboardShortcutsModal } = await loadModal();
         const trigger = document.createElement("button");
@@ -101,9 +109,15 @@ describe("keyboardShortcutsModal", () => {
             modal,
             "keyboard shortcuts modal"
         );
-        expect(keyboardShortcutsModal.id).toBe("keyboard-shortcuts-modal");
-        expect(keyboardShortcutsModal.style.display).toBe("flex");
-        expect(getClassList(keyboardShortcutsModal)).toContain("show");
+        expect(getModalDisplayState(keyboardShortcutsModal)).toStrictEqual({
+            classList: [
+                "modal",
+                "fancy-modal",
+                "show",
+            ],
+            display: "flex",
+            id: "keyboard-shortcuts-modal",
+        });
 
         const closeBtn =
             keyboardShortcutsModal.querySelector<HTMLButtonElement>(
@@ -148,7 +162,11 @@ describe("keyboardShortcutsModal", () => {
         expectHTMLElement(closeBtn, "modal close button");
 
         closeKeyboardShortcutsModal();
-        expect(getClassList(keyboardShortcutsModal)).not.toContain("show");
+        expect(getModalDisplayState(keyboardShortcutsModal)).toStrictEqual({
+            classList: ["modal", "fancy-modal"],
+            display: "flex",
+            id: "keyboard-shortcuts-modal",
+        });
 
         vi.advanceTimersByTime(350);
 
