@@ -69,8 +69,8 @@ describe(sanitizeHtmlAllowlist, () => {
             );
 
             expect(paragraph.getAttribute("class")).toBe("ok");
-            expect(paragraph.hasAttribute("onclick")).toBe(false);
-            expect(paragraph.hasAttribute("href")).toBe(false);
+            expect(paragraph.getAttribute("onclick")).toBeNull();
+            expect(paragraph.getAttribute("href")).toBeNull();
             expect(fragment.querySelector("script")).toBeNull();
             expect(serializeFragment(fragment)).toBe("safekept");
         } finally {
@@ -211,6 +211,29 @@ describe(sanitizeHtmlAllowlist, () => {
         });
     });
 
+    it("removes style attributes containing legacy behavior URLs", () => {
+        expect.assertions(2);
+
+        const html =
+            '<div style="behavior:url(https://evil.example/x.htc)">x</div>';
+        const fragment = sanitizeHtmlAllowlist(html, {
+            allowedAttributes: ["style"],
+            allowedTags: ["DIV"],
+            stripUrlInStyle: true,
+        });
+
+        const container = document.createElement("div");
+        container.append(fragment);
+
+        const div = container.querySelector("div");
+        expect(div).toBeInstanceOf(HTMLDivElement);
+        expect({
+            styleAttribute: div?.getAttribute("style"),
+        }).toStrictEqual({
+            styleAttribute: null,
+        });
+    });
+
     it("strips srcset defensively even when allowedAttributes includes it", () => {
         expect.assertions(3);
 
@@ -285,7 +308,9 @@ describe(sanitizeHtmlAllowlist, () => {
                 HTMLParagraphElement
             );
 
-            expect(paragraph.hasAttribute("style")).toBe(true);
+            expect(paragraph.getAttribute("style")).toBe(
+                "background:url(https://example.test/x)"
+            );
         } finally {
             globalRef.DOMPurify = previousPurifier;
         }
@@ -325,7 +350,7 @@ describe(sanitizeHtmlAllowlist, () => {
 
             expect(receivedHtml).toBe("<span>raw</span>");
             expect(span.textContent).toBe("purified");
-            expect(span.hasAttribute("style")).toBe(false);
+            expect(span.getAttribute("style")).toBeNull();
             expect(fragment.querySelector("script")).toBeNull();
         } finally {
             globalRef.DOMPurify = previousPurifier;
