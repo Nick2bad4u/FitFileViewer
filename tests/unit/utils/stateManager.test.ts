@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
     __resetStateManagerForTests,
     clearStateHistory,
@@ -63,6 +63,16 @@ function getStableHistoryEntry(entry = getStateHistory().at(-1)) {
 }
 
 describe("state manager core", () => {
+    beforeEach(() => {
+        vi.spyOn(console, "error").mockImplementation(() => {});
+        vi.spyOn(console, "log").mockImplementation(() => {});
+        vi.spyOn(console, "warn").mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
     it("sets and gets simple state values", () => {
         expect.assertions(1);
 
