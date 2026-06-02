@@ -15,17 +15,35 @@ const expectedFormatterExports = [
     "hasManufacturerMapping",
 ] as const;
 
+const removedLegacyFormatterExports = ["formatPace"] as const;
+
 describe("formatters barrel", () => {
     it("exports the stable formatter API surface", () => {
-        expect.assertions(12);
+        expect.assertions(2);
 
-        expect(Object.keys(formatters).sort()).toEqual(
-            [...expectedFormatterExports].sort()
-        );
-
-        for (const exportName of expectedFormatterExports) {
-            expect(formatters[exportName]).toBeTypeOf("function");
-        }
+        expect({
+            exportNames: Object.keys(formatters).sort(),
+            exportTypes: Object.fromEntries(
+                expectedFormatterExports.map((exportName) => [
+                    exportName,
+                    typeof formatters[exportName],
+                ])
+            ),
+            legacyExportNames: removedLegacyFormatterExports.filter(
+                (exportName) =>
+                    Object.prototype.hasOwnProperty.call(formatters, exportName)
+            ),
+        }).toStrictEqual({
+            exportNames: [...expectedFormatterExports].sort(),
+            exportTypes: Object.fromEntries(
+                expectedFormatterExports.map((exportName) => [
+                    exportName,
+                    "function",
+                ])
+            ),
+            legacyExportNames: [],
+        });
+        expect(Object.keys(formatters)).not.toContain("formatPace");
     });
 
     it("routes representative formatter calls through the barrel exports", () => {
@@ -35,11 +53,5 @@ describe("formatters barrel", () => {
         expect(formatters.formatDuration(90)).toBe("1 min 30 sec");
         expect(formatters.formatWeight(70)).toBe("70 kg (154 lbs)");
         expect(formatters.formatArray([1.234, 2.567], 1)).toBe("1.2, 2.6");
-    });
-
-    it("does not expose removed legacy formatter names", () => {
-        expect.assertions(1);
-
-        expect(formatters).not.toHaveProperty("formatPace");
     });
 });
