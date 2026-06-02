@@ -138,7 +138,7 @@ const importPreloadFresh = async (): Promise<unknown> => {
     // Remove any exposed globals from prior runs
     delete (window as PreloadTestWindow).electronAPI;
     delete (window as PreloadTestWindow)[DEV_TOOLS_GLOBAL];
-    return await import("../../../electron-app/preload.js");
+    return await import("../../electron-app/preload.js");
 };
 
 describe("preload.js electronAPI exposure and behavior", () => {
