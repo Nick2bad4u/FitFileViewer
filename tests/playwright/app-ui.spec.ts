@@ -260,15 +260,19 @@ test.describe("FitFileViewer renderer environment fallbacks", () => {
             );
             await noNodeEnvPage.waitForFunction(() => {
                 const map = document.querySelector("#leaflet-map");
-                const themeToggle = document.querySelector(".map-theme-toggle");
+                const themeToggle = document.querySelector(
+                    "#content_map.active #map-controls .map-theme-toggle"
+                );
 
                 return (
                     map instanceof HTMLElement &&
-                    themeToggle instanceof HTMLElement
+                    themeToggle instanceof HTMLElement &&
+                    themeToggle.getClientRects().length > 0
                 );
             });
-            const noNodeEnvMapThemeToggle =
-                noNodeEnvPage.locator(".map-theme-toggle");
+            const noNodeEnvMapThemeToggle = noNodeEnvPage.locator(
+                "#content_map.active #map-controls .map-theme-toggle"
+            );
             await expect(noNodeEnvMapThemeToggle).toHaveAttribute(
                 "aria-label",
                 "Toggle map theme"

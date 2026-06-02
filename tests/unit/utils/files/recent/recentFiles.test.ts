@@ -22,7 +22,7 @@ describe("recentFiles utility", () => {
         // Clear the cache to ensure fresh module load
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         delete require.cache[
-            require.resolve("../../../../../electron-app/dist/utils/files/recent/recentFiles.js")
+            require.resolve("../../../../../dist/utils/files/recent/recentFiles.js")
         ];
 
         // Setup environment variable for test file path
@@ -46,15 +46,15 @@ describe("recentFiles utility", () => {
 
         // Import the module after mocks and spies are setup
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        recentFiles = require("../../../../../electron-app/dist/utils/files/recent/recentFiles.js");
+        recentFiles = require("../../../../../dist/utils/files/recent/recentFiles.js");
     });
 
     afterEach(() => {
         // Clean up
         delete process.env.RECENT_FILES_PATH;
-        errorSpy.mockRestore();
-        warnSpy.mockRestore();
-        logSpy.mockRestore();
+        errorSpy?.mockRestore?.();
+        warnSpy?.mockRestore?.();
+        logSpy?.mockRestore?.();
         writeSpyDefault?.mockRestore?.();
     });
 
@@ -302,11 +302,11 @@ describe("recentFiles utility", () => {
     function requireFresh() {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const modPath =
-            require.resolve("../../../../../electron-app/dist/utils/files/recent/recentFiles.js");
+            require.resolve("../../../../../dist/utils/files/recent/recentFiles.js");
         // @ts-ignore
         delete require.cache[modPath];
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        return require("../../../../../electron-app/dist/utils/files/recent/recentFiles.js");
+        return require("../../../../../dist/utils/files/recent/recentFiles.js");
     }
 
     it("initializes RECENT_FILES_PATH from Electron userData when available", async () => {
