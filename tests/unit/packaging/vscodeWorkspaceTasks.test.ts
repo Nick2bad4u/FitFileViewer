@@ -16,6 +16,21 @@ type VsCodeTasksJson = {
     tasks?: VsCodeTask[];
 };
 
+type VsCodeWorkspaceSettings = {
+    "github.copilot.chat.codeGeneration.instructions"?: string;
+    "stylelint.configFile"?: string;
+    "vitest.rootConfig"?: string;
+};
+
+function readVsCodeSettings(): VsCodeWorkspaceSettings {
+    return JSON.parse(
+        readFileSync(
+            path.join(process.cwd(), ".vscode", "settings.json"),
+            "utf8"
+        )
+    ) as VsCodeWorkspaceSettings;
+}
+
 function readVsCodeTasks(): VsCodeTask[] {
     const tasksJson = JSON.parse(
         readFileSync(path.join(process.cwd(), ".vscode", "tasks.json"), "utf8")
@@ -50,6 +65,28 @@ describe("vs code workspace tasks", () => {
         expect(nestedElectronTestArgs).toStrictEqual([]);
         expect(taskArgs.join(" ")).not.toMatch(
             /(?:--workspace|--prefix|-w)\s+electron-app/u
+        );
+    });
+
+    it("keeps editor guidance aligned with root-owned TypeScript entrypoints", () => {
+        expect.assertions(3);
+
+        const settings = readVsCodeSettings();
+        const instructions =
+            settings["github.copilot.chat.codeGeneration.instructions"] ?? "";
+
+        expect({
+            stylelintConfigFile: settings["stylelint.configFile"],
+            vitestRootConfig: settings["vitest.rootConfig"],
+        }).toStrictEqual({
+            stylelintConfigFile: "${workspaceFolder}/stylelint.config.mjs",
+            vitestRootConfig: "${workspaceFolder}/vitest.config.ts",
+        });
+        expect(instructions).toContain(
+            "electron-app/main.ts, electron-app/preload.ts, electron-app/renderer.ts, and electron-app/main-ui.ts"
+        );
+        expect(instructions).not.toMatch(
+            /\b(?:main|preload|renderer)\.js\b|vscode-extension\/|vis\//u
         );
     });
 });

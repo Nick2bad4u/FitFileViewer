@@ -32,7 +32,7 @@
         "**/.git": false,
         "out": false
     },
-    "github.copilot.chat.codeGeneration.instructions": "Follow the comprehensive coding guidelines and architectural patterns defined in the copilot-instructions.md file at the project root. Focus exclusively on the FitFileViewer Electron application located in the root and electron-app/ directories. Ignore fit-test-files/, vscode-extension/, vis/, and other non-core project folders. Use the established modular architecture with utilities in utils/, follow the ES6+ module patterns, implement proper error handling, support the theme system, and maintain the security model with context isolation. Prioritize performance, accessibility, and cross-platform compatibility. Reference existing patterns in main.js, renderer.js, preload.js, and the utils/ modules when suggesting code changes.",
+    "github.copilot.chat.codeGeneration.instructions": "Follow AGENTS.md and the root-owned npm scripts/configuration. FitFileViewer source lives in electron-app/ with TypeScript entrypoints electron-app/main.ts, electron-app/preload.ts, electron-app/renderer.ts, and electron-app/main-ui.ts; generated JavaScript belongs under electron-app/dist/. Keep tooling changes at the repository root unless a source module specifically belongs under electron-app/. Use existing utilities under electron-app/utils/, preserve context isolation and the preload bridge, and verify changes with the relevant root npm scripts. Ignore generated output, release artifacts, fit-test-files/, and node_modules/.",
     "github.copilot.chat.localeOverride": "en",
     "github.copilot.chat.summarizeAgentConversationHistory.enabled": false,
     "github.copilot.enable": {
