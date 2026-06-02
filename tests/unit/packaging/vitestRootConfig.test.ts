@@ -8,6 +8,7 @@ import {
     rootPackageRepositoryPath,
     rootVitestCachePath,
     rootVitestGlobalSetupPath,
+    rootVitestPreloadDistHelperPath,
     rootVitestSetupFilePath,
 } from "../../../scripts/lib/workspaces.mjs";
 
@@ -73,5 +74,23 @@ describe("vitest root config", () => {
         expect(getRootScripts()["test:tabs"]).toBe(
             "node scripts/run-vitest.mjs --run --reporter=verbose --suite tabs --maxWorkers 1"
         );
+    });
+
+    it("keeps preload dist fixtures pointed at the root runtime output", () => {
+        expect.assertions(4);
+
+        const helperSource = readFileSync(
+            path.join(process.cwd(), rootVitestPreloadDistHelperPath),
+            "utf8"
+        );
+
+        expect(rootVitestPreloadDistHelperPath).toBe(
+            "tests/vitest/helpers/preloadDist.ts"
+        );
+        expect(helperSource).toContain(
+            'join(repositoryRoot, "dist", "preload.js")'
+        );
+        expect(helperSource).not.toContain('"electron-app",\n    "dist"');
+        expect(helperSource).not.toContain("electron-app/dist/preload.js");
     });
 });

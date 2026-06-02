@@ -212,7 +212,7 @@ describe("renderer vendor asset policy", () => {
                 rootPackage.devDependencies,
                 "devDependencies"
             )["leaflet-measure"]
-        ).toEqual(expect.stringMatching(/\S/u));
+        ).toStrictEqual(expect.stringMatching(/\S/u));
         expect(vendorGlobalsCore).toContain(
             'import "leaflet-measure/dist/leaflet-measure.css";'
         );

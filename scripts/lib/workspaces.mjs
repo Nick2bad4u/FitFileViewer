@@ -130,6 +130,11 @@ export const rootVitestSetupFilePath = path.posix.join(
     rootVitestSupportPath,
     "setupVitest.mjs"
 );
+export const rootVitestPreloadDistHelperPath = path.posix.join(
+    rootVitestSupportPath,
+    "helpers",
+    "preloadDist.ts"
+);
 export const rootTypedocConfigPath = "typedoc.json";
 export const rootUnitTestsPath = path.posix.join("tests", "unit");
 export const rootTabsTestsPath = path.posix.join(rootUnitTestsPath, "tabs");
