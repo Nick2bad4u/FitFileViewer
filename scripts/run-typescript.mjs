@@ -4,10 +4,10 @@ import process from "node:process";
 import { pathToFileURL } from "node:url";
 
 import {
-    appTypesPath,
     repositoryRoot,
     rootAppTsconfigPath,
     rootRuntimeTsconfigPath,
+    rootTypesPath,
 } from "./lib/workspaces.mjs";
 
 const require = createRequire(import.meta.url);
@@ -24,7 +24,7 @@ export const typescriptTasks = new Map([
             "--declarationMap",
             "false",
             "--outDir",
-            `./${appTypesPath}`,
+            `./${rootTypesPath}`,
         ],
     ],
     ["runtime", ["--project", rootRuntimeTsconfigPath]],

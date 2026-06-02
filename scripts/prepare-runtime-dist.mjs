@@ -8,17 +8,17 @@ import {
     appIconsPath,
     appIndexHtmlPath,
     appStyleCssPath,
-    appDistAbsolutePath,
     repositoryRoot,
     rootAlternativeFitViewPath,
     rootAppElevProfileCssPath,
     rootAppIconsPath,
     rootAppIndexHtmlPath,
     rootAppStyleCssPath,
+    rootRuntimeDistAbsolutePath,
 } from "./lib/workspaces.mjs";
 
 const defaultRepositoryDir = repositoryRoot;
-const defaultDistDir = appDistAbsolutePath;
+const defaultDistDir = rootRuntimeDistAbsolutePath;
 const defaultStaticDir = repositoryRoot;
 
 export const directoryCopies = [

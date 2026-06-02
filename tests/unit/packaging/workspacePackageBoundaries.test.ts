@@ -9,7 +9,6 @@ import {
     docusaurusHomePagePath,
     rootAppBaseTsconfigPath,
     rootAppEslintTsconfigPath,
-    appTypesPath,
     appSourceRepositoryPath,
     docusaurusPackageRepositoryPath,
     rootAgentsPath,
@@ -27,6 +26,7 @@ import {
     rootPrettierIgnorePath,
     rootRuntimeTsconfigPath,
     rootStylelintConfigPath,
+    rootTypesPath,
     rootDevelopmentGuideDocPath,
     docusaurusReadmeRepositoryPath,
     rootViteRendererConfigPath,
@@ -557,10 +557,10 @@ describe("workspace package boundaries", () => {
             path.join(process.cwd(), rootGitignorePath),
             "utf8"
         );
-        const appTypesIgnorePath = `${appTypesPath.replaceAll(path.sep, "/")}/`;
+        const rootTypesIgnorePath = `${rootTypesPath.replaceAll(path.sep, "/")}/`;
 
-        expect(prettierIgnore).toContain(appTypesIgnorePath);
-        expect(gitignore).toContain(appTypesIgnorePath);
+        expect(prettierIgnore).toContain(rootTypesIgnorePath);
+        expect(gitignore).toContain(rootTypesIgnorePath);
         expect(prettierIgnore).not.toContain("electron-app/types/");
         expect(gitignore).not.toContain("electron-app/types/");
     });

@@ -1,12 +1,12 @@
 import { defineConfig } from "vite";
 
 import {
-    appDistRendererRepositoryPath,
     appRendererVendorGlobalsEntryPath,
     rendererVendorGlobalsBundleName,
     rendererVendorGlobalsScriptFileName,
     rendererVendorGlobalsStyleFileName,
     repositoryRoot,
+    rootRuntimeRendererRepositoryPath,
 } from "./scripts/lib/workspaces.mjs";
 
 export default defineConfig({
@@ -19,7 +19,7 @@ export default defineConfig({
             formats: ["es"],
         },
         minify: false,
-        outDir: appDistRendererRepositoryPath,
+        outDir: rootRuntimeRendererRepositoryPath,
         rollupOptions: {
             output: {
                 assetFileNames(assetInfo) {

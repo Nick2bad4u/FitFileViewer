@@ -4,8 +4,6 @@ import process from "node:process";
 import { pathToFileURL } from "node:url";
 
 import {
-    appDistPath,
-    appTypesPath,
     docusaurusApiDocsPath,
     docusaurusBuildPath,
     docusaurusCachePath,
@@ -23,6 +21,8 @@ import {
     rootFlatpakZipPath,
     rootDocsScreenshotNames,
     rootReleaseDistPath,
+    rootRuntimeDistPath,
+    rootTypesPath,
 } from "./lib/workspaces.mjs";
 
 export const cleanupTargets = [
@@ -46,7 +46,7 @@ export const cleanupTargets = [
     rootFlatpakBuildPath,
     rootFlatpakRepoPath,
     rootCoveragePath,
-    "dist",
+    rootRuntimeDistPath,
     "html",
     "logs",
     "out",
@@ -54,8 +54,7 @@ export const cleanupTargets = [
     rootReleaseDistPath,
     "temp",
     "test-results",
-    appDistPath,
-    appTypesPath,
+    rootTypesPath,
 ];
 
 export function cleanWorkspace(

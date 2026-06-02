@@ -3,9 +3,12 @@ import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
-import { appDistAbsolutePath, repositoryRoot } from "./lib/workspaces.mjs";
+import {
+    repositoryRoot,
+    rootRuntimeDistAbsolutePath,
+} from "./lib/workspaces.mjs";
 
-export const defaultRuntimeDistPath = appDistAbsolutePath;
+export const defaultRuntimeDistPath = rootRuntimeDistAbsolutePath;
 
 export function assertInsideRepository(targetPath, root = repositoryRoot) {
     const resolvedRoot = path.resolve(root);

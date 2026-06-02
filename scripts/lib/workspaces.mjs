@@ -98,6 +98,10 @@ export const rootReleaseDistPath = "release-dist";
 export const rootReleaseDistAbsolutePath = repositoryPath(rootReleaseDistPath);
 export const rootRuntimeDistPath = "dist";
 export const rootRuntimeDistAbsolutePath = repositoryPath(rootRuntimeDistPath);
+export const rootRuntimeRendererRepositoryPath = path.posix.join(
+    rootRuntimeDistPath,
+    "renderer"
+);
 export const rootTypesPath = "types";
 export const rootTypesAbsolutePath = repositoryPath(rootTypesPath);
 export const rootWin7ReleaseDistPath = repositoryPath(
@@ -139,12 +143,6 @@ export const docusaurusWorkspacePath = path.join(
     docusaurusWorkspaceName
 );
 export const appAlternativeFitViewPath = "ffv";
-export const appDistPath = rootRuntimeDistPath;
-export const appDistAbsolutePath = rootRuntimeDistAbsolutePath;
-export const appDistRendererRepositoryPath = path.posix.join(
-    rootRuntimeDistPath,
-    "renderer"
-);
 export const appElevProfileCssPath = "elevProfile.css";
 export const appIconsPath = "icons";
 export const appIndexHtmlPath = "index.html";
@@ -169,8 +167,6 @@ export const rendererVendorGlobalsBundleName = "vendor-globals";
 export const rendererVendorGlobalsScriptFileName = `${rendererVendorGlobalsBundleName}.js`;
 export const rendererVendorGlobalsStyleFileName = `${rendererVendorGlobalsBundleName}.css`;
 export const appStyleCssPath = "style.css";
-export const appTypesPath = rootTypesPath;
-export const appTypesAbsolutePath = rootTypesAbsolutePath;
 export const docusaurusPackagePath =
     docusaurusWorkspaceAbsolutePath("package.json");
 export const docusaurusPackageRepositoryPath =

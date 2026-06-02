@@ -8,9 +8,9 @@ import {
     runTypescriptTask,
 } from "../../../scripts/run-typescript.mjs";
 import {
-    appTypesPath,
     rootAppTsconfigPath,
     rootRuntimeTsconfigPath,
+    rootTypesPath,
 } from "../../../scripts/lib/workspaces.mjs";
 
 type CommandRunner = (
@@ -60,7 +60,7 @@ describe("run-typescript wrapper", () => {
         ]);
     });
 
-    it("builds declaration output arguments for the app source directory", () => {
+    it("builds declaration output arguments for the root types directory", () => {
         expect.assertions(2);
 
         const args = buildTypescriptArgs("declarations");
@@ -74,7 +74,7 @@ describe("run-typescript wrapper", () => {
             "--declarationMap",
             "false",
             "--outDir",
-            `./${appTypesPath}`,
+            `./${rootTypesPath}`,
         ]);
     });
 

@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
-    appDistRendererRepositoryPath,
     appRendererVendorGlobalsEntryPath,
     rendererVendorGlobalsScriptFileName,
     repositoryRoot,
+    rootRuntimeRendererRepositoryPath,
 } from "../../../scripts/lib/workspaces.mjs";
 
 type ViteRendererConfigModule = {
@@ -31,7 +31,7 @@ async function importViteRendererConfig(): Promise<ViteRendererConfigModule> {
 }
 
 describe("renderer Vite config", () => {
-    it("roots renderer bundling in the repository while outputting into the app dist", async () => {
+    it("roots renderer bundling in the repository while outputting into root dist", async () => {
         expect.assertions(2);
 
         const { default: config } = await importViteRendererConfig();
@@ -49,7 +49,7 @@ describe("renderer Vite config", () => {
             emptyOutDir: false,
             entry: appRendererVendorGlobalsEntryPath,
             fileName: rendererVendorGlobalsScriptFileName,
-            outDir: appDistRendererRepositoryPath,
+            outDir: rootRuntimeRendererRepositoryPath,
             publicDir: false,
             resolveAlias: undefined,
             root: repositoryRoot,

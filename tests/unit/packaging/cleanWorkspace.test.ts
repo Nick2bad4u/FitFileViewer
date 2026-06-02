@@ -5,8 +5,6 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
-    appDistPath,
-    appTypesPath,
     appSourceRelativePath,
     docusaurusApiDocsPath,
     docusaurusBuildPath,
@@ -26,6 +24,8 @@ import {
     rootGitignorePath,
     rootPackageLockPath,
     rootReleaseDistPath,
+    rootRuntimeDistPath,
+    rootTypesPath,
 } from "../../../scripts/lib/workspaces.mjs";
 
 type CleanWorkspaceModule = {
@@ -99,7 +99,7 @@ describe("clean-workspace script", () => {
             rootFlatpakBuildPath,
             rootFlatpakRepoPath,
             rootCoveragePath,
-            "dist",
+            rootRuntimeDistPath,
             "html",
             "logs",
             "out",
@@ -107,8 +107,7 @@ describe("clean-workspace script", () => {
             rootReleaseDistPath,
             "temp",
             "test-results",
-            appDistPath,
-            appTypesPath,
+            rootTypesPath,
         ]);
     });
 
@@ -174,11 +173,10 @@ describe("clean-workspace script", () => {
             rootArtifactsPath,
             rootFlatpakRepoPath,
             rootReleaseDistPath,
-            "dist",
+            rootRuntimeDistPath,
             "logs",
             "out",
             "temp",
-            appDistPath,
             docusaurusBuildPath,
         ];
         const unrelatedFile = "README.md";

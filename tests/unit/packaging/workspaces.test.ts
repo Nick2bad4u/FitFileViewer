@@ -5,9 +5,6 @@ import { describe, expect, it } from "vitest";
 type WorkspacesModule = {
     adHocEslintCachePath: string;
     appAlternativeFitViewPath: string;
-    appDistAbsolutePath: string;
-    appDistPath: string;
-    appDistRendererRepositoryPath: string;
     appElevProfileCssPath: string;
     appEslintCachePath: string;
     appIconsPath: string;
@@ -18,8 +15,6 @@ type WorkspacesModule = {
     appRendererVendorGlobalsCoreEntryPath: string;
     appRendererVendorGlobalsEntryPath: string;
     appStyleCssPath: string;
-    appTypesAbsolutePath: string;
-    appTypesPath: string;
     appSourceAbsolutePath: (...segments: string[]) => string;
     appSourceDirectoryName: string;
     appSourcePath: string;
@@ -139,6 +134,7 @@ type WorkspacesModule = {
     rootReleaseDistRelativePath: (...segments: string[]) => string;
     rootRuntimeDistAbsolutePath: string;
     rootRuntimeDistPath: string;
+    rootRuntimeRendererRepositoryPath: string;
     rootRuntimeTsconfigAbsolutePath: string;
     rootRuntimeTsconfigPath: string;
     rootSecretlintConfigPath: string;
@@ -172,7 +168,7 @@ async function importWorkspaces(): Promise<WorkspacesModule> {
 
 describe("workspace path helpers", () => {
     it("centralizes the app source root paths", async () => {
-        expect.assertions(15);
+        expect.assertions(11);
 
         const workspaces = await importWorkspaces();
 
@@ -188,18 +184,10 @@ describe("workspace path helpers", () => {
         expect(workspaces.docusaurusWorkspacePath).toBe(
             path.join(process.cwd(), "docusaurus")
         );
-        expect(workspaces.appDistPath).toBe("dist");
-        expect(workspaces.appDistAbsolutePath).toBe(
-            path.join(process.cwd(), "dist")
-        );
         expect(workspaces.rootPackagePath).toBe(
             path.join(process.cwd(), "package.json")
         );
         expect(workspaces.rootPackageRepositoryPath).toBe("package.json");
-        expect(workspaces.appTypesPath).toBe("types");
-        expect(workspaces.appTypesAbsolutePath).toBe(
-            path.join(process.cwd(), "types")
-        );
         expect(workspaces.appSourceRepositoryPath("main.ts")).toBe(
             "electron-app/main.ts"
         );
@@ -271,12 +259,11 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes app runtime asset paths", async () => {
-        expect.assertions(14);
+        expect.assertions(13);
 
         const workspaces = await importWorkspaces();
 
         expect(workspaces.appAlternativeFitViewPath).toBe("ffv");
-        expect(workspaces.appDistRendererRepositoryPath).toBe("dist/renderer");
         expect(workspaces.appElevProfileCssPath).toBe("elevProfile.css");
         expect(workspaces.appIconsPath).toBe("icons");
         expect(workspaces.appIndexHtmlPath).toBe("index.html");
@@ -588,6 +575,7 @@ describe("workspace path helpers", () => {
             releaseDistAbsolute: workspaces.rootReleaseDistAbsolutePath,
             rootRuntimeDist: workspaces.rootRuntimeDistPath,
             rootRuntimeDistAbsolute: workspaces.rootRuntimeDistAbsolutePath,
+            rootRuntimeRenderer: workspaces.rootRuntimeRendererRepositoryPath,
             rootTypes: workspaces.rootTypesPath,
             rootTypesAbsolute: workspaces.rootTypesAbsolutePath,
             tabsTests: workspaces.rootTabsTestsPath,
@@ -611,6 +599,7 @@ describe("workspace path helpers", () => {
             releaseDistAbsolute: path.join(process.cwd(), "release-dist"),
             rootRuntimeDist: "dist",
             rootRuntimeDistAbsolute: path.join(process.cwd(), "dist"),
+            rootRuntimeRenderer: "dist/renderer",
             rootTypes: "types",
             rootTypesAbsolute: path.join(process.cwd(), "types"),
             tabsTests: "tests/unit/tabs",

@@ -3,8 +3,8 @@ import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import {
-    appDistAbsolutePath,
     repositoryRoot,
+    rootRuntimeDistAbsolutePath,
 } from "../../../scripts/lib/workspaces.mjs";
 
 type CleanRuntimeDistModule = {
@@ -32,7 +32,7 @@ describe("clean-runtime-dist script", () => {
 
         const { defaultRuntimeDistPath } = await importCleanRuntimeDist();
 
-        expect(defaultRuntimeDistPath).toBe(appDistAbsolutePath);
+        expect(defaultRuntimeDistPath).toBe(rootRuntimeDistAbsolutePath);
     });
 
     it("removes only the configured runtime dist directory", async () => {
