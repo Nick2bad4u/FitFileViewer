@@ -10,6 +10,11 @@ const sampleFitPath = path.join(
     "_Fenton_Michigan_Afternoon_Ride_5_27_miles.fit"
 );
 const sampleFitFileName = path.basename(sampleFitPath);
+const missingFitPath = path.join(
+    repositoryRoot,
+    "fit-test-files",
+    "__playwright_missing_file__.fit"
+);
 const sampleFitActivityState: ActivityUiState = {
     activeFileName: `Active:${sampleFitFileName}`,
     recordCount: 1285,
@@ -103,6 +108,16 @@ function expectNoCollectedEntries(
     ).toStrictEqual([]);
 }
 
+function isExpectedMissingFitFileError(message: string): boolean {
+    return (
+        message.includes(path.basename(missingFitPath)) &&
+        ((message.includes("HandleOpenFile: Failed to read file") &&
+            message.includes("File not found.")) ||
+            (message.includes("[FitFileState] File loading failed:") &&
+                message.includes("ENOENT")))
+    );
+}
+
 test.describe("FitFileViewer Electron UI", () => {
     let electronApp: ElectronApplication;
     let page: Page;
@@ -183,6 +198,16 @@ test.describe("FitFileViewer Electron UI", () => {
             sessionCount: window.globalData?.sessionMesgs?.length ?? 0,
             title: document.title,
         }));
+    }
+
+    async function expectMissingFitFileErrorAlert(): Promise<void> {
+        const errorAlert = page.getByRole("alert", {
+            name: /Error: Error reading file: File not found\./u,
+        });
+
+        await expect(errorAlert).toContainText(
+            "Failed to load FIT file: Error invoking remote method 'file:read': Error: ENOENT"
+        );
     }
 
     async function armMapThemeEventRecorder(): Promise<void> {
@@ -289,7 +314,10 @@ test.describe("FitFileViewer Electron UI", () => {
         page.on("console", (message) => {
             const text = message.text();
             rendererMessages.push(text);
-            if (message.type() === "error") {
+            if (
+                message.type() === "error" &&
+                !isExpectedMissingFitFileError(text)
+            ) {
                 pageErrors.push(text);
             }
         });
@@ -396,6 +424,39 @@ test.describe("FitFileViewer Electron UI", () => {
                 recordCount: 0,
                 sessionCount: 0,
                 title: stateBeforeCancel.title,
+            });
+        } finally {
+            await restoreOpenFileDialog();
+        }
+    });
+
+    test("reports a missing FIT file without changing the current activity", async () => {
+        expect(fs.existsSync(missingFitPath)).toBe(false);
+
+        await mockOpenFileDialog({
+            canceled: false,
+            filePaths: [missingFitPath],
+        });
+
+        try {
+            await waitForOpenFileButtonReady();
+
+            const stateBeforeMissingFile = await getActivityUiState();
+
+            await page.locator("#open_file_btn").click();
+            await expect.poll(getOpenFileDialogCallCount).toBe(1);
+
+            await expectMissingFitFileErrorAlert();
+            await expect(page.locator("#open_file_btn")).toBeEnabled();
+
+            const stateAfterMissingFile = await getActivityUiState();
+
+            expect(stateAfterMissingFile).toStrictEqual(stateBeforeMissingFile);
+            expect(stateAfterMissingFile).toStrictEqual({
+                activeFileName: "",
+                recordCount: 0,
+                sessionCount: 0,
+                title: stateBeforeMissingFile.title,
             });
         } finally {
             await restoreOpenFileDialog();

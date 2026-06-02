@@ -8,6 +8,7 @@ import { createRendererLogger } from "../../logging/rendererLogger.js";
 import type { RendererLogLevel } from "../../logging/rendererLogger.js";
 import { getProcessEnvironmentValue } from "../../runtime/processEnvironment.js";
 import * as stateManager from "../../state/core/stateManager.js";
+import { clearAllNotifications } from "../../ui/notifications/showNotification.js";
 import {
     getFitMessagesSessionCount,
     getFitParseErrorMessage,
@@ -116,6 +117,20 @@ function getFileReadErrorMessage(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
 }
 
+function showFileOpenErrorNotification(
+    showNotification: ShowNotification,
+    message: string,
+    duration?: number
+): void {
+    clearAllNotifications();
+    if (duration === undefined) {
+        showNotification(message, "error");
+        return;
+    }
+
+    showNotification(message, "error", duration);
+}
+
 const resolveFitFileStateManager = (): FitFileStateManagerFacade | null => {
     const candidate = getFileOpenGlobal().__FFV_fitFileStateManager;
 
@@ -201,9 +216,9 @@ async function handleOpenFile(
             const message =
                 error instanceof Error ? error.message : String(error);
             log("error", "Failed to open file dialog", { error: message });
-            showNotification(
-                `Unable to open the file dialog. Please try again. Error details: ${message}`,
-                "error"
+            showFileOpenErrorNotification(
+                showNotification,
+                `Unable to open the file dialog. Please try again. Error details: ${message}`
             );
             updateUIState(uiElements, false, false);
             return false;
@@ -230,7 +245,10 @@ async function handleOpenFile(
                 error: message,
                 filePath: filePathString,
             });
-            showNotification(`Error reading file: ${message}`, "error");
+            showFileOpenErrorNotification(
+                showNotification,
+                `Error reading file: ${message}`
+            );
             notifyFileLoadError(error);
             updateUIState(uiElements, false, false);
             return false;
@@ -246,7 +264,7 @@ async function handleOpenFile(
         if (bufferValidationError) {
             const message = bufferValidationError;
             log("error", message, { filePath: filePathString });
-            showNotification(message, "error");
+            showFileOpenErrorNotification(showNotification, message);
             notifyFileLoadError(new Error(message));
             updateUIState(uiElements, false, false);
             return false;
@@ -263,7 +281,10 @@ async function handleOpenFile(
             const message =
                 error instanceof Error ? error.message : String(error);
             log("error", "Failed to parse FIT file", { error: message });
-            showNotification(`Error parsing FIT file: ${message}`, "error");
+            showFileOpenErrorNotification(
+                showNotification,
+                `Error parsing FIT file: ${message}`
+            );
             notifyFileLoadError(error);
             updateUIState(uiElements, false, false);
             return false;
@@ -271,7 +292,10 @@ async function handleOpenFile(
 
         const parseErrorMessage = getFitParseErrorMessage(result);
         if (parseErrorMessage) {
-            showNotification(`Error: ${parseErrorMessage.display}`, "error");
+            showFileOpenErrorNotification(
+                showNotification,
+                `Error: ${parseErrorMessage.display}`
+            );
             notifyFileLoadError(new Error(parseErrorMessage.summary));
             updateUIState(uiElements, false, false);
             return false;
@@ -304,7 +328,10 @@ async function handleOpenFile(
             const message =
                 error instanceof Error ? error.message : String(error);
             log("error", "Failed to display FIT data", { error: message });
-            showNotification(`Error displaying FIT data: ${message}`, "error");
+            showFileOpenErrorNotification(
+                showNotification,
+                `Error displaying FIT data: ${message}`
+            );
             notifyFileLoadError(error);
             updateUIState(uiElements, false, false);
             return true;
@@ -315,9 +342,9 @@ async function handleOpenFile(
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         log("error", "Unexpected error during file open", { error: message });
-        showNotification(
-            `Unexpected error during file open: ${message}`,
-            "error"
+        showFileOpenErrorNotification(
+            showNotification,
+            `Unexpected error during file open: ${message}`
         );
         notifyFileLoadError(error);
         updateUIState(uiElements, false, false);
