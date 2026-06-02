@@ -6,35 +6,44 @@ import {
     sanitizeFilenameComponent,
 } from "../../../electron-app/utils/files/sanitizeFilename.js";
 
+type SanitizerCase = {
+    readonly expected: string;
+    readonly fallback?: string;
+    readonly input: string;
+};
+
 describe("filename component sanitization", () => {
-    it("replaces reserved characters and control codes with underscores", () => {
-        expect.assertions(1);
+    it("normalizes unsafe or unusable filename components", () => {
+        expect.hasAssertions();
 
+        const cases: SanitizerCase[] = [
+            {
+                expected: "My_Bad_Name",
+                fallback: "fallback",
+                input: "My:\u0000Bad?Name*",
+            },
+            {
+                expected: "hidden_name",
+                input: " .hidden name. ",
+            },
+            {
+                expected: "CON_file",
+                fallback: "file",
+                input: "CON",
+            },
+            {
+                expected: "fallback_name",
+                fallback: "*fallback name*",
+                input: "\u0000\u0001",
+            },
+        ];
+
+        for (const { expected, fallback, input } of cases) {
+            expect(sanitizeFilenameComponent(input, fallback)).toBe(expected);
+        }
         expect(
-            sanitizeFilenameComponent("My:\u0000Bad?Name*", "fallback")
-        ).toBe("My_Bad_Name");
-    });
-
-    it("removes leading or trailing periods and collapses whitespace", () => {
-        expect.assertions(1);
-
-        expect(sanitizeFilenameComponent(" .hidden name. ")).toBe(
-            "hidden_name"
-        );
-    });
-
-    it("rejects Windows reserved device names as bare filenames", () => {
-        expect.assertions(1);
-
-        expect(sanitizeFilenameComponent("CON", "file")).toBe("CON_file");
-    });
-
-    it("falls back to a sanitised default when input is unusable", () => {
-        expect.assertions(1);
-
-        expect(
-            sanitizeFilenameComponent("\u0000\u0001", "*fallback name*")
-        ).toBe("fallback_name");
+            cases.map(({ input }) => sanitizeFilenameComponent(input))
+        ).not.toContain("CON");
     });
 
     it("limits output length while preserving code-point boundaries", () => {
@@ -49,69 +58,89 @@ describe("filename component sanitization", () => {
 });
 
 describe("file extension sanitization", () => {
-    it("normalises extension candidates", () => {
-        expect.assertions(1);
+    it("normalizes extension candidates and falls back when needed", () => {
+        expect.hasAssertions();
 
-        expect(sanitizeFileExtension("..G P X!!")).toBe("gpx");
-    });
+        const cases: SanitizerCase[] = [
+            {
+                expected: "gpx",
+                input: "..G P X!!",
+            },
+            {
+                expected: "averylongextensi",
+                input: "AVeryLongExtensionName",
+            },
+            {
+                expected: "csv",
+                fallback: "CSV",
+                input: "???",
+            },
+            {
+                expected: "",
+                input: "",
+            },
+        ];
 
-    it("limits extension length after normalising safe characters", () => {
-        expect.assertions(1);
-
-        expect(sanitizeFileExtension("AVeryLongExtensionName")).toBe(
-            "averylongextensi"
-        );
-    });
-
-    it("rejects unsafe extension text and uses a clean fallback", () => {
-        expect.assertions(1);
-
-        expect(sanitizeFileExtension("???", "CSV")).toBe("csv");
+        for (const { expected, fallback, input } of cases) {
+            expect(sanitizeFileExtension(input, fallback)).toBe(expected);
+        }
+        expect(
+            cases.map(({ input }) => sanitizeFileExtension(input))
+        ).not.toContain("???");
     });
 });
 
 describe("download filename building", () => {
-    it("retains safe base name and detected extension", () => {
-        expect.assertions(1);
+    it("builds safe download names from paths and fallback options", () => {
+        expect.hasAssertions();
 
-        expect(buildDownloadFilename("C:/activities/Morning Ride.fit")).toBe(
-            "Morning_Ride.fit"
-        );
-    });
+        const cases: Array<{
+            readonly expected: string;
+            readonly input: string;
+            readonly options?: Parameters<typeof buildDownloadFilename>[1];
+        }> = [
+            {
+                expected: "Morning_Ride.fit",
+                input: "C:/activities/Morning Ride.fit",
+            },
+            {
+                expected: "CON_file.fit",
+                input: "C:/activities/CON.fit",
+            },
+            {
+                expected: "env.txt",
+                input: "../.env",
+                options: { defaultExtension: "txt" },
+            },
+            {
+                expected: "report.final.gpx",
+                input: "folder/report.final.GPX",
+            },
+            {
+                expected: "analysis.csv",
+                input: "",
+                options: {
+                    defaultExtension: "csv",
+                    fallbackBase: "analysis",
+                },
+            },
+            {
+                expected: "my_track.gpx",
+                input: "..\\\\?bad/path\\*",
+                options: {
+                    defaultExtension: "gpx",
+                    fallbackBase: "my track",
+                },
+            },
+        ];
 
-    it("sanitizes only the final path segment before rebuilding the filename", () => {
-        expect.assertions(1);
-
-        expect([
-            buildDownloadFilename("C:/activities/CON.fit"),
-            buildDownloadFilename("../.env", { defaultExtension: "txt" }),
-            buildDownloadFilename("folder/report.final.GPX"),
-        ]).toStrictEqual([
-            "CON_file.fit",
-            "env.txt",
-            "report.final.gpx",
-        ]);
-    });
-
-    it("applies default extension and fallback", () => {
-        expect.assertions(1);
-
+        for (const { expected, input, options } of cases) {
+            expect(buildDownloadFilename(input, options)).toBe(expected);
+        }
         expect(
-            buildDownloadFilename("", {
-                defaultExtension: "csv",
-                fallbackBase: "analysis",
-            })
-        ).toBe("analysis.csv");
-    });
-
-    it("rejects unsafe characters in generated names", () => {
-        expect.assertions(1);
-
-        expect(
-            buildDownloadFilename("..\\\\?bad/path\\*", {
-                defaultExtension: "gpx",
-                fallbackBase: "my track",
-            })
-        ).toBe("my_track.gpx");
+            cases.map(({ input, options }) =>
+                buildDownloadFilename(input, options)
+            )
+        ).not.toContain("CON.fit");
     });
 });
