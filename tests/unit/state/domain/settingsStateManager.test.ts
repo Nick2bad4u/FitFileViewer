@@ -101,6 +101,29 @@ function getStorageEventListener(): EventListener {
     return listener;
 }
 
+function getRequiredMockCall<T extends unknown[]>(calls: T[], index = 0): T {
+    const call = calls[index];
+
+    if (!call) {
+        throw new Error(`Expected mock call ${index}`);
+    }
+
+    return call;
+}
+
+function getRequiredLastMockCall<T extends unknown[]>(
+    calls: T[],
+    label: string
+): T {
+    const call = calls.at(-1);
+
+    if (!call) {
+        throw new Error(`Expected ${label} to have been called`);
+    }
+
+    return call;
+}
+
 describe("settingsStateManager.js - simplified coverage", () => {
     let settingsStateManagerModule: any;
     let settingsStateManager: any;
@@ -298,7 +321,10 @@ describe("settingsStateManager.js - simplified coverage", () => {
                 expect({
                     keyCalls: mockLocalStorage.key.mock.calls,
                     result,
-                    storageKey: mockLocalStorage.getItem.mock.calls.at(-1)?.[0],
+                    storageKey: getRequiredLastMockCall(
+                        mockLocalStorage.getItem.mock.calls,
+                        "localStorage.getItem"
+                    )[0],
                 }).toStrictEqual({
                     keyCalls: [],
                     result: undefined,
@@ -314,7 +340,10 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
                 expect({
                     result,
-                    warning: vi.mocked(console.warn).mock.calls.at(-1),
+                    warning: getRequiredLastMockCall(
+                        vi.mocked(console.warn).mock.calls,
+                        "console.warn"
+                    ),
                 }).toStrictEqual({
                     result: undefined,
                     warning: [
@@ -551,7 +580,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
                 settingsStateManager.setupLocalStorageSync();
 
                 const [subscriptionPath, subscriptionCallback] =
-                    mockSubscribe.mock.calls[0] ?? [];
+                    getRequiredMockCall(mockSubscribe.mock.calls);
                 expect({
                     subscriptionCallbackType: typeof subscriptionCallback,
                     subscriptionPath,
@@ -563,7 +592,9 @@ describe("settingsStateManager.js - simplified coverage", () => {
                     eventName,
                     storageListener,
                     options,
-                ] = vi.mocked(globalThis.addEventListener).mock.calls[0] ?? [];
+                ] = getRequiredMockCall(
+                    vi.mocked(globalThis.addEventListener).mock.calls
+                );
                 const listenerOptions = options as
                     | AddEventListenerOptions
                     | undefined;
@@ -756,7 +787,10 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
                 expect({
                     result,
-                    storageKey: mockLocalStorage.getItem.mock.calls.at(-1)?.[0],
+                    storageKey: getRequiredLastMockCall(
+                        mockLocalStorage.getItem.mock.calls,
+                        "localStorage.getItem"
+                    )[0],
                 }).toStrictEqual({
                     result: undefined,
                     storageKey: "chartjs_missingKey",
@@ -828,7 +862,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
                         },
                     },
                 });
-                expect(result?.version).not.toBe("2.0.0");
+                expect(result.version).not.toBe("2.0.0");
 
                 vi.useRealTimers();
             });

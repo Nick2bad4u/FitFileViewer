@@ -40,6 +40,14 @@ function getRootStateRecord(): Record<string, unknown> {
     return getState<Record<string, unknown>>("") as Record<string, unknown>;
 }
 
+function getRequiredState<T>(value: T | undefined, path: string): T {
+    if (value === undefined) {
+        throw new Error(`Expected state at path: ${path}`);
+    }
+
+    return value;
+}
+
 function getStableHistoryEntry(entry = getStateHistory().at(-1)) {
     if (!entry) {
         throw new TypeError("Expected state history entry");
@@ -128,16 +136,19 @@ describe("state manager core", () => {
         };
 
         setState("complex", complexObject);
-        const result = getState<typeof complexObject>("complex");
+        const result = getRequiredState(
+            getState<typeof complexObject>("complex"),
+            "complex"
+        );
 
         expect(result).toBe(complexObject);
-        expect(result?.array).toStrictEqual([
+        expect(result.array).toStrictEqual([
             1,
             2,
             3,
         ]);
-        expect(result?.nested.prop).toBe("value");
-        expect(result?.func).toBeTypeOf("function");
+        expect(result.nested.prop).toBe("value");
+        expect(result.func).toBeTypeOf("function");
     });
 
     it("overwrites existing state values", () => {
@@ -399,11 +410,14 @@ describe("state manager core", () => {
 
         expect(setState("circular", circular)).toBeUndefined();
 
-        const result = getState<CircularState>("circular");
+        const result = getRequiredState(
+            getState<CircularState>("circular"),
+            "circular"
+        );
 
         expect(result).toBe(circular);
-        expect(result?.prop).toBe("value");
-        expect(result?.self).toBe(result);
+        expect(result.prop).toBe("value");
+        expect(result.self).toBe(result);
     });
 
     it("handles very deep nesting levels", () => {
