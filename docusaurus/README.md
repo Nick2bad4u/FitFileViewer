@@ -36,7 +36,8 @@ npm run docs:build
 
 This command:
 
-1. Runs `npm run docs:typedoc` to generate API docs from JSDoc comments
+1. Runs `npm run docs:typedoc` to generate API docs from source comments and
+   TypeScript metadata
 2. Runs `docusaurus build` to build the complete site
 
 ### Local Build
@@ -57,7 +58,8 @@ npm run docs:serve
 
 ### Auto-Generated API Documentation
 
-TypeDoc automatically generates API documentation from JSDoc comments in the `electron-app/` directory:
+TypeDoc automatically generates API documentation from the Electron app source
+matched by the root `typedoc.json` entry points:
 
 ```bash
 # Generate API docs only
@@ -70,7 +72,7 @@ npm run docs:typedoc
 
 TypeDoc processes:
 
-- All `.js` files in `electron-app/` with JSDoc comments
+- Source files matched by `electron-app/**/*.{ts,mts,cts,tsx,js,jsx}`
 - Formats documentation as Markdown
 - Creates cross-references and type links
 - Generates navigation structure
@@ -81,10 +83,10 @@ TypeDoc processes:
 
 This config:
 
-- Use `tsconfig.app.json` for type context
-- Exclude tests, build outputs, and generated types
-- Enable JSDoc compatibility mode
-- Skip problematic files with broken type imports
+- Uses `tsconfig.app.json` for type context
+- Excludes tests, build outputs, and generated types
+- Enables JSDoc compatibility mode
+- Skips problematic files with broken type imports
 
 ## Structure
 

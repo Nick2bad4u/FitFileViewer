@@ -469,7 +469,7 @@ describe("workspace package boundaries", () => {
     });
 
     it("keeps Docusaurus setup guidance in maintained docs pages", () => {
-        expect.assertions(4);
+        expect.assertions(7);
 
         const docusaurusReadme = readFileSync(
             path.join(process.cwd(), docusaurusReadmeRepositoryPath),
@@ -488,6 +488,13 @@ describe("workspace package boundaries", () => {
         });
         expect(docusaurusReadme).toContain("docs/development/setup.md");
         expect(docusaurusReadme).toContain("docs/development/build-release.md");
+        expect(docusaurusReadme).toContain("root `typedoc.json`");
+        expect(docusaurusReadme).toContain(
+            "`electron-app/**/*.{ts,mts,cts,tsx,js,jsx}`"
+        );
+        expect(docusaurusReadme).not.toContain(
+            "All `.js` files in `electron-app/`"
+        );
         expect(docusaurusSetupGuide).not.toContain("├── vendor/");
     });
 
