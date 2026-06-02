@@ -197,7 +197,7 @@ vi.mock(
 );
 
 const AppActions = {
-    clearData: vi.fn<() => void>(),
+    clearData: vi.fn<(options?: unknown) => void>(),
     setFileOpening: vi.fn<(isOpening: boolean) => void>(),
 };
 vi.mock(
@@ -432,7 +432,7 @@ describe("main-ui.js core flows", () => {
     });
 
     it("unloads file via button and emits IPC", async () => {
-        expect.assertions(8);
+        expect.assertions(9);
 
         const api = installElectronAPI();
         await importMainUI();
@@ -440,7 +440,9 @@ describe("main-ui.js core flows", () => {
         const btn = getRequiredElement("unloadFileBtn", HTMLButtonElement);
         btn.click();
         expect(api.send).toHaveBeenCalledWith("fit-file-loaded", null);
-        expect(AppActions.clearData).toHaveBeenCalledOnce();
+        expect(AppActions.clearData).toHaveBeenCalledExactlyOnceWith({
+            notificationMessage: "File unloaded successfully",
+        });
         expect(fitFileStateManager.clearFileState).toHaveBeenCalledOnce();
         expect(fitFileStateManager.handleFileLoaded).not.toHaveBeenCalled();
         expect(btn.style.display).toBe("none");

@@ -101,7 +101,7 @@ vi.mock(
             setFileOpening: vi.fn<(isOpening: boolean) => void>(),
             loadFile: vi.fn<(...args: unknown[]) => void>(),
             switchTab: vi.fn<(tab: string) => void>(),
-            clearData: vi.fn<() => void>(),
+            clearData: vi.fn<(...args: unknown[]) => void>(),
         },
     })
 );

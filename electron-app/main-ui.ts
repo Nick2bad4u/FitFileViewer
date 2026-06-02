@@ -152,9 +152,10 @@ function unloadFitFile(): void {
     }
 
     try {
-        // Clear global data using state management
-        // Prefer clearData for backward compatibility if clearGlobalData absent
-        AppActions.clearData();
+        // Keep managed state and legacy globals in sync through AppActions.
+        AppActions.clearData({
+            notificationMessage: "File unloaded successfully",
+        });
 
         // Ensure domain-level fit state is cleared as well
         clearFitFileDomainState();
@@ -192,9 +193,6 @@ function unloadFitFile(): void {
         }
 
         // Tab buttons will be disabled automatically by state management when globalData is cleared
-
-        // Show success notification
-        void showNotification("File unloaded successfully", "info");
 
         logMainUi("info", "[main-ui] File unloaded successfully");
     } catch (error) {

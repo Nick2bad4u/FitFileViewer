@@ -3859,6 +3859,12 @@ body[data-has-fit-file="true"] #active_file_name {
     z-index: 1;
 }
 
+body.app-has-file #unload_file_btn,
+body[data-has-fit-file="true"] #unload_file_btn,
+#active_file_name_container.has-file #unload_file_btn {
+    display: inline-flex;
+}
+
 #unload_file_btn svg {
     inline-size: 24px;
     block-size: 24px;

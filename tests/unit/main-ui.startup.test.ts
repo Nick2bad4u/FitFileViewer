@@ -28,7 +28,7 @@ type MainUiTestGlobal = typeof globalThis & {
 
 const mocks = vi.hoisted(() => ({
     applyTheme: vi.fn<(theme: string) => void>(),
-    clearData: vi.fn<() => void>(),
+    clearData: vi.fn<(options?: unknown) => void>(),
     cleanupAll: vi.fn<() => void>(),
     convertArrayBufferToBase64: vi.fn<(buffer: ArrayBuffer) => string>(),
     dragDropDispose: vi.fn<() => void>(),
@@ -315,7 +315,7 @@ describe("main-ui.js - UI Controller and State Management", () => {
     });
 
     it("initializes UI side effects when loaded", async () => {
-        expect.assertions(16);
+        expect.assertions(17);
 
         const onIpc =
             vi.fn<NonNullable<MainUiTestGlobal["electronAPI"]>["onIpc"]>();
@@ -379,6 +379,9 @@ describe("main-ui.js - UI Controller and State Management", () => {
         ]);
         ipcHandlers.get("unload-fit-file")?.();
         expect(mocks.clearData).toHaveBeenCalledTimes(2);
+        expect(mocks.clearData.mock.calls[1]).toStrictEqual([
+            { notificationMessage: "File unloaded successfully" },
+        ]);
         expect(chartTabIntegration.getStatus).toHaveBeenCalledOnce();
     });
 });

@@ -128,6 +128,27 @@ function expectNoCollectedEntries(
     ).toStrictEqual([]);
 }
 
+async function resetRendererNotifications(page: Page): Promise<void> {
+    await page.evaluate(async () => {
+        const moduleUrl = new URL(
+            "./utils/ui/notifications/showNotification.js",
+            window.location.href
+        ).href;
+        // eslint-disable-next-line no-unsanitized/method -- Fixed same-origin app module path used to reset renderer notification state between Playwright tests.
+        const notificationModule = (await import(moduleUrl)) as {
+            __testResetNotifications?: () => void;
+            clearAllNotifications?: () => void;
+        };
+
+        if (typeof notificationModule.__testResetNotifications === "function") {
+            notificationModule.__testResetNotifications();
+            return;
+        }
+
+        notificationModule.clearAllNotifications?.();
+    });
+}
+
 function isExpectedMissingFitFileError(message: string): boolean {
     return (
         message.includes(path.basename(missingFitPath)) &&
@@ -585,6 +606,27 @@ test.describe("FitFileViewer Electron UI", () => {
         await expect(openSampleFitThroughDialog()).resolves.toStrictEqual(
             sampleFitActivityState
         );
+    });
+
+    test("unloads a loaded FIT file through the unload button", async () => {
+        await expect(openSampleFitThroughDialog()).resolves.toStrictEqual(
+            sampleFitActivityState
+        );
+        await resetRendererNotifications(page);
+
+        await page.getByRole("button", { name: /unload file/iu }).click();
+        await expect(page.locator("#notification")).toContainText(
+            "File unloaded successfully"
+        );
+        await expect(page.locator("#unload_file_btn")).not.toBeVisible();
+        await expect(page.locator("#tab_map")).toBeDisabled();
+
+        await expect.poll(getActivityUiState).toStrictEqual({
+            activeFileName: "",
+            recordCount: 0,
+            sessionCount: 0,
+            title: "Fit File Viewer",
+        });
     });
 
     test("preserves the loaded activity when a later Open File is cancelled", async () => {

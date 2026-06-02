@@ -39,11 +39,24 @@ type FitFileStateManagerLike = {
     isLoading?: () => boolean;
     startFileLoading?: (filePath: string) => void;
 };
+type ClearDataOptions = {
+    notificationMessage?: string;
+    notify?: boolean;
+};
 
 const fitFileStateManagerLike = fitFileStateManager as
     | FitFileStateManagerLike
     | null
     | undefined;
+
+function clearLegacyGlobalData(): void {
+    try {
+        (globalThis as typeof globalThis & { globalData?: unknown }).globalData =
+            null;
+    } catch {
+        /* Ignore legacy global clear failures. */
+    }
+}
 
 /**
  * Application state actions - higher-level functions for common state changes
@@ -52,7 +65,7 @@ export const AppActions = {
     /**
      * Clear all data and reset to initial state
      */
-    clearData() {
+    clearData(options: ClearDataOptions = {}) {
         if (
             fitFileStateManagerLike &&
             typeof fitFileStateManagerLike.clearFileState === "function"
@@ -68,6 +81,7 @@ export const AppActions = {
         }
 
         setState("globalData", null, { source: "AppActions.clearData" });
+        clearLegacyGlobalData();
         setState("currentFile", null, { source: "AppActions.clearData" });
         setState("charts.isRendered", false, {
             source: "AppActions.clearData",
@@ -78,7 +92,12 @@ export const AppActions = {
         });
 
         console.log("[AppActions] Data cleared");
-        showNotification("Data cleared", "info");
+        if (options.notify !== false) {
+            showNotification(
+                options.notificationMessage ?? "Data cleared",
+                "info",
+            );
+        }
     },
 
     /**
