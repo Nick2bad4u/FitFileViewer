@@ -75,7 +75,7 @@ describe("createMapThemeToggle environment handling", () => {
     });
 
     it("creates the toggle when global process is unavailable", async () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const consoleError = vi
             .spyOn(console, "error")
@@ -98,10 +98,11 @@ describe("createMapThemeToggle environment handling", () => {
             title: "Map: Dark theme (click for light theme)",
         });
         expect(consoleError).not.toHaveBeenCalled();
+        expect(showNotification).not.toHaveBeenCalled();
     });
 
     it("creates the toggle when process.env is unavailable", async () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const consoleError = vi
             .spyOn(console, "error")
@@ -124,5 +125,6 @@ describe("createMapThemeToggle environment handling", () => {
             title: "Map: Dark theme (click for light theme)",
         });
         expect(consoleError).not.toHaveBeenCalled();
+        expect(showNotification).not.toHaveBeenCalled();
     });
 });
