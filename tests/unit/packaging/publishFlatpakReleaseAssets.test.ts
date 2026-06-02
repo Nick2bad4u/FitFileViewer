@@ -71,6 +71,16 @@ function getPathStates(paths: string[]): Record<string, "missing" | "present"> {
     );
 }
 
+function getRequiredCommandCall(calls: CommandCall[], index: number) {
+    const call = calls.at(index);
+
+    if (!call) {
+        throw new TypeError(`Expected command call at index ${index}`);
+    }
+
+    return call;
+}
+
 afterEach(() => {
     for (const temporaryRoot of temporaryRoots.splice(0)) {
         fs.rmSync(temporaryRoot, { force: true, recursive: true });
@@ -124,14 +134,16 @@ describe("publish-flatpak-release-assets script", () => {
         });
 
         expect(calls).toHaveLength(2);
-        expect(calls[0]?.command).toBe("zip");
-        expect(calls[0]?.args).toStrictEqual([
+        const zipCall = getRequiredCommandCall(calls, 0);
+        const ghCall = getRequiredCommandCall(calls, 1);
+        expect(zipCall.command).toBe("zip");
+        expect(zipCall.args).toStrictEqual([
             "-j",
             path.join(root, rootFlatpakZipPath),
             sourceBundlePath,
         ]);
-        expect(calls[1]?.command).toBe("gh");
-        expect(calls[1]?.args).toStrictEqual([
+        expect(ghCall.command).toBe("gh");
+        expect(ghCall.args).toStrictEqual([
             "release",
             "upload",
             "v29.9.0",
