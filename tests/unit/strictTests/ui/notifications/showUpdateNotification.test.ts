@@ -16,9 +16,20 @@ const installUpdateApi = (): UpdateElectronApi => {
     return api;
 };
 
+function createNotificationHost(): HTMLDivElement {
+    const host = document.createElement("div");
+    host.id = "notification";
+    document.body.appendChild(host);
+    return host;
+}
+
+function getNotificationButtons(host: HTMLElement): HTMLButtonElement[] {
+    return Array.from(host.querySelectorAll("button"));
+}
+
 describe("showUpdateNotification", () => {
     beforeEach(() => {
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         vi.useRealTimers();
     });
 
@@ -36,9 +47,7 @@ describe("showUpdateNotification", () => {
     it("renders message and update downloaded buttons; actions work", async () => {
         expect.assertions(4);
 
-        const host = document.createElement("div");
-        host.id = "notification";
-        document.body.appendChild(host);
+        const host = createNotificationHost();
         const api = installUpdateApi();
 
         const { showUpdateNotification } =
@@ -50,32 +59,30 @@ describe("showUpdateNotification", () => {
             0,
             "update-downloaded"
         );
-        const buttons = host.querySelectorAll("button");
+        const buttons = getNotificationButtons(host);
         expect(buttons).toHaveLength(2);
         expect(host.textContent).toContain("Update ready");
 
         // Click restart
-        (buttons[0] as HTMLButtonElement).click();
+        buttons[0].click();
         expect(api.installUpdate).toHaveBeenCalledWith();
 
         // Click later hides
-        (buttons[1] as HTMLButtonElement).click();
+        buttons[1].click();
         expect(host.style.display).toBe("none");
     });
 
     it("auto hides when withAction is true (single button) using timers", async () => {
         expect.assertions(2);
 
-        const host = document.createElement("div");
-        host.id = "notification";
-        document.body.appendChild(host);
+        const host = createNotificationHost();
         installUpdateApi();
         vi.useFakeTimers();
 
         const { showUpdateNotification } =
             await import("../../../../../electron-app/utils/ui/notifications/showUpdateNotification.js");
         showUpdateNotification("Update available", "info", 1234, true);
-        expect(host.querySelectorAll("button")).toHaveLength(1);
+        expect(getNotificationButtons(host)).toHaveLength(1);
         // Advance timers to trigger auto hide
         vi.runAllTimers();
         expect(host.style.display).toBe("none");
