@@ -48,6 +48,26 @@ type CapturedDownload = {
     href: string;
 };
 
+function createElectronLaunchEnv({
+    nodeEnvironment = "production",
+}: {
+    nodeEnvironment?: "production" | "unset";
+} = {}): NodeJS.ProcessEnv {
+    const env: NodeJS.ProcessEnv = {
+        ...process.env,
+        ELECTRON_IS_DEV: "0",
+        FFV_DISABLE_WEB_SECURITY: "false",
+    };
+
+    if (nodeEnvironment === "unset") {
+        delete env.NODE_ENV;
+    } else {
+        env.NODE_ENV = nodeEnvironment;
+    }
+
+    return env;
+}
+
 function getRequiredCapturedDownload(
     download: CapturedDownload | undefined
 ): CapturedDownload {
@@ -117,6 +137,109 @@ function isExpectedMissingFitFileError(message: string): boolean {
                 message.includes("ENOENT")))
     );
 }
+
+test.describe("FitFileViewer renderer environment fallbacks", () => {
+    test("loads map controls when NODE_ENV is unset", async () => {
+        const rendererMessages: string[] = [];
+        const pageErrors: string[] = [];
+        const noNodeEnvApp = await electron.launch({
+            args: [repositoryRoot, "--disable-http-cache"],
+            cwd: repositoryRoot,
+            env: createElectronLaunchEnv({ nodeEnvironment: "unset" }),
+        });
+
+        try {
+            const noNodeEnvPage = await noNodeEnvApp.firstWindow();
+            noNodeEnvPage.on("console", (message) => {
+                const text = message.text();
+                rendererMessages.push(text);
+
+                if (message.type() === "error") {
+                    pageErrors.push(text);
+                }
+            });
+            noNodeEnvPage.on("pageerror", (error) => {
+                pageErrors.push(error.message);
+            });
+
+            await noNodeEnvPage.waitForLoadState("domcontentloaded");
+
+            const mainNodeEnvironment = await noNodeEnvApp.evaluate(
+                () => process.env.NODE_ENV ?? null
+            );
+            const fitBytes = Array.from(fs.readFileSync(sampleFitPath));
+            const loadedState = await noNodeEnvPage.evaluate(
+                async ({ bytes, filePath }) => {
+                    const rendererGlobal = globalThis as typeof globalThis & {
+                        process?: { env?: Record<string, string | undefined> };
+                    };
+                    const api = window.electronAPI;
+                    if (!api?.parseFitFile) {
+                        throw new Error(
+                            "window.electronAPI.parseFitFile is not available"
+                        );
+                    }
+                    if (typeof window.showFitData !== "function") {
+                        throw new Error("window.showFitData is not available");
+                    }
+
+                    const data = await api.parseFitFile(
+                        new Uint8Array(bytes).buffer
+                    );
+                    window.showFitData(data, filePath);
+
+                    return {
+                        activeFileName:
+                            document
+                                .querySelector("#active_file_name")
+                                ?.textContent?.trim() ?? "",
+                        rendererNodeEnvironment:
+                            rendererGlobal.process?.env?.NODE_ENV ?? null,
+                        routeRecords:
+                            window.globalData?.recordMesgs?.length ?? 0,
+                        sessionCount:
+                            window.globalData?.sessionMesgs?.length ?? 0,
+                    };
+                },
+                { bytes: fitBytes, filePath: sampleFitPath }
+            );
+
+            await expect(noNodeEnvPage.locator("#tab_map")).toHaveClass(
+                /active/u
+            );
+            await expect(
+                noNodeEnvPage.getByRole("button", {
+                    name: /toggle map theme/iu,
+                })
+            ).toBeVisible();
+            await expect(noNodeEnvPage.locator("#leaflet-map")).toBeVisible();
+
+            const matchedReports = reportedFailureNeedles.flatMap((needle) =>
+                [...rendererMessages, ...pageErrors]
+                    .filter((message) => message.includes(needle))
+                    .map((message) => `${needle}: ${message}`)
+            );
+
+            expect(mainNodeEnvironment).toBeNull();
+            expect(loadedState).toStrictEqual({
+                activeFileName: sampleFitActivityState.activeFileName,
+                rendererNodeEnvironment: null,
+                routeRecords: sampleFitActivityState.recordCount,
+                sessionCount: sampleFitActivityState.sessionCount,
+            });
+            expectNoCollectedEntries(
+                "NODE_ENV-unset renderer failures",
+                matchedReports
+            );
+            expectNoCollectedEntries(
+                "NODE_ENV-unset page errors",
+                pageErrors
+            );
+        } finally {
+            await noNodeEnvApp.close();
+        }
+    });
+});
 
 test.describe("FitFileViewer Electron UI", () => {
     let electronApp: ElectronApplication;
@@ -302,12 +425,7 @@ test.describe("FitFileViewer Electron UI", () => {
         electronApp = await electron.launch({
             args: [repositoryRoot, "--disable-http-cache"],
             cwd: repositoryRoot,
-            env: {
-                ...process.env,
-                ELECTRON_IS_DEV: "0",
-                FFV_DISABLE_WEB_SECURITY: "false",
-                NODE_ENV: "production",
-            },
+            env: createElectronLaunchEnv(),
         });
 
         page = await electronApp.firstWindow();
