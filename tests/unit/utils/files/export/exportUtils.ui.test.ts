@@ -105,7 +105,7 @@ function installBaseMocks() {
 
 describe("exportUtils UI modals (Imgur & Gyazo)", () => {
     beforeEach(function setupExportUiTest(): void {
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         localStorage.clear();
         vi.restoreAllMocks();
         vi.resetModules();
@@ -113,7 +113,7 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
     });
 
     afterEach(function cleanupExportUiTest(): void {
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
     });
 
     it("imgur account manager: save, setup guide, clear, close, ESC and click-outside", async () => {
