@@ -66,12 +66,18 @@ describe("chart status indicator from counts", () => {
 
             expect(indicator).toBeInstanceOf(HTMLElement);
             expect(indicator.id).toBe("chart-status-indicator");
-            expect(indicator.querySelector(".status-icon")?.textContent).toBe(
-                "⚠️"
-            );
-            expect(indicator.querySelector(".status-text")?.textContent).toBe(
-                "3 / 6 charts visible"
-            );
+            expect(
+                requireElement(
+                    indicator.querySelector(".status-icon"),
+                    ".status-icon"
+                ).textContent
+            ).toBe("⚠️");
+            expect(
+                requireElement(
+                    indicator.querySelector(".status-text"),
+                    ".status-text"
+                ).textContent
+            ).toBe("3 / 6 charts visible");
 
             const breakdown = requireElement(
                 document.querySelector(".status-breakdown"),
@@ -111,12 +117,18 @@ describe("chart status indicator from counts", () => {
                 "#chart-status-indicator"
             );
 
-            expect(indicator.querySelector(".status-icon")?.textContent).toBe(
-                "❌"
-            );
-            expect(indicator.querySelector(".status-text")?.textContent).toBe(
-                "No charts available"
-            );
+            expect(
+                requireElement(
+                    indicator.querySelector(".status-icon"),
+                    ".status-icon"
+                ).textContent
+            ).toBe("❌");
+            expect(
+                requireElement(
+                    indicator.querySelector(".status-text"),
+                    ".status-text"
+                ).textContent
+            ).toBe("No charts available");
         } finally {
             cleanupTestDom();
         }
