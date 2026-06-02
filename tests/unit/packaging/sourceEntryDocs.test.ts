@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 
 import {
     docusaurusArchitectureOverviewDocPath,
+    rootAgentsPath,
     rootApplicationArchitectureDocPath,
     rootApplicationLayoutDocPath,
     rootApplicationOverviewDocPath,
@@ -19,6 +20,7 @@ import {
 } from "../../../scripts/lib/workspaces.mjs";
 
 const SOURCE_LAYOUT_DOCS = [
+    rootAgentsPath,
     rootApplicationArchitectureDocPath,
     rootApplicationLayoutDocPath,
     rootApplicationOverviewDocPath,

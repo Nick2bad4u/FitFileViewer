@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-FitFileViewer is centered on `electron-app/`, the Electron desktop app for opening, parsing, and visualizing `.fit` activity files. Main runtime entry points are `electron-app/main.js`, `preload.js`, `renderer.js`, and `main-ui.js`. Domain code belongs under `electron-app/utils/`; shared TypeScript contracts live in `electron-app/shared/`; Vitest suites and fixtures live in `tests/unit/`, `tests/integration/`, and `tests/fixtures/`. Chart, file, lifecycle, main-process, map, menu, preload, rendering, runtime, strict regression, tab, theming, utility, packaging, and shared behavior suites live under `tests/unit/`; Electron Playwright smoke tests live in `tests/playwright/`. App assets are in `static/app/`, `static/icons/`, and related UI folders. Documentation lives in `docs/` and the Docusaurus site in `docusaurus/`. Real sample activities are kept in `fit-test-files/`.
+FitFileViewer is centered on `electron-app/`, the Electron desktop app for opening, parsing, and visualizing `.fit` activity files. Source entry points are `electron-app/main.ts`, `electron-app/preload.ts`, `electron-app/renderer.ts`, and `electron-app/main-ui.ts`; the root runtime build emits JavaScript under `electron-app/dist/`. Domain code belongs under `electron-app/utils/`; shared TypeScript contracts live in `electron-app/shared/`; Vitest suites and fixtures live in `tests/unit/`, `tests/integration/`, and `tests/fixtures/`. Chart, file, lifecycle, main-process, map, menu, preload, rendering, runtime, strict regression, tab, theming, utility, packaging, and shared behavior suites live under `tests/unit/`; Electron Playwright smoke tests live in `tests/playwright/`. App assets are in `static/app/`, `static/icons/`, and related UI folders. Documentation lives in `docs/` and the Docusaurus site in `docusaurus/`. Real sample activities are kept in `fit-test-files/`.
 
 ## Build, Test, and Development Commands
 
@@ -18,7 +18,7 @@ FitFileViewer is centered on `electron-app/`, the Electron desktop app for openi
 
 ## Coding Style & Naming Conventions
 
-Use the existing CommonJS runtime style unless a file is already TypeScript or part of the ongoing TypeScript migration. Keep modules small and place new utilities under `electron-app/utils/<domain>/`. Use descriptive behavior-based filenames such as `formatDuration.ts`, `renderMap.js`, or `stateMiddleware.branches.test.ts`. Formatting and linting are enforced with ESLint, Prettier, Stylelint, Remark, Markdownlint, and Secretlint.
+Use the existing CommonJS package/runtime conventions while writing source in the file's current language, primarily TypeScript for Electron app entrypoints and migrated utilities. Keep modules small and place new utilities under `electron-app/utils/<domain>/`. Use descriptive behavior-based filenames such as `formatDuration.ts`, `renderMap.ts`, or `stateMiddleware.branches.test.ts`. Formatting and linting are enforced with ESLint, Prettier, Stylelint, Remark, Markdownlint, and Secretlint.
 
 ## Testing Guidelines
 

@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 export const repositoryRoot = resolveRepositoryRoot();
 export const appSourceDirectoryName = "electron-app";
 export const docusaurusWorkspaceName = "docusaurus";
+export const rootAgentsPath = "agents.md";
 export const rootArtifactsPath = "artifacts";
 export const rootChangelogPath = "CHANGELOG.md";
 export const rootCliffConfigPath = "cliff.toml";

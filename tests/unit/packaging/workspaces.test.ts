@@ -64,6 +64,7 @@ type WorkspacesModule = {
     rendererVendorGlobalsBundleName: string;
     rendererVendorGlobalsScriptFileName: string;
     rendererVendorGlobalsStyleFileName: string;
+    rootAgentsPath: string;
     rootChangelogPath: string;
     rootCliffConfigPath: string;
     rootCodecovConfigPath: string;
@@ -451,6 +452,7 @@ describe("workspace path helpers", () => {
                 workspaces.rootApplicationArchitectureDocPath,
             rootApplicationLayout: workspaces.rootApplicationLayoutDocPath,
             rootApplicationOverview: workspaces.rootApplicationOverviewDocPath,
+            rootAgents: workspaces.rootAgentsPath,
             rootDevelopmentGuide: workspaces.rootDevelopmentGuideDocPath,
             rootDocs: workspaces.rootDocsPath,
             rootDocsScreenshots: workspaces.rootDocsScreenshotsPath,
@@ -466,6 +468,7 @@ describe("workspace path helpers", () => {
             rootApplicationArchitecture: "docs/APPLICATION_ARCHITECTURE.md",
             rootApplicationLayout: "docs/APPLICATION_LAYOUT.md",
             rootApplicationOverview: "docs/APPLICATION_OVERVIEW.md",
+            rootAgents: "agents.md",
             rootDevelopmentGuide: "docs/DEVELOPMENT_GUIDE.md",
             rootDocs: "docs",
             rootDocsScreenshots: "docs/screenshots",
