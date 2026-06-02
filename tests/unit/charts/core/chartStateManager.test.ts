@@ -100,6 +100,7 @@ import {
     subscribe,
     updateState,
 } from "../../../../electron-app/utils/state/core/stateManager.js";
+import { subscribeToChartSettings } from "../../../../electron-app/utils/state/domain/settingsStateManager.js";
 import { showNotification } from "../../../../electron-app/utils/ui/notifications/showNotification.js";
 import {
     invalidateChartRenderCache,
@@ -168,30 +169,68 @@ describe("chartStateManager", () => {
             expect(chartStateManager.renderTimeout).not.toBeTypeOf("number");
         });
 
-        it("should have required methods", () => {
-            expect.assertions(6);
+        it("registers reactive chart lifecycle subscriptions", () => {
+            expect.assertions(3);
 
-            expect(chartStateManager.debouncedRender).toBeTypeOf("function");
-            expect(chartStateManager.forceRender).toBeTypeOf("function");
-            expect(chartStateManager.destroy).toBeTypeOf("function");
-            expect(chartStateManager.handleDataChange).toBeTypeOf("function");
-            expect(chartStateManager.handleTabActivation).toBeTypeOf(
-                "function"
-            );
-            expect(chartStateManager.handleThemeChange).toBeTypeOf("function");
+            const manager = new ChartStateManager();
+
+            expect(manager.isInitialized).toBe(true);
+            expect(
+                vi.mocked(subscribe).mock.calls.map(([path]) => path)
+            ).toStrictEqual([
+                "ui.theme",
+                "ui.activeTab",
+                "globalData",
+                "charts.selectedChart",
+                "charts.controlsVisible",
+            ]);
+            expect(subscribeToChartSettings).toHaveBeenCalledOnce();
         });
 
-        it("should expose instance to global scope when window is available", () => {
+        it("routes subscription callbacks to chart lifecycle behavior", () => {
             expect.assertions(5);
 
-            // jsdom environment has window, but the global assignment happens during module load
-            // Since we're importing in test context, the global assignment might not persist
-            // between module imports. Just verify the logic would work.
-            expect(globalThis.window.document).toBe(document);
-            expect(chartStateManager).toBeInstanceOf(ChartStateManager);
-            expect(chartStateManager.debouncedRender).toBeTypeOf("function");
-            expect(chartStateManager.isChartTabActive).toBeTypeOf("function");
-            expect(globalThis.window).toBeTypeOf("object");
+            const manager = new ChartStateManager();
+            const themeChangeSpy = vi.spyOn(manager, "handleThemeChange");
+            const tabActivationSpy = vi.spyOn(manager, "handleTabActivation");
+            const selectedChartRenderSpy = vi.spyOn(manager, "debouncedRender");
+            const subscriptionByPath = new Map(
+                vi
+                    .mocked(subscribe)
+                    .mock.calls.map(([path, listener]) => [path, listener])
+            );
+            const controlsPanel = document.querySelector(
+                ".chart-controls"
+            ) as HTMLElement;
+
+            subscriptionByPath.get("ui.theme")?.("dark", "light", "ui.theme");
+            subscriptionByPath.get("ui.activeTab")?.(
+                "chartjs",
+                "map",
+                "ui.activeTab"
+            );
+            subscriptionByPath.get("charts.selectedChart")?.(
+                "power",
+                "elevation",
+                "charts.selectedChart"
+            );
+            subscriptionByPath.get("charts.controlsVisible")?.(
+                false,
+                true,
+                "charts.controlsVisible"
+            );
+
+            expect(themeChangeSpy).toHaveBeenCalledWith("dark");
+            expect(tabActivationSpy).toHaveBeenCalledWith();
+            expect(selectedChartRenderSpy).toHaveBeenCalledWith(
+                "Chart type changed to power"
+            );
+            expect(controlsPanel.style.display).toBe("none");
+            expect(vi.getTimerCount()).toBe(1);
+
+            themeChangeSpy.mockRestore();
+            tabActivationSpy.mockRestore();
+            selectedChartRenderSpy.mockRestore();
         });
     });
 
@@ -230,6 +269,21 @@ describe("chartStateManager", () => {
             expect(vi.getTimerCount()).toBe(1);
             expect(clearTimeoutSpy).toHaveBeenCalledOnce();
             clearTimeoutSpy.mockRestore();
+        });
+
+        it("queues the latest render reason while rendering is already active", async () => {
+            expect.assertions(4);
+
+            chartStateManager.isRendering = true;
+
+            await chartStateManager.performChartRender("Active render update");
+
+            expect(chartStateManager.pendingRenderReason).toBe(
+                "Active render update"
+            );
+            expect(renderChartJS).not.toHaveBeenCalled();
+            expect(setState).not.toHaveBeenCalled();
+            expect(vi.getTimerCount()).toBe(0);
         });
     });
 
@@ -920,14 +974,18 @@ describe("chartStateManager", () => {
             });
         });
 
-        it("should create singleton behavior through global exposure when window is available", () => {
-            expect.assertions(4);
+        it("keeps the exported singleton initialized with default chart info", () => {
+            expect.assertions(2);
 
-            // In test environment, verify singleton behavior exists
+            vi.mocked(getState).mockReturnValue({});
             expect(chartStateManager).toBeInstanceOf(ChartStateManager);
-            expect(chartStateManager.debouncedRender).toBeTypeOf("function");
-            expect(chartStateManager.isChartTabActive).toBeTypeOf("function");
-            expect(chartStateManager.getChartInfo).toBeTypeOf("function");
+            expect(chartStateManager.getChartInfo()).toStrictEqual({
+                instanceCount: 0,
+                isRendered: false,
+                isRendering: false,
+                selectedChart: "elevation",
+                tabActive: false,
+            });
         });
     });
 });
