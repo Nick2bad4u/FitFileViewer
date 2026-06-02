@@ -15,22 +15,18 @@ import {
 
 describe("analyze-coverage script", () => {
     it("builds coverage file candidates from root-owned workspace paths", () => {
-        expect.assertions(3);
+        expect.assertions(1);
 
         const candidates = createCoverageCandidatePaths({
             environmentCoverageDirectory: "custom-coverage",
             temporaryDirectory: "tmp-root",
         });
 
-        expect(candidates[0]).toBe(
-            path.join("custom-coverage", "coverage-final.json")
-        );
-        expect(candidates[1]).toBe(
-            path.join("tmp-root", "ffv-vitest-coverage", "coverage-final.json")
-        );
-        expect(candidates[2]).toBe(
-            path.join(rootCoverageAbsolutePath, "coverage-final.json")
-        );
+        expect(candidates).toStrictEqual([
+            path.join("custom-coverage", "coverage-final.json"),
+            path.join("tmp-root", "ffv-vitest-coverage", "coverage-final.json"),
+            path.join(rootCoverageAbsolutePath, "coverage-final.json"),
+        ]);
     });
 
     it("returns the first existing coverage file candidate", async () => {
