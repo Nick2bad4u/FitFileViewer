@@ -110,6 +110,13 @@ describe("run-playwright script", () => {
                     options: {
                         ...options,
                         cwd: path.resolve(options.cwd),
+                        cwdIsNestedElectronApp: path
+                            .resolve(options.cwd)
+                            .includes(`${path.sep}electron-app${path.sep}`),
+                        cwdRelativeToRepository: path.relative(
+                            process.cwd(),
+                            path.resolve(options.cwd)
+                        ),
                     },
                 })
             )
@@ -119,6 +126,8 @@ describe("run-playwright script", () => {
                 command: process.execPath,
                 options: {
                     cwd: path.resolve(process.cwd()),
+                    cwdIsNestedElectronApp: false,
+                    cwdRelativeToRepository: "",
                     stdio: "inherit",
                 },
             },
@@ -132,6 +141,8 @@ describe("run-playwright script", () => {
                 command: process.execPath,
                 options: {
                     cwd: path.resolve(process.cwd()),
+                    cwdIsNestedElectronApp: false,
+                    cwdRelativeToRepository: "",
                     stdio: "inherit",
                 },
             },
