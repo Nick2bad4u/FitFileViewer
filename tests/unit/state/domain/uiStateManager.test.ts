@@ -400,7 +400,7 @@ describe("uiStateManager - comprehensive coverage", () => {
 
     describe("constructor and initialization", () => {
         it("should create UIStateManager with eventListeners Map and initialize", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const manager = new UIStateManager();
 
@@ -410,7 +410,7 @@ describe("uiStateManager - comprehensive coverage", () => {
         });
 
         it("should call setupEventListeners and initializeReactiveElements during initialization", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const setupSpy = vi.spyOn(
                 UIStateManager.prototype,
@@ -429,7 +429,7 @@ describe("uiStateManager - comprehensive coverage", () => {
         });
 
         it("should set up state subscriptions during initializeReactiveElements", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const manager = new UIStateManager();
 
@@ -454,7 +454,7 @@ describe("uiStateManager - comprehensive coverage", () => {
 
     describe("theme management", () => {
         it("should apply light theme correctly", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const manager = new UIStateManager();
 
@@ -469,7 +469,7 @@ describe("uiStateManager - comprehensive coverage", () => {
         });
 
         it("should apply dark theme correctly", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const manager = new UIStateManager();
 
@@ -481,7 +481,7 @@ describe("uiStateManager - comprehensive coverage", () => {
         });
 
         it("should handle system theme with matchMedia support", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const manager = new UIStateManager();
             const mockMatchMedia = vi.fn<(query: string) => MockMediaQueryList>(
@@ -502,7 +502,7 @@ describe("uiStateManager - comprehensive coverage", () => {
         });
 
         it("should handle system theme when matchMedia is not available", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const manager = new UIStateManager();
             delete (globalThis as any).matchMedia;
@@ -515,7 +515,7 @@ describe("uiStateManager - comprehensive coverage", () => {
         });
 
         it("should use legacy addListener when addEventListener is not available", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const manager = new UIStateManager();
             const addListener =
@@ -545,7 +545,7 @@ describe("uiStateManager - comprehensive coverage", () => {
         });
 
         it("should update theme buttons when applying theme", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const manager = new UIStateManager();
             const darkButton = document.querySelector('[data-theme="dark"]');
@@ -565,7 +565,7 @@ describe("uiStateManager - comprehensive coverage", () => {
         });
 
         it("should clean up system theme listener when switching to explicit theme", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const manager = new UIStateManager();
             const removeEventListener =
@@ -602,7 +602,7 @@ describe("uiStateManager - comprehensive coverage", () => {
         });
 
         it("should use legacy removeListener when removeEventListener is not available", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const manager = new UIStateManager();
             const removeListener =
@@ -636,7 +636,7 @@ describe("uiStateManager - comprehensive coverage", () => {
 
     describe("event listener setup", () => {
         it("should set up tab button event listeners", () => {
-            expect.hasAssertions();
+            expect.assertions(6);
 
             const manager = new UIStateManager();
 
@@ -650,7 +650,7 @@ describe("uiStateManager - comprehensive coverage", () => {
         });
 
         it("should handle tab button clicks", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             new UIStateManager();
 
@@ -666,7 +666,7 @@ describe("uiStateManager - comprehensive coverage", () => {
         });
 
         it("should set up theme button event listeners", () => {
-            expect.hasAssertions();
+            expect.assertions(6);
 
             const manager = new UIStateManager();
 
@@ -679,7 +679,7 @@ describe("uiStateManager - comprehensive coverage", () => {
         });
 
         it("should handle theme button clicks", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             new UIStateManager();
 
@@ -695,7 +695,7 @@ describe("uiStateManager - comprehensive coverage", () => {
         });
 
         it("should set up chart controls toggle listener", () => {
-            expect.hasAssertions();
+            expect.assertions(6);
 
             const manager = new UIStateManager();
 
@@ -710,7 +710,7 @@ describe("uiStateManager - comprehensive coverage", () => {
         });
 
         it("should handle chart controls toggle clicks", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             new UIStateManager();
 
@@ -726,7 +726,7 @@ describe("uiStateManager - comprehensive coverage", () => {
         });
 
         it("should set up measurement mode toggle listener", () => {
-            expect.hasAssertions();
+            expect.assertions(6);
 
             const manager = new UIStateManager();
 
@@ -741,7 +741,7 @@ describe("uiStateManager - comprehensive coverage", () => {
         });
 
         it("should handle measurement mode toggle clicks", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             new UIStateManager();
 
@@ -757,7 +757,7 @@ describe("uiStateManager - comprehensive coverage", () => {
         });
 
         it("should handle missing elements gracefully", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             // Remove some elements
             removeElementIfPresent("chart-controls-toggle");
@@ -775,7 +775,7 @@ describe("uiStateManager - comprehensive coverage", () => {
 
     describe("file display UI", () => {
         it("should render displayName as text (no HTML injection)", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             // Add the elements used by updateFileDisplayUI
             appendFixtureElement("div", { id: "activeFileNameContainer" });
@@ -816,7 +816,7 @@ describe("uiStateManager - comprehensive coverage", () => {
 
     describe("notification system", () => {
         it("should handle string notification parameter", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const manager = new UIStateManager();
             vi.mocked(showNotification).mockImplementation(
@@ -847,7 +847,7 @@ describe("uiStateManager - comprehensive coverage", () => {
         });
 
         it("should handle object notification parameter", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const manager = new UIStateManager();
             const notification = {
@@ -883,7 +883,7 @@ describe("uiStateManager - comprehensive coverage", () => {
         });
 
         it("should handle object notification with default values", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const manager = new UIStateManager();
             const notification = { message: "Test" };
@@ -915,7 +915,7 @@ describe("uiStateManager - comprehensive coverage", () => {
         });
 
         it("should handle invalid notification parameter", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             const manager = new UIStateManager();
             const consoleSpy = vi
@@ -934,7 +934,7 @@ describe("uiStateManager - comprehensive coverage", () => {
         });
 
         it("should fallback to console logging when showNotification fails", async () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const manager = new UIStateManager();
             const consoleLogSpy = vi
@@ -962,7 +962,7 @@ describe("uiStateManager - comprehensive coverage", () => {
         });
 
         it("should handle error notification fallback", async () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             const manager = new UIStateManager();
             const consoleWarnSpy = vi
@@ -999,7 +999,7 @@ describe("uiStateManager - comprehensive coverage", () => {
     describe("ui update methods", () => {
         describe("updateChartControlsUI", () => {
             it("should show chart controls when visible", () => {
-                expect.hasAssertions();
+                expect.assertions(3);
 
                 const manager = new UIStateManager();
                 const chartControls = document.getElementById(
@@ -1017,7 +1017,7 @@ describe("uiStateManager - comprehensive coverage", () => {
             });
 
             it("should hide chart controls when not visible", () => {
-                expect.hasAssertions();
+                expect.assertions(3);
 
                 const manager = new UIStateManager();
                 const chartControls = document.getElementById(
@@ -1035,7 +1035,7 @@ describe("uiStateManager - comprehensive coverage", () => {
             });
 
             it("should handle missing elements gracefully", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
 
                 const manager = new UIStateManager();
                 removeElementIfPresent("chartjs-settings-wrapper");
@@ -1054,7 +1054,7 @@ describe("uiStateManager - comprehensive coverage", () => {
 
         describe("updateLoadingIndicator", () => {
             it("should show loading indicator when loading", () => {
-                expect.hasAssertions();
+                expect.assertions(4);
 
                 const manager = new UIStateManager();
                 const loadingIndicator = document.getElementById(
@@ -1073,7 +1073,7 @@ describe("uiStateManager - comprehensive coverage", () => {
             });
 
             it("should hide loading indicator when not loading", () => {
-                expect.hasAssertions();
+                expect.assertions(4);
 
                 const manager = new UIStateManager();
                 const loadingIndicator = document.getElementById(
@@ -1092,7 +1092,7 @@ describe("uiStateManager - comprehensive coverage", () => {
             });
 
             it("should handle missing elements gracefully", () => {
-                expect.hasAssertions();
+                expect.assertions(3);
 
                 const manager = new UIStateManager();
                 removeElementIfPresent("loading-indicator");
@@ -1108,7 +1108,7 @@ describe("uiStateManager - comprehensive coverage", () => {
 
         describe("updateMeasurementModeUI", () => {
             it("should activate measurement mode UI", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
 
                 const manager = new UIStateManager();
                 const toggleBtn = document.getElementById(
@@ -1132,7 +1132,7 @@ describe("uiStateManager - comprehensive coverage", () => {
             });
 
             it("should deactivate measurement mode UI", () => {
-                expect.hasAssertions();
+                expect.assertions(3);
 
                 const manager = new UIStateManager();
                 const toggleBtn = document.getElementById(
@@ -1162,7 +1162,7 @@ describe("uiStateManager - comprehensive coverage", () => {
 
         describe("updateTabButtons", () => {
             it("should update tab button states", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
 
                 const manager = new UIStateManager();
                 const chartsButton = document.querySelector(
@@ -1193,7 +1193,7 @@ describe("uiStateManager - comprehensive coverage", () => {
 
         describe("updateTabVisibility", () => {
             it("should update tab content visibility", () => {
-                expect.hasAssertions();
+                expect.assertions(5);
 
                 const manager = new UIStateManager();
                 const chartsContent = document.querySelector(
@@ -1216,7 +1216,7 @@ describe("uiStateManager - comprehensive coverage", () => {
 
     describe("sidebar management", () => {
         it("should toggle sidebar from state", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const manager = new UIStateManager();
             vi.mocked(getState).mockReturnValue(false);
@@ -1237,7 +1237,7 @@ describe("uiStateManager - comprehensive coverage", () => {
         });
 
         it("should set sidebar to specific state", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const manager = new UIStateManager();
 
@@ -1256,7 +1256,7 @@ describe("uiStateManager - comprehensive coverage", () => {
         });
 
         it("should expand sidebar when set to false", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const manager = new UIStateManager();
 
@@ -1279,7 +1279,7 @@ describe("uiStateManager - comprehensive coverage", () => {
         });
 
         it("should update sidebar DOM elements", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const manager = new UIStateManager();
             const sidebar = document.getElementById("sidebar") as HTMLElement;
@@ -1301,7 +1301,7 @@ describe("uiStateManager - comprehensive coverage", () => {
 
     describe("window state management", () => {
         it("should update window state from DOM", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const manager = new UIStateManager();
 
@@ -1341,7 +1341,7 @@ describe("uiStateManager - comprehensive coverage", () => {
         });
 
         it("should detect maximized window", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const manager = new UIStateManager();
             Object.defineProperty(window, "outerWidth", {
@@ -1372,7 +1372,7 @@ describe("uiStateManager - comprehensive coverage", () => {
 
     describe("cleanup", () => {
         it("should clean up system theme listener", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
 
             const manager = new UIStateManager();
             const removeEventListener =
@@ -1409,7 +1409,7 @@ describe("uiStateManager - comprehensive coverage", () => {
         });
 
         it("should clear event listeners map", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             const manager = new UIStateManager();
 
@@ -1421,13 +1421,13 @@ describe("uiStateManager - comprehensive coverage", () => {
 
     describe("global instance and convenience functions", () => {
         it("should have global uiStateManager instance", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
 
             expect(uiStateManager).toBeInstanceOf(UIStateManager);
         });
 
         it("should provide UIActions.setTheme convenience function", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             vi.mocked(AppActions.switchTheme).mockImplementation((theme) => {
                 document.documentElement.dataset.theme = theme;
             });
@@ -1442,7 +1442,7 @@ describe("uiStateManager - comprehensive coverage", () => {
         });
 
         it("should provide UIActions.showTab convenience function", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             vi.mocked(AppActions.switchTab).mockImplementation((tabName) => {
                 document.body.dataset.activeTab = tabName;
             });
@@ -1456,7 +1456,7 @@ describe("uiStateManager - comprehensive coverage", () => {
         });
 
         it("should provide UIActions.toggleChartControls convenience function", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             vi.mocked(AppActions.toggleChartControls).mockImplementation(() => {
                 const chartControls = document.getElementById(
                     "chartjs-settings-wrapper"
@@ -1477,7 +1477,7 @@ describe("uiStateManager - comprehensive coverage", () => {
         });
 
         it("should provide UIActions.toggleMeasurementMode convenience function", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             vi.mocked(AppActions.toggleMeasurementMode).mockImplementation(
                 () => {
                     document
@@ -1497,7 +1497,7 @@ describe("uiStateManager - comprehensive coverage", () => {
         });
 
         it("should provide UIActions.toggleSidebar convenience function", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
 
             const toggleSidebarSpy = vi.spyOn(uiStateManager, "toggleSidebar");
 
@@ -1511,7 +1511,7 @@ describe("uiStateManager - comprehensive coverage", () => {
         });
 
         it("should provide UIActions.updateWindowState convenience function", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
 
             const updateWindowStateSpy = vi.spyOn(
                 uiStateManager,
