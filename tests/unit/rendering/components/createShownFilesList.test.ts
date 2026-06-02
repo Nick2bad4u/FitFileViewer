@@ -96,6 +96,33 @@ function getBaseContainerState(container: HTMLElement) {
     };
 }
 
+function getOverlayItemState(item: HTMLLIElement | undefined) {
+    if (!item) {
+        throw new Error("Expected overlay item to exist");
+    }
+
+    const removeButton = item.querySelector(".overlay-remove-btn");
+
+    return {
+        ariaLabel: item.getAttribute("aria-label"),
+        ariaSelected: item.getAttribute("aria-selected"),
+        color: item.style.color,
+        cursor: item.style.cursor,
+        filter: item.style.filter,
+        overlayIndex: item.getAttribute("data-overlay-index"),
+        removeButton: {
+            ariaLabel: removeButton?.getAttribute("aria-label") ?? null,
+            role: removeButton?.getAttribute("role") ?? null,
+            tabIndex: removeButton?.getAttribute("tabindex") ?? null,
+            text: removeButton?.textContent ?? null,
+            title: removeButton?.getAttribute("title") ?? null,
+        },
+        role: item.getAttribute("role"),
+        tabIndex: item.tabIndex,
+        text: item.textContent?.trim() ?? "",
+    };
+}
+
 describe("createShownFilesList", () => {
     let createShownFilesList: () => HTMLElement;
 
@@ -363,7 +390,24 @@ describe("createShownFilesList", () => {
             const firstItem = container.querySelector("#shown-files-ul li");
 
             expect(firstItem).toBeInstanceOf(HTMLLIElement);
-            expect(firstItem?.textContent).toContain("overlay.fit");
+            expect(
+                getOverlayItemState(firstItem as HTMLLIElement | undefined)
+            ).toMatchObject({
+                ariaLabel: "Overlay overlay.fit",
+                ariaSelected: "false",
+                cursor: "pointer",
+                overlayIndex: "1",
+                removeButton: {
+                    ariaLabel: "Remove overlay overlay.fit",
+                    role: "button",
+                    tabIndex: "-1",
+                    text: "×",
+                    title: "Remove this overlay",
+                },
+                role: "option",
+                tabIndex: -1,
+                text: "File: overlay.fit×",
+            });
             // Verify that color accessibility was checked
             expect(
                 getComputedStyleSpan(mockGetComputedStyle).style.display
@@ -390,8 +434,13 @@ describe("createShownFilesList", () => {
             const firstItem = container.querySelector("#shown-files-ul li");
 
             expect(firstItem).toBeInstanceOf(HTMLLIElement);
+            expect(
+                getOverlayItemState(firstItem as HTMLLIElement | undefined)
+            ).toMatchObject({
+                filter: "invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1)",
+                text: "File: overlay.fit×",
+            });
             expect(firstItem?.style.color).not.toBe("");
-            expect(firstItem?.style.filter).toContain("invert");
             expect(
                 getComputedStyleSpan(mockGetComputedStyle).style.display
             ).toBe("none");
@@ -476,8 +525,10 @@ describe("createShownFilesList", () => {
             (global.window as any).updateShownFilesList();
 
             const firstItem = getOverlayItems(container)[0];
-            expect(firstItem?.style.filter).toContain("invert");
-            expect(firstItem?.textContent?.trim()).toBe("File: overlay.fit×");
+            expect(getOverlayItemState(firstItem)).toMatchObject({
+                filter: "invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1)",
+                text: "File: overlay.fit×",
+            });
         });
 
         it("meets WCAG AA contrast requirements", () => {
@@ -498,9 +549,14 @@ describe("createShownFilesList", () => {
 
             (global.window as any).updateShownFilesList();
 
-            const ul = container.querySelector("#shown-files-ul");
-            const li = ul?.querySelector("li");
-            expect(li).toBeInstanceOf(HTMLLIElement);
+            expect(
+                getOverlayItemState(getOverlayItems(container)[0])
+            ).toMatchObject({
+                ariaLabel: "Overlay overlay.fit",
+                overlayIndex: "1",
+                role: "option",
+                text: "File: overlay.fit×",
+            });
         });
 
         it("handles 3-character hex colors", () => {
@@ -518,7 +574,9 @@ describe("createShownFilesList", () => {
             expect(firstItem?.style.color).toMatch(
                 /(#abc|rgb\(170,\s*187,\s*204\))/
             );
-            expect(firstItem?.textContent?.trim()).toBe("File: overlay.fit×");
+            expect(getOverlayItemState(firstItem)).toMatchObject({
+                text: "File: overlay.fit×",
+            });
         });
 
         it("handles 6-character hex colors", () => {
@@ -536,7 +594,9 @@ describe("createShownFilesList", () => {
             expect(firstItem?.style.color).toMatch(
                 /(#aabbcc|rgb\(170,\s*187,\s*204\))/
             );
-            expect(firstItem?.textContent?.trim()).toBe("File: overlay.fit×");
+            expect(getOverlayItemState(firstItem)).toMatchObject({
+                text: "File: overlay.fit×",
+            });
         });
     });
 
