@@ -80,7 +80,7 @@ const getProduct = (
 
 describe("data ant product ID lookup", () => {
     it("exports nested manufacturer product maps", () => {
-        expect.assertions(6);
+        expect.assertions(4);
 
         const entries = Object.entries(dataAntProductIds);
 
@@ -93,9 +93,15 @@ describe("data ant product ID lookup", () => {
             "280",
         ]);
         expect(entries).toHaveLength(5);
-        expect(productLookup["1"]).toHaveProperty("1036", "edge500");
-        expect(productLookup["32"]).toHaveProperty("3", "kickr_core");
-        expect(productLookup).not.toHaveProperty("99999");
+        expect({
+            garminEdge500: productLookup["1"]?.["1036"],
+            hasUnknownManufacturer: Object.hasOwn(productLookup, "99999"),
+            wahooKickrCore: productLookup["32"]?.["3"],
+        }).toStrictEqual({
+            garminEdge500: "edge500",
+            hasUnknownManufacturer: false,
+            wahooKickrCore: "kickr_core",
+        });
     });
 
     it("uses positive integer string keys and non-empty product names", () => {
