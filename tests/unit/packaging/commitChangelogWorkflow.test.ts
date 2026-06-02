@@ -1,3 +1,5 @@
+import path from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -122,7 +124,7 @@ describe("commit-changelog-workflow script", () => {
     });
 
     it("commits and pushes staged changelog changes", async () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const { commitChangelogWorkflow } =
             await importCommitChangelogWorkflow();
@@ -155,6 +157,9 @@ describe("commit-changelog-workflow script", () => {
             didCommit: true,
             messages: ["Changelogs updated and pushed to repository"],
         });
+        expect(new Set(calls.map((call) => call.options.cwd))).toStrictEqual(
+            new Set([path.resolve("repo")])
+        );
     });
 
     it("defaults git commands to the repository root", async () => {

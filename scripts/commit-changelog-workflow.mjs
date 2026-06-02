@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
@@ -30,7 +31,7 @@ export function createChangelogCommitMessage(version) {
 }
 
 export function commitChangelogWorkflow(options) {
-    const cwd = options.cwd ?? repositoryRoot;
+    const cwd = path.resolve(options.cwd ?? repositoryRoot);
     const log = options.log ?? console.log;
     const runCommand = options.runCommand ?? spawnSync;
 
