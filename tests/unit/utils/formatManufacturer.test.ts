@@ -41,7 +41,7 @@ describe(formatManufacturer, () => {
         expect({
             garmin: hasManufacturerMapping("garmin"),
             missingBrand: hasManufacturerMapping("missing-brand"),
-        }).toEqual({
+        }).toStrictEqual({
             garmin: true,
             missingBrand: false,
         });

@@ -161,7 +161,7 @@ describe("mapActionButtons", () => {
                 highlightedClassPresent:
                     activeFileName.classList.contains("highlighted"),
                 highlightedOverlayIndex: getTestGlobal()._highlightedOverlayIdx,
-            }).toEqual({
+            }).toStrictEqual({
                 highlightedClassPresent: true,
                 highlightedOverlayIndex: 0,
             });

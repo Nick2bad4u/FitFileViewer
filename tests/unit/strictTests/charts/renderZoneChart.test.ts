@@ -173,9 +173,9 @@ describe("renderZoneChart", () => {
 
         const chartConfig = getCreatedChartConfig();
         expect(chartConfig.type).toBe("doughnut");
-        expect(chartConfig.data.labels).toEqual(["Z1", "Z2"]);
-        expect(chartConfig.data.datasets[0].data).toEqual([10, 20]);
-        expect(chartConfig.data.datasets[0].backgroundColor).toEqual([
+        expect(chartConfig.data.labels).toStrictEqual(["Z1", "Z2"]);
+        expect(chartConfig.data.datasets[0].data).toStrictEqual([10, 20]);
+        expect(chartConfig.data.datasets[0].backgroundColor).toStrictEqual([
             "#111111",
             "#222222",
         ]);
@@ -222,17 +222,17 @@ describe("renderZoneChart", () => {
 
         const chartConfig = getCreatedChartConfig();
         expect(chartConfig.type).toBe("bar");
-        expect(chartConfig.data.labels).toEqual([
+        expect(chartConfig.data.labels).toStrictEqual([
             "Z1",
             "Z2",
             "Z3",
         ]);
-        expect(chartConfig.data.datasets[0].data).toEqual([
+        expect(chartConfig.data.datasets[0].data).toStrictEqual([
             5,
             15,
             25,
         ]);
-        expect(chartConfig.data.datasets[0].backgroundColor).toEqual([
+        expect(chartConfig.data.datasets[0].backgroundColor).toStrictEqual([
             "#000000",
             "#001111",
             "#002222",

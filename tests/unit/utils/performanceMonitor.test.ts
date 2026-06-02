@@ -29,7 +29,7 @@ describe(PerformanceMonitor, () => {
             endResult: monitor.endTimer("disabled-operation"),
             enabled: monitor.isEnabled(),
             timer: monitor.getTimer("disabled-operation"),
-        }).toEqual({
+        }).toStrictEqual({
             endResult: null,
             enabled: false,
             timer: null,

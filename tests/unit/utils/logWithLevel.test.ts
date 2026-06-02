@@ -168,7 +168,7 @@ describe(logWithLevel, () => {
                     __vitest_object_keys_allow_throw?: boolean;
                 }
             ).__vitest_object_keys_allow_throw,
-        }).toEqual({
+        }).toStrictEqual({
             objectKeysAllowThrow: false,
         });
     });

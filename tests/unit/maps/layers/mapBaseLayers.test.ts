@@ -76,7 +76,7 @@ describe("mapBaseLayers", () => {
             })),
         });
 
-        expect(Object.keys(baseLayers)).toEqual(EXPECTED_LAYER_NAMES);
+        expect(Object.keys(baseLayers)).toStrictEqual(EXPECTED_LAYER_NAMES);
         expect(baseLayers).not.toHaveProperty("__missing_layer__");
     });
 
@@ -119,7 +119,7 @@ describe("mapBaseLayers", () => {
             urlTemplate:
                 "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
         });
-        expect(baseLayers["OpenFreeMap_Dark"]).toEqual({
+        expect(baseLayers["OpenFreeMap_Dark"]).toStrictEqual({
             options: {
                 style: "https://tiles.openfreemap.org/styles/dark",
             },
