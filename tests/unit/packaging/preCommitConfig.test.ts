@@ -8,8 +8,8 @@ import { rootPreCommitConfigPath } from "../../../scripts/lib/workspaces.mjs";
 const requiredRootEslintHookEntries = [
     "id: root-eslint",
     "entry: node scripts/run-eslint.mjs root",
-    "id: electron-app-eslint",
-    "entry: node scripts/run-eslint.mjs electronApp",
+    "id: app-eslint",
+    "entry: node scripts/run-eslint.mjs app",
     "id: docusaurus-eslint",
     "entry: node scripts/run-eslint.mjs docusaurus",
 ] as const;
@@ -51,7 +51,7 @@ describe("pre-commit configuration", () => {
         const config = readPreCommitConfig();
         const requiredRootEntries = [
             "entry: node scripts/run-eslint.mjs docusaurus",
-            "entry: node scripts/run-eslint.mjs electronApp",
+            "entry: node scripts/run-eslint.mjs app",
         ];
 
         expect(

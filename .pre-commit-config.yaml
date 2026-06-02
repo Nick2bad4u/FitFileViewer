@@ -10,9 +10,9 @@ repos:
             entry: node scripts/run-eslint.mjs root
             language: system
             pass_filenames: false
-          - id: electron-app-eslint
-            name: electron app eslint
-            entry: node scripts/run-eslint.mjs electronApp
+          - id: app-eslint
+            name: app eslint
+            entry: node scripts/run-eslint.mjs app
             language: system
             pass_filenames: false
           - id: docusaurus-eslint

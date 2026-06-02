@@ -126,11 +126,11 @@ const rendererDependencyInventoryPath = path.posix.join(
 );
 
 const expectedRootToolingScripts = {
-    lint: "npm run lint:secretlint && npm run lint:root && npm run lint:electron-app && npm run lint:docusaurus && npm run lint:remark",
-    "lint:electron-app":
-        "node scripts/run-eslint.mjs electronApp && node scripts/run-typescript.mjs typecheck",
-    "lint:electron-app:fix":
-        "node scripts/run-eslint.mjs electronApp --fix && node scripts/run-typescript.mjs typecheck",
+    lint: "npm run lint:secretlint && npm run lint:root && npm run lint:app && npm run lint:docusaurus && npm run lint:remark",
+    "lint:app":
+        "node scripts/run-eslint.mjs app && node scripts/run-typescript.mjs typecheck",
+    "lint:app:fix":
+        "node scripts/run-eslint.mjs app --fix && node scripts/run-typescript.mjs typecheck",
     "lint:remark": "node scripts/lint-remark.mjs",
     "lint:secretlint": "node scripts/lint-secretlint.mjs",
     "test:ui": "node scripts/run-vitest.mjs --ui",

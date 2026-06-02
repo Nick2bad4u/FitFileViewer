@@ -72,7 +72,7 @@ export const rootEslintCachePath = path.posix.join(
 );
 export const appEslintCachePath = path.posix.join(
     rootCachePath,
-    ".eslintcache-electron"
+    ".eslintcache-app"
 );
 export const docusaurusEslintCachePath = path.posix.join(
     rootCachePath,

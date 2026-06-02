@@ -403,13 +403,13 @@ describe("workspace path helpers", () => {
         expect(workspaces.rootVitestCachePath).toBe(".cache/vitest");
         expect({
             adHoc: workspaces.adHocEslintCachePath,
+            app: workspaces.appEslintCachePath,
             docusaurus: workspaces.docusaurusEslintCachePath,
-            electronApp: workspaces.appEslintCachePath,
             root: workspaces.rootEslintCachePath,
         }).toStrictEqual({
             adHoc: ".cache/.eslintcache-ad-hoc",
+            app: ".cache/.eslintcache-app",
             docusaurus: ".cache/.eslintcache-docusaurus",
-            electronApp: ".cache/.eslintcache-electron",
             root: ".cache/.eslintcache-root",
         });
     });

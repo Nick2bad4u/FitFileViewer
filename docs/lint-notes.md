@@ -5,13 +5,12 @@
 The repository root now provides a lint entry point that orchestrates linting
 across the workspace:
 
-- `npm run lint` runs root linting, Electron app linting, and Docusaurus
-  linting.
+- `npm run lint` runs root linting, app linting, and Docusaurus linting.
 - `npm run lint:root` lints root-level code (excluding `electron-app` and
   `docusaurus`) with the root-owned ESLint config.
-- `npm run lint:electron-app` applies the same shared ESLint config to
-  `electron-app` through the root `eslint.config.mjs`, then runs the root
-  TypeScript typecheck.
+- `npm run lint:app` applies the same shared ESLint config to `electron-app`
+  through the root `eslint.config.mjs`, then runs the root TypeScript
+  typecheck.
 - `node scripts/run-eslint.mjs <path>` lints an explicit existing file or
   directory with the root `eslint.config.mjs`.
 - `npm run prettier` checks the root-owned Prettier target list.

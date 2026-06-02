@@ -65,7 +65,7 @@ describe("run-eslint script", () => {
             "--ignore-pattern",
             `${docusaurusWorkspaceName}/**`,
         ]);
-        expect(buildEslintArgs("electronApp")).toStrictEqual([
+        expect(buildEslintArgs("app")).toStrictEqual([
             "--config",
             rootEslintConfigPath,
             "--quiet",
@@ -175,9 +175,9 @@ describe("run-eslint script", () => {
             status: null,
         }));
 
-        expect(() =>
-            runEslintTarget("electronApp", ["--fix"], commandRunner)
-        ).toThrow(spawnError);
+        expect(() => runEslintTarget("app", ["--fix"], commandRunner)).toThrow(
+            spawnError
+        );
         expect(commandRunner).toHaveBeenCalledOnce();
 
         const [

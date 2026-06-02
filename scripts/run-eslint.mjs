@@ -29,7 +29,7 @@ export const eslintTargets = Object.freeze({
         paths: [`${docusaurusWorkspaceName}/**/*.{js,jsx,ts,tsx}`],
         prefixArgs: ["--config", rootEslintConfigPath],
     },
-    electronApp: {
+    app: {
         cacheLocation: appEslintCachePath,
         paths: [appSourceDirectoryName],
         prefixArgs: [
