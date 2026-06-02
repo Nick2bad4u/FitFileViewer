@@ -37,14 +37,43 @@ function getExposedElectronAPI(): AdditionalPreloadElectronApi {
 }
 
 function getRegisteredListener(
-    call: readonly [string, IpcListener] | undefined,
+    call: readonly [string, IpcListener],
     label: string
 ): IpcListener {
-    const listener = call?.[1];
+    const listener = call[1];
     if (typeof listener !== "function") {
         throw new TypeError(`Expected ${label} listener`);
     }
     return listener;
+}
+
+function getRequiredMockCall<T extends unknown[]>(
+    call: T | undefined,
+    label: string
+): T {
+    if (!call) {
+        throw new TypeError(`Expected ${label} call`);
+    }
+
+    return call;
+}
+
+function getRequiredIpcListenerCall(
+    ipcRenderer: IpcRendererMock,
+    channelName: string,
+    predicate: (call: readonly [string, IpcListener]) => boolean = ([
+        channel,
+    ]) => channel === channelName
+): [string, IpcListener] {
+    const call = ipcRenderer.on.mock.calls.find((entry) =>
+        predicate(entry as [string, IpcListener])
+    );
+
+    if (!call) {
+        throw new TypeError(`Expected ipcRenderer.on call for ${channelName}`);
+    }
+
+    return call as [string, IpcListener];
 }
 
 describe("preload edge cases", () => {
@@ -108,7 +137,11 @@ describe("preload edge cases", () => {
                 message: "[preload.js] Failed to expose development tools:",
             },
         ]);
-        expect(consoleErrorSpy.mock.calls[1]?.[1]).toBeInstanceOf(Error);
+        const failedDevToolsCall = getRequiredMockCall(
+            consoleErrorSpy.mock.calls.at(1),
+            "development tools failure log"
+        );
+        expect(failedDevToolsCall[1]).toBeInstanceOf(Error);
 
         // And no exposeInMainWorld should have been called (since it's missing entirely)
         expect(globalThis).not.toHaveProperty("electronAPI");
@@ -146,11 +179,12 @@ describe("preload edge cases", () => {
         // Register onOpenRecentFile and capture wrapper
         const cb = vi.fn<RecentFileCallback>();
         api.onOpenRecentFile(cb);
-        const call = ipcRenderer.on.mock.calls.find(
-            ([channel]) => channel === "open-recent-file"
+        const call = getRequiredIpcListenerCall(
+            ipcRenderer,
+            "open-recent-file"
         );
-        expect(call?.[0]).toBe("open-recent-file");
-        expect(call?.[1]).toBeTypeOf("function");
+        expect(call[0]).toBe("open-recent-file");
+        expect(call[1]).toBeTypeOf("function");
         const wrapper = getRegisteredListener(call, "open-recent-file");
         // Simulate event dispatch
         wrapper({}, "C:/test.fit");
@@ -162,12 +196,14 @@ describe("preload edge cases", () => {
             throw callbackError;
         });
         api.onOpenRecentFile(errCb);
-        const call2 = ipcRenderer.on.mock.calls.find(
+        const call2 = getRequiredIpcListenerCall(
+            ipcRenderer,
+            "open-recent-file",
             ([channel, listener]) =>
                 channel === "open-recent-file" && listener !== wrapper
         );
-        expect(call2?.[0]).toBe("open-recent-file");
-        expect(call2?.[1]).toBeTypeOf("function");
+        expect(call2[0]).toBe("open-recent-file");
+        expect(call2[1]).toBeTypeOf("function");
         const wrapper2 = getRegisteredListener(
             call2,
             "second open-recent-file"
