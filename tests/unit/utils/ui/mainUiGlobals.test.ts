@@ -39,7 +39,7 @@ const IFRAME_ID = "alt-fit-iframe";
 const IFRAME_PATH = "/alt-fit-reader.html";
 
 function resetTestState(): void {
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
     Reflect.deleteProperty(globalThis, GLOBAL_DATA_PROPERTY);
     const legacyGlobal = globalThis as LegacyGlobals;
     Reflect.deleteProperty(legacyGlobal, "cleanupEventListeners");
@@ -68,6 +68,14 @@ function createDependencies(
         validateElement:
             vi.fn<(id: string) => HTMLElement | null>(validateElement),
     };
+}
+
+function getRequiredFitFileSender(): (
+    arrayBuffer: ArrayBuffer
+) => Promise<void> {
+    const sender = (globalThis as LegacyGlobals).sendFitFileToAltFitReader;
+    expect(sender).toBeTypeOf("function");
+    return sender as (arrayBuffer: ArrayBuffer) => Promise<void>;
 }
 
 describe("mainUiGlobals", () => {
@@ -114,7 +122,7 @@ describe("mainUiGlobals", () => {
     });
 
     it("posts a FIT file payload to an already loaded Alt FIT iframe", async () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         resetTestState();
 
@@ -130,9 +138,9 @@ describe("mainUiGlobals", () => {
         const dependencies = createDependencies(() => iframe);
         registerLegacyGlobals(dependencies);
 
-        const result = await (
-            globalThis as LegacyGlobals
-        ).sendFitFileToAltFitReader?.(Uint8Array.from([65, 66]).buffer);
+        const result = await getRequiredFitFileSender()(
+            Uint8Array.from([65, 66]).buffer
+        );
 
         expect({ result }).toStrictEqual({ result: undefined });
         expect(postMessageSpy).toHaveBeenCalledWith(
@@ -145,7 +153,7 @@ describe("mainUiGlobals", () => {
     });
 
     it("loads the Alt FIT iframe before posting when it is not already loaded", async () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         resetTestState();
 
@@ -154,9 +162,7 @@ describe("mainUiGlobals", () => {
         const dependencies = createDependencies(() => iframe);
         registerLegacyGlobals(dependencies);
 
-        await (globalThis as LegacyGlobals).sendFitFileToAltFitReader?.(
-            Uint8Array.from([67]).buffer
-        );
+        await getRequiredFitFileSender()(Uint8Array.from([67]).buffer);
 
         expect(iframe.getAttribute("src")).toBe(IFRAME_PATH);
 
@@ -176,16 +182,14 @@ describe("mainUiGlobals", () => {
     });
 
     it("warns when the Alt FIT iframe is missing", async () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         resetTestState();
 
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         registerLegacyGlobals(createDependencies(() => null));
 
-        const result = await (
-            globalThis as LegacyGlobals
-        ).sendFitFileToAltFitReader?.(new ArrayBuffer(0));
+        const result = await getRequiredFitFileSender()(new ArrayBuffer(0));
 
         expect({ result }).toStrictEqual({ result: undefined });
         expect(warnSpy).toHaveBeenCalledExactlyOnceWith(

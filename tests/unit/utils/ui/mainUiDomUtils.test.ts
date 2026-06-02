@@ -11,7 +11,7 @@ const ELECTRON_API_PROPERTY = "electronAPI";
 
 function resetTestState(): void {
     cleanupEventListeners();
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
     Reflect.deleteProperty(globalThis, ELECTRON_API_PROPERTY);
     vi.restoreAllMocks();
 }
