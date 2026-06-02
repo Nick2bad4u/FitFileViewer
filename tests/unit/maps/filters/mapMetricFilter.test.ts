@@ -9,7 +9,7 @@ import type { MetricRecord } from "../../../../electron-app/utils/maps/filters/m
 
 describe(createMetricFilter, () => {
     it("returns inactive result when disabled", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const records = [{ speed: 10 }, { speed: 20 }];
         const result = createMetricFilter(records, {
@@ -27,7 +27,7 @@ describe(createMetricFilter, () => {
     });
 
     it("selects the correct number of entries for the requested percentile", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const records = [
             { speed: 1 },
@@ -57,7 +57,7 @@ describe(createMetricFilter, () => {
     });
 
     it("supports custom value extractors for derived datasets", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const metric = getMetricDefinition("speed");
         expect({
@@ -130,7 +130,7 @@ describe(createMetricFilter, () => {
     });
 
     it("returns a reason when metric data is missing", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const records = [{ cadence: undefined }, { cadence: undefined }];
         const result = createMetricFilter(records, {
@@ -150,7 +150,7 @@ describe(createMetricFilter, () => {
 
 describe("map filter metrics", () => {
     it("exposes a speed metric by default", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const metricKeys = MAP_FILTER_METRICS.map((metric) => metric.key);
         expect(metricKeys).toContain("speed");
@@ -160,7 +160,7 @@ describe("map filter metrics", () => {
 
 describe("createMetricFilter range mode", () => {
     it("selects entries within the requested value range", () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const records = [
             { speed: 2 },
@@ -193,7 +193,7 @@ describe("createMetricFilter range mode", () => {
     });
 
     it("returns a reason when the range excludes all data", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const records = [{ power: 100 }, { power: 150 }];
         const result = createMetricFilter(records, {
@@ -217,7 +217,7 @@ describe("createMetricFilter range mode", () => {
 
 describe(computeMetricStatistics, () => {
     it("computes bounds and averages for a metric", () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const stats = computeMetricStatistics(
             [
@@ -258,7 +258,7 @@ describe(computeMetricStatistics, () => {
     });
 
     it("returns null for an unknown metric", () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const stats = computeMetricStatistics([{ speed: 1.5 }], "unknown");
         expect(stats).toEqual(null);
