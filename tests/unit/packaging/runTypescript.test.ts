@@ -17,7 +17,7 @@ type CommandRunner = (
     command: string,
     args: string[],
     options: { cwd: string; stdio: string }
-) => { status: number };
+) => { error?: Error; status: number | null };
 
 describe("run-typescript wrapper", () => {
     it("builds root-owned typecheck arguments", () => {
@@ -122,5 +122,47 @@ describe("run-typescript wrapper", () => {
             cwd: path.resolve(process.cwd()),
             stdio: "inherit",
         });
+    });
+
+    it("throws when TypeScript cannot be started", () => {
+        expect.assertions(4);
+
+        const spawnError = new Error("spawn failed");
+        const commandRunner = vi.fn<CommandRunner>(() => ({
+            error: spawnError,
+            status: null,
+        }));
+
+        expect(() => runTypescriptTask(["typecheck"], commandRunner)).toThrow(
+            spawnError
+        );
+        expect(commandRunner).toHaveBeenCalledOnce();
+
+        const [
+            command,
+            args,
+            options,
+        ] = commandRunner.mock.calls[0] ?? [];
+
+        expect({
+            command,
+            forwardedArgs: args?.slice(1),
+            options: {
+                ...options,
+                cwd: path.resolve(options?.cwd ?? ""),
+            },
+        }).toStrictEqual({
+            command: process.execPath,
+            forwardedArgs: [
+                "--project",
+                rootElectronAppTsconfigPath,
+                "--noEmit",
+            ],
+            options: {
+                cwd: path.resolve(process.cwd()),
+                stdio: "inherit",
+            },
+        });
+        expect(args?.[0]).toMatch(/[\\/]typescript[\\/]bin[\\/]tsc$/u);
     });
 });

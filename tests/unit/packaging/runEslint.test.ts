@@ -12,16 +12,18 @@ import {
     rootEslintConfigPath,
 } from "../../../scripts/lib/workspaces.mjs";
 
+type CommandRunner = (
+    command: string,
+    args: string[],
+    options: { cwd: string; stdio: string }
+) => { error?: Error; status: number | null };
+
 type RunEslintModule = {
     buildEslintArgs: (targetName: string, userArgs?: string[]) => string[];
     runEslintTarget: (
         targetName: string,
         userArgs?: string[],
-        commandRunner?: (
-            command: string,
-            args: string[],
-            options: { cwd: string; stdio: string }
-        ) => { error?: Error; status: number | null }
+        commandRunner?: CommandRunner
     ) => number;
 };
 
@@ -104,13 +106,7 @@ describe("run-eslint script", () => {
         expect.assertions(2);
 
         const { runEslintTarget } = await importRunEslint();
-        const commandRunner = vi.fn<
-            (
-                command: string,
-                args: string[],
-                options: { cwd: string; stdio: string }
-            ) => { status: number }
-        >(() => ({ status: 7 }));
+        const commandRunner = vi.fn<CommandRunner>(() => ({ status: 7 }));
 
         const exitStatus = runEslintTarget("root", ["--fix"], commandRunner);
 
@@ -154,5 +150,59 @@ describe("run-eslint script", () => {
                 stdio: "inherit",
             },
         });
+    });
+
+    it("throws when ESLint cannot be started", async () => {
+        expect.assertions(4);
+
+        const { runEslintTarget } = await importRunEslint();
+        const spawnError = new Error("spawn failed");
+        const commandRunner = vi.fn<CommandRunner>(() => ({
+            error: spawnError,
+            status: null,
+        }));
+
+        expect(() =>
+            runEslintTarget("electronApp", ["--fix"], commandRunner)
+        ).toThrow(spawnError);
+        expect(commandRunner).toHaveBeenCalledOnce();
+
+        const [
+            command,
+            args,
+            options,
+        ] = commandRunner.mock.calls[0] ?? [];
+
+        expect({
+            command,
+            eslintCliPath: args?.[0],
+            forwardedArgs: args?.slice(1),
+            options: {
+                ...options,
+                cwd: path.resolve(options?.cwd ?? ""),
+            },
+        }).toStrictEqual({
+            command: process.execPath,
+            eslintCliPath: expect.stringMatching(
+                /[\\/]eslint[\\/]bin[\\/]eslint\.js$/u
+            ),
+            forwardedArgs: [
+                "--config",
+                rootEslintConfigPath,
+                "--quiet",
+                "--cache",
+                "--cache-strategy",
+                "content",
+                "--cache-location",
+                appEslintCachePath,
+                "--fix",
+                appSourceDirectoryName,
+            ],
+            options: {
+                cwd: path.resolve(process.cwd()),
+                stdio: "inherit",
+            },
+        });
+        expect(args?.[0]).toMatch(/[\\/]eslint[\\/]bin[\\/]eslint\.js$/u);
     });
 });
