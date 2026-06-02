@@ -582,7 +582,11 @@ describe("main.js - Electron Main Process", () => {
                 expectedMainExportKeys
             );
             expect(mainModule.CONSTANTS.DEFAULT_THEME).toBe("dark");
-            expect(mainModule.initializeApplication).toBeTypeOf("function");
+            expect(mainModule.CONSTANTS.PLATFORMS).toStrictEqual({
+                DARWIN: "darwin",
+                LINUX: "linux",
+                WIN32: "win32",
+            });
         });
 
         it("should handle test environment initialization", async () => {
@@ -593,7 +597,10 @@ describe("main.js - Electron Main Process", () => {
 
             expect(mainModule.getAppState("mainWindow")).toBe(mockWindow);
             expect(loadHandler[0]).toBe("did-finish-load");
-            expect(loadHandler[1]).toBeTypeOf("function");
+            expect(mockWindow.webContents.on).toHaveBeenCalledWith(
+                "did-finish-load",
+                loadHandler[1]
+            );
         });
 
         it("should handle missing electron gracefully", async () => {
@@ -813,7 +820,10 @@ describe("main.js - Electron Main Process", () => {
             await importMainModule();
             const fileReadHandler = getRequiredIpcHandler("file:read");
 
-            expect(fileReadHandler).toBeTypeOf("function");
+            expect(mockElectron.ipcMain.handle).toHaveBeenCalledWith(
+                "file:read",
+                fileReadHandler
+            );
             await expect(fileReadHandler({}, "")).rejects.toThrow(
                 "Invalid file path provided"
             );
@@ -822,7 +832,7 @@ describe("main.js - Electron Main Process", () => {
 
     describe("gyazo OAuth server", () => {
         it("should handle missing Gyazo environment variables", async () => {
-            expect.assertions(4);
+            expect.assertions(2);
 
             // Ensure no Gyazo environment variables
             delete process.env.GYAZO_CLIENT_ID;
@@ -830,8 +840,6 @@ describe("main.js - Electron Main Process", () => {
 
             const mainModule = await importMainModule();
 
-            expect(mainModule.startGyazoOAuthServer).toBeTypeOf("function");
-            expect(mainModule.stopGyazoOAuthServer).toBeTypeOf("function");
             expect(testGlobals).not.toHaveProperty("__ffvGyazoStartupTimer");
             await expect(mainModule.stopGyazoOAuthServer()).resolves.toEqual({
                 message: "No server was running",
@@ -842,36 +850,38 @@ describe("main.js - Electron Main Process", () => {
 
     describe("security features", () => {
         it("should handle web security setup", async () => {
-            expect.assertions(3);
+            expect.assertions(1);
 
             await importMainModule();
             const requestHandler = getRequiredWebRequestHandler();
-            const blockedCallback =
-                vi.fn<(response: Record<string, unknown>) => void>();
-            const allowedCallback =
-                vi.fn<(response: Record<string, unknown>) => void>();
+            let blockedResponse: Record<string, unknown> | undefined;
+            let allowedResponse: Record<string, unknown> | undefined;
 
-            expect(requestHandler).toBeTypeOf("function");
             requestHandler(
                 { url: "https://ua.harryonline.net/script.js" },
-                blockedCallback
+                (response) => {
+                    blockedResponse = response;
+                }
             );
             requestHandler(
                 { url: "https://example.com/app.js" },
-                allowedCallback
+                (response) => {
+                    allowedResponse = response;
+                }
             );
-            expect(blockedCallback).toHaveBeenCalledWith({ cancel: true });
-            expect(allowedCallback).toHaveBeenCalledWith({});
+            expect({ allowedResponse, blockedResponse }).toStrictEqual({
+                allowedResponse: {},
+                blockedResponse: { cancel: true },
+            });
         });
 
         it("should handle URL validation", async () => {
-            expect.assertions(4);
+            expect.assertions(3);
 
             await importMainModule();
             const openExternalHandler =
-                getRegisteredIpcHandler("shell:openExternal");
+                getRequiredIpcHandler("shell:openExternal");
 
-            expect(openExternalHandler).toBeTypeOf("function");
             await expect(openExternalHandler({}, "not-a-url")).rejects.toThrow(
                 "Invalid URL provided"
             );
