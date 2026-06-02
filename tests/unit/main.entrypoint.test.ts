@@ -496,7 +496,7 @@ function getSentUpdateChannels(): string[] {
 
 describe("main.js entrypoint behavior", () => {
     it("wires startup, IPC, updater, and renderer events through the real entry point", async () => {
-        expect.assertions(14);
+        expect.assertions(13);
 
         resetHarness();
 
@@ -514,8 +514,9 @@ describe("main.js entrypoint behavior", () => {
             harness.app.emit("window-all-closed");
             harness.app.emit("activate");
 
-            expect(mainModule.initializeApplication).toBeTypeOf("function");
-            expect(mainModule.setupMainLifecycle).toBeTypeOf("function");
+            await expect(mainModule.initializeApplication()).resolves.toBe(
+                harness.mainWindow
+            );
             expect(harness.app.whenReady).toHaveBeenCalledWith();
             expect(harness.browserWindow.getAllWindows).toHaveBeenCalledWith();
             const registeredIpcChannels = getRegisteredIpcHandleChannels();
