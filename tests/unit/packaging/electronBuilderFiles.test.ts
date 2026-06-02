@@ -56,7 +56,7 @@ function findMarkdownFiles(directory: string): string[] {
 
 describe("electron-builder file list", () => {
     it("keeps normal and Win7 package surfaces aligned to the root builder config", async () => {
-        expect.assertions(5);
+        expect.assertions(1);
 
         const builderConfig = requireFromTest(
             repositoryPath(rootElectronBuilderConfigPath)
@@ -65,13 +65,23 @@ describe("electron-builder file list", () => {
             (await import("../../../scripts/build-win7.mjs")) as Win7BuildModule;
         const sharedFileList = builderConfig.files;
 
-        expect(sharedFileList).toStrictEqual(["dist/**", "package.json"]);
-        expect(builderConfig.directories.output).toBe(rootReleaseDistPath);
-        expect(win7Build.readElectronBuilderFiles()).toStrictEqual(
-            sharedFileList
-        );
-        expect(win7Build.rootPackageFiles).toStrictEqual(sharedFileList);
-        expect(win7Build.outputDir).toBe(rootWin7ReleaseDistPath);
+        expect({
+            forbiddenNestedAppPackageFiles: sharedFileList.filter(
+                (filePattern) => filePattern.startsWith("electron-app/")
+            ),
+            normalBuilderFiles: sharedFileList,
+            normalBuilderOutput: builderConfig.directories.output,
+            win7Output: win7Build.outputDir,
+            win7ReadBuilderFiles: win7Build.readElectronBuilderFiles(),
+            win7RootPackageFiles: win7Build.rootPackageFiles,
+        }).toStrictEqual({
+            forbiddenNestedAppPackageFiles: [],
+            normalBuilderFiles: ["dist/**", "package.json"],
+            normalBuilderOutput: rootReleaseDistPath,
+            win7Output: rootWin7ReleaseDistPath,
+            win7ReadBuilderFiles: ["dist/**", "package.json"],
+            win7RootPackageFiles: ["dist/**", "package.json"],
+        });
     });
 
     it("rejects invalid package file lists", async () => {
