@@ -1,9 +1,29 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { getActiveTabContent } from "../../../electron-app/utils/rendering/helpers/getActiveTabContent.js";
 
+function createTabContent({
+    className = "tab-content",
+    display,
+    id,
+}: {
+    className?: string;
+    display?: string;
+    id?: string;
+} = {}): HTMLDivElement {
+    const element = document.createElement("div");
+    element.className = className;
+    if (id) {
+        element.id = id;
+    }
+    if (display !== undefined) {
+        element.style.display = display;
+    }
+    return element;
+}
+
 describe("getActiveTabContent behavior", () => {
     beforeEach(() => {
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         vi.restoreAllMocks();
         vi.spyOn(console, "warn").mockImplementation(() => {});
         vi.spyOn(console, "error").mockImplementation(() => {});
@@ -11,27 +31,23 @@ describe("getActiveTabContent behavior", () => {
 
     afterEach(() => {
         vi.restoreAllMocks();
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
     });
 
     it("returns the first visible .tab-content element", () => {
         expect.assertions(4);
 
-        const c1 = document.createElement("div");
-        c1.className = "tab-content";
-        c1.style.display = "none";
-        const c2 = document.createElement("div");
-        c2.id = "visible-tab";
-        c2.className = "tab-content";
-        c2.style.display = "block";
-        const c3 = document.createElement("div");
-        c3.className = "tab-content";
-        c3.style.display = "none";
+        const c1 = createTabContent({ display: "none" });
+        const c2 = createTabContent({
+            display: "block",
+            id: "visible-tab",
+        });
+        const c3 = createTabContent({ display: "none" });
         document.body.append(c1, c2, c3);
 
         const active = getActiveTabContent();
         expect(active).toBe(c2);
-        expect((active as HTMLElement).id).toBe("visible-tab");
+        expect(active).toHaveProperty("id", "visible-tab");
         expect(console.warn).not.toHaveBeenCalled();
         expect(console.error).not.toHaveBeenCalled();
     });
@@ -50,11 +66,11 @@ describe("getActiveTabContent behavior", () => {
         expect.assertions(3);
 
         for (let i = 0; i < 3; i++) {
-            const d = document.createElement("div");
-            d.className = "tab-content";
-            // Explicitly set to empty or none to exercise branch
-            d.style.display = i === 0 ? "none" : "";
-            document.body.appendChild(d);
+            document.body.appendChild(
+                createTabContent({
+                    display: i === 0 ? "none" : "",
+                })
+            );
         }
         const result = getActiveTabContent();
         expect(result).toBeNull();
@@ -65,12 +81,11 @@ describe("getActiveTabContent behavior", () => {
     it("returns .tab-content.active when visible via CSS class (no inline display)", () => {
         expect.assertions(2);
 
-        const inactive = document.createElement("div");
-        inactive.className = "tab-content";
-
-        const active = document.createElement("div");
-        active.id = "content_map";
-        active.className = "tab-content active";
+        const inactive = createTabContent();
+        const active = createTabContent({
+            className: "tab-content active",
+            id: "content_map",
+        });
 
         document.body.append(inactive, active);
 
@@ -87,9 +102,7 @@ describe("getActiveTabContent behavior", () => {
         btn.className = "tab-button active";
         document.body.appendChild(btn);
 
-        const content = document.createElement("div");
-        content.id = "content_summary";
-        content.className = "tab-content";
+        const content = createTabContent({ id: "content_summary" });
         document.body.appendChild(content);
 
         const result = getActiveTabContent();
