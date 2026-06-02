@@ -183,7 +183,7 @@ describe("preload IPC helpers", () => {
     });
 
     it("subscribes to events, transforms payloads, and removes listeners", () => {
-        expect.assertions(7);
+        expect.assertions(6);
 
         const { helpers, ipcRenderer, validateCallback } = createHelpers();
         const receivedPayloads: unknown[] = [];
@@ -201,9 +201,8 @@ describe("preload IPC helpers", () => {
         expect(validateCallback).toHaveBeenCalledWith(callback, "onEvent");
         expect(ipcRenderer.on).toHaveBeenCalledOnce();
         expect(registeredChannel).toBe("app:event");
-        expect(listener).toBeTypeOf("function");
 
-        listener?.({}, "payload");
+        listener({}, "payload");
 
         expect(callback).toHaveBeenCalledWith({ value: "payload" });
         expect(receivedPayloads).toStrictEqual([{ value: "payload" }]);
@@ -229,8 +228,7 @@ describe("preload IPC helpers", () => {
             "onEvent"
         )(invalidCallback);
 
-        expect(unsubscribe).toBeTypeOf("function");
-        unsubscribe();
+        expect(unsubscribe()).toBeUndefined();
         expect(ipcRenderer.on).not.toHaveBeenCalled();
         expect(preloadLog).not.toHaveBeenCalled();
         expect(validateCallback).toHaveBeenCalledWith(
