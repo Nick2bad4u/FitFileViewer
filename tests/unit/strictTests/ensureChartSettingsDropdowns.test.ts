@@ -266,6 +266,33 @@ function setupDOM(withContainer = false) {
     }
 }
 
+function getRequiredElementById<TElement extends HTMLElement>(
+    id: string,
+    constructor: new (...args: any[]) => TElement
+): TElement {
+    const element = document.getElementById(id);
+
+    if (!(element instanceof constructor)) {
+        throw new TypeError(`Expected #${id} to exist in the test DOM`);
+    }
+
+    return element;
+}
+
+function queryRequiredElement<TElement extends Element>(
+    container: ParentNode,
+    selector: string,
+    constructor: new (...args: any[]) => TElement
+): TElement {
+    const element = container.querySelector(selector);
+
+    if (!(element instanceof constructor)) {
+        throw new TypeError(`Expected ${selector} to exist in the test DOM`);
+    }
+
+    return element;
+}
+
 function seedGlobalData() {
     getTestWindow().globalData = {
         recordMesgs: [
@@ -389,27 +416,33 @@ describe("ensureChartSettingsDropdowns integration", () => {
         expect(result).toEqual({ from: "getCurrentSettings" });
 
         // Toggle button exists and points to wrapper
-        const toggleBtn = document.getElementById("chart-controls-toggle");
+        const toggleBtn = getRequiredElementById(
+            "chart-controls-toggle",
+            HTMLButtonElement
+        );
         expect(toggleBtn).toBeInstanceOf(HTMLButtonElement);
-        expect(toggleBtn?.getAttribute("aria-controls")).toBe(
+        expect(toggleBtn.getAttribute("aria-controls")).toBe(
             "chartjs-settings-wrapper"
         );
 
         // Wrapper and sections exist
-        const wrapper = document.getElementById("chartjs-settings-wrapper");
+        const wrapper = getRequiredElementById(
+            "chartjs-settings-wrapper",
+            HTMLDivElement
+        );
         expect(wrapper).toBeInstanceOf(HTMLDivElement);
-        expect(wrapper?.querySelector(".settings-header")).toBeInstanceOf(
-            HTMLElement
-        );
-        expect(wrapper?.querySelector(".controls-section")).toBeInstanceOf(
-            HTMLElement
-        );
-        expect(wrapper?.querySelector(".export-section")).toBeInstanceOf(
-            HTMLElement
-        );
-        expect(wrapper?.querySelector(".fields-section")).toBeInstanceOf(
-            HTMLElement
-        );
+        expect(
+            queryRequiredElement(wrapper, ".settings-header", HTMLElement)
+        ).toBeInstanceOf(HTMLElement);
+        expect(
+            queryRequiredElement(wrapper, ".controls-section", HTMLElement)
+        ).toBeInstanceOf(HTMLElement);
+        expect(
+            queryRequiredElement(wrapper, ".export-section", HTMLElement)
+        ).toBeInstanceOf(HTMLElement);
+        expect(
+            queryRequiredElement(wrapper, ".fields-section", HTMLElement)
+        ).toBeInstanceOf(HTMLElement);
 
         // Setup hooks called
         expect(spies.createPowerZoneControls).toHaveBeenCalledWith(wrapper);
@@ -500,9 +533,11 @@ describe("ensureChartSettingsDropdowns integration", () => {
             "#field-toggle-speed"
         ) as HTMLInputElement;
         expect(speedCheckbox).toBeInstanceOf(HTMLInputElement);
-        const speedColor = speedCheckbox.parentElement?.querySelector(
-            'input[type="color"]'
-        ) as HTMLInputElement;
+        const speedColor = queryRequiredElement(
+            speedCheckbox.parentElement ?? document.createDocumentFragment(),
+            'input[type="color"]',
+            HTMLInputElement
+        );
         expect(speedColor).toBeInstanceOf(HTMLInputElement);
 
         // Toggle off
