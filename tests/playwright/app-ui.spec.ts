@@ -258,12 +258,71 @@ test.describe("FitFileViewer renderer environment fallbacks", () => {
             await expect(noNodeEnvPage.locator("#tab_map")).toHaveClass(
                 /active/u
             );
+            await noNodeEnvPage.waitForFunction(() => {
+                const map = document.querySelector("#leaflet-map");
+                const themeToggle = document.querySelector(".map-theme-toggle");
+
+                return (
+                    map instanceof HTMLElement &&
+                    themeToggle instanceof HTMLElement
+                );
+            });
             await expect(
                 noNodeEnvPage.getByRole("button", {
                     name: /toggle map theme/iu,
                 })
             ).toBeVisible();
             await expect(noNodeEnvPage.locator("#leaflet-map")).toBeVisible();
+
+            const initialMapThemeState = await noNodeEnvPage.evaluate(() => {
+                const button = document.querySelector(".map-theme-toggle");
+
+                if (!(button instanceof HTMLElement)) {
+                    throw new Error("Map theme toggle was not rendered");
+                }
+
+                return {
+                    isActive: button.classList.contains("active"),
+                    storageValue: localStorage.getItem(
+                        "ffv-map-theme-inverted"
+                    ),
+                    title: button.title,
+                };
+            });
+
+            await noNodeEnvPage
+                .getByRole("button", { name: /toggle map theme/iu })
+                .click();
+            await expect
+                .poll(async () =>
+                    noNodeEnvPage.evaluate(() => {
+                        const button =
+                            document.querySelector(".map-theme-toggle");
+
+                        if (!(button instanceof HTMLElement)) {
+                            throw new Error(
+                                "Map theme toggle was not rendered"
+                            );
+                        }
+
+                        return {
+                            isActive: button.classList.contains("active"),
+                            storageValue: localStorage.getItem(
+                                "ffv-map-theme-inverted"
+                            ),
+                            title: button.title,
+                        };
+                    })
+                )
+                .toStrictEqual({
+                    isActive: !initialMapThemeState.isActive,
+                    storageValue: initialMapThemeState.isActive
+                        ? "false"
+                        : "true",
+                    title: initialMapThemeState.isActive
+                        ? "Map: Light theme (click for dark theme)"
+                        : "Map: Dark theme (click for light theme)",
+                });
 
             const matchedReports = reportedFailureNeedles.flatMap((needle) =>
                 [...rendererMessages, ...pageErrors]
