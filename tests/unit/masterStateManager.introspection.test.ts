@@ -1,10 +1,17 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { masterStateManager } from "../../electron-app/utils/state/core/masterStateManager.js";
 import {
-    setState,
-    subscribe,
-    resetState,
-} from "../../electron-app/utils/state/core/stateManager.js";
+    afterEach,
+    beforeAll,
+    beforeEach,
+    describe,
+    expect,
+    it,
+    vi,
+} from "vitest";
+
+type MasterStateManager =
+    typeof import("../../electron-app/utils/state/core/masterStateManager.js").masterStateManager;
+type StateManagerModule =
+    typeof import("../../electron-app/utils/state/core/stateManager.js");
 
 interface SubscriptionSnapshot {
     paths: string[];
@@ -59,15 +66,41 @@ interface StateHistorySnapshot {
     timestamp: number;
 }
 
+let masterStateManager: MasterStateManager;
+let resetState: StateManagerModule["resetState"];
+let setState: StateManagerModule["setState"];
+let subscribe: StateManagerModule["subscribe"];
+
+function suppressConsoleOutput(): void {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+}
+
 describe("masterStateManager introspection", () => {
+    beforeAll(async () => {
+        suppressConsoleOutput();
+
+        const [masterStateManagerModule, stateManagerModule] =
+            await Promise.all([
+                import("../../electron-app/utils/state/core/masterStateManager.js"),
+                import("../../electron-app/utils/state/core/stateManager.js"),
+            ]);
+
+        masterStateManager = masterStateManagerModule.masterStateManager;
+        resetState = stateManagerModule.resetState;
+        setState = stateManagerModule.setState;
+        subscribe = stateManagerModule.subscribe;
+    });
+
     beforeEach(() => {
-        // Reset state before each test
+        suppressConsoleOutput();
         resetState();
     });
 
     afterEach(() => {
-        // Clean up after each test
         resetState();
+        vi.restoreAllMocks();
     });
 
     describe("introspection methods", () => {
