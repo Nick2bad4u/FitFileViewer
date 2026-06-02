@@ -161,7 +161,7 @@ type DrawOverlayForFitFileOptions = {
         | undefined;
     getLapNumForIdx?: (
         pointIndex: number,
-        lapMesgs: LapMesg[] | unknown
+        lapMesgs: LapMesg[]
     ) => null | number | undefined;
     map: MapLike;
     markerClusterGroup?: MarkerClusterLike | null | undefined;
@@ -169,7 +169,7 @@ type DrawOverlayForFitFileOptions = {
     startIcon?: unknown;
 };
 
-type MapDrawLapsIndex = "all" | number | string | Array<number | string>;
+type MapDrawLapsIndex = number | string | Array<number | string>;
 
 type MapDrawLapsOptions = {
     baseLayers?: unknown;
@@ -182,14 +182,25 @@ type MapDrawLapsOptions = {
     ) => string;
     getLapColor: (lapIndex: number | string) => string;
     getLapNumForIdx: (
-        pointIndex: number | unknown,
-        lapMesgs: LapMesg[] | unknown
+        pointIndex: number,
+        lapMesgs: LapMesg[]
     ) => null | number | undefined;
     map: MapLike;
     mapContainer: HTMLElement;
     markerClusterGroup?: MarkerClusterLike | null | undefined;
     startIcon?: unknown;
     [key: string]: unknown;
+};
+
+type AddLapDataPointMarkerOptions = {
+    activityLayerTarget: unknown;
+    coord: CoordTuple;
+    formatTooltipData: MapDrawLapsOptions["formatTooltipData"];
+    leaflet: LeafletRuntimeLike;
+    markerClusterGroup?: MarkerClusterLike | null | undefined;
+    polyColor: string;
+    recordMesgs: RecordMesg[];
+    registerDataPointMarker: (marker: LeafletLayerLike) => void;
 };
 
 /**
@@ -384,9 +395,8 @@ export function drawOverlayForFitFile({
  * Draw one lap, multiple laps, or the full activity track on the Leaflet map.
  */
 export function mapDrawLaps(
-    lapIdx: MapDrawLapsIndex,
+    requestedLapIdx: MapDrawLapsIndex,
     {
-        baseLayers: _baseLayers,
         endIcon,
         formatTooltipData,
         getLapColor,
@@ -399,6 +409,7 @@ export function mapDrawLaps(
 ): void {
     // Resolve L dynamically for this invocation
     const L = getLeaflet();
+    let lapIdx = requestedLapIdx;
 
     const win = getWin();
     let activityGroup = win._ffvActivityLayerGroup;
@@ -522,7 +533,7 @@ export function mapDrawLaps(
         Array.isArray(lapIdx) ? "isArray" : "notArray"
     );
 
-    let coords: CoordTuple[] = [];
+    let coords: CoordTuple[];
     // Replace window global data access comments
 
     // DEBUG: Log what we're seeing
@@ -606,7 +617,7 @@ export function mapDrawLaps(
 
         // Test getLapNumForIdx for first few indices
         if (getLapNumForIdx) {
-            for (let testIdx = 0; testIdx < 3; ++testIdx) {
+            for (let testIdx = 0; testIdx < 3; testIdx += 1) {
                 const lapNum = getLapNumForIdx(testIdx, lapMesgs) ?? 1;
                 console.log(
                     `[mapDrawLaps] getLapNumForIdx(${testIdx}, lapMesgs) =`,
@@ -649,9 +660,6 @@ export function mapDrawLaps(
                 return null;
             })
             .filter((coord): coord is CoordTuple => coord !== null);
-
-        // After coords mapping where Type complained about (CoordTuple | null)[] -> add explicit filtering cast
-        coords = coords.filter((coord): coord is CoordTuple => coord !== null);
 
         if (coords.length === 0) {
             renderMapInfoMessage(
@@ -729,7 +737,7 @@ export function mapDrawLaps(
             // Replace loops adding markers where c may be undefined
             const markerCoords = selectMarkerCoordinatesForDataset(coords);
             console.log(
-                `[mapDrawLaps] Creating markers: requested=${getWin().mapMarkerCount} actual=${markerCoords.length}, coords.length=${coords.length}`
+                `[mapDrawLaps] Creating markers: requested=${getWin().mapMarkerCount ?? ""} actual=${markerCoords.length}, coords.length=${coords.length}`
             );
 
             let markersCreated = 0;
@@ -771,7 +779,7 @@ export function mapDrawLaps(
                         sticky: true,
                     }
                 );
-                markersCreated++;
+                markersCreated += 1;
             }
             console.log(
                 `[mapDrawLaps] Created ${markersCreated} markers total`
@@ -787,7 +795,7 @@ export function mapDrawLaps(
             let lastOverlayBounds = null,
                 overlayIdx = 0;
             const loaded = getLoadedFitFiles();
-            for (let i = 1; i < loaded.length; ++i) {
+            for (let i = 1; i < loaded.length; i += 1) {
                 const overlay = loaded[i];
                 if (!overlay || !overlay.data) {
                     continue;
@@ -830,7 +838,7 @@ export function mapDrawLaps(
                             ? safeBounds.clone()
                             : safeBounds || null;
                 }
-                overlayIdx++;
+                overlayIdx += 1;
             }
             if (lastOverlayBounds) {
                 safeFitBounds(map, lastOverlayBounds, { padding: [20, 20] });
@@ -880,11 +888,6 @@ export function mapDrawLaps(
                     return null;
                 })
                 .filter((coord): coord is CoordTuple => coord !== null);
-
-            // After coords mapping where Type complained about (CoordTuple | null)[] -> add explicit filtering cast
-            coords = coords.filter(
-                (coord): coord is CoordTuple => coord !== null
-            );
 
             if (coords.length === 0) {
                 renderMapInfoMessage(
@@ -1000,7 +1003,7 @@ export function mapDrawLaps(
                 let lastOverlayBounds = null,
                     overlayIdx = 0;
                 const loaded = getLoadedFitFiles();
-                for (let i = 1; i < loaded.length; ++i) {
+                for (let i = 1; i < loaded.length; i += 1) {
                     const overlay = loaded[i];
                     if (!overlay || !overlay.data) {
                         continue;
@@ -1046,7 +1049,7 @@ export function mapDrawLaps(
                                 ? safeBounds.clone()
                                 : safeBounds || null;
                     }
-                    overlayIdx++;
+                    overlayIdx += 1;
                 }
                 if (lastOverlayBounds) {
                     safeFitBounds(map, lastOverlayBounds, {
@@ -1067,11 +1070,7 @@ export function mapDrawLaps(
             }
             const lap = lapMesgs[Number(lapVal)];
             if (
-                lap &&
-                lap.startPositionLat != null &&
-                lap.startPositionLong != null &&
-                lap.endPositionLat != null &&
-                lap.endPositionLong != null
+                hasLapCoordinates(lap)
             ) {
                 const startIdx = findClosestRecordIndexByLatLon(
                     lap.startPositionLat,
@@ -1156,47 +1155,16 @@ export function mapDrawLaps(
                         const markerCoords =
                             selectMarkerCoordinatesForDataset(lapCoords);
                         for (const c of markerCoords) {
-                            if (!c) {
-                                continue;
-                            }
-                            const idx3 = c[6],
-                                lapVal3 = c[8],
-                                row3 = c[7];
-                            let lapDisplay = lapVal3;
-                            if (!lapDisplay || Number.isNaN(lapDisplay)) {
-                                lapDisplay = 1;
-                            }
-                            const marker = L.circleMarker([c[0], c[1]], {
-                                color: polyColor,
-                                fillColor: "#fff",
-                                fillOpacity: 0.85,
-                                radius: 4,
-                                weight: 2,
-                                zIndexOffset: 1500,
+                            addLapDataPointMarker({
+                                activityLayerTarget,
+                                coord: c,
+                                formatTooltipData,
+                                leaflet: L,
+                                markerClusterGroup,
+                                polyColor,
+                                recordMesgs,
+                                registerDataPointMarker,
                             });
-                            if (markerClusterGroup) {
-                                markerClusterGroup.addLayer(marker);
-                            } else {
-                                marker.addTo(activityLayerTarget);
-                            }
-                            try {
-                                marker.bringToFront?.();
-                            } catch {
-                                /* ignore */
-                            }
-                            registerDataPointMarker(marker);
-                            marker.bindTooltip(
-                                formatTooltipData(
-                                    idx3,
-                                    row3,
-                                    lapDisplay,
-                                    recordMesgs
-                                ),
-                                {
-                                    direction: "top",
-                                    sticky: true,
-                                }
-                            );
                         }
                     }
                 }
@@ -1215,7 +1183,7 @@ export function mapDrawLaps(
             let lastOverlayBounds = null,
                 overlayIdx = 0;
             const loaded = getLoadedFitFiles();
-            for (let i = 1; i < loaded.length; ++i) {
+            for (let i = 1; i < loaded.length; i += 1) {
                 const overlay = loaded[i];
                 if (!overlay || !overlay.data) {
                     continue;
@@ -1260,7 +1228,7 @@ export function mapDrawLaps(
                             ? safeBounds.clone()
                             : safeBounds || null;
                 }
-                overlayIdx++;
+                overlayIdx += 1;
             }
             // Always auto-zoom to the overlay just added (not all overlays)
             if (lastOverlayBounds) {
@@ -1273,11 +1241,7 @@ export function mapDrawLaps(
     if (lapIdx !== undefined && lapIdx !== "all" && lapMesgs.length > 0) {
         const lap = lapMesgs[Number(lapIdx)];
         if (
-            lap &&
-            lap.startPositionLat != null &&
-            lap.startPositionLong != null &&
-            lap.endPositionLat != null &&
-            lap.endPositionLong != null
+            hasLapCoordinates(lap)
         ) {
             const startIdx = findClosestRecordIndexByLatLon(
                 lap.startPositionLat,
@@ -1501,7 +1465,7 @@ export function mapDrawLaps(
             let lastOverlayBounds = null,
                 overlayIdx = 0;
             const loaded = getLoadedFitFiles();
-            for (let i = 1; i < loaded.length; ++i) {
+            for (let i = 1; i < loaded.length; i += 1) {
                 const overlay = loaded[i];
                 if (!overlay || !overlay.data) {
                     continue;
@@ -1542,7 +1506,7 @@ export function mapDrawLaps(
                             ? safeBounds.clone()
                             : safeBounds || null;
                 }
-                overlayIdx++;
+                overlayIdx += 1;
             }
             // Always auto-zoom to the overlay just added (not all overlays)
             if (lastOverlayBounds) {
@@ -1571,6 +1535,44 @@ function buildPolylineOptions(
     };
 }
 
+function addLapDataPointMarker({
+    activityLayerTarget,
+    coord,
+    formatTooltipData,
+    leaflet,
+    markerClusterGroup,
+    polyColor,
+    recordMesgs,
+    registerDataPointMarker,
+}: AddLapDataPointMarkerOptions): void {
+    const idx = coord[6],
+        lapVal = coord[8],
+        row = coord[7],
+        lapDisplay = !lapVal || Number.isNaN(lapVal) ? 1 : lapVal;
+
+    const marker = leaflet.circleMarker([coord[0], coord[1]], {
+        color: polyColor,
+        fillColor: "#fff",
+        fillOpacity: 0.85,
+        radius: 4,
+        weight: 2,
+        zIndexOffset: 1500,
+    });
+
+    if (markerClusterGroup) {
+        markerClusterGroup.addLayer(marker);
+    } else {
+        marker.addTo(activityLayerTarget);
+    }
+
+    safelyBringLayerToFront(marker);
+    registerDataPointMarker(marker);
+    marker.bindTooltip(formatTooltipData(idx, row, lapDisplay, recordMesgs), {
+        direction: "top",
+        sticky: true,
+    });
+}
+
 function asLapMesgs(value: unknown): LapMesg[] {
     return Array.isArray(value) ? value.filter(isLapMesg) : [];
 }
@@ -1595,6 +1597,34 @@ function isLeafletRuntimeLike(value: unknown): value is LeafletRuntimeLike {
 
 function isLapMesg(value: unknown): value is LapMesg {
     return isFitObject(value);
+}
+
+function hasLapCoordinates(value: unknown): value is LapMesg &
+    Required<
+        Pick<
+            LapMesg,
+            | "endPositionLat"
+            | "endPositionLong"
+            | "startPositionLat"
+            | "startPositionLong"
+        >
+    > {
+    return (
+        isLapMesg(value) &&
+        typeof value.startPositionLat === "number" &&
+        typeof value.startPositionLong === "number" &&
+        typeof value.endPositionLat === "number" &&
+        typeof value.endPositionLong === "number"
+    );
+}
+
+function isMissingLapIndex(lap: LapMesg): boolean {
+    return (
+        lap.start_index === undefined ||
+        lap.start_index === null ||
+        lap.end_index === undefined ||
+        lap.end_index === null
+    );
 }
 
 function isRecordMesg(value: unknown): value is RecordMesg {
@@ -1665,12 +1695,8 @@ function getWin(): MapDrawWindowLike {
 function patchLapIndices(lapMesgs: LapMesg[], recordMesgs: RecordMesg[]): void {
     for (const [i, lap] of lapMesgs.entries()) {
         if (
-            lap &&
-            (lap.start_index == null || lap.end_index == null) && // Find closest record index for start and end positions
-            typeof lap.startPositionLat === "number" &&
-            typeof lap.startPositionLong === "number" &&
-            typeof lap.endPositionLat === "number" &&
-            typeof lap.endPositionLong === "number"
+            hasLapCoordinates(lap) &&
+            isMissingLapIndex(lap) // Find closest record index for start and end positions
         ) {
             const startIdx = findClosestRecordIndexByLatLon(
                 lap.startPositionLat,
@@ -1807,16 +1833,13 @@ function selectMarkerCoordinatesForDataset(
         percent,
         threshold,
     } = filterResult;
-    const selected = orderedIndices.reduce<CoordTuple[]>(
-        (accumulator, index) => {
-            const [coord] = coordsArray.slice(index, index + 1);
-            if (coord) {
-                accumulator.push(coord);
-            }
-            return accumulator;
-        },
-        []
-    );
+    const selected: CoordTuple[] = [];
+    for (const index of orderedIndices) {
+        const [coord] = coordsArray.slice(index, index + 1);
+        if (coord) {
+            selected.push(coord);
+        }
+    }
 
     if (selected.length === 0) {
         updateSummary({
@@ -1850,82 +1873,110 @@ function selectMarkerCoordinatesForDataset(
     return finalSelection;
 }
 
-// Add global function to update overlay highlights without redrawing the map
-// Install a stable reference that won't be replaced accidentally
-getWin().__realUpdateOverlayHighlights = function () {
-    if (!getWin()._overlayPolylines) {
+function applyMainPolylineHighlight(highlightedIdx?: number): void {
+    const main = getWin()._mainPolyline;
+    if (!main) {
         return;
     }
-    for (const [idx, polyline] of Object.entries(
-        getWin()._overlayPolylines ?? {}
-    )) {
-        const isHighlighted = Number(idx) === getWin()._highlightedOverlayIdx;
-        polyline.setStyle({
-            className: isHighlighted ? "overlay-highlight-glow" : "",
-            weight: isHighlighted ? 10 : 4,
-            // Optionally, update color or other style here if needed
-        });
-        const polyElem = polyline.getElement && polyline.getElement();
-        if (polyElem) {
-            polyElem.style.filter = isHighlighted
-                ? `drop-shadow(0 0 8px ${polyline.options.color || "#1976d2"})`
-                : "";
-        }
+
+    const isMainHighlighted = highlightedIdx === 0;
+    main.setStyle({
+        className: isMainHighlighted ? "overlay-highlight-glow" : "",
+        weight: isMainHighlighted ? 9 : 4,
+        opacity: isMainHighlighted ? 0.92 : (main.options?.opacity ?? 0.9),
+    });
+
+    if (isMainHighlighted) {
+        safelyBringLayerToFront(main);
+        bringRegisteredDataPointMarkersToFront();
     }
 
-    // Apply the same highlight styling to the main polyline when index 0 is selected
+    const elem = main.getElement?.();
+    if (elem) {
+        elem.style.filter = isMainHighlighted
+            ? `drop-shadow(0 0 6px ${getLayerColor(main)})`
+            : "";
+    }
+}
+
+function applyOverlayPolylineHighlight(
+    polyline: LeafletLayerLike,
+    isHighlighted: boolean
+): void {
+    polyline.setStyle({
+        className: isHighlighted ? "overlay-highlight-glow" : "",
+        weight: isHighlighted ? 10 : 4,
+    });
+
+    const polyElem = polyline.getElement?.();
+    if (polyElem) {
+        polyElem.style.filter = isHighlighted
+            ? `drop-shadow(0 0 8px ${getLayerColor(polyline)})`
+            : "";
+    }
+}
+
+function applyOverlayPolylineHighlights(highlightedIdx?: number): void {
+    const overlayPolylines = getWin()._overlayPolylines;
+    if (!overlayPolylines) {
+        return;
+    }
+
+    for (const [idx, polyline] of Object.entries(overlayPolylines)) {
+        applyOverlayPolylineHighlight(polyline, Number(idx) === highlightedIdx);
+    }
+}
+
+function bringRegisteredDataPointMarkersToFront(): void {
+    const markers = getWin()._ffvDataPointMarkers;
+    if (!Array.isArray(markers)) {
+        return;
+    }
+
+    for (const marker of markers) {
+        safelyBringLayerToFront(marker);
+    }
+}
+
+function callOverlayHighlightStub(
+    userAssigned: ((...args: unknown[]) => unknown) | undefined,
+    args: unknown[]
+): unknown {
+    if (typeof userAssigned !== "function") {
+        return undefined;
+    }
+
     try {
-        const idx = getWin()._highlightedOverlayIdx;
-        const main = getWin()._mainPolyline;
-        if (main) {
-            const isMainHighlighted = idx === 0;
-            // Slightly subtler than overlays for main track
-            if (typeof main.setStyle === "function") {
-                main.setStyle({
-                    className: isMainHighlighted
-                        ? "overlay-highlight-glow"
-                        : "",
-                    weight: isMainHighlighted ? 9 : 4,
-                    opacity: isMainHighlighted
-                        ? 0.92
-                        : (main.options?.opacity ?? 0.9),
-                });
-            }
-            if (isMainHighlighted && typeof main.bringToFront === "function") {
-                try {
-                    main.bringToFront();
-                } catch {
-                    /* ignore */
-                }
-
-                // Ensure data-point dots remain above the main line.
-                try {
-                    const reg = getWin()._ffvDataPointMarkers;
-                    if (Array.isArray(reg)) {
-                        for (const m of reg) {
-                            try {
-                                m?.bringToFront?.();
-                            } catch {
-                                /* ignore */
-                            }
-                        }
-                    }
-                } catch {
-                    /* ignore */
-                }
-            }
-            const elem = main.getElement && main.getElement();
-            if (elem) {
-                const color = main.options?.color || "#1976d2";
-                elem.style.filter = isMainHighlighted
-                    ? `drop-shadow(0 0 6px ${color})`
-                    : "";
-            }
-        }
+        return userAssigned.apply(getWin(), args);
     } catch {
-        /* Ignore errors */
+        return undefined;
     }
-};
+}
+
+function getLayerColor(layer: LeafletLayerLike): string {
+    return layer.options.color || "#1976d2";
+}
+
+function safelyBringLayerToFront(layer: LeafletLayerLike): void {
+    try {
+        layer.bringToFront?.();
+    } catch {
+        /* ignore */
+    }
+}
+
+function updateTrackHighlights(highlightedIdx = getWin()._highlightedOverlayIdx): void {
+    applyOverlayPolylineHighlights(highlightedIdx);
+    applyMainPolylineHighlight(highlightedIdx);
+}
+
+// Add global function to update overlay highlights without redrawing the map.
+function __realUpdateOverlayHighlights(): void {
+    updateTrackHighlights();
+}
+
+// Install a stable reference that won't be replaced accidentally.
+getWin().__realUpdateOverlayHighlights = __realUpdateOverlayHighlights;
 
 // Public shim accessor that preserves any assigned stub but always invokes the real implementation first
 (() => {
@@ -1936,20 +1987,11 @@ getWin().__realUpdateOverlayHighlights = function () {
             enumerable: true,
             get() {
                 // Return a wrapper that calls real first, then user stub if present
-                return function (...args: unknown[]): unknown {
-                    try {
-                        getWin().__realUpdateOverlayHighlights?.();
-                    } catch {
-                        /* Ignore errors */
-                    }
-                    if (typeof userAssigned === "function") {
-                        try {
-                            return userAssigned.apply(getWin(), args);
-                        } catch {
-                            /* Ignore errors */
-                        }
-                    }
-                    return undefined;
+                return function updateOverlayHighlightsWrapper(
+                    ...args: unknown[]
+                ): unknown {
+                    getWin().__realUpdateOverlayHighlights?.();
+                    return callOverlayHighlightStub(userAssigned, args);
                 };
             },
             set(v: ((...args: unknown[]) => unknown) | undefined) {
@@ -1978,91 +2020,9 @@ getWin().__realUpdateOverlayHighlights = function () {
                 get() {
                     return _val;
                 },
-                set(v) {
-                    _val = v;
-                    try {
-                        if (getWin()._overlayPolylines) {
-                            for (const [idx, polyline] of Object.entries(
-                                getWin()._overlayPolylines ?? {}
-                            )) {
-                                const isHighlighted = Number(idx) === _val;
-                                polyline.setStyle({
-                                    className: isHighlighted
-                                        ? "overlay-highlight-glow"
-                                        : "",
-                                    weight: isHighlighted ? 10 : 4,
-                                });
-                                const polyElem =
-                                    polyline.getElement &&
-                                    polyline.getElement();
-                                if (polyElem) {
-                                    const color =
-                                        polyline.options?.color || "#1976d2";
-                                    polyElem.style.filter = isHighlighted
-                                        ? `drop-shadow(0 0 8px ${color})`
-                                        : "";
-                                }
-                            }
-                        }
-                        // Also update main polyline brightness when highlighting index 0
-                        try {
-                            const main = getWin()._mainPolyline;
-                            if (main) {
-                                const isMainHighlighted = _val === 0;
-                                if (typeof main.setStyle === "function") {
-                                    main.setStyle({
-                                        className: isMainHighlighted
-                                            ? "overlay-highlight-glow"
-                                            : "",
-                                        weight: isMainHighlighted ? 9 : 4,
-                                        opacity: isMainHighlighted
-                                            ? 0.92
-                                            : (main.options?.opacity ?? 0.9),
-                                    });
-                                }
-                                if (
-                                    isMainHighlighted &&
-                                    typeof main.bringToFront === "function"
-                                ) {
-                                    try {
-                                        main.bringToFront();
-                                    } catch {
-                                        /* ignore */
-                                    }
-
-                                    // Ensure data-point dots remain above the main line.
-                                    try {
-                                        const reg =
-                                            getWin()._ffvDataPointMarkers;
-                                        if (Array.isArray(reg)) {
-                                            for (const m of reg) {
-                                                try {
-                                                    m?.bringToFront?.();
-                                                } catch {
-                                                    /* ignore */
-                                                }
-                                            }
-                                        }
-                                    } catch {
-                                        /* ignore */
-                                    }
-                                }
-                                const elem =
-                                    main.getElement && main.getElement();
-                                if (elem) {
-                                    const color =
-                                        main.options?.color || "#1976d2";
-                                    elem.style.filter = isMainHighlighted
-                                        ? `drop-shadow(0 0 6px ${color})`
-                                        : "";
-                                }
-                            }
-                        } catch {
-                            /* Ignore */
-                        }
-                    } catch {
-                        /* Ignore errors */
-                    }
+                set(v: number | undefined) {
+                    _val = v ?? -1;
+                    updateTrackHighlights(_val);
                 },
             });
         }
