@@ -13,24 +13,17 @@ type BumpAppVersionModule = {
         ) => void;
         dryRun?: boolean;
         repositoryRoot?: string;
-        workspace?: string;
     }) => {
         currentVersion: string;
         newVersion: string;
         packagePath: string;
-        workspace: string | undefined;
     };
     calculateNextVersion: (version: string) => string;
-    createNpmVersionArgs: (
-        workspace: string | undefined,
-        version: string
-    ) => string[];
-    defaultWorkspace: string | undefined;
+    createNpmVersionArgs: (version: string) => string[];
     parseArgs: (args: string[]) => {
         dryRun: boolean;
         githubOutput: boolean;
         help: boolean;
-        workspace: string | undefined;
     };
     writeGithubOutput: (newVersion: string, outputPath?: string) => void;
 };
@@ -105,22 +98,12 @@ describe("bump-app-version script", () => {
     });
 
     it("builds the root npm version command used by release automation", async () => {
-        expect.assertions(3);
+        expect.assertions(1);
 
-        const { createNpmVersionArgs, defaultWorkspace } =
-            await importBumpAppVersion();
+        const { createNpmVersionArgs } = await importBumpAppVersion();
 
-        expect(defaultWorkspace).toBeUndefined();
-        expect(createNpmVersionArgs(undefined, "30.0.0")).toStrictEqual([
+        expect(createNpmVersionArgs("30.0.0")).toStrictEqual([
             "version",
-            "--no-git-tag-version",
-            "--ignore-scripts",
-            "30.0.0",
-        ]);
-        expect(createNpmVersionArgs("docusaurus", "30.0.0")).toStrictEqual([
-            "version",
-            "--workspace",
-            "docusaurus",
             "--no-git-tag-version",
             "--ignore-scripts",
             "30.0.0",
@@ -136,28 +119,17 @@ describe("bump-app-version script", () => {
             dryRun: false,
             githubOutput: true,
             help: false,
-            workspace: undefined,
         });
-        expect(
-            parseArgs([
-                "--dry-run",
-                "--workspace",
-                "docusaurus",
-            ])
-        ).toStrictEqual({
+        expect(parseArgs(["--dry-run"])).toStrictEqual({
             dryRun: true,
             githubOutput: false,
             help: false,
-            workspace: "docusaurus",
         });
-        expect(parseArgs(["--workspace=docusaurus"])).toStrictEqual({
-            dryRun: false,
-            githubOutput: false,
-            help: false,
-            workspace: "docusaurus",
-        });
-        expect(() => parseArgs(["--workspace"])).toThrow(
-            "--workspace requires a value"
+        expect(() => parseArgs(["--workspace", "docusaurus"])).toThrow(
+            "Unknown option: --workspace"
+        );
+        expect(() => parseArgs(["--workspace=docusaurus"])).toThrow(
+            "Unknown option: --workspace=docusaurus"
         );
     });
 
@@ -177,7 +149,6 @@ describe("bump-app-version script", () => {
             currentVersion: "29.9.0",
             newVersion: "30.0.0",
             packagePath: path.join(temporaryRoot, "package.json"),
-            workspace: undefined,
         });
         expect(commandRunner).not.toHaveBeenCalled();
     });
@@ -216,9 +187,8 @@ describe("bump-app-version script", () => {
                 currentVersion: "29.9.0",
                 newVersion: "30.0.0",
                 packagePath: path.join(temporaryRoot, "package.json"),
-                workspace: undefined,
             },
-            versionArgs: createNpmVersionArgs(undefined, "30.0.0"),
+            versionArgs: createNpmVersionArgs("30.0.0"),
         });
         expect(options).not.toHaveProperty("shell");
     });

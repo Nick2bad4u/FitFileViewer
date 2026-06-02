@@ -10,8 +10,6 @@ import {
 } from "./lib/workspaces.mjs";
 import { resolveCommandForPlatform } from "./lib/child-process.mjs";
 
-export const defaultWorkspace = undefined;
-
 if (
     process.argv[1] &&
     import.meta.url === pathToFileURL(process.argv[1]).href
@@ -28,15 +26,14 @@ if (
         }
 
         console.log(
-            `[bump-app-version] ${result.workspace}: ${result.currentVersion} -> ${result.newVersion}`
+            `[bump-app-version] root: ${result.currentVersion} -> ${result.newVersion}`
         );
     }
 }
 
 export function bumpAppVersion(options = {}) {
-    const workspace = options.workspace ?? defaultWorkspace;
     const repositoryRoot = options.repositoryRoot ?? defaultRepositoryRoot;
-    const packagePath = getPackagePath(repositoryRoot, workspace);
+    const packagePath = rootPackagePathFromRepository(repositoryRoot);
     const packageJson = readPackageJson(packagePath);
     const currentVersion = packageJson.version;
     const newVersion = calculateNextVersion(currentVersion);
@@ -45,7 +42,7 @@ export function bumpAppVersion(options = {}) {
         const commandRunner = options.commandRunner ?? runCommand;
         commandRunner(
             resolveCommandForPlatform("npm"),
-            createNpmVersionArgs(workspace, newVersion),
+            createNpmVersionArgs(newVersion),
             {
                 cwd: repositoryRoot,
                 stdio: "inherit",
@@ -57,7 +54,6 @@ export function bumpAppVersion(options = {}) {
         currentVersion,
         newVersion,
         packagePath,
-        workspace,
     };
 }
 
@@ -71,23 +67,12 @@ export function calculateNextVersion(version) {
     return `${parsedVersion.major + 1}.0.0`;
 }
 
-export function createNpmVersionArgs(workspace, version) {
-    const args = [
+export function createNpmVersionArgs(version) {
+    return [
         "version",
         "--no-git-tag-version",
         "--ignore-scripts",
         version,
-    ];
-
-    if (!workspace || workspace === "." || workspace === "root") {
-        return args;
-    }
-
-    return [
-        "version",
-        "--workspace",
-        workspace,
-        ...args.slice(1),
     ];
 }
 
@@ -96,7 +81,6 @@ export function parseArgs(args) {
         dryRun: false,
         githubOutput: false,
         help: false,
-        workspace: undefined,
     };
 
     for (let index = 0; index < args.length; index += 1) {
@@ -117,29 +101,6 @@ export function parseArgs(args) {
             continue;
         }
 
-        if (arg === "--workspace") {
-            const workspace = args[index + 1];
-
-            if (!workspace || workspace.startsWith("-")) {
-                throw new Error("--workspace requires a value");
-            }
-
-            options.workspace = workspace;
-            index += 1;
-            continue;
-        }
-
-        if (arg.startsWith("--workspace=")) {
-            const workspace = arg.slice("--workspace=".length);
-
-            if (!workspace) {
-                throw new Error("--workspace requires a value");
-            }
-
-            options.workspace = workspace;
-            continue;
-        }
-
         throw new Error(`Unknown option: ${arg}`);
     }
 
@@ -157,12 +118,8 @@ export function writeGithubOutput(
     fs.appendFileSync(outputPath, `new_version=${newVersion}\n`);
 }
 
-function getPackagePath(repositoryRoot, workspace) {
-    if (!workspace || workspace === "." || workspace === "root") {
-        return path.join(repositoryRoot, rootPackageJsonPath);
-    }
-
-    return path.join(repositoryRoot, workspace, "package.json");
+function rootPackagePathFromRepository(repositoryRoot) {
+    return path.join(repositoryRoot, rootPackageJsonPath);
 }
 
 function parseSemver(version) {
@@ -189,7 +146,6 @@ function printUsage() {
     console.log(`Usage: node scripts/bump-app-version.mjs [options]
 
 Options:
-  --workspace <name>  Workspace package to bump. Defaults to the root app package.
   --github-output    Append new_version to GITHUB_OUTPUT for GitHub Actions.
   --dry-run          Compute the next version without updating package files.
   -h, --help         Show this help text.`);
