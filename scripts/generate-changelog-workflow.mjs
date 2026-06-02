@@ -95,7 +95,7 @@ export function parseArgs(args) {
 }
 
 export function runChangelogWorkflow(options = {}) {
-    const cwd = options.cwd ?? repositoryRoot;
+    const cwd = path.resolve(options.cwd ?? repositoryRoot);
     const runCommand = options.runCommand ?? spawnSync;
     const log = options.log ?? console.log;
     const verbose = options.verbose ?? true;

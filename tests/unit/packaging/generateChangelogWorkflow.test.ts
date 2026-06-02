@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import {
     generateChangelogScriptPath,
+    repositoryRoot,
     rootChangelogPath,
 } from "../../../scripts/lib/workspaces.mjs";
 
@@ -187,6 +188,25 @@ describe("generate-changelog-workflow script", () => {
         } finally {
             process.exitCode = priorExitCode;
         }
+    });
+
+    it("normalizes relative changelog workflow roots before running commands", async () => {
+        expect.assertions(1);
+
+        const { runChangelogWorkflow } =
+            await importGenerateChangelogWorkflow();
+        const commandCwds: string[] = [];
+
+        runChangelogWorkflow({
+            cwd: ".",
+            log() {},
+            runCommand(_command, _args, options) {
+                commandCwds.push(options.cwd);
+                return { status: 0 };
+            },
+        });
+
+        expect(commandCwds).toStrictEqual([repositoryRoot]);
     });
 
     it("parses CLI options", async () => {
