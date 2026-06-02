@@ -15,6 +15,17 @@ vi.mock(
 
 import { createChartStatusIndicator } from "../../../../../electron-app/utils/charts/components/createChartStatusIndicator.js";
 
+function requireElement<TElement extends Element>(
+    element: TElement | null | undefined,
+    selector: string
+): TElement {
+    if (!element) {
+        throw new Error(`Expected ${selector} to exist`);
+    }
+
+    return element;
+}
+
 describe(createChartStatusIndicator, () => {
     beforeEach(() => {
         document.body.innerHTML = "";
@@ -56,9 +67,22 @@ describe(createChartStatusIndicator, () => {
             "All available charts are visible"
         );
 
-        const statusText = indicator.querySelector(".status-text");
-        expect(statusText?.innerHTML).toContain("4");
-        expect(statusText?.innerHTML).toContain("charts visible");
+        const statusText = requireElement(
+            indicator.querySelector(".status-text"),
+            ".status-text"
+        );
+        expect(statusText.textContent).toBe("4 / 4 charts visible");
+        expect(
+            [...statusText.querySelectorAll("span")].map((span) => ({
+                color: span.style.color,
+                text: span.textContent,
+            }))
+        ).toStrictEqual([
+            { color: "var(--color-success)", text: "4" },
+            { color: "var(--color-fg-muted)", text: " / " },
+            { color: "var(--color-fg)", text: "4" },
+            { color: "var(--color-fg-muted)", text: " charts visible" },
+        ]);
 
         // Breakdown tooltip should be appended to document.body
         const breakdown = document.querySelector(".status-breakdown");
@@ -102,7 +126,7 @@ describe(createChartStatusIndicator, () => {
         expect(breakdown?.style.opacity).toBe("0");
 
         // Breakdown content should include guidance tip when hidden charts exist
-        expect(breakdown?.innerHTML).toContain("Enable more charts");
+        expect(breakdown?.textContent).toContain("Enable more charts");
     });
 
     it("click scrolls to fields section and briefly highlights it", () => {
@@ -172,7 +196,7 @@ describe(createChartStatusIndicator, () => {
     });
 
     it("uses error state (❌) when visible > available (invalid input)", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         mockGetChartCounts.mockReturnValue({
             available: 1,
@@ -188,8 +212,14 @@ describe(createChartStatusIndicator, () => {
         const icon = indicator.querySelector(".status-icon");
         expect(icon?.textContent).toBe("❌");
 
-        const statusText = indicator.querySelector(".status-text");
-        expect(statusText?.innerHTML).toContain("var(--color-error)");
+        const statusText = requireElement(
+            indicator.querySelector(".status-text"),
+            ".status-text"
+        );
+        expect(statusText.textContent).toBe("2 / 1 charts visible");
+        expect(statusText.querySelector("span")?.style.color).toBe(
+            "var(--color-error)"
+        );
     });
 
     it("returns a fallback element and logs an error when rendering throws", () => {
