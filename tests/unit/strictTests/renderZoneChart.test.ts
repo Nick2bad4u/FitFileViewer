@@ -87,6 +87,17 @@ function getLatestChartConfig(): ZoneChartConfig {
     return config;
 }
 
+function getRenderedCanvas(container: HTMLElement): HTMLCanvasElement {
+    const canvas = container.querySelector("canvas");
+    const CanvasConstructor = getZoneChartGlobal().HTMLCanvasElement;
+
+    if (!CanvasConstructor || !(canvas instanceof CanvasConstructor)) {
+        throw new TypeError("Expected rendered zone chart canvas to exist");
+    }
+
+    return canvas as HTMLCanvasElement;
+}
+
 let renderZoneChart: RenderZoneChart;
 let Chart: ChartConstructorMock;
 let chartInstanceMock: ZoneChartInstanceMock;
@@ -290,8 +301,8 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
             "Time: formatted-120",
             "Percentage: 33.3%",
         ]);
-        const renderedCanvas = container.querySelector("canvas");
-        expect(renderedCanvas?.style.borderRadius).toBe("12px");
+        const view = getRenderedCanvas(container);
+        expect(view.style.borderRadius).toBe("12px");
     });
 
     it("should fallback to computed zone colors and render bar chart when requested", () => {
