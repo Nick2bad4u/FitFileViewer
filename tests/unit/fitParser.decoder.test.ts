@@ -202,6 +202,9 @@ describe("fitParser.js decoder behavior", () => {
     });
 
     describe("fit decode error", () => {
+        const isoTimestampPattern =
+            /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u;
+
         it("should create error with correct properties", () => {
             expect.assertions(6);
 
@@ -216,7 +219,7 @@ describe("fitParser.js decoder behavior", () => {
             expect(error.details).toEqual({ code: "TEST" });
             expect(error.metadata.category).toBe("fit_parsing");
             expect(error.metadata.source).toBe("test");
-            expect(error.metadata.timestamp).toBeTypeOf("string");
+            expect(error.metadata.timestamp).toMatch(isoTimestampPattern);
         });
 
         it("should serialize to JSON correctly", () => {
@@ -232,12 +235,12 @@ describe("fitParser.js decoder behavior", () => {
             expect(json.details).toEqual({ code: "TEST" });
             expect({
                 category: json.metadata.category,
-                timestampType: typeof json.metadata.timestamp,
+                timestamp: json.metadata.timestamp,
             }).toStrictEqual({
                 category: "fit_parsing",
-                timestampType: "string",
+                timestamp: expect.stringMatching(isoTimestampPattern),
             });
-            expect(json.stack).toBeTypeOf("string");
+            expect(json.stack).toContain("Test error");
         });
     });
 
