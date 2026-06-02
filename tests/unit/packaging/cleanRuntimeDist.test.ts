@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
     repositoryRoot,
     rootRuntimeDistAbsolutePath,
+    rootRuntimeDistPath,
 } from "../../../scripts/lib/workspaces.mjs";
 
 type CleanRuntimeDistModule = {
@@ -32,7 +33,20 @@ describe("clean-runtime-dist script", () => {
 
         const { defaultRuntimeDistPath } = await importCleanRuntimeDist();
 
-        expect(defaultRuntimeDistPath).toBe(rootRuntimeDistAbsolutePath);
+        expect({
+            absolutePath: defaultRuntimeDistPath,
+            isNestedElectronAppDist: defaultRuntimeDistPath.includes(
+                `${path.sep}electron-app${path.sep}`
+            ),
+            repositoryPath: path.relative(
+                repositoryRoot,
+                defaultRuntimeDistPath
+            ),
+        }).toStrictEqual({
+            absolutePath: rootRuntimeDistAbsolutePath,
+            isNestedElectronAppDist: false,
+            repositoryPath: rootRuntimeDistPath,
+        });
     });
 
     it("removes only the configured runtime dist directory", async () => {
