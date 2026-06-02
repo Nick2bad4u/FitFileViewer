@@ -76,6 +76,10 @@ describe("createGlobalChartStatusIndicatorFromCounts strict behavior", () => {
                 indicator.querySelector("button"),
                 "button"
             );
+            const statusIcon = requireElement(
+                indicator.querySelector("span"),
+                "span"
+            );
             const breakdown = requireElement(
                 indicator.querySelector(".global-breakdown"),
                 ".global-breakdown"
@@ -86,7 +90,7 @@ describe("createGlobalChartStatusIndicatorFromCounts strict behavior", () => {
             expect(indicator.textContent).toContain(
                 "Showing 4 of 4 available charts"
             );
-            expect(indicator.querySelector("span")?.textContent).toBe("✅");
+            expect(statusIcon.textContent).toBe("✅");
             expect(quickAction.textContent).toBe("✨ Charts Ready");
             expect(quickAction.dataset["actionable"]).toBe("false");
             expect(breakdown.textContent).toContain("Metrics: 1/1");
@@ -271,14 +275,20 @@ describe("createGlobalChartStatusIndicatorFromCounts strict behavior", () => {
                 ),
                 "#global-chart-status"
             );
+            const statusIcon = requireElement(
+                indicator.querySelector("span"),
+                "span"
+            );
+            const quickAction = requireElement(
+                indicator.querySelector("button"),
+                "button"
+            );
 
-            expect(indicator.querySelector("span")?.textContent).toBe("❌");
+            expect(statusIcon.textContent).toBe("❌");
             expect(indicator.textContent).toContain(
                 "No chart data available in this FIT file"
             );
-            expect(indicator.querySelector("button")?.textContent).toBe(
-                "📂 Load FIT"
-            );
+            expect(quickAction.textContent).toBe("📂 Load FIT");
         } finally {
             cleanupTestDom();
         }
