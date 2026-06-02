@@ -92,8 +92,8 @@ describe(addChartHoverEffects, () => {
         mockConsoleLog = vi.spyOn(console, "log").mockImplementation(() => {});
 
         // Reset DOM
-        document.body.innerHTML = "";
-        document.head.innerHTML = "";
+        document.body.replaceChildren();
+        document.head.replaceChildren();
 
         // Create mock elements
         mockContainer = document.createElement("div");
@@ -476,9 +476,9 @@ describe(addChartHoverEffects, () => {
             await waitForTimers();
             await waitForTimers();
 
-            expect([...wrapper.classList]).toContain(
-                "chart-wrapper--overlay-fullscreen"
-            );
+            expect(
+                wrapper.classList.contains("chart-wrapper--overlay-fullscreen")
+            ).toBe(true);
             expect({
                 bodyClasses: [...document.body.classList],
                 wrapperClasses: [...wrapper.classList],
@@ -527,9 +527,9 @@ describe(addChartHoverEffects, () => {
             await waitForTimers();
             await waitForTimers();
 
-            expect([...wrapper.classList]).toContain(
-                "chart-wrapper--overlay-fullscreen"
-            );
+            expect(
+                wrapper.classList.contains("chart-wrapper--overlay-fullscreen")
+            ).toBe(true);
 
             fullscreenBtn.click();
             await waitForTimers();
@@ -674,7 +674,7 @@ describe(removeChartHoverEffects, () => {
     let mockCanvas: HTMLElement;
 
     beforeEach(() => {
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         mockContainer = document.createElement("div");
         mockCanvas = document.createElement("canvas");
         mockCanvas.className = "chart-canvas";
@@ -817,7 +817,7 @@ describe(removeChartHoverEffects, () => {
 
 describe(addHoverEffectsToExistingCharts, () => {
     beforeEach(() => {
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         mockConsoleWarn.mockClear();
         mockConsoleLog.mockClear();
     });
@@ -916,7 +916,7 @@ describe("edge cases", () => {
     let mockThemeConfig: ChartHoverThemeConfig;
 
     beforeEach(() => {
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         mockContainer = document.createElement("div");
         mockCanvas = document.createElement("canvas");
         mockCanvas.className = "chart-canvas";

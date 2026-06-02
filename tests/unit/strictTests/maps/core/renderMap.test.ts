@@ -213,7 +213,7 @@ function makeLeafletStub() {
 describe("renderMap core", () => {
     beforeEach(() => {
         vi.restoreAllMocks();
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
 
         // Ensure a container exists by default
         const container = document.createElement("div");
@@ -231,7 +231,7 @@ describe("renderMap core", () => {
     it("returns early when no content-map container", async () => {
         expect.assertions(1);
 
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         const { renderMap } = await importSUT();
         // Should not throw
         renderMap();

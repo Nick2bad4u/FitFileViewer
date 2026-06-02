@@ -258,7 +258,7 @@ import { fieldLabels } from "../../../electron-app/utils/formatting/display/form
 import { exportUtils } from "../../../electron-app/utils/files/export/exportUtils.js";
 
 function setupDOM(withContainer = false) {
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
     if (withContainer) {
         const c = document.createElement("div");
         c.id = "chartjs-chart-container";
@@ -367,7 +367,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
 });
 
 describe("ensureChartSettingsDropdowns integration", () => {
