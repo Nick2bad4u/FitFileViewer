@@ -20,6 +20,28 @@ function ensureNotificationDiv() {
     return el as HTMLDivElement;
 }
 
+function requireChild<TElement extends Element>(
+    element: ParentNode,
+    selector: string
+): TElement {
+    const child = element.querySelector<TElement>(selector);
+    if (!child) {
+        throw new Error(`Expected child ${selector} to exist`);
+    }
+    return child;
+}
+
+function requireButtonByText(
+    buttons: HTMLButtonElement[],
+    text: string
+): HTMLButtonElement {
+    const button = buttons.find((candidate) => candidate.textContent === text);
+    if (!button) {
+        throw new Error(`Expected button ${text} to exist`);
+    }
+    return button;
+}
+
 function stripRendererLogPrefix(message: unknown): string {
     return String(message).replace(/^\[[^\]]+\] \[renderer\] /u, "");
 }
@@ -50,7 +72,9 @@ describe("showUpdateNotification strict", () => {
 
         expect(el.className).toContain("notification info");
         expect(el.style.display).toBe("block");
-        expect(el.querySelector("span")?.textContent).toBe("Update available");
+        expect(requireChild<HTMLSpanElement>(el, "span").textContent).toBe(
+            "Update available"
+        );
 
         // Should set up auto-hide since withAction is false
         clock.advanceTimersByTime(2000);
@@ -69,13 +93,13 @@ describe("showUpdateNotification strict", () => {
 
         showUpdateNotification("Update ready", "success", 1500, true);
 
-        const btn = el.querySelector("button");
+        const btn = requireChild<HTMLButtonElement>(el, "button");
         expect(btn).toBeInstanceOf(HTMLButtonElement);
-        expect(btn?.className).toBe("themed-btn");
-        expect(btn?.textContent).toBe("Restart & Update");
+        expect(btn.className).toBe("themed-btn");
+        expect(btn.textContent).toBe("Restart & Update");
 
         // Clicking should attempt to call installUpdate
-        btn?.dispatchEvent(new MouseEvent("click"));
+        btn.dispatchEvent(new MouseEvent("click"));
         expect(
             (window as UpdateNotificationTestWindow).electronAPI?.installUpdate
         ).toHaveBeenCalledOnce();
@@ -104,27 +128,25 @@ describe("showUpdateNotification strict", () => {
         const buttons = Array.from(el.querySelectorAll("button"));
         expect(buttons).toHaveLength(2);
 
-        const restart = buttons.find(
-            (b) => b.textContent === "Restart & Update"
-        );
-        const later = buttons.find((b) => b.textContent === "Later");
+        const restart = requireButtonByText(buttons, "Restart & Update");
+        const later = requireButtonByText(buttons, "Later");
         expect(restart).toBeInstanceOf(HTMLButtonElement);
-        expect(restart?.className).toBe("themed-btn");
-        expect(restart?.textContent).toBe("Restart & Update");
+        expect(restart.className).toBe("themed-btn");
+        expect(restart.textContent).toBe("Restart & Update");
         expect(later).toBeInstanceOf(HTMLButtonElement);
-        expect(later?.className).toBe("themed-btn");
-        expect(later?.textContent).toBe("Later");
-        expect(later?.style.marginLeft).toBe("10px");
+        expect(later.className).toBe("themed-btn");
+        expect(later.textContent).toBe("Later");
+        expect(later.style.marginLeft).toBe("10px");
 
         // Clicking Restart triggers install
-        restart?.dispatchEvent(new MouseEvent("click"));
+        restart.dispatchEvent(new MouseEvent("click"));
         expect(
             (window as UpdateNotificationTestWindow).electronAPI?.installUpdate
         ).toHaveBeenCalledOnce();
 
         // Clicking Later hides the notification immediately
         const hideSpy = vi.spyOn(el.style, "display", "set");
-        later?.dispatchEvent(new MouseEvent("click"));
+        later.dispatchEvent(new MouseEvent("click"));
         expect(hideSpy).toHaveBeenCalledWith("none");
     });
 
@@ -139,10 +161,10 @@ describe("showUpdateNotification strict", () => {
         showUpdateNotification("Try update", "info", 0, true);
 
         // One button exists; clicking should attempt install and emit a warn since API is missing
-        const btn = el.querySelector("button");
+        const btn = requireChild<HTMLButtonElement>(el, "button");
         expect(btn).toBeInstanceOf(HTMLButtonElement);
-        expect(btn?.textContent).toBe("Restart & Update");
-        btn?.dispatchEvent(new MouseEvent("click"));
+        expect(btn.textContent).toBe("Restart & Update");
+        btn.dispatchEvent(new MouseEvent("click"));
         expect(
             logSpy.mock.calls.map(([message]) =>
                 stripRendererLogPrefix(message)
