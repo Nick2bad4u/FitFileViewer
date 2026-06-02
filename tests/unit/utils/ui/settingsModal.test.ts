@@ -144,7 +144,7 @@ function cleanupFixture(): void {
 
 describe("settingsModal", () => {
     it("creates the modal, injects styles, and exposes global menu hooks", async () => {
-        expect.assertions(9);
+        expect.assertions(13);
 
         resetFixture();
 
@@ -157,8 +157,14 @@ describe("settingsModal", () => {
             const modalTitle = getRequiredElement<HTMLElement>(".modal-title");
 
             expect(modal.style.display).toBe("flex");
+            expect(modal.getAttribute("role")).toBe("dialog");
+            expect(modal.getAttribute("aria-modal")).toBe("true");
+            expect(modal.getAttribute("aria-labelledby")).toBe(
+                "settings-modal-title"
+            );
             expect(modal.classList).not.toContain("closing");
             expect(modalTitle.textContent).toBe("Settings");
+            expect(modalTitle.id).toBe("settings-modal-title");
             expect(
                 getRequiredElement<HTMLSelectElement>("#theme-select").value
             ).toBe("dark");

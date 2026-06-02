@@ -46,6 +46,9 @@ type PermissionDetailsLike =
 type SetupHandlersModule = {
     setupApplicationEventHandlers: () => void;
 };
+type AppStateModule = {
+    setAppState: (key: string, value: unknown) => void;
+};
 type WebContentsCreatedHandler = (
     event: unknown,
     contents: MockWebContents
@@ -69,8 +72,16 @@ function clearMainRequireCache() {
     const setupHandlersPath = requireCjs.resolve(
         "../../../../electron-app/main/app/setupApplicationEventHandlers"
     );
+    const appStatePath = requireCjs.resolve(
+        "../../../../electron-app/main/state/appState"
+    );
+    const mainProcessStateManagerPath = requireCjs.resolve(
+        "../../../../electron-app/utils/state/integration/mainProcessStateManager"
+    );
     delete requireCjs.cache[electronAccessPath];
     delete requireCjs.cache[setupHandlersPath];
+    delete requireCjs.cache[appStatePath];
+    delete requireCjs.cache[mainProcessStateManagerPath];
 }
 
 function requireElectronAccess(): ElectronAccessModule {
@@ -83,6 +94,12 @@ function requireSetupHandlers(): SetupHandlersModule {
     return requireCjs(
         "../../../../electron-app/main/app/setupApplicationEventHandlers"
     ) as SetupHandlersModule;
+}
+
+function requireAppState(): AppStateModule {
+    return requireCjs(
+        "../../../../electron-app/main/state/appState"
+    ) as AppStateModule;
 }
 
 describe("setupApplicationEventHandlers permission hardening", () => {
@@ -137,6 +154,7 @@ describe("setupApplicationEventHandlers permission hardening", () => {
 
         const { setupApplicationEventHandlers } = requireSetupHandlers();
         setupApplicationEventHandlers();
+        requireAppState().setAppState("permissions.geolocation.allowed", null);
 
         const webContentsCreatedHandler = handlers.get("web-contents-created");
         assertFunction<WebContentsCreatedHandler>(
@@ -190,6 +208,76 @@ describe("setupApplicationEventHandlers permission hardening", () => {
             cameraAllowed: false,
             geolocationAllowed: true,
         });
+    });
+
+    it("denies geolocation permission checks until an explicit allow is cached", async () => {
+        expect.assertions(3);
+
+        process.env.NODE_ENV = "production";
+        clearMainRequireCache();
+
+        const handlers = new Map<string, AppEventHandler>();
+        const mockSession: MockSession = {
+            setPermissionRequestHandler:
+                vi.fn<(handler: PermissionRequestHandler) => void>(),
+            setPermissionCheckHandler:
+                vi.fn<(handler: CheckPermissionHandler) => void>(),
+        };
+
+        const electronAccess = requireElectronAccess();
+        electronAccess.setElectronOverride({
+            app: {
+                on: vi.fn<
+                    (eventName: string, callback: AppEventHandler) => void
+                >((eventName, callback) => {
+                    handlers.set(eventName, callback);
+                }),
+                quit: vi.fn<() => void>(),
+            },
+            shell: { openExternal: vi.fn<(url: string) => Promise<void>>() },
+        });
+
+        const { setupApplicationEventHandlers } = requireSetupHandlers();
+        setupApplicationEventHandlers();
+
+        const webContentsCreatedHandler = handlers.get("web-contents-created");
+        assertFunction<WebContentsCreatedHandler>(
+            webContentsCreatedHandler,
+            "web-contents-created handler"
+        );
+
+        webContentsCreatedHandler(
+            {},
+            {
+                on: vi.fn<
+                    (eventName: string, handler: AppEventHandler) => void
+                >(),
+                session: mockSession,
+                setWindowOpenHandler:
+                    vi.fn<(handler: AppEventHandler) => void>(),
+            }
+        );
+
+        const checkHandler =
+            mockSession.setPermissionCheckHandler.mock.calls[0]?.[0];
+        assertFunction<CheckPermissionHandler>(
+            checkHandler,
+            "permission check handler"
+        );
+
+        expect(
+            checkHandler({}, "geolocation", "file:///app/index.html", {
+                requestingUrl: "file:///app/index.html",
+            })
+        ).toBe(false);
+        expect(checkHandler({}, "camera", "file:///app/index.html")).toBe(
+            false
+        );
+        expect(
+            checkHandler({}, "geolocation", "https://zwiftmap.com/", {
+                requestingUrl: "https://zwiftmap.com/",
+            })
+        ).toBe(false);
     });
 
     it("replaces app listeners (no EventEmitter listener leaks)", async () => {

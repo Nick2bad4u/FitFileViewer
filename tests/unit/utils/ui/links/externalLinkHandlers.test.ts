@@ -61,6 +61,18 @@ function dispatchEnter(anchor: HTMLAnchorElement): KeyboardEvent {
     return event;
 }
 
+function dispatchSpace(anchor: HTMLAnchorElement): KeyboardEvent {
+    const event = new KeyboardEvent("keydown", {
+        bubbles: true,
+        cancelable: true,
+        key: " ",
+    });
+
+    anchor.dispatchEvent(event);
+
+    return event;
+}
+
 function setElectronApi(openExternal: OpenExternal): void {
     Object.defineProperty(globalThis, "electronAPI", {
         configurable: true,
@@ -168,6 +180,30 @@ describe("externalLinkHandlers", () => {
         expect(Number(event.defaultPrevented)).toBe(1);
         expect(parentKeydowns.count()).toBe(0);
         expect(document.activeElement).not.toBe(anchor);
+
+        cleanup();
+        parentKeydowns.abort();
+        clearElectronApi();
+    });
+
+    it("does not hijack Space key behavior for native anchors", () => {
+        expect.assertions(3);
+
+        const openExternal = vi.fn<OpenExternal>().mockResolvedValue(true);
+        setElectronApi(openExternal);
+
+        const { anchor, parent, root } = createExternalLinkDom(
+            "https://example.com/docs",
+            "Docs"
+        );
+        const parentKeydowns = countParentEvents(parent, "keydown");
+
+        const cleanup = attachExternalLinkHandlers({ root });
+        const event = dispatchSpace(anchor);
+
+        expect(openExternal).not.toHaveBeenCalled();
+        expect(Number(event.defaultPrevented)).toBe(0);
+        expect(parentKeydowns.count()).toBe(1);
 
         cleanup();
         parentKeydowns.abort();

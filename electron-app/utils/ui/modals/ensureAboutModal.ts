@@ -18,6 +18,9 @@ export function ensureAboutModal(): void {
     const modal = document.createElement("div");
     modal.id = "about-modal";
     modal.className = "modal fancy-modal";
+    modal.setAttribute("aria-labelledby", "about-modal-title");
+    modal.setAttribute("aria-modal", "true");
+    modal.setAttribute("role", "dialog");
     modal.style.display = "none";
     modal.append(createAboutModalContentElement());
     document.body.append(modal);

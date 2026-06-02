@@ -240,6 +240,7 @@ function createCloseIcon(): SVGSVGElement {
 
 function createAboutTitle(): HTMLHeadingElement {
     const title = document.createElement("h1");
+    title.id = "about-modal-title";
     title.className = "modal-title";
 
     title.append(

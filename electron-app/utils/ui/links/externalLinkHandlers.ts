@@ -57,7 +57,7 @@ export function attachExternalLinkHandlers({
                 return;
             }
 
-            if (event.key !== "Enter" && event.key !== " ") {
+            if (event.key !== "Enter") {
                 return;
             }
 

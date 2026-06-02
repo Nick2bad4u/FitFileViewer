@@ -49,6 +49,7 @@ const mocks = vi.hoisted(() => ({
     setupExternalLinkHandlers: vi.fn<(options: ExternalLinkOptions) => void>(),
     setupFullscreenListeners: vi.fn<() => void>(),
     setupWindow: vi.fn<() => void>(),
+    showTab: vi.fn<(tabId: string) => void>(),
     showFitData: vi.fn<(fitData: unknown, filePath?: string) => void>(),
     showNotification: vi.fn<(message: string, type?: string) => void>(),
     updateCharts: vi.fn<() => void>(),
@@ -127,7 +128,7 @@ vi.mock(
             SHOW_LOADING: "UI_SHOW_LOADING",
             HIDE_LOADING: "UI_HIDE_LOADING",
             setTheme: vi.fn<(theme: string) => void>(),
-            showTab: vi.fn<(tabId: string) => void>(),
+            showTab: mocks.showTab,
         },
     })
 );
@@ -315,7 +316,7 @@ describe("main-ui.js - UI Controller and State Management", () => {
     });
 
     it("initializes UI side effects when loaded", async () => {
-        expect.assertions(17);
+        expect.assertions(18);
 
         const onIpc =
             vi.fn<NonNullable<MainUiTestGlobal["electronAPI"]>["onIpc"]>();
@@ -379,6 +380,7 @@ describe("main-ui.js - UI Controller and State Management", () => {
         ]);
         ipcHandlers.get("unload-fit-file")?.();
         expect(mocks.clearData).toHaveBeenCalledTimes(2);
+        expect(mocks.showTab).toHaveBeenCalledWith("map");
         expect(mocks.clearData.mock.calls[1]).toStrictEqual([
             { notificationMessage: "File unloaded successfully" },
         ]);

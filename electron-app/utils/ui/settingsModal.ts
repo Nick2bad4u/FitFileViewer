@@ -69,6 +69,9 @@ export async function showSettingsModal(): Promise<void> {
         modal = document.createElement("div");
         modal.id = SETTINGS_MODAL_ID;
         modal.className = "modal fancy-modal";
+        modal.setAttribute("aria-labelledby", "settings-modal-title");
+        modal.setAttribute("aria-modal", "true");
+        modal.setAttribute("role", "dialog");
         modal.style.display = "none";
         document.body.append(modal);
 
@@ -144,6 +147,7 @@ function createSettingsModalContent(
     body.className = "modal-body";
 
     const title = document.createElement("h2");
+    title.id = "settings-modal-title";
     title.className = "modal-title";
     title.textContent = "Settings";
 

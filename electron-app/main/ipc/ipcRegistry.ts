@@ -25,11 +25,16 @@
     interface IpcListenerRegistryEntry {
         ipcMain: IpcMainLike;
         listener: IpcCallback;
+        registeredListener: IpcCallback;
     }
 
     const { ipcMainRef } = require("../runtime/electronAccess") as {
         ipcMainRef: () => IpcMainLike | undefined;
     };
+    const { assertIpcSenderAllowed } =
+        require("../security/ipcSenderPolicy") as {
+            assertIpcSenderAllowed: (event: unknown) => void;
+        };
 
     const IPC_HANDLE_REGISTRY = new Map<
         GenericInvokeChannel,
@@ -81,8 +86,13 @@
             }
         }
 
+        const registeredHandler: IpcCallback = (event, ...args) => {
+            assertIpcSenderAllowed(event);
+            return handler(event, ...args);
+        };
+
         try {
-            ipcMain.handle(channel, handler);
+            ipcMain.handle(channel, registeredHandler);
             IPC_HANDLE_REGISTRY.set(channel, { handler, ipcMain });
         } catch (error) {
             // Strict ipcMain mocks can throw on duplicates. Keep the previously
@@ -127,15 +137,24 @@
 
         if (hasExistingForSameIpcMain && canRemove && existing) {
             try {
-                ipcMain.removeListener?.(channel, existing.listener);
+                ipcMain.removeListener?.(channel, existing.registeredListener);
             } catch {
                 /* Ignore listener removal errors */
             }
         }
 
+        const registeredListener: IpcCallback = (event, ...args) => {
+            assertIpcSenderAllowed(event);
+            return listener(event, ...args);
+        };
+
         try {
-            ipcMain.on(channel, listener);
-            IPC_EVENT_LISTENER_REGISTRY.set(channel, { listener, ipcMain });
+            ipcMain.on(channel, registeredListener);
+            IPC_EVENT_LISTENER_REGISTRY.set(channel, {
+                ipcMain,
+                listener,
+                registeredListener,
+            });
         } catch (error) {
             if (!hasExistingForSameIpcMain) {
                 throw error;
@@ -169,7 +188,10 @@
                     entry,
                 ] of IPC_EVENT_LISTENER_REGISTRY.entries()) {
                     try {
-                        ipcMain.removeListener(channel, entry.listener);
+                        ipcMain.removeListener(
+                            channel,
+                            entry.registeredListener
+                        );
                     } catch {
                         /* ignore */
                     }

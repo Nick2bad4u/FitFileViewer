@@ -77,6 +77,11 @@
         Conf: new (options: { name: string }) => BrowserConfStore;
     }
 
+    interface ValidateFolderOptions {
+        approveFolder?: boolean;
+        requireTrustedFolder?: boolean;
+    }
+
     type RegisterBrowserIpcHandler = (
         event: unknown,
         ...args: unknown[]
@@ -106,6 +111,7 @@
     const CONF_KEY_ENABLED = "fitBrowser.enabled";
     const CONF_KEY_ROOT_FOLDER = "fitBrowser.rootFolder";
     const CONF_KEY_ROOT_FOLDER_MODE = "fitBrowser.rootFolderMode";
+    const APPROVED_BROWSER_FOLDER_KEYS = new Set<string>();
 
     const getErrorMessage = (error: unknown): string =>
         error instanceof Error ? error.message : String(error);
@@ -231,7 +237,8 @@
         };
 
         const validateAndPersistFolder = async (
-            folder: string
+            folder: string,
+            options: ValidateFolderOptions = {}
         ): Promise<FitBrowserSetFolderResponse> => {
             const normalized = normalizeAbsoluteFolder(folder, path);
             if (!normalized) {
@@ -252,6 +259,18 @@
                 ) {
                     return false;
                 }
+
+                if (
+                    options.requireTrustedFolder &&
+                    !isTrustedBrowserFolder(normalized)
+                ) {
+                    return false;
+                }
+
+                if (options.approveFolder) {
+                    approveBrowserFolder(normalized, path);
+                }
+
                 writeRootFolder(normalized);
                 // Any explicit folder change is considered a manual selection.
                 writeRootFolderMode("manual");
@@ -292,7 +311,9 @@
             ): Promise<FitBrowserSetFolderResponse> => {
                 const folderPath: FitBrowserSetFolderRequest =
                     typeof folder === "string" ? folder : "";
-                return validateAndPersistFolder(folderPath);
+                return validateAndPersistFolder(folderPath, {
+                    requireTrustedFolder: true,
+                });
             }
         );
 
@@ -327,8 +348,10 @@
                     return null;
                 }
 
-                await validateAndPersistFolder(folder);
-                return folder;
+                const persisted = await validateAndPersistFolder(folder, {
+                    approveFolder: true,
+                });
+                return persisted ? folder : null;
             }
         );
 
@@ -466,6 +489,47 @@
                 }
             }
         );
+
+        function isTrustedBrowserFolder(folder: string): boolean {
+            if (isApprovedBrowserFolder(folder, path)) {
+                return true;
+            }
+
+            const currentRoot = readRootFolder();
+            return (
+                typeof currentRoot === "string" &&
+                getBrowserFolderKey(currentRoot, path) ===
+                    getBrowserFolderKey(folder, path)
+            );
+        }
+    }
+
+    function approveBrowserFolder(
+        folder: string,
+        path: Pick<PathApi, "resolve">
+    ): void {
+        APPROVED_BROWSER_FOLDER_KEYS.add(getBrowserFolderKey(folder, path));
+    }
+
+    function isApprovedBrowserFolder(
+        folder: string,
+        path: Pick<PathApi, "resolve">
+    ): boolean {
+        return APPROVED_BROWSER_FOLDER_KEYS.has(
+            getBrowserFolderKey(folder, path)
+        );
+    }
+
+    function getBrowserFolderKey(
+        folder: string,
+        path: Pick<PathApi, "resolve">
+    ): string {
+        const resolved = path.resolve(folder);
+        return isWindowsStylePath(resolved) ? resolved.toLowerCase() : resolved;
+    }
+
+    function isWindowsStylePath(folder: string): boolean {
+        return /^[A-Za-z]:[/\\]/u.test(folder) || /^[/\\]{2}/u.test(folder);
     }
 
     function resolveWithinRoot(

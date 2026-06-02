@@ -9,6 +9,12 @@
    ===================================================== */
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Open+Sans:wght@400;600&family=Plus+Jakarta+Sans:wght@600;700&display=swap");
 
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
 /*
   Add CSS variables for dark and light themes, and use them throughout the file.
   Default to dark theme. Use .theme-dark and .theme-light classes on body.
@@ -7923,14 +7929,13 @@ body.theme-dark .map-action-btn.disabled {
 
 #content_zwift {
     display: none;
-
-    /* Add custom styles for Zwift content if needed */
 }
 
-#zwift_iframe {
-    inline-size: 100%;
-    block-size: 80vb;
-    border: none;
+.zwift-external-panel {
+    display: grid;
+    min-block-size: 40vb;
+    place-items: center;
+    padding: 24px;
 }
 
 /* =====================================================

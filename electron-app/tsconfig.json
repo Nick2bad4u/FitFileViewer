@@ -1,0 +1,9 @@
+{
+    "$schema": "https://www.schemastore.org/tsconfig.json",
+    "extends": "../tsconfig.app.eslint.json",
+    "include": [
+        "**/*",
+        "../global.d.ts",
+        "../renderer-style-imports.d.ts"
+    ]
+}

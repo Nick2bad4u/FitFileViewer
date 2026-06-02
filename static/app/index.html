@@ -7,7 +7,7 @@
             name="viewport"
         />
         <meta
-            content="default-src 'self' file:; script-src 'self' file: 'unsafe-inline'; script-src-attr 'none'; style-src 'self' 'unsafe-inline' file: https://fonts.googleapis.com; img-src 'self' file: data: blob: https:; font-src 'self' file: data: https://fonts.gstatic.com; connect-src 'self' file: https: wss:; media-src 'self' file: data: blob:; frame-src 'self' file: https:; worker-src 'self' file: blob:; child-src 'self' file:; object-src 'none'; base-uri 'none'; form-action 'none';"
+            content="default-src 'self' file:; script-src 'self' file:; script-src-attr 'none'; style-src 'self' 'unsafe-inline' file: https://fonts.googleapis.com; img-src 'self' file: data: blob: https:; font-src 'self' file: data: https://fonts.gstatic.com; connect-src 'self' file: https: wss:; media-src 'self' file: data: blob:; frame-src 'self' file:; worker-src 'self' file: blob:; child-src 'self' file:; object-src 'none'; base-uri 'none'; form-action 'none';"
             http-equiv="Content-Security-Policy"
         />
         <meta
@@ -254,15 +254,18 @@
         >
             <button
                 id="tab_map"
-                type="submit"
+                type="button"
                 class="tab-button active"
+                aria-controls="content_map"
                 aria-selected="true"
                 role="tab"
                 tabindex="0"
             >
                 <svg
                     class="tab-icon"
+                    aria-hidden="true"
                     fill="none"
+                    focusable="false"
                     stroke="currentColor"
                     stroke-width="2"
                     viewBox="0 0 24 24"
@@ -278,15 +281,18 @@
             </button>
             <button
                 id="tab_browser"
-                type="submit"
+                type="button"
                 class="tab-button"
+                aria-controls="content_browser"
                 aria-selected="false"
                 role="tab"
-                tabindex="0"
+                tabindex="-1"
             >
                 <svg
                     class="tab-icon"
+                    aria-hidden="true"
                     fill="none"
+                    focusable="false"
                     stroke="currentColor"
                     stroke-width="2"
                     viewBox="0 0 24 24"
@@ -299,15 +305,18 @@
             </button>
             <button
                 id="tab_altfit"
-                type="submit"
+                type="button"
                 class="tab-button"
+                aria-controls="content_altfit"
                 aria-selected="false"
                 role="tab"
-                tabindex="0"
+                tabindex="-1"
             >
                 <svg
                     class="tab-icon"
+                    aria-hidden="true"
                     fill="none"
+                    focusable="false"
                     stroke="currentColor"
                     stroke-width="2"
                     viewBox="0 0 24 24"
@@ -325,15 +334,18 @@
             </button>
             <button
                 id="tab_data"
-                type="submit"
+                type="button"
                 class="tab-button"
+                aria-controls="content_data"
                 aria-selected="false"
                 role="tab"
-                tabindex="0"
+                tabindex="-1"
             >
                 <svg
                     class="tab-icon"
+                    aria-hidden="true"
                     fill="none"
+                    focusable="false"
                     stroke="currentColor"
                     stroke-width="2"
                     viewBox="0 0 24 24"
@@ -345,15 +357,18 @@
             </button>
             <button
                 id="tab_chartjs"
-                type="submit"
+                type="button"
                 class="tab-button"
+                aria-controls="content_chartjs"
                 aria-selected="false"
                 role="tab"
-                tabindex="0"
+                tabindex="-1"
             >
                 <svg
                     class="tab-icon"
+                    aria-hidden="true"
                     fill="none"
+                    focusable="false"
                     stroke="currentColor"
                     stroke-width="2"
                     viewBox="0 0 24 24"
@@ -365,15 +380,18 @@
             </button>
             <button
                 id="tab_summary"
-                type="submit"
+                type="button"
                 class="tab-button"
+                aria-controls="content_summary"
                 aria-selected="false"
                 role="tab"
-                tabindex="0"
+                tabindex="-1"
             >
                 <svg
                     class="tab-icon"
+                    aria-hidden="true"
                     fill="none"
+                    focusable="false"
                     stroke="currentColor"
                     stroke-width="2"
                     viewBox="0 0 24 24"
@@ -400,15 +418,18 @@
             </button>
             <button
                 id="tab_zwift"
-                type="submit"
+                type="button"
                 class="tab-button"
+                aria-controls="content_zwift"
                 aria-selected="false"
                 role="tab"
-                tabindex="0"
+                tabindex="-1"
             >
                 <svg
                     class="tab-icon"
+                    aria-hidden="true"
                     fill="none"
+                    focusable="false"
                     stroke="currentColor"
                     stroke-width="2"
                     viewBox="0 0 24 24"
@@ -436,28 +457,46 @@
             <div
                 id="content_map"
                 class="tab-content"
+                aria-labelledby="tab_map"
+                role="tabpanel"
+                tabindex="0"
             ></div>
             <div
                 id="content_browser"
                 class="tab-content"
+                aria-labelledby="tab_browser"
+                role="tabpanel"
+                tabindex="0"
             ></div>
             <div
                 id="content_data"
                 class="tab-content"
+                aria-labelledby="tab_data"
+                role="tabpanel"
+                tabindex="0"
             ></div>
             <div
                 id="content_chartjs"
                 class="tab-content"
+                aria-labelledby="tab_chartjs"
+                role="tabpanel"
+                tabindex="0"
             >
                 <div id="chartjs_chart_container"></div>
             </div>
             <div
                 id="content_summary"
                 class="tab-content"
+                aria-labelledby="tab_summary"
+                role="tabpanel"
+                tabindex="0"
             ></div>
             <div
                 id="content_altfit"
                 class="tab-content"
+                aria-labelledby="tab_altfit"
+                role="tabpanel"
+                tabindex="0"
             >
                 <!--
                     NOTE:
@@ -483,28 +522,24 @@
             <div
                 id="content_zwift"
                 class="tab-content"
+                aria-labelledby="tab_zwift"
+                role="tabpanel"
+                tabindex="0"
             >
                 <!--
                     NOTE:
-                    Do NOT sandbox this remote iframe.
-                    When sandboxed without allow-same-origin, Chromium assigns an opaque origin ("null") and
-                    zwiftmap.com blocks its own JS/CSS/manifest loads via CORS (no ACAO for "null").
-                    Removing sandbox keeps the iframe on its real https://zwiftmap.com origin so it can load.
+                    Keep remote ZwiftMap content out of the Electron renderer.
+                    The link below opens in the user's external browser through the validated external-link bridge.
                 -->
-                <iframe
-                    id="zwift_iframe"
-                    class="fullsize-container no-border"
-                    allow
-                    allowfullscreen
-                    aria-label="ZwiftMap"
-                    height="720"
-                    loading="lazy"
-                    name="zwift_iframe"
-                    referrerpolicy="no-referrer"
-                    src="https://zwiftmap.com/"
-                    title="ZwiftMap"
-                    width="1280"
-                ></iframe>
+                <div class="zwift-external-panel">
+                    <a
+                        class="themed-btn"
+                        data-external-link="true"
+                        href="https://zwiftmap.com/"
+                    >
+                        Open ZwiftMap
+                    </a>
+                </div>
             </div>
         </div>
         <!-- Hidden background containers for pre-rendering -->

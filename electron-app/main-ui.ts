@@ -182,7 +182,7 @@ function unloadFitFile(): void {
         clearContentAreas();
 
         // Switch to map tab using UI actions
-        UIActions.showTab("tab_map");
+        UIActions.showTab("map");
 
         // Notify main process to update menu
         const electronAPI = getElectronAPI();

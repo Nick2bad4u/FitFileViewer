@@ -103,18 +103,18 @@ export function addEventListenerWithCleanup(
 
     const abortController = new AbortController();
 
-    // Add the event listener
-    if (typeof options === "boolean") {
-        element.addEventListener(eventType, handler, {
-            capture: options,
-            signal: abortController.signal,
-        });
-    } else {
-        element.addEventListener(eventType, handler, {
-            ...options,
-            signal: abortController.signal,
-        });
-    }
+    const listenerOptions =
+        typeof options === "boolean"
+            ? {
+                  capture: options,
+                  signal: abortController.signal,
+              }
+            : {
+                  ...options,
+                  signal: abortController.signal,
+              };
+
+    element.addEventListener(eventType, handler, listenerOptions);
 
     // Create a cleanup function for this specific listener
     const cleanup: CleanupFunction = () => {

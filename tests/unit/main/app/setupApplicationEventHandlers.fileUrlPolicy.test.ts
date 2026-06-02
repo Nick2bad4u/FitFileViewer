@@ -99,8 +99,8 @@ describe("setupApplicationEventHandlers file:// policy", () => {
         vi.restoreAllMocks();
     });
 
-    it("denies file:// URLs outside the app bundle in production", async () => {
-        expect.assertions(4);
+    it("denies external and file:// URLs outside the app bundle in production", async () => {
+        expect.assertions(8);
 
         const handlers = new Map<string, AppEventHandler>();
         const mockElectron = createMockElectron(handlers);
@@ -164,6 +164,14 @@ describe("setupApplicationEventHandlers file:// policy", () => {
         expect(windowOpenHandler({ url: disallowedFileUrl })).toStrictEqual({
             action: "deny",
         });
+        expect(
+            windowOpenHandler({ url: "https://gyazo.com/oauth/authorize" })
+        ).toStrictEqual({
+            action: "deny",
+        });
+        expect(mockElectron.shell.openExternal).toHaveBeenCalledWith(
+            "https://gyazo.com/oauth/authorize"
+        );
 
         const preventDefault = vi.fn<() => void>();
         willNavigate({ preventDefault }, disallowedFileUrl);
@@ -172,6 +180,16 @@ describe("setupApplicationEventHandlers file:// policy", () => {
         const preventDefault2 = vi.fn<() => void>();
         willNavigate({ preventDefault: preventDefault2 }, allowedFileUrl);
         expect(preventDefault2).not.toHaveBeenCalled();
+
+        const preventDefault3 = vi.fn<() => void>();
+        willNavigate(
+            { preventDefault: preventDefault3 },
+            "https://imgur.com/oauth2/"
+        );
+        expect(preventDefault3).toHaveBeenCalledOnce();
+        expect(mockElectron.shell.openExternal).toHaveBeenCalledWith(
+            "https://imgur.com/oauth2/"
+        );
     });
 
     it("allows blob: downloads but blocks http(s) downloads", async () => {

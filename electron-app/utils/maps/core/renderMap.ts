@@ -553,7 +553,8 @@ export function renderMap(): void {
     });
 
     // Add a custom floating label/button to indicate map type selection
-    const mapTypeBtn = document.createElement("div");
+    const mapTypeBtn = document.createElement("button");
+    mapTypeBtn.type = "button";
     mapTypeBtn.className = "custom-maptype-btn leaflet-bar";
     mapTypeBtn.style.position = "absolute";
     mapTypeBtn.style.top = "16px";

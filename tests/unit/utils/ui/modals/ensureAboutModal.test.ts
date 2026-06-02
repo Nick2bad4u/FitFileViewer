@@ -50,7 +50,7 @@ const { ensureAboutModal } =
 
 describe(ensureAboutModal, () => {
     it("creates the hidden About modal and performs one-time setup", () => {
-        expect.assertions(8);
+        expect.assertions(11);
 
         document.body.replaceChildren();
         mocks.addEventListenerWithCleanup.mockClear();
@@ -65,6 +65,11 @@ describe(ensureAboutModal, () => {
 
         expect(modal).toBeInstanceOf(HTMLDivElement);
         expect(modal?.className).toBe("modal fancy-modal");
+        expect(modal?.getAttribute("role")).toBe("dialog");
+        expect(modal?.getAttribute("aria-modal")).toBe("true");
+        expect(modal?.getAttribute("aria-labelledby")).toBe(
+            "about-modal-title"
+        );
         expect(modal?.style.display).toBe("none");
         expect(modal?.querySelector("[data-testid='about-content']")).toBe(
             mocks.contentElement

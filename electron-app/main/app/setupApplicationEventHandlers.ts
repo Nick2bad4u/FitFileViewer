@@ -427,9 +427,9 @@
                                 return false;
                             }
 
-                            return true;
+                            return false;
                         } catch {
-                            return true;
+                            return false;
                         }
                     }
                 );
@@ -517,20 +517,7 @@
             return true;
         }
 
-        const parsed = safeParseUrl(trimmed);
-        if (!parsed) return false;
-
-        if (parsed.protocol !== "https:") return false;
-        if (parsed.username || parsed.password) return false;
-
-        const allowPrefixes = [
-            "https://gyazo.com/oauth/",
-            "https://gyazo.com/api/oauth/login",
-            "https://imgur.com/oauth/",
-            "https://imgur.com/oauth2/",
-            "https://api.imgur.com/oauth2/",
-        ];
-        return allowPrefixes.some((prefix) => trimmed.startsWith(prefix));
+        return false;
     }
 
     function isDevMode(): boolean {

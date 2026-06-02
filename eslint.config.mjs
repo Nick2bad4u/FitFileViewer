@@ -27,10 +27,12 @@ const rootSharedConfig = nickTwoBadFourU.configs.all.map((entry) => {
         ),
     };
 });
-const electronAppSharedConfig = rootSharedConfig.map((entry) => ({
-    ...entry,
-    basePath: electronAppBasePath,
-}));
+const electronAppSharedConfig = rootSharedConfig.map(
+    ({ plugins, ...entry }) => ({
+        ...entry,
+        basePath: electronAppBasePath,
+    })
+);
 
 if (!dependPlugin) {
     throw new Error(
@@ -79,10 +81,10 @@ const config = [
     {
         basePath: electronAppBasePath,
         files: ["**/*.{cjs,js,mjs,ts,tsx}"],
-        languageOptions: {
-            parserOptions: {
-                project: ["./tsconfig.app.eslint.json"],
-            },
+        rules: {
+            "listeners/matching-remove-event-listener": "off",
+            "listeners/no-inline-function-event-listener": "off",
+            "listeners/no-missing-remove-event-listener": "off",
         },
     },
     {
@@ -304,9 +306,6 @@ const config = [
         files: ["tests/playwright/**/*.ts"],
         languageOptions: {
             globals: globals.node,
-            parserOptions: {
-                project: ["./tsconfig.eslint.json"],
-            },
         },
         rules: {
             "@typescript-eslint/strict-void-return": "off",
@@ -356,9 +355,6 @@ const config = [
         files: ["electron-builder.config.cjs"],
         languageOptions: {
             globals: globals.node,
-            parserOptions: {
-                project: ["./tsconfig.eslint.json"],
-            },
         },
         rules: {
             "@typescript-eslint/no-require-imports": "off",

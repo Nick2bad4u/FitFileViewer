@@ -34,6 +34,7 @@ type TabButtonLike = EventTarget & {
     readonly disabled?: boolean;
     readonly getAttribute?: (qualifiedName: string) => string | null;
     readonly id?: string;
+    readonly focus?: () => void;
     readonly setAttribute?: (qualifiedName: string, value: string) => void;
 };
 
@@ -221,6 +222,77 @@ function removeActiveClass(element: unknown): void {
     }
 }
 
+function getEnabledTabButtons(): TabButtonLike[] {
+    return [...getButtonCollection(".tab-button")]
+        .filter(isButtonLike)
+        .filter((button) => !isDisabledButton(button));
+}
+
+function focusTabButton(button: TabButtonLike): void {
+    try {
+        button.focus?.();
+    } catch {
+        /* Ignore focus failures in test DOMs. */
+    }
+}
+
+function setActiveTabFromButton(button: TabButtonLike, source: string): void {
+    const buttonId = getButtonId(button);
+    if (!buttonId) {
+        return;
+    }
+
+    const tabName = extractTabNameFromButtonId(buttonId);
+    if (!tabName) {
+        return;
+    }
+
+    getStateMgr().setState("ui.activeTab", tabName, { source });
+}
+
+function handleTabKeyboardNavigation(
+    event: KeyboardEvent,
+    button: TabButtonLike
+): void {
+    if (isDisabledButton(button)) {
+        return;
+    }
+
+    const enabledButtons = getEnabledTabButtons();
+    if (enabledButtons.length === 0) {
+        return;
+    }
+
+    const currentIndex = enabledButtons.indexOf(button);
+    if (currentIndex < 0) {
+        return;
+    }
+
+    let nextIndex: number | null = null;
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+        nextIndex = (currentIndex + 1) % enabledButtons.length;
+    } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+        nextIndex =
+            (currentIndex - 1 + enabledButtons.length) % enabledButtons.length;
+    } else if (event.key === "Home") {
+        nextIndex = 0;
+    } else if (event.key === "End") {
+        nextIndex = enabledButtons.length - 1;
+    }
+
+    if (nextIndex === null) {
+        return;
+    }
+
+    event.preventDefault();
+    const nextButton = enabledButtons[nextIndex];
+    if (!nextButton) {
+        return;
+    }
+    focusTabButton(nextButton);
+    setActiveTabFromButton(nextButton, "tabKeyboardNavigation");
+}
+
 /**
  * Get the currently active tab.
  *
@@ -315,20 +387,8 @@ export function initializeActiveTabState(): void {
                         return;
                     }
 
-                    const buttonId = getButtonId(button);
-                    if (!buttonId) {
-                        return;
-                    }
-
-                    const tabName = extractTabNameFromButtonId(buttonId);
-                    if (!tabName) {
-                        return;
-                    }
-
                     try {
-                        getStateMgr().setState("ui.activeTab", tabName, {
-                            source: "tabButtonClick",
-                        });
+                        setActiveTabFromButton(button, "tabButtonClick");
                     } catch (error) {
                         try {
                             console.warn(
@@ -342,6 +402,11 @@ export function initializeActiveTabState(): void {
                 };
 
                 addEventListenerWithCleanup(button, "click", onClick);
+                addEventListenerWithCleanup(button, "keydown", (event) => {
+                    if (event instanceof KeyboardEvent) {
+                        handleTabKeyboardNavigation(event, button);
+                    }
+                });
             }
         }
 
@@ -435,6 +500,7 @@ function updateTabButtonsFromState(activeTab: string): void {
 
         if (candidate.setAttribute) {
             candidate.setAttribute("aria-selected", isActive.toString());
+            candidate.setAttribute("tabindex", isActive ? "0" : "-1");
         }
     }
 }
