@@ -1,4 +1,8 @@
+import path from "node:path";
+
 import { describe, expect, it } from "vitest";
+
+import { repositoryRoot } from "../../../scripts/lib/workspaces.mjs";
 
 type CleanRelease = {
     publishedAt: string;
@@ -24,6 +28,7 @@ type CleanReleasesModule = {
         releasesJsonPath: string | undefined;
         yes: boolean;
     };
+    resolveReleasesJsonPath: (releasesJsonPath: string) => string;
 };
 
 async function importCleanReleases(): Promise<CleanReleasesModule> {
@@ -178,6 +183,35 @@ describe("clean-releases script", () => {
         );
         expect(() => parseArgs(["--releases-json", "--delete-tags"])).toThrow(
             "--releases-json requires a value"
+        );
+    });
+
+    it("resolves release JSON dry-run fixtures from the repository root", async () => {
+        expect.assertions(1);
+
+        const { resolveReleasesJsonPath } = await importCleanReleases();
+
+        expect(resolveReleasesJsonPath("tmp/releases.json")).toBe(
+            path.join(repositoryRoot, "tmp", "releases.json")
+        );
+    });
+
+    it("rejects release JSON dry-run fixtures outside the repository", async () => {
+        expect.assertions(2);
+
+        const { resolveReleasesJsonPath } = await importCleanReleases();
+        const outsideRelativePath = path.join("..", "releases.json");
+        const outsideAbsolutePath = path.join(
+            repositoryRoot,
+            "..",
+            "releases.json"
+        );
+
+        expect(() => resolveReleasesJsonPath(outsideRelativePath)).toThrow(
+            `Refusing to read release JSON outside repository: ${outsideRelativePath}`
+        );
+        expect(() => resolveReleasesJsonPath(outsideAbsolutePath)).toThrow(
+            `Refusing to read release JSON outside repository: ${outsideAbsolutePath}`
         );
     });
 });

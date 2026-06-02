@@ -218,10 +218,7 @@ export function isValidRelease(release) {
 
 function loadReleases(options) {
     if (options.releasesJsonPath) {
-        const releasesPath = path.resolve(
-            repositoryRoot,
-            options.releasesJsonPath
-        );
+        const releasesPath = resolveReleasesJsonPath(options.releasesJsonPath);
         const releases = JSON.parse(fs.readFileSync(releasesPath, "utf8"));
 
         if (!Array.isArray(releases)) {
@@ -243,6 +240,19 @@ function loadReleases(options) {
             "tagName,publishedAt",
         ])
     );
+}
+
+export function resolveReleasesJsonPath(releasesJsonPath) {
+    const releasesPath = path.resolve(repositoryRoot, releasesJsonPath);
+    const relativePath = path.relative(repositoryRoot, releasesPath);
+
+    if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
+        throw new Error(
+            `Refusing to read release JSON outside repository: ${releasesJsonPath}`
+        );
+    }
+
+    return releasesPath;
 }
 
 export function parseArgs(args) {
