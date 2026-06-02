@@ -21,9 +21,18 @@ vi.mock(
 
 describe("createMarkerCountSelector", () => {
     beforeEach(() => {
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         delete (window as MarkerCountWindow).mapMarkerCount;
     });
+
+    function getRequiredSelect(container: HTMLElement): HTMLSelectElement {
+        const select = container.querySelector("select");
+        if (!(select instanceof HTMLSelectElement)) {
+            throw new TypeError("Expected marker count select");
+        }
+
+        return select;
+    }
 
     it("initializes with default and invokes onChange on select change", async () => {
         expect.assertions(4);
@@ -33,7 +42,7 @@ describe("createMarkerCountSelector", () => {
         const onChange = vi.fn<(count: number) => void>();
         const el = createMarkerCountSelector(onChange);
 
-        const select = el.querySelector("select")! as HTMLSelectElement;
+        const select = getRequiredSelect(el);
         expect(select).toBeInstanceOf(HTMLSelectElement);
         expect(select.value).toBe("50");
         select.value = "all";
@@ -51,7 +60,7 @@ describe("createMarkerCountSelector", () => {
         const { createMarkerCountSelector } =
             await import("../../../../../electron-app/utils/ui/controls/createMarkerCountSelector.js");
         const el = createMarkerCountSelector();
-        const select = el.querySelector("select")! as HTMLSelectElement;
+        const select = getRequiredSelect(el);
 
         expect(select).toBeInstanceOf(HTMLSelectElement);
         expect(select.value).toBe("50");
@@ -65,7 +74,7 @@ describe("createMarkerCountSelector", () => {
         const { createMarkerCountSelector } =
             await import("../../../../../electron-app/utils/ui/controls/createMarkerCountSelector.js");
         const el = createMarkerCountSelector();
-        const select = el.querySelector("select")! as HTMLSelectElement;
+        const select = getRequiredSelect(el);
         // Wheel down -> next option
         select.dispatchEvent(
             new WheelEvent("wheel", {

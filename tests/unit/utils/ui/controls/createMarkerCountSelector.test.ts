@@ -53,31 +53,50 @@ function getSelect(container: HTMLElement): HTMLSelectElement {
     return select;
 }
 
+function requireElement<T extends Element>(
+    element: T | null,
+    label: string
+): T {
+    if (!element) {
+        throw new Error(`Missing ${label}`);
+    }
+
+    return element;
+}
+
 function getMarkerCountSelectorState(container: HTMLElement) {
-    const icon = container.querySelector("svg.icon"),
-        label = container.querySelector("label"),
+    const icon = requireElement(
+            container.querySelector("svg.icon"),
+            "marker count icon"
+        ),
+        label = requireElement(
+            container.querySelector("label"),
+            "marker count label"
+        ),
+        labelText = requireElement(
+            label.querySelector("span"),
+            "marker count label text"
+        ),
         select = getSelect(container);
 
     return {
         containerClass: container.className,
-        iconAriaHidden: icon?.getAttribute("aria-hidden"),
-        iconFocusable: icon?.getAttribute("focusable"),
-        iconRectFills: Array.from(
-            icon?.querySelectorAll("rect") ?? [],
-            (rect) => rect.getAttribute("fill")
+        iconAriaHidden: icon.getAttribute("aria-hidden"),
+        iconFocusable: icon.getAttribute("focusable"),
+        iconRectFills: Array.from(icon.querySelectorAll("rect"), (rect) =>
+            rect.getAttribute("fill")
         ),
-        iconRectStrokes: Array.from(
-            icon?.querySelectorAll("rect") ?? [],
-            (rect) => rect.getAttribute("stroke")
+        iconRectStrokes: Array.from(icon.querySelectorAll("rect"), (rect) =>
+            rect.getAttribute("stroke")
         ),
         iconSize: {
-            height: icon?.getAttribute("height"),
-            viewBox: icon?.getAttribute("viewBox"),
-            width: icon?.getAttribute("width"),
+            height: icon.getAttribute("height"),
+            viewBox: icon.getAttribute("viewBox"),
+            width: icon.getAttribute("width"),
         },
-        labelClass: label?.className,
-        labelFor: label?.getAttribute("for"),
-        labelText: label?.querySelector("span")?.textContent,
+        labelClass: label.className,
+        labelFor: label.getAttribute("for"),
+        labelText: labelText.textContent,
         options: Array.from(select.options, (option) => ({
             text: option.textContent,
             value: option.value,
