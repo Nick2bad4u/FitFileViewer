@@ -292,12 +292,12 @@ describe(renderLapZoneChart, () => {
 
         const chartConfig = chartCall[1];
         expect(chartConfig.type).toBe("bar");
-        expect(chartConfig.data.labels).toEqual(["Lap 1", "Lap 2"]);
+        expect(chartConfig.data.labels).toStrictEqual(["Lap 1", "Lap 2"]);
         expect(chartConfig.data.datasets).toHaveLength(2);
         expect(chartConfig.data.datasets[0].label).toBe("HR Zone 1");
         expect(chartConfig.data.datasets[1].label).toBe("HR Zone 2");
-        expect(chartConfig.data.datasets[0].data).toEqual([120, 60]);
-        expect(chartConfig.data.datasets[1].data).toEqual([180, 240]);
+        expect(chartConfig.data.datasets[0].data).toStrictEqual([120, 60]);
+        expect(chartConfig.data.datasets[1].data).toStrictEqual([180, 240]);
 
         // Check theme configuration
         expect(getThemeConfig).toHaveBeenCalledOnce();
@@ -347,7 +347,7 @@ describe(renderLapZoneChart, () => {
             chartConfig.data.datasets.map(
                 (dataset: ChartDataset) => dataset.backgroundColor
             )
-        ).toEqual(["#ff00ff", "#aa00ff"]);
+        ).toStrictEqual(["#ff00ff", "#aa00ff"]);
     });
 
     it("should use HR zone colors by default", () => {
@@ -373,7 +373,7 @@ describe(renderLapZoneChart, () => {
             chartConfig.data.datasets.map(
                 (dataset: ChartDataset) => dataset.backgroundColor
             )
-        ).toEqual(["#ff0000", "#ff5500"]);
+        ).toStrictEqual(["#ff0000", "#ff5500"]);
     });
 
     it("should sort zones by their numeric index", () => {
@@ -427,8 +427,8 @@ describe(renderLapZoneChart, () => {
         const chartConfig = chartCall[1];
 
         // Check that missing zone data is properly handled
-        expect(chartConfig.data.datasets[0].data).toEqual([120, 60]);
-        expect(chartConfig.data.datasets[1].data).toEqual([180, 0]); // Missing data becomes 0
+        expect(chartConfig.data.datasets[0].data).toStrictEqual([120, 60]);
+        expect(chartConfig.data.datasets[1].data).toStrictEqual([180, 0]); // Missing data becomes 0
     });
 
     it("tooltip callbacks compute total footer and label string", () => {
