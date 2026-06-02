@@ -81,7 +81,7 @@ type MasterStateGlobal = typeof globalThis & {
 };
 
 type ModuleCache = Record<string, { exports?: unknown } | undefined>;
-type CjsRequire = NodeRequire & {
+type CjsRequire = NodeJS.Require & {
     cache?: ModuleCache;
 };
 
@@ -105,18 +105,30 @@ type LocationLike = Partial<
 >;
 
 type DynamicModule = Record<string, unknown>;
+type NodePathLike = Pick<typeof NodePath, "join">;
 
 type RuntimeSettingsStateManager = typeof settingsStateManager & {
     cleanup?: () => void;
-    initialize?: () => Promise<unknown> | unknown;
+    initialize?: () => unknown;
+};
+
+type ErrorDetails = {
+    message: string;
+    stack?: string;
 };
 
 // Avoid importing Node core modules in the renderer; acquire lazily only when available (tests/CJS).
-let __lazyNodePath: typeof NodePath | null = null;
+let __lazyNodePath: NodePathLike | null = null;
 let __lazyModule: typeof NodeModule | null = null;
 
+const STATE_MANAGER_CACHE_SUFFIXES = [
+    "/utils/state/core/statemanager.js",
+    "/utils/state/statemanager.js",
+    "state/core/statemanager.js",
+] as const;
+
 function getMasterGlobal(): MasterStateGlobal {
-    return globalThis as MasterStateGlobal;
+    return globalThis;
 }
 
 function isDynamicModule(value: unknown): value is DynamicModule {
@@ -128,6 +140,70 @@ function hasFunction<TName extends string>(
     name: TName
 ): value is DynamicModule & Record<TName, (...args: unknown[]) => unknown> {
     return typeof value?.[name] === "function";
+}
+
+function getErrorDetails(value: unknown): ErrorDetails {
+    if (value instanceof Error) {
+        const details: ErrorDetails = { message: value.message };
+        if (value.stack) {
+            details.stack = value.stack;
+        }
+        return details;
+    }
+
+    return { message: typeof value === "string" ? value : "Unknown error" };
+}
+
+function preventDragDefaults(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+}
+
+function highlightDropTarget(): void {
+    document.body.classList.add("drag-over");
+}
+
+function unhighlightDropTarget(): void {
+    document.body.classList.remove("drag-over");
+}
+
+function handleFitFileDrop(event: DragEvent): void {
+    const { files } = event.dataTransfer ?? {};
+    if (files && files.length > 0) {
+        const [file] = files;
+        if (file && file.name.toLowerCase().endsWith(".fit")) {
+            showNotification("FIT file dropped", "info");
+        } else {
+            showNotification("Please drop a .fit file", "warning");
+        }
+    }
+}
+
+function getCurrentLocationLike(): LocationLike {
+    return globalThis.window === undefined ? {} : globalThis.location;
+}
+
+function getLocationText(
+    location: LocationLike,
+    key: keyof LocationLike
+): string {
+    const value = location[key];
+    return typeof value === "string" ? value : "";
+}
+
+function hasDevelopmentModeAttribute(): boolean {
+    return (
+        typeof document !== "undefined" &&
+        typeof document.documentElement?.hasAttribute === "function" &&
+        Object.hasOwn(document.documentElement.dataset, "devMode")
+    );
+}
+
+function hasElectronDevelopmentFlag(masterGlobal: MasterStateGlobal): boolean {
+    return (
+        globalThis.window !== undefined &&
+        masterGlobal.electronAPI?.__devMode !== undefined
+    );
 }
 
 function isStateManagerApi(value: unknown): value is StateManagerApi {
@@ -284,6 +360,7 @@ export class MasterStateManager {
             // Initialize in dependency order
             for (const componentName of this.initializationOrder) {
                 // Initialization must be sequential due to inter-component dependencies
+                // eslint-disable-next-line no-await-in-loop -- State components have ordered initialization dependencies.
                 await this.initializeComponent(componentName);
             }
 
@@ -322,49 +399,49 @@ export class MasterStateManager {
         try {
             switch (componentName) {
                 case "computed": {
-                    await this.initializeComputedState();
+                    await Promise.resolve(this.initializeComputedState());
                     break;
                 }
                 case "core": {
-                    await this.initializeCoreState();
+                    await Promise.resolve(this.initializeCoreState());
                     break;
                 }
                 case DEV_TOOLS_COMPONENT: {
-                    await this.initializeDevTools();
+                    await Promise.resolve(this.initializeDevTools());
                     break;
                 }
                 case "fitFile": {
-                    await this.initializeFitFileComponents();
+                    await Promise.resolve(this.initializeFitFileComponents());
                     break;
                 }
                 case "integration": {
-                    await this.initializeIntegrationComponents();
+                    await Promise.resolve(
+                        this.initializeIntegrationComponents()
+                    );
                     break;
                 }
                 case "middleware": {
-                    await this.initializeMiddleware();
+                    await Promise.resolve(this.initializeMiddleware());
                     break;
                 }
                 case "renderer": {
-                    await this.initializeRendererComponents();
+                    await Promise.resolve(this.initializeRendererComponents());
                     break;
                 }
                 case "settings": {
-                    await this.initializeSettings();
+                    await Promise.resolve(this.initializeSettings());
                     break;
                 }
                 case "tabs": {
-                    await this.initializeTabComponents();
+                    await Promise.resolve(this.initializeTabComponents());
                     break;
                 }
                 case "ui": {
-                    await this.initializeUIComponents();
+                    await Promise.resolve(this.initializeUIComponents());
                     break;
                 }
                 default: {
-                    console.warn(
-                        `[MasterState] Unknown component: ${componentName}`
-                    );
+                    throw new Error("[MasterState] Unknown component");
                 }
             }
 
@@ -395,7 +472,7 @@ export class MasterStateManager {
     /**
      * Initialize computed state system
      */
-    async initializeComputedState() {
+    initializeComputedState() {
         console.log("[MasterState] Initializing computed state system...");
         const {
             initializeCommonComputedValues: dynInitComputed,
@@ -412,7 +489,7 @@ export class MasterStateManager {
         // Initialize the complete state system
         const { initializeCompleteStateSystem: dynInitIntegration } =
             getStateIntegrationModule();
-        await dynInitIntegration();
+        await Promise.resolve(dynInitIntegration());
 
         // Determine app version with a robust fallback that works in tests
         // Prefer Electron-provided API if available; otherwise use known package version
@@ -452,7 +529,7 @@ export class MasterStateManager {
     /**
      * Initialize development tools
      */
-    async initializeDevTools() {
+    initializeDevTools() {
         console.log("[MasterState] Initializing development tools...");
         const isDevelopment = this.isDevelopmentMode();
         if (isDevelopment) {
@@ -468,7 +545,7 @@ export class MasterStateManager {
      *
      * @throws Error when the FIT file state manager is unavailable.
      */
-    async initializeFitFileComponents() {
+    initializeFitFileComponents() {
         // Resolve fitFileStateManager dynamically to support test-time mocks via require.cache
         const mocked = getModuleExportsFromCache(
             "/utils/state/domain/fitfilestate.js"
@@ -486,7 +563,7 @@ export class MasterStateManager {
     /**
      * Initialize integration components
      */
-    async initializeIntegrationComponents() {
+    initializeIntegrationComponents() {
         // Set up window event listeners
         this.setupWindowEventListeners();
 
@@ -500,7 +577,7 @@ export class MasterStateManager {
     /**
      * Initialize middleware system
      */
-    async initializeMiddleware() {
+    initializeMiddleware() {
         console.log("[MasterState] Initializing middleware system...");
         const { initializeDefaultMiddleware: dynInitMiddleware } =
             getStateMiddlewareModule();
@@ -511,7 +588,7 @@ export class MasterStateManager {
     /**
      * Initialize renderer components
      */
-    async initializeRendererComponents() {
+    initializeRendererComponents() {
         const { initializeRendererUtils: dynInitRenderer } =
             getRendererUtilsModule();
         dynInitRenderer();
@@ -530,7 +607,7 @@ export class MasterStateManager {
     /**
      * Initialize tab-related components
      */
-    async initializeTabComponents() {
+    initializeTabComponents() {
         const { initializeTabButtonState: dynInitTabs } =
             getEnableTabButtonsModule();
         const { initializeActiveTabState: dynInitActiveTab } =
@@ -545,7 +622,7 @@ export class MasterStateManager {
     /**
      * Initialize UI components
      */
-    async initializeUIComponents() {
+    initializeUIComponents() {
         const { initializeControlsState: dynInitControls } =
             getControlsHelperModule();
         dynInitControls();
@@ -569,44 +646,25 @@ export class MasterStateManager {
      */
     isDevelopmentMode() {
         try {
-            // Safely access window/document properties (jsdom/tests can stub or omit parts)
-            const loc: LocationLike =
-                globalThis.window === undefined ? {} : globalThis.location;
+            const loc = getCurrentLocationLike();
             const masterGlobal = getMasterGlobal();
-            const hostname =
-                typeof loc.hostname === "string" ? loc.hostname : "";
-            const search = typeof loc.search === "string" ? loc.search : "";
-            const hash = typeof loc.hash === "string" ? loc.hash : "";
-            const protocol =
-                typeof loc.protocol === "string" ? loc.protocol : "";
-            const href = typeof loc.href === "string" ? loc.href : "";
-
-            const hasDevAttr =
-                (typeof document !== "undefined" &&
-                    document.documentElement &&
-                    typeof document.documentElement.hasAttribute ===
-                        "function" &&
-                    Object.hasOwn(
-                        document.documentElement.dataset,
-                        "devMode"
-                    )) ||
-                false;
+            const hostname = getLocationText(loc, "hostname");
+            const search = getLocationText(loc, "search");
+            const hash = getLocationText(loc, "hash");
+            const protocol = getLocationText(loc, "protocol");
+            const href = getLocationText(loc, "href");
 
             return (
                 hostname === "localhost" ||
                 hostname === "127.0.0.1" ||
-                (hostname && hostname.includes("dev")) ||
+                hostname.includes("dev") ||
                 masterGlobal.__DEVELOPMENT__ === true ||
-                (search && search.includes("debug=true")) ||
-                (hash && hash.includes("debug")) ||
-                hasDevAttr ||
+                search.includes("debug=true") ||
+                hash.includes("debug") ||
+                hasDevelopmentModeAttribute() ||
                 protocol === "file:" ||
-                (globalThis.window !== undefined &&
-                    masterGlobal.electronAPI &&
-                    masterGlobal.electronAPI.__devMode !== undefined) ||
-                (typeof console !== "undefined" &&
-                    typeof href === "string" &&
-                    href.includes("electron"))
+                hasElectronDevelopmentFlag(masterGlobal) ||
+                href.includes("electron")
             );
         } catch {
             return false;
@@ -639,46 +697,26 @@ export class MasterStateManager {
             "dragleave",
             "drop",
         ] as const) {
-            document.addEventListener(eventName, preventDefaults, { signal });
-        }
-
-        function preventDefaults(e: Event) {
-            e.preventDefault();
-            e.stopPropagation();
+            document.addEventListener(eventName, preventDragDefaults, {
+                signal,
+            });
         }
 
         // Highlight drop area
         for (const eventName of ["dragenter", "dragover"] as const) {
-            document.addEventListener(eventName, highlight, { signal });
+            document.addEventListener(eventName, highlightDropTarget, {
+                signal,
+            });
         }
 
         for (const eventName of ["dragleave", "drop"] as const) {
-            document.addEventListener(eventName, unhighlight, { signal });
-        }
-
-        function highlight() {
-            document.body.classList.add("drag-over");
-        }
-
-        function unhighlight() {
-            document.body.classList.remove("drag-over");
+            document.addEventListener(eventName, unhighlightDropTarget, {
+                signal,
+            });
         }
 
         // Handle dropped files
-        document.addEventListener("drop", handleDrop, { signal });
-
-        function handleDrop(e: DragEvent) {
-            const { files } = e.dataTransfer ?? {};
-            if (files && files.length > 0) {
-                const [file] = files;
-                if (file && file.name.toLowerCase().endsWith(".fit")) {
-                    // Handle FIT file drop - file.path not available in browser, use file object
-                    showNotification("FIT file dropped", "info");
-                } else {
-                    showNotification("Please drop a .fit file", "warning");
-                }
-            }
-        }
+        document.addEventListener("drop", handleFitFileDrop, { signal });
 
         console.log("[MasterState] Drag and drop set up");
     }
@@ -695,14 +733,15 @@ export class MasterStateManager {
             "error",
             (event) => {
                 const stateAPI = getStateManagerAPI();
+                const errorDetails = getErrorDetails(event.error);
                 stateAPI.setState(
                     "system.lastError",
                     {
                         colno: event.colno,
                         filename: event.filename,
                         lineno: event.lineno,
-                        message: event.error?.message || "Unknown error",
-                        stack: event.error?.stack,
+                        message: errorDetails.message,
+                        stack: errorDetails.stack,
                         timestamp: Date.now(),
                     },
                     { source: "globalErrorHandler" }
@@ -721,10 +760,11 @@ export class MasterStateManager {
             "unhandledrejection",
             (event) => {
                 const stateAPI = getStateManagerAPI();
+                const errorDetails = getErrorDetails(event.reason);
                 stateAPI.setState(
                     "system.lastPromiseRejection",
                     {
-                        reason: event.reason?.message || event.reason,
+                        reason: errorDetails.message,
                         timestamp: Date.now(),
                     },
                     { source: "promiseRejectionHandler" }
@@ -795,7 +835,7 @@ export class MasterStateManager {
                 // Ctrl/Cmd + O - Open file
                 if ((event.ctrlKey || event.metaKey) && event.key === "o") {
                     event.preventDefault();
-                    getMasterGlobal().electronAPI?.openFileDialog?.();
+                    void getMasterGlobal().electronAPI?.openFileDialog?.();
                 }
 
                 // Ctrl/Cmd + T - Toggle theme
@@ -814,7 +854,7 @@ export class MasterStateManager {
                     event.key <= "4"
                 ) {
                     event.preventDefault();
-                    const tabIndex = Number.parseInt(event.key) - 1,
+                    const tabIndex = Number.parseInt(event.key, 10) - 1,
                         tabNames = [
                             "summary",
                             "chart",
@@ -858,7 +898,7 @@ export class MasterStateManager {
             windowExt.__state_debug
         ) {
             windowExt.__state_debug.setState = (...args: unknown[]) => {
-                stateChangeCount++;
+                stateChangeCount += 1;
                 return originalSetState(...args);
             };
         }
@@ -1043,9 +1083,7 @@ function getControlsHelperModule(): {
         "/utils/rendering/helpers/updatecontrolsstate.js"
     );
     if (hasFunction(mocked, "initializeControlsState")) {
-        return mocked as {
-            initializeControlsState: typeof initializeControlsState;
-        };
+        return mocked;
     }
     return { initializeControlsState };
 }
@@ -1057,9 +1095,7 @@ function getEnableTabButtonsModule(): {
         "/utils/ui/controls/enabletabbuttons.js"
     );
     if (hasFunction(mocked, "initializeTabButtonState")) {
-        return mocked as {
-            initializeTabButtonState: typeof initializeTabButtonState;
-        };
+        return mocked;
     }
     return { initializeTabButtonState };
 }
@@ -1104,6 +1140,7 @@ function getNodeModuleCache(): ModuleCache | null {
     try {
         if (typeof require === "undefined") return null;
         if (!__lazyModule) {
+            // eslint-disable-next-line import-x/max-dependencies -- Test-only fallback for CJS module cache inspection.
             __lazyModule = require("node:module") as typeof NodeModule;
         }
         const cache = (
@@ -1167,11 +1204,79 @@ function getStateIntegrationModule(): {
         "/utils/state/integration/stateintegration.js"
     );
     if (hasFunction(mocked, "initializeCompleteStateSystem")) {
-        return mocked as {
-            initializeCompleteStateSystem: typeof initializeCompleteStateSystem;
-        };
+        return mocked;
     }
     return { initializeCompleteStateSystem };
+}
+
+function getAnyCachedStateManagerApi(cache: ModuleCache): StateManagerApi | null {
+    for (const moduleRecord of Object.values(cache)) {
+        const exportsValue = moduleRecord?.exports;
+        if (isStateManagerApi(exportsValue)) {
+            return exportsValue;
+        }
+    }
+    return null;
+}
+
+function getCachedStateManagerApi(cache: ModuleCache): StateManagerApi | null {
+    const match = Object.keys(cache).find((pathName) => {
+        const normalizedPath = pathName.replaceAll("\\", "/").toLowerCase();
+        return STATE_MANAGER_CACHE_SUFFIXES.some((suffix) =>
+            normalizedPath.endsWith(suffix)
+        );
+    });
+    const exportsValue = match ? cache[match]?.exports : null;
+    return isStateManagerApi(exportsValue) ? exportsValue : null;
+}
+
+function getCurrentWorkingDirectory(): string {
+    return typeof process !== "undefined" && typeof process.cwd === "function"
+        ? process.cwd()
+        : "";
+}
+
+function getDefaultStateManagerApi(): StateManagerApi {
+    return { getState, getStateHistory, getSubscriptions, setState, subscribe };
+}
+
+function getLazyNodePath(req: CjsRequire): NodePathLike | null {
+    if (__lazyNodePath) {
+        return __lazyNodePath;
+    }
+
+    try {
+        const nodePathModule: unknown = req("node:path");
+        __lazyNodePath = isNodePathLike(nodePathModule) ? nodePathModule : null;
+    } catch {
+        __lazyNodePath = null;
+    }
+
+    return __lazyNodePath;
+}
+
+function getRequiredStateManagerApi(req: CjsRequire): StateManagerApi | null {
+    const nodePath = getLazyNodePath(req);
+    if (!nodePath) {
+        return null;
+    }
+
+    for (const candidate of getStateManagerRequireCandidates(nodePath)) {
+        const stateManagerApi = tryRequireStateManagerApi(req, candidate);
+        if (stateManagerApi) {
+            return stateManagerApi;
+        }
+    }
+
+    return null;
+}
+
+function getStateManagerRequireCandidates(nodePath: NodePathLike): string[] {
+    const cwd = getCurrentWorkingDirectory();
+    return ["stateManager.js", "stateManager.cjs", "stateManager.mjs"].map(
+        (fileName) =>
+            nodePath.join(cwd, "utils", "state", "core", fileName)
+    );
 }
 
 function getStateManagerAPI(): StateManagerApi {
@@ -1184,84 +1289,33 @@ function getStateManagerAPI(): StateManagerApi {
         const req = getCjsRequire();
         const cache = (req && req.cache) || getNodeModuleCache();
         if (cache) {
-            // Try multiple suffixes to account for import aliasing and path differences
-            const keys = Object.keys(cache);
-            const match = keys.find((p) => {
-                const norm = String(p).replaceAll("\\", "/").toLowerCase();
-                return (
-                    norm.endsWith("/utils/state/core/statemanager.js") ||
-                    norm.endsWith("/utils/state/statemanager.js") ||
-                    norm.endsWith("state/core/statemanager.js")
-                );
-            });
-            if (match && cache[match] && cache[match].exports) {
-                const exportsValue = cache[match].exports;
-                if (isStateManagerApi(exportsValue)) {
-                    return exportsValue;
-                }
-            }
-            // Direct require by absolute path based on current working directory to hit injected cache entry
-            if (req) {
-                const cwd =
-                    typeof process !== "undefined" && process.cwd
-                        ? process.cwd()
-                        : "";
-                if (!__lazyNodePath) {
-                    try {
-                        __lazyNodePath = req("node:path");
-                    } catch {
-                        __lazyNodePath = null;
-                    }
-                }
-                const candidates = __lazyNodePath
-                    ? [
-                          __lazyNodePath.join(
-                              cwd,
-                              "utils",
-                              "state",
-                              "core",
-                              "stateManager.js"
-                          ),
-                          __lazyNodePath.join(
-                              cwd,
-                              "utils",
-                              "state",
-                              "core",
-                              "stateManager.cjs"
-                          ),
-                          __lazyNodePath.join(
-                              cwd,
-                              "utils",
-                              "state",
-                              "core",
-                              "stateManager.mjs"
-                          ),
-                      ]
-                    : [];
-                for (const cand of candidates) {
-                    try {
-                        if (!cand) continue;
-                        const mod: unknown = req(cand);
-                        if (isStateManagerApi(mod)) {
-                            return mod;
-                        }
-                    } catch {
-                        // continue
-                    }
-                }
-            }
-            // Fallback: find any cached module that exposes the expected API surface
-            for (const p of keys) {
-                const exp = cache[p]?.exports;
-                if (isStateManagerApi(exp)) {
-                    return exp;
-                }
-            }
+            return (
+                getCachedStateManagerApi(cache) ??
+                (req ? getRequiredStateManagerApi(req) : null) ??
+                getAnyCachedStateManagerApi(cache) ??
+                getDefaultStateManagerApi()
+            );
         }
     } catch {
         // ignore
     }
-    return { getState, getStateHistory, getSubscriptions, setState, subscribe };
+    return getDefaultStateManagerApi();
+}
+
+function isNodePathLike(value: unknown): value is NodePathLike {
+    return isDynamicModule(value) && typeof value["join"] === "function";
+}
+
+function tryRequireStateManagerApi(
+    req: CjsRequire,
+    candidate: string
+): StateManagerApi | null {
+    try {
+        const requiredModule: unknown = req(candidate);
+        return isStateManagerApi(requiredModule) ? requiredModule : null;
+    } catch {
+        return null;
+    }
 }
 
 function getStateMiddlewareModule(): {
@@ -1301,9 +1355,7 @@ function getUpdateActiveTabModule(): {
         getModuleExportsFromCache("/utils/ui/tabs/activetab.js") ||
         getModuleExportsFromCache("/utils/ui/tabs/updateactivetab.js");
     if (hasFunction(mocked, "initializeActiveTabState")) {
-        return mocked as {
-            initializeActiveTabState: typeof initializeActiveTabState;
-        };
+        return mocked;
     }
     return { initializeActiveTabState };
 }
@@ -1315,9 +1367,7 @@ function getUpdateTabVisibilityModule(): {
         "/utils/ui/tabs/updatetabvisibility.js"
     );
     if (hasFunction(mocked, "initializeTabVisibilityState")) {
-        return mocked as {
-            initializeTabVisibilityState: typeof initializeTabVisibilityState;
-        };
+        return mocked;
     }
     return { initializeTabVisibilityState };
 }
