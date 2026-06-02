@@ -72,9 +72,7 @@ describe("masterStateManager introspection", () => {
 
     describe("introspection methods", () => {
         it("should provide getState method", () => {
-            expect.assertions(8);
-
-            expect(masterStateManager.getState).toBeTypeOf("function");
+            expect.assertions(7);
 
             // Test basic state access
             const initialState =
@@ -140,9 +138,7 @@ describe("masterStateManager introspection", () => {
         });
 
         it("should provide getHistory method", () => {
-            expect.assertions(2);
-
-            expect(masterStateManager.getHistory).toBeTypeOf("function");
+            expect.assertions(1);
 
             // Test history access
             const history = masterStateManager.getHistory();
@@ -154,9 +150,7 @@ describe("masterStateManager introspection", () => {
         });
 
         it("should provide getSubscriptions method", () => {
-            expect.assertions(2);
-
-            expect(masterStateManager.getSubscriptions).toBeTypeOf("function");
+            expect.assertions(1);
 
             // Test subscriptions access
             const subscriptions = masterStateManager.getSubscriptions();
@@ -297,11 +291,7 @@ describe("masterStateManager introspection", () => {
 
     describe("initialization status", () => {
         it("should provide initialization status", () => {
-            expect.assertions(3);
-
-            expect(masterStateManager.getInitializationStatus).toBeTypeOf(
-                "function"
-            );
+            expect.assertions(2);
 
             const status = masterStateManager.getInitializationStatus();
             expect(status).toEqual({
