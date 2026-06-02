@@ -53,6 +53,41 @@ function getSelect(container: HTMLElement): HTMLSelectElement {
     return select;
 }
 
+function getMarkerCountSelectorState(container: HTMLElement) {
+    const icon = container.querySelector("svg.icon"),
+        label = container.querySelector("label"),
+        select = getSelect(container);
+
+    return {
+        containerClass: container.className,
+        iconAriaHidden: icon?.getAttribute("aria-hidden"),
+        iconFocusable: icon?.getAttribute("focusable"),
+        iconRectFills: Array.from(
+            icon?.querySelectorAll("rect") ?? [],
+            (rect) => rect.getAttribute("fill")
+        ),
+        iconRectStrokes: Array.from(
+            icon?.querySelectorAll("rect") ?? [],
+            (rect) => rect.getAttribute("stroke")
+        ),
+        iconSize: {
+            height: icon?.getAttribute("height"),
+            viewBox: icon?.getAttribute("viewBox"),
+            width: icon?.getAttribute("width"),
+        },
+        labelClass: label?.className,
+        labelFor: label?.getAttribute("for"),
+        labelText: label?.querySelector("span")?.textContent,
+        options: Array.from(select.options, (option) => ({
+            text: option.textContent,
+            value: option.value,
+        })),
+        selectClass: select.className,
+        selectId: select.id,
+        selectValue: select.value,
+    };
+}
+
 function dispatchChange(select: HTMLSelectElement): void {
     select.dispatchEvent(new Event("change"));
 }
@@ -69,38 +104,53 @@ function dispatchWheel(select: HTMLSelectElement, deltaY: number): void {
 
 describe(createMarkerCountSelector, () => {
     it("creates the selector with the default marker count and themed icon", () => {
-        expect.assertions(8);
+        expect.assertions(3);
 
         resetFixture();
 
         try {
             const container = createMarkerCountSelector();
-            const select = getSelect(container);
-            const firstRect = container.querySelector("svg.icon rect");
 
-            expect(container.className).toBe(
-                "map-action-btn marker-count-container"
-            );
-            expect(container.querySelector("label")?.textContent).toBe(
-                "Data Points:"
-            );
-            expect(select.value).toBe("50");
+            expect(container).toBeInstanceOf(HTMLDivElement);
+            expect(getMarkerCountSelectorState(container)).toEqual({
+                containerClass: "map-action-btn marker-count-container",
+                iconAriaHidden: "true",
+                iconFocusable: "false",
+                iconRectFills: [
+                    "#ffffff",
+                    "#ffffff",
+                    "#ffffff",
+                    "#ffffff",
+                ],
+                iconRectStrokes: [
+                    "#2563eb",
+                    "#2563eb",
+                    "#2563eb",
+                    "#2563eb",
+                ],
+                iconSize: {
+                    height: "18",
+                    viewBox: "0 0 20 20",
+                    width: "18",
+                },
+                labelClass: "marker-count-label",
+                labelFor: "marker-count-select",
+                labelText: "Data Points:",
+                options: [
+                    { text: "10", value: "10" },
+                    { text: "25", value: "25" },
+                    { text: "50", value: "50" },
+                    { text: "100", value: "100" },
+                    { text: "200", value: "200" },
+                    { text: "500", value: "500" },
+                    { text: "1000", value: "1000" },
+                    { text: "All", value: "all" },
+                ],
+                selectClass: "marker-count-select",
+                selectId: "marker-count-select",
+                selectValue: "50",
+            });
             expect(getGlobal().mapMarkerCount).toBe(50);
-            expect(
-                [...select.options].map((option) => option.value)
-            ).toStrictEqual([
-                "10",
-                "25",
-                "50",
-                "100",
-                "200",
-                "500",
-                "1000",
-                "all",
-            ]);
-            expect([...select.options].at(-1)?.textContent).toBe("All");
-            expect(firstRect?.getAttribute("fill")).toBe("#ffffff");
-            expect(firstRect?.getAttribute("stroke")).toBe("#2563eb");
         } finally {
             resetFixture();
         }
