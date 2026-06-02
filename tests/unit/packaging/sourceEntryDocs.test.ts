@@ -50,14 +50,37 @@ function readWorkspaceFile(relativePath: string): string {
     return readFileSync(path.join(process.cwd(), relativePath), "utf8");
 }
 
+function getPathStates(
+    relativePaths: string[]
+): Record<string, "missing" | "present"> {
+    return Object.fromEntries(
+        relativePaths.map((relativePath) => [
+            relativePath,
+            existsSync(path.join(process.cwd(), relativePath))
+                ? "present"
+                : "missing",
+        ])
+    );
+}
+
 describe("source entrypoint documentation", () => {
     it("uses the case-exact root agent instructions path", () => {
         expect.assertions(2);
 
-        const rootEntries = new Set(readdirSync(process.cwd()));
+        const rootEntries = readdirSync(process.cwd());
 
         expect(rootAgentsPath).toBe("AGENTS.md");
-        expect(rootEntries.has(rootAgentsPath)).toBe(true);
+        expect({
+            pathState: getPathStates([rootAgentsPath]),
+            rootEntryMatches: rootEntries.filter(
+                (entry) => entry.toLowerCase() === rootAgentsPath.toLowerCase()
+            ),
+        }).toStrictEqual({
+            pathState: {
+                [rootAgentsPath]: "present",
+            },
+            rootEntryMatches: [rootAgentsPath],
+        });
     });
 
     it("documents TypeScript source entrypoints for the Electron app", () => {
@@ -77,18 +100,11 @@ describe("source entrypoint documentation", () => {
             (sourceEntrypoint) => path.join("electron-app", sourceEntrypoint)
         );
 
-        expect(
+        expect(getPathStates(expectedSourceEntrypointPaths)).toStrictEqual(
             Object.fromEntries(
                 expectedSourceEntrypointPaths.map((sourceEntrypointPath) => [
                     sourceEntrypointPath,
-                    existsSync(path.join(process.cwd(), sourceEntrypointPath)),
-                ])
-            )
-        ).toStrictEqual(
-            Object.fromEntries(
-                expectedSourceEntrypointPaths.map((sourceEntrypointPath) => [
-                    sourceEntrypointPath,
-                    true,
+                    "present",
                 ])
             )
         );
@@ -209,16 +225,12 @@ describe("source entrypoint documentation", () => {
             ".gitattributes",
         ];
 
-        expect(
+        expect(getPathStates(documentedRootToolingFiles)).toStrictEqual(
             Object.fromEntries(
                 documentedRootToolingFiles.map((filePath) => [
                     filePath,
-                    existsSync(path.join(process.cwd(), filePath)),
+                    "present",
                 ])
-            )
-        ).toStrictEqual(
-            Object.fromEntries(
-                documentedRootToolingFiles.map((filePath) => [filePath, true])
             )
         );
         expect(
