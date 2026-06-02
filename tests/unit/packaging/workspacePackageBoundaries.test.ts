@@ -12,6 +12,7 @@ import {
     appTypesPath,
     appSourceRepositoryPath,
     docusaurusPackageRepositoryPath,
+    rootAgentsPath,
     rootElectronBuilderConfigPath,
     rootElectronAppTsconfigPath,
     rootEslintConfigPath,
@@ -186,6 +187,28 @@ describe("workspace package boundaries", () => {
                 )
                 .map(([scriptName, script]) => `${scriptName}: ${script}`)
         ).toStrictEqual([]);
+    });
+
+    it("keeps agent guidance aligned with the root-managed workspace", () => {
+        expect.assertions(4);
+
+        const agentInstructions = readFileSync(
+            path.join(process.cwd(), rootAgentsPath),
+            "utf8"
+        );
+
+        expect(agentInstructions).toContain(
+            "FitFileViewer is a root-managed Electron workspace"
+        );
+        expect(agentInstructions).toContain(
+            "Tooling, npm scripts, package metadata, and shared config live at the repository root"
+        );
+        expect(agentInstructions).toContain(
+            "Electron source lives under `electron-app/`"
+        );
+        expect(agentInstructions).not.toContain(
+            "FitFileViewer is centered on `electron-app/`"
+        );
     });
 
     it("keeps the root app package as the runtime app manifest", () => {
