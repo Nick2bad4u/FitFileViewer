@@ -126,8 +126,6 @@ describe("registerInfoHandlers", () => {
     ): InfoIpcHandler {
         const handler = handlers[channel];
 
-        expect(handler).toBeTypeOf("function");
-
         if (typeof handler !== "function") {
             throw new TypeError(`${channel} handler was not registered`);
         }
@@ -161,7 +159,7 @@ describe("registerInfoHandlers", () => {
     });
 
     it("provides app/platform metadata and map/theme defaults", async () => {
-        expect.assertions(18);
+        expect.assertions(10);
 
         const handlers = getHandlers();
         const licenseJson = { license: "Unlicense" };
@@ -200,7 +198,7 @@ describe("registerInfoHandlers", () => {
     });
 
     it("returns 'Unknown' and logs when license read fails", async () => {
-        expect.assertions(3);
+        expect.assertions(2);
 
         const handlers = getHandlers();
         fs.readFileSync.mockImplementation(() => {
@@ -221,7 +219,7 @@ describe("registerInfoHandlers", () => {
     });
 
     it("normalizes corrupted persisted theme/map-tab values", async () => {
-        expect.assertions(4);
+        expect.assertions(2);
 
         mockConfGet = vi.fn<(key: string, fallback: unknown) => unknown>(
             (key, fallback) => {
@@ -242,5 +240,34 @@ describe("registerInfoHandlers", () => {
         await expect(getHandler(handlers, "theme:get")()).resolves.toBe(
             CONSTANTS.DEFAULT_THEME
         );
+    });
+
+    it("falls back and logs when persisted settings cannot be read", async () => {
+        expect.assertions(3);
+
+        mockConfGet = vi.fn<(key: string, fallback: unknown) => unknown>(() => {
+            throw new Error("settings locked");
+        });
+
+        const handlers = getHandlers();
+
+        await expect(getHandler(handlers, "map-tab:get")()).resolves.toBe(
+            "map"
+        );
+        await expect(getHandler(handlers, "theme:get")()).resolves.toBe(
+            CONSTANTS.DEFAULT_THEME
+        );
+        expect(logWithContext.mock.calls).toStrictEqual([
+            [
+                "warn",
+                "Failed to read persisted setting: selectedMapTab",
+                { error: "settings locked" },
+            ],
+            [
+                "warn",
+                "Failed to read persisted setting: theme",
+                { error: "settings locked" },
+            ],
+        ]);
     });
 });
