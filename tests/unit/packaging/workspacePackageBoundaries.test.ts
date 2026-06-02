@@ -165,6 +165,16 @@ function getInventoryCategoryPackages(
         .sort();
 }
 
+function getInventoryPackageNames(markdown: string): Set<string> {
+    return new Set(
+        [...markdown.matchAll(/`([^`]+)`/gu)]
+            .map((match) => match[1])
+            .filter((packageName): packageName is string =>
+                Boolean(packageName)
+            )
+    );
+}
+
 describe("workspace package boundaries", () => {
     it("keeps shared tooling and local Vitest UI support in the root workspace", () => {
         expect.assertions(10);
@@ -241,6 +251,28 @@ describe("workspace package boundaries", () => {
         expect(
             getInventoryCategoryPackages(dependencyInventory, "Tests")
         ).toStrictEqual([...requiredDocumentedTestDependencies].sort());
+    });
+
+    it("keeps renderer dependency inventory classifying every root manifest package", () => {
+        expect.assertions(1);
+
+        const rootPackage = readPackageJson(rootPackageRepositoryPath);
+        const dependencyInventory = readFileSync(
+            path.join(process.cwd(), rendererDependencyInventoryPath),
+            "utf8"
+        );
+        const inventoryPackageNames =
+            getInventoryPackageNames(dependencyInventory);
+        const rootManifestPackageNames = [
+            ...Object.keys(rootPackage.dependencies ?? {}),
+            ...Object.keys(rootPackage.devDependencies ?? {}),
+        ].sort();
+
+        expect(
+            rootManifestPackageNames.filter(
+                (packageName) => !inventoryPackageNames.has(packageName)
+            )
+        ).toStrictEqual([]);
     });
 
     it("keeps root package scripts from delegating Electron app work to a nested package", () => {
