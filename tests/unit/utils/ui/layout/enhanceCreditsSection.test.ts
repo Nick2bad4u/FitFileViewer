@@ -53,9 +53,22 @@ function setReadonlyLayoutNumber(
     });
 }
 
+function getCreditsMarqueeState(footer: HTMLElement, section: HTMLElement) {
+    return {
+        footerClasses: [...footer.classList],
+        scrollDistance: footer.style.getPropertyValue(
+            "--credits-scroll-distance"
+        ),
+        scrollDuration: footer.style.getPropertyValue(
+            "--credits-scroll-duration"
+        ),
+        sectionClasses: [...section.classList],
+    };
+}
+
 describe(setupCreditsMarquee, () => {
     it("activates marquee styling when footer content overflows", () => {
-        expect.assertions(8);
+        expect.assertions(5);
 
         resetFixture();
         const originalResizeObserver = globalThis.ResizeObserver;
@@ -73,21 +86,25 @@ describe(setupCreditsMarquee, () => {
 
             expect(observer?.observe).toHaveBeenCalledWith(section);
             expect(observer?.observe).toHaveBeenCalledWith(footer);
-            expect([...footer.classList]).toContain("credits-marquee");
-            expect([...section.classList]).toContain(
-                "credits-section--marquee-active"
-            );
-            expect(
-                footer.style.getPropertyValue("--credits-scroll-distance")
-            ).toBe("112px");
-            expect(
-                footer.style.getPropertyValue("--credits-scroll-duration")
-            ).toBe("16s");
+            expect(getCreditsMarqueeState(footer, section)).toStrictEqual({
+                footerClasses: ["credits-marquee"],
+                scrollDistance: "112px",
+                scrollDuration: "16s",
+                sectionClasses: [
+                    "credits-section",
+                    "credits-section--marquee-active",
+                ],
+            });
 
             teardownCreditsMarquee();
 
             expect(observer?.disconnect).toHaveBeenCalledOnce();
-            expect([...footer.classList]).not.toContain("credits-marquee");
+            expect(getCreditsMarqueeState(footer, section)).toStrictEqual({
+                footerClasses: [],
+                scrollDistance: "",
+                scrollDuration: "",
+                sectionClasses: ["credits-section"],
+            });
         } finally {
             globalThis.ResizeObserver = originalResizeObserver;
             resetFixture();
@@ -95,7 +112,7 @@ describe(setupCreditsMarquee, () => {
     });
 
     it("clears marquee styling when content does not overflow", () => {
-        expect.assertions(4);
+        expect.assertions(1);
 
         resetFixture();
         const originalResizeObserver = globalThis.ResizeObserver;
@@ -115,16 +132,12 @@ describe(setupCreditsMarquee, () => {
             const [observer] = MockResizeObserver.instances;
             observer?.callback([], observer as unknown as ResizeObserver);
 
-            expect([...footer.classList]).not.toContain("credits-marquee");
-            expect([...section.classList]).not.toContain(
-                "credits-section--marquee-active"
-            );
-            expect(
-                footer.style.getPropertyValue("--credits-scroll-distance")
-            ).toBe("");
-            expect(
-                footer.style.getPropertyValue("--credits-scroll-duration")
-            ).toBe("");
+            expect(getCreditsMarqueeState(footer, section)).toStrictEqual({
+                footerClasses: [],
+                scrollDistance: "",
+                scrollDuration: "",
+                sectionClasses: ["credits-section"],
+            });
         } finally {
             globalThis.ResizeObserver = originalResizeObserver;
             resetFixture();
