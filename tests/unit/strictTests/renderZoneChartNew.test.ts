@@ -16,6 +16,16 @@ interface ChartTestGlobal {
     _chartjsInstances?: unknown[];
 }
 
+function getRequiredChartInstances(chartGlobal: ChartTestGlobal): unknown[] {
+    const { _chartjsInstances } = chartGlobal;
+
+    if (!_chartjsInstances) {
+        throw new Error("Expected Chart.js instances to be tracked");
+    }
+
+    return _chartjsInstances;
+}
+
 describe("renderZoneChartNew", () => {
     const chartGlobal = globalThis as ChartTestGlobal;
 
@@ -70,16 +80,15 @@ describe("renderZoneChartNew", () => {
             { chartType: "bar" }
         );
 
-        expect(container?.querySelectorAll("canvas")).toHaveLength(2);
-        expect(chartGlobal._chartjsInstances).toHaveLength(2);
-        expect(
-            (chartGlobal._chartjsInstances?.[0] as ChartMockInstance).config
-                .type
-        ).toBe("doughnut");
-        expect(
-            (chartGlobal._chartjsInstances?.[1] as ChartMockInstance).config
-                .type
-        ).toBe("bar");
+        const chartInstances = getRequiredChartInstances(chartGlobal);
+        expect(container.querySelectorAll("canvas")).toHaveLength(2);
+        expect(chartInstances).toHaveLength(2);
+        expect((chartInstances[0] as ChartMockInstance).config.type).toBe(
+            "doughnut"
+        );
+        expect((chartInstances[1] as ChartMockInstance).config.type).toBe(
+            "bar"
+        );
 
         teardown();
     });

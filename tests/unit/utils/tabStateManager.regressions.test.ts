@@ -51,6 +51,16 @@ const mockSetState = vi.mocked(setState);
 const mockSubscribe = vi.mocked(subscribe);
 const mockShowNotification = vi.mocked(showNotification);
 
+function getRequiredElement(id: string): HTMLElement {
+    const element = document.getElementById(id);
+
+    if (!(element instanceof HTMLElement)) {
+        throw new Error(`Expected #${id} to exist`);
+    }
+
+    return element;
+}
+
 const tabDomFixtures = [
     ["summary", "Summary"],
     ["map", "Map"],
@@ -508,9 +518,11 @@ describe("tabStateManager regressions", () => {
                 const content = document.getElementById(config.contentId);
 
                 expect(button).toBeInstanceOf(HTMLElement);
-                expect(button?.id).toBe(config.id);
+                expect(getRequiredElement(config.id).id).toBe(config.id);
                 expect(content).toBeInstanceOf(HTMLElement);
-                expect(content?.id).toBe(config.contentId);
+                expect(getRequiredElement(config.contentId).id).toBe(
+                    config.contentId
+                );
             });
         });
 

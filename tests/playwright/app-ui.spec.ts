@@ -38,6 +38,21 @@ type MapThemeToggleState = {
     title: string;
 };
 
+type CapturedDownload = {
+    download: string;
+    href: string;
+};
+
+function getRequiredCapturedDownload(
+    download: CapturedDownload | undefined
+): CapturedDownload {
+    if (!download) {
+        throw new Error("Expected GPX export download to be captured");
+    }
+
+    return download;
+}
+
 const mapTileHosts = new Set([
     "basemaps.cartocdn.com",
     "server.arcgisonline.com",
@@ -630,9 +645,12 @@ test.describe("FitFileViewer Electron UI", () => {
                 URL.revokeObjectURL = originalRevokeObjectUrl;
             }
         });
+        const clickedDownload = getRequiredCapturedDownload(
+            gpxExport.clickedDownload
+        );
 
-        expect(gpxExport.clickedDownload?.download).toMatch(/\.gpx$/u);
-        expect(gpxExport.clickedDownload?.href).toBe("blob:ffv-playwright-gpx");
+        expect(clickedDownload.download).toMatch(/\.gpx$/u);
+        expect(clickedDownload.href).toBe("blob:ffv-playwright-gpx");
         expect(gpxExport.exportedBlob).toStrictEqual({
             size: 450_729,
             type: "application/gpx+xml;charset=utf-8",

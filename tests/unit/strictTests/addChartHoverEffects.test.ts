@@ -51,6 +51,17 @@ function getWrapperState(
     };
 }
 
+function getRequiredHtmlElement<T extends HTMLElement>(
+    element: T | null | undefined,
+    description: string
+): T {
+    if (!element) {
+        throw new Error(`Expected ${description}`);
+    }
+
+    return element;
+}
+
 // Mock getThemeConfig
 vi.mock(import("../../theming/core/theme.js"), () => ({
     getThemeConfig: vi.fn<() => ChartHoverThemeConfig>(() => ({
@@ -401,9 +412,10 @@ describe(addChartHoverEffects, () => {
                 return el.style.animation === "ripple-effect 0.6s ease-out";
             }) as HTMLElement[];
             expect(ripples).toHaveLength(1);
-            expect(ripples[0]?.style.cssText).toContain(
-                "animation: ripple-effect 0.6s ease-out"
-            );
+            expect(
+                getRequiredHtmlElement(ripples[0], "ripple element").style
+                    .cssText
+            ).toContain("animation: ripple-effect 0.6s ease-out");
         });
 
         it("should not create a ripple when fullscreen button is clicked", () => {
@@ -965,10 +977,18 @@ describe("edge cases", () => {
         addChartHoverEffects(mockContainer, mockThemeConfig);
 
         expect(orphanCanvas.dataset.hoverEffectsAdded).toBe("true");
-        expect(orphanCanvas.parentElement?.className).toBe("chart-wrapper");
+        expect(
+            getRequiredHtmlElement(
+                orphanCanvas.parentElement,
+                "orphan canvas parent"
+            ).className
+        ).toBe("chart-wrapper");
         expect({
             bodyCanvasCount: document.body.querySelectorAll("canvas").length,
-            orphanParentClass: orphanCanvas.parentElement?.className,
+            orphanParentClass: getRequiredHtmlElement(
+                orphanCanvas.parentElement,
+                "orphan canvas parent"
+            ).className,
         }).toStrictEqual({
             bodyCanvasCount: 1,
             orphanParentClass: "chart-wrapper",

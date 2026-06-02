@@ -10,6 +10,19 @@ type LoadRecentFiles = () => string[];
 
 const createMock = (): Mock<AnyMockFn> => vi.fn<AnyMockFn>();
 
+function getRequiredMockResult<T>(
+    results: Array<{ type: string; value?: T }>,
+    index: number
+): { type: string; value?: T } {
+    const result = results[index];
+
+    if (!result) {
+        throw new Error(`Expected mock result ${index}`);
+    }
+
+    return result;
+}
+
 function pickMenuFields(
     item: Record<string, unknown>,
     fields: string[]
@@ -1687,7 +1700,9 @@ describe("createAppMenu - additional robust branches", () => {
             );
             expect(targetedIndex).not.toBe(-1);
             const results = defineMock.mock.results as Array<{ type: string }>;
-            expect(results[targetedIndex]?.type).toBe("throw");
+            expect(getRequiredMockResult(results, targetedIndex).type).toBe(
+                "throw"
+            );
         } finally {
             defineSpy.mockRestore();
             delete (globalThis as any).__FFV_createAppMenuExports;

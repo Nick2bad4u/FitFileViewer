@@ -119,12 +119,32 @@ function getChartTestWindow(): ChartTestWindow {
     return global.window as unknown as ChartTestWindow;
 }
 
+function getRequiredChartInstances(): ChartInstanceMock[] {
+    const { _chartjsInstances } = getChartTestWindow();
+
+    if (!_chartjsInstances) {
+        throw new Error("Expected Chart.js instances to be tracked");
+    }
+
+    return _chartjsInstances;
+}
+
 function getLatestChartConfig(): ChartConfig {
     const config = Chart.mock.calls[0]?.[1];
     if (!config) {
         throw new Error("Expected Chart to be called with a config");
     }
     return config;
+}
+
+function getRequiredDatasetData(dataset: ChartDataset): unknown[] {
+    const { data } = dataset;
+
+    if (!data) {
+        throw new Error("Expected chart dataset data");
+    }
+
+    return data;
 }
 
 function getLatestChartCall(): [HTMLCanvasElement, ChartConfig] {
@@ -404,8 +424,11 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
             const [canvas] = getLatestChartCall();
             expect(canvas).toBeInstanceOf(HTMLCanvasElement);
             const chartConfig = getLatestChartConfig();
-            expect(chartConfig.data.datasets[0].data).toHaveLength(50);
-            expect(chartConfig.data.datasets[0].data?.at(-1)).toStrictEqual({
+            const datasetData = getRequiredDatasetData(
+                chartConfig.data.datasets[0]
+            );
+            expect(datasetData).toHaveLength(50);
+            expect(datasetData.at(-1)).toStrictEqual({
                 x: 169,
                 y: 249,
             });
@@ -893,15 +916,10 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
             renderPowerVsHeartRateChart(container, data, options);
 
-            expect(getChartTestWindow()._chartjsInstances).toStrictEqual([
-                chartInstanceMock,
-            ]);
-            expect(getChartTestWindow()._chartjsInstances).not.toContain(
-                undefined
-            );
-            expect(getChartTestWindow()._chartjsInstances?.[0]).toBe(
-                chartInstanceMock
-            );
+            const chartInstances = getRequiredChartInstances();
+            expect(chartInstances).toStrictEqual([chartInstanceMock]);
+            expect(chartInstances).not.toContain(undefined);
+            expect(chartInstances.at(0)).toBe(chartInstanceMock);
         });
 
         it("should initialize global chart instances array if not present", () => {
