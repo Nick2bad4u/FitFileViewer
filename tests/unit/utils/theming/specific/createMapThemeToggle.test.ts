@@ -16,8 +16,22 @@ function resetMapThemeToggleGlobals(): void {
     delete testGlobal.__ffvMapThemeToggleUpdate;
 }
 
-function getClassList(element: Element | undefined): string[] {
-    return element ? [...element.classList] : [];
+function getMapThemeToggleState(element: HTMLElement | undefined): {
+    ariaLabel: null | string;
+    className: string | undefined;
+    hasSvgIcon: boolean;
+    tagName: string | undefined;
+    text: null | string | undefined;
+    title: string | undefined;
+} {
+    return {
+        ariaLabel: element?.getAttribute("aria-label") ?? null,
+        className: element?.className,
+        hasSvgIcon: element?.querySelector(".icon > svg") instanceof SVGElement,
+        tagName: element?.tagName,
+        text: element?.textContent,
+        title: element?.title,
+    };
 }
 
 describe("createMapThemeToggle renderer environment handling", () => {
@@ -30,7 +44,7 @@ describe("createMapThemeToggle renderer environment handling", () => {
     });
 
     it("creates the toggle when the renderer has no process global", () => {
-        expect.assertions(4);
+        expect.assertions(3);
 
         vi.stubGlobal("process", undefined);
         vi.spyOn(console, "debug").mockReturnValue(undefined);
@@ -41,9 +55,15 @@ describe("createMapThemeToggle renderer environment handling", () => {
             toggle = createMapThemeToggle();
         }).not.toThrow();
 
-        expect(toggle).toBeInstanceOf(HTMLElement);
-        expect(getClassList(toggle)).toContain("map-theme-toggle");
-        expect(toggle?.getAttribute("aria-label")).toBe("Toggle map theme");
+        expect(toggle).toBeInstanceOf(HTMLButtonElement);
+        expect(getMapThemeToggleState(toggle)).toEqual({
+            ariaLabel: "Toggle map theme",
+            className: "map-action-btn map-theme-toggle active",
+            hasSvgIcon: true,
+            tagName: "BUTTON",
+            text: "Map Theme",
+            title: "Map: Dark theme (click for light theme)",
+        });
     });
 
     it("creates the toggle when the renderer process shim has no env object", () => {
@@ -58,7 +78,14 @@ describe("createMapThemeToggle renderer environment handling", () => {
             toggle = createMapThemeToggle();
         }).not.toThrow();
 
-        expect(toggle).toBeInstanceOf(HTMLElement);
-        expect(getClassList(toggle)).toContain("map-theme-toggle");
+        expect(toggle).toBeInstanceOf(HTMLButtonElement);
+        expect(getMapThemeToggleState(toggle)).toEqual({
+            ariaLabel: "Toggle map theme",
+            className: "map-action-btn map-theme-toggle active",
+            hasSvgIcon: true,
+            tagName: "BUTTON",
+            text: "Map Theme",
+            title: "Map: Dark theme (click for light theme)",
+        });
     });
 });

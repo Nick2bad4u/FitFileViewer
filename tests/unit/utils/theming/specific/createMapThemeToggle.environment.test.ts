@@ -41,8 +41,22 @@ function resetMapThemeToggleGlobals(): void {
     Reflect.deleteProperty(globalThis, "updateMapTheme");
 }
 
-function getClassList(element: Element): string[] {
-    return [...element.classList];
+function getMapThemeToggleState(button: HTMLElement): {
+    ariaLabel: null | string;
+    className: string;
+    hasSvgIcon: boolean;
+    tagName: string;
+    text: null | string;
+    title: string;
+} {
+    return {
+        ariaLabel: button.getAttribute("aria-label"),
+        className: button.className,
+        hasSvgIcon: button.querySelector(".icon > svg") instanceof SVGElement,
+        tagName: button.tagName,
+        text: button.textContent,
+        title: button.title,
+    };
 }
 
 describe("createMapThemeToggle environment handling", () => {
@@ -61,7 +75,7 @@ describe("createMapThemeToggle environment handling", () => {
     });
 
     it("creates the toggle when global process is unavailable", async () => {
-        expect.assertions(5);
+        expect.assertions(3);
 
         const consoleError = vi
             .spyOn(console, "error")
@@ -75,9 +89,14 @@ describe("createMapThemeToggle environment handling", () => {
         const button = createMapThemeToggle();
 
         expect(button).toBeInstanceOf(HTMLButtonElement);
-        expect(getClassList(button)).toContain("map-theme-toggle");
-        expect(button.title).toBe("Map: Dark theme (click for light theme)");
-        expect(button.querySelector("svg")).toBeInstanceOf(SVGElement);
+        expect(getMapThemeToggleState(button)).toEqual({
+            ariaLabel: "Toggle map theme",
+            className: "map-action-btn map-theme-toggle active",
+            hasSvgIcon: true,
+            tagName: "BUTTON",
+            text: "Map Theme",
+            title: "Map: Dark theme (click for light theme)",
+        });
         expect(consoleError).not.toHaveBeenCalled();
     });
 
@@ -96,7 +115,14 @@ describe("createMapThemeToggle environment handling", () => {
         const button = createMapThemeToggle();
 
         expect(button).toBeInstanceOf(HTMLButtonElement);
-        expect(getClassList(button)).toContain("active");
+        expect(getMapThemeToggleState(button)).toEqual({
+            ariaLabel: "Toggle map theme",
+            className: "map-action-btn map-theme-toggle active",
+            hasSvgIcon: true,
+            tagName: "BUTTON",
+            text: "Map Theme",
+            title: "Map: Dark theme (click for light theme)",
+        });
         expect(consoleError).not.toHaveBeenCalled();
     });
 });
