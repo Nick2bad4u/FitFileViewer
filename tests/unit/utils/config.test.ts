@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
 import config, {
-    APP_CONSTANTS,
     CONFIG,
     CONVERSION_FACTORS,
     FILE_CONSTANTS,
@@ -42,14 +41,11 @@ describe("config/index.js", () => {
         expect(CONFIG.TIME_UNITS.MINUTES).toBe("minutes");
     });
 
-    it("keeps package metadata out of runtime constants", () => {
+    it("does not expose a duplicated app metadata constants group", () => {
         expect.assertions(2);
 
-        expect(CONFIG.APP).toBe(APP_CONSTANTS);
-        expect(Object.keys(APP_CONSTANTS).sort()).toStrictEqual([
-            "EVENTS",
-            "IPC_CHANNELS",
-        ]);
+        expect(CONFIG).not.toHaveProperty("APP");
+        expect(config).not.toHaveProperty("APP_CONSTANTS");
     });
 
     it("reads values by dot-notation path", () => {

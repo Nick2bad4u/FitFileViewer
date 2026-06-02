@@ -244,35 +244,7 @@ export const DEBUG_CONSTANTS = {
     },
 } as const;
 
-/**
- * Application event and IPC constants.
- */
-export const APP_CONSTANTS = {
-    EVENTS: {
-        INSTALL_UPDATE: "install-update",
-        MENU_OPEN_FILE: "menu-open-file",
-        MENU_OPEN_OVERLAY: "menu-open-overlay",
-        SET_FULLSCREEN: "set-fullscreen",
-        SET_THEME: "set-theme",
-        THEME_CHANGED: "theme-changed",
-    },
-    IPC_CHANNELS: {
-        APP_VERSION: "getAppVersion",
-        CHROME_VERSION: "getChromeVersion",
-        DIALOG_OPEN_FILE: "dialog:openFile",
-        ELECTRON_VERSION: "getElectronVersion",
-        FILE_READ: "file:read",
-        FIT_DECODE: "fit:decode",
-        FIT_PARSE: "fit:parse",
-        NODE_VERSION: "getNodeVersion",
-        PLATFORM_INFO: "getPlatformInfo",
-        SHELL_OPEN_EXTERNAL: "shell:openExternal",
-        THEME_GET: "theme:get",
-    },
-} as const;
-
 const MODULE_EXPORTS = {
-    APP_CONSTANTS,
     CHART_CONSTANTS,
     CONVERSION_FACTORS,
     DEBUG_CONSTANTS,
@@ -389,7 +361,6 @@ export function validateConfig(): ConfigValidationResult {
  * Namespaced constant groups for consumers that prefer grouped access.
  */
 export const CONFIG = {
-    APP: APP_CONSTANTS,
     CHART: CHART_CONSTANTS,
     CONVERSION: CONVERSION_FACTORS,
     DEBUG: DEBUG_CONSTANTS,
