@@ -11,7 +11,7 @@ type PowerEstimationSettings = {
     gradeWindowMeters: number;
     maxPowerW: number;
 };
-type OnApply = () => void;
+type OnApply = (settings: PowerEstimationSettings) => void;
 type ShowNotification = (message: string, level: string) => void;
 
 const mockGetSettings = vi.fn<() => PowerEstimationSettings>();
@@ -36,7 +36,7 @@ vi.mock(
 describe("openPowerEstimationSettingsModal.js", () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         mockGetSettings.mockReturnValue({
             enabled: true,
             riderWeightKg: 75,
@@ -50,8 +50,93 @@ describe("openPowerEstimationSettingsModal.js", () => {
         } satisfies PowerEstimationSettings);
     });
 
+    function getDialog(): HTMLDivElement {
+        const dialog = document.querySelector<HTMLDivElement>(
+            "[role='dialog'][aria-modal='true']"
+        );
+
+        if (!dialog) {
+            throw new Error("Missing power estimation settings dialog");
+        }
+
+        return dialog;
+    }
+
+    function getDialogState() {
+        const dialog = getDialog(),
+            describedBy = dialog.getAttribute("aria-describedby"),
+            labelledBy = dialog.getAttribute("aria-labelledby");
+
+        return {
+            actionButtons: Array.from(
+                dialog.querySelectorAll<HTMLButtonElement>("button"),
+                (button) => ({
+                    className: button.className,
+                    text: button.textContent,
+                    type: button.type,
+                })
+            ),
+            ariaDescribedBy: describedBy,
+            ariaLabelledBy: labelledBy,
+            className: dialog.className,
+            fieldNames: Array.from(
+                dialog.querySelectorAll<HTMLInputElement>("input"),
+                (input) => input.name
+            ),
+            note:
+                describedBy === null
+                    ? undefined
+                    : document.getElementById(describedBy)?.textContent,
+            role: dialog.getAttribute("role"),
+            title:
+                labelledBy === null
+                    ? undefined
+                    : document.getElementById(labelledBy)?.textContent,
+        };
+    }
+
+    function getActionButton(text: "Apply" | "Cancel"): HTMLButtonElement {
+        const button = Array.from(
+            getDialog().querySelectorAll<HTMLButtonElement>("button")
+        ).find((candidate) => candidate.textContent === text);
+
+        if (!button) {
+            throw new Error(`Missing ${text} button`);
+        }
+
+        return button;
+    }
+
+    function getNumberInput(name: string): HTMLInputElement {
+        const input = getDialog().querySelector<HTMLInputElement>(
+            `input[type='number'][name='${name}']`
+        );
+
+        if (!input) {
+            throw new Error(`Missing ${name} input`);
+        }
+
+        return input;
+    }
+
+    function getEnabledInput(): HTMLInputElement {
+        const input = getDialog().querySelector<HTMLInputElement>(
+            "input[type='checkbox'][name='enabled']"
+        );
+
+        if (!input) {
+            throw new Error("Missing enabled checkbox");
+        }
+
+        return input;
+    }
+
+    function isDialogOpen(): boolean {
+        return document.querySelector("[role='dialog']") !== null;
+    }
+
     it("should render modal and close on Escape", async () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const { openPowerEstimationSettingsModal } =
             await import("../../../../../electron-app/utils/ui/modals/openPowerEstimationSettingsModal.js");
@@ -59,10 +144,35 @@ describe("openPowerEstimationSettingsModal.js", () => {
         const onApply = vi.fn<OnApply>();
         openPowerEstimationSettingsModal({ hasRealPower: false, onApply });
 
-        expect(document.body.textContent).toContain("Estimated Power");
+        expect(document.body.firstElementChild?.className).toBe(
+            "power-estimation-settings-overlay"
+        );
+        expect(getDialogState()).toStrictEqual({
+            actionButtons: [
+                { className: "themed-btn", text: "Cancel", type: "button" },
+                { className: "themed-btn", text: "Apply", type: "button" },
+            ],
+            ariaDescribedBy: "power-estimation-settings-note",
+            ariaLabelledBy: "power-estimation-settings-title",
+            className: "power-estimation-settings-modal",
+            fieldNames: [
+                "enabled",
+                "riderWeightKg",
+                "bikeWeightKg",
+                "crr",
+                "cda",
+                "drivetrainEfficiency",
+                "windSpeedMps",
+                "gradeWindowMeters",
+                "maxPowerW",
+            ],
+            note: "This estimates power from speed + elevation/grade using a physics-based model (virtual power). Results are approximate.",
+            role: "dialog",
+            title: "⚡ Estimated Power (Experimental)",
+        });
         // Close with Escape
         document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
-        expect(document.body.textContent).not.toContain("Estimated Power");
+        expect(isDialogOpen()).toBe(false);
     });
 
     it("should show real power note when hasRealPower is true", async () => {
@@ -76,11 +186,13 @@ describe("openPowerEstimationSettingsModal.js", () => {
             onApply: vi.fn<OnApply>(),
         });
 
-        expect(document.body.textContent).toContain("contains real power data");
+        expect(getDialogState().note).toBe(
+            "This file contains real power data. Estimated power will not be applied."
+        );
     });
 
     it("should validate rider weight and prevent apply", async () => {
-        expect.assertions(7);
+        expect.assertions(5);
 
         const { openPowerEstimationSettingsModal } =
             await import("../../../../../electron-app/utils/ui/modals/openPowerEstimationSettingsModal.js");
@@ -88,19 +200,19 @@ describe("openPowerEstimationSettingsModal.js", () => {
         const onApply = vi.fn<OnApply>();
         openPowerEstimationSettingsModal({ hasRealPower: false, onApply });
 
-        // The first number input in the grid is rider weight.
-        const inputs = Array.from(
-            document.querySelectorAll<HTMLInputElement>("input[type='number']")
-        );
-        expect(inputs.length).toBeGreaterThan(0);
-        inputs[0].value = "-1";
+        getNumberInput("riderWeightKg").value = "-1";
 
-        const applyBtn = Array.from(
-            document.querySelectorAll<HTMLButtonElement>("button")
-        ).find((b) => b.textContent === "Apply");
-        expect(applyBtn?.className).toBe("themed-btn");
-        expect(applyBtn?.textContent).toBe("Apply");
-        applyBtn?.click();
+        const applyBtn = getActionButton("Apply");
+        expect({
+            className: applyBtn.className,
+            text: applyBtn.textContent,
+            type: applyBtn.type,
+        }).toStrictEqual({
+            className: "themed-btn",
+            text: "Apply",
+            type: "button",
+        });
+        applyBtn.click();
 
         expect(mockShowNotification).toHaveBeenCalledWith(
             "Rider weight must be a positive number.",
@@ -110,11 +222,11 @@ describe("openPowerEstimationSettingsModal.js", () => {
         expect(onApply).not.toHaveBeenCalled();
 
         // Modal should still be open
-        expect(document.body.textContent).toContain("Estimated Power");
+        expect(isDialogOpen()).toBe(true);
     });
 
     it("should persist settings and call onApply, then close", async () => {
-        expect.assertions(7);
+        expect.assertions(5);
 
         const { openPowerEstimationSettingsModal } =
             await import("../../../../../electron-app/utils/ui/modals/openPowerEstimationSettingsModal.js");
@@ -122,24 +234,12 @@ describe("openPowerEstimationSettingsModal.js", () => {
         const onApply = vi.fn<OnApply>();
         openPowerEstimationSettingsModal({ hasRealPower: false, onApply });
 
-        const checkbox = document.querySelector<HTMLInputElement>(
-            "input[type='checkbox']"
-        );
-        expect(checkbox).toHaveProperty("checked", true);
-        checkbox!.checked = false;
+        const checkbox = getEnabledInput();
+        expect(checkbox.checked).toBe(true);
+        checkbox.checked = false;
+        getNumberInput("riderWeightKg").value = "80";
 
-        const inputs = Array.from(
-            document.querySelectorAll<HTMLInputElement>("input[type='number']")
-        );
-        // rider weight
-        inputs[0].value = "80";
-
-        const applyBtn = Array.from(
-            document.querySelectorAll<HTMLButtonElement>("button")
-        ).find((b) => b.textContent === "Apply");
-        expect(applyBtn?.className).toBe("themed-btn");
-        expect(applyBtn?.textContent).toBe("Apply");
-        applyBtn?.click();
+        getActionButton("Apply").click();
 
         expect(mockSetSettings).toHaveBeenCalledOnce();
         const saved = mockSetSettings.mock
@@ -153,11 +253,11 @@ describe("openPowerEstimationSettingsModal.js", () => {
         });
 
         expect(onApply).toHaveBeenCalledOnce();
-        expect(document.body.textContent).not.toContain("Estimated Power");
+        expect(isDialogOpen()).toBe(false);
     });
 
     it("should close when clicking Cancel", async () => {
-        expect.assertions(3);
+        expect.assertions(2);
 
         const { openPowerEstimationSettingsModal } =
             await import("../../../../../electron-app/utils/ui/modals/openPowerEstimationSettingsModal.js");
@@ -167,18 +267,23 @@ describe("openPowerEstimationSettingsModal.js", () => {
             onApply: vi.fn<OnApply>(),
         });
 
-        const cancelBtn = Array.from(
-            document.querySelectorAll<HTMLButtonElement>("button")
-        ).find((b) => b.textContent === "Cancel");
-        expect(cancelBtn?.className).toBe("themed-btn");
-        expect(cancelBtn?.textContent).toBe("Cancel");
-        cancelBtn?.click();
+        const cancelBtn = getActionButton("Cancel");
+        expect({
+            className: cancelBtn.className,
+            text: cancelBtn.textContent,
+            type: cancelBtn.type,
+        }).toStrictEqual({
+            className: "themed-btn",
+            text: "Cancel",
+            type: "button",
+        });
+        cancelBtn.click();
 
-        expect(document.body.textContent).not.toContain("Estimated Power");
+        expect(isDialogOpen()).toBe(false);
     });
 
     it("should validate non-numeric CRR input and prevent apply", async () => {
-        expect.assertions(6);
+        expect.assertions(4);
 
         const { openPowerEstimationSettingsModal } =
             await import("../../../../../electron-app/utils/ui/modals/openPowerEstimationSettingsModal.js");
@@ -186,18 +291,8 @@ describe("openPowerEstimationSettingsModal.js", () => {
         const onApply = vi.fn<OnApply>();
         openPowerEstimationSettingsModal({ hasRealPower: false, onApply });
 
-        const inputs = Array.from(
-            document.querySelectorAll<HTMLInputElement>("input[type='number']")
-        );
-        // CRR is the third number input in the form.
-        inputs[2].value = "abc";
-
-        const applyBtn = Array.from(
-            document.querySelectorAll<HTMLButtonElement>("button")
-        ).find((b) => b.textContent === "Apply");
-        expect(applyBtn?.className).toBe("themed-btn");
-        expect(applyBtn?.textContent).toBe("Apply");
-        applyBtn?.click();
+        getNumberInput("crr").value = "abc";
+        getActionButton("Apply").click();
 
         expect(mockShowNotification).toHaveBeenCalledWith(
             "Rolling Resistance must be at least 0.001.",
@@ -205,7 +300,7 @@ describe("openPowerEstimationSettingsModal.js", () => {
         );
         expect(mockSetSettings).not.toHaveBeenCalled();
         expect(onApply).not.toHaveBeenCalled();
-        expect(document.body.textContent).toContain("Estimated Power");
+        expect(isDialogOpen()).toBe(true);
     });
 
     it("should close when clicking outside modal (overlay)", async () => {
@@ -218,15 +313,17 @@ describe("openPowerEstimationSettingsModal.js", () => {
             hasRealPower: false,
             onApply: vi.fn<OnApply>(),
         });
-        const overlay = document.body.querySelector("div");
+        const overlay = document.querySelector(
+            ".power-estimation-settings-overlay"
+        );
         expect(overlay).toBeInstanceOf(HTMLDivElement);
 
         overlay?.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
-        expect(document.body.textContent).not.toContain("Estimated Power");
+        expect(isDialogOpen()).toBe(false);
     });
 
     it("should catch errors thrown by onApply and still close", async () => {
-        expect.assertions(3);
+        expect.assertions(1);
 
         const { openPowerEstimationSettingsModal } =
             await import("../../../../../electron-app/utils/ui/modals/openPowerEstimationSettingsModal.js");
@@ -237,13 +334,8 @@ describe("openPowerEstimationSettingsModal.js", () => {
 
         openPowerEstimationSettingsModal({ hasRealPower: false, onApply });
 
-        const applyBtn = Array.from(
-            document.querySelectorAll<HTMLButtonElement>("button")
-        ).find((b) => b.textContent === "Apply");
-        expect(applyBtn?.className).toBe("themed-btn");
-        expect(applyBtn?.textContent).toBe("Apply");
-        applyBtn?.click();
+        getActionButton("Apply").click();
 
-        expect(document.body.textContent).not.toContain("Estimated Power");
+        expect(isDialogOpen()).toBe(false);
     });
 });

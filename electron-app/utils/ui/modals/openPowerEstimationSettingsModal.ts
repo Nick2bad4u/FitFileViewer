@@ -8,6 +8,7 @@ import { showNotification } from "../notifications/showNotification.js";
 type NumberInputBounds = {
     max: number;
     min: number;
+    name: string;
     step: number;
 };
 
@@ -34,6 +35,7 @@ export function openPowerEstimationSettingsModal({
     const current = getPowerEstimationSettings();
 
     const overlay = document.createElement("div");
+    overlay.className = "power-estimation-settings-overlay";
     overlay.style.cssText = `
         position: fixed;
         top: 0;
@@ -65,6 +67,11 @@ export function openPowerEstimationSettingsModal({
     });
 
     const modal = document.createElement("div");
+    modal.className = "power-estimation-settings-modal";
+    modal.setAttribute("aria-describedby", "power-estimation-settings-note");
+    modal.setAttribute("aria-labelledby", "power-estimation-settings-title");
+    modal.setAttribute("aria-modal", "true");
+    modal.setAttribute("role", "dialog");
     modal.style.cssText = `
         background: var(--color-glass);
         border: 1px solid var(--color-glass-border);
@@ -77,11 +84,13 @@ export function openPowerEstimationSettingsModal({
     `;
 
     const title = document.createElement("div");
+    title.id = "power-estimation-settings-title";
     title.textContent = "⚡ Estimated Power (Experimental)";
     title.style.cssText =
         "font-size: 1.1rem; font-weight: 800; margin-bottom: 8px;";
 
     const note = document.createElement("div");
+    note.id = "power-estimation-settings-note";
     note.style.cssText =
         "color: var(--color-fg-muted); font-size: 0.9rem; margin-bottom: 12px; line-height: 1.4;";
     note.textContent = hasRealPower
@@ -108,10 +117,11 @@ export function openPowerEstimationSettingsModal({
 
     const makeNumber = (
         value: number,
-        { max, min, step }: NumberInputBounds
+        { max, min, name, step }: NumberInputBounds
     ): HTMLInputElement => {
         const input = document.createElement("input");
         input.type = "number";
+        input.name = name;
         input.value = String(value);
         input.min = String(min);
         input.max = String(max);
@@ -128,6 +138,7 @@ export function openPowerEstimationSettingsModal({
 
     const enabledInput = document.createElement("input");
     enabledInput.type = "checkbox";
+    enabledInput.name = "enabled";
     enabledInput.checked = current.enabled;
 
     const enabledWrap = document.createElement("label");
@@ -138,37 +149,49 @@ export function openPowerEstimationSettingsModal({
     enabledWrap.append(enabledInput, enabledText);
 
     const riderWeight = makeNumber(current.riderWeightKg, {
+        name: "riderWeightKg",
         min: 30,
         max: 200,
         step: 0.5,
     });
     const bikeWeight = makeNumber(current.bikeWeightKg, {
+        name: "bikeWeightKg",
         min: 1,
         max: 40,
         step: 0.5,
     });
     const crr = makeNumber(current.crr, {
+        name: "crr",
         min: 0.001,
         max: 0.03,
         step: 0.0005,
     });
-    const cda = makeNumber(current.cda, { min: 0.15, max: 0.8, step: 0.01 });
+    const cda = makeNumber(current.cda, {
+        name: "cda",
+        min: 0.15,
+        max: 0.8,
+        step: 0.01,
+    });
     const eta = makeNumber(current.drivetrainEfficiency, {
+        name: "drivetrainEfficiency",
         min: 0.85,
         max: 1,
         step: 0.01,
     });
     const wind = makeNumber(current.windSpeedMps, {
+        name: "windSpeedMps",
         min: -20,
         max: 20,
         step: 0.5,
     });
     const gradeWindow = makeNumber(current.gradeWindowMeters, {
+        name: "gradeWindowMeters",
         min: 5,
         max: 200,
         step: 1,
     });
     const maxPower = makeNumber(current.maxPowerW, {
+        name: "maxPowerW",
         min: 500,
         max: 4000,
         step: 50,
@@ -192,10 +215,12 @@ export function openPowerEstimationSettingsModal({
     const cancel = document.createElement("button");
     cancel.className = "themed-btn";
     cancel.textContent = "Cancel";
+    cancel.type = "button";
 
     const apply = document.createElement("button");
     apply.className = "themed-btn";
     apply.textContent = "Apply";
+    apply.type = "button";
 
     cancel.addEventListener("click", cleanup, {
         signal: eventListeners.signal,
