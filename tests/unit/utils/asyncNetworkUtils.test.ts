@@ -142,7 +142,7 @@ describe("network utilities", () => {
     });
 
     it("passes an AbortController signal to fetch and clears the timeout", async () => {
-        expect.assertions(8);
+        expect.assertions(4);
 
         const timeoutSpy = vi.spyOn(globalThis, "setTimeout");
         const clearSpy = vi.spyOn(globalThis, "clearTimeout");
@@ -158,20 +158,31 @@ describe("network utilities", () => {
         const fetchCall = getRequiredFetchCall(fetchSpy.mock.calls);
         const [url] = fetchCall;
         const requiredInit = getRequiredFetchInit(fetchCall);
-        expect(url).toBe("https://example.test");
-        expect(requiredInit.signal).toBeInstanceOf(AbortSignal);
-        expect(requiredInit.signal).toHaveProperty("aborted", false);
-
         const timeoutCall = timeoutSpy.mock.calls[0] as TimeoutCall;
         const [timeoutHandler, timeoutMs] = timeoutCall;
         const timeoutHandle = timeoutSpy.mock.results[0]?.value;
-        expect(timeoutMs).toBe(100);
-        expect(timeoutHandler).toBeTypeOf("function");
+
+        expect({
+            signalAborted:
+                requiredInit.signal instanceof AbortSignal
+                    ? requiredInit.signal.aborted
+                    : null,
+            signalIsAbortSignal: requiredInit.signal instanceof AbortSignal,
+            timeoutHandlerType: typeof timeoutHandler,
+            timeoutMs,
+            url,
+        }).toStrictEqual({
+            signalAborted: false,
+            signalIsAbortSignal: true,
+            timeoutHandlerType: "function",
+            timeoutMs: 100,
+            url: "https://example.test",
+        });
         expect(clearSpy).toHaveBeenCalledWith(timeoutHandle);
     });
 
     it("aborts the fetch signal when the timeout elapses", async () => {
-        expect.assertions(4);
+        expect.assertions(3);
         vi.useFakeTimers();
 
         const abortEvents: string[] = [];
@@ -201,8 +212,16 @@ describe("network utilities", () => {
 
         const fetchCall = getRequiredFetchCall(fetchSpy.mock.calls);
         const init = getRequiredFetchInit(fetchCall);
-        expect(fetchCall[0]).toBe("https://example.test/slow");
-        expect(init.signal).toHaveProperty("aborted", true);
+        expect({
+            signalAborted:
+                init.signal instanceof AbortSignal ? init.signal.aborted : null,
+            signalIsAbortSignal: init.signal instanceof AbortSignal,
+            url: fetchCall[0],
+        }).toStrictEqual({
+            signalAborted: true,
+            signalIsAbortSignal: true,
+            url: "https://example.test/slow",
+        });
     });
 
     it("detects abort errors and rejects unrelated values", () => {
