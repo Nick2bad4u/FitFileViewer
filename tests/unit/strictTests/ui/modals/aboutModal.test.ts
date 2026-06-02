@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 type AboutModalModules =
     typeof import("../../../../../electron-app/utils/ui/modals/ensureAboutModal.js") &
@@ -51,11 +51,38 @@ const rafImmediate = (): void => {
     };
 };
 
+function getRequiredElementById(id: string): HTMLElement {
+    const element = document.getElementById(id);
+    if (!(element instanceof HTMLElement)) {
+        throw new TypeError(`Expected #${id} element`);
+    }
+
+    return element;
+}
+
+function getRequiredButtonById(id: string): HTMLButtonElement {
+    const button = document.getElementById(id);
+    if (!(button instanceof HTMLButtonElement)) {
+        throw new TypeError(`Expected #${id} button`);
+    }
+
+    return button;
+}
+
+function getRequiredExternalLink(selector: string): HTMLAnchorElement {
+    const link = document.querySelector(selector);
+    if (!(link instanceof HTMLAnchorElement)) {
+        throw new TypeError(`Expected external link for ${selector}`);
+    }
+
+    return link;
+}
+
 describe("about modal UI behaviors", () => {
     beforeEach(() => {
         vi.restoreAllMocks();
         vi.useFakeTimers();
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
 
         // Provide a focusable element to verify focus restoration
         const focusable = document.createElement("button");
@@ -90,31 +117,37 @@ describe("about modal UI behaviors", () => {
         rafImmediate();
     });
 
+    afterEach(() => {
+        vi.clearAllTimers();
+        vi.useRealTimers();
+        vi.restoreAllMocks();
+        document.body.replaceChildren();
+        Reflect.deleteProperty(window, "electronAPI");
+    });
+
     it("ensures modal creation, shows with content, and closes via close button", async () => {
         expect.assertions(6);
 
         const { ensureAboutModal, showAboutModal } = await importModules();
 
         ensureAboutModal();
-        const modal = document.getElementById("about-modal");
+        const modal = getRequiredElementById("about-modal");
         expect(modal).toBeInstanceOf(HTMLElement);
 
         // Show with custom body content
         showAboutModal('<p id="custom">Hello</p>');
-        const body = document.getElementById("about-modal-body");
-        expect(body?.innerHTML).toContain("Hello");
-        expect(body?.innerHTML).not.toContain("Missing");
+        const body = getRequiredElementById("about-modal-body");
+        expect(body.innerHTML).toContain("Hello");
+        expect(body.innerHTML).not.toContain("Missing");
 
         // Close via the X button
-        const closeBtn = document.getElementById(
-            "about-modal-close"
-        ) as HTMLButtonElement;
+        const closeBtn = getRequiredButtonById("about-modal-close");
         expect(closeBtn).toBeInstanceOf(HTMLButtonElement);
         closeBtn.click();
 
         // Advance timers to allow animation to complete
         vi.advanceTimersByTime(350);
-        expect((modal as HTMLElement).style.display).toBe("none");
+        expect(modal.style.display).toBe("none");
 
         // Focus should be restored to the element focused before showing the modal
         expect(document.activeElement?.id).toBe("focus-origin");
@@ -130,9 +163,7 @@ describe("about modal UI behaviors", () => {
         ensureAboutModal();
         showAboutModal();
 
-        const section = document.getElementById(
-            "info-toggle-section"
-        ) as HTMLElement;
+        const section = getRequiredElementById("info-toggle-section");
         expect(section).toBeInstanceOf(HTMLElement);
         expect(section.innerHTML).toContain("system-info-grid");
         expect(section.innerHTML).not.toContain("missing-system-info-grid");
@@ -152,7 +183,7 @@ describe("about modal UI behaviors", () => {
         ensureAboutModal();
         showAboutModal();
 
-        const modal = document.getElementById("about-modal");
+        const modal = getRequiredElementById("about-modal");
         expect(modal).toBeInstanceOf(HTMLElement);
 
         // Dispatch Escape on document (listener registered in ensureAboutModal)
@@ -163,7 +194,7 @@ describe("about modal UI behaviors", () => {
         document.dispatchEvent(evt);
 
         vi.advanceTimersByTime(350);
-        expect((modal as HTMLElement).style.display).toBe("none");
+        expect(modal.style.display).toBe("none");
     });
 
     it("handles external links using electronAPI when available", async () => {
@@ -175,9 +206,9 @@ describe("about modal UI behaviors", () => {
         ensureAboutModal();
         showAboutModal();
 
-        const link = document.querySelector(
+        const link = getRequiredExternalLink(
             '[data-external-link][href="https://electronjs.org/"]'
-        ) as HTMLAnchorElement;
+        );
         expect(link).toBeInstanceOf(HTMLAnchorElement);
 
         link.click();
