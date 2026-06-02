@@ -116,6 +116,26 @@ function getLatestChartCall(): [HTMLCanvasElement, ChartConfig] {
     return call;
 }
 
+function getRenderedCanvas(container: HTMLElement): HTMLCanvasElement {
+    const canvas = container.querySelector("canvas");
+
+    if (!(canvas instanceof HTMLCanvasElement)) {
+        throw new TypeError("Expected event messages chart canvas to exist");
+    }
+
+    return canvas;
+}
+
+function getFirstChartInstance(): ChartInstanceMock {
+    const chartInstance = getEventMessagesWindow()._chartjsInstances?.[0];
+
+    if (!chartInstance) {
+        throw new TypeError("Expected first Chart.js instance to exist");
+    }
+
+    return chartInstance;
+}
+
 function getRenderState(container: HTMLElement): {
     chartCalls: number;
     childCount: number;
@@ -684,11 +704,11 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
             renderEventMessagesChart(container, {}, new Date());
 
-            const canvas = container.querySelector("canvas");
-            expect(canvas).toBeInstanceOf(HTMLCanvasElement);
-            expect(canvas?.id).toBe("chart-events-0");
-            expect(canvas?.style.borderRadius).toBe("12px");
-            expect(canvas?.style.boxShadow).toBe("0 2px 4px #00000020");
+            const view = getRenderedCanvas(container);
+            expect(view).toBeInstanceOf(HTMLCanvasElement);
+            expect(view.id).toBe("chart-events-0");
+            expect(view.style.borderRadius).toBe("12px");
+            expect(view.style.boxShadow).toBe("0 2px 4px #00000020");
         });
 
         it("should append canvas to container", () => {
@@ -715,9 +735,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
             renderEventMessagesChart(container, {}, new Date());
 
-            const canvas = container.querySelector("canvas");
+            const view = getRenderedCanvas(container);
             // BoxShadow should match the theme shadow value
-            expect(canvas?.style.boxShadow).toBe("0 2px 4px #00000020");
+            expect(view.style.boxShadow).toBe("0 2px 4px #00000020");
         });
     });
 
@@ -730,7 +750,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             renderEventMessagesChart(container, {}, new Date());
 
             expect(window._chartjsInstances).toHaveLength(1);
-            expect(window._chartjsInstances?.[0]).toBe(mockChart);
+            expect(getFirstChartInstance()).toBe(mockChart);
         });
 
         it("should initialize global instances array if it doesn't exist", () => {
@@ -758,7 +778,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
                 mockChart,
                 "Event Messages"
             );
-            expect(window._chartjsInstances?.[0]).toBe(mockChart);
+            expect(getFirstChartInstance()).toBe(mockChart);
         });
     });
 
