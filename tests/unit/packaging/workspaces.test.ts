@@ -81,6 +81,7 @@ type WorkspacesModule = {
     rootAlternativeFitViewIndexPath: string;
     rootAlternativeFitViewManifestPath: string;
     rootAppCssGlobPath: string;
+    rootApiDocumentationDocPath: string;
     rootAppElevProfileCssPath: string;
     rootAppFaviconPath: string;
     rootAppIconsPath: string;
@@ -516,6 +517,7 @@ describe("workspace path helpers", () => {
             docusaurusReadme: workspaces.docusaurusReadmeRepositoryPath,
             rootApplicationArchitecture:
                 workspaces.rootApplicationArchitectureDocPath,
+            rootApiDocumentation: workspaces.rootApiDocumentationDocPath,
             rootApplicationLayout: workspaces.rootApplicationLayoutDocPath,
             rootApplicationOverview: workspaces.rootApplicationOverviewDocPath,
             rootAgents: workspaces.rootAgentsPath,
@@ -551,6 +553,7 @@ describe("workspace path helpers", () => {
             docusaurusHomePage: "docusaurus/src/pages/index.tsx",
             docusaurusReadme: "docusaurus/README.md",
             rootApplicationArchitecture: "docs/APPLICATION_ARCHITECTURE.md",
+            rootApiDocumentation: "docs/API_DOCUMENTATION.md",
             rootApplicationLayout: "docs/APPLICATION_LAYOUT.md",
             rootApplicationOverview: "docs/APPLICATION_OVERVIEW.md",
             rootAgents: "AGENTS.md",

@@ -43,6 +43,10 @@ export const rootApplicationOverviewDocPath = path.posix.join(
     rootDocsPath,
     "APPLICATION_OVERVIEW.md"
 );
+export const rootApiDocumentationDocPath = path.posix.join(
+    rootDocsPath,
+    "API_DOCUMENTATION.md"
+);
 export const rootDevelopmentGuideDocPath = path.posix.join(
     rootDocsPath,
     "DEVELOPMENT_GUIDE.md"

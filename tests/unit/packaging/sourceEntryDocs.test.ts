@@ -14,6 +14,7 @@ import {
     docusaurusArchitectureProcessModelDocPath,
     docusaurusArchitectureSecurityDocPath,
     rootAgentsPath,
+    rootApiDocumentationDocPath,
     rootApplicationArchitectureDocPath,
     rootApplicationLayoutDocPath,
     rootApplicationOverviewDocPath,
@@ -45,6 +46,19 @@ const FIT_PARSER_API_DOCS = [
     docusaurusAdvancedPerformanceDocPath,
     docusaurusApiCoreApisDocPath,
     docusaurusApiIpcCommunicationDocPath,
+];
+
+const staleFlatUtilityApiReferences = [
+    "./utils/formatting/formatDistance.js",
+    "./utils/formatting/formatDuration.js",
+    "./utils/formatting/formatSpeed.js",
+    "./utils/maps/renderMap.js",
+    "./utils/maps/mapDrawLaps.js",
+    "./utils/charts/renderChartJS.js",
+    "./utils/charts/chartSpec.js",
+    "./utils/state/stateManager.js",
+    "./utils/state/themeManager.js",
+    "./utils/state/fileStateManager.js",
 ];
 
 function readWorkspaceFile(relativePath: string): string {
@@ -336,19 +350,6 @@ describe("source entrypoint documentation", () => {
             "electron-app/utils/state/core/stateManager.ts",
             "electron-app/utils/state/domain/settingsStateManager.ts",
         ];
-        const staleApiReferences = [
-            "./utils/formatting/formatDistance.js",
-            "./utils/formatting/formatDuration.js",
-            "./utils/formatting/formatSpeed.js",
-            "./utils/maps/renderMap.js",
-            "./utils/maps/mapDrawLaps.js",
-            "./utils/charts/renderChartJS.js",
-            "./utils/charts/chartSpec.js",
-            "./utils/state/stateManager.js",
-            "./utils/state/themeManager.js",
-            "./utils/state/fileStateManager.js",
-        ];
-
         expect(getPathStates(currentApiSourceExamples)).toStrictEqual(
             Object.fromEntries(
                 currentApiSourceExamples.map((sourcePath) => [
@@ -363,10 +364,61 @@ describe("source entrypoint documentation", () => {
             )
         ).toStrictEqual([]);
         expect(
-            staleApiReferences.filter((reference) =>
+            staleFlatUtilityApiReferences.filter((reference) =>
                 utilityApiReference.includes(reference)
             )
         ).toStrictEqual([]);
+    });
+
+    it("keeps the root API documentation as a current maintained index", () => {
+        expect.assertions(4);
+
+        const rootApiDocumentation = readWorkspaceFile(
+            rootApiDocumentationDocPath
+        );
+        const maintainedApiReferences = [
+            "docusaurus/docs/api-reference/core-apis.md",
+            "docusaurus/docs/api-reference/ipc-communication.md",
+            "docusaurus/docs/api-reference/utility-apis.md",
+            "docusaurus/docs/api-reference/state-management.md",
+            "docusaurus/docs/api/",
+            "electron-app/fitParser.ts",
+            "electron-app/main.ts",
+            "electron-app/preload.ts",
+            "electron-app/renderer.ts",
+        ];
+        const staleRootApiReferences = [
+            ...staleFlatUtilityApiReferences,
+            "./utils/charts/vegaLiteCharts.js",
+            "./utils/maps/mapControls.js",
+            "./utils/data/createTables.js",
+            "./utils/ui/copyTableAsCSV.js",
+            "./utils/state/core/unifiedStateManager.js",
+            "./utils/errors/index.js",
+            "./utils/config/index.js",
+            "./tests/utils/testEnvironment.js",
+            "./tests/utils/componentHelpers.js",
+            "./tests/utils/integrationHelpers.js",
+            "PluginBase",
+            "Vega-Lite",
+        ];
+
+        expect(getPathStates([rootApiDocumentationDocPath])).toStrictEqual({
+            [rootApiDocumentationDocPath]: "present",
+        });
+        expect(
+            maintainedApiReferences.filter(
+                (reference) => !rootApiDocumentation.includes(reference)
+            )
+        ).toStrictEqual([]);
+        expect(
+            staleRootApiReferences.filter((reference) =>
+                rootApiDocumentation.includes(reference)
+            )
+        ).toStrictEqual([]);
+        expect(rootApiDocumentation).toContain(
+            "Root API documentation is an index, not a second source of API truth."
+        );
     });
 
     it("documents only current root tooling files in the root layout guide", () => {
