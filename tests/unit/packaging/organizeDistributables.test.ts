@@ -278,7 +278,9 @@ describe("organize-distributables script", () => {
             copiedFiles: [],
             processedArtifacts: [],
         });
-        expect(fs.existsSync(outputDirectory)).toBe(false);
+        expect(getPathStates(temporaryRoot, ["release-dist"])).toStrictEqual({
+            "release-dist": "missing",
+        });
     });
 
     it("does not create output when artifacts contain no dist directories", async () => {
@@ -305,11 +307,13 @@ describe("organize-distributables script", () => {
             copiedFiles: [],
             processedArtifacts: [],
         });
-        expect(fs.existsSync(outputDirectory)).toBe(false);
+        expect(getPathStates(temporaryRoot, ["release-dist"])).toStrictEqual({
+            "release-dist": "missing",
+        });
     });
 
     it("does not create output for dist artifacts without distributables", async () => {
-        expect.assertions(3);
+        expect.assertions(2);
 
         const { organizeDistributables } = await importOrganizeDistributables();
         const temporaryRoot = makeTemporaryRoot();
@@ -332,10 +336,15 @@ describe("organize-distributables script", () => {
             copiedFiles: [],
             processedArtifacts: [],
         });
-        expect(fs.existsSync(outputDirectory)).toBe(false);
         expect(
-            fs.existsSync(path.join(outputDirectory, "windows-latest-x64"))
-        ).toBe(false);
+            getPathStates(temporaryRoot, [
+                "release-dist",
+                path.join("release-dist", "windows-latest-x64"),
+            ])
+        ).toStrictEqual({
+            [path.join("release-dist", "windows-latest-x64")]: "missing",
+            "release-dist": "missing",
+        });
     });
 
     it("parses artifacts and output directory arguments", async () => {
