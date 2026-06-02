@@ -121,6 +121,19 @@ function getLatestChartCall(): [HTMLCanvasElement, ChartConfig] {
     return call;
 }
 
+function getRenderedCanvas(container: HTMLElement): HTMLCanvasElement {
+    const canvas = container.querySelector("canvas");
+    const CanvasConstructor = getChartTestGlobal().HTMLCanvasElement;
+
+    if (!CanvasConstructor || !(canvas instanceof CanvasConstructor)) {
+        throw new TypeError(
+            "Expected rendered altitude profile canvas to exist"
+        );
+    }
+
+    return canvas as HTMLCanvasElement;
+}
+
 // Mock Chart.js
 let Chart: ChartConstructorMock;
 let chartInstanceMock: ChartInstanceMock;
@@ -766,18 +779,18 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            const canvas = container.querySelector("canvas");
-            expect(canvas?.tagName.toLowerCase()).toBe("canvas");
-            expect(canvas?.id).toBe("chart-altitude-profile-0");
-            expect(canvas?.id).not.toBe("chart-altitude-0");
+            const view = getRenderedCanvas(container);
+            expect(view.tagName.toLowerCase()).toBe("canvas");
+            expect(view.id).toBe("chart-altitude-profile-0");
+            expect(view.id).not.toBe("chart-altitude-0");
             expect({
-                borderRadius: canvas?.style.borderRadius,
+                borderRadius: view.style.borderRadius,
                 childCount: container.children.length,
             }).toStrictEqual({
                 borderRadius: "12px",
                 childCount: 1,
             });
-            expect(canvas?.style.background).toMatch(
+            expect(view.style.background).toMatch(
                 /(#ffffff|rgb\(255,\s*255,\s*255\))/
             );
         });
@@ -823,11 +836,11 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            const canvas = container.querySelector("canvas");
-            expect(canvas?.style.background).toMatch(
+            const view = getRenderedCanvas(container);
+            expect(view.style.background).toMatch(
                 /(#ffffff|rgb\(255,\s*255,\s*255\))/
             );
-            expect(canvas?.style.boxShadow).toBe("0 2px 16px 0 #00000020");
+            expect(view.style.boxShadow).toBe("0 2px 16px 0 #00000020");
         });
     });
 
@@ -898,7 +911,9 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            expect(container.children[0]?.tagName.toLowerCase()).toBe("canvas");
+            expect(getRenderedCanvas(container).tagName.toLowerCase()).toBe(
+                "canvas"
+            );
             expect(console.log).toHaveBeenCalledWith(
                 "[ChartJS] Altitude Profile chart created successfully"
             );
