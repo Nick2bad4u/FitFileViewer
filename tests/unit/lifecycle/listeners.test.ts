@@ -176,7 +176,7 @@ describe("utils/app/lifecycle/listeners.js", () => {
         expect({
             isOpeningFile: isOpeningFileRef.current,
             openedDatasetValue: openFileBtn.dataset.opened,
-        }).toEqual({
+        }).toStrictEqual({
             isOpeningFile: true,
             openedDatasetValue: "true",
         });
