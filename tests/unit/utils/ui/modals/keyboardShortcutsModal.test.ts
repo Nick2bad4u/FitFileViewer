@@ -67,17 +67,40 @@ function getClassList(element: Element): string[] {
 }
 
 function getModalDisplayState(modal: HTMLElement) {
+    const describedBy = modal.getAttribute("aria-describedby"),
+        labelledBy = modal.getAttribute("aria-labelledby");
+
     return {
+        ariaDescribedBy: describedBy,
+        ariaLabelledBy: labelledBy,
+        ariaModal: modal.getAttribute("aria-modal"),
+        categoryTitles: Array.from(
+            modal.querySelectorAll(".shortcuts-category-title"),
+            (title) => title.textContent
+        ),
         classList: getClassList(modal),
         display: modal.style.display,
         id: modal.id,
+        role: modal.getAttribute("role"),
+        shortcutActions: Array.from(
+            modal.querySelectorAll(".shortcut-action"),
+            (action) => action.textContent
+        ),
+        subtitle:
+            describedBy === null
+                ? undefined
+                : document.getElementById(describedBy)?.textContent,
+        title:
+            labelledBy === null
+                ? undefined
+                : document.getElementById(labelledBy)?.textContent,
     };
 }
 
 describe("keyboardShortcutsModal", () => {
     afterEach(() => {
-        document.body.innerHTML = "";
-        document.head.innerHTML = "";
+        document.body.replaceChildren();
+        document.head.replaceChildren();
         document.body.style.overflow = "";
         delete (globalThis as any).electronAPI;
         rafMock.mockClear();
@@ -110,6 +133,14 @@ describe("keyboardShortcutsModal", () => {
             "keyboard shortcuts modal"
         );
         expect(getModalDisplayState(keyboardShortcutsModal)).toStrictEqual({
+            ariaDescribedBy: "keyboard-shortcuts-modal-subtitle",
+            ariaLabelledBy: "keyboard-shortcuts-modal-title",
+            ariaModal: "true",
+            categoryTitles: [
+                "File Operations",
+                "View Controls",
+                "Application",
+            ],
             classList: [
                 "modal",
                 "fancy-modal",
@@ -117,6 +148,20 @@ describe("keyboardShortcutsModal", () => {
             ],
             display: "flex",
             id: "keyboard-shortcuts-modal",
+            role: "dialog",
+            shortcutActions: [
+                "Open File",
+                "Save As",
+                "Print",
+                "Close Window",
+                "Reload",
+                "Toggle Fullscreen",
+                "Toggle DevTools",
+                "Export",
+                "Theme: Dark/Light",
+            ],
+            subtitle: "Boost your productivity with these keyboard shortcuts",
+            title: "Keyboard Shortcuts",
         });
 
         const closeBtn =
@@ -163,9 +208,31 @@ describe("keyboardShortcutsModal", () => {
 
         closeKeyboardShortcutsModal();
         expect(getModalDisplayState(keyboardShortcutsModal)).toStrictEqual({
+            ariaDescribedBy: "keyboard-shortcuts-modal-subtitle",
+            ariaLabelledBy: "keyboard-shortcuts-modal-title",
+            ariaModal: "true",
+            categoryTitles: [
+                "File Operations",
+                "View Controls",
+                "Application",
+            ],
             classList: ["modal", "fancy-modal"],
             display: "flex",
             id: "keyboard-shortcuts-modal",
+            role: "dialog",
+            shortcutActions: [
+                "Open File",
+                "Save As",
+                "Print",
+                "Close Window",
+                "Reload",
+                "Toggle Fullscreen",
+                "Toggle DevTools",
+                "Export",
+                "Theme: Dark/Light",
+            ],
+            subtitle: "Boost your productivity with these keyboard shortcuts",
+            title: "Keyboard Shortcuts",
         });
 
         vi.advanceTimersByTime(350);

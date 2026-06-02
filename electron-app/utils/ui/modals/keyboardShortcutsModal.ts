@@ -138,6 +138,10 @@ function ensureKeyboardShortcutsModal(): void {
     const modal = document.createElement("div");
     modal.id = "keyboard-shortcuts-modal";
     modal.className = "modal fancy-modal";
+    modal.setAttribute("aria-describedby", "keyboard-shortcuts-modal-subtitle");
+    modal.setAttribute("aria-labelledby", "keyboard-shortcuts-modal-title");
+    modal.setAttribute("aria-modal", "true");
+    modal.setAttribute("role", "dialog");
     modal.style.display = "none";
     modal.append(createKeyboardShortcutsModalContent());
     document.body.append(modal);
@@ -191,6 +195,7 @@ function createKeyboardShortcutsModalContent(): HTMLElement {
     body.className = "modal-body";
 
     const title = document.createElement("h1");
+    title.id = "keyboard-shortcuts-modal-title";
     title.className = "modal-title";
     const titleText = document.createElement("span");
     titleText.className = "title-gradient";
@@ -198,6 +203,7 @@ function createKeyboardShortcutsModalContent(): HTMLElement {
     title.append(titleText);
 
     const subtitle = document.createElement("p");
+    subtitle.id = "keyboard-shortcuts-modal-subtitle";
     subtitle.className = "modal-subtitle";
     subtitle.textContent =
         "Boost your productivity with these keyboard shortcuts";
