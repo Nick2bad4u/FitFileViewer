@@ -8,7 +8,7 @@ describe(getErrorInfo, () => {
         const error = new TypeError("Invalid FIT payload");
         const result = getErrorInfo(error);
 
-        expect(result).toEqual({
+        expect(result).toStrictEqual({
             message: "Invalid FIT payload",
             stack: error.stack,
         });
@@ -23,7 +23,7 @@ describe(getErrorInfo, () => {
                 stack: "Error: ENOENT\n    at Object.openSync",
                 code: "ENOENT",
             })
-        ).toEqual({
+        ).toStrictEqual({
             message: "ENOENT: no such file or directory",
             stack: "Error: ENOENT\n    at Object.openSync",
         });
@@ -32,7 +32,7 @@ describe(getErrorInfo, () => {
     it("falls back to object stringification for missing or non-string messages", () => {
         expect.assertions(2);
 
-        expect(getErrorInfo({ stack: "Stack without message" })).toEqual({
+        expect(getErrorInfo({ stack: "Stack without message" })).toStrictEqual({
             message: "[object Object]",
             stack: "Stack without message",
         });
@@ -42,7 +42,7 @@ describe(getErrorInfo, () => {
                 message: 404,
                 stack: { frame: "ignored" },
             })
-        ).toEqual({ message: "[object Object]" });
+        ).toStrictEqual({ message: "[object Object]" });
     });
 
     it("stringifies primitive thrown values", () => {
@@ -58,7 +58,7 @@ describe(getErrorInfo, () => {
         ]);
 
         for (const [thrownValue, message] of expectedMessages) {
-            expect(getErrorInfo(thrownValue)).toEqual({ message });
+            expect(getErrorInfo(thrownValue)).toStrictEqual({ message });
         }
     });
 
@@ -71,6 +71,6 @@ describe(getErrorInfo, () => {
             response: { status: 500 },
         });
 
-        expect(Object.keys(result)).toEqual(["message", "stack"]);
+        expect(Object.keys(result)).toStrictEqual(["message", "stack"]);
     });
 });

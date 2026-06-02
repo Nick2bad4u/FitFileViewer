@@ -50,7 +50,7 @@ describe("formatAntNames", () => {
                 "unknown",
                 null,
             ].map((manufacturerId) => getManufacturerName(manufacturerId))
-        ).toEqual([
+        ).toStrictEqual([
             "garmin",
             "garmin",
             "wahoo_fitness",
@@ -74,7 +74,7 @@ describe("formatAntNames", () => {
             ].map(([manufacturerId, productId]) =>
                 getProductName(manufacturerId, productId)
             )
-        ).toEqual([
+        ).toStrictEqual([
             "edge500",
             "edge_130",
             "kickr",
@@ -87,15 +87,15 @@ describe("formatAntNames", () => {
     it("combines manufacturer and product lookups", () => {
         expect.assertions(3);
 
-        expect(getManufacturerAndProduct(1, 717)).toEqual({
+        expect(getManufacturerAndProduct(1, 717)).toStrictEqual({
             manufacturerName: "garmin",
             productName: "edge_130",
         });
-        expect(getManufacturerAndProduct(255)).toEqual({
+        expect(getManufacturerAndProduct(255)).toStrictEqual({
             manufacturerName: "development",
             productName: null,
         });
-        expect(getManufacturerAndProduct(999, 123)).toEqual({
+        expect(getManufacturerAndProduct(999, 123)).toStrictEqual({
             manufacturerName: 999,
             productName: 123,
         });
@@ -114,7 +114,7 @@ describe("formatAntNames", () => {
             ].map((manufacturerName) =>
                 getManufacturerIdFromName(manufacturerName)
             )
-        ).toEqual([
+        ).toStrictEqual([
             1,
             32,
             32,
@@ -140,7 +140,7 @@ describe("formatAntNames", () => {
 
         expect(
             invalidNames.map((value) => getManufacturerIdFromName(value))
-        ).toEqual([
+        ).toStrictEqual([
             null,
             null,
             null,
