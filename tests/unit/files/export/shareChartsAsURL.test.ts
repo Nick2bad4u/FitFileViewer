@@ -156,26 +156,46 @@ describe("shareChartsAsURL with Imgur fallback", () => {
         );
     });
 
-    it("should call showChartSelectionModal when shareChartsAsURL is invoked", async () => {
+    it("should register working chart URL share callbacks", async () => {
         expect.assertions(4);
+
+        // Arrange
+        vi.spyOn(exportUtils, "getImgurConfig").mockReturnValue({
+            clientId: "YOUR_IMGUR_CLIENT_ID",
+            uploadUrl: "https://api.imgur.com/3/image",
+        });
 
         // Act
         await exportUtils.shareChartsAsURL();
 
-        // Assert
         const [
             actionType,
             singleCallback,
             combinedCallback,
-        ] = mockShowChartSelectionModal.mock.calls[0] ?? [];
+        ] = mockShowChartSelectionModal.mock.calls[0] as [
+            string,
+            ShareSingleChartCallback,
+            ShareCombinedChartsCallback,
+        ];
 
+        await singleCallback(createMockChart(320, 180));
+        await combinedCallback([
+            createMockChart(400, 300),
+            createMockChart(400, 300),
+        ]);
+
+        // Assert
         expect(actionType).toBe("share URL");
-        expect(singleCallback).toBeTypeOf("function");
-        expect(combinedCallback).toBeTypeOf("function");
         expect(mockShowChartSelectionModal).toHaveBeenCalledExactlyOnceWith(
             "share URL",
             singleCallback,
             combinedCallback
+        );
+        expect(mockWriteText.mock.calls[0]?.[0]).toBe(
+            createPngDataUrl(320, 180)
+        );
+        expect(mockWriteText.mock.calls[1]?.[0]).toBe(
+            createPngDataUrl(1620, 400)
         );
     });
 
