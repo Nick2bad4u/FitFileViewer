@@ -136,6 +136,35 @@ function getOverlayItemStates(container: HTMLElement) {
     return getOverlayItems(container).map((item) => getOverlayItemState(item));
 }
 
+function getClearAllButton(container: HTMLElement): HTMLButtonElement {
+    const button = container.querySelector(".overlay-clear-all-btn");
+    if (!(button instanceof HTMLButtonElement)) {
+        throw new Error("Expected clear all button to exist");
+    }
+
+    return button;
+}
+
+function getClearAllButtonState(container: HTMLElement) {
+    const button = getClearAllButton(container);
+
+    return {
+        ariaLabel: button.getAttribute("aria-label"),
+        background: button.style.background,
+        border: button.style.border,
+        borderRadius: button.style.borderRadius,
+        color: button.style.color,
+        cursor: button.style.cursor,
+        float: button.style.float,
+        fontSize: button.style.fontSize,
+        margin: button.style.margin,
+        padding: button.style.padding,
+        text: button.textContent,
+        title: button.title,
+        type: button.type,
+    };
+}
+
 describe("createShownFilesList", () => {
     let createShownFilesList: () => HTMLElement;
 
@@ -982,12 +1011,12 @@ describe("createShownFilesList", () => {
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
 
-            const clearAllBtn = container.querySelector(
-                ".overlay-clear-all-btn"
-            ) as HTMLElement;
-            expect(clearAllBtn).toBeInstanceOf(HTMLButtonElement);
-            expect(clearAllBtn.textContent).toBe("Clear All");
-            expect(clearAllBtn.title).toBe("Remove all overlays from the map");
+            expect(getClearAllButtonState(container)).toMatchObject({
+                ariaLabel: "Remove all overlays from the map",
+                text: "Clear All",
+                title: "Remove all overlays from the map",
+                type: "button",
+            });
         });
 
         it("styles clear all button correctly", () => {
@@ -995,19 +1024,17 @@ describe("createShownFilesList", () => {
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
 
-            const clearAllBtn = container.querySelector(
-                ".overlay-clear-all-btn"
-            ) as HTMLElement;
-            expect(clearAllBtn.style.background).toMatch(
-                /(#e53935|rgb\(229,\s*57,\s*53\))/
-            );
-            expect(clearAllBtn.style.color).toMatch(
-                /(#fff|rgb\(255,\s*255,\s*255\)|white)/
-            );
-            expect(clearAllBtn.style.border).toMatch(/(none|medium|0)/);
-            expect(clearAllBtn.style.borderRadius).toBe("4px");
-            expect(clearAllBtn.style.cursor).toBe("pointer");
-            expect(clearAllBtn.style.float).toBe("right");
+            expect(getClearAllButtonState(container)).toMatchObject({
+                background: "rgb(229, 57, 53)",
+                border: "medium",
+                borderRadius: "4px",
+                color: "rgb(255, 255, 255)",
+                cursor: "pointer",
+                float: "right",
+                fontSize: "0.95em",
+                margin: "8px 0px 0px",
+                padding: "3px 12px",
+            });
         });
 
         it("removes all overlays when clear all clicked", () => {
@@ -1015,14 +1042,16 @@ describe("createShownFilesList", () => {
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
 
-            const clearAllBtn = container.querySelector(
-                ".overlay-clear-all-btn"
-            ) as HTMLElement;
-            clearAllBtn.click();
+            getClearAllButton(container).click();
 
-            expect((global.window as any).loadedFitFiles).toHaveLength(1); // Only main file left
+            expect((global.window as any).loadedFitFiles).toStrictEqual([
+                { data: {}, filePath: "main.fit" },
+            ]);
             expect((global.window as any).renderMap).toHaveBeenCalledWith();
             expect(getOverlayItems(container)).toStrictEqual([]);
+            expect(
+                container.querySelector(".overlay-clear-all-btn")
+            ).toBeNull();
         });
 
         it("prevents event propagation on clear all click", () => {
@@ -1030,16 +1059,15 @@ describe("createShownFilesList", () => {
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
 
-            const clearAllBtn = container.querySelector(
-                ".overlay-clear-all-btn"
-            ) as HTMLElement;
             const clickEvent = new MouseEvent("click", { bubbles: true });
             const stopPropagationSpy = vi.spyOn(clickEvent, "stopPropagation");
 
-            clearAllBtn.dispatchEvent(clickEvent);
+            getClearAllButton(container).dispatchEvent(clickEvent);
 
             expect(stopPropagationSpy).toHaveBeenCalledWith();
-            expect((global.window as any).loadedFitFiles).toHaveLength(1);
+            expect((global.window as any).loadedFitFiles).toStrictEqual([
+                { data: {}, filePath: "main.fit" },
+            ]);
         });
 
         it("cleans up tooltips after clearing all", async () => {
@@ -1051,10 +1079,7 @@ describe("createShownFilesList", () => {
             mockTooltip.className = "overlay-filename-tooltip";
             document.body.appendChild(mockTooltip);
 
-            const clearAllBtn = container.querySelector(
-                ".overlay-clear-all-btn"
-            ) as HTMLElement;
-            clearAllBtn.click();
+            getClearAllButton(container).click();
 
             await Promise.resolve();
 

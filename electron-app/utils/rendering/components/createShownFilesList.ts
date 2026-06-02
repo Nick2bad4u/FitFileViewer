@@ -390,6 +390,9 @@ export function createShownFilesList(): HTMLElement {
         shownFilesList.replaceChildren();
         const files = overlayGlobal.loadedFitFiles;
         if (!files || files.length <= 1) {
+            shownFilesList.parentElement
+                ?.querySelector(".overlay-clear-all-btn")
+                ?.remove();
             container.style.display = "none";
             container.setAttribute("aria-disabled", "true");
             assignKeyboardFocus(-1);
