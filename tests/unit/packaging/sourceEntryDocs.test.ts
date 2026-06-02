@@ -345,6 +345,62 @@ describe("source entrypoint documentation", () => {
         ).toStrictEqual([]);
     });
 
+    it("keeps the root architecture guide aligned with current utility source", () => {
+        expect.assertions(4);
+
+        const architectureGuide = readWorkspaceFile(
+            rootApplicationArchitectureDocPath
+        );
+        const currentArchitectureSourceExamples = [
+            "electron-app/utils/charts/core/renderChartJS.ts",
+            "electron-app/utils/charts/core/chartSpecFactory.ts",
+            "electron-app/utils/maps/core/renderMap.ts",
+            "electron-app/utils/maps/layers/mapDrawLaps.ts",
+            "electron-app/utils/state/core/stateManager.ts",
+            "electron-app/utils/files/import/handleOpenFile.ts",
+            "electron-app/utils/rendering/components/createTables.ts",
+            "electron-app/utils/ui/tabs/tabStateManager.ts",
+        ];
+        const staleArchitectureReferences = [
+            "aboutModal.js",
+            "appMenu.js",
+            "notifications.js",
+            "chartSpec.js",
+            "vegaLiteUtils.js",
+            "tabManager.js",
+            "setupWindow.js",
+            "./utils/maps/renderMap.js",
+            "./utils/charts/renderChartJS.js",
+            "├── renderChartJS.js",
+            "├── renderMap.js",
+            "├── mapDrawLaps.js",
+            "Vega-Lite",
+            "vegaLite",
+        ];
+
+        expect(getPathStates(currentArchitectureSourceExamples)).toStrictEqual(
+            Object.fromEntries(
+                currentArchitectureSourceExamples.map((sourcePath) => [
+                    sourcePath,
+                    "present",
+                ])
+            )
+        );
+        expect(
+            currentArchitectureSourceExamples.filter(
+                (sourcePath) => !architectureGuide.includes(sourcePath)
+            )
+        ).toStrictEqual([]);
+        expect(
+            staleArchitectureReferences.filter((reference) =>
+                architectureGuide.includes(reference)
+            )
+        ).toStrictEqual([]);
+        expect(architectureGuide).toContain(
+            'charts: "Chart.js rendering"'
+        );
+    });
+
     it("keeps the Docusaurus utility API reference aligned with current utility source", () => {
         expect.assertions(3);
 

@@ -59,8 +59,7 @@ FitFileViewer is a cross-platform desktop Electron application for viewing and a
 │                     Presentation Layer                      │
 │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌──────────┐│
 │  │    Maps     │ │   Charts    │ │   Tables    │ │   UI     ││
-│  │  (Leaflet)  │ │(Chart.js/   │ │(DataTables) │ │Components││
-│  │             │ │ Vega-Lite)  │ │             │ │          ││
+│  │  (Leaflet)  │ │ (Chart.js)  │ │(DataTables) │ │Components││
 │  └─────────────┘ └─────────────┘ └─────────────┘ └──────────┘│
 ├─────────────────────────────────────────────────────────────┤
 │                     Business Logic Layer                    │
@@ -94,49 +93,35 @@ FitFileViewer is a cross-platform desktop Electron application for viewing and a
 | `preload.ts`  | Security Bridge  | Secure IPC communication, context isolation            |
 | `main-ui.ts`  | UI Manager       | Tab management, user interactions                      |
 
-### 2. Utility Module System (50+ modules)
+### 2. Utility Module System
 
 ```text
-utils/
-├── app/                     # Application-level utilities
-│   ├── aboutModal.js       # About dialog management
-│   ├── appMenu.js          # Menu system creation
-│   └── notifications.js    # User notification system
-├── charts/                 # Data visualization
-│   ├── chartSpec.js        # Chart configuration
-│   ├── renderChartJS.js    # Chart.js integration
-│   └── vegaLiteUtils.js    # Vega-Lite charts
-├── config/                 # Configuration management
-│   └── constants.js        # Centralized constants
-├── data/                   # Data processing
-│   ├── createTables.js     # Table generation
-│   ├── formatUtils.js      # Data formatting
-│   └── patchSummaryFields.js # Data normalization
-├── errors/                 # Error handling system
-│   └── errorHandling.js    # Unified error patterns
-├── files/                  # File operations
-│   ├── handleOpenFile.js   # File opening logic
-│   ├── recentFiles.js      # Recent files management
-│   └── fileValidation.js   # File format validation
-├── formatting/             # Data formatting utilities
-│   ├── converters/         # Unit conversion
-│   └── formatters/         # Display formatting
-├── maps/                   # Map visualization
-│   ├── renderMap.js        # Leaflet map rendering
-│   ├── mapBaseLayers.js    # Map tile providers
-│   ├── mapDrawLaps.js      # Route visualization
-│   └── mapTheme.js         # Theme switching
-├── state/                  # State management
-│   ├── core/              # Core state system
-│   └── managers/          # State managers
-├── theming/               # Theme management
-│   ├── setupTheme.js      # Theme initialization
-│   └── updateMapTheme.js  # Map theme updates
-└── ui/                    # UI components
-    ├── tabManager.js      # Tab system
-    ├── fullscreen.js      # Fullscreen handling
-    └── setupWindow.js     # Window initialization
+electron-app/utils/
+├── app/          # Application initialization helpers
+├── charts/       # Chart.js rendering and chart specification factories
+├── config/       # Constants, feature flags, and configuration helpers
+├── data/         # FIT data processing, tables, and summary normalization
+├── errors/       # Error handling helpers
+├── files/        # File import, recent-file, and validation flows
+├── formatting/   # Unit converters and display formatters
+├── maps/         # Leaflet controls, layers, markers, and route rendering
+├── state/        # Core state manager plus domain state boundaries
+├── theming/      # Theme setup and map-theme utilities
+└── ui/           # Controls, dialogs, tabs, and renderer UI helpers
 ```
+
+Representative TypeScript source modules:
+
+| Source | Role |
+| --- | --- |
+| `electron-app/utils/charts/core/renderChartJS.ts` | Chart.js tab rendering orchestration |
+| `electron-app/utils/charts/core/chartSpecFactory.ts` | Chart specification creation |
+| `electron-app/utils/maps/core/renderMap.ts` | Leaflet map rendering orchestration |
+| `electron-app/utils/maps/layers/mapDrawLaps.ts` | Lap and route overlay drawing |
+| `electron-app/utils/state/core/stateManager.ts` | Observable application state |
+| `electron-app/utils/files/import/handleOpenFile.ts` | File-open workflow |
+| `electron-app/utils/rendering/components/createTables.ts` | DataTables creation |
+| `electron-app/utils/ui/tabs/tabStateManager.ts` | Tab state and activation |
 
 ### 3. Data Processing Pipeline
 
@@ -199,7 +184,7 @@ const RendererProcess = {
   updates: "Dynamic UI updates",
  },
  dataVisualization: {
-  charts: "Chart.js + Vega-Lite rendering",
+  charts: "Chart.js rendering",
   maps: "Leaflet map management",
   tables: "DataTables integration",
  },
@@ -224,7 +209,7 @@ import {
 } from "./utils/formatting/index.js";
 
 // Lazy loading for performance
-const { renderMap } = await import("./utils/maps/renderMap.js");
+const { renderMap } = await import("./utils/maps/core/renderMap.js");
 
 // Centralized configuration
 import { DISTANCE_UNITS, CONVERSION_FACTORS } from "./utils/config/index.js";
@@ -235,7 +220,7 @@ import { DISTANCE_UNITS, CONVERSION_FACTORS } from "./utils/config/index.js";
 | Category       | Purpose                         | Key Modules                           |
 | -------------- | ------------------------------- | ------------------------------------- |
 | **App**        | Application-level functionality | aboutModal, appMenu, notifications    |
-| **Charts**     | Data visualization              | chartSpec, renderChartJS, vegaLite    |
+| **Charts**     | Data visualization              | chartSpecFactory, renderChartJS       |
 | **Config**     | Configuration management        | constants, settings                   |
 | **Data**       | Data processing                 | createTables, formatUtils, validation |
 | **Errors**     | Error handling                  | errorHandling, recovery, logging      |
@@ -428,7 +413,7 @@ const PerformanceStrategy = {
   caching: "Processed data caching",
  },
  rendering: {
-  virtualizeation: "Virtual scrolling for large tables",
+  virtualization: "Virtual scrolling for large tables",
   debouncing: "Debounced user interactions",
   requestAnimationFrame: "Smooth animations",
  },
