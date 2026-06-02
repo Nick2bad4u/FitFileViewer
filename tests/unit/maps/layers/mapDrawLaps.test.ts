@@ -520,7 +520,7 @@ describe("mapDrawLaps", () => {
         });
 
         it('should handle lapIdx="all" with valid GPS data', () => {
-            expect.assertions(11);
+            expect.assertions(12);
 
             // Setup comprehensive mock data for "all" laps scenario
             const mockRecordMesgs = [
@@ -631,9 +631,45 @@ describe("mapDrawLaps", () => {
                 color: "#1976d2",
                 fillColor: "#fff",
             });
+            expect(
+                (globalThis as any).window._ffvDataPointMarkers
+            ).toHaveLength(3);
 
             // Cleanup
             document.body.removeChild(mapContainer);
+        });
+
+        it("should render a no-location message when every record lacks valid coordinates", () => {
+            expect.assertions(5);
+
+            (globalThis as any).globalData = {
+                recordMesgs: [{ altitude: 101 }, { positionLat: "invalid" }],
+                lapMesgs: [{ end_index: 1, start_index: 0 }],
+            };
+            (globalThis as any).mapMarkerCount = 0;
+
+            const mapContainer = document.createElement("div");
+            mockMap._container = mapContainer;
+
+            mapDrawLaps("all", {
+                map: mockMap,
+                baseLayers: { base: mockMap },
+                markerClusterGroup: mockMarkerClusterGroup,
+                startIcon: mockMarker,
+                endIcon: mockMarker,
+                mapContainer,
+                getLapColor: mockGetLapColor,
+                formatTooltipData: mockFormatTooltipData,
+                getLapNumForIdx: mockGetLapNumForIdx,
+            });
+
+            expect(mapContainer.textContent).toContain(
+                "No location data available to display map."
+            );
+            expect(mapContainer.textContent).toContain("recordMesgs: 2");
+            expect(mapContainer.textContent).toContain("lapMesgs: 1");
+            expect(mockLeaflet.polyline).not.toHaveBeenCalled();
+            expect(mockMap.fitBounds).not.toHaveBeenCalled();
         });
 
         it("should handle lapIdx=0 for single lap selection", () => {
