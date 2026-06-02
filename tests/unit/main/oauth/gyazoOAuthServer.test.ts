@@ -213,7 +213,7 @@ describe("gyazoOAuthServer", () => {
     });
 
     it("starts server and applies safe headers (no CORS)", async () => {
-        expect.hasAssertions();
+        expect.assertions(6);
 
         const { startGyazoOAuthServer } = requireGyazoOAuthServer();
         const result = await startGyazoOAuthServer(3000);
@@ -250,7 +250,7 @@ describe("gyazoOAuthServer", () => {
     });
 
     it("rejects non-GET/HEAD methods", async () => {
-        expect.hasAssertions();
+        expect.assertions(4);
 
         const { startGyazoOAuthServer } = requireGyazoOAuthServer();
         await startGyazoOAuthServer(3000);
@@ -272,7 +272,7 @@ describe("gyazoOAuthServer", () => {
     });
 
     it("escapes error parameter in HTML response", async () => {
-        expect.hasAssertions();
+        expect.assertions(2);
 
         const { startGyazoOAuthServer } = requireGyazoOAuthServer();
         await startGyazoOAuthServer(3000);
@@ -292,7 +292,7 @@ describe("gyazoOAuthServer", () => {
     });
 
     it("sends callback payload to mainWindow when code/state are present", async () => {
-        expect.hasAssertions();
+        expect.assertions(3);
 
         const { startGyazoOAuthServer } = requireGyazoOAuthServer();
         state.set("mainWindow", getWindowLike());
@@ -320,7 +320,7 @@ describe("gyazoOAuthServer", () => {
     });
 
     it("stop server clears state even if close throws", async () => {
-        expect.hasAssertions();
+        expect.assertions(1);
 
         const { startGyazoOAuthServer, stopGyazoOAuthServer } =
             requireGyazoOAuthServer();
