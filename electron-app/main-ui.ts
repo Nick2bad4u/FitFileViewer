@@ -7,6 +7,7 @@ import { AppActions } from "./utils/app/lifecycle/appActions.js";
 import { resourceManager } from "./utils/app/lifecycle/resourceManager.js";
 import { chartTabIntegration } from "./utils/charts/core/chartTabIntegration.js";
 import { renderChartJS } from "./utils/charts/core/renderChartJS.js";
+import { FILE_CONSTANTS, UI_CONSTANTS } from "./utils/config/constants.js";
 import { performanceMonitor } from "./utils/debug/stateDevTools.js";
 import { showFitData } from "./utils/rendering/core/showFitData.js";
 // State Management Integration
@@ -90,29 +91,13 @@ function logMainUi(
     }
 }
 
-// Constants (add missing CONTENT_CHART used by clearContentAreas)
 const CONSTANTS = {
-    DOM_IDS: {
-        ACTIVE_FILE_NAME: "active_file_name",
-        ACTIVE_FILE_NAME_CONTAINER: "active_file_name_container",
-        ALT_FIT_IFRAME: "altfit_iframe",
-        CONTENT_CHART: "content_chart",
-        CONTENT_DATA: "content_data",
-        CONTENT_MAP: "content_map",
-        CONTENT_SUMMARY: "content_summary",
-        DROP_OVERLAY: "drop_overlay",
-        TAB_CHART: "tab_chart",
-        TAB_SUMMARY: "tab_summary",
-        UNLOAD_FILE_BTN: "unload_file_btn",
-        ZWIFT_IFRAME: "zwift_iframe",
-    },
-    IFRAME_PATHS: {
-        ALT_FIT: "ffv/index.html",
-    },
+    DOM_IDS: UI_CONSTANTS.DOM_IDS,
+    IFRAME_PATHS: FILE_CONSTANTS.IFRAME_PATHS,
     SELECTORS: {
         SUMMARY_GEAR_BTN: ".summary-gear-btn",
     },
-    SUMMARY_COLUMN_SELECTOR_DELAY: 100,
+    SUMMARY_COLUMN_SELECTOR_DELAY: UI_CONSTANTS.SUMMARY_COLUMN_SELECTOR_DELAY,
 } as const;
 
 // Make globalData available on window for backwards compatibility
