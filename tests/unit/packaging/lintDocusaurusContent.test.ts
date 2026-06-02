@@ -18,6 +18,22 @@ type CommandRunner = (
     options: { cwd: string; stdio: string }
 ) => { error?: Error; status: number | null };
 
+function getOptionValue(args: string[], optionName: string): string {
+    const optionIndex = args.indexOf(optionName);
+
+    if (optionIndex === -1) {
+        throw new Error(`Expected option ${optionName}`);
+    }
+
+    const optionValue = args[optionIndex + 1];
+
+    if (!optionValue || optionValue.startsWith("--")) {
+        throw new Error(`Expected value after option ${optionName}`);
+    }
+
+    return optionValue;
+}
+
 describe("lint-docusaurus-content script", () => {
     it("builds root-owned markdownlint arguments for Docusaurus content", () => {
         expect.assertions(3);
@@ -72,7 +88,9 @@ describe("lint-docusaurus-content script", () => {
             cwd: path.resolve(process.cwd()),
             stdio: "inherit",
         });
-        expect(args).not.toContain("../.markdownlint.json");
+        expect(getOptionValue(args ?? [], "--config")).toBe(
+            rootMarkdownlintConfigPath
+        );
     });
 
     it("throws when markdownlint cannot be started", () => {
