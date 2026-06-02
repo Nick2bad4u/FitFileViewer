@@ -6,8 +6,25 @@ type MutableChartNotificationState = {
     lastRenderTimestamp: number;
 };
 
+type RenderNotificationScenario = {
+    currentChartCount: number;
+    currentVisibleFields: number;
+};
+
+type RenderNotificationDecision = {
+    shouldShow: boolean;
+    updateCalls: [
+        number,
+        number,
+        number,
+    ][];
+};
+
 const importChartNotificationState = async () =>
     import("../../../../../electron-app/utils/charts/core/chartNotificationState.js");
+
+const importShowRenderNotification = async () =>
+    import("../../../../../electron-app/utils/ui/notifications/showRenderNotification.js");
 
 const mutablePreviousChartState = (
     previousChartState: unknown
@@ -33,6 +50,46 @@ vi.mock(
     })
 );
 
+async function setPreviousChartState({
+    chartCount,
+    fieldCount,
+    lastRenderTimestamp,
+}: {
+    chartCount: number;
+    fieldCount: number;
+    lastRenderTimestamp: number;
+}): Promise<Awaited<ReturnType<typeof importChartNotificationState>>> {
+    const chartNotificationState = await importChartNotificationState();
+    const previousChartState = mutablePreviousChartState(
+        chartNotificationState.previousChartState
+    );
+    previousChartState.chartCount = chartCount;
+    previousChartState.fieldsRendered = Array.from(
+        { length: fieldCount },
+        (_, index) => index
+    );
+    previousChartState.lastRenderTimestamp = lastRenderTimestamp;
+
+    return chartNotificationState;
+}
+
+async function collectNotificationDecision({
+    currentChartCount,
+    currentVisibleFields,
+}: RenderNotificationScenario): Promise<RenderNotificationDecision> {
+    const chartNotificationState = await importChartNotificationState();
+    const { showRenderNotification } = await importShowRenderNotification();
+
+    return {
+        shouldShow: showRenderNotification(
+            currentChartCount,
+            currentVisibleFields
+        ),
+        updateCalls: vi.mocked(chartNotificationState.updatePreviousChartState)
+            .mock.calls,
+    };
+}
+
 describe("showRenderNotification logic", () => {
     beforeEach(async () => {
         vi.setSystemTime(0);
@@ -49,66 +106,120 @@ describe("showRenderNotification logic", () => {
     it("shows when >10s since last render", async () => {
         expect.assertions(1);
 
-        const mod =
-            await import("../../../../../electron-app/utils/ui/notifications/showRenderNotification.js");
         vi.setSystemTime(20001);
-        expect(mod.showRenderNotification(1, 1)).toBe(true);
+        await expect(
+            collectNotificationDecision({
+                currentChartCount: 1,
+                currentVisibleFields: 1,
+            })
+        ).resolves.toStrictEqual({
+            shouldShow: true,
+            updateCalls: [
+                [
+                    1,
+                    1,
+                    20_001,
+                ],
+            ],
+        });
     });
 
     it("shows when chart count changes significantly or from 0", async () => {
         expect.assertions(2);
 
-        const rc = await importChartNotificationState();
-        const previousChartState = mutablePreviousChartState(
-            rc.previousChartState
-        );
-        previousChartState.chartCount = 5;
-        previousChartState.lastRenderTimestamp = Date.now();
-        const mod =
-            await import("../../../../../electron-app/utils/ui/notifications/showRenderNotification.js");
-        expect(mod.showRenderNotification(8, 1)).toBe(true);
-        // from zero
-        previousChartState.chartCount = 0;
-        previousChartState.lastRenderTimestamp = Date.now();
-        expect(mod.showRenderNotification(1, 1)).toBe(true);
+        const chartNotificationState = await setPreviousChartState({
+            chartCount: 5,
+            fieldCount: 1,
+            lastRenderTimestamp: Date.now(),
+        });
+        await expect(
+            collectNotificationDecision({
+                currentChartCount: 8,
+                currentVisibleFields: 1,
+            })
+        ).resolves.toStrictEqual({
+            shouldShow: true,
+            updateCalls: [
+                [
+                    8,
+                    1,
+                    0,
+                ],
+            ],
+        });
+
+        vi.mocked(chartNotificationState.updatePreviousChartState).mockClear();
+        await setPreviousChartState({
+            chartCount: 0,
+            fieldCount: 1,
+            lastRenderTimestamp: Date.now(),
+        });
+        await expect(
+            collectNotificationDecision({
+                currentChartCount: 1,
+                currentVisibleFields: 1,
+            })
+        ).resolves.toStrictEqual({
+            shouldShow: true,
+            updateCalls: [
+                [
+                    1,
+                    1,
+                    0,
+                ],
+            ],
+        });
     });
 
     it("does not show for threshold-boundary changes", async () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
-        const rc = await importChartNotificationState();
-        const previousChartState = mutablePreviousChartState(
-            rc.previousChartState
-        );
-        previousChartState.chartCount = 3;
-        previousChartState.fieldsRendered = [
-            1,
-            2,
-            3,
-        ];
-        previousChartState.lastRenderTimestamp = Date.now();
-        const mod =
-            await import("../../../../../electron-app/utils/ui/notifications/showRenderNotification.js");
-        expect(mod.showRenderNotification(5, 5)).not.toBe(true);
-        expect(rc.updatePreviousChartState).toHaveBeenCalledWith(5, 5, 0);
+        await setPreviousChartState({
+            chartCount: 3,
+            fieldCount: 3,
+            lastRenderTimestamp: Date.now(),
+        });
+        const observedNotificationDecision = await collectNotificationDecision({
+            currentChartCount: 5,
+            currentVisibleFields: 5,
+        });
+
+        expect(observedNotificationDecision.shouldShow).not.toBe(true);
+        expect(observedNotificationDecision.shouldShow).toBe(false);
+        expect(observedNotificationDecision).toStrictEqual({
+            shouldShow: false,
+            updateCalls: [
+                [
+                    5,
+                    5,
+                    0,
+                ],
+            ],
+        });
     });
 
     it("shows when visible fields change significantly", async () => {
         expect.assertions(1);
 
-        const rc = await importChartNotificationState();
-        const previousChartState = mutablePreviousChartState(
-            rc.previousChartState
-        );
-        previousChartState.chartCount = 3;
-        previousChartState.fieldsRendered = [
-            1,
-            2,
-            3,
-        ];
-        previousChartState.lastRenderTimestamp = Date.now();
-        const mod =
-            await import("../../../../../electron-app/utils/ui/notifications/showRenderNotification.js");
-        expect(mod.showRenderNotification(3, 7)).toBe(true);
+        await setPreviousChartState({
+            chartCount: 3,
+            fieldCount: 3,
+            lastRenderTimestamp: Date.now(),
+        });
+        await expect(
+            collectNotificationDecision({
+                currentChartCount: 3,
+                currentVisibleFields: 7,
+            })
+        ).resolves.toStrictEqual({
+            shouldShow: true,
+            updateCalls: [
+                [
+                    3,
+                    7,
+                    0,
+                ],
+            ],
+        });
     });
 });
