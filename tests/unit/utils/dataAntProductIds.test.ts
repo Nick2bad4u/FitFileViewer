@@ -118,7 +118,7 @@ describe("data ant product ID lookup", () => {
 
                 expect({
                     productIdIsInteger: Number.isInteger(numericProductId),
-                }).toEqual({
+                }).toStrictEqual({
                     productIdIsInteger: true,
                 });
                 expect(numericProductId).toBeGreaterThanOrEqual(1);
@@ -211,7 +211,7 @@ describe("data ant product ID lookup", () => {
         );
 
         expect(productEntries).toHaveLength(458);
-        expect(edge500Entry).toEqual(["1036", "edge500"]);
+        expect(edge500Entry).toStrictEqual(["1036", "edge500"]);
         expect(
             productEntries.map(([, productName]) => productName)
         ).not.toContain("missing");

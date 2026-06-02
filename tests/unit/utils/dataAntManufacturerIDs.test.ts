@@ -69,13 +69,13 @@ describe("data ant manufacturer ID lookup", () => {
                 "not_a_manufacturer";
         }).toThrow(TypeError);
         expect(entries).toHaveLength(232);
-        expect(keys.slice(0, 3)).toEqual([
+        expect(keys.slice(0, 3)).toStrictEqual([
             "1",
             "2",
             "3",
         ]);
-        expect(entries.at(0)).toEqual(["1", "garmin"]);
-        expect(entries.at(-1)).toEqual(["5759", "actigraphcorp"]);
+        expect(entries.at(0)).toStrictEqual(["1", "garmin"]);
+        expect(entries.at(-1)).toStrictEqual(["5759", "actigraphcorp"]);
     });
 
     it("uses positive integer string keys and non-empty manufacturer keys", () => {
@@ -86,7 +86,7 @@ describe("data ant manufacturer ID lookup", () => {
         for (const [key, value] of entries) {
             const numericKey = Number(key);
 
-            expect({ isInteger: Number.isInteger(numericKey) }).toEqual({
+            expect({ isInteger: Number.isInteger(numericKey) }).toStrictEqual({
                 isInteger: true,
             });
             expect(numericKey).toBeGreaterThanOrEqual(1);
@@ -121,7 +121,7 @@ describe("data ant manufacturer ID lookup", () => {
                     String(manufacturerId)
                 ),
                 manufacturer: getManufacturer(manufacturerId),
-            }).toEqual({
+            }).toStrictEqual({
                 hasManufacturer: false,
                 manufacturer: undefined,
             });
@@ -185,8 +185,8 @@ describe("data ant manufacturer ID lookup", () => {
         const wahooEntry = entries.find(([, name]) => name === "wahoo_fitness");
 
         expect(entries).toHaveLength(232);
-        expect(garminEntry).toEqual(["1", "garmin"]);
-        expect(wahooEntry).toEqual(["32", "wahoo_fitness"]);
+        expect(garminEntry).toStrictEqual(["1", "garmin"]);
+        expect(wahooEntry).toStrictEqual(["32", "wahoo_fitness"]);
         expect({
             allKeysInteger: entries.every(([key]) =>
                 Number.isInteger(Number(key))
@@ -197,7 +197,7 @@ describe("data ant manufacturer ID lookup", () => {
             unknownManufacturerPresent: entries.some(
                 ([, name]) => name === "not_a_manufacturer"
             ),
-        }).toEqual({
+        }).toStrictEqual({
             allKeysInteger: true,
             allValuesString: true,
             unknownManufacturerPresent: false,
