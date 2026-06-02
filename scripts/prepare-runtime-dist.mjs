@@ -20,6 +20,14 @@ import {
 const defaultRepositoryDir = repositoryRoot;
 const defaultDistDir = rootRuntimeDistAbsolutePath;
 const defaultStaticDir = repositoryRoot;
+const runtimeTextAssetExtensions = new Set([
+    ".css",
+    ".html",
+    ".js",
+    ".json",
+    ".mjs",
+    ".svg",
+]);
 
 export const directoryCopies = [
     {
@@ -66,6 +74,7 @@ function copyDirectory(distDir, staticRootDir, copy) {
         return;
     }
 
+    assertNoForbiddenRuntimeReferencesInDirectory(staticRootDir, source);
     assertInsideDirectory(distDir, destination);
     fs.cpSync(source, destination, { force: true, recursive: true });
 }
@@ -78,28 +87,59 @@ function copyFile(distDir, staticRootDir, copy) {
         return;
     }
 
+    assertNoForbiddenRuntimeReferences(staticRootDir, source);
     assertInsideDirectory(distDir, destination);
     fs.mkdirSync(path.dirname(destination), { recursive: true });
     fs.copyFileSync(source, destination);
 }
 
-function assertNoNodeModulesReference(repositoryDir, filePath, content) {
+function assertNoForbiddenRuntimeReferences(repositoryDir, filePath) {
+    if (!runtimeTextAssetExtensions.has(path.extname(filePath))) {
+        return;
+    }
+
+    const content = fs.readFileSync(filePath, "utf8");
+    const repositoryRelativePath = path
+        .relative(repositoryDir, filePath)
+        .replaceAll(path.sep, path.posix.sep);
+
     if (content.includes("node_modules")) {
         throw new Error(
-            `${path.relative(repositoryDir, filePath)} must not reference node_modules directly`
+            `${repositoryRelativePath} must not reference node_modules directly`
         );
+    }
+    if (content.includes("vendor/")) {
+        throw new Error(
+            `${repositoryRelativePath} must not reference repository vendor assets directly`
+        );
+    }
+}
+
+function assertNoForbiddenRuntimeReferencesInDirectory(repositoryDir, dirPath) {
+    for (const entry of fs.readdirSync(dirPath, { withFileTypes: true })) {
+        const entryPath = path.join(dirPath, entry.name);
+
+        if (entry.isDirectory()) {
+            assertNoForbiddenRuntimeReferencesInDirectory(
+                repositoryDir,
+                entryPath
+            );
+            continue;
+        }
+        if (entry.isFile()) {
+            assertNoForbiddenRuntimeReferences(repositoryDir, entryPath);
+        }
     }
 }
 
 function copyIndexHtml(repositoryDir, distDir, staticDir) {
     const source = path.join(staticDir, rootAppIndexHtmlPath);
     const destination = path.join(distDir, appIndexHtmlPath);
-    const html = fs.readFileSync(source, "utf8");
 
-    assertNoNodeModulesReference(repositoryDir, source, html);
+    assertNoForbiddenRuntimeReferences(repositoryDir, source);
     assertInsideDirectory(distDir, destination);
-    fs.writeFileSync(destination, html);
-    assertNoNodeModulesReference(repositoryDir, destination, html);
+    fs.copyFileSync(source, destination);
+    assertNoForbiddenRuntimeReferences(repositoryDir, destination);
 }
 
 export function prepareRuntimeDist({

@@ -22,9 +22,9 @@ compatibility bundle:
   `Chart`, `L`, `JSZip`, `DOMPurify`, `screenfull`, and DataTables/jQuery.
 - `electron-app/renderer/vendorGlobals.ts` imports migrated renderer packages
   from npm and exposes compatibility globals.
-- `prepare-runtime-dist.mjs` rejects direct `node_modules` references in
-  `index.html`; production should not load browser code directly from
-  `node_modules`.
+- `prepare-runtime-dist.mjs` rejects direct `node_modules` and repository
+  `vendor/` references in copied runtime text assets; production should not
+  load browser code directly from `node_modules` or repository vendor trees.
 
 The CSP-safe measurement control now lives in
 `electron-app/renderer/leafletMeasureLite.js` as first-party renderer source and
@@ -127,8 +127,8 @@ Current `build:runtime-ts` flow:
 - directories: `static/ffv` to `dist/ffv`, `static/icons` to `dist/icons`
 - files: `static/app/elevProfile.css` to `dist/elevProfile.css`,
   `static/app/style.css` to `dist/style.css`
-- `static/app/index.html` to `dist/index.html` after checking that it does not
-  reference `node_modules`
+- `static/app/index.html` to `dist/index.html` after checking copied runtime
+  text assets for direct `node_modules` and repository `vendor/` references
 
 ## Electron Builder Package Surface
 

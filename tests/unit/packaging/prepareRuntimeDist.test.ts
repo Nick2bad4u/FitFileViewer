@@ -182,6 +182,53 @@ describe("prepare-runtime-dist script", () => {
         });
     });
 
+    it("rejects direct node_modules references in copied runtime text assets", async () => {
+        expect.assertions(2);
+
+        const { prepareRuntimeDist } = await importPrepareRuntimeDist();
+        const { distDir, repositoryDir, staticDir } = makeTemporaryApp();
+
+        fs.writeFileSync(
+            path.join(staticDir, rootAlternativeFitViewPath, "assets", "app.js"),
+            'import "./node_modules/leaflet/dist/leaflet.js";'
+        );
+
+        expect(() =>
+            prepareRuntimeDist({ distDir, repositoryDir, staticDir })
+        ).toThrow(
+            "static/ffv/assets/app.js must not reference node_modules directly"
+        );
+        expect(
+            getPathStates(distDir, [
+                path.join(appAlternativeFitViewPath, "assets", "app.js"),
+            ])
+        ).toStrictEqual({
+            [path.join(appAlternativeFitViewPath, "assets", "app.js")]:
+                "missing",
+        });
+    });
+
+    it("rejects repository vendor references in copied runtime text assets", async () => {
+        expect.assertions(2);
+
+        const { prepareRuntimeDist } = await importPrepareRuntimeDist();
+        const { distDir, repositoryDir, staticDir } = makeTemporaryApp();
+
+        fs.writeFileSync(
+            path.join(staticDir, rootAppStyleCssPath),
+            '@import "./vendor/leaflet.css";'
+        );
+
+        expect(() =>
+            prepareRuntimeDist({ distDir, repositoryDir, staticDir })
+        ).toThrow(
+            "static/app/style.css must not reference repository vendor assets directly"
+        );
+        expect(getPathStates(distDir, [appStyleCssPath])).toStrictEqual({
+            [appStyleCssPath]: "missing",
+        });
+    });
+
     it("rejects direct node_modules references in the runtime HTML", async () => {
         expect.assertions(1);
 
