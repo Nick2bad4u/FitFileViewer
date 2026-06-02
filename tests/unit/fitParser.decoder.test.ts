@@ -182,7 +182,7 @@ describe("fitParser.js decoder behavior", () => {
             );
             expect(
                 Object.keys(fitParser.DECODER_OPTIONS_SCHEMA).sort()
-            ).toEqual([
+            ).toStrictEqual([
                 "applyScaleAndOffset",
                 "convertDateTimesToDates",
                 "convertTypesToStrings",
@@ -216,7 +216,7 @@ describe("fitParser.js decoder behavior", () => {
 
             expect(error.name).toBe("FitDecodeError");
             expect(error.message).toBe("Test error");
-            expect(error.details).toEqual({ code: "TEST" });
+            expect(error.details).toStrictEqual({ code: "TEST" });
             expect(error.metadata.category).toBe("fit_parsing");
             expect(error.metadata.source).toBe("test");
             expect(error.metadata.timestamp).toMatch(isoTimestampPattern);
@@ -232,7 +232,7 @@ describe("fitParser.js decoder behavior", () => {
 
             expect(json.name).toBe("FitDecodeError");
             expect(json.message).toBe("Test error");
-            expect(json.details).toEqual({ code: "TEST" });
+            expect(json.details).toStrictEqual({ code: "TEST" });
             expect({
                 category: json.metadata.category,
                 timestamp: json.metadata.timestamp,
@@ -643,7 +643,7 @@ describe("fitParser.js decoder behavior", () => {
             expect(mockFitSDK.Stream.fromBuffer).toHaveBeenCalledWith(
                 Buffer.from(uint8Array)
             );
-            expect(result.activity).toEqual([{ sport: "cycling" }]);
+            expect(result.activity).toStrictEqual([{ sport: "cycling" }]);
         });
 
         it("should track progress during decoding", async () => {
@@ -697,7 +697,7 @@ describe("fitParser.js decoder behavior", () => {
             expect(mockPerformanceMonitor.endTimer).toHaveBeenCalledWith(
                 expect.stringMatching(/fitFile_decode_/)
             );
-            expect(result.activity).toEqual([{ sport: "cycling" }]);
+            expect(result.activity).toStrictEqual([{ sport: "cycling" }]);
         });
 
         it("should use custom decoder options", async () => {
@@ -879,7 +879,7 @@ describe("fitParser.js decoder behavior", () => {
 
             const result = await fitParser.decodeFitFile(buffer);
 
-            expect(result.activity).toEqual([{ sport: "cycling" }]);
+            expect(result.activity).toStrictEqual([{ sport: "cycling" }]);
             expect(console.warn).toHaveBeenCalledWith(
                 "[FitParser] Failed to update loading progress:",
                 stateUpdateError
@@ -987,7 +987,7 @@ describe("fitParser.js decoder behavior", () => {
                 "[FitParser] Failed to update loading progress:",
                 progressError
             );
-            expect(result.activity).toEqual([{ sport: "cycling" }]);
+            expect(result.activity).toStrictEqual([{ sport: "cycling" }]);
 
             consoleWarnSpy.mockRestore();
         });
@@ -1190,7 +1190,7 @@ describe("fitParser.js decoder behavior", () => {
 
             const schema = fitParser.DECODER_OPTIONS_SCHEMA;
 
-            expect(Object.keys(schema).sort()).toEqual([
+            expect(Object.keys(schema).sort()).toStrictEqual([
                 "applyScaleAndOffset",
                 "convertDateTimesToDates",
                 "convertTypesToStrings",
