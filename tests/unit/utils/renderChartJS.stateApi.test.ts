@@ -440,10 +440,39 @@ describe("renderChartJS.js state API", () => {
         it("should correctly detect hasData with various data states", () => {
             expect.assertions(2);
 
-            expect(getChartStatus().hasData).toBeNull();
+            const emptyStatus = getChartStatus();
+            expect(emptyStatus.hasData).not.toBe(true);
 
             globalMockState.data.set("globalData", { recordMesgs: [{}] });
-            expect(getChartStatus().hasData).toBe(true);
+            const populatedStatus = getChartStatus();
+
+            expect({
+                empty: {
+                    hasData: emptyStatus.hasData,
+                    isRendered: emptyStatus.isRendered,
+                    renderedCount: emptyStatus.renderedCount,
+                    selectedChart: emptyStatus.selectedChart,
+                },
+                populated: {
+                    hasData: populatedStatus.hasData,
+                    isRendered: populatedStatus.isRendered,
+                    renderedCount: populatedStatus.renderedCount,
+                    selectedChart: populatedStatus.selectedChart,
+                },
+            }).toStrictEqual({
+                empty: {
+                    hasData: null,
+                    isRendered: false,
+                    renderedCount: 0,
+                    selectedChart: "elevation",
+                },
+                populated: {
+                    hasData: true,
+                    isRendered: false,
+                    renderedCount: 0,
+                    selectedChart: "elevation",
+                },
+            });
         });
     });
 
@@ -495,23 +524,37 @@ describe("chartActions object - State Actions", () => {
     });
 
     it("should correctly start rendering process", async () => {
-        expect.assertions(3);
+        expect.assertions(2);
 
         const { setState } =
             await import("../../../electron-app/utils/state/core/stateManager.js");
 
         chartActions.startRendering();
 
-        expect(getChartStatus().isRendering).toBe(true);
-        expect(setState).toHaveBeenCalledWith("charts.isRendering", true, {
-            silent: false,
-            source: "chartActions.startRendering",
+        expect(getRenderingStatusSnapshot()).toStrictEqual({
+            isRendered: false,
+            isRendering: true,
+            performance: null,
+            renderedCount: 0,
         });
-
-        expect(setState).toHaveBeenCalledWith("isLoading", true, {
-            silent: false,
-            source: "chartActions.startRendering",
-        });
+        expect(vi.mocked(setState).mock.calls).toStrictEqual([
+            [
+                "charts.isRendering",
+                true,
+                {
+                    silent: false,
+                    source: "chartActions.startRendering",
+                },
+            ],
+            [
+                "isLoading",
+                true,
+                {
+                    silent: false,
+                    source: "chartActions.startRendering",
+                },
+            ],
+        ]);
     });
 
     it("should correctly complete rendering process on success", async () => {
