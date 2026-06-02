@@ -23,9 +23,17 @@ vi.mock(
     })
 );
 
+function getRequiredElementById<T extends HTMLElement>(id: string): T {
+    const element = document.getElementById(id);
+    if (!element) {
+        throw new Error(`Missing expected element: #${id}`);
+    }
+    return element as T;
+}
+
 describe("loading overlay strict", () => {
     beforeEach(() => {
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         vi.restoreAllMocks();
     });
 
@@ -37,15 +45,15 @@ describe("loading overlay strict", () => {
 
         LoadingOverlay.show("Loading 1 / 10 files...", "example.fit");
 
-        const overlay = document.getElementById("fitfile-loading-overlay");
-        expect(overlay?.id).toBe("fitfile-loading-overlay");
-        expect(overlay?.style.position).toBe("fixed");
+        const overlay = getRequiredElementById("fitfile-loading-overlay");
+        expect(overlay.id).toBe("fitfile-loading-overlay");
+        expect(overlay.style.position).toBe("fixed");
 
-        const text = document.getElementById("fitfile-loading-text");
-        expect(text?.textContent).toBe("Loading 1 / 10 files...");
+        const text = getRequiredElementById("fitfile-loading-text");
+        expect(text.textContent).toBe("Loading 1 / 10 files...");
 
-        const file = document.getElementById("fitfile-loading-filename");
-        expect(file?.textContent).toBe("File: example.fit");
+        const file = getRequiredElementById("fitfile-loading-filename");
+        expect(file.textContent).toBe("File: example.fit");
     });
 
     it("reuses existing overlay and updates text only", async () => {
@@ -55,8 +63,8 @@ describe("loading overlay strict", () => {
             await import("../../../electron-app/utils/ui/components/LoadingOverlay.js");
 
         LoadingOverlay.show("Step 1", "first.fit");
-        const first = document.getElementById("fitfile-loading-overlay");
-        expect(first?.id).toBe("fitfile-loading-overlay");
+        const first = getRequiredElementById("fitfile-loading-overlay");
+        expect(first.id).toBe("fitfile-loading-overlay");
         expect(
             document.querySelectorAll("#fitfile-loading-overlay")
         ).toHaveLength(1);
@@ -65,13 +73,13 @@ describe("loading overlay strict", () => {
         const second = document.getElementById("fitfile-loading-overlay");
         expect(second).toBe(first);
 
-        const text = document.getElementById("fitfile-loading-text");
-        expect(text?.textContent).toBe("Step 2");
+        const text = getRequiredElementById("fitfile-loading-text");
+        expect(text.textContent).toBe("Step 2");
 
-        const file = document.getElementById("fitfile-loading-filename");
+        const file = getRequiredElementById("fitfile-loading-filename");
         // When no filename provided, it should clear the filename text
-        expect(file?.textContent).not.toBe("File: first.fit");
-        expect(file?.textContent).toBe("");
+        expect(file.textContent).not.toBe("File: first.fit");
+        expect(file.textContent).toBe("");
     });
 
     it("hide removes the overlay from DOM", async () => {
