@@ -82,7 +82,7 @@ ipcMain.handle("app:get-version", () => {
 ### Exposed API
 
 ```javascript
-// preload.js
+// preload.ts
 const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("electronAPI", {

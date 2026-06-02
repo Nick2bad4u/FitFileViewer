@@ -40,9 +40,7 @@ window.electronAPI.onFileOpened((event, fileData) => {
 ### Basic Usage
 
 ```javascript
-import { parseFitFile } from "./fitParser.js";
-
-const fitData = await parseFitFile(arrayBuffer);
+const fitData = await window.electronAPI.parseFitFile(arrayBuffer);
 // Returns: FitData object
 ```
 
@@ -96,15 +94,11 @@ interface Session {
 ### Entry Point
 
 ```javascript
-// renderer.js
-import { initializeApp } from "./main-ui.js";
-
-document.addEventListener("DOMContentLoaded", () => {
- initializeApp();
-});
+// renderer.ts
+document.addEventListener("DOMContentLoaded", onApplicationReady);
 ```
 
-### initializeApp()
+### initializeApplication()
 
 Initializes the application:
 

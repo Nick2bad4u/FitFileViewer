@@ -4,6 +4,9 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
+    docusaurusAdvancedFitParserMigrationDocPath,
+    docusaurusApiCoreApisDocPath,
+    docusaurusApiIpcCommunicationDocPath,
     docusaurusArchitectureModuleSystemDocPath,
     docusaurusArchitectureOverviewDocPath,
     docusaurusArchitectureProcessModelDocPath,
@@ -16,6 +19,7 @@ import {
     rootCodecovConfigPath,
     rootElectronBuilderConfigPath,
     rootEslintConfigPath,
+    rootFitParserMigrationGuideDocPath,
     rootGitignorePath,
     rootPrettierConfigPath,
     rootStylelintConfigPath,
@@ -31,6 +35,13 @@ const SOURCE_LAYOUT_DOCS = [
     docusaurusArchitectureOverviewDocPath,
     docusaurusArchitectureProcessModelDocPath,
     docusaurusArchitectureSecurityDocPath,
+];
+
+const FIT_PARSER_API_DOCS = [
+    rootFitParserMigrationGuideDocPath,
+    docusaurusAdvancedFitParserMigrationDocPath,
+    docusaurusApiCoreApisDocPath,
+    docusaurusApiIpcCommunicationDocPath,
 ];
 
 function readWorkspaceFile(relativePath: string): string {
@@ -112,6 +123,31 @@ describe("source entrypoint documentation", () => {
         expect(docs).not.toMatch(
             /(?:preload:dist\/preload\.js|(?<!electron-app\/)dist\/preload\.js|renderer dist\/renderer\.js|runtime dist)/u
         );
+    });
+
+    it("keeps FIT parser API docs aligned with current bridge and decode APIs", () => {
+        expect.assertions(1);
+
+        const docs = FIT_PARSER_API_DOCS.map((docPath) =>
+            readWorkspaceFile(docPath)
+        ).join("\n");
+        const staleApiReferences = [
+            "fitParser.js module",
+            "initializeFitParserIntegration",
+            "decodeFitFileWithState",
+            "updateDecoderOptionsWithState",
+            "getCurrentDecoderOptionsWithState",
+            "setupFitParserIPC",
+            "setupFitParserPreload",
+            "import { parseFitFile }",
+            "parseFitFile(buffer)",
+            "// renderer.js",
+            "// preload.js",
+        ];
+
+        expect(
+            staleApiReferences.filter((reference) => docs.includes(reference))
+        ).toStrictEqual([]);
     });
 
     it("keeps the root layout guide from documenting removed top-level directories", () => {

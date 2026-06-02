@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `fitParser.js` module has been successfully migrated to integrate with the FitFileViewer's new comprehensive state management system. This migration provides enhanced progress tracking, error handling, settings persistence, and performance monitoring.
+The `fitParser.ts` source module has been successfully migrated to integrate with the FitFileViewer's comprehensive state management system. This migration provides enhanced progress tracking, error handling, settings persistence, and performance monitoring.
 
 ## Key Changes
 
@@ -98,18 +98,20 @@ The `decodeFitFile` function now provides detailed progress updates:
 
 ### Step 1: Initialize State Management Integration
 
-In your main process startup code:
+In current main-process startup code, `electron-app/main.ts` loads the runtime integration helper from `electron-app/main/runtime/fitParserIntegration.ts`:
 
 ```javascript
-import { initializeFitParserIntegration } from "./utils/fitParserIntegration.js";
+const { ensureFitParserStateIntegration } = mainRequire(
+ "./main/runtime/fitParserIntegration"
+);
 
 // After state managers are initialized
-await initializeFitParserIntegration();
+await ensureFitParserStateIntegration();
 ```
 
 ### Step 2: IPC Handlers (Main Process)
 
-In the current architecture, `electron-app/main/ipc/setupIPCHandlers.js` is responsible for wiring the canonical FIT IPC channels:
+In the current architecture, `electron-app/main/ipc/setupIPCHandlers.ts` wires `electron-app/main/ipc/registerFitFileHandlers.ts`, which registers the canonical FIT IPC channels:
 
 ```javascript
 registerIpcHandle("fit:parse", async (_event, arrayBuffer) => {
@@ -121,14 +123,14 @@ registerIpcHandle("fit:decode", async (_event, arrayBuffer) => {
 });
 ```
 
-The optional `setupFitParserIPC(ipcMain)` helper in `utils/files/import/fitParserIntegration.js` also uses `fit:decode` to provide an advanced, state-aware decoding surface for specialized embedding scenarios and tests.
+Both channels call `fitParser.decodeFitFile(buffer)` after `ensureFitParserStateIntegration()` has run.
 
 ### Step 3: Preload Script
 
-The canonical renderer API is exposed via `preload.js` through the `electronAPI` bridge, not `window.fitParser`:
+The canonical renderer API is exposed via `preload.ts` through the `electronAPI` bridge, not `window.fitParser`:
 
 ```javascript
-// In preload.js
+// In preload.ts
 const electronAPI = {
  decodeFitFile: createSafeInvokeHandler(
   CONSTANTS.CHANNELS.FIT_DECODE,
@@ -142,7 +144,7 @@ const electronAPI = {
 };
 ```
 
-The `setupFitParserPreload(contextBridge, ipcRenderer)` helper remains available for legacy or embedded use cases and now invokes `fit:decode` under the hood instead of `decode-fit-file`.
+The bridge methods in `preload.ts` invoke `fit:decode` and `fit:parse` through the shared safe invoke helpers.
 
 ## New API Functions
 
@@ -176,13 +178,10 @@ const schema = fitParser.DECODER_OPTIONS_SCHEMA;
 
 ```javascript
 import {
- initializeFitParserIntegration,
- decodeFitFileWithState,
- updateDecoderOptionsWithState,
- getCurrentDecoderOptionsWithState,
- setupFitParserIPC,
- setupFitParserPreload,
-} from "./utils/fitParserIntegration.js";
+ createFitParserStateAdapters,
+ ensureFitParserStateIntegration,
+ FIT_PARSER_OPERATION_ID,
+} from "./main/runtime/fitParserIntegration.js";
 ```
 
 ## State Management Benefits
@@ -258,9 +257,9 @@ if (performanceMonitor.isEnabled()) {
 
 ## Migration Checklist
 
-- [ ] Initialize state management integration in main process
-- [ ] Set up IPC handlers for FIT parser operations
-- [ ] Update preload script to expose new functions
+- [ ] Initialize state management integration in the main process with `ensureFitParserStateIntegration()`
+- [ ] Set up IPC handlers for FIT parser operations through `registerFitFileHandlers()`
+- [ ] Update `preload.ts` to expose new bridge functions
 - [ ] Update renderer code to use new async API
 - [ ] Test decoder options validation
 - [ ] Verify progress tracking integration
@@ -291,8 +290,8 @@ If decoder options fail validation:
 
 If renderer functions are not available:
 
-1. Verify `setupFitParserIPC()` was called in main process
-2. Verify `setupFitParserPreload()` was called in preload script
+1. Verify `setupIPCHandlers()` registers `registerFitFileHandlers()`
+2. Verify `preload.ts` exposes the `decodeFitFile` and `parseFitFile` bridge methods
 3. Check that context isolation is properly configured
 
 This migration provides a robust foundation for FIT file processing with comprehensive state management integration while maintaining backwards compatibility.

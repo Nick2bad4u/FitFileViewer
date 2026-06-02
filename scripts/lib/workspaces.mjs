@@ -50,6 +50,10 @@ export const rootGyazoSetupDocPath = path.posix.join(
     rootDocsPath,
     "GYAZO_SETUP.md"
 );
+export const rootFitParserMigrationGuideDocPath = path.posix.join(
+    rootDocsPath,
+    "FIT_PARSER_MIGRATION_GUIDE.md"
+);
 export const rootDocsScreenshotsPath = path.posix.join(
     rootDocsPath,
     "screenshots"
@@ -190,6 +194,23 @@ export const docusaurusArchitectureProcessModelDocPath =
     );
 export const docusaurusArchitectureSecurityDocPath =
     docusaurusWorkspaceRepositoryPath("docs", "architecture", "security.md");
+export const docusaurusAdvancedFitParserMigrationDocPath =
+    docusaurusWorkspaceRepositoryPath(
+        "docs",
+        "advanced",
+        "fit-parser-migration.md"
+    );
+export const docusaurusApiCoreApisDocPath = docusaurusWorkspaceRepositoryPath(
+    "docs",
+    "api-reference",
+    "core-apis.md"
+);
+export const docusaurusApiIpcCommunicationDocPath =
+    docusaurusWorkspaceRepositoryPath(
+        "docs",
+        "api-reference",
+        "ipc-communication.md"
+    );
 export const docusaurusDevelopmentBuildReleaseDocPath =
     docusaurusWorkspaceRepositoryPath(
         "docs",

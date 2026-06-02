@@ -30,9 +30,12 @@ type WorkspacesModule = {
     buildRuntimeScriptPath: string;
     bundlePreloadScriptPath: string;
     cleanRuntimeDistScriptPath: string;
+    docusaurusAdvancedFitParserMigrationDocPath: string;
     docusaurusArchitectureModuleSystemDocPath: string;
+    docusaurusApiCoreApisDocPath: string;
     docusaurusApiDocsPath: string;
     docusaurusApiDocsAbsolutePath: string;
+    docusaurusApiIpcCommunicationDocPath: string;
     docusaurusArchitectureProcessModelDocPath: string;
     docusaurusArchitectureSecurityDocPath: string;
     docusaurusBuildPath: string;
@@ -98,6 +101,7 @@ type WorkspacesModule = {
     rootDevelopmentGuideDocPath: string;
     rootDocsPath: string;
     rootDocsScreenshotsPath: string;
+    rootFitParserMigrationGuideDocPath: string;
     rootGyazoSetupDocPath: string;
     rootElectronAppTsconfigPath: string;
     rootEslintTsconfigPath: string;
@@ -443,6 +447,11 @@ describe("workspace path helpers", () => {
         const workspaces = await importWorkspaces();
 
         expect({
+            docusaurusAdvancedFitParserMigration:
+                workspaces.docusaurusAdvancedFitParserMigrationDocPath,
+            docusaurusApiCoreApis: workspaces.docusaurusApiCoreApisDocPath,
+            docusaurusApiIpcCommunication:
+                workspaces.docusaurusApiIpcCommunicationDocPath,
             docusaurusArchitectureOverview:
                 workspaces.docusaurusArchitectureOverviewDocPath,
             docusaurusArchitectureModuleSystem:
@@ -465,8 +474,15 @@ describe("workspace path helpers", () => {
             rootDevelopmentGuide: workspaces.rootDevelopmentGuideDocPath,
             rootDocs: workspaces.rootDocsPath,
             rootDocsScreenshots: workspaces.rootDocsScreenshotsPath,
+            rootFitParserMigrationGuide:
+                workspaces.rootFitParserMigrationGuideDocPath,
             rootGyazoSetup: workspaces.rootGyazoSetupDocPath,
         }).toStrictEqual({
+            docusaurusAdvancedFitParserMigration:
+                "docusaurus/docs/advanced/fit-parser-migration.md",
+            docusaurusApiCoreApis: "docusaurus/docs/api-reference/core-apis.md",
+            docusaurusApiIpcCommunication:
+                "docusaurus/docs/api-reference/ipc-communication.md",
             docusaurusArchitectureOverview:
                 "docusaurus/docs/architecture/overview.md",
             docusaurusArchitectureModuleSystem:
@@ -487,6 +503,7 @@ describe("workspace path helpers", () => {
             rootDevelopmentGuide: "docs/DEVELOPMENT_GUIDE.md",
             rootDocs: "docs",
             rootDocsScreenshots: "docs/screenshots",
+            rootFitParserMigrationGuide: "docs/FIT_PARSER_MIGRATION_GUIDE.md",
             rootGyazoSetup: "docs/GYAZO_SETUP.md",
         });
     });

@@ -110,21 +110,21 @@ function semicirclesToDegrees(semicircles) {
 
 ```javascript
 import { describe, it, expect } from "vitest";
-import { parseFitFile } from "../fitParser.js";
+import { decodeFitFile } from "../fitParser.js";
 
 describe("FIT Parser Migration", () => {
  it("should parse sample file correctly", async () => {
   const buffer = await loadTestFile("sample.fit");
-  const result = parseFitFile(buffer);
+  const result = await decodeFitFile(buffer);
 
-  expect(result.records).toBeDefined();
-  expect(result.records.length).toBeGreaterThan(0);
+  expect(result.messages.recordMesgs).toBeDefined();
+  expect(result.messages.recordMesgs.length).toBeGreaterThan(0);
  });
 
  it("should have correct field names", async () => {
   const buffer = await loadTestFile("sample.fit");
-  const result = parseFitFile(buffer);
-  const record = result.records[0];
+  const result = await decodeFitFile(buffer);
+  const record = result.messages.recordMesgs[0];
 
   expect(record.position_lat).toBeDefined();
   expect(record.position_long).toBeDefined();
@@ -133,8 +133,8 @@ describe("FIT Parser Migration", () => {
 
  it("should convert coordinates correctly", async () => {
   const buffer = await loadTestFile("sample.fit");
-  const result = parseFitFile(buffer);
-  const record = result.records[0];
+  const result = await decodeFitFile(buffer);
+  const record = result.messages.recordMesgs[0];
 
   // Latitude should be in degrees (-90 to 90)
   expect(record.position_lat).toBeGreaterThan(-90);
