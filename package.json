@@ -224,7 +224,7 @@
         "prettier": "node scripts/run-prettier.mjs --check",
         "prettier:fix": "node scripts/run-prettier.mjs --write",
         "release:bump-version": "node scripts/bump-app-version.mjs",
-        "release:diff-electron-app": "node scripts/print-electron-app-diff.mjs",
+        "release:diff-app": "node scripts/print-app-diff.mjs",
         "release:fix-latest-yml-sha512": "node scripts/fix-latest-yml-sha512.mjs",
         "release:flatpak-assets": "node scripts/publish-flatpak-release-assets.mjs",
         "release:list-release-dist-files": "node scripts/list-release-dist-files.mjs",

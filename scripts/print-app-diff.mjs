@@ -17,7 +17,7 @@ if (
     if (options.help) {
         printUsage();
     } else {
-        process.exitCode = printElectronAppDiff(options);
+        process.exitCode = printAppDiff(options);
     }
 }
 
@@ -90,7 +90,7 @@ export function parseArgs(args) {
     return options;
 }
 
-export function printElectronAppDiff(options = {}, dependencies = {}) {
+export function printAppDiff(options = {}, dependencies = {}) {
     const diffPath = options.diffPath ?? defaultDiffPath;
     const log = dependencies.log ?? console.log;
     const runCommand = dependencies.runCommand ?? runCommandSync;
@@ -131,7 +131,7 @@ export function printElectronAppDiff(options = {}, dependencies = {}) {
 }
 
 function printUsage() {
-    console.log(`Usage: node scripts/print-electron-app-diff.mjs [options]
+    console.log(`Usage: node scripts/print-app-diff.mjs [options]
 
 Options:
   --diff-path <path>     Repository path to diff. Defaults to electron-app/.

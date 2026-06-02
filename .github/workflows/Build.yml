@@ -72,9 +72,9 @@ jobs:
             - name: Build Docusaurus site
               run: npm run docs:build
 
-            - name: Show git diff for electron-app (debug)
+            - name: Show git diff for app source (debug)
               id: git_diff
-              run: node scripts/print-electron-app-diff.mjs
+              run: node scripts/print-app-diff.mjs
               continue-on-error: true
 
             - name: Bump package.json version number

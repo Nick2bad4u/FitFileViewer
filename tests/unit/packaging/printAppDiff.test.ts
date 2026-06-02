@@ -8,7 +8,7 @@ type CommandResult = {
     stdout: string;
 };
 
-type PrintElectronAppDiffModule = {
+type PrintAppDiffModule = {
     defaultDiffPath: string;
     defaultTagPattern: string;
     getLastVersionRef: (
@@ -20,7 +20,7 @@ type PrintElectronAppDiffModule = {
         help: boolean;
         tagPattern: string;
     };
-    printElectronAppDiff: (
+    printAppDiff: (
         options?: {
             diffPath?: string;
             tagPattern?: string;
@@ -32,8 +32,8 @@ type PrintElectronAppDiffModule = {
     ) => number;
 };
 
-async function importPrintElectronAppDiff(): Promise<PrintElectronAppDiffModule> {
-    return (await import("../../../scripts/print-electron-app-diff.mjs")) as PrintElectronAppDiffModule;
+async function importPrintAppDiff(): Promise<PrintAppDiffModule> {
+    return (await import("../../../scripts/print-app-diff.mjs")) as PrintAppDiffModule;
 }
 
 function createResult(overrides: Partial<CommandResult> = {}): CommandResult {
@@ -49,11 +49,11 @@ function commandLine(command: string, args: string[]): string {
     return [command, ...args].join(" ");
 }
 
-describe("print-electron-app-diff script", () => {
+describe("print-app-diff script", () => {
     it("uses the newest matching version tag when one exists", async () => {
         expect.assertions(2);
 
-        const { getLastVersionRef } = await importPrintElectronAppDiff();
+        const { getLastVersionRef } = await importPrintAppDiff();
         const calls: string[] = [];
 
         const lastRef = getLastVersionRef("v*", (command, args) => {
@@ -70,7 +70,7 @@ describe("print-electron-app-diff script", () => {
     it("falls back to the root commit when no matching tag exists", async () => {
         expect.assertions(2);
 
-        const { getLastVersionRef } = await importPrintElectronAppDiff();
+        const { getLastVersionRef } = await importPrintAppDiff();
         const calls: string[] = [];
 
         const lastRef = getLastVersionRef("v*", (command, args) => {
@@ -93,15 +93,14 @@ describe("print-electron-app-diff script", () => {
         ]);
     });
 
-    it("prints the electron-app diff between the selected ref and HEAD", async () => {
+    it("prints the app source diff between the selected ref and HEAD", async () => {
         expect.assertions(1);
 
-        const { defaultDiffPath, printElectronAppDiff } =
-            await importPrintElectronAppDiff();
+        const { defaultDiffPath, printAppDiff } = await importPrintAppDiff();
         const calls: string[] = [];
         const logs: string[] = [];
 
-        const exitCode = printElectronAppDiff(
+        const exitCode = printAppDiff(
             {},
             {
                 log(message) {
@@ -150,11 +149,11 @@ describe("print-electron-app-diff script", () => {
     it("returns the fetch failure status without diffing", async () => {
         expect.assertions(1);
 
-        const { printElectronAppDiff } = await importPrintElectronAppDiff();
+        const { printAppDiff } = await importPrintAppDiff();
         const calls: string[] = [];
         const logs: string[] = [];
 
-        const exitCode = printElectronAppDiff(
+        const exitCode = printAppDiff(
             {},
             {
                 log(message) {
@@ -181,7 +180,7 @@ describe("print-electron-app-diff script", () => {
         expect.assertions(2);
 
         const { defaultDiffPath, defaultTagPattern, parseArgs } =
-            await importPrintElectronAppDiff();
+            await importPrintAppDiff();
 
         expect(parseArgs([])).toStrictEqual({
             diffPath: defaultDiffPath,
@@ -204,7 +203,7 @@ describe("print-electron-app-diff script", () => {
     it("rejects missing diff path values", async () => {
         expect.assertions(1);
 
-        const { parseArgs } = await importPrintElectronAppDiff();
+        const { parseArgs } = await importPrintAppDiff();
 
         expect(() => parseArgs(["--diff-path"])).toThrow(
             "--diff-path requires a value"
