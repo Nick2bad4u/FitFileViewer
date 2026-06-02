@@ -66,6 +66,26 @@ function getCreatedChartConfig(): RenderedChartConfig {
     return config;
 }
 
+function getRenderedCanvas(container: HTMLElement): HTMLCanvasElement {
+    const canvas = container.querySelector("canvas");
+
+    if (!(canvas instanceof HTMLCanvasElement)) {
+        throw new TypeError("Expected rendered zone chart canvas to exist");
+    }
+
+    return canvas;
+}
+
+function getFirstChartCanvasArgument(): HTMLCanvasElement {
+    const canvas = getChartConstructor().mock.calls[0]?.[0];
+
+    if (!(canvas instanceof HTMLCanvasElement)) {
+        throw new TypeError("Expected Chart constructor to receive canvas");
+    }
+
+    return canvas;
+}
+
 describe("renderZoneChart", () => {
     let originalChart: ZoneChartTestWindow["Chart"];
     beforeEach(() => {
@@ -143,11 +163,11 @@ describe("renderZoneChart", () => {
             "hr_zone",
             { showLegend: true }
         );
-        const canvas = container.querySelector("canvas");
-        expect(canvas).toBeInstanceOf(HTMLCanvasElement);
-        expect(canvas?.id).toBe("chart-hr_zone-0");
+        const view = getRenderedCanvas(container);
+        expect(view).toBeInstanceOf(HTMLCanvasElement);
+        expect(view.id).toBe("chart-hr_zone-0");
         expect(getChartConstructor()).toHaveBeenCalledOnce();
-        expect(getChartConstructor().mock.calls[0]?.[0]).toBe(canvas);
+        expect(getFirstChartCanvasArgument()).toBe(view);
         expect(getChartInstances()).toBeInstanceOf(Array);
         expect(getChartInstances()).toHaveLength(1);
 
@@ -194,11 +214,11 @@ describe("renderZoneChart", () => {
                 showLegend: false,
             }
         );
-        const canvas = container.querySelector("canvas");
-        expect(canvas).toBeInstanceOf(HTMLCanvasElement);
-        expect(canvas?.id).toBe("chart-power_zone-0");
+        const view = getRenderedCanvas(container);
+        expect(view).toBeInstanceOf(HTMLCanvasElement);
+        expect(view.id).toBe("chart-power_zone-0");
         expect(getChartConstructor()).toHaveBeenCalledOnce();
-        expect(getChartConstructor().mock.calls[0]?.[0]).toBe(canvas);
+        expect(getFirstChartCanvasArgument()).toBe(view);
 
         const chartConfig = getCreatedChartConfig();
         expect(chartConfig.type).toBe("bar");
