@@ -115,16 +115,20 @@ describe("createChartStatusIndicatorFromCounts strict behavior", () => {
                 ),
                 "#chart-status-indicator"
             );
+            const statusIcon = requireElement(
+                indicator.querySelector(".status-icon"),
+                ".status-icon"
+            );
+            const statusText = requireElement(
+                indicator.querySelector(".status-text"),
+                ".status-text"
+            );
 
-            expect(indicator.querySelector(".status-icon")?.textContent).toBe(
-                "❌"
+            expect(statusIcon.textContent).toBe("❌");
+            expect(statusIcon.getAttribute("title")).toBe(
+                "No charts are available"
             );
-            expect(
-                indicator.querySelector(".status-icon")?.getAttribute("title")
-            ).toBe("No charts are available");
-            expect(indicator.querySelector(".status-text")?.textContent).toBe(
-                "No charts available"
-            );
+            expect(statusText.textContent).toBe("No charts available");
         } finally {
             cleanupTestDom();
         }
