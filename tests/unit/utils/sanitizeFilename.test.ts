@@ -55,6 +55,14 @@ describe("file extension sanitization", () => {
         expect(sanitizeFileExtension("..G P X!!")).toBe("gpx");
     });
 
+    it("limits extension length after normalising safe characters", () => {
+        expect.assertions(1);
+
+        expect(sanitizeFileExtension("AVeryLongExtensionName")).toBe(
+            "averylongextensi"
+        );
+    });
+
     it("rejects unsafe extension text and uses a clean fallback", () => {
         expect.assertions(1);
 
@@ -69,6 +77,20 @@ describe("download filename building", () => {
         expect(buildDownloadFilename("C:/activities/Morning Ride.fit")).toBe(
             "Morning_Ride.fit"
         );
+    });
+
+    it("sanitizes only the final path segment before rebuilding the filename", () => {
+        expect.assertions(1);
+
+        expect([
+            buildDownloadFilename("C:/activities/CON.fit"),
+            buildDownloadFilename("../.env", { defaultExtension: "txt" }),
+            buildDownloadFilename("folder/report.final.GPX"),
+        ]).toStrictEqual([
+            "CON_file.fit",
+            "env.txt",
+            "report.final.gpx",
+        ]);
     });
 
     it("applies default extension and fallback", () => {
