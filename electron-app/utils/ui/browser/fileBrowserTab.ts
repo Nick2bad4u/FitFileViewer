@@ -19,9 +19,11 @@ import {
 import { openFitFileFromPath } from "../../files/import/openFitFileFromPath.js";
 import { getState, setState } from "../../state/core/stateManager.js";
 import { getElementByIdFlexible } from "../dom/elementIdUtils.js";
-import type { AppIconName } from "../icons/iconFactory.js";
-import { createAppIconElement } from "../icons/iconFactory.js";
-import { showNotification } from "../notifications/showNotification.js";
+import {
+    type AppIconName,
+    createAppIconElement,
+} from "../icons/iconFactory.js";
+import { showNotification as showRendererNotification } from "../notifications/showNotification.js";
 
 type BrowserView = "calendar" | "files" | "library";
 
@@ -111,13 +113,28 @@ const LIB_PREFS_UNIT_KEY = "fitLibrary.unit";
 const CAL_PREFS_MONTH_KEY = "fitLibrary.calendarMonth";
 const CAL_PREFS_SELECTED_DAY_KEY = "fitLibrary.calendarSelectedDay";
 
+const showNotification = (
+    ...args: Parameters<typeof showRendererNotification>
+): void => {
+    void showRendererNotification(...args);
+};
+
 function addManagedEventListener<K extends keyof HTMLElementEventMap>(
     target: HTMLElement,
     type: K,
     listener: (event: HTMLElementEventMap[K]) => Promise<void> | void
 ): void {
     const controller = new AbortController();
-    target.addEventListener(type, listener as EventListener, {
+    const wrappedListener = (event: HTMLElementEventMap[K]): void => {
+        try {
+            void Promise.resolve(listener(event)).catch((error: unknown) => {
+                console.error("[fileBrowserTab] Event handler failed", error);
+            });
+        } catch (error) {
+            console.error("[fileBrowserTab] Event handler failed", error);
+        }
+    };
+    target.addEventListener(type, wrappedListener as EventListener, {
         signal: controller.signal,
     });
 }
@@ -136,7 +153,9 @@ export async function renderFileBrowserTab(): Promise<void> {
         container.dataset["ffvBrowserInitialized"] = "true";
         container.replaceChildren(createFileBrowserScaffold());
 
-        const pickBtn = document.getElementById("fit-browser-pick-folder");
+        const pickBtn = document.querySelector<HTMLElement>(
+            "#fit-browser-pick-folder"
+        );
         if (pickBtn) {
             addManagedEventListener(pickBtn, "click", async () => {
                 const api = getElectronAPI();
@@ -158,10 +177,14 @@ export async function renderFileBrowserTab(): Promise<void> {
             });
         }
 
-        const filesBtn = document.getElementById("fit-browser-view-files");
-        const libraryBtn = document.getElementById("fit-browser-view-library");
-        const calendarBtn = document.getElementById(
-            "fit-browser-view-calendar"
+        const filesBtn = document.querySelector<HTMLElement>(
+            "#fit-browser-view-files"
+        );
+        const libraryBtn = document.querySelector<HTMLElement>(
+            "#fit-browser-view-library"
+        );
+        const calendarBtn = document.querySelector<HTMLElement>(
+            "#fit-browser-view-calendar"
         );
 
         const setView = async (view: BrowserView): Promise<void> => {
@@ -490,7 +513,7 @@ function getCalendarState(): CalendarState {
 }
 
 function getFitBrowserGlobal(): FitBrowserGlobal {
-    return globalThis as FitBrowserGlobal;
+    return globalThis;
 }
 
 function getElectronAPI(): FitBrowserElectronAPI | null {
@@ -608,6 +631,76 @@ function asRecord(value: unknown): Record<string, unknown> | null {
     return isRecord(value) ? value : null;
 }
 
+function parsePersistedLibraryItem(value: unknown): FitLibraryItem | null {
+    const itemRecord = asRecord(value);
+    const fullPath =
+        typeof itemRecord?.["fullPath"] === "string"
+            ? itemRecord["fullPath"]
+            : "";
+    const fileName =
+        typeof itemRecord?.["fileName"] === "string"
+            ? itemRecord["fileName"]
+            : "";
+    const startTime = coerceToDate(itemRecord?.["startTime"]);
+    const totalDistanceM = coerceToNumber(itemRecord?.["totalDistanceM"]);
+    const sport =
+        typeof itemRecord?.["sport"] === "string"
+            ? itemRecord["sport"]
+            : undefined;
+
+    if (!fullPath || !fileName || !startTime) {
+        return null;
+    }
+
+    const item: FitLibraryItem = {
+        fileName,
+        fullPath,
+        startTime,
+        totalDistanceM,
+    };
+    if (sport !== undefined) {
+        item.sport = sport;
+    }
+
+    return item;
+}
+
+function sortLibraryItemsByStartTimeDesc(
+    items: readonly FitLibraryItem[]
+): FitLibraryItem[] {
+    const sorted: FitLibraryItem[] = [];
+    for (const item of items) {
+        const insertAt = sorted.findIndex(
+            (existing) => existing.startTime.getTime() < item.startTime.getTime()
+        );
+        if (insertAt === -1) {
+            sorted.push(item);
+        } else {
+            sorted.splice(insertAt, 0, item);
+        }
+    }
+
+    return sorted;
+}
+
+function sortSportBadgeCountsByCountDesc(
+    counts: Iterable<SportBadgeCount>
+): SportBadgeCount[] {
+    const sorted: SportBadgeCount[] = [];
+    for (const count of counts) {
+        const insertAt = sorted.findIndex(
+            (existing) => existing.count < count.count
+        );
+        if (insertAt === -1) {
+            sorted.push(count);
+        } else {
+            sorted.splice(insertAt, 0, count);
+        }
+    }
+
+    return sorted;
+}
+
 function loadPersistedLibraryCache(
     root: string
 ): FitLibraryCachePayload | null {
@@ -617,61 +710,35 @@ function loadPersistedLibraryCache(
             return null;
         }
 
-        const parsed = JSON.parse(raw);
-        if (!parsed || typeof parsed !== "object") {
+        const parsed: unknown = JSON.parse(raw);
+        const parsedRecord = asRecord(parsed);
+        if (!parsedRecord) {
             return null;
         }
 
-        const { items: itemsRaw, scannedAt } = parsed as {
-            items?: unknown;
-            scannedAt?: unknown;
-        };
+        const itemsRaw = parsedRecord["items"];
+        const scannedAt = parsedRecord["scannedAt"];
         if (!Array.isArray(itemsRaw)) {
             return null;
         }
 
         const items: FitLibraryItem[] = [];
         for (const it of itemsRaw) {
-            const itemRecord = asRecord(it);
-            const fullPath =
-                typeof itemRecord?.["fullPath"] === "string"
-                    ? itemRecord["fullPath"]
-                    : "";
-            const fileName =
-                typeof itemRecord?.["fileName"] === "string"
-                    ? itemRecord["fileName"]
-                    : "";
-            const startTime = coerceToDate(itemRecord?.["startTime"]);
-            const totalDistanceM = coerceToNumber(
-                itemRecord?.["totalDistanceM"]
-            );
-            const sport =
-                typeof itemRecord?.["sport"] === "string"
-                    ? itemRecord["sport"]
-                    : undefined;
-
-            if (!fullPath || !fileName || !startTime) {
-                continue;
+            const item = parsePersistedLibraryItem(it);
+            if (item) {
+                items.push(item);
             }
-            const item: FitLibraryItem = {
-                fileName,
-                fullPath,
-                startTime,
-                totalDistanceM,
-            };
-            if (sport !== undefined) {
-                item.sport = sport;
-            }
-            items.push(item);
         }
 
-        items.sort((a, b) => b.startTime.getTime() - a.startTime.getTime());
         const normalizedScannedAt =
             typeof scannedAt === "number" && Number.isFinite(scannedAt)
                 ? scannedAt
                 : Date.now();
 
-        return { items, scannedAt: normalizedScannedAt };
+        return {
+            items: sortLibraryItemsByStartTimeDesc(items),
+            scannedAt: normalizedScannedAt,
+        };
     } catch {
         return null;
     }
@@ -683,13 +750,9 @@ function loadSessionLibraryCache(root: string): FitLibraryCachePayload | null {
 }
 
 function parentRelPath(relPath: string): string {
-    const normalized = relPath
-        .replaceAll("\\", "/")
-        .replace(/^\/+/, "")
-        .replace(/\/+$/, "");
-    const idx = normalized.lastIndexOf("/");
-    if (idx === -1) return "";
-    return normalized.slice(0, idx);
+    const segments = splitPathSegments(relPath);
+    segments.pop();
+    return segments.join("/");
 }
 
 function isNonEmptyString(value: unknown): value is string {
@@ -729,8 +792,7 @@ function getRelativePathWithinRoot(
     const caseInsensitive =
         isWindowsStylePath(rootPath) || isWindowsStylePath(fullPath);
 
-    for (let index = 0; index < rootSegments.length; index += 1) {
-        const left = rootSegments[index];
+    for (const [index, left] of rootSegments.entries()) {
         const right = fullSegments[index];
         if (typeof left !== "string" || typeof right !== "string") {
             return null;
@@ -802,7 +864,9 @@ async function openBrowserFile(filePath: string): Promise<void> {
             return;
         }
 
-        const openFileBtn = document.getElementById("open_file_btn");
+        const openFileBtn = document.querySelector<HTMLElement>(
+            "#open_file_btn"
+        );
         const openParams: {
             filePath: string;
             openFileBtn?: HTMLElement;
@@ -895,12 +959,22 @@ async function refreshActiveView(): Promise<void> {
             : rawView === "library"
               ? "library"
               : "files";
-    const filesBtn = document.getElementById("fit-browser-view-files");
-    const libraryBtn = document.getElementById("fit-browser-view-library");
-    const calendarBtn = document.getElementById("fit-browser-view-calendar");
-    const listEl = document.getElementById("fit-browser-list");
-    const libraryEl = document.getElementById("fit-browser-library");
-    const calendarEl = document.getElementById("fit-browser-calendar");
+    const filesBtn = document.querySelector<HTMLElement>(
+        "#fit-browser-view-files"
+    );
+    const libraryBtn = document.querySelector<HTMLElement>(
+        "#fit-browser-view-library"
+    );
+    const calendarBtn = document.querySelector<HTMLElement>(
+        "#fit-browser-view-calendar"
+    );
+    const listEl = document.querySelector<HTMLElement>("#fit-browser-list");
+    const libraryEl = document.querySelector<HTMLElement>(
+        "#fit-browser-library"
+    );
+    const calendarEl = document.querySelector<HTMLElement>(
+        "#fit-browser-calendar"
+    );
 
     if (filesBtn) {
         filesBtn.setAttribute(
@@ -961,8 +1035,10 @@ async function refreshActiveView(): Promise<void> {
 
 async function refreshListing(): Promise<void> {
     const api = getElectronAPI();
-    const pathEl = document.getElementById("fit-browser-current-path");
-    const listEl = document.getElementById("fit-browser-list");
+    const pathEl = document.querySelector<HTMLElement>(
+        "#fit-browser-current-path"
+    );
+    const listEl = document.querySelector<HTMLElement>("#fit-browser-list");
 
     if (!pathEl || !listEl) {
         return;
@@ -1075,9 +1151,9 @@ function renderCalendarResults(
     root: string,
     payload: FitLibraryCachePayload | null
 ): void {
-    const titleEl = document.getElementById("fit-calendar-title");
-    const gridEl = document.getElementById("fit-calendar-grid");
-    const panelEl = document.getElementById("fit-calendar-panel");
+    const titleEl = document.querySelector<HTMLElement>("#fit-calendar-title");
+    const gridEl = document.querySelector<HTMLElement>("#fit-calendar-grid");
+    const panelEl = document.querySelector<HTMLElement>("#fit-calendar-panel");
 
     if (!(gridEl instanceof HTMLElement) || !(panelEl instanceof HTMLElement)) {
         return;
@@ -1146,7 +1222,7 @@ function renderCalendarResults(
         gridItems.push(weekday);
     }
 
-    for (let i = 0; i < 42; i++) {
+    for (let i = 0; i < 42; i += 1) {
         const day = new Date(gridStart);
         day.setDate(gridStart.getDate() + i);
         const dayKey = formatLocalDayKey(day);
@@ -1192,9 +1268,7 @@ function renderCalendarResults(
     }
 
     const rows = createLibraryRows(
-        selectedItems
-            .slice()
-            .sort((a, b) => b.startTime.getTime() - a.startTime.getTime()),
+        sortLibraryItemsByStartTimeDesc(selectedItems),
         unitLabel,
         fmt,
         { includeSportBadge: true, useTimeOnly: true }
@@ -1305,7 +1379,7 @@ function createSportBadgeCounts(items: FitLibraryItem[]): SportBadgeCount[] {
         }
     }
 
-    return [...bySport.values()].sort((a, b) => b.count - a.count);
+    return sortSportBadgeCountsByCountDesc(bySport.values());
 }
 
 function createCalendarPanelTitle(dayKey: string): HTMLElement {
@@ -1433,8 +1507,12 @@ function createBrowserActionButton({
  */
 async function renderCalendarView(): Promise<void> {
     const api = getElectronAPI();
-    const pathEl = document.getElementById("fit-browser-current-path");
-    const calendarEl = document.getElementById("fit-browser-calendar");
+    const pathEl = document.querySelector<HTMLElement>(
+        "#fit-browser-current-path"
+    );
+    const calendarEl = document.querySelector<HTMLElement>(
+        "#fit-browser-calendar"
+    );
     if (
         !(calendarEl instanceof HTMLElement) ||
         !(pathEl instanceof HTMLElement)
@@ -1466,10 +1544,18 @@ async function renderCalendarView(): Promise<void> {
         calendarEl.dataset["ffvCalendarInitialized"] = "true";
         calendarEl.replaceChildren(createCalendarScaffold());
 
-        const prevBtn = document.getElementById("fit-calendar-prev");
-        const nextBtn = document.getElementById("fit-calendar-next");
-        const todayBtn = document.getElementById("fit-calendar-today");
-        const scanBtn = document.getElementById("fit-calendar-scan");
+        const prevBtn = document.querySelector<HTMLElement>(
+            "#fit-calendar-prev"
+        );
+        const nextBtn = document.querySelector<HTMLElement>(
+            "#fit-calendar-next"
+        );
+        const todayBtn = document.querySelector<HTMLElement>(
+            "#fit-calendar-today"
+        );
+        const scanBtn = document.querySelector<HTMLElement>(
+            "#fit-calendar-scan"
+        );
 
         if (prevBtn) {
             addManagedEventListener(prevBtn, "click", () => {
@@ -1737,9 +1823,13 @@ function renderLibraryResults(
     root: string,
     payload: FitLibraryCachePayload
 ): void {
-    const statusEl = document.getElementById("fit-library-status");
-    const cardsEl = document.getElementById("fit-library-cards");
-    const listEl = document.getElementById("fit-library-activities");
+    const statusEl = document.querySelector<HTMLElement>(
+        "#fit-library-status"
+    );
+    const cardsEl = document.querySelector<HTMLElement>("#fit-library-cards");
+    const listEl = document.querySelector<HTMLElement>(
+        "#fit-library-activities"
+    );
 
     const prefs = getLibraryPrefs();
     const totals = computeLibraryTotals(payload.items, prefs.lastDays);
@@ -1800,8 +1890,12 @@ function renderLibraryResults(
 
 async function renderLibraryView(): Promise<void> {
     const api = getElectronAPI();
-    const pathEl = document.getElementById("fit-browser-current-path");
-    const libraryEl = document.getElementById("fit-browser-library");
+    const pathEl = document.querySelector<HTMLElement>(
+        "#fit-browser-current-path"
+    );
+    const libraryEl = document.querySelector<HTMLElement>(
+        "#fit-browser-library"
+    );
 
     if (
         !(libraryEl instanceof HTMLElement) ||
@@ -1836,7 +1930,9 @@ async function renderLibraryView(): Promise<void> {
         libraryEl.dataset["ffvLibraryInitialized"] = "true";
         libraryEl.replaceChildren(createLibraryScaffold());
 
-        const scanBtn = document.getElementById("fit-library-scan");
+        const scanBtn = document.querySelector<HTMLElement>(
+            "#fit-library-scan"
+        );
         if (scanBtn) {
             addManagedEventListener(scanBtn, "click", async () => {
                 await scanAndRenderLibrary(root);
@@ -1845,8 +1941,12 @@ async function renderLibraryView(): Promise<void> {
 
         // Initialize controls from persisted prefs.
         const prefs = getLibraryPrefs();
-        const daysInput = document.getElementById("fit-library-days");
-        const unitSelect = document.getElementById("fit-library-unit");
+        const daysInput = document.querySelector<HTMLInputElement>(
+            "#fit-library-days"
+        );
+        const unitSelect = document.querySelector<HTMLSelectElement>(
+            "#fit-library-unit"
+        );
 
         if (daysInput instanceof HTMLInputElement) {
             daysInput.value = String(prefs.lastDays);
@@ -1893,7 +1993,9 @@ async function renderLibraryView(): Promise<void> {
         return;
     }
 
-    const statusEl = document.getElementById("fit-library-status");
+    const statusEl = document.querySelector<HTMLElement>(
+        "#fit-library-status"
+    );
     if (statusEl) {
         statusEl.textContent =
             "Click ‘Scan folder’ to compute weekly/monthly totals.";
@@ -1902,7 +2004,9 @@ async function renderLibraryView(): Promise<void> {
 
 async function scanAndRenderLibrary(root: string): Promise<void> {
     const api = getElectronAPI();
-    const statusEl = document.getElementById("fit-library-status");
+    const statusEl = document.querySelector<HTMLElement>(
+        "#fit-library-status"
+    );
     if (
         !api ||
         typeof api.listFitBrowserFolder !== "function" ||
@@ -1950,7 +2054,7 @@ async function scanAndRenderLibrary(root: string): Promise<void> {
         const tasks = files.map((file) =>
             limit(async () => {
                 const res = await decodeLibraryItem(libraryApi, file);
-                done++;
+                done += 1;
                 if (statusEl) {
                     statusEl.textContent = `Decoding ${Math.min(done, files.length)} / ${files.length}…`;
                 }
@@ -1962,9 +2066,10 @@ async function scanAndRenderLibrary(root: string): Promise<void> {
 
         await Promise.allSettled(tasks);
 
-        items.sort((a, b) => b.startTime.getTime() - a.startTime.getTime());
-
-        const payload = { items, scannedAt: Date.now() };
+        const payload = {
+            items: sortLibraryItemsByStartTimeDesc(items),
+            scannedAt: Date.now(),
+        };
         writeSessionLibraryCache(root, payload);
         persistLibraryCache(root, payload);
 
