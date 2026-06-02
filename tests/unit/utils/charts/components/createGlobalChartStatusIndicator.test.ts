@@ -31,6 +31,44 @@ function createMockChartCounts(available: number, visible: number) {
     };
 }
 
+function requireElement<TElement extends Element>(
+    element: TElement | null | undefined,
+    selector: string
+): TElement {
+    if (!element) {
+        throw new Error(`Expected ${selector} to exist`);
+    }
+
+    return element;
+}
+
+function getIndicatorState(indicator: HTMLElement) {
+    const statusInfo = requireElement(
+        indicator.firstElementChild,
+        "status info"
+    );
+    const icon = requireElement(statusInfo.children[0], "status icon");
+    const statusText = requireElement(statusInfo.children[1], "status text");
+    const quickAction = requireElement(
+        indicator.querySelector("button"),
+        "quick action"
+    );
+    const breakdown = requireElement(
+        indicator.querySelector(".global-breakdown"),
+        ".global-breakdown"
+    );
+
+    return {
+        breakdownText: breakdown.textContent,
+        iconText: icon.textContent,
+        iconTitle: icon.getAttribute("title"),
+        quickActionActionable: quickAction.getAttribute("data-actionable"),
+        quickActionText: quickAction.textContent,
+        quickActionTitle: quickAction.getAttribute("title"),
+        statusText: statusText.textContent,
+    };
+}
+
 describe(createGlobalChartStatusIndicator, () => {
     let root: HTMLDivElement;
 
@@ -88,17 +126,19 @@ describe(createGlobalChartStatusIndicator, () => {
         const indicator = createGlobalChartStatusIndicator();
         expect(indicator).toBeInstanceOf(HTMLElement);
 
-        // Icon should be the ALL_VISIBLE emoji
-        const icon = indicator?.querySelector<HTMLElement>("span");
-        expect(icon?.textContent).toBe("✅");
-
-        // Quick action should indicate charts are ready
-        const quickAction =
-            indicator?.querySelector<HTMLButtonElement>("button");
-        expect(quickAction?.textContent).toContain("Charts Ready");
+        const state = getIndicatorState(indicator as HTMLElement);
+        expect(state).toMatchObject({
+            iconText: "✅",
+            iconTitle: "All available charts are visible",
+            quickActionActionable: "false",
+            quickActionText: "✨ Charts Ready",
+            quickActionTitle: "All available charts are visible",
+            statusText: "Showing 4 of 4 available charts",
+        });
+        expect(state.breakdownText).not.toContain("Use settings panel below");
     });
 
-    it("creates indicator for some-hidden charts and opens settings on click", async () => {
+    it("creates indicator for some-hidden charts and opens settings on click", () => {
         expect.assertions(4);
 
         // Provide settings wrapper and toggle button that handler manipulates
@@ -111,14 +151,26 @@ describe(createGlobalChartStatusIndicator, () => {
 
         mockGetChartCounts.mockReturnValue(createMockChartCounts(6, 3));
         const indicator = createGlobalChartStatusIndicator();
-        const quickAction = indicator?.querySelector("button");
-        expect(quickAction?.textContent).toContain("Show Settings");
+        const quickAction = requireElement(
+            indicator?.querySelector("button"),
+            "quick action"
+        );
+        expect(getIndicatorState(indicator as HTMLElement)).toMatchObject({
+            breakdownText:
+                "Chart Categories📊 Metrics: 3/6📈 Analysis: 0/0🎯 Zones: 0/0🗺️ GPS: 0/0💡 Use settings panel below to enable more charts",
+            iconText: "⚠️",
+            iconTitle: "Some charts are hidden",
+            quickActionActionable: "true",
+            quickActionText: "⚙️ Show Settings",
+            quickActionTitle: "Open chart settings to enable more charts",
+            statusText: "Showing 3 of 6 available charts",
+        });
 
         // Click to trigger handleSettingsToggle side effects
-        quickAction?.dispatchEvent(new Event("click"));
+        quickAction.dispatchEvent(new Event("click"));
         // display should be set to block and toggle text changed
         expect(settingsWrapper.style.display).toBe("block");
-        expect(toggleBtn.textContent).toContain("Hide Controls");
+        expect(toggleBtn.textContent).toBe("▼ Hide Controls");
         expect(toggleBtn.getAttribute("aria-expanded")).toBe("true");
     });
 
@@ -127,11 +179,15 @@ describe(createGlobalChartStatusIndicator, () => {
 
         mockGetChartCounts.mockReturnValue(createMockChartCounts(0, 0));
         const indicator = createGlobalChartStatusIndicator();
-        const statusText = indicator?.querySelectorAll("span")[1];
-        expect(statusText?.textContent).toContain("No chart data available");
-
-        const quickAction = indicator?.querySelector("button");
-        expect(quickAction?.textContent).toContain("Load FIT");
+        expect(indicator).toBeInstanceOf(HTMLElement);
+        expect(getIndicatorState(indicator as HTMLElement)).toMatchObject({
+            iconText: "❌",
+            iconTitle: "No charts are available",
+            quickActionActionable: "false",
+            quickActionText: "📂 Load FIT",
+            quickActionTitle: "Load a FIT file to see charts",
+            statusText: "No chart data available in this FIT file",
+        });
     });
 
     it("reuses existing indicator when already present", () => {
