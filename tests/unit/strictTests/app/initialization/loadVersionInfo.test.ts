@@ -65,8 +65,17 @@ function setElectronAPI(electronAPI?: VersionInfoElectronAPI): void {
     delete versionInfoGlobal.electronAPI;
 }
 
+function getVersionNumberElement(): HTMLElement {
+    const versionNumber =
+        document.querySelector<HTMLElement>("#version-number");
+    if (!versionNumber) {
+        throw new Error("Expected #version-number to exist");
+    }
+    return versionNumber;
+}
+
 function resetTestState(): void {
-    document.body.textContent = "";
+    document.body.replaceChildren();
 
     const versionNumber = document.createElement("div");
     versionNumber.id = "version-number";
@@ -108,9 +117,7 @@ describe("loadVersionInfo", () => {
 
         await loadVersionInfo();
 
-        expect(document.querySelector("#version-number")?.textContent).toBe(
-            "1.2.3"
-        );
+        expect(getVersionNumberElement().textContent).toBe("1.2.3");
         expect(h.updateSystemInfo).toHaveBeenCalledWith(
             expect.objectContaining({
                 chrome: "128.0.0.0",
@@ -132,7 +139,7 @@ describe("loadVersionInfo", () => {
 
         await loadVersionInfo();
 
-        expect(document.querySelector("#version-number")?.textContent).toBe("");
+        expect(getVersionNumberElement().textContent).toBe("");
         expect(h.updateSystemInfo).toHaveBeenCalledWith(
             expect.objectContaining({
                 author: "Nick2bad4u",
@@ -155,7 +162,7 @@ describe("loadVersionInfo", () => {
 
         await loadVersionInfo();
 
-        expect(document.querySelector("#version-number")?.textContent).toBe("");
+        expect(getVersionNumberElement().textContent).toBe("");
         expect(h.updateSystemInfo).toHaveBeenCalledWith(
             expect.objectContaining({
                 version: "unknown",
