@@ -2,16 +2,27 @@ import { describe, expect, it, vi } from "vitest";
 
 import { removeExitFullscreenOverlay } from "../../../../../electron-app/utils/ui/controls/removeExitFullscreenOverlay.js";
 
+const OVERLAY_CLASS = "exit-fullscreen-overlay";
+const OVERLAY_SELECTOR = `.${OVERLAY_CLASS}`;
+
 function createContainer(): HTMLElement {
     const container = document.createElement("div");
     document.body.append(container);
     return container;
 }
 
+function createOverlay(
+    tagName: "button" | "div" = "button"
+): HTMLButtonElement | HTMLDivElement {
+    const overlay = document.createElement(tagName);
+    overlay.classList.add(OVERLAY_CLASS);
+    return overlay;
+}
+
 function resetTestState(container?: HTMLElement): void {
     vi.restoreAllMocks();
     container?.remove();
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
 }
 
 describe(removeExitFullscreenOverlay, () => {
@@ -27,8 +38,7 @@ describe(removeExitFullscreenOverlay, () => {
         expect.assertions(3);
 
         const container = createContainer();
-        const overlay = document.createElement("button");
-        overlay.classList.add("exit-fullscreen-overlay");
+        const overlay = createOverlay();
         const removeSpy = vi.fn<() => void>(() => {
             overlay.parentNode?.removeChild(overlay);
         });
@@ -38,7 +48,7 @@ describe(removeExitFullscreenOverlay, () => {
         removeExitFullscreenOverlay(container);
 
         expect(removeSpy).toHaveBeenCalledOnce();
-        expect(container.querySelector(".exit-fullscreen-overlay")).toBeNull();
+        expect(container.querySelector(OVERLAY_SELECTOR)).toBeNull();
 
         const debugSpy = vi
             .spyOn(console, "debug")
@@ -56,8 +66,7 @@ describe(removeExitFullscreenOverlay, () => {
         expect.assertions(2);
 
         const container = createContainer();
-        const overlay = document.createElement("button");
-        overlay.classList.add("exit-fullscreen-overlay");
+        const overlay = createOverlay();
         Object.defineProperty(overlay, "remove", {
             configurable: true,
             value: undefined,
@@ -66,7 +75,7 @@ describe(removeExitFullscreenOverlay, () => {
 
         removeExitFullscreenOverlay(container);
 
-        expect(container.querySelector(".exit-fullscreen-overlay")).toBeNull();
+        expect(container.querySelector(OVERLAY_SELECTOR)).toBeNull();
         expect(overlay.parentNode).toBeNull();
 
         resetTestState(container);
@@ -76,8 +85,7 @@ describe(removeExitFullscreenOverlay, () => {
         expect.assertions(2);
 
         const container = createContainer();
-        const overlay = document.createElement("div");
-        overlay.classList.add("exit-fullscreen-overlay");
+        const overlay = createOverlay("div");
         overlay.remove = vi.fn<() => void>(() => {
             throw new Error("removal failed");
         }) as typeof overlay.remove;
@@ -101,8 +109,7 @@ describe(removeExitFullscreenOverlay, () => {
         expect.assertions(3);
 
         const container = createContainer();
-        const overlay = document.createElement("div");
-        overlay.classList.add("exit-fullscreen-overlay");
+        const overlay = createOverlay("div");
         container.append(overlay);
         const querySpy = vi.spyOn(container, "querySelector");
         const removeSpy = vi.fn<() => void>(() => {
@@ -112,9 +119,9 @@ describe(removeExitFullscreenOverlay, () => {
 
         removeExitFullscreenOverlay(container);
 
-        expect(querySpy).toHaveBeenCalledWith(".exit-fullscreen-overlay");
+        expect(querySpy).toHaveBeenCalledWith(OVERLAY_SELECTOR);
         expect(removeSpy).toHaveBeenCalledOnce();
-        expect(container.querySelector(".exit-fullscreen-overlay")).toBeNull();
+        expect(container.querySelector(OVERLAY_SELECTOR)).toBeNull();
 
         resetTestState(container);
     });
