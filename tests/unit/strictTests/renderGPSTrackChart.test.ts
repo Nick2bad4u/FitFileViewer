@@ -231,15 +231,20 @@ describe(renderGPSTrackChart, () => {
                 [firstPoint, secondPoint] = dataset.data;
 
             expect(dataset.data).toHaveLength(2);
-            expect(firstPoint?.pointIndex).toBe(0);
-            expect(secondPoint?.pointIndex).toBe(3);
-            expect(firstPoint?.y).toBeCloseTo((429_496_730 * 180) / 2 ** 31, 6);
-            expect(firstPoint?.x).toBeCloseTo(
+            const requiredFirstPoint = getRequiredPoint(firstPoint, 0);
+            const requiredSecondPoint = getRequiredPoint(secondPoint, 1);
+            expect(requiredFirstPoint.pointIndex).toBe(0);
+            expect(requiredSecondPoint.pointIndex).toBe(3);
+            expect(requiredFirstPoint.y).toBeCloseTo(
+                (429_496_730 * 180) / 2 ** 31,
+                6
+            );
+            expect(requiredFirstPoint.x).toBeCloseTo(
                 (-859_993_460 * 180) / 2 ** 31,
                 6
             );
-            expect(secondPoint?.y).toBeGreaterThan(firstPoint?.y ?? 0);
-            expect(secondPoint?.x).toBeLessThan(firstPoint?.x ?? 0);
+            expect(requiredSecondPoint.y).toBeGreaterThan(requiredFirstPoint.y);
+            expect(requiredSecondPoint.x).toBeLessThan(requiredFirstPoint.x);
         });
     });
 
@@ -261,8 +266,8 @@ describe(renderGPSTrackChart, () => {
                 getSingleChartCall(chartCalls)[1].data.datasets[0].data;
 
             expect(points).toHaveLength(10);
-            expect(points.at(0)?.pointIndex).toBe(0);
-            expect(points.at(-1)?.pointIndex).toBe(45);
+            expect(getRequiredPoint(points.at(0), 0).pointIndex).toBe(0);
+            expect(getRequiredPoint(points.at(-1), -1).pointIndex).toBe(45);
         });
     });
 
@@ -408,7 +413,9 @@ describe(renderGPSTrackChart, () => {
 
             expect(chartCalls).toStrictEqual([]);
             expect(container.children).toHaveLength(1);
-            expect(container.firstElementChild?.tagName).toBe("CANVAS");
+            expect(
+                getRequiredElement(container.firstElementChild).tagName
+            ).toBe("CANVAS");
             expect(globalThis._chartjsInstances).toStrictEqual([]);
             expect(consoleLog).toHaveBeenCalledWith(
                 "[ChartJS] No GPS position data available"
@@ -524,4 +531,23 @@ function getSingleChartCall(chartCalls: readonly ChartCall[]): ChartCall {
     }
 
     return chartCalls[0] as ChartCall;
+}
+
+function getRequiredPoint(
+    point: GpsPoint | undefined,
+    index: number
+): GpsPoint {
+    if (!point) {
+        throw new Error(`Expected GPS point ${index}`);
+    }
+
+    return point;
+}
+
+function getRequiredElement(element: Element | null): Element {
+    if (!element) {
+        throw new Error("Expected rendered GPS chart element");
+    }
+
+    return element;
 }
