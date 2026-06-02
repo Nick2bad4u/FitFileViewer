@@ -156,7 +156,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
     describe("computedStateManager class", () => {
         describe("constructor", () => {
             it("should initialize with empty state", () => {
-                expect.hasAssertions();
+                expect.assertions(6);
                 expect(computedStateManager.computedValues).toBeInstanceOf(Map);
                 expect(computedStateManager.dependencies).toBeInstanceOf(Map);
                 expect(computedStateManager.subscriptions).toBeInstanceOf(Map);
@@ -179,7 +179,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
         describe("addComputed", () => {
             it("should register a new computed value with dependencies", () => {
-                expect.hasAssertions();
+                expect.assertions(5);
                 const computeFn = vi.fn<(state: any) => string>((state) =>
                     state.globalData ? "loaded" : "empty"
                 );
@@ -205,7 +205,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             });
 
             it("should replace existing computed value with warning", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
                 const firstFn = vi.fn<() => string>(() => "first");
                 const secondFn = vi.fn<() => string>(() => "second");
 
@@ -222,7 +222,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             });
 
             it("should compute initial value on registration", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
                 const computeFn = vi.fn<() => string>(() => "computed-value");
                 computedStateManager.addComputed("initialTest", computeFn, []);
 
@@ -236,7 +236,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             });
 
             it("should handle empty dependencies array", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
                 const computeFn = vi.fn<() => string>(() => "no-deps");
                 computedStateManager.addComputed("noDeps", computeFn);
 
@@ -251,7 +251,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
         describe("computeValue", () => {
             it("should compute and store value successfully", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
                 const computeFn = vi.fn<(state: any) => string>((state) =>
                     state.app?.initialized ? "ready" : "not-ready"
                 );
@@ -272,7 +272,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             });
 
             it("should handle computation errors gracefully", () => {
-                expect.hasAssertions();
+                expect.assertions(3);
                 const computationError = new Error("Computation failed");
                 const errorFn = vi.fn<() => never>(() => {
                     throw computationError;
@@ -290,7 +290,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             });
 
             it("should prevent circular dependencies", () => {
-                expect.hasAssertions();
+                expect.assertions(3);
                 const circularFn = vi.fn<() => string>(() => "circular");
                 computedStateManager.computedValues.set("circular", {
                     computeFn: circularFn,
@@ -320,7 +320,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             });
 
             it("should log slow computations", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
                 vi.mocked(performance.now)
                     .mockReturnValueOnce(1000) // Start time
                     .mockReturnValueOnce(1015); // End time (15ms duration)
@@ -345,7 +345,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             });
 
             it("should skip computation for non-existent keys", () => {
-                expect.hasAssertions();
+                expect.assertions(3);
                 const computedCount = computedStateManager.computedValues.size;
 
                 expect(
@@ -361,7 +361,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
         describe("getComputed", () => {
             it("should return computed value when valid", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
                 const computeFn = vi.fn<() => string>(() => "test-value");
                 computedStateManager.addComputed("validTest", computeFn, []);
 
@@ -370,7 +370,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             });
 
             it("should recompute when value is invalid", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
                 const computeFn = vi.fn<() => string>(() => "recomputed-value");
                 computedStateManager.addComputed("invalidTest", computeFn, []);
 
@@ -389,7 +389,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             });
 
             it("should recompute when there is an error", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
                 const computeFn = vi.fn<() => string>(() => "fixed-value");
                 computedStateManager.addComputed("errorTest", computeFn, []);
 
@@ -408,7 +408,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             });
 
             it("should warn and return undefined for non-existent keys", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
                 const result = computedStateManager.getComputed("nonExistent");
                 expect({
                     result,
@@ -426,7 +426,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
         describe("invalidateComputed", () => {
             it("should mark computed value as invalid", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
                 computedStateManager.addComputed(
                     "invalidateTest",
                     () => "value",
@@ -446,7 +446,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             });
 
             it("should handle invalidation of non-existent keys gracefully", () => {
-                expect.hasAssertions();
+                expect.assertions(3);
                 const computedCount = computedStateManager.computedValues.size;
 
                 expect(
@@ -462,7 +462,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
         describe("removeComputed", () => {
             it("should remove computed value and clean up subscriptions", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
                 const unsubscribe = vi.fn<() => void>();
                 computedStateManager.addComputed("removeTest", () => "value", [
                     "globalData",
@@ -490,7 +490,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             });
 
             it("should warn when removing non-existent computed value", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
                 const computedCount = computedStateManager.computedValues.size;
 
                 computedStateManager.removeComputed("nonExistent");
@@ -504,7 +504,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             });
 
             it("should handle subscriptions cleanup safely", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
                 computedStateManager.subscriptions.set("cleanupTest", [
                     null,
                     undefined,
@@ -527,7 +527,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
         describe("recomputeAll", () => {
             it("should invalidate and recompute all computed values", () => {
-                expect.hasAssertions();
+                expect.assertions(5);
                 let firstVersion = 0;
                 let secondVersion = 0;
                 const fn1 = vi.fn<() => string>(
@@ -581,7 +581,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
         describe("getAllComputed", () => {
             it("should return all computed values with metadata", () => {
-                expect.hasAssertions();
+                expect.assertions(3);
                 computedStateManager.addComputed("meta1", () => "value1", [
                     "dep1",
                 ]);
@@ -609,7 +609,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
         describe("getDependencyGraph", () => {
             it("should return dependency relationships", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
                 computedStateManager.addComputed("graph1", () => "value1", [
                     "dep1",
                     "dep2",
@@ -630,7 +630,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
         describe("cleanup", () => {
             it("should clean up all state and subscriptions", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
                 computedStateManager.addComputed("cleanup1", () => "value1", [
                     "globalData",
                 ]);
@@ -726,7 +726,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
         describe("removeComputed", () => {
             it("should delegate to computedStateManager.removeComputed", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
                 computedStateManager.addComputed(
                     "removeTest",
                     () => "remove-value",
@@ -747,7 +747,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
     describe("createReactiveComputed", () => {
         it("should create property descriptor with getter", () => {
-            expect.hasAssertions();
+            expect.assertions(3);
             const descriptor = createReactiveComputed(
                 "reactive",
                 () => "reactive-value",
@@ -772,7 +772,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
     describe("common computed values", () => {
         describe("initializeCommonComputedValues", () => {
             it("should initialize all predefined computed values", () => {
-                expect.hasAssertions();
+                expect.assertions(9);
                 initializeCommonComputedValues();
 
                 const expectedKeys = [
@@ -797,7 +797,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             });
 
             it("should compute isFileLoaded correctly", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
                 initializeCommonComputedValues();
 
                 // Test with empty globalData
@@ -812,7 +812,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             });
 
             it("should compute isAppReady correctly", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
                 initializeCommonComputedValues();
 
                 mockStateManager.setState("app", {
@@ -825,7 +825,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             });
 
             it("should compute hasChartData correctly", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
                 initializeCommonComputedValues();
 
                 mockStateManager.setState("globalData", {
@@ -837,7 +837,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             });
 
             it("should compute hasMapData correctly", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
                 initializeCommonComputedValues();
 
                 mockStateManager.setState("globalData", {
@@ -849,7 +849,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             });
 
             it("should compute summaryData correctly", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
                 initializeCommonComputedValues();
 
                 const sessionData = {
@@ -879,7 +879,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             });
 
             it("should compute themeInfo correctly", () => {
-                expect.hasAssertions();
+                expect.assertions(1);
                 initializeCommonComputedValues();
 
                 mockStateManager.setState("settings", {
@@ -898,7 +898,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             });
 
             it("should handle auto theme with matchMedia", () => {
-                expect.hasAssertions();
+                expect.assertions(2);
                 initializeCommonComputedValues();
 
                 mockStateManager.setState("settings", {
@@ -915,7 +915,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
         describe("cleanupCommonComputedValues", () => {
             it("should remove all common computed values", () => {
-                expect.hasAssertions();
+                expect.assertions(3);
                 initializeCommonComputedValues();
 
                 const initialCount = computedStateManager.computedValues.size;
@@ -934,7 +934,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
     describe("state reactivity", () => {
         it("should trigger recomputation when dependencies change", () => {
-            expect.hasAssertions();
+            expect.assertions(6);
             const computeFn = vi.fn<(state: any) => string>(
                 (state) => state.globalData?.test || "default"
             );
@@ -965,7 +965,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
         });
 
         it("should handle multiple dependencies correctly", () => {
-            expect.hasAssertions();
+            expect.assertions(4);
             const computeFn = vi.fn<(state: any) => string>(
                 (state) => `${state.app?.status}-${state.ui?.mode}`
             );
@@ -998,7 +998,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
     describe("error handling", () => {
         it("should handle state manager errors gracefully", () => {
-            expect.hasAssertions();
+            expect.assertions(2);
             mockStateManager.getState.mockImplementationOnce(() => {
                 throw new Error("State access error");
             });
@@ -1015,7 +1015,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
         });
 
         it("should handle subscription setup errors", () => {
-            expect.hasAssertions();
+            expect.assertions(1);
             mockStateManager.subscribe.mockImplementationOnce(() => {
                 throw new Error("Subscription error");
             });
