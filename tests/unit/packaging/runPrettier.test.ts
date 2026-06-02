@@ -49,7 +49,7 @@ type CommandRunner = (
     command: string,
     args: string[],
     options: { cwd: string; stdio: string }
-) => { status: number };
+) => { error?: Error; status: number | null };
 
 describe("run-prettier wrapper", () => {
     it("keeps root-owned formatting targets for app and workspace metadata", () => {
@@ -172,6 +172,48 @@ describe("run-prettier wrapper", () => {
                 ...prettierOptions,
                 "--check",
             ],
+            options: {
+                cwd: path.resolve(process.cwd()),
+                stdio: "inherit",
+            },
+        });
+        expect(args?.[0]).toMatch(/[\\/]prettier[\\/]bin[\\/]prettier\.cjs$/u);
+    });
+
+    it("throws when Prettier cannot be started", () => {
+        expect.assertions(4);
+
+        const spawnError = new Error("spawn failed");
+        const commandRunner = vi.fn<CommandRunner>(() => ({
+            error: spawnError,
+            status: null,
+        }));
+
+        expect(() =>
+            runPrettier(["--check", "package.json"], commandRunner)
+        ).toThrow(spawnError);
+        expect(commandRunner).toHaveBeenCalledOnce();
+
+        const [
+            command,
+            args,
+            options,
+        ] = commandRunner.mock.calls[0] ?? [];
+
+        expect({
+            args: args?.slice(1),
+            command,
+            options: {
+                ...options,
+                cwd: path.resolve(options?.cwd ?? ""),
+            },
+        }).toStrictEqual({
+            args: [
+                "package.json",
+                ...prettierOptions,
+                "--check",
+            ],
+            command: process.execPath,
             options: {
                 cwd: path.resolve(process.cwd()),
                 stdio: "inherit",
