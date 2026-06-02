@@ -74,6 +74,28 @@ function getComputedStyleSpan(
     return target;
 }
 
+function getBaseContainerState(container: HTMLElement) {
+    const heading = container.querySelector("b");
+    const list = container.querySelector("#shown-files-ul");
+
+    return {
+        childTags: [...container.children].map((child) => child.tagName),
+        className: container.className,
+        headingText: heading?.textContent ?? null,
+        list: {
+            id: list?.id ?? null,
+            margin: list instanceof HTMLElement ? list.style.margin : null,
+            paddingLeft:
+                list instanceof HTMLElement ? list.style.paddingLeft : null,
+            role: list?.getAttribute("role") ?? null,
+            tagName: list?.tagName ?? null,
+        },
+        maxHeight: container.style.maxHeight,
+        maxWidth: container.style.maxWidth,
+        overflow: container.style.overflow,
+    };
+}
+
 describe("createShownFilesList", () => {
     let createShownFilesList: () => HTMLElement;
 
@@ -151,40 +173,41 @@ describe("createShownFilesList", () => {
             const container = createShownFilesList();
 
             expect(container).toBeInstanceOf(HTMLElement);
-            expect(container.className).toBe(
-                "shown-files-list map-controls-secondary-card"
-            );
-
-            // Check that critical properties are set - jsdom may not preserve all styles
-            expect(container.style.maxWidth).toBe("fit-content");
-            expect(container.style.overflow).toBe("auto");
-            expect(container.style.maxHeight).toBe("fit-content");
-
-            // The element should have proper structure
-            expect(container.innerHTML).toContain("Extra Files shown on map");
-            expect(container.querySelector("#shown-files-ul")).toBeInstanceOf(
-                HTMLUListElement
-            );
+            expect(getBaseContainerState(container)).toStrictEqual({
+                childTags: ["B", "UL"],
+                className: "shown-files-list map-controls-secondary-card",
+                headingText: "Extra Files shown on map:",
+                list: {
+                    id: "shown-files-ul",
+                    margin: "0px",
+                    paddingLeft: "18px",
+                    role: "listbox",
+                    tagName: "UL",
+                },
+                maxHeight: "fit-content",
+                maxWidth: "fit-content",
+                overflow: "auto",
+            });
         });
 
         it("sets initial HTML content with proper structure", () => {
             expect.hasAssertions();
             const container = createShownFilesList();
 
-            expect(container.innerHTML).toContain(
-                "<b>Extra Files shown on map:</b>"
-            );
-            expect(container.innerHTML).toContain('<ul id="shown-files-ul"');
-
             const ul = container.querySelector("#shown-files-ul");
 
             expect(ul).toBeInstanceOf(HTMLUListElement);
-
-            // jsdom normalizes style serialization (e.g. adds spaces and px units), so we assert
-            // against intent rather than exact string formatting.
-            const style = String(ul?.getAttribute("style") ?? "");
-            expect(style).toMatch(/margin\s*:\s*0(px)?\s*;?/i);
-            expect(style).toMatch(/padding-left\s*:\s*18(px)?\s*;?/i);
+            expect(getBaseContainerState(container)).toMatchObject({
+                childTags: ["B", "UL"],
+                headingText: "Extra Files shown on map:",
+                list: {
+                    id: "shown-files-ul",
+                    margin: "0px",
+                    paddingLeft: "18px",
+                    role: "listbox",
+                    tagName: "UL",
+                },
+            });
         });
 
         it("applies theme styles on creation", () => {
