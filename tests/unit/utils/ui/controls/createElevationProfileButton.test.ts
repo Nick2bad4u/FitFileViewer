@@ -25,10 +25,45 @@ const getPopupWindow = (): MockElevationPopupWindow =>
 const getPopupChartContainer = (mockWin: MockElevationPopupWindow) => {
     const container = mockWin.document.querySelector("#elevChartsContainer");
 
-    expect(container).toBeInstanceOf(HTMLDivElement);
+    if (!(container instanceof HTMLDivElement)) {
+        throw new TypeError("Expected elevation chart container");
+    }
 
-    return container as HTMLDivElement;
+    return container;
 };
+
+const getElevationButtonState = (button: HTMLButtonElement) => {
+    const icon = button.querySelector("svg.icon"),
+        polyline = icon?.querySelector("polyline");
+
+    return {
+        className: button.className,
+        dotCount: icon?.querySelectorAll("circle").length ?? 0,
+        iconHeight: icon?.getAttribute("height"),
+        iconViewBox: icon?.getAttribute("viewBox"),
+        iconWidth: icon?.getAttribute("width"),
+        polylinePoints: polyline?.getAttribute("points"),
+        text: button.textContent,
+        title: button.title,
+    };
+};
+
+const getPopupHeaderState = (mockWin: MockElevationPopupWindow) => ({
+    fileCount: mockWin.document.querySelector("header span")?.textContent,
+    heading: mockWin.document.querySelector("header h2")?.textContent,
+});
+
+const getPopupFileLabels = (mockWin: MockElevationPopupWindow) =>
+    Array.from(
+        mockWin.document.querySelectorAll(".elev-profile-label span:not(.dot)"),
+        (label) => label.textContent
+    );
+
+const getPopupNoDataMessages = (mockWin: MockElevationPopupWindow) =>
+    Array.from(
+        mockWin.document.querySelectorAll(".no-altitude-data"),
+        (message) => message.textContent
+    );
 
 describe(createElevationProfileButton, () => {
     let originalWindow: any;
@@ -85,21 +120,27 @@ describe(createElevationProfileButton, () => {
     });
 
     it("should create a button with correct properties", () => {
-        expect.assertions(5);
+        expect.assertions(2);
 
         // Create the button
         const button = createElevationProfileButton();
 
         // Check button properties
         expect(button).toBeInstanceOf(HTMLButtonElement);
-        expect(button.className).toBe("map-action-btn");
-        expect(button.title).toBe("Show Elevation Profile");
-        expect(button.innerHTML).toContain('<svg class="icon"');
-        expect(button.innerHTML).toContain("<span>Elevation</span>");
+        expect(getElevationButtonState(button)).toEqual({
+            className: "map-action-btn",
+            dotCount: 5,
+            iconHeight: "18",
+            iconViewBox: "0 0 20 20",
+            iconWidth: "18",
+            polylinePoints: "2,16 6,10 10,14 14,6 18,12",
+            text: "Elevation",
+            title: "Show Elevation Profile",
+        });
     });
 
     it("should open a window with no files when clicked and no fit files are loaded", () => {
-        expect.assertions(8);
+        expect.assertions(7);
 
         // Create the button and click it
         const button = createElevationProfileButton();
@@ -115,9 +156,10 @@ describe(createElevationProfileButton, () => {
         const mockWin = getPopupWindow();
 
         expect(mockWin.document.body.className).toBe("theme-light");
-        expect(mockWin.document.querySelector("header")?.textContent).toContain(
-            "0 file"
-        );
+        expect(getPopupHeaderState(mockWin)).toEqual({
+            fileCount: "0 file",
+            heading: "Elevation Profiles",
+        });
         expect(getPopupChartContainer(mockWin).children).toHaveLength(0);
         expect(mockWin.document.querySelector("script")).toBeNull();
         expect(mockWin.Chart).toBe(chartMock);
@@ -150,10 +192,11 @@ describe(createElevationProfileButton, () => {
 
         const mockWin = getPopupWindow();
 
-        expect(mockWin.document.querySelector("header")?.textContent).toContain(
-            "1 file"
-        );
-        expect(mockWin.document.body.textContent).toContain("test-file.fit");
+        expect(getPopupHeaderState(mockWin)).toEqual({
+            fileCount: "1 file",
+            heading: "Elevation Profiles",
+        });
+        expect(getPopupFileLabels(mockWin)).toStrictEqual(["test-file.fit"]);
         expect(chartMock).toHaveBeenCalledOnce();
         expect(chartMock.mock.calls[0][1].data.datasets[0].data).toStrictEqual([
             100,
@@ -182,7 +225,7 @@ describe(createElevationProfileButton, () => {
 
         const mockWin = getPopupWindow();
 
-        expect(mockWin.document.body.textContent).toContain("global-test.fit");
+        expect(getPopupFileLabels(mockWin)).toStrictEqual(["global-test.fit"]);
         expect(chartMock).toHaveBeenCalledOnce();
         expect(chartMock.mock.calls[0][1].data.datasets[0].data).toStrictEqual([
             300,
@@ -191,7 +234,7 @@ describe(createElevationProfileButton, () => {
     });
 
     it("should handle globalData without recordMesgs", () => {
-        expect.assertions(4);
+        expect.assertions(3);
 
         // Mock window.globalData without recordMesgs array
         (window as any).globalData = {
@@ -208,9 +251,10 @@ describe(createElevationProfileButton, () => {
 
         const mockWin = getPopupWindow();
 
-        expect(mockWin.document.querySelector("header")?.textContent).toContain(
-            "0 file"
-        );
+        expect(getPopupHeaderState(mockWin)).toEqual({
+            fileCount: "0 file",
+            heading: "Elevation Profiles",
+        });
         expect(getPopupChartContainer(mockWin).children).toHaveLength(0);
     });
 
@@ -271,10 +315,10 @@ describe(createElevationProfileButton, () => {
 
         const mockWin = getPopupWindow();
 
-        expect(mockWin.document.body.textContent).toContain("no-altitude.fit");
-        expect(mockWin.document.body.textContent).toContain(
-            "No altitude data."
-        );
+        expect(getPopupFileLabels(mockWin)).toStrictEqual(["no-altitude.fit"]);
+        expect(getPopupNoDataMessages(mockWin)).toStrictEqual([
+            "No altitude data.",
+        ]);
         expect(chartMock).not.toHaveBeenCalled();
     });
 
@@ -308,9 +352,9 @@ describe(createElevationProfileButton, () => {
         // Verify model uses the palette
         const mockWin = getPopupWindow();
 
-        expect(mockWin.document.body.textContent).toContain(
-            "test-with-colors.fit"
-        );
+        expect(getPopupFileLabels(mockWin)).toStrictEqual([
+            "test-with-colors.fit",
+        ]);
         expect(chartMock.mock.calls[0][1].data.datasets[0].borderColor).toBe(
             "#ff0000"
         );
@@ -360,16 +404,11 @@ describe(createElevationProfileButton, () => {
 
         const mockWin = getPopupWindow();
 
-        expect(mockWin.document.querySelector("header")?.textContent).toContain(
-            "3 files"
-        );
-
-        const labels = Array.from(
-            mockWin.document.querySelectorAll(".elev-profile-label"),
-            (label) => label.textContent
-        );
-
-        expect(labels).toStrictEqual([
+        expect(getPopupHeaderState(mockWin)).toEqual({
+            fileCount: "3 files",
+            heading: "Elevation Profiles",
+        });
+        expect(getPopupFileLabels(mockWin)).toStrictEqual([
             "with-altitude.fit",
             "without-altitude.fit",
             "partial-data.fit",
