@@ -261,6 +261,7 @@ export function createUserDeviceInfoBox(container: HTMLElement): void {
             { signal }
         ); // User Profile Section with enhanced styling
         const userSection = document.createElement("div");
+        userSection.className = "user-profile-section";
         userSection.style.cssText = `
             flex: 1;
             min-width: 320px;
@@ -296,8 +297,8 @@ export function createUserDeviceInfoBox(container: HTMLElement): void {
 
         // User Profile Section with enhanced styling and more fields
         const rawUserSectionHtml = `
-            <div style="margin-bottom: 20px; padding: 16px; background: linear-gradient(135deg, ${colors.surfaceSecondary}, ${colors.surface}); border-radius: 12px; border: 2px solid ${colors.border}; transition: all 0.3s ease; position: relative; overflow: hidden;" onmouseenter="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px ${colors.shadow}'; this.style.borderColor='${colors.primary}'" onmouseleave="this.style.transform='translateY(0)'; this.style.boxShadow='none'; this.style.borderColor='${colors.border}'">
-            <div style="font-weight: 700; margin-bottom: 12px; color: ${colors.text}; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+            <div class="user-profile-card" style="margin-bottom: 20px; padding: 16px; background: linear-gradient(135deg, ${colors.surfaceSecondary}, ${colors.surface}); border-radius: 12px; border: 2px solid ${colors.border}; transition: all 0.3s ease; position: relative; overflow: hidden;" onmouseenter="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px ${colors.shadow}'; this.style.borderColor='${colors.primary}'" onmouseleave="this.style.transform='translateY(0)'; this.style.boxShadow='none'; this.style.borderColor='${colors.border}'">
+            <div class="user-profile-heading" style="font-weight: 700; margin-bottom: 12px; color: ${colors.text}; font-size: 16px; display: flex; align-items: center; gap: 8px;">
                 <span style="background: ${colors.primary}; color: ${colors.textPrimary}; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px;">👤</span>
                 User Profile
             </div>
@@ -337,6 +338,7 @@ export function createUserDeviceInfoBox(container: HTMLElement): void {
         // Also strips inline onmouseenter/onmouseleave attributes used in the template string.
         userSection.replaceChildren(sanitizeInfoBoxHtml(rawUserSectionHtml));
         const deviceSection = document.createElement("div");
+        deviceSection.className = "device-info-section";
         deviceSection.style.cssText = `
             flex: 1;
             min-width: 320px;
@@ -382,15 +384,15 @@ export function createUserDeviceInfoBox(container: HTMLElement): void {
                     (d.sourceType === "local" && d.deviceIndex !== "creator")
             );
         let deviceHtml = `
-            <h3 style="margin: 0 0 20px 0; color: ${colors.text}; font-size: 18px; font-weight: 700; border-bottom: 3px solid ${colors.primary}; padding-bottom: 12px; display: flex; align-items: center; gap: 10px; background: linear-gradient(135deg, ${colors.primary}, ${colors.accent}); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            <h3 class="device-info-heading" style="margin: 0 0 20px 0; color: ${colors.text}; font-size: 18px; font-weight: 700; border-bottom: 3px solid ${colors.primary}; padding-bottom: 12px; display: flex; align-items: center; gap: 10px; background: linear-gradient(135deg, ${colors.primary}, ${colors.accent}); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
                 <span style="font-size: 20px; filter: drop-shadow(0 2px 4px ${colors.shadowLight});"></span> Device Information
             </h3>
         `;
 
         if (primaryDevice) {
             deviceHtml += `
-                <div style="margin-bottom: 20px; padding: 16px; background: linear-gradient(135deg, ${colors.surfaceSecondary}, ${colors.surface}); border-radius: 12px; border: 2px solid ${colors.border}; transition: all 0.3s ease; position: relative; overflow: hidden;" onmouseenter="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px ${colors.shadow}'; this.style.borderColor='${colors.primary}'" onmouseleave="this.style.transform='translateY(0)'; this.style.boxShadow='none'; this.style.borderColor='${colors.border}'">
-                    <div style="font-weight: 700; margin-bottom: 12px; color: ${colors.text}; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                <div class="primary-device-card" style="margin-bottom: 20px; padding: 16px; background: linear-gradient(135deg, ${colors.surfaceSecondary}, ${colors.surface}); border-radius: 12px; border: 2px solid ${colors.border}; transition: all 0.3s ease; position: relative; overflow: hidden;" onmouseenter="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px ${colors.shadow}'; this.style.borderColor='${colors.primary}'" onmouseleave="this.style.transform='translateY(0)'; this.style.boxShadow='none'; this.style.borderColor='${colors.border}'">
+                    <div class="primary-device-heading" style="font-weight: 700; margin-bottom: 12px; color: ${colors.text}; font-size: 16px; display: flex; align-items: center; gap: 8px;">
                         <span style="background: ${colors.primary}; color: ${colors.textPrimary}; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px;">⭐</span>
                         Primary Device
                     </div>
@@ -406,7 +408,7 @@ export function createUserDeviceInfoBox(container: HTMLElement): void {
         if (sensors.length > 0) {
             deviceHtml += `
                 <div>
-                    <div style="font-weight: 700; margin-bottom: 16px; color: ${colors.text}; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                    <div class="connected-sensors-heading" style="font-weight: 700; margin-bottom: 16px; color: ${colors.text}; font-size: 16px; display: flex; align-items: center; gap: 8px;">
                         <span style="background: ${colors.accent}; color: ${colors.textPrimary}; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px;">🔗</span>
                         Connected Sensors
                     </div>
@@ -416,7 +418,7 @@ export function createUserDeviceInfoBox(container: HTMLElement): void {
             for (const sensor of sensors) {
                 if (sensor.manufacturer || sensor.garminProduct) {
                     deviceHtml += `
-                        <div style="
+                        <div class="connected-sensor-pill" style="
                             background: linear-gradient(135deg, ${colors.primary}, ${colors.accent});
                             color: ${colors.textPrimary};
                             padding: 10px 16px;
@@ -441,7 +443,7 @@ export function createUserDeviceInfoBox(container: HTMLElement): void {
                             this.style.boxShadow='0 4px 15px ${colors.primaryShadow}';
                             this.style.background='linear-gradient(135deg, ${colors.primary}, ${colors.accent})';
                         ">
-                            <span style="position: relative; z-index: 2;">
+                            <span class="connected-sensor-name" style="position: relative; z-index: 2;">
                                 ${formatSensorName(sensor)}
                             </span>
                             <div style="
@@ -466,7 +468,7 @@ export function createUserDeviceInfoBox(container: HTMLElement): void {
         }
         if (!primaryDevice && sensors.length === 0) {
             deviceHtml += `
-                <div style="
+                <div class="device-info-empty-state" style="
                     color: ${colors.textSecondary};
                     font-style: italic;
                     padding: 24px;

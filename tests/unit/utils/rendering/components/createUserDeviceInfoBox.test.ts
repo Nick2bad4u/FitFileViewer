@@ -111,7 +111,7 @@ function getTestWindow(): TestWindow {
 
 function makeContainer(): HTMLDivElement {
     const c = document.createElement("div");
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
     document.body.append(c);
     return c;
 }
@@ -134,11 +134,64 @@ function getClassList(element: Element): string[] {
     return [...element.classList];
 }
 
+function normalizeText(value: null | string | undefined): string {
+    return value?.replace(/\s+/gu, " ").trim() ?? "";
+}
+
+function getElementText(container: ParentNode, selector: string): string {
+    return normalizeText(container.querySelector(selector)?.textContent);
+}
+
+function getInfoBoxState(container: HTMLElement) {
+    const infoBox = getInfoBoxElement(container);
+
+    return {
+        childCount: container.children.length,
+        classes: getClassList(infoBox),
+        connectedSensorsHeading: getElementText(
+            infoBox,
+            ".connected-sensors-heading"
+        ),
+        deviceHeading: getElementText(infoBox, ".device-info-heading"),
+        hasDeviceSection: Boolean(
+            infoBox.querySelector(".device-info-section")
+        ),
+        hasPrimaryDeviceCard: Boolean(
+            infoBox.querySelector(".primary-device-card")
+        ),
+        hasUserProfileCard: Boolean(
+            infoBox.querySelector(".user-profile-card")
+        ),
+        hasUserSection: Boolean(infoBox.querySelector(".user-profile-section")),
+        primaryDeviceHeading: getElementText(
+            infoBox,
+            ".primary-device-heading"
+        ),
+        userProfileHeading: getElementText(infoBox, ".user-profile-heading"),
+    };
+}
+
+function getStrongLabels(container: ParentNode): string[] {
+    return Array.from(container.querySelectorAll("strong"), (label) =>
+        normalizeText(label.textContent)
+    );
+}
+
+function getLabeledValue(container: ParentNode, label: string): string {
+    const strong = Array.from(container.querySelectorAll("strong")).find(
+        (candidate) => normalizeText(candidate.textContent) === label
+    );
+
+    return normalizeText(strong?.parentElement?.textContent)
+        .replace(label, "")
+        .trim();
+}
+
 describe(createUserDeviceInfoBox, () => {
     beforeEach(() => {
         vi.clearAllMocks();
         // reset DOM and globals
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         delete getTestWindow().globalData;
     });
 
@@ -167,21 +220,17 @@ describe(createUserDeviceInfoBox, () => {
 
         createUserDeviceInfoBox(container);
 
-        const infoBox = container.firstElementChild;
-        expect({
-            childCount: container.children.length,
-            classes: infoBox ? getClassList(infoBox) : [],
-            hasConnectedSensors:
-                container.innerHTML.includes("Connected Sensors"),
-            hasDeviceInformation:
-                container.innerHTML.includes("Device Information"),
-            hasUserProfile: container.innerHTML.includes("User Profile"),
-        }).toStrictEqual({
+        expect(getInfoBoxState(container)).toStrictEqual({
             childCount: 1,
             classes: ["user-device-info-box", "chart-info-section"],
-            hasConnectedSensors: true,
-            hasDeviceInformation: true,
-            hasUserProfile: true,
+            connectedSensorsHeading: "🔗 Connected Sensors",
+            deviceHeading: "Device Information",
+            hasDeviceSection: true,
+            hasPrimaryDeviceCard: true,
+            hasUserProfileCard: true,
+            hasUserSection: true,
+            primaryDeviceHeading: "⭐ Primary Device",
+            userProfileHeading: "👤 User Profile",
         });
     });
 
@@ -192,7 +241,9 @@ describe(createUserDeviceInfoBox, () => {
         setGlobalData({ deviceInfoMesgs: [], userProfileMesgs: [{}] });
         createUserDeviceInfoBox(container);
 
-        expect(container.innerHTML).toMatch(/No device information available/);
+        expect(getElementText(container, ".device-info-empty-state")).toBe(
+            "🔍 No device information available"
+        );
     });
 
     it("renders most user profile fields when provided", () => {
@@ -245,7 +296,6 @@ describe(createUserDeviceInfoBox, () => {
         createUserDeviceInfoBox(container);
 
         // Spot-check a variety of labels produced by optional fields
-        const html = container.innerHTML;
         const expectedLabels = [
             "Device or Name:",
             "Gender:",
@@ -277,7 +327,9 @@ describe(createUserDeviceInfoBox, () => {
             "Dive Count:",
         ];
         expect(
-            expectedLabels.filter((label) => !html.includes(label))
+            expectedLabels.filter(
+                (label) => !getStrongLabels(container).includes(label)
+            )
         ).toStrictEqual([]);
     });
 
@@ -307,12 +359,21 @@ describe(createUserDeviceInfoBox, () => {
 
         createUserDeviceInfoBox(container);
 
-        const html = container.innerHTML;
-        expect(html).toMatch(/Primary Device/);
+        const primaryDeviceCard = getInfoBoxElement(container).querySelector(
+            ".primary-device-card"
+        );
+
+        expect(getElementText(container, ".primary-device-heading")).toBe(
+            "⭐ Primary Device"
+        );
         // Serial should show only the last 6 characters; in markup it's within the same div after the strong label
-        expect(html).toMatch(/<strong[^>]*>Serial:<\/strong>\s*123456/);
+        expect(getLabeledValue(primaryDeviceCard ?? container, "Serial:")).toBe(
+            "123456"
+        );
         // Connected Sensors section should be present and include a pill for the second sensor too
-        expect(html).toMatch(/Connected Sensors/);
+        expect(getElementText(container, ".connected-sensors-heading")).toBe(
+            "🔗 Connected Sensors"
+        );
     });
 
     it("renders sensor pills only when manufacturer or garminProduct is present", () => {
@@ -337,10 +398,16 @@ describe(createUserDeviceInfoBox, () => {
 
         createUserDeviceInfoBox(container);
 
-        const html = container.innerHTML;
         // At least one sensor pill should be present; content may vary depending on formatter/mock caching
-        expect(html).toMatch(/Connected Sensors/);
-        expect(html).toMatch(/(Garmin Foo|Garmin|Edge|Hrm)/);
+        expect(getElementText(container, ".connected-sensors-heading")).toBe(
+            "🔗 Connected Sensors"
+        );
+        expect(
+            Array.from(
+                container.querySelectorAll(".connected-sensor-name"),
+                (sensorName) => normalizeText(sensorName.textContent)
+            )
+        ).toStrictEqual(["Garmin Foo"]);
     });
 
     it("sanitizes FIT-derived strings (prevents HTML injection)", () => {
