@@ -133,9 +133,9 @@ describe("showColModal interactions", () => {
 
             const overlay = getModalOverlay();
 
-            expect([...overlay.classList]).toContain(
-                "summary-col-modal-overlay"
-            );
+            expect(
+                overlay.classList.contains("summary-col-modal-overlay")
+            ).toBe(true);
 
             const selectAllButton = getButtonByText(overlay, "Select All");
 

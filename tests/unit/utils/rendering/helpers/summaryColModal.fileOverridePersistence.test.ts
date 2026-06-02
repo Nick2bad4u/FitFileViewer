@@ -34,7 +34,7 @@ function findButton(
 
 describe("summaryColModal - file override persistence", () => {
     beforeEach(() => {
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         localStorage.clear();
         vi.resetModules();
         vi.restoreAllMocks();
@@ -45,7 +45,7 @@ describe("summaryColModal - file override persistence", () => {
     });
 
     afterEach(() => {
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         localStorage.clear();
         (globalThis.window as TestWindowGlobal).globalData = undefined;
     });
