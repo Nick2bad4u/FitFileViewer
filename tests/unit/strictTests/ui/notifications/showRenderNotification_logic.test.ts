@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 type MutableChartNotificationState = {
     chartCount: number;
@@ -12,6 +12,7 @@ type RenderNotificationScenario = {
 };
 
 type RenderNotificationDecision = {
+    logMessages: string[];
     shouldShow: boolean;
     updateCalls: [
         number,
@@ -30,6 +31,8 @@ const mutablePreviousChartState = (
     previousChartState: unknown
 ): MutableChartNotificationState =>
     previousChartState as MutableChartNotificationState;
+
+let consoleLogSpy: ReturnType<typeof vi.spyOn>;
 
 vi.mock(
     import("../../../../../electron-app/utils/charts/core/chartNotificationState.js"),
@@ -85,13 +88,19 @@ async function collectNotificationDecision({
             currentChartCount,
             currentVisibleFields
         ),
-        updateCalls: vi.mocked(chartNotificationState.updatePreviousChartState)
-            .mock.calls,
+        logMessages: consoleLogSpy.mock.calls.map(([message]) =>
+            String(message)
+        ),
+        updateCalls: [
+            ...vi.mocked(chartNotificationState.updatePreviousChartState).mock
+                .calls,
+        ],
     };
 }
 
 describe("showRenderNotification logic", () => {
     beforeEach(async () => {
+        consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         vi.setSystemTime(0);
         const rc = await importChartNotificationState();
         const previousChartState = mutablePreviousChartState(
@@ -101,6 +110,10 @@ describe("showRenderNotification logic", () => {
         previousChartState.fieldsRendered = [];
         previousChartState.lastRenderTimestamp = 0;
         vi.mocked(rc.updatePreviousChartState).mockClear();
+    });
+
+    afterEach(() => {
+        consoleLogSpy.mockRestore();
     });
 
     it("shows when >10s since last render", async () => {
@@ -113,6 +126,9 @@ describe("showRenderNotification logic", () => {
                 currentVisibleFields: 1,
             })
         ).resolves.toStrictEqual({
+            logMessages: [
+                "[ChartJS] Showing notification due to time gap since last render",
+            ],
             shouldShow: true,
             updateCalls: [
                 [
@@ -138,6 +154,9 @@ describe("showRenderNotification logic", () => {
                 currentVisibleFields: 1,
             })
         ).resolves.toStrictEqual({
+            logMessages: [
+                "[ChartJS] Showing notification due to significant chart count change: 5 -> 8",
+            ],
             shouldShow: true,
             updateCalls: [
                 [
@@ -149,6 +168,7 @@ describe("showRenderNotification logic", () => {
         });
 
         vi.mocked(chartNotificationState.updatePreviousChartState).mockClear();
+        consoleLogSpy.mockClear();
         await setPreviousChartState({
             chartCount: 0,
             fieldCount: 1,
@@ -160,6 +180,9 @@ describe("showRenderNotification logic", () => {
                 currentVisibleFields: 1,
             })
         ).resolves.toStrictEqual({
+            logMessages: [
+                "[ChartJS] Showing notification due to significant chart count change: 0 -> 1",
+            ],
             shouldShow: true,
             updateCalls: [
                 [
@@ -187,6 +210,9 @@ describe("showRenderNotification logic", () => {
         expect(observedNotificationDecision.shouldShow).not.toBe(true);
         expect(observedNotificationDecision.shouldShow).toBe(false);
         expect(observedNotificationDecision).toStrictEqual({
+            logMessages: [
+                "[ChartJS] Suppressing notification - minor re-render detected",
+            ],
             shouldShow: false,
             updateCalls: [
                 [
@@ -212,6 +238,9 @@ describe("showRenderNotification logic", () => {
                 currentVisibleFields: 7,
             })
         ).resolves.toStrictEqual({
+            logMessages: [
+                "[ChartJS] Showing notification due to significant field count change: 3 -> 7",
+            ],
             shouldShow: true,
             updateCalls: [
                 [
