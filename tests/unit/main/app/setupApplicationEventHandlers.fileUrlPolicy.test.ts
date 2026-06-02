@@ -101,7 +101,7 @@ describe("setupApplicationEventHandlers file:// policy", () => {
     });
 
     it("denies file:// URLs outside the app bundle in production", async () => {
-        expect.hasAssertions();
+        expect.assertions(7);
 
         const handlers = new Map<string, AppEventHandler>();
         const mockElectron = createMockElectron(handlers);
@@ -176,7 +176,7 @@ describe("setupApplicationEventHandlers file:// policy", () => {
     });
 
     it("allows blob: downloads but blocks http(s) downloads", async () => {
-        expect.hasAssertions();
+        expect.assertions(10);
 
         const handlers = new Map<string, AppEventHandler>();
         const mockElectron = createMockElectron(handlers);
