@@ -302,14 +302,24 @@ describe("preload.js - Comprehensive API Testing", () => {
         );
     }
 
+    function getRequiredExposedCall(apiName: string): ExposeCall {
+        const exposedCall = findExposedCall(apiName);
+
+        if (!exposedCall) {
+            throw new TypeError(`Expected ${apiName} exposure`);
+        }
+
+        return exposedCall;
+    }
+
     function getElectronAPI(): PreloadElectronAPI {
-        return (findExposedCall(ELECTRON_API_NAME)?.[1] ??
-            getPreloadGlobal().electronAPI) as PreloadElectronAPI;
+        return getRequiredExposedCall(
+            ELECTRON_API_NAME
+        )[1] as PreloadElectronAPI;
     }
 
     function getDevTools(): PreloadDevTools {
-        return (findExposedCall(DEVTOOLS_API_NAME)?.[1] ??
-            getPreloadGlobal().devTools) as PreloadDevTools;
+        return getRequiredExposedCall(DEVTOOLS_API_NAME)[1] as PreloadDevTools;
     }
 
     function expectIpcRegistration(channel: string): unknown {
@@ -340,6 +350,18 @@ describe("preload.js - Comprehensive API Testing", () => {
             eventName,
             listenerType: typeof listener,
         };
+    }
+
+    function getRequiredBeforeExitCall(): BeforeExitCall {
+        const beforeExitCall = getMockCalls(mockProcess.once).find(
+            isBeforeExitCall
+        );
+
+        if (!beforeExitCall) {
+            throw new TypeError("Expected beforeExit registration");
+        }
+
+        return beforeExitCall;
     }
 
     beforeEach(() => {
@@ -444,13 +466,13 @@ describe("preload.js - Comprehensive API Testing", () => {
         it("should expose electronAPI to main world", () => {
             expect.assertions(3);
 
-            const exposedCall = findExposedCall(ELECTRON_API_NAME);
+            const exposedCall = getRequiredExposedCall(ELECTRON_API_NAME);
 
-            expect(exposedCall?.[0]).toBe(ELECTRON_API_NAME);
+            expect(exposedCall[0]).toBe(ELECTRON_API_NAME);
             expect(
-                Object.keys(exposedCall?.[1] as Record<string, unknown>)
+                Object.keys(exposedCall[1] as Record<string, unknown>)
             ).toEqual(EXPECTED_ELECTRON_API_METHODS);
-            expect((exposedCall?.[1] as PreloadElectronAPI).validateAPI()).toBe(
+            expect((exposedCall[1] as PreloadElectronAPI).validateAPI()).toBe(
                 true
             );
         });
@@ -458,11 +480,11 @@ describe("preload.js - Comprehensive API Testing", () => {
         it("should expose developer tools to main world", () => {
             expect.assertions(2);
 
-            const exposedCall = findExposedCall(DEVTOOLS_API_NAME);
+            const exposedCall = getRequiredExposedCall(DEVTOOLS_API_NAME);
 
-            expect(exposedCall?.[0]).toBe(DEVTOOLS_API_NAME);
+            expect(exposedCall[0]).toBe(DEVTOOLS_API_NAME);
             expect(
-                Object.keys(exposedCall?.[1] as Record<string, unknown>)
+                Object.keys(exposedCall[1] as Record<string, unknown>)
             ).toEqual(EXPECTED_DEVTOOLS_METHODS);
         });
 
@@ -489,13 +511,13 @@ describe("preload.js - Comprehensive API Testing", () => {
         it("should expose electronAPI with all expected methods", () => {
             expect.assertions(2);
 
-            const electronAPICall = findExposedCall("electronAPI");
+            const electronAPICall = getRequiredExposedCall("electronAPI");
 
             expect(
-                Object.keys(electronAPICall?.[1] as Record<string, unknown>)
+                Object.keys(electronAPICall[1] as Record<string, unknown>)
             ).toEqual(EXPECTED_ELECTRON_API_METHODS);
 
-            const electronAPI = electronAPICall![1] as Record<string, unknown>;
+            const electronAPI = electronAPICall[1] as Record<string, unknown>;
 
             expect(
                 EXPECTED_ELECTRON_API_METHODS.map((methodName) => [
@@ -892,8 +914,7 @@ describe("preload.js - Comprehensive API Testing", () => {
         it("should expose developer tools in development mode", () => {
             expect.assertions(3);
 
-            const devToolsCall = findExposedCall(DEVTOOLS_API_NAME);
-            const devTools = devToolsCall![1] as PreloadDevTools;
+            const devTools = getDevTools();
 
             expect(Object.keys(devTools)).toStrictEqual(
                 EXPECTED_DEVTOOLS_METHODS
@@ -929,12 +950,10 @@ describe("preload.js - Comprehensive API Testing", () => {
             expect.assertions(2);
 
             // Get the beforeExit callback
-            const beforeExitCall = getMockCalls(mockProcess.once).find(
-                isBeforeExitCall
-            );
-            expect(beforeExitCall?.[1]).toBeTypeOf("function");
+            const beforeExitCall = getRequiredBeforeExitCall();
+            expect(beforeExitCall[1]).toBeTypeOf("function");
 
-            const beforeExitCallback = beforeExitCall![1];
+            const beforeExitCallback = beforeExitCall[1];
 
             // Execute the callback
             beforeExitCallback();
