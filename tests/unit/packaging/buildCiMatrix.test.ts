@@ -68,102 +68,109 @@ async function importBuildCiMatrix(): Promise<BuildCiMatrixModule> {
 
 describe("build-ci-matrix script", () => {
     it("selects electron-builder args for the GitHub build matrix", async () => {
-        expect.assertions(8);
+        expect.assertions(1);
 
         const { getElectronBuilderArgs } = await importBuildCiMatrix();
-
-        expect(
-            getElectronBuilderArgs({
+        const matrixCases = [
+            {
                 arch: "x64",
+                builderArgs: [
+                    "--win",
+                    "--publish",
+                    "never",
+                ],
                 matrixOs: "windows-latest",
                 runnerOs: "Windows",
-            })
-        ).toStrictEqual([
-            "--win",
-            "--publish",
-            "never",
-        ]);
-        expect(
-            getElectronBuilderArgs({
+            },
+            {
                 arch: "ia32",
+                builderArgs: [
+                    "--win",
+                    "--ia32",
+                    "--publish",
+                    "never",
+                ],
                 matrixOs: "windows-latest",
                 runnerOs: "Windows",
-            })
-        ).toStrictEqual([
-            "--win",
-            "--ia32",
-            "--publish",
-            "never",
-        ]);
-        expect(
-            getElectronBuilderArgs({
+            },
+            {
                 arch: "arm64",
+                builderArgs: [
+                    "--arm64",
+                    "--publish",
+                    "never",
+                ],
                 matrixOs: "macos-15",
                 runnerOs: "macOS",
-            })
-        ).toStrictEqual([
-            "--arm64",
-            "--publish",
-            "never",
-        ]);
-        expect(
-            getElectronBuilderArgs({
+            },
+            {
                 arch: "universal",
+                builderArgs: [
+                    "--universal",
+                    "--publish",
+                    "never",
+                ],
                 matrixOs: "macos-latest",
                 runnerOs: "macOS",
-            })
-        ).toStrictEqual([
-            "--universal",
-            "--publish",
-            "never",
-        ]);
-        expect(
-            getElectronBuilderArgs({
+            },
+            {
                 arch: "x64",
+                builderArgs: [
+                    "--mac",
+                    "--x64",
+                    "--publish",
+                    "never",
+                ],
                 matrixOs: "macos-15-intel",
                 runnerOs: "macOS",
-            })
-        ).toStrictEqual([
-            "--mac",
-            "--x64",
-            "--publish",
-            "never",
-        ]);
-        expect(
-            getElectronBuilderArgs({
+            },
+            {
                 arch: "arm64",
+                builderArgs: [
+                    "--linux",
+                    "--arm64",
+                    "--publish",
+                    "never",
+                ],
                 matrixOs: "ubuntu-24.04-arm",
                 runnerOs: "Linux",
-            })
-        ).toStrictEqual([
-            "--linux",
-            "--arm64",
-            "--publish",
-            "never",
-        ]);
-        expect(
-            getElectronBuilderArgs({
+            },
+            {
                 arch: "x64",
+                builderArgs: [
+                    "--linux",
+                    "--x64",
+                    "--publish",
+                    "never",
+                ],
                 matrixOs: "ubuntu-latest",
                 runnerOs: "Linux",
-            })
-        ).toStrictEqual([
-            "--linux",
-            "--x64",
-            "--publish",
-            "never",
-        ]);
-        expect(
-            getElectronBuilderArgs({
+            },
+            {
                 arch: "arm64",
+                builderArgs: [
+                    "--arm64",
+                    "--publish",
+                    "never",
+                ],
                 matrixOs: "custom-runner",
                 runnerOs: "Linux",
-            })
-        ).toStrictEqual([
-            "--arm64",
-            "--publish",
-            "never",
-        ]);
+            },
+        ];
+
+        expect(
+            matrixCases.map(({ builderArgs, ...options }) => ({
+                ...options,
+                builderArgs: getElectronBuilderArgs(options),
+                expectedBuilderArgs: builderArgs,
+            }))
+        ).toStrictEqual(
+            matrixCases.map(({ builderArgs, ...options }) => ({
+                ...options,
+                builderArgs,
+                expectedBuilderArgs: builderArgs,
+            }))
+        );
     });
 
     it("retries only macOS builder runs", async () => {
