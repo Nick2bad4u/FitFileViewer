@@ -121,6 +121,16 @@ const rootManagedReleaseVersioningPaths = [
     docusaurusDevelopmentBuildReleaseDocPath,
 ] as const;
 
+const localPackageManagerManifestNames = [
+    "bun.lock",
+    "bun.lockb",
+    "npm-shrinkwrap.json",
+    "package-lock.json",
+    "package.json",
+    "pnpm-lock.yaml",
+    "yarn.lock",
+] as const;
+
 const localToolingConfigNames = [
     ".eslintignore",
     ".eslintrc",
@@ -141,9 +151,26 @@ const localToolingConfigNames = [
     ".stylelintrc.cjs",
     ".stylelintrc.js",
     ".stylelintrc.json",
+    "eslint.config.cjs",
+    "eslint.config.js",
     "eslint.config.mjs",
+    "eslint.config.ts",
+    "prettier.config.cjs",
+    "prettier.config.js",
     "prettier.config.mjs",
+    "prettier.config.ts",
+    "stylelint.config.cjs",
+    "stylelint.config.js",
     "stylelint.config.mjs",
+    "stylelint.config.ts",
+    "vite.config.cjs",
+    "vite.config.js",
+    "vite.config.mjs",
+    "vite.config.ts",
+    "vitest.config.cjs",
+    "vitest.config.js",
+    "vitest.config.mjs",
+    "vitest.config.ts",
 ] as const;
 
 const requiredRootToolingDevDependencies = [
@@ -392,15 +419,10 @@ describe("workspace package boundaries", () => {
         expect.assertions(1);
 
         const appPackage = readPackageJson(rootPackageRepositoryPath);
-        const nestedAppPackageManifestPaths = [
-            "electron-app/bun.lock",
-            "electron-app/bun.lockb",
-            "electron-app/npm-shrinkwrap.json",
-            "electron-app/package-lock.json",
-            "electron-app/package.json",
-            "electron-app/pnpm-lock.yaml",
-            "electron-app/yarn.lock",
-        ];
+        const nestedAppPackageManifestPaths =
+            localPackageManagerManifestNames.map((manifestName) =>
+                appSourceRepositoryPath(manifestName)
+            );
 
         expect({
             dependencies: Object.keys(appPackage.dependencies ?? {}).sort(),
@@ -612,14 +634,13 @@ describe("workspace package boundaries", () => {
             ...rootToolingConfigPaths,
         ];
         const appLocalToolingConfigs = [
+            ...localPackageManagerManifestNames,
             ...localToolingConfigNames,
             ".pre-commit-config.yaml",
             "cliff.toml",
             "cspell.json",
             "electron-builder.config.cjs",
             "mermaid.config.json",
-            rootPackageLockPath,
-            "package.json",
             "playwright.config.ts",
             "tsconfig.json",
             "tsconfig.app.base.json",
@@ -631,8 +652,6 @@ describe("workspace package boundaries", () => {
             "tsconfig.vitest-typecheck.json",
             "typedoc.json",
             "vite.renderer.config.mjs",
-            "vitest.config.js",
-            "vitest.config.ts",
         ].map((configPath) => appSourceRepositoryPath(configPath));
 
         expect(getFileExistence(rootToolingConfigs)).toStrictEqual(
