@@ -90,12 +90,12 @@ function getRequiredElement(id: string): HTMLElement {
 }
 
 function expectActiveState(id: string, expected: boolean): void {
-    const classList = [...getRequiredElement(id).classList];
+    const hasActiveClass = getRequiredElement(id).classList.contains("active");
 
     if (expected) {
-        expect(classList).toContain("active");
+        expect(hasActiveClass).toBe(true);
     } else {
-        expect(classList).not.toContain("active");
+        expect(hasActiveClass).toBe(false);
     }
 }
 
@@ -533,12 +533,12 @@ describe("updateActiveTab state behavior", () => {
             initializeActiveTabState();
             getSubscriptionCallback()("summary");
 
-            expect([...getRequiredElement("tab-summary").classList]).toContain(
-                "active"
-            );
-            expect([
-                ...getRequiredElement("tab-chart").classList,
-            ]).not.toContain("active");
+            expect(
+                getRequiredElement("tab-summary").classList.contains("active")
+            ).toBe(true);
+            expect(
+                getRequiredElement("tab-chart").classList.contains("active")
+            ).toBe(false);
             expectActiveTabSubscriptionRegistered();
         });
 
@@ -589,9 +589,11 @@ describe("updateActiveTab state behavior", () => {
             ).toStrictEqual(true);
 
             getRequiredElement("tab-chart").click();
-            expect([...getRequiredElement("tab-chart").classList]).toContain(
-                "tab-disabled"
-            );
+            expect(
+                getRequiredElement("tab-chart").classList.contains(
+                    "tab-disabled"
+                )
+            ).toBe(true);
             expect(mockSetState).toHaveBeenCalledTimes(0);
 
             getRequiredElement("tab-map").click();
@@ -643,9 +645,9 @@ describe("updateActiveTab state behavior", () => {
             expectActiveState("tab-summary", true);
             expectActiveState("tab-chart", false);
             expectActiveState("tab-map", false);
-            expect([
-                ...getRequiredElement("tab-chart").classList,
-            ]).not.toContain("active");
+            expect(
+                getRequiredElement("tab-chart").classList.contains("active")
+            ).not.toBe(true);
             expect(
                 getRequiredElement("tab-summary").getAttribute("aria-selected")
             ).toBe("true");
@@ -713,9 +715,9 @@ describe("updateActiveTab state behavior", () => {
                 updateActiveTab("tab-summary");
             }
 
-            expect([...getRequiredElement("tab-summary").classList]).toContain(
-                "active"
-            );
+            expect(
+                getRequiredElement("tab-summary").classList.contains("active")
+            ).toBe(true);
             expect(mockSetState).toHaveBeenCalledTimes(100);
         });
 

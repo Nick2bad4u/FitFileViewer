@@ -48,6 +48,17 @@ function appendTabButton({
     return button;
 }
 
+function getRequiredElement(ownerDocument: Document, id: string): Element {
+    const element = ownerDocument.getElementById(id);
+    const ElementConstructor = ownerDocument.defaultView?.Element ?? Element;
+
+    if (!(element instanceof ElementConstructor)) {
+        throw new TypeError(`Expected #${id} to exist in the test DOM`);
+    }
+
+    return element;
+}
+
 describe("updateActiveTab.js - environment fallbacks", () => {
     beforeEach(async () => {
         await resetAll();
@@ -140,10 +151,10 @@ describe("updateActiveTab.js - environment fallbacks", () => {
             source: "updateActiveTab",
         });
         // Validate that the class was toggled on the effective document element
-        const el = (
-            globalThis as any
-        ).__vitest_effective_document__.getElementById("tab-chart");
-        expect(Array.from(el.classList)).toContain("active");
+        const effectiveDocument = (globalThis as any)
+            .__vitest_effective_document__ as Document;
+        const el = getRequiredElement(effectiveDocument, "tab-chart");
+        expect(el.classList.contains("active")).toBe(true);
     });
 
     it("uses window.document when document is undefined (window fallback)", async () => {
@@ -180,10 +191,11 @@ describe("updateActiveTab.js - environment fallbacks", () => {
         expect(setState).toHaveBeenCalledWith("ui.activeTab", "win", {
             source: "updateActiveTab",
         });
-        const el = (globalThis as any).window.document.getElementById(
+        const el = getRequiredElement(
+            (globalThis as any).window.document,
             "tab-win"
         );
-        expect(Array.from(el.classList)).toContain("active");
+        expect(el.classList.contains("active")).toBe(true);
     });
 
     it("subscribes and updates aria-selected via state callback (valid path)", async () => {
@@ -235,20 +247,13 @@ describe("updateActiveTab.js - environment fallbacks", () => {
         cb("data");
 
         // Assert: aria-selected and classes reflect state
-        expect(
-            Array.from(document.getElementById("tab-summary")?.classList ?? [])
-        ).not.toContain("active");
-        expect(
-            document
-                .getElementById("tab-summary")
-                ?.getAttribute("aria-selected")
-        ).toBe("false");
-        expect(
-            Array.from(document.getElementById("tab-data")?.classList ?? [])
-        ).toContain("active");
-        expect(
-            document.getElementById("tab-data")?.getAttribute("aria-selected")
-        ).toBe("true");
+        const summaryTab = getRequiredElement(document, "tab-summary");
+        const dataTab = getRequiredElement(document, "tab-data");
+
+        expect(summaryTab.classList.contains("active")).toBe(false);
+        expect(summaryTab.getAttribute("aria-selected")).toBe("false");
+        expect(dataTab.classList.contains("active")).toBe(true);
+        expect(dataTab.getAttribute("aria-selected")).toBe("true");
     });
 
     it('ignores clicks on aria-disabled="true" buttons (no disabled/class)', async () => {
@@ -279,7 +284,7 @@ describe("updateActiveTab.js - environment fallbacks", () => {
 
         tabMapButton.click();
         expect(setState).not.toHaveBeenCalled();
-        expect(Array.from(tabMapButton.classList)).not.toContain("active");
+        expect(tabMapButton.classList.contains("active")).toBe(false);
         expect(tabMapButton.getAttribute("aria-selected")).toBeNull();
     });
 });
