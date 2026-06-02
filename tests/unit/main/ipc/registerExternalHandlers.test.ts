@@ -451,7 +451,7 @@ describe("registerExternalHandlers", () => {
             const result = await gyazoStartHandler({});
 
             expect(mockStartGyazoOAuthServer).toHaveBeenCalledWith(3000);
-            expect(result).toEqual({ port: 3000 });
+            expect(result).toStrictEqual({ port: 3000 });
             expect(mockLogWithContext).not.toHaveBeenCalled();
         });
 
@@ -461,7 +461,7 @@ describe("registerExternalHandlers", () => {
             const result = await gyazoStartHandler({}, 5000);
 
             expect(mockStartGyazoOAuthServer).toHaveBeenCalledWith(5000);
-            expect(result).toEqual({ port: 3000 });
+            expect(result).toStrictEqual({ port: 3000 });
         });
 
         it("rejects invalid port values", async () => {
@@ -523,7 +523,7 @@ describe("registerExternalHandlers", () => {
             const handler = getRegisteredHandler("gyazo:server:start");
             const result = await handler({});
 
-            expect(result).toEqual({ port: 3000 });
+            expect(result).toStrictEqual({ port: 3000 });
         });
     });
 
@@ -541,7 +541,7 @@ describe("registerExternalHandlers", () => {
             const result = await gyazoStopHandler({});
 
             expect(mockStopGyazoOAuthServer).toHaveBeenCalledWith();
-            expect(result).toEqual({ stopped: true });
+            expect(result).toStrictEqual({ stopped: true });
             expect(mockLogWithContext).not.toHaveBeenCalled();
         });
 
@@ -573,7 +573,7 @@ describe("registerExternalHandlers", () => {
             const handler = getRegisteredHandler("gyazo:server:stop");
             const result = await handler({});
 
-            expect(result).toEqual({ stopped: true });
+            expect(result).toStrictEqual({ stopped: true });
         });
 
         it("rejects when stopGyazoOAuthServer is unavailable", async () => {
