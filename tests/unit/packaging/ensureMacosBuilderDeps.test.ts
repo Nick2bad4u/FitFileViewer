@@ -137,6 +137,13 @@ describe("ensure-macos-builder-deps script", () => {
             options: {
                 ...options,
                 cwd: path.resolve(options?.cwd ?? ""),
+                cwdIsNestedElectronApp: path
+                    .resolve(options?.cwd ?? "")
+                    .includes(`${path.sep}electron-app${path.sep}`),
+                cwdRelativeToRepository: path.relative(
+                    repositoryRoot,
+                    path.resolve(options?.cwd ?? "")
+                ),
             },
             status,
         }).toStrictEqual({
@@ -145,6 +152,8 @@ describe("ensure-macos-builder-deps script", () => {
             logMessage: "[ensure-macos-builder-deps] Installing dmg-license.",
             options: {
                 cwd: path.resolve(repositoryRoot),
+                cwdIsNestedElectronApp: false,
+                cwdRelativeToRepository: "",
                 stdio: "inherit",
             },
             status: 0,
