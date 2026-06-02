@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const repositoryRoot = process.cwd();
-const preloadDistPath = join(repositoryRoot, "dist", "preload.js");
+export const preloadDistPath = join(repositoryRoot, "dist", "preload.js");
 
 let cachedPreloadCode: string | undefined;
 

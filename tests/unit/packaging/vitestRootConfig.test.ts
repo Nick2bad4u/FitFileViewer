@@ -4,6 +4,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
+    appPreloadBundleAbsolutePath,
     appSourcePath,
     rootPackageRepositoryPath,
     rootVitestCachePath,
@@ -11,6 +12,7 @@ import {
     rootVitestPreloadDistHelperPath,
     rootVitestSetupFilePath,
 } from "../../../scripts/lib/workspaces.mjs";
+import { preloadDistPath } from "../../vitest/helpers/preloadDist";
 
 type VitestConfigModule = {
     default: {
@@ -77,20 +79,14 @@ describe("vitest root config", () => {
     });
 
     it("keeps preload dist fixtures pointed at the root runtime output", () => {
-        expect.assertions(4);
-
-        const helperSource = readFileSync(
-            path.join(process.cwd(), rootVitestPreloadDistHelperPath),
-            "utf8"
-        );
+        expect.assertions(3);
 
         expect(rootVitestPreloadDistHelperPath).toBe(
             "tests/vitest/helpers/preloadDist.ts"
         );
-        expect(helperSource).toContain(
-            'join(repositoryRoot, "dist", "preload.js")'
+        expect(preloadDistPath).toBe(appPreloadBundleAbsolutePath);
+        expect(path.relative(process.cwd(), preloadDistPath)).toBe(
+            path.join("dist", "preload.js")
         );
-        expect(helperSource).not.toContain('"electron-app",\n    "dist"');
-        expect(helperSource).not.toContain("electron-app/dist/preload.js");
     });
 });
