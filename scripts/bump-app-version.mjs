@@ -32,7 +32,9 @@ if (
 }
 
 export function bumpAppVersion(options = {}) {
-    const repositoryRoot = options.repositoryRoot ?? defaultRepositoryRoot;
+    const repositoryRoot = path.resolve(
+        options.repositoryRoot ?? defaultRepositoryRoot
+    );
     const packagePath = rootPackagePathFromRepository(repositoryRoot);
     const packageJson = readPackageJson(packagePath);
     const currentVersion = packageJson.version;

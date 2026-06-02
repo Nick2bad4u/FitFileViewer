@@ -4,6 +4,8 @@ import path from "node:path";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { repositoryRoot } from "../../../scripts/lib/workspaces.mjs";
+
 type BumpAppVersionModule = {
     bumpAppVersion: (options?: {
         commandRunner?: (
@@ -202,6 +204,25 @@ describe("bump-app-version script", () => {
             versionArgs: createNpmVersionArgs("30.0.0"),
         });
         expect(options).not.toHaveProperty("shell");
+    });
+
+    it("normalizes relative package roots before running npm version", async () => {
+        expect.assertions(1);
+
+        const { bumpAppVersion } = await importBumpAppVersion();
+        const commandRunner = vi.fn<CommandRunner>();
+
+        bumpAppVersion({
+            commandRunner,
+            repositoryRoot: ".",
+        });
+        const [
+            ,
+            ,
+            options,
+        ] = getRequiredCommandCall(commandRunner.mock.calls);
+
+        expect(options.cwd).toBe(repositoryRoot);
     });
 
     it("writes the GitHub Actions output value", async () => {
