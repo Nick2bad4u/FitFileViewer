@@ -36,12 +36,49 @@ function getRequiredCommandCall(
 const appLocalPackageOrConfigTargetPattern =
     /^electron-app\/(?:package(?:-lock)?\.json|(?:electron-builder|eslint|prettier|stylelint|vite|vitest)\.config\.[cm]?[jt]s|tsconfig(?:\.[\w-]+)?\.json)$/u;
 
+const requiredRootFormattingTargets = [
+    ".remarkrc.mjs",
+    ".secretlintrc.cjs",
+    "electron-builder.config.cjs",
+    "eslint.config.mjs",
+    "package.json",
+    "playwright.config.ts",
+    "prettier.config.mjs",
+    "stylelint.config.mjs",
+    "tsconfig.app.json",
+    "tsconfig.runtime.json",
+    "vite.renderer.config.mjs",
+    "vitest.config.ts",
+] as const;
+
+function getOptionValue(args: string[], optionName: string): string | true {
+    const inlinePrefix = `${optionName}=`;
+    const inlineOption = args.find((arg) => arg.startsWith(inlinePrefix));
+
+    if (inlineOption) {
+        return inlineOption.slice(inlinePrefix.length);
+    }
+
+    const optionIndex = args.indexOf(optionName);
+    if (optionIndex === -1) {
+        throw new Error(`Expected prettier option ${optionName}`);
+    }
+
+    const optionValue = args[optionIndex + 1];
+
+    return optionValue && !optionValue.startsWith("--") ? optionValue : true;
+}
+
 describe("run-prettier wrapper", () => {
     it("keeps root-owned formatting targets for app and workspace metadata", () => {
         expect.assertions(3);
 
         expect(prettierTargets).toBe(repositoryPrettierTargets);
-        expect(prettierTargets).toContain("electron-builder.config.cjs");
+        expect(
+            requiredRootFormattingTargets.filter(
+                (target) => !prettierTargets.includes(target)
+            )
+        ).toStrictEqual([]);
         expect(
             prettierTargets.filter((target) =>
                 appLocalPackageOrConfigTargetPattern.test(target)
@@ -168,8 +205,20 @@ describe("run-prettier wrapper", () => {
     it("keeps cache output rooted in the shared workspace cache directory", () => {
         expect.assertions(1);
 
-        expect(prettierOptions).toContain(
-            `--cache-location=${rootPrettierCachePath}`
-        );
+        expect({
+            cache: getOptionValue(prettierOptions, "--cache"),
+            cacheLocation: getOptionValue(
+                prettierOptions,
+                "--cache-location"
+            ),
+            cacheStrategy: getOptionValue(
+                prettierOptions,
+                "--cache-strategy"
+            ),
+        }).toStrictEqual({
+            cache: true,
+            cacheLocation: rootPrettierCachePath,
+            cacheStrategy: "content",
+        });
     });
 });
