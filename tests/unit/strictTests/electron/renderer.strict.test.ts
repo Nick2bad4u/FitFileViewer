@@ -2,6 +2,29 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 type EventHandler = (...args: unknown[]) => void;
 
+function getRequiredElementById<TElement extends HTMLElement>(
+    id: string,
+    constructor: new (...args: any[]) => TElement
+): TElement {
+    const element = document.getElementById(id);
+
+    if (!(element instanceof constructor)) {
+        throw new TypeError(`Expected #${id} to exist in the test DOM`);
+    }
+
+    return element;
+}
+
+function getRequiredFileInputFile(input: HTMLInputElement): File {
+    const file = input.files?.[0];
+
+    if (!(file instanceof File)) {
+        throw new TypeError("Expected test file input to contain a File");
+    }
+
+    return file;
+}
+
 // Utilities to import renderer fresh with mocks and a clean DOM
 const importRendererFresh = async () => {
     // Reset module cache and global hooks between runs
@@ -232,18 +255,17 @@ describe("renderer.js strict behavior", () => {
         expect((window as any).electronAPI).toBe(api);
 
         // Verify the file input is the expected controllable test fixture.
-        const fileInput = document.getElementById(
-            "fileInput"
-        ) as HTMLInputElement | null;
+        const fileInput = getRequiredElementById("fileInput", HTMLInputElement);
+        const file = getRequiredFileInputFile(fileInput);
         expect(fileInput).toBeInstanceOf(HTMLInputElement);
-        expect(fileInput?.id).toBe("fileInput");
-        expect(fileInput?.type).toBe("file");
-        expect(fileInput?.files).toHaveLength(1);
-        expect(fileInput?.files?.[0]?.name).toBe("test.fit");
-        expect(fileInput?.files?.[0]?.type).toBe("application/octet-stream");
-        expect(document.getElementById("openFileBtn")?.textContent).toBe(
-            "Open"
-        );
+        expect(fileInput.id).toBe("fileInput");
+        expect(fileInput.type).toBe("file");
+        expect(fileInput.files).toHaveLength(1);
+        expect(file.name).toBe("test.fit");
+        expect(file.type).toBe("application/octet-stream");
+        expect(
+            getRequiredElementById("openFileBtn", HTMLButtonElement).textContent
+        ).toBe("Open");
         expect(document.getElementById("notification")).toBeInstanceOf(
             HTMLDivElement
         );
