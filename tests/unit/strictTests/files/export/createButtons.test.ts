@@ -32,6 +32,23 @@ function ensureObjectUrlApi(): void {
     }
 }
 
+function getRequiredButtonLabel(button: HTMLButtonElement): HTMLSpanElement {
+    const label = button.querySelector("span");
+    expect(label).toBeInstanceOf(HTMLSpanElement);
+    return label as HTMLSpanElement;
+}
+
+function getRequiredButtonIcon(button: HTMLButtonElement): SVGSVGElement {
+    const icon = button.querySelector("svg.icon");
+    expect(icon).toBeInstanceOf(SVGSVGElement);
+    return icon as SVGSVGElement;
+}
+
+function getRequiredDownloadAnchor(context: unknown): HTMLAnchorElement {
+    expect(context).toBeInstanceOf(HTMLAnchorElement);
+    return context as HTMLAnchorElement;
+}
+
 vi.mock(
     import("../../../../../electron-app/utils/charts/theming/getThemeColors.js"),
     () => ({
@@ -52,7 +69,7 @@ vi.mock(
 describe("export/print buttons", () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
         delete gpxGlobal.globalData;
     });
 
@@ -63,13 +80,18 @@ describe("export/print buttons", () => {
     });
 
     it("createPrintButton returns a button and handles click errors gracefully", async () => {
-        expect.assertions(5);
+        expect.assertions(10);
 
         const { createPrintButton } =
             await import("../../../../../electron-app/utils/files/export/createPrintButton.js");
         const btn = createPrintButton();
         expect(btn.tagName).toBe("BUTTON");
-        expect(btn.textContent).toBe("Print");
+        expect(btn.classList.contains("map-action-btn")).toBe(true);
+        expect(btn.classList.contains("print-button")).toBe(true);
+        expect(getRequiredButtonIcon(btn).getAttribute("viewBox")).toBe(
+            "0 0 20 20"
+        );
+        expect(getRequiredButtonLabel(btn).textContent).toBe("Print");
         expect(btn.getAttribute("aria-label")).toBe("Print or export map");
 
         const show =
@@ -121,7 +143,7 @@ describe("export/print buttons", () => {
     });
 
     it("createExportGPXButton builds and triggers a download when recordMesgs exist", async () => {
-        expect.assertions(8);
+        expect.assertions(14);
 
         vi.useFakeTimers();
         ensureObjectUrlApi();
@@ -140,6 +162,11 @@ describe("export/print buttons", () => {
             ],
         };
         const btn = createExportGPXButton();
+        expect(btn.classList.contains("map-action-btn")).toBe(true);
+        expect(getRequiredButtonIcon(btn).getAttribute("viewBox")).toBe(
+            "0 0 20 20"
+        );
+        expect(getRequiredButtonLabel(btn).textContent).toBe("Export GPX");
         const clickSpy = vi
             .spyOn(HTMLAnchorElement.prototype, "click")
             .mockReturnValue(undefined);
@@ -148,7 +175,9 @@ describe("export/print buttons", () => {
         expect(create).toHaveBeenCalledWith(expect.any(Blob));
         expect(clickSpy).toHaveBeenCalledWith();
         expect(clickSpy.mock.contexts).toHaveLength(1);
-        const clickedAnchor = clickSpy.mock.contexts[0] as HTMLAnchorElement;
+        const clickedAnchor = getRequiredDownloadAnchor(
+            clickSpy.mock.contexts[0]
+        );
         expect(clickedAnchor.download).toBe("Exported_Track.gpx");
         expect(clickedAnchor.href).toBe("blob:url");
         expect(clickedAnchor.isConnected).toBe(true);
