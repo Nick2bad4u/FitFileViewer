@@ -111,7 +111,7 @@ describe("renderTimeInZoneCharts", () => {
     });
 
     it("skips rendering when the container is missing", async () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const { renderZoneChart } =
             await import("../../../../../electron-app/utils/charts/rendering/renderZoneChart.js");
@@ -120,6 +120,7 @@ describe("renderTimeInZoneCharts", () => {
 
         expect(renderTimeInZoneCharts(null)).toBeUndefined();
         expect(renderZoneChart).not.toHaveBeenCalled();
+        expect([...document.body.children]).toStrictEqual([]);
     });
 
     it("respects per-zone visibility settings", async () => {
@@ -148,5 +149,24 @@ describe("renderTimeInZoneCharts", () => {
             "power-zones",
             options
         );
+    });
+
+    it("skips hidden or missing zone datasets without mutating the container", async () => {
+        expect.assertions(2);
+
+        visibilityMocks.getHRZoneVisibilitySettings.mockReturnValue({
+            doughnutVisible: false,
+        });
+        chartGlobal.powerZones = undefined;
+        const { renderZoneChart } =
+            await import("../../../../../electron-app/utils/charts/rendering/renderZoneChart.js");
+        const { renderTimeInZoneCharts } =
+            await import("../../../../../electron-app/utils/charts/rendering/renderTimeInZoneCharts.js");
+        const container = document.createElement("div");
+
+        renderTimeInZoneCharts(container, {});
+
+        expect([...container.children]).toStrictEqual([]);
+        expect(renderZoneChart).not.toHaveBeenCalled();
     });
 });
