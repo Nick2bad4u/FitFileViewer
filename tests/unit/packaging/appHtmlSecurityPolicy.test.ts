@@ -21,6 +21,24 @@ function getContentSecurityPolicy(html: string): string {
     return match.groups.policy;
 }
 
+function getContentSecurityPolicyDirective(
+    policy: string,
+    directiveName: string
+): string[] {
+    const directive = policy
+        .split(";")
+        .map((part) => part.trim())
+        .find((part) => part.startsWith(`${directiveName} `));
+
+    if (!directive) {
+        throw new Error(
+            `Content-Security-Policy directive not found: ${directiveName}`
+        );
+    }
+
+    return directive.split(/\s+/v).slice(1);
+}
+
 function readAltFitBridge(): string {
     return readFileSync(
         path.join(
@@ -55,6 +73,54 @@ describe("root app HTML security policy", () => {
         expect(policy).toContain("object-src 'none'");
         expect(policy).toContain("base-uri 'none'");
         expect(policy).not.toContain("script-src 'self' file: 'unsafe-inline'");
+    });
+
+    it("keeps renderer network egress restricted to explicit hosts", () => {
+        expect.assertions(4);
+
+        const policy = getContentSecurityPolicy(readRootAppHtml());
+        const connectSources = getContentSecurityPolicyDirective(
+            policy,
+            "connect-src"
+        );
+        const imageSources = getContentSecurityPolicyDirective(
+            policy,
+            "img-src"
+        );
+
+        expect(connectSources).toStrictEqual([
+            "'self'",
+            "file:",
+            "https://api.imgur.com",
+            "https://gyazo.com",
+            "https://tiles.openfreemap.org",
+            "https://upload.gyazo.com",
+        ]);
+        expect(imageSources).toStrictEqual([
+            "'self'",
+            "file:",
+            "data:",
+            "blob:",
+            "https://*.basemaps.cartocdn.com",
+            "https://*.tile-cyclosm.openstreetmap.fr",
+            "https://*.tile.openstreetmap.de",
+            "https://*.tile.openstreetmap.fr",
+            "https://*.tile.openstreetmap.org",
+            "https://*.tile.opentopomap.org",
+            "https://*.tile.thunderforest.com",
+            "https://*.tiles.openrailwaymap.org",
+            "https://server.arcgisonline.com",
+            "https://tile.waymarkedtrails.org",
+            "https://tiles.openfreemap.org",
+            "https://tiles.openseamap.org",
+        ]);
+        expect(connectSources).not.toEqual(
+            expect.arrayContaining([
+                "https:",
+                "wss:",
+            ])
+        );
+        expect(imageSources).not.toContain("https:");
     });
 
     it("keeps remote ZwiftMap content outside the Electron renderer", () => {
