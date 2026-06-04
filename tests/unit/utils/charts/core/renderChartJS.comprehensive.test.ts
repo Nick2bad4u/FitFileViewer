@@ -1184,8 +1184,8 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
             const view = await renderChartJS("content-chart");
 
-            expect(global.document.getElementById).toHaveBeenCalledWith(
-                "content-chart"
+            expect(global.document.querySelector).toHaveBeenCalledWith(
+                '[id="content-chart"]'
             );
             expect({ rendered: view }).toStrictEqual({ rendered: true });
         });

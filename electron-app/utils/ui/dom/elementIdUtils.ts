@@ -189,5 +189,15 @@ function queryIdVariants(
 }
 
 function toHTMLElement(element: Element | null): HTMLElement | null {
-    return element instanceof HTMLElement ? element : null;
+    if (!element) {
+        return null;
+    }
+
+    if (element instanceof HTMLElement) {
+        return element;
+    }
+
+    return "classList" in element && "style" in element
+        ? (element as HTMLElement)
+        : null;
 }

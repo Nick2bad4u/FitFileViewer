@@ -75,9 +75,14 @@ function showSharedConfigurationNotification(
     message: string,
     type: "success" | "warning"
 ): void {
-    void showNotification(message, type).catch((error: unknown) => {
-        console.error("Error showing shared configuration notification:", error);
-    });
+    void Promise.resolve(showNotification(message, type)).catch(
+        (error: unknown) => {
+            console.error(
+                "Error showing shared configuration notification:",
+                error
+            );
+        }
+    );
 }
 
 /**

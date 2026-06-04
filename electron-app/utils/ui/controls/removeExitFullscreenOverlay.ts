@@ -80,5 +80,11 @@ function findOverlay(container: HTMLElement): HTMLElement | null {
  * @throws Error If the overlay cannot be removed.
  */
 function removeOverlayElement(overlay: HTMLElement): void {
-    overlay.remove();
+    if (typeof overlay.remove === "function") {
+        overlay.remove();
+        return;
+    }
+
+    // eslint-disable-next-line unicorn/prefer-dom-node-remove -- This branch is only used when the element-level remove() API is unavailable.
+    overlay.parentNode?.removeChild(overlay);
 }

@@ -58,6 +58,10 @@ function clearLegacyGlobalData(): void {
     }
 }
 
+function toError(value: unknown): Error {
+    return value instanceof Error ? value : new Error(String(value));
+}
+
 /**
  * Application state actions - higher-level functions for common state changes
  */
@@ -106,7 +110,7 @@ export const AppActions = {
      * @param fileData - Parsed FIT file data.
      * @param filePath - Path to the loaded file.
      */
-    loadFile(fileData: unknown, filePath: string | null): void {
+    loadFile(fileData: unknown, filePath: string | null): Promise<void> {
         const manager =
             fitFileStateManagerLike &&
             typeof fitFileStateManagerLike.handleFileLoaded === "function"
@@ -116,7 +120,7 @@ export const AppActions = {
         if (manager) {
             const handleFileLoaded = manager.handleFileLoaded;
             if (typeof handleFileLoaded !== "function") {
-                return;
+                return Promise.resolve();
             }
             const normalizedPath =
                 typeof filePath === "string" && filePath.length > 0
@@ -151,10 +155,10 @@ export const AppActions = {
                 );
                 void showNotification("Failed to load file", "error");
                 setState("isLoading", false, { source: "AppActions.loadFile" });
-                throw error;
+                return Promise.reject(toError(error));
             }
 
-            return;
+            return Promise.resolve();
         }
 
         try {
@@ -187,10 +191,12 @@ export const AppActions = {
         } catch (error) {
             console.error("[AppActions] Error loading file:", error);
             void showNotification("Failed to load file", "error");
-            throw error;
+            return Promise.reject(toError(error));
         } finally {
             setState("isLoading", false, { source: "AppActions.loadFile" });
         }
+
+        return Promise.resolve();
     },
 
     /**

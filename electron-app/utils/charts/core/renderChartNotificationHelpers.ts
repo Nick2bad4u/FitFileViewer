@@ -97,14 +97,20 @@ export async function notify(
             chartGlobal.showNotification
         );
         if (globalNotifier) {
-            await globalNotifier(message, type, duration, options);
+            await invokeNotification(globalNotifier, message, type, duration, options);
             return;
         }
 
         const mod = await import("../../ui/notifications/showNotification.js");
         const importedNotifier = resolveNotificationInvoker(mod);
         if (importedNotifier) {
-            await importedNotifier(message, type, duration, options);
+            await invokeNotification(
+                importedNotifier,
+                message,
+                type,
+                duration,
+                options
+            );
             return;
         }
 
@@ -114,4 +120,26 @@ export async function notify(
     } catch (error) {
         console.warn("[ChartJS] notify() fallback failed:", error);
     }
+}
+
+async function invokeNotification(
+    notifier: NotificationInvoker,
+    message: string,
+    type: NotificationType,
+    duration: null | number,
+    options: RenderChartNotificationOptions
+): Promise<void> {
+    const hasOptions = Object.keys(options).length > 0;
+
+    if (duration === null && !hasOptions) {
+        await notifier(message, type);
+        return;
+    }
+
+    if (!hasOptions) {
+        await notifier(message, type, duration);
+        return;
+    }
+
+    await notifier(message, type, duration, options);
 }
