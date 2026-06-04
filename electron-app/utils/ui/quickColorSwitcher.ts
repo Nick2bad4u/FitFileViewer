@@ -171,7 +171,7 @@ function createSwitcherDropdown(currentColor: string): HTMLDivElement {
  */
 export function initQuickColorSwitcher(): void {
     // Check if already initialized
-    if (document.getElementById(SWITCHER_ID)) {
+    if (document.querySelector(`#${SWITCHER_ID}`)) {
         return;
     }
 
@@ -192,7 +192,7 @@ export function initQuickColorSwitcher(): void {
  * @param color - The new active color
  */
 export function updateSwitcherActiveColor(color: string): void {
-    const switcher = document.getElementById(SWITCHER_ID);
+    const switcher = document.querySelector(`#${SWITCHER_ID}`);
     if (!switcher) return;
 
     const colorOptions =
@@ -217,7 +217,7 @@ function createSwitcherElement(): QuickColorSwitcherElement {
 }
 
 function injectSwitcherStyles(): void {
-    if (document.getElementById("quick-color-switcher-styles")) {
+    if (document.querySelector("#quick-color-switcher-styles")) {
         return;
     }
 

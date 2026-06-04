@@ -31,7 +31,7 @@ let restoreFocusTarget: HTMLElement | undefined;
  * Opens the accent color picker modal, creating it on first use.
  */
 export function openAccentColorPicker(): void {
-    let modal = document.getElementById("accent-color-modal");
+    let modal = document.querySelector<HTMLElement>("#accent-color-modal");
     if (modal) {
         showModal(modal);
         return;
@@ -44,7 +44,7 @@ export function openAccentColorPicker(): void {
 }
 
 function addModalStyles(): void {
-    if (document.getElementById("accent-picker-styles")) {
+    if (document.querySelector("#accent-picker-styles")) {
         return;
     }
 
@@ -586,7 +586,7 @@ function setupEventListeners(modal: HTMLElement): void {
             "input",
             () => {
                 const { value: color } = customText;
-                if (/^#[\dA-Fa-f]{6}$/.test(color)) {
+                if (/^#[\da-f]{6}$/iu.test(color)) {
                     customPicker.value = color;
                     applyColor(color);
                 }
@@ -669,27 +669,27 @@ function updatePreview(): void {
     const defaultColor = getDefaultAccentColor(theme);
     const normalizedColor = color.toLowerCase();
 
-    const themeName = document.getElementById("current-theme-name");
+    const themeName = document.querySelector("#current-theme-name");
     if (themeName) {
         themeName.textContent = theme;
     }
 
-    const preview = document.getElementById("accent-color-preview");
+    const preview = document.querySelector("#accent-color-preview");
     if (preview instanceof HTMLElement) {
         preview.style.backgroundColor = color;
     }
 
-    const hex = document.getElementById("accent-color-hex");
+    const hex = document.querySelector("#accent-color-hex");
     if (hex) {
         hex.textContent = color.toUpperCase();
     }
 
-    const customPicker = document.getElementById("custom-color-picker");
+    const customPicker = document.querySelector("#custom-color-picker");
     if (customPicker instanceof HTMLInputElement) {
         customPicker.value = color;
     }
 
-    const customText = document.getElementById("custom-color-text");
+    const customText = document.querySelector("#custom-color-text");
     if (customText instanceof HTMLInputElement) {
         customText.value = color;
     }
@@ -703,7 +703,7 @@ function updatePreview(): void {
         button.setAttribute("aria-pressed", String(selected));
     }
 
-    const resetBtn = document.getElementById("accent-color-reset");
+    const resetBtn = document.querySelector("#accent-color-reset");
     if (resetBtn instanceof HTMLButtonElement) {
         resetBtn.disabled = color === defaultColor;
     }

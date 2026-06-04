@@ -70,7 +70,7 @@ function restoreLastFocusedElement(): void {
  * Closes the settings modal.
  */
 export function closeSettingsModal(): void {
-    const modal = document.getElementById(SETTINGS_MODAL_ID);
+    const modal = document.querySelector<HTMLElement>(`#${SETTINGS_MODAL_ID}`);
     if (modal) {
         cleanupFocusTrap();
         modal.classList.remove("show");
@@ -78,11 +78,15 @@ export function closeSettingsModal(): void {
     }
 }
 
+function handleCloseSettingsModal(): void {
+    closeSettingsModal();
+}
+
 /**
  * Shows the settings modal.
  */
 export async function showSettingsModal(): Promise<void> {
-    let modal = document.getElementById(SETTINGS_MODAL_ID);
+    let modal = document.querySelector<HTMLElement>(`#${SETTINGS_MODAL_ID}`);
 
     // Create modal if it doesn't exist
     if (!modal) {
@@ -615,20 +619,22 @@ function setupSettingsModalHandlers(
         "#settings-close-btn"
     );
 
-    const closeModal = () => closeSettingsModal();
-
     if (closeBtn) {
-        addEventListenerWithCleanup(closeBtn, "click", closeModal);
+        addEventListenerWithCleanup(closeBtn, "click", handleCloseSettingsModal);
     }
 
     if (closeFooterBtn) {
-        addEventListenerWithCleanup(closeFooterBtn, "click", closeModal);
+        addEventListenerWithCleanup(
+            closeFooterBtn,
+            "click",
+            handleCloseSettingsModal
+        );
     }
 
     // Click outside to close
     addEventListenerWithCleanup(modal, "click", (event: Event) => {
         if (event.target === modal) {
-            closeModal();
+            handleCloseSettingsModal();
         }
     });
 
@@ -637,7 +643,7 @@ function setupSettingsModalHandlers(
     const handleEscape = (event: Event) => {
         if (event instanceof KeyboardEvent && event.key === "Escape") {
             event.preventDefault();
-            closeModal();
+            handleCloseSettingsModal();
             cleanupEscape?.();
             cleanupEscape = undefined;
         }

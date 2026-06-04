@@ -205,8 +205,8 @@ function createUpdateDownloadedButtons(notification: HTMLElement): void {
  * @returns Notification element or null if not found.
  */
 function getNotificationElement(): HTMLElement | null {
-    const notification = document.getElementById(
-        NOTIFICATION_CONSTANTS.NOTIFICATION_ID
+    const notification = document.querySelector<HTMLElement>(
+        `#${NOTIFICATION_CONSTANTS.NOTIFICATION_ID}`
     );
     if (!notification) {
         log("error", "Notification element not found in DOM");
