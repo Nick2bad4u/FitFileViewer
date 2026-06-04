@@ -1,8 +1,10 @@
+type TimerHandle = ReturnType<typeof globalThis.setTimeout>;
+
 type FilenameAutoScrollState = {
     abortController: AbortController;
     disconnect: () => void;
     resizeHandler: EventListener;
-    timers: number[];
+    timers: TimerHandle[];
 };
 
 type FilenameElementWithState = HTMLElement & {
@@ -18,11 +20,11 @@ const CONTROL_BAR_INITIAL_DELAY_MS = 200;
 const CONTROL_BAR_RETRY_DELAY_MS = 100;
 const CONTROL_BAR_MAX_RETRIES = 50;
 
-const controlBarTimers = new Set<number>();
+const controlBarTimers = new Set<TimerHandle>();
 
 function clearControlBarTimers(): void {
     for (const timer of controlBarTimers) {
-        window.clearTimeout(timer);
+        globalThis.clearTimeout(timer);
     }
     controlBarTimers.clear();
 }
@@ -30,8 +32,8 @@ function clearControlBarTimers(): void {
 function scheduleControlBarCheck(
     callback: () => void,
     delayMs: number
-): number {
-    const timer = window.setTimeout(() => {
+): TimerHandle {
+    const timer = globalThis.setTimeout(() => {
         controlBarTimers.delete(timer);
         callback();
     }, delayMs);
@@ -40,10 +42,10 @@ function scheduleControlBarCheck(
 }
 
 function getActiveFilenameElement(): FilenameElementWithState | null {
-    const candidate = document.getElementById("active_file_name");
-    return candidate instanceof HTMLElement
-        ? (candidate as FilenameElementWithState)
-        : null;
+    const candidate = document.querySelector<FilenameElementWithState>(
+        "#active_file_name"
+    );
+    return candidate instanceof HTMLElement ? candidate : null;
 }
 
 function cleanupExistingFilenameAutoScrollState(
@@ -56,9 +58,9 @@ function cleanupExistingFilenameAutoScrollState(
 
     existingState.disconnect();
     existingState.abortController.abort();
-    window.removeEventListener("resize", existingState.resizeHandler);
+    globalThis.removeEventListener("resize", existingState.resizeHandler);
     for (const timer of existingState.timers) {
-        window.clearTimeout(timer);
+        globalThis.clearTimeout(timer);
     }
     delete filenameElement.__ffvFilenameAutoScrollState;
 }
@@ -123,12 +125,12 @@ export function initFilenameAutoScroll() {
     // Check on window resize
     const abortController = new AbortController();
     const resizeHandler: EventListener = () => checkScroll();
-    window.addEventListener("resize", resizeHandler, {
+    globalThis.addEventListener("resize", resizeHandler, {
         signal: abortController.signal,
     });
     const timers = [
-        window.setTimeout(checkScroll, FILENAME_SCROLL_INITIAL_DELAY_MS),
-        window.setTimeout(checkScroll, FILENAME_SCROLL_SECONDARY_DELAY_MS),
+        globalThis.setTimeout(checkScroll, FILENAME_SCROLL_INITIAL_DELAY_MS),
+        globalThis.setTimeout(checkScroll, FILENAME_SCROLL_SECONDARY_DELAY_MS),
     ];
 
     // Store idempotency + cleanup state on the element.
@@ -180,20 +182,14 @@ export function initUnifiedControlBar() {
             // Move color switcher first (left side of bar)
             if (colorSwitcher && !controlBar.contains(colorSwitcher)) {
                 // Remove from original position
-                if (colorSwitcher.parentElement) {
-                    colorSwitcher.parentElement.removeChild(colorSwitcher);
-                }
+                colorSwitcher.remove();
                 controlBar.append(colorSwitcher);
             }
 
             // Move fullscreen button (right side of bar)
             if (fullscreenWrapper && !controlBar.contains(fullscreenWrapper)) {
                 // Remove from original position
-                if (fullscreenWrapper.parentElement) {
-                    fullscreenWrapper.parentElement.removeChild(
-                        fullscreenWrapper
-                    );
-                }
+                fullscreenWrapper.remove();
                 controlBar.append(fullscreenWrapper);
             }
 
@@ -205,7 +201,7 @@ export function initUnifiedControlBar() {
         }
 
         // If controls not found yet or incomplete, try again
-        retryCount++;
+        retryCount += 1;
         if (retryCount < CONTROL_BAR_MAX_RETRIES) {
             scheduleControlBarCheck(
                 checkAndMoveControls,
