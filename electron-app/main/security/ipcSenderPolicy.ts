@@ -58,9 +58,7 @@
     }
 
     function asIpcEventLike(event: unknown): IpcEventLike | null {
-        return event && typeof event === "object"
-            ? (event as IpcEventLike)
-            : null;
+        return event && typeof event === "object" ? event : null;
     }
 
     function isAllowedIpcSenderUrl(senderUrl: string): boolean {

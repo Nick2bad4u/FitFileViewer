@@ -109,19 +109,19 @@
 
     function getState(): FileAccessPolicyState {
         const g = globalThis as FileAccessPolicyGlobal;
-        if (
-            !g.__ffvFileAccessPolicyState ||
-            typeof g.__ffvFileAccessPolicyState !== "object"
-        ) {
-            Object.defineProperty(g, "__ffvFileAccessPolicyState", {
-                configurable: true,
-                enumerable: false,
-                value: { approved: new Set<string>() },
-                writable: true,
-            });
+        const existingState = g.__ffvFileAccessPolicyState;
+        if (existingState && typeof existingState === "object") {
+            return existingState;
         }
 
-        return g.__ffvFileAccessPolicyState as FileAccessPolicyState;
+        const initializedState = { approved: new Set<string>() };
+        Object.defineProperty(g, "__ffvFileAccessPolicyState", {
+            configurable: true,
+            enumerable: false,
+            value: initializedState,
+            writable: true,
+        });
+        return initializedState;
     }
 
     function hasFitExtension(filePath: string): boolean {
@@ -165,8 +165,8 @@
     function isWindowsStylePath(filePath: string): boolean {
         return (
             /^[A-Za-z]:[/\\]/u.test(filePath) ||
-            /^\\\\/u.test(filePath) ||
-            /^\/\//u.test(filePath)
+            filePath.startsWith("\\\\") ||
+            filePath.startsWith("//")
         );
     }
 
@@ -218,10 +218,10 @@
         }
 
         if (
-            /^\\\\\?\\/u.test(trimmed) ||
-            /^\\\\\.\\/u.test(trimmed) ||
-            /^\/\/\?\//u.test(trimmed) ||
-            /^\/\/\.\//u.test(trimmed)
+            trimmed.startsWith("\\\\?\\") ||
+            trimmed.startsWith("\\\\.\\") ||
+            trimmed.startsWith("//?/") ||
+            trimmed.startsWith("//./")
         ) {
             throw new Error("Invalid file path provided");
         }
