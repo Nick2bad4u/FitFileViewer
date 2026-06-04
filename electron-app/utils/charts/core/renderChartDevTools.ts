@@ -65,11 +65,19 @@ function getAllFieldVisibility(
 ): Record<string, string> {
     const result: Record<string, string> = {};
     for (const field of fields) {
-        result[field] = String(
-            chartSettingsManager.getFieldVisibility(field) ?? "visible"
+        result[field] = formatFieldVisibility(
+            chartSettingsManager.getFieldVisibility(field)
         );
     }
     return result;
+}
+
+function formatFieldVisibility(value: unknown): string {
+    if (typeof value === "string" && value.length > 0) {
+        return value;
+    }
+
+    return "visible";
 }
 
 /**
