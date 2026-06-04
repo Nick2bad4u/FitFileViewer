@@ -11,7 +11,7 @@ type ResourceType =
     | "worker";
 
 type ResourceCleanup = () => unknown;
-type ShutdownHook = () => Promise<unknown> | unknown;
+type ShutdownHook = () => unknown;
 
 type Resource = {
     cleanup: ResourceCleanup;
@@ -163,7 +163,7 @@ class ResourceManager {
                 try {
                     resource.cleanup();
                     this.resources.delete(id);
-                    cleanedCount++;
+                    cleanedCount += 1;
                     console.log(
                         `[ResourceManager] Cleaned up ${resource.type} resource: ${id}`
                     );
@@ -191,7 +191,8 @@ class ResourceManager {
         console.log(`[ResourceManager] Cleaning up all ${count} resources...`);
 
         // Cleanup in reverse order of registration (LIFO - Last In First Out)
-        const resources = Array.from(this.resources.entries()).toReversed();
+        const resources = [...this.resources.entries()];
+        resources.reverse();
 
         for (const [id, resource] of resources) {
             try {
@@ -281,7 +282,9 @@ class ResourceManager {
             return "";
         }
 
-        const id = options.id || `resource-${type}-${this.nextId++}`;
+        const nextId = this.nextId;
+        this.nextId += 1;
+        const id = options.id || `resource-${type}-${nextId}`;
 
         this.resources.set(id, createResource(type, cleanup, id, options));
 
@@ -533,22 +536,46 @@ export { resourceManager };
 /**
  * Bound resource manager helpers for legacy imports that use named functions.
  */
-export const {
-    addShutdownHook,
-    cleanup,
-    cleanupAll,
-    getStats,
-    list,
-    register,
-    registerChart,
-    registerInterval,
-    registerMap,
-    registerObserver,
-    registerTimer,
-    registerWorker,
-    shutdown,
-    unregister,
-} = resourceManager;
+export const addShutdownHook = (hook: ShutdownHook): void => {
+    resourceManager.addShutdownHook(hook);
+};
+export const cleanup = (filter?: ResourceCleanupFilter): number =>
+    resourceManager.cleanup(filter);
+export const cleanupAll = (): number => resourceManager.cleanupAll();
+export const getStats = (): ResourceStats => resourceManager.getStats();
+export const list = (): ResourceListItem[] => resourceManager.list();
+export const register = (
+    type: ResourceType,
+    resourceCleanup: ResourceCleanup,
+    options?: ResourceOptions
+): string => resourceManager.register(type, resourceCleanup, options);
+export const registerChart = (
+    chart: unknown,
+    options?: Omit<ResourceOptions, "instance">
+): string => resourceManager.registerChart(chart, options);
+export const registerInterval = (
+    intervalId: IntervalHandle,
+    options?: Omit<ResourceOptions, "instance">
+): string => resourceManager.registerInterval(intervalId, options);
+export const registerMap = (
+    map: unknown,
+    options?: Omit<ResourceOptions, "instance">
+): string => resourceManager.registerMap(map, options);
+export const registerObserver = (
+    observer: unknown,
+    options?: Omit<ResourceOptions, "instance">
+): string => resourceManager.registerObserver(observer, options);
+export const registerTimer = (
+    timerId: TimerHandle,
+    options?: Omit<ResourceOptions, "instance">
+): string => resourceManager.registerTimer(timerId, options);
+export const registerWorker = (
+    worker: unknown,
+    options?: Omit<ResourceOptions, "instance">
+): string => resourceManager.registerWorker(worker, options);
+export const shutdown = (): Promise<void> => resourceManager.shutdown();
+export const unregister = (id: string): boolean =>
+    resourceManager.unregister(id);
 
 // Make available globally for debugging
 if (typeof globalThis !== "undefined") {
