@@ -199,7 +199,7 @@ export function movePowerZoneControlsToSection(): void {
 
     for (const fieldName of powerZoneFields) {
         // Look for the toggle by ID
-        const toggle = document.getElementById(`field-toggle-${fieldName}`);
+        const toggle = document.querySelector(`#field-toggle-${fieldName}`);
         if (toggle && toggle.parentElement) {
             const controlContainer = toggle.parentElement;
 
@@ -218,12 +218,10 @@ export function movePowerZoneControlsToSection(): void {
         );
 
         // Add some spacing between the controls
-        const controls = Array.from(powerZoneContent.children);
+        const controls = [...powerZoneContent.children];
         for (const [i, control] of controls.entries()) {
-            if (i > 0) {
-                if (control instanceof HTMLElement) {
-                    control.style.marginTop = "12px";
-                }
+            if (i > 0 && control instanceof HTMLElement) {
+                control.style.marginTop = "12px";
             }
         }
 

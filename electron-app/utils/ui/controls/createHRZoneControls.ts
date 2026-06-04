@@ -194,7 +194,7 @@ export function moveHRZoneControlsToSection(): void {
 
     for (const fieldName of hrZoneFields) {
         // Look for the toggle by ID
-        const toggle = document.getElementById(`field-toggle-${fieldName}`);
+        const toggle = document.querySelector(`#field-toggle-${fieldName}`);
         if (toggle && toggle.parentElement) {
             const controlContainer = toggle.parentElement;
 
@@ -213,12 +213,10 @@ export function moveHRZoneControlsToSection(): void {
         );
 
         // Add some spacing between the controls
-        const controls = Array.from(hrZoneContent.children);
+        const controls = [...hrZoneContent.children];
         for (const [i, control] of controls.entries()) {
-            if (i > 0) {
-                if (control instanceof HTMLElement) {
-                    control.style.marginTop = "12px";
-                }
+            if (i > 0 && control instanceof HTMLElement) {
+                control.style.marginTop = "12px";
             }
         }
 
