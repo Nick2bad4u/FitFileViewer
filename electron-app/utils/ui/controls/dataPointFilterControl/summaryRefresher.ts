@@ -58,21 +58,30 @@ export function createSummaryRefresher({
                         last.coverage,
                         getNumberOrDefault(last.percent, 0)
                     );
-                    summary.textContent = `Showing ${last.selectedCount} of ${last.totalCandidates} points between ${formatMetricValue(
+                    summary.textContent = `Showing ${getCount(
+                        last.selectedCount
+                    )} of ${getCount(last.totalCandidates)} points between ${formatMetricValue(
                         appliedMin,
                         null
-                    )} and ${formatMetricValue(appliedMax, null)} ${last.metricLabel ?? last.metric} (${formatPercent(
-                        coverageValue
-                    )}% coverage)`;
+                    )} and ${formatMetricValue(appliedMax, null)} ${getMetricDisplayName(
+                        last.metricLabel,
+                        last.metric
+                    )} (${formatPercent(coverageValue)}% coverage)`;
                 } else {
-                    summary.textContent = `Showing top ${last.percent}% (${last.selectedCount} of ${last.totalCandidates}) by ${
-                        last.metricLabel ?? last.metric
-                    }`;
+                    summary.textContent = `Showing top ${getNumberOrDefault(
+                        last.percent,
+                        0
+                    )}% (${getCount(last.selectedCount)} of ${getCount(
+                        last.totalCandidates
+                    )}) by ${getMetricDisplayName(
+                        last.metricLabel,
+                        last.metric
+                    )}`;
                 }
                 return;
             }
             if (last && last.reason) {
-                summary.textContent = String(last.reason);
+                summary.textContent = formatReason(last.reason);
                 return;
             }
             if (!win.mapDataPointFilter || !win.mapDataPointFilter.enabled) {
@@ -89,4 +98,44 @@ function getNumberOrDefault(value: unknown, fallback: number): number {
     return typeof value === "number" && Number.isFinite(value)
         ? value
         : fallback;
+}
+
+function getCount(value: number | undefined): number {
+    return getNumberOrDefault(value, 0);
+}
+
+function getMetricDisplayName(
+    metricLabel: string | null | undefined,
+    metric: string | undefined
+): string {
+    return metricLabel ?? metric ?? "selected metric";
+}
+
+function formatReason(reason: unknown): string {
+    if (typeof reason === "string") {
+        return reason;
+    }
+
+    if (reason instanceof Error) {
+        return reason.message;
+    }
+
+    if (
+        typeof reason === "number" ||
+        typeof reason === "boolean" ||
+        typeof reason === "bigint" ||
+        typeof reason === "symbol"
+    ) {
+        return String(reason);
+    }
+
+    if (reason && typeof reason === "object") {
+        try {
+            return JSON.stringify(reason);
+        } catch {
+            return "Unable to summarize filter result.";
+        }
+    }
+
+    return "Unable to summarize filter result.";
 }

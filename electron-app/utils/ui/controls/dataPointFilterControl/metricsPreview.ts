@@ -26,14 +26,15 @@ export function buildSummaryText(
         return `Showing ${result.selectedCount} of ${result.totalCandidates} points between ${formatMetricValue(
             appliedMin,
             stats ?? null
-        )} and ${formatMetricValue(appliedMax, stats ?? null)} ${
-            result.metricLabel ?? result.metric
-        } (${coverage}% coverage)`;
+        )} and ${formatMetricValue(appliedMax, stats ?? null)} ${getMetricDisplayName(
+            result.metricLabel,
+            result.metric
+        )} (${coverage}% coverage)`;
     }
 
     const percentValue = config?.percent ?? result.percent ?? 0;
     return `Showing top ${percentValue}% (${result.selectedCount} of ${result.totalCandidates}) by ${
-        result.metricLabel ?? result.metric
+        getMetricDisplayName(result.metricLabel, result.metric)
     }`;
 }
 
@@ -51,4 +52,11 @@ export function previewFilterResult(
         );
         return null;
     }
+}
+
+function getMetricDisplayName(
+    metricLabel: string | null | undefined,
+    metric: string | null | undefined
+): string {
+    return metricLabel ?? metric ?? "selected metric";
 }
