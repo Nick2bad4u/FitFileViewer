@@ -61,6 +61,7 @@
         ) => eventName is UpdateEventName;
         preloadLog: PreloadLog;
         removeIpcListener: (channel: string, handler: IpcListener) => void;
+        shouldAllowGenericIpcBridge: boolean;
         shouldEnforceGenericIpcAllowlist: boolean;
         validateCallback: (
             callback: unknown,
@@ -82,6 +83,7 @@
         isAllowedUpdateEventName,
         preloadLog,
         removeIpcListener,
+        shouldAllowGenericIpcBridge,
         shouldEnforceGenericIpcAllowlist,
         validateCallback,
         validateChannelName,
@@ -92,6 +94,10 @@
         ): Promise<InvokeResponsePayloadForChannel<Channel>> {
             if (!validateChannelName(channel, "channel", "invoke")) {
                 throw new Error("Invalid channel for invoke");
+            }
+
+            if (!shouldAllowGenericIpcBridge) {
+                throw new Error("Generic invoke is disabled");
             }
 
             if (
@@ -138,6 +144,14 @@
                 return undefined;
             }
             if (!validateCallback(callback, "onIpc")) {
+                return undefined;
+            }
+
+            if (!shouldAllowGenericIpcBridge) {
+                preloadLog(
+                    "warn",
+                    `[preload.js] Blocked onIpc() subscription while generic IPC is disabled: ${channelName}`
+                );
                 return undefined;
             }
 
@@ -254,6 +268,14 @@
             ...args: IpcRequestPayload[]
         ): void {
             if (!validateChannelName(channel, "channel", "send")) {
+                return;
+            }
+
+            if (!shouldAllowGenericIpcBridge) {
+                preloadLog(
+                    "warn",
+                    `[preload.js] Blocked send() while generic IPC is disabled: ${String(channel)}`
+                );
                 return;
             }
 

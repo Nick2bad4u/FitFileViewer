@@ -206,6 +206,7 @@ interface PreloadRequire {
     };
     (moduleId: "./preload/environment.js"): {
         isPreloadDevelopmentMode: (processRef?: NodeJS.Process) => boolean;
+        shouldAllowGenericIpcBridge: (processRef?: NodeJS.Process) => boolean;
         shouldEnforceGenericIpcAllowlist: (
             processRef?: NodeJS.Process
         ) => boolean;
@@ -231,6 +232,7 @@ interface PreloadRequire {
                 channel: string,
                 handler: IpcEventListener
             ) => void;
+            shouldAllowGenericIpcBridge: boolean;
             shouldEnforceGenericIpcAllowlist: boolean;
             validateCallback: (
                 callback: unknown,
@@ -365,6 +367,7 @@ const { createPreloadValidators } = (require as PreloadRequire)(
 );
 const {
     isPreloadDevelopmentMode,
+    shouldAllowGenericIpcBridge,
     shouldEnforceGenericIpcAllowlist,
 } = (require as PreloadRequire)("./preload/environment.js");
 const { createGenericIpcApi } = (require as PreloadRequire)(
@@ -455,6 +458,8 @@ const {
  */
 const SHOULD_ENFORCE_GENERIC_IPC_ALLOWLIST =
     typeof process !== "undefined" && shouldEnforceGenericIpcAllowlist(process);
+const SHOULD_ALLOW_GENERIC_IPC_BRIDGE =
+    typeof process === "undefined" || shouldAllowGenericIpcBridge(process);
 
 const mainStateBridge = createMainStateBridge({
     ipcRenderer,
@@ -501,6 +506,7 @@ const genericIpcApi = createGenericIpcApi({
     isAllowedUpdateEventName,
     preloadLog,
     removeIpcListener,
+    shouldAllowGenericIpcBridge: SHOULD_ALLOW_GENERIC_IPC_BRIDGE,
     shouldEnforceGenericIpcAllowlist: SHOULD_ENFORCE_GENERIC_IPC_ALLOWLIST,
     validateCallback,
     validateChannelName,

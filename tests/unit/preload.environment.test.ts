@@ -15,6 +15,10 @@ interface PreloadEnvironmentModule {
         env?: Record<string, unknown>;
         versions?: Record<string, unknown>;
     }) => boolean;
+    shouldAllowGenericIpcBridge: (processRef?: {
+        env?: Record<string, unknown>;
+        versions?: Record<string, unknown>;
+    }) => boolean;
 }
 
 const requireFromTest = createRequire(import.meta.url);
@@ -84,5 +88,30 @@ describe("preload environment helpers", () => {
                 versions: { node: "26.2.0" },
             }),
         }).toStrictEqual({ enforce: false });
+    });
+
+    it("allows generic IPC only outside Electron production", () => {
+        expect.assertions(3);
+
+        expect({
+            allow: preloadEnvironment.shouldAllowGenericIpcBridge({
+                env: { NODE_ENV: "production" },
+                versions: { electron: "31.0.0" },
+            }),
+        }).toStrictEqual({ allow: false });
+
+        expect({
+            allow: preloadEnvironment.shouldAllowGenericIpcBridge({
+                env: { NODE_ENV: "development" },
+                versions: { electron: "31.0.0" },
+            }),
+        }).toStrictEqual({ allow: true });
+
+        expect({
+            allow: preloadEnvironment.shouldAllowGenericIpcBridge({
+                env: { NODE_ENV: "test" },
+                versions: { node: "26.2.0" },
+            }),
+        }).toStrictEqual({ allow: true });
     });
 });

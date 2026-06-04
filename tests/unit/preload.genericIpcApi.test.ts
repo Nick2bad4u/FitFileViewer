@@ -73,8 +73,10 @@ function createIpcMock(): IpcRendererMock {
 }
 
 function createApi({
+    shouldAllowGenericIpcBridge = true,
     shouldEnforceGenericIpcAllowlist = true,
 }: {
+    shouldAllowGenericIpcBridge?: boolean;
     shouldEnforceGenericIpcAllowlist?: boolean;
 } = {}) {
     const ipcMock = createIpcMock();
@@ -113,6 +115,7 @@ function createApi({
             ): eventName is UpdateEventName => eventName === "update-checking",
             preloadLog,
             removeIpcListener,
+            shouldAllowGenericIpcBridge,
             shouldEnforceGenericIpcAllowlist,
             validateCallback: (
                 callback: unknown
@@ -180,6 +183,38 @@ describe("generic preload IPC API", () => {
             [
                 "warn",
                 "[preload.js] Blocked send() to non-allowlisted channel: fit-file-loaded",
+            ],
+        ]);
+    });
+
+    it("disables generic invoke, send, and onIpc when production bridge access is off", async () => {
+        expect.assertions(6);
+
+        const { api, ipcMock, preloadLog } = createApi({
+            shouldAllowGenericIpcBridge: false,
+        });
+
+        await expect(api.invoke("getAppVersion")).rejects.toThrow(
+            "Generic invoke is disabled"
+        );
+        expect(api.onIpc("show-notification", vi.fn())).toBeUndefined();
+        api.send("theme-changed", "dark");
+        api.notifyFitFileLoaded("activity.fit");
+
+        expect(ipcMock.invoke).not.toHaveBeenCalled();
+        expect(ipcMock.on).not.toHaveBeenCalled();
+        expect(ipcMock.send).toHaveBeenCalledExactlyOnceWith(
+            "fit-file-loaded",
+            "activity.fit"
+        );
+        expect(preloadLog.mock.calls).toStrictEqual([
+            [
+                "warn",
+                "[preload.js] Blocked onIpc() subscription while generic IPC is disabled: show-notification",
+            ],
+            [
+                "warn",
+                "[preload.js] Blocked send() while generic IPC is disabled: theme-changed",
             ],
         ]);
     });

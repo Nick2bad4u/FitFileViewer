@@ -54,9 +54,19 @@
         return isPreloadElectronRuntime(processRef);
     }
 
+    function shouldAllowGenericIpcBridge(
+        processRef: ProcessLike | undefined = process
+    ): boolean {
+        return (
+            !isPreloadElectronRuntime(processRef) ||
+            isPreloadDevelopmentMode(processRef)
+        );
+    }
+
     module.exports = {
         isPreloadDevelopmentMode,
         isPreloadElectronRuntime,
+        shouldAllowGenericIpcBridge,
         shouldEnforceGenericIpcAllowlist,
     };
 }
