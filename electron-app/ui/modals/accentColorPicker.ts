@@ -25,22 +25,22 @@ const PRESET_COLORS = [
     { hex: "#6366f1", name: "Indigo" },
 ] as const;
 
+let restoreFocusTarget: HTMLElement | undefined;
+
 /**
  * Opens the accent color picker modal, creating it on first use.
  */
 export function openAccentColorPicker(): void {
     let modal = document.getElementById("accent-color-modal");
     if (modal) {
-        modal.style.display = "block";
-        updatePreview();
+        showModal(modal);
         return;
     }
 
     modal = createModal();
     document.body.append(modal);
 
-    modal.style.display = "block";
-    updatePreview();
+    showModal(modal);
 }
 
 function addModalStyles(): void {
@@ -265,7 +265,8 @@ function addModalStyles(): void {
 		}
 
 		#custom-color-text:focus {
-			outline: none;
+			outline: 2px solid var(--color-accent);
+			outline-offset: 2px;
 			border-color: var(--color-accent);
 		}
 
@@ -320,6 +321,11 @@ function createModal(): HTMLDivElement {
     const modal = document.createElement("div");
     modal.id = "accent-color-modal";
     modal.className = "accent-picker-modal";
+    modal.setAttribute("aria-hidden", "true");
+    modal.setAttribute("aria-labelledby", "accent-picker-title");
+    modal.setAttribute("aria-modal", "true");
+    modal.setAttribute("role", "dialog");
+    modal.tabIndex = -1;
     modal.append(createModalContent());
 
     addModalStyles();
@@ -342,9 +348,11 @@ function createModalHeader(): HTMLDivElement {
     header.className = "accent-picker-header";
 
     const title = document.createElement("h2");
+    title.id = "accent-picker-title";
     title.textContent = "Customize Accent Color";
 
     const close = document.createElement("button");
+    close.setAttribute("aria-label", "Close accent color picker");
     close.className = "close-btn";
     close.id = "accent-picker-close";
     close.type = "button";
@@ -492,6 +500,8 @@ function renderPresetColors(modal: HTMLElement, signal: AbortSignal): void {
         button.type = "button";
         button.className = "preset-color";
         button.dataset["hex"] = preset.hex;
+        button.setAttribute("aria-label", `Select ${preset.name} accent`);
+        button.setAttribute("aria-pressed", "false");
         button.style.backgroundColor = preset.hex;
         button.title = preset.name;
         button.addEventListener(
@@ -516,7 +526,7 @@ function setupEventListeners(modal: HTMLElement): void {
     closeBtn?.addEventListener(
         "click",
         () => {
-            modal.style.display = "none";
+            closeModal(modal);
         },
         { signal }
     );
@@ -525,8 +535,16 @@ function setupEventListeners(modal: HTMLElement): void {
         "click",
         (event) => {
             if (event.target === modal) {
-                modal.style.display = "none";
+                closeModal(modal);
             }
+        },
+        { signal }
+    );
+
+    document.addEventListener(
+        "keydown",
+        (event) => {
+            handleDialogKeydown(event, modal);
         },
         { signal }
     );
@@ -545,7 +563,7 @@ function setupEventListeners(modal: HTMLElement): void {
     applyBtn?.addEventListener(
         "click",
         () => {
-            modal.style.display = "none";
+            closeModal(modal);
         },
         { signal }
     );
@@ -578,6 +596,70 @@ function setupEventListeners(modal: HTMLElement): void {
     }
 
     renderPresetColors(modal, signal);
+}
+
+function closeModal(modal: HTMLElement): void {
+    modal.style.display = "none";
+    modal.setAttribute("aria-hidden", "true");
+    restoreFocusTarget?.focus();
+    restoreFocusTarget = undefined;
+}
+
+function getFocusableElements(modal: HTMLElement): HTMLElement[] {
+    return [
+        ...modal.querySelectorAll<HTMLElement>(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        ),
+    ].filter((element) => !element.hasAttribute("disabled"));
+}
+
+function handleDialogKeydown(event: KeyboardEvent, modal: HTMLElement): void {
+    if (modal.style.display !== "block") {
+        return;
+    }
+
+    if (event.key === "Escape") {
+        event.preventDefault();
+        closeModal(modal);
+        return;
+    }
+
+    if (event.key !== "Tab") {
+        return;
+    }
+
+    const focusableElements = getFocusableElements(modal);
+    const firstElement = focusableElements.at(0);
+    const lastElement = focusableElements.at(-1);
+    if (!firstElement || !lastElement) {
+        event.preventDefault();
+        modal.focus();
+        return;
+    }
+
+    if (event.shiftKey && document.activeElement === firstElement) {
+        event.preventDefault();
+        lastElement.focus();
+        return;
+    }
+
+    if (!event.shiftKey && document.activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
+    }
+}
+
+function showModal(modal: HTMLElement): void {
+    restoreFocusTarget =
+        document.activeElement instanceof HTMLElement
+            ? document.activeElement
+            : undefined;
+    modal.style.display = "block";
+    modal.setAttribute("aria-hidden", "false");
+    updatePreview();
+
+    const firstFocusable = getFocusableElements(modal).at(0);
+    (firstFocusable ?? modal).focus();
 }
 
 function updatePreview(): void {
@@ -614,11 +696,11 @@ function updatePreview(): void {
 
     const presetButtons = document.querySelectorAll(".preset-color");
     for (const button of presetButtons) {
-        button.classList.toggle(
-            "selected",
+        const selected =
             button instanceof HTMLElement &&
-                button.dataset["hex"] === normalizedColor
-        );
+            button.dataset["hex"] === normalizedColor;
+        button.classList.toggle("selected", selected);
+        button.setAttribute("aria-pressed", String(selected));
     }
 
     const resetBtn = document.getElementById("accent-color-reset");

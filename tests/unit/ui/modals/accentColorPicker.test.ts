@@ -29,6 +29,7 @@ function requireElement<TElement extends Element>(
 }
 
 function getPresetButtonStates(): {
+    ariaPressed: string | null;
     className: string;
     hex: string | undefined;
     selected: boolean;
@@ -38,6 +39,7 @@ function getPresetButtonStates(): {
     return [
         ...document.querySelectorAll<HTMLButtonElement>(".preset-color"),
     ].map((button) => ({
+        ariaPressed: button.getAttribute("aria-pressed"),
         className: button.className,
         hex: button.dataset["hex"],
         selected: button.classList.contains("selected"),
@@ -48,6 +50,7 @@ function getPresetButtonStates(): {
 
 function createExpectedPresetButtonStates(selectedHex: string) {
     return EXPECTED_PRESET_COLORS.map((preset) => ({
+        ariaPressed: String(preset.hex === selectedHex),
         className:
             preset.hex === selectedHex
                 ? "preset-color selected"
@@ -162,5 +165,41 @@ describe("accentColorPicker", () => {
         expect(document.querySelectorAll("#accent-picker-styles")).toHaveLength(
             1
         );
+    });
+
+    it("uses dialog semantics, closes on Escape, and restores focus", () => {
+        expect.assertions(9);
+
+        setupFixture();
+        const opener = document.createElement("button");
+        opener.type = "button";
+        opener.textContent = "Open accent colors";
+        document.body.append(opener);
+        opener.focus();
+
+        openAccentColorPicker();
+
+        const modal = requireElement<HTMLDivElement>("#accent-color-modal"),
+            close = requireElement<HTMLButtonElement>("#accent-picker-close"),
+            title = requireElement<HTMLHeadingElement>("#accent-picker-title");
+
+        expect(modal.getAttribute("role")).toBe("dialog");
+        expect(modal.getAttribute("aria-modal")).toBe("true");
+        expect(modal.getAttribute("aria-labelledby")).toBe(
+            "accent-picker-title"
+        );
+        expect(title.textContent).toBe("Customize Accent Color");
+        expect(close.getAttribute("aria-label")).toBe(
+            "Close accent color picker"
+        );
+        expect(document.activeElement).toBe(close);
+
+        document.dispatchEvent(
+            new KeyboardEvent("keydown", { bubbles: true, key: "Escape" })
+        );
+
+        expect(modal.style.display).toBe("none");
+        expect(modal.getAttribute("aria-hidden")).toBe("true");
+        expect(document.activeElement).toBe(opener);
     });
 });
