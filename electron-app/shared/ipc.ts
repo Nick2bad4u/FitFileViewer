@@ -1,5 +1,15 @@
 import type { FitDecodeResult } from "./fit";
 
+/** Recursive object value allowed across IPC serialization. */
+export type IpcSerializableObject = {
+    readonly [key in string]: IpcSerializable;
+};
+
+/** Recursive object value allowed in main-state IPC serialization. */
+export type MainStateIpcObject = {
+    readonly [key in string]: MainStateIpcValue;
+};
+
 /** JSON-like values plus arrays and objects that are safe to move over IPC. */
 export type IpcSerializable =
     | boolean
@@ -7,7 +17,7 @@ export type IpcSerializable =
     | number
     | string
     | readonly IpcSerializable[]
-    | { readonly [key: string]: IpcSerializable };
+    | IpcSerializableObject;
 
 /** Payload shape accepted by generic invoke wrappers. */
 export type IpcRequestPayload = IpcSerializable | ArrayBuffer;
@@ -23,15 +33,13 @@ export type MainStateIpcValue =
     | string
     | undefined
     | readonly MainStateIpcValue[]
-    | { readonly [key: string]: MainStateIpcValue };
+    | MainStateIpcObject;
 
 /** Dot-path accepted by the main-process state bridge. */
 export type MainStatePath = string;
 
 /** Metadata accepted when renderer-owned main-state values are updated. */
-export type MainStateSetOptions = {
-    readonly [key: string]: MainStateIpcValue;
-};
+export type MainStateSetOptions = Readonly<Record<string, MainStateIpcValue>>;
 
 /** Renderer-provided main-state value. */
 export type MainStateSetValue = MainStateIpcValue;

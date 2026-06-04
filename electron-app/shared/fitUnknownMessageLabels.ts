@@ -20,11 +20,11 @@
         row: Record<string, FitFieldValue>,
         key: number | string
     ): FitFieldValue {
-        return row[key] as FitFieldValue;
+        return row[String(key)] ?? null;
     }
 
     function hasOwnKey(record: Record<string, unknown>, key: string): boolean {
-        return Object.prototype.hasOwnProperty.call(record, key);
+        return Object.hasOwn(record, key);
     }
 
     function omitMessageKey(
@@ -43,7 +43,7 @@
     function applyUnknownMessageLabels(
         messages: FitMessages | null | undefined
     ): FitMessages {
-        let updated: FitMessages = { ...(messages ?? {}) };
+        let updated: FitMessages = messages ? { ...messages } : {};
 
         for (const msgNum of Object.keys(unknownMessageMappings)) {
             const mapping = unknownMessageMappings[msgNum];

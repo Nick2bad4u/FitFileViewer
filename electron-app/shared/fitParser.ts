@@ -1,4 +1,3 @@
-import type { Buffer } from "node:buffer";
 import type {
     DecoderOptions,
     DecoderOptionsValidationResult,
@@ -96,17 +95,15 @@ export type DecoderOptionsUpdateResult =
     | DecoderOptionsUpdateSuccess;
 
 /** Constructor surface for the parser's custom decode error. */
-export interface FitDecodeErrorConstructor {
-    new (
-        message: string,
-        details: FitFieldValue,
-        metadata?: FitDecodeMetadata
-    ): Error & {
-        details: FitFieldValue;
-        metadata: FitParserErrorMetadata;
-        toJSON: () => SerializedFitDecodeError;
-    };
-}
+export type FitDecodeErrorConstructor = new (
+    message: string,
+    details: FitFieldValue,
+    metadata?: FitDecodeMetadata
+) => Error & {
+    details: FitFieldValue;
+    metadata: FitParserErrorMetadata;
+    toJSON: () => SerializedFitDecodeError;
+};
 
 /** Complete CommonJS export surface currently exposed by fitParser.js. */
 export interface FitParserModule {

@@ -5,12 +5,15 @@ export type FitScalar = boolean | Date | null | number | string;
 export type FitFieldValue =
     | FitScalar
     | readonly FitFieldValue[]
-    | { readonly [key: string]: FitFieldValue };
+    | FitFieldObject;
+
+/** Recursive object value emitted from decoded FIT fields. */
+export type FitFieldObject = {
+    readonly [fieldName in string]: FitFieldValue;
+};
 
 /** Decoded FIT message fields keyed by FIT field name. */
-export interface FitMessageRow {
-    readonly [fieldName: string]: FitFieldValue;
-}
+export type FitMessageRow = Readonly<Record<string, FitFieldValue>>;
 
 /** Decoded FIT messages grouped by FIT message type. */
 export type FitMessages = Record<string, FitMessageRow[]>;
