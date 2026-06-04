@@ -667,4 +667,82 @@ describe("main.js strict handlers and events", () => {
             action: "deny",
         });
     });
+
+    it("requires an approved source path before Save As copies a file", async () => {
+        expect.assertions(9);
+
+        const realFs = await vi.importActual<typeof import("node:fs")>(
+            "node:fs"
+        );
+        const realOs = await vi.importActual<typeof import("node:os")>(
+            "node:os"
+        );
+        const realPath = await vi.importActual<typeof import("node:path")>(
+            "node:path"
+        );
+        const tempDir = realFs.mkdtempSync(
+            realPath.join(realOs.tmpdir(), "ffv-save-as-")
+        );
+        const approvedFilePath = realPath.join(tempDir, "approved.fit");
+        const copiedFilePath = realPath.join(tempDir, "copy.fit");
+        realFs.writeFileSync(approvedFilePath, "fit-data");
+
+        const policy: any = require("../../../../electron-app/main/security/fileAccessPolicy");
+        policy.__resetForTests?.();
+
+        try {
+            const importedMain: any = await import(
+                "../../../../electron-app/main.js"
+            );
+            const mainModule = importedMain.default ?? importedMain;
+            mockMainWindow.webContents.send.mockClear();
+
+            const saveAsCall = findLatestRequiredCall(
+                mockIpcMain.on.mock.calls,
+                "menu-save-as",
+                "ipcMain.on"
+            );
+            expect(saveAsCall[0]).toBe("menu-save-as");
+            const saveAs = getRequiredHandler(saveAsCall);
+
+            mainModule.setAppState("loadedFitFilePath", "C:/unapproved.fit");
+            await saveAs({ sender: mockMainWindow.webContents });
+
+            expect(mockDialog.showSaveDialog).not.toHaveBeenCalled();
+            expect(realFs.existsSync(copiedFilePath)).toBe(false);
+            expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
+                "show-notification",
+                "Save failed: File access denied",
+                "error"
+            );
+
+            policy.approveFilePath?.(approvedFilePath, { source: "test" });
+            mainModule.setAppState("loadedFitFilePath", approvedFilePath);
+            mockDialog.showSaveDialog.mockResolvedValueOnce({
+                canceled: false,
+                filePath: copiedFilePath,
+            });
+
+            await saveAs({ sender: mockMainWindow.webContents });
+
+            expect(mockDialog.showSaveDialog).toHaveBeenCalledOnce();
+            expect(mockDialog.showSaveDialog.mock.calls[0]?.[1]).toMatchObject({
+                defaultPath: approvedFilePath,
+                title: "Save As",
+            });
+            expect(realFs.readFileSync(copiedFilePath, "utf8")).toBe(
+                "fit-data"
+            );
+            expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
+                "show-notification",
+                "File saved successfully.",
+                "success"
+            );
+            expect(policy.isApprovedFilePath?.("C:/unapproved.fit")).toBe(
+                false
+            );
+        } finally {
+            realFs.rmSync(tempDir, { force: true, recursive: true });
+        }
+    });
 });

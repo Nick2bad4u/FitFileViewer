@@ -120,6 +120,9 @@
     const { fs } = require("../runtime/nodeModules") as {
         fs: typeof import("node:fs") | null;
     };
+    const fileAccessPolicy = require("../security/fileAccessPolicy") as {
+        isApprovedFilePath: (filePath: unknown) => boolean;
+    };
     const { getAppState } = require("../state/appState") as {
         getAppState: (key: string) => unknown;
     };
@@ -326,6 +329,23 @@
                     }
 
                     try {
+                        if (
+                            !fileAccessPolicy.isApprovedFilePath(loadedFilePath)
+                        ) {
+                            sendToRenderer(
+                                win,
+                                "show-notification",
+                                "Save failed: File access denied",
+                                "error"
+                            );
+                            logWithContext(
+                                "warn",
+                                "Blocked Save As for unapproved source path",
+                                { path: loadedFilePath }
+                            );
+                            return;
+                        }
+
                         const dialog = dialogRef();
                         if (
                             !dialog ||
