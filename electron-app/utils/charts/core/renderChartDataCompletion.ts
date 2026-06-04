@@ -50,7 +50,7 @@ export async function completeChartDataRender(
         getThemeConfig: () => {
             const globalGetThemeConfig =
                 dependencies.chartGlobal.getThemeConfig;
-            return typeof globalGetThemeConfig === "function"
+            return isGetThemeConfigFunction(globalGetThemeConfig)
                 ? globalGetThemeConfig()
                 : dependencies.getThemeConfig();
         },
@@ -70,4 +70,10 @@ export async function completeChartDataRender(
     }
 
     return completeSuccessfulChartRender(completionDependencies, input);
+}
+
+function isGetThemeConfigFunction(
+    value: unknown
+): value is CompletionDependencies["getThemeConfig"] {
+    return typeof value === "function";
 }
