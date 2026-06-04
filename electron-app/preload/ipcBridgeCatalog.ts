@@ -35,6 +35,7 @@
         | "THEME_GET";
 
     type PreloadEventName =
+        | "FIT_BROWSER_ENABLED_CHANGED"
         | "FIT_FILE_LOADED"
         | "INSTALL_UPDATE"
         | "MENU_CHECK_FOR_UPDATES"
@@ -78,6 +79,7 @@
     } as const satisfies Record<PreloadChannelName, GenericInvokeChannel>;
 
     const PRELOAD_EVENTS = {
+        FIT_BROWSER_ENABLED_CHANGED: "fit-browser-enabled-changed",
         FIT_FILE_LOADED: "fit-file-loaded",
         INSTALL_UPDATE: "install-update",
         MENU_CHECK_FOR_UPDATES: "menu-check-for-updates",
@@ -115,7 +117,6 @@
     const EXTRA_RENDERER_ON_IPC_CHANNELS = [
         "decoder-options-changed",
         "export-file",
-        "fit-browser-enabled-changed",
         "gyazo-oauth-callback",
         "menu-about",
         "menu-export",

@@ -129,6 +129,9 @@ export interface ElectronAPI {
     ) => Promise<GyazoServerStartResponse>;
     stopGyazoServer: () => Promise<GyazoServerStopResponse>;
 
+    onFitBrowserEnabledChanged: (
+        callback: (enabled: boolean) => void
+    ) => () => void;
     onMenuOpenFile: (callback: () => void) => () => void;
     onMenuOpenOverlay: (callback: () => void) => () => void;
     onOpenRecentFile: (callback: (filePath: string) => void) => () => void;

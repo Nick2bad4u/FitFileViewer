@@ -97,6 +97,7 @@ interface PreloadChannels {
 }
 
 interface PreloadEvents {
+    readonly FIT_BROWSER_ENABLED_CHANGED: "fit-browser-enabled-changed";
     readonly FIT_FILE_LOADED: "fit-file-loaded";
     readonly INSTALL_UPDATE: "install-update";
     readonly MENU_CHECK_FOR_UPDATES: "menu-check-for-updates";
@@ -708,6 +709,17 @@ const electronAPI: ElectronAPI = {
     isFitBrowserEnabled: createSafeInvokeHandler(
         CONSTANTS.CHANNELS.FIT_BROWSER_IS_ENABLED,
         "isFitBrowserEnabled"
+    ),
+
+    /**
+     * Registers a handler for Browser tab enabled-state changes.
+     *
+     * @param {(enabled: boolean) => void} callback
+     */
+    onFitBrowserEnabledChanged: createSafeEventHandler(
+        CONSTANTS.EVENTS.FIT_BROWSER_ENABLED_CHANGED,
+        "onFitBrowserEnabledChanged",
+        (enabled: IpcResponsePayload) => enabled === true
     ),
 
     /**

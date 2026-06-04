@@ -7,7 +7,7 @@ const BROWSER_TAB_CONTENT_ID = "content_browser";
 type FitBrowserFeatureGateApi = Required<
     Pick<ElectronAPI, "isFitBrowserEnabled">
 > &
-    Partial<Pick<ElectronAPI, "onIpc">>;
+    Partial<Pick<ElectronAPI, "onFitBrowserEnabledChanged">>;
 
 type GlobalWithElectronApi = typeof globalThis & {
     readonly electronAPI?: unknown;
@@ -28,7 +28,7 @@ export function initFitBrowserFeatureGate(): void {
     const applyFromMainSetting = async (): Promise<void> => {
         try {
             const enabled = await api.isFitBrowserEnabled();
-            applyBrowserTabVisibility(enabled === true);
+            applyBrowserTabVisibility(enabled);
         } catch {
             // Fail closed: hide if we cannot determine.
             applyBrowserTabVisibility(false);
@@ -39,27 +39,20 @@ export function initFitBrowserFeatureGate(): void {
         // Ignore startup races from preload teardown in tests.
     });
 
-    api.onIpc?.(
-        "fit-browser-enabled-changed",
-        (eventOrEnabled, enabledMaybe) => {
-            const enabled =
-                typeof eventOrEnabled === "boolean"
-                    ? eventOrEnabled
-                    : enabledMaybe;
-            applyBrowserTabVisibility(enabled === true);
-        }
-    );
+    api.onFitBrowserEnabledChanged?.((enabled) => {
+        applyBrowserTabVisibility(enabled);
+    });
 }
 
 function applyBrowserTabVisibility(enabled: boolean): void {
-    const tabButton = document.getElementById(BROWSER_TAB_BUTTON_ID);
-    const tabContent = document.getElementById(BROWSER_TAB_CONTENT_ID);
+    const tabButton = document.querySelector(`#${BROWSER_TAB_BUTTON_ID}`);
+    const tabContent = document.querySelector(`#${BROWSER_TAB_CONTENT_ID}`);
 
-    if (tabButton) {
+    if (tabButton instanceof HTMLElement) {
         tabButton.style.display = enabled ? "" : "none";
     }
 
-    if (tabContent) {
+    if (tabContent instanceof HTMLElement) {
         tabContent.style.display = enabled ? "" : "none";
     }
 
