@@ -186,18 +186,18 @@
         rgb(18 26 38 / 95%) 0%,
         rgb(12 19 31 / 98%) 100%
     );
-    --color-surface-rgb: 18, 26, 38;
+    --color-surface-rgb: 18 26 38;
     --color-pill-bg: rgb(255 255 255 / 6%);
     --color-pill-border: rgb(255 255 255 / 12%);
 
     /* RGB variants for transparency effects */
-    --color-accent-rgb: 59, 130, 246;
-    --color-secondary-accent-rgb: 37, 99, 235;
-    --color-tertiary-accent-rgb: 2, 132, 199;
+    --color-accent-rgb: 59 130 246;
+    --color-secondary-accent-rgb: 37 99 235;
+    --color-tertiary-accent-rgb: 2 132 199;
     /* cyan-600 */
-    --color-fg-rgb: 229, 231, 235;
-    --color-error-rgb: 239, 68, 68;
-    --color-success-rgb: 34, 197, 94;
+    --color-fg-rgb: 229 231 235;
+    --color-error-rgb: 239 68 68;
+    --color-success-rgb: 34 197 94;
 
     /* Leaflet control background */
     --leaflet-control-bg: rgb(240 244 255 / 71%);
@@ -259,18 +259,18 @@ body.theme-light {
         rgb(255 255 255 / 92%) 0%,
         rgb(249 250 251 / 96%) 100%
     );
-    --color-surface-rgb: 255, 255, 255;
+    --color-surface-rgb: 255 255 255;
     --color-pill-bg: rgb(2 6 23 / 4%);
     --color-pill-border: rgb(2 6 23 / 8%);
 
     /* Light theme specific variables */
     --elev-bg: var(--color-bg-solid);
-    --color-accent-rgb: 37, 99, 235;
-    --color-secondary-accent-rgb: 14, 165, 233;
-    --color-tertiary-accent-rgb: 2, 132, 199;
-    --color-fg-rgb: 15, 23, 42;
-    --color-error-rgb: 239, 68, 68;
-    --color-success-rgb: 34, 197, 94;
+    --color-accent-rgb: 37 99 235;
+    --color-secondary-accent-rgb: 14 165 233;
+    --color-tertiary-accent-rgb: 2 132 199;
+    --color-fg-rgb: 15 23 42;
+    --color-error-rgb: 239 68 68;
+    --color-success-rgb: 34 197 94;
     --leaflet-control-bg: rgb(255 255 255 / 88%);
 
     background-color: #f8fafc;
@@ -3857,7 +3857,6 @@ body[data-has-fit-file="true"] #active_file_name {
         color 0.2s,
         background 0.2s;
     border-radius: 50%;
-    outline: none;
     inline-size: 36px;
     block-size: 36px;
     justify-content: center;
@@ -4315,7 +4314,7 @@ body.chart-overlay-fullscreen-active {
 
 .inline-zone-color-selector select:focus {
     border-color: var(--color-accent);
-    box-shadow: 0 0 0 2px rgb(var(--color-accent-rgb), 0.33);
+    box-shadow: 0 0 0 2px rgb(var(--color-accent-rgb) / 33%);
 }
 
 /* Action buttons in zone selector */
@@ -5075,7 +5074,6 @@ body .custom-maptype-btn {
     backdrop-filter: var(--backdrop-blur);
     padding: 6px 10px;
     border-radius: 6px;
-    outline: none;
     cursor: pointer;
     font-size: 0.8125rem;
     line-height: 1;
@@ -5562,7 +5560,6 @@ body .custom-zoom-slider-bar input[type="range"] {
         background 0.2s,
         color 0.2s,
         border 0.2s;
-    outline: none;
     box-shadow: none;
 }
 
@@ -7068,7 +7065,6 @@ body.theme-light #open_file_btn.themed-btn {
 .themed-btn:focus {
     background: var(--color-btn-hover);
     color: var(--color-modal-fg);
-    outline: none;
     transform: translateY(-2px) scale(1.01);
     box-shadow: 0 16px 36px rgb(var(--color-accent-rgb) / 25%);
     border-color: var(--color-border-light);
@@ -7343,7 +7339,6 @@ body.theme-light .notification.info {
     opacity: 1;
     background: none;
     box-shadow: none;
-    outline: none;
     cursor: pointer;
     transition:
         opacity 0.2s,
@@ -7390,7 +7385,7 @@ body.theme-light .notification.info {
 
 .summary-filter-bar select:focus {
     border-color: var(--color-accent);
-    box-shadow: 0 0 0 2px rgb(var(--color-accent-rgb), 0.33);
+    box-shadow: 0 0 0 2px rgb(var(--color-accent-rgb) / 33%);
     transition:
         border-color 0.2s,
         box-shadow 0.2s;

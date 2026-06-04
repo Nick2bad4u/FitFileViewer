@@ -12,6 +12,20 @@ const loadStyleSheet = () => {
     return readFileSync(stylePath, "utf-8");
 };
 
+const getRuleBlock = (styleText: string, selector: string): string => {
+    const selectorIndex = styleText.indexOf(selector);
+    if (selectorIndex === -1) {
+        return "";
+    }
+
+    const openIndex = styleText.indexOf("{", selectorIndex);
+    const closeIndex = styleText.indexOf("}", openIndex);
+
+    return openIndex === -1 || closeIndex === -1
+        ? ""
+        : styleText.slice(openIndex, closeIndex + 1);
+};
+
 describe("style.css theme variables", () => {
     it("defines root theme variables before light overrides", () => {
         expect.assertions(8);
@@ -46,6 +60,38 @@ describe("style.css theme variables", () => {
         expect(styleText).toContain("--color-fg:");
         expect(styleText).toContain("--color-accent-rgb:");
         expect(styleText).toContain("background-color: #f8fafc");
+    });
+
+    it("uses modern RGB tuple syntax for accent alpha styles", () => {
+        expect.assertions(4);
+
+        const styleText = loadStyleSheet();
+        const rgbVariableLines = styleText
+            .split("\n")
+            .filter((line) => line.includes("-rgb:"));
+
+        expect(styleText).toContain("--color-accent-rgb: 59 130 246;");
+        expect(styleText).toContain("--color-accent-rgb: 37 99 235;");
+        expect(rgbVariableLines.some((line) => line.includes(","))).toBe(false);
+        expect(styleText).not.toContain("rgb(var(--color-accent-rgb),");
+    });
+
+    it("keeps visible focus indicators on key action buttons", () => {
+        expect.assertions(3);
+
+        const styleText = loadStyleSheet();
+        const themedButtonFocusRule = getRuleBlock(
+            styleText,
+            ".themed-btn:hover,\n.themed-btn:focus"
+        );
+        const summaryGearFocusRule = getRuleBlock(
+            styleText,
+            ".summary-gear-btn:hover,\n.summary-gear-btn:focus"
+        );
+
+        expect(themedButtonFocusRule).not.toContain("outline: none");
+        expect(summaryGearFocusRule).not.toContain("outline: none");
+        expect(styleText).toContain("button:focus-visible,\ninput:focus-visible");
     });
 
     it("defines base body styles and font size helpers", () => {
