@@ -305,8 +305,9 @@ describe("keyboardShortcutsModal", () => {
 
         last.focus();
         const forwardTab = new KeyboardEvent("keydown", {
-            key: "Tab",
             bubbles: true,
+            cancelable: true,
+            key: "Tab",
         });
         keyboardShortcutsModal.dispatchEvent(forwardTab);
         expect({
@@ -319,9 +320,10 @@ describe("keyboardShortcutsModal", () => {
 
         first.focus();
         const reverseTab = new KeyboardEvent("keydown", {
+            bubbles: true,
+            cancelable: true,
             key: "Tab",
             shiftKey: true,
-            bubbles: true,
         });
         keyboardShortcutsModal.dispatchEvent(reverseTab);
         expect({

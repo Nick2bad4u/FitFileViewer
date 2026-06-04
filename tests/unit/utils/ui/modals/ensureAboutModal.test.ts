@@ -75,14 +75,7 @@ describe(ensureAboutModal, () => {
             mocks.contentElement
         );
         expect(document.body.lastElementChild).toBe(modal);
-        expect(
-            mocks.addEventListenerWithCleanup
-        ).toHaveBeenCalledExactlyOnceWith(
-            document,
-            "keydown",
-            mocks.handleEscapeKey,
-            true
-        );
+        expect(mocks.addEventListenerWithCleanup).not.toHaveBeenCalled();
         expect(mocks.injectModalStyles).toHaveBeenCalledOnce();
         expect(mocks.loadVersionInfo).toHaveBeenCalledOnce();
     });

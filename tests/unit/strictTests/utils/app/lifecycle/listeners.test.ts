@@ -900,9 +900,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         // Success case
         await window.electronAPI.triggerOpenRecentFile("C:/tmp/recent.fit");
-        expect(window.electronAPI.approveRecentFile).toHaveBeenCalledWith(
-            "C:/tmp/recent.fit"
-        );
+        expect(window.electronAPI.approveRecentFile).not.toHaveBeenCalled();
         expect(window.electronAPI.readFile).toHaveBeenCalledWith(
             "C:/tmp/recent.fit"
         );
@@ -910,25 +908,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             "C:/tmp/recent.fit"
         );
 
-        // Denial case: approval fails -> do not read
-        vi.mocked(window.electronAPI.approveRecentFile)
-            .mockReset()
-            .mockResolvedValue(false);
-        vi.mocked(window.electronAPI.readFile)
-            .mockClear()
-            .mockResolvedValue(arrayBuf);
-        await window.electronAPI.triggerOpenRecentFile("C:/tmp/recent.fit");
-        expect(window.electronAPI.readFile).not.toHaveBeenCalled();
-        expect(showNotification).toHaveBeenCalledWith(
-            "File access denied.",
-            "error",
-            4000
-        );
-
         // Error case
-        vi.mocked(window.electronAPI.approveRecentFile)
-            .mockReset()
-            .mockResolvedValue(true);
         vi.mocked(window.electronAPI.parseFitFile)
             .mockReset()
             .mockResolvedValue({ error: "bad" });

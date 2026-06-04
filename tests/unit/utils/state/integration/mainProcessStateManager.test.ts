@@ -938,11 +938,11 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             // Subscribe twice; should not create duplicate subscriptions.
             const firstListenResult = listenHandler(
                 { sender },
-                "settings.charts"
+                "loadedFitFilePath"
             );
             const secondListenResult = listenHandler(
                 { sender },
-                "settings.charts"
+                "loadedFitFilePath"
             );
             expect({
                 firstListenResult,
@@ -955,25 +955,25 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
             // Trigger change notification
             (stateInstance as any).notifyChange({
-                path: "settings.charts",
+                path: "loadedFitFilePath",
                 value: 1,
                 oldValue: 0,
                 timestamp: Date.now(),
             });
             expect(send).toHaveBeenCalledWith(
                 "main-state-change",
-                expect.objectContaining({ path: "settings.charts" })
+                expect.objectContaining({ path: "loadedFitFilePath" })
             );
 
             send.mockClear();
             expect({
-                unlistenResult: unlistenHandler({ sender }, "settings.charts"),
+                unlistenResult: unlistenHandler({ sender }, "loadedFitFilePath"),
             }).toStrictEqual({ unlistenResult: true });
             expect((stateInstance as any).ipcSubscriptions.size).toBe(0);
 
             // Should no longer notify
             (stateInstance as any).notifyChange({
-                path: "settings.charts",
+                path: "loadedFitFilePath",
                 value: 2,
                 oldValue: 1,
                 timestamp: Date.now(),
@@ -1019,16 +1019,9 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
         const result1 = getHandler(mockEvent, "loadedFitFilePath");
         expect(result1).toBeNull();
 
-        // Test getting all data
+        // Empty paths must not dump the entire main-process state to renderer IPC.
         const result2 = getHandler(mockEvent, "");
-        expect(result2).toMatchObject({
-            errors: [],
-            gyazoServer: null,
-            gyazoServerPort: null,
-            loadedFitFilePath: null,
-            mainWindow: null,
-            operations: {},
-        });
+        expect(result2).toBeUndefined();
     });
 
     it("should handle main-state:set IPC calls with allowed paths", () => {
@@ -1126,7 +1119,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             (call) => call[0] === "main-state:listen"
         )![1];
 
-        const result = listenHandler(mockEvent, "testPath");
+        const result = listenHandler(mockEvent, "loadedFitFilePath");
         expect({ listenResult: result }).toStrictEqual({ listenResult: true });
     });
 
