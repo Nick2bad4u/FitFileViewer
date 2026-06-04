@@ -89,12 +89,26 @@ function createElectronAPIMock() {
     const updateHandlers = new Map<string, IpcHandler>();
     let menuOpenFileCb: IpcHandler | null = null;
     let openRecentCb: ((fp: string) => any) | null = null;
+    const registerMenuHandler = (channel: string) => (cb: IpcHandler) => {
+        ipcHandlers.set(channel, cb);
+    };
 
     return {
         // Menu hooks
+        onMenuAbout: registerMenuHandler("menu-about"),
+        onMenuExport: registerMenuHandler("menu-export"),
+        onMenuKeyboardShortcuts: registerMenuHandler(
+            "menu-keyboard-shortcuts"
+        ),
         onMenuOpenFile: (cb: IpcHandler) => {
             menuOpenFileCb = cb;
         },
+        onMenuOpenOverlay: registerMenuHandler("menu-open-overlay"),
+        onMenuRestartUpdate: registerMenuHandler("menu-restart-update"),
+        onMenuSaveAs: registerMenuHandler("menu-save-as"),
+        onOpenAccentColorPicker: registerMenuHandler(
+            "open-accent-color-picker"
+        ),
         onOpenRecentFile: (cb: (filePath: string) => any) => {
             openRecentCb = cb;
         },
@@ -126,6 +140,8 @@ function createElectronAPIMock() {
 
         // Main process send
         checkForUpdates: vi.fn<() => void>(),
+        requestExport: vi.fn<() => void>(),
+        requestSaveAs: vi.fn<() => void>(),
         send: vi.fn<(channel: string) => void>(),
     };
 }
@@ -685,8 +701,8 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         window.electronAPI.emit("menu-save-as");
         window.electronAPI.emit("menu-export");
         expect(window.electronAPI.checkForUpdates).toHaveBeenCalledWith();
-        expect(window.electronAPI.send).toHaveBeenCalledWith("menu-save-as");
-        expect(window.electronAPI.send).toHaveBeenCalledWith("menu-export");
+        expect(window.electronAPI.requestSaveAs).toHaveBeenCalledWith();
+        expect(window.electronAPI.requestExport).toHaveBeenCalledWith();
     });
 
     it("ipc: menu-open-overlay triggers openFileSelector", async () => {
@@ -1556,12 +1572,13 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         });
     });
 
-    it("menu: handles missing send method in electronAPI", async () => {
+    it("menu: handles missing named request methods in electronAPI", async () => {
         expect.hasAssertions();
 
         const limitedElectronAPI = {
             ...electronAPI,
-            send: undefined, // Remove send method
+            requestExport: undefined,
+            requestSaveAs: undefined,
         };
 
         Object.defineProperty(window, "electronAPI", {
@@ -1585,7 +1602,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        // Should not crash when send method is undefined
+        // Should not crash when named request methods are undefined
         expect(() => {
             electronAPI.emit("menu-check-for-updates");
             electronAPI.emit("menu-save-as");

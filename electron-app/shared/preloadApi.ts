@@ -135,8 +135,14 @@ export interface ElectronAPI {
     onGyazoOAuthCallback: (
         callback: (data: IpcResponsePayload) => void
     ) => () => void;
+    onMenuAbout: (callback: () => void) => () => void;
+    onMenuExport: (callback: () => void) => () => void;
+    onMenuKeyboardShortcuts: (callback: () => void) => () => void;
     onMenuOpenFile: (callback: () => void) => () => void;
     onMenuOpenOverlay: (callback: () => void) => () => void;
+    onMenuRestartUpdate: (callback: () => void) => () => void;
+    onMenuSaveAs: (callback: () => void) => () => void;
+    onOpenAccentColorPicker: (callback: () => void) => () => void;
     onOpenRecentFile: (callback: (filePath: string) => void) => () => void;
     onSetTheme: (callback: (theme: string) => void) => () => void;
     onOpenSummaryColumnSelector: (callback: () => void) => () => void;
@@ -152,6 +158,8 @@ export interface ElectronAPI {
 
     checkForUpdates: () => void;
     installUpdate: () => void;
+    requestExport: () => void;
+    requestSaveAs: () => void;
     setFullScreen: (flag: boolean) => void;
 
     onIpc: (

@@ -101,9 +101,15 @@ interface PreloadEvents {
     readonly FIT_FILE_LOADED: "fit-file-loaded";
     readonly GYAZO_OAUTH_CALLBACK: "gyazo-oauth-callback";
     readonly INSTALL_UPDATE: "install-update";
+    readonly MENU_ABOUT: "menu-about";
     readonly MENU_CHECK_FOR_UPDATES: "menu-check-for-updates";
+    readonly MENU_EXPORT: "menu-export";
+    readonly MENU_KEYBOARD_SHORTCUTS: "menu-keyboard-shortcuts";
     readonly MENU_OPEN_FILE: "menu-open-file";
     readonly MENU_OPEN_OVERLAY: "menu-open-overlay";
+    readonly MENU_RESTART_UPDATE: "menu-restart-update";
+    readonly MENU_SAVE_AS: "menu-save-as";
+    readonly OPEN_ACCENT_COLOR_PICKER: "open-accent-color-picker";
     readonly OPEN_RECENT_FILE: "open-recent-file";
     readonly OPEN_SUMMARY_COLUMN_SELECTOR: "open-summary-column-selector";
     readonly SET_FULLSCREEN: "set-fullscreen";
@@ -813,6 +819,66 @@ const electronAPI: ElectronAPI = {
     ),
 
     /**
+     * Registers a handler for the 'menu-about' event.
+     *
+     * @param {() => void} callback
+     */
+    onMenuAbout: createSafeEventHandler(
+        CONSTANTS.EVENTS.MENU_ABOUT,
+        "onMenuAbout"
+    ),
+
+    /**
+     * Registers a handler for the 'menu-export' event.
+     *
+     * @param {() => void} callback
+     */
+    onMenuExport: createSafeEventHandler(
+        CONSTANTS.EVENTS.MENU_EXPORT,
+        "onMenuExport"
+    ),
+
+    /**
+     * Registers a handler for the 'menu-keyboard-shortcuts' event.
+     *
+     * @param {() => void} callback
+     */
+    onMenuKeyboardShortcuts: createSafeEventHandler(
+        CONSTANTS.EVENTS.MENU_KEYBOARD_SHORTCUTS,
+        "onMenuKeyboardShortcuts"
+    ),
+
+    /**
+     * Registers a handler for the 'menu-restart-update' event.
+     *
+     * @param {() => void} callback
+     */
+    onMenuRestartUpdate: createSafeEventHandler(
+        CONSTANTS.EVENTS.MENU_RESTART_UPDATE,
+        "onMenuRestartUpdate"
+    ),
+
+    /**
+     * Registers a handler for the 'menu-save-as' event.
+     *
+     * @param {() => void} callback
+     */
+    onMenuSaveAs: createSafeEventHandler(
+        CONSTANTS.EVENTS.MENU_SAVE_AS,
+        "onMenuSaveAs"
+    ),
+
+    /**
+     * Registers a handler for the 'open-accent-color-picker' event.
+     *
+     * @param {() => void} callback
+     */
+    onOpenAccentColorPicker: createSafeEventHandler(
+        CONSTANTS.EVENTS.OPEN_ACCENT_COLOR_PICKER,
+        "onOpenAccentColorPicker"
+    ),
+
+    /**
      * Registers a handler for the 'open-summary-column-selector' event.
      *
      * @param {() => void} callback
@@ -852,6 +918,22 @@ const electronAPI: ElectronAPI = {
      *   function to handle the event
      */
     onUpdateEvent: genericIpcApi.onUpdateEvent,
+
+    /**
+     * Requests the main process Export As flow.
+     */
+    requestExport: createSafeSendHandler(
+        CONSTANTS.EVENTS.MENU_EXPORT,
+        "requestExport"
+    ),
+
+    /**
+     * Requests the main process Save As flow.
+     */
+    requestSaveAs: createSafeSendHandler(
+        CONSTANTS.EVENTS.MENU_SAVE_AS,
+        "requestSaveAs"
+    ),
 
     /**
      * Opens a URL in the user's default external browser.

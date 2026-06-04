@@ -3,21 +3,28 @@ import { describe, expect, it, vi } from "vitest";
 
 import { registerMenuIpcListeners } from "../../../electron-app/utils/app/lifecycle/menuIpcListeners.js";
 
-type MenuSendChannel = "menu-export" | "menu-save-as";
 type MenuIpcChannel =
-    | MenuSendChannel
     | "menu-about"
+    | "menu-export"
     | "menu-keyboard-shortcuts"
     | "menu-open-overlay"
     | "menu-restart-update"
+    | "menu-save-as"
     | "open-accent-color-picker";
 
 type MenuIpcCallback = (...args: unknown[]) => unknown;
 type Unsubscribe = () => void;
 
 type MenuElectronApi = {
-    onIpc: (channel: MenuIpcChannel, callback: MenuIpcCallback) => Unsubscribe;
-    send: (channel: MenuSendChannel) => void;
+    onMenuAbout: (callback: MenuIpcCallback) => Unsubscribe;
+    onMenuExport: (callback: MenuIpcCallback) => Unsubscribe;
+    onMenuKeyboardShortcuts: (callback: MenuIpcCallback) => Unsubscribe;
+    onMenuOpenOverlay: (callback: MenuIpcCallback) => Unsubscribe;
+    onMenuRestartUpdate: (callback: MenuIpcCallback) => Unsubscribe;
+    onMenuSaveAs: (callback: MenuIpcCallback) => Unsubscribe;
+    onOpenAccentColorPicker: (callback: MenuIpcCallback) => Unsubscribe;
+    requestExport: () => void;
+    requestSaveAs: () => void;
 };
 
 type MenuTestGlobal = typeof globalThis & {
@@ -82,12 +89,12 @@ function registerTestMenuListeners(): {
 } {
     const handlers = new Map<MenuIpcChannel, MenuIpcCallback>();
     const unsubscribe = vi.fn<Unsubscribe>();
-    const onIpc = vi.fn<
-        (channel: MenuIpcChannel, callback: MenuIpcCallback) => Unsubscribe
-    >((channel, callback) => {
-        handlers.set(channel, callback);
-        return unsubscribe;
-    });
+    const register =
+        (channel: MenuIpcChannel) =>
+        (callback: MenuIpcCallback): Unsubscribe => {
+            handlers.set(channel, callback);
+            return unsubscribe;
+        };
     const debugMenuLog = vi.fn<(...args: unknown[]) => void>();
     const showAboutModal = vi.fn<(html?: string) => void>();
     const showNotification =
@@ -95,8 +102,15 @@ function registerTestMenuListeners(): {
     const trackUnsubscribe = vi.fn<(maybeUnsubscribe: unknown) => void>();
 
     getTestGlobal().electronAPI = {
-        onIpc,
-        send: vi.fn<(channel: MenuSendChannel) => void>(),
+        onMenuAbout: vi.fn(register("menu-about")),
+        onMenuExport: vi.fn(register("menu-export")),
+        onMenuKeyboardShortcuts: vi.fn(register("menu-keyboard-shortcuts")),
+        onMenuOpenOverlay: vi.fn(register("menu-open-overlay")),
+        onMenuRestartUpdate: vi.fn(register("menu-restart-update")),
+        onMenuSaveAs: vi.fn(register("menu-save-as")),
+        onOpenAccentColorPicker: vi.fn(register("open-accent-color-picker")),
+        requestExport: vi.fn<() => void>(),
+        requestSaveAs: vi.fn<() => void>(),
     };
 
     registerMenuIpcListeners({

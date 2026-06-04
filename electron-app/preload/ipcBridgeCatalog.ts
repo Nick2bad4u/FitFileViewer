@@ -39,10 +39,16 @@
         | "FIT_FILE_LOADED"
         | "GYAZO_OAUTH_CALLBACK"
         | "INSTALL_UPDATE"
+        | "MENU_ABOUT"
         | "MENU_CHECK_FOR_UPDATES"
+        | "MENU_EXPORT"
+        | "MENU_KEYBOARD_SHORTCUTS"
         | "MENU_OPEN_FILE"
         | "MENU_OPEN_OVERLAY"
+        | "MENU_RESTART_UPDATE"
+        | "MENU_SAVE_AS"
         | "OPEN_RECENT_FILE"
+        | "OPEN_ACCENT_COLOR_PICKER"
         | "OPEN_SUMMARY_COLUMN_SELECTOR"
         | "SET_FULLSCREEN"
         | "SET_THEME"
@@ -84,9 +90,15 @@
         FIT_FILE_LOADED: "fit-file-loaded",
         GYAZO_OAUTH_CALLBACK: "gyazo-oauth-callback",
         INSTALL_UPDATE: "install-update",
+        MENU_ABOUT: "menu-about",
         MENU_CHECK_FOR_UPDATES: "menu-check-for-updates",
+        MENU_EXPORT: "menu-export",
+        MENU_KEYBOARD_SHORTCUTS: "menu-keyboard-shortcuts",
         MENU_OPEN_FILE: "menu-open-file",
         MENU_OPEN_OVERLAY: "menu-open-overlay",
+        MENU_RESTART_UPDATE: "menu-restart-update",
+        MENU_SAVE_AS: "menu-save-as",
+        OPEN_ACCENT_COLOR_PICKER: "open-accent-color-picker",
         OPEN_RECENT_FILE: "open-recent-file",
         OPEN_SUMMARY_COLUMN_SELECTOR: "open-summary-column-selector",
         SET_FULLSCREEN: "set-fullscreen",
@@ -112,20 +124,12 @@
         PRELOAD_EVENTS.MENU_CHECK_FOR_UPDATES,
         PRELOAD_EVENTS.SET_FULLSCREEN,
         PRELOAD_EVENTS.THEME_CHANGED,
-        "menu-export",
-        "menu-save-as",
     ] as const satisfies readonly GenericSendChannel[];
 
     const EXTRA_RENDERER_ON_IPC_CHANNELS = [
         "decoder-options-changed",
         "export-file",
-        "menu-about",
-        "menu-export",
-        "menu-keyboard-shortcuts",
         "menu-print",
-        "menu-restart-update",
-        "menu-save-as",
-        "open-accent-color-picker",
         "set-font-size",
         "set-high-contrast",
         "show-notification",

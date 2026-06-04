@@ -32,10 +32,25 @@ type TestElectronAPI = {
         typeof vi.fn<(filePath: string) => Promise<void>>
     >;
     checkForUpdates: ReturnType<typeof vi.fn<() => void>>;
+    onMenuAbout: ReturnType<typeof vi.fn<(handler: IpcHandler) => () => void>>;
+    onMenuExport: ReturnType<typeof vi.fn<(handler: IpcHandler) => () => void>>;
+    onMenuKeyboardShortcuts: ReturnType<
+        typeof vi.fn<(handler: IpcHandler) => () => void>
+    >;
     onIpc: ReturnType<
         typeof vi.fn<(channel: string, handler: IpcHandler) => () => void>
     >;
     onMenuOpenFile: ReturnType<typeof vi.fn<(handler: IpcHandler) => void>>;
+    onMenuOpenOverlay: ReturnType<
+        typeof vi.fn<(handler: IpcHandler) => () => void>
+    >;
+    onMenuRestartUpdate: ReturnType<
+        typeof vi.fn<(handler: IpcHandler) => () => void>
+    >;
+    onMenuSaveAs: ReturnType<typeof vi.fn<(handler: IpcHandler) => () => void>>;
+    onOpenAccentColorPicker: ReturnType<
+        typeof vi.fn<(handler: IpcHandler) => () => void>
+    >;
     onOpenRecentFile: ReturnType<typeof vi.fn<(handler: IpcHandler) => void>>;
     onUpdateEvent: ReturnType<
         typeof vi.fn<(event: string, handler: IpcHandler) => void>
@@ -47,6 +62,8 @@ type TestElectronAPI = {
         typeof vi.fn<(filePath: string) => Promise<ArrayBuffer>>
     >;
     recentFiles: ReturnType<typeof vi.fn<() => Promise<string[]>>>;
+    requestExport: ReturnType<typeof vi.fn<() => void>>;
+    requestSaveAs: ReturnType<typeof vi.fn<() => void>>;
     send: ReturnType<typeof vi.fn<(channel: string) => void>>;
 };
 
@@ -153,9 +170,23 @@ describe(setupListeners, () => {
         updateHandlers = new Map();
         menuOpenHandler = null;
         recentOpenHandler = null;
+        const registerNamedMenuHandler = (
+            channel: string
+        ): ReturnType<typeof vi.fn<(handler: IpcHandler) => () => void>> =>
+            vi.fn<(handler: IpcHandler) => () => void>((handler) => {
+                ipcHandlers.set(channel, handler);
+                return () => {
+                    ipcHandlers.delete(channel);
+                };
+            });
 
         electronAPI = {
             checkForUpdates: vi.fn<() => void>(),
+            onMenuAbout: registerNamedMenuHandler("menu-about"),
+            onMenuExport: registerNamedMenuHandler("menu-export"),
+            onMenuKeyboardShortcuts: registerNamedMenuHandler(
+                "menu-keyboard-shortcuts"
+            ),
             onIpc: vi.fn<(channel: string, handler: IpcHandler) => () => void>(
                 (channel, handler) => {
                     ipcHandlers.set(channel, handler);
@@ -172,6 +203,14 @@ describe(setupListeners, () => {
             onMenuOpenFile: vi.fn<(handler: IpcHandler) => void>((handler) => {
                 menuOpenHandler = handler;
             }),
+            onMenuOpenOverlay: registerNamedMenuHandler("menu-open-overlay"),
+            onMenuRestartUpdate: registerNamedMenuHandler(
+                "menu-restart-update"
+            ),
+            onMenuSaveAs: registerNamedMenuHandler("menu-save-as"),
+            onOpenAccentColorPicker: registerNamedMenuHandler(
+                "open-accent-color-picker"
+            ),
             onOpenRecentFile: vi.fn<(handler: IpcHandler) => void>(
                 (handler) => {
                     recentOpenHandler = handler;
@@ -182,6 +221,8 @@ describe(setupListeners, () => {
                     updateHandlers.set(event, handler);
                 }
             ),
+            requestExport: vi.fn<() => void>(),
+            requestSaveAs: vi.fn<() => void>(),
         };
 
         delete (globalAny as { __ffvMenuForwardRegistry?: Set<string> })
@@ -419,7 +460,7 @@ describe(setupListeners, () => {
         expect(secondClick).not.toHaveBeenCalled();
     });
 
-    it("handles menu forwarders by relaying to send", () => {
+    it("handles menu forwarders through named request methods", () => {
         expect.assertions(4);
         const saveAsHandler = requireHandler(
             ipcHandlers.get("menu-save-as"),
@@ -427,7 +468,7 @@ describe(setupListeners, () => {
         );
         expect([...ipcHandlers.keys()]).toContain("menu-save-as");
         saveAsHandler({}, undefined);
-        expect(electronAPI.send).toHaveBeenCalledWith("menu-save-as");
+        expect(electronAPI.requestSaveAs).toHaveBeenCalledWith();
 
         const exportHandler = requireHandler(
             ipcHandlers.get("menu-export"),
@@ -435,7 +476,7 @@ describe(setupListeners, () => {
         );
         expect([...ipcHandlers.keys()]).toContain("menu-export");
         exportHandler({}, undefined);
-        expect(electronAPI.send).toHaveBeenCalledWith("menu-export");
+        expect(electronAPI.requestExport).toHaveBeenCalledWith();
     });
 
     it("responds to menu open recent file requests", async () => {

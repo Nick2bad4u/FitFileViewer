@@ -48,9 +48,15 @@ const expectedPreloadEvents = {
     FIT_FILE_LOADED: "fit-file-loaded",
     GYAZO_OAUTH_CALLBACK: "gyazo-oauth-callback",
     INSTALL_UPDATE: "install-update",
+    MENU_ABOUT: "menu-about",
     MENU_CHECK_FOR_UPDATES: "menu-check-for-updates",
+    MENU_EXPORT: "menu-export",
+    MENU_KEYBOARD_SHORTCUTS: "menu-keyboard-shortcuts",
     MENU_OPEN_FILE: "menu-open-file",
     MENU_OPEN_OVERLAY: "menu-open-overlay",
+    MENU_RESTART_UPDATE: "menu-restart-update",
+    MENU_SAVE_AS: "menu-save-as",
+    OPEN_ACCENT_COLOR_PICKER: "open-accent-color-picker",
     OPEN_RECENT_FILE: "open-recent-file",
     OPEN_SUMMARY_COLUMN_SELECTOR: "open-summary-column-selector",
     SET_FULLSCREEN: "set-fullscreen",
@@ -89,12 +95,15 @@ describe("preload ipcBridgeCatalog", () => {
             ipcBridgeCatalog.isAllowedGenericInvokeChannel("unknown:channel"),
         ];
         const sendChannelResults = [
-            ipcBridgeCatalog.isAllowedGenericSendChannel("menu-save-as"),
+            ipcBridgeCatalog.isAllowedGenericSendChannel("theme-changed"),
             ipcBridgeCatalog.isAllowedGenericSendChannel("menu-open-file"),
+            ipcBridgeCatalog.isAllowedGenericSendChannel("menu-save-as"),
         ];
         const blockedChannelResults = {
             fitParseSend:
                 ipcBridgeCatalog.isAllowedGenericSendChannel("fit:parse"),
+            menuSaveAsSend:
+                ipcBridgeCatalog.isAllowedGenericSendChannel("menu-save-as"),
             menuOpenFileInvoke:
                 ipcBridgeCatalog.isAllowedGenericInvokeChannel(
                     "menu-open-file"
@@ -107,9 +116,10 @@ describe("preload ipcBridgeCatalog", () => {
             true,
             false,
         ]);
-        expect(sendChannelResults).toStrictEqual([true, false]);
+        expect(sendChannelResults).toStrictEqual([true, false, false]);
         expect(blockedChannelResults).toStrictEqual({
             fitParseSend: false,
+            menuSaveAsSend: false,
             menuOpenFileInvoke: false,
         });
         expect(Object.values(blockedChannelResults)).not.toContain(true);

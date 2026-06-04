@@ -1,32 +1,26 @@
 import { openFileSelector } from "../../files/import/openFileSelector.js";
-import type {
-    GenericSendChannel,
-    RendererIpcEventChannel,
-} from "../../../shared/ipc.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
-type MenuSendChannel = Extract<
-    GenericSendChannel,
-    "menu-export" | "menu-save-as"
->;
-type MenuIpcChannel = Extract<
-    RendererIpcEventChannel,
-    | MenuSendChannel
-    | "menu-about"
-    | "menu-keyboard-shortcuts"
-    | "menu-open-overlay"
-    | "menu-restart-update"
-    | "open-accent-color-picker"
->;
+type MenuSendChannel = "menu-export" | "menu-save-as";
 
-type Unsubscribe = () => void;
+type MenuEventMethodName =
+    | "onMenuAbout"
+    | "onMenuExport"
+    | "onMenuKeyboardShortcuts"
+    | "onMenuOpenOverlay"
+    | "onMenuRestartUpdate"
+    | "onMenuSaveAs"
+    | "onOpenAccentColorPicker";
 
-type MenuElectronAPI = Partial<Pick<ElectronAPI, "installUpdate" | "send">> & {
-    onIpc: (
-        channel: MenuIpcChannel,
-        callback: (...args: unknown[]) => unknown
-    ) => Unsubscribe | undefined;
-};
+type MenuElectronAPI = Partial<
+    Pick<
+        ElectronAPI,
+        | "installUpdate"
+        | MenuEventMethodName
+        | "requestExport"
+        | "requestSaveAs"
+    >
+>;
 
 type MenuIpcGlobal = typeof globalThis & {
     __ffvMenuForwardRegistry?: Set<MenuSendChannel>;
@@ -63,7 +57,7 @@ const keyboardShortcutsModalModulePath =
     "../../ui/modals/keyboardShortcutsModal.js" as const;
 
 function getMenuIpcGlobal(): MenuIpcGlobal {
-    return globalThis as MenuIpcGlobal;
+    return globalThis;
 }
 
 function getMenuForwardRegistry(): Set<MenuSendChannel> {
@@ -169,39 +163,41 @@ export function registerMenuIpcListeners({
 }: RegisterMenuIpcListenersParams): void {
     const menuGlobal = getMenuIpcGlobal();
     const electronAPI = menuGlobal.electronAPI;
-    if (!electronAPI || typeof electronAPI.onIpc !== "function") {
+    if (!electronAPI) {
         return;
     }
 
-    trackUnsubscribe(
-        electronAPI.onIpc("menu-restart-update", () => {
-            try {
-                getMenuIpcGlobal().electronAPI?.installUpdate?.();
-            } catch {
-                /* ignore */
-            }
-        })
-    );
+    const trackMenuEvent = (
+        methodName: MenuEventMethodName,
+        callback: () => unknown
+    ): void => {
+        const register = electronAPI[methodName];
+        if (typeof register === "function") {
+            trackUnsubscribe(register(callback));
+        }
+    };
 
-    trackUnsubscribe(
-        electronAPI.onIpc("menu-open-overlay", async () => {
-            try {
-                await openFileSelector();
-            } catch (error) {
-                if (!isTestEnvironment) {
-                    console.error(
-                        "[MenuIpcListeners] Failed to open overlay selector:",
-                        error
-                    );
-                }
-                showNotification(
-                    "Failed to open overlay selector.",
-                    "error",
-                    3000
+    trackMenuEvent("onMenuRestartUpdate", () => {
+        try {
+            getMenuIpcGlobal().electronAPI?.installUpdate?.();
+        } catch {
+            /* ignore */
+        }
+    });
+
+    trackMenuEvent("onMenuOpenOverlay", async () => {
+        try {
+            await openFileSelector();
+        } catch (error) {
+            if (!isTestEnvironment) {
+                console.error(
+                    "[MenuIpcListeners] Failed to open overlay selector:",
+                    error
                 );
             }
-        })
-    );
+            showNotification("Failed to open overlay selector.", "error", 3000);
+        }
+    });
 
     const ensureMenuForwarder = (channel: MenuSendChannel): void => {
         const registry = getMenuForwardRegistry();
@@ -210,60 +206,60 @@ export function registerMenuIpcListeners({
         }
 
         registry.add(channel);
-        trackUnsubscribe(
-            electronAPI.onIpc(channel, () => {
-                getMenuIpcGlobal().electronAPI?.send?.(channel);
-            })
+        trackMenuEvent(
+            channel === "menu-save-as" ? "onMenuSaveAs" : "onMenuExport",
+            () => {
+                if (channel === "menu-save-as") {
+                    getMenuIpcGlobal().electronAPI?.requestSaveAs?.();
+                    return;
+                }
+
+                getMenuIpcGlobal().electronAPI?.requestExport?.();
+            }
         );
     };
 
     ensureMenuForwarder("menu-save-as");
     ensureMenuForwarder("menu-export");
 
-    trackUnsubscribe(
-        electronAPI.onIpc("menu-about", () => {
-            // The styled system info section loads version data by itself.
-            showAboutModal();
-        })
-    );
+    trackMenuEvent("onMenuAbout", () => {
+        // The styled system info section loads version data by itself.
+        showAboutModal();
+    });
 
-    trackUnsubscribe(
-        electronAPI.onIpc("open-accent-color-picker", async () => {
-            debugMenuLog("Opening accent color picker");
-            const globalAccentPicker = getMenuIpcGlobal().showAccentColorPicker;
-            if (typeof globalAccentPicker === "function") {
-                globalAccentPicker();
-                return;
-            }
+    trackMenuEvent("onOpenAccentColorPicker", async () => {
+        debugMenuLog("Opening accent color picker");
+        const globalAccentPicker = getMenuIpcGlobal().showAccentColorPicker;
+        if (typeof globalAccentPicker === "function") {
+            globalAccentPicker();
+            return;
+        }
 
-            await openAccentColorPickerFromModule({
-                debugMenuLog,
-                showNotification,
-            });
-        })
-    );
+        await openAccentColorPickerFromModule({
+            debugMenuLog,
+            showNotification,
+        });
+    });
 
-    trackUnsubscribe(
-        electronAPI.onIpc("menu-keyboard-shortcuts", async () => {
-            debugMenuLog("Keyboard shortcuts menu clicked - starting handler");
+    trackMenuEvent("onMenuKeyboardShortcuts", async () => {
+        debugMenuLog("Keyboard shortcuts menu clicked - starting handler");
 
-            const globalKeyboardShortcutsModal =
-                getMenuIpcGlobal().showKeyboardShortcutsModal;
-            if (typeof globalKeyboardShortcutsModal !== "function") {
-                debugMenuLog(
-                    "Keyboard shortcuts modal not loaded, importing dynamically..."
-                );
-                await openKeyboardShortcutsModalFromModule({
-                    debugMenuLog,
-                    showAboutModal,
-                });
-                return;
-            }
-
+        const globalKeyboardShortcutsModal =
+            getMenuIpcGlobal().showKeyboardShortcutsModal;
+        if (typeof globalKeyboardShortcutsModal !== "function") {
             debugMenuLog(
-                "Keyboard shortcuts modal already loaded, calling function directly"
+                "Keyboard shortcuts modal not loaded, importing dynamically..."
             );
-            globalKeyboardShortcutsModal();
-        })
-    );
+            await openKeyboardShortcutsModalFromModule({
+                debugMenuLog,
+                showAboutModal,
+            });
+            return;
+        }
+
+        debugMenuLog(
+            "Keyboard shortcuts modal already loaded, calling function directly"
+        );
+        globalKeyboardShortcutsModal();
+    });
 }
