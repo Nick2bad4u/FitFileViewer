@@ -37,8 +37,8 @@ export function createDebouncedDirectRerender(
 ): (reason?: string) => void {
     return debounce((reason = "State change") => {
         const container = getChartContainer();
-        const { getState } = dependencies.getStateManager();
-        const data = getState("globalData");
+        const stateManager = dependencies.getStateManager();
+        const data = stateManager.getState("globalData");
         const hasValidData = hasChartDataRecordMessages(data);
 
         if (container && hasValidData) {
