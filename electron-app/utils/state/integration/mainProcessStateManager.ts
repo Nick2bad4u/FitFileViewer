@@ -56,6 +56,9 @@ const { getElectron: getStateRuntimeElectron } =
     require("../../../main/runtime/electronAccess") as {
         getElectron: () => unknown;
     };
+const { registerIpcHandle } = require("../../../main/ipc/ipcRegistry") as {
+    registerIpcHandle: MainStateRegisterIpcHandle;
+};
 
 type ConsoleLevel = "debug" | "error" | "info" | "log" | "warn";
 
@@ -87,6 +90,12 @@ type MainStateUnlistenRequest =
     import("../../../shared/ipc").MainStateUnlistenRequest;
 type MainStateUnlistenResponse =
     import("../../../shared/ipc").MainStateUnlistenResponse;
+type MainStateGenericInvokeChannel =
+    import("../../../shared/ipc").GenericInvokeChannel;
+type MainStateRegisterIpcHandle = (
+    channel: MainStateGenericInvokeChannel,
+    handler: unknown
+) => void;
 interface SerializableRecord {
     [key: string]: SerializableValue;
 }
@@ -982,7 +991,7 @@ class MainProcessState {
         }
 
         // Get main process state
-        ipcMain.handle(
+        registerIpcHandle(
             "main-state:get",
             (
                 event: MainIpcEventLike,
@@ -1014,7 +1023,7 @@ class MainProcessState {
         );
 
         // Set main process state (restricted)
-        ipcMain.handle(
+        registerIpcHandle(
             "main-state:set",
             (
                 event: MainIpcEventLike,
@@ -1080,7 +1089,7 @@ class MainProcessState {
         );
 
         // Listen to main process state changes
-        ipcMain.handle(
+        registerIpcHandle(
             "main-state:listen",
             (
                 event: MainIpcEventLike,
@@ -1145,7 +1154,7 @@ class MainProcessState {
             }
         );
 
-        ipcMain.handle(
+        registerIpcHandle(
             "main-state:unlisten",
             (
                 event: MainIpcEventLike,
@@ -1182,7 +1191,7 @@ class MainProcessState {
         );
 
         // Get operation status
-        ipcMain.handle(
+        registerIpcHandle(
             "main-state:operation",
             (
                 event: MainIpcEventLike,
@@ -1213,7 +1222,7 @@ class MainProcessState {
         );
 
         // Get all operations
-        ipcMain.handle(
+        registerIpcHandle(
             "main-state:operations",
             (): MainStateOperationsResponse => {
                 const ops = this.get("operations");
@@ -1229,7 +1238,7 @@ class MainProcessState {
         );
 
         // Get errors
-        ipcMain.handle(
+        registerIpcHandle(
             "main-state:errors",
             (
                 event: MainIpcEventLike,
@@ -1253,7 +1262,7 @@ class MainProcessState {
         );
 
         // Get metrics
-        ipcMain.handle(
+        registerIpcHandle(
             "main-state:metrics",
             (): MainStateMetricsResponse =>
                 this.makeSerializable(this.getSerializableMetrics())
