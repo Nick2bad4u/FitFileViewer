@@ -85,7 +85,7 @@ function resolveChartSettingsApi(
         getChartFieldVisibility: manager.getChartFieldVisibility
             ? (fieldKey, defaultVisibility) =>
                   manager.getChartFieldVisibility?.(fieldKey, defaultVisibility)
-            : (fieldKey, defaultVisibility = "visible") => {
+            : (fieldKey, defaultVisibility) => {
                   const visibilityMap =
                       manager.getSetting?.("chart", "fieldVisibility") ?? {};
                   return isObjectRecord(visibilityMap)

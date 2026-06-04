@@ -24,7 +24,7 @@ export function createDataSettingsSignature(
             storageKey,
             settings
         );
-        if (value != null) {
+        if (value !== null) {
             signature[settingKey] = value;
         }
     }
@@ -36,8 +36,12 @@ function readSettingOrStorageValue(
     settingKey: string,
     _storageKey: string,
     settings: DataSettings
-): null | unknown {
-    if (Object.hasOwn(settings, settingKey) && settings[settingKey] != null) {
+): unknown {
+    if (
+        Object.hasOwn(settings, settingKey) &&
+        settings[settingKey] !== null &&
+        settings[settingKey] !== undefined
+    ) {
         return settings[settingKey];
     }
 

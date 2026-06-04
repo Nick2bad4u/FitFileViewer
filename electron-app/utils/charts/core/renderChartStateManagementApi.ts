@@ -9,6 +9,8 @@ type ChartRefreshActions = {
     requestRerender(reason: string): void;
 };
 
+type NotificationType = "error" | "info" | "success" | "warning";
+
 interface CreateChartStateManagementApiDependencies {
     chartActions: ChartRefreshActions;
     chartState: ChartStateView;
@@ -25,6 +27,15 @@ interface CreateChartStateManagementApiDependencies {
         type: "error" | "info" | "success" | "warning"
     ): unknown;
     updateState(path: string, value: unknown, options: unknown): void;
+}
+
+function normalizeNotificationType(type: string): NotificationType {
+    return type === "error" ||
+        type === "info" ||
+        type === "success" ||
+        type === "warning"
+        ? type
+        : "info";
 }
 
 /** Public chart state-management facade exported through renderChartJS. */
@@ -51,11 +62,14 @@ export function createChartStateManagementApi(
                     isRendered: dependencies.chartState.isRendered,
                     renderableFields: dependencies.chartState.renderableFields,
                 }),
-                getComputedStateManager: dependencies.getComputedStateManager,
-                getState: dependencies.getState,
+                getComputedStateManager: () =>
+                    dependencies.getComputedStateManager(),
+                getState: (path) => dependencies.getState(path),
                 middlewareManager: dependencies.middlewareManager,
-                notify: dependencies.notify,
-                updateState: dependencies.updateState,
+                notify: (message, type) =>
+                    dependencies.notify(message, normalizeNotificationType(type)),
+                updateState: (path, value, options) =>
+                    dependencies.updateState(path, value, options),
             });
         },
 

@@ -49,16 +49,13 @@ function registerSharedConfigurationLoader(
  *
  * @param params - Startup dependencies supplied by renderChartJS.
  */
-export function registerChartStartup({
-    chartActions,
-    chartGlobal,
-    loadSharedConfiguration,
-    setGlobalChartActions,
-}: RegisterChartStartupParams): void {
-    registerSharedConfigurationLoader(chartGlobal, loadSharedConfiguration);
+export function registerChartStartup(params: RegisterChartStartupParams): void {
+    registerSharedConfigurationLoader(params.chartGlobal, () =>
+        params.loadSharedConfiguration()
+    );
 
     try {
-        setGlobalChartActions(chartActions);
+        params.setGlobalChartActions(params.chartActions);
     } catch {
         // Ignore legacy bridge exposure failures in SSR and tests.
     }

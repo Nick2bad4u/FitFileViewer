@@ -11,7 +11,7 @@ type InitializeChartRuntimeBootstrapDependencies = {
     renderChart(
         container?: Element | null | string,
         options?: unknown
-    ): Promise<unknown> | unknown;
+    ): unknown;
 };
 
 type ChartPluginGlobal = Parameters<typeof registerChartJsPlugins>[0];
@@ -36,8 +36,8 @@ export function initializeChartRuntimeBootstrap(
     registerChartJsPlugins(chartGlobal as ChartPluginGlobal);
     registerChartRequestListener({
         chartGlobal,
-        getChartStateManager: dependencies.getChartStateManager,
-        renderChart: dependencies.renderChart,
+        getChartStateManager: () => dependencies.getChartStateManager(),
+        renderChart: (container) => dependencies.renderChart(container),
     });
 
     return chartGlobal;

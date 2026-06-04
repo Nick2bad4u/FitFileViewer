@@ -20,7 +20,7 @@ interface ResolveChartRuntimeDependenciesInput {
     readonly getRendererModules: () => ChartRendererModules;
     readonly getShowRenderNotification: () => ShowRenderNotificationFunction;
     readonly getStateManager: () => ChartStateManagerAccess;
-    readonly getThemeConfig: () => Promise<unknown> | unknown;
+    readonly getThemeConfig: () => unknown;
 }
 
 /** Late-bound chart render dependencies resolved for a single render pass. */
@@ -72,11 +72,7 @@ export async function resolveChartRuntimeDependencies(
         removeChartHoverEffects: removeChartHoverEffectsSafe,
     } = input.getHoverPlugins();
     const showRenderNotificationSafe = input.getShowRenderNotification();
-    const {
-        getState: gs_rcwd,
-        setState: ss_rcwd,
-        updateState: us_rcwd,
-    } = input.getStateManager();
+    const stateManager = input.getStateManager();
 
     return {
         addChartHoverEffectsSafe,
@@ -84,7 +80,7 @@ export async function resolveChartRuntimeDependencies(
         convert,
         createChartCanvasSafe,
         createEnhancedChartSafe,
-        gs_rcwd,
+        gs_rcwd: (path) => stateManager.getState(path),
         removeChartHoverEffectsSafe,
         renderEventMessagesChartSafe,
         renderGPSTimeChartSafe,
@@ -93,8 +89,10 @@ export async function resolveChartRuntimeDependencies(
         renderPerformanceAnalysisChartsSafe,
         renderTimeInZoneChartsSafe,
         showRenderNotificationSafe,
-        ss_rcwd,
+        ss_rcwd: (path, value, options) =>
+            stateManager.setState(path, value, options),
         themeConfig,
-        us_rcwd,
+        us_rcwd: (path, value, options) =>
+            stateManager.updateState(path, value, options),
     };
 }

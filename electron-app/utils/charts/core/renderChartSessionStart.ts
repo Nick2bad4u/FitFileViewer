@@ -11,7 +11,7 @@ import {
 type NotifyErrorFunction = (
     message: string,
     type: "error"
-) => Promise<unknown> | unknown;
+) => unknown;
 type SetStateFunction = (
     path: string,
     value: unknown,
@@ -74,9 +74,14 @@ export async function beginChartRenderSession(
     touchStringTargetContainer(dependencies.doc, input.targetContainer);
 
     startChartRendering({
-        getGlobalChartActions: dependencies.getGlobalChartActions,
-        isLoadingStateSuppressed: dependencies.isLoadingStateSuppressed,
-        setState: dependencies.setState,
+        getGlobalChartActions: () => dependencies.getGlobalChartActions(),
+        isLoadingStateSuppressed: () => dependencies.isLoadingStateSuppressed(),
+        setState: (path, value, options) =>
+            dependencies.setState(
+                path,
+                value,
+                options as StateUpdateOptions | undefined
+            ),
     });
 
     await dependencies.waitIfRapidRender();
@@ -89,8 +94,13 @@ export async function beginChartRenderSession(
 
     clearExistingCharts({
         chartGlobal: dependencies.chartGlobal,
-        getGlobalChartActions: dependencies.getGlobalChartActions,
-        updateState: dependencies.updateState,
+        getGlobalChartActions: () => dependencies.getGlobalChartActions(),
+        updateState: (path, value, options) =>
+            dependencies.updateState(
+                path,
+                value as Record<string, unknown>,
+                options as StateUpdateOptions | undefined
+            ),
     });
 
     if (isChartLibraryUnavailable(dependencies.chartGlobal)) {
