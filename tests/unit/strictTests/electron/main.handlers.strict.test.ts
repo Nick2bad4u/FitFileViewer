@@ -577,10 +577,14 @@ describe("main.js strict handlers and events", () => {
     });
 
     it("menu events and fullscreen, security navigation guards", async () => {
-        expect.assertions(14);
+        expect.assertions(18);
 
-        await import("../../../../electron-app/main.js");
+        const importedMain: any = await import(
+            "../../../../electron-app/main.js"
+        );
+        const mainModule = importedMain.default ?? importedMain;
         const updater = (await import("electron-updater")).autoUpdater as any;
+        mockMainWindow.webContents.send.mockClear();
 
         // menu-check-for-updates delegates to the updater check path
         const onCalls = mockIpcMain.on.mock.calls;
@@ -591,10 +595,23 @@ describe("main.js strict handlers and events", () => {
         );
         expect(updaterCheck[0]).toBe("menu-check-for-updates");
         updater.checkForUpdates.mockClear();
-        getRequiredHandler(updaterCheck)({});
+        mainModule.setAppState("autoUpdaterInitialized", false);
+        getRequiredHandler(updaterCheck)({
+            sender: mockMainWindow.webContents,
+        });
+        expect(updater.checkForUpdates).not.toHaveBeenCalled();
+        expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
+            "show-notification",
+            "Update checker is not ready yet.",
+            "error"
+        );
+        mainModule.setAppState("autoUpdaterInitialized", true);
+        getRequiredHandler(updaterCheck)({
+            sender: mockMainWindow.webContents,
+        });
         expect(updater.checkForUpdates).toHaveBeenCalledOnce();
 
-        // install-update triggers quitAndInstall; simulate linux dialog path
+        // install-update only triggers quitAndInstall after an update has downloaded.
         const originalPlatform = process.platform;
         try {
             Object.defineProperty(process, "platform", { value: "linux" });
@@ -605,7 +622,20 @@ describe("main.js strict handlers and events", () => {
             );
             expect(install[0]).toBe("install-update");
             updater.quitAndInstall.mockClear();
-            getRequiredHandler(install)({});
+            mainModule.setAppState("autoUpdater.updateDownloaded", false);
+            getRequiredHandler(install)({
+                sender: mockMainWindow.webContents,
+            });
+            expect(updater.quitAndInstall).not.toHaveBeenCalled();
+            expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
+                "show-notification",
+                "Update install is not available yet.",
+                "error"
+            );
+            mainModule.setAppState("autoUpdater.updateDownloaded", true);
+            getRequiredHandler(install)({
+                sender: mockMainWindow.webContents,
+            });
             expect(updater.quitAndInstall).toHaveBeenCalledOnce();
             expect(mockDialog.showMessageBox).not.toHaveBeenCalled();
         } finally {

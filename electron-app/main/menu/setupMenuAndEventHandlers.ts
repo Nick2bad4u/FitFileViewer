@@ -222,6 +222,24 @@
         });
     }
 
+    function isAutoUpdaterInitialized(): boolean {
+        return getAppState("autoUpdaterInitialized") === true;
+    }
+
+    function isUpdateDownloaded(): boolean {
+        return getAppState("autoUpdater.updateDownloaded") === true;
+    }
+
+    function notifyUpdaterUnavailable(
+        event: IpcEventLike,
+        message: string
+    ): void {
+        const win = getBrowserWindowFromEvent(event);
+        if (win) {
+            sendToRenderer(win, "show-notification", message, "error");
+        }
+    }
+
     /**
      * Registers menu-related IPC handlers and listeners.
      */
@@ -245,8 +263,21 @@
             }
         });
 
-        const updateHandlers: Record<MenuUpdateEventChannel, () => void> = {
-            "install-update": () => {
+        const updateHandlers: Record<MenuUpdateEventChannel, IpcCallback> = {
+            "install-update": (event) => {
+                const ipcEvent = event as IpcEventLike;
+                if (!isUpdateDownloaded()) {
+                    notifyUpdaterUnavailable(
+                        ipcEvent,
+                        "Update install is not available yet."
+                    );
+                    logWithContext(
+                        "warn",
+                        "Blocked update install before download completed"
+                    );
+                    return;
+                }
+
                 try {
                     requireAutoUpdater().quitAndInstall?.();
                 } catch (error) {
@@ -254,14 +285,40 @@
                     showLinuxManualUpdateMessage();
                 }
             },
-            "menu-check-for-updates": () => {
+            "menu-check-for-updates": (event) => {
+                const ipcEvent = event as IpcEventLike;
+                if (!isAutoUpdaterInitialized()) {
+                    notifyUpdaterUnavailable(
+                        ipcEvent,
+                        "Update checker is not ready yet."
+                    );
+                    logWithContext(
+                        "warn",
+                        "Blocked update check before updater initialization"
+                    );
+                    return;
+                }
+
                 try {
                     void requireAutoUpdater().checkForUpdates?.();
                 } catch (error) {
                     logUpdaterError("Failed to check for updates:", error);
                 }
             },
-            "menu-restart-update": () => {
+            "menu-restart-update": (event) => {
+                const ipcEvent = event as IpcEventLike;
+                if (!isUpdateDownloaded()) {
+                    notifyUpdaterUnavailable(
+                        ipcEvent,
+                        "Update install is not available yet."
+                    );
+                    logWithContext(
+                        "warn",
+                        "Blocked update restart before download completed"
+                    );
+                    return;
+                }
+
                 try {
                     requireAutoUpdater().quitAndInstall?.();
                 } catch (error) {

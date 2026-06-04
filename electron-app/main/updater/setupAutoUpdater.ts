@@ -91,8 +91,9 @@
     const { menuRef } = require("../runtime/electronAccess") as {
         menuRef: () => MenuModuleLike | undefined;
     };
-    const { mainProcessState } = require("../state/appState") as {
+    const { mainProcessState, setAppState } = require("../state/appState") as {
         mainProcessState: MainProcessStateLike;
+        setAppState: (key: string, value: unknown) => void;
     };
     const { isWindowUsable } = require("../window/windowValidation") as {
         isWindowUsable: (win?: MainWindowLike | null) => boolean;
@@ -240,9 +241,13 @@
             (...args: unknown[]) => void
         > = {
             "checking-for-update": () => {
+                setAppState("autoUpdater.status", "checking");
+                setAppState("autoUpdater.updateDownloaded", false);
                 sendToRenderer(mainWindow, CONSTANTS.UPDATE_EVENTS.CHECKING);
             },
             "download-progress": (progressObj: unknown) => {
+                setAppState("autoUpdater.status", "downloading");
+                setAppState("autoUpdater.updateDownloaded", false);
                 sendToRenderer(
                     mainWindow,
                     CONSTANTS.UPDATE_EVENTS.DOWNLOAD_PROGRESS,
@@ -251,6 +256,8 @@
             },
             error: (err: unknown) => {
                 const errorMessage = getErrorMessage(err);
+                setAppState("autoUpdater.status", "error");
+                setAppState("autoUpdater.updateDownloaded", false);
                 updater.logger?.error?.(`AutoUpdater Error: ${errorMessage}`);
                 sendToRenderer(
                     mainWindow,
@@ -259,6 +266,8 @@
                 );
             },
             "update-available": (info: unknown) => {
+                setAppState("autoUpdater.status", "available");
+                setAppState("autoUpdater.updateDownloaded", false);
                 sendToRenderer(
                     mainWindow,
                     CONSTANTS.UPDATE_EVENTS.AVAILABLE,
@@ -266,6 +275,8 @@
                 );
             },
             "update-downloaded": (info: unknown) => {
+                setAppState("autoUpdater.status", "downloaded");
+                setAppState("autoUpdater.updateDownloaded", true);
                 sendToRenderer(
                     mainWindow,
                     CONSTANTS.UPDATE_EVENTS.DOWNLOADED,
@@ -274,6 +285,8 @@
                 enableRestartMenuItem();
             },
             "update-not-available": (info: unknown) => {
+                setAppState("autoUpdater.status", "idle");
+                setAppState("autoUpdater.updateDownloaded", false);
                 sendToRenderer(
                     mainWindow,
                     CONSTANTS.UPDATE_EVENTS.NOT_AVAILABLE,
