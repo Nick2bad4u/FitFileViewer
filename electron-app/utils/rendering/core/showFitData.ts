@@ -23,7 +23,6 @@ const DISPLAY_CONSTANTS = {
     },
     EVENTS: {
         FIT_FILE_LOADED: "fitfile-loaded",
-        FIT_FILE_LOADED_IPC: "fit-file-loaded",
     },
     LOG_PREFIX: "ShowFitData",
     SELECTORS: {
@@ -51,9 +50,7 @@ export type ShowFitDataOptions = {
     updateUI?: boolean;
 };
 
-type ElectronApiLike = Partial<
-    Pick<ElectronAPI, "notifyFitFileLoaded" | "send">
->;
+type ElectronApiLike = Partial<Pick<ElectronAPI, "notifyFitFileLoaded">>;
 
 type FitFileStateManagerLike = {
     handleFileLoaded: (
@@ -292,12 +289,6 @@ function enableTabsAndNotify(filePath: string): void {
         // Notify main process via IPC
         if (showFitGlobal.electronAPI?.notifyFitFileLoaded) {
             showFitGlobal.electronAPI.notifyFitFileLoaded(filePath);
-        } else if (showFitGlobal.electronAPI?.send) {
-            // Backward compatibility for older preload builds.
-            showFitGlobal.electronAPI.send(
-                DISPLAY_CONSTANTS.EVENTS.FIT_FILE_LOADED_IPC,
-                filePath
-            );
         }
 
         // Dispatch custom event for other components
