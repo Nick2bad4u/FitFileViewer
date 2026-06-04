@@ -11,6 +11,7 @@ type UnifiedStateWindow = {
 
 type UnifiedStateGlobal = typeof globalThis & {
     globalData?: unknown;
+    window?: UnifiedStateWindow;
 };
 
 type UnifiedStateOptions = {
@@ -287,9 +288,7 @@ function getUnifiedStateGlobal(): UnifiedStateGlobal {
 function getUnifiedStateWindow(
     stateGlobal: UnifiedStateGlobal
 ): UnifiedStateWindow | undefined {
-    return stateGlobal.window === undefined
-        ? undefined
-        : (stateGlobal.window);
+    return stateGlobal.window === undefined ? undefined : stateGlobal.window;
 }
 
 /** Singleton unified state manager used during the state migration. */

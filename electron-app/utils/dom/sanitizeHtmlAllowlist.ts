@@ -155,7 +155,7 @@ function parseHtmlFragment(html: string): DocumentFragment {
     // eslint-disable-next-line sdl/no-domparser-html-without-sanitization -- This is the sanitizer boundary; sanitizeFragment strips the parsed tree before callers receive it.
     const parsed = new DOMParser().parseFromString(html, "text/html");
     const fragment = document.createDocumentFragment();
-    for (const node of parsed.body.childNodes) {
+    for (const node of Array.from(parsed.body.childNodes)) {
         fragment.append(node);
     }
     return fragment;
@@ -211,7 +211,7 @@ function sanitizeElementAttributes(
     allowedAttributes: ReadonlySet<string>,
     stripUrlInStyle: boolean
 ): void {
-    for (const attr of el.attributes) {
+    for (const attr of Array.from(el.attributes)) {
         const name = attr.name.toLowerCase();
         const value = String(attr.value);
 
