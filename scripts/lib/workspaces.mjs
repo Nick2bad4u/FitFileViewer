@@ -378,6 +378,9 @@ export const repositoryPrettierTargets = [
 export const scriptsPath = path.join(repositoryRoot, "scripts");
 export const bundlePreloadScriptPath =
     repositoryScriptPath("bundle-preload.mjs");
+export const applyElectronFusesScriptPath = repositoryScriptPath(
+    "apply-electron-fuses.mjs"
+);
 export const buildRendererScriptPath =
     repositoryScriptPath("build-renderer.mjs");
 export const buildRuntimeScriptPath = repositoryScriptPath("build-runtime.mjs");

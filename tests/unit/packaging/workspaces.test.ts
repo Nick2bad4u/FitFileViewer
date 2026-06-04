@@ -20,6 +20,7 @@ type WorkspacesModule = {
     appSourcePath: string;
     appSourceRepositoryPath: (...segments: string[]) => string;
     appSourceRelativePath: (...segments: string[]) => string;
+    applyElectronFusesScriptPath: string;
     buildRendererScriptPath: string;
     buildRuntimeScriptPath: string;
     bundlePreloadScriptPath: string;
@@ -210,7 +211,7 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes root script paths", async () => {
-        expect.assertions(17);
+        expect.assertions(18);
 
         const workspaces = await importWorkspaces();
 
@@ -234,6 +235,9 @@ describe("workspace path helpers", () => {
         );
         expect(workspaces.bundlePreloadScriptPath).toBe(
             path.join(process.cwd(), "scripts", "bundle-preload.mjs")
+        );
+        expect(workspaces.applyElectronFusesScriptPath).toBe(
+            path.join(process.cwd(), "scripts", "apply-electron-fuses.mjs")
         );
         expect(workspaces.buildRendererScriptPath).toBe(
             path.join(process.cwd(), "scripts", "build-renderer.mjs")
