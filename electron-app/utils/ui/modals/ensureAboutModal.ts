@@ -1,9 +1,5 @@
 import { loadVersionInfo } from "../../app/initialization/loadVersionInfo.js";
-import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
-import {
-    createAboutModalContentElement,
-    handleEscapeKey,
-} from "./aboutModal.js";
+import { createAboutModalContentElement } from "./aboutModal.js";
 import { injectModalStyles } from "./injectModalStyles.js";
 
 /**
@@ -24,14 +20,6 @@ export function ensureAboutModal(): void {
     modal.style.display = "none";
     modal.append(createAboutModalContentElement());
     document.body.append(modal);
-
-    // Add global event listeners
-    addEventListenerWithCleanup(
-        document,
-        "keydown",
-        handleEscapeKey as EventListener,
-        true
-    );
 
     // Inject enhanced styles
     injectModalStyles();

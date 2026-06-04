@@ -161,6 +161,7 @@ const TECH_BADGES: TechBadge[] = [
 
 // Module state
 let copyFeedbackTimer: ReturnType<typeof setTimeout> | null = null;
+let escapeKeyCleanup: (() => void) | null = null;
 let focusTimer: ReturnType<typeof setTimeout> | null = null;
 let focusTrapCleanup: (() => void) | null = null;
 let hideTimer: ReturnType<typeof setTimeout> | null = null;
@@ -493,6 +494,14 @@ export function showAboutModal(html = ""): void {
             });
 
             // Set up event listeners
+            escapeKeyCleanup?.();
+            escapeKeyCleanup = addEventListenerWithCleanup(
+                document,
+                "keydown",
+                handleEscapeKey,
+                true
+            );
+
             addEventListenerWithCleanup(closeBtn, "click", (e) => {
                 e.preventDefault();
                 hideAboutModal();
@@ -514,7 +523,7 @@ export function showAboutModal(html = ""): void {
                     const ok =
                         await clipboardExportUtils.copyTextToClipboard?.(text);
                     if (ok) {
-                        showNotification(
+                        void showNotification(
                             "System info copied to clipboard",
                             "success",
                             2500
@@ -538,7 +547,7 @@ export function showAboutModal(html = ""): void {
                             /* ignore */
                         }
                     } else {
-                        showNotification(
+                        void showNotification(
                             "Failed to copy system info",
                             "error",
                             3000
@@ -597,7 +606,7 @@ export function showAboutModal(html = ""): void {
 
             // Load version information after modal is displayed
             try {
-                loadVersionInfo();
+                void loadVersionInfo();
             } catch (error) {
                 console.warn(
                     `${CONSTANTS.LOG_PREFIX} Failed to load version info on modal show:`,
@@ -626,7 +635,7 @@ function buildSystemInfoClipboardText(): string {
             "#info-toggle-section .system-info-item"
         );
 
-        for (const item of Array.from(items)) {
+        for (const item of items) {
             const labelEl = item.querySelector(".system-info-label");
             const valueEl = item.querySelector(".system-info-value");
             const labelRaw = labelEl?.textContent
@@ -683,7 +692,8 @@ function hideAboutModal(): void {
             }
 
             // Clean up event listeners
-            document.removeEventListener("keydown", handleEscapeKey, true);
+            escapeKeyCleanup?.();
+            escapeKeyCleanup = null;
         }, modalAnimationDuration);
     }
 }
@@ -729,7 +739,12 @@ function sanitizeAboutBodyHtml(html: string): DocumentFragment {
         }
 
         // Strip inline event handlers and dangerous URL-based attributes.
-        for (const attr of Array.from(el.attributes)) {
+        for (let index = el.attributes.length - 1; index >= 0; index -= 1) {
+            const attr = el.attributes.item(index);
+            if (!attr) {
+                continue;
+            }
+
             const name = attr.name.toLowerCase();
             const value = String(attr.value);
 
@@ -787,7 +802,8 @@ function parseAboutBodyHtml(html: string): DocumentFragment {
     // eslint-disable-next-line sdl/no-domparser-html-without-sanitization -- Sanitization happens immediately in sanitizeAboutBodyHtml before callers receive the fragment.
     const parsed = new DOMParser().parseFromString(html, "text/html");
     const fragment = document.createDocumentFragment();
-    for (const child of Array.from(parsed.body.childNodes)) {
+    while (parsed.body.firstChild) {
+        const child = parsed.body.firstChild;
         fragment.append(child);
     }
 
