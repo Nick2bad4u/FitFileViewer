@@ -31,11 +31,11 @@ export function safeAppend(parent: ParentNode, child: Node): void {
             return;
         }
 
-        parent.appendChild(child);
+        parent.insertBefore(child, null);
     } catch (error) {
         console.warn("[ChartJS] safeAppend fallback used:", error);
         try {
-            parent.appendChild(child);
+            parent.insertBefore(child, null);
         } catch {
             // Best-effort compatibility helper; callers already tolerate failure.
         }
