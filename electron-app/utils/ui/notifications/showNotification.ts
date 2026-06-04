@@ -40,10 +40,12 @@ export type QueuedNotification = {
 };
 
 type HideTimeout = number | ReturnType<typeof setTimeout>;
+type CleanupFunction = () => void;
 
 /** Notification host element with an optional scheduled hide timer. */
 export type NotificationElement = HTMLElement & {
     hideTimeout?: HideTimeout;
+    listenerCleanups?: CleanupFunction[];
     notificationToken?: number;
 };
 
@@ -53,6 +55,7 @@ const notificationQueue: QueuedNotification[] = [];
 const activeAnimationFrames = new Set<number>();
 const activeTimeouts = new Set<HideTimeout>();
 let notificationDisplayToken = 0;
+const noopResolveShown = (): void => {};
 
 // Notification type configurations with icons and default durations
 const NOTIFICATION_TYPES: Record<NotificationType, NotificationTypeConfig> = {
@@ -71,10 +74,9 @@ export function __testResetNotifications(): void {
     isShowingNotification = false;
     notificationDisplayToken = 0;
     clearScheduledWork();
-    const el = document.querySelector<HTMLElement>(
-        "#notification"
-    ) as NotificationElement | null;
+    const el = document.querySelector<NotificationElement>("#notification");
     if (el) {
+        clearNotificationElementListeners(el);
         // Clear any pending timers and hide immediately
         if (el.hideTimeout) {
             clearNotificationTimeout(el.hideTimeout);
@@ -82,8 +84,8 @@ export function __testResetNotifications(): void {
         }
         el.classList.remove("show");
         el.style.display = "none";
-        el.onclick = null;
         el.style.cursor = "default";
+        el.removeAttribute("tabindex");
         delete el.notificationToken;
         el.replaceChildren();
     }
@@ -95,9 +97,8 @@ export function __testResetNotifications(): void {
 export function clearAllNotifications(): void {
     notificationQueue.length = 0;
     clearScheduledWork();
-    const notificationElement = document.querySelector<HTMLElement>(
-        "#notification"
-    ) as NotificationElement | null;
+    const notificationElement =
+        document.querySelector<NotificationElement>("#notification");
     if (notificationElement) {
         hideNotification(notificationElement);
     }
@@ -117,7 +118,7 @@ export function clearAllNotifications(): void {
  */
 export async function showNotification(
     message: string,
-    type: NotificationType | string = "info",
+    type = "info",
     duration: null | number = null,
     options: NotificationOptions = {}
 ): Promise<void> {
@@ -142,7 +143,7 @@ export async function showNotification(
           : config.duration;
 
     // Promise that resolves when THIS notification becomes visible
-    let resolveShown: () => void = () => {};
+    let resolveShown = noopResolveShown;
     const shownPromise = new Promise<void>((resolve) => {
         resolveShown = resolve;
     });
@@ -166,19 +167,23 @@ export async function showNotification(
     // Process queue if not already showing
     if (!isShowingNotification) {
         // Process queue without blocking caller
-        processNotificationQueue();
+        void processNotificationQueue();
     }
 
     return shownPromise;
 }
 
 /** Builds the notification content with icon, message, and actions. */
-async function buildNotificationContent(
+function buildNotificationContent(
     element: NotificationElement,
     notification: QueuedNotification
-): Promise<void> {
+): void {
+    clearNotificationElementListeners(element);
+
     // Clear previous content
     element.replaceChildren();
+    element.style.cursor = "default";
+    element.removeAttribute("tabindex");
 
     // Set accessibility attributes
     element.setAttribute("role", "alert");
@@ -198,6 +203,7 @@ async function buildNotificationContent(
     if (notification.icon) {
         const iconElement = document.createElement("span");
         iconElement.className = "notification-icon";
+        iconElement.setAttribute("aria-hidden", "true");
         iconElement.textContent = notification.icon;
         iconElement.style.cssText = "font-size: 1.2rem; flex-shrink: 0;";
         contentContainer.append(iconElement);
@@ -224,11 +230,9 @@ async function buildNotificationContent(
             button.textContent = action.text;
             button.className = action.className || "themed-btn";
             button.style.cssText = "font-size: 0.9rem; padding: 6px 12px;";
-            addEventListenerWithCleanup(button, "click", (event) => {
+            addNotificationEventListener(element, button, "click", (event) => {
                 event.stopPropagation();
-                if (action.onClick) {
-                    action.onClick();
-                }
+                action.onClick?.();
                 hideNotification(element);
             });
             actionsContainer.append(button);
@@ -240,7 +244,8 @@ async function buildNotificationContent(
     // Add click handler for main notification
     if (notification.onClick) {
         element.style.cursor = "pointer";
-        addEventListenerWithCleanup(element, "click", (event) => {
+        element.tabIndex = 0;
+        addNotificationEventListener(element, element, "click", (event) => {
             const tgt =
                 event.target instanceof HTMLElement ? event.target : null;
             if (
@@ -251,6 +256,23 @@ async function buildNotificationContent(
                 notification.onClick();
                 hideNotification(element);
             }
+        });
+        addNotificationEventListener(element, element, "keydown", (event) => {
+            if (!(event instanceof KeyboardEvent)) {
+                return;
+            }
+            if (event.key !== "Enter" && event.key !== " ") {
+                return;
+            }
+            const tgt =
+                event.target instanceof HTMLElement ? event.target : null;
+            if (tgt?.closest(".notification-actions")) {
+                return;
+            }
+
+            event.preventDefault();
+            notification.onClick?.();
+            hideNotification(element);
         });
     }
 
@@ -272,17 +294,19 @@ async function buildNotificationContent(
 			opacity: 0.7;
 			transition: opacity 0.2s ease;
 		`;
-        addEventListenerWithCleanup(
+        addNotificationEventListener(
+            element,
             closeButton,
             "mouseover",
             () => (closeButton.style.opacity = "1")
         );
-        addEventListenerWithCleanup(
+        addNotificationEventListener(
+            element,
             closeButton,
             "mouseout",
             () => (closeButton.style.opacity = "0.7")
         );
-        addEventListenerWithCleanup(closeButton, "click", (event) => {
+        addNotificationEventListener(element, closeButton, "click", (event) => {
             event.stopPropagation();
             hideNotification(element);
         });
@@ -291,12 +315,11 @@ async function buildNotificationContent(
 }
 
 /** Displays a single notification with animations. */
-async function displayNotification(
+function displayNotification(
     notification: QueuedNotification
 ): Promise<void> {
-    const notificationElement = document.querySelector<HTMLElement>(
-        "#notification"
-    ) as NotificationElement | null;
+    const notificationElement =
+        document.querySelector<NotificationElement>("#notification");
     if (!notificationElement) {
         // Resolve shown even if the element is missing so callers don't hang
         if (typeof notification.resolveShown === "function") {
@@ -309,7 +332,7 @@ async function displayNotification(
         console.warn(
             "Notification element not found. Unable to display notification."
         );
-        return;
+        return Promise.resolve();
     }
 
     // Clear any existing timeout
@@ -319,10 +342,11 @@ async function displayNotification(
     }
 
     // Build notification content
-    await buildNotificationContent(notificationElement, notification);
+    buildNotificationContent(notificationElement, notification);
 
     // Show notification with animation
-    notificationElement.notificationToken = notificationDisplayToken += 1;
+    notificationDisplayToken += 1;
+    notificationElement.notificationToken = notificationDisplayToken;
     notificationElement.className = `notification ${notification.type}`;
     notificationElement.style.display = "flex";
 
@@ -374,8 +398,9 @@ function hideNotification(element: NotificationElement): void {
             return;
         }
         element.style.display = "none";
-        element.onclick = null;
         element.style.cursor = "default";
+        element.removeAttribute("tabindex");
+        clearNotificationElementListeners(element);
         delete element.notificationToken;
     }, 300); // Match CSS transition duration
 }
@@ -388,59 +413,38 @@ export { isShowingNotification, notificationQueue, processNotificationQueue };
 /**
  * Processes the notification queue, showing notifications one at a time
  */
-async function processNotificationQueue(): Promise<void> {
+function processNotificationQueue(): Promise<void> {
     if (notificationQueue.length === 0) {
         isShowingNotification = false;
-        return;
+        return Promise.resolve();
     }
 
     if (isShowingNotification) {
         // Already showing; next item will be processed when current one completes
-        return;
+        return Promise.resolve();
     }
 
     isShowingNotification = true;
     const notification = notificationQueue.shift();
 
-    try {
-        if (notification) {
-            await displayNotification(notification);
-        }
-    } catch (error) {
-        // Ensure the shown promise is resolved on error
-        if (notification && typeof notification.resolveShown === "function") {
-            try {
-                notification.resolveShown();
-            } catch {
-                /* Ignore */
-            } finally {
-                notification.resolveShown = undefined;
+    const displayPromise = notification
+        ? Promise.resolve().then(() => displayNotification(notification))
+        : Promise.resolve();
+
+    return displayPromise
+        .catch((error: unknown) => {
+            handleNotificationDisplayError(notification, error);
+        })
+        .then(() => {
+            // Reset flag and process next notification
+            isShowingNotification = false;
+
+            // Immediately process the next notification if queued
+            if (notificationQueue.length > 0) {
+                return processNotificationQueue();
             }
-        }
-        // Log in two-argument form to preserve error object context for tests and debugging
-        const errObj =
-            error instanceof Error ? error : new Error(String(error));
-        console.error("Error displaying notification:", errObj);
-        // Also log a single-string form for tests that assert substring matching on a single argument
-        try {
-            const msg =
-                errObj && typeof errObj.message === "string"
-                    ? errObj.message
-                    : String(errObj);
-            console.error(`Error displaying notification: ${msg}`);
-        } catch {
-            /* No-op */
-        }
-    }
-
-    // Reset flag and process next notification
-    isShowingNotification = false;
-
-    // Immediately process the next notification if queued
-    if (notificationQueue.length > 0) {
-        // Process next notification without blocking
-        processNotificationQueue();
-    }
+            return undefined;
+        });
 }
 
 /**
@@ -467,7 +471,7 @@ export const notify = {
      */
     persistent: (
         message: string,
-        type: NotificationType | string = "info",
+        type = "info",
         options: NotificationOptions = {}
     ) =>
         showNotification(message, type, undefined, {
@@ -492,7 +496,7 @@ export const notify = {
     /** Shows a notification with action buttons. */
     withActions: (
         message: string,
-        type: NotificationType | string = "info",
+        type = "info",
         actions: readonly NotificationAction[] = [],
         options: NotificationOptions = {}
     ) =>
@@ -506,6 +510,66 @@ export const notify = {
 function clearNotificationTimeout(timer: HideTimeout): void {
     clearTimeout(timer);
     activeTimeouts.delete(timer);
+}
+
+function addNotificationEventListener(
+    owner: NotificationElement,
+    target: EventTarget,
+    eventType: string,
+    handler: EventListener,
+    options: AddEventListenerOptions | boolean = false
+): void {
+    const cleanup = addEventListenerWithCleanup(
+        target,
+        eventType,
+        handler,
+        options
+    );
+    owner.listenerCleanups ??= [];
+    owner.listenerCleanups.push(cleanup);
+}
+
+function clearNotificationElementListeners(
+    element: NotificationElement
+): void {
+    const cleanups = element.listenerCleanups;
+    if (!cleanups) {
+        return;
+    }
+
+    for (const cleanup of cleanups.splice(0)) {
+        cleanup();
+    }
+    delete element.listenerCleanups;
+}
+
+function handleNotificationDisplayError(
+    notification: QueuedNotification | undefined,
+    error: unknown
+): void {
+    // Ensure the shown promise is resolved on error
+    if (notification && typeof notification.resolveShown === "function") {
+        try {
+            notification.resolveShown();
+        } catch {
+            /* Ignore */
+        } finally {
+            notification.resolveShown = undefined;
+        }
+    }
+    // Log in two-argument form to preserve error object context for tests and debugging
+    const errObj = error instanceof Error ? error : new Error(String(error));
+    console.error("Error displaying notification:", errObj);
+    // Also log a single-string form for tests that assert substring matching on a single argument
+    try {
+        const msg =
+            errObj && typeof errObj.message === "string"
+                ? errObj.message
+                : String(errObj);
+        console.error(`Error displaying notification: ${msg}`);
+    } catch {
+        /* No-op */
+    }
 }
 
 function clearScheduledWork(): void {
@@ -529,15 +593,16 @@ function scheduleAnimationFrame(callback: FrameRequestCallback): number {
         globalThis.window?.requestAnimationFrame ??
         globalThis.requestAnimationFrame;
     let completedSynchronously = false;
-    let frame: number | undefined;
+    const frameReference: { current?: number } = {};
 
-    frame = requestFrame.call(globalThis.window ?? globalThis, (time) => {
+    const frame = requestFrame.call(globalThis.window ?? globalThis, (time) => {
         completedSynchronously = true;
-        if (frame !== undefined) {
-            activeAnimationFrames.delete(frame);
+        if (frameReference.current !== undefined) {
+            activeAnimationFrames.delete(frameReference.current);
         }
         callback(time);
     });
+    frameReference.current = frame;
     if (!completedSynchronously) {
         activeAnimationFrames.add(frame);
     }

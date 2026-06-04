@@ -130,6 +130,55 @@ describe("showNotification interactions", () => {
         expect(el.style.display).toBe("none");
     });
 
+    it("supports keyboard activation for clickable notifications", async () => {
+        expect.assertions(5);
+
+        const onClick = vi.fn<() => void>();
+        const p = showNotification("Keyboard clickable", "info", undefined, {
+            onClick,
+            persistent: true,
+        });
+        await p;
+        const el = getRequiredNotificationElement();
+        const icon = el.querySelector(".notification-icon");
+
+        expect(el.tabIndex).toBe(0);
+        expect(icon?.getAttribute("aria-hidden")).toBe("true");
+
+        el.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
+
+        expect(onClick).toHaveBeenCalledOnce();
+        vi.advanceTimersByTime(300);
+        expect(el.style.display).toBe("none");
+        expect(el.getAttribute("tabindex")).toBeNull();
+    });
+
+    it("removes stale click handlers when rebuilding notification content", async () => {
+        expect.assertions(5);
+
+        const staleClick = vi.fn<() => void>();
+        await showNotification("First", "info", undefined, {
+            onClick: staleClick,
+            persistent: true,
+        });
+
+        const secondShown = showNotification("Second", "info", undefined, {
+            persistent: true,
+        });
+        await vi.advanceTimersByTimeAsync(1000);
+        await secondShown;
+
+        const el = getRequiredNotificationElement();
+        expect(getNotificationState(el).message).toBe("Second");
+        expect(el.style.cursor).toBe("default");
+        expect(el.getAttribute("tabindex")).toBeNull();
+
+        el.click();
+
+        expect(staleClick).not.toHaveBeenCalled();
+        expect(el.style.display).toBe("flex");
+    });
+
     it("handles invalid inputs and unknown type fallback", async () => {
         expect.assertions(4);
 
