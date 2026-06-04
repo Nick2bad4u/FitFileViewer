@@ -40,6 +40,12 @@ export function createPanelController({
         }
     }
 
+    function handleEscapeKey(event: KeyboardEvent): void {
+        if (event.key === "Escape" && !panel.hidden) {
+            closePanel({ restoreFocus: true });
+        }
+    }
+
     function ensurePanelAttached(): void {
         const { body } = document;
         if (body && panel.parentElement !== body) {
@@ -139,6 +145,7 @@ export function createPanelController({
             capture: true,
             signal,
         });
+        panel.addEventListener("keydown", handleEscapeKey, { signal });
         window.addEventListener("resize", handleViewportResize, { signal });
         window.addEventListener("scroll", handleViewportScroll, {
             capture: true,
@@ -153,7 +160,7 @@ export function createPanelController({
         });
     }
 
-    function closePanel(): void {
+    function closePanel(options: { restoreFocus?: boolean } = {}): void {
         if (!panel.hidden) {
             panel.hidden = true;
         }
@@ -168,6 +175,9 @@ export function createPanelController({
         panel.style.opacity = "";
         panel.style.pointerEvents = "";
         panel.style.removeProperty("--data-point-filter-arrow-offset");
+        if (options.restoreFocus) {
+            toggleButton.focus();
+        }
     }
 
     return { closePanel, openPanel };

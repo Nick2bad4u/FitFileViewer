@@ -279,7 +279,7 @@ function createPickFolderButton(): HTMLButtonElement {
 function createViewSegmentedControl(): HTMLElement {
     const segmented = document.createElement("div");
     segmented.className = "file-browser__segmented";
-    segmented.setAttribute("role", "tablist");
+    segmented.setAttribute("role", "group");
     segmented.setAttribute("aria-label", "Browser view");
     segmented.append(
         createViewSegmentButton(
@@ -315,8 +315,7 @@ function createViewSegmentButton(
     button.type = "button";
     button.className = "file-browser__seg-btn";
     button.id = id;
-    button.setAttribute("role", "tab");
-    button.setAttribute("aria-selected", selected ? "true" : "false");
+    button.setAttribute("aria-pressed", selected ? "true" : "false");
     appendIconLabel(
         button,
         iconName,
@@ -671,7 +670,8 @@ function sortLibraryItemsByStartTimeDesc(
     const sorted: FitLibraryItem[] = [];
     for (const item of items) {
         const insertAt = sorted.findIndex(
-            (existing) => existing.startTime.getTime() < item.startTime.getTime()
+            (existing) =>
+                existing.startTime.getTime() < item.startTime.getTime()
         );
         if (insertAt === -1) {
             sorted.push(item);
@@ -864,9 +864,8 @@ async function openBrowserFile(filePath: string): Promise<void> {
             return;
         }
 
-        const openFileBtn = document.querySelector<HTMLElement>(
-            "#open_file_btn"
-        );
+        const openFileBtn =
+            document.querySelector<HTMLElement>("#open_file_btn");
         const openParams: {
             filePath: string;
             openFileBtn?: HTMLElement;
@@ -978,7 +977,7 @@ async function refreshActiveView(): Promise<void> {
 
     if (filesBtn) {
         filesBtn.setAttribute(
-            "aria-selected",
+            "aria-pressed",
             view === "files" ? "true" : "false"
         );
         filesBtn.classList.toggle(
@@ -988,7 +987,7 @@ async function refreshActiveView(): Promise<void> {
     }
     if (libraryBtn) {
         libraryBtn.setAttribute(
-            "aria-selected",
+            "aria-pressed",
             view === "library" ? "true" : "false"
         );
         libraryBtn.classList.toggle(
@@ -998,7 +997,7 @@ async function refreshActiveView(): Promise<void> {
     }
     if (calendarBtn) {
         calendarBtn.setAttribute(
-            "aria-selected",
+            "aria-pressed",
             view === "calendar" ? "true" : "false"
         );
         calendarBtn.classList.toggle(
@@ -1544,18 +1543,15 @@ async function renderCalendarView(): Promise<void> {
         calendarEl.dataset["ffvCalendarInitialized"] = "true";
         calendarEl.replaceChildren(createCalendarScaffold());
 
-        const prevBtn = document.querySelector<HTMLElement>(
-            "#fit-calendar-prev"
-        );
-        const nextBtn = document.querySelector<HTMLElement>(
-            "#fit-calendar-next"
-        );
+        const prevBtn =
+            document.querySelector<HTMLElement>("#fit-calendar-prev");
+        const nextBtn =
+            document.querySelector<HTMLElement>("#fit-calendar-next");
         const todayBtn = document.querySelector<HTMLElement>(
             "#fit-calendar-today"
         );
-        const scanBtn = document.querySelector<HTMLElement>(
-            "#fit-calendar-scan"
-        );
+        const scanBtn =
+            document.querySelector<HTMLElement>("#fit-calendar-scan");
 
         if (prevBtn) {
             addManagedEventListener(prevBtn, "click", () => {
@@ -1823,9 +1819,7 @@ function renderLibraryResults(
     root: string,
     payload: FitLibraryCachePayload
 ): void {
-    const statusEl = document.querySelector<HTMLElement>(
-        "#fit-library-status"
-    );
+    const statusEl = document.querySelector<HTMLElement>("#fit-library-status");
     const cardsEl = document.querySelector<HTMLElement>("#fit-library-cards");
     const listEl = document.querySelector<HTMLElement>(
         "#fit-library-activities"
@@ -1930,9 +1924,8 @@ async function renderLibraryView(): Promise<void> {
         libraryEl.dataset["ffvLibraryInitialized"] = "true";
         libraryEl.replaceChildren(createLibraryScaffold());
 
-        const scanBtn = document.querySelector<HTMLElement>(
-            "#fit-library-scan"
-        );
+        const scanBtn =
+            document.querySelector<HTMLElement>("#fit-library-scan");
         if (scanBtn) {
             addManagedEventListener(scanBtn, "click", async () => {
                 await scanAndRenderLibrary(root);
@@ -1941,12 +1934,10 @@ async function renderLibraryView(): Promise<void> {
 
         // Initialize controls from persisted prefs.
         const prefs = getLibraryPrefs();
-        const daysInput = document.querySelector<HTMLInputElement>(
-            "#fit-library-days"
-        );
-        const unitSelect = document.querySelector<HTMLSelectElement>(
-            "#fit-library-unit"
-        );
+        const daysInput =
+            document.querySelector<HTMLInputElement>("#fit-library-days");
+        const unitSelect =
+            document.querySelector<HTMLSelectElement>("#fit-library-unit");
 
         if (daysInput instanceof HTMLInputElement) {
             daysInput.value = String(prefs.lastDays);
@@ -1993,9 +1984,7 @@ async function renderLibraryView(): Promise<void> {
         return;
     }
 
-    const statusEl = document.querySelector<HTMLElement>(
-        "#fit-library-status"
-    );
+    const statusEl = document.querySelector<HTMLElement>("#fit-library-status");
     if (statusEl) {
         statusEl.textContent =
             "Click ‘Scan folder’ to compute weekly/monthly totals.";
@@ -2004,9 +1993,7 @@ async function renderLibraryView(): Promise<void> {
 
 async function scanAndRenderLibrary(root: string): Promise<void> {
     const api = getElectronAPI();
-    const statusEl = document.querySelector<HTMLElement>(
-        "#fit-library-status"
-    );
+    const statusEl = document.querySelector<HTMLElement>("#fit-library-status");
     if (
         !api ||
         typeof api.listFitBrowserFolder !== "function" ||

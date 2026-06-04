@@ -122,17 +122,18 @@ describe("root app HTML security policy", () => {
             "https://tiles.openfreemap.org",
             "https://tiles.openseamap.org",
         ]);
-        expect(fontSources).toStrictEqual(["'self'", "file:", "data:"]);
+        expect(fontSources).toStrictEqual([
+            "'self'",
+            "file:",
+            "data:",
+        ]);
         expect(styleSources).toStrictEqual([
             "'self'",
             "'unsafe-inline'",
             "file:",
         ]);
         expect(connectSources).not.toEqual(
-            expect.arrayContaining([
-                "https:",
-                "wss:",
-            ])
+            expect.arrayContaining(["https:", "wss:"])
         );
         expect(imageSources).not.toContain("https:");
     });
@@ -145,6 +146,22 @@ describe("root app HTML security policy", () => {
         expect(html).not.toContain('src="https://zwiftmap.com/');
         expect(html).not.toContain('id="zwift_iframe"');
         expect(html).toContain('href="https://zwiftmap.com/"');
+    });
+
+    it("does not grant embedded AltFit iframe extra browser permissions", () => {
+        expect.assertions(4);
+
+        const html = readRootAppHtml();
+        const altFitIframeMatch =
+            /<iframe\s+[^>]*id="altfit_iframe"[^>]*>/v.exec(html);
+
+        expect(altFitIframeMatch).not.toBeNull();
+
+        const iframeMarkup = altFitIframeMatch?.[0] ?? "";
+
+        expect(iframeMarkup).not.toContain("allowfullscreen");
+        expect(iframeMarkup).not.toMatch(/\sallow(?:=|\s|>)/v);
+        expect(iframeMarkup).toContain('referrerpolicy="no-referrer"');
     });
 
     it("keeps main tabs wired to their panels with accessible button semantics", () => {

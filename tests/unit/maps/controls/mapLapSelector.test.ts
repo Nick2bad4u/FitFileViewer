@@ -117,7 +117,7 @@ describe("mapLapSelector", () => {
     });
 
     it("calls mapDrawLaps with selected single and multi-lap values", () => {
-        expect.assertions(9);
+        expect.assertions(11);
 
         getTestGlobal().globalData = {
             lapMesgs: [
@@ -193,6 +193,13 @@ describe("mapLapSelector", () => {
         });
         expect(mapDrawLaps).toHaveBeenCalledWith(["0", "1"]);
         expect(mapDrawLaps).not.toHaveBeenCalledWith(["3"]);
+
+        select.dispatchEvent(
+            new KeyboardEvent("keydown", { bubbles: true, key: "Escape" })
+        );
+
+        expect(getSelectorState(select).selectedValues).toStrictEqual(["all"]);
+        expect(mapDrawLaps).toHaveBeenCalledWith("all");
 
         removeContainer(container);
     });

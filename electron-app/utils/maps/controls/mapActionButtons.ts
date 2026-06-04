@@ -134,7 +134,7 @@ function getMainPolyline(w: MapActionButtonsGlobal): MapPolyline | null {
 function hasValidMainPolylineBounds(w: MapActionButtonsGlobal): boolean {
     return Boolean(
         w._mainPolylineOriginalBounds?.isValid &&
-            w._mainPolylineOriginalBounds.isValid()
+        w._mainPolylineOriginalBounds.isValid()
     );
 }
 
@@ -243,7 +243,8 @@ function logMapCenterAfterFit(w: MapActionButtonsGlobal): void {
             const zoom = w._leafletMapInstance?.getZoom?.();
             const latitude = center ? String(center.lat) : "unknown";
             const longitude = center ? String(center.lng) : "unknown";
-            const zoomText = typeof zoom === "number" ? String(zoom) : "unknown";
+            const zoomText =
+                typeof zoom === "number" ? String(zoom) : "unknown";
             console.log(
                 `[mapActionButtons] Map centered at ${latitude}, ${longitude}, zoom: ${zoomText}`
             );
@@ -371,47 +372,63 @@ function setupActiveFileNameMapActions(): void {
 
         // Configure element appearance and behavior
         activeFileName.style.cursor = "pointer";
-        activeFileName.title = "Click to center map on main file";
+        activeFileName.title = "Center map on main file";
+        activeFileName.setAttribute("role", "button");
+        activeFileName.setAttribute("tabindex", "0");
+        activeFileName.setAttribute("aria-label", "Center map on main file");
 
         // Remove any previous listeners to avoid stacking
         const activeFileNameElement = activeFileName as ActiveFileNameElement;
         activeFileNameElement.__ffvMapActionCleanup?.();
 
-        const cleanupCallbacks: Array<() => void> = [
-            addEventListenerWithCleanup(activeFileName, "click", () => {
-                try {
-                    console.log("[mapActionButtons] Active file name clicked");
+        function centerMapFromActiveFileName(): void {
+            try {
+                console.log("[mapActionButtons] Active file name activated");
 
-                    // Always switch to map tab (even if already active, to ensure map is visible)
-                    const mapTabBtn = querySelectorByIdFlexible(
-                        document,
-                        "#tab_map"
-                    );
-                    if (mapTabBtn instanceof HTMLElement) {
-                        console.log("[mapActionButtons] Switching to map tab");
-                        mapTabBtn.click();
+                // Always switch to map tab (even if already active, to ensure map is visible)
+                const mapTabBtn = querySelectorByIdFlexible(
+                    document,
+                    "#tab_map"
+                );
+                if (mapTabBtn instanceof HTMLElement) {
+                    console.log("[mapActionButtons] Switching to map tab");
+                    mapTabBtn.click();
 
-                        // Center on main file with a slight delay to ensure tab switch completes
-                        scheduleMapActionTimeout(() => {
-                            _centerMapOnMainFile();
-                        }, 100);
-                    } else {
-                        // If map tab button not found, still try to center
-                        console.warn(
-                            "[mapActionButtons] Map tab button not found, attempting to center anyway"
-                        );
+                    // Center on main file with a slight delay to ensure tab switch completes
+                    scheduleMapActionTimeout(() => {
                         _centerMapOnMainFile();
-                    }
-                } catch (error) {
-                    console.error(
-                        "[mapActionButtons] Error in active filename click:",
-                        error
+                    }, 100);
+                } else {
+                    // If map tab button not found, still try to center
+                    console.warn(
+                        "[mapActionButtons] Map tab button not found, attempting to center anyway"
                     );
-                    // Correct argument order: (message, type)
-                    void showNotification(
-                        "Failed to center map on file",
-                        "error"
-                    );
+                    _centerMapOnMainFile();
+                }
+            } catch (error) {
+                console.error(
+                    "[mapActionButtons] Error in active filename activation:",
+                    error
+                );
+                // Correct argument order: (message, type)
+                void showNotification("Failed to center map on file", "error");
+            }
+        }
+
+        const cleanupCallbacks: Array<() => void> = [
+            addEventListenerWithCleanup(
+                activeFileName,
+                "click",
+                centerMapFromActiveFileName
+            ),
+
+            addEventListenerWithCleanup(activeFileName, "keydown", (event) => {
+                if (
+                    event instanceof KeyboardEvent &&
+                    (event.key === "Enter" || event.key === " ")
+                ) {
+                    event.preventDefault();
+                    centerMapFromActiveFileName();
                 }
             }),
 

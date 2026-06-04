@@ -611,17 +611,6 @@ export function createDataPointFilterControl(
         )} ${currentStats.metricLabel}`;
     }
 
-    container.addEventListener(
-        "keydown",
-        (event) => {
-            if (event.key === "Escape" && !panel.hidden) {
-                closePanel();
-                toggleButton.focus();
-            }
-        },
-        { signal }
-    );
-
     function notifyChange(
         action: "apply" | "clear",
         config: MapDataPointFilterConfig,

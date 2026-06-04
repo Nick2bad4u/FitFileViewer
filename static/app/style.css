@@ -876,7 +876,7 @@ body {
     border-inline-start: 1px solid var(--color-glass-border);
 }
 
-.file-browser__seg-btn[aria-selected="true"] {
+.file-browser__seg-btn[aria-pressed="true"] {
     background: rgb(var(--color-accent-rgb) / 18%);
     color: rgb(var(--color-accent-rgb));
 }

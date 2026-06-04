@@ -226,4 +226,45 @@ describe(createPanelController, () => {
             cleanup();
         }
     });
+
+    it("closes on Escape from the reparented panel and restores toggle focus", () => {
+        expect.assertions(3);
+
+        const { cleanup, container, metricSelect, panel, toggleButton } =
+            createFixture();
+        setRect(toggleButton, {
+            bottom: 120,
+            left: 100,
+            top: 80,
+            width: 80,
+        });
+        setRect(panel, {
+            height: 120,
+            width: 200,
+        });
+
+        try {
+            const { openPanel } = createPanelController({
+                container,
+                metricSelect,
+                panel,
+                toggleButton,
+                viewportPadding: 12,
+            });
+
+            openPanel();
+            panel.dispatchEvent(
+                new KeyboardEvent("keydown", {
+                    bubbles: true,
+                    key: "Escape",
+                })
+            );
+
+            expect(panel.hidden ? "hidden" : "visible").toBe("hidden");
+            expect(toggleButton.getAttribute("aria-expanded")).toBe("false");
+            expect(document.activeElement).toBe(toggleButton);
+        } finally {
+            cleanup();
+        }
+    });
 });

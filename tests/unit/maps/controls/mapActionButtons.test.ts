@@ -132,7 +132,7 @@ function installMapGlobals(): {
 
 describe("mapActionButtons", () => {
     it("wires active filename actions without stacking duplicate listeners", async () => {
-        expect.assertions(10);
+        expect.assertions(15);
 
         vi.useFakeTimers();
         vi.resetModules();
@@ -151,8 +151,11 @@ describe("mapActionButtons", () => {
             await import("../../../../electron-app/utils/maps/controls/mapActionButtons.js");
 
             expect(activeFileName.style.cursor).toBe("pointer");
-            expect(activeFileName.title).toBe(
-                "Click to center map on main file"
+            expect(activeFileName.title).toBe("Center map on main file");
+            expect(activeFileName.getAttribute("role")).toBe("button");
+            expect(activeFileName.getAttribute("tabindex")).toBe("0");
+            expect(activeFileName.getAttribute("aria-label")).toBe(
+                "Center map on main file"
             );
 
             activeFileName.dispatchEvent(new MouseEvent("mouseenter"));
@@ -185,6 +188,14 @@ describe("mapActionButtons", () => {
             expect(fitBounds).toHaveBeenCalledWith(bounds, {
                 padding: [20, 20],
             });
+
+            activeFileName.dispatchEvent(
+                new KeyboardEvent("keydown", { bubbles: true, key: " " })
+            );
+            vi.advanceTimersByTime(100);
+
+            expect(tabClicks).toHaveBeenCalledTimes(2);
+            expect(polylineBringToFront).toHaveBeenCalledTimes(2);
 
             getTestGlobal().updateShownFilesList?.("activity.fit");
 

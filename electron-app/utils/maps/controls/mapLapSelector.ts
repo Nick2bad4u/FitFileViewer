@@ -172,6 +172,10 @@ export function addLapSelector(
     function handleEscapeKey(event: KeyboardEvent): void {
         if (event.key === "Escape") {
             hideHelpTooltip({ force: true });
+            if (multiSelectMode) {
+                clearLapSelection();
+                event.preventDefault();
+            }
         }
     }
 
@@ -249,12 +253,21 @@ export function addLapSelector(
         (event) => event.stopPropagation(),
         { passive: true, signal }
     );
+    lapControl.addEventListener("keydown", handleEscapeKey, { signal });
     container.append(lapControl);
 
     const deselectAllBtnEl = deselectAllBtn;
     const lapSelectEl = lapSelect;
     const multiLapToggleEl = multiLapToggle;
     let multiSelectMode = false;
+
+    function clearLapSelection(): void {
+        for (const opt of lapSelectEl.options) {
+            opt.selected = false;
+        }
+        lapSelectEl.selectedIndex = 0;
+        lapSelectEl.dispatchEvent(new Event("change"));
+    }
 
     const renderToggleIcon = (on: boolean): void => {
         // Keep the label span, just swap the first child icon.
@@ -306,17 +319,9 @@ export function addLapSelector(
     }
 
     if (deselectAllBtnEl) {
-        deselectAllBtnEl.addEventListener(
-            "click",
-            () => {
-                for (const opt of lapSelectEl.options) {
-                    opt.selected = false;
-                }
-                lapSelectEl.selectedIndex = 0;
-                lapSelectEl.dispatchEvent(new Event("change"));
-            },
-            { signal }
-        );
+        deselectAllBtnEl.addEventListener("click", () => clearLapSelection(), {
+            signal,
+        });
     }
 
     // Hide deselect button by default.
