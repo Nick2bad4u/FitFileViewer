@@ -37,7 +37,7 @@ const DEFAULT_TAB_NAMES = [
  */
 export function normalizeTabName(rawName: string): string {
     return String(rawName)
-        .replaceAll(/([a-z0-9])([A-Z])/gu, "$1_$2")
+        .replaceAll(/(?<=[a-z0-9])(?=[A-Z])/gu, "_")
         .toLowerCase();
 }
 
@@ -79,7 +79,7 @@ export function extractTabNameFromButtonId(
     ];
 
     for (const pattern of patterns) {
-        const match = tabId.match(pattern);
+        const match = pattern.exec(tabId);
         if (match) {
             const rawName = match[1] ?? "";
             const normalized = rawName.toLowerCase();
@@ -118,14 +118,14 @@ export function resolveTabNameFromButtonId(
     }
 
     const patterns = [
-        /^tab[-_]?(.+)$/i,
-        /^(.+?)[-_]?tab$/i,
-        /^btn[-_]?(.+)$/i,
-        /^(.+?)[-_]?btn$/i,
+        /^tab[_-]?(.+)$/i,
+        /^(.+?)[_-]?tab$/i,
+        /^btn[_-]?(.+)$/i,
+        /^(.+?)[_-]?btn$/i,
     ];
 
     for (const pattern of patterns) {
-        const match = buttonId.match(pattern);
+        const match = pattern.exec(buttonId);
         if (match?.[1]) {
             const normalized = normalizeTabName(match[1]);
             if (tabConfigMap?.[normalized]) {
@@ -162,7 +162,7 @@ export function extractTabNameFromContentId(contentId: unknown): null | string {
     ];
 
     for (const pattern of patterns) {
-        const match = contentId.match(pattern);
+        const match = pattern.exec(contentId);
         if (match?.[1]) {
             return normalizeContentTabName(match[1]);
         }

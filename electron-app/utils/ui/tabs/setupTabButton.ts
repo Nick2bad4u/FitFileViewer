@@ -1,3 +1,4 @@
+import { querySelectorByIdFlexible } from "../dom/elementIdUtils.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 
 type CleanupFunction = () => void;
@@ -16,26 +17,32 @@ type TabButtonElement = HTMLElement & {
  * @param id - The ID of the button element.
  * @param handler - The event handler function to be executed on click.
  *
- * @returns Cleanup function to remove the event listener, or void if setup
+ * @returns Cleanup function to remove the event listener, or undefined if setup
  *   failed.
  */
 export function setupTabButton(
     id: unknown,
     handler: unknown
-): CleanupFunction | void {
-    if (id == null || typeof id !== "string" || id.trim() === "") {
+): CleanupFunction | undefined {
+    if (
+        id === null ||
+        id === undefined ||
+        typeof id !== "string" ||
+        id.trim() === ""
+    ) {
         console.warn("Invalid button id provided.");
-        return;
+        return undefined;
     }
 
     if (typeof handler !== "function") {
         console.warn("Invalid handler provided. It must be a function.");
-        return;
+        return undefined;
     }
     const clickHandler = handler as EventListener;
 
-    const fn = setupTabButton as SetupTabButtonWithCache,
-        cache = (fn.cache ??= new Map<string, HTMLElement>());
+    const fn = setupTabButton as SetupTabButtonWithCache;
+    fn.cache ??= new Map<string, HTMLElement>();
+    const { cache } = fn;
     let btn: HTMLElement | null | undefined = cache.get(id);
 
     if (btn) {
@@ -45,25 +52,25 @@ export function setupTabButton(
                 `Cached button with id "${id}" is no longer in DOM. Refreshing cache.`
             );
             cache.delete(id);
-            btn = document.getElementById(id);
+            btn = querySelectorByIdFlexible(document, `#${id}`);
             if (btn) {
                 cache.set(id, btn);
             } else {
                 console.warn(
                     `Button with id "${id}" not found after cache refresh.`
                 );
-                return;
+                return undefined;
             }
         }
     } else {
-        btn = document.getElementById(id);
+        btn = querySelectorByIdFlexible(document, `#${id}`);
         if (btn) {
             cache.set(id, btn);
         } else {
             console.warn(
                 `Button with id "${id}" not found. Ensure the element exists in the DOM.`
             );
-            return;
+            return undefined;
         }
     }
 

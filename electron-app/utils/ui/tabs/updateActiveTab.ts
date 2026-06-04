@@ -62,9 +62,9 @@ function getEffectiveGlobals(): EffectiveGlobals {
 
 function getWindowDocument(): Document | undefined {
     try {
-        return typeof globalThis.window !== "undefined"
-            ? globalThis.window.document
-            : undefined;
+        return globalThis.window === undefined
+            ? undefined
+            : globalThis.window.document;
     } catch {
         return undefined;
     }
@@ -72,9 +72,9 @@ function getWindowDocument(): Document | undefined {
 
 function getGlobalDocument(): Document | undefined {
     try {
-        return typeof globalThis.document !== "undefined"
-            ? globalThis.document
-            : undefined;
+        return globalThis.document === undefined
+            ? undefined
+            : globalThis.document;
     } catch {
         return undefined;
     }
@@ -106,9 +106,7 @@ function getDoc(): Document {
 }
 
 function asStateManagerCandidate(value: unknown): StateManagerCandidate {
-    return value !== null && typeof value === "object"
-        ? (value as StateManagerCandidate)
-        : {};
+    return value !== null && typeof value === "object" ? value : {};
 }
 
 function getGetState(
@@ -207,7 +205,7 @@ function getButtonId(button: TabButtonLike): string {
 
 function isDisabledButton(button: TabButtonLike): boolean {
     const hasDisabledClass =
-        button.classList?.contains?.("tab-disabled") === true;
+        button.classList?.contains?.("tab-disabled");
 
     return (
         button.disabled === true ||
@@ -250,6 +248,42 @@ function setActiveTabFromButton(button: TabButtonLike, source: string): void {
     getStateMgr().setState("ui.activeTab", tabName, { source });
 }
 
+function createActiveTabClickHandler(
+    button: TabButtonLike
+): (event: Event) => void {
+    return (event: Event): void => {
+        if (isDisabledButton(button)) {
+            try {
+                console.log(
+                    `[ActiveTab] Ignoring click on disabled button: ${button.id ?? ""}`
+                );
+            } catch {
+                /* Ignore errors */
+            }
+            try {
+                event.preventDefault();
+                event.stopPropagation();
+            } catch {
+                /* Ignore errors */
+            }
+            return;
+        }
+
+        try {
+            setActiveTabFromButton(button, "tabButtonClick");
+        } catch (error) {
+            try {
+                console.warn(
+                    "[ActiveTab] Failed to set state from button click:",
+                    error
+                );
+            } catch {
+                /* Ignore errors */
+            }
+        }
+    };
+}
+
 function handleTabKeyboardNavigation(
     event: KeyboardEvent,
     button: TabButtonLike
@@ -264,20 +298,33 @@ function handleTabKeyboardNavigation(
     }
 
     const currentIndex = enabledButtons.indexOf(button);
-    if (currentIndex < 0) {
+    if (currentIndex === -1) {
         return;
     }
 
     let nextIndex: number | null = null;
-    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
-        nextIndex = (currentIndex + 1) % enabledButtons.length;
-    } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
-        nextIndex =
-            (currentIndex - 1 + enabledButtons.length) % enabledButtons.length;
-    } else if (event.key === "Home") {
-        nextIndex = 0;
-    } else if (event.key === "End") {
-        nextIndex = enabledButtons.length - 1;
+    switch (event.key) {
+        case "ArrowDown":
+        case "ArrowRight": {
+            nextIndex = (currentIndex + 1) % enabledButtons.length;
+            break;
+        }
+        case "ArrowLeft":
+        case "ArrowUp": {
+            nextIndex =
+                (currentIndex - 1 + enabledButtons.length) %
+                enabledButtons.length;
+            break;
+        }
+        case "End": {
+            nextIndex = enabledButtons.length - 1;
+            break;
+        }
+        case "Home": {
+            nextIndex = 0;
+            break;
+        }
+        // No default
     }
 
     if (nextIndex === null) {
@@ -369,37 +416,7 @@ export function initializeActiveTabState(): void {
                 }
 
                 const button = candidate;
-                const onClick = (event: Event) => {
-                    if (isDisabledButton(button)) {
-                        try {
-                            console.log(
-                                `[ActiveTab] Ignoring click on disabled button: ${button.id ?? ""}`
-                            );
-                        } catch {
-                            /* Ignore errors */
-                        }
-                        try {
-                            event.preventDefault();
-                            event.stopPropagation();
-                        } catch {
-                            /* Ignore errors */
-                        }
-                        return;
-                    }
-
-                    try {
-                        setActiveTabFromButton(button, "tabButtonClick");
-                    } catch (error) {
-                        try {
-                            console.warn(
-                                "[ActiveTab] Failed to set state from button click:",
-                                error
-                            );
-                        } catch {
-                            /* Ignore errors */
-                        }
-                    }
-                };
+                const onClick = createActiveTabClickHandler(button);
 
                 addEventListenerWithCleanup(button, "click", onClick);
                 addEventListenerWithCleanup(button, "keydown", (event) => {

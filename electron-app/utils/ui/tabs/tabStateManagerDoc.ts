@@ -22,7 +22,7 @@ export function getDoc(): Document {
     // Prefer Vitest effective document, if present
     try {
         if (
-            typeof __vitest_effective_document__ !== "undefined" &&
+            __vitest_effective_document__ !== undefined &&
             __vitest_effective_document__
         ) {
             candidates.push(__vitest_effective_document__);

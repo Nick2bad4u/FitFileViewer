@@ -81,9 +81,9 @@ function getEffectiveGlobals(): EffectiveGlobals {
 
 function getGlobalDocument(): Document | undefined {
     try {
-        return typeof globalThis.document !== "undefined"
-            ? globalThis.document
-            : undefined;
+        return globalThis.document === undefined
+            ? undefined
+            : globalThis.document;
     } catch {
         return undefined;
     }
@@ -114,9 +114,7 @@ function getDoc(): Document {
 }
 
 function asStateManagerCandidate(value: unknown): StateManagerCandidate {
-    return value !== null && typeof value === "object"
-        ? (value as StateManagerCandidate)
-        : {};
+    return value !== null && typeof value === "object" ? value : {};
 }
 
 function getGetState(

@@ -46,7 +46,7 @@ export function getDoc(): Document {
     // Canonical Vitest document (preferred)
     try {
         if (
-            typeof __vitest_effective_document__ !== "undefined" &&
+            __vitest_effective_document__ !== undefined &&
             __vitest_effective_document__
         ) {
             candidates.push(__vitest_effective_document__);
@@ -117,7 +117,7 @@ export function getStateMgr(): StateManagerAccess {
     }
     try {
         const eff =
-            typeof __vitest_effective_stateManager__ !== "undefined" &&
+            __vitest_effective_stateManager__ !== undefined &&
             __vitest_effective_stateManager__;
         if (isRecord(eff)) {
             const getState =
