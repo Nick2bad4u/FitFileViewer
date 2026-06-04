@@ -8,15 +8,6 @@
         fromWebContents: (webContents: unknown) => BrowserWindow | null;
     }
 
-    interface BrowserConfStore {
-        get: (key: string, fallback?: unknown) => unknown;
-        set: (key: string, value: unknown) => void;
-    }
-
-    interface BrowserConfModule {
-        Conf?: new (options: { name: string }) => BrowserConfStore;
-    }
-
     type ConstantsLike = {
         SETTINGS_CONFIG_NAME: string;
         [key: string]: unknown;
@@ -239,51 +230,6 @@
                     // Don't trust renderer-provided paths blindly; only persist if it is an approved FIT path.
                     const approvedPath = assertFileReadAllowed(filePath);
                     setAppState("loadedFitFilePath", approvedPath);
-
-                    // Default the Browser tab folder to the currently loaded file's directory.
-                    // We only do this when the user has not explicitly chosen a browser folder.
-                    try {
-                        const confMod =
-                            require("electron-conf") as BrowserConfModule;
-                        const ConfCtor = confMod && confMod.Conf;
-                        if (typeof ConfCtor === "function") {
-                            const conf = new ConfCtor({
-                                name: CONSTANTS.SETTINGS_CONFIG_NAME,
-                            });
-                            const modeRaw = conf.get(
-                                "fitBrowser.rootFolderMode",
-                                "auto"
-                            );
-                            const mode =
-                                typeof modeRaw === "string"
-                                    ? modeRaw.trim().toLowerCase()
-                                    : "auto";
-                            if (mode !== "manual") {
-                                const dir =
-                                    typeof path.dirname === "function"
-                                        ? path.dirname(approvedPath)
-                                        : "";
-                                if (
-                                    typeof dir === "string" &&
-                                    dir.trim().length > 0
-                                ) {
-                                    conf.set("fitBrowser.rootFolder", dir);
-                                    conf.set(
-                                        "fitBrowser.rootFolderMode",
-                                        "auto"
-                                    );
-                                }
-                            }
-                        }
-                    } catch (error) {
-                        logWithContext(
-                            "warn",
-                            "Failed to auto-default fitBrowser folder",
-                            {
-                                error: getErrorMessage(error),
-                            }
-                        );
-                    }
                 } catch (error) {
                     logWithContext(
                         "warn",
