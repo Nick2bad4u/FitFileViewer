@@ -14,6 +14,12 @@
     }
 
     interface FileReader {
+        promises?: {
+            readFile?: (
+                path: string,
+                encoding: BufferEncoding
+            ) => Promise<string>;
+        };
         readFileSync?: (path: string) => Buffer | string;
     }
 
@@ -39,7 +45,7 @@
     type InfoIpcHandler = (
         event: unknown,
         ...args: unknown[]
-    ) => Promise<InfoResponsePayload>;
+    ) => InfoResponsePayload | Promise<InfoResponsePayload>;
 
     type RegisterInfoIpcHandle = (
         channel: InfoInvokeChannel,
@@ -79,6 +85,15 @@
 
     const getErrorMessage = (error: unknown): string =>
         error instanceof Error ? error.message : String(error);
+
+    function normalizeMapTab(value: unknown): MapTabSelectionResponse {
+        const tab = typeof value === "string" ? value.trim() : "";
+        // Conservative: only allow simple identifier-like tab names.
+        if (/^[\w-]{1,32}$/u.test(tab)) {
+            return tab;
+        }
+        return "map";
+    }
 
     /**
      * Registers IPC handlers that expose platform and application metadata.
@@ -131,25 +146,15 @@
                 : CONSTANTS.DEFAULT_THEME;
         };
 
-        const normalizeMapTab = (value: unknown): MapTabSelectionResponse => {
-            const tab = typeof value === "string" ? value.trim() : "";
-            // Conservative: only allow simple identifier-like tab names.
-            if (/^[a-z0-9_-]{1,32}$/iu.test(tab)) {
-                return tab;
-            }
-            return "map";
-        };
-
         const handlers: Record<InfoInvokeChannel, InfoIpcHandler> = {
-            getAppVersion: async (): Promise<InfoStringResponse> => {
+            getAppVersion: (): InfoStringResponse => {
                 const app = appRef();
                 return app && typeof app.getVersion === "function"
                     ? app.getVersion()
                     : "";
             },
-            getChromeVersion: async (): Promise<InfoStringResponse> =>
-                process.versions.chrome,
-            getElectronVersion: async (): Promise<InfoStringResponse> =>
+            getChromeVersion: (): InfoStringResponse => process.versions.chrome,
+            getElectronVersion: (): InfoStringResponse =>
                 process.versions.electron,
             getLicenseInfo: async (): Promise<InfoStringResponse> => {
                 try {
@@ -158,14 +163,13 @@
                         app && typeof app.getAppPath === "function"
                             ? app.getAppPath()
                             : process.cwd();
-                    if (!fs || typeof fs.readFileSync !== "function") {
-                        throw new Error("Filesystem module unavailable");
+                    const readFile = fs?.promises?.readFile;
+                    if (typeof readFile !== "function") {
+                        throw new TypeError("Filesystem module unavailable");
                     }
                     const pkgPath = path.join(basePath, "package.json");
-                    const packageJsonBuffer = fs.readFileSync(pkgPath);
-                    const packageJson: unknown = JSON.parse(
-                        packageJsonBuffer.toString("utf8")
-                    );
+                    const packageJsonText = await readFile(pkgPath, "utf8");
+                    const packageJson: unknown = JSON.parse(packageJsonText);
                     return isPackageMetadata(packageJson) &&
                         typeof packageJson.license === "string"
                         ? packageJson.license
@@ -181,15 +185,14 @@
                     return "Unknown";
                 }
             },
-            getNodeVersion: async (): Promise<InfoStringResponse> =>
-                process.versions.node,
-            getPlatformInfo: async (): Promise<InfoPlatformResponse> => ({
+            getNodeVersion: (): InfoStringResponse => process.versions.node,
+            getPlatformInfo: (): InfoPlatformResponse => ({
                 arch: process.arch,
                 platform: process.platform,
             }),
-            "map-tab:get": async () =>
+            "map-tab:get": () =>
                 safeConfGet("selectedMapTab", "map", normalizeMapTab),
-            "theme:get": async () =>
+            "theme:get": () =>
                 safeConfGet("theme", CONSTANTS.DEFAULT_THEME, normalizeTheme),
         };
 

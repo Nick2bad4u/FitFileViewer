@@ -21,7 +21,11 @@ type AppInfoProvider = {
     getVersion: Mock<() => string>;
 };
 type FileReader = {
-    readFileSync: Mock<(filePath: string) => Buffer>;
+    promises: {
+        readFile: Mock<
+            (filePath: string, encoding: BufferEncoding) => Promise<string>
+        >;
+    };
 };
 type PathJoiner = {
     join: Mock<(...paths: string[]) => string>;
@@ -85,7 +89,15 @@ describe("registerInfoHandlers", () => {
             getVersion: vi.fn<() => string>().mockReturnValue("1.2.3"),
         });
         fs = {
-            readFileSync: vi.fn<(filePath: string) => Buffer>(),
+            promises: {
+                readFile:
+                    vi.fn<
+                        (
+                            filePath: string,
+                            encoding: BufferEncoding
+                        ) => Promise<string>
+                    >(),
+            },
         };
         path = {
             join: vi.fn<(...args: string[]) => string>((...args) =>
@@ -163,9 +175,7 @@ describe("registerInfoHandlers", () => {
 
         const handlers = getHandlers();
         const licenseJson = { license: "Unlicense" };
-        fs.readFileSync.mockReturnValue(
-            Buffer.from(JSON.stringify(licenseJson))
-        );
+        fs.promises.readFile.mockResolvedValue(JSON.stringify(licenseJson));
 
         await expect(getHandler(handlers, "getAppVersion")()).resolves.toBe(
             "1.2.3"
@@ -201,9 +211,7 @@ describe("registerInfoHandlers", () => {
         expect.assertions(2);
 
         const handlers = getHandlers();
-        fs.readFileSync.mockImplementation(() => {
-            throw new Error("fs failure");
-        });
+        fs.promises.readFile.mockRejectedValue(new Error("fs failure"));
 
         await expect(getHandler(handlers, "getLicenseInfo")()).resolves.toBe(
             "Unknown"

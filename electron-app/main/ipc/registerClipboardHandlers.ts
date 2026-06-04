@@ -77,7 +77,7 @@
 
         registerIpcHandle(
             "clipboard:writeText",
-            async (_event, text): Promise<ClipboardResult> => {
+            (_event, text): ClipboardResult => {
                 try {
                     const parsed = textSchema.safeParse(String(text));
                     if (!parsed.success) {
@@ -105,7 +105,7 @@
 
         registerIpcHandle(
             "clipboard:writePngDataUrl",
-            async (_event, pngDataUrl): Promise<ClipboardResult> => {
+            (_event, pngDataUrl): ClipboardResult => {
                 try {
                     const parsed = pngDataUrlSchema.safeParse(
                         String(pngDataUrl)

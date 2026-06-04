@@ -1,10 +1,5 @@
 {
-    type NodeBuffer = import("node:buffer").Buffer;
-    type NodeBufferConstructor = typeof import("node:buffer").Buffer;
-
-    const { Buffer } = require("node:buffer") as {
-        Buffer: NodeBufferConstructor;
-    };
+    type NodeBuffer = Buffer;
 
     /** Maximum supported FIT payload size accepted over main-process IPC. */
     const MAX_FIT_IPC_PAYLOAD_BYTES = 100 * 1024 * 1024;

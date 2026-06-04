@@ -51,9 +51,9 @@
      *
      * @throws Re-throws registration errors for new ipcMain instances.
      */
-    function registerIpcHandle<T extends IpcCallback>(
+    function registerIpcHandle(
         channel: GenericInvokeChannel,
-        handler: T
+        handler: IpcCallback
     ): void {
         const ipcMain = ipcMainRef();
         if (!ipcMain || typeof ipcMain.handle !== "function") {
@@ -109,9 +109,9 @@
      *
      * @throws Re-throws listener registration errors for new ipcMain instances.
      */
-    function registerIpcListener<T extends IpcCallback>(
+    function registerIpcListener(
         channel: MainProcessIpcEventChannel,
-        listener: T
+        listener: IpcCallback
     ): void {
         const ipcMain = ipcMainRef();
         if (!ipcMain || typeof ipcMain.on !== "function") {

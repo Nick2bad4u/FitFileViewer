@@ -97,6 +97,32 @@
         message: string,
         context?: Record<string, unknown>
     ) => void;
+    type ReaddirFunction = NonNullable<
+        NonNullable<FsApi["promises"]>["readdir"]
+    >;
+    type StatFunction = NonNullable<NonNullable<FsApi["promises"]>["stat"]>;
+
+    interface BrowserDirectoryApis {
+        readdir: ReaddirFunction;
+        stat: StatFunction;
+    }
+
+    interface BrowserEntryParams {
+        baseRel: string;
+        dirent: DirentLike;
+        logWithContext: LogWithContext | undefined;
+        path: PathApi;
+        root: string;
+    }
+
+    interface BrowserListParams {
+        abs: string;
+        apis: BrowserDirectoryApis;
+        listRelPath: string;
+        logWithContext: LogWithContext | undefined;
+        path: PathApi;
+        root: string;
+    }
 
     interface RegisterBrowserHandlersOptions {
         CONSTANTS: BrowserConstants;
@@ -125,6 +151,134 @@
             return null;
         }
         return path.isAbsolute(v) ? v : null;
+    }
+
+    function createBrowserListResponse(
+        root: FitBrowserGetFolderResponse,
+        relPath = "",
+        entries: FitBrowserEntry[] = []
+    ): FitBrowserListFolderResponse {
+        return { entries, relPath, root };
+    }
+
+    function getBrowserDirectoryApis(fs: FsApi): BrowserDirectoryApis | null {
+        const readdir = fs.promises?.readdir;
+        const stat = fs.promises?.stat;
+        return typeof readdir === "function" && typeof stat === "function"
+            ? { readdir, stat }
+            : null;
+    }
+
+    async function isReadableDirectory(
+        abs: string,
+        stat: StatFunction
+    ): Promise<boolean> {
+        const s = await stat(abs);
+        return Boolean(
+            s && typeof s.isDirectory === "function" && s.isDirectory()
+        );
+    }
+
+    function createBrowserEntryFromDirent({
+        baseRel,
+        dirent,
+        logWithContext,
+        path,
+        root,
+    }: BrowserEntryParams): FitBrowserEntry | null {
+        const name =
+            dirent && typeof dirent.name === "string" ? dirent.name : "";
+        if (!name || name === "." || name === "..") {
+            return null;
+        }
+
+        const childRel = baseRel ? `${baseRel}/${name}` : name;
+        const childAbs = resolveWithinRoot(root, childRel, path);
+        if (!childAbs) {
+            return null;
+        }
+
+        if (typeof dirent.isDirectory === "function" && dirent.isDirectory()) {
+            return {
+                fullPath: childAbs,
+                kind: "dir",
+                name,
+                relPath: childRel,
+            };
+        }
+
+        if (typeof dirent.isFile !== "function" || !dirent.isFile()) {
+            return null;
+        }
+
+        const lower = name.toLowerCase();
+        if (!lower.endsWith(".fit")) {
+            return null;
+        }
+
+        // Approve the file for subsequent readFile() use.
+        try {
+            approveFilePath(childAbs);
+        } catch (error) {
+            logWithContext?.("warn", "Failed to approve FIT file for browser", {
+                error: getErrorMessage(error),
+                filePath: childAbs,
+            });
+        }
+
+        return {
+            fullPath: childAbs,
+            kind: "file",
+            name,
+            relPath: childRel,
+        };
+    }
+
+    async function listBrowserFolderEntries({
+        abs,
+        apis,
+        listRelPath,
+        logWithContext,
+        path,
+        root,
+    }: BrowserListParams): Promise<FitBrowserListFolderResponse> {
+        if (!(await isReadableDirectory(abs, apis.stat))) {
+            return createBrowserListResponse(root);
+        }
+
+        const out: FitBrowserEntry[] = [];
+        const dirents = await apis.readdir(abs, { withFileTypes: true });
+        const baseRel = listRelPath
+            .trim()
+            .replaceAll("\\", "/")
+            .replace(/^\/+/, "");
+
+        for (const dirent of dirents) {
+            const entry = createBrowserEntryFromDirent({
+                baseRel,
+                dirent,
+                logWithContext,
+                path,
+                root,
+            });
+            if (entry) {
+                out.push(entry);
+            }
+        }
+
+        out.sort((a, b) => {
+            if (a.kind !== b.kind) {
+                return a.kind === "dir" ? -1 : 1;
+            }
+            return a.name.localeCompare(b.name);
+        });
+
+        // Hard cap to avoid renderer-driven perf issues.
+        return {
+            entries: out.slice(0, 500),
+            relPath: baseRel,
+            root,
+        };
     }
 
     /**
@@ -224,7 +378,7 @@
                 return;
             }
             try {
-                conf.set(CONF_KEY_ENABLED, enabled === true);
+                conf.set(CONF_KEY_ENABLED, enabled);
             } catch (error) {
                 logWithContext?.(
                     "warn",
@@ -282,15 +436,12 @@
 
         registerIpcHandle(
             "browser:isEnabled",
-            async (): Promise<FitBrowserEnabledResponse> => readEnabled()
+            (): FitBrowserEnabledResponse => readEnabled()
         );
 
         registerIpcHandle(
             "browser:setEnabled",
-            async (
-                _event,
-                enabled: unknown
-            ): Promise<FitBrowserEnabledResponse> => {
+            (_event, enabled: unknown): FitBrowserEnabledResponse => {
                 const requestedEnabled: FitBrowserSetEnabledRequest =
                     enabled === true;
                 writeEnabled(requestedEnabled);
@@ -300,7 +451,7 @@
 
         registerIpcHandle(
             "browser:getFolder",
-            async (): Promise<FitBrowserGetFolderResponse> => readRootFolder()
+            (): FitBrowserGetFolderResponse => readRootFolder()
         );
 
         registerIpcHandle(
@@ -362,11 +513,11 @@
                 relPath: unknown = ""
             ): Promise<FitBrowserListFolderResponse> => {
                 if (!readEnabled()) {
-                    return { entries: [], relPath: "", root: readRootFolder() };
+                    return createBrowserListResponse(readRootFolder());
                 }
                 const root = readRootFolder();
                 if (!root) {
-                    return { entries: [], relPath: "", root };
+                    return createBrowserListResponse(root);
                 }
 
                 const listRelPath: FitBrowserListFolderRequest =
@@ -374,107 +525,23 @@
 
                 const abs = resolveWithinRoot(root, listRelPath, path);
                 if (!abs) {
-                    return { entries: [], relPath: "", root };
+                    return createBrowserListResponse(root);
                 }
 
-                const readdir = fs?.promises?.readdir;
-                const stat = fs?.promises?.stat;
-                if (
-                    typeof readdir !== "function" ||
-                    typeof stat !== "function"
-                ) {
-                    return { entries: [], relPath: "", root };
+                const apis = getBrowserDirectoryApis(fs);
+                if (!apis) {
+                    return createBrowserListResponse(root);
                 }
 
                 try {
-                    const s = await stat(abs);
-                    if (
-                        !s ||
-                        typeof s.isDirectory !== "function" ||
-                        !s.isDirectory()
-                    ) {
-                        return { entries: [], relPath: "", root };
-                    }
-
-                    const out: FitBrowserEntry[] = [];
-                    const dirents = await readdir(abs, { withFileTypes: true });
-                    const baseRel = listRelPath
-                        .trim()
-                        .replaceAll("\\", "/")
-                        .replace(/^\/+/, "");
-
-                    for (const d of dirents) {
-                        const name =
-                            d && typeof d.name === "string" ? d.name : "";
-                        if (!name || name === "." || name === "..") {
-                            continue;
-                        }
-
-                        const childRel = baseRel ? `${baseRel}/${name}` : name;
-                        const childAbs = resolveWithinRoot(
-                            root,
-                            childRel,
-                            path
-                        );
-                        if (!childAbs) {
-                            continue;
-                        }
-
-                        if (
-                            typeof d.isDirectory === "function" &&
-                            d.isDirectory()
-                        ) {
-                            out.push({
-                                fullPath: childAbs,
-                                kind: "dir",
-                                name,
-                                relPath: childRel,
-                            });
-                            continue;
-                        }
-
-                        if (typeof d.isFile === "function" && d.isFile()) {
-                            const lower = name.toLowerCase();
-                            if (!lower.endsWith(".fit")) {
-                                continue;
-                            }
-
-                            // Approve the file for subsequent readFile() use.
-                            try {
-                                approveFilePath(childAbs);
-                            } catch (error) {
-                                logWithContext?.(
-                                    "warn",
-                                    "Failed to approve FIT file for browser",
-                                    {
-                                        error: getErrorMessage(error),
-                                        filePath: childAbs,
-                                    }
-                                );
-                            }
-
-                            out.push({
-                                fullPath: childAbs,
-                                kind: "file",
-                                name,
-                                relPath: childRel,
-                            });
-                        }
-                    }
-
-                    out.sort((a, b) => {
-                        if (a.kind !== b.kind) {
-                            return a.kind === "dir" ? -1 : 1;
-                        }
-                        return a.name.localeCompare(b.name);
-                    });
-
-                    // Hard cap to avoid renderer-driven perf issues.
-                    return {
-                        entries: out.slice(0, 500),
-                        relPath: baseRel,
+                    return await listBrowserFolderEntries({
+                        abs,
+                        apis,
+                        listRelPath,
+                        logWithContext,
+                        path,
                         root,
-                    };
+                    });
                 } catch (error) {
                     logWithContext?.(
                         "warn",
@@ -485,7 +552,7 @@
                             root,
                         }
                     );
-                    return { entries: [], relPath: "", root };
+                    return createBrowserListResponse(root);
                 }
             }
         );

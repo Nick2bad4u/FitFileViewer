@@ -53,7 +53,9 @@
     function normalizeFileReadResultToArrayBuffer(value: unknown): ArrayBuffer {
         if (isArrayBuffer(value)) {
             assertFitFileByteLength(value.byteLength);
-            return value.slice(0);
+            const clone = new ArrayBuffer(value.byteLength);
+            new Uint8Array(clone).set(new Uint8Array(value));
+            return clone;
         }
 
         if (!isArrayBufferViewWithArrayBuffer(value)) {

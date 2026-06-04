@@ -75,26 +75,23 @@
             return;
         }
 
-        registerIpcHandle(
-            "recentFiles:get",
-            async (): Promise<RecentFilesListResponse> => {
-                try {
-                    // Important: This handler is intentionally side-effect free.
-                    // Do NOT seed file read approvals here, otherwise a compromised renderer can
-                    // escalate immediately into reading *all* persisted recent paths.
-                    return sanitizeRecentFilesList(loadRecentFiles());
-                } catch (error) {
-                    logWithContext?.("error", "Error in recentFiles:get:", {
-                        error: getErrorMessage(error),
-                    });
-                    throw error;
-                }
+        registerIpcHandle("recentFiles:get", (): RecentFilesListResponse => {
+            try {
+                // Important: This handler is intentionally side-effect free.
+                // Do NOT seed file read approvals here, otherwise a compromised renderer can
+                // escalate immediately into reading *all* persisted recent paths.
+                return sanitizeRecentFilesList(loadRecentFiles());
+            } catch (error) {
+                logWithContext?.("error", "Error in recentFiles:get:", {
+                    error: getErrorMessage(error),
+                });
+                throw error;
             }
-        );
+        });
 
         registerIpcHandle(
             "recentFiles:approve",
-            async (_event, filePath): Promise<RecentFilesApprovalResponse> => {
+            (_event, filePath): RecentFilesApprovalResponse => {
                 try {
                     logWithContext?.(
                         "warn",

@@ -136,7 +136,11 @@
                                     normalizeFileReadResultToArrayBuffer(data)
                                 );
                             } catch (readResultError) {
-                                reject(readResultError);
+                                reject(
+                                    readResultError instanceof Error
+                                        ? readResultError
+                                        : new Error(String(readResultError))
+                                );
                             }
                         });
                     };

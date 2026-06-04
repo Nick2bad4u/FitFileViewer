@@ -144,7 +144,7 @@
      * lean.
      */
     function setupIPCHandlers(mainWindow?: BrowserWindow | null): void {
-        ensureFitParserStateIntegration().catch((error) => {
+        ensureFitParserStateIntegration().catch((error: unknown) => {
             logWithContext(
                 "warn",
                 "Fit parser state integration failed to initialize",
