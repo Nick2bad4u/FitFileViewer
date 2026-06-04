@@ -51,10 +51,7 @@
     function shouldEnforceGenericIpcAllowlist(
         processRef: ProcessLike | undefined = process
     ): boolean {
-        return (
-            isPreloadElectronRuntime(processRef) &&
-            getProcessEnvValue(processRef, "FFV_ALLOW_GENERIC_IPC") !== "true"
-        );
+        return isPreloadElectronRuntime(processRef);
     }
 
     module.exports = {

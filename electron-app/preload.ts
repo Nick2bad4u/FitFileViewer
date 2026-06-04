@@ -435,8 +435,8 @@ const {
  * enforce production-grade IPC restrictions because those tests are not
  * modeling a real Electron renderer threat boundary.
  *
- * Default: ON in Electron. Optional override for developers: set
- * FFV_ALLOW_GENERIC_IPC=true to bypass.
+ * Default: ON in Electron. Non-Electron unit harnesses can opt out by omitting
+ * process.versions.electron from their mocked process object.
  */
 const SHOULD_ENFORCE_GENERIC_IPC_ALLOWLIST =
     typeof process !== "undefined" && shouldEnforceGenericIpcAllowlist(process);

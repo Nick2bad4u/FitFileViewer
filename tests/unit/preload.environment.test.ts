@@ -61,7 +61,7 @@ describe("preload environment helpers", () => {
         }).toStrictEqual({ electron: false });
     });
 
-    it("enforces generic IPC allowlist only in Electron unless explicitly bypassed", () => {
+    it("enforces generic IPC allowlist in Electron regardless of environment bypasses", () => {
         expect.assertions(3);
 
         expect({
@@ -76,7 +76,7 @@ describe("preload environment helpers", () => {
                 env: { FFV_ALLOW_GENERIC_IPC: "true" },
                 versions: { electron: "31.0.0" },
             }),
-        }).toStrictEqual({ enforce: false });
+        }).toStrictEqual({ enforce: true });
 
         expect({
             enforce: preloadEnvironment.shouldEnforceGenericIpcAllowlist({
