@@ -44,7 +44,8 @@
         | "OPEN_SUMMARY_COLUMN_SELECTOR"
         | "SET_FULLSCREEN"
         | "SET_THEME"
-        | "THEME_CHANGED";
+        | "THEME_CHANGED"
+        | "UNLOAD_FIT_FILE";
 
     const PRELOAD_CHANNELS = {
         APP_VERSION: "getAppVersion",
@@ -87,6 +88,7 @@
         SET_FULLSCREEN: "set-fullscreen",
         SET_THEME: "set-theme",
         THEME_CHANGED: "theme-changed",
+        UNLOAD_FIT_FILE: "unload-fit-file",
     } as const satisfies Record<PreloadEventName, RendererIpcEventChannel>;
 
     const ADDITIONAL_GENERIC_INVOKE_CHANNELS = [
@@ -125,7 +127,6 @@
         "set-font-size",
         "set-high-contrast",
         "show-notification",
-        "unload-fit-file",
     ] as const satisfies readonly RendererIpcEventChannel[];
 
     const UPDATE_EVENT_NAMES = [

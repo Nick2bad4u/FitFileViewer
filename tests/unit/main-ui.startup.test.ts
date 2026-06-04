@@ -19,7 +19,11 @@ type MainUiTestGlobal = typeof globalThis & {
     electronAPI?: Partial<
         Pick<
             ElectronAPIWithDevFlags,
-            "onIpc" | "onSetTheme" | "sendThemeChanged"
+            | "notifyFitFileLoaded"
+            | "onOpenSummaryColumnSelector"
+            | "onSetTheme"
+            | "onUnloadFitFile"
+            | "sendThemeChanged"
         >
     >;
     renderChartJS?: (target: HTMLElement) => void;
@@ -316,19 +320,35 @@ describe("main-ui.js - UI Controller and State Management", () => {
     });
 
     it("initializes UI side effects when loaded", async () => {
-        expect.assertions(18);
+        expect.assertions(20);
 
-        const onIpc =
-            vi.fn<NonNullable<MainUiTestGlobal["electronAPI"]>["onIpc"]>();
+        const notifyFitFileLoaded =
+            vi.fn<
+                NonNullable<
+                    MainUiTestGlobal["electronAPI"]
+                >["notifyFitFileLoaded"]
+            >();
+        const onOpenSummaryColumnSelector =
+            vi.fn<
+                NonNullable<
+                    MainUiTestGlobal["electronAPI"]
+                >["onOpenSummaryColumnSelector"]
+            >();
         const onSetTheme =
             vi.fn<NonNullable<MainUiTestGlobal["electronAPI"]>["onSetTheme"]>();
+        const onUnloadFitFile =
+            vi.fn<
+                NonNullable<MainUiTestGlobal["electronAPI"]>["onUnloadFitFile"]
+            >();
         const sendThemeChanged =
             vi.fn<
                 NonNullable<MainUiTestGlobal["electronAPI"]>["sendThemeChanged"]
             >();
         getMainUiTestGlobal().electronAPI = {
-            onIpc,
+            notifyFitFileLoaded,
+            onOpenSummaryColumnSelector,
             onSetTheme,
+            onUnloadFitFile,
             sendThemeChanged,
         };
 
@@ -373,13 +393,11 @@ describe("main-ui.js - UI Controller and State Management", () => {
         const dragDropInstance = dragDropHandlerMock.mock.results[0]?.value;
         expect(getMainUiTestGlobal().dragDropHandler).toBe(dragDropInstance);
         expect(dragDropInstance.dispose).toBe(mocks.dragDropDispose);
-        const ipcHandlers = new Map(onIpc.mock.calls);
-        expect([...ipcHandlers.keys()]).toStrictEqual([
-            "open-summary-column-selector",
-            "unload-fit-file",
-        ]);
-        ipcHandlers.get("unload-fit-file")?.();
+        expect(onOpenSummaryColumnSelector).toHaveBeenCalledOnce();
+        expect(onUnloadFitFile).toHaveBeenCalledOnce();
+        onUnloadFitFile.mock.calls[0]?.[0]?.();
         expect(mocks.clearData).toHaveBeenCalledTimes(2);
+        expect(notifyFitFileLoaded).toHaveBeenCalledWith(null);
         expect(mocks.showTab).toHaveBeenCalledWith("map");
         expect(mocks.clearData.mock.calls[1]).toStrictEqual([
             { notificationMessage: "File unloaded successfully" },

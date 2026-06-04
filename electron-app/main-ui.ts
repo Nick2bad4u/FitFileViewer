@@ -44,11 +44,6 @@ type MainUiGlobal = typeof globalThis & {
     injectMenu?: (theme?: null | string, fitFilePath?: null | string) => void;
 };
 
-type MainUiIpcListener = (
-    channel: "open-summary-column-selector" | "unload-fit-file",
-    callback: (...args: unknown[]) => void
-) => (() => void) | undefined;
-
 interface PerformanceMonitorLike {
     readonly endTimer?: (operationId: string) => void;
     readonly isEnabled?: (() => boolean) | boolean;
@@ -188,8 +183,6 @@ function unloadFitFile(): void {
         const electronAPI = getElectronAPI();
         if (typeof electronAPI?.notifyFitFileLoaded === "function") {
             electronAPI.notifyFitFileLoaded(null);
-        } else if (typeof electronAPI?.send === "function") {
-            electronAPI.send("fit-file-loaded", null);
         }
 
         // Tab buttons will be disabled automatically by state management when globalData is cleared
@@ -253,9 +246,8 @@ if (
 applyTheme(loadTheme());
 
 // Register handler to show summary column selector from menu
-if (typeof electronAPI?.onIpc === "function") {
-    const onIpc = electronAPI.onIpc as MainUiIpcListener;
-    onIpc("open-summary-column-selector", () => {
+if (typeof electronAPI?.onOpenSummaryColumnSelector === "function") {
+    electronAPI.onOpenSummaryColumnSelector(() => {
         try {
             // Switch to summary tab if not already active
             const tabSummary = validateElement(CONSTANTS.DOM_IDS.TAB_SUMMARY);
@@ -288,9 +280,8 @@ if (typeof electronAPI?.onIpc === "function") {
 }
 
 // Listen for unload-fit-file event from main process
-if (typeof electronAPI?.onIpc === "function") {
-    const onIpc = electronAPI.onIpc as MainUiIpcListener;
-    onIpc("unload-fit-file", unloadFitFile);
+if (typeof electronAPI?.onUnloadFitFile === "function") {
+    electronAPI.onUnloadFitFile(unloadFitFile);
 }
 
 // Unload file when the red X is clicked

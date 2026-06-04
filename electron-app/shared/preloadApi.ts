@@ -134,6 +134,7 @@ export interface ElectronAPI {
     onOpenRecentFile: (callback: (filePath: string) => void) => () => void;
     onSetTheme: (callback: (theme: string) => void) => () => void;
     onOpenSummaryColumnSelector: (callback: () => void) => () => void;
+    onUnloadFitFile: (callback: () => void) => () => void;
     onUpdateEvent: (
         eventName: UpdateEventName,
         callback: (...args: IpcResponsePayload[]) => void

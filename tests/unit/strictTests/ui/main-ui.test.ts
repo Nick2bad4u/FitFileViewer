@@ -302,13 +302,19 @@ function installElectronAPI() {
         emit: (channel: string, ...args: unknown[]) =>
             ipc.get(channel)?.(...args),
         injectMenu: vi.fn<(theme: string, fitFilePath: string) => void>(),
+        notifyFitFileLoaded: vi.fn<(filePath: null | string) => void>(),
         onIpc: vi.fn<(channel: string, cb: IpcCallback) => void>(
             (channel, cb) => {
                 ipc.set(channel, cb);
             }
         ),
-        onOpenSummaryColumnSelector: undefined,
+        onOpenSummaryColumnSelector: vi.fn<(cb: IpcCallback) => void>((cb) => {
+            ipc.set("open-summary-column-selector", cb);
+        }),
         onSetTheme: vi.fn<(cb: (theme: string) => void) => void>(),
+        onUnloadFitFile: vi.fn<(cb: IpcCallback) => void>((cb) => {
+            ipc.set("unload-fit-file", cb);
+        }),
         openExternal: vi.fn<(url: string) => Promise<void>>(() =>
             Promise.reject(new Error("fail"))
         ),
@@ -345,6 +351,7 @@ function getCurrentElectronAPI(): ReturnType<typeof installElectronAPI> {
         !api ||
         typeof api.decodeFitFile !== "function" ||
         typeof api.emit !== "function" ||
+        typeof api.notifyFitFileLoaded !== "function" ||
         typeof api.openExternal !== "function" ||
         typeof api.send !== "function"
     ) {
@@ -439,7 +446,7 @@ describe("main-ui.js core flows", () => {
 
         const btn = getRequiredElement("unloadFileBtn", HTMLButtonElement);
         btn.click();
-        expect(api.send).toHaveBeenCalledWith("fit-file-loaded", null);
+        expect(api.notifyFitFileLoaded).toHaveBeenCalledWith(null);
         expect(AppActions.clearData).toHaveBeenCalledExactlyOnceWith({
             notificationMessage: "File unloaded successfully",
         });
@@ -450,7 +457,7 @@ describe("main-ui.js core flows", () => {
         expect(UIActions.showTab).toHaveBeenCalledWith("map");
 
         api.emit("unload-fit-file");
-        expect(api.send).toHaveBeenCalledTimes(2);
+        expect(api.notifyFitFileLoaded).toHaveBeenCalledTimes(2);
     });
 
     it("opens summary column selector from IPC and clicks gear after delay", async () => {

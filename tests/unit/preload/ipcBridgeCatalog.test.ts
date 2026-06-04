@@ -5,12 +5,12 @@ const requireFromTest = createRequire(import.meta.url);
 const ipcBridgeCatalog = requireFromTest(
     "../../../electron-app/preload/ipcBridgeCatalog.js"
 ) as {
-    PRELOAD_CHANNELS: Record<string, string>;
-    PRELOAD_EVENTS: Record<string, string>;
     isAllowedGenericInvokeChannel: (channel: unknown) => boolean;
     isAllowedGenericSendChannel: (channel: unknown) => boolean;
     isAllowedRendererIpcEventChannel: (channel: unknown) => boolean;
     isAllowedUpdateEventName: (eventName: unknown) => boolean;
+    PRELOAD_CHANNELS: Record<string, string>;
+    PRELOAD_EVENTS: Record<string, string>;
 };
 
 const expectedPreloadChannels = {
@@ -54,6 +54,7 @@ const expectedPreloadEvents = {
     SET_FULLSCREEN: "set-fullscreen",
     SET_THEME: "set-theme",
     THEME_CHANGED: "theme-changed",
+    UNLOAD_FIT_FILE: "unload-fit-file",
 } as const;
 
 describe("preload ipcBridgeCatalog", () => {

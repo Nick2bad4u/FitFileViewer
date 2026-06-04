@@ -107,6 +107,7 @@ interface PreloadEvents {
     readonly SET_FULLSCREEN: "set-fullscreen";
     readonly SET_THEME: "set-theme";
     readonly THEME_CHANGED: "theme-changed";
+    readonly UNLOAD_FIT_FILE: "unload-fit-file";
 }
 
 interface IpcBridgeCatalog {
@@ -796,6 +797,16 @@ const electronAPI: ElectronAPI = {
     onOpenSummaryColumnSelector: createSafeEventHandler(
         CONSTANTS.EVENTS.OPEN_SUMMARY_COLUMN_SELECTOR,
         "onOpenSummaryColumnSelector"
+    ),
+
+    /**
+     * Registers a handler for the 'unload-fit-file' event.
+     *
+     * @param {() => void} callback
+     */
+    onUnloadFitFile: createSafeEventHandler(
+        CONSTANTS.EVENTS.UNLOAD_FIT_FILE,
+        "onUnloadFitFile"
     ),
 
     /**
