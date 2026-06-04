@@ -4,6 +4,7 @@ import {
     setPowerEstimationSettings,
 } from "../../data/processing/powerEstimationSettings.js";
 import { showNotification } from "../notifications/showNotification.js";
+import { createModalFocusTrap } from "./modalFocusTrap.js";
 
 type NumberInputBounds = {
     max: number;
@@ -50,9 +51,12 @@ export function openPowerEstimationSettingsModal({
         backdrop-filter: blur(4px);
     `;
     const eventListeners = new AbortController();
+    let focusTrapCleanup: (() => void) | undefined;
 
     function cleanup(): void {
         eventListeners.abort();
+        focusTrapCleanup?.();
+        focusTrapCleanup = undefined;
         overlay.remove();
     }
 
@@ -246,28 +250,28 @@ export function openPowerEstimationSettingsModal({
                 opts: NumberValidationOptions = {}
             ): boolean {
                 if (!Number.isFinite(value)) {
-                    showNotification(
+                    void showNotification(
                         `${label} must be a valid number.`,
                         "error"
                     );
                     return false;
                 }
                 if (!opts?.allowNegative && value < 0) {
-                    showNotification(
+                    void showNotification(
                         `${label} must be a positive number.`,
                         "error"
                     );
                     return false;
                 }
                 if (typeof opts?.min === "number" && value < opts.min) {
-                    showNotification(
+                    void showNotification(
                         `${label} must be at least ${opts.min}.`,
                         "error"
                     );
                     return false;
                 }
                 if (typeof opts?.max === "number" && value > opts.max) {
-                    showNotification(
+                    void showNotification(
                         `${label} must be at most ${opts.max}.`,
                         "error"
                     );
@@ -366,4 +370,5 @@ export function openPowerEstimationSettingsModal({
     );
 
     document.body.append(overlay);
+    focusTrapCleanup = createModalFocusTrap(modal, cancel);
 }

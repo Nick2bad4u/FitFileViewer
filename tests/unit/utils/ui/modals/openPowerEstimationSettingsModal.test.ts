@@ -175,6 +175,53 @@ describe("openPowerEstimationSettingsModal.js", () => {
         expect(isDialogOpen()).toBe(false);
     });
 
+    it("should move focus into the modal and trap keyboard focus", async () => {
+        expect.assertions(5);
+
+        const { openPowerEstimationSettingsModal } =
+            await import("../../../../../electron-app/utils/ui/modals/openPowerEstimationSettingsModal.js");
+
+        const launcher = document.createElement("button");
+        launcher.textContent = "Open settings";
+        document.body.append(launcher);
+        launcher.focus();
+
+        openPowerEstimationSettingsModal({
+            hasRealPower: false,
+            onApply: vi.fn<OnApply>(),
+        });
+
+        const apply = getActionButton("Apply"),
+            cancel = getActionButton("Cancel"),
+            firstInput = getEnabledInput();
+
+        expect(document.activeElement).toBe(cancel);
+
+        firstInput.focus();
+        firstInput.dispatchEvent(
+            new KeyboardEvent("keydown", {
+                bubbles: true,
+                cancelable: true,
+                key: "Tab",
+                shiftKey: true,
+            })
+        );
+        expect(document.activeElement).toBe(apply);
+
+        apply.dispatchEvent(
+            new KeyboardEvent("keydown", {
+                bubbles: true,
+                cancelable: true,
+                key: "Tab",
+            })
+        );
+        expect(document.activeElement).toBe(firstInput);
+
+        cancel.click();
+        expect(isDialogOpen()).toBe(false);
+        expect(mockSetSettings).not.toHaveBeenCalled();
+    });
+
     it("should show real power note when hasRealPower is true", async () => {
         expect.assertions(1);
 
