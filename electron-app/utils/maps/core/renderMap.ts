@@ -146,6 +146,7 @@ type WindowExtensions = typeof globalThis & {
     _overlayPolylines?: Record<string, OverlayPolyline> | null;
     createTables?: (data: GlobalData) => void;
     globalData?: GlobalData;
+    invalidateChartRenderCache?: (reason: string) => void;
     loadedFitFiles?: FitFileEntry[];
     mapMarkerCount?: number;
     renderChartJS?: () => void;
@@ -163,8 +164,137 @@ type ShownFilesListElement = Element & {
 
 type BaseLayerKey = keyof typeof baseLayers;
 
+const BASE_LAYER_LABEL_OVERRIDES: Record<string, string> = {
+    CartoDB_DarkMatter: "CARTO Dark Matter (Dark)",
+    CartoDB_Positron: "CARTO Positron (Light)",
+    CartoDB_Voyager: "CARTO Voyager",
+    CyclOSM: "CyclOSM (Bicycle)",
+    Esri_NatGeo: "Esri National Geographic",
+    Esri_Topo: "Esri Topographic",
+    Esri_WorldGrayCanvas: "Esri Light Gray",
+    Esri_WorldImagery: "Satellite (Esri World Imagery)",
+    Esri_WorldImagery_Labels: "Satellite + Labels (Esri)",
+    Esri_WorldPhysical: "Esri World Physical",
+    Esri_WorldShadedRelief: "Esri Shaded Relief",
+    Esri_WorldStreetMap: "Esri Street Map",
+    Esri_WorldStreetMap_Labels: "Esri Street Map + Labels",
+    Esri_WorldTerrain: "Esri World Terrain",
+    Esri_WorldTopo_Labels: "Esri Topographic + Labels",
+    Humanitarian: "OpenStreetMap (Humanitarian / HOT)",
+    OpenRailwayMap: "OpenRailwayMap",
+    OpenSeaMap: "OpenSeaMap (Nautical)",
+    OpenStreetMap: "OpenStreetMap (Standard)",
+    OpenTopoMap: "OpenTopoMap (Terrain)",
+    OSM_DE: "OpenStreetMap.de (Germany mirror)",
+    OSM_France: "OpenStreetMap France",
+    Satellite: "Satellite (Esri)",
+    Thunderforest_Cycle: "Thunderforest Cycle (Key required)",
+    Thunderforest_Transport: "Thunderforest Transport (Key required)",
+    WaymarkedTrails_Cycling: "Waymarked Trails (Cycling)",
+    WaymarkedTrails_Hiking: "Waymarked Trails (Hiking)",
+    WaymarkedTrails_Slopes: "Waymarked Trails (Slopes)",
+};
+
+const PREFERRED_BASE_LAYER_ORDER: BaseLayerKey[] = [
+    "OpenStreetMap",
+    "OpenTopoMap",
+    "CyclOSM",
+    "Humanitarian",
+    "OSM_France",
+    "OSM_DE",
+    "CartoDB_Positron",
+    "CartoDB_Voyager",
+    "CartoDB_DarkMatter",
+    "Esri_WorldImagery",
+    "Esri_Topo",
+    "Esri_WorldStreetMap",
+];
+
+function formatBaseLayerLabel(key: string): string {
+    const overridden = BASE_LAYER_LABEL_OVERRIDES[key];
+    if (overridden) return overridden;
+
+    return key
+        .split("_")
+        .filter(Boolean)
+        .map((part) => part.replaceAll(/(?<=[a-z])(?=[A-Z])/gu, " "))
+        .join(" ");
+}
+
 function isDrawnLayer(layer: Leaflet.Layer): layer is DrawnLayer {
     return typeof layer === "object" && layer !== null;
+}
+
+function isLeafletLayer(
+    L: LeafletRuntime,
+    value: unknown
+): value is Leaflet.Layer {
+    return value instanceof L.Layer;
+}
+
+function bringMatchingCircleMarkersToFront(
+    L: LeafletRuntime,
+    polyline: OverlayPolyline
+): void {
+    const layers = polyline._map?._layers;
+    if (!layers) {
+        return;
+    }
+
+    for (const layer of Object.values(layers)) {
+        if (
+            layer instanceof L.CircleMarker &&
+            layer.options.color === polyline.options.color &&
+            typeof layer.bringToFront === "function"
+        ) {
+            layer.bringToFront();
+        }
+    }
+}
+
+function bringOverlayMarkersToFront(
+    L: LeafletRuntime,
+    overlayPolylines: null | Record<string, OverlayPolyline> | undefined
+): void {
+    if (!overlayPolylines) {
+        return;
+    }
+
+    for (const [idx, polyline] of Object.entries(overlayPolylines)) {
+        console.log(
+            `[renderMap] Bring to front: overlay idx=${idx}, polyline=`,
+            polyline
+        );
+        bringMatchingCircleMarkersToFront(L, polyline);
+    }
+}
+
+function restoreDrawnLayer({
+    L,
+    drawnItems,
+    item,
+}: {
+    L: LeafletRuntime;
+    drawnItems: DrawnItemsLayerGroup;
+    item: DrawnLayerSnapshot;
+}): void {
+    try {
+        L.geoJSON(item.geoJSON, {
+            onEachFeature: (
+                _feature: unknown,
+                createdLayer: Leaflet.Layer
+            ) => {
+                drawnItems.addLayer(createdLayer);
+            },
+            pointToLayer: (
+                _feature: unknown,
+                latlng: Leaflet.LatLngExpression
+            ) => L.marker(latlng),
+            style: item.options,
+        });
+    } catch (error) {
+        console.warn("[renderMap] Failed to restore drawn item:", error);
+    }
 }
 
 /**
@@ -200,12 +330,12 @@ export function renderMap(): void {
         cleanupTimers.add(timeout);
         return timeout;
     };
-    renderAbortController.signal.onabort = () => {
+    renderAbortController.signal.addEventListener("abort", () => {
         for (const timeout of cleanupTimers) {
             clearTimeout(timeout);
         }
         cleanupTimers.clear();
-    };
+    }, { once: true, signal: renderAbortController.signal });
 
     const scheduleMicrotask =
         typeof queueMicrotask === "function"
@@ -215,7 +345,7 @@ export function renderMap(): void {
     const mapContainer = querySelectorByIdFlexible(
         document,
         "#content_map"
-    ) as HTMLElement | null;
+    );
     if (!mapContainer) {
         return;
     }
@@ -332,9 +462,9 @@ export function renderMap(): void {
 
     // If an old shown-files list exists, invoke its cleanup hook before removing DOM.
     try {
-        const oldShownFilesList = mapContainer.querySelector(
+        const oldShownFilesList = mapContainer.querySelector<ShownFilesListElement>(
             ".shown-files-list"
-        ) as ShownFilesListElement | null;
+        );
         if (
             oldShownFilesList &&
             typeof oldShownFilesList._dispose === "function"
@@ -364,70 +494,10 @@ export function renderMap(): void {
     mapControlsDiv.append(primaryControlsContainer);
     mapContainer.append(mapControlsDiv);
 
-    // Full basemap catalogue with friendly display labels.
-    // We keep persistence values as internal baseLayers keys, but display better labels.
-    const formatBaseLayerLabel = (key: string): string => {
-        const overrides: Record<string, string> = {
-            CartoDB_DarkMatter: "CARTO Dark Matter (Dark)",
-            CartoDB_Positron: "CARTO Positron (Light)",
-            CartoDB_Voyager: "CARTO Voyager",
-            CyclOSM: "CyclOSM (Bicycle)",
-            Esri_NatGeo: "Esri National Geographic",
-            Esri_Topo: "Esri Topographic",
-            Esri_WorldGrayCanvas: "Esri Light Gray",
-            Esri_WorldImagery: "Satellite (Esri World Imagery)",
-            Esri_WorldImagery_Labels: "Satellite + Labels (Esri)",
-            Esri_WorldPhysical: "Esri World Physical",
-            Esri_WorldShadedRelief: "Esri Shaded Relief",
-            Esri_WorldStreetMap: "Esri Street Map",
-            Esri_WorldStreetMap_Labels: "Esri Street Map + Labels",
-            Esri_WorldTerrain: "Esri World Terrain",
-            Esri_WorldTopo_Labels: "Esri Topographic + Labels",
-            Humanitarian: "OpenStreetMap (Humanitarian / HOT)",
-            OpenRailwayMap: "OpenRailwayMap",
-            OpenSeaMap: "OpenSeaMap (Nautical)",
-            OpenStreetMap: "OpenStreetMap (Standard)",
-            OpenTopoMap: "OpenTopoMap (Terrain)",
-            OSM_DE: "OpenStreetMap.de (Germany mirror)",
-            OSM_France: "OpenStreetMap France",
-            Satellite: "Satellite (Esri)",
-            Thunderforest_Cycle: "Thunderforest Cycle (Key required)",
-            Thunderforest_Transport: "Thunderforest Transport (Key required)",
-            WaymarkedTrails_Cycling: "Waymarked Trails (Cycling)",
-            WaymarkedTrails_Hiking: "Waymarked Trails (Hiking)",
-            WaymarkedTrails_Slopes: "Waymarked Trails (Slopes)",
-        };
-        const overridden = overrides[key];
-        if (overridden) return overridden;
-
-        // Fallback: split on underscores, and insert spaces in CamelCase.
-        const parts = key
-            .split("_")
-            .filter(Boolean)
-            .map((p: string) => p.replaceAll(/([a-z])([A-Z])/gu, "$1 $2"));
-        return parts.join(" ");
-    };
-
-    // Prefer common layers at the top, then show the rest alphabetically by label.
-    const preferredOrder: BaseLayerKey[] = [
-        "OpenStreetMap",
-        "OpenTopoMap",
-        "CyclOSM",
-        "Humanitarian",
-        "OSM_France",
-        "OSM_DE",
-        "CartoDB_Positron",
-        "CartoDB_Voyager",
-        "CartoDB_DarkMatter",
-        "Esri_WorldImagery",
-        "Esri_Topo",
-        "Esri_WorldStreetMap",
-    ];
-
     const layerEntries = Object.keys(baseLayers)
         .filter((k) => Object.hasOwn(baseLayers, k))
         .map((k) => ({
-            key: k as BaseLayerKey,
+            key: k,
             label: formatBaseLayerLabel(k),
         }));
 
@@ -444,8 +514,8 @@ export function renderMap(): void {
     }
 
     layerEntries.sort((a, b) => {
-        const ai = preferredOrder.indexOf(a.key);
-        const bi = preferredOrder.indexOf(b.key);
+        const ai = PREFERRED_BASE_LAYER_ORDER.indexOf(a.key);
+        const bi = PREFERRED_BASE_LAYER_ORDER.indexOf(b.key);
         const aPinned = ai !== -1;
         const bPinned = bi !== -1;
         if (aPinned && bPinned) return ai - bi;
@@ -471,7 +541,7 @@ export function renderMap(): void {
         if (byLabel) return byLabel;
 
         if (Object.hasOwn(baseLayers, trimmed)) {
-            return trimmed as BaseLayerKey;
+            return trimmed;
         }
 
         const lower = trimmed.toLowerCase();
@@ -491,7 +561,7 @@ export function renderMap(): void {
         const found = Object.keys(baseLayers).find(
             (k) => k.toLowerCase() === lower
         );
-        return (found ?? "OpenStreetMap") as BaseLayerKey;
+        return found ?? "OpenStreetMap";
     };
 
     // Build the final list for the Leaflet layers control.
@@ -517,7 +587,7 @@ export function renderMap(): void {
     const map = LeafletLib.map("leaflet-map", {
         center: [0, 0],
         fullscreenControl: true,
-        layers: [initialBaseLayer as Leaflet.Layer],
+        layers: [initialBaseLayer],
         zoom: 2,
     } as Leaflet.MapOptions & { fullscreenControl: boolean });
     windowExt._leafletMapInstance = map;
@@ -717,7 +787,7 @@ export function renderMap(): void {
         const layersEl =
             layersControlEl ||
             document.querySelector<HTMLElement>(".leaflet-control-layers");
-        const mapEl = document.getElementById("leaflet-map");
+        const mapEl = document.querySelector("#leaflet-map");
         if (!layersEl || !(layersEl instanceof HTMLElement) || !mapEl) {
             return;
         }
@@ -1066,10 +1136,10 @@ export function renderMap(): void {
                 // Invalidate chart caches so the new series is recalculated.
                 try {
                     if (
-                        typeof windowExt["invalidateChartRenderCache"] ===
+                        typeof windowExt.invalidateChartRenderCache ===
                         "function"
                     ) {
-                        windowExt["invalidateChartRenderCache"](
+                        windowExt.invalidateChartRenderCache(
                             "estimated-power-updated"
                         );
                     }
@@ -1176,9 +1246,7 @@ export function renderMap(): void {
     // }
 
     // --- Lap selection UI (moved to mapLapSelector.js) ---
-    function mapDrawLapsWrapper(
-        lapIdx: "all" | number | string | string[]
-    ): void {
+    function mapDrawLapsWrapper(lapIdx: number | string | string[]): void {
         mapDrawLaps(lapIdx, {
             baseLayers,
             endIcon,
@@ -1362,12 +1430,8 @@ export function renderMap(): void {
         // Add drawn shapes to the layer so they persist.
         // Register exactly once (L.Draw.Event.CREATED is typically "draw:created").
         const onDrawCreated: Leaflet.LeafletEventHandlerFn = (event) => {
-            const layer = (
-                event as Leaflet.LeafletEvent & {
-                    layer?: Leaflet.Layer;
-                }
-            ).layer;
-            if (layer) {
+            const { layer } = event as unknown as { layer?: unknown };
+            if (isLeafletLayer(L, layer)) {
                 drawnItems.addLayer(layer);
             }
         };
@@ -1506,28 +1570,7 @@ export function renderMap(): void {
                 "drawn items"
             );
             for (const item of savedDrawnLayers) {
-                try {
-                    if (item.geoJSON) {
-                        L.geoJSON(item.geoJSON, {
-                            onEachFeature: (
-                                _feature: unknown,
-                                createdLayer: Leaflet.Layer
-                            ) => {
-                                drawnItems.addLayer(createdLayer);
-                            },
-                            pointToLayer: (
-                                _feature: unknown,
-                                latlng: Leaflet.LatLngExpression
-                            ) => L.marker(latlng),
-                            style: item.options,
-                        });
-                    }
-                } catch (error) {
-                    console.warn(
-                        "[renderMap] Failed to restore drawn item:",
-                        error
-                    );
-                }
+                restoreDrawnLayer({ L, drawnItems, item });
             }
         }
     }
@@ -1612,9 +1655,10 @@ export function renderMap(): void {
                 `[renderMap] Drawing overlay idx=${idx}, fileName=`,
                 fitFile.filePath
             );
-            const color = (chartOverlayColorPalette[
-                idx % chartOverlayColorPalette.length
-            ] || "#ff0000") as string;
+            const color =
+                chartOverlayColorPalette[
+                    idx % chartOverlayColorPalette.length
+                ] || "#ff0000";
             const rawOverlayName =
                 (fitFile.filePath || "").split(/[/\\]/).pop() ?? "";
             const fileName = sanitizeFilenameComponent(
@@ -1647,37 +1691,7 @@ export function renderMap(): void {
         }
         // --- Bring overlay markers to front so they appear above all polylines ---
         setCleanupTimeout(() => {
-            if (windowExt._overlayPolylines) {
-                for (const [idx, polyline] of Object.entries(
-                    windowExt._overlayPolylines
-                )) {
-                    console.log(
-                        `[renderMap] Bring to front: overlay idx=${idx}, polyline=`,
-                        polyline
-                    );
-                    if (
-                        polyline &&
-                        polyline._map &&
-                        polyline._map &&
-                        polyline._map._layers
-                    ) {
-                        for (const layer of Object.values(
-                            polyline._map._layers
-                        )) {
-                            if (
-                                layer instanceof L.CircleMarker &&
-                                layer.options &&
-                                polyline.options &&
-                                layer.options.color ===
-                                    polyline.options.color &&
-                                layer.bringToFront
-                            ) {
-                                layer.bringToFront();
-                            }
-                        }
-                    }
-                }
-            }
+            bringOverlayMarkersToFront(L, windowExt._overlayPolylines);
         }, 10);
         console.log(
             "[renderMap] Overlay logic complete. No fitBounds/zoom called here."
@@ -1721,15 +1735,7 @@ export function renderMap(): void {
     function updateLapSelectorEnabledState(): void {
         const lapSelect =
             document.querySelector<HTMLSelectElement>("#lap-select");
-        if (!lapSelect) return;
-        // Keep lap selector enabled. Optionally disable only if there are no laps available.
-        try {
-            const laps = windowExt.globalData && windowExt.globalData.lapMesgs;
-            lapSelect.disabled =
-                !laps || !Array.isArray(laps) || laps.length === 0
-                    ? false
-                    : false;
-        } catch {
+        if (lapSelect) {
             lapSelect.disabled = false;
         }
     }
