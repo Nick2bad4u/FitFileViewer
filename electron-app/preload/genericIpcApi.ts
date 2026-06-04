@@ -133,6 +133,7 @@
             channel: RendererIpcEventChannel,
             callback: IpcEventCallback
         ): (() => void) | undefined {
+            const channelName = String(channel);
             if (!validateChannelName(channel, "channel", "onIpc")) {
                 return undefined;
             }
@@ -146,7 +147,7 @@
             ) {
                 preloadLog(
                     "warn",
-                    `[preload.js] Blocked onIpc() subscription to non-allowlisted channel: ${channel}`
+                    `[preload.js] Blocked onIpc() subscription to non-allowlisted channel: ${channelName}`
                 );
                 return undefined;
             }
@@ -154,13 +155,14 @@
             try {
                 const wrapped: IpcListener = (_event, ...args) => {
                     try {
-                        callback(...args);
+                        return callback(...args);
                     } catch (error) {
                         preloadLog(
                             "error",
-                            `[preload.js] Error in onIpc(${channel}) callback:`,
+                            `[preload.js] Error in onIpc(${channelName}) callback:`,
                             error
                         );
+                        return undefined;
                     }
                 };
 
@@ -169,18 +171,20 @@
                 return () => {
                     try {
                         removeIpcListener(channel, wrapped);
+                        return undefined;
                     } catch (error) {
                         preloadLog(
                             "error",
-                            `[preload.js] Error removing onIpc(${channel}) listener:`,
+                            `[preload.js] Error removing onIpc(${channelName}) listener:`,
                             error
                         );
+                        return undefined;
                     }
                 };
             } catch (error) {
                 preloadLog(
                     "error",
-                    `[preload.js] Error setting up onIpc(${channel}):`,
+                    `[preload.js] Error setting up onIpc(${channelName}):`,
                     error
                 );
                 return undefined;
@@ -191,6 +195,7 @@
             eventName: UpdateEventName,
             callback: (...args: IpcResponsePayload[]) => unknown
         ): (() => void) | undefined {
+            const eventLabel = String(eventName);
             if (!validateCallback(callback, "onUpdateEvent")) {
                 return undefined;
             }
@@ -204,7 +209,7 @@
             ) {
                 preloadLog(
                     "warn",
-                    `[preload.js] Blocked onUpdateEvent() subscription to non-allowlisted event: ${eventName}`
+                    `[preload.js] Blocked onUpdateEvent() subscription to non-allowlisted event: ${eventLabel}`
                 );
                 return undefined;
             }
@@ -212,13 +217,14 @@
             try {
                 const handler: IpcListener = (_event, ...args) => {
                     try {
-                        callback(...args);
+                        return callback(...args);
                     } catch (error) {
                         preloadLog(
                             "error",
-                            `[preload.js] Error in onUpdateEvent(${eventName}) callback:`,
+                            `[preload.js] Error in onUpdateEvent(${eventLabel}) callback:`,
                             error
                         );
+                        return undefined;
                     }
                 };
 
@@ -227,14 +233,16 @@
                 return () => {
                     try {
                         removeIpcListener(eventName, handler);
+                        return undefined;
                     } catch {
                         /* Ignore listener cleanup failures. */
+                        return undefined;
                     }
                 };
             } catch (error) {
                 preloadLog(
                     "error",
-                    `[preload.js] Error setting up onUpdateEvent(${eventName}):`,
+                    `[preload.js] Error setting up onUpdateEvent(${eventLabel}):`,
                     error
                 );
                 return undefined;

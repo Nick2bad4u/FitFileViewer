@@ -5,7 +5,11 @@
         ...details: unknown[]
     ) => void;
 
-    type BeforeExitListener = NodeJS.BeforeExitListener & {
+    type BeforeExitCallback = (
+        ...args: import("node:process").ProcessEventMap["beforeExit"]
+    ) => void;
+
+    type BeforeExitListener = BeforeExitCallback & {
         listener?: unknown;
         readonly [key: symbol]: unknown;
     };
@@ -13,7 +17,7 @@
     interface BeforeExitGlobalRegistry {
         __ffv_preload_beforeExitRegistry__?:
             | null
-            | WeakMap<NodeJS.Process, NodeJS.BeforeExitListener>;
+            | WeakMap<NodeJS.Process, BeforeExitCallback>;
     }
 
     interface RegisterPreloadBeforeExitHandlerOptions {
@@ -31,7 +35,7 @@
     function getProcessRegistry(
         globalScope: BeforeExitGlobalRegistry,
         preloadLog: PreloadLog
-    ): null | WeakMap<NodeJS.Process, NodeJS.BeforeExitListener> {
+    ): null | WeakMap<NodeJS.Process, BeforeExitCallback> {
         const existing = globalScope[BEFORE_EXIT_REGISTRY_KEY];
         if (existing) {
             return existing;
@@ -40,7 +44,7 @@
         try {
             const registry = new WeakMap<
                 NodeJS.Process,
-                NodeJS.BeforeExitListener
+                BeforeExitCallback
             >();
             globalScope[BEFORE_EXIT_REGISTRY_KEY] = registry;
             return registry;
@@ -57,14 +61,14 @@
 
     function getRegisteredBeforeExitWrapper(
         processRef: NodeJS.Process,
-        handleBeforeExit: NodeJS.BeforeExitListener,
+        handleBeforeExit: BeforeExitCallback,
         preloadLog: PreloadLog
-    ): NodeJS.BeforeExitListener {
+    ): BeforeExitCallback {
         try {
             const listeners = processRef.listeners("beforeExit");
             for (const listener of listeners) {
                 if (isTrackedBeforeExitListener(listener, handleBeforeExit)) {
-                    return listener as NodeJS.BeforeExitListener;
+                    return listener;
                 }
             }
         } catch (error) {
@@ -80,7 +84,7 @@
 
     function isTrackedBeforeExitListener(
         listener: unknown,
-        handleBeforeExit: NodeJS.BeforeExitListener
+        handleBeforeExit: BeforeExitCallback
     ): listener is BeforeExitListener {
         if (typeof listener !== "function") {
             return false;
@@ -95,7 +99,7 @@
     }
 
     function markBeforeExitWrapper(
-        storedWrapper: NodeJS.BeforeExitListener
+        storedWrapper: BeforeExitCallback
     ): void {
         try {
             Reflect.set(storedWrapper, BEFORE_EXIT_LISTENER_SYMBOL, true);
@@ -106,7 +110,7 @@
 
     function pruneTrackedBeforeExitListeners(
         processRef: NodeJS.Process,
-        handleBeforeExit: NodeJS.BeforeExitListener,
+        handleBeforeExit: BeforeExitCallback,
         preloadLog: PreloadLog
     ): void {
         try {
@@ -133,7 +137,7 @@
     }: RegisterPreloadBeforeExitHandlerOptions): void {
         const registry = getProcessRegistry(globalScope, preloadLog);
 
-        const handleBeforeExit: NodeJS.BeforeExitListener = () => {
+        const handleBeforeExit: BeforeExitCallback = () => {
             if (isDevelopmentMode()) {
                 preloadLog(
                     "info",
@@ -178,7 +182,7 @@
 
     function removeBeforeExitListener(
         processRef: NodeJS.Process,
-        listener: NodeJS.BeforeExitListener,
+        listener: BeforeExitCallback,
         failureMessage: string,
         preloadLog: PreloadLog
     ): void {
@@ -191,7 +195,7 @@
 
     function removeRegisteredBeforeExitWrapper(
         processRef: NodeJS.Process,
-        registry: null | WeakMap<NodeJS.Process, NodeJS.BeforeExitListener>,
+        registry: null | WeakMap<NodeJS.Process, BeforeExitCallback>,
         preloadLog: PreloadLog
     ): void {
         const existingWrapper = registry?.get(processRef);

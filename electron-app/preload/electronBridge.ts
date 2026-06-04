@@ -48,10 +48,14 @@
     function getOverride(
         globalScope: object
     ): null | PreloadElectronBridge | undefined {
-        return Reflect.get(globalScope, "__electronHoistedMock") as
-            | null
-            | PreloadElectronBridge
-            | undefined;
+        const override: unknown = Reflect.get(
+            globalScope,
+            "__electronHoistedMock"
+        );
+        if (override === null || override === undefined) {
+            return override;
+        }
+        return isPreloadObjectRecord(override) ? override : null;
     }
 
     function isPreloadObjectRecord(
@@ -121,14 +125,14 @@
         }
 
         if ("contextBridge" in value || "ipcRenderer" in value) {
-            return value as PreloadElectronBridge;
+            return value;
         }
 
         if ("default" in value) {
             return unwrapElectronBridge(value["default"]);
         }
 
-        return value as PreloadElectronBridge;
+        return value;
     }
 
     module.exports = {

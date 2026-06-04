@@ -40,8 +40,8 @@
         ) => (
             ...args: InvokeRequestArgs<Channel>
         ) => Promise<InvokeResponsePayloadForChannel<Channel>>;
-        createSafeSendHandler: <Channel extends GenericSendChannel>(
-            channel: Channel,
+        createSafeSendHandler: (
+            channel: GenericSendChannel,
             methodName: string
         ) => (...args: IpcRequestPayload[]) => void;
         removeIpcListener: (channel: string, handler: IpcListener) => void;
@@ -56,32 +56,35 @@
         ) => callback is UnknownCallback;
     }
 
+    function isMissingFileError(error: unknown): boolean {
+        if (error && typeof error === "object" && "code" in error) {
+            return (error as { code?: unknown }).code === "ENOENT";
+        }
+
+        const message = error instanceof Error ? error.message : String(error);
+        return /\bENOENT\b/u.test(message);
+    }
+
+    function shouldSuppressInvokeErrorLog(
+        methodName: string,
+        error: unknown
+    ): boolean {
+        return methodName === "readFile" && isMissingFileError(error);
+    }
+
+    function noopUnsubscribe(): void {
+        return undefined;
+    }
+
+    function createNoopUnsubscribe(): () => void {
+        return noopUnsubscribe;
+    }
+
     function createPreloadIpcHelpers({
         ipcRenderer,
         preloadLog,
         validateCallback,
     }: PreloadIpcHelpersOptions): PreloadIpcHelpers {
-        function isMissingFileError(error: unknown): boolean {
-            if (error && typeof error === "object" && "code" in error) {
-                return (error as { code?: unknown }).code === "ENOENT";
-            }
-
-            const message =
-                error instanceof Error ? error.message : String(error);
-            return /\bENOENT\b/u.test(message);
-        }
-
-        function shouldSuppressInvokeErrorLog(
-            methodName: string,
-            error: unknown
-        ): boolean {
-            return methodName === "readFile" && isMissingFileError(error);
-        }
-
-        function createNoopUnsubscribe(): () => void {
-            return noopUnsubscribe;
-        }
-
         function createSafeEventHandler(
             channel: string,
             methodName: string,
@@ -98,17 +101,17 @@
                     const handler: IpcListener = (_event, ...args) => {
                         try {
                             if (transform) {
-                                callback(transform(...args));
-                                return;
+                                return callback(transform(...args));
                             }
 
-                            callback(...args);
+                            return callback(...args);
                         } catch (error) {
                             preloadLog(
                                 "error",
                                 `[preload.js] Error in ${methodName} callback:`,
                                 error
                             );
+                            return undefined;
                         }
                     };
 
@@ -117,8 +120,10 @@
                     return () => {
                         try {
                             removeIpcListener(channel, handler);
+                            return undefined;
                         } catch {
                             /* Ignore listener cleanup failures. */
+                            return undefined;
                         }
                     };
                 } catch (error) {
@@ -157,8 +162,8 @@
             };
         }
 
-        function createSafeSendHandler<Channel extends GenericSendChannel>(
-            channel: Channel,
+        function createSafeSendHandler(
+            channel: GenericSendChannel,
             methodName: string
         ): (...args: IpcRequestPayload[]) => void {
             return (...args) => {
@@ -172,10 +177,6 @@
                     );
                 }
             };
-        }
-
-        function noopUnsubscribe(): void {
-            return undefined;
         }
 
         function removeIpcListener(
