@@ -103,18 +103,17 @@ export function addEventListenerWithCleanup(
 
     const abortController = new AbortController();
 
-    const listenerOptions =
-        typeof options === "boolean"
-            ? {
-                  capture: options,
-                  signal: abortController.signal,
-              }
-            : {
-                  ...options,
-                  signal: abortController.signal,
-              };
-
-    element.addEventListener(eventType, handler, listenerOptions);
+    if (typeof options === "boolean") {
+        element.addEventListener(eventType, handler, {
+            capture: options,
+            signal: abortController.signal,
+        });
+    } else {
+        element.addEventListener(eventType, handler, {
+            ...options,
+            signal: abortController.signal,
+        });
+    }
 
     // Create a cleanup function for this specific listener
     const cleanup: CleanupFunction = () => {
@@ -147,7 +146,7 @@ export function cleanupEventListeners(): void {
     for (const cleanup of registeredListeners) {
         try {
             cleanup();
-            cleanedCount++;
+            cleanedCount += 1;
         } catch (error) {
             console.warn("[EventListenerManager] Error during cleanup:", error);
         }
