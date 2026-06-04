@@ -39,7 +39,7 @@ interface GenericIpcApiModule {
         notifyFitFileLoaded: (filePath: null | string) => void;
         onIpc: (
             channel: RendererIpcEventChannel,
-            callback: (event: object, ...args: IpcResponsePayload[]) => unknown
+            callback: (...args: IpcResponsePayload[]) => unknown
         ) => (() => void) | undefined;
         onUpdateEvent: (
             eventName: UpdateEventName,
@@ -222,11 +222,10 @@ describe("generic preload IPC API", () => {
     });
 
     it("wraps event callbacks and removes listeners through the shared remover", () => {
-        expect.assertions(6);
+        expect.assertions(7);
 
         const { api, ipcMock, preloadLog, removeIpcListener } = createApi();
-        const callback =
-            vi.fn<(event: object, ...args: IpcResponsePayload[]) => void>();
+        const callback = vi.fn<(...args: IpcResponsePayload[]) => void>();
         const unsubscribe = api.onIpc(
             "show-notification",
             callback
@@ -244,7 +243,8 @@ describe("generic preload IPC API", () => {
         listener(event, "payload");
         unsubscribe();
 
-        expect(callback).toHaveBeenCalledWith(event, "payload");
+        expect(callback).toHaveBeenCalledWith("payload");
+        expect(callback).not.toHaveBeenCalledWith(event, "payload");
         expect(removeIpcListener).toHaveBeenCalledWith(
             "show-notification",
             listener

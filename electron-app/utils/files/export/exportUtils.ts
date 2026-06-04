@@ -1090,10 +1090,7 @@ export const exportUtils = {
                         new Set(["gyazo.com"])
                     )}?${authParams.toString()}`,
                     // Listen for the OAuth callback from the main process
-                    callbackHandler = async (
-                        _event: unknown,
-                        data: unknown
-                    ) => {
+                    callbackHandler = async (data: unknown) => {
                         try {
                             // Ensure we only handle the callback once.
                             if (typeof unsubscribeRef.current === "function") {
@@ -1146,8 +1143,8 @@ export const exportUtils = {
                 // Set up the callback listener
                 unsubscribeRef.current = onIpc(
                     "gyazo-oauth-callback",
-                    (event, data) => {
-                        void callbackHandler(event, data);
+                    (data) => {
+                        void callbackHandler(data);
                     }
                 );
 

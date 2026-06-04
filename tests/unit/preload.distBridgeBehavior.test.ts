@@ -1065,7 +1065,6 @@ describe("preload.js dist bridge behavior", () => {
             ).toStrictEqual({
                 callbackCalls: [
                     [
-                        { sender: "main" },
                         "payload",
                         7,
                     ],

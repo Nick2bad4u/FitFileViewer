@@ -850,7 +850,7 @@ describe("preload.js dist API methods", () => {
 
             expect(channel).toBe("custom-channel");
             registeredListener(ipcEvent, "arg1", "arg2");
-            expect(callback).toHaveBeenCalledWith(ipcEvent, "arg1", "arg2");
+            expect(callback).toHaveBeenCalledWith("arg1", "arg2");
             unsubscribe();
             expect(mockIpcRenderer.removeListener).toHaveBeenCalledWith(
                 "custom-channel",

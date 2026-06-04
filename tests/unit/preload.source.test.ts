@@ -284,7 +284,7 @@ describe("preload.js electronAPI exposure and behavior", () => {
         const customHandlers = listeners.get("custom:event");
         expect(customHandlers).toHaveLength(1);
         customHandlers?.[0]?.({ id: "evt" }, 1, 2, 3);
-        expect(onIpcCb).toHaveBeenCalledWith({ id: "evt" }, 1, 2, 3);
+        expect(onIpcCb).toHaveBeenCalledWith(1, 2, 3);
     });
 
     it("validates generic send, invoke, and menu injection inputs", async () => {

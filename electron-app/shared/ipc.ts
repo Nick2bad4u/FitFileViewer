@@ -589,7 +589,4 @@ export type RendererIpcEventChannel =
     | "unload-fit-file";
 
 /** Callback signature for raw IPC event subscriptions exposed by preload. */
-export type IpcEventCallback = (
-    event: object,
-    ...args: IpcResponsePayload[]
-) => void;
+export type IpcEventCallback = (...args: IpcResponsePayload[]) => void;

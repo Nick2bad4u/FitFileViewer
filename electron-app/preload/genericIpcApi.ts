@@ -152,9 +152,9 @@
             }
 
             try {
-                const wrapped: IpcListener = (event, ...args) => {
+                const wrapped: IpcListener = (_event, ...args) => {
                     try {
-                        callback(event, ...args);
+                        callback(...args);
                     } catch (error) {
                         preloadLog(
                             "error",
