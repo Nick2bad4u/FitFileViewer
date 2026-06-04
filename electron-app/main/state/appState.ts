@@ -6,9 +6,9 @@
         set: (key: string, value: unknown) => void;
     }
 
-    interface FitParserSettingsConfConstructor {
-        new (options?: { name?: string }): FitParserSettingsConf;
-    }
+    type FitParserSettingsConfConstructor = new (options?: {
+        name?: string;
+    }) => FitParserSettingsConf;
 
     interface MainProcessStateLike {
         cleanupEventHandlers: () => void;

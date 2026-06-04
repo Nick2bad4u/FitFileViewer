@@ -18,20 +18,16 @@
         typeof value === "function";
 
     const getConsoleMethod = (level: string): ConsoleMethod => {
-        const method = Reflect.get(console, level);
+        const method: unknown = Reflect.get(console, level);
 
         if (isConsoleMethod(method)) {
-            const boundMethod = method.bind(console);
-
             return (message?: unknown, ...args: readonly unknown[]): void => {
-                boundMethod(message, ...args);
+                method(message, ...args);
             };
         }
 
-        const fallback = console.log.bind(console);
-
         return (message?: unknown, ...args: readonly unknown[]): void => {
-            fallback(message, ...args);
+            console.log(message, ...args);
         };
     };
 

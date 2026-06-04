@@ -4,11 +4,9 @@
     type FileSystemModule = typeof import("node:fs");
     type HttpModule = typeof import("node:http");
 
-    const requireNodeModule = <ModuleType>(
-        specifier: string
-    ): ModuleType | null => {
+    const requireNodeModule = (specifier: string): unknown => {
         try {
-            return require(specifier) as ModuleType;
+            return require(specifier);
         } catch {
             return null;
         }
@@ -19,8 +17,8 @@
      * that mock either "fs" or "node:fs".
      */
     const fs =
-        requireNodeModule<FileSystemModule>("node:fs") ??
-        requireNodeModule<FileSystemModule>("fs");
+        (requireNodeModule("node:fs") as FileSystemModule | null) ??
+        (requireNodeModule("fs") as FileSystemModule | null);
 
     /**
      * Lazily resolves the http module, preferring the classic specifier so
@@ -30,8 +28,8 @@
      */
     function httpRef(): HttpModule | null {
         return (
-            requireNodeModule<HttpModule>("http") ??
-            requireNodeModule<HttpModule>("node:http")
+            (requireNodeModule("http") as HttpModule | null) ??
+            (requireNodeModule("node:http") as HttpModule | null)
         );
     }
 
