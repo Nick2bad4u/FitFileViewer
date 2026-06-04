@@ -65,7 +65,7 @@
     function asOAuthWindow(value: unknown): OAuthWindowLike | null {
         return value &&
             (typeof value === "object" || typeof value === "function")
-            ? (value as OAuthWindowLike)
+            ? value
             : null;
     }
 
@@ -212,7 +212,7 @@
                 }
 
                 const server = http.createServer((req, res) => {
-                    let parsedUrl: URL | null = null;
+                    let parsedUrl: URL;
                     try {
                         const raw = typeof req.url === "string" ? req.url : "";
                         parsedUrl = new URL(raw, `http://localhost:${port}`);
@@ -293,7 +293,11 @@
                 logWithContext("error", "Failed to start Gyazo OAuth server:", {
                     error: getErrorMessage(error),
                 });
-                reject(error);
+                reject(
+                    error instanceof Error
+                        ? error
+                        : new Error(getErrorMessage(error))
+                );
             }
         });
     }
