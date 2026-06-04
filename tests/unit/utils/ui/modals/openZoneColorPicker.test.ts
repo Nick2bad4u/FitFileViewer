@@ -134,6 +134,14 @@ function getZoneColorPickerState(overlay: HTMLElement) {
         ),
         colorPreviewCount: overlay.querySelectorAll(".zone-color-preview")
             .length,
+        colorPreviewControls: Array.from(
+            overlay.querySelectorAll<HTMLElement>(".zone-color-preview"),
+            (preview) => ({
+                ariaLabel: preview.getAttribute("aria-label"),
+                role: preview.getAttribute("role"),
+                tabIndex: preview.tabIndex,
+            })
+        ),
         modalAriaLabelledBy: modal?.getAttribute("aria-labelledby"),
         modalClassName: modal?.className,
         modalRole: modal?.getAttribute("role"),
@@ -280,6 +288,18 @@ describe("openZoneColorPicker", () => {
             colorInputLabels: ["Zone 1 color", "Zone 2 color"],
             colorInputValues: ["#aa0000", "#aa0011"],
             colorPreviewCount: 2,
+            colorPreviewControls: [
+                {
+                    ariaLabel: "Choose Zone 1 color",
+                    role: "button",
+                    tabIndex: 0,
+                },
+                {
+                    ariaLabel: "Choose Zone 2 color",
+                    role: "button",
+                    tabIndex: 0,
+                },
+            ],
             modalAriaLabelledBy: "zone-color-picker-title",
             modalClassName: "zone-color-picker-modal",
             modalRole: "dialog",
@@ -384,6 +404,62 @@ describe("openZoneColorPicker", () => {
             "success"
         );
         expect(renderedOverlay).toHaveProperty("isConnected", false);
+    });
+
+    it("traps focus and restores focus when closed", async () => {
+        expect.assertions(5);
+
+        const opener = document.createElement("button");
+        opener.type = "button";
+        opener.textContent = "Open picker";
+        document.body.append(opener);
+        opener.focus();
+
+        (globalThis as any).heartRateZones = [
+            { zone: 1, time: 60, label: "Zone 1" },
+            { zone: 2, time: 90, label: "Zone 2" },
+        ];
+
+        const { openZoneColorPicker } = await loadModule();
+
+        openZoneColorPicker("hr_zone");
+
+        const overlay = requireElement(
+            document.querySelector<HTMLDivElement>(
+                "#zone-color-picker-overlay"
+            ),
+            "Zone color picker overlay not rendered"
+        );
+        const closeButton = requireElement(
+            overlay.querySelector<HTMLButtonElement>(
+                'button[aria-label="Close zone color picker"]'
+            ),
+            "Close button not rendered"
+        );
+        const applyButton = requireElement(
+            overlay.querySelector<HTMLButtonElement>(".zone-color-apply-btn"),
+            "Apply button not rendered"
+        );
+
+        expect(document.activeElement).toBe(closeButton);
+
+        applyButton.focus();
+        const tabEvent = new KeyboardEvent("keydown", {
+            bubbles: true,
+            cancelable: true,
+            key: "Tab",
+        });
+        document.dispatchEvent(tabEvent);
+
+        expect(tabEvent.defaultPrevented).toBe(true);
+        expect(document.activeElement).toBe(closeButton);
+
+        document.dispatchEvent(
+            new KeyboardEvent("keydown", { bubbles: true, key: "Escape" })
+        );
+
+        expect(overlay).toHaveProperty("isConnected", false);
+        expect(document.activeElement).toBe(opener);
     });
 });
 

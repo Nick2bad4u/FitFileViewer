@@ -15,6 +15,7 @@ import type { ZoneData } from "../../data/zones/chartZoneColorUtils.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { showNotification } from "../notifications/showNotification.js";
+import { createModalFocusTrap } from "./modalFocusTrap.js";
 
 type ChartDataset = {
     backgroundColor?: unknown;
@@ -156,15 +157,33 @@ export function openZoneColorPicker(field: string): void {
 						backdrop-filter: blur(4px);
 					`;
 
-        // ESC key handler (declare early to avoid no-use-before-define in listeners)
+        let escapeCleanup: (() => void) | undefined,
+            focusTrapCleanup: (() => void) | undefined;
+        const previouslyFocusedElement =
+            document.activeElement instanceof HTMLElement
+                ? document.activeElement
+                : null;
+
+        const closeModal = (): void => {
+            if (document.body.contains(overlay)) {
+                overlay.remove();
+            }
+            escapeCleanup?.();
+            focusTrapCleanup?.();
+            try {
+                previouslyFocusedElement?.focus();
+            } catch {
+                /* Ignore focus restoration failures in lightweight DOMs. */
+            }
+        };
+
         const handleEscape = (event: Event): void => {
             if (
                 event instanceof KeyboardEvent &&
                 event.key === "Escape" &&
                 document.body.contains(overlay)
             ) {
-                overlay.remove();
-                document.removeEventListener("keydown", handleEscape);
+                closeModal();
             }
         };
 
@@ -237,10 +256,7 @@ export function openZoneColorPicker(field: string): void {
         });
 
         addEventListenerWithCleanup(closeButton, "click", () => {
-            if (document.body.contains(overlay)) {
-                overlay.remove();
-                document.removeEventListener("keydown", handleEscape);
-            }
+            closeModal();
         });
 
         header.append(title);
@@ -305,6 +321,12 @@ export function openZoneColorPicker(field: string): void {
                 zoneIndex = (zone.zone || index + 1) - 1, // Convert to 0-based index
                 currentColor = getChartSpecificZoneColor(field, zoneIndex);
             colorPreview.className = "zone-color-preview";
+            colorPreview.setAttribute(
+                "aria-label",
+                `Choose ${zoneLabel.textContent ?? `Zone ${index + 1}`} color`
+            );
+            colorPreview.setAttribute("role", "button");
+            colorPreview.tabIndex = 0;
 
             colorPreview.style.cssText = `
 							width: 32px;
@@ -357,7 +379,9 @@ export function openZoneColorPicker(field: string): void {
                 "aria-label",
                 `${zoneLabel.textContent ?? `Zone ${index + 1}`} color`
             );
+            colorPicker.setAttribute("aria-hidden", "true");
             colorPicker.type = "color";
+            colorPicker.tabIndex = -1;
             colorPicker.value = toColorInputHex6(currentColor);
             colorPicker.style.cssText = `
 							opacity: 0;
@@ -398,6 +422,16 @@ export function openZoneColorPicker(field: string): void {
             // Click handler for color preview
             addEventListenerWithCleanup(colorPreview, "click", () => {
                 colorPicker.click();
+            });
+
+            addEventListenerWithCleanup(colorPreview, "keydown", (event) => {
+                if (
+                    event instanceof KeyboardEvent &&
+                    (event.key === "Enter" || event.key === " ")
+                ) {
+                    event.preventDefault();
+                    colorPicker.click();
+                }
             });
 
             addEventListenerWithCleanup(colorPreview, "mouseenter", () => {
@@ -623,10 +657,7 @@ export function openZoneColorPicker(field: string): void {
         });
 
         addEventListenerWithCleanup(applyButton, "click", () => {
-            if (document.body.contains(overlay)) {
-                overlay.remove();
-                document.removeEventListener("keydown", handleEscape);
-            }
+            closeModal();
 
             // Trigger chart re-render through state management instead of direct call
             if (chartStateManager) {
@@ -653,18 +684,22 @@ export function openZoneColorPicker(field: string): void {
         modal.append(actions);
         overlay.append(modal);
 
-        addEventListenerWithCleanup(document, "keydown", handleEscape);
+        escapeCleanup = addEventListenerWithCleanup(
+            document,
+            "keydown",
+            handleEscape
+        );
 
         // Click outside to close
         addEventListenerWithCleanup(overlay, "click", (e) => {
             if (e.target === overlay && document.body.contains(overlay)) {
-                overlay.remove();
-                document.removeEventListener("keydown", handleEscape);
+                closeModal();
             }
         });
 
         // Add to DOM
         document.body.append(overlay);
+        focusTrapCleanup = createModalFocusTrap(modal, closeButton);
 
         console.log(`[ChartJS] Zone color picker opened for ${zoneType} zones`);
     } catch (error) {
