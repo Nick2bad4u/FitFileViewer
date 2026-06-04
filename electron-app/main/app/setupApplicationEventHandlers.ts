@@ -256,11 +256,7 @@
             const protocol = parsed?.protocol;
 
             if (protocol === "file:") {
-                return true;
-            }
-
-            if (requestingUrl === "about:blank" || protocol === "about:") {
-                return true;
+                return isAllowedFileUrl(requestingUrl);
             }
 
             return false;
@@ -507,7 +503,6 @@
         if (!trimmed) return false;
 
         if (trimmed.startsWith("file://")) return isAllowedFileUrl(trimmed);
-        if (trimmed === "about:blank") return true;
 
         if (
             isDevMode() &&

@@ -99,8 +99,8 @@ describe("setupApplicationEventHandlers file:// policy", () => {
         vi.restoreAllMocks();
     });
 
-    it("denies external and file:// URLs outside the app bundle in production", async () => {
-        expect.assertions(8);
+    it("denies external, about:blank, and file:// URLs outside the app bundle in production", async () => {
+        expect.assertions(10);
 
         const handlers = new Map<string, AppEventHandler>();
         const mockElectron = createMockElectron(handlers);
@@ -164,6 +164,12 @@ describe("setupApplicationEventHandlers file:// policy", () => {
         expect(windowOpenHandler({ url: disallowedFileUrl })).toStrictEqual({
             action: "deny",
         });
+        expect(windowOpenHandler({ url: "about:blank" })).toStrictEqual({
+            action: "deny",
+        });
+        expect(mockElectron.shell.openExternal).not.toHaveBeenCalledWith(
+            "about:blank"
+        );
         expect(
             windowOpenHandler({ url: "https://gyazo.com/oauth/authorize" })
         ).toStrictEqual({

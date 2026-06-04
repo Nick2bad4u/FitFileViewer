@@ -211,7 +211,7 @@ describe("setupApplicationEventHandlers permission hardening", () => {
     });
 
     it("denies geolocation permission checks until an explicit allow is cached", async () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         process.env.NODE_ENV = "production";
         clearMainRequireCache();
@@ -276,6 +276,16 @@ describe("setupApplicationEventHandlers permission hardening", () => {
         expect(
             checkHandler({}, "geolocation", "https://zwiftmap.com/", {
                 requestingUrl: "https://zwiftmap.com/",
+            })
+        ).toBe(false);
+
+        requireAppState().setAppState(
+            "permissions.geolocation.allowed",
+            true
+        );
+        expect(
+            checkHandler({}, "geolocation", "about:blank", {
+                requestingUrl: "about:blank",
             })
         ).toBe(false);
     });
