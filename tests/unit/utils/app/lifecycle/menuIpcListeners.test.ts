@@ -38,12 +38,23 @@ type TestMenuHandler = (...args: unknown[]) => unknown;
 
 type TestMenuElectronAPI = {
     installUpdate: ReturnType<typeof vi.fn<() => void>>;
-    onIpc: ReturnType<
-        typeof vi.fn<
-            (channel: TestMenuChannel, callback: TestMenuHandler) => () => void
-        >
+    onMenuAbout: ReturnType<typeof vi.fn<(callback: TestMenuHandler) => void>>;
+    onMenuExport: ReturnType<typeof vi.fn<(callback: TestMenuHandler) => void>>;
+    onMenuKeyboardShortcuts: ReturnType<
+        typeof vi.fn<(callback: TestMenuHandler) => void>
     >;
-    send: ReturnType<typeof vi.fn<(channel: string) => void>>;
+    onMenuOpenOverlay: ReturnType<
+        typeof vi.fn<(callback: TestMenuHandler) => void>
+    >;
+    onMenuRestartUpdate: ReturnType<
+        typeof vi.fn<(callback: TestMenuHandler) => void>
+    >;
+    onMenuSaveAs: ReturnType<typeof vi.fn<(callback: TestMenuHandler) => void>>;
+    onOpenAccentColorPicker: ReturnType<
+        typeof vi.fn<(callback: TestMenuHandler) => void>
+    >;
+    requestExport: ReturnType<typeof vi.fn<() => void>>;
+    requestSaveAs: ReturnType<typeof vi.fn<() => void>>;
 };
 
 type MenuIpcTestGlobal = typeof globalThis & {
@@ -83,15 +94,22 @@ function cleanupFixture(): void {
 
 function setupFixture(): MenuFixture {
     const handlers = new Map<TestMenuChannel, TestMenuHandler>();
+    const register =
+        (channel: TestMenuChannel) =>
+        (callback: TestMenuHandler): void => {
+            handlers.set(channel, callback);
+        };
     const electronAPI: TestMenuElectronAPI = {
         installUpdate: vi.fn<() => void>(),
-        onIpc: vi.fn<
-            (channel: TestMenuChannel, callback: TestMenuHandler) => () => void
-        >((channel: TestMenuChannel, callback: TestMenuHandler) => {
-            handlers.set(channel, callback);
-            return vi.fn<() => void>();
-        }),
-        send: vi.fn<(channel: string) => void>(),
+        onMenuAbout: vi.fn(register("menu-about")),
+        onMenuExport: vi.fn(register("menu-export")),
+        onMenuKeyboardShortcuts: vi.fn(register("menu-keyboard-shortcuts")),
+        onMenuOpenOverlay: vi.fn(register("menu-open-overlay")),
+        onMenuRestartUpdate: vi.fn(register("menu-restart-update")),
+        onMenuSaveAs: vi.fn(register("menu-save-as")),
+        onOpenAccentColorPicker: vi.fn(register("open-accent-color-picker")),
+        requestExport: vi.fn<() => void>(),
+        requestSaveAs: vi.fn<() => void>(),
     };
     const fixture: MenuFixture = {
         debugMenuLog: vi.fn<(...args: unknown[]) => void>(),
@@ -155,7 +173,7 @@ describe(registerMenuIpcListeners, () => {
     });
 
     it("runs update, forwarding, about, and accent picker handlers", () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         const fixture = setupFixture();
         let accentPickerOpened = false;
@@ -166,13 +184,13 @@ describe(registerMenuIpcListeners, () => {
         try {
             getRequiredHandler(fixture.handlers, "menu-restart-update")();
             getRequiredHandler(fixture.handlers, "menu-save-as")();
+            getRequiredHandler(fixture.handlers, "menu-export")();
             getRequiredHandler(fixture.handlers, "menu-about")();
             getRequiredHandler(fixture.handlers, "open-accent-color-picker")();
 
             expect(fixture.electronAPI.installUpdate).toHaveBeenCalledOnce();
-            expect(fixture.electronAPI.send).toHaveBeenCalledWith(
-                "menu-save-as"
-            );
+            expect(fixture.electronAPI.requestSaveAs).toHaveBeenCalledOnce();
+            expect(fixture.electronAPI.requestExport).toHaveBeenCalledOnce();
             expect(fixture.showAboutModal).toHaveBeenCalledOnce();
             expect({ accentPickerOpened }).toStrictEqual({
                 accentPickerOpened: true,

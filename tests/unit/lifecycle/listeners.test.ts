@@ -23,6 +23,7 @@ type TestElectronAPI = {
     checkForUpdates: Mock<ElectronAPI["checkForUpdates"]>;
     onIpc: Mock<ElectronAPI["onIpc"]>;
     onMenuOpenFile: Mock<ElectronAPI["onMenuOpenFile"]>;
+    onMenuOpenOverlay: Mock<ElectronAPI["onMenuOpenOverlay"]>;
     onOpenRecentFile: Mock<ElectronAPI["onOpenRecentFile"]>;
     parseFitFile: Mock<ElectronAPI["parseFitFile"]>;
     readFile: Mock<ElectronAPI["readFile"]>;
@@ -49,17 +50,13 @@ function getTestWindow(): Window & TestGlobal {
 
 function getMenuOpenOverlayHandler(
     electronAPI: TestElectronAPI
-): Parameters<ElectronAPI["onIpc"]>[1] {
-    const entry = electronAPI.onIpc.mock.calls.find(
-        ([channel]) => channel === "menu-open-overlay"
-    );
+): Parameters<ElectronAPI["onMenuOpenOverlay"]>[0] {
+    const entry = electronAPI.onMenuOpenOverlay.mock.calls[0];
     if (!entry) {
         throw new TypeError("Expected menu-open-overlay registration");
     }
 
-    expect(entry[0]).toBe("menu-open-overlay");
-
-    const handler = entry[1];
+    const handler = entry[0];
     if (typeof handler !== "function") {
         throw new TypeError("Expected menu-open-overlay handler");
     }
@@ -127,6 +124,7 @@ describe("utils/app/lifecycle/listeners.js", () => {
                 .fn<() => Promise<null | string[]>>()
                 .mockResolvedValue(openRecentReturn),
             onMenuOpenFile: vi.fn<ElectronAPI["onMenuOpenFile"]>(),
+            onMenuOpenOverlay: vi.fn<ElectronAPI["onMenuOpenOverlay"]>(),
             onOpenRecentFile: vi.fn<ElectronAPI["onOpenRecentFile"]>(),
             readFile: vi.fn<ElectronAPI["readFile"]>(),
             parseFitFile: vi.fn<ElectronAPI["parseFitFile"]>(),
@@ -225,7 +223,7 @@ describe("utils/app/lifecycle/listeners.js", () => {
     });
 
     it("menu-open-overlay IPC triggers openFileSelector", async () => {
-        expect.assertions(4);
+        expect.assertions(3);
 
         openFileSelectorMock.mockImplementationOnce(() => {
             document.body.dataset.overlaySelectorOpened = "true";
@@ -239,7 +237,7 @@ describe("utils/app/lifecycle/listeners.js", () => {
     });
 
     it("menu-open-overlay handler reports errors", async () => {
-        expect.assertions(3);
+        expect.assertions(2);
 
         openFileSelectorMock.mockImplementationOnce(() => {
             throw new Error("fail");
