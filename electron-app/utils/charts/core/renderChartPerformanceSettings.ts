@@ -28,6 +28,14 @@ export type ChartPerformanceSettings = {
 
 const performanceSettingsCache = new Map<string, ChartPerformanceSettings>();
 
+function getChartTypeSetting(
+    settings: ChartSettings | null | undefined
+): string {
+    return typeof settings?.chartType === "string"
+        ? settings.chartType
+        : "line";
+}
+
 /** Clears cached chart performance settings after data or settings changes. */
 export function clearPerformanceSettingsCache(): void {
     performanceSettingsCache.clear();
@@ -39,19 +47,19 @@ export function resolvePerformanceSettings(
     settings: ChartSettings | null | undefined,
     dataSettingsSignature: string
 ): ChartPerformanceSettings {
-    const key = `${totalPoints}|${settings?.chartType || "line"}|${dataSettingsSignature}`;
+    const chartType = getChartTypeSetting(settings);
+    const key = `${totalPoints}|${chartType}|${dataSettingsSignature}`;
     const cached = performanceSettingsCache.get(key);
     if (cached) {
         return cached;
     }
 
     const allowDecimation =
-        (!settings?.chartType ||
-            [
-                "area",
-                "line",
-                "radar",
-            ].includes(String(settings.chartType))) &&
+        [
+            "area",
+            "line",
+            "radar",
+        ].includes(chartType) &&
         totalPoints > DECIMATION_THRESHOLD;
 
     const decimation: DecimationSettings = allowDecimation

@@ -185,7 +185,7 @@ export function buildChartConfigFromSpec(
     });
 
     const scales: Record<string, unknown> = {};
-    if (Array.isArray(spec.axes)) {
+    if (spec.axes) {
         for (const axis of spec.axes) {
             const isX = axis.id === "x";
             scales[axis.id] = {

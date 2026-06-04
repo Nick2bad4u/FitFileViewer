@@ -171,23 +171,24 @@ export function registerChartJsPlugins(chartGlobal: ChartPluginGlobal): void {
     }
 
     try {
-        if (chartGlobal?.Chart?.register) {
-            if (!chartGlobal.Chart.registry?.plugins?.get?.("zoom")) {
-                const chartZoom = chartGlobal.Chart["Zoom"];
-                if (chartZoom) {
-                    chartGlobal.Chart.register(chartZoom);
-                    console.log("[ChartJS] chartjs-plugin-zoom registered.");
-                } else if (chartGlobal.chartjsPluginZoom) {
-                    chartGlobal.Chart.register(chartGlobal.chartjsPluginZoom);
-                    console.log(
-                        "[ChartJS] chartjs-plugin-zoom registered (chartGlobal.ChartjsPluginZoom)."
-                    );
-                } else if (chartGlobal.ChartZoom) {
-                    chartGlobal.Chart.register(chartGlobal.ChartZoom);
-                    console.log(
-                        "[ChartJS] chartjs-plugin-zoom registered (chartGlobal.ChartZoom)."
-                    );
-                }
+        if (
+            chartGlobal?.Chart?.register &&
+            !chartGlobal.Chart.registry?.plugins?.get?.("zoom")
+        ) {
+            const chartZoom = chartGlobal.Chart["Zoom"];
+            if (chartZoom) {
+                chartGlobal.Chart.register(chartZoom);
+                console.log("[ChartJS] chartjs-plugin-zoom registered.");
+            } else if (chartGlobal.chartjsPluginZoom) {
+                chartGlobal.Chart.register(chartGlobal.chartjsPluginZoom);
+                console.log(
+                    "[ChartJS] chartjs-plugin-zoom registered (chartGlobal.ChartjsPluginZoom)."
+                );
+            } else if (chartGlobal.ChartZoom) {
+                chartGlobal.Chart.register(chartGlobal.ChartZoom);
+                console.log(
+                    "[ChartJS] chartjs-plugin-zoom registered (chartGlobal.ChartZoom)."
+                );
             }
         }
     } catch {

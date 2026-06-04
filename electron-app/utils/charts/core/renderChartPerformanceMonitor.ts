@@ -21,7 +21,7 @@ export interface PerformanceSummary {
 
 function getPerformanceHistory(): Record<string, unknown>[] {
     const history = getState("performance.chartHistory");
-    return Array.isArray(history) ? history : [];
+    return Array.isArray(history) ? history.filter(isObjectRecord) : [];
 }
 
 function isPerformanceTrackingRecord(
