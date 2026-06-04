@@ -13,8 +13,9 @@ type RenderChartJS = (
 
 type LegacyRendererGlobal = typeof globalThis & {
     cleanupEventListeners?: () => void;
+    globalData?: unknown;
     renderChartJS?: RenderChartJS;
-    sendFitFileToAltFitReader?: (arrayBuffer: ArrayBuffer) => Promise<void>;
+    sendFitFileToAltFitReader?: (arrayBuffer: ArrayBuffer) => void;
     showFitData?: ShowFitData;
 };
 
@@ -30,7 +31,7 @@ type RegisterLegacyGlobalsDependencies = {
 };
 
 function getLegacyRendererGlobal(): LegacyRendererGlobal {
-    return globalThis as LegacyRendererGlobal;
+    return globalThis;
 }
 
 /**
@@ -46,7 +47,7 @@ export function defineGlobalDataProperty(): void {
             Object.defineProperty(globalThis, "globalData", {
                 configurable: true,
                 enumerable: true,
-                get() {
+                get(): unknown {
                     return getState("globalData");
                 },
                 set(value: unknown) {
@@ -80,7 +81,7 @@ export function registerLegacyGlobals({
     legacyGlobal.cleanupEventListeners = cleanupEventListeners;
 
     // Enhanced iframe communication with better error handling
-    legacyGlobal.sendFitFileToAltFitReader = async (arrayBuffer) => {
+    legacyGlobal.sendFitFileToAltFitReader = (arrayBuffer) => {
         const iframe = validateElement(constants.DOM_IDS.ALT_FIT_IFRAME);
         if (!iframe) {
             console.warn("Alt FIT iframe not found");

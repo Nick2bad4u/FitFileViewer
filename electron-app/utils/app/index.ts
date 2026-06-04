@@ -67,8 +67,8 @@ export { registerMenuIpcListeners } from "./lifecycle/menuIpcListeners.js";
 export { attachRecentFilesContextMenu } from "./lifecycle/recentFilesContextMenu.js";
 export {
     addShutdownHook,
-    cleanup as cleanupResources,
     cleanupAll,
+    cleanup as cleanupResources,
     getStats,
     list,
     register,
