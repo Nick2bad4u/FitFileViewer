@@ -7,8 +7,8 @@ import { showNotification } from "../notifications/showNotification.js";
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 type AddFitOverlayGlobal = typeof globalThis & {
-    __ffvAddFitOverlayButtonUnsubscribe?: unknown;
-    __ffvAddFitOverlayButtonUpdate?: unknown;
+    __ffvAddFitOverlayButtonUnsubscribe?: () => void;
+    __ffvAddFitOverlayButtonUpdate?: () => void;
 };
 
 type FitRecordData = {
@@ -134,7 +134,7 @@ async function handleAddOverlayClick(
 ): Promise<void> {
     try {
         if (addOverlayBtn.disabled) {
-            showNotification(
+            void showNotification(
                 "Open a primary FIT file before adding overlays.",
                 "info"
             );
@@ -146,6 +146,6 @@ async function handleAddOverlayClick(
         if (!isTestEnvironment) {
             console.error("[MapActions] Failed to open file selector:", error);
         }
-        showNotification("Failed to open file selector", "error");
+        void showNotification("Failed to open file selector", "error");
     }
 }
