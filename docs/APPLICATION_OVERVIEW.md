@@ -98,7 +98,7 @@ runtime renderer output:
 
 1. **File selection:** Renderer triggers `electronAPI.openFile()`; main process updates recent files and reconstitutes menus.
 2. **Binary read:** `file:read` returns an ArrayBuffer via IPC.
-3. **Decode:** `fitParser.ts` loads Garmin’s FIT SDK (`@garmin/fitsdk`), validates integrity, tracks progress via `fitFileStateManager`, and records metadata.
+3. **Decode:** `fitParser.ts` loads Garmin's FIT SDK (`@garmin/fitsdk`), validates integrity, tracks progress via `fitFileStateManager`, and records metadata.
 4. **State updates:** Successful decodes update `globalData`, propagate to charts/maps/tables (`showFitData.ts`), and notify the main menu.
 5. **Overlays:** `loadOverlayFiles.ts` allows additional FIT files to be displayed side-by-side, reusing the decode pipeline and maintaining `loadedFitFiles`.
 
