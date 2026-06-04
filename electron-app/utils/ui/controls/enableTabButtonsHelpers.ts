@@ -37,18 +37,27 @@ export function safeComputedStyle(
 export function safeQueryTabButtons(): HTMLElement[] {
     try {
         if (typeof document !== "undefined") {
-            if (typeof document.querySelectorAll === "function") {
-                return Array.from(
-                    document.querySelectorAll<HTMLElement>(".tab-button")
-                );
+            const querySelectorAll = Reflect.get(document, "querySelectorAll");
+            if (typeof querySelectorAll === "function") {
+                return [
+                    ...(querySelectorAll.call(
+                        document,
+                        ".tab-button"
+                    ) as NodeListOf<HTMLElement>),
+                ];
             }
 
-            if (typeof document.getElementsByClassName === "function") {
-                return Array.from(
-                    document.getElementsByClassName(
+            const getElementsByClassName = Reflect.get(
+                document,
+                "getElementsByClassName"
+            );
+            if (typeof getElementsByClassName === "function") {
+                return [
+                    ...(getElementsByClassName.call(
+                        document,
                         "tab-button"
-                    ) as HTMLCollectionOf<HTMLElement>
-                );
+                    ) as HTMLCollectionOf<HTMLElement>),
+                ];
             }
         }
     } catch {

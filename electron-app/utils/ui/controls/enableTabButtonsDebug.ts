@@ -16,6 +16,17 @@ type TestClickRegistration = {
 
 const testClickRegistrations = new Set<TestClickRegistration>();
 
+function createTestClickHandler(buttonId: string): (event: MouseEvent) => void {
+    return (event: MouseEvent): void => {
+        console.log(`[TabButtons] TEST CLICK DETECTED on ${buttonId}!`, event);
+        try {
+            console.log(`Clicked on ${buttonId}!`);
+        } catch {
+            /* Ignore errors */
+        }
+    };
+}
+
 /**
  * Debug function to manually test and fix tab button states.
  *
@@ -109,7 +120,7 @@ export function debugTabState(): void {
 
         console.log(`[TabButtons] Tab ${buttonId}:`, {
             ariaSelected,
-            classList: Array.from(button.classList),
+            classList: [...button.classList],
             computedCursor: computedStyle,
             computedPointerEvents: currentPointerEvents,
             disabled: buttonElement.disabled,
@@ -136,17 +147,7 @@ export function testTabButtonClicks(): void {
             continue;
         }
 
-        const testHandler = (event: MouseEvent) => {
-            console.log(
-                `[TabButtons] TEST CLICK DETECTED on ${buttonId}!`,
-                event
-            );
-            try {
-                console.log(`Clicked on ${buttonId}!`);
-            } catch {
-                /* Ignore errors */
-            }
-        };
+        const testHandler = createTestClickHandler(buttonId);
 
         const abortController = new AbortController();
         button.addEventListener("click", testHandler, {

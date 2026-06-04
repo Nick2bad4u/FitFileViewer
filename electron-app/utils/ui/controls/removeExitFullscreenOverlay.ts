@@ -19,9 +19,8 @@ const overlayCache = new WeakMap<HTMLElement, HTMLElement>();
 /**
  * Removes the exit fullscreen overlay button from the specified container.
  *
- * Uses caching for improved performance and supports both modern and legacy
- * removal methods. Automatically cleans up cache entries when overlays are
- * removed.
+ * Uses caching for improved performance and automatically cleans up cache
+ * entries when overlays are removed.
  *
  * @example // Remove exit fullscreen overlay from a chart container
  * removeExitFullscreenOverlay(document.getElementById("chart-container"));
@@ -81,15 +80,5 @@ function findOverlay(container: HTMLElement): HTMLElement | null {
  * @throws Error If the overlay cannot be removed.
  */
 function removeOverlayElement(overlay: HTMLElement): void {
-    // Use modern remove() method if available
-    if (typeof overlay.remove === "function") {
-        overlay.remove();
-    } else if (overlay.parentNode) {
-        // Fallback to legacy removeChild for older browsers
-        overlay.parentNode.removeChild(overlay);
-    } else {
-        throw new Error(
-            "Unable to remove overlay: no removal method available"
-        );
-    }
+    overlay.remove();
 }
