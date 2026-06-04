@@ -1,20 +1,17 @@
 import type { JSX } from "react";
 
-import Heading from "@theme/Heading";
 import clsx from "clsx";
 
 import styles from "./styles.module.css";
 
-type FeatureItem = {
-    title: string;
-    emoji: string;
-    description: JSX.Element;
-};
+interface FeatureItem {
+    readonly description: JSX.Element;
+    readonly emoji: string;
+    readonly title: string;
+}
 
 const FeatureList: FeatureItem[] = [
     {
-        title: "Interactive Maps",
-        emoji: "🗺️",
         description: (
             <>
                 Visualize your GPS routes with beautiful interactive maps
@@ -22,10 +19,10 @@ const FeatureList: FeatureItem[] = [
                 start/end points, and elevation profile all in one place.
             </>
         ),
+        emoji: "🗺️",
+        title: "Interactive Maps",
     },
     {
-        title: "Detailed Charts",
-        emoji: "📊",
         description: (
             <>
                 Analyze your performance with dynamic Chart.js and Vega-Lite
@@ -33,10 +30,10 @@ const FeatureList: FeatureItem[] = [
                 more over time or distance.
             </>
         ),
+        emoji: "📊",
+        title: "Detailed Charts",
     },
     {
-        title: "Comprehensive Tables",
-        emoji: "📋",
         description: (
             <>
                 Dive deep into your data with sortable, filterable DataTables.
@@ -44,10 +41,10 @@ const FeatureList: FeatureItem[] = [
                 point from your activity.
             </>
         ),
+        emoji: "📋",
+        title: "Comprehensive Tables",
     },
     {
-        title: "Cross-Platform",
-        emoji: "💻",
         description: (
             <>
                 Built with Electron for Windows, macOS, and Linux. Download once
@@ -55,10 +52,10 @@ const FeatureList: FeatureItem[] = [
                 required.
             </>
         ),
+        emoji: "💻",
+        title: "Cross-Platform",
     },
     {
-        title: "Open Source",
-        emoji: "🔓",
         description: (
             <>
                 100% open source under the Unlicense. View the code, contribute
@@ -66,10 +63,10 @@ const FeatureList: FeatureItem[] = [
                 data stays yours.
             </>
         ),
+        emoji: "🔓",
+        title: "Open Source",
     },
     {
-        title: "Garmin FIT Support",
-        emoji: "⌚",
         description: (
             <>
                 Full support for Garmin FIT files using the official Garmin FIT
@@ -77,24 +74,10 @@ const FeatureList: FeatureItem[] = [
                 activity types.
             </>
         ),
+        emoji: "⌚",
+        title: "Garmin FIT Support",
     },
 ];
-
-function Feature({ title, emoji, description }: FeatureItem): JSX.Element {
-    return (
-        <div className={clsx("col col--4")}>
-            <div className={styles.featureCard}>
-                <div className={styles.featureIcon}>{emoji}</div>
-                <div className="padding-horiz--md">
-                    <Heading as="h3" className={styles.featureTitle}>
-                        {title}
-                    </Heading>
-                    <p className={styles.featureDescription}>{description}</p>
-                </div>
-            </div>
-        </div>
-    );
-}
 
 /**
  * Renders the feature grid on the documentation homepage.
@@ -103,15 +86,31 @@ export default function HomepageFeatures(): JSX.Element {
     return (
         <section className={styles.features}>
             <div className="container">
-                <Heading as="h2" className={styles.featuresTitle}>
-                    ✨ Features
-                </Heading>
+                <h2 className={styles.featuresTitle}>✨ Features</h2>
                 <div className="row">
-                    {FeatureList.map((props, idx) => (
-                        <Feature key={idx} {...props} />
+                    {FeatureList.map((props) => (
+                        <Feature key={props.title} {...props} />
                     ))}
                 </div>
             </div>
         </section>
+    );
+}
+
+function Feature({
+    description,
+    emoji,
+    title,
+}: Readonly<FeatureItem>): JSX.Element {
+    return (
+        <div className={clsx("col col--4")}>
+            <div className={styles.featureCard}>
+                <div className={styles.featureIcon}>{emoji}</div>
+                <div className="padding-horiz--md">
+                    <h3 className={styles.featureTitle}>{title}</h3>
+                    <p className={styles.featureDescription}>{description}</p>
+                </div>
+            </div>
+        </div>
     );
 }

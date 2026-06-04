@@ -1,15 +1,20 @@
-import type { JSX } from "react";
+/* eslint-disable canonical/filename-no-index -- Docusaurus uses src/pages/index.tsx for the site root route. */
+import type { JSX, MouseEvent } from "react";
 
+// eslint-disable-next-line import-x/no-unresolved -- Docusaurus provides this virtual module at build time.
 import Link from "@docusaurus/Link";
+// eslint-disable-next-line import-x/no-unresolved -- Docusaurus provides this virtual module at build time.
 import useBaseUrl from "@docusaurus/useBaseUrl";
+// eslint-disable-next-line import-x/no-unresolved -- Docusaurus provides this virtual module at build time.
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
-import GitHubStatsComponent from "@site/src/components/GitHubStats";
-import HomepageFeatures from "@site/src/components/HomepageFeatures";
-import Heading from "@theme/Heading";
+// eslint-disable-next-line import-x/no-unresolved -- Docusaurus provides this virtual module at build time.
 import Layout from "@theme/Layout";
 import clsx from "clsx";
 
+import GitHubStatsComponent from "../components/GitHubStats/git-hub-stats";
+import HomepageFeatures from "../components/HomepageFeatures/homepage-features";
 import styles from "./index.module.css";
+/* eslint-enable canonical/filename-no-index -- End Docusaurus root route filename exception. */
 
 const packageJsonSnippet = `{
   "name": "fitfileviewer",
@@ -39,76 +44,67 @@ const packageJsonSnippet = `{
   }
 }`;
 
+const feedbackTimers = new WeakMap<
+    HTMLButtonElement,
+    ReturnType<typeof setTimeout>
+>();
+
+/* eslint-disable @typescript-eslint/prefer-readonly-parameter-types -- Browser event handlers need mutable DOM elements for transient button feedback. */
+
 /**
- * Copies code to clipboard with fallback support.
+ * Copies code to clipboard.
  */
-const handleCopyCode = (() => {
-    // Module-scoped variable to track the feedback timer for proper cleanup
-    let feedbackTimer: null | ReturnType<typeof setTimeout> = null;
+async function copyPackageJsonSnippet(
+    button: HTMLButtonElement
+): Promise<void> {
+    try {
+        await globalThis.window.navigator.clipboard.writeText(
+            packageJsonSnippet
+        );
+        showButtonFeedback(button, "Copied!");
+    } catch {
+        showButtonFeedback(button, "Copy failed");
+    }
+}
 
-    return async (): Promise<void> => {
-        // Try modern clipboard API first (browser environment only)
-        if (
-            typeof window !== "undefined" &&
-            "navigator" in window &&
-            window.navigator.clipboard
-        ) {
-            try {
-                await window.navigator.clipboard.writeText(packageJsonSnippet);
-                // Simple feedback
-                const button = document.activeElement;
-                if (button && button instanceof HTMLButtonElement) {
-                    const originalText = button.textContent;
-                    button.textContent = "Copied!";
+/**
+ * Shows temporary feedback on a button.
+ */
+function showButtonFeedback(
+    button: HTMLButtonElement,
+    text: string,
+    timeoutMs = 1200
+): void {
+    const existingTimer = feedbackTimers.get(button);
+    if (existingTimer !== undefined) {
+        clearTimeout(existingTimer);
+    }
 
-                    // Clear any existing feedback timer
-                    if (feedbackTimer) {
-                        clearTimeout(feedbackTimer);
-                    }
+    const originalText = button.textContent;
+    button.textContent = text;
 
-                    feedbackTimer = setTimeout(() => {
-                        button.textContent = originalText;
-                        feedbackTimer = null;
-                    }, 1000);
-                }
-                return;
-            } catch {
-                // Fall through to the older method
-            }
-        }
-
-        // Fallback for older browsers or when navigator is not available
-        const textArea = document.createElement("textarea");
-        textArea.value = packageJsonSnippet;
-        document.body.append(textArea);
-        textArea.select();
-        try {
-            document.execCommand("copy");
-        } catch {
-            console.warn("Copy to clipboard not supported");
-        }
-        textArea.remove();
-    };
-})();
+    const feedbackTimer = globalThis.setTimeout(() => {
+        button.textContent = originalText;
+        feedbackTimers.delete(button);
+    }, timeoutMs);
+    feedbackTimers.set(button, feedbackTimer);
+}
 
 /**
  * Wrapper for handleCopyCode to handle the async function in onClick.
  */
-const handleCopyCodeClick = (): void => {
-    void handleCopyCode().catch((error: unknown) => {
-        console.error("Failed to copy code:", error);
-    });
+const handleCopyCodeClick = (event: MouseEvent<HTMLButtonElement>): void => {
+    void copyPackageJsonSnippet(event.currentTarget);
 };
 
 /**
  * Handles demo button click with feedback message.
  */
-const handleDemoButtonClick = (): void => {
-    // Show a simple demo message
-    alert(
-        "🎯 Demo Feature!\n\nThis is just a UI demonstration. Download the app to start viewing your .fit files!"
-    );
+const handleDemoButtonClick = (event: MouseEvent<HTMLButtonElement>): void => {
+    showButtonFeedback(event.currentTarget, "Demo only");
 };
+
+/* eslint-enable @typescript-eslint/prefer-readonly-parameter-types -- End mutable DOM feedback handler exception. */
 
 /**
  * Renders a demo UI window showcasing the FitFileViewer app interface.
@@ -117,22 +113,22 @@ const UIDemo = (): JSX.Element => {
     // Static demo data representing FIT file activities
     const activities = [
         {
+            date: "Today",
             distance: "25.4 km",
             duration: "1:15:23",
             type: "🚴 Cycling",
-            date: "Today",
         },
         {
+            date: "Yesterday",
             distance: "5.2 km",
             duration: "0:28:45",
             type: "🏃 Running",
-            date: "Yesterday",
         },
         {
+            date: "2 days ago",
             distance: "1.5 km",
             duration: "0:45:00",
             type: "🏊 Swimming",
-            date: "2 days ago",
         },
     ];
 
@@ -179,7 +175,7 @@ const UIDemo = (): JSX.Element => {
                                 <span className={styles["response-time"]}>
                                     {activity.distance}
                                 </span>
-                                <span className={styles["uptime"]}>
+                                <span className={styles.uptime}>
                                     {activity.duration}
                                 </span>
                             </div>
@@ -199,16 +195,15 @@ const HomepageHeader = (): JSX.Element => (
         <div className="container">
             <div className={styles["hero-content"]}>
                 <div className={styles["hero-text"]}>
-                    <Heading
-                        as="h1"
+                    <h1
                         className={`${styles["hero-title"]} gradient-text-animated hero__title`}
                     >
                         View Your Fitness Data
                         <br />
-                        <span className={styles["accent"]}>
+                        <span className={styles.accent}>
                             The Way It Should Be.
                         </span>
-                    </Heading>
+                    </h1>
                     <p className={`${styles["hero-subtitle"]} hero__subtitle`}>
                         A powerful desktop application for viewing and analyzing
                         .fit files from Garmin and other fitness devices.
@@ -254,9 +249,7 @@ const HomepageHeader = (): JSX.Element => (
 const RealTimeStatus = (): JSX.Element => (
     <section className={styles["status-section"]}>
         <div className="container">
-            <Heading as="h2" className={styles["section-title"]}>
-                ✨ Why FitFileViewer?
-            </Heading>
+            <h2 className={styles["section-title"]}>✨ Why FitFileViewer?</h2>
             <div className={styles["status-grid"]}>
                 <div
                     className={clsx(
@@ -327,7 +320,7 @@ const TechStack = (): JSX.Element => (
         <div className="container">
             <div className={styles["tech-content"]}>
                 <div className={styles["tech-info"]}>
-                    <Heading as="h2">Built for Athletes, by Athletes</Heading>
+                    <h2>Built for Athletes, by Athletes</h2>
                     <p>
                         FitFileViewer is a free, open-source tool designed to
                         give you complete control over your fitness data. No
@@ -397,104 +390,94 @@ const TechStack = (): JSX.Element => (
  * Uses the same three screenshots showcased in the GitHub README.
  */
 const ScreenshotGallery = (): JSX.Element => {
+    const chartsImageSrc = useBaseUrl("img/screenshots/ChartsV3.png");
+    const mapImageSrc = useBaseUrl("img/screenshots/MapsV2.png");
+    const tableImageSrc = useBaseUrl("img/screenshots/DataV2.png");
+
     const screenshots = [
         {
-            title: "🗺️ Interactive Map",
-            description: "Explore GPS routes, laps, overlays, and map tools.",
-            docHref: "/docs/visualization/maps",
-            imageAlt: "FitFileViewer map view screenshot",
-            imagePath: "img/screenshots/MapsV2.png",
-        },
-        {
-            title: "📋 Data Table",
-            description: "Search, sort, and export detailed activity metrics.",
-            docHref: "/docs/visualization/tables",
-            imageAlt: "FitFileViewer data table screenshot",
-            imagePath: "img/screenshots/DataV2.png",
-        },
-        {
-            title: "📈 Charts",
             description:
                 "Analyze trends with interactive, customizable charts.",
             docHref: "/docs/visualization/charts",
             imageAlt: "FitFileViewer charts screenshot",
-            imagePath: "img/screenshots/ChartsV3.png",
+            imageSrc: chartsImageSrc,
+            title: "📈 Charts",
+        },
+        {
+            description: "Explore GPS routes, laps, overlays, and map tools.",
+            docHref: "/docs/visualization/maps",
+            imageAlt: "FitFileViewer map view screenshot",
+            imageSrc: mapImageSrc,
+            title: "🗺️ Interactive Map",
+        },
+        {
+            description: "Search, sort, and export detailed activity metrics.",
+            docHref: "/docs/visualization/tables",
+            imageAlt: "FitFileViewer data table screenshot",
+            imageSrc: tableImageSrc,
+            title: "📋 Data Table",
         },
     ] as const;
 
     return (
         <section className={styles["screenshots-section"]}>
             <div className="container">
-                <Heading as="h2" className={styles["section-title"]}>
-                    🖼️ Screenshots
-                </Heading>
+                <h2 className={styles["section-title"]}>🖼️ Screenshots</h2>
                 <p className={styles["screenshots-subtitle"]}>
                     A quick look at the Map, Tables, and Charts tabs.
                 </p>
                 <div className={styles["screenshot-grid"]}>
-                    {screenshots.map((shot) => {
-                        const imgSrc = useBaseUrl(shot.imagePath);
-                        return (
-                            <article
-                                className={styles["screenshot-card"]}
-                                key={shot.imagePath}
+                    {screenshots.map((shot) => (
+                        <article
+                            className={styles["screenshot-card"]}
+                            key={shot.imageSrc}
+                        >
+                            <Link
+                                className={styles["screenshot-image-link"]}
+                                href={shot.imageSrc}
+                                rel="noopener noreferrer"
+                                target="_blank"
+                                title="Open full-size image"
                             >
-                                <Link
-                                    className={styles["screenshot-image-link"]}
-                                    href={imgSrc}
-                                    rel="noopener noreferrer"
-                                    target="_blank"
-                                    title="Open full-size image"
-                                >
-                                    <img
-                                        alt={shot.imageAlt}
-                                        className={styles["screenshot-image"]}
-                                        loading="lazy"
-                                        src={imgSrc}
-                                    />
-                                </Link>
-                                <div className={styles["screenshot-body"]}>
-                                    <Heading
-                                        as="h3"
-                                        className={styles["screenshot-title"]}
+                                <img
+                                    alt={shot.imageAlt}
+                                    className={styles["screenshot-image"]}
+                                    loading="lazy"
+                                    src={shot.imageSrc}
+                                />
+                            </Link>
+                            <div className={styles["screenshot-body"]}>
+                                <h3 className={styles["screenshot-title"]}>
+                                    {shot.title}
+                                </h3>
+                                <p className={styles["screenshot-description"]}>
+                                    {shot.description}
+                                </p>
+                                <div className={styles["screenshot-actions"]}>
+                                    <Link
+                                        className={clsx(
+                                            "button button--primary button--sm",
+                                            styles["screenshot-action"]
+                                        )}
+                                        to={shot.docHref}
                                     >
-                                        {shot.title}
-                                    </Heading>
-                                    <p
-                                        className={
-                                            styles["screenshot-description"]
-                                        }
+                                        Learn more
+                                    </Link>
+                                    <Link
+                                        className={clsx(
+                                            "button button--secondary button--sm",
+                                            styles["screenshot-action"]
+                                        )}
+                                        href={shot.imageSrc}
+                                        rel="noopener noreferrer"
+                                        target="_blank"
                                     >
-                                        {shot.description}
-                                    </p>
-                                    <div
-                                        className={styles["screenshot-actions"]}
-                                    >
-                                        <Link
-                                            className={clsx(
-                                                "button button--primary button--sm",
-                                                styles["screenshot-action"]
-                                            )}
-                                            to={shot.docHref}
-                                        >
-                                            Learn more
-                                        </Link>
-                                        <Link
-                                            className={clsx(
-                                                "button button--secondary button--sm",
-                                                styles["screenshot-action"]
-                                            )}
-                                            href={imgSrc}
-                                            rel="noopener noreferrer"
-                                            target="_blank"
-                                        >
-                                            View full size
-                                        </Link>
-                                    </div>
+                                        View full size
+                                    </Link>
                                 </div>
-                            </article>
-                        );
-                    })}
+                            </div>
+                        </article>
+                    ))}
                 </div>
             </div>
         </section>
