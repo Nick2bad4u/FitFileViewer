@@ -23,7 +23,7 @@ export type MaxPointsValue = "all" | number;
 export function calculateAxisRanges(
     points: readonly (ChartPoint | null | undefined)[]
 ): AxisRanges | null {
-    if (!Array.isArray(points) || points.length === 0) {
+    if (points.length === 0) {
         return null;
     }
 
@@ -33,7 +33,7 @@ export function calculateAxisRanges(
     let maxY = Number.NEGATIVE_INFINITY;
 
     for (const point of points) {
-        if (!point) {
+        if (point === null || point === undefined) {
             continue;
         }
 
@@ -79,13 +79,15 @@ export function createChartPoints(
     labels: readonly unknown[] | null | undefined,
     values: readonly unknown[] | null | undefined
 ): ChartPoint[] {
-    const labelCount = Array.isArray(labels) ? labels.length : 0;
-    const valueCount = Array.isArray(values) ? values.length : 0;
+    const labelValues = labels ?? [];
+    const pointValues = values ?? [];
+    const labelCount = labelValues.length;
+    const valueCount = pointValues.length;
     const length = Math.min(labelCount, valueCount);
 
     return Array.from({ length }, (_, index) => {
-        const labelValue = labels?.[index];
-        const yValue = values?.[index];
+        const labelValue = labelValues[index];
+        const yValue = pointValues[index];
         const x =
             typeof labelValue === "number" && Number.isFinite(labelValue)
                 ? labelValue
@@ -107,9 +109,9 @@ export function getMaxPointCacheKey(maxPointsValue: MaxPointsValue): string {
 /** Returns a sampled copy of chart points that respects the max-points setting. */
 export function limitChartPoints<T>(
     points: readonly T[] | null | undefined,
-    maxPoints: "all" | number | string | null | undefined
+    maxPoints: number | string | null | undefined
 ): T[] {
-    if (!Array.isArray(points) || points.length === 0) {
+    if (points === null || points === undefined || points.length === 0) {
         return [];
     }
 
@@ -117,22 +119,21 @@ export function limitChartPoints<T>(
         return [...points];
     }
 
-    const limit =
-        typeof maxPoints === "number"
-            ? maxPoints
-            : Number.parseInt(String(maxPoints), 10);
+    const limit = parsePositiveInteger(maxPoints);
     if (!Number.isFinite(limit) || limit <= 0 || points.length <= limit) {
         return [...points];
     }
 
     const step = Math.max(1, Math.ceil(points.length / limit));
     const limited: T[] = [];
-    for (let i = 0; i < points.length; i += step) {
-        limited.push(points[i]);
+    for (const [index, point] of points.entries()) {
+        if (index % step === 0) {
+            limited.push(point);
+        }
     }
 
     const lastPoint = points.at(-1);
-    if (lastPoint && limited.at(-1) !== lastPoint) {
+    if (lastPoint !== undefined && limited.at(-1) !== lastPoint) {
         limited.push(lastPoint);
     }
 
@@ -145,13 +146,22 @@ export function normalizeMaxPointsValue(maxPoints: unknown): MaxPointsValue {
         return "all";
     }
 
-    const numeric =
-        typeof maxPoints === "number"
-            ? maxPoints
-            : Number.parseInt(String(maxPoints), 10);
+    const numeric = parsePositiveInteger(maxPoints);
     if (!Number.isFinite(numeric) || numeric <= 0) {
         return "all";
     }
 
     return numeric;
+}
+
+function parsePositiveInteger(value: unknown): number {
+    if (typeof value === "number") {
+        return value;
+    }
+
+    if (typeof value === "string") {
+        return Number.parseInt(value, 10);
+    }
+
+    return Number.NaN;
 }
