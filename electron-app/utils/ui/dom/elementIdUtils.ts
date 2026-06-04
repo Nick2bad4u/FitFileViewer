@@ -19,22 +19,11 @@ export function buildIdVariants(id: string): string[] {
     addVariant(variants, raw.replaceAll("_", "-"));
     addVariant(variants, raw.replaceAll("-", "_"));
 
-    addVariant(
-        variants,
-        raw.replaceAll(/[-_]+(.)/gu, (_match, character: string) =>
-            character.toUpperCase()
-        )
-    );
-    addVariant(
-        variants,
-        raw.replaceAll(/([a-z0-9])([A-Z])/gu, "$1_$2").toLowerCase()
-    );
-    addVariant(
-        variants,
-        raw.replaceAll(/([a-z0-9])([A-Z])/gu, "$1-$2").toLowerCase()
-    );
+    addVariant(variants, toCamelCaseVariant(raw));
+    addVariant(variants, raw.replaceAll(/(?<=[a-z0-9])(?=[A-Z])/gu, "_").toLowerCase());
+    addVariant(variants, raw.replaceAll(/(?<=[a-z0-9])(?=[A-Z])/gu, "-").toLowerCase());
 
-    return Array.from(variants);
+    return [...variants];
 }
 
 /**
@@ -44,15 +33,15 @@ export function getElementByIdFlexible(
     doc: Document | null | undefined,
     id: string
 ): HTMLElement | null {
-    if (!doc || typeof doc.getElementById !== "function") {
+    if (!doc) {
         return null;
     }
 
     for (const variant of buildIdVariants(id)) {
-        const element = doc.getElementById(variant);
+        const element = doc.querySelector(toExactIdSelector(variant));
 
         if (element) {
-            return element;
+            return toHTMLElement(element);
         }
     }
 
@@ -67,7 +56,7 @@ export function querySelectorByIdFlexible(
     doc: Document | null | undefined,
     selector: string
 ): HTMLElement | null {
-    if (!doc || typeof doc.querySelector !== "function") {
+    if (!doc) {
         return null;
     }
 
@@ -126,18 +115,20 @@ function canGetById(root: FlexibleLookupRoot): root is Document {
 }
 
 function canQuery(root: FlexibleLookupRoot): root is ParentNode {
-    return typeof root.querySelector === "function";
+    return "querySelector" in root;
 }
 
 function resolveIdSelector(
     doc: FlexibleLookupRoot,
     selector: string
 ): HTMLElement | null {
+    const id = selector.slice(1);
+
     if (canGetById(doc)) {
-        return getElementByIdFlexible(doc, selector.slice(1));
+        return getElementByIdFlexible(doc, id);
     }
 
-    return canQuery(doc) ? toHTMLElement(doc.querySelector(selector)) : null;
+    return canQuery(doc) ? queryIdVariants(doc, id) : null;
 }
 
 function resolveIdValue(
@@ -148,7 +139,53 @@ function resolveIdValue(
         return getElementByIdFlexible(doc, id);
     }
 
-    return canQuery(doc) ? toHTMLElement(doc.querySelector(`#${id}`)) : null;
+    return canQuery(doc) ? queryIdVariants(doc, id) : null;
+}
+
+function escapeCssString(value: string): string {
+    const backslash = String.fromCodePoint(92);
+
+    return value
+        .replaceAll(backslash, `${backslash}${backslash}`)
+        .replaceAll("\"", `${backslash}"`);
+}
+
+function toCamelCaseVariant(value: string): string {
+    let result = "";
+    let uppercaseNext = false;
+
+    for (const character of value) {
+        if (character === "-" || character === "_") {
+            uppercaseNext = true;
+            continue;
+        }
+
+        result += uppercaseNext ? character.toUpperCase() : character;
+        uppercaseNext = false;
+    }
+
+    return result;
+}
+
+function toExactIdSelector(id: string): string {
+    return `[id="${escapeCssString(id)}"]`;
+}
+
+function queryIdVariants(
+    root: ParentNode,
+    id: string
+): HTMLElement | null {
+    for (const variant of buildIdVariants(id)) {
+        const element = toHTMLElement(
+            root.querySelector(toExactIdSelector(variant))
+        );
+
+        if (element) {
+            return element;
+        }
+    }
+
+    return null;
 }
 
 function toHTMLElement(element: Element | null): HTMLElement | null {
