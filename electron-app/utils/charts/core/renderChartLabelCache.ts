@@ -35,14 +35,17 @@ export function getLabelsForRecords(
         let labelValue = index;
         const rawTimestamp = getRecordValue(row, "timestamp");
 
-        if (rawTimestamp != null) {
+        if (rawTimestamp !== null && rawTimestamp !== undefined) {
             const timestamp = normalizeTimestamp(rawTimestamp);
-            if (timestamp != null) {
-                labelValue =
-                    base != null
-                        ? Math.max(0, Math.round(timestamp - base))
-                        : Math.round(timestamp);
+            if (timestamp === null) {
+                result.push(labelValue);
+                continue;
             }
+
+            labelValue =
+                base === null
+                    ? Math.round(timestamp)
+                    : Math.max(0, Math.round(timestamp - base));
         }
 
         result.push(labelValue);
