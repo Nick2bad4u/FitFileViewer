@@ -229,9 +229,7 @@ export class ChartTabIntegration {
 function asDisableableTabButton(
     element: Element | null
 ): DisableableTabButton | null {
-    return element instanceof HTMLElement
-        ? (element as DisableableTabButton)
-        : null;
+    return element instanceof HTMLElement ? element : null;
 }
 
 function getGlobalFitData(): unknown {
