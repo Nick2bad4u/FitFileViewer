@@ -106,7 +106,14 @@ function applyToRecordSet(
 function getLoadedFitFiles(
     data: FitRecordContainer | null
 ): NonNullable<FitRecordContainer["loadedFitFiles"]> {
-    return Array.isArray(data?.loadedFitFiles) ? data.loadedFitFiles : [];
+    const loadedFitFiles: unknown = data?.loadedFitFiles;
+    return isLoadedFitFiles(loadedFitFiles) ? loadedFitFiles : [];
+}
+
+function isLoadedFitFiles(
+    value: unknown
+): value is NonNullable<FitRecordContainer["loadedFitFiles"]> {
+    return Array.isArray(value);
 }
 
 function getRecordMessages(
