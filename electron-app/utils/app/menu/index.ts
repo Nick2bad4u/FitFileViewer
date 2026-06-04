@@ -2,7 +2,9 @@
  * Re-exports modules in the app/menu category with compatibility helpers.
  */
 
-import "./createAppMenu.js";
+const createAppMenuModule = require("./createAppMenu.js") as {
+    createAppMenu?: unknown;
+};
 
 type CreateAppMenuCallable = (
     mainWindow?: unknown,
@@ -22,11 +24,22 @@ function getGlobalCreateAppMenu(): CreateAppMenuCallable | undefined {
         : undefined;
 }
 
+function getImportedCreateAppMenu(): CreateAppMenuCallable | undefined {
+    const candidate: unknown = Reflect.get(
+        createAppMenuModule,
+        "createAppMenu"
+    );
+    return typeof candidate === "function"
+        ? (candidate as CreateAppMenuCallable)
+        : undefined;
+}
+
 const noopCreateAppMenu: CreateAppMenuCallable = () => {
     throw new Error("createAppMenu is not available in this environment.");
 };
 
-const resolvedCreateAppMenu = getGlobalCreateAppMenu() ?? noopCreateAppMenu;
+const resolvedCreateAppMenu =
+    getImportedCreateAppMenu() ?? getGlobalCreateAppMenu() ?? noopCreateAppMenu;
 
 /**
  * Creates and installs the Electron application menu when the legacy bridge is
