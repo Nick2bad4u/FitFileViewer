@@ -8117,8 +8117,8 @@ input:disabled,
 textarea:disabled,
 select:disabled,
 button:disabled {
-    /* Placeholder disabled style intentionally minimal to avoid empty block */
-    opacity: 1;
+    cursor: not-allowed;
+    opacity: 0.55;
 }
 
 /* =====================================================
