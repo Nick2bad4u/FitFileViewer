@@ -13,6 +13,7 @@
     type BrowserWindowLike = {
         getAllWindows?: () => WindowLike[];
     };
+    type UnknownMethod = (this: object) => unknown;
 
     type LifecycleDependencies = {
         appRef: () => AppLike | undefined;
@@ -32,6 +33,8 @@
         setupIPCHandlers: (win: WindowLike | undefined) => void;
         setupMenuAndEventHandlers: () => void;
     };
+    type WireHandlers = (windowCandidate: WindowLike | undefined) => void;
+    type MaybeExposeDevHelpers = () => void;
 
     const { appRef: runtimeAppRef, browserWindowRef: runtimeBrowserWindowRef } =
         require("./electronAccess") as {
@@ -46,16 +49,25 @@
         );
     }
 
+    function getObjectMethod(
+        value: object,
+        property: string
+    ): UnknownMethod | undefined {
+        const method: unknown = Reflect.get(value, property);
+        return typeof method === "function"
+            ? (method as UnknownMethod)
+            : undefined;
+    }
+
     function asAppLike(value: unknown): AppLike | undefined {
         if (!isObjectLike(value)) {
             return undefined;
         }
 
-        const whenReady = Reflect.get(value, "whenReady");
-        return typeof whenReady === "function"
+        const whenReady = getObjectMethod(value, "whenReady");
+        return whenReady
             ? {
-                  whenReady: () =>
-                      Promise.resolve(Reflect.apply(whenReady, value, [])),
+                  whenReady: () => Promise.resolve(whenReady.call(value)),
               }
             : {};
     }
@@ -67,12 +79,14 @@
             return undefined;
         }
 
-        const getAllWindows = Reflect.get(value, "getAllWindows");
-        return typeof getAllWindows === "function"
+        const getAllWindows = getObjectMethod(value, "getAllWindows");
+        return getAllWindows
             ? {
                   getAllWindows: () => {
-                      const windows = Reflect.apply(getAllWindows, value, []);
-                      return Array.isArray(windows) ? windows : [];
+                      const windows = getAllWindows.call(value);
+                      return Array.isArray(windows)
+                          ? (windows as WindowLike[])
+                          : [];
                   },
               }
             : {};
@@ -109,6 +123,78 @@
         }
     }
 
+    function ignoreSettledPromise(value: unknown): void {
+        if (!isObjectLike(value)) {
+            return;
+        }
+
+        const then = getObjectMethod(value, "then");
+        if (!then) {
+            return;
+        }
+
+        void Promise.resolve(value).catch(() => undefined);
+    }
+
+    function isTestEnv(): boolean {
+        return (
+            typeof process !== "undefined" &&
+            process.env?.["NODE_ENV"] === "test"
+        );
+    }
+
+    function isDevMode(): boolean {
+        return (
+            typeof process !== "undefined" &&
+            (process.env?.["NODE_ENV"] === "development" ||
+                (Array.isArray(process.argv) && process.argv.includes("--dev")))
+        );
+    }
+
+    function ensureWhenReadyCalled(app: AppLike | undefined): void {
+        if (app && typeof app.whenReady === "function") {
+            safeCall(() => {
+                void app.whenReady?.();
+            });
+        }
+    }
+
+    function invokeGetAllWindows(
+        candidate: BrowserWindowLike | undefined
+    ): void {
+        if (candidate && typeof candidate.getAllWindows === "function") {
+            safeCall(() => candidate.getAllWindows?.());
+        }
+    }
+
+    async function runLateTestFallbackAsync({
+        initializeApplication,
+        logWithContext,
+        maybeExposeDevHelpers,
+        wireHandlers,
+    }: {
+        initializeApplication: LifecycleDependencies["initializeApplication"];
+        logWithContext: LifecycleDependencies["logWithContext"];
+        maybeExposeDevHelpers: MaybeExposeDevHelpers;
+        wireHandlers: WireHandlers;
+    }): Promise<void> {
+        try {
+            const mainWindow = await Promise.resolve(initializeApplication());
+            wireHandlers(mainWindow);
+            maybeExposeDevHelpers();
+            logWithContext(
+                "info",
+                "Application initialized via test fallback"
+            );
+        } catch (error) {
+            logWithContext(
+                "error",
+                "Test fallback initialization failed:",
+                getErrorContext(error)
+            );
+        }
+    }
+
     /**
      * Registers the full main-process lifecycle, including test fallbacks that
      * eagerly initialize the window and IPC wiring.
@@ -129,23 +215,6 @@
         let initScheduled = false;
         let initCompleted = false;
         let blockedRequestsInstalled = false;
-
-        const isTestEnv = (): boolean =>
-            typeof process !== "undefined" &&
-            process.env?.["NODE_ENV"] === "test";
-        const isDevMode = (): boolean =>
-            typeof process !== "undefined" &&
-            (process.env?.["NODE_ENV"] === "development" ||
-                (Array.isArray(process.argv) &&
-                    process.argv.includes("--dev")));
-
-        const ensureWhenReadyCalled = (app: AppLike | undefined): void => {
-            if (app && typeof app.whenReady === "function") {
-                safeCall(() => {
-                    void app.whenReady?.();
-                });
-            }
-        };
 
         const wireHandlers = (
             windowCandidate: WindowLike | undefined
@@ -173,17 +242,6 @@
         };
 
         const primeBrowserWindowMocks = (): void => {
-            const invokeGetAllWindows = (
-                candidate: BrowserWindowLike | undefined
-            ): void => {
-                if (
-                    candidate &&
-                    typeof candidate.getAllWindows === "function"
-                ) {
-                    safeCall(() => candidate.getAllWindows?.());
-                }
-            };
-
             invokeGetAllWindows(
                 asBrowserWindowLike(runtimeBrowserWindowRef()) ??
                     browserWindowRef()
@@ -222,7 +280,7 @@
             ensureWhenReadyCalled(resolvedApp);
             ensureWhenReadyCalled(appRef());
             primeBrowserWindowMocks();
-            safeCall(() => initializeApplication());
+            ignoreSettledPromise(safeCall(() => initializeApplication()));
 
             const mainWindow = getAppState("mainWindow") as
                 | WindowLike
@@ -252,22 +310,12 @@
             ensureWhenReadyCalled(appRef());
             initCompleted = true;
 
-            void Promise.resolve(initializeApplication())
-                .then((mainWindow) => {
-                    wireHandlers(mainWindow);
-                    maybeExposeDevHelpers();
-                    logWithContext(
-                        "info",
-                        "Application initialized via test fallback"
-                    );
-                })
-                .catch((error: unknown) => {
-                    logWithContext(
-                        "error",
-                        "Test fallback initialization failed:",
-                        getErrorContext(error)
-                    );
-                });
+            void runLateTestFallbackAsync({
+                initializeApplication,
+                logWithContext,
+                maybeExposeDevHelpers,
+                wireHandlers,
+            });
         };
 
         try {
@@ -294,14 +342,18 @@
                 initScheduled = true;
                 void resolvedApp
                     .whenReady()
-                    .then(() => runMainInitialization())
-                    .catch((error: unknown) => {
-                        logWithContext(
-                            "error",
-                            "Failed to initialize application:",
-                            getErrorContext(error)
-                        );
-                    });
+                    .then(
+                        () => runMainInitialization(),
+                        (error: unknown) => {
+                            logWithContext(
+                                "error",
+                                "Failed to initialize application:",
+                                getErrorContext(error)
+                            );
+                            return undefined;
+                        }
+                    )
+                    .then(() => undefined);
             }
 
             if (isTestEnv() && !initCompleted) {
