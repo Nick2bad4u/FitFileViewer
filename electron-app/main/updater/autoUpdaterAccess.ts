@@ -1,7 +1,7 @@
 {
     interface AutoUpdaterLike {
         autoDownload?: boolean;
-        checkForUpdatesAndNotify?: () => Promise<unknown> | unknown;
+        checkForUpdatesAndNotify?: () => unknown;
         feedURL?: unknown;
         logger?: unknown;
         on?: (event: string, listener: (...args: unknown[]) => void) => unknown;
@@ -30,7 +30,7 @@
                 await import("electron-updater")
             );
         } catch {
-            return resolveAutoUpdaterSync();
+            return resolveInstalledAutoUpdater();
         }
     }
 
@@ -38,7 +38,7 @@
      * Resolves electron-updater synchronously supporting both CJS and ESM
      * default exports.
      */
-    function resolveAutoUpdaterSync(): AutoUpdaterLike | null {
+    function resolveInstalledAutoUpdater(): AutoUpdaterLike | null {
         if (cachedMockedAutoUpdater) {
             return cachedMockedAutoUpdater;
         }
@@ -76,7 +76,7 @@
                     await mockApi.importMock("electron-updater")
                 );
                 if (resolved) {
-                    cachedMockedAutoUpdater = resolved;
+                    cachedMockedAutoUpdater ??= resolved;
                     return resolved;
                 }
             }
@@ -98,7 +98,7 @@
         const candidate = value as AutoUpdaterLike;
         return typeof candidate.on === "function" ||
             typeof candidate.checkForUpdatesAndNotify === "function" ||
-            "autoDownload" in Object(value)
+            "autoDownload" in value
             ? candidate
             : null;
     }
@@ -125,7 +125,7 @@
     function asModuleLike(value: unknown): AutoUpdaterModuleLike | null {
         return value &&
             (typeof value === "object" || typeof value === "function")
-            ? (value as AutoUpdaterModuleLike)
+            ? value
             : null;
     }
 
@@ -143,7 +143,7 @@
         }
 
         try {
-            return Reflect.get(Object(value), property);
+            return Reflect.get(value, property);
         } catch {
             return undefined;
         }
@@ -151,6 +151,6 @@
 
     module.exports = {
         resolveAutoUpdaterAsync,
-        resolveAutoUpdaterSync,
+        resolveAutoUpdaterSync: resolveInstalledAutoUpdater,
     };
 }

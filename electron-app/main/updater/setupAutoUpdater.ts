@@ -5,7 +5,7 @@
 
     interface AutoUpdaterLike {
         autoDownload?: boolean;
-        checkForUpdatesAndNotify?: () => Promise<unknown> | unknown;
+        checkForUpdatesAndNotify?: () => unknown;
         feedURL?: unknown;
         logger?: unknown;
         on?: (event: string, listener: (...args: unknown[]) => void) => unknown;
@@ -98,7 +98,9 @@
     const { isWindowUsable } = require("../window/windowValidation") as {
         isWindowUsable: (win?: MainWindowLike | null) => boolean;
     };
-    const { resolveAutoUpdaterSync } = require("./autoUpdaterAccess") as {
+    const { resolveAutoUpdaterSync: resolveAutoUpdaterFallback } = require(
+        "./autoUpdaterAccess"
+    ) as {
         resolveAutoUpdaterSync: () => AutoUpdaterLike | null;
     };
 
@@ -106,7 +108,23 @@
         if (error instanceof Error) {
             return error.message;
         }
-        return error == null ? "unknown" : String(error);
+        if (error === null || error === undefined) {
+            return "unknown";
+        }
+        if (
+            typeof error === "string" ||
+            typeof error === "number" ||
+            typeof error === "boolean" ||
+            typeof error === "bigint" ||
+            typeof error === "symbol"
+        ) {
+            return String(error);
+        }
+        try {
+            return JSON.stringify(error) ?? "unknown";
+        } catch {
+            return "unknown";
+        }
     }
 
     /**
@@ -130,7 +148,7 @@
     function asUpdaterLoggerLike(value: unknown): UpdaterLoggerLike | null {
         return value &&
             (typeof value === "object" || typeof value === "function")
-            ? (value as UpdaterLoggerLike)
+            ? value
             : null;
     }
 
@@ -166,6 +184,54 @@
         }
     }
 
+    function resolveProvidedAutoUpdater(
+        providedAutoUpdater: AutoUpdaterLike | null | undefined
+    ): AutoUpdaterLike | null | undefined {
+        return providedAutoUpdater === undefined
+            ? resolveAutoUpdaterFallback()
+            : providedAutoUpdater;
+    }
+
+    function applyLoggerFileLevel(logger?: UpdaterLoggerLike): void {
+        try {
+            const transportsFile = logger?.transports?.file;
+            if (transportsFile && "level" in transportsFile) {
+                transportsFile.level = CONSTANTS.LOG_LEVELS.INFO;
+            }
+        } catch {
+            // Non-fatal; logger implementations differ between environments.
+        }
+    }
+
+    function stringifyFeedUrl(value: unknown): string | null {
+        if (typeof value === "string") {
+            return value;
+        }
+        if (value instanceof URL) {
+            return value.toString();
+        }
+        return null;
+    }
+
+    function logFeedUrl(updater: ConfigurableAutoUpdater): void {
+        const feedUrl = stringifyFeedUrl(updater.feedURL);
+        if (feedUrl) {
+            const safeFeedUrl = redactUrlCredentials(feedUrl);
+            const feedInfo = { feedURL: safeFeedUrl };
+            updater.logger?.info?.(`AutoUpdater feed URL: ${safeFeedUrl}`);
+            logWithContext("info", "AutoUpdater feed URL configured", feedInfo);
+            return;
+        }
+
+        updater.logger?.info?.(
+            "AutoUpdater using default feed (likely GitHub releases)"
+        );
+        logWithContext(
+            "info",
+            "AutoUpdater using default feed (likely GitHub releases)"
+        );
+    }
+
     /**
      * Configures electron-updater for the application, wiring all event
      * handlers to relay progress to the renderer. The logic matches the
@@ -177,10 +243,7 @@
         providedAutoUpdater?: AutoUpdaterLike | null
     ): void {
         // Allow tests to explicitly pass `null` to exercise the "no updater available" path.
-        const autoUpdater =
-            providedAutoUpdater === undefined
-                ? resolveAutoUpdaterSync()
-                : providedAutoUpdater;
+        const autoUpdater = resolveProvidedAutoUpdater(providedAutoUpdater);
         if (!isWindowUsable(mainWindow)) {
             console.warn(
                 "Cannot setup auto-updater: main window is not usable"
@@ -210,31 +273,8 @@
         const updater = autoUpdater as ConfigurableAutoUpdater;
         updater.autoDownload = true;
         updater.logger = resolveLogger();
-
-        try {
-            const transportsFile = updater.logger?.transports?.file;
-            if (transportsFile && "level" in transportsFile) {
-                transportsFile.level = CONSTANTS.LOG_LEVELS.INFO;
-            }
-        } catch {
-            // Non-fatal; logger implementations differ between environments.
-        }
-
-        const rawFeedUrl = updater.feedURL;
-        if (rawFeedUrl !== undefined && rawFeedUrl !== null) {
-            const safeFeedUrl = redactUrlCredentials(String(rawFeedUrl));
-            const feedInfo = { feedURL: safeFeedUrl };
-            updater.logger?.info?.(`AutoUpdater feed URL: ${safeFeedUrl}`);
-            logWithContext("info", "AutoUpdater feed URL configured", feedInfo);
-        } else {
-            updater.logger?.info?.(
-                "AutoUpdater using default feed (likely GitHub releases)"
-            );
-            logWithContext(
-                "info",
-                "AutoUpdater using default feed (likely GitHub releases)"
-            );
-        }
+        applyLoggerFileLevel(updater.logger);
+        logFeedUrl(updater);
 
         const updateEventHandlers: Record<
             string,
