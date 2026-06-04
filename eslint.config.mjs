@@ -1,5 +1,6 @@
 import nickTwoBadFourU from "eslint-config-nick2bad4u";
 import globals from "globals";
+import { fileURLToPath } from "node:url";
 
 import {
     rootAlternativeFitViewPath,
@@ -8,14 +9,20 @@ import {
 } from "./scripts/lib/workspaces.mjs";
 
 const electronAppBasePath = "electron-app";
-const dependPlugin = nickTwoBadFourU.configs.all.find(
-    (entry) => entry.plugins?.depend
-)?.plugins.depend;
+// eslint-disable-next-line unicorn/prefer-import-meta-properties -- import.meta.dirname is not available across the declared Node >=22.12.0 range.
+const rootDirectory = fileURLToPath(new URL(".", import.meta.url));
+const sharedConfig = nickTwoBadFourU.createConfig({
+    allowDefaultProjectFilePatterns: [],
+    rootDirectory,
+    tsconfigPaths: ["./tsconfig.eslint.json"],
+});
+const dependPlugin = sharedConfig.find((entry) => entry.plugins?.depend)
+    ?.plugins.depend;
 const rootToolingIgnorePatterns = new Set([
     "script/**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}",
     "scripts/**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}",
 ]);
-const rootSharedConfig = nickTwoBadFourU.configs.all.map((entry) => {
+const rootSharedConfig = sharedConfig.map((entry) => {
     if (!entry.ignores) {
         return entry;
     }
@@ -27,12 +34,15 @@ const rootSharedConfig = nickTwoBadFourU.configs.all.map((entry) => {
         ),
     };
 });
-const electronAppSharedConfig = rootSharedConfig.map(
-    ({ plugins, ...entry }) => ({
-        ...entry,
+const electronAppSharedConfig = rootSharedConfig.map((entry) => {
+    const configEntry = { ...entry };
+    delete configEntry.plugins;
+
+    return {
+        ...configEntry,
         basePath: electronAppBasePath,
-    })
-);
+    };
+});
 
 if (!dependPlugin) {
     throw new Error(
@@ -45,6 +55,7 @@ const config = [
     {
         ignores: [
             "playwright-report/**",
+            "docs/ACCENT_COLOR_CODE_EXAMPLES.js",
             `${rootAlternativeFitViewPath}/**`,
             `${rootAppIconsPath}/**`,
             `${rootAppStaticPath}/**`,
@@ -228,7 +239,6 @@ const config = [
         },
     },
     {
-        basePath: electronAppBasePath,
         files: [
             "**/*.spec.js",
             "**/*.spec.ts",
@@ -257,11 +267,11 @@ const config = [
             complexity: "off",
             "logical-assignment-operators": "off",
             "require-atomic-updates": "off",
+            "tsdoc/syntax": "off",
+            "typedoc/no-unknown-tags": "off",
             "unicorn/better-regex": "off",
             "unicorn/numeric-separators-style": "off",
             "unicorn/prefer-global-this": "off",
-            "tsdoc/syntax": "off",
-            "typedoc/no-unknown-tags": "off",
             "vitest/consistent-test-filename": "off",
             "vitest/consistent-test-it": "off",
             "vitest/hoisted-apis-on-top": "off",
