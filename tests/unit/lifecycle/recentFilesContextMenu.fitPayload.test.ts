@@ -86,11 +86,10 @@ async function withRecentFilesHarness(
 
 describe(attachRecentFilesContextMenu, () => {
     it("reports wrapped parser error payloads without displaying them", async () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         await withRecentFilesHarness(async (harness) => {
             harness.recentFiles.mockResolvedValue(["C:\\activities\\bad.fit"]);
-            harness.approveRecentFile.mockResolvedValue(true);
             harness.readFile.mockResolvedValue(new ArrayBuffer(16));
             harness.parseFitFile.mockResolvedValue({
                 data: {
@@ -116,6 +115,7 @@ describe(attachRecentFilesContextMenu, () => {
             await flushAsyncEvents();
 
             expect(menuItem).toBeInstanceOf(HTMLDivElement);
+            expect(harness.approveRecentFile).not.toHaveBeenCalled();
             expect(harness.showFitData).not.toHaveBeenCalled();
             expect(harness.addRecentFile).not.toHaveBeenCalled();
             expect(harness.showNotification).toHaveBeenCalledWith(

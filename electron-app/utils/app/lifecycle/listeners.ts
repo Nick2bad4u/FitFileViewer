@@ -86,7 +86,6 @@ type LifecycleElectronAPI = Partial<
     Pick<
         ElectronAPI,
         | "addRecentFile"
-        | "approveRecentFile"
         | "checkForUpdates"
         | "onDecoderOptionsChanged"
         | "onExportFile"
@@ -590,24 +589,6 @@ export function setupListeners({
                             4000
                         );
                         return;
-                    }
-
-                    // Security/robustness: approve the selected recent file path before reading.
-                    // - In the desktop build, readFile is gated by a main-process allowlist.
-                    // - Main process menu clicks *usually* approve paths already, but this keeps
-                    //   behavior consistent across entrypoints (menu vs. context menu) and
-                    //   prevents failures if menu approval is unavailable.
-                    if (typeof electronAPI.approveRecentFile === "function") {
-                        const ok =
-                            await electronAPI.approveRecentFile(filePathString);
-                        if (!ok) {
-                            showNotification(
-                                "File access denied.",
-                                "error",
-                                4000
-                            );
-                            return;
-                        }
                     }
 
                     const arrayBuffer =

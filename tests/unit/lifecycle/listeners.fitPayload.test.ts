@@ -119,10 +119,9 @@ async function withListenersHarness(
 
 describe(setupListeners, () => {
     it("reports wrapped open-recent parser errors without displaying them", async () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         await withListenersHarness(async (harness) => {
-            harness.approveRecentFile.mockResolvedValue(true);
             harness.readFile.mockResolvedValue(new ArrayBuffer(16));
             harness.parseFitFile.mockResolvedValue({
                 data: {
@@ -133,6 +132,7 @@ describe(setupListeners, () => {
 
             await harness.openRecentHandler("C:\\activities\\bad.fit");
 
+            expect(harness.approveRecentFile).not.toHaveBeenCalled();
             expect(harness.showFitData).not.toHaveBeenCalled();
             expect(harness.addRecentFile).not.toHaveBeenCalled();
             expect(harness.showNotification).toHaveBeenCalledWith(

@@ -59,7 +59,10 @@ import type {
 
 /** Renderer-facing API exposed by the Electron preload script. */
 export interface ElectronAPI {
-    /** Approve a persisted recent file path for subsequent readFile() calls. */
+    /**
+     * Legacy compatibility method. Renderer-originated recent-file approval is
+     * denied; trusted menu actions grant read access in the main process.
+     */
     approveRecentFile: (
         filePath: RecentFileRequestPayload
     ) => Promise<RecentFilesApprovalResponse>;

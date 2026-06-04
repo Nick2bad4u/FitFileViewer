@@ -256,13 +256,10 @@ describe("registerRecentFileHandlers", () => {
         });
     });
 
-    it("recentFiles:approve approves only paths in the recent list", async () => {
+    it("recentFiles:approve denies renderer-originated approval requests", async () => {
         expect.assertions(3);
 
-        registerDefaultHandlers({
-            addRecentFile: () => void 0,
-            logWithContext: () => void 0,
-        });
+        registerDefaultHandlers();
 
         const approveHandler = getHandler("recentFiles:approve");
 
@@ -273,15 +270,15 @@ describe("registerRecentFileHandlers", () => {
             "C:/not-in-list.fit": false,
         });
 
-        const acceptedApproval = await approveHandler({}, "C:/a.fit");
+        const deniedRecentApproval = await approveHandler({}, "C:/a.fit");
         expect(getRecentFileState(["C:/a.fit"]).approvals).toStrictEqual({
-            "C:/a.fit": true,
+            "C:/a.fit": false,
         });
         expect({
-            acceptedApproval,
+            deniedRecentApproval,
             rejectedApproval,
         }).toStrictEqual({
-            acceptedApproval: true,
+            deniedRecentApproval: false,
             rejectedApproval: false,
         });
     });

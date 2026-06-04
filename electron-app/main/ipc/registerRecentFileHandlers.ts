@@ -96,49 +96,14 @@
             "recentFiles:approve",
             async (_event, filePath): Promise<RecentFilesApprovalResponse> => {
                 try {
-                    if (
-                        typeof filePath !== "string" ||
-                        filePath.trim().length === 0
-                    ) {
-                        logWithContext?.(
-                            "warn",
-                            "Rejected recentFiles:approve for invalid path",
-                            {
-                                filePath,
-                            }
-                        );
-                        return false;
-                    }
-
-                    const trimmed = filePath.trim();
-                    const list = sanitizeRecentFilesList(loadRecentFiles());
-                    if (!list.includes(trimmed)) {
-                        logWithContext?.(
-                            "warn",
-                            "Rejected recentFiles:approve for path not in recent list",
-                            {
-                                filePath: trimmed,
-                            }
-                        );
-                        return false;
-                    }
-
-                    try {
-                        fileAccessPolicy.approveFilePath(trimmed, {
-                            source: "recentFiles:approve",
-                        });
-                        return true;
-                    } catch (policyError) {
-                        logWithContext?.(
-                            "warn",
-                            "Rejected recentFiles:approve due to policy validation",
-                            {
-                                error: getErrorMessage(policyError),
-                                filePath: trimmed,
-                            }
-                        );
-                        return false;
-                    }
+                    logWithContext?.(
+                        "warn",
+                        "Denied renderer recentFiles:approve request",
+                        {
+                            filePath,
+                        }
+                    );
+                    return false;
                 } catch (error) {
                     logWithContext?.("error", "Error in recentFiles:approve:", {
                         error: getErrorMessage(error),

@@ -16,7 +16,7 @@ import type { FitMessages } from "../../../shared/fit";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
 type RecentFilesElectronApi = Pick<ElectronAPI, "readFile" | "recentFiles"> &
-    Partial<Pick<ElectronAPI, "addRecentFile" | "approveRecentFile">> & {
+    Partial<Pick<ElectronAPI, "addRecentFile">> & {
         parseFitFile: (
             data: Parameters<ElectronAPI["parseFitFile"]>[0]
         ) => Promise<FitParsePayload>;
@@ -247,24 +247,6 @@ export function attachRecentFilesContextMenu({
                     openFileBtn.disabled = true;
                     setLoading(true);
                     try {
-                        // Security: explicitly approve the selected recent file before reading.
-                        // This keeps recentFiles() side-effect free in main.
-                        if (
-                            typeof activeElectronAPI.approveRecentFile ===
-                            "function"
-                        ) {
-                            const ok =
-                                await activeElectronAPI.approveRecentFile(file);
-                            if (!ok) {
-                                showNotification(
-                                    "File access denied.",
-                                    "error",
-                                    4000
-                                );
-                                return;
-                            }
-                        }
-
                         const arrayBuffer =
                                 await activeElectronAPI.readFile(file),
                             result =

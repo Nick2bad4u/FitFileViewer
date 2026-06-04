@@ -521,18 +521,12 @@ const electronAPI: ElectronAPI = {
     ),
 
     /**
-     * Approve a recent file path for subsequent readFile() calls.
-     *
-     * Security model:
-     *
-     * - The main process will only approve paths that already exist in its
-     *   persisted recent-files list.
-     * - This avoids granting broad file read access as a side effect of
-     *   recentFiles().
+     * Legacy compatibility method. Renderer-originated recent-file approval is
+     * denied by the main process; trusted menu actions grant read access in main.
      *
      * @param {string} filePath
      *
-     * @returns {Promise<boolean>}
+     * @returns {Promise<boolean>} Always false in current desktop builds.
      */
     approveRecentFile: createSafeInvokeHandler(
         CONSTANTS.CHANNELS.RECENT_FILES_APPROVE,
