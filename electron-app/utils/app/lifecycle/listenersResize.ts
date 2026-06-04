@@ -1,11 +1,5 @@
 import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 
-type LegacyFullscreenDocument = Document & {
-    mozFullScreenElement?: Element | null;
-    msFullscreenElement?: Element | null;
-    webkitFullscreenElement?: Element | null;
-};
-
 type ResizableChart = { resize: () => void };
 type ChartRegistry = { getChart?: (canvas: HTMLCanvasElement) => unknown };
 type LegacyChartCanvas = HTMLCanvasElement & { __chartjs?: unknown };
@@ -14,7 +8,7 @@ type ChartResizeGlobal = typeof globalThis & {
     Chart?: ChartRegistry;
     ChartUpdater?: { updateCharts?: (reason: string) => void };
     renderChart?: () => void;
-    renderChartJS?: () => Promise<boolean> | void;
+    renderChartJS?: () => Promise<boolean> | undefined;
 };
 
 type ChartResizeListenerParams = {
@@ -24,18 +18,25 @@ type ChartResizeListenerParams = {
 type TimerHandle = ReturnType<typeof setTimeout>;
 
 function getChartResizeGlobal(): ChartResizeGlobal {
-    return globalThis as ChartResizeGlobal;
+    return globalThis;
 }
 
 function getFullscreenElement(): Element | null {
-    const doc = document as LegacyFullscreenDocument;
     return (
         document.fullscreenElement ||
-        doc.webkitFullscreenElement ||
-        doc.mozFullScreenElement ||
-        doc.msFullscreenElement ||
+        getOptionalElementProperty(document, "webkitFullscreenElement") ||
+        getOptionalElementProperty(document, "mozFullScreenElement") ||
+        getOptionalElementProperty(document, "msFullscreenElement") ||
         null
     );
+}
+
+function getOptionalElementProperty(
+    target: object,
+    propertyKey: string
+): Element | null {
+    const value: unknown = Reflect.get(target, propertyKey);
+    return value instanceof Element ? value : null;
 }
 
 function isResizableChart(value: unknown): value is ResizableChart {
@@ -46,8 +47,8 @@ function isResizableChart(value: unknown): value is ResizableChart {
     return "resize" in value && typeof value.resize === "function";
 }
 
-function getLegacyCanvasChart(canvas: HTMLCanvasElement): unknown {
-    return (canvas as LegacyChartCanvas).__chartjs;
+function getLegacyCanvasChart(canvas: LegacyChartCanvas): unknown {
+    return canvas.__chartjs;
 }
 
 /**
@@ -154,17 +155,14 @@ function scheduleExistingChartResizes(): () => void {
     const timerHandles: TimerHandle[] = [];
     let animationFrameHandle: number | undefined;
 
-    const resizeAll = (): void => {
-        resizeExistingCharts();
-    };
-
     if (typeof globalThis.requestAnimationFrame === "function") {
-        animationFrameHandle = globalThis.requestAnimationFrame(resizeAll);
+        animationFrameHandle =
+            globalThis.requestAnimationFrame(resizeExistingCharts);
     } else {
-        timerHandles.push(setTimeout(resizeAll, 0));
+        timerHandles.push(setTimeout(resizeExistingCharts, 0));
     }
 
-    timerHandles.push(setTimeout(resizeAll, 120));
+    timerHandles.push(setTimeout(resizeExistingCharts, 120));
 
     return () => {
         if (
