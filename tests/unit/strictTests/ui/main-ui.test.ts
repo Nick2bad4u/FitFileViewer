@@ -15,6 +15,16 @@ type DragDropHandlerUnderTest = {
     showDropOverlay: () => void;
 };
 
+const processEnvironmentMock = vi.hoisted(() => ({
+    isDevelopmentEnvironment: vi.fn<() => boolean>(() => false),
+    isTestEnvironment: vi.fn<() => boolean>(() => true),
+}));
+
+vi.mock(
+    import("../../../../electron-app/utils/runtime/processEnvironment.js"),
+    () => processEnvironmentMock
+);
+
 declare global {
     interface Window {
         sendFitFileToAltFitReader: (buffer: ArrayBuffer) => Promise<void>;
@@ -401,6 +411,8 @@ describe("main-ui.js core flows", () => {
         vi.useFakeTimers();
         vi.resetModules();
         vi.clearAllMocks();
+        processEnvironmentMock.isDevelopmentEnvironment.mockReturnValue(false);
+        processEnvironmentMock.isTestEnvironment.mockReturnValue(true);
         listenCb = null;
         mockState["globalData"] = undefined;
         mockState["ui.dragCounter"] = 0;
@@ -408,6 +420,8 @@ describe("main-ui.js core flows", () => {
         installBaseDOM();
         Reflect.set(window, "enableDragAndDrop", true);
         Reflect.set(globalThis, "enableDragAndDrop", true);
+        Reflect.deleteProperty(globalThis, "devCleanup");
+        Reflect.deleteProperty(globalThis, "injectMenu");
         installElectronAPI();
         // Simulate DOMContentLoaded so external link handlers attach
         Object.defineProperty(document, "readyState", {
@@ -723,6 +737,16 @@ describe("main-ui.js core flows", () => {
             "Failed to open link in your browser.",
             "error"
         );
+    });
+
+    it("does not expose development helpers in production mode", async () => {
+        expect.assertions(2);
+
+        processEnvironmentMock.isTestEnvironment.mockReturnValue(false);
+        await importMainUI();
+
+        expect(Reflect.has(window, "devCleanup")).toBe(false);
+        expect(Reflect.has(window, "injectMenu")).toBe(false);
     });
 
     it("dev helpers injectMenu and devCleanup work", async () => {

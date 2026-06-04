@@ -10,6 +10,10 @@ import { renderChartJS } from "./utils/charts/core/renderChartJS.js";
 import { FILE_CONSTANTS, UI_CONSTANTS } from "./utils/config/constants.js";
 import { performanceMonitor } from "./utils/debug/stateDevTools.js";
 import { showFitData } from "./utils/rendering/core/showFitData.js";
+import {
+    isDevelopmentEnvironment,
+    isTestEnvironment,
+} from "./utils/runtime/processEnvironment.js";
 // State Management Integration
 import { setState } from "./utils/state/core/stateManager.js";
 import { fitFileStateManager } from "./utils/state/domain/fitFileState.js";
@@ -346,72 +350,93 @@ if (document.readyState === "loading") {
     initializeExternalLinkHandlers();
 }
 
-// Enhanced development helper function with better error handling
-getMainUiGlobal().injectMenu = function injectMenu(
-    theme: null | string = null,
-    fitFilePath: null | string = null
-) {
-    try {
-        const api = getElectronAPI();
-        if (typeof api?.injectMenu === "function") {
-            void api.injectMenu(theme, fitFilePath);
+function installDevelopmentHelpers(): void {
+    // Enhanced development helper function with better error handling
+    getMainUiGlobal().injectMenu = function injectMenu(
+        theme: null | string = null,
+        fitFilePath: null | string = null
+    ) {
+        try {
+            const api = getElectronAPI();
+            if (typeof api?.injectMenu === "function") {
+                void api.injectMenu(theme, fitFilePath);
+                logMainUi(
+                    "info",
+                    "[injectMenu] Requested menu injection with theme:",
+                    theme,
+                    "fitFilePath:",
+                    fitFilePath
+                );
+            } else {
+                logMainUi(
+                    "warn",
+                    "[injectMenu] electronAPI.injectMenu is not available."
+                );
+            }
+        } catch (error) {
             logMainUi(
-                "info",
-                "[injectMenu] Requested menu injection with theme:",
-                theme,
-                "fitFilePath:",
-                fitFilePath
-            );
-        } else {
-            logMainUi(
-                "warn",
-                "[injectMenu] electronAPI.injectMenu is not available."
+                "error",
+                "[injectMenu] Error during menu injection:",
+                error
             );
         }
-    } catch (error) {
-        logMainUi("error", "[injectMenu] Error during menu injection:", error);
-    }
-};
+    };
 
-// Add cleanup function to development helpers with state management integration
-getMainUiGlobal().devCleanup = function devCleanup(): void {
-    cleanupEventListeners();
+    // Add cleanup function to development helpers with state management integration
+    getMainUiGlobal().devCleanup = function devCleanup(): void {
+        cleanupEventListeners();
 
-    // Clear state using the new system
-    AppActions.clearData();
-    setState("charts.isRendered", false, {
-        silent: false,
-        source: "devCleanup",
-    });
-    setState("ui.dragCounter", 0, { silent: false, source: "devCleanup" });
+        // Clear state using the new system
+        AppActions.clearData();
+        setState("charts.isRendered", false, {
+            silent: false,
+            source: "devCleanup",
+        });
+        setState("ui.dragCounter", 0, {
+            silent: false,
+            source: "devCleanup",
+        });
 
-    // Clean up our new state managers
-    if (typeof chartTabIntegration.destroy === "function") {
-        chartTabIntegration.destroy();
-    }
+        // Clean up our new state managers
+        if (typeof chartTabIntegration.destroy === "function") {
+            chartTabIntegration.destroy();
+        }
 
-    // Cleanup all resources via resource manager
-    resourceManager.cleanupAll();
+        // Cleanup all resources via resource manager
+        resourceManager.cleanupAll();
 
+        logMainUi(
+            "info",
+            "[devCleanup] Application state and event listeners cleaned up"
+        );
+    };
+
+    logMainUi("info", "[DEV] Development helpers available:");
     logMainUi(
         "info",
-        "[devCleanup] Application state and event listeners cleaned up"
+        "- window.injectMenu(theme, fitFilePath) - Inject menu with specified theme and file path"
     );
-};
+    logMainUi(
+        "info",
+        "- window.devCleanup() - Clean up application state and event listeners"
+    );
+    logMainUi(
+        "info",
+        "- window.cleanupEventListeners() - Clean up all event listeners"
+    );
+}
 
-logMainUi("info", "[DEV] Development helpers available:");
-logMainUi(
-    "info",
-    "- window.injectMenu(theme, fitFilePath) - Inject menu with specified theme and file path"
-);
-logMainUi(
-    "info",
-    "- window.devCleanup() - Clean up application state and event listeners"
-);
-logMainUi(
-    "info",
-    "- window.cleanupEventListeners() - Clean up all event listeners"
-);
+if (isDevelopmentEnvironment() || isTestEnvironment()) {
+    installDevelopmentHelpers();
+} else {
+    const mainUiGlobal = getMainUiGlobal();
+    if ("injectMenu" in mainUiGlobal) {
+        delete mainUiGlobal.injectMenu;
+    }
+    if ("devCleanup" in mainUiGlobal) {
+        delete mainUiGlobal.devCleanup;
+    }
+}
 
 // Initialize state managers
 logMainUi("info", "[main-ui] Initializing state managers...");
