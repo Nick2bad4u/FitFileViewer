@@ -9,7 +9,7 @@ export type StoredSettingValue = string | number | boolean | null | undefined;
 export interface ChartOptionConfig {
     default: unknown;
     id?: string;
-    type?: string;
+    type: string;
 }
 
 function getChartOptionProperty(

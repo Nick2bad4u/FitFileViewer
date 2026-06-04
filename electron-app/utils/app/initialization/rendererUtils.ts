@@ -86,7 +86,7 @@ export function setLoading(loading: boolean): void {
     overlay.setAttribute("aria-hidden", String(!loading));
     document.body.setAttribute("aria-busy", String(loading));
 
-    console.log(`[RendererUtils] Loading state: ${loading}`);
+    console.log(`[RendererUtils] Loading state: ${String(loading)}`);
 }
 
 /**

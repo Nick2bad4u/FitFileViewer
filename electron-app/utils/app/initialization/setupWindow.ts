@@ -46,7 +46,7 @@ export async function setupWindow(): Promise<void> {
         tabStateManager.switchToTab("summary");
 
         // Show initialization complete notification
-        showNotification(
+        await showNotification(
             "Application initialized successfully",
             "success",
             2000
@@ -55,7 +55,11 @@ export async function setupWindow(): Promise<void> {
         console.log("[setupWindow] Modern initialization complete");
     } catch (error) {
         console.error("[setupWindow] Initialization failed:", error);
-        showNotification("Application initialization failed", "error", 5000);
+        await showNotification(
+            "Application initialization failed",
+            "error",
+            5000
+        );
         throw error;
     }
 }

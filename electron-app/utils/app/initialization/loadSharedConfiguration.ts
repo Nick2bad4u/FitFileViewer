@@ -65,8 +65,19 @@ function scheduleChartRefresh(): void {
             return;
         }
 
-        renderChartJS();
+        void Promise.resolve(renderChartJS()).catch((error: unknown) => {
+            console.error("Error refreshing chart after shared config:", error);
+        });
     }, 100);
+}
+
+function showSharedConfigurationNotification(
+    message: string,
+    type: "success" | "warning"
+): void {
+    void showNotification(message, type).catch((error: unknown) => {
+        console.error("Error showing shared configuration notification:", error);
+    });
 }
 
 /**
@@ -82,10 +93,16 @@ export function loadSharedConfiguration(): void {
         }
 
         applySharedConfiguration(parseSharedConfiguration(configParam));
-        showNotification("Chart configuration loaded from URL", "success");
+        showSharedConfigurationNotification(
+            "Chart configuration loaded from URL",
+            "success"
+        );
         scheduleChartRefresh();
     } catch (error) {
         console.error("Error loading shared configuration:", error);
-        showNotification("Failed to load shared configuration", "warning");
+        showSharedConfigurationNotification(
+            "Failed to load shared configuration",
+            "warning"
+        );
     }
 }
