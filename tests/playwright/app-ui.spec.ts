@@ -470,7 +470,7 @@ test.describe("FitFileViewer Electron UI", () => {
         });
 
         await expect(errorAlert).toContainText(
-            "Failed to load FIT file: Error invoking remote method 'file:read': Error: ENOENT"
+            "Error reading file: File not found. It may have been moved, deleted, or opened from an old recent-file entry."
         );
     }
 
