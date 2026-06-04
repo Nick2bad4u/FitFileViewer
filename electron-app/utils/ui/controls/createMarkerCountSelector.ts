@@ -136,7 +136,10 @@ export function createMarkerCountSelector(
             "[mapActionButtons] Error creating marker count selector:",
             error
         );
-        showNotification("Failed to create marker count selector", "error");
+        void showNotification(
+            "Failed to create marker count selector",
+            "error"
+        );
         return document.createElement("div");
     }
 }
@@ -157,7 +160,7 @@ function handleMarkerCountChange(
             "[mapActionButtons] Error in marker count change:",
             error
         );
-        showNotification("Failed to update marker count", "error");
+        void showNotification("Failed to update marker count", "error");
     }
 }
 
