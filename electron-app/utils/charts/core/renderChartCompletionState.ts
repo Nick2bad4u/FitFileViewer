@@ -55,11 +55,11 @@ export function completeChartRenderState(
         {
             CustomEventConstructor: dependencies.CustomEventConstructor,
             doc: dependencies.doc,
-            getState: dependencies.getState,
-            now: dependencies.now,
+            getState: (path) => dependencies.getState(path),
+            now: () => dependencies.now(),
         },
         summary
     );
 
-    invalidateChartsSummary(dependencies.getComputedStateManager);
+    invalidateChartsSummary(() => dependencies.getComputedStateManager());
 }
