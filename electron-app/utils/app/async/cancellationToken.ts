@@ -3,23 +3,24 @@
  * when the user navigates away or performs other actions that make the
  * operation irrelevant.
  */
+/* eslint-disable max-classes-per-file -- Token and source intentionally share one public utility module. */
 
 /**
- * Cancellation token for async operations
+ * Cancellation token for async operations.
  */
 export class CancellationToken {
-    private _callbacks: Array<() => void> = [];
     private _isCancelled = false;
+    private _listeners: Array<() => void> = [];
 
     /**
-     * Check if operation is cancelled
+     * Check if operation is cancelled.
      */
     get isCancelled(): boolean {
         return this._isCancelled;
     }
 
     /**
-     * Cancel the operation
+     * Cancel the operation.
      */
     cancel(): void {
         if (this._isCancelled) {
@@ -28,10 +29,10 @@ export class CancellationToken {
 
         this._isCancelled = true;
 
-        // Notify all callbacks
-        for (const callback of this._callbacks) {
+        // Notify all listeners.
+        for (const listener of this._listeners) {
             try {
-                callback();
+                listener();
             } catch (error) {
                 console.error(
                     "[CancellationToken] Error in cancellation callback:",
@@ -40,48 +41,49 @@ export class CancellationToken {
             }
         }
 
-        this._callbacks = [];
+        this._listeners = [];
     }
 
     /**
-     * Register a callback to be called when cancelled
+     * Register a listener to be called when cancelled.
      *
-     * @param callback - Callback function.
+     * @param listener - Listener function.
      *
      * @returns Unsubscribe function.
      *
-     * @throws TypeError when callback is not a function.
+     * @throws TypeError when listener is not a function.
      */
-    onCancel(callback: () => void): () => void {
-        if (typeof callback !== "function") {
-            throw new TypeError("Callback must be a function");
+    onCancel(listener: () => void): () => void {
+        if (typeof listener !== "function") {
+            throw new TypeError("Listener must be a function");
         }
 
         if (this._isCancelled) {
-            // Already cancelled, call immediately
+            // Already cancelled, call immediately.
             try {
-                callback();
+                listener();
             } catch (error) {
                 console.error(
                     "[CancellationToken] Error in immediate cancellation callback:",
                     error
                 );
             }
-            return () => {}; // No-op unsubscribe
+            return () => {}; // No-op unsubscribe.
         }
 
-        this._callbacks.push(callback);
+        this._listeners.push(listener);
 
-        // Return unsubscribe function
+        // Return unsubscribe function.
         return () => {
-            const index = this._callbacks.indexOf(callback);
+            const index = this._listeners.indexOf(listener);
             if (index !== -1) {
-                this._callbacks.splice(index, 1);
+                this._listeners.splice(index, 1);
             }
         };
     }
+
     /**
-     * Throw if cancelled
+     * Throw if cancelled.
      *
      * @throws Error when the operation is cancelled.
      */
@@ -93,25 +95,27 @@ export class CancellationToken {
 }
 
 /**
- * Cancellation token source for creating and managing tokens
+ * Cancellation token source for creating and managing tokens.
  */
 export class CancellationTokenSource {
     readonly token = new CancellationToken();
 
     /**
-     * Cancel the token
+     * Cancel the token.
      */
     cancel(): void {
         this.token.cancel();
     }
 
     /**
-     * Dispose of the token source
+     * Dispose of the token source.
      */
     dispose(): void {
         this.cancel();
     }
 }
+
+/* eslint-enable max-classes-per-file */
 
 /**
  * Create a cancellation token that automatically cancels after a timeout
