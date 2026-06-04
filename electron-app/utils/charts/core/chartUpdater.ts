@@ -49,7 +49,7 @@ export function isModernChartSystemAvailable(): boolean {
     return (
         Boolean(chartStateManager) &&
         typeof chartStateManager.debouncedRender === "function" &&
-        chartStateManager.isInitialized === true
+        chartStateManager.isInitialized
     );
 }
 
@@ -160,24 +160,7 @@ export async function updateChartsForThemeChange(
             "[ChartUpdate] chartStateManager not available for theme change, using fallback"
         );
 
-        if (
-            Array.isArray(chartGlobal._chartjsInstances) &&
-            chartGlobal._chartjsInstances.length > 0
-        ) {
-            for (const chart of chartGlobal._chartjsInstances) {
-                if (typeof chart.destroy === "function") {
-                    try {
-                        chart.destroy();
-                    } catch (error) {
-                        console.warn(
-                            "[ChartUpdate] Error destroying chart:",
-                            error
-                        );
-                    }
-                }
-            }
-            chartGlobal._chartjsInstances = [];
-        }
+        destroyLegacyChartInstances();
 
         return await renderChartJS();
     } catch (error) {
@@ -187,6 +170,28 @@ export async function updateChartsForThemeChange(
         );
         throw error;
     }
+}
+
+function destroyLegacyChartInstances(): void {
+    if (
+        !Array.isArray(chartGlobal._chartjsInstances) ||
+        chartGlobal._chartjsInstances.length === 0
+    ) {
+        return;
+    }
+
+    for (const chart of chartGlobal._chartjsInstances) {
+        if (typeof chart.destroy !== "function") {
+            continue;
+        }
+
+        try {
+            chart.destroy();
+        } catch (error) {
+            console.warn("[ChartUpdate] Error destroying chart:", error);
+        }
+    }
+    chartGlobal._chartjsInstances = [];
 }
 
 /**
