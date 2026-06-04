@@ -82,6 +82,9 @@
         sanitizeWindowState: (state: unknown) => WindowState;
         saveWindowState: (win: BrowserWindowInstance) => void;
         settingsPath: string;
+        resolveWebSecuritySetting: (
+            packagedAppOverride?: boolean
+        ) => boolean;
         validateWindow: (win: unknown) => win is BrowserWindowInstance;
         validateWindowState: (state: unknown) => state is WindowState;
         version: "1.0.0";
@@ -293,16 +296,21 @@
         }
     }
 
-    function resolveWebSecuritySetting(): boolean {
-        const isProduction = getEnvironmentValue("NODE_ENV") === "production";
+    function resolveWebSecuritySetting(
+        packagedAppOverride = app?.isPackaged === true
+    ): boolean {
+        const isPackaged = packagedAppOverride;
+        const isDevelopment =
+            getEnvironmentValue("NODE_ENV") === "development";
         const disableWebSecurity =
-            !isProduction &&
+            !isPackaged &&
+            isDevelopment &&
             getEnvironmentValue("FFV_DISABLE_WEB_SECURITY") === "true";
 
         if (disableWebSecurity) {
             logWithContext(
                 "warn",
-                "Web security disabled via FFV_DISABLE_WEB_SECURITY=true (development only)"
+                "Web security disabled via FFV_DISABLE_WEB_SECURITY=true (unpackaged development only)"
             );
         }
 
@@ -513,6 +521,7 @@
         sanitizeWindowState,
         saveWindowState,
         settingsPath,
+        resolveWebSecuritySetting,
         validateWindow,
         validateWindowState,
         ...(getEnvironmentValue("NODE_ENV") === "development" && {

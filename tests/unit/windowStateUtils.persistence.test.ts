@@ -27,6 +27,7 @@ interface MockFs {
 
 interface MockApp {
     getPath: ReturnType<typeof vi.fn<() => string>>;
+    isPackaged: boolean;
 }
 
 interface MockWindowInstance {
@@ -100,6 +101,7 @@ interface WindowStateUtilsModule {
         validateSettings: () => unknown;
     };
     getWindowState: () => WindowState;
+    resolveWebSecuritySetting: (packagedAppOverride?: boolean) => boolean;
     saveWindowState: (win: unknown) => void;
     settingsPath: string;
 }
@@ -156,6 +158,7 @@ describe("windowStateUtils persistence behavior", () => {
 
         mockApp = {
             getPath: vi.fn<() => string>(() => "/tmp/fitfileviewer"),
+            isPackaged: false,
         };
 
         const mockWinInstance = {
@@ -185,7 +188,7 @@ describe("windowStateUtils persistence behavior", () => {
         mockBrowserWindow = BrowserWindow as unknown as BrowserWindowMock;
 
         vi.doMock(import("node:fs"), () => mockFs);
-        vi.doMock(import("electron"), () => ({
+        vi.doMock("electron", () => ({
             app: mockApp,
             BrowserWindow: mockBrowserWindow,
         }));
@@ -199,6 +202,7 @@ describe("windowStateUtils persistence behavior", () => {
 
     afterEach(() => {
         vi.restoreAllMocks();
+        vi.unstubAllEnvs();
         vi.resetModules();
         removeFallbackWindowState();
     });
@@ -302,6 +306,16 @@ describe("windowStateUtils persistence behavior", () => {
             x: 10,
             y: 20,
         });
+    });
+
+    it("resolveWebSecuritySetting ignores web security opt-out in packaged apps", async () => {
+        expect.assertions(1);
+
+        vi.stubEnv("NODE_ENV", "development");
+        vi.stubEnv("FFV_DISABLE_WEB_SECURITY", "true");
+
+        const mod = await importWindowStateUtils();
+        expect(mod.resolveWebSecuritySetting(true)).toBe(true);
     });
 
     it("devHelpers are exposed only in development", async () => {
