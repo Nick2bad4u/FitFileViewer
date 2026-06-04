@@ -41,10 +41,11 @@ function scheduleChartStatusWork(
             pendingStatusTimeouts.delete(timeoutRef.id);
         }
         try {
-            callback();
+            return callback();
         } catch (error) {
             console.error(errorMessage, error);
         }
+        return undefined;
     }, delayMs);
 
     if (!didRun) {

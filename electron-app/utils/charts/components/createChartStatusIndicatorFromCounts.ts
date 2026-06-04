@@ -148,7 +148,7 @@ function createBreakdown(
 }
 
 function removeExistingBreakdown(): void {
-    document.getElementById(BREAKDOWN_ID)?.remove();
+    document.querySelector(`#${BREAKDOWN_ID}`)?.remove();
 }
 
 function positionBreakdown(breakdown: HTMLElement, event: MouseEvent): void {

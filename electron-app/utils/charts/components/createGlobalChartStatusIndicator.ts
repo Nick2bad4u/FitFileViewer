@@ -23,54 +23,49 @@ function logWithContext(
     const timestamp = new Date().toISOString();
     const logMessage = `${timestamp} ${LOG_PREFIX} ${message}`;
     const hasContext = Object.keys(context).length > 0;
+    const logArgs = hasContext ? [logMessage, context] : [logMessage];
 
     switch (level) {
         case "error": {
-            if (hasContext) {
-                console.error(logMessage, context);
-            } else {
-                console.error(logMessage);
-            }
+            console.error(...logArgs);
             break;
         }
         case "info": {
-            if (hasContext) {
-                console.info(logMessage, context);
-            } else {
-                console.info(logMessage);
-            }
+            console.info(...logArgs);
+            break;
+        }
+        case "log": {
+            console.log(...logArgs);
             break;
         }
         case "warn": {
-            if (hasContext) {
-                console.warn(logMessage, context);
-            } else {
-                console.warn(logMessage);
-            }
+            console.warn(...logArgs);
             break;
         }
         default: {
-            if (hasContext) {
-                console.log(logMessage, context);
-            } else {
-                console.log(logMessage);
-            }
+            console.log(...logArgs);
         }
     }
 }
 
 function getExistingIndicator(): HTMLElement | null {
-    const existingIndicator = document.getElementById(GLOBAL_CHART_STATUS_ID);
+    const existingIndicator = document.querySelector(
+        `#${GLOBAL_CHART_STATUS_ID}`
+    );
     return existingIndicator instanceof HTMLElement ? existingIndicator : null;
 }
 
 function getChartContainer(): HTMLElement | null {
-    const snakeCaseElement = document.getElementById("chartjs_chart_container");
+    const snakeCaseElement = document.querySelector(
+        "#chartjs_chart_container"
+    );
     if (snakeCaseElement instanceof HTMLElement) {
         return snakeCaseElement;
     }
 
-    const kebabCaseElement = document.getElementById("chartjs-chart-container");
+    const kebabCaseElement = document.querySelector(
+        "#chartjs-chart-container"
+    );
     return kebabCaseElement instanceof HTMLElement ? kebabCaseElement : null;
 }
 
