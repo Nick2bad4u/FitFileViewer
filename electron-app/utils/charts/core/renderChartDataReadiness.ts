@@ -15,7 +15,7 @@ type UnitConverter = (value: number, field: string) => unknown;
 type NotifyFunction = (
     message: string,
     type: "info" | "warning"
-) => Promise<unknown> | unknown;
+) => unknown;
 type SetStateFunction = (
     path: string,
     value: unknown,
@@ -35,7 +35,7 @@ interface ChartRenderDataReadinessDependencies {
     getState(path: string): unknown;
     getStateManager(): ChartStateManagerAccess;
     getSetupZoneData(): SetupZoneDataFunction;
-    getThemeConfig(): Promise<unknown> | unknown;
+    getThemeConfig(): unknown;
     notify: NotifyFunction;
     safeCompleteRendering(success: boolean): void;
 }
@@ -68,7 +68,7 @@ async function completeMissingChartData(
     await renderNoChartDataPlaceholder(
         {
             doc: dependencies.doc,
-            getThemeConfig: async () => dependencies.getThemeConfig(),
+            getThemeConfig: () => dependencies.getThemeConfig(),
         },
         input.targetContainer
     );
@@ -114,8 +114,8 @@ export async function prepareChartRenderData(
     setup(globalData);
 
     await touchChartRenderDependencies({
-        getConverters: dependencies.getConverters,
-        getThemeConfig: dependencies.getThemeConfig,
+        getConverters: () => dependencies.getConverters(),
+        getThemeConfig: () => dependencies.getThemeConfig(),
     });
 
     const recordMesgs = getRecordMessages(globalData);
@@ -126,12 +126,15 @@ export async function prepareChartRenderData(
     console.log(`[ChartJS] Found ${recordMesgs.length} data points to process`);
 
     const activityStartTime = getActivityStartTime(recordMesgs);
-    if (activityStartTime != null) {
+    if (activityStartTime !== null) {
         console.log("[ChartJS] Activity start time:", activityStartTime);
     }
 
     storeChartData(
-        { setState: dependencies.getStateManager().setState },
+        {
+            setState: (path, value, options) =>
+                dependencies.getStateManager().setState(path, value, options),
+        },
         recordMesgs,
         activityStartTime
     );

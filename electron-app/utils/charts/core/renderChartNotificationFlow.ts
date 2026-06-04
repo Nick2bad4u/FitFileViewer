@@ -4,7 +4,7 @@ type GetStateFunction = (path: string) => unknown;
 type NotifySuccessFunction = (
     message: string,
     type: "success"
-) => Promise<unknown> | unknown;
+) => unknown;
 type ScheduleFunction = (callback: () => void, delay: number) => unknown;
 type ShowRenderNotificationFunction = (
     totalChartsRendered: number,
@@ -40,6 +40,18 @@ function createRenderSuccessMessage(totalChartsRendered: number): string {
         : `Rendered ${totalChartsRendered} charts successfully`;
 }
 
+const defaultSchedule: ScheduleFunction = (callback, delay) =>
+    setTimeout(callback, delay);
+
+function notifySuccessLater(
+    notifySuccess: NotifySuccessFunction,
+    message: string
+): void {
+    Promise.resolve(notifySuccess(message, "success")).catch((error: unknown) =>
+        console.warn("[ChartJS] Success notification failed:", error)
+    );
+}
+
 /**
  * Handles the success-notification side effects for a completed chart render.
  *
@@ -58,7 +70,7 @@ export function handleChartRenderNotification(
         updateState: updateChartState,
     } = dependencies;
     const {
-        schedule = (callback, delay) => setTimeout(callback, delay),
+        schedule = defaultSchedule,
         totalChartsRendered,
         visibleFieldCount,
     } = input;
@@ -79,12 +91,10 @@ export function handleChartRenderNotification(
             schedule(() => {
                 const currentTab = getState("ui.activeTab");
                 if (isChartTabActive(currentTab, isTestRuntime)) {
-                    Promise.resolve().then(() =>
-                        notifySuccess(message, "success")
-                    );
+                    notifySuccessLater(notifySuccess, message);
                 } else {
                     console.log(
-                        `[ChartJS] Notification cancelled - tab switched to ${currentTab}`
+                        `[ChartJS] Notification cancelled - tab switched to ${String(currentTab)}`
                     );
                 }
             }, 100);
@@ -104,12 +114,12 @@ export function handleChartRenderNotification(
         }
 
         console.log(
-            `[ChartJS] Suppressing notification - chart tab no longer active (current tab: ${activeTab})`
+            `[ChartJS] Suppressing notification - chart tab no longer active (current tab: ${String(activeTab)})`
         );
         return;
     }
 
     console.log(
-        `[ChartJS] No notification shown - shouldShow: ${shouldShowNotification}, totalChartsRendered: ${totalChartsRendered}`
+        `[ChartJS] No notification shown - shouldShow: ${String(shouldShowNotification)}, totalChartsRendered: ${totalChartsRendered}`
     );
 }

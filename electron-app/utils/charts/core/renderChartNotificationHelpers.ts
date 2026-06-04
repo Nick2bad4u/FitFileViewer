@@ -6,8 +6,10 @@ import { isObjectRecord } from "./renderChartModuleHelpers.js";
 
 type NotificationInvoker = (
     message: string,
-    type?: NotificationType
-) => Promise<unknown> | unknown;
+    type?: NotificationType,
+    duration?: null | number,
+    options?: RenderChartNotificationOptions
+) => unknown;
 
 interface RenderChartNotificationOptions extends NotificationOptions {
     silent?: boolean;
@@ -80,7 +82,7 @@ export function setNotificationSuppressed(value: boolean | undefined): void {
 export async function notify(
     message: string,
     type: NotificationType = "info",
-    _duration: null | number = null,
+    duration: null | number = null,
     options: RenderChartNotificationOptions = {}
 ): Promise<void> {
     try {
@@ -95,14 +97,14 @@ export async function notify(
             chartGlobal.showNotification
         );
         if (globalNotifier) {
-            await globalNotifier(message, type);
+            await globalNotifier(message, type, duration, options);
             return;
         }
 
         const mod = await import("../../ui/notifications/showNotification.js");
         const importedNotifier = resolveNotificationInvoker(mod);
         if (importedNotifier) {
-            await importedNotifier(message, type);
+            await importedNotifier(message, type, duration, options);
             return;
         }
 

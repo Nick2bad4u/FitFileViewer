@@ -8,7 +8,7 @@ import { isElement, safeAppend } from "./renderChartDomHelpers.js";
 
 interface RenderPlaceholderDependencies {
     doc: Document;
-    getThemeConfig(): Promise<unknown>;
+    getThemeConfig(): unknown;
 }
 
 const FALLBACK_BACKGROUND_ALT = "#ffffff";
