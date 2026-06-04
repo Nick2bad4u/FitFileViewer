@@ -18,6 +18,13 @@ type TestDeps = {
 type ExportUtilsUnderTest = {
     copyChartToClipboard: (chart: unknown) => Promise<void>;
     copyCombinedChartsToClipboard: (charts: unknown) => Promise<void>;
+    createGyazoAuthModal: (
+        authUrl: string,
+        state: string,
+        resolve: (token: string) => void,
+        reject: (reason?: unknown) => void,
+        useServer: boolean
+    ) => HTMLElement;
     createCombinedChartsImage: (
         charts: unknown,
         filename?: string
@@ -25,6 +32,10 @@ type ExportUtilsUnderTest = {
     downloadChartAsPNG: (chart: unknown, filename?: string) => Promise<void>;
     getExportThemeBackground: () => string;
     isValidChart: (chart: unknown) => boolean;
+    showGyazoAccountManager: () => void;
+    showGyazoSetupGuide: () => void;
+    showImgurAccountManager: () => void;
+    showImgurSetupGuide: () => void;
 };
 
 type MockContext = {
@@ -147,6 +158,36 @@ Object.defineProperty(globalThis, "document", {
 Object.defineProperty(globalThis, "HTMLCanvasElement", {
     configurable: true,
     value: dom.window.HTMLCanvasElement,
+});
+
+Object.defineProperty(globalThis, "HTMLElement", {
+    configurable: true,
+    value: dom.window.HTMLElement,
+});
+
+Object.defineProperty(globalThis, "HTMLButtonElement", {
+    configurable: true,
+    value: dom.window.HTMLButtonElement,
+});
+
+Object.defineProperty(globalThis, "HTMLInputElement", {
+    configurable: true,
+    value: dom.window.HTMLInputElement,
+});
+
+Object.defineProperty(globalThis, "AbortController", {
+    configurable: true,
+    value: dom.window.AbortController,
+});
+
+Object.defineProperty(globalThis, "AbortSignal", {
+    configurable: true,
+    value: dom.window.AbortSignal,
+});
+
+Object.defineProperty(globalThis, "KeyboardEvent", {
+    configurable: true,
+    value: dom.window.KeyboardEvent,
 });
 
 Object.defineProperty(globalThis, "CanvasRenderingContext2D", {
@@ -314,6 +355,110 @@ function setupDomHarness(): {
 
 describe("exportUtils chart export helpers", () => {
     /* eslint-disable vitest/prefer-to-be, vitest/prefer-to-be-falsy, vitest/prefer-to-be-truthy -- test-signal requires exact boolean assertions. */
+    describe("export provider modal accessibility", () => {
+        it("gives the Imgur settings modal dialog semantics and traps focus", async () => {
+            expect.assertions(10);
+
+            setupDomHarness();
+            const opener = createRealElement("button");
+            opener.textContent = "Open Imgur settings";
+            document.body.append(opener);
+            opener.focus();
+
+            try {
+                exportUtils.showImgurAccountManager();
+                await Promise.resolve();
+
+                const modal = document.querySelector(
+                    ".imgur-account-manager-modal"
+                );
+                const clientIdInput =
+                    document.querySelector("#imgur-client-id");
+                const closeButton = document.querySelector("#imgur-close");
+
+                expect(modal).toBeInstanceOf(HTMLElement);
+                expect(clientIdInput).toBeInstanceOf(HTMLInputElement);
+                expect(closeButton).toBeInstanceOf(HTMLButtonElement);
+
+                const modalElement = modal as HTMLElement;
+
+                expect(modalElement.getAttribute("role")).toBe("dialog");
+                expect(modalElement.getAttribute("aria-modal")).toBe("true");
+                expect(
+                    modalElement.getAttribute("aria-labelledby")
+                ).toBeTruthy();
+                expect(document.activeElement).toBe(clientIdInput);
+
+                document.dispatchEvent(
+                    new KeyboardEvent("keydown", {
+                        bubbles: true,
+                        key: "Tab",
+                        shiftKey: true,
+                    })
+                );
+
+                expect(document.activeElement).toBe(closeButton);
+
+                document.dispatchEvent(
+                    new KeyboardEvent("keydown", {
+                        bubbles: true,
+                        key: "Escape",
+                    })
+                );
+
+                expect(
+                    document.querySelector(".imgur-account-manager-modal")
+                ).toBe(null);
+                expect(document.activeElement).toBe(opener);
+            } finally {
+                document.dispatchEvent(
+                    new KeyboardEvent("keydown", {
+                        bubbles: true,
+                        key: "Escape",
+                    })
+                );
+            }
+        });
+
+        it("applies dialog semantics to export provider setup and auth modals", async () => {
+            expect.assertions(10);
+
+            setupDomHarness();
+
+            try {
+                exportUtils.showGyazoSetupGuide();
+                exportUtils.showImgurSetupGuide();
+                const authOverlay = exportUtils.createGyazoAuthModal(
+                    "https://gyazo.com/oauth/authorize",
+                    "state",
+                    vi.fn<(token: string) => void>(),
+                    vi.fn<(reason?: unknown) => void>(),
+                    false
+                );
+                document.body.append(authOverlay);
+                await Promise.resolve();
+
+                const dialogs = [
+                    ...document.querySelectorAll("[role='dialog']"),
+                ];
+
+                expect(dialogs).toHaveLength(3);
+                for (const dialog of dialogs) {
+                    expect(dialog.getAttribute("aria-modal")).toBe("true");
+                    expect(dialog.getAttribute("aria-labelledby")).toBeTruthy();
+                    expect(dialog.hasAttribute("aria-hidden")).toBe(false);
+                }
+            } finally {
+                document.dispatchEvent(
+                    new KeyboardEvent("keydown", {
+                        bubbles: true,
+                        key: "Escape",
+                    })
+                );
+            }
+        });
+    });
+
     describe("isValidChart function", () => {
         it("returns false for null chart", () => {
             expect.assertions(1);

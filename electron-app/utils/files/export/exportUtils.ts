@@ -13,6 +13,7 @@ import {
     safeStorageSetItem,
 } from "../../storage/storageUtils.js";
 import { showChartSelectionModal } from "../../ui/components/createSettingsHeader.js";
+import { createModalFocusTrap } from "../../ui/modals/modalFocusTrap.js";
 import { showNotification as __realShowNotification } from "../../ui/notifications/showNotification.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
@@ -137,9 +138,88 @@ type ValidationResult<T> =
           error: string;
           success: false;
       };
+type ExportModalAccessibilityOptions = {
+    closeOverlay: () => void;
+    initialFocusElement?: HTMLElement | null;
+    modal: HTMLElement;
+    overlay: HTMLElement;
+    signal: AbortSignal;
+    title: HTMLElement;
+};
+
+let exportModalTitleCounter = 0;
 
 function getExportRuntimeGlobal(): ExportRuntimeGlobal {
     return globalThis;
+}
+
+function setupExportModalAccessibility({
+    closeOverlay,
+    initialFocusElement,
+    modal,
+    overlay,
+    signal,
+    title,
+}: ExportModalAccessibilityOptions): () => void {
+    const previousFocus =
+        document.activeElement instanceof HTMLElement
+            ? document.activeElement
+            : null;
+    const titleId =
+        title.id || `export-modal-title-${++exportModalTitleCounter}`;
+    title.id = titleId;
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+    modal.setAttribute("aria-labelledby", titleId);
+    if (!modal.hasAttribute("tabindex")) {
+        modal.tabIndex = -1;
+    }
+
+    let focusTrapCleanup: (() => void) | null = null;
+    let cleanedUp = false;
+    const installFocusTrap = () => {
+        if (cleanedUp || focusTrapCleanup) {
+            return;
+        }
+        focusTrapCleanup = createModalFocusTrap(
+            modal,
+            initialFocusElement ?? null
+        );
+    };
+
+    if (modal.isConnected) {
+        installFocusTrap();
+    } else {
+        queueMicrotask(installFocusTrap);
+    }
+
+    document.addEventListener(
+        "keydown",
+        (event) => {
+            if (event.key === "Escape") {
+                closeOverlay();
+            }
+        },
+        { signal }
+    );
+    overlay.addEventListener(
+        "click",
+        (event) => {
+            if (event.target === overlay) {
+                closeOverlay();
+            }
+        },
+        { signal }
+    );
+
+    return () => {
+        cleanedUp = true;
+        focusTrapCleanup?.();
+        focusTrapCleanup = null;
+        if (previousFocus?.isConnected) {
+            previousFocus.focus();
+        }
+    };
 }
 
 async function stopGyazoServerIfAvailable(): Promise<void> {
@@ -1722,6 +1802,7 @@ export const exportUtils = {
         const listenerController = new AbortController();
         const listenerOptions = { signal: listenerController.signal };
         let cancelled = false;
+        let cleanupModalAccessibility = () => {};
 
         // The external link will be handled by main-ui.js external link handler
         // No need for a click handler on the link itself
@@ -1750,6 +1831,7 @@ export const exportUtils = {
                     exportUtils.setGyazoAccessToken(tokenData.access_token);
 
                     listenerController.abort();
+                    cleanupModalAccessibility();
                     overlay.remove();
                     showNotification(
                         "Gyazo authentication successful!",
@@ -1783,8 +1865,8 @@ export const exportUtils = {
                 return;
             }
             cancelled = true;
-            document.removeEventListener("keydown", handleEscape);
             listenerController.abort();
+            cleanupModalAccessibility();
 
             if (typeof onCancel === "function") {
                 try {
@@ -1805,12 +1887,6 @@ export const exportUtils = {
             reject(new Error("User cancelled authentication"));
         };
 
-        function handleEscape(e: KeyboardEvent) {
-            if (e.key === "Escape") {
-                void cancelAuthentication();
-            }
-        }
-
         if (cancelBtn) {
             cancelBtn.addEventListener(
                 "click",
@@ -1820,18 +1896,16 @@ export const exportUtils = {
                 listenerOptions
             );
         }
-        document.addEventListener("keydown", handleEscape, listenerOptions);
-
-        // Click outside to close
-        overlay.addEventListener(
-            "click",
-            (e: MouseEvent) => {
-                if (e.target === overlay) {
-                    void cancelAuthentication();
-                }
+        cleanupModalAccessibility = setupExportModalAccessibility({
+            closeOverlay: () => {
+                void cancelAuthentication();
             },
-            listenerOptions
-        );
+            initialFocusElement: codeInput ?? authLink,
+            modal,
+            overlay,
+            signal: listenerController.signal,
+            title,
+        });
 
         overlay.append(modal);
         return overlay;
@@ -1917,7 +1991,7 @@ export const exportUtils = {
             throw new Error("No access token returned from Gyazo");
         } catch (error) {
             if (isAbortError(error)) {
-            throw new Error("Token exchange timed out", { cause: error });
+                throw new Error("Token exchange timed out", { cause: error });
             }
             console.error("Error exchanging code for token:", error);
             throw error;
@@ -3214,8 +3288,10 @@ body {
         modal.append(actionPanel);
         const listenerController = new AbortController();
         const listenerOptions = { signal: listenerController.signal };
+        let cleanupModalAccessibility = () => {};
         const closeOverlay = () => {
             listenerController.abort();
+            cleanupModalAccessibility();
             overlay.remove();
         };
 
@@ -3324,25 +3400,14 @@ body {
             closeBtn.addEventListener("click", closeOverlay, listenerOptions);
         }
 
-        // ESC key handler
-        const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === "Escape") {
-                closeOverlay();
-                document.removeEventListener("keydown", handleEscape);
-            }
-        };
-        document.addEventListener("keydown", handleEscape, listenerOptions);
-
-        // Click outside to close
-        overlay.addEventListener(
-            "click",
-            (e: MouseEvent) => {
-                if (e.target === overlay) {
-                    closeOverlay();
-                }
-            },
-            listenerOptions
-        );
+        cleanupModalAccessibility = setupExportModalAccessibility({
+            closeOverlay,
+            initialFocusElement: clientIdInput,
+            modal,
+            overlay,
+            signal: listenerController.signal,
+            title,
+        });
 
         overlay.append(modal);
         document.body.append(overlay);
@@ -3486,31 +3551,23 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
         modal.append(title, content, closeBtn);
         const listenerController = new AbortController();
         const listenerOptions = { signal: listenerController.signal };
+        let cleanupModalAccessibility = () => {};
         const closeOverlay = () => {
             listenerController.abort();
+            cleanupModalAccessibility();
             overlay.remove();
         };
 
         closeBtn.addEventListener("click", closeOverlay, listenerOptions);
 
-        // ESC key and click outside handlers
-        const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === "Escape") {
-                closeOverlay();
-                document.removeEventListener("keydown", handleEscape);
-            }
-        };
-        document.addEventListener("keydown", handleEscape, listenerOptions);
-
-        overlay.addEventListener(
-            "click",
-            (e: MouseEvent) => {
-                if (e.target === overlay) {
-                    closeOverlay();
-                }
-            },
-            listenerOptions
-        );
+        cleanupModalAccessibility = setupExportModalAccessibility({
+            closeOverlay,
+            initialFocusElement: closeBtn,
+            modal,
+            overlay,
+            signal: listenerController.signal,
+            title,
+        });
 
         overlay.append(modal);
         document.body.append(overlay);
@@ -3957,8 +4014,10 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
         modal.append(actions);
         const listenerController = new AbortController();
         const listenerOptions = { signal: listenerController.signal };
+        let cleanupModalAccessibility = () => {};
         const closeOverlay = () => {
             listenerController.abort();
+            cleanupModalAccessibility();
             overlay.remove();
         };
 
@@ -4028,25 +4087,14 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
             closeBtn.addEventListener("click", closeOverlay, listenerOptions);
         }
 
-        // ESC key handler
-        const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === "Escape") {
-                closeOverlay();
-                document.removeEventListener("keydown", handleEscape);
-            }
-        };
-        document.addEventListener("keydown", handleEscape, listenerOptions);
-
-        // Click outside to close
-        overlay.addEventListener(
-            "click",
-            (e: MouseEvent) => {
-                if (e.target === overlay) {
-                    closeOverlay();
-                }
-            },
-            listenerOptions
-        );
+        cleanupModalAccessibility = setupExportModalAccessibility({
+            closeOverlay,
+            initialFocusElement: clientIdInput,
+            modal,
+            overlay,
+            signal: listenerController.signal,
+            title,
+        });
 
         overlay.append(modal);
         document.body.append(overlay);
@@ -4224,8 +4272,10 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
         modal.append(title, content, actions);
         const listenerController = new AbortController();
         const listenerOptions = { signal: listenerController.signal };
+        let cleanupModalAccessibility = () => {};
         const closeOverlay = () => {
             listenerController.abort();
+            cleanupModalAccessibility();
             overlay.remove();
         };
 
@@ -4239,24 +4289,14 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
         );
         closeBtn.addEventListener("click", closeOverlay, listenerOptions);
 
-        // ESC key and click outside handlers
-        const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === "Escape") {
-                closeOverlay();
-                document.removeEventListener("keydown", handleEscape);
-            }
-        };
-        document.addEventListener("keydown", handleEscape, listenerOptions);
-
-        overlay.addEventListener(
-            "click",
-            (e: MouseEvent) => {
-                if (e.target === overlay) {
-                    closeOverlay();
-                }
-            },
-            listenerOptions
-        );
+        cleanupModalAccessibility = setupExportModalAccessibility({
+            closeOverlay,
+            initialFocusElement: closeBtn,
+            modal,
+            overlay,
+            signal: listenerController.signal,
+            title,
+        });
 
         overlay.append(modal);
         document.body.append(overlay);
