@@ -36,7 +36,6 @@ const flatpakDependencyCommands = [
             "--user",
             "flathub",
             "org.freedesktop.Platform//23.08",
-            // eslint-disable-next-line case-police/string-check -- Flatpak uses this exact runtime identifier spelling.
             "org.freedesktop.Sdk//23.08",
         ],
     ],

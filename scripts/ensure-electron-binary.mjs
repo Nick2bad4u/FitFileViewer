@@ -13,7 +13,6 @@ const electronPackage = await readElectronPackage(electronPackagePath);
 const platformPath = getElectronPlatformPath();
 const electronDistPath = path.join(electronPackageDirectory, "dist");
 const electronPathFile = path.join(electronPackageDirectory, "path.txt");
-// eslint-disable-next-line n/no-process-env -- Electron install controls are environment variables.
 const electronInstallerEnvironment = process.env;
 
 export async function ensureElectronBinary() {

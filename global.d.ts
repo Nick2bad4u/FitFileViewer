@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/prefer-readonly-parameter-types, capitalized-comments, no-underscore-dangle, perfectionist/sort-imports, perfectionist/sort-interfaces, perfectionist/sort-union-types, unicorn/require-module-specifiers, vars-on-top -- Legacy ambient declarations mirror external global names and grouped API docs during migration. */
+/* eslint-disable capitalized-comments, no-underscore-dangle, perfectionist/sort-imports, perfectionist/sort-interfaces, perfectionist/sort-union-types, unicorn/require-module-specifiers, vars-on-top -- Legacy ambient declarations mirror external global names and grouped API docs during migration. */
 import type {
     FitDecodeResult,
 } from "./electron-app/shared/fit";
@@ -128,4 +128,4 @@ export interface ZoneInfo {
 }
 
 export {};
-/* eslint-enable @typescript-eslint/prefer-readonly-parameter-types, capitalized-comments, no-underscore-dangle, perfectionist/sort-imports, perfectionist/sort-interfaces, perfectionist/sort-union-types, unicorn/require-module-specifiers, vars-on-top -- Re-enable legacy ambient declaration lint rules. */
+/* eslint-enable capitalized-comments, no-underscore-dangle, perfectionist/sort-imports, perfectionist/sort-interfaces, perfectionist/sort-union-types, unicorn/require-module-specifiers, vars-on-top -- Re-enable legacy ambient declaration lint rules. */
