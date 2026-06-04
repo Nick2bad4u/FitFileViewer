@@ -47,6 +47,68 @@ interface MockWindowInstance {
 
 type BrowserWindowMock = new (options: unknown) => MockWindowInstance;
 
+interface WindowState {
+    height: number;
+    width: number;
+    x?: number;
+    y?: number;
+}
+
+interface WindowDefaults {
+    height: number;
+    minHeight: number;
+    minWidth: number;
+    width: number;
+}
+
+interface WindowConfig {
+    height?: number;
+    minHeight?: number;
+    minWidth?: number;
+    webPreferences?: {
+        contextIsolation?: boolean;
+        nodeIntegration?: boolean;
+        preload?: string;
+        sandbox?: boolean;
+        webSecurity?: boolean;
+        webviewTag?: boolean;
+    };
+    width?: number;
+    x?: number;
+    y?: number;
+}
+
+interface WindowStateUtilsModule {
+    CONSTANTS: {
+        DEFAULTS: {
+            WINDOW: WindowDefaults;
+        };
+    };
+    createWindow: () => unknown;
+    createWindowConfig: (state: WindowState) => WindowConfig;
+    devHelpers: {
+        getConfig: () => {
+            constants: {
+                DEFAULTS: {
+                    WINDOW: WindowDefaults;
+                };
+            };
+            currentState: WindowState;
+            settingsPath: string;
+        };
+        resetState: () => boolean;
+        validateSettings: () => unknown;
+    };
+    getWindowState: () => WindowState;
+    saveWindowState: (win: unknown) => void;
+    settingsPath: string;
+}
+
+async function importWindowStateUtils(): Promise<WindowStateUtilsModule> {
+    const mod: unknown = await import("../../electron-app/windowStateUtils.js");
+    return mod as WindowStateUtilsModule;
+}
+
 function removeFallbackWindowState() {
     if (existsSync(fallbackSettingsPath)) {
         unlinkSync(fallbackSettingsPath);
@@ -144,7 +206,7 @@ describe("windowStateUtils persistence behavior", () => {
     it("getWindowState returns defaults when file missing", async () => {
         expect.assertions(2);
 
-        const mod = await import("../../electron-app/windowStateUtils.js");
+        const mod = await importWindowStateUtils();
         const state = mod.getWindowState();
         expect(state.width).toBe(defaultState.width);
         expect(state.height).toBe(defaultState.height);
@@ -163,7 +225,7 @@ describe("windowStateUtils persistence behavior", () => {
         mockedFileContent = fileData;
         writeFileSync(fallbackSettingsPath, fileData);
 
-        const mod = await import("../../electron-app/windowStateUtils.js");
+        const mod = await importWindowStateUtils();
         const state = mod.getWindowState();
         expect(state).toEqual({
             height: 600,
@@ -176,14 +238,14 @@ describe("windowStateUtils persistence behavior", () => {
     it("saveWindowState persists sanitized bounds", async () => {
         expect.assertions(2);
 
-        const mod = await import("../../electron-app/windowStateUtils.js");
+        const mod = await importWindowStateUtils();
         // Pass a stub window directly to avoid constructor path
         const win = {
             isDestroyed: () => false,
             isMinimized: () => false,
             isMaximized: () => false,
             getBounds: () => ({ width: 1000, height: 700, x: 10, y: 20 }),
-        } as unknown as Parameters<typeof mod.saveWindowState>[0];
+        };
 
         mod.saveWindowState(win);
 
@@ -207,10 +269,39 @@ describe("windowStateUtils persistence behavior", () => {
     it("createWindow attempts BrowserWindow construction (may throw in tests)", async () => {
         expect.assertions(1);
 
-        const mod = await import("../../electron-app/windowStateUtils.js");
+        const mod = await importWindowStateUtils();
         expect(() => mod.createWindow()).toThrow(
             "BrowserWindow is not a constructor"
         );
+    });
+
+    it("createWindowConfig pins secure BrowserWindow options", async () => {
+        expect.assertions(7);
+
+        const mod = await importWindowStateUtils();
+        const options = mod.createWindowConfig({
+            height: 700,
+            width: 1000,
+            x: 10,
+            y: 20,
+        });
+
+        expect(options.webPreferences?.contextIsolation).toBe(true);
+        expect(options.webPreferences?.nodeIntegration).toBe(false);
+        expect(options.webPreferences?.sandbox).toBe(true);
+        expect(options.webPreferences?.webSecurity).toBe(true);
+        expect(options.webPreferences?.webviewTag).toBe(false);
+        expect(options.webPreferences?.preload).toEqual(
+            expect.stringContaining("preload.js")
+        );
+        expect(options).toMatchObject({
+            height: 700,
+            minHeight: defaultState.minHeight,
+            minWidth: defaultState.minWidth,
+            width: 1000,
+            x: 10,
+            y: 20,
+        });
     });
 
     it("devHelpers are exposed only in development", async () => {
@@ -218,7 +309,7 @@ describe("windowStateUtils persistence behavior", () => {
 
         process.env.NODE_ENV = "development";
         try {
-            const mod = await import("../../electron-app/windowStateUtils.js");
+            const mod = await importWindowStateUtils();
 
             expect(Object.keys(mod.devHelpers).toSorted()).toStrictEqual([
                 "getConfig",

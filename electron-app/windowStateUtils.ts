@@ -73,6 +73,9 @@
 
     interface WindowStateUtilsExports {
         CONSTANTS: typeof CONSTANTS;
+        createWindowConfig: (
+            state: WindowState
+        ) => BrowserWindowConstructorOptions;
         createWindow: () => BrowserWindowInstance;
         devHelpers?: DevHelpers;
         getWindowState: () => WindowState;
@@ -388,26 +391,32 @@
         }
     }
 
+    function createWindowConfig(
+        state: WindowState
+    ): BrowserWindowConstructorOptions {
+        return {
+            autoHideMenuBar: false,
+            height: state.height,
+            icon: path.join(__dirname, CONSTANTS.PATHS.ICONS.FAVICON),
+            minHeight: CONSTANTS.DEFAULTS.WINDOW.minHeight,
+            minWidth: CONSTANTS.DEFAULTS.WINDOW.minWidth,
+            show: false,
+            webPreferences: {
+                ...CONSTANTS.WEB_PREFERENCES,
+                preload: path.join(__dirname, CONSTANTS.PATHS.PRELOAD),
+                webSecurity: resolveWebSecuritySetting(),
+                webviewTag: false,
+            },
+            width: state.width,
+            ...(typeof state.x === "number" ? { x: state.x } : {}),
+            ...(typeof state.y === "number" ? { y: state.y } : {}),
+        };
+    }
+
     function createWindow(): BrowserWindowInstance {
         try {
             const state = getWindowState();
-            const windowConfig: BrowserWindowConstructorOptions = {
-                autoHideMenuBar: false,
-                height: state.height,
-                icon: path.join(__dirname, CONSTANTS.PATHS.ICONS.FAVICON),
-                minHeight: CONSTANTS.DEFAULTS.WINDOW.minHeight,
-                minWidth: CONSTANTS.DEFAULTS.WINDOW.minWidth,
-                show: false,
-                webPreferences: {
-                    ...CONSTANTS.WEB_PREFERENCES,
-                    preload: path.join(__dirname, CONSTANTS.PATHS.PRELOAD),
-                    webSecurity: resolveWebSecuritySetting(),
-                    webviewTag: false,
-                },
-                width: state.width,
-                ...(typeof state.x === "number" ? { x: state.x } : {}),
-                ...(typeof state.y === "number" ? { y: state.y } : {}),
-            };
+            const windowConfig = createWindowConfig(state);
 
             logWithContext("info", "Creating window with configuration", {
                 config: windowConfig,
@@ -498,6 +507,7 @@
 
     const exportedApi: WindowStateUtilsExports = {
         CONSTANTS,
+        createWindowConfig,
         createWindow,
         getWindowState,
         sanitizeWindowState,
