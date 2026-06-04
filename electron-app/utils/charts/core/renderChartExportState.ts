@@ -22,15 +22,8 @@ interface CreateExportChartsWithStateDependencies {
 type ExportChartsWithState = (format?: unknown) => Promise<boolean>;
 
 function getExportFormatLabel(format: unknown): string {
-    if (
-        format !== null &&
-        format !== undefined &&
-        typeof (format as { toUpperCase?: unknown }).toUpperCase === "function"
-    ) {
-        const label = (format as { toUpperCase(): unknown }).toUpperCase();
-        if (label) {
-            return String(label);
-        }
+    if (typeof format === "string") {
+        return format.toUpperCase();
     }
 
     return String(format);
@@ -46,7 +39,7 @@ function getExportFormatLabel(format: unknown): string {
 export function createExportChartsWithState(
     dependencies: CreateExportChartsWithStateDependencies
 ): ExportChartsWithState {
-    return async (format = "png") => {
+    return (format = "png") => {
         const isRendered = Boolean(dependencies.getState("charts.isRendered"));
         const instances = dependencies.getChartInstances(
             dependencies.chartGlobal._chartjsInstances
@@ -56,7 +49,7 @@ export function createExportChartsWithState(
             void Promise.resolve().then(() =>
                 dependencies.notify("No charts available for export", "warning")
             );
-            return false;
+            return Promise.resolve(false);
         }
 
         try {
@@ -88,6 +81,6 @@ export function createExportChartsWithState(
             // Export success should not depend on non-critical state updates.
         }
 
-        return true;
+        return Promise.resolve(true);
     };
 }
