@@ -129,6 +129,10 @@ export interface ElectronAPI {
     ) => Promise<GyazoServerStartResponse>;
     stopGyazoServer: () => Promise<GyazoServerStopResponse>;
 
+    onDecoderOptionsChanged: (
+        callback: (options: IpcResponsePayload) => void
+    ) => () => void;
+    onExportFile: (callback: (filePath: IpcResponsePayload) => void) => () => void;
     onFitBrowserEnabledChanged: (
         callback: (enabled: boolean) => void
     ) => () => void;
@@ -136,15 +140,24 @@ export interface ElectronAPI {
         callback: (data: IpcResponsePayload) => void
     ) => () => void;
     onMenuAbout: (callback: () => void) => () => void;
+    onMenuCheckForUpdates: (callback: () => void) => () => void;
     onMenuExport: (callback: () => void) => () => void;
     onMenuKeyboardShortcuts: (callback: () => void) => () => void;
     onMenuOpenFile: (callback: () => void) => () => void;
     onMenuOpenOverlay: (callback: () => void) => () => void;
+    onMenuPrint: (callback: () => void) => () => void;
     onMenuRestartUpdate: (callback: () => void) => () => void;
     onMenuSaveAs: (callback: () => void) => () => void;
     onOpenAccentColorPicker: (callback: () => void) => () => void;
     onOpenRecentFile: (callback: (filePath: string) => void) => () => void;
+    onSetFontSize: (callback: (size: IpcResponsePayload) => void) => () => void;
+    onSetHighContrast: (
+        callback: (mode: IpcResponsePayload) => void
+    ) => () => void;
     onSetTheme: (callback: (theme: string) => void) => () => void;
+    onShowNotification: (
+        callback: (...args: IpcResponsePayload[]) => void
+    ) => () => void;
     onOpenSummaryColumnSelector: (callback: () => void) => () => void;
     onUnloadFitFile: (callback: () => void) => () => void;
     onUpdateEvent: (

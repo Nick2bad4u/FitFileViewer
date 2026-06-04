@@ -95,7 +95,12 @@ function createElectronAPIMock() {
 
     return {
         // Menu hooks
+        onDecoderOptionsChanged: registerMenuHandler(
+            "decoder-options-changed"
+        ),
+        onExportFile: registerMenuHandler("export-file"),
         onMenuAbout: registerMenuHandler("menu-about"),
+        onMenuCheckForUpdates: registerMenuHandler("menu-check-for-updates"),
         onMenuExport: registerMenuHandler("menu-export"),
         onMenuKeyboardShortcuts: registerMenuHandler(
             "menu-keyboard-shortcuts"
@@ -104,6 +109,7 @@ function createElectronAPIMock() {
             menuOpenFileCb = cb;
         },
         onMenuOpenOverlay: registerMenuHandler("menu-open-overlay"),
+        onMenuPrint: registerMenuHandler("menu-print"),
         onMenuRestartUpdate: registerMenuHandler("menu-restart-update"),
         onMenuSaveAs: registerMenuHandler("menu-save-as"),
         onOpenAccentColorPicker: registerMenuHandler(
@@ -112,6 +118,9 @@ function createElectronAPIMock() {
         onOpenRecentFile: (cb: (filePath: string) => any) => {
             openRecentCb = cb;
         },
+        onSetFontSize: registerMenuHandler("set-font-size"),
+        onSetHighContrast: registerMenuHandler("set-high-contrast"),
+        onShowNotification: registerMenuHandler("show-notification"),
         triggerMenuOpenFile: () => menuOpenFileCb && menuOpenFileCb(),
         triggerOpenRecentFile: (fp: string) => openRecentCb && openRecentCb(fp),
 
@@ -566,11 +575,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         window.globalData = { foo: "bar" } as any;
 
-        await window.electronAPI.emit(
-            "export-file",
-            {} as any,
-            "C:/tmp/out.csv"
-        );
+        await window.electronAPI.emit("export-file", "C:/tmp/out.csv");
 
         expect(copyTableAsCsv).toHaveBeenCalledExactlyOnceWith({
             container: expect.any(HTMLDivElement),
@@ -620,11 +625,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             ],
         } as any;
 
-        await window.electronAPI.emit(
-            "export-file",
-            {} as any,
-            "C:/tmp/out.gpx"
-        );
+        await window.electronAPI.emit("export-file", "C:/tmp/out.gpx");
         expect(window.globalData.recordMesgs).toHaveLength(2);
         expect(clickSpy).toHaveBeenCalledOnce();
 
@@ -633,11 +634,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         window.globalData = {
             recordMesgs: [{}, {}],
         } as any;
-        await window.electronAPI.emit(
-            "export-file",
-            {} as any,
-            "C:/tmp/out.gpx"
-        );
+        await window.electronAPI.emit("export-file", "C:/tmp/out.gpx");
         expect(showNotification).toHaveBeenCalledWith(
             "No valid coordinates found for GPX export.",
             "info",
@@ -646,11 +643,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         // Case 3: no data available
         window.globalData = {} as any;
-        await window.electronAPI.emit(
-            "export-file",
-            {} as any,
-            "C:/tmp/out.gpx"
-        );
+        await window.electronAPI.emit("export-file", "C:/tmp/out.gpx");
         expect(showNotification).toHaveBeenCalledWith(
             "No data available for GPX export.",
             "info",
@@ -860,17 +853,17 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         });
 
         // Font size
-        window.electronAPI.emit("set-font-size", {} as any, "small");
+        window.electronAPI.emit("set-font-size", "small");
         expect(document.body.classList.contains("font-small")).toBe(true);
 
         // High contrast modes
-        window.electronAPI.emit("set-high-contrast", {} as any, "black");
+        window.electronAPI.emit("set-high-contrast", "black");
         expect(document.body.classList.contains("high-contrast")).toBe(true);
-        window.electronAPI.emit("set-high-contrast", {} as any, "white");
+        window.electronAPI.emit("set-high-contrast", "white");
         expect(document.body.classList.contains("high-contrast-white")).toBe(
             true
         );
-        window.electronAPI.emit("set-high-contrast", {} as any, "yellow");
+        window.electronAPI.emit("set-high-contrast", "yellow");
         expect(document.body.classList.contains("high-contrast-yellow")).toBe(
             true
         );
@@ -1386,7 +1379,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         window.globalData = { some: "data" } as any;
 
         // Test unsupported extension
-        await electronAPI.emit("export-file", {} as any, "C:/tmp/out.txt");
+        await electronAPI.emit("export-file", "C:/tmp/out.txt");
 
         // Should not call any notification or create download links
         expect(document.querySelectorAll("a")).toHaveLength(0);
@@ -1409,7 +1402,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         window.globalData = { some: "data" } as any;
         (window as any).copyTableAsCSV = undefined;
 
-        await electronAPI.emit("export-file", {} as any, "C:/tmp/out.csv");
+        await electronAPI.emit("export-file", "C:/tmp/out.csv");
 
         // Should not create download link without copyTableAsCSV
         const links = document.querySelectorAll("a");
@@ -1439,7 +1432,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         // Remove summary container
         document.querySelector("#content-summary")?.remove();
 
-        await electronAPI.emit("export-file", {} as any, "C:/tmp/out.csv");
+        await electronAPI.emit("export-file", "C:/tmp/out.csv");
 
         // Should not create download link without container
         const links = document.querySelectorAll("a");
@@ -1468,7 +1461,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         // Remove createExportGPXButton
         (window as any).createExportGPXButton = undefined;
 
-        await electronAPI.emit("export-file", {} as any, "C:/tmp/out.gpx");
+        await electronAPI.emit("export-file", "C:/tmp/out.gpx");
 
         expect(window.globalData.recordMesgs).toHaveLength(1);
         expect(showNotification).not.toHaveBeenCalled();
@@ -1492,7 +1485,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         window.globalData = undefined;
 
-        await electronAPI.emit("export-file", {} as any, "C:/tmp/out.csv");
+        await electronAPI.emit("export-file", "C:/tmp/out.csv");
 
         // Should return early without action
         expect(document.querySelectorAll("a")).toHaveLength(0);
@@ -2196,7 +2189,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         // Emit with the proper format that matches the listener expectations
         // The export-file handler expects (_event, filePath) - two parameters!
-        electronAPI.emit("export-file", {} as any, "test-file.gpx");
+        electronAPI.emit("export-file", "test-file.gpx");
 
         await Promise.resolve();
 
@@ -2522,7 +2515,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         // Remove copyTableAsCSV function to trigger fallback
         delete (globalThis as any).copyTableAsCSV;
 
-        electronAPI.emit("export-file", {} as any, "test-file.csv");
+        electronAPI.emit("export-file", "test-file.csv");
 
         await Promise.resolve();
 

@@ -97,6 +97,8 @@ interface PreloadChannels {
 }
 
 interface PreloadEvents {
+    readonly DECODER_OPTIONS_CHANGED: "decoder-options-changed";
+    readonly EXPORT_FILE: "export-file";
     readonly FIT_BROWSER_ENABLED_CHANGED: "fit-browser-enabled-changed";
     readonly FIT_FILE_LOADED: "fit-file-loaded";
     readonly GYAZO_OAUTH_CALLBACK: "gyazo-oauth-callback";
@@ -107,13 +109,17 @@ interface PreloadEvents {
     readonly MENU_KEYBOARD_SHORTCUTS: "menu-keyboard-shortcuts";
     readonly MENU_OPEN_FILE: "menu-open-file";
     readonly MENU_OPEN_OVERLAY: "menu-open-overlay";
+    readonly MENU_PRINT: "menu-print";
     readonly MENU_RESTART_UPDATE: "menu-restart-update";
     readonly MENU_SAVE_AS: "menu-save-as";
     readonly OPEN_ACCENT_COLOR_PICKER: "open-accent-color-picker";
     readonly OPEN_RECENT_FILE: "open-recent-file";
     readonly OPEN_SUMMARY_COLUMN_SELECTOR: "open-summary-column-selector";
+    readonly SET_FONT_SIZE: "set-font-size";
     readonly SET_FULLSCREEN: "set-fullscreen";
+    readonly SET_HIGH_CONTRAST: "set-high-contrast";
     readonly SET_THEME: "set-theme";
+    readonly SHOW_NOTIFICATION: "show-notification";
     readonly THEME_CHANGED: "theme-changed";
     readonly UNLOAD_FIT_FILE: "unload-fit-file";
 }
@@ -709,6 +715,26 @@ const electronAPI: ElectronAPI = {
     ),
 
     /**
+     * Registers a handler for decoder option changes from the app menu.
+     *
+     * @param {(options: IpcResponsePayload) => void} callback
+     */
+    onDecoderOptionsChanged: createSafeEventHandler(
+        CONSTANTS.EVENTS.DECODER_OPTIONS_CHANGED,
+        "onDecoderOptionsChanged"
+    ),
+
+    /**
+     * Registers a handler for export-file requests from the main process.
+     *
+     * @param {(filePath: IpcResponsePayload) => void} callback
+     */
+    onExportFile: createSafeEventHandler(
+        CONSTANTS.EVENTS.EXPORT_FILE,
+        "onExportFile"
+    ),
+
+    /**
      * Expose ipcRenderer.invoke for direct use with error handling.
      *
      * @param {GenericInvokeChannel} channel - The IPC channel to invoke
@@ -808,6 +834,16 @@ const electronAPI: ElectronAPI = {
     ),
 
     /**
+     * Registers a handler for the 'menu-print' event.
+     *
+     * @param {() => void} callback
+     */
+    onMenuPrint: createSafeEventHandler(
+        CONSTANTS.EVENTS.MENU_PRINT,
+        "onMenuPrint"
+    ),
+
+    /**
      * Registers a handler for the 'open-recent-file' event.
      *
      * @param {(filePath: IpcResponsePayload) => void} callback
@@ -846,6 +882,16 @@ const electronAPI: ElectronAPI = {
     onMenuKeyboardShortcuts: createSafeEventHandler(
         CONSTANTS.EVENTS.MENU_KEYBOARD_SHORTCUTS,
         "onMenuKeyboardShortcuts"
+    ),
+
+    /**
+     * Registers a handler for the 'menu-check-for-updates' event.
+     *
+     * @param {() => void} callback
+     */
+    onMenuCheckForUpdates: createSafeEventHandler(
+        CONSTANTS.EVENTS.MENU_CHECK_FOR_UPDATES,
+        "onMenuCheckForUpdates"
     ),
 
     /**
@@ -889,6 +935,26 @@ const electronAPI: ElectronAPI = {
     ),
 
     /**
+     * Registers a handler for renderer font-size changes.
+     *
+     * @param {(size: IpcResponsePayload) => void} callback
+     */
+    onSetFontSize: createSafeEventHandler(
+        CONSTANTS.EVENTS.SET_FONT_SIZE,
+        "onSetFontSize"
+    ),
+
+    /**
+     * Registers a handler for renderer high-contrast mode changes.
+     *
+     * @param {(mode: IpcResponsePayload) => void} callback
+     */
+    onSetHighContrast: createSafeEventHandler(
+        CONSTANTS.EVENTS.SET_HIGH_CONTRAST,
+        "onSetHighContrast"
+    ),
+
+    /**
      * Registers a handler for the 'unload-fit-file' event.
      *
      * @param {() => void} callback
@@ -907,6 +973,16 @@ const electronAPI: ElectronAPI = {
         CONSTANTS.EVENTS.SET_THEME,
         "onSetTheme",
         (theme: IpcResponsePayload) => theme // Transform to extract just the theme
+    ),
+
+    /**
+     * Registers a handler for notification requests from the main process.
+     *
+     * @param {(...args: IpcResponsePayload[]) => void} callback
+     */
+    onShowNotification: createSafeEventHandler(
+        CONSTANTS.EVENTS.SHOW_NOTIFICATION,
+        "onShowNotification"
     ),
 
     // Auto-Updater Functions with enhanced error handling

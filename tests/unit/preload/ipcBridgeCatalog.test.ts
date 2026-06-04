@@ -44,6 +44,8 @@ const expectedPreloadChannels = {
 } as const;
 
 const expectedPreloadEvents = {
+    DECODER_OPTIONS_CHANGED: "decoder-options-changed",
+    EXPORT_FILE: "export-file",
     FIT_BROWSER_ENABLED_CHANGED: "fit-browser-enabled-changed",
     FIT_FILE_LOADED: "fit-file-loaded",
     GYAZO_OAUTH_CALLBACK: "gyazo-oauth-callback",
@@ -54,13 +56,17 @@ const expectedPreloadEvents = {
     MENU_KEYBOARD_SHORTCUTS: "menu-keyboard-shortcuts",
     MENU_OPEN_FILE: "menu-open-file",
     MENU_OPEN_OVERLAY: "menu-open-overlay",
+    MENU_PRINT: "menu-print",
     MENU_RESTART_UPDATE: "menu-restart-update",
     MENU_SAVE_AS: "menu-save-as",
     OPEN_ACCENT_COLOR_PICKER: "open-accent-color-picker",
     OPEN_RECENT_FILE: "open-recent-file",
     OPEN_SUMMARY_COLUMN_SELECTOR: "open-summary-column-selector",
+    SET_FONT_SIZE: "set-font-size",
     SET_FULLSCREEN: "set-fullscreen",
+    SET_HIGH_CONTRAST: "set-high-contrast",
     SET_THEME: "set-theme",
+    SHOW_NOTIFICATION: "show-notification",
     THEME_CHANGED: "theme-changed",
     UNLOAD_FIT_FILE: "unload-fit-file",
 } as const;
@@ -125,14 +131,13 @@ describe("preload ipcBridgeCatalog", () => {
         expect(Object.values(blockedChannelResults)).not.toContain(true);
     });
 
-    it("allows only explicit renderer subscription and update event names", () => {
+    it("allows only update event names through generic renderer subscriptions", () => {
         expect.assertions(4);
 
         const rendererEventResults = [
             ...Object.values(expectedPreloadEvents).map((channel) =>
                 ipcBridgeCatalog.isAllowedRendererIpcEventChannel(channel)
             ),
-            ipcBridgeCatalog.isAllowedRendererIpcEventChannel("menu-open-file"),
             ipcBridgeCatalog.isAllowedRendererIpcEventChannel(
                 "update-downloaded"
             ),
@@ -150,8 +155,7 @@ describe("preload ipcBridgeCatalog", () => {
         };
 
         expect(rendererEventResults).toStrictEqual([
-            ...Object.values(expectedPreloadEvents).map(() => true),
-            true,
+            ...Object.values(expectedPreloadEvents).map(() => false),
             true,
             false,
         ]);

@@ -35,6 +35,8 @@
         | "THEME_GET";
 
     type PreloadEventName =
+        | "DECODER_OPTIONS_CHANGED"
+        | "EXPORT_FILE"
         | "FIT_BROWSER_ENABLED_CHANGED"
         | "FIT_FILE_LOADED"
         | "GYAZO_OAUTH_CALLBACK"
@@ -45,13 +47,17 @@
         | "MENU_KEYBOARD_SHORTCUTS"
         | "MENU_OPEN_FILE"
         | "MENU_OPEN_OVERLAY"
+        | "MENU_PRINT"
         | "MENU_RESTART_UPDATE"
         | "MENU_SAVE_AS"
         | "OPEN_RECENT_FILE"
         | "OPEN_ACCENT_COLOR_PICKER"
         | "OPEN_SUMMARY_COLUMN_SELECTOR"
+        | "SET_FONT_SIZE"
         | "SET_FULLSCREEN"
+        | "SET_HIGH_CONTRAST"
         | "SET_THEME"
+        | "SHOW_NOTIFICATION"
         | "THEME_CHANGED"
         | "UNLOAD_FIT_FILE";
 
@@ -86,6 +92,8 @@
     } as const satisfies Record<PreloadChannelName, GenericInvokeChannel>;
 
     const PRELOAD_EVENTS = {
+        DECODER_OPTIONS_CHANGED: "decoder-options-changed",
+        EXPORT_FILE: "export-file",
         FIT_BROWSER_ENABLED_CHANGED: "fit-browser-enabled-changed",
         FIT_FILE_LOADED: "fit-file-loaded",
         GYAZO_OAUTH_CALLBACK: "gyazo-oauth-callback",
@@ -96,13 +104,17 @@
         MENU_KEYBOARD_SHORTCUTS: "menu-keyboard-shortcuts",
         MENU_OPEN_FILE: "menu-open-file",
         MENU_OPEN_OVERLAY: "menu-open-overlay",
+        MENU_PRINT: "menu-print",
         MENU_RESTART_UPDATE: "menu-restart-update",
         MENU_SAVE_AS: "menu-save-as",
         OPEN_ACCENT_COLOR_PICKER: "open-accent-color-picker",
         OPEN_RECENT_FILE: "open-recent-file",
         OPEN_SUMMARY_COLUMN_SELECTOR: "open-summary-column-selector",
+        SET_FONT_SIZE: "set-font-size",
         SET_FULLSCREEN: "set-fullscreen",
+        SET_HIGH_CONTRAST: "set-high-contrast",
         SET_THEME: "set-theme",
+        SHOW_NOTIFICATION: "show-notification",
         THEME_CHANGED: "theme-changed",
         UNLOAD_FIT_FILE: "unload-fit-file",
     } as const satisfies Record<PreloadEventName, RendererIpcEventChannel>;
@@ -126,15 +138,6 @@
         PRELOAD_EVENTS.THEME_CHANGED,
     ] as const satisfies readonly GenericSendChannel[];
 
-    const EXTRA_RENDERER_ON_IPC_CHANNELS = [
-        "decoder-options-changed",
-        "export-file",
-        "menu-print",
-        "set-font-size",
-        "set-high-contrast",
-        "show-notification",
-    ] as const satisfies readonly RendererIpcEventChannel[];
-
     const UPDATE_EVENT_NAMES = [
         "update-available",
         "update-checking",
@@ -151,11 +154,9 @@
     const ALLOWED_GENERIC_SEND_CHANNELS: ReadonlySet<string> = new Set(
         GENERIC_SEND_CHANNELS
     );
-    const ALLOWED_GENERIC_ON_IPC_CHANNELS: ReadonlySet<string> = new Set([
-        ...EXTRA_RENDERER_ON_IPC_CHANNELS,
-        ...Object.values(PRELOAD_EVENTS),
-        ...UPDATE_EVENT_NAMES,
-    ]);
+    const ALLOWED_GENERIC_ON_IPC_CHANNELS: ReadonlySet<string> = new Set(
+        UPDATE_EVENT_NAMES
+    );
     const ALLOWED_UPDATE_EVENT_NAMES: ReadonlySet<string> = new Set(
         UPDATE_EVENT_NAMES
     );

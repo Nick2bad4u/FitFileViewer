@@ -32,7 +32,14 @@ type TestElectronAPI = {
         typeof vi.fn<(filePath: string) => Promise<void>>
     >;
     checkForUpdates: ReturnType<typeof vi.fn<() => void>>;
+    onDecoderOptionsChanged: ReturnType<
+        typeof vi.fn<(handler: IpcHandler) => () => void>
+    >;
+    onExportFile: ReturnType<typeof vi.fn<(handler: IpcHandler) => () => void>>;
     onMenuAbout: ReturnType<typeof vi.fn<(handler: IpcHandler) => () => void>>;
+    onMenuCheckForUpdates: ReturnType<
+        typeof vi.fn<(handler: IpcHandler) => () => void>
+    >;
     onMenuExport: ReturnType<typeof vi.fn<(handler: IpcHandler) => () => void>>;
     onMenuKeyboardShortcuts: ReturnType<
         typeof vi.fn<(handler: IpcHandler) => () => void>
@@ -44,6 +51,7 @@ type TestElectronAPI = {
     onMenuOpenOverlay: ReturnType<
         typeof vi.fn<(handler: IpcHandler) => () => void>
     >;
+    onMenuPrint: ReturnType<typeof vi.fn<(handler: IpcHandler) => () => void>>;
     onMenuRestartUpdate: ReturnType<
         typeof vi.fn<(handler: IpcHandler) => () => void>
     >;
@@ -54,6 +62,13 @@ type TestElectronAPI = {
     onOpenRecentFile: ReturnType<typeof vi.fn<(handler: IpcHandler) => void>>;
     onUpdateEvent: ReturnType<
         typeof vi.fn<(event: string, handler: IpcHandler) => void>
+    >;
+    onSetFontSize: ReturnType<typeof vi.fn<(handler: IpcHandler) => () => void>>;
+    onSetHighContrast: ReturnType<
+        typeof vi.fn<(handler: IpcHandler) => () => void>
+    >;
+    onShowNotification: ReturnType<
+        typeof vi.fn<(handler: IpcHandler) => () => void>
     >;
     parseFitFile: ReturnType<
         typeof vi.fn<(buffer: ArrayBuffer) => Promise<unknown>>
@@ -182,7 +197,14 @@ describe(setupListeners, () => {
 
         electronAPI = {
             checkForUpdates: vi.fn<() => void>(),
+            onDecoderOptionsChanged: registerNamedMenuHandler(
+                "decoder-options-changed"
+            ),
+            onExportFile: registerNamedMenuHandler("export-file"),
             onMenuAbout: registerNamedMenuHandler("menu-about"),
+            onMenuCheckForUpdates: registerNamedMenuHandler(
+                "menu-check-for-updates"
+            ),
             onMenuExport: registerNamedMenuHandler("menu-export"),
             onMenuKeyboardShortcuts: registerNamedMenuHandler(
                 "menu-keyboard-shortcuts"
@@ -204,6 +226,7 @@ describe(setupListeners, () => {
                 menuOpenHandler = handler;
             }),
             onMenuOpenOverlay: registerNamedMenuHandler("menu-open-overlay"),
+            onMenuPrint: registerNamedMenuHandler("menu-print"),
             onMenuRestartUpdate: registerNamedMenuHandler(
                 "menu-restart-update"
             ),
@@ -221,6 +244,9 @@ describe(setupListeners, () => {
                     updateHandlers.set(event, handler);
                 }
             ),
+            onSetFontSize: registerNamedMenuHandler("set-font-size"),
+            onSetHighContrast: registerNamedMenuHandler("set-high-contrast"),
+            onShowNotification: registerNamedMenuHandler("show-notification"),
             requestExport: vi.fn<() => void>(),
             requestSaveAs: vi.fn<() => void>(),
         };
@@ -475,7 +501,7 @@ describe(setupListeners, () => {
             "menu-export"
         );
         expect([...ipcHandlers.keys()]).toContain("menu-export");
-        exportHandler({}, undefined);
+        exportHandler(undefined);
         expect(electronAPI.requestExport).toHaveBeenCalledWith();
     });
 
@@ -520,7 +546,7 @@ describe(setupListeners, () => {
             ipcHandlers.get("export-file"),
             "export-file"
         );
-        await exportHandler(undefined, "export.csv");
+        await exportHandler("export.csv");
 
         expect(globalAny.copyTableAsCSV).toHaveBeenCalledWith({
             container: summaryContainer,
@@ -554,7 +580,7 @@ describe(setupListeners, () => {
             "export-file"
         );
         globalAny.globalData = { recordMesgs: [] };
-        await exportHandler(undefined, "activity.gpx");
+        await exportHandler("activity.gpx");
         expect(showNotification).toHaveBeenCalledWith(
             "No data available for GPX export.",
             "info",
@@ -592,7 +618,7 @@ describe(setupListeners, () => {
             .mockReturnValue("blob:gpx");
         const revokeSpy = vi.spyOn(URL, "revokeObjectURL");
 
-        await exportHandler(undefined, "activity.gpx");
+        await exportHandler("activity.gpx");
         const gpxBlob = getCreatedBlob(createObjectURLSpy);
         expect(gpxBlob.type).toBe("application/gpx+xml;charset=utf-8");
         await expect(gpxBlob.text()).resolves.toContain(
@@ -687,13 +713,13 @@ describe(setupListeners, () => {
         const setFont = ipcHandlers.get("set-font-size");
         const setContrast = ipcHandlers.get("set-high-contrast");
         document.body.className = "";
-        setFont?.(undefined, "large");
+        setFont?.("large");
         expect(document.body.className).toBe("font-large");
-        setContrast?.(undefined, "black");
+        setContrast?.("black");
         expect(document.body.className).toBe("font-large high-contrast");
-        setContrast?.(undefined, "white");
+        setContrast?.("white");
         expect(document.body.className).toBe("font-large high-contrast-white");
-        setContrast?.(undefined, "yellow");
+        setContrast?.("yellow");
         expect(document.body.className).toBe("font-large high-contrast-yellow");
     });
 
@@ -720,8 +746,8 @@ describe(setupListeners, () => {
             "show-notification"
         );
         expect([...ipcHandlers.keys()]).toContain("show-notification");
-        handler(undefined, "Hello from IPC");
-        handler(undefined, " ");
+        handler("Hello from IPC");
+        handler(" ");
         expect(showNotification).toHaveBeenCalledExactlyOnceWith(
             "Hello from IPC",
             "info",
