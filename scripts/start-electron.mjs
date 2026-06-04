@@ -4,12 +4,17 @@ import { pathToFileURL } from "node:url";
 
 import {
     buildRuntimeScriptPath,
+    ensureElectronBinaryScriptPath,
     repositoryRoot,
     runElectronScriptPath,
 } from "./lib/workspaces.mjs";
 
 export function startElectronSteps(argv = process.argv.slice(2)) {
     return [
+        {
+            args: [ensureElectronBinaryScriptPath],
+            label: "prepare electron",
+        },
         {
             args: [buildRuntimeScriptPath],
             label: "build runtime",

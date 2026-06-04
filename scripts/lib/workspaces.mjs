@@ -393,6 +393,9 @@ export const generateApiCategoriesScriptPath = repositoryScriptPath(
 export const generateChangelogScriptPath = repositoryScriptPath(
     "generate-changelog.mjs"
 );
+export const ensureElectronBinaryScriptPath = repositoryScriptPath(
+    "ensure-electron-binary.mjs"
+);
 export const prepareRuntimeDistScriptPath = repositoryScriptPath(
     "prepare-runtime-dist.mjs"
 );

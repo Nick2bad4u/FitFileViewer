@@ -248,6 +248,8 @@ const expectedRootToolingScripts = {
         "node scripts/run-eslint.mjs app --fix && node scripts/run-typescript.mjs typecheck",
     "lint:remark": "node scripts/lint-remark.mjs",
     "lint:secretlint": "node scripts/lint-secretlint.mjs",
+    "prepare:electron": "node scripts/ensure-electron-binary.mjs",
+    pretest: "npm run prepare:electron && npm run build:runtime-ts",
     "test:ui": "node scripts/run-vitest.mjs --ui",
     "update-deps":
         "npx ncu -i --install never && npm update --force && npm install --force && npm run sync:node-version-files",

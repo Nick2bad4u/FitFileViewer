@@ -162,6 +162,7 @@ type WorkspacesModule = {
     rootVitestSupportPath: string;
     rootVitestTypecheckTsconfigPath: string;
     rootWin7ReleaseDistPath: string;
+    ensureElectronBinaryScriptPath: string;
     runDocusaurusScriptPath: string;
     runElectronBuilderScriptPath: string;
     runElectronScriptPath: string;
@@ -209,7 +210,7 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes root script paths", async () => {
-        expect.assertions(16);
+        expect.assertions(17);
 
         const workspaces = await importWorkspaces();
 
@@ -248,6 +249,9 @@ describe("workspace path helpers", () => {
         );
         expect(workspaces.generateChangelogScriptPath).toBe(
             path.join(process.cwd(), "scripts", "generate-changelog.mjs")
+        );
+        expect(workspaces.ensureElectronBinaryScriptPath).toBe(
+            path.join(process.cwd(), "scripts", "ensure-electron-binary.mjs")
         );
         expect(workspaces.runDocusaurusScriptPath).toBe(
             path.join(process.cwd(), "scripts", "run-docusaurus.mjs")

@@ -9,6 +9,7 @@ import {
 } from "../../../scripts/start-electron.mjs";
 import {
     buildRuntimeScriptPath,
+    ensureElectronBinaryScriptPath,
     runElectronScriptPath,
 } from "../../../scripts/lib/workspaces.mjs";
 
@@ -41,10 +42,12 @@ describe("start-electron script", () => {
         ]);
 
         expect(steps.map((step) => step.label)).toStrictEqual([
+            "prepare electron",
             "build runtime",
             "launch electron",
         ]);
         expect(steps.map((step) => step.args)).toStrictEqual([
+            [ensureElectronBinaryScriptPath],
             [buildRuntimeScriptPath],
             [
                 runElectronScriptPath,
@@ -68,8 +71,8 @@ describe("start-electron script", () => {
             loggerCalls: logger.mock.calls.length,
             status: exitStatus,
         }).toStrictEqual({
-            commandCalls: 2,
-            loggerCalls: 2,
+            commandCalls: 3,
+            loggerCalls: 3,
             status: 0,
         });
 
@@ -89,6 +92,7 @@ describe("start-electron script", () => {
             stdio: "inherit",
         });
         expect(logger.mock.calls).toStrictEqual([
+            ["[start-electron] prepare electron"],
             ["[start-electron] build runtime"],
             ["[start-electron] launch electron"],
         ]);
@@ -114,9 +118,9 @@ describe("start-electron script", () => {
         });
         expect(
             getRequiredCommandCall(commandRunner.mock.calls)[1]
-        ).toStrictEqual([buildRuntimeScriptPath]);
+        ).toStrictEqual([ensureElectronBinaryScriptPath]);
         expect(logger.mock.calls).toStrictEqual([
-            ["[start-electron] build runtime"],
+            ["[start-electron] prepare electron"],
         ]);
     });
 
@@ -135,7 +139,9 @@ describe("start-electron script", () => {
         expect(commandRunner).toHaveBeenCalledOnce();
         expect(
             getRequiredCommandCall(commandRunner.mock.calls)[1]
-        ).toStrictEqual([buildRuntimeScriptPath]);
-        expect(logger).toHaveBeenCalledWith("[start-electron] build runtime");
+        ).toStrictEqual([ensureElectronBinaryScriptPath]);
+        expect(logger).toHaveBeenCalledWith(
+            "[start-electron] prepare electron"
+        );
     });
 });
