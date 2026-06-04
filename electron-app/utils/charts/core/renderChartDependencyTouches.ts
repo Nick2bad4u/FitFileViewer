@@ -2,7 +2,7 @@ type UnitConverter = (value: number, field: string) => unknown;
 
 interface TouchChartRenderDependencies {
     getConverters(): UnitConverter;
-    getThemeConfig(): Promise<unknown> | unknown;
+    getThemeConfig(): unknown;
 }
 
 /**
