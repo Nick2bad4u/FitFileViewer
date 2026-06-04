@@ -2,6 +2,7 @@
 
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { attachExternalLinkHandlers } from "../links/externalLinkHandlers.js";
+import { createModalFocusTrap } from "./modalFocusTrap.js";
 
 type ShortcutCategory = {
     category: string;
@@ -20,6 +21,7 @@ type KeyboardShortcutsGlobal = typeof globalThis & {
 };
 
 let closeTimer: ReturnType<typeof setTimeout> | null = null;
+let focusTrapCleanup: (() => void) | undefined;
 let lastFocusedElement: HTMLElement | null = null;
 let showAnimationFrame: number | null = null;
 const modalAnimationDuration = 300; // Animation duration in milliseconds
@@ -104,6 +106,8 @@ export function closeKeyboardShortcutsModal(): void {
         cancelAnimationFrame(showAnimationFrame);
         showAnimationFrame = null;
     }
+    focusTrapCleanup?.();
+    focusTrapCleanup = undefined;
 
     // Wait for animation to complete before hiding
     if (closeTimer) {
@@ -708,6 +712,10 @@ export function showKeyboardShortcutsModal(): void {
         );
         return;
     }
+    if (closeTimer) {
+        clearTimeout(closeTimer);
+        closeTimer = null;
+    }
 
     // Store the currently focused element
     lastFocusedElement =
@@ -744,86 +752,17 @@ export function showKeyboardShortcutsModal(): void {
 
     // Focus management
     const closeBtn = modal.querySelector<HTMLElement>("#shortcuts-modal-close");
-    if (closeBtn) {
-        closeBtn.focus();
-        console.log("Focus set to close button");
-    } else {
+    if (!closeBtn) {
         console.warn("Close button not found");
     }
 
     // Trap focus within modal
-    trapFocusInModal(modal);
+    focusTrapCleanup?.();
+    focusTrapCleanup = createModalFocusTrap(modal, closeBtn);
 
     // Prevent body scrolling
     document.body.style.overflow = "hidden";
     console.log("Body scroll prevented");
-}
-
-/**
- * Traps focus within the modal for accessibility
- *
- * @param modal - Modal element to contain focus.
- */
-function trapFocusInModal(modal: HTMLElement): void {
-    const focusableElements = Array.from(
-        modal.querySelectorAll(
-            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        )
-    ).filter((element): element is HTMLElement => {
-        if (!(element instanceof HTMLElement)) {
-            return false;
-        }
-        if (element.hasAttribute("tabindex")) {
-            return element.tabIndex >= 0;
-        }
-        return true;
-    });
-
-    if (focusableElements.length === 0) {
-        return;
-    }
-
-    function handleTabKey(event: Event): void {
-        if (!(event instanceof KeyboardEvent) || event.key !== "Tab") {
-            return;
-        }
-
-        const focusCycle = focusableElements;
-        const currentActive =
-            document.activeElement instanceof HTMLElement
-                ? document.activeElement
-                : null;
-        const currentIndex = currentActive
-            ? focusCycle.indexOf(currentActive)
-            : -1;
-
-        event.preventDefault();
-        if (!event.defaultPrevented) {
-            try {
-                Object.defineProperty(event, "defaultPrevented", {
-                    configurable: true,
-                    value: true,
-                });
-            } catch {
-                // Ignore environments where defaultPrevented is read-only
-            }
-        }
-
-        if (event.shiftKey) {
-            const targetIndex =
-                currentIndex <= 0 ? focusCycle.length - 1 : currentIndex - 1;
-            focusCycle[targetIndex]?.focus();
-            return;
-        }
-
-        const targetIndex =
-            currentIndex === -1 || currentIndex === focusCycle.length - 1
-                ? 0
-                : currentIndex + 1;
-        focusCycle[targetIndex]?.focus();
-    }
-
-    addEventListenerWithCleanup(modal, "keydown", handleTabKey, true);
 }
 
 // Also expose functions globally for direct access

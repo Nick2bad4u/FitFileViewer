@@ -3,6 +3,17 @@ import { describe, expect, it, vi } from "vitest";
 
 import { registerMenuIpcListeners } from "../../../electron-app/utils/app/lifecycle/menuIpcListeners.js";
 
+const modalFocusTrapMock = vi.hoisted(() => ({
+    cleanup: vi.fn<() => void>(),
+    createModalFocusTrap: vi.fn<() => () => void>(
+        () => modalFocusTrapMock.cleanup
+    ),
+}));
+
+vi.mock("../../../electron-app/utils/ui/modals/modalFocusTrap.js", () => ({
+    createModalFocusTrap: modalFocusTrapMock.createModalFocusTrap,
+}));
+
 type MenuIpcChannel =
     | "menu-about"
     | "menu-export"
@@ -62,6 +73,8 @@ function getRequiredElement<TElement extends Element>(
 }
 
 function resetKeyboardShortcutsFixture(): void {
+    vi.useRealTimers();
+    vi.clearAllMocks();
     document.querySelector("#keyboard-shortcuts-modal")?.remove();
     document.querySelector("#keyboard-shortcuts-modal-styles")?.remove();
     for (const script of document.head.querySelectorAll(
@@ -130,7 +143,7 @@ function registerTestMenuListeners(): {
 
 describe("menu keyboard shortcuts IPC listener", () => {
     it("imports the shortcuts modal module without injecting the legacy script", async () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         resetKeyboardShortcutsFixture();
 
@@ -169,8 +182,48 @@ describe("menu keyboard shortcuts IPC listener", () => {
             expect(getTestGlobal().showKeyboardShortcutsModal).toBeTypeOf(
                 "function"
             );
+            expect(
+                modalFocusTrapMock.createModalFocusTrap
+            ).toHaveBeenCalledWith(
+                modal,
+                getRequiredElement("#shortcuts-modal-close")
+            );
             expect(showAboutModal).toHaveBeenCalledTimes(0);
             expect(showNotification).toHaveBeenCalledTimes(0);
+        } finally {
+            resetKeyboardShortcutsFixture();
+        }
+    });
+
+    it("cleans up the shortcuts modal focus trap and cancels stale close timers on reopen", async () => {
+        expect.assertions(3);
+
+        resetKeyboardShortcutsFixture();
+        vi.useFakeTimers();
+
+        try {
+            const { handlers } = registerTestMenuListeners();
+            const keyboardShortcutsHandler = getRequiredHandler(
+                handlers,
+                "menu-keyboard-shortcuts"
+            );
+
+            await keyboardShortcutsHandler();
+            getTestGlobal().closeKeyboardShortcutsModal?.();
+
+            expect(modalFocusTrapMock.cleanup).toHaveBeenCalledTimes(1);
+
+            const modal = getRequiredElement<HTMLElement>(
+                "#keyboard-shortcuts-modal"
+            );
+
+            await keyboardShortcutsHandler();
+            await vi.runOnlyPendingTimersAsync();
+
+            expect(
+                modalFocusTrapMock.createModalFocusTrap
+            ).toHaveBeenCalledTimes(2);
+            expect(modal.style.display).toBe("flex");
         } finally {
             resetKeyboardShortcutsFixture();
         }
