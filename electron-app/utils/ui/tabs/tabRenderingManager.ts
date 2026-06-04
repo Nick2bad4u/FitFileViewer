@@ -19,7 +19,7 @@ export type TabRenderOperationOptions = {
 /** Operation executed by the tab rendering manager. */
 export type TabRenderOperation<Result = unknown> = (
     token: CancellationToken
-) => Promise<Result>;
+) => Promise<Result> | Result;
 
 /**
  * Tab rendering manager with performance optimizations
@@ -140,8 +140,9 @@ class TabRenderingManager {
 
         // Check if still the current tab
         if (this._currentTab !== tabName) {
+            const currentTab = this._currentTab ?? "none";
             console.log(
-                `[TabRenderingManager] Render completed for ${tabName} but tab is no longer active (switched to ${this._currentTab})`
+                `[TabRenderingManager] Render completed for ${tabName} but tab is no longer active (switched to ${currentTab})`
             );
             return null;
         }

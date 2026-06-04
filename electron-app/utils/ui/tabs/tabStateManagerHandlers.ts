@@ -57,7 +57,7 @@ function clearPendingMapInvalidation(): void {
 }
 
 function getRendererGlobal(): RendererGlobal {
-    return globalThis as RendererGlobal;
+    return globalThis;
 }
 
 function hasRenderedFlag(value: unknown): value is { isRendered?: boolean } {
@@ -75,8 +75,30 @@ function isIframeLike(
     );
 }
 
-function getTimestamp(record: ActivityRecord | undefined): unknown {
-    return record?.timestamp || 0;
+function formatTimestampForHash(value: unknown): string {
+    if (value === null || value === undefined) {
+        return "0";
+    }
+
+    if (value instanceof Date) {
+        return String(value.valueOf());
+    }
+
+    if (typeof value === "string") {
+        return value;
+    }
+    if (typeof value === "number" || typeof value === "boolean") {
+        return String(value);
+    }
+    if (typeof value === "bigint") {
+        return String(value);
+    }
+
+    return "0";
+}
+
+function getTimestamp(record: ActivityRecord | undefined): string {
+    return formatTimestampForHash(record?.timestamp);
 }
 
 /**
@@ -117,7 +139,7 @@ export async function handleChartTab(
 
     await tabRenderingManager.executeRenderOperation(
         "chart",
-        async (token) => {
+        (token) => {
             if (token.isCancelled) {
                 return null;
             }
@@ -155,9 +177,9 @@ export async function handleChartTab(
 /**
  * Handle data tables tab activation.
  */
-export async function handleDataTab(
+export function handleDataTab(
     globalData: ActivityData | null | undefined
-): Promise<void> {
+): void {
     const rendererGlobal = getRendererGlobal();
     if (!globalData || !rendererGlobal.createTables) {
         return;
@@ -191,9 +213,9 @@ export async function handleDataTab(
 /**
  * Handle map tab activation.
  */
-export async function handleMapTab(
+export function handleMapTab(
     globalData: ActivityData | null | undefined
-): Promise<void> {
+): void {
     if (!globalData || !globalData.recordMesgs) {
         return;
     }
@@ -277,9 +299,9 @@ export async function handleMapTab(
 /**
  * Handle summary tab activation.
  */
-export async function handleSummaryTab(
+export function handleSummaryTab(
     globalData: ActivityData | null | undefined
-): Promise<void> {
+): void {
     const rendererGlobal = getRendererGlobal();
     if (!globalData || !rendererGlobal.renderSummary) {
         return;

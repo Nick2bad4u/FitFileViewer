@@ -7,7 +7,10 @@ import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { showNotification } from "../notifications/showNotification.js";
 import { resolveTabNameFromButtonId } from "./tabIdUtils.js";
 import { tabRenderingManager } from "./tabRenderingManager.js";
-import { TAB_CONFIG as TAB_CONFIG_DEFINITIONS } from "./tabStateManagerConfig.js";
+import {
+    TAB_CONFIG as TAB_CONFIG_DEFINITIONS,
+    type TabDef,
+} from "./tabStateManagerConfig.js";
 import {
     handleAltFitTab as handleAltFitTabImpl,
     handleBrowserTab as handleBrowserTabImpl,
@@ -17,8 +20,6 @@ import {
     handleSummaryTab as handleSummaryTabImpl,
 } from "./tabStateManagerHandlers.js";
 import { getDoc, getStateMgr } from "./tabStateManagerSupport.js";
-
-import type { TabDef } from "./tabStateManagerConfig.js";
 
 const TAB_CONFIG = TAB_CONFIG_DEFINITIONS;
 
@@ -52,7 +53,7 @@ function asActivityData(value: unknown): ActivityData | null | undefined {
         return value;
     }
 
-    return typeof value === "object" ? (value as ActivityData) : undefined;
+    return typeof value === "object" ? value : undefined;
 }
 
 function getTabConfig(tabName: string): TabDef | undefined {
@@ -63,6 +64,40 @@ function isDisableableElement(
     element: HTMLElement
 ): element is DisableableElement {
     return "disabled" in element;
+}
+
+function formatTimestampForHash(value: unknown): string {
+    if (value === null || value === undefined) {
+        return "0";
+    }
+
+    if (value instanceof Date) {
+        return String(value.valueOf());
+    }
+
+    if (typeof value === "string") {
+        return value;
+    }
+    if (typeof value === "number" || typeof value === "boolean") {
+        return String(value);
+    }
+    if (typeof value === "bigint") {
+        return String(value);
+    }
+
+    return "0";
+}
+
+function getRecordTimestamp(record: ActivityRecord | undefined): string {
+    return formatTimestampForHash(record?.timestamp);
+}
+
+function invokeUnsubscribe(unsubscribe: () => void): void {
+    try {
+        unsubscribe();
+    } catch {
+        /* Ignore errors */
+    }
 }
 
 /**
@@ -107,19 +142,8 @@ export class TabStateManager {
     cleanup(): void {
         // Unsubscribe state listeners
         try {
-            if (
-                Array.isArray(this._unsubscribes) &&
-                this._unsubscribes.length > 0
-            ) {
-                for (const unsub of this._unsubscribes.splice(0)) {
-                    try {
-                        if (typeof unsub === "function") {
-                            unsub();
-                        }
-                    } catch {
-                        /* Ignore errors */
-                    }
-                }
+            for (const unsubscribe of this._unsubscribes.splice(0)) {
+                invokeUnsubscribe(unsubscribe);
             }
         } catch {
             /* Ignore errors */
@@ -220,7 +244,8 @@ export class TabStateManager {
      * @param globalData - Current activity data.
      */
     handleDataTab(globalData: ActivityData | null | undefined): Promise<void> {
-        return handleDataTabImpl(globalData);
+        handleDataTabImpl(globalData);
+        return Promise.resolve();
     }
 
     /**
@@ -229,7 +254,8 @@ export class TabStateManager {
      * @param globalData - Current activity data.
      */
     handleMapTab(globalData: ActivityData | null | undefined): Promise<void> {
-        return handleMapTabImpl(globalData);
+        handleMapTabImpl(globalData);
+        return Promise.resolve();
     }
 
     /**
@@ -240,7 +266,8 @@ export class TabStateManager {
     handleSummaryTab(
         globalData: ActivityData | null | undefined
     ): Promise<void> {
-        return handleSummaryTabImpl(globalData);
+        handleSummaryTabImpl(globalData);
+        return Promise.resolve();
     }
 
     /**
@@ -291,7 +318,7 @@ export class TabStateManager {
                 getStateMgr().getState("globalData")
             );
             if (!globalData || !globalData.recordMesgs) {
-                showNotification("Please load a FIT file first", "info");
+                void showNotification("Please load a FIT file first", "info");
                 return;
             }
         }
@@ -309,7 +336,9 @@ export class TabStateManager {
      * @param oldTab - Previous active tab name.
      */
     handleTabChange(newTab: string, oldTab: null | string): void {
-        console.log(`[TabStateManager] Tab change: ${oldTab} -> ${newTab}`);
+        console.log(
+            `[TabStateManager] Tab change: ${oldTab ?? "none"} -> ${newTab}`
+        );
 
         this.previousTab = oldTab;
 
@@ -323,7 +352,7 @@ export class TabStateManager {
         this.updateContentVisibility(newTab);
 
         // Handle tab-specific logic
-        this.handleTabSpecificLogic(newTab);
+        void this.handleTabSpecificLogic(newTab);
     }
 
     /**
@@ -382,7 +411,10 @@ export class TabStateManager {
                 `[TabStateManager] Error handling tab ${tabName}:`,
                 error
             );
-            showNotification(`Error loading ${tabConfig.label} tab`, "error");
+            void showNotification(
+                `Error loading ${tabConfig.label} tab`,
+                "error"
+            );
         }
     }
 
@@ -400,10 +432,12 @@ export class TabStateManager {
 
         const recordMesgs = data.recordMesgs || [];
         const size = recordMesgs.length || 0;
-        const firstRecord = recordMesgs[0] || {};
-        const lastRecord = recordMesgs[size - 1] || {};
+        const firstRecord = recordMesgs[0];
+        const lastRecord = recordMesgs.at(-1);
 
-        return `${size}-${firstRecord.timestamp || 0}-${lastRecord.timestamp || 0}`;
+        return `${size}-${getRecordTimestamp(firstRecord)}-${getRecordTimestamp(
+            lastRecord
+        )}`;
     }
 
     /**
