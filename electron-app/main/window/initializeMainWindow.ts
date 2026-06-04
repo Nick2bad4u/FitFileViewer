@@ -22,14 +22,14 @@
     }
 
     interface ElectronAppLike {
-        whenReady?: () => Promise<unknown> | unknown;
+        whenReady?: () => unknown;
     }
 
     type BrowserWindowConstructor = new (...args: never[]) => MainWindowLike;
     type AppStateValue = boolean | MainWindowLike | null | string | undefined;
 
     interface AutoUpdaterLike {
-        checkForUpdatesAndNotify?: () => Promise<unknown> | unknown;
+        checkForUpdatesAndNotify?: () => unknown;
     }
 
     type LogWithContext = (
@@ -141,7 +141,7 @@
         return {
             isDestroyed: () => false,
             webContents: {
-                executeJavaScript: async () => defaultTheme,
+                executeJavaScript: () => Promise.resolve(defaultTheme),
                 isDestroyed: () => false,
                 on: () => {},
                 send: () => {},
@@ -153,7 +153,7 @@
      * Create or reuse the main application window and wire core lifecycle
      * handlers.
      */
-    async function initializeMainWindow({
+    function initializeMainWindow({
         browserWindowRef,
         getAppState,
         setAppState,
@@ -274,7 +274,7 @@
             });
         }
 
-        return mainWindow;
+        return Promise.resolve(mainWindow);
     }
 
     module.exports = {
