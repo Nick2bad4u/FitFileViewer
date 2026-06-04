@@ -80,11 +80,11 @@ type LifecycleElectronAPI = Partial<
         ElectronAPI,
         | "addRecentFile"
         | "approveRecentFile"
+        | "checkForUpdates"
         | "onIpc"
         | "onMenuOpenFile"
         | "onUpdateEvent"
         | "readFile"
-        | "send"
     >
 > & {
     onOpenRecentFile?: (
@@ -561,9 +561,7 @@ export function setupListeners({
         );
         trackUnsubscribe(
             electronAPI.onIpc("menu-check-for-updates", () => {
-                if (electronAPI.send) {
-                    electronAPI.send("menu-check-for-updates");
-                }
+                electronAPI.checkForUpdates?.();
             })
         );
         registerMenuIpcListeners({

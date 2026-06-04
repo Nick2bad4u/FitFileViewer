@@ -20,13 +20,13 @@ import { setupListeners } from "../../../electron-app/utils/app/lifecycle/listen
 
 type TestElectronAPI = {
     addRecentFile: Mock<ElectronAPI["addRecentFile"]>;
+    checkForUpdates: Mock<ElectronAPI["checkForUpdates"]>;
     onIpc: Mock<ElectronAPI["onIpc"]>;
     onMenuOpenFile: Mock<ElectronAPI["onMenuOpenFile"]>;
     onOpenRecentFile: Mock<ElectronAPI["onOpenRecentFile"]>;
     parseFitFile: Mock<ElectronAPI["parseFitFile"]>;
     readFile: Mock<ElectronAPI["readFile"]>;
     recentFiles: Mock<() => Promise<null | string[]>>;
-    send: Mock<ElectronAPI["send"]>;
 };
 
 type TestGlobal = typeof globalThis & {
@@ -122,6 +122,7 @@ describe("utils/app/lifecycle/listeners.js", () => {
         const showAboutModal = vi.fn<SetupListenersOptions["showAboutModal"]>();
 
         const electronAPI: TestElectronAPI = {
+            checkForUpdates: vi.fn<ElectronAPI["checkForUpdates"]>(),
             recentFiles: vi
                 .fn<() => Promise<null | string[]>>()
                 .mockResolvedValue(openRecentReturn),
@@ -131,7 +132,6 @@ describe("utils/app/lifecycle/listeners.js", () => {
             parseFitFile: vi.fn<ElectronAPI["parseFitFile"]>(),
             addRecentFile: vi.fn<ElectronAPI["addRecentFile"]>(),
             onIpc: vi.fn<ElectronAPI["onIpc"]>(),
-            send: vi.fn<ElectronAPI["send"]>(),
         };
         Object.assign(getTestWindow(), { electronAPI });
         Object.assign(getTestGlobal(), { electronAPI });

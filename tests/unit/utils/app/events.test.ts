@@ -31,6 +31,7 @@ type TestElectronAPI = {
     addRecentFile: ReturnType<
         typeof vi.fn<(filePath: string) => Promise<void>>
     >;
+    checkForUpdates: ReturnType<typeof vi.fn<() => void>>;
     onIpc: ReturnType<
         typeof vi.fn<(channel: string, handler: IpcHandler) => () => void>
     >;
@@ -154,6 +155,7 @@ describe(setupListeners, () => {
         recentOpenHandler = null;
 
         electronAPI = {
+            checkForUpdates: vi.fn<() => void>(),
             onIpc: vi.fn<(channel: string, handler: IpcHandler) => () => void>(
                 (channel, handler) => {
                     ipcHandlers.set(channel, handler);
@@ -667,7 +669,7 @@ describe(setupListeners, () => {
         );
         expect([...ipcHandlers.keys()]).toContain("menu-check-for-updates");
         checkUpdatesHandler();
-        expect(electronAPI.send).toHaveBeenCalledWith("menu-check-for-updates");
+        expect(electronAPI.checkForUpdates).toHaveBeenCalledWith();
     });
 
     it("routes show-notification IPC messages through the notifier", () => {
