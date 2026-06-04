@@ -35,6 +35,9 @@ const MAX_DOT_PATH_LENGTH = 512;
 const MAX_DOT_PATH_SEGMENT_LENGTH = 128;
 // Keep segments conservative: allow identifier-ish keys plus ':' (used by fitFile:decode).
 const DOT_PATH_SEGMENT_PATTERN = /^[0-9A-Za-z_:-]+$/u;
+const RENDERER_READABLE_MAIN_STATE_PATHS: ReadonlySet<string> = new Set([
+    "loadedFitFilePath",
+]);
 
 function getMainStateProcessEnvironmentValue(name: string): string | undefined {
     try {
@@ -50,6 +53,10 @@ function getMainStateProcessEnvironmentValue(name: string): string | undefined {
 
 function isMainProcessDevelopmentEnvironment(): boolean {
     return getMainStateProcessEnvironmentValue("NODE_ENV") === "development";
+}
+
+function isRendererReadableMainStatePath(path: string): boolean {
+    return RENDERER_READABLE_MAIN_STATE_PATHS.has(path);
 }
 
 const { getElectron: getStateRuntimeElectron } =
@@ -1002,6 +1009,13 @@ class MainProcessState {
                 }
 
                 const safePath = typeof path === "string" ? path.trim() : "";
+                if (!safePath) {
+                    logWithContext(
+                        "warn",
+                        "Blocked main-state:get without an explicit path"
+                    );
+                    return undefined;
+                }
 
                 // Special-case metrics so operationTimes (Map) can be accessed safely.
                 if (safePath === "metrics" || safePath.startsWith("metrics.")) {
@@ -1017,7 +1031,19 @@ class MainProcessState {
                     return this.makeSerializable(metrics);
                 }
 
-                const data = safePath ? this.get(safePath) : this.data;
+                if (
+                    !isSafeDotPath(safePath) ||
+                    !isRendererReadableMainStatePath(safePath)
+                ) {
+                    logWithContext(
+                        "warn",
+                        "Blocked main-state:get for restricted path",
+                        { path: safePath }
+                    );
+                    return undefined;
+                }
+
+                const data = this.get(safePath);
                 return this.makeSerializable(data);
             }
         );
@@ -1102,27 +1128,30 @@ class MainProcessState {
                 const sender = event?.sender;
                 if (!sender) return false;
                 const safePath = typeof path === "string" ? path.trim() : "";
-                const normalizedPath = safePath.length === 0 ? "*" : safePath;
 
-                // Security: refuse subscriptions to unsafe dot paths.
-                if (normalizedPath !== "*" && !isSafeDotPath(normalizedPath)) {
+                // Security: refuse broad or restricted subscriptions.
+                if (
+                    !safePath ||
+                    !isSafeDotPath(safePath) ||
+                    !isRendererReadableMainStatePath(safePath)
+                ) {
                     logWithContext(
                         "warn",
-                        "Blocked main-state:listen for unsafe path",
-                        { path: normalizedPath }
+                        "Blocked main-state:listen for restricted path",
+                        { path: safePath }
                     );
                     return false;
                 }
 
                 const subscriptionKey = this.makeSubscriptionKey(
                     sender,
-                    normalizedPath
+                    safePath
                 );
                 if (!this.ipcSubscriptions.has(subscriptionKey)) {
                     this.registerSenderCleanup(sender);
 
                     const unsubscribe = this.listen(
-                        normalizedPath,
+                        safePath,
                         (change: StateChange) => {
                             try {
                                 if (
@@ -1168,14 +1197,16 @@ class MainProcessState {
                 if (!sender) return false;
                 const safePath = typeof path === "string" ? path.trim() : "";
 
-                const normalizedPath = safePath.length === 0 ? "*" : safePath;
-
-                if (normalizedPath !== "*" && !isSafeDotPath(normalizedPath)) {
+                if (
+                    !safePath ||
+                    !isSafeDotPath(safePath) ||
+                    !isRendererReadableMainStatePath(safePath)
+                ) {
                     return false;
                 }
                 const subscriptionKey = this.makeSubscriptionKey(
                     sender,
-                    normalizedPath
+                    safePath
                 );
                 const unsubscribe = this.ipcSubscriptions.get(subscriptionKey);
                 if (!unsubscribe) return false;
