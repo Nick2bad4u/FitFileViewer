@@ -99,7 +99,7 @@ describe("setupApplicationEventHandlers file:// policy", () => {
         vi.restoreAllMocks();
     });
 
-    it("denies external, about:blank, and file:// URLs outside the app bundle in production", async () => {
+    it("denies renderer-created windows and blocks file:// URLs outside the app bundle in production", async () => {
         expect.assertions(10);
 
         const handlers = new Map<string, AppEventHandler>();
@@ -159,7 +159,7 @@ describe("setupApplicationEventHandlers file:// policy", () => {
         ).toString();
 
         expect(windowOpenHandler({ url: allowedFileUrl })).toStrictEqual({
-            action: "allow",
+            action: "deny",
         });
         expect(windowOpenHandler({ url: disallowedFileUrl })).toStrictEqual({
             action: "deny",

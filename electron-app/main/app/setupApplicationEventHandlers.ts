@@ -100,7 +100,7 @@
     }
 
     interface ShellLike {
-        openExternal?: (url: string) => Promise<unknown> | unknown;
+        openExternal?: (url: string) => unknown;
     }
 
     const { fileURLToPath } = require("node:url") as typeof import("node:url");
@@ -158,7 +158,7 @@
             getThemeFromRenderer: (win: unknown) => Promise<string>;
         };
     const { validateWindow } = require("../window/windowValidation") as {
-        validateWindow: (win?: null | unknown, context?: string) => boolean;
+        validateWindow: (win?: unknown, context?: string) => boolean;
     };
 
     const SESSION_PERMISSIONS_MARKER =
@@ -166,7 +166,7 @@
     const SESSION_DOWNLOAD_MARKER = "__ffvSessionDownloadHandlersRegistered";
     const APP_LISTENER_REGISTRY = new Map<string, AppListener>();
 
-    type ReflectTarget = object & { [key: PropertyKey]: unknown };
+    type ReflectTarget = object & Record<PropertyKey, unknown>;
 
     function asReflectTarget(value: unknown): ReflectTarget | null {
         return value &&
@@ -235,122 +235,117 @@
         }
     }
 
+    function isTrustedPermissionRequest(
+        details: PermissionDetailsLike
+    ): boolean {
+        if (isTestMode()) {
+            return true;
+        }
+
+        const requestingUrl =
+            getStringProperty(details, "requestingUrl") ??
+            getStringProperty(details, "requestingURL") ??
+            getStringProperty(details, "requestingOrigin") ??
+            "";
+
+        const parsed = requestingUrl ? safeParseUrl(requestingUrl) : null;
+        const protocol = parsed?.protocol;
+
+        if (protocol === "file:") {
+            return isAllowedFileUrl(requestingUrl);
+        }
+
+        return false;
+    }
+
+    async function promptForGeolocationOncePerSession(
+        webContents: ElectronWebContents | null | undefined,
+        details: PermissionDetailsLike
+    ): Promise<boolean> {
+        try {
+            const cached = getAppState("permissions.geolocation.allowed");
+            if (typeof cached === "boolean") {
+                return cached;
+            }
+        } catch {
+            /* ignore */
+        }
+
+        if (isTestMode()) {
+            try {
+                setAppState("permissions.geolocation.allowed", true, {
+                    source: "permissions.test",
+                });
+            } catch {
+                /* ignore */
+            }
+            return true;
+        }
+
+        let browserWindow: ElectronBrowserWindow | null = null;
+        try {
+            const BrowserWindow = browserWindowRef();
+            if (
+                BrowserWindow &&
+                typeof BrowserWindow.fromWebContents === "function" &&
+                webContents
+            ) {
+                browserWindow = BrowserWindow.fromWebContents(webContents);
+            }
+        } catch {
+            /* ignore */
+        }
+
+        let allow: boolean;
+        try {
+            const dialog = dialogRef();
+            if (!dialog || typeof dialog.showMessageBox !== "function") {
+                allow = false;
+            } else {
+                const messageBoxResult = await dialog.showMessageBox(
+                    browserWindow ?? undefined,
+                    {
+                        buttons: ["Allow", "Deny"],
+                        cancelId: 1,
+                        defaultId: 0,
+                        detail:
+                            "FitFileViewer can center the map on your current location if you allow access.\n\n" +
+                            "Your location is only used locally in the app.",
+                        message:
+                            "Allow FitFileViewer to access your location?",
+                        noLink: true,
+                        title: "Location permission",
+                        type: "question",
+                    }
+                );
+                allow = messageBoxResult?.response === 0;
+            }
+        } catch {
+            allow = false;
+        }
+
+        try {
+            setAppState("permissions.geolocation.allowed", allow, {
+                source: "permissions.geolocation",
+            });
+        } catch {
+            /* ignore */
+        }
+
+        if (!allow) {
+            logWithContext("warn", "Geolocation permission denied by user", {
+                requestingUrl: getStringProperty(details, "requestingUrl"),
+            });
+        }
+
+        return allow;
+    }
+
     function configureSessionPermissionHandlers(
         session: SessionLike | null | undefined
     ): void {
         if (!session || typeof session !== "object") return;
         if (!markOnce(session, SESSION_PERMISSIONS_MARKER)) return;
-
-        const isTrustedRequest = (details: PermissionDetailsLike): boolean => {
-            if (isTestMode()) {
-                return true;
-            }
-
-            const requestingUrl =
-                getStringProperty(details, "requestingUrl") ??
-                getStringProperty(details, "requestingURL") ??
-                getStringProperty(details, "requestingOrigin") ??
-                "";
-
-            const parsed = requestingUrl ? safeParseUrl(requestingUrl) : null;
-            const protocol = parsed?.protocol;
-
-            if (protocol === "file:") {
-                return isAllowedFileUrl(requestingUrl);
-            }
-
-            return false;
-        };
-
-        const promptForGeolocationOncePerSession = async (
-            webContents: ElectronWebContents | null | undefined,
-            details: PermissionDetailsLike
-        ): Promise<boolean> => {
-            try {
-                const cached = getAppState("permissions.geolocation.allowed");
-                if (typeof cached === "boolean") {
-                    return cached;
-                }
-            } catch {
-                /* ignore */
-            }
-
-            if (isTestMode()) {
-                try {
-                    setAppState("permissions.geolocation.allowed", true, {
-                        source: "permissions.test",
-                    });
-                } catch {
-                    /* ignore */
-                }
-                return true;
-            }
-
-            let browserWindow: ElectronBrowserWindow | null = null;
-            try {
-                const BrowserWindow = browserWindowRef();
-                if (
-                    BrowserWindow &&
-                    typeof BrowserWindow.fromWebContents === "function" &&
-                    webContents
-                ) {
-                    browserWindow = BrowserWindow.fromWebContents(webContents);
-                }
-            } catch {
-                /* ignore */
-            }
-
-            let allow = false;
-            try {
-                const dialog = dialogRef();
-                if (!dialog || typeof dialog.showMessageBox !== "function") {
-                    allow = false;
-                } else {
-                    const messageBoxResult = await dialog.showMessageBox(
-                        browserWindow ?? undefined,
-                        {
-                            buttons: ["Allow", "Deny"],
-                            cancelId: 1,
-                            defaultId: 0,
-                            detail:
-                                "FitFileViewer can center the map on your current location if you allow access.\n\n" +
-                                "Your location is only used locally in the app.",
-                            message:
-                                "Allow FitFileViewer to access your location?",
-                            noLink: true,
-                            title: "Location permission",
-                            type: "question",
-                        }
-                    );
-                    allow = messageBoxResult?.response === 0;
-                }
-            } catch {
-                allow = false;
-            }
-
-            try {
-                setAppState("permissions.geolocation.allowed", allow, {
-                    source: "permissions.geolocation",
-                });
-            } catch {
-                /* ignore */
-            }
-
-            if (!allow) {
-                logWithContext(
-                    "warn",
-                    "Geolocation permission denied by user",
-                    {
-                        requestingUrl: getStringProperty(
-                            details,
-                            "requestingUrl"
-                        ),
-                    }
-                );
-            }
-
-            return allow;
-        };
 
         try {
             if (typeof session.setPermissionRequestHandler === "function") {
@@ -375,7 +370,7 @@
                             return;
                         }
 
-                        if (!isTrustedRequest(details)) {
+                        if (!isTrustedPermissionRequest(details)) {
                             safelyResolvePermission(callback, false);
                             return;
                         }
@@ -384,12 +379,12 @@
                             webContents,
                             details
                         )
-                            .then((allow) => {
+                            .then((allow) =>
                                 safelyResolvePermission(
                                     callback,
                                     Boolean(allow)
-                                );
-                            })
+                                )
+                            )
                             .catch(() => {
                                 safelyResolvePermission(callback, false);
                             });
@@ -408,7 +403,7 @@
                             return false;
                         }
 
-                        if (!isTrustedRequest(details)) {
+                        if (!isTrustedPermissionRequest(details)) {
                             return false;
                         }
 
@@ -440,7 +435,7 @@
         granted: boolean
     ): void {
         try {
-            callback(granted);
+            return callback(granted);
         } catch {
             /* ignore */
         }
@@ -738,7 +733,7 @@
                 webContents &&
                 typeof webContents.setWindowOpenHandler === "function"
             ) {
-                // eslint-disable-next-line sdl/no-electron-unrestricted-navigation -- isAllowedInAppUrl is a reviewed default-deny allowlist for in-app window creation.
+                // eslint-disable-next-line sdl/no-electron-unrestricted-navigation -- all renderer-created windows are denied; external URLs are routed through validateExternalUrl.
                 webContents.setWindowOpenHandler(({ url }) => {
                     if (!isAllowedInAppUrl(url)) {
                         logWithContext(
@@ -749,7 +744,10 @@
                         if (typeof url === "string") tryOpenExternal(url);
                         return { action: "deny" };
                     }
-                    return { action: "allow" };
+                    logWithContext("warn", "Blocked app-local new window:", {
+                        url,
+                    });
+                    return { action: "deny" };
                 });
             }
         });

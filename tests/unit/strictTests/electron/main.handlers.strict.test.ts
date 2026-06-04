@@ -664,7 +664,7 @@ describe("main.js strict handlers and events", () => {
         expect(
             windowOpenHandler({ url: "file://index.html" })
         ).toStrictEqual({
-            action: "allow",
+            action: "deny",
         });
     });
 });
