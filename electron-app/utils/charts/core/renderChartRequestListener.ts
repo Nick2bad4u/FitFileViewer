@@ -1,3 +1,5 @@
+import { isObjectRecord } from "./renderChartModuleHelpers.js";
+
 interface ChartRequestListenerGlobal {
     _fitFileViewerChartListenerAbortController?: AbortController;
     _fitFileViewerChartListener?: unknown;
@@ -10,12 +12,19 @@ interface ChartRequestStateManager {
 interface RegisterChartRequestListenerParams {
     chartGlobal: ChartRequestListenerGlobal;
     getChartStateManager(): ChartRequestStateManager | null;
-    renderChart(container: HTMLElement): Promise<unknown> | unknown;
+    renderChart(container: HTMLElement): unknown;
 }
 
 function getRequestReason(event: Event): string {
-    return event instanceof CustomEvent && event.detail?.reason
-        ? String(event.detail.reason)
+    if (!(event instanceof CustomEvent) || !isObjectRecord(event.detail)) {
+        return "event-trigger";
+    }
+
+    const reason = event.detail["reason"];
+    return typeof reason === "string" ||
+        typeof reason === "number" ||
+        typeof reason === "boolean"
+        ? String(reason)
         : "event-trigger";
 }
 
@@ -33,12 +42,11 @@ function getFallbackChartContainer(): HTMLElement {
  *
  * @param params - Runtime dependencies supplied by renderChartJS.
  */
-export function registerChartRequestListener({
-    chartGlobal,
-    getChartStateManager,
-    renderChart,
-}: RegisterChartRequestListenerParams): void {
-    if (chartGlobal._fitFileViewerChartListener) {
+export function registerChartRequestListener(
+    params: RegisterChartRequestListenerParams
+): void {
+    const { chartGlobal } = params;
+    if (chartGlobal._fitFileViewerChartListener === true) {
         return;
     }
 
@@ -62,7 +70,7 @@ export function registerChartRequestListener({
                     `[ChartJS] Received render request event: ${reason}`
                 );
 
-                const chartStateManager = getChartStateManager();
+                const chartStateManager = params.getChartStateManager();
                 if (chartStateManager) {
                     chartStateManager.debouncedRender(reason);
                     return;
@@ -70,7 +78,7 @@ export function registerChartRequestListener({
 
                 const container = getFallbackChartContainer();
                 void Promise.resolve()
-                    .then(() => renderChart(container))
+                    .then(() => params.renderChart(container))
                     .catch((error: unknown) => {
                         console.warn(
                             "[ChartJS] Event-based render fallback failed:",

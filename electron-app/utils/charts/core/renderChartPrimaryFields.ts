@@ -3,8 +3,10 @@ import type { createChartCanvas } from "../components/createChartCanvas.js";
 import type { createEnhancedChart } from "../components/createEnhancedChart.js";
 import type { ChartDataRecord } from "./renderChartDataPreparation.js";
 import { safeAppend } from "./renderChartDomHelpers.js";
-import type { ChartPerformanceSettings } from "./renderChartPerformanceSettings.js";
-import { shouldUseSpanGaps } from "./renderChartPerformanceSettings.js";
+import {
+    shouldUseSpanGaps,
+    type ChartPerformanceSettings,
+} from "./renderChartPerformanceSettings.js";
 import type { MaxPointsValue } from "./renderChartPointUtils.js";
 import {
     getCachedSeriesForSettings,
@@ -186,7 +188,9 @@ export function renderPrimaryChartFields(
             theme: options.exportTheme,
             timeUnits: options.timeUnits,
             zoomPluginConfig: options.zoomPluginConfig,
-            ...(axisRanges == null ? {} : { axisRanges }),
+            ...(axisRanges === null || axisRanges === undefined
+                ? {}
+                : { axisRanges }),
             ...(customColors === undefined ? {} : { customColors }),
             ...(decimation === undefined ? {} : { decimation }),
             ...(tickSampleSize === undefined ? {} : { tickSampleSize }),

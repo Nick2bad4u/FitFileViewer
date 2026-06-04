@@ -1,7 +1,11 @@
-import type { ChartPerformanceSettings } from "./renderChartPerformanceSettings.js";
 import type { StateUpdateOptions } from "../../state/core/stateManager.js";
-import type { MaxPointsValue } from "./renderChartPointUtils.js";
-import { normalizeMaxPointsValue } from "./renderChartPointUtils.js";
+import {
+    type ChartPerformanceSettings,
+} from "./renderChartPerformanceSettings.js";
+import {
+    type MaxPointsValue,
+    normalizeMaxPointsValue,
+} from "./renderChartPointUtils.js";
 
 type ChartRenderSettingsRecord = Record<string, unknown>;
 

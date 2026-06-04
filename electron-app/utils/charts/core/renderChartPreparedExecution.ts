@@ -83,9 +83,9 @@ export async function executePreparedChartRender(
 ): Promise<PreparedChartRenderResult> {
     touchRendererModulesForTest(
         {
-            createElement: dependencies.createElement,
-            getRendererModules: dependencies.getRendererModules,
-            isTestEnvironment: dependencies.isTestEnvironment,
+            createElement: (tagName) => dependencies.createElement(tagName),
+            getRendererModules: () => dependencies.getRendererModules(),
+            isTestEnvironment: () => dependencies.isTestEnvironment(),
         },
         input.recordMesgs,
         input.activityStartTime
@@ -93,8 +93,19 @@ export async function executePreparedChartRender(
 
     const success = await runChartRender(
         {
-            renderChartsWithData: dependencies.renderChartsWithData,
-            warn: dependencies.warn,
+            renderChartsWithData: (
+                targetContainer,
+                recordMesgs,
+                activityStartTime,
+                renderOptions
+            ) =>
+                dependencies.renderChartsWithData(
+                    targetContainer,
+                    recordMesgs,
+                    activityStartTime,
+                    renderOptions
+                ),
+            warn: (message, error) => dependencies.warn(message, error),
         },
         input.targetContainer,
         input.recordMesgs,
@@ -112,8 +123,9 @@ export async function executePreparedChartRender(
 
     completeChartRendering(
         {
-            getGlobalChartActions: dependencies.getGlobalChartActions,
-            safeCompleteRendering: dependencies.safeCompleteRendering,
+            getGlobalChartActions: () => dependencies.getGlobalChartActions(),
+            safeCompleteRendering: (wasSuccessful) =>
+                dependencies.safeCompleteRendering(wasSuccessful),
         },
         success,
         getChartInstanceCount(dependencies.chartGlobal),

@@ -51,8 +51,8 @@ export function shouldAbortInactiveChartRender(
         return false;
     }
 
-    const { getState } = dependencies.getStateManager();
-    const activeTab = getState("ui.activeTab");
+    const stateManager = dependencies.getStateManager();
+    const activeTab = stateManager.getState("ui.activeTab");
     if (activeTab === "chart" || activeTab === "chartjs") {
         return false;
     }

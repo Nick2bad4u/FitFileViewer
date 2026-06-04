@@ -1,8 +1,10 @@
 import { formatChartFields } from "../../formatting/display/formatChartFields.js";
 import { getChartFieldVisibility } from "../../state/domain/settingsStateManager.js";
 import { isObjectRecord } from "./renderChartModuleHelpers.js";
-import { getRecordMessages } from "./renderChartDataPreparation.js";
-import type { ChartDataRecord } from "./renderChartDataPreparation.js";
+import {
+    type ChartDataRecord,
+    getRecordMessages,
+} from "./renderChartDataPreparation.js";
 
 /**
  * Per-category chart count totals.
@@ -169,7 +171,10 @@ function countEventMessagesChart(
     counts: ChartCounts,
     globalData: ChartGlobalData | undefined
 ): void {
-    if (Array.isArray(globalData?.eventMesgs) && globalData.eventMesgs.length) {
+    if (
+        Array.isArray(globalData?.eventMesgs) &&
+        globalData.eventMesgs.length > 0
+    ) {
         addAvailableChart(counts, "analysis", "event_messages");
     }
 }
@@ -197,7 +202,7 @@ function countLapZoneCharts(
         (message) => message["referenceMesg"] === "lap"
     );
 
-    if (!lapZoneMessages.length) {
+    if (lapZoneMessages.length === 0) {
         return;
     }
 
@@ -309,21 +314,27 @@ function hasAnalysisChartData(
     recordRows: readonly ChartDataRow[]
 ): boolean {
     switch (chartType) {
-        case "altitude_profile":
+        case "altitude_profile": {
             return recordRows.some((row) =>
                 isNumericLike(row["altitude"] ?? row["enhancedAltitude"])
             );
-        case "power_vs_hr":
+        }
+        case "power_vs_hr": {
             return (
                 hasNumericFieldData(recordRows, "power") &&
                 hasNumericFieldData(recordRows, "heartRate")
             );
-        case "speed_vs_distance":
+        }
+        case "speed_vs_distance": {
             return (
                 recordRows.some((row) =>
                     isNumericLike(row["enhancedSpeed"] ?? row["speed"])
                 ) && hasNumericFieldData(recordRows, "distance")
             );
+        }
+        default: {
+            return false;
+        }
     }
 }
 
@@ -335,11 +346,15 @@ function hasNumericFieldData(
 }
 
 function isNumericLike(value: unknown): boolean {
-    if (value === null || value === undefined) {
-        return false;
+    if (typeof value === "number") {
+        return Number.isFinite(value);
     }
 
-    return !Number.isNaN(Number.parseFloat(String(value)));
+    return (
+        typeof value === "string" &&
+        value.trim().length > 0 &&
+        !Number.isNaN(Number.parseFloat(value))
+    );
 }
 
 function logChartCountDebug(

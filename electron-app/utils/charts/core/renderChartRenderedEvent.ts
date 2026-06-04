@@ -32,7 +32,9 @@ export function emitChartsRenderedEvent(
     try {
         const chartsRenderedEvent = new EventConstructor("chartsRendered", {
             detail: {
-                hasData: hasRenderableGlobalData(dependencies.getState),
+                hasData: hasRenderableGlobalData((path) =>
+                    dependencies.getState(path)
+                ),
                 renderTime: summary.renderTime,
                 settings: dependencies.getState("charts.chartOptions"),
                 timestamp: dependencies.now(),
