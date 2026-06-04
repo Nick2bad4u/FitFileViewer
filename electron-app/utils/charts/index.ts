@@ -10,13 +10,13 @@ export * from "./components/createChartStatusIndicatorFromCounts.js";
 export * from "./components/createEnhancedChart.js";
 export * from "./components/createGlobalChartStatusIndicator.js";
 export * from "./components/createGlobalChartStatusIndicatorFromCounts.js";
-// Chart DOM helpers.
-export * from "./dom/chartDomUtils.js";
 // Core chart functionality.
 export * from "./core/chartStateManager.js";
 export * from "./core/chartTabIntegration.js";
 export * from "./core/chartUpdater.js";
 export * from "./core/renderChartJS.js";
+// Chart DOM helpers.
+export * from "./dom/chartDomUtils.js";
 // Chart plugins.
 export * from "./plugins/addChartHoverEffects.js";
 export * from "./plugins/chartBackgroundColorPlugin.js";

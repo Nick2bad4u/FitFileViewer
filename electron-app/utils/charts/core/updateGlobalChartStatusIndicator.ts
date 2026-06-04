@@ -34,8 +34,8 @@ export function updateGlobalChartStatusIndicator(): boolean {
             return false;
         }
 
-        const existingIndicator = document.getElementById(
-            ELEMENT_IDS.STATUS_INDICATOR
+        const existingIndicator = document.querySelector<HTMLElement>(
+            `#${ELEMENT_IDS.STATUS_INDICATOR}`
         );
 
         if (existingIndicator) {
@@ -82,8 +82,8 @@ function appendNewIndicator(
  * @returns Preferred status container, or document body as fallback.
  */
 function findStatusContainer(): HTMLElement {
-    const statusContainer = document.getElementById(
-        ELEMENT_IDS.STATUS_CONTAINER
+    const statusContainer = document.querySelector<HTMLElement>(
+        `#${ELEMENT_IDS.STATUS_CONTAINER}`
     );
 
     return statusContainer instanceof HTMLElement

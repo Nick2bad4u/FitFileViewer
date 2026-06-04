@@ -36,12 +36,12 @@ export function createRenderTimingGate(
     return {
         async waitIfRapidRender() {
             const now = Date.now();
-            if (now - lastRenderTime < waitMs) {
+            const elapsed = now - lastRenderTime;
+            lastRenderTime = now;
+            if (elapsed < waitMs) {
                 console.log("[ChartJS] Debouncing rapid render calls");
                 await wait(waitMs);
             }
-
-            lastRenderTime = Date.now();
         },
     };
 }

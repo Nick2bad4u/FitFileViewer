@@ -111,6 +111,7 @@ export function initializeChartStateManagement(
                 );
                 void Promise.resolve().then(() => {
                     dependencies.notify("Chart rendering failed", "error");
+                    return undefined;
                 });
             },
         });

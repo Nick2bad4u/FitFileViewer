@@ -6,6 +6,7 @@ import {
 } from "../../runtime/processEnvironment.js";
 
 type UnknownFunction = (...args: unknown[]) => unknown;
+type ChartRenderCompleteNotifier = (chartCount: number) => unknown;
 
 interface ProcessShim {
     env?: NodeJS.ProcessEnv;
@@ -76,11 +77,17 @@ function hasUpdatePanelVisibility(
     );
 }
 
+function isChartRenderCompleteNotifier(
+    value: unknown
+): value is ChartRenderCompleteNotifier {
+    return typeof value === "function";
+}
+
 /**
  * Returns the renderer global through the local chart-runtime boundary.
  */
 export function getMutableChartRuntimeGlobal(): RenderChartRuntimeGlobal {
-    return globalThis as RenderChartRuntimeGlobal;
+    return globalThis;
 }
 
 /**
@@ -102,6 +109,7 @@ export function ensureProcessNextTick(): void {
     ): void => {
         void Promise.resolve().then(() => {
             callback(...args);
+            return undefined;
         });
     };
 }
@@ -209,7 +217,7 @@ export function notifyChartRenderComplete(
     }
 
     const notifier = appActions["notifyChartRenderComplete"];
-    if (typeof notifier === "function") {
+    if (isChartRenderCompleteNotifier(notifier)) {
         notifier(chartCount);
     }
 }

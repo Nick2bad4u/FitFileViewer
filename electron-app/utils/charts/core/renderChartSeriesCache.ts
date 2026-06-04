@@ -152,7 +152,9 @@ export function getFieldSeriesEntry(
     }
 
     let entry = fieldMap.get(dataSettingsSignature);
-    if (!entry) {
+    if (entry) {
+        entry.pointCache ??= new WeakMap();
+    } else {
         const readKey = resolveRecordFieldKey(cache, recordMesgs, field);
         const values: (null | number)[] = [];
         let min = Number.POSITIVE_INFINITY;
@@ -204,8 +206,6 @@ export function getFieldSeriesEntry(
             values,
         };
         fieldMap.set(dataSettingsSignature, entry);
-    } else {
-        entry.pointCache ??= new WeakMap();
     }
 
     return entry;
