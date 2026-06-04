@@ -76,16 +76,24 @@ describe("root app HTML security policy", () => {
     });
 
     it("keeps renderer network egress restricted to explicit hosts", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const policy = getContentSecurityPolicy(readRootAppHtml());
         const connectSources = getContentSecurityPolicyDirective(
             policy,
             "connect-src"
         );
+        const fontSources = getContentSecurityPolicyDirective(
+            policy,
+            "font-src"
+        );
         const imageSources = getContentSecurityPolicyDirective(
             policy,
             "img-src"
+        );
+        const styleSources = getContentSecurityPolicyDirective(
+            policy,
+            "style-src"
         );
 
         expect(connectSources).toStrictEqual([
@@ -113,6 +121,12 @@ describe("root app HTML security policy", () => {
             "https://tile.waymarkedtrails.org",
             "https://tiles.openfreemap.org",
             "https://tiles.openseamap.org",
+        ]);
+        expect(fontSources).toStrictEqual(["'self'", "file:", "data:"]);
+        expect(styleSources).toStrictEqual([
+            "'self'",
+            "'unsafe-inline'",
+            "file:",
         ]);
         expect(connectSources).not.toEqual(
             expect.arrayContaining([

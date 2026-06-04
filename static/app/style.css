@@ -7,8 +7,6 @@
 /* =====================================================
    Theme Variables
    ===================================================== */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Open+Sans:wght@400;600&family=Plus+Jakarta+Sans:wght@600;700&display=swap");
-
 *,
 *::before,
 *::after {
@@ -121,11 +119,11 @@
     --c_rgb0: rgb(0 0 0);
     --c_rgb000_70p: rgb(0 0 0 / 70%);
     --font-sans:
-        "Inter", "Open Sans", -apple-system, blinkmacsystemfont, "Segoe UI",
-        roboto, sans-serif;
+        -apple-system, blinkmacsystemfont, "Segoe UI", "Noto Sans", roboto,
+        sans-serif;
     --font-display:
-        "Plus Jakarta Sans", "Inter", "Open Sans", -apple-system,
-        blinkmacsystemfont, "Segoe UI", roboto, sans-serif;
+        "Segoe UI Variable Display", -apple-system, blinkmacsystemfont,
+        "Segoe UI", "Noto Sans", roboto, sans-serif;
 
     /* Dark Theme (Default) - Charcoal Blue (lighter, neutral, minimal purple) */
     --color-bg: linear-gradient(160deg, #0e1525 0%, #111827 60%, #0f172a 100%);
