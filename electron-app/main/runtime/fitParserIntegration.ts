@@ -117,61 +117,89 @@
         return isFitParserStateManagers(candidate) ? candidate : null;
     }
 
+    function now(): number {
+        return typeof performance !== "undefined" &&
+            performance &&
+            typeof performance.now === "function"
+            ? performance.now()
+            : Date.now();
+    }
+
+    function ensureOperationStarted(): void {
+        try {
+            if (
+                mainProcessState.get(`operations.${FIT_PARSER_OPERATION_ID}`)
+            ) {
+                return;
+            }
+
+            mainProcessState.startOperation(FIT_PARSER_OPERATION_ID, {
+                message: "Decoding FIT file",
+                metadata: { source: "fitParser" },
+            });
+        } catch (error) {
+            logWithContext(
+                "warn",
+                "Unable to start fit parser operation tracking",
+                {
+                    error: getErrorMessage(error),
+                }
+            );
+        }
+    }
+
+    function getMessageRecordCandidates(messages: object): unknown {
+        if ("recordMesgs" in messages) {
+            return messages.recordMesgs;
+        }
+
+        return "records" in messages ? messages.records : undefined;
+    }
+
+    function getArrayLikeLength(value: unknown): number | null {
+        if (!value || typeof value !== "object" || !("length" in value)) {
+            return null;
+        }
+
+        return typeof value.length === "number"
+            ? Number(value.length) || 0
+            : null;
+    }
+
+    function initializeFitParserStateIntegration(): void {
+        try {
+            const { getFitParserModule } =
+                require("./fitParserFacade") as FitParserFacade;
+            const fitParser = getFitParserModule();
+            if (
+                !fitParser ||
+                typeof fitParser.initializeStateManagement !== "function"
+            ) {
+                return;
+            }
+
+            const adapters =
+                getFitParserStateAdaptersOverride() ??
+                createFitParserStateAdapters();
+            fitParser.initializeStateManagement(adapters);
+
+            logWithContext(
+                "info",
+                "Fit parser state management initialized"
+            );
+        } catch (error) {
+            logWithContext("warn", "Skipping fit parser state integration", {
+                error: getErrorMessage(error),
+            });
+        }
+    }
+
     /**
      * Builds the adapter collection consumed by the fit parser's state
      * integration layer.
      */
     function createFitParserStateAdapters(): FitParserStateAdapters {
         const timers = new Map<string, TimerState>();
-        const now = (): number =>
-            typeof performance !== "undefined" &&
-            performance &&
-            typeof performance.now === "function"
-                ? performance.now()
-                : Date.now();
-
-        const ensureOperationStarted = (): void => {
-            try {
-                if (
-                    mainProcessState.get(
-                        `operations.${FIT_PARSER_OPERATION_ID}`
-                    )
-                ) {
-                    return;
-                }
-
-                mainProcessState.startOperation(FIT_PARSER_OPERATION_ID, {
-                    message: "Decoding FIT file",
-                    metadata: { source: "fitParser" },
-                });
-            } catch (error) {
-                logWithContext(
-                    "warn",
-                    "Unable to start fit parser operation tracking",
-                    {
-                        error: getErrorMessage(error),
-                    }
-                );
-            }
-        };
-
-        const getMessageRecordCandidates = (messages: object): unknown => {
-            if ("recordMesgs" in messages) {
-                return messages.recordMesgs;
-            }
-
-            return "records" in messages ? messages.records : undefined;
-        };
-
-        const getArrayLikeLength = (value: unknown): number | null => {
-            if (!value || typeof value !== "object" || !("length" in value)) {
-                return null;
-            }
-
-            return typeof value.length === "number"
-                ? Number(value.length) || 0
-                : null;
-        };
 
         const fitFileStateManager: FitFileStateManager = {
             getRecordCount(messages) {
@@ -288,7 +316,7 @@
                         `settings.${category}`
                     );
                     if (stateValue !== undefined && stateValue !== null) {
-                        return stateValue as Partial<DecoderOptions>;
+                        return stateValue;
                     }
                 } catch {
                     /* ignore state read errors */
@@ -413,37 +441,9 @@
             return fitParserStateIntegrationPromise;
         }
 
-        fitParserStateIntegrationPromise = (async () => {
-            try {
-                const { getFitParserModule } =
-                    require("./fitParserFacade") as FitParserFacade;
-                const fitParser = getFitParserModule();
-                if (
-                    !fitParser ||
-                    typeof fitParser.initializeStateManagement !== "function"
-                ) {
-                    return;
-                }
-
-                const adapters =
-                    getFitParserStateAdaptersOverride() ??
-                    createFitParserStateAdapters();
-                fitParser.initializeStateManagement(adapters);
-
-                logWithContext(
-                    "info",
-                    "Fit parser state management initialized"
-                );
-            } catch (error) {
-                logWithContext(
-                    "warn",
-                    "Skipping fit parser state integration",
-                    {
-                        error: getErrorMessage(error),
-                    }
-                );
-            }
-        })();
+        fitParserStateIntegrationPromise = Promise.resolve(
+            initializeFitParserStateIntegration()
+        );
 
         return fitParserStateIntegrationPromise;
     }
