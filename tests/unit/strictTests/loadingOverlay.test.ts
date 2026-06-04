@@ -38,7 +38,7 @@ describe("loading overlay strict", () => {
     });
 
     it("creates overlay on first show with text and filename", async () => {
-        expect.assertions(4);
+        expect.assertions(10);
 
         const { LoadingOverlay } =
             await import("../../../electron-app/utils/ui/components/LoadingOverlay.js");
@@ -48,6 +48,18 @@ describe("loading overlay strict", () => {
         const overlay = getRequiredElementById("fitfile-loading-overlay");
         expect(overlay.id).toBe("fitfile-loading-overlay");
         expect(overlay.style.position).toBe("fixed");
+        expect(overlay.getAttribute("role")).toBe("status");
+        expect(overlay.getAttribute("aria-live")).toBe("polite");
+        expect(overlay.getAttribute("aria-busy")).toBe("true");
+        expect(overlay.getAttribute("aria-labelledby")).toBe(
+            "fitfile-loading-text"
+        );
+        expect(overlay.getAttribute("aria-describedby")).toBe(
+            "fitfile-loading-filename"
+        );
+        expect(
+            overlay.querySelector(".modern-spinner")?.getAttribute("aria-hidden")
+        ).toBe("true");
 
         const text = getRequiredElementById("fitfile-loading-text");
         expect(text.textContent).toBe("Loading 1 / 10 files...");

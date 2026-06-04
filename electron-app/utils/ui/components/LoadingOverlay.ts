@@ -31,6 +31,7 @@ function createOverlayContent(
 
     const spinner = document.createElement("div");
     spinner.className = "modern-spinner";
+    spinner.setAttribute("aria-hidden", "true");
     Object.assign(spinner.style, {
         height: "54px",
         marginBottom: "22px",
@@ -149,6 +150,11 @@ export const LoadingOverlay = {
         if (!overlay) {
             overlay = document.createElement("div");
             overlay.id = "fitfile-loading-overlay";
+            overlay.setAttribute("aria-busy", "true");
+            overlay.setAttribute("aria-describedby", "fitfile-loading-filename");
+            overlay.setAttribute("aria-labelledby", "fitfile-loading-text");
+            overlay.setAttribute("aria-live", "polite");
+            overlay.setAttribute("role", "status");
 
             const themeColors = getLoadingOverlayThemeColors();
             Object.assign(overlay.style, {
