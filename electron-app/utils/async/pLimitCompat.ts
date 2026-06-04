@@ -32,7 +32,7 @@ export default function pLimitCompat(concurrency: number): LimitFunction {
             ? Math.floor(concurrency)
             : 1;
 
-    const queue: Array<() => void> = [];
+    const queue: Array<() => Promise<void>> = [];
     let activeCount = 0;
 
     const next = (): void => {
@@ -45,18 +45,18 @@ export default function pLimitCompat(concurrency: number): LimitFunction {
             return;
         }
 
-        run();
+        void run();
     };
 
     return <T>(factory: AsyncFactory<T>): Promise<T> =>
         new Promise<T>((resolve, reject) => {
-            const execute = (): void => {
-                activeCount++;
-                Promise.resolve()
+            const execute = (): Promise<void> => {
+                activeCount += 1;
+                return Promise.resolve()
                     .then(factory)
                     .then(resolve, reject)
                     .finally(() => {
-                        activeCount--;
+                        activeCount -= 1;
                         next();
                     });
             };
