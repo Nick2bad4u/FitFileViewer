@@ -116,8 +116,50 @@
     --c_hex43a047: #43a047;
     --c_hexd32f2f: #d32f2f;
     --c_hexb71c1c: #b71c1c;
+    --c_hex0002: #0002;
+    --c_hex0003: #0003;
+    --c_hex000a: #000a;
+    --c_hex059669: #059669;
+    --c_hex10b981: #10b981;
+    --c_hex1565c0: #1565c0;
+    --c_hex1976d2: #1976d2;
+    --c_hex2196f3: #2196f3;
+    --c_hex23263a: #23263a;
+    --c_hex33374d: #33374d;
+    --c_hex4c1d95: #4c1d95;
+    --c_hex555: #555;
+    --c_hex6d28d9: #6d28d9;
+    --c_hex888: #888;
+    --c_hexccc: #ccc;
+    --c_hexd97706: #d97706;
+    --c_hexdc2626: #dc2626;
+    --c_hexe0e0e0: #e0e0e0;
+    --c_hexef4444: #ef4444;
+    --c_hexf59e0b: #f59e0b;
+    --c_hexffeaea: #ffeaea;
     --c_rgb0: rgb(0 0 0);
+    --c_rgb000_0p: rgb(0 0 0 / 0%);
+    --c_rgb000_10p: rgb(0 0 0 / 10%);
+    --c_rgb000_15p: rgb(0 0 0 / 15%);
+    --c_rgb000_50p: rgb(0 0 0 / 50%);
     --c_rgb000_70p: rgb(0 0 0 / 70%);
+    --c_rgb102126234_10p: rgb(102 126 234 / 10%);
+    --c_rgb102126234_30p: rgb(102 126 234 / 30%);
+    --c_rgb102126234_50p: rgb(102 126 234 / 50%);
+    --c_rgb16185129_30p: rgb(16 185 129 / 30%);
+    --c_rgb202444_90p: rgb(20 24 44 / 90%);
+    --c_rgb2396868_30p: rgb(239 68 68 / 30%);
+    --c_rgb24515811_30p: rgb(245 158 11 / 30%);
+    --c_rgb25118210_25p: rgb(251 182 10 / 25%);
+    --c_rgb255255255_8p: rgb(255 255 255 / 8%);
+    --c_rgb255255255_10p: rgb(255 255 255 / 10%);
+    --c_rgb255255255_30p: rgb(255 255 255 / 30%);
+    --c_rgb303454_85p: rgb(30 34 54 / 85%);
+    --c_rgba0_0_0_0d05: rgb(0 0 0 / 5%);
+    --c_rgba255_255_255_0d1: rgb(255 255 255 / 10%);
+    --data-point-filter-arrow-offset: 50%;
+    --ffv-minimap-toggle-icon: none;
+    --scroll-distance: 0px;
     --font-sans:
         -apple-system, blinkmacsystemfont, "Segoe UI", "Noto Sans", roboto,
         sans-serif;
@@ -127,11 +169,13 @@
 
     /* Dark Theme (Default) - Charcoal Blue (lighter, neutral, minimal purple) */
     --color-bg: linear-gradient(160deg, #0e1525 0%, #111827 60%, #0f172a 100%);
+    --color-bg-rgb: 18 26 38;
     --color-bg-solid: #111827;
     --color-bg-alt: linear-gradient(160deg, #0f172a 0%, #0e1828 100%);
     --color-bg-alt-solid: #0f172a;
     --color-fg: #e5e7eb;
     --color-fg-alt: #fff;
+    --color-fg-muted: #94a3b8;
 
     /* Primary accent is BLUE; purple is reserved only for the title gradient */
     --color-accent: #3b82f6;
@@ -174,6 +218,7 @@
     /* slate-300 */
     --color-glass: rgb(10 16 26 / 70%);
     --color-glass-border: rgb(255 255 255 / 12%);
+    --color-glass-hover: rgb(255 255 255 / 10%);
     --elev-bg: #0f172a;
     --color-hero-glow: rgb(59 130 246 / 28%);
     /* blue glow */
@@ -214,11 +259,13 @@
 body.theme-light {
     /* Soft Gray Light Theme (neutral, minimal purple) */
     --color-bg: linear-gradient(160deg, #f8fafc 0%, #eef2f7 100%);
+    --color-bg-rgb: 248 250 252;
     --color-bg-solid: #f8fafc;
     --color-bg-alt: linear-gradient(160deg, #fff 0%, #f1f5f9 100%);
     --color-bg-alt-solid: #fff;
     --color-fg: #0f172a;
     --color-fg-alt: #111827;
+    --color-fg-muted: #475569;
     --color-accent: #2563eb;
     /* blue-600 */
     --color-accent-secondary: #0ea5e9;
@@ -249,6 +296,7 @@ body.theme-light {
     /* slate-700 */
     --color-glass: rgb(255 255 255 / 72%);
     --color-glass-border: rgb(2 6 23 / 10%);
+    --color-glass-hover: rgb(2 6 23 / 7%);
     --color-overlay-bg: rgb(2 6 23 / 45%);
     --color-hero-glow: rgb(37 99 235 / 26%);
     --color-hero-glow-strong: rgb(29 78 216 / 32%);
@@ -7160,6 +7208,50 @@ body.theme-light .notification {
     color: var(--color-fg);
     border-color: rgb(2 6 23 / 14%);
     box-shadow: 0 18px 40px rgb(2 6 23 / 18%);
+}
+
+body.theme-light .notification.error {
+    background: linear-gradient(
+        135deg,
+        var(--c_hexef4444) 0%,
+        var(--c_hexdc2626) 100%
+    );
+    color: var(--c_hexfff);
+    border-color: var(--c_rgb255255255_30p);
+    box-shadow: 0 8px 32px var(--c_rgb2396868_30p);
+}
+
+body.theme-light .notification.success {
+    background: linear-gradient(
+        135deg,
+        var(--c_hex10b981) 0%,
+        var(--c_hex059669) 100%
+    );
+    color: var(--c_hexfff);
+    border-color: var(--c_rgb255255255_30p);
+    box-shadow: 0 8px 32px var(--c_rgb16185129_30p);
+}
+
+body.theme-light .notification.warning {
+    background: linear-gradient(
+        135deg,
+        var(--c_hexf59e0b) 0%,
+        var(--c_hexd97706) 100%
+    );
+    color: var(--c_hexfff);
+    border-color: var(--c_rgb255255255_30p);
+    box-shadow: 0 8px 32px var(--c_rgb24515811_30p);
+}
+
+body.theme-light .notification.info {
+    background: linear-gradient(
+        135deg,
+        var(--c_hex6d28d9) 0%,
+        var(--c_hex4c1d95) 100%
+    );
+    color: var(--c_hexfff);
+    border-color: var(--c_rgb255255255_30p);
+    box-shadow: 0 8px 32px rgb(var(--color-accent-rgb) / 35%);
 }
 
 /* Light theme: add a touch of text shadow for colored toasts (white text). */
