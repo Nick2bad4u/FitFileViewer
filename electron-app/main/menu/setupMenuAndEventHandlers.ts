@@ -29,7 +29,7 @@
             message: string;
             title: string;
             type: "info";
-        }) => Promise<unknown> | unknown;
+        }) => unknown;
         showSaveDialog: (
             window: BrowserWindow,
             options: SaveDialogOptions
@@ -37,7 +37,7 @@
     }
 
     interface AutoUpdaterLike {
-        checkForUpdates?: () => Promise<unknown> | unknown;
+        checkForUpdates?: () => unknown;
         quitAndInstall?: () => void;
     }
 
@@ -132,7 +132,7 @@
             context?: string
         ) => boolean;
     };
-    const { resolveAutoUpdaterSync } =
+    const { resolveAutoUpdaterSync: resolveAutoUpdaterFallback } =
         require("../updater/autoUpdaterAccess") as {
             resolveAutoUpdaterSync: () => AutoUpdaterLike | null;
         };
@@ -193,7 +193,7 @@
     }
 
     function requireAutoUpdater(): AutoUpdaterLike {
-        const autoUpdater = resolveAutoUpdaterSync();
+        const autoUpdater = resolveAutoUpdaterFallback();
         if (!autoUpdater) {
             throw new Error("electron-updater autoUpdater is unavailable");
         }
@@ -251,7 +251,7 @@
      * Registers menu-related IPC handlers and listeners.
      */
     function setupMenuAndEventHandlers(): void {
-        registerIpcListener("theme-changed", async (event, theme) => {
+        registerIpcListener("theme-changed", (event, theme) => {
             const win = getBrowserWindowFromEvent(event as IpcEventLike);
             if (win && validateWindow(win, "theme-changed event")) {
                 // Persist the theme in main-process settings so `theme:get`
@@ -417,8 +417,11 @@
                         ) {
                             throw new Error("Save dialog is unavailable");
                         }
-                        if (!fs) {
-                            throw new Error("fs module is unavailable");
+                        const copyFile = fs?.promises?.copyFile;
+                        if (typeof copyFile !== "function") {
+                            throw new TypeError(
+                                "fs.promises.copyFile is unavailable"
+                            );
                         }
 
                         const { canceled, filePath } =
@@ -429,7 +432,7 @@
                             });
 
                         if (!canceled && filePath) {
-                            fs.copyFileSync(loadedFilePath, filePath);
+                            await copyFile(loadedFilePath, filePath);
                             sendToRenderer(
                                 win,
                                 "show-notification",
