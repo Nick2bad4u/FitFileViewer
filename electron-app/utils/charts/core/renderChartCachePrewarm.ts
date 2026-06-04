@@ -69,13 +69,15 @@ function getFieldsToPrewarm(
     getFieldVisibility: (field: string) => unknown
 ): string[] {
     const fields = getFormatChartFieldsSafe();
-    let fieldsToPrewarm = Array.isArray(fields)
-        ? fields.filter(
-              (field) => (getFieldVisibility(field) || "visible") !== "hidden"
-          )
-        : [];
+    let fieldsToPrewarm = fields.filter((field) => {
+        const visibility = getFieldVisibility(field);
+        return (
+            (typeof visibility === "string" ? visibility : "visible") !==
+            "hidden"
+        );
+    });
 
-    if (!fieldsToPrewarm.length) {
+    if (fieldsToPrewarm.length === 0) {
         try {
             const sample = recordMesgs.find(isObjectRecord) ?? {};
             fieldsToPrewarm = Object.keys(sample)
@@ -121,6 +123,70 @@ function waitForNextTask(): Promise<void> {
     });
 }
 
+interface PrewarmFieldProcessingInput {
+    convert: (value: number, field: string) => number;
+    dataSettingsSignature: string;
+    fieldsToPrewarm: readonly string[];
+    getActiveTab(): unknown;
+    getFieldVisibility(field: string): unknown;
+    labels: readonly unknown[];
+    normalizedMaxPoints: ReturnType<typeof normalizeMaxPointsValue>;
+    processedFields: number;
+    recordMesgs: readonly ChartDataRecord[];
+    startIndex: number;
+    yieldEvery: number;
+}
+
+async function processPrewarmFieldChunk(
+    input: PrewarmFieldProcessingInput
+): Promise<number> {
+    const chunkSize =
+        input.yieldEvery > 0 ? input.yieldEvery : input.fieldsToPrewarm.length;
+    const endIndex = Math.min(
+        input.fieldsToPrewarm.length,
+        input.startIndex + chunkSize
+    );
+    let processedFields = input.processedFields;
+
+    for (const field of input.fieldsToPrewarm.slice(
+        input.startIndex,
+        endIndex
+    )) {
+        if (isChartsTab(input.getActiveTab())) {
+            return processedFields;
+        }
+
+        if (input.getFieldVisibility(field) === "hidden") {
+            continue;
+        }
+
+        const entry = getFieldSeriesEntry(
+            input.recordMesgs,
+            field,
+            input.dataSettingsSignature,
+            input.convert
+        );
+        getCachedSeriesForSettings(
+            entry,
+            input.labels,
+            input.normalizedMaxPoints
+        );
+
+        processedFields += 1;
+    }
+
+    if (endIndex >= input.fieldsToPrewarm.length) {
+        return processedFields;
+    }
+
+    await waitForNextTask();
+    return processPrewarmFieldChunk({
+        ...input,
+        processedFields,
+        startIndex: endIndex,
+    });
+}
+
 /**
  * Pre-warms expensive chart label and series caches without touching the DOM.
  *
@@ -144,8 +210,10 @@ export async function prewarmChartRenderCaches(
         return { processedFields: 0, skipped: true };
     }
 
-    const { getState } = getStateManagerSafe();
-    if (isChartsTab(getState("ui.activeTab"))) {
+    const stateManager = getStateManagerSafe();
+    const getActiveTab = (): unknown => stateManager.getState("ui.activeTab");
+    const getState = (path: string): unknown => stateManager.getState(path);
+    if (isChartsTab(getActiveTab())) {
         return { processedFields: 0, skipped: true };
     }
 
@@ -176,9 +244,8 @@ export async function prewarmChartRenderCaches(
         );
         const convert = getConvertersSafe();
         const labels = getLabelsForRecords(recordMesgs, startTime);
-        const fieldsToPrewarm = getFieldsToPrewarm(
-            recordMesgs,
-            dependencies.getFieldVisibility
+        const fieldsToPrewarm = getFieldsToPrewarm(recordMesgs, (field) =>
+            dependencies.getFieldVisibility(field)
         );
 
         if (isDevelopmentEnvironment()) {
@@ -187,30 +254,20 @@ export async function prewarmChartRenderCaches(
             );
         }
 
-        let processedFields = 0;
-        for (const field of fieldsToPrewarm) {
-            if (isChartsTab(getState("ui.activeTab"))) {
-                return { processedFields, skipped: false };
-            }
-
-            if (dependencies.getFieldVisibility(field) === "hidden") {
-                continue;
-            }
-
-            const entry = getFieldSeriesEntry(
-                recordMesgs,
-                field,
-                dataSettingsSignature,
-                convert
-            );
-            getCachedSeriesForSettings(entry, labels, normalizedMaxPoints);
-
-            processedFields += 1;
-
-            if (yieldEvery > 0 && processedFields % yieldEvery === 0) {
-                await waitForNextTask();
-            }
-        }
+        const processedFields = await processPrewarmFieldChunk({
+            convert,
+            dataSettingsSignature,
+            fieldsToPrewarm,
+            getActiveTab,
+            getFieldVisibility: (field) =>
+                dependencies.getFieldVisibility(field),
+            labels,
+            normalizedMaxPoints,
+            processedFields: 0,
+            recordMesgs,
+            startIndex: 0,
+            yieldEvery,
+        });
 
         if (isDevelopmentEnvironment()) {
             console.log(
