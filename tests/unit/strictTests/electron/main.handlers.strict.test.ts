@@ -459,6 +459,50 @@ describe("main.js strict handlers and events", () => {
         // In test mode, menu creation is a no-op; verifying no throw is sufficient
     });
 
+    it("blocks devtools menu injection outside development", async () => {
+        expect.assertions(3);
+
+        await import("../../../../electron-app/main.js");
+
+        const injectCall = findRequiredCall(
+            mockIpcMain.handle.mock.calls,
+            "devtools-inject-menu",
+            "ipcMain.handle"
+        );
+        expect(injectCall[0]).toBe("devtools-inject-menu");
+        const injectMenu = getRequiredHandler(injectCall);
+        const realPath = await vi.importActual<typeof import("node:path")>(
+            "node:path"
+        );
+        const realUrl = await vi.importActual<typeof import("node:url")>(
+            "node:url"
+        );
+        const appPath = realPath.join(process.cwd(), "electron-app");
+        const senderFrameUrl = realUrl.pathToFileURL(
+            realPath.join(appPath, "index.html")
+        ).href;
+
+        const originalNodeEnv = process.env.NODE_ENV;
+        createAppMenu.mockClear();
+        try {
+            process.env.NODE_ENV = "production";
+            mockApp.getAppPath.mockReturnValue(appPath);
+            expect(
+                injectMenu(
+                    {
+                        sender: mockMainWindow.webContents,
+                        senderFrame: { url: senderFrameUrl },
+                    },
+                    "dark",
+                    "C:/untrusted.fit"
+                )
+            ).toBe(false);
+            expect(createAppMenu).not.toHaveBeenCalled();
+        } finally {
+            process.env.NODE_ENV = originalNodeEnv;
+        }
+    });
+
     it("validates shell:openExternal and file:read/fit handlers", async () => {
         expect.assertions(14);
 

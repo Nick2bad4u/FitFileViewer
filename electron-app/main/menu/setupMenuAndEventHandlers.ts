@@ -240,6 +240,13 @@
         }
     }
 
+    function isDevtoolsMenuInjectionAllowed(): boolean {
+        return (
+            process.env?.["NODE_ENV"] === "development" ||
+            process.env?.["NODE_ENV"] === "test"
+        );
+    }
+
     /**
      * Registers menu-related IPC handlers and listeners.
      */
@@ -460,6 +467,14 @@
         registerIpcHandle(
             "devtools-inject-menu",
             (event, theme, fitFilePath): DevtoolsInjectMenuResponse => {
+                if (!isDevtoolsMenuInjectionAllowed()) {
+                    logWithContext(
+                        "warn",
+                        "Blocked devtools menu injection outside development"
+                    );
+                    return false;
+                }
+
                 const filePath =
                     typeof fitFilePath === "string" && fitFilePath
                         ? fitFilePath
