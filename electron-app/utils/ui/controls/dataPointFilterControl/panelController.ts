@@ -145,7 +145,7 @@ export function createPanelController({
             capture: true,
             signal,
         });
-        panel.addEventListener("keydown", handleEscapeKey, { signal });
+        document.addEventListener("keydown", handleEscapeKey, { signal });
         window.addEventListener("resize", handleViewportResize, { signal });
         window.addEventListener("scroll", handleViewportScroll, {
             capture: true,

@@ -151,7 +151,9 @@ describe("mapActionButtons", () => {
             await import("../../../../electron-app/utils/maps/controls/mapActionButtons.js");
 
             expect(activeFileName.style.cursor).toBe("pointer");
-            expect(activeFileName.title).toBe("Center map on main file");
+            expect(activeFileName.title).toBe(
+                "Click to center map on main file"
+            );
             expect(activeFileName.getAttribute("role")).toBe("button");
             expect(activeFileName.getAttribute("tabindex")).toBe("0");
             expect(activeFileName.getAttribute("aria-label")).toBe(

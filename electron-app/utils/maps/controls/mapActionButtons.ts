@@ -372,7 +372,7 @@ function setupActiveFileNameMapActions(): void {
 
         // Configure element appearance and behavior
         activeFileName.style.cursor = "pointer";
-        activeFileName.title = "Center map on main file";
+        activeFileName.title = "Click to center map on main file";
         activeFileName.setAttribute("role", "button");
         activeFileName.setAttribute("tabindex", "0");
         activeFileName.setAttribute("aria-label", "Center map on main file");
