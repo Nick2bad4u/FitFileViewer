@@ -166,6 +166,7 @@ let focusTimer: ReturnType<typeof setTimeout> | null = null;
 let focusTrapCleanup: (() => void) | null = null;
 let hideTimer: ReturnType<typeof setTimeout> | null = null;
 let lastFocusedElement: HTMLElement | null = null;
+let modalEventCleanups: Array<() => void> = [];
 let showAnimationFrame: number | null = null;
 
 /**
@@ -461,6 +462,11 @@ export function showAboutModal(html = ""): void {
     ensureAboutModal();
     const modal = document.querySelector<HTMLElement>("#about-modal");
     if (modal) {
+        if (hideTimer) {
+            clearTimeout(hideTimer);
+            hideTimer = null;
+        }
+
         const body = document.querySelector<HTMLElement>("#about-modal-body"),
             closeBtn =
                 document.querySelector<HTMLElement>("#about-modal-close"),
@@ -494,7 +500,7 @@ export function showAboutModal(html = ""): void {
             });
 
             // Set up event listeners
-            escapeKeyCleanup?.();
+            cleanupAboutModalEventListeners();
             escapeKeyCleanup = addEventListenerWithCleanup(
                 document,
                 "keydown",
@@ -502,20 +508,21 @@ export function showAboutModal(html = ""): void {
                 true
             );
 
-            addEventListenerWithCleanup(closeBtn, "click", (e) => {
-                e.preventDefault();
-                hideAboutModal();
-            });
-
-            addEventListenerWithCleanup(closeBtn, "keydown", (e) => {
-                if (
-                    e instanceof KeyboardEvent &&
-                    (e.key === "Enter" || e.key === " ")
-                ) {
+            modalEventCleanups.push(
+                addEventListenerWithCleanup(closeBtn, "click", (e) => {
                     e.preventDefault();
                     hideAboutModal();
-                }
-            });
+                }),
+                addEventListenerWithCleanup(closeBtn, "keydown", (e) => {
+                    if (
+                        e instanceof KeyboardEvent &&
+                        (e.key === "Enter" || e.key === " ")
+                    ) {
+                        e.preventDefault();
+                        hideAboutModal();
+                    }
+                })
+            );
 
             if (copyBtn) {
                 const runCopy = async () => {
@@ -555,20 +562,21 @@ export function showAboutModal(html = ""): void {
                     }
                 };
 
-                addEventListenerWithCleanup(copyBtn, "click", (e) => {
-                    e.preventDefault();
-                    void runCopy();
-                });
-
-                addEventListenerWithCleanup(copyBtn, "keydown", (e) => {
-                    if (
-                        e instanceof KeyboardEvent &&
-                        (e.key === "Enter" || e.key === " ")
-                    ) {
+                modalEventCleanups.push(
+                    addEventListenerWithCleanup(copyBtn, "click", (e) => {
                         e.preventDefault();
                         void runCopy();
-                    }
-                });
+                    }),
+                    addEventListenerWithCleanup(copyBtn, "keydown", (e) => {
+                        if (
+                            e instanceof KeyboardEvent &&
+                            (e.key === "Enter" || e.key === " ")
+                        ) {
+                            e.preventDefault();
+                            void runCopy();
+                        }
+                    })
+                );
             }
             // No toggle button: features + system info are displayed together.
 
@@ -577,21 +585,29 @@ export function showAboutModal(html = ""): void {
             // Attach handlers to .modal-content so delegated link clicks are still observed.
             const modalContentForLinks =
                 modal.querySelector(".modal-content") ?? modal;
-            attachExternalLinkHandlers({ root: modalContentForLinks });
 
             // Close on backdrop click
-            addEventListenerWithCleanup(modal, "click", (e) => {
-                if (e.target === modal) {
-                    hideAboutModal();
-                }
-            });
+            modalEventCleanups.push(
+                attachExternalLinkHandlers({ root: modalContentForLinks }),
+                addEventListenerWithCleanup(modal, "click", (e) => {
+                    if (e.target === modal) {
+                        hideAboutModal();
+                    }
+                })
+            );
 
             // Prevent modal content clicks from closing modal
             const modalContent = modal.querySelector(".modal-content");
             if (modalContent) {
-                addEventListenerWithCleanup(modalContent, "click", (e) => {
-                    e.stopPropagation();
-                });
+                modalEventCleanups.push(
+                    addEventListenerWithCleanup(
+                        modalContent,
+                        "click",
+                        (e) => {
+                            e.stopPropagation();
+                        }
+                    )
+                );
             }
 
             // Focus management - focus close button after animation
@@ -692,10 +708,19 @@ function hideAboutModal(): void {
             }
 
             // Clean up event listeners
-            escapeKeyCleanup?.();
-            escapeKeyCleanup = null;
+            cleanupAboutModalEventListeners();
         }, modalAnimationDuration);
     }
+}
+
+function cleanupAboutModalEventListeners(): void {
+    escapeKeyCleanup?.();
+    escapeKeyCleanup = null;
+
+    for (const cleanup of modalEventCleanups) {
+        cleanup();
+    }
+    modalEventCleanups = [];
 }
 
 /**
