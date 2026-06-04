@@ -91,7 +91,9 @@ const EXPECTED_PRELOAD_CHANNELS = {
 } as const;
 
 const EXPECTED_PRELOAD_EVENTS = {
+    FIT_BROWSER_ENABLED_CHANGED: "fit-browser-enabled-changed",
     FIT_FILE_LOADED: "fit-file-loaded",
+    GYAZO_OAUTH_CALLBACK: "gyazo-oauth-callback",
     INSTALL_UPDATE: "install-update",
     MENU_CHECK_FOR_UPDATES: "menu-check-for-updates",
     MENU_OPEN_FILE: "menu-open-file",
@@ -101,6 +103,7 @@ const EXPECTED_PRELOAD_EVENTS = {
     SET_FULLSCREEN: "set-fullscreen",
     SET_THEME: "set-theme",
     THEME_CHANGED: "theme-changed",
+    UNLOAD_FIT_FILE: "unload-fit-file",
 } as const;
 
 const developmentToolsGlobalName = ["dev", "Tools"].join("");
@@ -379,7 +382,7 @@ describe("preload.js dist API methods", () => {
                 channels: EXPECTED_PRELOAD_CHANNELS,
                 events: EXPECTED_PRELOAD_EVENTS,
                 totalChannels: 27,
-                totalEvents: 10,
+                totalEvents: Object.keys(EXPECTED_PRELOAD_EVENTS).length,
             });
         });
 
@@ -396,7 +399,7 @@ describe("preload.js dist API methods", () => {
         });
 
         it("should include all expected event names", () => {
-            expect.assertions(10);
+            expect.assertions(Object.keys(EXPECTED_PRELOAD_EVENTS).length);
             const { exposedAPI } = createPreloadEnvironment();
             const channelInfo = exposedAPI.getChannelInfo();
 
@@ -991,7 +994,7 @@ describe("preload.js dist API methods", () => {
                 channels: EXPECTED_PRELOAD_CHANNELS,
                 events: EXPECTED_PRELOAD_EVENTS,
                 totalChannels: 27,
-                totalEvents: 10,
+                totalEvents: Object.keys(EXPECTED_PRELOAD_EVENTS).length,
             });
             expect(exposedAPI.getChannelInfo().channels).not.toHaveProperty(
                 "UNKNOWN_CHANNEL"
@@ -1007,7 +1010,7 @@ describe("preload.js dist API methods", () => {
                 channels: EXPECTED_PRELOAD_CHANNELS,
                 events: EXPECTED_PRELOAD_EVENTS,
                 totalChannels: 27,
-                totalEvents: 10,
+                totalEvents: Object.keys(EXPECTED_PRELOAD_EVENTS).length,
             });
         });
     });

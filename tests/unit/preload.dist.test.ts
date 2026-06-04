@@ -131,7 +131,9 @@ const EXPECTED_PRELOAD_CHANNELS = {
 } as const;
 
 const EXPECTED_PRELOAD_EVENTS = {
+    FIT_BROWSER_ENABLED_CHANGED: "fit-browser-enabled-changed",
     FIT_FILE_LOADED: "fit-file-loaded",
+    GYAZO_OAUTH_CALLBACK: "gyazo-oauth-callback",
     INSTALL_UPDATE: "install-update",
     MENU_CHECK_FOR_UPDATES: "menu-check-for-updates",
     MENU_OPEN_FILE: "menu-open-file",
@@ -141,6 +143,7 @@ const EXPECTED_PRELOAD_EVENTS = {
     SET_FULLSCREEN: "set-fullscreen",
     SET_THEME: "set-theme",
     THEME_CHANGED: "theme-changed",
+    UNLOAD_FIT_FILE: "unload-fit-file",
 } as const;
 
 const EXPECTED_PRELOAD_CONSTANTS = {
@@ -173,8 +176,10 @@ const EXPECTED_ELECTRON_API_METHODS = [
     "getTheme",
     "injectMenu",
     "installUpdate",
+    "onGyazoOAuthCallback",
     "invoke",
     "isFitBrowserEnabled",
+    "onFitBrowserEnabledChanged",
     "listenToMainState",
     "listFitBrowserFolder",
     "notifyFitFileLoaded",
@@ -183,6 +188,7 @@ const EXPECTED_ELECTRON_API_METHODS = [
     "onMenuOpenOverlay",
     "onOpenRecentFile",
     "onOpenSummaryColumnSelector",
+    "onUnloadFitFile",
     "onSetTheme",
     "onUpdateEvent",
     "openExternal",

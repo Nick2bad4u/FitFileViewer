@@ -8,10 +8,10 @@ type GyazoServerResult = {
     success: boolean;
 };
 
-type GyazoCallbackHandler = (event: unknown, data: unknown) => void;
+type GyazoCallbackHandler = (data: unknown) => void;
 
 type TestElectronAPI = {
-    onIpc: (channel: string, handler: GyazoCallbackHandler) => () => void;
+    onGyazoOAuthCallback: (handler: GyazoCallbackHandler) => () => void;
     startGyazoServer: (port: number) => Promise<GyazoServerResult>;
     stopGyazoServer: () => Promise<void>;
 };
@@ -42,7 +42,9 @@ describe("exportUtils OAuth state generation", () => {
             ),
             startGyazoServer = vi.fn<TestElectronAPI["startGyazoServer"]>(),
             testElectronAPI: TestElectronAPI = {
-                onIpc: vi.fn<TestElectronAPI["onIpc"]>(() => () => {}),
+                onGyazoOAuthCallback: vi.fn<
+                    TestElectronAPI["onGyazoOAuthCallback"]
+                >(() => () => {}),
                 startGyazoServer,
                 stopGyazoServer: vi.fn<TestElectronAPI["stopGyazoServer"]>(),
             };

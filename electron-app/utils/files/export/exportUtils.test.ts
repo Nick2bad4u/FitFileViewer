@@ -30,6 +30,12 @@ vi.mock("chart.js/auto", () => ({
 // Global mocks
 const localStorageEntries = new Map<string, string>();
 
+function noopElectronIpcUnsubscribe(): void {}
+
+function createElectronIpcUnsubscribe(): () => void {
+    return noopElectronIpcUnsubscribe;
+}
+
 Object.defineProperty(globalThis, "electronAPI", {
     value: {
         showSaveDialog: vi.fn(() => Promise.resolve({ filePath: "test.png" })),
@@ -44,7 +50,7 @@ Object.defineProperty(globalThis, "electronAPI", {
         stopGyazoServer: vi.fn(() => Promise.resolve()),
         openExternal: vi.fn(() => Promise.resolve()),
         // Provide an OAuth callback mock used by authenticateWithGyazo
-        onGyazoOAuthCallback: vi.fn(),
+        onGyazoOAuthCallback: vi.fn(createElectronIpcUnsubscribe),
     },
     writable: true,
 });

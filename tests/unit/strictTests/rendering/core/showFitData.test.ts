@@ -29,9 +29,10 @@ vi.mock(
 type ShowFitDataTestGlobal = typeof globalThis & {
     createTables?: (data: Record<string, unknown>) => void;
     electronAPI?: {
-        send: Mock<(channel: string, filePath: string) => void>;
+        notifyFitFileLoaded: Mock<(filePath: string) => void>;
     };
     globalData?: Record<string, unknown>;
+    isMapRendered?: boolean;
     renderMap?: () => void;
     renderSummary?: (data: Record<string, unknown>) => void;
     setTabButtonsEnabled?: (enabled: boolean) => void;
@@ -62,8 +63,9 @@ describe("showFitData", () => {
         );
         const showFitGlobal = getShowFitDataTestGlobal();
         showFitGlobal.electronAPI = {
-            send: vi.fn<(channel: string, filePath: string) => void>(),
+            notifyFitFileLoaded: vi.fn<(filePath: string) => void>(),
         };
+        showFitGlobal.isMapRendered = false;
         showFitGlobal.setTabButtonsEnabled = () => undefined;
         showFitGlobal.createTables = () => undefined;
         showFitGlobal.renderSummary = () => undefined;
@@ -89,6 +91,7 @@ describe("showFitData", () => {
         const showFitGlobal = getShowFitDataTestGlobal();
         delete showFitGlobal.electronAPI;
         delete showFitGlobal.globalData;
+        delete showFitGlobal.isMapRendered;
         delete showFitGlobal.setTabButtonsEnabled;
         delete showFitGlobal.createTables;
         delete showFitGlobal.renderSummary;
@@ -127,10 +130,9 @@ describe("showFitData", () => {
         expect(showFitGlobal.renderSummary).toHaveBeenCalledWith(data);
 
         // IPC send
-        expect(showFitGlobal.electronAPI?.send).toHaveBeenCalledWith(
-            "fit-file-loaded",
-            filePath
-        );
+        expect(
+            showFitGlobal.electronAPI?.notifyFitFileLoaded
+        ).toHaveBeenCalledWith(filePath);
     });
 
     it("throws on invalid data and writes error state", async () => {

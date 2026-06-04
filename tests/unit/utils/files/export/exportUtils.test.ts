@@ -52,9 +52,8 @@ type MockZip = AddCombinedCsvZip & {
         >
     >;
 };
-type OnIpc = (
-    channel: string,
-    listener: (...args: unknown[]) => void
+type OnGyazoOAuthCallback = (
+    listener: (data: unknown) => void
 ) => ElectronIpcUnsubscribe;
 type SaveFile = (path: string, data: Blob | string) => Promise<void> | void;
 type ShowNotification = (
@@ -70,14 +69,23 @@ const mockShowNotification = vi.fn<ShowNotification>();
 const mockDetectCurrentTheme = vi
     .fn<DetectCurrentTheme>()
     .mockReturnValue("light");
+
+function noopElectronIpcUnsubscribe(): void {}
+
+function createElectronIpcUnsubscribe(): ElectronIpcUnsubscribe {
+    return noopElectronIpcUnsubscribe;
+}
+
 const mockElectronAPI = {
-    startGyazoServer: vi.fn<StartGyazoServer>(),
-    stopGyazoServer: vi.fn<() => Promise<void> | void>(),
-    // authenticateWithGyazo registers an IPC listener and expects an unsubscribe function.
-    onIpc: vi.fn<OnIpc>(() => () => {}),
-    saveFile: vi.fn<SaveFile>(),
     copyToClipboard: vi.fn<(value: string) => Promise<void> | void>(),
     downloadFile: vi.fn<DownloadFile>(),
+    // AuthenticateWithGyazo registers an IPC listener and expects an unsubscribe function.
+    onGyazoOAuthCallback: vi.fn<OnGyazoOAuthCallback>(
+        createElectronIpcUnsubscribe
+    ),
+    saveFile: vi.fn<SaveFile>(),
+    startGyazoServer: vi.fn<StartGyazoServer>(),
+    stopGyazoServer: vi.fn<() => Promise<void> | void>(),
 };
 
 // Mock JSZip

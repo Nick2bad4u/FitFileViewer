@@ -125,6 +125,7 @@ function createElectronAPIMock() {
         addRecentFile: vi.fn<AddRecentFileMock>(),
 
         // Main process send
+        checkForUpdates: vi.fn<() => void>(),
         send: vi.fn<(channel: string) => void>(),
     };
 }
@@ -683,9 +684,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         window.electronAPI.emit("menu-check-for-updates");
         window.electronAPI.emit("menu-save-as");
         window.electronAPI.emit("menu-export");
-        expect(window.electronAPI.send).toHaveBeenCalledWith(
-            "menu-check-for-updates"
-        );
+        expect(window.electronAPI.checkForUpdates).toHaveBeenCalledWith();
         expect(window.electronAPI.send).toHaveBeenCalledWith("menu-save-as");
         expect(window.electronAPI.send).toHaveBeenCalledWith("menu-export");
     });
