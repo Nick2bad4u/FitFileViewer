@@ -32,6 +32,13 @@ function isZoneType(value: string): value is ZoneType {
     return value === "hr" || value === "power";
 }
 
+function getStringArray(value: unknown): null | string[] {
+    return Array.isArray(value) &&
+        value.every((entry): entry is string => typeof entry === "string")
+        ? [...value]
+        : null;
+}
+
 const FALLBACK_HR_ZONE_COLORS: string[] = [
     "#808080",
     "#3b82f665",
@@ -175,9 +182,9 @@ function isSafeCssColorToken(value: unknown): value is string {
 
     // Accept common safe formats.
     if (/^#[\da-f]{3,4}$/iu.test(v)) return true; // #RGB / #RGBA
-    if (/^#[\da-f]{6}([\da-f]{2})?$/iu.test(v)) return true; // #RRGGBB / #RRGGBBAA
+    if (/^#[\da-f]{6}(?:[\da-f]{2})?$/iu.test(v)) return true; // #RRGGBB / #RRGGBBAA
     if (
-        /^rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}(\s*,\s*(0|1|0?\.\d+))?\s*\)$/iu.test(
+        /^rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}(?:\s*,\s*(?:0|1|0?\.\d+))?\s*\)$/iu.test(
             v
         )
     )
@@ -220,12 +227,12 @@ export const clearCachedZoneColors = (
     field: string,
     zoneCount: number
 ): void => {
-    for (let i = 0; i < zoneCount; i++) {
+    for (let i = 0; i < zoneCount; i += 1) {
         chartSpecificZoneColorCache.delete(`${field}:${i}`);
     }
     const zoneType = getZoneTypeFromField(field);
     if (zoneType) {
-        for (let i = 0; i < zoneCount; i++) {
+        for (let i = 0; i < zoneCount; i += 1) {
             zoneColorCache.delete(`${zoneType}:${i}`);
         }
     }
@@ -249,18 +256,14 @@ function getDefaultZoneColors(zoneType: ZoneType): string[] {
             ? themeConfig.colors
             : undefined) || {};
     if (zoneType === "power") {
-        const powerColors = Array.isArray(colors["powerZoneColors"])
-            ? colors["powerZoneColors"]
-            : null;
-        return powerColors && powerColors.length
-            ? [...powerColors]
+        const powerColors = getStringArray(colors["powerZoneColors"]);
+        return powerColors && powerColors.length > 0
+            ? powerColors
             : FALLBACK_POWER_ZONE_COLORS;
     }
-    const hrColors = Array.isArray(colors["heartRateZoneColors"])
-        ? colors["heartRateZoneColors"]
-        : null;
-    return hrColors && hrColors.length
-        ? [...hrColors]
+    const hrColors = getStringArray(colors["heartRateZoneColors"]);
+    return hrColors && hrColors.length > 0
+        ? hrColors
         : FALLBACK_HR_ZONE_COLORS;
 }
 
@@ -286,7 +289,7 @@ export function applyZoneColors(
         return zoneData;
     }
 
-    const zoneColors = zoneData.length
+    const zoneColors = zoneData.length > 0
         ? getZoneColors(zoneType, zoneData.length)
         : [];
 
@@ -339,7 +342,7 @@ export function getChartSpecificZoneColors(
     zoneCount: number
 ): string[] {
     const colors: string[] = [];
-    for (let i = 0; i < zoneCount; i++) {
+    for (let i = 0; i < zoneCount; i += 1) {
         colors.push(getChartSpecificZoneColor(chartField, i));
     }
     return colors;
@@ -367,7 +370,7 @@ export function getChartZoneColors(
     const schemeColors = scheme?.[zoneType];
     if (schemeColors) {
         const colors: string[] = [];
-        for (let i = 0; i < zoneCount; i++) {
+        for (let i = 0; i < zoneCount; i += 1) {
             colors.push(
                 schemeColors[i] ||
                     schemeColors[i % schemeColors.length] ||
@@ -404,8 +407,9 @@ export function getDisplayZoneColors(
  */
 export function getZoneColor(zoneType: string, zoneIndex: number): string {
     const cacheKey = `${zoneType}:${zoneIndex}`;
-    if (zoneColorCache.has(cacheKey)) {
-        return zoneColorCache.get(cacheKey) as string;
+    const cachedValue = zoneColorCache.get(cacheKey);
+    if (typeof cachedValue === "string") {
+        return cachedValue;
     }
 
     const storedColor = getStoredZoneColor(zoneType, zoneIndex);
@@ -430,7 +434,7 @@ export function getZoneColor(zoneType: string, zoneIndex: number): string {
  */
 export function getZoneColors(zoneType: string, zoneCount: number): string[] {
     const colors: string[] = [];
-    for (let i = 0; i < zoneCount; i++) {
+    for (let i = 0; i < zoneCount; i += 1) {
         colors.push(getZoneColor(zoneType, i));
     }
     return colors;
@@ -455,7 +459,7 @@ export function hasChartSpecificColors(
     chartField: string,
     zoneCount: number
 ): boolean {
-    for (let i = 0; i < zoneCount; i++) {
+    for (let i = 0; i < zoneCount; i += 1) {
         if (getStoredChartSpecificZoneColor(chartField, i)) {
             return true;
         }
@@ -502,7 +506,7 @@ export function resetChartSpecificZoneColors(
     // Set color scheme to custom when resetting zone colors
     setChartColorScheme(chartField, "custom");
 
-    for (let i = 0; i < zoneCount; i++) {
+    for (let i = 0; i < zoneCount; i += 1) {
         const defaultColor =
             defaultColors[i] ||
             defaultColors[i % defaultColors.length] ||
@@ -518,7 +522,7 @@ export function resetZoneColors(zoneType: string, zoneCount: number): void {
     const defaultColors =
         zoneType === "hr" ? DEFAULT_HR_ZONE_COLORS : DEFAULT_POWER_ZONE_COLORS;
 
-    for (let i = 0; i < zoneCount; i++) {
+    for (let i = 0; i < zoneCount; i += 1) {
         const defaultColor =
             defaultColors[i] ||
             defaultColors[i % defaultColors.length] ||
