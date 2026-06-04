@@ -365,14 +365,14 @@ describe("exportUtils", () => {
                 .mockImplementation(() => {});
             const mockZip = createMockZip();
 
-            await expect(
+            expect(
                 exportUtils.addCombinedCSVToZip(
                     mockZip,
                     null as unknown as Parameters<
                         typeof exportUtils.addCombinedCSVToZip
                     >[1]
                 )
-            ).resolves.toBeUndefined();
+            ).toBeUndefined();
 
             expect(mockZip.file).not.toHaveBeenCalled();
             expect(consoleErrorSpy).toHaveBeenCalledWith(
@@ -441,9 +441,7 @@ describe("exportUtils", () => {
 
             const chart = { data: { datasets: [] } }; // Chart without toBase64Image
 
-            await expect(
-                exportUtils.downloadChartAsPNG(chart)
-            ).resolves.toBeUndefined();
+            expect(exportUtils.downloadChartAsPNG(chart)).toBeUndefined();
 
             expect(global.document.createElement).not.toHaveBeenCalledWith("a");
             expect(mockShowNotification).toHaveBeenCalledWith(
@@ -514,9 +512,9 @@ describe("exportUtils", () => {
                 throw new Error("object URL failed");
             });
 
-            await expect(
+            expect(
                 exportUtils.exportChartDataAsCSV([{ x: 1000, y: 25 }], "Speed")
-            ).resolves.toBeUndefined();
+            ).toBeUndefined();
 
             expect(mockLink.href).toBe("");
             expect(mockLink.download).toBe("");
@@ -566,9 +564,9 @@ describe("exportUtils", () => {
                 throw new Error("object URL failed");
             });
 
-            await expect(
+            expect(
                 exportUtils.exportChartDataAsJSON([{ x: 1000, y: 25 }], "Speed")
-            ).resolves.toBeUndefined();
+            ).toBeUndefined();
 
             expect(mockLink.href).toBe("");
             expect(mockLink.download).toBe("");

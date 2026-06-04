@@ -344,7 +344,9 @@ describe("masterStateManager comprehensive behavior", () => {
 
             moduleMocks["C:/fit/utils/state/domain/fitFileState.js"] = {};
 
-            await expect(manager.initializeFitFileComponents()).rejects.toThrow(
+            expect(() => {
+                manager.initializeFitFileComponents();
+            }).toThrow(
                 "FIT file state manager not available"
             );
         });

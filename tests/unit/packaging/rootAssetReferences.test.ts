@@ -311,6 +311,8 @@ describe("root app shell asset references", () => {
                 "../icons/favicon.svg",
                 "./manifest.json",
                 "../icons/favicon.svg",
+                "./electron-analytics-blocker.js",
+                "./electron-altfit-bridge.js",
             ],
             unexpectedAssetReferences: [],
         });

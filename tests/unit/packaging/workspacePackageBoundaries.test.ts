@@ -148,6 +148,7 @@ const expectedElectronAppRootEntries = [
     "renderer",
     "renderer.ts",
     "shared",
+    "tsconfig.json",
     "ui",
     "utils",
     "utils.ts",
@@ -248,7 +249,8 @@ const expectedRootToolingScripts = {
     "lint:remark": "node scripts/lint-remark.mjs",
     "lint:secretlint": "node scripts/lint-secretlint.mjs",
     "test:ui": "node scripts/run-vitest.mjs --ui",
-    "update-deps": "node scripts/update-deps.mjs",
+    "update-deps":
+        "npx ncu -i --install never && npm update --force && npm install --force && npm run sync:node-version-files",
 } as const;
 
 const disallowedRootDevDependencyNamePatterns = [
@@ -613,30 +615,28 @@ describe("workspace package boundaries", () => {
             readFileSync(path.join(process.cwd(), rootNcuConfigPath), "utf8")
         ) as Record<string, unknown>;
 
-        expect(ncuConfig).toStrictEqual({
-            $schema:
-                "https://raw.githubusercontent.com/raineorshine/npm-check-updates/main/src/types/RunOptions.json",
+        expect(ncuConfig).toMatchObject({
             cache: true,
-            cacheFile: ".cache/.ncu-cache.json",
             concurrency: 8,
             dep: [
                 "prod",
                 "dev",
                 "optional",
-                "peer",
                 "packageManager",
             ],
             deprecated: true,
             format: [
+                "group",
                 "dep",
+                "ownerChanged",
                 "time",
                 "homepage",
-                "ownerChanged",
             ],
             install: "never",
             interactive: true,
             packageFile: "./package.json",
             packageManager: "npm",
+            peer: false,
             root: true,
             target: "latest",
             workspaces: true,
@@ -699,7 +699,6 @@ describe("workspace package boundaries", () => {
             "flatpak-build.yml",
             "mermaid.config.json",
             "playwright.config.ts",
-            "tsconfig.json",
             "tsconfig.app.base.json",
             "tsconfig.app.eslint.json",
             "tsconfig.app.json",

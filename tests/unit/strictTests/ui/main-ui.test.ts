@@ -447,7 +447,7 @@ describe("main-ui.js core flows", () => {
         expect(fitFileStateManager.handleFileLoaded).not.toHaveBeenCalled();
         expect(btn.style.display).toBe("none");
         expect(document.title).toBe(DEFAULT_TITLE);
-        expect(UIActions.showTab).toHaveBeenCalledWith("tab_map");
+        expect(UIActions.showTab).toHaveBeenCalledWith("map");
 
         api.emit("unload-fit-file");
         expect(api.send).toHaveBeenCalledTimes(2);

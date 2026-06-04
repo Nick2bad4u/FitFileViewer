@@ -254,11 +254,11 @@ describe("renderMap core", () => {
         expect(controlsDiv).toBeInstanceOf(HTMLDivElement);
 
         // Custom map type button exists and expands layer control on click
-        const btn = document.querySelector<HTMLDivElement>(
+        const btn = document.querySelector<HTMLButtonElement>(
             ".custom-maptype-btn"
         );
-        expect(btn).toBeInstanceOf(HTMLDivElement);
-        const button = btn as HTMLDivElement;
+        expect(btn).toBeInstanceOf(HTMLButtonElement);
+        const button = btn as HTMLButtonElement;
 
         // Fake a layers control DOM to check expansion then collapse behavior
         const layersPanel = document.createElement("div");
