@@ -45,7 +45,7 @@ type OptimizedEventHandler<T extends Event> = ((event: T) => void) & {
  * Batch multiple operations together.
  */
 export function batchOperations<T>(
-    callback: (items: T[]) => void,
+    batchCallback: (items: T[]) => void,
     options: BatchOptions = {}
 ): (item: T) => void {
     const { maxItems = 100, maxWait = 50 } = options;
@@ -55,7 +55,7 @@ export function batchOperations<T>(
     function flush(): void {
         if (items.length > 0) {
             const toProcess = items.splice(0);
-            callback(toProcess);
+            batchCallback(toProcess);
         }
         if (timeoutId !== undefined) {
             clearTimeout(timeoutId);
@@ -182,12 +182,16 @@ export function debounce<This, Args extends unknown[], Return>(
         return timeoutId === undefined ? result : trailingEdge(Date.now());
     }
 
+    function setLastThis(value: This): void {
+        lastThis = value;
+    }
+
     function debounced(this: This, ...args: Args): Return | undefined {
         const time = Date.now();
         const isInvoking = shouldInvoke(time);
 
         lastArgs = args;
-        lastThis = this;
+        setLastThis(this);
         lastCallTime = time;
 
         if (isInvoking && timeoutId === undefined) {
@@ -247,7 +251,7 @@ export function optimizeEventHandler<T extends Event>(
         throttle: throttleMs,
     } = options;
 
-    let optimizedHandler: (event: T) => void | undefined = handler;
+    let optimizedHandler: (event: T) => void = handler;
 
     if (throttleMs !== undefined) {
         optimizedHandler = throttle(handler, throttleMs);

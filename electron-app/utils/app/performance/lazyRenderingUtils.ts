@@ -26,6 +26,22 @@ type IdleRequestGlobal = typeof globalThis & {
     ) => number;
 };
 
+function runAsyncVoidCallback(
+    task: AsyncVoidCallback,
+    errorPrefix: string
+): void {
+    try {
+        const result = task();
+        if (isPromiseLike(result)) {
+            void result.catch((error: unknown) => {
+                console.error(errorPrefix, error);
+            });
+        }
+    } catch (error) {
+        console.error(errorPrefix, error);
+    }
+}
+
 /**
  * Batch DOM reads to avoid layout thrashing
  */
@@ -109,23 +125,10 @@ export function createLazyRenderer(
                     "[LazyRenderer] Element visible, triggering render"
                 );
 
-                // Execute callback
-                try {
-                    const result = renderCallback();
-                    if (isPromiseLike(result)) {
-                        void result.catch((error: unknown) => {
-                            console.error(
-                                "[LazyRenderer] Render callback error:",
-                                error
-                            );
-                        });
-                    }
-                } catch (error) {
-                    console.error(
-                        "[LazyRenderer] Render callback error:",
-                        error
-                    );
-                }
+                runAsyncVoidCallback(
+                    renderCallback,
+                    "[LazyRenderer] Render callback error:"
+                );
 
                 // Disconnect if once=true
                 if (once && observer) {
@@ -141,11 +144,10 @@ export function createLazyRenderer(
             console.warn(
                 "[LazyRenderer] IntersectionObserver not available, rendering immediately"
             );
-            try {
-                renderCallback();
-            } catch (error) {
-                console.error("[LazyRenderer] Immediate render error:", error);
-            }
+            runAsyncVoidCallback(
+                renderCallback,
+                "[LazyRenderer] Immediate render error:"
+            );
             return;
         }
 
@@ -183,11 +185,10 @@ export function deferUntilIdle(
     if (typeof idleGlobal.requestIdleCallback === "function") {
         return idleGlobal.requestIdleCallback(
             () => {
-                try {
-                    void callback();
-                } catch (error) {
-                    console.error("[DeferUntilIdle] Callback error:", error);
-                }
+                runAsyncVoidCallback(
+                    callback,
+                    "[DeferUntilIdle] Callback error:"
+                );
             },
             { timeout }
         );
@@ -195,11 +196,7 @@ export function deferUntilIdle(
 
     // Fallback to setTimeout
     return setTimeout(() => {
-        try {
-            void callback();
-        } catch (error) {
-            console.error("[DeferUntilIdle] Callback error:", error);
-        }
+        runAsyncVoidCallback(callback, "[DeferUntilIdle] Callback error:");
     }, 0);
 }
 
