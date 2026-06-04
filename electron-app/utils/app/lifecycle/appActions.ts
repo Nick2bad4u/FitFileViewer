@@ -93,7 +93,7 @@ export const AppActions = {
 
         console.log("[AppActions] Data cleared");
         if (options.notify !== false) {
-            showNotification(
+            void showNotification(
                 options.notificationMessage ?? "Data cleared",
                 "info",
             );
@@ -106,7 +106,7 @@ export const AppActions = {
      * @param fileData - Parsed FIT file data.
      * @param filePath - Path to the loaded file.
      */
-    async loadFile(fileData: unknown, filePath: string | null): Promise<void> {
+    loadFile(fileData: unknown, filePath: string | null): void {
         const manager =
             fitFileStateManagerLike &&
             typeof fitFileStateManagerLike.handleFileLoaded === "function"
@@ -149,7 +149,7 @@ export const AppActions = {
                     "[AppActions] Error delegating file load to fitFileStateManager",
                     error
                 );
-                showNotification("Failed to load file", "error");
+                void showNotification("Failed to load file", "error");
                 setState("isLoading", false, { source: "AppActions.loadFile" });
                 throw error;
             }
@@ -182,11 +182,11 @@ export const AppActions = {
                 source: "AppActions.loadFile",
             });
 
-            showNotification("File loaded successfully", "success");
+            void showNotification("File loaded successfully", "success");
             console.log("[AppActions] File loaded:", filePath);
         } catch (error) {
             console.error("[AppActions] Error loading file:", error);
-            showNotification("Failed to load file", "error");
+            void showNotification("Failed to load file", "error");
             throw error;
         } finally {
             setState("isLoading", false, { source: "AppActions.loadFile" });
@@ -309,7 +309,7 @@ export const AppActions = {
         setState("app.isOpeningFile", isOpening, {
             source: "AppActions.setFileOpening",
         });
-        console.log(`[AppActions] File opening state: ${isOpening}`);
+        console.log(`[AppActions] File opening state: ${String(isOpening)}`);
     },
 
     /**
@@ -321,7 +321,9 @@ export const AppActions = {
         setState("app.initialized", initialized, {
             source: "AppActions.setInitialized",
         });
-        console.log(`[AppActions] App initialization state: ${initialized}`);
+        console.log(
+            `[AppActions] App initialization state: ${String(initialized)}`
+        );
     },
 
     /**
