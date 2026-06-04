@@ -37,6 +37,7 @@
     type PreloadEventName =
         | "FIT_BROWSER_ENABLED_CHANGED"
         | "FIT_FILE_LOADED"
+        | "GYAZO_OAUTH_CALLBACK"
         | "INSTALL_UPDATE"
         | "MENU_CHECK_FOR_UPDATES"
         | "MENU_OPEN_FILE"
@@ -81,6 +82,7 @@
     const PRELOAD_EVENTS = {
         FIT_BROWSER_ENABLED_CHANGED: "fit-browser-enabled-changed",
         FIT_FILE_LOADED: "fit-file-loaded",
+        GYAZO_OAUTH_CALLBACK: "gyazo-oauth-callback",
         INSTALL_UPDATE: "install-update",
         MENU_CHECK_FOR_UPDATES: "menu-check-for-updates",
         MENU_OPEN_FILE: "menu-open-file",
@@ -117,7 +119,6 @@
     const EXTRA_RENDERER_ON_IPC_CHANNELS = [
         "decoder-options-changed",
         "export-file",
-        "gyazo-oauth-callback",
         "menu-about",
         "menu-export",
         "menu-keyboard-shortcuts",

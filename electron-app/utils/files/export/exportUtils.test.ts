@@ -43,8 +43,8 @@ Object.defineProperty(globalThis, "electronAPI", {
         ),
         stopGyazoServer: vi.fn(() => Promise.resolve()),
         openExternal: vi.fn(() => Promise.resolve()),
-        // Provide an onIpc mock used by authenticateWithGyazo
-        onIpc: vi.fn(),
+        // Provide an OAuth callback mock used by authenticateWithGyazo
+        onGyazoOAuthCallback: vi.fn(),
     },
     writable: true,
 });
@@ -338,14 +338,13 @@ describe("exportUtils", () => {
 
         it("cleans up state and subscriptions when user cancels", async () => {
             const unsubscribe = vi.fn();
-            let capturedHandler: ((event: any, data: any) => void) | null =
-                null;
-            vi.mocked((globalThis as any).electronAPI.onIpc).mockImplementation(
-                (_channel: string, handler: any) => {
-                    capturedHandler = handler;
-                    return unsubscribe;
-                }
-            );
+            let capturedHandler: ((data: any) => void) | null = null;
+            vi.mocked(
+                (globalThis as any).electronAPI.onGyazoOAuthCallback
+            ).mockImplementation((handler: any) => {
+                capturedHandler = handler;
+                return unsubscribe;
+            });
 
             vi.mocked(
                 (globalThis as any).electronAPI.startGyazoServer
@@ -389,21 +388,20 @@ describe("exportUtils", () => {
             expect(
                 document.querySelector(".gyazo-auth-modal-overlay")
             ).toBeNull();
-            // capturedHandler is unused here but ensures our onIpc wiring happened
+            // capturedHandler is unused here but ensures our OAuth callback wiring happened
             expect(capturedHandler).toBeTypeOf("function");
         });
 
         it("cleans up state and stops server on successful callback", async () => {
             const unsubscribe = vi.fn();
-            let capturedHandler: ((event: any, data: any) => void) | null =
-                null;
+            let capturedHandler: ((data: any) => void) | null = null;
 
-            vi.mocked((globalThis as any).electronAPI.onIpc).mockImplementation(
-                (_channel: string, handler: any) => {
-                    capturedHandler = handler;
-                    return unsubscribe;
-                }
-            );
+            vi.mocked(
+                (globalThis as any).electronAPI.onGyazoOAuthCallback
+            ).mockImplementation((handler: any) => {
+                capturedHandler = handler;
+                return unsubscribe;
+            });
 
             vi.mocked(
                 (globalThis as any).electronAPI.startGyazoServer
@@ -451,7 +449,7 @@ describe("exportUtils", () => {
             expect(typeof storedState).toBe("string");
             expect((storedState as string).length).toBeGreaterThan(0);
 
-            await capturedHandler!({}, { code: "abc", state: storedState });
+            await capturedHandler!({ code: "abc", state: storedState });
             await expect(authPromise).resolves.toBe("test-token");
 
             expect(unsubscribe).toHaveBeenCalled();

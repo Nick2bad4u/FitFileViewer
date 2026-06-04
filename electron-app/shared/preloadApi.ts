@@ -132,6 +132,9 @@ export interface ElectronAPI {
     onFitBrowserEnabledChanged: (
         callback: (enabled: boolean) => void
     ) => () => void;
+    onGyazoOAuthCallback: (
+        callback: (data: IpcResponsePayload) => void
+    ) => () => void;
     onMenuOpenFile: (callback: () => void) => () => void;
     onMenuOpenOverlay: (callback: () => void) => () => void;
     onOpenRecentFile: (callback: (filePath: string) => void) => () => void;

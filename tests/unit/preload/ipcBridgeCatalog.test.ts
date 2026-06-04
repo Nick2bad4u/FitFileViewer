@@ -46,6 +46,7 @@ const expectedPreloadChannels = {
 const expectedPreloadEvents = {
     FIT_BROWSER_ENABLED_CHANGED: "fit-browser-enabled-changed",
     FIT_FILE_LOADED: "fit-file-loaded",
+    GYAZO_OAUTH_CALLBACK: "gyazo-oauth-callback",
     INSTALL_UPDATE: "install-update",
     MENU_CHECK_FOR_UPDATES: "menu-check-for-updates",
     MENU_OPEN_FILE: "menu-open-file",

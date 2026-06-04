@@ -99,6 +99,7 @@ interface PreloadChannels {
 interface PreloadEvents {
     readonly FIT_BROWSER_ENABLED_CHANGED: "fit-browser-enabled-changed";
     readonly FIT_FILE_LOADED: "fit-file-loaded";
+    readonly GYAZO_OAUTH_CALLBACK: "gyazo-oauth-callback";
     readonly INSTALL_UPDATE: "install-update";
     readonly MENU_CHECK_FOR_UPDATES: "menu-check-for-updates";
     readonly MENU_OPEN_FILE: "menu-open-file";
@@ -689,6 +690,16 @@ const electronAPI: ElectronAPI = {
     installUpdate: createSafeSendHandler(
         CONSTANTS.EVENTS.INSTALL_UPDATE,
         "installUpdate"
+    ),
+
+    /**
+     * Registers a handler for Gyazo OAuth callback payloads.
+     *
+     * @param {(data: IpcResponsePayload) => void} callback
+     */
+    onGyazoOAuthCallback: createSafeEventHandler(
+        CONSTANTS.EVENTS.GYAZO_OAUTH_CALLBACK,
+        "onGyazoOAuthCallback"
     ),
 
     /**

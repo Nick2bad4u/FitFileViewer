@@ -45,7 +45,7 @@ type ExportZipConstructor = new () => ExportZipLike;
 type ElectronApiLike = Partial<
     Pick<
         ElectronAPI,
-        | "onIpc"
+        | "onGyazoOAuthCallback"
         | "startGyazoServer"
         | "stopGyazoServer"
         | "writeClipboardPngDataUrl"
@@ -1003,14 +1003,18 @@ export const exportUtils = {
             !electronAPI ||
             typeof electronAPI.startGyazoServer !== "function" ||
             typeof electronAPI.stopGyazoServer !== "function" ||
-            typeof electronAPI.onIpc !== "function"
+            typeof electronAPI.onGyazoOAuthCallback !== "function"
         ) {
             // This module is renderer-side; tests or non-Electron environments may not expose electronAPI.
             throw new Error(
                 "Gyazo OAuth is only available in the Electron desktop build (electronAPI unavailable)"
             );
         }
-        const { onIpc, startGyazoServer, stopGyazoServer } = electronAPI;
+        const {
+            onGyazoOAuthCallback,
+            startGyazoServer,
+            stopGyazoServer,
+        } = electronAPI;
 
         // Generate state before opening the local server so environments without
         // secure randomness fail closed without leaving a server running.
@@ -1141,12 +1145,9 @@ export const exportUtils = {
                     };
 
                 // Set up the callback listener
-                unsubscribeRef.current = onIpc(
-                    "gyazo-oauth-callback",
-                    (data) => {
-                        void callbackHandler(data);
-                    }
-                );
+                unsubscribeRef.current = onGyazoOAuthCallback((data) => {
+                    void callbackHandler(data);
+                });
 
                 // Create a modal with OAuth instructions and link
                 const modal = exportUtils.createGyazoAuthModal(
