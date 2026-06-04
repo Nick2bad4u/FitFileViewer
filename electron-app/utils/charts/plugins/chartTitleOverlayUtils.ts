@@ -18,11 +18,11 @@ export function escapeHtml(value: string): string {
 export function resolveChartTitleIconName(title: string): AppIconName {
     const normalized = title.toLowerCase();
 
-    if (/power|watt|energy|calorie/u.test(normalized)) {
+    if (/calorie|energy|power|watt/u.test(normalized)) {
         return "activity";
     }
 
-    if (/speed|pace|velocity/u.test(normalized)) {
+    if (/pace|speed|velocity/u.test(normalized)) {
         return "gauge";
     }
 
@@ -34,7 +34,7 @@ export function resolveChartTitleIconName(title: string): AppIconName {
         return "activity";
     }
 
-    if (/distance|elevation|altitude|grade/u.test(normalized)) {
+    if (/altitude|distance|elevation|grade/u.test(normalized)) {
         return "ruler";
     }
 
@@ -42,7 +42,7 @@ export function resolveChartTitleIconName(title: string): AppIconName {
         return "timer";
     }
 
-    if (/lap|route|track|map/u.test(normalized)) {
+    if (/lap|map|route|track/u.test(normalized)) {
         return "route";
     }
 

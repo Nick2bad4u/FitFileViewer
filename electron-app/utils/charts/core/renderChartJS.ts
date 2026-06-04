@@ -79,7 +79,7 @@ import {
 import { getThemeConfigSafe } from "./renderChartThemeHelpers.js";
 import { addHoverEffectsToExistingCharts } from "../plugins/addChartHoverEffects.js";
 import {
-    previousChartState as previousChartStateCompat,
+    
     resetChartNotificationState as resetChartNotificationStateCompat,
     updatePreviousChartState as updatePreviousChartStateCompat,
 } from "./renderChartNotificationStateCompat.js";
@@ -247,7 +247,7 @@ const ensureDataSettingsSignature = (settings: unknown): string =>
     chartRenderCacheApi.ensureDataSettingsSignature(settings);
 
 /** Last chart notification state retained for compatibility callers. */
-export const previousChartState = previousChartStateCompat;
+
 
 /** Resets notification tracking for the next chart render. */
 export function resetChartNotificationState() {
@@ -361,7 +361,7 @@ export function refreshChartsIfNeeded() {
  * @returns Success status of the rendering operation.
  */
 export async function renderChartJS(
-    targetContainer: RenderChartTarget = undefined,
+    targetContainer?: RenderChartTarget,
     options: RenderChartOptions = {}
 ): Promise<boolean> {
     console.log("[ChartJS] Starting chart rendering...");
@@ -611,9 +611,7 @@ async function renderChartsWithData(
                         container,
                         [...data],
                         [...chartLabels],
-                        rendererOptions as Parameters<
-                            typeof renderPerformanceAnalysisChartsSafe
-                        >[3]
+                        rendererOptions
                     ),
                 renderTimeInZoneCharts: renderTimeInZoneChartsSafe,
             },
@@ -695,3 +693,5 @@ exposeChartDevTools({
     setState,
     subscribe,
 });
+
+export {previousChartState} from "./renderChartNotificationStateCompat.js";

@@ -48,7 +48,7 @@ function getMainStateElectronAPI(): MainStateElectronAPI | undefined {
 
 function isMainStateRecord(
     value: MainStateIpcValue
-): value is { readonly [key: string]: MainStateIpcValue } {
+): value is Readonly<Record<string, MainStateIpcValue>> {
     return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 

@@ -433,7 +433,7 @@ function getThemeName(themeConfig: unknown): unknown {
 }
 
 function parseZoneNumber(label: string, fallback: number): number {
-    const match = label.match(/\d+/);
+    const match = /\d+/.exec(label);
     if (!match) {
         return fallback;
     }

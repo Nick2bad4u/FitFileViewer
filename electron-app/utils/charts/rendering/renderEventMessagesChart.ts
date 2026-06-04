@@ -70,7 +70,7 @@ const DEFAULT_EVENT_THEME_COLORS = {
 } as const satisfies EventThemeColors;
 
 function getChartGlobal(): EventMessagesRuntimeGlobal {
-    return globalThis as EventMessagesRuntimeGlobal;
+    return globalThis;
 }
 
 function getStringThemeColor(

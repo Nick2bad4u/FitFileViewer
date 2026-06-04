@@ -2,8 +2,10 @@ import {
     getErrorInfo as getErrorInfoImpl,
     type ErrorInfo,
 } from "./getErrorInfo.js";
-import { logWithLevel as logWithLevelImpl } from "./logWithLevel.js";
-import type { LogLevel } from "./logWithLevel.js";
+import {
+    logWithLevel as logWithLevelImpl,
+    type LogLevel,
+} from "./logWithLevel.js";
 
 /**
  * Extracts normalized error information.

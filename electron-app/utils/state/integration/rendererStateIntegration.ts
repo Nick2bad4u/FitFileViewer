@@ -399,7 +399,7 @@ function updateSummaryTab(data: unknown): void {
 }
 
 function getRendererStateIntegrationGlobal(): RendererStateIntegrationGlobal {
-    return globalThis as RendererStateIntegrationGlobal;
+    return globalThis;
 }
 
 // Export for use in renderer.js

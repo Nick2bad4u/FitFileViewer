@@ -170,8 +170,8 @@ function getPathSegments(path: string): string[] {
 }
 
 function isVolatilePath(path: string): boolean {
-    return PERSISTENCE_CONFIG.VOLATILE_KEYS.some(
-        (volatilePath) => volatilePath === path
+    return (PERSISTENCE_CONFIG.VOLATILE_KEYS as readonly string[]).includes(
+        path
     );
 }
 

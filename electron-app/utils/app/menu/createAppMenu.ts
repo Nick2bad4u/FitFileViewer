@@ -80,7 +80,7 @@ type FitFileViewerGlobal = typeof globalThis & {
 };
 
 function getMenuGlobal(): FitFileViewerGlobal {
-    return globalThis as FitFileViewerGlobal;
+    return globalThis;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -286,10 +286,7 @@ function createAppMenu(
             BrowserWindow &&
             typeof BrowserWindow.getFocusedWindow === "function"
         ) {
-            const focused = BrowserWindow.getFocusedWindow() as
-                | BrowserWindowLike
-                | null
-                | undefined;
+            const focused = BrowserWindow.getFocusedWindow();
             if (isUsableWindow(focused)) {
                 return focused;
             }

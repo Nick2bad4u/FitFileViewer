@@ -18,7 +18,7 @@ type MapDocumentGlobal = typeof globalThis & {
 };
 
 function getMapDocumentGlobal(): MapDocumentGlobal {
-    return globalThis as MapDocumentGlobal;
+    return globalThis;
 }
 
 function isMapZoomDraggingRef(value: unknown): value is MapZoomDraggingRef {

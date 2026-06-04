@@ -95,7 +95,7 @@ export function renderAltitudeProfileChart(
             animationStyle = "normal",
             distanceUnits = "kilometers",
             interpolation = "linear",
-            maxPoints = "all",
+            maxPoints,
             showFill = true,
             showGrid,
             showLegend,

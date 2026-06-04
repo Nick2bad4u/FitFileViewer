@@ -139,7 +139,7 @@ function isFitName(name: unknown): boolean {
 }
 
 function getOverlayFileGlobal(): OverlayFileGlobal {
-    return globalThis as OverlayFileGlobal;
+    return globalThis;
 }
 
 function resolveOverlayElectronAPI():

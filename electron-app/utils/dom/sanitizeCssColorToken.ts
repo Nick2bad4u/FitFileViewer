@@ -81,7 +81,7 @@ export function sanitizeCssColorToken(
     }
 
     // CSS variable token
-    if (/^var\(--[a-z0-9_-]{1,64}\)$/iu.test(v)) {
+    if (/^var\(--[\w-]{1,64}\)$/iu.test(v)) {
         return v;
     }
 

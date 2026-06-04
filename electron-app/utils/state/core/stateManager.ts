@@ -224,7 +224,7 @@ export function getState<T = unknown>(
  */
 export function getSubscriptions(): SubscriptionInfo {
     const subscriptionInfo: SubscriptionInfo = {
-        paths: Array.from(stateListeners.keys()),
+        paths: [...stateListeners.keys()],
         subscriptionDetails: {},
         totalListeners: 0,
     };
@@ -390,11 +390,7 @@ export function setState(
     }
 
     const mergedValue = getMergedStateValue(merge, oldValue, value);
-    if (mergedValue) {
-        target[finalKey] = mergedValue;
-    } else {
-        target[finalKey] = value;
-    }
+    target[finalKey] = mergedValue ? mergedValue : value;
 
     const hasChanged = !Object.is(oldValue, value);
     if (hasChanged) {

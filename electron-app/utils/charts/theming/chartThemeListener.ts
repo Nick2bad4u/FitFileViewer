@@ -23,7 +23,7 @@ type ThemeChangeHandler = ((event: Event) => void) & {
 let chartThemeListener: EventListener | undefined;
 
 function getGlobalWindow(): LegacyChartWindow | undefined {
-    return typeof window === "undefined" ? undefined : window;
+    return globalThis.window === undefined ? undefined : globalThis.window;
 }
 
 function hasUpdateAll(value: unknown): value is ChartUpdateAdapter {

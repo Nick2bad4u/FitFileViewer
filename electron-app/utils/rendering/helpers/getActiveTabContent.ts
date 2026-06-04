@@ -81,7 +81,7 @@ export function getActiveTabContent(): Element | null {
             if (match && match[1]) {
                 const rawName = String(match[1]);
                 const normalized = rawName
-                    .replaceAll(/([a-z0-9])([A-Z])/gu, "$1_$2")
+                    .replaceAll(/(?<=[a-z0-9])(?=[A-Z])/gu, "_")
                     .toLowerCase();
                 const contentEl = getElementByIdFlexible(
                     document,

@@ -198,11 +198,9 @@ export function addFullscreenControl(map: LeafletMap): void {
                 if (mapDiv.requestFullscreen) {
                     void mapDiv.requestFullscreen();
                 }
-            } else {
-                if (document.exitFullscreen) {
+            } else if (document.exitFullscreen) {
                     void document.exitFullscreen();
                 }
-            }
             scheduleInvalidateSize();
         },
         { signal: listenerController.signal }

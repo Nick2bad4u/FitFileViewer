@@ -484,7 +484,7 @@ function setupStateDebugging(): void {
 }
 
 function getIntegrationGlobal(): StateIntegrationGlobal {
-    return globalThis as StateIntegrationGlobal;
+    return globalThis;
 }
 
 function getNestedValue(obj: unknown, path: string): unknown {

@@ -313,7 +313,7 @@ function normalizePowerEstimationSettings(
             settings.drivetrainEfficiency <= 1
                 ? settings.drivetrainEfficiency
                 : 0.97,
-        enabled: settings.enabled === true,
+        enabled: settings.enabled,
         gradeWindowMeters:
             Number.isFinite(settings.gradeWindowMeters) &&
             settings.gradeWindowMeters >= 5

@@ -33,11 +33,11 @@ type PerformanceMonitorLike = {
 };
 
 function getDragDropGlobal(): DragDropGlobal {
-    return globalThis as DragDropGlobal;
+    return globalThis;
 }
 
 function getPerformanceMonitor(): PerformanceMonitorLike {
-    return (performanceMonitor ?? {}) as PerformanceMonitorLike;
+    return (performanceMonitor ?? {});
 }
 
 function isPerformanceMonitorEnabled(monitor: PerformanceMonitorLike): boolean {

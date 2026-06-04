@@ -1,6 +1,8 @@
 import { showNotification } from "../../ui/notifications/showNotification.js";
-import { exportUtils as rawExportUtils } from "./exportUtils.js";
-import type { ExportableChart } from "./exportUtils.js";
+import {
+    exportUtils as rawExportUtils,
+    type ExportableChart,
+} from "./exportUtils.js";
 
 type ChartExportUtils = {
     downloadChartAsPNG(chart: ExportableChart, filename: string): unknown;

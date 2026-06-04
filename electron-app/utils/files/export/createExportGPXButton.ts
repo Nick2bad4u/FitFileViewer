@@ -15,10 +15,13 @@ type GpxExportGlobal = typeof globalThis & {
 };
 
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
-const downloadCleanupTimers = new WeakMap<HTMLAnchorElement, number>();
+const downloadCleanupTimers = new WeakMap<
+    HTMLAnchorElement,
+    ReturnType<typeof setTimeout>
+>();
 
 function getGpxExportGlobal(): GpxExportGlobal {
-    return globalThis as GpxExportGlobal;
+    return globalThis;
 }
 
 function createExportIcon(primary: string): SVGSVGElement {
@@ -105,7 +108,7 @@ export function createExportGPXButton(): HTMLButtonElement {
             link.download = downloadName;
             document.body.append(link);
             link.click();
-            const cleanupTimer = window.setTimeout(() => {
+            const cleanupTimer = globalThis.setTimeout(() => {
                 downloadCleanupTimers.delete(link);
                 URL.revokeObjectURL(link.href);
                 link.remove();

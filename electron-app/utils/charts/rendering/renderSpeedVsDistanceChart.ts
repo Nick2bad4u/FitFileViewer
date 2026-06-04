@@ -91,7 +91,7 @@ export function renderSpeedVsDistanceChart(
             animationStyle = "normal",
             distanceUnits = "kilometers",
             interpolation = "linear",
-            maxPoints = "all",
+            maxPoints,
             showGrid,
             showLegend,
             showPoints,

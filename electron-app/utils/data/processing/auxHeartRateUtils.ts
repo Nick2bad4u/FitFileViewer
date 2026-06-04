@@ -191,7 +191,7 @@ function isAuxHeartRateKeyCandidate(key: string): boolean {
     const hasHrToken = /\bhr\b/iu.test(lower) || /hrm/iu.test(lower);
     const hasAuxQualifier =
         /(aux|auxiliary|external|secondary|strap|chest)/iu.test(lower);
-    const hasNumericSuffix = /(heart\s*rate|hr)[^0-9]*\d/iu.test(lower);
+    const hasNumericSuffix = /(heart\s*rate|hr)\D*\d/iu.test(lower);
 
     return (
         (hasHeartRate && hasAuxQualifier) ||
@@ -337,8 +337,7 @@ function resolveAuxDeveloperField(
             continue;
         }
 
-        const fieldIds = new Set<string>();
-        fieldIds.add(fieldDefinitionNumber);
+        const fieldIds = new Set<string>([fieldDefinitionNumber]);
         if (developerDataIndex) {
             fieldIds.add(`${developerDataIndex}.${fieldDefinitionNumber}`);
             fieldIds.add(`${developerDataIndex}:${fieldDefinitionNumber}`);
@@ -346,7 +345,7 @@ function resolveAuxDeveloperField(
         }
 
         return {
-            fieldIds: Array.from(fieldIds),
+            fieldIds: [...fieldIds],
             fieldName,
         };
     }
@@ -421,7 +420,7 @@ export function resolveAuxHeartRateResolution(
     const cached = AUX_HEART_RATE_CACHE.get(recordMesgs);
     if (
         cached &&
-        (!fieldDescriptionMesgs.length ||
+        (fieldDescriptionMesgs.length === 0 ||
             cached.fieldDescriptionMesgs === fieldDescriptionMesgs)
     ) {
         return cached.resolution;

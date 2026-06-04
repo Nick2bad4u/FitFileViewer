@@ -107,7 +107,7 @@ export class UnifiedStateManager {
     public getSnapshot(): UnifiedStateSnapshot {
         return {
             debugMode: this.debugMode,
-            legacyPaths: Array.from(LEGACY_PATHS),
+            legacyPaths: [...LEGACY_PATHS],
             newState: getNewState(""),
             syncEnabled: this.syncEnabled,
             timestamp: Date.now(),
@@ -281,15 +281,15 @@ export class UnifiedStateManager {
 }
 
 function getUnifiedStateGlobal(): UnifiedStateGlobal {
-    return globalThis as UnifiedStateGlobal;
+    return globalThis;
 }
 
 function getUnifiedStateWindow(
     stateGlobal: UnifiedStateGlobal
 ): UnifiedStateWindow | undefined {
-    return typeof stateGlobal.window === "undefined"
+    return stateGlobal.window === undefined
         ? undefined
-        : (stateGlobal.window as UnifiedStateWindow);
+        : (stateGlobal.window);
 }
 
 /** Singleton unified state manager used during the state migration. */

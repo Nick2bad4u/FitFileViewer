@@ -1,7 +1,9 @@
 import { LoadingOverlay } from "../../ui/components/LoadingOverlay.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
-import { loadOverlayFiles } from "./loadOverlayFiles.js";
-import type { OverlayInputFile } from "./loadOverlayFiles.js";
+import {
+    loadOverlayFiles,
+    type OverlayInputFile,
+} from "./loadOverlayFiles.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
 type FileSelectorElectronAPI = Partial<
@@ -121,7 +123,7 @@ export async function openFileSelector(): Promise<void> {
 }
 
 function getFileSelectorGlobal(): FileSelectorGlobal {
-    return globalThis as FileSelectorGlobal;
+    return globalThis;
 }
 
 /**
@@ -262,8 +264,7 @@ function appendFileSource(
         return;
     }
 
-    for (let index = 0; index < source.length; index++) {
-        const file = source[index];
+    for (const file of Array.from(source)) {
         if (file instanceof File) {
             target.push(file);
         }

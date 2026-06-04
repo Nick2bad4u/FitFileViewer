@@ -39,7 +39,7 @@ type Rgb = readonly [
 ];
 
 function getShownFilesGlobal(): ShownFilesGlobal {
-    return globalThis as ShownFilesGlobal;
+    return globalThis;
 }
 
 function removeOverlayFilenameTooltips(): void {
@@ -50,9 +50,7 @@ function removeOverlayFilenameTooltips(): void {
 }
 
 function getOverlayItems(container: HTMLElement): OverlayListItem[] {
-    return Array.from(
-        container.querySelectorAll<OverlayListItem>("li[data-overlay-index]")
-    );
+    return [...container.querySelectorAll<OverlayListItem>("li[data-overlay-index]")];
 }
 
 function hexToRgb(hexColor: string): Rgb {
@@ -77,7 +75,7 @@ function parseColor(color: string): Rgb {
         return hexToRgb(color);
     }
 
-    const match = color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+    const match = /rgb\((\d+),\s*(\d+),\s*(\d+)\)/.exec(color);
     if (match?.[1] && match[2] && match[3]) {
         return [
             Number.parseInt(match[1], 10),

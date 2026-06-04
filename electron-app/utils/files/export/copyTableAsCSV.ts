@@ -277,7 +277,7 @@ function processTableRows(rows: TableRow[]): TableRow[] {
 }
 
 function getCopyCsvGlobal(): CopyCsvGlobal {
-    return globalThis as CopyCsvGlobal;
+    return globalThis;
 }
 
 function isRowsTable(table: unknown): table is RowsTable {

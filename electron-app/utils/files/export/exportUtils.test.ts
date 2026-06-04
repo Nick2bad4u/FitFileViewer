@@ -88,7 +88,7 @@ function installZipMock(): void {
 
 // Mock fetch with base64 data URL handling and upload response shapes
 Object.defineProperty(globalThis, "fetch", {
-    value: vi.fn((input: any, init?: any) => {
+    value: vi.fn((input: any, _init?: any) => {
         // If fetching a data URL, return a Response-like with blob()
         if (typeof input === "string" && input.startsWith("data:")) {
             return Promise.resolve({
@@ -913,7 +913,7 @@ describe("exportUtils", () => {
             } as any);
 
             vi.mocked(globalThis.fetch).mockImplementationOnce(
-                (input: any, init: any) =>
+                (_input: any, _init: any) =>
                     Promise.resolve({
                         ok: true,
                         status: 200,
@@ -946,7 +946,7 @@ describe("exportUtils", () => {
             } as any);
 
             vi.mocked(globalThis.fetch).mockImplementationOnce(
-                (input: any, init: any) =>
+                (_input: any, _init: any) =>
                     Promise.resolve({
                         ok: false,
                         status: 400,

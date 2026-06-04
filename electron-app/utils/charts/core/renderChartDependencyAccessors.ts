@@ -100,7 +100,7 @@ export function getComputedStateManagerSafe(): ComputedStateManagerAccess {
 
 /** Returns the user-unit field converter. */
 export function getConvertersSafe(): FieldConverter {
-    return convertValueToUserUnits as FieldConverter;
+    return convertValueToUserUnits;
 }
 
 /** Returns chartable field keys. */

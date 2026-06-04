@@ -56,7 +56,7 @@ function hasFunctionProperty(
 }
 
 function getMeasureToolGlobal(): MeasureToolGlobal {
-    return globalThis as MeasureToolGlobal;
+    return globalThis;
 }
 
 function getLeaflet(): MeasureLeaflet | null {

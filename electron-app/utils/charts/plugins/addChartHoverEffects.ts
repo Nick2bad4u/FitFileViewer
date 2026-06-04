@@ -1,5 +1,7 @@
-import { getThemeConfig } from "../../theming/core/theme.js";
-import type { ThemeColorValue } from "../../theming/core/theme.js";
+import {
+    getThemeConfig,
+    type ThemeColorValue,
+} from "../../theming/core/theme.js";
 import { isDevelopmentEnvironment } from "../../runtime/processEnvironment.js";
 import type { AppIconName } from "../../ui/icons/iconFactory.js";
 import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
@@ -234,7 +236,7 @@ function describeElement(element: Element | null): string {
     const id = element.id ? `#${element.id}` : "";
     const className =
         typeof element.className === "string" && element.className.length > 0
-            ? `.${element.className.trim().replace(/\s+/gu, ".")}`
+            ? `.${element.className.trim().replaceAll(/\s+/gu, ".")}`
             : "";
     return `${element.tagName.toLowerCase()}${id}${className}`;
 }
@@ -576,7 +578,7 @@ export function addChartHoverEffects(
             overlayPlaceholder.className =
                 "chart-overlay-fullscreen-placeholder";
             overlayPlaceholder.style.height = `${wrapper.getBoundingClientRect().height}px`;
-            parent.insertBefore(overlayPlaceholder, wrapper);
+            wrapper.before(overlayPlaceholder);
 
             document.body.append(wrapper);
             wrapper.classList.add("chart-wrapper--overlay-fullscreen");
@@ -598,7 +600,7 @@ export function addChartHoverEffects(
                 return;
             }
 
-            overlayParent.insertBefore(wrapper, overlayPlaceholder);
+            overlayPlaceholder.before(wrapper);
             overlayPlaceholder.remove();
             overlayPlaceholder = null;
             overlayParent = null;
@@ -640,12 +642,12 @@ export function addChartHoverEffects(
                     : `View ${overlayTitleText} in fullscreen`
             );
 
-            if (typeof globalThis.requestAnimationFrame !== "function") {
-                requestChartResize(chartCanvas);
-            } else {
+            if (typeof globalThis.requestAnimationFrame === "function") {
                 scheduleAnimationFrame(() => {
                     requestChartResize(chartCanvas);
                 }, signal);
+            } else {
+                requestChartResize(chartCanvas);
             }
         };
 
@@ -922,12 +924,10 @@ export function addHoverEffectsToExistingCharts(): void {
         return;
     }
 
-    let rawThemeConfig: unknown;
-    if (typeof chartHoverGlobal.getThemeConfig === "function") {
-        rawThemeConfig = chartHoverGlobal.getThemeConfig();
-    } else {
-        rawThemeConfig = getThemeConfig();
-    }
+    const rawThemeConfig =
+        typeof chartHoverGlobal.getThemeConfig === "function"
+            ? chartHoverGlobal.getThemeConfig()
+            : getThemeConfig();
     const themeConfig = resolveChartHoverThemeConfig(rawThemeConfig);
 
     if (chartContainer instanceof HTMLElement) {

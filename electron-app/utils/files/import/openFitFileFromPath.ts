@@ -6,8 +6,10 @@
  */
 
 import { getFitFileBufferValidationError } from "./fitFileValidation.js";
-import { unwrapFitParseMessages } from "./fitParsePayload.js";
-import type { FitParsePayload } from "./fitParsePayload.js";
+import {
+    type FitParsePayload,
+    unwrapFitParseMessages,
+} from "./fitParsePayload.js";
 import type { FitMessages } from "../../../shared/fit";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
@@ -129,7 +131,7 @@ function isNonEmptyString(value: unknown): value is string {
 }
 
 function getOpenFitFileGlobal(): OpenFitFileGlobal {
-    return globalThis as OpenFitFileGlobal;
+    return globalThis;
 }
 
 function resolveFitFileElectronAPI(): FitFileElectronAPI | undefined {

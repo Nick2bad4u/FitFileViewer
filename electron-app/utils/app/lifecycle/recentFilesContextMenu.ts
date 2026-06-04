@@ -4,6 +4,7 @@
  */
 
 import {
+    type FitParsePayload,
     getFitParseErrorMessage,
     unwrapFitParseMessages,
 } from "../../files/import/fitParsePayload.js";
@@ -11,7 +12,6 @@ import {
     getProcessEnvironmentValue,
     isDevelopmentEnvironment,
 } from "../../runtime/processEnvironment.js";
-import type { FitParsePayload } from "../../files/import/fitParsePayload.js";
 import type { FitMessages } from "../../../shared/fit";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
@@ -39,7 +39,7 @@ type AttachRecentFilesContextMenuParams = {
 };
 
 function getRecentFilesGlobal(): RecentFilesGlobal {
-    return globalThis as RecentFilesGlobal;
+    return globalThis;
 }
 
 function isMissingFileError(error: unknown): boolean {

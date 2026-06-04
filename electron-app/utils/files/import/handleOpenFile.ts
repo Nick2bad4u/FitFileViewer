@@ -4,18 +4,20 @@
  */
 
 import { AppActions } from "../../app/lifecycle/appActions.js";
-import { createRendererLogger } from "../../logging/rendererLogger.js";
-import type { RendererLogLevel } from "../../logging/rendererLogger.js";
+import {
+    createRendererLogger,
+    type RendererLogLevel,
+} from "../../logging/rendererLogger.js";
 import { getProcessEnvironmentValue } from "../../runtime/processEnvironment.js";
 import * as stateManager from "../../state/core/stateManager.js";
 import { clearAllNotifications } from "../../ui/notifications/showNotification.js";
 import {
+    type FitParsePayload,
     getFitMessagesSessionCount,
     getFitParseErrorMessage,
     unwrapFitParseMessages,
 } from "./fitParsePayload.js";
 import { getFitFileBufferValidationError } from "./fitFileValidation.js";
-import type { FitParsePayload } from "./fitParsePayload.js";
 import type { FitMessages } from "../../../shared/fit";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
@@ -101,7 +103,7 @@ function isFileOpenElectronAPI(
 }
 
 function getFileOpenGlobal(): FileOpenRendererGlobal {
-    return globalThis as FileOpenRendererGlobal;
+    return globalThis;
 }
 
 function isMissingFileError(error: unknown): boolean {

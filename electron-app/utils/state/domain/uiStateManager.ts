@@ -76,7 +76,7 @@ export class UIStateManager {
     applyTheme(theme: string) {
         const root = (document.documentElement ||
             document.body ||
-            {}) as HTMLElement;
+            {});
 
         if (theme === "system") {
             // Remove explicit theme and use system preference
@@ -549,7 +549,7 @@ export class UIStateManager {
             if (hasToggle) {
                 classList.toggle("app-has-file", hasRenderableFile);
             } else {
-                const { className = "" } = body,
+                const { className } = body,
                     classes =
                         typeof className === "string"
                             ? className.split(/\s+/)

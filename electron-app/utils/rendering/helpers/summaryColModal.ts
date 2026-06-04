@@ -37,7 +37,7 @@ type SummaryGlobal = typeof globalThis & {
 };
 
 function getSummaryGlobal(): SummaryGlobal {
-    return globalThis as SummaryGlobal;
+    return globalThis;
 }
 
 /**
@@ -592,13 +592,9 @@ export function showColModal({
     function updateColList() {
         colList.replaceChildren();
 
-        if (filterText.length > 0) {
-            displayedKeys = displayKeys.filter((k) =>
+        displayedKeys = filterText.length > 0 ? displayKeys.filter((k) =>
                 k.toLowerCase().includes(filterText)
-            );
-        } else {
-            displayedKeys = [...displayKeys];
-        }
+            ) : [...displayKeys];
 
         // Always show label column as checked and disabled
         const checkbox = document.createElement("input");

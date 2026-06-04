@@ -1,7 +1,6 @@
 import {
     MAP_FILTER_METRICS,
     type MapDataPointFilterConfig,
-    type MapFilterMode,
     type MetricFilterResult,
     type MetricStatistics,
 } from "../../maps/filters/mapMetricFilter.js";
@@ -637,7 +636,7 @@ export function createDataPointFilterControl(
 }
 
 function getDataPointFilterGlobal(): DataPointFilterGlobal {
-    return globalThis as DataPointFilterGlobal;
+    return globalThis;
 }
 
 function toCompleteRangeValues(
@@ -657,7 +656,7 @@ function toMapFilterConfig(
     };
 
     if (config.mode) {
-        normalized.mode = config.mode as MapFilterMode;
+        normalized.mode = config.mode;
     }
     if (typeof config.percent === "number") {
         normalized.percent = config.percent;

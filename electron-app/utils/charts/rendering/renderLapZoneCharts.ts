@@ -550,7 +550,7 @@ function parseSerializedArray(value: unknown): unknown[] {
     }
 
     try {
-        const clean = value.trim().replace(/^"+|"+$/g, ""),
+        const clean = value.trim().replaceAll(/^"+|"+$/g, ""),
             parsedValue: unknown = JSON.parse(clean);
         return Array.isArray(parsedValue) ? parsedValue : [];
     } catch {

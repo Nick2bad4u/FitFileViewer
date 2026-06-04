@@ -24,9 +24,7 @@ interface SingleZoneBarOptions {
     readonly title?: string;
 }
 
-interface ChartConstructor {
-    new (canvas: HTMLCanvasElement, config: SingleZoneBarChartConfig): unknown;
-}
+type ChartConstructor = new (canvas: HTMLCanvasElement, config: SingleZoneBarChartConfig) => unknown;
 
 interface ChartGlobals {
     readonly Chart?: ChartConstructor;

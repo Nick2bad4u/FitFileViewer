@@ -29,7 +29,7 @@ type SvgRayCoordinates = readonly [
 ];
 
 function getMapThemeToggleGlobal(): MapThemeToggleGlobal {
-    return globalThis as MapThemeToggleGlobal;
+    return globalThis;
 }
 
 function isTestEnvironment(): boolean {

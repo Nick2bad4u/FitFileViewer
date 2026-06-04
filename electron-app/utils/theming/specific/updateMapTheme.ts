@@ -54,7 +54,7 @@ export function installUpdateMapThemeListeners(): void {
         );
     }
 
-    if (typeof window !== "undefined") {
+    if (globalThis.window !== undefined) {
         window.addEventListener(
             "beforeunload",
             uninstallUpdateMapThemeListeners,

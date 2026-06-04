@@ -436,8 +436,12 @@ export function renderTable({
                     sortedVisible,
                 });
             };
-        } else if (lapFilterIndex !== null) {
-            if (lapFilterIndex >= 0 && lapFilterIndex < lapMesgs.length) {
+        } else if (lapFilterIndex === null) {
+            for (let i = 0; i < lapMesgs.length; i += 1) {
+                const lap = getPatchedLapRow(lapMesgs, i, lapCache);
+                lapBody.append(createLapRowElement(i, lap, sortedVisible));
+            }
+        } else if (lapFilterIndex >= 0 && lapFilterIndex < lapMesgs.length) {
                 const lap = getPatchedLapRow(
                     lapMesgs,
                     lapFilterIndex,
@@ -447,12 +451,6 @@ export function renderTable({
                     createLapRowElement(lapFilterIndex, lap, sortedVisible)
                 );
             }
-        } else {
-            for (let i = 0; i < lapMesgs.length; i += 1) {
-                const lap = getPatchedLapRow(lapMesgs, i, lapCache);
-                lapBody.append(createLapRowElement(i, lap, sortedVisible));
-            }
-        }
     }
     table.append(thead);
     table.append(summaryBody);

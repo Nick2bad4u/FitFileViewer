@@ -1,17 +1,17 @@
 import { settingsStateManager as settingsStateManagerImpl } from "./settingsStateCore.js";
 import {
-    exportAllSettings as exportAllSettingsImpl,
-    getChartFieldVisibility as getChartFieldVisibilityImpl,
-    getChartSetting as getChartSettingImpl,
+    
+    
+    
     getChartSettings as getChartSettingsImpl,
-    getMapThemeSetting as getMapThemeSettingImpl,
-    getPowerEstimationSetting as getPowerEstimationSettingImpl,
-    getThemeSetting as getThemeSettingImpl,
+    
+    
+    
     getUserChartSettings as getUserChartSettingsImpl,
-    importAllSettings as importAllSettingsImpl,
-    removeChartSetting as removeChartSettingImpl,
+    
+    
     resetChartSettings as resetChartSettingsImpl,
-    setChartFieldVisibility as setChartFieldVisibilityImpl,
+    
     setChartSetting as setChartSettingImpl,
     setMapThemeSetting as setMapThemeSettingImpl,
     setPowerEstimationSetting as setPowerEstimationSettingImpl,
@@ -67,21 +67,17 @@ export const settingsStateManager =
 /**
  * Export all persisted settings into a serializable payload.
  */
-export const exportAllSettings =
-    exportAllSettingsImpl as () => ExportedSettings | null;
+
 
 /**
  * Read a chart field visibility preference.
  */
-export const getChartFieldVisibility = getChartFieldVisibilityImpl as (
-    fieldKey: string,
-    defaultVisibility?: ChartFieldVisibility
-) => ChartFieldVisibility;
+
 
 /**
  * Read a chart setting value.
  */
-export const getChartSetting = getChartSettingImpl as (key: string) => unknown;
+
 
 /**
  * Read the current chart settings object.
@@ -91,19 +87,17 @@ export const getChartSettings = getChartSettingsImpl as () => ChartSettings;
 /**
  * Read the persisted map-theme inversion preference.
  */
-export const getMapThemeSetting = getMapThemeSettingImpl as () => boolean;
+
 
 /**
  * Read a power-estimation setting.
  */
-export const getPowerEstimationSetting = getPowerEstimationSettingImpl as (
-    key: string
-) => unknown;
+
 
 /**
  * Read the persisted application theme preference.
  */
-export const getThemeSetting = getThemeSettingImpl as () => string;
+
 
 /**
  * Read chart settings customized by the user.
@@ -114,16 +108,12 @@ export const getUserChartSettings =
 /**
  * Import a serialized settings payload.
  */
-export const importAllSettings = importAllSettingsImpl as (
-    settingsData: unknown
-) => boolean;
+
 
 /**
  * Remove a chart setting.
  */
-export const removeChartSetting = removeChartSettingImpl as (
-    key: string
-) => boolean;
+
 
 /**
  * Reset chart settings, optionally scoped by reset options.
@@ -135,10 +125,7 @@ export const resetChartSettings = resetChartSettingsImpl as (
 /**
  * Persist a chart field visibility preference.
  */
-export const setChartFieldVisibility = setChartFieldVisibilityImpl as (
-    fieldKey: string,
-    visibility: ChartFieldVisibility
-) => ChartFieldVisibilityMap;
+
 
 /**
  * Persist a chart setting value.
@@ -186,3 +173,5 @@ export const subscribeToChartSettings = subscribeToChartSettingsImpl as (
 export const updateChartSettings = updateChartSettingsImpl as (
     updates: ChartSettings
 ) => ChartSettings;
+
+export {exportAllSettings, getChartFieldVisibility, getChartSetting, getMapThemeSetting, getPowerEstimationSetting, getThemeSetting, importAllSettings, removeChartSetting, setChartFieldVisibility} from "./settingsStateHelpers.js";

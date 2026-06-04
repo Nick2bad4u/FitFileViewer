@@ -76,7 +76,7 @@ type ShowFitDataGlobal = typeof globalThis & {
 };
 
 function getShowFitDataGlobal(): ShowFitDataGlobal {
-    return globalThis as ShowFitDataGlobal;
+    return globalThis;
 }
 
 /**

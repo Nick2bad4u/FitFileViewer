@@ -116,9 +116,9 @@ export function sanitizeHtmlAllowlist(
                 String(a).toLowerCase()
             ),
             ALLOWED_TAGS: allowedTagsInput.map((t) => String(t).toLowerCase()),
-            FORBID_ATTR: Array.from(ALWAYS_STRIP_URL_ATTRIBUTES),
-            FORBID_CONTENTS: Array.from(ALWAYS_FORBID_TAGS),
-            FORBID_TAGS: Array.from(ALWAYS_FORBID_TAGS),
+            FORBID_ATTR: [...ALWAYS_STRIP_URL_ATTRIBUTES],
+            FORBID_CONTENTS: [...ALWAYS_FORBID_TAGS],
+            FORBID_TAGS: [...ALWAYS_FORBID_TAGS],
             RETURN_DOM_FRAGMENT: true,
         });
 
@@ -155,7 +155,7 @@ function parseHtmlFragment(html: string): DocumentFragment {
     // eslint-disable-next-line sdl/no-domparser-html-without-sanitization -- This is the sanitizer boundary; sanitizeFragment strips the parsed tree before callers receive it.
     const parsed = new DOMParser().parseFromString(html, "text/html");
     const fragment = document.createDocumentFragment();
-    for (const node of Array.from(parsed.body.childNodes)) {
+    for (const node of parsed.body.childNodes) {
         fragment.append(node);
     }
     return fragment;
@@ -211,7 +211,7 @@ function sanitizeElementAttributes(
     allowedAttributes: ReadonlySet<string>,
     stripUrlInStyle: boolean
 ): void {
-    for (const attr of Array.from(el.attributes)) {
+    for (const attr of el.attributes) {
         const name = attr.name.toLowerCase();
         const value = String(attr.value);
 
@@ -299,7 +299,7 @@ function decodeCssEscapesForScan(input: string): string {
     // - \<any char>
     // Ref: CSS Syntax Level 3.
     return input.replaceAll(
-        /\\(?:([0-9a-f]{1,6})(?:\s)?|([\s\S]))/giu,
+        /\\(?:([0-9a-f]{1,6})\s?|([\s\S]))/giu,
         (
             _match: string,
             hex: string | undefined,

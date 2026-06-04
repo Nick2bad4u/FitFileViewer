@@ -13,8 +13,8 @@ import {
 import { convertValueToUserUnits } from "../converters/convertValueToUserUnits.js";
 
 const DISTANCE_FIELDS = new Set([
-    "distance",
     "altitude",
+    "distance",
     "enhancedAltitude",
 ]);
 

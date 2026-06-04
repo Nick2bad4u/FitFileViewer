@@ -112,8 +112,7 @@ export const chartLegendItemBoxPlugin: LegendItemBoxPlugin = {
         const { colors } = getThemeConfig();
 
         ctx.save();
-        for (let i = 0; i < hitBoxes.length; i += 1) {
-            const box = hitBoxes[i];
+        for (const [i, box] of hitBoxes.entries()) {
             if (!box) {
                 continue;
             }

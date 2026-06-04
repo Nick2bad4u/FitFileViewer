@@ -57,7 +57,7 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 let isWindowFullscreenRequested = false;
 
 const getFullscreenGlobal = (): FullscreenGlobal =>
-    globalThis as FullscreenGlobal;
+    globalThis;
 
 const getElectronAPI = (): ElectronFullscreenAPI | undefined =>
     getFullscreenGlobal().electronAPI;
@@ -416,7 +416,7 @@ function handleFullscreenStateChange(): void {
         if (nativeFullscreen) {
             isWindowFullscreenRequested = true;
         } else if (
-            (!fullscreenEnabled || !Boolean(screenfull?.isFullscreen)) &&
+            (!fullscreenEnabled || !screenfull?.isFullscreen) &&
             isWindowFullscreenRequested
         ) {
             isWindowFullscreenRequested = false;

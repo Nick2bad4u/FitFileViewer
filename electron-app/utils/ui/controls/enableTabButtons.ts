@@ -481,7 +481,7 @@ function isMutationObserverConstructorLike(
 }
 
 function getTabButtonsGlobal(): TabButtonsGlobal {
-    return globalThis as TabButtonsGlobal;
+    return globalThis;
 }
 
 function exposeGlobalFunctions(): void {

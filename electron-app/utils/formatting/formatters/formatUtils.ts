@@ -40,7 +40,7 @@ export function formatArray<T>(
     const config = {
         separator: FORMATTING_CONSTANTS.SEPARATOR,
         strictValidation: true,
-        ...(options ?? {}),
+        ...options,
     };
 
     try {

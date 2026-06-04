@@ -28,7 +28,7 @@ type LapControlIconName = Extract<
 >;
 
 function getLapSelectorGlobal(): MapLapSelectorGlobal {
-    return globalThis as MapLapSelectorGlobal;
+    return globalThis;
 }
 
 // Lap selection UI and logic for Leaflet map
@@ -399,15 +399,13 @@ export function addLapSelector(
                 multiSelectMode &&
                 dragSelecting &&
                 target instanceof HTMLOptionElement
-            ) {
-                if (target.value !== "all") {
+             && target.value !== "all") {
                     target.selected = Boolean(dragSelectValue);
                     if (lapSelectEl.options[0]) {
                         lapSelectEl.options[0].selected = false;
                     }
                     lapSelectEl.dispatchEvent(new Event("change"));
                 }
-            }
         },
         { signal }
     );

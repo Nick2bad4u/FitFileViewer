@@ -98,7 +98,7 @@ const PERFORMANCE_CONFIG = {
 };
 
 function getStateDevToolsGlobal(): StateDevToolsGlobal {
-    return globalThis as StateDevToolsGlobal;
+    return globalThis;
 }
 
 /**

@@ -64,7 +64,7 @@ type RenderTableGlobal = typeof globalThis & {
 };
 
 function getRenderTableGlobal(): RenderTableGlobal {
-    return globalThis as RenderTableGlobal;
+    return globalThis;
 }
 
 function getJQueryWithDataTable(): JQueryLike | null {
@@ -390,13 +390,13 @@ function resolveTableColumnIconName(label: string): AppIconName {
     if (/timestamp|time|date/u.test(normalized)) {
         return "timer";
     }
-    if (/lat|lon|position|location|coord|gps/u.test(normalized)) {
+    if (/coord|gps|lat|location|lon|position/u.test(normalized)) {
         return "map";
     }
     if (/distance|dist|length|altitude|elevation|grade/u.test(normalized)) {
         return "ruler";
     }
-    if (/speed|pace|velocity/u.test(normalized)) {
+    if (/pace|speed|velocity/u.test(normalized)) {
         return "gauge";
     }
     if (/cadence|rpm|stroke|turn/u.test(normalized)) {
@@ -405,13 +405,13 @@ function resolveTableColumnIconName(label: string): AppIconName {
     if (/heart|hr|pulse/u.test(normalized)) {
         return "activity";
     }
-    if (/power|watt|calorie|energy/u.test(normalized)) {
+    if (/calorie|energy|power|watt/u.test(normalized)) {
         return "activity";
     }
-    if (/lap|segment|route/u.test(normalized)) {
+    if (/lap|route|segment/u.test(normalized)) {
         return "route";
     }
-    if (/id|index|num|count/u.test(normalized)) {
+    if (/count|id|index|num/u.test(normalized)) {
         return "hash";
     }
     return "table";

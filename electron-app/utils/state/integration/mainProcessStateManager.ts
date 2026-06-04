@@ -34,7 +34,7 @@ const FORBIDDEN_DOT_PATH_SEGMENTS: ReadonlySet<string> = new Set([
 const MAX_DOT_PATH_LENGTH = 512;
 const MAX_DOT_PATH_SEGMENT_LENGTH = 128;
 // Keep segments conservative: allow identifier-ish keys plus ':' (used by fitFile:decode).
-const DOT_PATH_SEGMENT_PATTERN = /^[0-9A-Za-z_:-]+$/u;
+const DOT_PATH_SEGMENT_PATTERN = /^[\w:-]+$/u;
 const RENDERER_READABLE_MAIN_STATE_PATHS: ReadonlySet<string> = new Set([
     "loadedFitFilePath",
 ]);
@@ -103,9 +103,7 @@ type MainStateRegisterIpcHandle = (
     channel: MainStateGenericInvokeChannel,
     handler: unknown
 ) => void;
-interface SerializableRecord {
-    [key: string]: SerializableValue;
-}
+type SerializableRecord = Record<string, SerializableValue>;
 type SerializableValue = MainStateIpcValue;
 
 type StateChange = {
@@ -1496,7 +1494,7 @@ function safeElectron(): MainElectronLike {
         if (hasElectronApis(m)) return m;
         const def = m["default"];
         if (hasElectronApis(def)) return def;
-        return m as MainElectronLike;
+        return m;
     };
 
     try {

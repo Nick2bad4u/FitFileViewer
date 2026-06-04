@@ -2,8 +2,10 @@ import pLimitCompat from "../../async/pLimitCompat.js";
 import { setState } from "../../state/core/stateManager.js";
 import { LoadingOverlay } from "../../ui/components/LoadingOverlay.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
-import { loadSingleOverlayFile } from "./loadSingleOverlayFile.js";
-import type { OverlayFitData as SingleOverlayFitData } from "./loadSingleOverlayFile.js";
+import {
+    loadSingleOverlayFile,
+    type OverlayFitData as SingleOverlayFitData,
+} from "./loadSingleOverlayFile.js";
 
 /** Decoded FIT data used while managing overlay file state. */
 export type OverlayFitData = SingleOverlayFitData & {
@@ -237,7 +239,7 @@ function appendLoadedFitFile(
 }
 
 function getLoadOverlayGlobal(): LoadOverlayGlobal {
-    return globalThis as LoadOverlayGlobal;
+    return globalThis;
 }
 
 function createOverlayEntry(

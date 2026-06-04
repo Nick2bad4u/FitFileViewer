@@ -10,8 +10,8 @@ import {
     removeZoneColor,
     saveChartSpecificZoneColor,
     setChartColorScheme,
+    type ZoneData,
 } from "../../data/zones/chartZoneColorUtils.js";
-import type { ZoneData } from "../../data/zones/chartZoneColorUtils.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { showNotification } from "../notifications/showNotification.js";

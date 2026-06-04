@@ -291,7 +291,7 @@ function getElevationFitFiles(): ElevationFitFile[] {
 }
 
 function getElevationGlobal(): ElevationGlobal {
-    return globalThis as ElevationGlobal;
+    return globalThis;
 }
 
 function getElevationPoints(file: ElevationFitFile): ElevationPoint[] {
@@ -516,7 +516,7 @@ function renderElevationCharts(
     fitFiles: ElevationProfileFileModel[],
     isDark: boolean
 ): void {
-    const Chart = (chartWin as ElevationChartWindow).Chart;
+    const Chart = (chartWin).Chart;
     if (!isElevationChartConstructor(Chart)) {
         return;
     }

@@ -85,6 +85,6 @@ function parseDeveloperFields(
         const parsed: unknown = JSON.parse(developerFields);
         return isDeveloperFieldsPayload(parsed) ? parsed : undefined;
     } catch {
-        return;
+        return undefined;
     }
 }
