@@ -84,19 +84,36 @@
             ipcRenderer.on("main-state-change", dispatcher);
         }
 
+        function removeDispatcherIfIdle(): void {
+            if (callbacksByPath.size === 0 && dispatcher) {
+                removeIpcListener("main-state-change", dispatcher);
+                dispatcher = undefined;
+            }
+        }
+
         async function listenToMainState(
             path: string,
             callback: MainStateCallback
         ): Promise<boolean> {
-            ensureDispatcher();
-
             const existing = callbacksByPath.get(path);
-            const callbacks = existing ?? new Set<MainStateCallback>();
-            callbacks.add(callback);
-            if (!existing) {
-                callbacksByPath.set(path, callbacks);
-                await ipcRenderer.invoke("main-state:listen", path);
+            if (existing) {
+                existing.add(callback);
+                ensureDispatcher();
+                return true;
             }
+
+            const accepted = await ipcRenderer.invoke(
+                "main-state:listen",
+                path
+            );
+            if (accepted !== true) {
+                removeDispatcherIfIdle();
+                return false;
+            }
+
+            const callbacks = new Set<MainStateCallback>([callback]);
+            callbacksByPath.set(path, callbacks);
+            ensureDispatcher();
 
             return true;
         }
@@ -106,20 +123,25 @@
             callback: MainStateCallback
         ): Promise<boolean> {
             const callbacks = callbacksByPath.get(path);
-            if (!callbacks) {
+            if (!callbacks || !callbacks.has(callback)) {
                 return false;
             }
 
-            callbacks.delete(callback);
-            if (callbacks.size === 0) {
-                callbacksByPath.delete(path);
-                await ipcRenderer.invoke("main-state:unlisten", path);
+            if (callbacks.size > 1) {
+                callbacks.delete(callback);
+                return true;
             }
 
-            if (callbacksByPath.size === 0 && dispatcher) {
-                removeIpcListener("main-state-change", dispatcher);
-                dispatcher = undefined;
+            const accepted = await ipcRenderer.invoke(
+                "main-state:unlisten",
+                path
+            );
+            if (accepted !== true) {
+                return false;
             }
+
+            callbacksByPath.delete(path);
+            removeDispatcherIfIdle();
 
             return true;
         }
