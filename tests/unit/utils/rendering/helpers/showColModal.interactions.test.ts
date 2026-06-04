@@ -107,10 +107,16 @@ function getCheckedColumnLabels(overlay: HTMLElement): string[] {
 
 describe("showColModal interactions", () => {
     it("toggles Select All / Deselect All and persists immediately (auto-save)", () => {
-        expect.assertions(16);
+        expect.assertions(22);
 
         const cleanup = setupDomTest();
         try {
+            const opener = document.createElement("button");
+            opener.type = "button";
+            opener.textContent = "Open column selector";
+            document.body.append(opener);
+            opener.focus();
+
             const allKeys = [
                 "Speed",
                 "Distance",
@@ -136,6 +142,16 @@ describe("showColModal interactions", () => {
             expect(
                 overlay.classList.contains("summary-col-modal-overlay")
             ).toBe(true);
+            const modal = overlay.querySelector(".summary-col-modal");
+            expect(modal).toBeInstanceOf(HTMLElement);
+            expect(modal?.getAttribute("role")).toBe("dialog");
+            expect(modal?.getAttribute("aria-modal")).toBe("true");
+            expect(modal?.getAttribute("aria-labelledby")).toBe(
+                "summary-col-modal-title"
+            );
+            expect(document.activeElement).toBe(
+                overlay.querySelector(".summary-col-search")
+            );
 
             const selectAllButton = getButtonByText(overlay, "Select All");
 
@@ -190,6 +206,42 @@ describe("showColModal interactions", () => {
             expect(
                 document.querySelector(".summary-col-modal-overlay")
             ).toBeNull();
+            expect(document.activeElement).toBe(opener);
+        } finally {
+            cleanup();
+        }
+    });
+
+    it("wraps keyboard focus inside the modal", () => {
+        expect.assertions(3);
+
+        const cleanup = setupDomTest();
+        try {
+            showColModal({
+                allKeys: ["A", "B"],
+                renderTable: vi.fn<() => void>(),
+                setVisibleColumns: vi.fn<(cols: string[]) => void>(),
+                visibleColumns: ["A"],
+            });
+
+            const overlay = getModalOverlay();
+            const searchInput = overlay.querySelector(".summary-col-search");
+            const headerCloseButton = overlay.querySelector(
+                ".summary-col-modal-close"
+            );
+            const footerCloseButton = getButtonByText(overlay, "Close");
+
+            footerCloseButton.focus();
+            const tabEvent = new KeyboardEvent("keydown", {
+                bubbles: true,
+                cancelable: true,
+                key: "Tab",
+            });
+            document.dispatchEvent(tabEvent);
+
+            expect(searchInput).toBeInstanceOf(HTMLInputElement);
+            expect(tabEvent.defaultPrevented).toBe(true);
+            expect(document.activeElement).toBe(headerCloseButton);
         } finally {
             cleanup();
         }

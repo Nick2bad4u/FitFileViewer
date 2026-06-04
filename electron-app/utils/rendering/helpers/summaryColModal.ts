@@ -13,6 +13,7 @@ import {
     orderSummaryColumnsNamedFirst,
     saveColPrefs,
 } from "./renderSummaryHelpers.js";
+import { createModalFocusTrap } from "../../ui/modals/modalFocusTrap.js";
 
 type SummaryColModalParams = {
     allKeys: string[];
@@ -62,16 +63,25 @@ export function showColModal({
     let lastCheckedIndex: null | number = null;
     const modalController = new AbortController();
     const { signal } = modalController;
+    let focusTrapCleanup: (() => void) | undefined;
+    const previouslyFocusedElement =
+        document.activeElement instanceof HTMLElement
+            ? document.activeElement
+            : null;
 
     const overlay = document.createElement("div");
     overlay.className = "summary-col-modal-overlay";
     const modal = document.createElement("div");
     modal.className = "summary-col-modal";
+    modal.setAttribute("aria-labelledby", "summary-col-modal-title");
+    modal.setAttribute("aria-modal", "true");
+    modal.setAttribute("role", "dialog");
 
     // Header (title + close)
     const header = document.createElement("div");
     header.className = "summary-col-modal-header";
     const title = document.createElement("h2");
+    title.id = "summary-col-modal-title";
     title.textContent = "Select Summary Columns";
 
     const closeBtn = document.createElement("button");
@@ -83,6 +93,12 @@ export function showColModal({
     const closeOverlay = (): void => {
         modalController.abort();
         overlay.remove();
+        focusTrapCleanup?.();
+        try {
+            previouslyFocusedElement?.focus();
+        } catch {
+            /* ignore */
+        }
     };
     closeBtn.addEventListener("click", closeOverlay, { signal });
 
@@ -219,15 +235,6 @@ export function showColModal({
         },
         { signal }
     );
-    overlay.tabIndex = -1;
-    queueMicrotask(() => {
-        try {
-            overlay.focus();
-        } catch {
-            /* ignore */
-        }
-    });
-
     const getGlobalDefaultCols = (): string[] | null =>
         loadColPrefs(prefsKeyGlobal);
     const getFileSavedCols = (): string[] | null =>
@@ -682,4 +689,5 @@ export function showColModal({
     modal.append(actions);
     overlay.append(modal);
     document.body.append(overlay);
+    focusTrapCleanup = createModalFocusTrap(modal, searchInput);
 }
