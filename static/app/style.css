@@ -8045,11 +8045,12 @@ body.theme-dark .map-action-btn.disabled {
     display: none;
 }
 
-.zwift-external-panel {
-    display: grid;
-    min-block-size: 40vb;
-    place-items: center;
-    padding: 24px;
+#zwift_iframe {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+    min-block-size: 520px;
+    border: 0;
 }
 
 /* =====================================================

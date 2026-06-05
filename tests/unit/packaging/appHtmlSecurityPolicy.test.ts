@@ -63,13 +63,18 @@ function readRootAppHtml(): string {
 
 describe("root app HTML security policy", () => {
     it("keeps the main renderer CSP restrictive for scripts and frames", () => {
-        expect.assertions(6);
+        expect.assertions(7);
 
         const policy = getContentSecurityPolicy(readRootAppHtml());
 
         expect(policy).toContain("script-src 'self' file:");
         expect(policy).toContain("script-src-attr 'none'");
-        expect(policy).toContain("frame-src 'self' file:");
+        expect(policy).toContain(
+            "frame-src 'self' file: https://zwiftmap.com"
+        );
+        expect(policy).toContain(
+            "child-src 'self' file: https://zwiftmap.com"
+        );
         expect(policy).toContain("object-src 'none'");
         expect(policy).toContain("base-uri 'none'");
         expect(policy).not.toContain("script-src 'self' file: 'unsafe-inline'");
@@ -138,14 +143,18 @@ describe("root app HTML security policy", () => {
         expect(imageSources).not.toContain("https:");
     });
 
-    it("keeps remote ZwiftMap content outside the Electron renderer", () => {
-        expect.assertions(3);
+    it("allows ZwiftMap frames without loading the remote frame during startup", () => {
+        expect.assertions(4);
 
         const html = readRootAppHtml();
+        const policy = getContentSecurityPolicy(html);
 
-        expect(html).not.toContain('src="https://zwiftmap.com/');
+        expect(policy).toContain(
+            "frame-src 'self' file: https://zwiftmap.com"
+        );
+        expect(html).toContain('id="content_zwift"');
         expect(html).not.toContain('id="zwift_iframe"');
-        expect(html).toContain('href="https://zwiftmap.com/"');
+        expect(html).not.toContain('src="http://');
     });
 
     it("does not grant embedded AltFit iframe extra browser permissions", () => {

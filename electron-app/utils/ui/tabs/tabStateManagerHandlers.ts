@@ -135,14 +135,14 @@ export function handleZwiftTab(): void {
         return;
     }
 
-    const existingLink = content.querySelector<HTMLAnchorElement>(
-        'a[data-external-link][href="https://zwiftmap.com/"]'
+    const existingFrame = content.querySelector<HTMLIFrameElement>(
+        'iframe#zwift_iframe[src="https://zwiftmap.com/"]'
     );
-    if (existingLink) {
+    if (existingFrame) {
         return;
     }
 
-    content.replaceChildren(createZwiftExternalPanel());
+    content.replaceChildren(createZwiftIframe());
 }
 
 /**
@@ -354,17 +354,23 @@ function hashData(data: ActivityData | null | undefined): string {
     return `${size}-${getTimestamp(firstRecord)}-${getTimestamp(lastRecord)}`;
 }
 
-function createZwiftExternalPanel(): HTMLElement {
-    const panel = document.createElement("div");
-    panel.className = "zwift-external-panel";
+function createZwiftIframe(): HTMLIFrameElement {
+    const iframe = document.createElement("iframe");
+    iframe.id = "zwift_iframe";
+    iframe.className = "fullsize-container no-border";
+    iframe.setAttribute("allow", "geolocation");
+    iframe.setAttribute("aria-label", "ZwiftMap");
+    iframe.height = "720";
+    iframe.loading = "eager";
+    iframe.name = "zwift_iframe";
+    iframe.setAttribute("referrerpolicy", "no-referrer");
+    iframe.setAttribute(
+        "sandbox",
+        "allow-forms allow-popups allow-same-origin allow-scripts"
+    );
+    iframe.src = "https://zwiftmap.com/";
+    iframe.title = "ZwiftMap";
+    iframe.width = "1280";
 
-    const link = document.createElement("a");
-    link.className = "themed-btn";
-    link.dataset["externalLink"] = "true";
-    link.href = "https://zwiftmap.com/";
-    link.textContent = "Open ZwiftMap";
-
-    panel.append(link);
-
-    return panel;
+    return iframe;
 }

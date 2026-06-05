@@ -345,21 +345,23 @@ describe("tabStateManager.behavior", () => {
         expect(() => tabStateManager.handleAltFitTab()).not.toThrow();
     });
 
-    it("handleZwiftTab restores the external ZwiftMap launcher when content is blank", async () => {
-        expect.assertions(4);
+    it("handleZwiftTab restores the embedded ZwiftMap frame when content is blank", async () => {
+        expect.assertions(6);
         const panel = document.createElement("div");
         panel.id = "content_zwift";
         root.appendChild(panel);
 
         await tabStateManager.handleZwiftTab();
 
-        const link = panel.querySelector("a[data-external-link]");
-        expect(link).toBeInstanceOf(HTMLAnchorElement);
-        expect(link?.getAttribute("href")).toBe("https://zwiftmap.com/");
-        expect(link?.textContent).toBe("Open ZwiftMap");
-        expect(panel.querySelector(".zwift-external-panel")).toBeInstanceOf(
-            HTMLDivElement
+        const iframe = panel.querySelector("iframe#zwift_iframe");
+        expect(iframe).toBeInstanceOf(HTMLIFrameElement);
+        expect(iframe?.getAttribute("src")).toBe("https://zwiftmap.com/");
+        expect(iframe?.getAttribute("referrerpolicy")).toBe("no-referrer");
+        expect(iframe?.getAttribute("allow")).toBe("geolocation");
+        expect(iframe?.getAttribute("sandbox")).toBe(
+            "allow-forms allow-popups allow-same-origin allow-scripts"
         );
+        expect(iframe?.className).toBe("fullsize-container no-border");
     });
 
     it("handleSummaryTab renders when hash changes and stores lastDataHash", async () => {
@@ -866,7 +868,7 @@ describe("tabStateManager.behavior", () => {
         a.classList.toggle = origToggle;
     });
 
-    it("handleTabSpecificLogic executes 'zwift' branch and restores the launcher", async () => {
+    it("handleTabSpecificLogic executes 'zwift' branch and restores the frame", async () => {
         expect.assertions(3);
         const panel = document.createElement("div");
         panel.id = "content_zwift";
@@ -876,8 +878,8 @@ describe("tabStateManager.behavior", () => {
             tabStateManager.handleTabSpecificLogic("zwift")
         ).resolves.toBeUndefined();
         expect(TAB_CONFIG.zwift.id).toBe("tab_zwift");
-        expect(panel.querySelector(".zwift-external-panel")).toBeInstanceOf(
-            HTMLDivElement
+        expect(panel.querySelector("iframe#zwift_iframe")).toBeInstanceOf(
+            HTMLIFrameElement
         );
     });
 
