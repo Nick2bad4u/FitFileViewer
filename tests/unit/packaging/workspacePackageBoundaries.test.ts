@@ -241,6 +241,8 @@ const rendererDependencyInventoryPath = path.posix.join(
 );
 
 const expectedRootToolingScripts = {
+    audit: "npm audit --audit-level=moderate && npm --prefix docusaurus audit --audit-level=moderate",
+    "docs:install": "npm ci --prefix docusaurus --no-audit --no-fund",
     lint: "npm run lint:secretlint && npm run lint:root && npm run lint:app && npm run lint:docusaurus && npm run lint:remark",
     "lint:app":
         "node scripts/run-eslint.mjs app && node scripts/run-typescript.mjs typecheck",
@@ -294,10 +296,11 @@ function getInventoryPackageNames(markdown: string): Set<string> {
 }
 
 describe("workspace package boundaries", () => {
-    it("keeps shared tooling and local Vitest UI support in the root workspace", () => {
-        expect.assertions(10);
+    it("keeps shared tooling and local Vitest UI support in the root package", () => {
+        expect.assertions(11);
 
         const rootPackage = readPackageJson("package.json");
+        const docusaurusPackage = readPackageJson("docusaurus/package.json");
         const directDisallowedDevDependencies = Object.keys(
             rootPackage.devDependencies ?? {}
         ).filter((dependencyName) =>
@@ -306,7 +309,18 @@ describe("workspace package boundaries", () => {
             )
         );
 
-        expect(rootPackage.workspaces).toStrictEqual(["docusaurus"]);
+        expect(rootPackage).not.toHaveProperty("workspaces");
+        expect(docusaurusPackage.overrides).toStrictEqual({
+            "copy-webpack-plugin": {
+                "serialize-javascript": "7.0.5",
+            },
+            "css-minimizer-webpack-plugin": {
+                "serialize-javascript": "7.0.5",
+            },
+            sockjs: {
+                uuid: "11.1.1",
+            },
+        });
         expect(
             Object.fromEntries(
                 Object.keys(expectedRootToolingScripts).map((scriptName) => [

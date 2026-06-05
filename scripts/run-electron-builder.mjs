@@ -23,6 +23,28 @@ export const electronBuilderBaseArgs = [
 ];
 export { electronBuilderCliPath };
 
+const macosNotarizationCredentialSets = [
+    ["APPLE_ID", "APPLE_APP_SPECIFIC_PASSWORD", "APPLE_TEAM_ID"],
+    ["APPLE_API_KEY", "APPLE_API_KEY_ID", "APPLE_API_ISSUER"],
+    ["APPLE_KEYCHAIN_PROFILE"],
+];
+
+const signingEnvironmentNames = [
+    "APPLE_API_ISSUER",
+    "APPLE_API_KEY",
+    "APPLE_API_KEY_ID",
+    "APPLE_APP_SPECIFIC_PASSWORD",
+    "APPLE_ID",
+    "APPLE_KEYCHAIN",
+    "APPLE_KEYCHAIN_PROFILE",
+    "APPLE_TEAM_ID",
+    "CSC_INSTALLER_KEY_PASSWORD",
+    "CSC_INSTALLER_LINK",
+    "CSC_KEY_PASSWORD",
+    "CSC_LINK",
+    "WIN_CSC_LINK",
+];
+
 export function parseArgs(argv) {
     const builderArgs = [];
     let nodeEnv;
@@ -55,12 +77,93 @@ export function parseArgs(argv) {
     return { builderArgs, nodeEnv };
 }
 
+export function getCodeSigningValidationErrors(
+    environment = process.env,
+    platform = process.platform
+) {
+    if (environment.REQUIRE_CODE_SIGNING !== "true") {
+        return [];
+    }
+
+    if (platform === "win32") {
+        return [
+            ...requireOneOf(environment, ["WIN_CSC_LINK", "CSC_LINK"]),
+            ...requireEnvironmentNames(environment, ["CSC_KEY_PASSWORD"]),
+        ];
+    }
+
+    if (platform === "darwin") {
+        const missingNotarizationCredentials =
+            macosNotarizationCredentialSets.every(
+                (credentialSet) =>
+                    requireEnvironmentNames(environment, credentialSet)
+                        .length > 0
+            );
+
+        return [
+            ...requireEnvironmentNames(environment, [
+                "CSC_LINK",
+                "CSC_KEY_PASSWORD",
+                "CSC_INSTALLER_LINK",
+                "CSC_INSTALLER_KEY_PASSWORD",
+            ]),
+            ...(missingNotarizationCredentials
+                ? [
+                      "one macOS notarization credential set is required: APPLE_ID/APPLE_APP_SPECIFIC_PASSWORD/APPLE_TEAM_ID, APPLE_API_KEY/APPLE_API_KEY_ID/APPLE_API_ISSUER, or APPLE_KEYCHAIN_PROFILE",
+                  ]
+                : []),
+        ];
+    }
+
+    return [];
+}
+
+export function getElectronBuilderEnvironment(
+    environment = process.env,
+    platform = process.platform
+) {
+    const signingErrors = getCodeSigningValidationErrors(
+        environment,
+        platform
+    );
+
+    if (signingErrors.length > 0) {
+        throw new Error(
+            [
+                "Code signing is required for this build, but the signing environment is incomplete.",
+                ...signingErrors.map((error) => `- ${error}`),
+            ].join("\n")
+        );
+    }
+
+    if (
+        environment.CSC_IDENTITY_AUTO_DISCOVERY === undefined &&
+        environment.REQUIRE_CODE_SIGNING !== "true" &&
+        !hasAnySigningEnvironment(environment)
+    ) {
+        return {
+            ...environment,
+            CSC_IDENTITY_AUTO_DISCOVERY: "false",
+        };
+    }
+
+    return environment;
+}
+
 export function runElectronBuilder(
     argv = process.argv.slice(2),
     commandRunner = spawnSync,
-    environment = process.env
+    environment = process.env,
+    options = {}
 ) {
     const { builderArgs, nodeEnv } = parseArgs(argv);
+    const builderEnvironment = getElectronBuilderEnvironment(
+        environment,
+        options.platform ?? process.platform
+    );
+    const commandEnvironment = nodeEnv
+        ? { ...builderEnvironment, NODE_ENV: nodeEnv }
+        : builderEnvironment;
     const result = commandRunner(
         process.execPath,
         [
@@ -70,7 +173,7 @@ export function runElectronBuilder(
         ],
         {
             cwd: repositoryRoot,
-            env: nodeEnv ? { ...environment, NODE_ENV: nodeEnv } : environment,
+            env: commandEnvironment,
             stdio: "inherit",
         }
     );
@@ -80,6 +183,26 @@ export function runElectronBuilder(
     }
 
     return result.status ?? 1;
+}
+
+function hasAnySigningEnvironment(environment) {
+    return signingEnvironmentNames.some((name) => hasEnvironmentValue(environment, name));
+}
+
+function hasEnvironmentValue(environment, name) {
+    return typeof environment[name] === "string" && environment[name].trim() !== "";
+}
+
+function requireEnvironmentNames(environment, names) {
+    return names
+        .filter((name) => !hasEnvironmentValue(environment, name))
+        .map((name) => `${name} is required`);
+}
+
+function requireOneOf(environment, names) {
+    return names.some((name) => hasEnvironmentValue(environment, name))
+        ? []
+        : [`one of ${names.join(" or ")} is required`];
 }
 
 if (

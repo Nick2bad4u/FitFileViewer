@@ -53,6 +53,16 @@ function formatPackagePerson(person) {
         : person.name;
 }
 
+function isEnvironmentFlagEnabled(value) {
+    if (typeof value !== "string") {
+        return false;
+    }
+
+    return ["1", "true", "yes"].includes(
+        value.toLowerCase()
+    );
+}
+
 module.exports = {
     electronVersion,
     icon: appPackage.icon,
@@ -63,6 +73,7 @@ module.exports = {
     appId: appPackage.appid,
     productName: appPackage.productName,
     copyright: appPackage.copyright,
+    forceCodeSigning: isEnvironmentFlagEnabled(process.env.REQUIRE_CODE_SIGNING),
     artifactName: "Fit-File-Viewer-${platform}-${arch}-${version}.${ext}",
     asar: true,
     publish: [

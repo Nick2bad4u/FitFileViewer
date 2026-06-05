@@ -51,8 +51,10 @@ jobs:
               with:
                   node-version: 24
 
-            - name: Install workspace dependencies
-              run: npm ci --no-audit --no-fund
+            - name: Install app and docs dependencies
+              run: |
+                  npm ci --no-audit --no-fund
+                  npm ci --prefix docusaurus --no-audit --no-fund
 
             - name: Run repository lint gates
               run: npm run lint
@@ -174,7 +176,7 @@ jobs:
                       node_modules
                       docusaurus\node_modules
                       ~\.cache
-                  key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+                  key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json', 'docusaurus/package-lock.json') }}
                   restore-keys: |
                       ${{ runner.os }}-node-
                   enableCrossOsArchive: true
@@ -189,16 +191,18 @@ jobs:
                       ~/.npm
                       node_modules
                       docusaurus/node_modules
-                  key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+                  key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json', 'docusaurus/package-lock.json') }}
                   restore-keys: |
                       ${{ runner.os }}-node-
                   enableCrossOsArchive: true
               continue-on-error: true
 
-            - name: Install workspace dependencies
+            - name: Install app and docs dependencies
               id: install_dependencies
               shell: bash
-              run: npm ci --no-audit --no-fund
+              run: |
+                  npm ci --no-audit --no-fund
+                  npm ci --prefix docusaurus --no-audit --no-fund
 
             - name: Install dmg-license workaround for Mac Builder
               id: install_dmg_license
@@ -217,7 +221,20 @@ jobs:
                   DEBUG: "@malept/flatpak-bundler"
                   MATRIX_ARCH: ${{ matrix.arch }}
                   MATRIX_OS: ${{ matrix.os }}
+                  REQUIRE_CODE_SIGNING: true
                   RUNNER_OS: ${{ runner.os }}
+                  APPLE_API_ISSUER: ${{ runner.os == 'macOS' && secrets.APPLE_API_ISSUER || '' }}
+                  APPLE_API_KEY: ${{ runner.os == 'macOS' && secrets.APPLE_API_KEY || '' }}
+                  APPLE_API_KEY_ID: ${{ runner.os == 'macOS' && secrets.APPLE_API_KEY_ID || '' }}
+                  APPLE_APP_SPECIFIC_PASSWORD: ${{ runner.os == 'macOS' && secrets.APPLE_APP_SPECIFIC_PASSWORD || '' }}
+                  APPLE_ID: ${{ runner.os == 'macOS' && secrets.APPLE_ID || '' }}
+                  APPLE_KEYCHAIN_PROFILE: ${{ runner.os == 'macOS' && secrets.APPLE_KEYCHAIN_PROFILE || '' }}
+                  APPLE_TEAM_ID: ${{ runner.os == 'macOS' && secrets.APPLE_TEAM_ID || '' }}
+                  CSC_INSTALLER_KEY_PASSWORD: ${{ runner.os == 'macOS' && secrets.MACOS_CSC_INSTALLER_KEY_PASSWORD || '' }}
+                  CSC_INSTALLER_LINK: ${{ runner.os == 'macOS' && secrets.MACOS_CSC_INSTALLER_LINK || '' }}
+                  CSC_KEY_PASSWORD: ${{ runner.os == 'macOS' && secrets.MACOS_CSC_KEY_PASSWORD || runner.os == 'Windows' && secrets.WINDOWS_CSC_KEY_PASSWORD || '' }}
+                  CSC_LINK: ${{ runner.os == 'macOS' && secrets.MACOS_CSC_LINK || '' }}
+                  WIN_CSC_LINK: ${{ runner.os == 'Windows' && secrets.WINDOWS_CSC_LINK || '' }}
 
             - name: Print distributable hashes (debug)
               id: print_hashes

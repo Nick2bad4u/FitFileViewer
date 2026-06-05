@@ -16,6 +16,7 @@ type AppPackage = {
 type ElectronBuilderConfig = {
     appId: string;
     copyright: string;
+    forceCodeSigning: boolean;
     icon: string;
     linux: {
         icon: string;
@@ -35,13 +36,25 @@ function toDistPath(exportPath: string): string {
 }
 
 describe("electron-builder config", () => {
+    function loadBuilderConfig(): ElectronBuilderConfig {
+        const configPath = require.resolve("../../../electron-builder.config.cjs");
+        delete require.cache[configPath];
+
+        return require("../../../electron-builder.config.cjs") as ElectronBuilderConfig;
+    }
+
     it("uses the root app package as the app identity source", () => {
-        expect.assertions(9);
+        expect.assertions(10);
 
         const appPackage = require("../../../package.json") as AppPackage;
-        const builderConfig =
-            require("../../../electron-builder.config.cjs") as ElectronBuilderConfig;
+        const previousValue = process.env.REQUIRE_CODE_SIGNING;
+        delete process.env.REQUIRE_CODE_SIGNING;
+        const builderConfig = loadBuilderConfig();
         const [maintainer] = appPackage.maintainers;
+
+        if (previousValue !== undefined) {
+            process.env.REQUIRE_CODE_SIGNING = previousValue;
+        }
 
         expect(builderConfig.appId).toBe(appPackage.appid);
         expect(builderConfig.productName).toBe(appPackage.productName);
@@ -59,6 +72,25 @@ describe("electron-builder config", () => {
         expect(builderConfig.linux.maintainer).toBe(
             `${maintainer.name} <${maintainer.email}>`
         );
+        expect(builderConfig.forceCodeSigning).toBe(false);
         expect(builderConfig.productName).not.toBe("FitFileViewer");
+    });
+
+    it("requires code signing when the release build environment enables it", () => {
+        expect.assertions(1);
+
+        const previousValue = process.env.REQUIRE_CODE_SIGNING;
+
+        process.env.REQUIRE_CODE_SIGNING = "true";
+
+        try {
+            expect(loadBuilderConfig().forceCodeSigning).toBe(true);
+        } finally {
+            if (previousValue === undefined) {
+                delete process.env.REQUIRE_CODE_SIGNING;
+            } else {
+                process.env.REQUIRE_CODE_SIGNING = previousValue;
+            }
+        }
     });
 });

@@ -154,10 +154,8 @@
         "global.d.ts",
         "package.json"
     ],
-    "workspaces": [
-        "docusaurus"
-    ],
     "scripts": {
+        "audit": "npm audit --audit-level=moderate && npm --prefix docusaurus audit --audit-level=moderate",
         "build": "node scripts/build-package.mjs",
         "build:all": "node scripts/build-package.mjs -mwl",
         "build:ci-matrix": "node scripts/build-ci-matrix.mjs",
@@ -201,6 +199,7 @@
         "docs:build": "node scripts/build-docs.mjs",
         "docs:clear": "node scripts/run-docusaurus.mjs clear",
         "docs:deploy": "node scripts/run-docusaurus.mjs deploy",
+        "docs:install": "npm ci --prefix docusaurus --no-audit --no-fund",
         "docs:serve": "node scripts/run-docusaurus.mjs serve",
         "docs:start": "node scripts/run-docusaurus.mjs start",
         "docs:typecheck": "node scripts/typecheck-docusaurus.mjs",
@@ -339,6 +338,14 @@
             "name": "node",
             "onFail": "warn",
             "version": ">=22.12.0"
+        }
+    },
+    "overrides": {
+        "remark-lint-frontmatter-schema": {
+            "@apidevtools/json-schema-ref-parser": "^15.3.5",
+            "ajv": "^8.20.0",
+            "minimatch": "^9.0.9",
+            "yaml": "^2.9.0"
         }
     },
     "os": [

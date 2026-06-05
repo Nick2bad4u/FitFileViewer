@@ -18,6 +18,14 @@ type CommandRunner = (
 type RunElectronBuilderModule = {
     electronBuilderBaseArgs: string[];
     electronBuilderCliPath: string;
+    getCodeSigningValidationErrors: (
+        environment?: NodeJS.ProcessEnv,
+        platform?: NodeJS.Platform
+    ) => string[];
+    getElectronBuilderEnvironment: (
+        environment?: NodeJS.ProcessEnv,
+        platform?: NodeJS.Platform
+    ) => NodeJS.ProcessEnv;
     parseArgs: (args: string[]) => {
         builderArgs: string[];
         nodeEnv: string | undefined;
@@ -25,7 +33,8 @@ type RunElectronBuilderModule = {
     runElectronBuilder: (
         argv?: string[],
         commandRunner?: CommandRunner,
-        environment?: NodeJS.ProcessEnv
+        environment?: NodeJS.ProcessEnv,
+        options?: { platform?: NodeJS.Platform }
     ) => number;
 };
 
@@ -122,6 +131,7 @@ describe("run-electron-builder script", () => {
             options: {
                 cwd: path.resolve(process.cwd()),
                 env: {
+                    CSC_IDENTITY_AUTO_DISCOVERY: "false",
                     FFV_TEST_ENV: "1",
                     NODE_ENV: "production",
                 },
@@ -137,12 +147,15 @@ describe("run-electron-builder script", () => {
         const spawnError = new Error("spawn failed");
         const { electronBuilderCliPath, runElectronBuilder } =
             await importRunElectronBuilder();
+        const environment = { FFV_TEST_ENV: "1" };
         const commandRunner = vi.fn<CommandRunner>(() => ({
             error: spawnError,
             status: 0,
         }));
 
-        expect(() => runElectronBuilder([], commandRunner)).toThrow(spawnError);
+        expect(() =>
+            runElectronBuilder([], commandRunner, environment)
+        ).toThrow(spawnError);
         expect(commandRunner).toHaveBeenCalledOnce();
 
         const [
@@ -166,8 +179,120 @@ describe("run-electron-builder script", () => {
             cwd: path.resolve(options?.cwd ?? ""),
         }).toStrictEqual({
             cwd: path.resolve(process.cwd()),
-            env: process.env,
+            env: {
+                CSC_IDENTITY_AUTO_DISCOVERY: "false",
+                FFV_TEST_ENV: "1",
+            },
             stdio: "inherit",
+        });
+    });
+
+    it("disables code signing auto-discovery for local unsigned packages", async () => {
+        expect.assertions(2);
+
+        const { getElectronBuilderEnvironment } =
+            await importRunElectronBuilder();
+
+        expect(
+            getElectronBuilderEnvironment({ FFV_TEST_ENV: "1" }, "win32")
+        ).toStrictEqual({
+            CSC_IDENTITY_AUTO_DISCOVERY: "false",
+            FFV_TEST_ENV: "1",
+        });
+        expect(
+            getElectronBuilderEnvironment(
+                {
+                    CSC_IDENTITY_AUTO_DISCOVERY: "true",
+                    FFV_TEST_ENV: "1",
+                },
+                "win32"
+            )
+        ).toStrictEqual({
+            CSC_IDENTITY_AUTO_DISCOVERY: "true",
+            FFV_TEST_ENV: "1",
+        });
+    });
+
+    it("validates required Windows signing secrets for release builds", async () => {
+        expect.assertions(2);
+
+        const {
+            getCodeSigningValidationErrors,
+            getElectronBuilderEnvironment,
+        } = await importRunElectronBuilder();
+
+        expect(
+            getCodeSigningValidationErrors(
+                {
+                    REQUIRE_CODE_SIGNING: "true",
+                },
+                "win32"
+            )
+        ).toStrictEqual([
+            "one of WIN_CSC_LINK or CSC_LINK is required",
+            "CSC_KEY_PASSWORD is required",
+        ]);
+        expect(
+            getElectronBuilderEnvironment(
+                {
+                    CSC_KEY_PASSWORD: "password",
+                    REQUIRE_CODE_SIGNING: "true",
+                    WIN_CSC_LINK: "certificate.pfx",
+                },
+                "win32"
+            )
+        ).toStrictEqual({
+            CSC_KEY_PASSWORD: "password",
+            REQUIRE_CODE_SIGNING: "true",
+            WIN_CSC_LINK: "certificate.pfx",
+        });
+    });
+
+    it("validates required macOS signing and notarization secrets for release builds", async () => {
+        expect.assertions(2);
+
+        const {
+            getCodeSigningValidationErrors,
+            getElectronBuilderEnvironment,
+        } = await importRunElectronBuilder();
+
+        expect(
+            getCodeSigningValidationErrors(
+                {
+                    CSC_KEY_PASSWORD: "password",
+                    CSC_LINK: "application.p12",
+                    REQUIRE_CODE_SIGNING: "true",
+                },
+                "darwin"
+            )
+        ).toStrictEqual([
+            "CSC_INSTALLER_LINK is required",
+            "CSC_INSTALLER_KEY_PASSWORD is required",
+            "one macOS notarization credential set is required: APPLE_ID/APPLE_APP_SPECIFIC_PASSWORD/APPLE_TEAM_ID, APPLE_API_KEY/APPLE_API_KEY_ID/APPLE_API_ISSUER, or APPLE_KEYCHAIN_PROFILE",
+        ]);
+        expect(
+            getElectronBuilderEnvironment(
+                {
+                    APPLE_API_ISSUER: "issuer",
+                    APPLE_API_KEY: "key",
+                    APPLE_API_KEY_ID: "key-id",
+                    CSC_INSTALLER_KEY_PASSWORD: "installer-password",
+                    CSC_INSTALLER_LINK: "installer.p12",
+                    CSC_KEY_PASSWORD: "password",
+                    CSC_LINK: "application.p12",
+                    REQUIRE_CODE_SIGNING: "true",
+                },
+                "darwin"
+            )
+        ).toStrictEqual({
+            APPLE_API_ISSUER: "issuer",
+            APPLE_API_KEY: "key",
+            APPLE_API_KEY_ID: "key-id",
+            CSC_INSTALLER_KEY_PASSWORD: "installer-password",
+            CSC_INSTALLER_LINK: "installer.p12",
+            CSC_KEY_PASSWORD: "password",
+            CSC_LINK: "application.p12",
+            REQUIRE_CODE_SIGNING: "true",
         });
     });
 });
