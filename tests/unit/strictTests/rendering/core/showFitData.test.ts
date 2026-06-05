@@ -135,6 +135,31 @@ describe("showFitData", () => {
         ).toHaveBeenCalledWith(filePath);
     });
 
+    it("retries map rendering when renderMap attaches after file load", async () => {
+        expect.assertions(5);
+
+        const { showFitData } = await loadModule();
+        const data: Record<string, unknown> = {};
+        const filePath = "C:/tmp/file.fit";
+        const showFitGlobal = getShowFitDataTestGlobal();
+        delete showFitGlobal.renderMap;
+
+        showFitData(data, filePath);
+
+        expect(showFitGlobal.updateTabVisibility).toHaveBeenCalledWith(
+            "content_map"
+        );
+        expect(showFitGlobal.updateActiveTab).toHaveBeenCalledWith("tab_map");
+        expect(showFitGlobal.isMapRendered).toBe(false);
+
+        const renderMap = vi.fn<() => void>();
+        showFitGlobal.renderMap = renderMap;
+        vi.runOnlyPendingTimers();
+
+        expect(renderMap).toHaveBeenCalledWith();
+        expect(showFitGlobal.isMapRendered).toBe(true);
+    });
+
     it("throws on invalid data and writes error state", async () => {
         expect.assertions(1);
 

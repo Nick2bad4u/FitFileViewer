@@ -30,10 +30,13 @@ const DISPLAY_CONSTANTS = {
         FILE_NAME_CONTAINER: "active_file_name_container",
         UNLOAD_BUTTON: "unload_file_btn",
     },
+    MAP_RENDER_RETRY_DELAY_MS: 50,
+    MAP_RENDER_RETRY_LIMIT: 200,
     TITLE_PREFIX: "Fit File Viewer",
 } as const;
 
 const log = createRendererLogger(DISPLAY_CONSTANTS.LOG_PREFIX);
+let pendingMapRenderRetryTimerId: ReturnType<typeof setTimeout> | undefined;
 
 type FitRecord = Record<string, unknown>;
 
@@ -271,10 +274,56 @@ function switchToMapTabOnLoad(): void {
     windowExt.updateActiveTab("tab_map");
 
     // Manually trigger map rendering since we're programmatically switching tabs
-    if (windowExt.renderMap && !windowExt.isMapRendered) {
-        windowExt.renderMap();
-        windowExt.isMapRendered = true;
+    if (!renderMapIfReady(windowExt)) {
+        retryMapRenderWhenReady(1);
     }
+}
+
+function renderMapIfReady(windowExt: ShowFitDataGlobal): boolean {
+    if (windowExt.isMapRendered) {
+        clearPendingMapRenderRetryTimer();
+        return true;
+    }
+
+    const renderMap = windowExt.renderMap;
+    if (typeof renderMap !== "function") {
+        return false;
+    }
+
+    renderMap();
+    windowExt.isMapRendered = true;
+    clearPendingMapRenderRetryTimer();
+    return true;
+}
+
+function retryMapRenderWhenReady(attempt: number): void {
+    const windowExt = getShowFitDataGlobal();
+
+    if (renderMapIfReady(windowExt)) {
+        return;
+    }
+
+    if (attempt >= DISPLAY_CONSTANTS.MAP_RENDER_RETRY_LIMIT) {
+        log("warn", "Map render skipped because renderMap was unavailable", {
+            attempts: attempt,
+        });
+        return;
+    }
+
+    clearPendingMapRenderRetryTimer();
+    pendingMapRenderRetryTimerId = globalThis.setTimeout(() => {
+        pendingMapRenderRetryTimerId = undefined;
+        retryMapRenderWhenReady(attempt + 1);
+    }, DISPLAY_CONSTANTS.MAP_RENDER_RETRY_DELAY_MS);
+}
+
+function clearPendingMapRenderRetryTimer(): void {
+    if (pendingMapRenderRetryTimerId === undefined) {
+        return;
+    }
+
+    clearTimeout(pendingMapRenderRetryTimerId);
+    pendingMapRenderRetryTimerId = undefined;
 }
 
 /** Enables tab buttons and notifies the main process. */
