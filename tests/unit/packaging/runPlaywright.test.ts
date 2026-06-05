@@ -4,7 +4,10 @@ import process from "node:process";
 import { describe, expect, it, vi } from "vitest";
 
 import {
+    buildPlaywrightEnvironment,
+    buildPlaywrightNodeOptions,
     playwrightCliPath,
+    playwrightNodeWarningOptions,
     runPlaywright,
     runPlaywrightSteps,
 } from "../../../scripts/run-playwright.mjs";
@@ -16,7 +19,7 @@ import {
 type CommandRunner = (
     command: string,
     args: string[],
-    options: { cwd: string; stdio: string }
+    options: { cwd: string; env?: NodeJS.ProcessEnv; stdio: string }
 ) => { error?: Error; status: number };
 
 function getRequiredCommandCall(
@@ -47,7 +50,7 @@ function getRequiredPlaywrightStep(
 
 describe("run-playwright script", () => {
     it("runs the Playwright pipeline through root-owned scripts", () => {
-        expect.assertions(4);
+        expect.assertions(7);
 
         const steps = runPlaywrightSteps([
             "--headed",
@@ -74,6 +77,16 @@ describe("run-playwright script", () => {
         expect(playwrightCliPath).toMatch(
             /[\\/]@playwright[\\/]test[\\/]cli\.js$/u
         );
+        expect(playwrightNodeWarningOptions).toStrictEqual([
+            "--disable-warning=DEP0205",
+        ]);
+        expect(buildPlaywrightNodeOptions("")).toBe(
+            "--disable-warning=DEP0205"
+        );
+        expect(buildPlaywrightEnvironment({ NODE_OPTIONS: "--trace-warnings" }))
+            .toMatchObject({
+                NODE_OPTIONS: "--trace-warnings --disable-warning=DEP0205",
+            });
     });
 
     it("returns zero when every Playwright step succeeds", () => {
@@ -108,7 +121,6 @@ describe("run-playwright script", () => {
                     args,
                     command,
                     options: {
-                        ...options,
                         cwd: path.resolve(options.cwd),
                         cwdIsNestedElectronApp: path
                             .resolve(options.cwd)
@@ -117,6 +129,8 @@ describe("run-playwright script", () => {
                             process.cwd(),
                             path.resolve(options.cwd)
                         ),
+                        nodeOptions: options.env?.NODE_OPTIONS,
+                        stdio: options.stdio,
                     },
                 })
             )
@@ -129,6 +143,7 @@ describe("run-playwright script", () => {
                     cwdIsNestedElectronApp: false,
                     cwdRelativeToRepository: "",
                     stdio: "inherit",
+                    nodeOptions: undefined,
                 },
             },
             {
@@ -144,6 +159,7 @@ describe("run-playwright script", () => {
                     cwdIsNestedElectronApp: false,
                     cwdRelativeToRepository: "",
                     stdio: "inherit",
+                    nodeOptions: "--disable-warning=DEP0205",
                 },
             },
         ]);

@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import path from "node:path";
@@ -8,6 +9,7 @@ import {
     docusaurusPackagePath,
     docusaurusWorkspacePath,
     repositoryRoot,
+    rootCachePath,
     syncDocusaurusStaticAssetsScriptPath,
 } from "./lib/workspaces.mjs";
 
@@ -31,9 +33,30 @@ export const docusaurusCommandsThatSyncAssets = [
 ];
 export const syncDocusaurusStaticAssetsScript =
     syncDocusaurusStaticAssetsScriptPath;
+export const docusaurusLocalStorageFilePath = path.join(
+    repositoryRoot,
+    rootCachePath,
+    "docusaurus-localstorage.json"
+);
 
 export function buildDocusaurusArgs(argv = process.argv.slice(2)) {
     return [docusaurusCliPath, ...argv];
+}
+
+export function buildDocusaurusNodeOptions(
+    nodeOptions = process.env.NODE_OPTIONS
+) {
+    const localStorageOption = `--localstorage-file=${docusaurusLocalStorageFilePath}`;
+    const trimmed = typeof nodeOptions === "string" ? nodeOptions.trim() : "";
+
+    return trimmed ? `${trimmed} ${localStorageOption}` : localStorageOption;
+}
+
+export function buildDocusaurusEnvironment(env = process.env) {
+    return {
+        ...env,
+        NODE_OPTIONS: buildDocusaurusNodeOptions(env.NODE_OPTIONS),
+    };
 }
 
 export function findDocusaurusCommand(argv = process.argv.slice(2)) {
@@ -63,10 +86,19 @@ export function runDocusaurus(
         }
     }
 
-    const result = commandRunner(process.execPath, buildDocusaurusArgs(argv), {
-        cwd: docusaurusWorkspacePath,
-        stdio: "inherit",
+    fs.mkdirSync(path.dirname(docusaurusLocalStorageFilePath), {
+        recursive: true,
     });
+
+    const result = commandRunner(
+        process.execPath,
+        buildDocusaurusArgs(argv),
+        {
+            cwd: docusaurusWorkspacePath,
+            env: buildDocusaurusEnvironment(),
+            stdio: "inherit",
+        }
+    );
 
     if (result.error) {
         throw result.error;

@@ -16,6 +16,7 @@ export const playwrightCliPath = path.join(
     path.dirname(playwrightPackagePath),
     "cli.js"
 );
+export const playwrightNodeWarningOptions = ["--disable-warning=DEP0205"];
 
 export function runPlaywrightSteps(argv = process.argv.slice(2)) {
     return [
@@ -36,6 +37,22 @@ export function runPlaywrightSteps(argv = process.argv.slice(2)) {
     ];
 }
 
+export function buildPlaywrightNodeOptions(
+    nodeOptions = process.env.NODE_OPTIONS
+) {
+    const trimmed = typeof nodeOptions === "string" ? nodeOptions.trim() : "";
+    const playwrightOptions = playwrightNodeWarningOptions.join(" ");
+
+    return trimmed ? `${trimmed} ${playwrightOptions}` : playwrightOptions;
+}
+
+export function buildPlaywrightEnvironment(env = process.env) {
+    return {
+        ...env,
+        NODE_OPTIONS: buildPlaywrightNodeOptions(env.NODE_OPTIONS),
+    };
+}
+
 export function runPlaywright(
     argv = process.argv.slice(2),
     commandRunner = spawnSync,
@@ -44,10 +61,20 @@ export function runPlaywright(
     for (const { args, label } of runPlaywrightSteps(argv)) {
         logger(`[run-playwright] ${label}`);
 
-        const result = commandRunner(process.execPath, args, {
-            cwd: repositoryRoot,
-            stdio: "inherit",
-        });
+        const result = commandRunner(
+            process.execPath,
+            args,
+            label === "run playwright"
+                ? {
+                      cwd: repositoryRoot,
+                      env: buildPlaywrightEnvironment(),
+                      stdio: "inherit",
+                  }
+                : {
+                      cwd: repositoryRoot,
+                      stdio: "inherit",
+                  }
+        );
 
         if (result.error) {
             throw result.error;

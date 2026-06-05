@@ -211,8 +211,10 @@ const config = {
                     ],
                     include: ["**/*.md", "**/*.mdx"],
                     routeBasePath: "docs",
-                    showLastUpdateAuthor: true,
-                    showLastUpdateTime: true,
+                    // TypeDoc API pages are generated during docs builds and are not git-tracked,
+                    // so Docusaurus cannot infer stable update metadata for the full docs plugin.
+                    showLastUpdateAuthor: false,
+                    showLastUpdateTime: false,
                     sidebarCollapsed: true,
                     sidebarCollapsible: true,
                     sidebarPath: "./sidebars.ts",
@@ -230,14 +232,16 @@ const config = {
                     mdxPageComponent: "@theme/MDXPage",
                     path: "src/pages",
                     routeBasePath: "/",
-                    showLastUpdateAuthor: true,
-                    showLastUpdateTime: true,
+                    showLastUpdateAuthor: false,
+                    showLastUpdateTime: false,
                 },
                 sitemap: {
                     changefreq: "weekly",
                     filename: "sitemap.xml",
                     ignorePatterns: ["/tests/**"],
-                    lastmod: "datetime",
+                    // Generated TypeDoc routes are untracked during the build, so git-derived
+                    // sitemap timestamps are noisy and unreliable for this workspace.
+                    lastmod: null,
                     priority: 0.5,
                 },
                 svgr: {

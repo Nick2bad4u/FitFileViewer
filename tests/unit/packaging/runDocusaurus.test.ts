@@ -6,6 +6,9 @@ import { describe, expect, it, vi } from "vitest";
 import { docusaurusWorkspacePath } from "../../../scripts/lib/workspaces.mjs";
 import {
     buildDocusaurusArgs,
+    buildDocusaurusEnvironment,
+    buildDocusaurusNodeOptions,
+    docusaurusLocalStorageFilePath,
     docusaurusCommandsThatSyncAssets,
     findDocusaurusCommand,
     runDocusaurus,
@@ -16,7 +19,7 @@ import {
 type CommandRunner = (
     command: string,
     args: string[],
-    options: { cwd: string; stdio: string }
+    options: { cwd: string; env?: NodeJS.ProcessEnv; stdio: string }
 ) => { error?: Error; status: number };
 
 function getRequiredCommandCall(
@@ -58,7 +61,7 @@ describe("run-docusaurus wrapper", () => {
     });
 
     it("builds Docusaurus CLI arguments from the workspace installation", () => {
-        expect.assertions(1);
+        expect.assertions(3);
 
         const args = buildDocusaurusArgs(["build"]);
 
@@ -68,6 +71,13 @@ describe("run-docusaurus wrapper", () => {
             ),
             "build",
         ]);
+        expect(buildDocusaurusNodeOptions("")).toBe(
+            `--localstorage-file=${docusaurusLocalStorageFilePath}`
+        );
+        expect(buildDocusaurusEnvironment({ NODE_OPTIONS: "--trace-warnings" }))
+            .toMatchObject({
+                NODE_OPTIONS: `--trace-warnings --localstorage-file=${docusaurusLocalStorageFilePath}`,
+            });
     });
 
     it("syncs static assets before running build-like commands", () => {
@@ -110,10 +120,12 @@ describe("run-docusaurus wrapper", () => {
             args: docsArgs.slice(1),
             command: docsCommand,
             cwd: path.resolve(docsOptions.cwd),
+            nodeOptions: docsOptions.env?.NODE_OPTIONS,
         }).toStrictEqual({
             args: ["build"],
             command: process.execPath,
             cwd: docusaurusWorkspacePath,
+            nodeOptions: `--localstorage-file=${docusaurusLocalStorageFilePath}`,
         });
         expect(docsArgs[0]).toMatch(
             /[\\/]@docusaurus[\\/]core[\\/]bin[\\/]docusaurus\.mjs$/u
@@ -148,9 +160,11 @@ describe("run-docusaurus wrapper", () => {
         expect({
             args: args.slice(1),
             cwd: path.resolve(options.cwd),
+            nodeOptions: options.env?.NODE_OPTIONS,
         }).toStrictEqual({
             args: ["clear"],
             cwd: docusaurusWorkspacePath,
+            nodeOptions: `--localstorage-file=${docusaurusLocalStorageFilePath}`,
         });
     });
 
@@ -206,8 +220,14 @@ describe("run-docusaurus wrapper", () => {
         expect({
             ...options,
             cwd: path.resolve(options.cwd),
+            env: {
+                NODE_OPTIONS: options.env?.NODE_OPTIONS,
+            },
         }).toStrictEqual({
             cwd: docusaurusWorkspacePath,
+            env: {
+                NODE_OPTIONS: `--localstorage-file=${docusaurusLocalStorageFilePath}`,
+            },
             stdio: "inherit",
         });
     });
