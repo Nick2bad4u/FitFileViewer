@@ -345,6 +345,23 @@ describe("tabStateManager.behavior", () => {
         expect(() => tabStateManager.handleAltFitTab()).not.toThrow();
     });
 
+    it("handleZwiftTab restores the external ZwiftMap launcher when content is blank", async () => {
+        expect.assertions(4);
+        const panel = document.createElement("div");
+        panel.id = "content_zwift";
+        root.appendChild(panel);
+
+        await tabStateManager.handleZwiftTab();
+
+        const link = panel.querySelector("a[data-external-link]");
+        expect(link).toBeInstanceOf(HTMLAnchorElement);
+        expect(link?.getAttribute("href")).toBe("https://zwiftmap.com/");
+        expect(link?.textContent).toBe("Open ZwiftMap");
+        expect(panel.querySelector(".zwift-external-panel")).toBeInstanceOf(
+            HTMLDivElement
+        );
+    });
+
     it("handleSummaryTab renders when hash changes and stores lastDataHash", async () => {
         expect.assertions(3);
         const gd = { recordMesgs: [{ timestamp: 1 }, { timestamp: 2 }] };
@@ -849,15 +866,18 @@ describe("tabStateManager.behavior", () => {
         a.classList.toggle = origToggle;
     });
 
-    it("handleTabSpecificLogic default path logs for unsupported configured tab (zwift)", async () => {
+    it("handleTabSpecificLogic executes 'zwift' branch and restores the launcher", async () => {
         expect.assertions(3);
-        const logSpy = vi.spyOn(console, "log");
+        const panel = document.createElement("div");
+        panel.id = "content_zwift";
+        root.appendChild(panel);
+
         await expect(
             tabStateManager.handleTabSpecificLogic("zwift")
         ).resolves.toBeUndefined();
-        expect(TAB_CONFIG.zwift.id).toBe("tab-zwift");
-        expect(logSpy).toHaveBeenCalledWith(
-            "[TabStateManager] No specific handler for tab: zwift"
+        expect(TAB_CONFIG.zwift.id).toBe("tab_zwift");
+        expect(panel.querySelector(".zwift-external-panel")).toBeInstanceOf(
+            HTMLDivElement
         );
     });
 

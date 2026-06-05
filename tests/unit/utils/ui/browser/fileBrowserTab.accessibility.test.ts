@@ -26,7 +26,7 @@ afterEach(() => {
 
 describe("fileBrowserTab accessibility", () => {
     it("renders the Browser view switcher as a segmented button group", async () => {
-        expect.assertions(12);
+        expect.assertions(15);
 
         const container = document.createElement("div");
         container.id = "content_browser";
@@ -59,5 +59,49 @@ describe("fileBrowserTab accessibility", () => {
         expect(filesButton.hasAttribute("aria-selected")).toBe(false);
         expect(libraryButton.hasAttribute("aria-selected")).toBe(false);
         expect(calendarButton.hasAttribute("aria-selected")).toBe(false);
+
+        const status = getRequiredElement(
+            "#fit-browser-status",
+            HTMLDivElement
+        );
+        expect(status.getAttribute("role")).toBe("status");
+        expect(status.getAttribute("aria-live")).toBe("polite");
+    });
+
+    it("shows a loaded folder status after the files view refreshes", async () => {
+        expect.assertions(2);
+
+        const container = document.createElement("div");
+        container.id = "content_browser";
+        document.body.append(container);
+
+        getTestGlobal().electronAPI = {
+            getFitBrowserFolder: async () => "C:\\rides",
+            listFitBrowserFolder: async () => ({
+                entries: [
+                    {
+                        fullPath: "C:\\rides\\2026",
+                        kind: "dir",
+                        name: "2026",
+                        relPath: "2026",
+                    },
+                    {
+                        fullPath: "C:\\rides\\old.fit",
+                        kind: "file",
+                        name: "old.fit",
+                        relPath: "old.fit",
+                    },
+                ],
+                relPath: "",
+                root: "C:\\rides",
+            }),
+        };
+
+        await renderFileBrowserTab();
+
+        expect(document.querySelector("#fit-browser-current-path")?.textContent)
+            .toBe("C:\\rides");
+        expect(document.querySelector("#fit-browser-status")?.textContent)
+            .toMatch(/^Loaded 2 items from root .* \(1 file, 1 folder\)\.$/u);
     });
 });

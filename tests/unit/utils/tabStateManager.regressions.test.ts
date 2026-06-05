@@ -97,7 +97,7 @@ const setupTabDom = () => {
                 "button",
                 {
                     class: "tab-button",
-                    id: `tab-${tabName}`,
+                    id: `tab_${tabName}`,
                 },
                 label
             )
@@ -106,7 +106,7 @@ const setupTabDom = () => {
 
     tabDomFixtures.forEach(([tabName, label]) => {
         fragment.append(
-            createElement("div", { id: `content-${tabName}` }, label)
+            createElement("div", { id: `content_${tabName}` }, label)
         );
     });
 
@@ -216,7 +216,7 @@ describe("tabStateManager regressions", () => {
         it("detects mismatched DOM and state active tabs", () => {
             expect.assertions(2);
 
-            const summaryBtn = document.getElementById("tab-summary");
+            const summaryBtn = getRequiredElement("tab_summary");
 
             // Manually set DOM to active state
             summaryBtn.classList.add("active");
@@ -457,8 +457,8 @@ describe("tabStateManager regressions", () => {
                 name: activeTabInfo.name,
                 previous: activeTabInfo.previous,
             }).toStrictEqual({
-                contentElementId: "content-chartjs",
-                elementId: "tab-chart",
+                contentElementId: "content_chartjs",
+                elementId: "tab_chart",
                 label: "Charts",
                 name: "chart",
                 previous: null,
@@ -571,16 +571,16 @@ describe("tabStateManager regressions", () => {
                 chartjs: TAB_CONFIG.chartjs,
             }).toStrictEqual({
                 chart: {
-                    contentId: "content-chartjs",
+                    contentId: "content_chartjs",
                     handler: "renderChartJS",
-                    id: "tab-chart",
+                    id: "tab_chart",
                     label: "Charts",
                     requiresData: true,
                 },
                 chartjs: {
-                    contentId: "content-chartjs",
+                    contentId: "content_chartjs",
                     handler: "renderChartJS",
-                    id: "tab-chartjs",
+                    id: "tab_chartjs",
                     label: "Charts",
                     requiresData: true,
                 },

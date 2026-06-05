@@ -235,6 +235,13 @@ function createFileBrowserScaffold(): HTMLElement {
 
     header.append(controls, currentPath);
 
+    const status = document.createElement("div");
+    status.className = "file-browser__status";
+    status.id = "fit-browser-status";
+    status.setAttribute("aria-live", "polite");
+    status.setAttribute("role", "status");
+    status.hidden = true;
+
     const body = document.createElement("div");
     body.className = "file-browser__body";
 
@@ -254,7 +261,7 @@ function createFileBrowserScaffold(): HTMLElement {
     calendar.hidden = true;
 
     body.append(list, library, calendar);
-    root.append(notice, header, body);
+    root.append(notice, header, status, body);
 
     return root;
 }
@@ -356,6 +363,25 @@ function createEmptyMessage(
     empty.textContent = text;
 
     return empty;
+}
+
+function formatLoadedAt(): string {
+    return new Date().toLocaleTimeString(undefined, {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+    });
+}
+
+function setBrowserStatus(message: string, loading = false): void {
+    const statusEl = document.querySelector<HTMLElement>(
+        "#fit-browser-status"
+    );
+    if (statusEl instanceof HTMLElement) {
+        statusEl.hidden = message.length === 0;
+        statusEl.classList.toggle("file-browser__status--loading", loading);
+        statusEl.textContent = message;
+    }
 }
 
 function addMonths(monthStart: Date, deltaMonths: number): Date {
@@ -1049,9 +1075,12 @@ async function refreshListing(): Promise<void> {
         typeof api.listFitBrowserFolder !== "function"
     ) {
         pathEl.textContent = "Browser unavailable (Electron API missing)";
+        setBrowserStatus("Browser unavailable.");
         listEl.replaceChildren();
         return;
     }
+
+    setBrowserStatus("Loading folder...", true);
 
     const root = await api.getFitBrowserFolder();
     const rel =
@@ -1061,6 +1090,7 @@ async function refreshListing(): Promise<void> {
 
     if (!root) {
         pathEl.textContent = "No folder selected";
+        setBrowserStatus("No folder selected.");
         listEl.replaceChildren(
             createEmptyMessage("Choose a folder to browse .fit files.")
         );
@@ -1070,6 +1100,7 @@ async function refreshListing(): Promise<void> {
     const responseRaw = await api.listFitBrowserFolder(rel);
     if (!isFitBrowserListResponse(responseRaw)) {
         pathEl.textContent = root;
+        setBrowserStatus("Folder could not be loaded.");
         listEl.replaceChildren(createEmptyMessage("Unable to list folder."));
         return;
     }
@@ -1083,6 +1114,13 @@ async function refreshListing(): Promise<void> {
     pathEl.textContent = displayPath;
 
     listEl.replaceChildren();
+
+    const fileCount = entries.filter((entry) => entry.kind === "file").length;
+    const folderCount = entries.length - fileCount;
+    const locationLabel = relPath ? relPath.replaceAll("/", " / ") : "root";
+    setBrowserStatus(
+        `Loaded ${entries.length} item${entries.length === 1 ? "" : "s"} from ${locationLabel} at ${formatLoadedAt()} (${fileCount} file${fileCount === 1 ? "" : "s"}, ${folderCount} folder${folderCount === 1 ? "" : "s"}).`
+    );
 
     if (relPath) {
         const up = createBrowserItemButton("dir", "arrowLeft", "..");
@@ -1521,14 +1559,18 @@ async function renderCalendarView(): Promise<void> {
 
     if (!api || typeof api.getFitBrowserFolder !== "function") {
         pathEl.textContent = "Browser unavailable (Electron API missing)";
+        setBrowserStatus("Browser unavailable.");
         delete calendarEl.dataset["ffvCalendarInitialized"];
         calendarEl.replaceChildren();
         return;
     }
 
+    setBrowserStatus("Loading calendar...", true);
+
     const root = await api.getFitBrowserFolder();
     if (!root) {
         pathEl.textContent = "No folder selected";
+        setBrowserStatus("No folder selected.");
         delete calendarEl.dataset["ffvCalendarInitialized"];
         calendarEl.replaceChildren(
             createEmptyMessage("Choose a folder to view the calendar.")
@@ -1538,6 +1580,11 @@ async function renderCalendarView(): Promise<void> {
 
     const cached =
         loadPersistedLibraryCache(root) ?? loadSessionLibraryCache(root);
+    setBrowserStatus(
+        cached
+            ? `Loaded calendar with ${cached.items.length} decoded activit${cached.items.length === 1 ? "y" : "ies"} at ${formatLoadedAt()}.`
+            : `Loaded folder at ${formatLoadedAt()}. Scan folder to populate the calendar.`
+    );
 
     if (!calendarEl.dataset["ffvCalendarInitialized"]) {
         calendarEl.dataset["ffvCalendarInitialized"] = "true";
@@ -1904,14 +1951,18 @@ async function renderLibraryView(): Promise<void> {
         typeof api.listFitBrowserFolder !== "function"
     ) {
         pathEl.textContent = "Browser unavailable (Electron API missing)";
+        setBrowserStatus("Browser unavailable.");
         delete libraryEl.dataset["ffvLibraryInitialized"];
         libraryEl.replaceChildren();
         return;
     }
 
+    setBrowserStatus("Loading library...", true);
+
     const root = await api.getFitBrowserFolder();
     if (!root) {
         pathEl.textContent = "No folder selected";
+        setBrowserStatus("No folder selected.");
         delete libraryEl.dataset["ffvLibraryInitialized"];
         libraryEl.replaceChildren(
             createEmptyMessage("Choose a folder to build a library summary.")
@@ -1980,10 +2031,16 @@ async function renderLibraryView(): Promise<void> {
     const cachedForRoot =
         loadPersistedLibraryCache(root) ?? loadSessionLibraryCache(root);
     if (cachedForRoot) {
+        setBrowserStatus(
+            `Loaded folder summary with ${cachedForRoot.items.length} decoded activit${cachedForRoot.items.length === 1 ? "y" : "ies"} at ${formatLoadedAt()}.`
+        );
         renderLibraryResults(root, cachedForRoot);
         return;
     }
 
+    setBrowserStatus(
+        `Loaded folder at ${formatLoadedAt()}. Scan folder to compute totals.`
+    );
     const statusEl = document.querySelector<HTMLElement>("#fit-library-status");
     if (statusEl) {
         statusEl.textContent =
@@ -2014,12 +2071,14 @@ async function scanAndRenderLibrary(root: string): Promise<void> {
     };
 
     try {
+        setBrowserStatus("Scanning folder...", true);
         if (statusEl) statusEl.textContent = "Listing files…";
 
         const files = await listAllFitFiles(libraryApi);
         if (files.length === 0) {
             if (statusEl) statusEl.textContent = "No .fit files found.";
             renderLibraryResults(root, { items: [], scannedAt: Date.now() });
+            setBrowserStatus(`Scanned ${root}. No FIT files found.`);
             return;
         }
 
@@ -2059,11 +2118,15 @@ async function scanAndRenderLibrary(root: string): Promise<void> {
         };
         writeSessionLibraryCache(root, payload);
         persistLibraryCache(root, payload);
+        setBrowserStatus(
+            `Decoded ${payload.items.length} activit${payload.items.length === 1 ? "y" : "ies"} from this folder at ${formatLoadedAt()}.`
+        );
 
         renderLibraryResults(root, payload);
     } catch (error) {
         console.error("[fileBrowserTab] Library scan failed", error);
         if (statusEl) statusEl.textContent = "Scan failed.";
+        setBrowserStatus("Folder scan failed.");
         showNotification("Failed to scan folder.", "error");
     }
 }

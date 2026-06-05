@@ -27,6 +27,7 @@ type FitFileElectronAPI = Pick<ElectronAPI, "readFile"> &
 type OpenFitFileGlobal = typeof globalThis & {
     __FFV_fitFileStateManager?: unknown;
     electronAPI?: Partial<FitFileElectronAPI>;
+    sendFitFileToAltFitReader?: (arrayBuffer: ArrayBuffer) => void;
     showFitData?: (data: FitMessages, filePath: string) => void;
 };
 
@@ -96,6 +97,10 @@ export async function openFitFileFromPath({
         }
 
         appGlobal.showFitData(data, filePath);
+
+        if (typeof appGlobal.sendFitFileToAltFitReader === "function") {
+            appGlobal.sendFitFileToAltFitReader(arrayBuffer);
+        }
 
         try {
             if (typeof api.notifyFitFileLoaded === "function") {

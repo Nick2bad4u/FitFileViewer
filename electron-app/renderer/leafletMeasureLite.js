@@ -313,6 +313,8 @@
             this._expanded = false;
             /** @type {any[]} */
             this._latlngs = [];
+            /** @type {any[]} */
+            this._completedPopups = [];
             /** @type {number} */
             this._measurementRunningTotal = 0;
         },
@@ -474,6 +476,9 @@
             }
             this._removeEscapeKeyHandler();
             this._detachMapHandlers();
+            this._clearCompletedPopups();
+            this._clearLayerGroup(this._tempLayer);
+            this._clearLayerGroup(this._resultLayer);
             for (const layer of [this._tempLayer, this._resultLayer]) {
                 if (!layer || !map) continue;
                 try {
@@ -556,19 +561,117 @@
             this._segmentMeters = [];
             this._measurementRunningTotal = 0;
 
+            this._clearCompletedPopups();
+            this._clearLayerGroup(this._resultLayer);
+
+            this._collapse();
+            this._updateNotStarted();
+        },
+
+        _clearCompletedPopups: function _clearCompletedPopups() {
+            const popups = Array.isArray(this._completedPopups)
+                ? this._completedPopups
+                : [];
+            for (const popup of popups) {
+                if (!popup) continue;
+
+                try {
+                    if (
+                        this._map &&
+                        typeof this._map.closePopup === "function"
+                    ) {
+                        this._map.closePopup(popup);
+                    }
+                } catch {
+                    /* ignore */
+                }
+
+                try {
+                    if (
+                        this._map &&
+                        typeof this._map.removeLayer === "function"
+                    ) {
+                        this._map.removeLayer(popup);
+                    }
+                } catch {
+                    /* ignore */
+                }
+
+                try {
+                    if (typeof popup.remove === "function") {
+                        popup.remove();
+                    }
+                } catch {
+                    /* ignore */
+                }
+            }
+
+            this._completedPopups = [];
+
+            // Leaflet renders opened popups as separate DOM layers. Remove only
+            // measurement popups so a stale result panel cannot cover the map
+            // after the associated shape layer was cleared.
             try {
-                if (
-                    this._resultLayer &&
-                    typeof this._resultLayer.clearLayers === "function"
-                ) {
-                    this._resultLayer.clearLayers();
+                const root =
+                    this._map && typeof this._map.getContainer === "function"
+                        ? this._map.getContainer()
+                        : document;
+                const popupBodies = root.querySelectorAll(
+                    ".leaflet-measure-resultpopup"
+                );
+                for (const popupBody of popupBodies) {
+                    popupBody.closest(".leaflet-popup")?.remove();
+                }
+            } catch {
+                /* ignore */
+            }
+        },
+
+        _clearLayerGroup: function _clearLayerGroup(layerGroup) {
+            if (!layerGroup) return;
+
+            try {
+                if (typeof layerGroup.eachLayer === "function") {
+                    /** @type {any[]} */
+                    const layers = [];
+                    layerGroup.eachLayer((layer) => {
+                        layers.push(layer);
+                    });
+                    for (const layer of layers) {
+                        try {
+                            if (typeof layerGroup.removeLayer === "function") {
+                                layerGroup.removeLayer(layer);
+                            } else if (
+                                this._map &&
+                                typeof this._map.removeLayer === "function"
+                            ) {
+                                this._map.removeLayer(layer);
+                            }
+                        } catch {
+                            try {
+                                if (
+                                    this._map &&
+                                    typeof this._map.removeLayer === "function"
+                                ) {
+                                    this._map.removeLayer(layer);
+                                }
+                            } catch {
+                                /* ignore */
+                            }
+                        }
+                    }
                 }
             } catch {
                 /* ignore */
             }
 
-            this._collapse();
-            this._updateNotStarted();
+            try {
+                if (typeof layerGroup.clearLayers === "function") {
+                    layerGroup.clearLayers();
+                }
+            } catch {
+                /* ignore */
+            }
         },
 
         _updateNotStarted: function _updateNotStarted() {
@@ -695,6 +798,8 @@
                     popupHtml
                 );
                 shape.bindPopup(popup);
+                this._completedPopups ||= [];
+                this._completedPopups.push(popup);
             }
 
             const result = {

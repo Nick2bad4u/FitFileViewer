@@ -120,9 +120,9 @@ describe("showFitData", () => {
         // setTimeout branch for tab visibility and map render
         vi.runAllTimers();
         expect(showFitGlobal.updateTabVisibility).toHaveBeenCalledWith(
-            "content-map"
+            "content_map"
         );
-        expect(showFitGlobal.updateActiveTab).toHaveBeenCalledWith("tab-map");
+        expect(showFitGlobal.updateActiveTab).toHaveBeenCalledWith("tab_map");
         expect(showFitGlobal.renderMap).toHaveBeenCalledWith();
 
         // Should have called createTables and renderSummary

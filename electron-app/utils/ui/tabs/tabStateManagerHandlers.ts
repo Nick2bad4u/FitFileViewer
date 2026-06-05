@@ -127,6 +127,25 @@ export async function handleBrowserTab(): Promise<void> {
 }
 
 /**
+ * Handle Zwift tab activation.
+ */
+export function handleZwiftTab(): void {
+    const content = querySelectorByIdFlexible(getDoc(), "#content_zwift");
+    if (!content) {
+        return;
+    }
+
+    const existingLink = content.querySelector<HTMLAnchorElement>(
+        'a[data-external-link][href="https://zwiftmap.com/"]'
+    );
+    if (existingLink) {
+        return;
+    }
+
+    content.replaceChildren(createZwiftExternalPanel());
+}
+
+/**
  * Handle chart tab activation.
  */
 export async function handleChartTab(
@@ -333,4 +352,19 @@ function hashData(data: ActivityData | null | undefined): string {
     const lastRecord = recordMesgs.at(-1);
 
     return `${size}-${getTimestamp(firstRecord)}-${getTimestamp(lastRecord)}`;
+}
+
+function createZwiftExternalPanel(): HTMLElement {
+    const panel = document.createElement("div");
+    panel.className = "zwift-external-panel";
+
+    const link = document.createElement("a");
+    link.className = "themed-btn";
+    link.dataset["externalLink"] = "true";
+    link.href = "https://zwiftmap.com/";
+    link.textContent = "Open ZwiftMap";
+
+    panel.append(link);
+
+    return panel;
 }

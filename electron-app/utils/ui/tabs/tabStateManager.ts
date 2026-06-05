@@ -18,6 +18,7 @@ import {
     handleDataTab as handleDataTabImpl,
     handleMapTab as handleMapTabImpl,
     handleSummaryTab as handleSummaryTabImpl,
+    handleZwiftTab as handleZwiftTabImpl,
 } from "./tabStateManagerHandlers.js";
 import { getDoc, getStateMgr } from "./tabStateManagerSupport.js";
 
@@ -271,6 +272,14 @@ export class TabStateManager {
     }
 
     /**
+     * Handle Zwift tab activation.
+     */
+    handleZwiftTab(): Promise<void> {
+        handleZwiftTabImpl();
+        return Promise.resolve();
+    }
+
+    /**
      * Handle tab button click events
      *
      * @param event - Click event.
@@ -397,6 +406,11 @@ export class TabStateManager {
 
                 case "summary": {
                     await this.handleSummaryTab(globalData);
+                    break;
+                }
+
+                case "zwift": {
+                    await this.handleZwiftTab();
                     break;
                 }
 

@@ -267,8 +267,8 @@ function switchToMapTabOnLoad(): void {
         return;
     }
 
-    windowExt.updateTabVisibility("content-map");
-    windowExt.updateActiveTab("tab-map");
+    windowExt.updateTabVisibility("content_map");
+    windowExt.updateActiveTab("tab_map");
 
     // Manually trigger map rendering since we're programmatically switching tabs
     if (windowExt.renderMap && !windowExt.isMapRendered) {

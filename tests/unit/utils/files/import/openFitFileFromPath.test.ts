@@ -16,6 +16,7 @@ type TestElectronAPI = {
 type OpenFitFileFromPathTestGlobal = typeof globalThis & {
     __FFV_fitFileStateManager?: unknown;
     electronAPI?: TestElectronAPI;
+    sendFitFileToAltFitReader?: (arrayBuffer: ArrayBuffer) => void;
     showFitData?: (data: unknown, filePath: string) => void;
 };
 
@@ -23,6 +24,7 @@ function cleanupFixture(): void {
     const appGlobal = globalThis as OpenFitFileFromPathTestGlobal;
     delete appGlobal.__FFV_fitFileStateManager;
     delete appGlobal.electronAPI;
+    delete appGlobal.sendFitFileToAltFitReader;
     delete appGlobal.showFitData;
 }
 
@@ -71,8 +73,8 @@ describe(openFitFileFromPath, () => {
         }
     });
 
-    it("reads, parses, renders, and notifies for a valid FIT file path", async () => {
-        expect.assertions(8);
+    it("reads, parses, renders, forwards, and notifies for a valid FIT file path", async () => {
+        expect.assertions(9);
 
         cleanupFixture();
 
@@ -92,6 +94,8 @@ describe(openFitFileFromPath, () => {
                 vi.fn<(filePath: string) => Promise<ArrayBuffer>>();
             const showFitData =
                 vi.fn<(data: unknown, filePath: string) => void>();
+            const sendFitFileToAltFitReader =
+                vi.fn<(arrayBuffer: ArrayBuffer) => void>();
             const showNotification = vi.fn<ShowNotification>();
             const openFileBtn = document.createElement("button");
             const filePath = "C:\\activities\\ride.fit";
@@ -103,6 +107,7 @@ describe(openFitFileFromPath, () => {
                 parseFitFile,
                 readFile,
             };
+            appGlobal.sendFitFileToAltFitReader = sendFitFileToAltFitReader;
             appGlobal.showFitData = showFitData;
 
             const result = await openFitFileFromPath({
@@ -115,6 +120,7 @@ describe(openFitFileFromPath, () => {
             expect(readFile).toHaveBeenCalledWith(filePath);
             expect(parseFitFile).toHaveBeenCalledWith(fitBuffer);
             expect(showFitData).toHaveBeenCalledWith(fitData, filePath);
+            expect(sendFitFileToAltFitReader).toHaveBeenCalledWith(fitBuffer);
             expect(notifyFitFileLoaded).toHaveBeenCalledWith(filePath);
             expect(showNotification).toHaveBeenCalledWith(
                 "File loaded successfully!",
