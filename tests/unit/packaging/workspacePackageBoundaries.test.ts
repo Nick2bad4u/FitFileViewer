@@ -247,8 +247,10 @@ const expectedRootToolingScripts = {
     "lint:app": "node scripts/run-eslint.mjs app && npm run typecheck",
     "lint:app:fix":
         "node scripts/run-eslint.mjs app --fix && npm run typecheck",
-    "lint:remark": "node scripts/lint-remark.mjs",
-    "lint:secretlint": "node scripts/lint-secretlint.mjs",
+    "lint:remark":
+        'remark docs docusaurus/docs docusaurus/blog docusaurus/src --quiet --frail --rc-path .remarkrc.mjs --ignore-pattern "docusaurus/docs/api/**"',
+    "lint:secretlint":
+        'secretlint "*.md" "docs/**/*.md" "docusaurus/docs/**/*.{md,mdx}" "docusaurus/blog/**/*.{md,mdx}" --secretlintrc .secretlintrc.cjs',
     "prepare:electron": "node scripts/ensure-electron-binary.mjs",
     pretest: "npm run prepare:electron && npm run build:runtime-ts",
     "test:ui":
