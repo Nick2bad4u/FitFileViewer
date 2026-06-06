@@ -1,25 +1,13 @@
-body.theme-dark {
-    background: #181a1b;
-    color: #eee;
+:root {
+    --elev-bg: #fff;
+    --elev-shadow: rgb(0 0 0 / 13%);
 }
 
-.theme-dark body {
-    background: #181a1b;
-    color: #eee;
+body.theme-dark {
+    --elev-bg: #23272e;
 }
 
 body.theme-light {
-    background: #fff;
-    color: #222;
-}
-
-.theme-light body {
-    background: #fff;
-    color: #222;
-}
-
-/* Define CSS custom properties that may not be available */
-:root {
     --elev-bg: #fff;
 }
 
@@ -28,15 +16,15 @@ body.theme-light {
     margin: 32px auto;
     background: var(--elev-bg, #fff);
     border-radius: 8px;
-    box-shadow: 0 2px 12px #0002;
+    box-shadow: 0 2px 12px var(--elev-shadow);
     inline-size: 100%;
     block-size: 100%;
 }
 
 body.theme-dark #elevChart {
-    background: #23272e;
+    background: var(--elev-bg);
 }
 
 body.theme-light #elevChart {
-    background: #fff;
+    background: var(--elev-bg);
 }

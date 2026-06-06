@@ -1,4 +1,4 @@
-/* stylelint-disable comment-empty-line-before -- Notneeded here for some stuff */
+/* stylelint-disable comment-empty-line-before -- legacy section banner formatting */
 /* stylelint-disable no-descending-specificity -- legacy cascade ordering */
 /* stylelint-disable selector-class-pattern -- legacy class naming conventions */
 /* stylelint-disable selector-no-vendor-prefix -- vendor selectors required by third-party CSS */
@@ -14,8 +14,11 @@
 }
 
 /*
-  Add CSS variables for dark and light themes, and use them throughout the file.
-  Default to dark theme. Use .theme-dark and .theme-light classes on body.
+  CSS architecture:
+  - Theme tokens live first and are consumed by the rest of the file.
+  - Base/layout rules precede components.
+  - Third-party overrides stay near their owning feature section.
+  - Utility classes live at the end.
 */
 :root {
     /* Auto-added color alignment variables */
@@ -247,8 +250,16 @@
     --backdrop-blur: blur(14px);
     --border-radius: 16px;
     --border-radius-small: 8px;
-    --transition-smooth: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    --transition-bounce: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    --transition-smooth:
+        background-color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        border-color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        box-shadow 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        opacity 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --transition-bounce:
+        opacity 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+        transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     --layout-gutter: clamp(16px, 4vi, 48px);
     --layout-content-width: min(
         1680px,
@@ -1098,7 +1109,6 @@ body::before {
         cosmic-drift 50s ease-in-out infinite alternate,
         starfield-pan 140s linear infinite,
         aurora-shift 80s ease-in-out infinite;
-    will-change: transform, opacity, background-position;
 }
 
 body::after {
@@ -1228,7 +1238,6 @@ h2 {
         margin 0.5s ease,
         opacity 0.45s ease,
         transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-    will-change: max-block-size, padding, margin, transform, opacity;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -2983,7 +2992,12 @@ body[data-has-fit-file="true"] .tab-bar {
     align-items: center;
     justify-content: center;
     min-inline-size: 90px;
-    transition: all 0.3s ease;
+    transition:
+        background 0.3s ease,
+        border-color 0.3s ease,
+        box-shadow 0.3s ease,
+        color 0.3s ease,
+        transform 0.3s ease;
     backdrop-filter: blur(15px);
     position: relative;
     box-shadow:
@@ -3062,7 +3076,6 @@ body[data-has-fit-file="true"] .tab-bar {
 
 .tab-button.active {
     animation: tab-button-activate 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
-    will-change: transform, box-shadow;
 
     /*
         Make the active tab clearly reflect the current accent color.
@@ -3137,7 +3150,6 @@ body[data-has-fit-file="true"] .tab-bar {
 .tab-content.active {
     display: flex;
     animation: tab-content-fade 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
-    will-change: opacity, transform;
 
     /*
         Scrolling behavior:
@@ -3151,7 +3163,6 @@ body[data-has-fit-file="true"] .tab-bar {
 
 .tab-content.active .tab-card {
     animation: tab-card-enter 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
-    will-change: transform, opacity;
 }
 
 /* =====================================================
@@ -3447,7 +3458,6 @@ tr:hover {
     align-items: stretch;
     justify-content: center;
     flex-wrap: wrap;
-    gap: clamp(12px, 2vi, 24px);
     gap: clamp(16px, 3vi, 28px) clamp(18px, 3.5vi, 32px);
     margin: 0 auto clamp(18px, 3.5vi, 32px);
     padding: clamp(14px, 2.4vi, 22px) clamp(22px, 4vi, 34px);
@@ -4067,10 +4077,6 @@ table.dataTable thead th {
 }
 
 /* =====================================================
-   Header Bar & File Name - Glass Morphism Design
-   ===================================================== */
-
-/* =====================================================
    Chart & Map Containers
    ===================================================== */
 #chart-container {
@@ -4378,7 +4384,8 @@ body.chart-overlay-fullscreen-active {
     color: var(--color-fg);
     font-size: 0.75rem;
     cursor: pointer;
-    outline: none;
+    outline: 2px solid transparent;
+    outline-offset: 2px;
     transition: var(--transition-smooth);
 }
 
@@ -4389,6 +4396,7 @@ body.chart-overlay-fullscreen-active {
 
 .inline-zone-color-selector select:focus {
     border-color: var(--color-accent);
+    outline-color: var(--color-accent);
     box-shadow: 0 0 0 2px rgb(var(--color-accent-rgb) / 33%);
 }
 
@@ -5671,7 +5679,11 @@ body .custom-zoom-slider-bar input[type="range"] {
     box-shadow: 0 3px 9px rgb(0 0 0 / 15%);
     backdrop-filter: blur(10px);
     z-index: 2001;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition:
+        background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .app-control-bar:hover {
@@ -5714,9 +5726,14 @@ body .custom-zoom-slider-bar input[type="range"] {
     padding: 0 !important;
     margin: 0 !important;
     gap: 0 !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition:
+        background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     cursor: pointer;
-    outline: none;
+    outline: 2px solid transparent;
+    outline-offset: 2px;
     box-shadow: 0 3px 4px rgb(0 0 0 / 10%) !important;
     backdrop-filter: blur(10px);
     overflow: visible !important;
@@ -5833,7 +5850,9 @@ body .custom-zoom-slider-bar input[type="range"] {
     white-space: nowrap !important;
     opacity: 0 !important;
     visibility: hidden !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition:
+        opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+        visibility 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
     pointer-events: none !important;
     z-index: 10000 !important;
     box-shadow: 0 4px 12px rgb(0 0 0 / 30%) !important;
@@ -5877,7 +5896,9 @@ body .custom-zoom-slider-bar input[type="range"] {
     border-block-end-color: var(--color-border) !important;
     opacity: 0 !important;
     visibility: hidden !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition:
+        opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+        visibility 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
     pointer-events: none !important;
     z-index: 10000 !important;
     display: block !important;
@@ -6123,7 +6144,6 @@ html[data-theme="light"] body .marker-count-select {
     z-index: 2400;
     overflow-block: auto;
     pointer-events: auto;
-    will-change: top, left;
 }
 
 .data-point-filter-control__panel::before {
@@ -6310,7 +6330,8 @@ html[data-theme="light"] body .marker-count-select {
 
 .data-point-filter-control__select:focus,
 .data-point-filter-control__input:focus {
-    outline: none;
+    outline: 2px solid var(--color-accent, #3b82f6);
+    outline-offset: 2px;
     border-color: var(--color-accent, #3b82f6);
     box-shadow: 0 0 0 2px rgb(59 130 246 / 25%);
 }
@@ -6489,12 +6510,10 @@ body.theme-light .data-point-filter-control__range-values {
 @keyframes shimmer {
     0% {
         inset-inline-start: -100%;
-        will-change: inset-inline-start;
     }
 
     100% {
         inset-inline-start: 100%;
-        will-change: inset-inline-start;
     }
 }
 
@@ -7073,7 +7092,12 @@ body.theme-light #open_file_btn.themed-btn {
     cursor: pointer;
     margin-block-end: 18px;
     margin-inline-end: 10px;
-    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    transition:
+        background 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+        border-color 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+        color 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     box-shadow:
         0 8px 24px rgb(var(--color-accent-rgb) / 35%),
         0 2px 8px var(--c_rgb000_15p),
@@ -7172,7 +7196,12 @@ body.theme-light #open_file_btn.themed-btn {
     box-shadow: var(--color-box-shadow);
     opacity: 0;
     visibility: hidden;
-    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition:
+        background 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+        border-color 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+        box-shadow 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+        opacity 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+        transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     display: flex;
     align-items: center;
     justify-content: flex-start;
@@ -7328,7 +7357,13 @@ body.theme-light .notification.info {
     border: 1px solid var(--c_rgb255255255_30p);
     background: var(--c_rgb255255255_10p);
     color: inherit;
-    transition: all 0.2s ease;
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        color 0.2s ease,
+        opacity 0.2s ease,
+        transform 0.2s ease;
 }
 
 .notification-actions .themed-btn:hover {
@@ -7438,7 +7473,8 @@ body.theme-light .notification.info {
     margin-inline: 0 6px;
     font-size: 1.1rem;
     box-shadow: none;
-    outline: none;
+    outline: 2px solid transparent;
+    outline-offset: 2px;
     vertical-align: middle;
     opacity: 0.65;
     transition:
@@ -7462,6 +7498,10 @@ body.theme-light .notification.info {
     transition:
         opacity 0.2s,
         color 0.2s;
+}
+
+.summary-gear-btn:focus-visible {
+    outline-color: var(--color-accent);
 }
 
 .summary-gear-btn__icon {
@@ -7493,7 +7533,8 @@ body.theme-light .notification.info {
     padding: 6px 18px 6px 8px;
     font-size: 1rem;
     font-family: var(--font-sans);
-    outline: none;
+    outline: 2px solid transparent;
+    outline-offset: 2px;
     transition:
         border 0.2s,
         box-shadow 0.2s;
@@ -7508,7 +7549,7 @@ body.theme-light .notification.info {
     transition:
         border-color 0.2s,
         box-shadow 0.2s;
-    outline: none;
+    outline-color: var(--color-accent);
 }
 
 .summary-filter-bar option {
@@ -7808,7 +7849,8 @@ body.theme-light .multi-lap-toggle:hover {
         background 0.2s,
         color 0.2s,
         border 0.2s;
-    outline: none;
+    outline: 2px solid transparent;
+    outline-offset: 2px;
     min-inline-size: 0;
     user-select: none;
 }
@@ -7834,6 +7876,7 @@ body.theme-light .multi-lap-toggle:hover {
     background: var(--color-accent);
     color: var(--c_hexfff);
     border-color: var(--color-accent);
+    outline-color: var(--color-accent);
     stroke: white;
 }
 
@@ -8007,31 +8050,26 @@ body.theme-dark .map-action-btn.disabled {
         box-shadow:
             var(--color-box-shadow),
             0 0 20px var(--color-accent);
-        will-change: box-shadow;
     }
 
     50% {
         box-shadow:
             var(--color-box-shadow),
             0 0 40px var(--color-accent);
-        will-change: box-shadow;
     }
 }
 
 @keyframes border-glow {
     0% {
         opacity: 0.5;
-        will-change: opacity;
     }
 
     50% {
         opacity: 1;
-        will-change: opacity;
     }
 
     100% {
         opacity: 0.5;
-        will-change: opacity;
     }
 }
 
@@ -8072,7 +8110,8 @@ select {
     padding: 12px 16px;
     font-size: 1rem;
     font-family: var(--font-sans);
-    outline: none;
+    outline: 2px solid transparent;
+    outline-offset: 2px;
     transition: var(--transition-smooth);
     box-shadow: var(--color-box-shadow-light);
     min-block-size: 20px;
@@ -8086,6 +8125,7 @@ input[type="search"]:focus,
 textarea:focus,
 select:focus {
     border-color: var(--color-accent);
+    outline-color: var(--color-accent);
     box-shadow:
         0 0 0 3px rgb(var(--color-accent-rgb) / 20%),
         var(--color-box-shadow);
@@ -8168,9 +8208,14 @@ input[type="range"] {
     block-size: 6px;
     background: var(--color-modal-bg);
     border-radius: 3px;
-    outline: none;
+    outline: 2px solid transparent;
+    outline-offset: 6px;
     cursor: pointer;
     transition: var(--transition-smooth);
+}
+
+input[type="range"]:focus-visible {
+    outline-color: var(--color-accent);
 }
 
 input[type="range"]::-webkit-slider-thumb {
@@ -8247,23 +8292,9 @@ button:disabled {
    Performance Optimizations
    ===================================================== */
 
-/* GPU acceleration for smooth animations */
-.tab-button,
-.themed-btn,
-.notification,
-#loading_overlay span,
-#drop_overlay .drop-overlay-content,
-.modal-content,
-.summary-col-modal {
-    will-change: transform;
-    transform: translateZ(0);
-}
-
-/* Reduce paint frequency for backdrop effects */
-.tab-card,
-.credits-section,
-.header-bar {
-    contain: layout style paint;
+/* Limit containment to static, isolated content. */
+.credits-section {
+    contain: layout paint;
 }
 
 /* Efficient box model calculations */
@@ -8273,71 +8304,14 @@ button:disabled {
     box-sizing: border-box;
 }
 
-/* Prevent layout thrashing during animations */
-@keyframes gradient-shift {
-    0%,
-    100% {
-        background-position: 0% 50%;
-        will-change: background-position;
-    }
-
-    50% {
-        background-position: 100% 50%;
-        will-change: background-position;
-    }
-}
-
-/* Optimized shimmer effect */
-@keyframes shimmer {
-    0% {
-        inset-inline-start: -100%;
-        will-change: inset-inline-start;
-    }
-
-    100% {
-        inset-inline-start: 100%;
-        will-change: inset-inline-start;
-    }
-}
-
-/* Memory-efficient glow animations */
-@keyframes pulse-glow {
-    0%,
-    100% {
-        box-shadow:
-            var(--color-box-shadow),
-            0 0 20px var(--color-accent);
-        will-change: box-shadow;
-    }
-
-    50% {
-        box-shadow:
-            var(--color-box-shadow),
-            0 0 40px var(--color-accent);
-        will-change: box-shadow;
-    }
-}
-
-/* Efficient border glow */
-@keyframes border-glow {
-    0% {
-        opacity: 0.5;
-        will-change: opacity;
-    }
-
-    50% {
-        opacity: 1;
-        will-change: opacity;
-    }
-
-    100% {
-        opacity: 0.5;
-        will-change: opacity;
-    }
-}
-
 /* Theme transition optimization */
-body.theme-switching * {
+body.theme-switching .app-header,
+body.theme-switching .header-bar,
+body.theme-switching .tab-card,
+body.theme-switching .themed-btn,
+body.theme-switching input,
+body.theme-switching textarea,
+body.theme-switching select {
     transition:
         background-color 0.3s ease,
         color 0.3s ease,
