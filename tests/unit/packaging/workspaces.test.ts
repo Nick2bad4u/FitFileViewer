@@ -61,7 +61,6 @@ type WorkspacesModule = {
     docusaurusWorkspaceRelativePath: (...segments: string[]) => string;
     formatRuntimeOutputScriptPath: string;
     generateApiCategoriesScriptPath: string;
-    generateChangelogScriptPath: string;
     prepareRuntimeDistScriptPath: string;
     repositoryPrettierTargets: string[];
     repositoryRoot: string;
@@ -209,7 +208,7 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes root script paths", async () => {
-        expect.assertions(16);
+        expect.assertions(15);
 
         const workspaces = await importWorkspaces();
 
@@ -242,9 +241,6 @@ describe("workspace path helpers", () => {
         );
         expect(workspaces.generateApiCategoriesScriptPath).toBe(
             path.join(process.cwd(), "scripts", "generate-api-categories.mjs")
-        );
-        expect(workspaces.generateChangelogScriptPath).toBe(
-            path.join(process.cwd(), "scripts", "generate-changelog.mjs")
         );
         expect(workspaces.ensureElectronBinaryScriptPath).toBe(
             path.join(process.cwd(), "scripts", "ensure-electron-binary.mjs")

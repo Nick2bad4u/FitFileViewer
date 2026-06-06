@@ -175,7 +175,7 @@
         "build:renderer": "vite build --config vite.renderer.config.mjs",
         "build:runtime-ts": "node scripts/build-runtime.mjs",
         "build:win7": "node scripts/build-win7.mjs",
-        "changelog": "node scripts/generate-changelog.mjs",
+        "changelog": "git-cliff --config cliff.toml --output CHANGELOG.md",
         "changelog:check-run": "node scripts/update-changelog-check-run.mjs",
         "changelog:commit": "node scripts/commit-changelog-workflow.mjs",
         "changelog:summary": "node scripts/update-changelog-job-summary.mjs",

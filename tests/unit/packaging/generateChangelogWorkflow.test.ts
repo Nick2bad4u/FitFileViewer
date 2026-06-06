@@ -5,9 +5,9 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
-    generateChangelogScriptPath,
     repositoryRoot,
     rootChangelogPath,
+    rootCliffConfigPath,
 } from "../../../scripts/lib/workspaces.mjs";
 
 type DirectoryEntry = {
@@ -28,6 +28,7 @@ type GenerateChangelogWorkflowModule = {
         size: string;
     }) => string;
     formatDirectoryListing: (entries: DirectoryEntry[]) => string;
+    buildChangelogArgs: (options?: { verbose?: boolean }) => string[];
     parseArgs: (args: string[]) => {
         help: boolean;
         verbose: boolean;
@@ -113,7 +114,7 @@ describe("generate-changelog-workflow script", () => {
     it("runs the changelog generator and logs the root changelog result", async () => {
         expect.assertions(2);
 
-        const { runChangelogWorkflow } =
+        const { buildChangelogArgs, runChangelogWorkflow } =
             await importGenerateChangelogWorkflow();
         const temporaryRoot = makeTemporaryRoot();
         const messages: string[] = [];
@@ -141,7 +142,7 @@ describe("generate-changelog-workflow script", () => {
         }).toStrictEqual({
             commands: [
                 {
-                    args: [generateChangelogScriptPath, "--verbose"],
+                    args: buildChangelogArgs({ verbose: true }),
                     command: process.execPath,
                 },
             ],
@@ -222,5 +223,21 @@ describe("generate-changelog-workflow script", () => {
         expect(() => parseArgs(["--bad-option"])).toThrow(
             "Unknown option: --bad-option"
         );
+    });
+
+    it("builds git-cliff arguments for the root changelog", async () => {
+        expect.assertions(2);
+
+        const { buildChangelogArgs } = await importGenerateChangelogWorkflow();
+
+        expect(buildChangelogArgs({ verbose: false }).slice(1)).toStrictEqual([
+            "--config",
+            rootCliffConfigPath,
+            "--output",
+            rootChangelogPath,
+        ]);
+        expect(buildChangelogArgs({ verbose: true }).slice(-1)).toStrictEqual([
+            "--verbose",
+        ]);
     });
 });

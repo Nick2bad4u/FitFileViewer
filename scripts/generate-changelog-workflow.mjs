@@ -2,13 +2,17 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
-    generateChangelogScriptPath,
     repositoryRoot,
     rootChangelogPath,
+    rootCliffConfigPath,
 } from "./lib/workspaces.mjs";
+
+const gitCliffCliPath = fileURLToPath(
+    await import.meta.resolve("git-cliff/cli")
+);
 
 if (
     process.argv[1] &&
@@ -94,6 +98,17 @@ export function parseArgs(args) {
     return options;
 }
 
+export function buildChangelogArgs({ verbose = true } = {}) {
+    return [
+        gitCliffCliPath,
+        "--config",
+        rootCliffConfigPath,
+        "--output",
+        rootChangelogPath,
+        ...(verbose ? ["--verbose"] : []),
+    ];
+}
+
 export function runChangelogWorkflow(options = {}) {
     const cwd = path.resolve(options.cwd ?? repositoryRoot);
     const runCommand = options.runCommand ?? spawnSync;
@@ -109,7 +124,7 @@ export function runChangelogWorkflow(options = {}) {
 
     const result = runCommand(
         process.execPath,
-        [generateChangelogScriptPath, ...(verbose ? ["--verbose"] : [])],
+        buildChangelogArgs({ verbose }),
         { cwd, stdio: "inherit" }
     );
 
