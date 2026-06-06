@@ -520,6 +520,37 @@ test.describe("FitFileViewer Electron UI", () => {
         });
     }
 
+    async function expectAltFitIframeLoadedActivity(): Promise<void> {
+        await page.locator("#tab_altfit").click();
+        await expect(page.locator("#tab_altfit")).toHaveClass(/active/u);
+
+        const altFitIframe = page.locator("#altfit_iframe");
+        await expect(altFitIframe).toBeVisible();
+
+        const iframeHandle = await altFitIframe.elementHandle();
+        const altFitFrame = await iframeHandle?.contentFrame();
+        if (!altFitFrame) {
+            throw new Error("AltFit iframe content frame was not available");
+        }
+
+        await expect
+            .poll(async () => {
+                const rootText =
+                    (await altFitFrame.locator("#root").textContent()) ?? "";
+
+                return {
+                    hasLandingCopy: rootText.includes("A FIT file consists"),
+                    hasRecordData: /record/iu.test(rootText),
+                    hasSessionData: /session/iu.test(rootText),
+                };
+            })
+            .toStrictEqual({
+                hasLandingCopy: false,
+                hasRecordData: true,
+                hasSessionData: true,
+            });
+    }
+
     async function openSampleFitThroughDialog(): Promise<ActivityUiState> {
         await mockOpenFileDialog({
             canceled: false,
@@ -729,6 +760,7 @@ test.describe("FitFileViewer Electron UI", () => {
         await expect(openSampleFitThroughDialog()).resolves.toStrictEqual(
             sampleFitActivityState
         );
+        await expectAltFitIframeLoadedActivity();
     });
 
     test("unloads a loaded FIT file through the unload button", async () => {

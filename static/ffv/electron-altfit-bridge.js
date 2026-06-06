@@ -44,9 +44,12 @@
             return false;
         }
 
+        if (window.location.protocol === "file:") {
+            return event.origin === "file://" || event.origin === "null";
+        }
+
         return (
-            event.origin === window.location.origin ||
-            (window.location.protocol === "file:" && event.origin === "file://")
+            event.origin === window.location.origin
         );
     }
 

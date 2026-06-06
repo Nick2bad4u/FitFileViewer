@@ -126,6 +126,9 @@ describe("root app HTML security policy", () => {
             "https://tile.waymarkedtrails.org",
             "https://tiles.openfreemap.org",
             "https://tiles.openseamap.org",
+            "https://tiles.stadiamaps.com",
+            "https://tiles-eu.stadiamaps.com",
+            "https://tiles-us.stadiamaps.com",
         ]);
         expect(fontSources).toStrictEqual([
             "'self'",
@@ -217,15 +220,26 @@ describe("root app HTML security policy", () => {
     });
 
     it("keeps the embedded AltFit bridge on external scripts with a restrictive CSP", () => {
-        expect.assertions(8);
+        expect.assertions(9);
 
         const html = readAltFitHtml();
         const policy = getContentSecurityPolicy(html);
+        const imageSources = getContentSecurityPolicyDirective(
+            policy,
+            "img-src"
+        );
 
         expect(policy).toContain("default-src 'self' file:");
         expect(policy).toContain("script-src 'self' file:");
         expect(policy).toContain("connect-src 'self' file:");
         expect(policy).toContain("object-src 'none'");
+        expect(imageSources).toEqual(
+            expect.arrayContaining([
+                "https://tiles.stadiamaps.com",
+                "https://tiles-eu.stadiamaps.com",
+                "https://tiles-us.stadiamaps.com",
+            ])
+        );
         expect(policy).not.toContain("script-src 'self' file: 'unsafe-inline'");
         expect(html).toContain('src="./electron-analytics-blocker.js"');
         expect(html).toContain('src="./electron-altfit-bridge.js"');
@@ -233,12 +247,13 @@ describe("root app HTML security policy", () => {
     });
 
     it("accepts AltFit file data only from the parent frame", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const bridge = readAltFitBridge();
 
         expect(bridge).toContain("event.source !== window.parent");
         expect(bridge).toContain("event.origin === window.location.origin");
+        expect(bridge).toContain('event.origin === "null"');
         expect(bridge).not.toContain("innerHTML");
     });
 });

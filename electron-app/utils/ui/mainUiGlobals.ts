@@ -34,6 +34,12 @@ function getLegacyRendererGlobal(): LegacyRendererGlobal {
     return globalThis;
 }
 
+function getAltFitTargetOrigin(): string {
+    return globalThis.location.protocol === "file:"
+        ? "*"
+        : globalThis.location.origin;
+}
+
 /**
  * Define window.globalData to bridge legacy code to state-managed data.
  */
@@ -98,8 +104,8 @@ export function registerLegacyGlobals({
             try {
                 if (iframe.contentWindow) {
                     const base64 = convertArrayBufferToBase64(arrayBuffer);
-                    const targetOrigin = globalThis.location.origin;
-                    /* eslint-disable sdl/no-postmessage-without-origin-allowlist -- Electron loads the Alt FIT iframe from the same app origin; location.origin is the strict same-origin target for the current runtime. */
+                    const targetOrigin = getAltFitTargetOrigin();
+                    /* eslint-disable sdl/no-postmessage-without-origin-allowlist -- Electron file:// iframes can have an opaque origin. The child bridge still validates event.source and local file origins before accepting FIT payloads. */
                     iframe.contentWindow.postMessage(
                         { base64, type: "fit-file" },
                         targetOrigin
