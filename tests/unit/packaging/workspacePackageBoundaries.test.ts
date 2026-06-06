@@ -244,15 +244,15 @@ const expectedRootToolingScripts = {
     audit: "npm audit --audit-level=moderate && npm --prefix docusaurus audit --audit-level=moderate",
     "docs:install": "npm ci --prefix docusaurus --no-audit --no-fund",
     lint: "npm run lint:secretlint && npm run lint:root && npm run lint:app && npm run lint:docusaurus && npm run lint:remark",
-    "lint:app":
-        "node scripts/run-eslint.mjs app && node scripts/run-typescript.mjs typecheck",
+    "lint:app": "node scripts/run-eslint.mjs app && npm run typecheck",
     "lint:app:fix":
-        "node scripts/run-eslint.mjs app --fix && node scripts/run-typescript.mjs typecheck",
+        "node scripts/run-eslint.mjs app --fix && npm run typecheck",
     "lint:remark": "node scripts/lint-remark.mjs",
     "lint:secretlint": "node scripts/lint-secretlint.mjs",
     "prepare:electron": "node scripts/ensure-electron-binary.mjs",
     pretest: "npm run prepare:electron && npm run build:runtime-ts",
-    "test:ui": "node scripts/run-vitest.mjs --ui",
+    "test:ui":
+        "npm run build:runtime-ts && node --max-old-space-size=8192 ./node_modules/vitest/vitest.mjs --config vitest.config.ts --ui",
     "update-deps":
         "npx ncu -i --install never && npm update --force && npm install --force && npm run sync:node-version-files",
 } as const;

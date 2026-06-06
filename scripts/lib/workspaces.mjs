@@ -381,8 +381,6 @@ export const bundlePreloadScriptPath =
 export const applyElectronFusesScriptPath = repositoryScriptPath(
     "apply-electron-fuses.mjs"
 );
-export const buildRendererScriptPath =
-    repositoryScriptPath("build-renderer.mjs");
 export const buildRuntimeScriptPath = repositoryScriptPath("build-runtime.mjs");
 export const cleanRuntimeDistScriptPath = repositoryScriptPath(
     "clean-runtime-dist.mjs"
@@ -408,8 +406,6 @@ export const runElectronBuilderScriptPath = repositoryScriptPath(
     "run-electron-builder.mjs"
 );
 export const runElectronScriptPath = repositoryScriptPath("run-electron.mjs");
-export const runTypescriptScriptPath =
-    repositoryScriptPath("run-typescript.mjs");
 export const syncDocusaurusStaticAssetsScriptPath = repositoryScriptPath(
     "sync-docusaurus-static-assets.mjs"
 );

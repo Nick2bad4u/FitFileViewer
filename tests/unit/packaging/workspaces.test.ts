@@ -21,7 +21,6 @@ type WorkspacesModule = {
     appSourceRepositoryPath: (...segments: string[]) => string;
     appSourceRelativePath: (...segments: string[]) => string;
     applyElectronFusesScriptPath: string;
-    buildRendererScriptPath: string;
     buildRuntimeScriptPath: string;
     bundlePreloadScriptPath: string;
     cleanRuntimeDistScriptPath: string;
@@ -167,7 +166,6 @@ type WorkspacesModule = {
     runDocusaurusScriptPath: string;
     runElectronBuilderScriptPath: string;
     runElectronScriptPath: string;
-    runTypescriptScriptPath: string;
     scriptsPath: string;
     syncDocusaurusStaticAssetsScriptPath: string;
     validateRuntimeTsconfigScriptPath: string;
@@ -211,7 +209,7 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes root script paths", async () => {
-        expect.assertions(18);
+        expect.assertions(16);
 
         const workspaces = await importWorkspaces();
 
@@ -230,17 +228,11 @@ describe("workspace path helpers", () => {
         expect(workspaces.validateRuntimeTsconfigScriptPath).toBe(
             path.join(process.cwd(), "scripts", "validate-runtime-tsconfig.mjs")
         );
-        expect(workspaces.runTypescriptScriptPath).toBe(
-            path.join(process.cwd(), "scripts", "run-typescript.mjs")
-        );
         expect(workspaces.bundlePreloadScriptPath).toBe(
             path.join(process.cwd(), "scripts", "bundle-preload.mjs")
         );
         expect(workspaces.applyElectronFusesScriptPath).toBe(
             path.join(process.cwd(), "scripts", "apply-electron-fuses.mjs")
-        );
-        expect(workspaces.buildRendererScriptPath).toBe(
-            path.join(process.cwd(), "scripts", "build-renderer.mjs")
         );
         expect(workspaces.formatRuntimeOutputScriptPath).toBe(
             path.join(process.cwd(), "scripts", "format-runtime-output.mjs")

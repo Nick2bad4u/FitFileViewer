@@ -4,12 +4,12 @@ import process from "node:process";
 import { describe, expect, it, vi } from "vitest";
 
 import {
-    buildRendererScriptPath,
     bundlePreloadScriptPath,
     cleanRuntimeDistScriptPath,
     formatRuntimeOutputScriptPath,
     prepareRuntimeDistScriptPath,
-    runTypescriptScriptPath,
+    rootRuntimeTsconfigPath,
+    rootViteRendererConfigPath,
     validateRuntimeTsconfigScriptPath,
 } from "../../../scripts/lib/workspaces.mjs";
 import {
@@ -53,9 +53,18 @@ describe("build-runtime script", () => {
         expect(buildRuntimeSteps.map((step) => step.args)).toStrictEqual([
             [cleanRuntimeDistScriptPath],
             [validateRuntimeTsconfigScriptPath],
-            [runTypescriptScriptPath, "runtime"],
+            [
+                expect.stringMatching(/[\\/]typescript[\\/]bin[\\/]tsc$/u),
+                "--project",
+                rootRuntimeTsconfigPath,
+            ],
             [bundlePreloadScriptPath],
-            [buildRendererScriptPath],
+            [
+                expect.stringMatching(/[\\/]vite[\\/]bin[\\/]vite\.js$/u),
+                "build",
+                "--config",
+                rootViteRendererConfigPath,
+            ],
             [formatRuntimeOutputScriptPath],
             [prepareRuntimeDistScriptPath],
         ]);

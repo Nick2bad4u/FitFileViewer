@@ -68,13 +68,13 @@ describe("vitest root config", () => {
         ]);
         expect(testConfig.setupFiles).toStrictEqual([rootVitestSetupFilePath]);
         expect(getRootScripts()["test:unit"]).toBe(
-            "node scripts/run-vitest.mjs --run --suite unit --maxWorkers 1"
+            "npm run build:runtime-ts && node --max-old-space-size=8192 ./node_modules/vitest/vitest.mjs --config vitest.config.ts --run tests/unit --maxWorkers 1"
         );
         expect(getRootScripts()["test:integration"]).toBe(
-            "node scripts/run-vitest.mjs --run --suite integration --maxWorkers 1"
+            "npm run build:runtime-ts && node --max-old-space-size=8192 ./node_modules/vitest/vitest.mjs --config vitest.config.ts --run tests/integration --maxWorkers 1"
         );
         expect(getRootScripts()["test:tabs"]).toBe(
-            "node scripts/run-vitest.mjs --run --reporter=verbose --suite tabs --maxWorkers 1"
+            "npm run build:runtime-ts && node --max-old-space-size=8192 ./node_modules/vitest/vitest.mjs --config vitest.config.ts --run --reporter=verbose tests/unit/tabs --maxWorkers 1"
         );
     });
 

@@ -1,17 +1,24 @@
 import { spawnSync } from "node:child_process";
+import { createRequire } from "node:module";
+import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
 import {
-    buildRendererScriptPath,
     bundlePreloadScriptPath,
     cleanRuntimeDistScriptPath,
     formatRuntimeOutputScriptPath,
     prepareRuntimeDistScriptPath,
     repositoryRoot,
-    runTypescriptScriptPath,
+    rootRuntimeTsconfigPath,
+    rootViteRendererConfigPath,
     validateRuntimeTsconfigScriptPath,
 } from "./lib/workspaces.mjs";
+
+const require = createRequire(import.meta.url);
+const typescriptCliPath = require.resolve("typescript/bin/tsc");
+const vitePackagePath = require.resolve("vite/package.json");
+const viteCliPath = path.join(path.dirname(vitePackagePath), "bin", "vite.js");
 
 export const buildRuntimeSteps = [
     {
@@ -23,7 +30,11 @@ export const buildRuntimeSteps = [
         label: "validate runtime TypeScript file list",
     },
     {
-        args: [runTypescriptScriptPath, "runtime"],
+        args: [
+            typescriptCliPath,
+            "--project",
+            rootRuntimeTsconfigPath,
+        ],
         label: "compile runtime TypeScript",
     },
     {
@@ -31,7 +42,12 @@ export const buildRuntimeSteps = [
         label: "bundle preload",
     },
     {
-        args: [buildRendererScriptPath],
+        args: [
+            viteCliPath,
+            "build",
+            "--config",
+            rootViteRendererConfigPath,
+        ],
         label: "build renderer bundle",
     },
     {
