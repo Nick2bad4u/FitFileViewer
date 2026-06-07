@@ -152,19 +152,53 @@ function resolvesIntoRendererState(
 
 describe("architecture boundaries", () => {
     it("keeps the temporary compatibility ledger explicit", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const ledger = readRepositoryFile("docs/DEPRECATION_LEDGER.md");
+        const requiredSections = [
+            "Renderer Global Data Bridge",
+            "Legacy AppState Global",
+            "Renderer Utility Globals",
+            "Vendor Globals",
+            "Runtime CommonJS Compatibility",
+        ];
+        const requiredSectionFields = [
+            "Current owner",
+            "Compatibility callers:",
+            "Current status:",
+            "Next removal step:",
+            "Verification gates:",
+            "Exit criteria:",
+        ];
 
         expect(
-            [
-                "Renderer Global Data Bridge",
-                "Legacy AppState Global",
-                "Renderer Utility Globals",
-                "Vendor Globals",
-                "Runtime CommonJS Compatibility",
-                "Exit criteria:",
-            ].filter((requiredText) => !ledger.includes(requiredText))
+            [...requiredSections, ...requiredSectionFields].filter(
+                (requiredText) => !ledger.includes(requiredText)
+            )
+        ).toStrictEqual([]);
+        expect(
+            requiredSections.flatMap((sectionName) => {
+                const sectionStart = ledger.indexOf(`## ${sectionName}`);
+                if (sectionStart === -1) {
+                    return [`${sectionName}: missing section`];
+                }
+
+                const nextSectionStart = ledger.indexOf(
+                    "\n## ",
+                    sectionStart + 1
+                );
+                const section =
+                    nextSectionStart === -1
+                        ? ledger.slice(sectionStart)
+                        : ledger.slice(sectionStart, nextSectionStart);
+
+                return requiredSectionFields
+                    .filter((requiredField) => !section.includes(requiredField))
+                    .map(
+                        (requiredField) =>
+                            `${sectionName}: missing ${requiredField}`
+                    );
+            })
         ).toStrictEqual([]);
     });
 
