@@ -5,7 +5,11 @@
 
 import { AppActions } from "../../app/lifecycle/appActions.js";
 import type { ElectronAPIWithDevFlags } from "../../../shared/preloadApi.js";
-import { defineLegacyGlobalDataBridge } from "../core/globalDataStore.js";
+import {
+    defineLegacyGlobalDataBridge,
+    getGlobalData,
+    setGlobalData,
+} from "../core/globalDataStore.js";
 import {
     getState,
     initializeStateManager,
@@ -115,9 +119,16 @@ export function initializeAppState(): void {
     console.log(
         "[StateIntegration] Initializing application state management..."
     );
+    const integrationGlobal = getIntegrationGlobal();
+    const existingGlobalData = getGlobalData(integrationGlobal);
 
     // Initialize core state manager
     initializeStateManager();
+    if (existingGlobalData !== undefined) {
+        setGlobalData(existingGlobalData, {
+            source: "StateIntegration.preserveExistingGlobalData",
+        });
+    }
     // Initialize UI state manager
     uiStateManager.initialize();
 

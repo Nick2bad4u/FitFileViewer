@@ -13,6 +13,8 @@ type LegacyGlobalDataBridgeOptions = {
 };
 
 const GLOBAL_DATA_PROPERTY = "globalData";
+let fallbackGlobalDataValue: unknown;
+let hasFallbackGlobalDataValue = false;
 
 /** Reads FIT data from the managed state store, falling back to plain legacy data properties. */
 export function getGlobalData<T = unknown>(
@@ -36,6 +38,11 @@ export function getGlobalData<T = unknown>(
         return windowValue as T;
     }
 
+    const fallbackValue = readAccessorFallbackValue(scope);
+    if (fallbackValue !== undefined) {
+        return fallbackValue as T;
+    }
+
     return stateValue === null ? null : undefined;
 }
 
@@ -44,6 +51,8 @@ export function setGlobalData(
     value: unknown,
     options: StateUpdateOptions = {}
 ): void {
+    fallbackGlobalDataValue = value;
+    hasFallbackGlobalDataValue = true;
     setState(GLOBAL_DATA_PROPERTY, value, {
         source: "globalDataStore",
         ...options,
@@ -76,6 +85,8 @@ export function defineLegacyGlobalDataBridge({
 
         const existingValue = readPlainGlobalDataValue(scope);
         if (preserveExistingValue && existingValue !== undefined) {
+            fallbackGlobalDataValue = existingValue;
+            hasFallbackGlobalDataValue = true;
             setGlobalData(existingValue, {
                 source: `${source}.preserveExistingValue`,
             });
@@ -85,7 +96,7 @@ export function defineLegacyGlobalDataBridge({
             configurable: true,
             enumerable: true,
             get(): unknown {
-                return getState(GLOBAL_DATA_PROPERTY);
+                return getGlobalData(scope);
             },
             set(value: unknown): void {
                 setGlobalData(
@@ -108,4 +119,16 @@ function readPlainGlobalDataValue(scope: LegacyGlobalDataScope): unknown {
     );
 
     return descriptor && "value" in descriptor ? descriptor.value : undefined;
+}
+
+function readAccessorFallbackValue(scope: LegacyGlobalDataScope): unknown {
+    const descriptor = Object.getOwnPropertyDescriptor(
+        scope,
+        GLOBAL_DATA_PROPERTY
+    );
+    if (!descriptor || "value" in descriptor || !hasFallbackGlobalDataValue) {
+        return undefined;
+    }
+
+    return fallbackGlobalDataValue;
 }
