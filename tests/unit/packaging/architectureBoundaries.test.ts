@@ -52,9 +52,15 @@ const allowedLegacyUtilityFiles = new Set([
     "electron-app/utils/legacy/globalUtilityUi.ts",
 ]);
 
+const migratedGlobalDataReaderFiles = [
+    "electron-app/utils/rendering/helpers/renderSummaryHelpers.ts",
+] as const;
+
 const importSpecifierPattern =
     /\b(?:import\s+(?:[^'"]+\s+from\s+)?|export\s+[^'"]+\s+from\s+|require\()\s*["'](?<specifier>[^"']+)["']/gu;
 const directGlobalDataWritePattern = /\b(?:window|globalThis)\.globalData\s*=/u;
+const directGlobalDataReadPattern =
+    /\b(?:window|globalThis)\.globalData\b|\.globalData\b/u;
 const directRendererUtilsGlobalPattern =
     /\b(?:window|globalThis)\.rendererUtils\s*=/u;
 
@@ -237,7 +243,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -261,9 +267,16 @@ describe("architecture boundaries", () => {
         ).filter(
             (relativeFile) => !allowedLegacyUtilityFiles.has(relativeFile)
         );
+        const migratedGlobalDataReaderViolations =
+            migratedGlobalDataReaderFiles.filter((relativeFile) =>
+                directGlobalDataReadPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            );
 
         expect(directGlobalDataWrites).toStrictEqual([]);
         expect(directRendererUtilsGlobals).toStrictEqual([]);
         expect(unexpectedLegacyUtilityFiles).toStrictEqual([]);
+        expect(migratedGlobalDataReaderViolations).toStrictEqual([]);
     });
 });

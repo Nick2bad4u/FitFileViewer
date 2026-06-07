@@ -34,7 +34,7 @@ describe("renderSummaryHelpers core functions", () => {
         expect(getRowLabel(2, true)).toBe("Lap 3");
     });
 
-    it("getStorageKey prefers window.globalData.cachedFilePath and ignores lower-priority names", () => {
+    it("getStorageKey prefers the global data store cached file path and ignores lower-priority names", () => {
         expect.assertions(3);
 
         resetSummaryFixture();
@@ -61,7 +61,7 @@ describe("renderSummaryHelpers core functions", () => {
         }
     });
 
-    it("getStorageKey falls back to data.cachedFilePath when window.globalData has no cached file path", () => {
+    it("getStorageKey falls back to data.cachedFilePath when global data has no cached file path", () => {
         expect.assertions(2);
 
         resetSummaryFixture();

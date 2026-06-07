@@ -1,6 +1,7 @@
 import { hasPowerData } from "../../data/processing/estimateCyclingPower.js";
 import { patchSummaryFields } from "../../data/processing/patchSummaryFields.js";
 import { exportUtils } from "../../files/export/exportUtils.js";
+import { getGlobalData } from "../../state/core/globalDataStore.js";
 
 /** Generic row shape used by summary and lap table renderers. */
 export type SummaryRecord = Record<string, unknown>;
@@ -44,13 +45,11 @@ type ArqueroApi = {
 type SummaryGlobal = typeof globalThis & {
     activeFitFileName?: string;
     aq?: ArqueroApi;
-    globalData?: FitSummaryData & SummaryRecord;
     window?:
         | (Window &
               typeof globalThis & {
                   activeFitFileName?: string;
                   aq?: ArqueroApi;
-                  globalData?: FitSummaryData & SummaryRecord;
               })
         | null;
 };
@@ -131,8 +130,11 @@ export function getStorageKey(
     try {
         const summaryGlobal = globalThis as SummaryGlobal;
         const windowGlobal = summaryGlobal.window;
-        if (windowGlobal && windowGlobal.globalData?.cachedFilePath) {
-            fpath = windowGlobal.globalData.cachedFilePath;
+        const globalData = getGlobalData<FitSummaryData & SummaryRecord>(
+            summaryGlobal
+        );
+        if (globalData?.cachedFilePath) {
+            fpath = globalData.cachedFilePath;
         } else if (
             data &&
             typeof data === "object" &&
