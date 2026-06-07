@@ -210,6 +210,44 @@ interface PreloadRequire {
             | "setFitBrowserFolder"
         >;
     };
+    (moduleId: "./preload/fileApi.js"): {
+        createFileApi: (options: {
+            channels: Pick<
+                PreloadChannels,
+                | "DIALOG_OPEN_FILE"
+                | "DIALOG_OPEN_OVERLAY_FILES"
+                | "FILE_READ"
+                | "FIT_DECODE"
+                | "FIT_PARSE"
+                | "RECENT_FILES_ADD"
+                | "RECENT_FILES_APPROVE"
+                | "RECENT_FILES_GET"
+            >;
+            createSafeInvokeHandler: (
+                channel:
+                    | "dialog:openFile"
+                    | "dialog:openOverlayFiles"
+                    | "file:read"
+                    | "fit:decode"
+                    | "fit:parse"
+                    | "recentFiles:add"
+                    | "recentFiles:approve"
+                    | "recentFiles:get",
+                methodName: string
+            ) => (...args: unknown[]) => Promise<unknown>;
+        }) => Pick<
+            ElectronAPI,
+            | "addRecentFile"
+            | "approveRecentFile"
+            | "decodeFitFile"
+            | "openFile"
+            | "openFileDialog"
+            | "openOverlayDialog"
+            | "parseFitFile"
+            | "readFile"
+            | "recentFiles"
+        >;
+    };
     (moduleId: "./preload/validators.js"): {
         createPreloadValidators: (preloadLog: PreloadLog) => {
             validateCallback: (
@@ -402,6 +440,7 @@ const { createDevtoolsMenuApi } = (require as PreloadRequire)(
 const { createFitBrowserApi } = (require as PreloadRequire)(
     "./preload/fitBrowserApi.js"
 );
+const { createFileApi } = (require as PreloadRequire)("./preload/fileApi.js");
 const { createPreloadValidators } = (require as PreloadRequire)(
     "./preload/validators.js"
 );
@@ -575,6 +614,31 @@ const fitBrowserApi = createFitBrowserApi({
         methodName: string
     ) => (...args: unknown[]) => Promise<unknown>,
 });
+const fileApi = createFileApi({
+    channels: {
+        DIALOG_OPEN_FILE: CONSTANTS.CHANNELS.DIALOG_OPEN_FILE,
+        DIALOG_OPEN_OVERLAY_FILES:
+            CONSTANTS.CHANNELS.DIALOG_OPEN_OVERLAY_FILES,
+        FILE_READ: CONSTANTS.CHANNELS.FILE_READ,
+        FIT_DECODE: CONSTANTS.CHANNELS.FIT_DECODE,
+        FIT_PARSE: CONSTANTS.CHANNELS.FIT_PARSE,
+        RECENT_FILES_ADD: CONSTANTS.CHANNELS.RECENT_FILES_ADD,
+        RECENT_FILES_APPROVE: CONSTANTS.CHANNELS.RECENT_FILES_APPROVE,
+        RECENT_FILES_GET: CONSTANTS.CHANNELS.RECENT_FILES_GET,
+    },
+    createSafeInvokeHandler: createSafeInvokeHandler as (
+        channel:
+            | "dialog:openFile"
+            | "dialog:openOverlayFiles"
+            | "file:read"
+            | "fit:decode"
+            | "fit:parse"
+            | "recentFiles:add"
+            | "recentFiles:approve"
+            | "recentFiles:get",
+        methodName: string
+    ) => (...args: unknown[]) => Promise<unknown>,
+});
 
 // Main API object
 const electronAPI: ElectronAPI = {
@@ -585,10 +649,7 @@ const electronAPI: ElectronAPI = {
      *
      * @returns {Promise<string[]>}
      */
-    addRecentFile: createSafeInvokeHandler(
-        CONSTANTS.CHANNELS.RECENT_FILES_ADD,
-        "addRecentFile"
-    ),
+    addRecentFile: fileApi.addRecentFile,
 
     /**
      * Legacy compatibility method. Renderer-originated recent-file approval is
@@ -599,10 +660,7 @@ const electronAPI: ElectronAPI = {
      *
      * @returns {Promise<boolean>} Always false in current desktop builds.
      */
-    approveRecentFile: createSafeInvokeHandler(
-        CONSTANTS.CHANNELS.RECENT_FILES_APPROVE,
-        "approveRecentFile"
-    ),
+    approveRecentFile: fileApi.approveRecentFile,
 
     /**
      * Trigger a check for updates (menu or manual).
@@ -619,10 +677,7 @@ const electronAPI: ElectronAPI = {
      *
      * @returns {Promise<import("./shared/fit").FitDecodeResult>}
      */
-    decodeFitFile: createSafeInvokeHandler(
-        CONSTANTS.CHANNELS.FIT_DECODE,
-        "decodeFitFile"
-    ),
+    decodeFitFile: fileApi.decodeFitFile,
 
     // Application Information
     /**
@@ -1059,20 +1114,14 @@ const electronAPI: ElectronAPI = {
      *
      * @returns {Promise<string | null>}
      */
-    openFile: createSafeInvokeHandler(
-        CONSTANTS.CHANNELS.DIALOG_OPEN_FILE,
-        "openFile"
-    ),
+    openFile: fileApi.openFile,
 
     /**
      * Alias for openFile. Returns null when the user cancels.
      *
      * @returns {Promise<string | null>}
      */
-    openFileDialog: createSafeInvokeHandler(
-        CONSTANTS.CHANNELS.DIALOG_OPEN_FILE,
-        "openFileDialog"
-    ),
+    openFileDialog: fileApi.openFileDialog,
 
     /**
      * Opens a folder picker dialog and returns the selected folder path.
@@ -1090,10 +1139,7 @@ const electronAPI: ElectronAPI = {
      *
      * @returns {Promise<string[]>}
      */
-    openOverlayDialog: createSafeInvokeHandler(
-        CONSTANTS.CHANNELS.DIALOG_OPEN_OVERLAY_FILES,
-        "openOverlayDialog"
-    ),
+    openOverlayDialog: fileApi.openOverlayDialog,
 
     // FIT File Operations
     /**
@@ -1103,10 +1149,7 @@ const electronAPI: ElectronAPI = {
      *
      * @returns {Promise<import("./shared/fit").FitDecodeResult>}
      */
-    parseFitFile: createSafeInvokeHandler(
-        CONSTANTS.CHANNELS.FIT_PARSE,
-        "parseFitFile"
-    ),
+    parseFitFile: fileApi.parseFitFile,
 
     /**
      * Reads a file from the given file path and returns its contents as an
@@ -1116,7 +1159,7 @@ const electronAPI: ElectronAPI = {
      *
      * @returns {Promise<ArrayBuffer>}
      */
-    readFile: createSafeInvokeHandler(CONSTANTS.CHANNELS.FILE_READ, "readFile"),
+    readFile: fileApi.readFile,
 
     // Recent Files Management
     /**
@@ -1124,10 +1167,7 @@ const electronAPI: ElectronAPI = {
      *
      * @returns {Promise<string[]>}
      */
-    recentFiles: createSafeInvokeHandler(
-        CONSTANTS.CHANNELS.RECENT_FILES_GET,
-        "recentFiles"
-    ),
+    recentFiles: fileApi.recentFiles,
 
     /**
      * Send an IPC message to the main process.
