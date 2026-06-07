@@ -54,6 +54,10 @@ import {
     type RendererLifecycleAppState,
 } from "./renderer/lifecycleCleanup.js";
 import {
+    installRendererGlobalApiExposure,
+    logRendererStartupInfo,
+} from "./renderer/globalApiExposure.js";
+import {
     createDelegatedFileInputChangeHandler,
     handleImmediateFileInputChange,
     registerDelegatedFileInputChangeListener,
@@ -1034,17 +1038,6 @@ function validateDOMElements(): boolean {
 // ==========================================
 
 /**
- * Expose utilities to global scope for legacy compatibility
- *
- * @global
- */
-// Expose map utilities globally for chart and map components
-Reflect.set(globalThis, "createExportGPXButton", createExportGPXButton);
-
-// Expose application information
-Reflect.set(globalThis, "APP_INFO", APP_INFO);
-
-/**
  * Test helper to reset renderer state initialization guard
  *
  * @private
@@ -1055,18 +1048,18 @@ function resetRendererStateInitializationForTests(): void {
     isOpeningFileRef.value = false;
 }
 
-Reflect.set(
-    globalThis,
-    "__resetRendererStateInitializationForTests",
-    resetRendererStateInitializationForTests
-);
+installRendererGlobalApiExposure({
+    appInfo: APP_INFO,
+    createExportGPXButton,
+    resetStateInitializationForTests: resetRendererStateInitializationForTests,
+});
 
 // Log application startup information
-logRenderer("group", "[Renderer] Application Startup");
-logRenderer("log", "App:", APP_INFO.name, `v${APP_INFO.version}`);
-logRenderer("log", "Environment:", getEnvironment());
-logRenderer("log", "Runtime Info:", APP_INFO.getRuntimeInfo());
-logRenderer("groupEnd");
+logRendererStartupInfo({
+    appInfo: APP_INFO,
+    environment: getEnvironment(),
+    logRenderer,
+});
 
 // ==========================================
 // Application Lifecycle
