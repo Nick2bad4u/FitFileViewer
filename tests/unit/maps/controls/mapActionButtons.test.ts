@@ -36,7 +36,6 @@ type MapActionButtonTestGlobal = typeof globalThis & {
         getZoom: () => number;
     };
     _mainPolyline?: MapPolyline;
-    _setupActiveFileNameMapActions?: () => void;
 };
 
 type ActiveFileNameElement = HTMLElement & {
@@ -57,7 +56,6 @@ function resetMapActionFixture(): void {
     delete testGlobal._highlightedOverlayIdx;
     delete testGlobal._leafletMapInstance;
     delete testGlobal._mainPolyline;
-    delete testGlobal._setupActiveFileNameMapActions;
     vi.clearAllMocks();
 }
 
@@ -144,7 +142,9 @@ describe("mapActionButtons", () => {
                 polylineBringToFront,
             } = installMapGlobals();
 
-            await import("../../../../electron-app/utils/maps/controls/mapActionButtons.js");
+            const { setupActiveFileNameMapActions } = await import(
+                "../../../../electron-app/utils/maps/controls/mapActionButtons.js"
+            );
             const {
                 setShownFilesListUpdater,
                 updateShownFilesList,
@@ -175,8 +175,8 @@ describe("mapActionButtons", () => {
                 highlightedOverlayIndex: 0,
             });
 
-            getTestGlobal()._setupActiveFileNameMapActions?.();
-            getTestGlobal()._setupActiveFileNameMapActions?.();
+            setupActiveFileNameMapActions();
+            setupActiveFileNameMapActions();
             mocks.updateOverlayHighlights.mockClear();
             activeFileName.dispatchEvent(new MouseEvent("mouseleave"));
 

@@ -70,7 +70,6 @@ type MapActionButtonsGlobal = typeof globalThis & {
     _mainPolyline?: MapPolyline | null;
     _mainPolylineOriginalBounds?: MapBounds | null;
     _overlayPolylines?: OverlayPolylineCollection;
-    _setupActiveFileNameMapActions?: () => void;
     L?: {
         CircleMarker?: CircleMarkerConstructor;
     };
@@ -357,7 +356,7 @@ function _centerMapOnMainFile(): void {
  * and highlighting on the primary (index 0) map overlay. Safely guards all
  * window global usages with casts to avoid type errors under checkJs.
  */
-function setupActiveFileNameMapActions(): void {
+export function setupActiveFileNameMapActions(): void {
     try {
         const activeFileName = querySelectorByIdFlexible(
             document,
@@ -523,11 +522,6 @@ function setupActiveFileNameMapActions(): void {
         );
     }
 })();
-
-// Export setup function for external use
-// Expose setup method on window for external triggers (cast for global augmentation safety)
-getMapActionButtonsGlobal()._setupActiveFileNameMapActions =
-    setupActiveFileNameMapActions;
 
 registerShownFilesListAfterUpdate(() => {
     console.log(

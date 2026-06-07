@@ -154,8 +154,6 @@ type WindowExtensions = typeof globalThis & {
     _overlayPolylines?: Record<string, OverlayPolyline> | null;
     loadedFitFiles?: FitFileEntry[];
     mapMarkerCount?: number;
-    setupActiveFileNameMapActions?: () => void;
-    setupOverlayFileNameMapActions?: () => void;
 };
 
 type ShownFilesListElement = Element & {
@@ -1674,18 +1672,6 @@ export function renderMap(): void {
         "[FFV] [renderMap] Calling updateShownFilesList after overlays drawn"
     );
     updateShownFilesList();
-    if (windowExt.setupOverlayFileNameMapActions) {
-        console.log(
-            "[FFV] [renderMap] Calling setupOverlayFileNameMapActions after updateShownFilesList"
-        );
-        windowExt.setupOverlayFileNameMapActions();
-        if (windowExt.setupActiveFileNameMapActions) {
-            console.log(
-                "[FFV] [renderMap] Calling setupActiveFileNameMapActions after overlays drawn"
-            );
-            windowExt.setupActiveFileNameMapActions();
-        }
-    }
     // Enable/disable lap selector based on number of loaded files
     function updateLapSelectorEnabledState(): void {
         const lapSelect =
