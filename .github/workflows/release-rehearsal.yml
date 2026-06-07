@@ -16,6 +16,11 @@ on:
                 options:
                     - "false"
                     - "true"
+            smoke-timeout-ms:
+                description: "Packaged app smoke timeout in milliseconds"
+                required: true
+                default: "15000"
+                type: string
 
 permissions:
     contents: read
@@ -61,8 +66,13 @@ jobs:
             - name: Run release verification and packaged smoke
               run: xvfb-run -a npm run release:verify
               env:
+                  FFV_PACKAGED_SMOKE_TIMEOUT_MS: ${{ inputs.smoke-timeout-ms }}
                   REQUIRE_CODE_SIGNING: "false"
                   RUNNER_OS: ${{ runner.os }}
+
+            - name: List unsigned rehearsal artifacts
+              if: always()
+              run: npm run release:list-release-dist-files
 
             - name: Upload rehearsal artifacts
               if: always()
