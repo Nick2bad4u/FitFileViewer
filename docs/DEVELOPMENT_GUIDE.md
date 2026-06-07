@@ -442,6 +442,18 @@ and lists each missing variable.
 - Windows 7 compatibility builds stay isolated in `build-win7.yml` and do not
   share the primary signed release path.
 
+### Release Rehearsal
+
+Before tagging a release, run the manual GitHub Actions workflow **Release
+Rehearsal** from the target branch or tag. It runs the full release gate across
+Linux, Windows, and macOS, checks signing availability without publishing,
+builds unsigned artifacts, runs packaged startup smoke checks, and uploads the
+`release-dist` outputs as workflow artifacts.
+
+Use `require-code-signing=true` only when the required signing secrets are
+expected to be present. Leave `fail-fast=false` when you want every platform to
+complete and report its own readiness result.
+
 ### Windows 7 Compatibility Builds
 
 - `npm run build:win7` calls `scripts/build-win7.mjs`, forcing an Electron 22, ia32 portable build whose output is stored under `release-dist/win7`. Use this script when you need to verify behavior on legacy Windows 7 hardware.

@@ -21,15 +21,36 @@ on:
                 required: true
                 default: "15000"
                 type: string
+            fail-fast:
+                description: "Cancel remaining platform rehearsals after the first failure"
+                required: true
+                default: "false"
+                type: choice
+                options:
+                    - "false"
+                    - "true"
 
 permissions:
     contents: read
 
 jobs:
     release-rehearsal:
-        name: Verify Unsigned Release Package
-        runs-on: ubuntu-latest
+        name: Verify Unsigned Release Package (${{ matrix.runner-os }})
+        runs-on: ${{ matrix.os }}
         timeout-minutes: 60
+        strategy:
+            fail-fast: ${{ inputs.fail-fast == 'true' }}
+            matrix:
+                include:
+                    - os: ubuntu-latest
+                      runner-os: Linux
+                      release-verify-command: xvfb-run -a npm run release:verify
+                    - os: windows-latest
+                      runner-os: Windows
+                      release-verify-command: npm run release:verify
+                    - os: macos-latest
+                      runner-os: macOS
+                      release-verify-command: npm run release:verify
         env:
             CI: true
             NODE_OPTIONS: --max_old_space_size=8192
@@ -38,6 +59,7 @@ jobs:
                 shell: bash
         steps:
             - name: Harden the runner (Audit all outbound calls)
+              if: runner.os == 'Linux'
               uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
               with:
                   egress-policy: audit
@@ -58,17 +80,17 @@ jobs:
                   npm ci --prefix docusaurus --no-audit --no-fund
 
             - name: Check signing environment
-              run: npm run release:check-signing -- --runner-os "$RUNNER_OS"
+              run: npm run release:check-signing -- --runner-os "${{ matrix.runner-os }}"
               env:
                   REQUIRE_CODE_SIGNING: ${{ inputs.require-code-signing }}
-                  RUNNER_OS: ${{ runner.os }}
+                  RUNNER_OS: ${{ matrix.runner-os }}
 
             - name: Run release verification and packaged smoke
-              run: xvfb-run -a npm run release:verify
+              run: ${{ matrix.release-verify-command }}
               env:
                   FFV_PACKAGED_SMOKE_TIMEOUT_MS: ${{ inputs.smoke-timeout-ms }}
                   REQUIRE_CODE_SIGNING: "false"
-                  RUNNER_OS: ${{ runner.os }}
+                  RUNNER_OS: ${{ matrix.runner-os }}
 
             - name: List unsigned rehearsal artifacts
               if: always()
@@ -78,7 +100,7 @@ jobs:
               if: always()
               uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
               with:
-                  name: release-rehearsal-${{ runner.os }}
+                  name: release-rehearsal-${{ matrix.runner-os }}
                   path: release-dist/**
                   if-no-files-found: error
                   include-hidden-files: true
