@@ -44,6 +44,17 @@ import {
     registerStartupElectronHooks,
     type RendererApplyTheme as ApplyTheme,
 } from "./renderer/electronApiStartupHooks.js";
+import {
+    callUnknownFunction,
+    ensureCoreModules,
+    resolveExactManualMock,
+    resolveManualMock,
+    toModuleRecord,
+    type ListenForThemeChange,
+    type ShowNotification,
+    type ShowUpdateNotification,
+    type UnknownRendererFunction,
+} from "./renderer/coreModuleResolution.js";
 import { createRendererElectronMenuActionHandlers } from "./renderer/electronMenuActionHandlers.js";
 import { installRendererElectronApiRegistration } from "./renderer/electronApiRegistration.js";
 import {
@@ -80,24 +91,7 @@ import { getState, subscribe } from "./utils/state/core/stateManager.js";
 import { querySelectorByIdFlexible } from "./utils/ui/dom/elementIdUtils.js";
 import { setupCreditsMarquee } from "./utils/ui/layout/enhanceCreditsSection.js";
 
-type ListenForThemeChange = (onThemeChange: (theme: string) => void) => void;
 type LogRendererLevel = "error" | "group" | "groupEnd" | "log" | "warn";
-interface RendererCoreModules {
-    [exportName: string]: unknown;
-    AppActions: Record<string, unknown> | undefined;
-    applyTheme: ApplyTheme | undefined;
-    getAppDomainState: undefined | UnknownRendererFunction;
-    handleOpenFile: undefined | UnknownRendererFunction;
-    listenForThemeChange: ListenForThemeChange | undefined;
-    masterStateManager: unknown;
-    setupListeners: undefined | UnknownRendererFunction;
-    setupTheme: undefined | UnknownRendererFunction;
-    showAboutModal: ((html?: string) => void) | undefined;
-    showNotification: ShowNotification | undefined;
-    showUpdateNotification: ShowUpdateNotification | undefined;
-    subscribeAppDomain: undefined | UnknownRendererFunction;
-    uiStateManager: unknown;
-}
 
 interface RendererDependencies {
     applyTheme: ApplyTheme | undefined;
@@ -111,20 +105,6 @@ interface RendererDependencies {
     showUpdateNotification: ShowUpdateNotification | undefined;
 }
 
-type ShowNotification = (
-    message: string,
-    type?: string,
-    timeout?: number
-) => unknown;
-
-type ShowUpdateNotification = (
-    message: string,
-    type?: string,
-    duration?: number,
-    withAction?: boolean | string
-) => void;
-
-type UnknownRendererFunction = (...args: unknown[]) => unknown;
 // Import domain-level appState for tests that mock this path explicitly
 // Note: app domain state functions are dynamically imported via ensureCoreModules()
 // Avoid static import of uiStateManager for the same reason as AppActions in tests
@@ -163,48 +143,6 @@ function logRenderer(level: LogRendererLevel, ...args: unknown[]): void {
     }
 }
 
-function toApplyTheme(value: unknown): ApplyTheme | undefined {
-    return typeof value === "function" ? (value as ApplyTheme) : undefined;
-}
-
-function toListenForThemeChange(
-    value: unknown
-): ListenForThemeChange | undefined {
-    return typeof value === "function"
-        ? (value as ListenForThemeChange)
-        : undefined;
-}
-
-function toShowAboutModal(
-    value: unknown
-): ((html?: string) => void) | undefined {
-    return typeof value === "function"
-        ? (value as (html?: string) => void)
-        : undefined;
-}
-
-function toShowNotification(value: unknown): ShowNotification | undefined {
-    return typeof value === "function"
-        ? (value as ShowNotification)
-        : undefined;
-}
-
-function toShowUpdateNotification(
-    value: unknown
-): ShowUpdateNotification | undefined {
-    return typeof value === "function"
-        ? (value as ShowUpdateNotification)
-        : undefined;
-}
-
-function toUnknownRendererFunction(
-    value: unknown
-): undefined | UnknownRendererFunction {
-    return typeof value === "function"
-        ? (value as UnknownRendererFunction)
-        : undefined;
-}
-
 /**
  * Tracks state manager initialization to prevent duplicate subscriptions
  *
@@ -241,109 +179,6 @@ function callRecordMethod(
 }
 
 /**
- * @param {unknown} candidate
- * @param {unknown[]} [args]
- *
- * @returns {unknown}
- */
-function callUnknownFunction(
-    candidate: unknown,
-    args: unknown[] = []
-): unknown {
-    if (typeof candidate !== "function") {
-        return undefined;
-    }
-
-    const callable = /** @type {(...args: unknown[]) => unknown} */ candidate;
-    return callable(...args);
-}
-
-/**
- * Dynamically resolves core modules so Vitest doMock hooks (using ../../ paths)
- * are respected.
- *
- * @returns {Promise<RendererCoreModules>} Resolved module functions/objects
- */
-async function ensureCoreModules(): Promise<RendererCoreModules> {
-    const notifMod = await resolveCoreModule(
-        "../../utils/ui/notifications/showNotification.js",
-        "./utils/ui/notifications/showNotification.js"
-    );
-    const openFileMod = await resolveCoreModule(
-        "../../utils/files/import/handleOpenFile.js",
-        "./utils/files/import/handleOpenFile.js"
-    );
-    const setupThemeMod = await resolveCoreModule(
-        "../../utils/theming/core/setupTheme.js",
-        "./utils/theming/core/setupTheme.js"
-    );
-    const updateNotifMod = await resolveCoreModule(
-        "../../utils/ui/notifications/showUpdateNotification.js",
-        "./utils/ui/notifications/showUpdateNotification.js"
-    );
-    const listenersMod = await resolveCoreModule(
-        "../../utils/app/lifecycle/listeners.js",
-        "./utils/app/lifecycle/listeners.js"
-    );
-    const aboutMod = await resolveCoreModule(
-        "../../utils/ui/modals/aboutModal.js",
-        "./utils/ui/modals/aboutModal.js"
-    );
-    const themeMod = await resolveCoreModule(
-        "../../utils/theming/core/theme.js",
-        "./utils/theming/core/theme.js"
-    );
-    const msmMod = await resolveCoreModule(
-        "../../utils/state/core/masterStateManager.js",
-        "./utils/state/core/masterStateManager.js"
-    );
-    const appActionsMod = await resolveCoreModule(
-        "../../utils/app/lifecycle/appActions.js",
-        "./utils/app/lifecycle/appActions.js"
-    );
-    const appDomainMod = await resolveCoreModule(
-        "../../utils/state/domain/appState.js",
-        "./utils/state/domain/appState.js"
-    );
-    const uiStateMod = await resolveCoreModule(
-        "../../utils/state/domain/uiStateManager.js",
-        "./utils/state/domain/uiStateManager.js"
-    );
-
-    return {
-        // Be robust to different mock shapes: named export, default.AppActions, default object, or module as object
-        AppActions: resolveAppActionsModule(appActionsMod),
-        applyTheme: toApplyTheme(themeMod["applyTheme"]),
-        getAppDomainState: toUnknownRendererFunction(
-            resolveDefaultableExport(appDomainMod, "getState")
-        ),
-        handleOpenFile: toUnknownRendererFunction(
-            openFileMod["handleOpenFile"]
-        ),
-        listenForThemeChange: toListenForThemeChange(
-            themeMod["listenForThemeChange"]
-        ),
-        masterStateManager:
-            resolveDefaultableExport(msmMod, "masterStateManager") ?? msmMod,
-        setupListeners: toUnknownRendererFunction(
-            listenersMod["setupListeners"]
-        ),
-        setupTheme: toUnknownRendererFunction(setupThemeMod["setupTheme"]),
-        showAboutModal: toShowAboutModal(aboutMod["showAboutModal"]),
-        showNotification: toShowNotification(notifMod["showNotification"]),
-        showUpdateNotification: toShowUpdateNotification(
-            updateNotifMod["showUpdateNotification"]
-        ),
-        subscribeAppDomain: toUnknownRendererFunction(
-            resolveDefaultableExport(appDomainMod, "subscribe")
-        ),
-        uiStateManager:
-            resolveDefaultableExport(uiStateMod, "uiStateManager") ??
-            uiStateMod,
-    };
-}
-
-/**
  * @param {unknown} masterStateManager
  * @param {string} key
  *
@@ -368,197 +203,6 @@ function getMasterAppFlag(masterStateManager: unknown, key: string): boolean {
 function getStateStartTime(): number | undefined {
     const startTime = getState("app.startTime");
     return typeof startTime === "number" ? startTime : undefined;
-}
-
-/**
- * @returns {Map<string, unknown> | null}
- */
-function getVitestManualMockRegistry(): Map<string, unknown> | null {
-    const registry = /** @type {unknown} */ Reflect.get(
-        globalThis,
-        "__vitest_manual_mocks__"
-    );
-
-    return registry instanceof Map ? registry : null;
-}
-
-/**
- * @param {string} realPath - Real path used by the app (e.g. ./utils/...)
- *
- * @returns {Promise<unknown>}
- */
-async function importRendererModule(realPath: string): Promise<unknown> {
-    switch (realPath) {
-        case "./utils/app/lifecycle/appActions.js": {
-            return /** @type {Promise<unknown>} */ import("./utils/app/lifecycle/appActions.js");
-        }
-        case "./utils/app/lifecycle/listeners.js": {
-            return /** @type {Promise<unknown>} */ import("./utils/app/lifecycle/listeners.js");
-        }
-        case "./utils/files/import/handleOpenFile.js": {
-            return /** @type {Promise<unknown>} */ import("./utils/files/import/handleOpenFile.js");
-        }
-        case "./utils/state/core/masterStateManager.js": {
-            return /** @type {Promise<unknown>} */ import("./utils/state/core/masterStateManager.js");
-        }
-        case "./utils/state/domain/appState.js": {
-            return /** @type {Promise<unknown>} */ import("./utils/state/domain/appState.js");
-        }
-        case "./utils/state/domain/uiStateManager.js": {
-            return /** @type {Promise<unknown>} */ import("./utils/state/domain/uiStateManager.js");
-        }
-        case "./utils/theming/core/setupTheme.js": {
-            return /** @type {Promise<unknown>} */ import("./utils/theming/core/setupTheme.js");
-        }
-        case "./utils/theming/core/theme.js": {
-            return /** @type {Promise<unknown>} */ import("./utils/theming/core/theme.js");
-        }
-        case "./utils/ui/modals/aboutModal.js": {
-            return /** @type {Promise<unknown>} */ import("./utils/ui/modals/aboutModal.js");
-        }
-        case "./utils/ui/notifications/showNotification.js": {
-            return /** @type {Promise<unknown>} */ import("./utils/ui/notifications/showNotification.js");
-        }
-        case "./utils/ui/notifications/showUpdateNotification.js": {
-            return /** @type {Promise<unknown>} */ import("./utils/ui/notifications/showUpdateNotification.js");
-        }
-        default: {
-            throw new Error(`Unsupported renderer module import: ${realPath}`);
-        }
-    }
-}
-
-/**
- * @param {unknown} value
- *
- * @returns {value is Record<string, unknown>}
- */
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return typeof value === "object" && value !== null;
-}
-
-/**
- * @param {Record<string, unknown>} appActionsMod
- *
- * @returns {Record<string, unknown> | undefined}
- */
-function resolveAppActionsModule(
-    appActionsMod: Record<string, unknown>
-): Record<string, unknown> | undefined {
-    const namedActions = appActionsMod["AppActions"];
-    if (isRecord(namedActions)) {
-        return namedActions;
-    }
-
-    const defaultRecord = toModuleRecord(appActionsMod["default"]);
-    const defaultActions = defaultRecord["AppActions"];
-    if (isRecord(defaultActions)) {
-        return defaultActions;
-    }
-
-    if (typeof appActionsMod["setInitialized"] === "function") {
-        return appActionsMod;
-    }
-
-    return typeof defaultRecord["setInitialized"] === "function"
-        ? defaultRecord
-        : undefined;
-}
-
-/**
- * @param {string} testPath
- * @param {string} realPath
- *
- * @returns {Promise<Record<string, unknown>>}
- */
-async function resolveCoreModule(
-    testPath: string,
-    realPath: string
-): Promise<Record<string, unknown>> {
-    const manualMockPath = realPath.startsWith(".")
-        ? realPath.slice(1)
-        : realPath;
-    const resolved =
-        resolveExactManualMock(testPath) ??
-        resolveManualMock(manualMockPath) ??
-        (await importRendererModule(realPath));
-
-    return toModuleRecord(resolved);
-}
-
-/**
- * @param {Record<string, unknown>} moduleRecord
- * @param {string} exportName
- *
- * @returns {unknown}
- */
-function resolveDefaultableExport(
-    moduleRecord: Record<string, unknown>,
-    exportName: string
-): unknown {
-    const namedExport = moduleRecord[exportName];
-    if (namedExport !== undefined) {
-        return namedExport;
-    }
-
-    return toModuleRecord(moduleRecord["default"])[exportName];
-}
-
-/**
- * Prefer an exact match in Vitest manual mock registry by test ID.
- *
- * @param {string} testId The exact id used in vi.doMock (e.g.,
- *   '../../utils/...')
- *
- * @returns {unknown | null}
- */
-function resolveExactManualMock(testId: string): null | unknown {
-    try {
-        const reg = getVitestManualMockRegistry();
-        if (reg?.has(testId) === true) {
-            const mod = reg.get(testId);
-            const modRecord = toModuleRecord(mod);
-            return "default" in modRecord ? modRecord["default"] : mod;
-        }
-    } catch {
-        /* Ignore errors */
-    }
-    return null;
-}
-
-/**
- * Try to resolve a Vitest manual mock by matching the end of the module path.
- * This lets us honor vi.doMock specifiers used in tests (e.g.
- * '../../utils/...') even when the renderer imports './utils/...'.
- *
- * @param {string} pathSuffix E.g. '/utils/theming/core/setupTheme.js'
- *
- * @returns {unknown | null}
- */
-function resolveManualMock(pathSuffix: string): null | unknown {
-    try {
-        const reg = getVitestManualMockRegistry();
-        if (reg !== null) {
-            for (const [id, mod] of reg.entries()) {
-                if (id.endsWith(pathSuffix)) {
-                    const modRecord = toModuleRecord(mod);
-                    return "default" in modRecord ? modRecord["default"] : mod;
-                }
-            }
-        }
-    } catch {
-        /* Ignore errors */
-    }
-    return null;
-}
-
-/**
- * @param {unknown} value
- *
- * @returns {Record<string, unknown>}
- */
-function toModuleRecord(value: unknown): Record<string, unknown> {
-    return isRecord(value) ? value : {};
 }
 
 function resolveManualHandleOpenFile(): unknown {
