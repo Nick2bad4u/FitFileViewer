@@ -9,6 +9,7 @@ import {
     subscribe,
     updateState,
 } from "../../state/core/stateManager.js";
+import { setGlobalData } from "../../state/core/globalDataStore.js";
 import { fitFileStateManager } from "../../state/domain/fitFileState.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 
@@ -49,15 +50,6 @@ const fitFileStateManagerLike = fitFileStateManager as
     | null
     | undefined;
 
-function clearLegacyGlobalData(): void {
-    try {
-        (globalThis as typeof globalThis & { globalData?: unknown }).globalData =
-            null;
-    } catch {
-        /* Ignore legacy global clear failures. */
-    }
-}
-
 function toError(value: unknown): Error {
     return value instanceof Error ? value : new Error(String(value));
 }
@@ -84,8 +76,7 @@ export const AppActions = {
             }
         }
 
-        setState("globalData", null, { source: "AppActions.clearData" });
-        clearLegacyGlobalData();
+        setGlobalData(null, { source: "AppActions.clearData" });
         setState("currentFile", null, { source: "AppActions.clearData" });
         setState("charts.isRendered", false, {
             source: "AppActions.clearData",
@@ -165,7 +156,7 @@ export const AppActions = {
             setState("isLoading", true, { source: "AppActions.loadFile" });
 
             // Update file-related state
-            setState("globalData", fileData, { source: "AppActions.loadFile" });
+            setGlobalData(fileData, { source: "AppActions.loadFile" });
             setState("currentFile", filePath, {
                 source: "AppActions.loadFile",
             });

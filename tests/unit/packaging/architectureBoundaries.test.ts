@@ -67,7 +67,8 @@ const migratedGlobalDataReaderFiles = [
 
 const importSpecifierPattern =
     /\b(?:import\s+(?:[^'"]+\s+from\s+)?|export\s+[^'"]+\s+from\s+|require\()\s*["'](?<specifier>[^"']+)["']/gu;
-const directGlobalDataWritePattern = /\b(?:window|globalThis)\.globalData\s*=/u;
+const directGlobalDataWritePattern =
+    /(?:\b(?:window|globalThis)\.globalData|\(\s*(?:window|globalThis)\s+as\b[^\n]*?\)\.globalData)\s*=/u;
 const directGlobalDataReadPattern =
     /\b(?:window|globalThis)\.globalData\b|\.globalData\b/u;
 const directRendererUtilsGlobalPattern =
