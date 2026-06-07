@@ -12,6 +12,7 @@ import {
 import { applyEstimatedPowerToRecords } from "../../data/processing/estimateCyclingPower.js";
 import { getPowerEstimationSettings } from "../../data/processing/powerEstimationSettings.js";
 import { createRendererLogger } from "../../logging/rendererLogger.js";
+import { setGlobalData } from "../../state/core/globalDataStore.js";
 import { setState } from "../../state/core/stateManager.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
@@ -117,24 +118,18 @@ export function showFitData(
 
         integrateFitState(data, filePath);
 
-        // Set global data for legacy compatibility
-        const showFitGlobal = getShowFitDataGlobal();
-        showFitGlobal.globalData = data;
+        setGlobalData(data, { source: "showFitData" });
 
         // Apply estimated power early so Charts/Summary/Tables can consume it immediately.
         // This only applies to cycling-like activities that lack real power, and only when enabled.
         try {
-            if (
-                showFitGlobal.globalData &&
-                Array.isArray(showFitGlobal.globalData.recordMesgs)
-            ) {
+            if (Array.isArray(data.recordMesgs)) {
                 const powerInput: EstimatedPowerInput = {
-                    recordMesgs: showFitGlobal.globalData.recordMesgs,
+                    recordMesgs: data.recordMesgs,
                     settings: getPowerEstimationSettings(),
                 };
-                if (Array.isArray(showFitGlobal.globalData.sessionMesgs)) {
-                    powerInput.sessionMesgs =
-                        showFitGlobal.globalData.sessionMesgs;
+                if (Array.isArray(data.sessionMesgs)) {
+                    powerInput.sessionMesgs = data.sessionMesgs;
                 }
                 applyEstimatedPowerToRecords(powerInput);
             }
@@ -144,15 +139,12 @@ export function showFitData(
 
         // Normalize auxiliary heart rate fields so charts/map/tables can render them.
         try {
-            if (
-                showFitGlobal.globalData &&
-                Array.isArray(showFitGlobal.globalData.recordMesgs)
-            ) {
+            if (Array.isArray(data.recordMesgs)) {
                 applyAuxHeartRateToRecords({
                     fieldDescriptionMesgs: resolveFieldDescriptionMessages(
-                        showFitGlobal.globalData
+                        data
                     ),
-                    recordMesgs: showFitGlobal.globalData.recordMesgs,
+                    recordMesgs: data.recordMesgs,
                 });
             }
         } catch {
@@ -244,14 +236,14 @@ export function showFitData(
     // Create tables if available
     const showFitGlobal = getShowFitDataGlobal();
 
-    if (showFitGlobal.createTables && showFitGlobal.globalData) {
-        showFitGlobal.createTables(showFitGlobal.globalData);
+    if (showFitGlobal.createTables) {
+        showFitGlobal.createTables(data);
     }
 
     // Pre-render summary data so it's ready when user switches to summary tab
     // This ensures all tabs have their data ready, even though we default to map
-    if (showFitGlobal.renderSummary && showFitGlobal.globalData) {
-        showFitGlobal.renderSummary(showFitGlobal.globalData);
+    if (showFitGlobal.renderSummary) {
+        showFitGlobal.renderSummary(data);
     }
 
     // Charts are rendered on-demand when the user activates the Charts tab.

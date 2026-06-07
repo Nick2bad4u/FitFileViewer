@@ -28,14 +28,16 @@ describe("globalDataStore", () => {
     });
 
     it("reads and writes global data through the managed state store", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
+        const testGlobal = globalThis as GlobalDataTestScope;
         const data = { recordMesgs: [{ distance: 1000 }] };
 
         setGlobalData(data, { source: "test" });
 
         expect(getState("globalData")).toBe(data);
         expect(getGlobalData()).toBe(data);
+        expect(testGlobal.globalData).toBe(data);
     });
 
     it("falls back to a plain legacy globalData value before the bridge is installed", () => {
@@ -71,6 +73,35 @@ describe("globalDataStore", () => {
 
         testGlobal.globalData = secondData;
         expect(getState("globalData")).toBe(secondData);
+    });
+
+    it("synchronizes an existing legacy globalData accessor", () => {
+        expect.assertions(4);
+
+        const data = { recordMesgs: [{ distance: 2000 }] };
+        const descriptorTarget = {
+            value: null as unknown,
+        };
+
+        Object.defineProperty(globalThis, GLOBAL_DATA_PROPERTY, {
+            configurable: true,
+            enumerable: true,
+            get() {
+                return descriptorTarget.value;
+            },
+            set(value: unknown) {
+                descriptorTarget.value = value;
+            },
+        });
+
+        setGlobalData(data, { source: "test" });
+
+        expect(getState("globalData")).toBe(data);
+        expect(getGlobalData()).toBe(data);
+        expect(descriptorTarget.value).toBe(data);
+        expect(
+            Object.getOwnPropertyDescriptor(globalThis, GLOBAL_DATA_PROPERTY)
+        ).toHaveProperty("set");
     });
 
     it("does not replace a non-configurable legacy globalData property", () => {

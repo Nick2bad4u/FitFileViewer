@@ -12,7 +12,8 @@ vi.mock(
     import("../../../../../electron-app/utils/state/core/stateManager.js"),
     () => ({
         getState: vi.fn<() => undefined>(() => undefined),
-        setState: vi.fn<(partialState: unknown) => void>(),
+        setState:
+            vi.fn<(path: string, value: unknown, options?: unknown) => void>(),
         subscribe: vi.fn<(key: string, listener: unknown) => () => void>(
             () => () => undefined
         ),
@@ -25,6 +26,8 @@ vi.mock(
         createGlobalChartStatusIndicator: vi.fn<() => void>(),
     })
 );
+
+import { setState } from "../../../../../electron-app/utils/state/core/stateManager.js";
 
 type ShowFitDataTestGlobal = typeof globalThis & {
     createTables?: (data: Record<string, unknown>) => void;
@@ -110,7 +113,9 @@ describe("showFitData", () => {
         showFitData(data, filePath);
         const showFitGlobal = getShowFitDataTestGlobal();
 
-        expect(showFitGlobal.globalData).toBe(data);
+        expect(setState).toHaveBeenCalledWith("globalData", data, {
+            source: "showFitData",
+        });
         expect(data).toMatchObject({
             cachedFileName: "file.fit",
             cachedFilePath: filePath,
