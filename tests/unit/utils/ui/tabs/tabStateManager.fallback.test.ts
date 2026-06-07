@@ -20,21 +20,17 @@ type EffectiveStateManager = {
 };
 type TestGlobal = typeof globalThis & {
     __vitest_effective_stateManager__?: EffectiveStateManager;
-    renderSummary?: ReturnType<typeof vi.fn<RenderSummary>>;
-};
-type TestGlobalWithRenderSummary = typeof globalThis & {
-    renderSummary: RenderSummary;
 };
 
 const globalData: ActivityData = {
     recordMesgs: [{ timestamp: 1 }, { timestamp: 2 }],
 };
 
-function noop(): void {
-    return;
-}
+const { mockRenderSummary } = vi.hoisted(() => ({
+    mockRenderSummary: vi.fn<RenderSummary>(),
+}));
 
-function noopRenderSummary(_globalData: ActivityData): void {
+function noop(): void {
     return;
 }
 
@@ -66,9 +62,18 @@ vi.mock(
     })
 );
 
+vi.mock(
+    "../../../../../electron-app/utils/rendering/core/renderSummary.js",
+    () => ({
+        renderSummary: mockRenderSummary,
+    })
+);
+
 describe("tabStateManager.fallback", () => {
     beforeEach(() => {
         vi.resetModules();
+        mockRenderSummary.mockReset();
+        mockRenderSummary.mockImplementation(noop);
         vi.spyOn(console, "log").mockImplementation(noop);
         vi.spyOn(console, "warn").mockImplementation(noop);
         vi.spyOn(console, "error").mockImplementation(noop);
@@ -91,23 +96,12 @@ describe("tabStateManager.fallback", () => {
             setState: vi.fn<SetState>(),
             subscribe: vi.fn<Subscribe>(() => noop),
         };
-
-        Object.defineProperty(globalThis, "renderSummary", {
-            configurable: true,
-            value: noopRenderSummary,
-            writable: true,
-        });
-        vi.spyOn(
-            globalThis as TestGlobalWithRenderSummary,
-            "renderSummary"
-        ).mockImplementation(noopRenderSummary);
     });
 
     afterEach(() => {
         vi.restoreAllMocks();
         // eslint-disable-next-line no-underscore-dangle
         delete (globalThis as TestGlobal).__vitest_effective_stateManager__;
-        delete (globalThis as TestGlobal).renderSummary;
     });
 
     it("uses global fallback state manager and renders summary path", async () => {
@@ -119,9 +113,7 @@ describe("tabStateManager.fallback", () => {
 
         await instance.handleTabSpecificLogic("summary");
 
-        expect(
-            (globalThis as TestGlobalWithRenderSummary).renderSummary
-        ).toHaveBeenCalledWith(globalData);
+        expect(mockRenderSummary).toHaveBeenCalledWith(globalData);
         // Verify setState through the fallback manager was called
         const eff = getEffectiveStateManager();
         expect(eff.setState).toHaveBeenCalledWith(

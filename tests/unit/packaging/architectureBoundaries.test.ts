@@ -80,6 +80,7 @@ const rendererUtilsFreeFiles = [
 ] as const;
 const migratedRendererUtilityCallerFiles = [
     "electron-app/utils/rendering/core/showFitData.ts",
+    "electron-app/utils/ui/tabs/tabStateManagerHandlers.ts",
 ] as const;
 
 const importSpecifierPattern =

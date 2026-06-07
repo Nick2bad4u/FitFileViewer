@@ -17,6 +17,14 @@ const { mockEnsureRendererVendorBundle } = vi.hoisted(() => ({
     mockEnsureRendererVendorBundle: vi.fn(() => Promise.resolve()),
 }));
 
+const { mockCreateTables, mockRenderMap, mockRenderSummary } = vi.hoisted(
+    () => ({
+        mockCreateTables: vi.fn<MockFn>(),
+        mockRenderMap: vi.fn<MockFn>(),
+        mockRenderSummary: vi.fn<MockFn>(),
+    })
+);
+
 vi.mock(
     import("../../../../../electron-app/utils/state/core/stateManager"),
     () => ({
@@ -30,6 +38,27 @@ vi.mock(
 vi.mock("../../../../../electron-app/renderer/vendorBundleLoader.js", () => ({
     ensureRendererVendorBundle: mockEnsureRendererVendorBundle,
 }));
+
+vi.mock(
+    "../../../../../electron-app/utils/rendering/components/createTables.js",
+    () => ({
+        createTables: mockCreateTables,
+    })
+);
+
+vi.mock(
+    "../../../../../electron-app/utils/maps/core/renderMap.js",
+    () => ({
+        renderMap: mockRenderMap,
+    })
+);
+
+vi.mock(
+    "../../../../../electron-app/utils/rendering/core/renderSummary.js",
+    () => ({
+        renderSummary: mockRenderSummary,
+    })
+);
 
 // We won't mock showNotification path here to avoid path resolution mismatches.
 
@@ -65,6 +94,9 @@ describe("tabStateManager.behavior", () => {
         mockSubscribe.mockReset();
         mockUpdateState.mockReset();
         mockEnsureRendererVendorBundle.mockReset();
+        mockCreateTables.mockReset();
+        mockRenderMap.mockReset();
+        mockRenderSummary.mockReset();
         mockEnsureRendererVendorBundle.mockResolvedValue(undefined);
 
         mockGetState.mockImplementation((/* @type {any} */ key) => {
@@ -101,12 +133,9 @@ describe("tabStateManager.behavior", () => {
         vi.spyOn(console, "warn").mockImplementation();
         vi.spyOn(console, "error").mockImplementation();
 
-        // Provide globals used by handlers
-        Object.assign(window, {
-            renderSummary: vi.fn<MockFn>(),
-            renderMap: vi.fn<MockFn>(),
-            createTables: vi.fn<MockFn>(),
-        });
+        mockCreateTables.mockImplementation(() => undefined);
+        mockRenderMap.mockImplementation(() => undefined);
+        mockRenderSummary.mockImplementation(() => undefined);
     });
 
     afterEach(() => {
@@ -379,7 +408,7 @@ describe("tabStateManager.behavior", () => {
         const gd = { recordMesgs: [{ timestamp: 1 }, { timestamp: 2 }] };
         await tabStateManager.handleSummaryTab(gd);
         expect(gd.recordMesgs).toHaveLength(2);
-        expect(/* @type {any} */ window.renderSummary).toHaveBeenCalledWith(gd);
+        expect(mockRenderSummary).toHaveBeenCalledWith(gd);
         expect(mockSetState).toHaveBeenCalledWith(
             "summary.lastDataHash",
             expect.any(String),
@@ -399,21 +428,13 @@ describe("tabStateManager.behavior", () => {
 
     it("handleTabSpecificLogic catches errors and continues (summary throws)", async () => {
         expect.assertions(2);
-        const view = /* @type {any} */ window.renderSummary;
-        try {
-            /* @type {any} */ vi.spyOn(
-                window,
-                "renderSummary"
-            ).mockImplementation(() => {
-                throw new Error("boom");
-            });
-            await expect(
-                tabStateManager.handleTabSpecificLogic("summary")
-            ).resolves.toBeUndefined();
-            expect(tabStateManager.previousTab).toBe("summary");
-        } finally {
-            /* @type {any} */ window.renderSummary = view;
-        }
+        mockRenderSummary.mockImplementationOnce(() => {
+            throw new Error("boom");
+        });
+        await expect(
+            tabStateManager.handleTabSpecificLogic("summary")
+        ).resolves.toBeUndefined();
+        expect(tabStateManager.previousTab).toBe("summary");
     });
 
     it("handleTabSpecificLogic executes 'summary' branch normally and breaks", async () => {
@@ -425,14 +446,10 @@ describe("tabStateManager.behavior", () => {
             if (key === "summary.lastDataHash") return "different"; // force re-render
             return null;
         });
-        /* @type {any} */ vi.spyOn(
-            window,
-            "renderSummary"
-        ).mockImplementation();
         await expect(
             tabStateManager.handleTabSpecificLogic("summary")
         ).resolves.toBeUndefined();
-        expect(/* @type {any} */ window.renderSummary).toHaveBeenCalledWith(gd);
+        expect(mockRenderSummary).toHaveBeenCalledWith(gd);
         expect(mockSetState).toHaveBeenCalledWith(
             "summary.lastDataHash",
             expect.any(String),
@@ -491,24 +508,16 @@ describe("tabStateManager.behavior", () => {
             },
             { source: "TabStateManager.handleTabSpecificLogic" }
         );
-        expect(/* @type {any} */ window.createTables).not.toHaveBeenCalled();
+        expect(mockCreateTables).not.toHaveBeenCalled();
     });
 
-    it("handleSummaryTab no-op without renderer", async () => {
+    it("handleSummaryTab uses typed renderer import without a global renderer", async () => {
         expect.assertions(2);
-        const view = /* @type {any} */ window.renderSummary;
-        // @ts-ignore
-        // @ts-ignore
-        delete (/* @type {any} */ window.renderSummary);
-        await tabStateManager.handleSummaryTab({ recordMesgs: [{}] });
+        delete (window as unknown as Record<string, unknown>).renderSummary;
+        const data = { recordMesgs: [{}] };
+        await tabStateManager.handleSummaryTab(data);
         expect(window).not.toHaveProperty("renderSummary");
-        // No throw and no setState
-        expect(mockSetState).not.toHaveBeenCalledWith(
-            "summary.lastDataHash",
-            expect.anything(),
-            expect.anything()
-        );
-        /* @type {any} */ window.renderSummary = view;
+        expect(mockRenderSummary).toHaveBeenCalledWith(data);
     });
 
     it("handleChartTab sets charts.tabActive true regardless of render state", async () => {
@@ -539,20 +548,19 @@ describe("tabStateManager.behavior", () => {
         await tabStateManager.handleMapTab({ recordMesgs: [{}] });
         expect(mockGetState("ui.activeTab")).toBe("summary");
         expect(mockEnsureRendererVendorBundle).toHaveBeenCalledWith("map");
-        expect(/* @type {any} */ window.renderMap).toHaveBeenCalledWith();
+        expect(mockRenderMap).toHaveBeenCalledWith();
         expect(mockSetState).toHaveBeenCalledWith("map.isRendered", true, {
             source: "TabStateManager.handleMapTab",
         });
 
         // Now report isRendered true – should not call render again
-        const renderMapSpy = vi.spyOn(window, "renderMap").mockImplementation();
-        renderMapSpy.mockClear();
+        mockRenderMap.mockClear();
         mockGetState.mockImplementation((/* @type {any} */ key) =>
             key === "map" ? { isRendered: true } : { recordMesgs: [{}] }
         );
         await tabStateManager.handleMapTab({ recordMesgs: [{}] });
         expect(mockGetState("map")).toStrictEqual({ isRendered: true });
-        expect(renderMapSpy).not.toHaveBeenCalled();
+        expect(mockRenderMap).not.toHaveBeenCalled();
     });
 
     it("handleDataTab moves background content when present, otherwise renders fresh tables", async () => {
@@ -572,7 +580,7 @@ describe("tabStateManager.behavior", () => {
 
         // No background content -> call createTables
         await tabStateManager.handleDataTab({ recordMesgs: [{}] });
-        expect(/* @type {any} */ window.createTables).toHaveBeenCalledWith({
+        expect(mockCreateTables).toHaveBeenCalledWith({
             recordMesgs: [{}],
         });
     });
@@ -800,10 +808,9 @@ describe("tabStateManager.behavior", () => {
             if (key === "map") return { isRendered: false };
             return null;
         });
-        /* @type {any} */ vi.spyOn(window, "renderMap").mockImplementation();
         await tabStateManager.handleTabSpecificLogic("map");
         expect(mockGetState("map")).toStrictEqual({ isRendered: false });
-        expect(/* @type {any} */ window.renderMap).toHaveBeenCalledWith();
+        expect(mockRenderMap).toHaveBeenCalledWith();
     });
 
     it("handleTabSpecificLogic executes 'data' branch and calls createTables when no background content", async () => {
@@ -815,10 +822,9 @@ describe("tabStateManager.behavior", () => {
         mockGetState.mockImplementation((/* @type {any} */ key) =>
             key === "globalData" ? { recordMesgs: [{}] } : null
         );
-        /* @type {any} */ vi.spyOn(window, "createTables").mockImplementation();
         await tabStateManager.handleTabSpecificLogic("data");
         expect(vis.id).toBe("content_data");
-        expect(/* @type {any} */ window.createTables).toHaveBeenCalledWith({
+        expect(mockCreateTables).toHaveBeenCalledWith({
             recordMesgs: [{}],
         });
     });

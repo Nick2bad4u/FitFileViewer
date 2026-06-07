@@ -4,16 +4,21 @@
 
 import { querySelectorByIdFlexible } from "../dom/elementIdUtils.js";
 import { ensureRendererVendorBundle } from "../../../renderer/vendorBundleLoader.js";
+import { renderMap } from "../../maps/core/renderMap.js";
+import { createTables } from "../../rendering/components/createTables.js";
+import { renderSummary } from "../../rendering/core/renderSummary.js";
 import { tabRenderingManager } from "./tabRenderingManager.js";
 import { attachPreRenderedCharts } from "./tabStateManagerCharts.js";
 import { getDoc, getStateMgr } from "./tabStateManagerSupport.js";
 
-type ActivityRecord = {
+type ActivityRecord = Record<string, unknown> & {
     readonly timestamp?: unknown;
 };
 
-type ActivityData = {
+type ActivityData = Record<string, unknown> & {
+    readonly lapMesgs?: ActivityRecord[];
     readonly recordMesgs?: ActivityRecord[];
+    readonly sessionMesgs?: ActivityRecord[];
 };
 
 type ConnectedMapContainer = {
@@ -27,9 +32,6 @@ type LeafletMapInstance = {
 
 type RendererGlobal = typeof globalThis & {
     _leafletMapInstance?: LeafletMapInstance | null;
-    createTables?: (globalData: ActivityData) => void;
-    renderMap?: () => void;
-    renderSummary?: (globalData: ActivityData) => void;
 };
 
 let mapInvalidationFrameId: number | undefined;
@@ -202,8 +204,7 @@ export async function handleChartTab(
 export async function handleDataTab(
     globalData: ActivityData | null | undefined
 ): Promise<void> {
-    const rendererGlobal = getRendererGlobal();
-    if (!globalData || !rendererGlobal.createTables) {
+    if (!globalData) {
         return;
     }
 
@@ -230,7 +231,7 @@ export async function handleDataTab(
         }
     } else {
         console.log("[TabStateManager] Creating data tables");
-        rendererGlobal.createTables(globalData);
+        createTables(globalData);
     }
 }
 
@@ -250,9 +251,9 @@ export async function handleMapTab(
     const mapState = getStateMgr().getState("map");
     const isMapRendered =
         hasRenderedFlag(mapState) && mapState.isRendered === true;
-    if (!isMapRendered && rendererGlobal.renderMap) {
+    if (!isMapRendered) {
         console.log("[TabStateManager] Rendering map for first time");
-        rendererGlobal.renderMap();
+        renderMap();
         getStateMgr().setState("map.isRendered", true, {
             source: "TabStateManager.handleMapTab",
         });
@@ -260,7 +261,6 @@ export async function handleMapTab(
     }
 
     const mapInstance = rendererGlobal._leafletMapInstance;
-    const renderMapFn = rendererGlobal.renderMap;
 
     if (!mapInstance || typeof mapInstance.invalidateSize !== "function") {
         return;
@@ -276,12 +276,10 @@ export async function handleMapTab(
             console.warn(
                 "[TabStateManager] Map container missing; re-rendering map instance"
             );
-            if (typeof renderMapFn === "function") {
-                renderMapFn();
-                getStateMgr().setState("map.isRendered", true, {
-                    source: "TabStateManager.handleMapTab.reRender",
-                });
-            }
+            renderMap();
+            getStateMgr().setState("map.isRendered", true, {
+                source: "TabStateManager.handleMapTab.reRender",
+            });
             return;
         }
 
@@ -295,12 +293,10 @@ export async function handleMapTab(
                 "[TabStateManager] Map invalidation failed; re-rendering map",
                 error
             );
-            if (typeof renderMapFn === "function") {
-                renderMapFn();
-                getStateMgr().setState("map.isRendered", true, {
-                    source: "TabStateManager.handleMapTab.recover",
-                });
-            }
+            renderMap();
+            getStateMgr().setState("map.isRendered", true, {
+                source: "TabStateManager.handleMapTab.recover",
+            });
         }
     };
 
@@ -328,8 +324,7 @@ export async function handleMapTab(
 export function handleSummaryTab(
     globalData: ActivityData | null | undefined
 ): void {
-    const rendererGlobal = getRendererGlobal();
-    if (!globalData || !rendererGlobal.renderSummary) {
+    if (!globalData) {
         return;
     }
 
@@ -338,7 +333,7 @@ export function handleSummaryTab(
 
     if (previousData !== currentDataHash) {
         console.log("[TabStateManager] Rendering summary with new data");
-        rendererGlobal.renderSummary(globalData);
+        renderSummary(globalData);
         getStateMgr().setState("summary.lastDataHash", currentDataHash, {
             source: "TabStateManager.handleSummaryTab",
         });
