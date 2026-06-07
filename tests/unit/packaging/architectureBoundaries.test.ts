@@ -64,6 +64,7 @@ const migratedGlobalDataReaderFiles = [
     "electron-app/utils/charts/components/chartStatusIndicator.ts",
     "electron-app/utils/app/initialization/chartSettingsRender.ts",
     "electron-app/utils/app/lifecycle/listeners.ts",
+    "electron-app/utils/state/core/unifiedStateManager.ts",
     "electron-app/utils/maps/controls/mapLapSelector.ts",
     "electron-app/utils/maps/layers/mapDrawLaps.ts",
     "electron-app/utils/maps/core/renderMap.ts",

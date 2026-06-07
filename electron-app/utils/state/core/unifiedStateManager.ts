@@ -1,18 +1,10 @@
+import { getGlobalData, setGlobalData } from "./globalDataStore.js";
 import {
     getState as getNewState,
     setState as setNewState,
     subscribe as subscribeNew,
     type StateUpdateOptions,
 } from "./stateManager.js";
-
-type UnifiedStateWindow = {
-    globalData?: unknown;
-};
-
-type UnifiedStateGlobal = typeof globalThis & {
-    globalData?: unknown;
-    window?: UnifiedStateWindow;
-};
 
 type UnifiedStateOptions = {
     readonly silent?: boolean;
@@ -140,9 +132,20 @@ export class UnifiedStateManager {
 
         try {
             if (this.isLegacyPath(path)) {
-                this.setLegacyState(path, value);
+                if (path === "globalData") {
+                    setGlobalData(value, {
+                        source: `${opts.source}-legacy-sync`,
+                        silent: opts.silent,
+                    });
+                } else {
+                    this.setLegacyState(path);
+                }
 
-                if (opts.syncLegacy && this.syncEnabled) {
+                if (
+                    path !== "globalData" &&
+                    opts.syncLegacy &&
+                    this.syncEnabled
+                ) {
                     setNewState(path, value, {
                         source: `${opts.source}-legacy-sync`,
                         silent: opts.silent,
@@ -240,30 +243,15 @@ export class UnifiedStateManager {
     private getLegacyState(path: string, defaultValue?: unknown): unknown {
         this.warnLegacyPathOnce(path, "Accessing");
 
-        const stateGlobal = getUnifiedStateGlobal();
-        if (stateGlobal.globalData !== undefined && path === "globalData") {
-            return stateGlobal.globalData;
-        }
-
-        const stateWindow = getUnifiedStateWindow(stateGlobal);
-        if (stateWindow?.globalData !== undefined && path === "globalData") {
-            return stateWindow.globalData;
+        if (path === "globalData") {
+            return getGlobalData() ?? defaultValue;
         }
 
         return defaultValue;
     }
 
-    private setLegacyState(path: string, value: unknown): void {
+    private setLegacyState(path: string): void {
         this.warnLegacyPathOnce(path, "Setting");
-
-        if (path === "globalData") {
-            const stateGlobal = getUnifiedStateGlobal();
-            stateGlobal.globalData = value;
-            const stateWindow = getUnifiedStateWindow(stateGlobal);
-            if (stateWindow) {
-                stateWindow.globalData = value;
-            }
-        }
     }
 
     private warnLegacyPathOnce(
@@ -279,16 +267,6 @@ export class UnifiedStateManager {
         );
         this.legacyWarningsShown.add(path);
     }
-}
-
-function getUnifiedStateGlobal(): UnifiedStateGlobal {
-    return globalThis;
-}
-
-function getUnifiedStateWindow(
-    stateGlobal: UnifiedStateGlobal
-): UnifiedStateWindow | undefined {
-    return stateGlobal.window === undefined ? undefined : stateGlobal.window;
 }
 
 /** Singleton unified state manager used during the state migration. */
