@@ -2,11 +2,11 @@
  * FIT file state management for loading, validation, and derived file metrics.
  */
 
-import { showNotification } from "../../app/initialization/rendererUtils.js";
 import {
     getAuxHeartRateValue,
     resolveFieldDescriptionMessages,
 } from "../../data/processing/auxHeartRateUtils.js";
+import { showNotification } from "../../ui/notifications/syncRendererNotifications.js";
 import * as stateCore from "../core/stateManager.js";
 import type { FitFileLoadingPhase } from "../core/stateManagerDefaults.js";
 

@@ -2,11 +2,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import * as stateManager from "../../../../../electron-app/utils/state/core/stateManager.js";
 import type { StateListener } from "../../../../../electron-app/utils/state/core/stateManager.js";
-import * as rendererUtils from "../../../../../electron-app/utils/app/initialization/rendererUtils.js";
 import {
     FitFileSelectors,
     FitFileStateManager,
 } from "../../../../../electron-app/utils/state/domain/fitFileState.js";
+import * as syncRendererNotifications from "../../../../../electron-app/utils/ui/notifications/syncRendererNotifications.js";
 
 describe("fitFileStateManager - domain logic and selectors", () => {
     beforeEach(() => {
@@ -222,7 +222,7 @@ describe("fitFileStateManager - domain logic and selectors", () => {
         const mgr = new FitFileStateManager();
         const ss = vi.spyOn(stateManager, "setState");
         const notif = vi
-            .spyOn(rendererUtils, "showNotification")
+            .spyOn(syncRendererNotifications, "showNotification")
             .mockImplementation(() => {});
 
         stateManager.setState("fitFile.currentFile", "existing.fit", {
@@ -331,7 +331,7 @@ describe("fitFileStateManager - domain logic and selectors", () => {
         const mgr = new FitFileStateManager();
         const ss = vi.spyOn(stateManager, "setState");
         const notif = vi
-            .spyOn(rendererUtils, "showNotification")
+            .spyOn(syncRendererNotifications, "showNotification")
             .mockImplementation(() => {});
 
         mgr.handleFileLoadingError(new Error("oops"));
@@ -362,7 +362,7 @@ describe("fitFileStateManager - domain logic and selectors", () => {
         const mgr = new FitFileStateManager();
         const ss = vi.spyOn(stateManager, "setState");
         const notif = vi
-            .spyOn(rendererUtils, "showNotification")
+            .spyOn(syncRendererNotifications, "showNotification")
             .mockImplementation(() => {});
         const consoleSpy = vi
             .spyOn(console, "error")
@@ -606,7 +606,7 @@ describe("fitFileStateManager - domain logic and selectors", () => {
         const mgr = new FitFileStateManager();
         const ss = vi.spyOn(stateManager, "setState");
         const notif = vi
-            .spyOn(rendererUtils, "showNotification")
+            .spyOn(syncRendererNotifications, "showNotification")
             .mockImplementation(() => {});
 
         // No data -> error

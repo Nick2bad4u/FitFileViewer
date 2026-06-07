@@ -28,6 +28,8 @@ const preloadRoots = [
     "electron-app/preload.ts",
 ] as const;
 
+const stateDomainRoots = ["electron-app/utils/state/domain"] as const;
+
 const sourceExtensions = new Set([
     ".cjs",
     ".js",
@@ -172,6 +174,27 @@ function resolvesIntoRendererState(
     );
 }
 
+function resolvesIntoRendererUtils(
+    importerPath: string,
+    specifier: string
+): boolean {
+    if (!specifier.startsWith(".")) {
+        return false;
+    }
+
+    const importerDirectory = path.posix.dirname(importerPath);
+    const resolvedPath = path.posix.normalize(
+        path.posix.join(importerDirectory, specifier)
+    );
+
+    return (
+        resolvedPath ===
+            "electron-app/utils/app/initialization/rendererUtils" ||
+        resolvedPath ===
+            "electron-app/utils/app/initialization/rendererUtils.js"
+    );
+}
+
 describe("architecture boundaries", () => {
     it("keeps the temporary compatibility ledger explicit", () => {
         expect.assertions(2);
@@ -250,6 +273,23 @@ describe("architecture boundaries", () => {
                 getImportSpecifiers(readRepositoryFile(relativeFile))
                     .filter((specifier) =>
                         resolvesIntoRendererState(relativeFile, specifier)
+                    )
+                    .map((specifier) => `${relativeFile}: ${specifier}`)
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps state domain modules out of broad renderer utilities", () => {
+        expect.assertions(1);
+
+        const violations = stateDomainRoots
+            .flatMap(collectSourceFiles)
+            .flatMap((relativeFile) =>
+                getImportSpecifiers(readRepositoryFile(relativeFile))
+                    .filter((specifier) =>
+                        resolvesIntoRendererUtils(relativeFile, specifier)
                     )
                     .map((specifier) => `${relativeFile}: ${specifier}`)
             )
