@@ -430,6 +430,60 @@ describe("tabStateManager.behavior", () => {
         );
     });
 
+    it("handleTabSpecificLogic records loading and ready readiness states", async () => {
+        expect.assertions(3);
+        mockGetState.mockImplementation((/* @type {any} */ key) => {
+            if (key === "globalData") return { recordMesgs: [{}] };
+            if (key === "map") return { isRendered: false };
+            return null;
+        });
+
+        await expect(
+            tabStateManager.handleTabSpecificLogic("map")
+        ).resolves.toBeUndefined();
+
+        expect(mockSetState).toHaveBeenCalledWith(
+            "ui.tabReadiness.map",
+            {
+                error: null,
+                status: "loading",
+                updatedAt: expect.any(Number),
+            },
+            { source: "TabStateManager.handleTabSpecificLogic" }
+        );
+        expect(mockSetState).toHaveBeenCalledWith(
+            "ui.tabReadiness.map",
+            {
+                error: null,
+                status: "ready",
+                updatedAt: expect.any(Number),
+            },
+            { source: "TabStateManager.handleTabSpecificLogic" }
+        );
+    });
+
+    it("handleTabSpecificLogic blocks data-required tabs without FIT data", async () => {
+        expect.assertions(3);
+        mockGetState.mockImplementation((/* @type {any} */ key) =>
+            key === "globalData" ? null : undefined
+        );
+
+        await expect(
+            tabStateManager.handleTabSpecificLogic("data")
+        ).resolves.toBeUndefined();
+
+        expect(mockSetState).toHaveBeenCalledExactlyOnceWith(
+            "ui.tabReadiness.data",
+            {
+                error: "FIT data is required before this tab can load.",
+                status: "blocked",
+                updatedAt: expect.any(Number),
+            },
+            { source: "TabStateManager.handleTabSpecificLogic" }
+        );
+        expect(/* @type {any} */ window.createTables).not.toHaveBeenCalled();
+    });
+
     it("handleSummaryTab no-op without renderer", async () => {
         expect.assertions(2);
         const view = /* @type {any} */ window.renderSummary;

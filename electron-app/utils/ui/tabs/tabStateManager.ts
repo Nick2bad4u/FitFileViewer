@@ -11,6 +11,7 @@ import {
     TAB_CONFIG as TAB_CONFIG_DEFINITIONS,
     type TabDef,
 } from "./tabStateManagerConfig.js";
+import { setTabReadiness } from "./tabReadinessState.js";
 import {
     handleAltFitTab as handleAltFitTabImpl,
     handleBrowserTab as handleBrowserTabImpl,
@@ -376,8 +377,23 @@ export class TabStateManager {
         }
 
         const globalData = asActivityData(getStateMgr().getState("globalData"));
+        if (tabConfig.requiresData && !globalData?.recordMesgs) {
+            setTabReadiness(
+                tabName,
+                "blocked",
+                "TabStateManager.handleTabSpecificLogic",
+                "FIT data is required before this tab can load."
+            );
+            return;
+        }
 
         try {
+            setTabReadiness(
+                tabName,
+                "loading",
+                "TabStateManager.handleTabSpecificLogic"
+            );
+
             switch (tabName) {
                 case "altfit": {
                     this.handleAltFitTab();
@@ -420,7 +436,19 @@ export class TabStateManager {
                     );
                 }
             }
+
+            setTabReadiness(
+                tabName,
+                "ready",
+                "TabStateManager.handleTabSpecificLogic"
+            );
         } catch (error) {
+            setTabReadiness(
+                tabName,
+                "error",
+                "TabStateManager.handleTabSpecificLogic",
+                error
+            );
             console.error(
                 `[TabStateManager] Error handling tab ${tabName}:`,
                 error

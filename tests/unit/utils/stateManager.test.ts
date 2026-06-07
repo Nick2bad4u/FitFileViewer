@@ -585,7 +585,7 @@ describe("state manager core", () => {
     });
 
     it("returns the root state for empty getState paths", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         resetStateManager();
 
@@ -594,6 +594,11 @@ describe("state manager core", () => {
         expect(fullState.ui.activeTab).toBe("summary");
         expect(fullState.charts.selectedChart).toBe("elevation");
         expect(fullState.map.baseLayer).toBe("openstreetmap");
+        expect(fullState.ui.tabReadiness.data).toStrictEqual({
+            error: null,
+            status: "idle",
+            updatedAt: null,
+        });
     });
 
     it("warns and skips invalid final keys", () => {

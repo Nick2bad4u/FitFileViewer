@@ -34,6 +34,25 @@ export type LoadingIndicatorState = {
 };
 
 /**
+ * Explicit tab activation lifecycle phase.
+ */
+export type TabReadinessStatus = "blocked" | "error" | "idle" | "loading" | "ready";
+
+/**
+ * Readiness metadata for one tab content area.
+ */
+export type TabReadinessEntry = {
+    error: null | string;
+    status: TabReadinessStatus;
+    updatedAt: null | number;
+};
+
+/**
+ * Renderer tab readiness branch keyed by tab name.
+ */
+export type TabReadinessState = Record<string, TabReadinessEntry>;
+
+/**
  * Renderer UI state branch.
  */
 export type UIState = {
@@ -44,6 +63,7 @@ export type UIState = {
     isFullscreen: boolean;
     loadingIndicator: LoadingIndicatorState;
     sidebarCollapsed: boolean;
+    tabReadiness: TabReadinessState;
     theme: string;
     unloadButtonVisible: boolean;
     windowState: WindowState;
@@ -291,6 +311,48 @@ export function createDefaultAppState(): AppStateShape {
                 progress: 0,
             },
             sidebarCollapsed: false,
+            tabReadiness: {
+                altfit: {
+                    error: null,
+                    status: "idle",
+                    updatedAt: null,
+                },
+                browser: {
+                    error: null,
+                    status: "idle",
+                    updatedAt: null,
+                },
+                chart: {
+                    error: null,
+                    status: "idle",
+                    updatedAt: null,
+                },
+                chartjs: {
+                    error: null,
+                    status: "idle",
+                    updatedAt: null,
+                },
+                data: {
+                    error: null,
+                    status: "idle",
+                    updatedAt: null,
+                },
+                map: {
+                    error: null,
+                    status: "idle",
+                    updatedAt: null,
+                },
+                summary: {
+                    error: null,
+                    status: "idle",
+                    updatedAt: null,
+                },
+                zwift: {
+                    error: null,
+                    status: "idle",
+                    updatedAt: null,
+                },
+            },
             theme: "system",
             unloadButtonVisible: false,
             windowState: {
