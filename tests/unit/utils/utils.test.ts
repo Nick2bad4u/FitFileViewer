@@ -3,9 +3,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 const EXPECTED_AVAILABLE_UTILS = [
     "copyTableAsCSV",
     "patchSummaryFields",
-    "formatArray",
-    "formatDistance",
-    "formatDuration",
     "createTables",
     "renderMap",
     "renderSummary",
@@ -57,7 +54,7 @@ describe("utils global attachment and API", () => {
         await vi.runOnlyPendingTimersAsync();
 
         // Check a few utilities are attached on window
-        expect((globalThis as any).window.formatDistance).toBeTypeOf(
+        expect((globalThis as any).window.patchSummaryFields).toBeTypeOf(
             "function"
         );
         expect((globalThis as any).window.renderSummary).toBeTypeOf("function");
@@ -87,27 +84,26 @@ describe("utils global attachment and API", () => {
         // FitFileViewerUtils core API
         const available = FitFileViewerUtils.getAvailableUtils();
         expect(available).toStrictEqual(EXPECTED_AVAILABLE_UTILS);
-        const fn = FitFileViewerUtils.getUtil("formatDistance");
+        const fn = FitFileViewerUtils.getUtil("patchSummaryFields");
         expect({
-            formatDistanceAvailable:
-                FitFileViewerUtils.isUtilAvailable("formatDistance"),
-            formatDistanceType: typeof fn,
+            patchSummaryFieldsAvailable:
+                FitFileViewerUtils.isUtilAvailable("patchSummaryFields"),
+            patchSummaryFieldsType: typeof fn,
         }).toEqual({
-            formatDistanceAvailable: true,
-            formatDistanceType: "function",
+            patchSummaryFieldsAvailable: true,
+            patchSummaryFieldsType: "function",
         });
         expect(fn).toBeTypeOf("function");
 
         // safeExecute should call the function; pick a function with simple behavior
-        const result = FitFileViewerUtils.safeExecute(
-            "formatArray",
-            [
-                1,
-                2,
-                3,
-            ]
+        const result = FitFileViewerUtils.safeExecute("patchSummaryFields", {
+            total_distance: 1000,
+        });
+        expect(result).toEqual(
+            expect.objectContaining({
+                total_distance: "1.00 km / 0.62 mi",
+            })
         );
-        expect(result).toBe("1, 2, 3");
 
         // validate utilities
         const validation = FitFileViewerUtils.validateAllUtils();
@@ -126,7 +122,7 @@ describe("utils global attachment and API", () => {
         expect.assertions(2);
 
         // Place an existing conflicting function before import
-        (globalThis as any).window.formatDistance = () => "old";
+        (globalThis as any).window.patchSummaryFields = () => "old";
 
         await importUtilsModule();
         await vi.runOnlyPendingTimersAsync();
@@ -135,7 +131,7 @@ describe("utils global attachment and API", () => {
         const results = helpers.getAttachmentResults();
         expect(results.collisions).toEqual([
             {
-                name: "formatDistance",
+                name: "patchSummaryFields",
                 newType: "function",
                 previousType: "function",
                 resolved: true,
@@ -145,7 +141,9 @@ describe("utils global attachment and API", () => {
 
         // cleanup removes globals
         helpers.cleanup();
-        expect((globalThis as any).window).not.toHaveProperty("formatDistance");
+        expect((globalThis as any).window).not.toHaveProperty(
+            "patchSummaryFields"
+        );
     });
 
     it("loads version via deferred electronAPI after import", async () => {

@@ -3,9 +3,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const EXPECTED_AVAILABLE_UTILS = [
     "copyTableAsCSV",
     "patchSummaryFields",
-    "formatArray",
-    "formatDistance",
-    "formatDuration",
     "createTables",
     "renderMap",
     "renderSummary",
@@ -124,11 +121,11 @@ describe("utils.js – global exposure and helpers", () => {
 
         // And they should be functions on window
         for (const key of [
-            "formatDistance",
-            "formatDuration",
+            "patchSummaryFields",
             "renderMap",
             "renderSummary",
             "updateActiveTab",
+            "updateTabVisibility",
         ]) {
             expect({
                 available: w.FitFileViewerUtils.isUtilAvailable(key),
@@ -191,8 +188,14 @@ describe("utils.js – global exposure and helpers", () => {
             w.FitFileViewerUtils.safeExecute("__does_not_exist__")
         ).toThrow("Function is not available: __does_not_exist__");
 
-        expect(w.FitFileViewerUtils.safeExecute("formatDistance", 1000)).toBe(
-            "1.00 km / 0.62 mi"
+        expect(
+            w.FitFileViewerUtils.safeExecute("patchSummaryFields", {
+                total_distance: 1000,
+            })
+        ).toEqual(
+            expect.objectContaining({
+                total_distance: "1.00 km / 0.62 mi",
+            })
         );
     });
 
@@ -204,7 +207,7 @@ describe("utils.js – global exposure and helpers", () => {
 
         // Pre-populate a conflicting function on window before import to trigger collision handling
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (window as any).formatDistance = function legacyImpl() {
+        (window as any).patchSummaryFields = function legacyImpl() {
             /* legacy */
         };
 
@@ -231,7 +234,7 @@ describe("utils.js – global exposure and helpers", () => {
         const results = w.devUtilsHelpers.getAttachmentResults();
         expect(results.collisions).toStrictEqual([
             {
-                name: "formatDistance",
+                name: "patchSummaryFields",
                 newType: "function",
                 previousType: "function",
                 resolved: true,
@@ -253,12 +256,12 @@ describe("utils.js – global exposure and helpers", () => {
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const w: any = window as any;
-        expect(w.formatDistance).toBeTypeOf("function");
+        expect(w.patchSummaryFields).toBeTypeOf("function");
 
         // Remove everything
         w.FitFileViewerUtils.cleanup();
 
-        expect(w).not.toHaveProperty("formatDistance");
+        expect(w).not.toHaveProperty("patchSummaryFields");
         expect(w).not.toHaveProperty("renderSummary");
     });
 });

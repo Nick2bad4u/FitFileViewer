@@ -1,5 +1,4 @@
 import { dataUtilityExports } from "./globalUtilityData.js";
-import { formattingUtilityExports } from "./globalUtilityFormatting.js";
 import { renderingUtilityExports } from "./globalUtilityRendering.js";
 import { themingUtilityExports } from "./globalUtilityTheming.js";
 import { uiUtilityExports } from "./globalUtilityUi.js";
@@ -7,7 +6,6 @@ import { uiUtilityExports } from "./globalUtilityUi.js";
 /** All legacy utilities exposed through the global utility bridge. */
 export const globalUtilities = Object.freeze({
     ...dataUtilityExports,
-    ...formattingUtilityExports,
     ...renderingUtilityExports,
     ...themingUtilityExports,
     ...uiUtilityExports,
