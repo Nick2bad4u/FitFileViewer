@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -75,5 +76,27 @@ describe("run-performance-baseline script", () => {
                 "_Fenton_Michigan_Saturday_Afternoon_Ride_25_45_miles.fit"
             ),
         ]);
+    });
+
+    it("documents and records raw Data tab table render metrics", () => {
+        expect.assertions(8);
+
+        const script = fs.readFileSync(
+            path.join(process.cwd(), "scripts", "run-performance-baseline.mjs"),
+            "utf8"
+        );
+        const docs = fs.readFileSync(
+            path.join(process.cwd(), "docs", "PERFORMANCE_BASELINES.md"),
+            "utf8"
+        );
+
+        expect(script).toContain("dataTableRenderMs");
+        expect(script).toContain("dataTableHeaderCount");
+        expect(script).toContain("dataTableInitializedCount");
+        expect(script).toContain("dataTableVisibleRowCount");
+        expect(script).toContain("#tab_data");
+        expect(script).toContain("#content_data .table-header");
+        expect(docs).toContain("raw Data tab table render time");
+        expect(docs).toContain("raw-data table");
     });
 });

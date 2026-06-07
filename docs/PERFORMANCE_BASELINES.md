@@ -15,8 +15,9 @@ The JSON records:
 - initial renderer handoff time
 - map route render time
 - chart render time
+- raw Data tab table render time after expanding the first table
 - renderer heap usage before load, after load, and after unload when Chromium exposes heap data
-- route, chart canvas, record, and session counts
+- route, chart canvas, raw-data table, record, and session counts
 - renderer console and page errors
 
 For release work, compare the generated baseline against the latest trusted baseline from the same machine or CI runner. Large regressions should be explained or fixed before tagging.

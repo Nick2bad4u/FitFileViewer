@@ -262,6 +262,8 @@ async function measureFixture(page, { fixturePath, timeoutMs }) {
         timeoutMs,
     });
 
+    const dataTableMetrics = await measureDataTableRender(page, { timeoutMs });
+
     const unloadMetrics = await unloadCurrentFixture(page, timeoutMs);
 
     return {
@@ -271,7 +273,87 @@ async function measureFixture(page, { fixturePath, timeoutMs }) {
         ...loadMetrics,
         ...mapMetrics,
         ...chartMetrics,
+        ...dataTableMetrics,
         ...unloadMetrics,
+    };
+}
+
+async function measureDataTableRender(page, { timeoutMs }) {
+    const start = await page.evaluate(() => performance.now());
+    await page.locator("#tab_data").click({ timeout: timeoutMs });
+    await page.waitForSelector("#tab_data.active", { timeout: timeoutMs });
+
+    const firstHeader = page.locator("#content_data .table-header").first();
+    await firstHeader.waitFor({ state: "visible", timeout: timeoutMs });
+    await firstHeader.click({ timeout: timeoutMs });
+
+    await page.waitForFunction(
+        () => {
+            const content = document.querySelector(
+                "#content_data .table-content"
+            );
+            if (!(content instanceof HTMLElement)) {
+                return false;
+            }
+            if (getComputedStyle(content).display === "none") {
+                return false;
+            }
+
+            const table = content.querySelector("table");
+            if (!(table instanceof HTMLTableElement)) {
+                return false;
+            }
+
+            return (
+                table.classList.contains("dataTable") ||
+                content.querySelector(".dt-container") !== null ||
+                table.querySelector("tbody tr") !== null
+            );
+        },
+        undefined,
+        { timeout: timeoutMs }
+    );
+
+    const tableResult = await page.evaluate(() => {
+        const firstTableHeader = document.querySelector(
+            "#content_data .table-header"
+        );
+        const visibleTables = [
+            ...document.querySelectorAll("#content_data .table-content"),
+        ].filter(
+            (content) =>
+                content instanceof HTMLElement &&
+                getComputedStyle(content).display !== "none"
+        );
+        const visibleRowCount = visibleTables.reduce(
+            (rowCount, content) =>
+                rowCount + content.querySelectorAll("tbody tr").length,
+            0
+        );
+
+        return {
+            dataTableContainerCount: document.querySelectorAll(
+                "#content_data .dt-container"
+            ).length,
+            dataTableExpandedTableCount: visibleTables.length,
+            dataTableFirstHeaderText:
+                firstTableHeader?.textContent
+                    ?.trim()
+                    .replaceAll(/\s+/gu, " ") ?? "",
+            dataTableHeaderCount: document.querySelectorAll(
+                "#content_data .table-header"
+            ).length,
+            dataTableInitializedCount: document.querySelectorAll(
+                "#content_data table.dataTable"
+            ).length,
+            dataTableVisibleRowCount: visibleRowCount,
+        };
+    });
+
+    return {
+        dataTableRenderMs:
+            (await page.evaluate(() => performance.now())) - start,
+        ...tableResult,
     };
 }
 
