@@ -12,10 +12,12 @@ compatibility bundles:
 - `static/app/index.html` loads the Vite-built compatibility bundle at
   `renderer/vendor-globals-core.js` for DOMPurify, JSZip, Arquero, and
   screenfull.
-- `static/app/index.html` loads `renderer/vendor-globals-chart-data.js` for the
-  Chart.js, DataTables, jQuery, and Hammer stacks.
-- `static/app/index.html` loads `renderer/vendor-globals-map.js` for the
-  Leaflet, Leaflet plugin, MapLibre, and measurement-control stacks.
+- `electron-app/renderer/vendorBundleLoader.ts` loads
+  `renderer/vendor-globals-chart-data.js` when the Chart or Raw Data tab needs
+  the Chart.js, DataTables, jQuery, and Hammer stacks.
+- `electron-app/renderer/vendorBundleLoader.ts` loads
+  `renderer/vendor-globals-map.js` when the Map tab needs the Leaflet, Leaflet
+  plugin, MapLibre, and measurement-control stacks.
 - `static/app/index.html` loads bundled renderer CSS from
   `renderer/vendor-globals.css`.
 - `scripts/prepare-runtime-dist.mjs` no longer copies a `vendor/` tree into
@@ -165,7 +167,8 @@ directly from a `vendor/` path.
   directory.
 - Do not load browser assets directly from `node_modules` in production.
 - Remove one dependency group at a time and verify the affected feature.
-- Preserve script, CSS, and plugin ordering until imports make ordering explicit.
+- Preserve script, CSS, and plugin ordering in the split bundle loader until
+  imports make ordering explicit.
 - Keep compatibility globals temporarily where the existing renderer expects
   them.
 - Keep `electron-app/renderer/leafletMeasureLite.js` unless a CSP-safe package

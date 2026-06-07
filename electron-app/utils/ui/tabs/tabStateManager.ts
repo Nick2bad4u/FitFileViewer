@@ -246,8 +246,7 @@ export class TabStateManager {
      * @param globalData - Current activity data.
      */
     handleDataTab(globalData: ActivityData | null | undefined): Promise<void> {
-        handleDataTabImpl(globalData);
-        return Promise.resolve();
+        return handleDataTabImpl(globalData);
     }
 
     /**
@@ -256,8 +255,7 @@ export class TabStateManager {
      * @param globalData - Current activity data.
      */
     handleMapTab(globalData: ActivityData | null | undefined): Promise<void> {
-        handleMapTabImpl(globalData);
-        return Promise.resolve();
+        return handleMapTabImpl(globalData);
     }
 
     /**

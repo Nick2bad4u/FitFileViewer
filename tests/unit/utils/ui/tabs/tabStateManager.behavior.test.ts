@@ -13,6 +13,10 @@ const { mockGetState, mockSetState, mockSubscribe, mockUpdateState } =
         mockUpdateState: vi.fn<MockFn>(),
     }));
 
+const { mockEnsureRendererVendorBundle } = vi.hoisted(() => ({
+    mockEnsureRendererVendorBundle: vi.fn(() => Promise.resolve()),
+}));
+
 vi.mock(
     import("../../../../../electron-app/utils/state/core/stateManager"),
     () => ({
@@ -22,6 +26,10 @@ vi.mock(
         updateState: mockUpdateState,
     })
 );
+
+vi.mock("../../../../../electron-app/renderer/vendorBundleLoader.js", () => ({
+    ensureRendererVendorBundle: mockEnsureRendererVendorBundle,
+}));
 
 // We won't mock showNotification path here to avoid path resolution mismatches.
 
@@ -56,6 +64,8 @@ describe("tabStateManager.behavior", () => {
         mockSetState.mockReset();
         mockSubscribe.mockReset();
         mockUpdateState.mockReset();
+        mockEnsureRendererVendorBundle.mockReset();
+        mockEnsureRendererVendorBundle.mockResolvedValue(undefined);
 
         mockGetState.mockImplementation((/* @type {any} */ key) => {
             switch (key) {
@@ -502,9 +512,12 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleChartTab sets charts.tabActive true regardless of render state", async () => {
-        expect.assertions(4);
+        expect.assertions(5);
         await tabStateManager.handleChartTab({ recordMesgs: [{}] });
         expect(mockGetState("ui.activeTab")).toBe("summary");
+        expect(mockEnsureRendererVendorBundle).toHaveBeenCalledWith(
+            "chart-data"
+        );
         expect(mockSetState).toHaveBeenCalledWith("charts.tabActive", true, {
             source: "TabStateManager.handleChartTab",
         });
@@ -522,9 +535,10 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleMapTab renders once and marks isRendered", async () => {
-        expect.assertions(5);
+        expect.assertions(6);
         await tabStateManager.handleMapTab({ recordMesgs: [{}] });
         expect(mockGetState("ui.activeTab")).toBe("summary");
+        expect(mockEnsureRendererVendorBundle).toHaveBeenCalledWith("map");
         expect(/* @type {any} */ window.renderMap).toHaveBeenCalledWith();
         expect(mockSetState).toHaveBeenCalledWith("map.isRendered", true, {
             source: "TabStateManager.handleMapTab",
@@ -542,7 +556,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleDataTab moves background content when present, otherwise renders fresh tables", async () => {
-        expect.assertions(2);
+        expect.assertions(3);
         const bg = document.createElement("div");
         bg.id = "background_data_container";
         bg.appendChild(document.createElement("div"));
@@ -551,6 +565,9 @@ describe("tabStateManager.behavior", () => {
         root.append(bg, vis);
 
         await tabStateManager.handleDataTab({ recordMesgs: [{}] });
+        expect(mockEnsureRendererVendorBundle).toHaveBeenCalledWith(
+            "chart-data"
+        );
         expect(vis.children).toHaveLength(1);
 
         // No background content -> call createTables

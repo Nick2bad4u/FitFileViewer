@@ -37,10 +37,8 @@ function getLeaflet(): LeafletIconFactory {
     };
 }
 
-const LRef = getLeaflet();
-
 function createRouteEndpointIcon(kind: "end" | "start", glyph: string) {
-    return LRef.divIcon({
+    return getLeaflet().divIcon({
         className: `ffv-map-marker ffv-map-marker--${kind}`,
         html: `<span class="ffv-map-marker__pin" aria-hidden="true"><span class="ffv-map-marker__glyph">${glyph}</span></span>`,
         iconAnchor: ICON_ANCHOR,

@@ -55,4 +55,38 @@ describe("map marker icons", () => {
         expect(createStartIcon()).toStrictEqual({});
         expect(createEndIcon()).toStrictEqual({});
     });
+
+    it("uses Leaflet when it becomes available after module import", async () => {
+        expect.assertions(2);
+
+        const divIcon = vi.fn<
+            (options: DivIconOptions) => { options: DivIconOptions }
+        >((options) => ({ options }));
+
+        try {
+            vi.resetModules();
+            vi.unstubAllGlobals();
+
+            const { createStartIcon } =
+                await import("../../../../../electron-app/utils/maps/layers/mapIcons.js");
+
+            vi.stubGlobal("L", {
+                divIcon,
+            });
+
+            expect(createStartIcon()).toStrictEqual({
+                options: {
+                    className: "ffv-map-marker ffv-map-marker--start",
+                    html: '<span class="ffv-map-marker__pin" aria-hidden="true"><span class="ffv-map-marker__glyph">S</span></span>',
+                    iconAnchor: [14, 37],
+                    iconSize: [28, 37],
+                    popupAnchor: [0, -37],
+                },
+            });
+            expect(divIcon).toHaveBeenCalledTimes(1);
+        } finally {
+            vi.unstubAllGlobals();
+            vi.resetModules();
+        }
+    });
 });

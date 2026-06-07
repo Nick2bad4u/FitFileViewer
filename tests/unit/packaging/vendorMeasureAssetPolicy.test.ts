@@ -179,10 +179,10 @@ describe("renderer vendor asset policy", () => {
         expect(staticAppIndex).toContain(
             'src="renderer/vendor-globals-core.js"'
         );
-        expect(staticAppIndex).toContain(
+        expect(staticAppIndex).not.toContain(
             'src="renderer/vendor-globals-chart-data.js"'
         );
-        expect(staticAppIndex).toContain(
+        expect(staticAppIndex).not.toContain(
             'src="renderer/vendor-globals-map.js"'
         );
         expect(staticAppIndex).not.toContain(

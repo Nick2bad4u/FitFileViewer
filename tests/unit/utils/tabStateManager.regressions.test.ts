@@ -16,6 +16,10 @@ type ShowNotification = (
 ) => void;
 type TestWindowHook = () => Promise<void> | void;
 
+const { mockEnsureRendererVendorBundle } = vi.hoisted(() => ({
+    mockEnsureRendererVendorBundle: vi.fn(() => Promise.resolve()),
+}));
+
 // Mock dependencies with proper hoisting
 vi.mock(import("../../../electron-app/utils/state/core/stateManager"), () => ({
     getState: vi.fn<GetState>(),
@@ -30,6 +34,10 @@ vi.mock(
         showNotification: vi.fn<ShowNotification>(),
     })
 );
+
+vi.mock("../../../electron-app/renderer/vendorBundleLoader.js", () => ({
+    ensureRendererVendorBundle: mockEnsureRendererVendorBundle,
+}));
 
 // Import module AFTER mocks are set up
 import {
@@ -75,7 +83,7 @@ const tabDomFixtures = [
 const createElement = (
     tagName: keyof HTMLElementTagNameMap,
     attributes: Record<string, string> = {},
-    textContent = ""
+    visibleText = ""
 ): HTMLElement => {
     const element = document.createElement(tagName);
 
@@ -83,7 +91,9 @@ const createElement = (
         element.setAttribute(key, value);
     });
 
-    element.textContent = textContent;
+    if (visibleText.length > 0) {
+        element.append(document.createTextNode(visibleText));
+    }
 
     return element;
 };
@@ -136,6 +146,8 @@ describe("tabStateManager regressions", () => {
         mockGetState.mockClear();
         mockSetState.mockClear();
         mockShowNotification.mockClear();
+        mockEnsureRendererVendorBundle.mockReset();
+        mockEnsureRendererVendorBundle.mockResolvedValue(undefined);
         // Don't clear mockSubscribe to preserve initialization calls
 
         mockGetState.mockReturnValue("summary");

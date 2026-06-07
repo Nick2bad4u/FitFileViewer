@@ -3,6 +3,7 @@
  */
 
 import { querySelectorByIdFlexible } from "../dom/elementIdUtils.js";
+import { ensureRendererVendorBundle } from "../../../renderer/vendorBundleLoader.js";
 import { tabRenderingManager } from "./tabRenderingManager.js";
 import { attachPreRenderedCharts } from "./tabStateManagerCharts.js";
 import { getDoc, getStateMgr } from "./tabStateManagerSupport.js";
@@ -156,6 +157,8 @@ export async function handleChartTab(
         return;
     }
 
+    await ensureRendererVendorBundle("chart-data");
+
     await tabRenderingManager.executeRenderOperation(
         "chart",
         (token) => {
@@ -196,13 +199,15 @@ export async function handleChartTab(
 /**
  * Handle data tables tab activation.
  */
-export function handleDataTab(
+export async function handleDataTab(
     globalData: ActivityData | null | undefined
-): void {
+): Promise<void> {
     const rendererGlobal = getRendererGlobal();
     if (!globalData || !rendererGlobal.createTables) {
         return;
     }
+
+    await ensureRendererVendorBundle("chart-data");
 
     const bgContainer = querySelectorByIdFlexible(
         getDoc(),
@@ -232,12 +237,14 @@ export function handleDataTab(
 /**
  * Handle map tab activation.
  */
-export function handleMapTab(
+export async function handleMapTab(
     globalData: ActivityData | null | undefined
-): void {
+): Promise<void> {
     if (!globalData || !globalData.recordMesgs) {
         return;
     }
+
+    await ensureRendererVendorBundle("map");
 
     const rendererGlobal = getRendererGlobal();
     const mapState = getStateMgr().getState("map");

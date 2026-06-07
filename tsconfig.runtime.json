@@ -37,6 +37,7 @@
         "electron-app/preload/mainStateBridge.ts",
         "electron-app/preload/validators.ts",
         "electron-app/preload/ipcBridgeCatalog.ts",
+        "electron-app/renderer/vendorBundleLoader.ts",
         "electron-app/shared/fitUnknownMessageLabels.ts",
         "electron-app/main/ipc/fileReadPayload.ts",
         "electron-app/main/ipc/ipcRegistry.ts",

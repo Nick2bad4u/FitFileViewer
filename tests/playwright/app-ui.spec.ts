@@ -204,9 +204,10 @@ async function getRendererActivityDataCounts(
         const stateModule = (await import(moduleUrl)) as {
             getState: (path: string) => unknown;
         };
-        const activityData = stateModule.getState(
-            "globalData"
-        ) as null | RendererActivityData | undefined;
+        const activityData = stateModule.getState("globalData") as
+            | null
+            | RendererActivityData
+            | undefined;
 
         return {
             recordCount: Array.isArray(activityData?.recordMesgs)
@@ -781,20 +782,16 @@ test.describe("FitFileViewer Electron UI", () => {
 
         expect(vendorGlobals).toStrictEqual({
             hasArqueroTable: true,
-            hasChart: true,
-            hasChartZoom: true,
+            hasChart: false,
+            hasChartZoom: false,
             hasDomPurify: true,
-            hasHammer: true,
+            hasHammer: false,
             hasJsZip: true,
-            hasJQueryDataTables: true,
+            hasJQueryDataTables: false,
             hasScreenfull: true,
-            isChartZoomRegistered: true,
+            isChartZoomRegistered: false,
             vendorBundleSource: "npm-bundle",
-            vendorSplitEntries: [
-                "chart-data",
-                "core",
-                "map",
-            ],
+            vendorSplitEntries: ["core"],
         });
     });
 
