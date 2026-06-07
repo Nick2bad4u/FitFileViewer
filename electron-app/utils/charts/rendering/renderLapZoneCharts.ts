@@ -5,6 +5,7 @@ import {
     isDevelopmentEnvironment,
     isTestEnvironment,
 } from "../../runtime/processEnvironment.js";
+import { getGlobalData } from "../../state/core/globalDataStore.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
 import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
@@ -34,12 +35,13 @@ interface LapZoneRuntimeGlobal {
     readonly __FFV_debugCharts?: unknown;
     readonly __FFV_debugChartsVerbose?: unknown;
     _chartjsInstances?: unknown[];
-    readonly globalData?: {
-        readonly timeInZoneMesgs?: unknown;
-    };
     readonly heartRateZones?: unknown;
     readonly powerZones?: unknown;
     readonly showNotification?: (message: string, type: string) => void;
+}
+
+interface LapZoneGlobalData {
+    readonly timeInZoneMesgs?: unknown;
 }
 
 interface LapZoneVisibility {
@@ -95,7 +97,7 @@ export function renderLapZoneCharts(
             return;
         }
 
-        const timeInZoneMesgs = getTimeInZoneMessages(runtimeGlobal);
+        const timeInZoneMesgs = getTimeInZoneMessages();
         if (!timeInZoneMesgs) {
             if (debug.isDebugLoggingEnabled) {
                 console.log(
@@ -301,10 +303,8 @@ function getRuntimeGlobal(): LapZoneRuntimeGlobal {
     return globalThis as LapZoneRuntimeGlobal;
 }
 
-function getTimeInZoneMessages(
-    runtimeGlobal: LapZoneRuntimeGlobal
-): readonly unknown[] | null {
-    const timeInZoneMesgs = runtimeGlobal.globalData?.timeInZoneMesgs;
+function getTimeInZoneMessages(): readonly unknown[] | null {
+    const timeInZoneMesgs = getGlobalData<LapZoneGlobalData>()?.timeInZoneMesgs;
     return Array.isArray(timeInZoneMesgs) ? timeInZoneMesgs : null;
 }
 

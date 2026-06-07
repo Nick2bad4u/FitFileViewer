@@ -1,5 +1,6 @@
 import { getUnitSymbol } from "../../data/lookups/getUnitSymbol.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
+import { getGlobalData } from "../../state/core/globalDataStore.js";
 import { getChartSetting } from "../../state/domain/settingsStateManager.js";
 import {
     getThemeConfig,
@@ -41,10 +42,8 @@ type EventTooltipContext = {
     };
 };
 
-type EventMessagesRuntimeGlobal = typeof globalThis & {
-    readonly globalData?: {
-        readonly eventMesgs?: unknown;
-    };
+type EventMessagesGlobalData = {
+    readonly eventMesgs?: unknown;
 };
 
 type EventThemeColors = {
@@ -68,10 +67,6 @@ const DEFAULT_EVENT_THEME_COLORS = {
     text: "#000000",
     textPrimary: "#000000",
 } as const satisfies EventThemeColors;
-
-function getChartGlobal(): EventMessagesRuntimeGlobal {
-    return globalThis;
-}
 
 function getStringThemeColor(
     colors: ThemeColorMap,
@@ -169,7 +164,8 @@ export function renderEventMessagesChart(
     startTime: Date | number
 ): void {
     try {
-        const eventMesgs = getChartGlobal().globalData?.eventMesgs;
+        const eventMesgs =
+            getGlobalData<EventMessagesGlobalData>()?.eventMesgs;
         if (!Array.isArray(eventMesgs) || eventMesgs.length === 0) {
             return;
         }

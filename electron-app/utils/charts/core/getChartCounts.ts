@@ -1,4 +1,5 @@
 import { formatChartFields } from "../../formatting/display/formatChartFields.js";
+import { getGlobalData } from "../../state/core/globalDataStore.js";
 import { getChartFieldVisibility } from "../../state/domain/settingsStateManager.js";
 import { isObjectRecord } from "./renderChartModuleHelpers.js";
 import {
@@ -46,7 +47,6 @@ type RenderedChartInstance = {
 
 type ChartCountsGlobal = typeof globalThis & {
     _chartjsInstances?: RenderedChartInstance[];
-    globalData?: ChartGlobalData;
 };
 
 const ANALYSIS_CHART_TYPES = [
@@ -75,7 +75,7 @@ const ZONE_CHART_TYPES = ["hr_zone_doughnut", "power_zone_doughnut"] as const;
 export function getChartCounts(): ChartCounts {
     const counts = createEmptyChartCounts(),
         chartGlobal = globalThis as ChartCountsGlobal,
-        globalData = chartGlobal.globalData,
+        globalData = getGlobalData<ChartGlobalData>() ?? undefined,
         recordRows = getRecordRows(globalData);
 
     if (recordRows.length === 0) {
