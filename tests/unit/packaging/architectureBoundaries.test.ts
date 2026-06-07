@@ -40,10 +40,10 @@ const sourceExtensions = new Set([
 ]);
 
 const allowedLegacyGlobalDataBridgeFiles = new Set([
+    "electron-app/main-ui.ts",
     "electron-app/utils/state/core/globalDataStore.ts",
     "electron-app/utils/state/domain/appState.ts",
     "electron-app/utils/state/integration/stateIntegration.ts",
-    "electron-app/utils/ui/mainUiGlobals.ts",
 ]);
 
 const allowedLegacyUtilityFiles = new Set([

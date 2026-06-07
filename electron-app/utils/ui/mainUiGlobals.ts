@@ -3,7 +3,6 @@
  */
 
 import { convertArrayBufferToBase64 } from "../formatting/converters/convertArrayBufferToBase64.js";
-import { defineLegacyGlobalDataBridge } from "../state/core/globalDataStore.js";
 
 type ShowFitData = (fitData: unknown, filePath: string) => void;
 type RenderChartJS = (
@@ -13,7 +12,6 @@ type RenderChartJS = (
 
 type LegacyRendererGlobal = typeof globalThis & {
     cleanupEventListeners?: () => void;
-    globalData?: unknown;
     renderChartJS?: RenderChartJS;
     sendFitFileToAltFitReader?: (arrayBuffer: ArrayBuffer) => void;
     showFitData?: ShowFitData;
@@ -38,13 +36,6 @@ function getAltFitTargetOrigin(): string {
     return globalThis.location.protocol === "file:"
         ? "*"
         : globalThis.location.origin;
-}
-
-/**
- * Define window.globalData to bridge legacy code to state-managed data.
- */
-export function defineGlobalDataProperty(): void {
-    defineLegacyGlobalDataBridge({ silent: false, source: "main-ui.js" });
 }
 
 /**

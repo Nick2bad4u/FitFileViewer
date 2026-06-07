@@ -14,6 +14,7 @@ import {
     isDevelopmentEnvironment,
     isTestEnvironment,
 } from "./utils/runtime/processEnvironment.js";
+import { defineLegacyGlobalDataBridge } from "./utils/state/core/globalDataStore.js";
 // State Management Integration
 import { setState } from "./utils/state/core/stateManager.js";
 import { fitFileStateManager } from "./utils/state/domain/fitFileState.js";
@@ -32,10 +33,7 @@ import {
     cleanupEventListeners,
     validateElement,
 } from "./utils/ui/mainUiDomUtils.js";
-import {
-    defineGlobalDataProperty,
-    registerLegacyGlobals,
-} from "./utils/ui/mainUiGlobals.js";
+import { registerLegacyGlobals } from "./utils/ui/mainUiGlobals.js";
 import { showNotification } from "./utils/ui/notifications/showNotification.js";
 import { setupExternalLinkHandlers } from "./utils/ui/setupExternalLinkHandlers.js";
 /* eslint-enable import-x/max-dependencies -- Keep the exception limited to the legacy composition imports above. */
@@ -100,7 +98,7 @@ const CONSTANTS = {
 } as const;
 
 // Make globalData available on window for backwards compatibility
-defineGlobalDataProperty();
+defineLegacyGlobalDataBridge({ silent: false, source: "main-ui.js" });
 
 function clearContentAreas(): void {
     const contentIds = [

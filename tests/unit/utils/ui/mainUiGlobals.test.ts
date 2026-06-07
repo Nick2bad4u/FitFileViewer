@@ -1,30 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({
-    getState: vi.fn<(path: string) => unknown>(),
-    setState:
-        vi.fn<
-            (
-                path: string,
-                value: unknown,
-                options?: { silent: boolean; source: string }
-            ) => void
-        >(),
-}));
-
-vi.mock(
-    import("../../../../electron-app/utils/state/core/stateManager.js"),
-    () => mocks
-);
-
-import {
-    defineGlobalDataProperty,
-    registerLegacyGlobals,
-} from "../../../../electron-app/utils/ui/mainUiGlobals.js";
+import { registerLegacyGlobals } from "../../../../electron-app/utils/ui/mainUiGlobals.js";
 
 type LegacyGlobals = typeof globalThis & {
     cleanupEventListeners?: () => void;
-    globalData?: unknown;
     renderChartJS?: (
         data: unknown,
         filePath: string,
@@ -34,21 +13,17 @@ type LegacyGlobals = typeof globalThis & {
     showFitData?: (fitData: unknown, filePath: string) => void;
 };
 
-const GLOBAL_DATA_PROPERTY = "globalData";
 const IFRAME_ID = "alt-fit-iframe";
 const IFRAME_PATH = "/alt-fit-reader.html";
 
 function resetTestState(): void {
     document.body.replaceChildren();
-    Reflect.deleteProperty(globalThis, GLOBAL_DATA_PROPERTY);
     const legacyGlobal = globalThis as LegacyGlobals;
     Reflect.deleteProperty(legacyGlobal, "cleanupEventListeners");
     Reflect.deleteProperty(legacyGlobal, "renderChartJS");
     Reflect.deleteProperty(legacyGlobal, "sendFitFileToAltFitReader");
     Reflect.deleteProperty(legacyGlobal, "showFitData");
     vi.restoreAllMocks();
-    mocks.getState.mockReset();
-    mocks.setState.mockReset();
 }
 
 function createDependencies(
@@ -79,29 +54,6 @@ function getRequiredFitFileSender(): (
 }
 
 describe("mainUiGlobals", () => {
-    it("bridges globalData through the state manager", () => {
-        expect.assertions(3);
-
-        resetTestState();
-        mocks.getState.mockReturnValue({ active: true });
-
-        defineGlobalDataProperty();
-        const legacyGlobal = globalThis as LegacyGlobals;
-
-        expect(legacyGlobal.globalData).toStrictEqual({ active: true });
-
-        legacyGlobal.globalData = { active: false };
-
-        expect(mocks.getState).toHaveBeenCalledWith("globalData");
-        expect(mocks.setState).toHaveBeenCalledWith(
-            "globalData",
-            { active: false },
-            { silent: false, source: "main-ui.js" }
-        );
-
-        resetTestState();
-    });
-
     it("registers renderer compatibility globals", () => {
         expect.assertions(3);
 
