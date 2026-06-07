@@ -4,6 +4,8 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 const DIRECT_PROCESS_ENV_PATTERN = /\bprocess\.env\b/u;
+const RENDERER_DEVELOPMENT_DEBUG_GLOBALS =
+    "electron-app/renderer/developmentDebugGlobals.ts";
 const RENDERER_ENTRYPOINT = "electron-app/renderer.ts";
 
 const SCANNED_SOURCE_PATHS = [
@@ -124,19 +126,19 @@ describe("renderer process environment policy", () => {
     it("keeps file-url runtime metadata away from navigator.cookieEnabled", () => {
         expect.assertions(4);
 
-        const rendererSource = readFileSync(
-            path.join(process.cwd(), RENDERER_ENTRYPOINT),
+        const metadataSource = readFileSync(
+            path.join(process.cwd(), RENDERER_DEVELOPMENT_DEBUG_GLOBALS),
             "utf8"
         );
-        const cookieAccessIndex = rendererSource.indexOf('"cookieEnabled"');
-        const httpProtocolGuardIndex = rendererSource.indexOf(
+        const cookieAccessIndex = metadataSource.indexOf('"cookieEnabled"');
+        const httpProtocolGuardIndex = metadataSource.indexOf(
             'protocol === "http:"'
         );
-        const httpsProtocolGuardIndex = rendererSource.indexOf(
+        const httpsProtocolGuardIndex = metadataSource.indexOf(
             'protocol === "https:"'
         );
 
-        expect(rendererSource).not.toContain("navigator.cookieEnabled");
+        expect(metadataSource).not.toContain("navigator.cookieEnabled");
         expect(cookieAccessIndex).toBeGreaterThan(-1);
         expect(httpProtocolGuardIndex).toBeLessThan(cookieAccessIndex);
         expect(httpsProtocolGuardIndex).toBeLessThan(cookieAccessIndex);

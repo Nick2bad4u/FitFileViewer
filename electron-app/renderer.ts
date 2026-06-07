@@ -36,6 +36,10 @@ import {
     type RendererPerformanceMonitor,
 } from "./renderer/startupPerformanceMonitor.js";
 import {
+    APP_INFO,
+    installRendererDevelopmentDebugGlobals,
+} from "./renderer/developmentDebugGlobals.js";
+import {
     getElectronApiHooksFromValue,
     getElectronApiStartupHooks,
     registerStartupElectronHooks,
@@ -355,48 +359,6 @@ function getMasterAppFlag(masterStateManager: unknown, key: string): boolean {
     const app = toModuleRecord(state["app"]);
 
     return app[key] === true;
-}
-
-/**
- * @param {Record<string, unknown>} record
- * @param {string} key
- *
- * @returns {boolean | undefined}
- */
-function getRecordBoolean(
-    record: Record<string, unknown>,
-    key: string
-): boolean | undefined {
-    const value = record[key];
-    return typeof value === "boolean" ? value : undefined;
-}
-
-/**
- * @param {Record<string, unknown>} record
- * @param {string} key
- *
- * @returns {number | undefined}
- */
-function getRecordNumber(
-    record: Record<string, unknown>,
-    key: string
-): number | undefined {
-    const value = record[key];
-    return typeof value === "number" ? value : undefined;
-}
-
-/**
- * @param {Record<string, unknown>} record
- * @param {string} key
- *
- * @returns {string | undefined}
- */
-function getRecordString(
-    record: Record<string, unknown>,
-    key: string
-): string | undefined {
-    const value = record[key];
-    return typeof value === "string" ? value : undefined;
 }
 
 /**
@@ -1132,85 +1094,6 @@ function validateDOMElements(): boolean {
  *
  * @namespace PerformanceMonitor
  */
-/**
- * Application metadata and version information
- *
- * @constant {Object}
- */
-const APP_INFO = {
-    author: "FIT File Viewer Team",
-    description: "Advanced FIT file analysis and visualization tool",
-    /**
-     * Gets runtime information about the application
-     *
-     * @returns {Object} Runtime information
-     */
-    getRuntimeInfo() {
-        let cookieAvailability = false;
-        try {
-            const locationRecord = toModuleRecord(
-                Reflect.get(globalThis, "location")
-            );
-            const protocol = getRecordString(locationRecord, "protocol") ?? "";
-
-            if (protocol === "http:" || protocol === "https:") {
-                const navigatorRecord = toModuleRecord(
-                    Reflect.get(globalThis, "navigator")
-                );
-                const cookieEnabled = getRecordBoolean(
-                    navigatorRecord,
-                    "cookieEnabled"
-                );
-                cookieAvailability = cookieEnabled ?? false;
-            }
-        } catch {
-            cookieAvailability = false;
-        }
-
-        const navigatorRecord = toModuleRecord(
-            Reflect.get(globalThis, "navigator")
-        );
-        const memoryRecord = toModuleRecord(
-            toModuleRecord(Reflect.get(globalThis, "performance"))["memory"]
-        );
-        const memoryUsage =
-            Object.keys(memoryRecord).length > 0
-                ? {
-                      jsHeapSizeLimit: getRecordNumber(
-                          memoryRecord,
-                          "jsHeapSizeLimit"
-                      ),
-                      totalJSHeapSize: getRecordNumber(
-                          memoryRecord,
-                          "totalJSHeapSize"
-                      ),
-                      usedJSHeapSize: getRecordNumber(
-                          memoryRecord,
-                          "usedJSHeapSize"
-                      ),
-                  }
-                : null;
-
-        return {
-            cookieEnabled: cookieAvailability,
-            hardwareConcurrency: getRecordNumber(
-                navigatorRecord,
-                "hardwareConcurrency"
-            ),
-            language: getRecordString(navigatorRecord, "language"),
-            memoryUsage,
-            onLine: getRecordBoolean(navigatorRecord, "onLine"),
-            platform: getRecordString(navigatorRecord, "platform"),
-            userAgent: getRecordString(navigatorRecord, "userAgent"),
-        };
-    },
-    license: "MIT",
-    name: "FIT File Viewer",
-    repository: "https://github.com/user/FitFileViewer",
-
-    version: "21.1.0",
-};
-
 // ==========================================
 // Global API Exposure
 // ==========================================
@@ -1225,64 +1108,6 @@ Reflect.set(globalThis, "createExportGPXButton", createExportGPXButton);
 
 // Expose application information
 Reflect.set(globalThis, "APP_INFO", APP_INFO);
-
-// Expose core utilities for debugging and legacy support
-if (isDevelopmentMode()) {
-    /**
-     * @param {keyof RendererCoreModules} exportName
-     * @param {unknown[]} args
-     *
-     * @returns {Promise<unknown>}
-     */
-    const callDebugCoreFunction = async (
-        exportName: keyof RendererCoreModules,
-        args: unknown[]
-    ): Promise<unknown> => {
-        try {
-            const coreModules = await ensureCoreModules();
-            const debugFunction = coreModules[exportName];
-            if (typeof debugFunction === "function") {
-                return debugFunction(...args);
-            }
-        } catch {
-            /* Ignore errors */
-        }
-
-        return undefined;
-    };
-
-    /** @type {(...args: unknown[]) => Promise<unknown>} */
-    const handleOpenFileDebug = async (...args: unknown[]): Promise<unknown> =>
-        callDebugCoreFunction("handleOpenFile", args);
-
-    /** @type {(...args: unknown[]) => Promise<unknown>} */
-    const setupThemeDebug = async (...args: unknown[]): Promise<unknown> =>
-        callDebugCoreFunction("setupTheme", args);
-
-    /** @type {(...args: unknown[]) => Promise<unknown>} */
-    const showAboutModalDebug = async (...args: unknown[]): Promise<unknown> =>
-        callDebugCoreFunction("showAboutModal", args);
-
-    /** @type {(...args: unknown[]) => Promise<unknown>} */
-    const showNotificationDebug = async (
-        ...args: unknown[]
-    ): Promise<unknown> => callDebugCoreFunction("showNotification", args);
-
-    /** @type {(...args: unknown[]) => Promise<unknown>} */
-    const showUpdateNotificationDebug = async (
-        ...args: unknown[]
-    ): Promise<unknown> =>
-        callDebugCoreFunction("showUpdateNotification", args);
-
-    Reflect.set(globalThis, "__renderer_debug", {
-        handleOpenFile: handleOpenFileDebug,
-        PerformanceMonitor,
-        setupTheme: setupThemeDebug,
-        showAboutModal: showAboutModalDebug,
-        showNotification: showNotificationDebug,
-        showUpdateNotification: showUpdateNotificationDebug,
-    });
-}
 
 /**
  * Test helper to reset renderer state initialization guard
@@ -1395,259 +1220,18 @@ if (document.readyState === "loading") {
     setTimeout(onApplicationReady, 0);
 }
 
-// ==========================================
-// Development Utilities
-// ==========================================
-
-/**
- * @returns {Promise<unknown>}
- */
-async function getRendererStateManagerForDev(): Promise<unknown> {
-    try {
-        const coreModules = await ensureCoreModules();
-        return coreModules.masterStateManager;
-    } catch {
-        /* Ignore state manager access errors */
-    }
-
-    return undefined;
-}
-
-/**
- * @param {Record<string, unknown>} rendererDevTools
- *
- * @returns {Promise<void>}
- */
-async function loadDevelopmentDebugUtilities(
-    rendererDevTools: Record<string, unknown>
-): Promise<void> {
-    try {
-        // Resolve and attach optional dev helpers that depend on mocked modules
-        try {
-            const { AppActions, uiStateManager } = await ensureCoreModules();
-            if (AppActions !== undefined) {
-                rendererDevTools["AppActions"] = AppActions;
-            }
-            if (uiStateManager !== undefined) {
-                rendererDevTools["uiStateManager"] = uiStateManager;
-            }
-        } catch {
-            /* Ignore errors */
-        }
-
-        const {
-                checkDataAvailability,
-                debugSensorInfo,
-                showDataKeys,
-                showSensorNames,
-                testManufacturerId,
-                testProductId,
-            } = await import("./utils/debug/debugSensorInfo.js"),
-            { testFaveroCase, testFaveroStringCase, testNewFormatting } =
-                await import("./utils/debug/debugChartFormatting.js");
-
-        // Expose sensor debug utilities globally
-        Reflect.set(globalThis, "__sensorDebug", {
-            checkDataAvailability,
-            debugSensorInfo,
-            showDataKeys,
-            showSensorNames,
-            testManufacturerId,
-            testProductId,
-        });
-
-        // Expose formatting test utilities globally
-        Reflect.set(globalThis, "__debugChartFormatting", {
-            testFaveroCase,
-            testFaveroStringCase,
-            testNewFormatting,
-        });
-
-        logRenderer("log", "🛠️  Debug utilities loaded!");
-        logRenderer("log", "📊 Sensor Debug Commands:");
-        logRenderer(
-            "log",
-            "  __sensorDebug.checkDataAvailability()     - Check if FIT data is loaded"
-        );
-        logRenderer(
-            "log",
-            "  __sensorDebug.debugSensorInfo()           - Full sensor analysis"
-        );
-        logRenderer(
-            "log",
-            "  __sensorDebug.debugSensorInfo(true)       - Verbose sensor analysis"
-        );
-        logRenderer(
-            "log",
-            "  __sensorDebug.showSensorNames()           - Quick sensor name list"
-        );
-        logRenderer(
-            "log",
-            "  __sensorDebug.testManufacturerId(269)     - Test manufacturer ID (e.g., Favero)"
-        );
-        logRenderer(
-            "log",
-            "  __sensorDebug.testProductId(269, 12)      - Test product ID (e.g., Favero assioma_duo)"
-        );
-        logRenderer(
-            "log",
-            "  __sensorDebug.showDataKeys()              - Show all available data keys"
-        );
-        logRenderer("log", "");
-        logRenderer("log", "🧪 Format Testing Commands:");
-        logRenderer(
-            "log",
-            "  __debugChartFormatting.testNewFormatting()      - Test all formatting scenarios"
-        );
-        logRenderer(
-            "log",
-            "  __debugChartFormatting.testFaveroCase()         - Test the specific Favero case"
-        );
-        logRenderer(
-            "log",
-            "  __debugChartFormatting.testFaveroStringCase()   - Test Favero with string manufacturer name"
-        );
-        logRenderer("log", "");
-        logRenderer("log", "🏗️  State Management Debug Commands:");
-        logRenderer(
-            "log",
-            "  __renderer_dev.debugState()               - Show current state and history"
-        );
-        logRenderer(
-            "log",
-            "  __renderer_dev.getState()                 - Get current application state"
-        );
-        logRenderer(
-            "log",
-            "  __renderer_dev.getStateHistory()          - Get state change history"
-        );
-        logRenderer(
-            "log",
-            "  __renderer_dev.stateManager               - Access state manager directly"
-        );
-        logRenderer(
-            "log",
-            "  __renderer_dev.AppActions                 - Access app actions"
-        );
-        logRenderer(
-            "log",
-            "  __renderer_dev.uiStateManager             - Access UI state manager"
-        );
-    } catch (error) {
-        logRenderer(
-            "warn",
-            "[Renderer] Debug utilities failed to load:",
-            getErrorMessage(error)
-        );
-    }
-}
-
-/**
- * @returns {Promise<void>}
- */
-async function logRendererDebugState(): Promise<void> {
-    try {
-        const { masterStateManager } = await ensureCoreModules();
-        logRenderer(
-            "log",
-            "Current State:",
-            callRecordMethod(masterStateManager, "getState")
-        );
-        logRenderer(
-            "log",
-            "State History:",
-            callRecordMethod(masterStateManager, "getHistory")
-        );
-        logRenderer(
-            "log",
-            "Active Subscriptions:",
-            callRecordMethod(masterStateManager, "getSubscriptions")
-        );
-    } catch {
-        /* Ignore errors */
-    }
-}
-
-/**
- * @param {Record<string, unknown>} rendererDevTools
- *
- * @returns {void}
- */
-function scheduleDevelopmentDebugUtilities(
-    rendererDevTools: Record<string, unknown>
-): void {
-    void loadDevelopmentDebugUtilities(rendererDevTools);
-}
-
-if (isDevelopmentMode()) {
-    /**
-     * Development utilities exposed to global scope
-     *
-     * @global
-     */
-    const rendererDevTools = /** @type {Record<string, unknown>} */ {
-        APP_INFO,
-        // Legacy state for compatibility
-        appState,
-
-        cleanup,
-
-        debugState: () => {
-            void logRendererDebugState();
-        },
-        getPerformanceMetrics: () => PerformanceMonitor.getMetrics(),
-        // State debugging helpers
-        getState: async () => {
-            try {
-                const coreModules = await ensureCoreModules();
-                return callRecordMethod(
-                    coreModules.masterStateManager,
-                    "getState"
-                );
-            } catch {
-                /* Ignore state access errors */
-            }
-            return undefined;
-        },
-        getStateHistory: async () => {
-            try {
-                const coreModules = await ensureCoreModules();
-                return callRecordMethod(
-                    coreModules.masterStateManager,
-                    "getHistory"
-                );
-            } catch {
-                /* Ignore state history access errors */
-            }
-            return undefined;
-        },
-        isOpeningFileRef,
-        // Performance and debugging
-        PerformanceMonitor,
-
-        reinitialize: initializeApplication,
-        // New state management system
-        get stateManager() {
-            return getRendererStateManagerForDev();
-        },
-        validateDOM: validateDOMElements,
-    };
-
-    Reflect.set(globalThis, "__renderer_dev", rendererDevTools);
-
-    // Load debug utilities asynchronously
-    scheduleDevelopmentDebugUtilities(rendererDevTools);
-
-    logRenderer(
-        "log",
-        "[Renderer] Development utilities available at window.__renderer_dev"
-    );
-    logRenderer(
-        "log",
-        "[Renderer] Performance metrics:",
-        PerformanceMonitor.getMetrics()
-    );
-}
+installRendererDevelopmentDebugGlobals({
+    appState,
+    callRecordMethod,
+    cleanup,
+    ensureCoreModules,
+    initializeApplication,
+    isDevelopmentMode,
+    isOpeningFileRef,
+    logRenderer,
+    performanceMonitor: PerformanceMonitor,
+    validateDOMElements,
+});
 
 // ==========================================
 // Immediate wiring for tests and basic environments
