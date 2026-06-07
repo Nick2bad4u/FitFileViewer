@@ -1,6 +1,7 @@
 import { chartStateManager as importedChartStateManager } from "../core/chartStateManager.js";
 import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 import type { FitDecodeResult } from "../../../shared/fit";
+import { getGlobalData } from "../../state/core/globalDataStore.js";
 
 interface ChartUpdateAdapter {
     updateAll(reason: string): void;
@@ -73,7 +74,8 @@ function updateChartsForTheme(
 }
 
 function hasChartData(): boolean {
-    return getGlobalWindow()?.globalData !== undefined;
+    const fitData = getGlobalData<FitDecodeResult | null>();
+    return fitData !== undefined && fitData !== null;
 }
 
 /**

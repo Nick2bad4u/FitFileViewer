@@ -29,6 +29,18 @@ async function importModule(): Promise<
     return await import("../../../../../electron-app/utils/charts/theming/chartThemeListener.js");
 }
 
+async function resetManagedState(): Promise<void> {
+    const { __resetStateManagerForTests } =
+        await import("../../../../../electron-app/utils/state/core/stateManager.js");
+    __resetStateManagerForTests();
+}
+
+async function setManagedGlobalData(data: unknown): Promise<void> {
+    const { setGlobalData } =
+        await import("../../../../../electron-app/utils/state/core/globalDataStore.js");
+    setGlobalData(data);
+}
+
 function testWindow(): TestWindow {
     return window as TestWindow;
 }
@@ -118,6 +130,7 @@ function expectSettingsThemeApplied(settings: HTMLElement): void {
 async function runWithCleanEnvironment(
     testBody: () => Promise<void> | void
 ): Promise<void> {
+    await resetManagedState();
     resetDocumentBody();
     resetGlobals();
     mockedChartStateManager.handleThemeChange.mockReset();
@@ -128,6 +141,7 @@ async function runWithCleanEnvironment(
     try {
         await testBody();
     } finally {
+        await resetManagedState();
         vi.resetModules();
         vi.restoreAllMocks();
         vi.useRealTimers();
@@ -142,7 +156,7 @@ describe("chartThemeListener", () => {
             const { setupChartThemeListener } = await importModule();
             const chartsContainer = document.createElement("div");
             const settings = buildSettingsDOM();
-            testWindow().globalData = {};
+            await setManagedGlobalData({});
 
             vi.useFakeTimers();
             setupChartThemeListener(chartsContainer, settings);
@@ -204,7 +218,7 @@ describe("chartThemeListener", () => {
             const { setupChartThemeListener } = await importModule();
             const settings = buildSettingsDOM();
             const updateAll = vi.fn<UpdateAllHandler>();
-            testWindow().globalData = {};
+            await setManagedGlobalData({});
             testWindow().ChartUpdater = { updateAll };
 
             vi.useFakeTimers();
@@ -235,7 +249,7 @@ describe("chartThemeListener", () => {
             const { setupChartThemeListener } = await importModule();
             const settings = buildSettingsDOM();
             const updateAll = vi.fn<UpdateAllHandler>();
-            testWindow().globalData = {};
+            await setManagedGlobalData({});
             testWindow().chartUpdater = { updateAll };
 
             vi.useFakeTimers();
@@ -265,7 +279,7 @@ describe("chartThemeListener", () => {
 
             const { setupChartThemeListener } = await importModule();
             const settings = buildSettingsDOM();
-            testWindow().globalData = {};
+            await setManagedGlobalData({});
 
             vi.useFakeTimers();
             setupChartThemeListener(document.createElement("div"), settings);
@@ -291,7 +305,7 @@ describe("chartThemeListener", () => {
             const { removeChartThemeListener, setupChartThemeListener } =
                 await importModule();
             const settings = buildSettingsDOM();
-            testWindow().globalData = {};
+            await setManagedGlobalData({});
 
             vi.useFakeTimers();
             setupChartThemeListener(document.createElement("div"), settings);
@@ -324,7 +338,7 @@ describe("chartThemeListener", () => {
             const { forceUpdateChartTheme } = await importModule();
             const updateAll = vi.fn<UpdateAllHandler>();
             const settings = buildSettingsDOM();
-            testWindow().globalData = {};
+            await setManagedGlobalData({});
             testWindow().ChartUpdater = { updateAll };
 
             forceUpdateChartTheme(document.createElement("div"), settings);
@@ -350,7 +364,7 @@ describe("chartThemeListener", () => {
             const { forceUpdateChartTheme } = await importModule();
             const updateAll = vi.fn<UpdateAllHandler>();
             const settings = buildSettingsDOM();
-            testWindow().globalData = {};
+            await setManagedGlobalData({});
             testWindow().chartUpdater = { updateAll };
 
             expect(() =>
@@ -377,7 +391,7 @@ describe("chartThemeListener", () => {
 
             const { forceUpdateChartTheme } = await importModule();
             const settings = buildSettingsDOM();
-            testWindow().globalData = {};
+            await setManagedGlobalData({});
 
             expect(() =>
                 forceUpdateChartTheme(document.createElement("div"), settings)
