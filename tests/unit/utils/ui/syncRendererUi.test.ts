@@ -6,8 +6,12 @@ type StateListener = (
     path: string
 ) => void;
 
-type RendererUtilsModule =
-    typeof import("../../../../../electron-app/utils/app/initialization/rendererUtils.js");
+type SyncRendererLoadingModule =
+    typeof import("../../../../electron-app/utils/ui/loading/syncRendererLoading.js");
+type SyncRendererNotificationsModule =
+    typeof import("../../../../electron-app/utils/ui/notifications/syncRendererNotifications.js");
+type RendererStateBindingsModule =
+    typeof import("../../../../electron-app/utils/ui/rendererStateBindings.js");
 
 const stateMock = vi.hoisted(() => {
     const listeners = new Map<string, Set<StateListener>>();
@@ -56,17 +60,13 @@ const stateMock = vi.hoisted(() => {
 });
 
 vi.mock(
-    import("../../../../../electron-app/utils/state/core/stateManager.js"),
+    import("../../../../electron-app/utils/state/core/stateManager.js"),
     () => ({
         getState: stateMock.getState,
         setState: stateMock.setState,
         subscribe: stateMock.subscribe,
     })
 );
-
-async function importRendererUtils(): Promise<RendererUtilsModule> {
-    return import("../../../../../electron-app/utils/app/initialization/rendererUtils.js");
-}
 
 function resetTestState(): void {
     vi.useFakeTimers();
@@ -117,14 +117,26 @@ function requireHTMLElement(id: string): HTMLElement {
     return element;
 }
 
-describe("rendererUtils", () => {
+async function importRendererStateBindings(): Promise<RendererStateBindingsModule> {
+    return import("../../../../electron-app/utils/ui/rendererStateBindings.js");
+}
+
+async function importSyncRendererLoading(): Promise<SyncRendererLoadingModule> {
+    return import("../../../../electron-app/utils/ui/loading/syncRendererLoading.js");
+}
+
+async function importSyncRendererNotifications(): Promise<SyncRendererNotificationsModule> {
+    return import("../../../../electron-app/utils/ui/notifications/syncRendererNotifications.js");
+}
+
+describe("sync renderer UI helpers", () => {
     it("showNotification updates DOM, state, and clears after timeout", async () => {
         expect.assertions(6);
 
         resetTestState();
 
         const { getCurrentNotification, showNotification } =
-            await importRendererUtils();
+            await importSyncRendererNotifications();
 
         expect(getCurrentNotification()).toBeNull();
 
@@ -150,7 +162,7 @@ describe("rendererUtils", () => {
         resetTestState();
         requireHTMLElement("notification").remove();
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-        const { showNotification } = await importRendererUtils();
+        const { showNotification } = await importSyncRendererNotifications();
 
         try {
             showNotification("Hi", "success", 0);
@@ -169,7 +181,7 @@ describe("rendererUtils", () => {
 
         resetTestState();
 
-        const { setLoading } = await importRendererUtils();
+        const { setLoading } = await importSyncRendererLoading();
         const overlay = requireHTMLElement("loadingOverlay");
         const openButton = requireHTMLElement("openFileBtn");
         const otherButton = requireHTMLElement("otherBtn") as HTMLButtonElement;
@@ -189,25 +201,46 @@ describe("rendererUtils", () => {
         expect(input.disabled ? "disabled" : "enabled").toBe("enabled");
     });
 
-    it("initializeRendererUtils wires subscriptions and updates UI on state change", async () => {
-        expect.assertions(4);
+    it("initializeRendererStateBindings wires subscriptions and updates UI on state change", async () => {
+        expect.assertions(6);
 
         resetTestState();
 
-        const { initializeRendererUtils } = await importRendererUtils();
+        const { initializeRendererStateBindings } =
+            await importRendererStateBindings();
         const overlay = requireHTMLElement("loadingOverlay");
         const notification = requireHTMLElement("notification");
 
-        initializeRendererUtils();
-        stateMock.setState("isLoading", true);
+        initializeRendererStateBindings();
+        expect(stateMock.subscribe).toHaveBeenCalledWith(
+            "isLoading",
+            expect.any(Function)
+        );
+        expect(stateMock.subscribe).toHaveBeenCalledWith(
+            "ui.currentNotification",
+            expect.any(Function)
+        );
+
+        const loadingCallback = stateMock.subscribe.mock.calls.find(
+            ([path]) => path === "isLoading"
+        )?.[1];
+        const notificationCallback = stateMock.subscribe.mock.calls.find(
+            ([path]) => path === "ui.currentNotification"
+        )?.[1];
+
+        loadingCallback?.(true, false, "isLoading");
 
         expect(overlay.style.display).toBe("flex");
         expect(document.body.getAttribute("aria-busy")).toBe("true");
 
-        stateMock.setState("ui.currentNotification", {
-            message: "Done",
-            type: "success",
-        });
+        notificationCallback?.(
+            {
+                message: "Done",
+                type: "success",
+            },
+            null,
+            "ui.currentNotification"
+        );
 
         expect(notification.textContent).toBe("Done");
         expect(notification.getAttribute("role")).toBe("alert");
@@ -219,7 +252,7 @@ describe("rendererUtils", () => {
         resetTestState();
 
         const { showError, showInfo, showSuccess, showWarning } =
-            await importRendererUtils();
+            await importSyncRendererNotifications();
         const notification = requireHTMLElement("notification");
         const classes: string[] = [];
 
@@ -249,7 +282,7 @@ describe("rendererUtils", () => {
         resetTestState();
 
         const { clearNotification, getCurrentNotification, showInfo } =
-            await importRendererUtils();
+            await importSyncRendererNotifications();
         const notification = requireHTMLElement("notification");
 
         showInfo("temp", 0);

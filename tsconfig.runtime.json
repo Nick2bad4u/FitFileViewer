@@ -190,7 +190,6 @@
         "electron-app/utils/app/initialization/loadSharedConfiguration.ts",
         "electron-app/utils/app/initialization/rendererEnvironment.ts",
         "electron-app/utils/app/initialization/loadVersionInfo.ts",
-        "electron-app/utils/app/initialization/rendererUtils.ts",
         "electron-app/utils/app/initialization/setupWindow.ts",
         "electron-app/utils/app/initialization/updateSystemInfo.ts",
         "electron-app/utils/app/initialization/index.ts",

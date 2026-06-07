@@ -75,6 +75,8 @@ const migratedGlobalDataReaderFiles = [
     "electron-app/utils/debug/debugSensorInfo.ts",
 ] as const;
 const rendererUtilsFreeFiles = [
+    "electron-app/utils/app/index.ts",
+    "electron-app/utils/app/initialization/index.ts",
     "electron-app/utils/state/integration/stateIntegration.ts",
 ] as const;
 
@@ -199,6 +201,10 @@ function resolvesIntoRendererUtils(
         resolvedPath ===
             "electron-app/utils/app/initialization/rendererUtils.js"
     );
+}
+
+function hasRepositoryFile(relativePath: string): boolean {
+    return existsSync(path.join(process.cwd(), relativePath));
 }
 
 describe("architecture boundaries", () => {
@@ -338,7 +344,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -374,11 +380,15 @@ describe("architecture boundaries", () => {
                     stripComments(readRepositoryFile(relativeFile))
                 )
         );
+        const deletedCompatibilityFiles = [
+            "electron-app/utils/app/initialization/rendererUtils.ts",
+        ].filter(hasRepositoryFile);
 
         expect(directGlobalDataWrites).toStrictEqual([]);
         expect(directRendererUtilsGlobals).toStrictEqual([]);
         expect(unexpectedLegacyUtilityFiles).toStrictEqual([]);
         expect(migratedGlobalDataReaderViolations).toStrictEqual([]);
         expect(rendererUtilsFreeViolations).toStrictEqual([]);
+        expect(deletedCompatibilityFiles).toStrictEqual([]);
     });
 });

@@ -8,6 +8,26 @@ import * as appLifecycle from "./lifecycle/index.js";
 import * as appMenu from "./menu/index.js";
 
 export {
+    isLoading,
+    setLoading,
+} from "../ui/loading/syncRendererLoading.js";
+export {
+    clearNotification,
+    getCurrentNotification,
+    showError,
+    showInfo,
+    showNotification,
+    showSuccess,
+    showWarning,
+} from "../ui/notifications/syncRendererNotifications.js";
+export type {
+    NotificationType,
+    RendererNotification,
+} from "../ui/notifications/syncRendererNotifications.js";
+export {
+    initializeRendererStateBindings,
+} from "../ui/rendererStateBindings.js";
+export {
     getCurrentSettings,
     getDefaultSettings,
     reRenderChartsAfterSettingChange,
@@ -20,22 +40,6 @@ export type {
 } from "./initialization/getCurrentSettings.js";
 export { loadSharedConfiguration } from "./initialization/loadSharedConfiguration.js";
 export { loadVersionInfo } from "./initialization/loadVersionInfo.js";
-export {
-    clearNotification,
-    getCurrentNotification,
-    initializeRendererUtils,
-    isLoading,
-    setLoading,
-    showError,
-    showInfo,
-    showNotification,
-    showSuccess,
-    showWarning,
-} from "./initialization/rendererUtils.js";
-export type {
-    NotificationType,
-    RendererNotification,
-} from "./initialization/rendererUtils.js";
 export {
     cleanup as cleanupWindow,
     setupWindow,
