@@ -71,6 +71,7 @@ const migratedGlobalDataReaderFiles = [
     "electron-app/utils/maps/layers/mapDrawLaps.ts",
     "electron-app/utils/maps/core/renderMap.ts",
     "electron-app/utils/debug/debugSensorInfo.ts",
+    "electron-app/utils/ui/controls/createElevationProfileButton.ts",
 ] as const;
 const rendererUtilsFreeFiles = [
     "electron-app/utils/app/index.ts",

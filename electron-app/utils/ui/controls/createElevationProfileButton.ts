@@ -1,5 +1,7 @@
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { sanitizeCssColorToken } from "../../dom/index.js";
+import { ensureRendererVendorBundle } from "../../../renderer/vendorBundleLoader.js";
+import { getGlobalData } from "../../state/core/globalDataStore.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
@@ -46,7 +48,6 @@ interface ElevationPopupThemeColors {
 type ElevationGlobal = typeof globalThis & {
     Chart?: unknown;
     chartOverlayColorPalette?: unknown;
-    globalData?: ElevationFitData | null;
     loadedFitFiles?: unknown;
 };
 
@@ -183,73 +184,81 @@ export function createElevationProfileButton(): HTMLButtonElement {
     btn.addEventListener(
         "click",
         () => {
-            const fitFiles = getElevationFitFiles();
-            const chartWin = window.open(
-                    "",
-                    "Elevation Profile",
-                    "width=900,height=600"
-                ),
-                isDark = document.body.classList.contains("theme-dark"),
-                themeColors = getThemeColors();
-            if (!chartWin) {
-                return;
-            }
-
-            const fitFilesModel = fitFiles.map(createElevationProfileFileModel);
-
-            // Sanitize the theme colors used in template-string CSS.
-            const safeThemeColors = {
-                background: sanitizeCssColorToken(
-                    themeColors["background"],
-                    isDark ? "#0b1220" : "#ffffff"
-                ),
-                border: sanitizeCssColorToken(
-                    themeColors["border"],
-                    isDark ? "#334155" : "#e5e7eb"
-                ),
-                borderLight: sanitizeCssColorToken(
-                    themeColors["borderLight"],
-                    isDark ? "#475569" : "#f1f5f9"
-                ),
-                primary: sanitizeCssColorToken(
-                    themeColors["primary"],
-                    "#3b82f6"
-                ),
-                primaryShadow: sanitizeCssColorToken(
-                    themeColors["primaryShadow"],
-                    isDark ? "rgba(59,130,246,0.35)" : "rgba(59,130,246,0.25)"
-                ),
-                shadowLight: sanitizeCssColorToken(
-                    themeColors["shadowLight"],
-                    isDark ? "rgba(0,0,0,0.35)" : "rgba(15,23,42,0.08)"
-                ),
-                shadowMedium: sanitizeCssColorToken(
-                    themeColors["shadowMedium"],
-                    isDark ? "rgba(0,0,0,0.45)" : "rgba(15,23,42,0.12)"
-                ),
-                surface: sanitizeCssColorToken(
-                    themeColors["surface"],
-                    isDark ? "#111827" : "#ffffff"
-                ),
-                text: sanitizeCssColorToken(
-                    themeColors["text"],
-                    isDark ? "#e5e7eb" : "#0f172a"
-                ),
-                textSecondary: sanitizeCssColorToken(
-                    themeColors["textSecondary"],
-                    isDark ? "#cbd5e1" : "#475569"
-                ),
-            };
-
-            buildElevationProfilePopup(chartWin, {
-                fitFilesModel,
-                isDark,
-                safeThemeColors,
+            void openElevationProfilePopup().catch((error: unknown) => {
+                console.error(
+                    "[elevationProfile] Failed to open elevation profile",
+                    error
+                );
             });
         },
         { signal: buttonListener.signal }
     );
     return btn;
+}
+
+async function openElevationProfilePopup(): Promise<void> {
+    await ensureRendererVendorBundle("chart-data");
+
+    const fitFiles = getElevationFitFiles();
+    const chartWin = window.open(
+            "",
+            "Elevation Profile",
+            "width=900,height=600"
+        ),
+        isDark = document.body.classList.contains("theme-dark"),
+        themeColors = getThemeColors();
+    if (!chartWin) {
+        return;
+    }
+
+    const fitFilesModel = fitFiles.map(createElevationProfileFileModel);
+
+    // Sanitize the theme colors used in template-string CSS.
+    const safeThemeColors = {
+        background: sanitizeCssColorToken(
+            themeColors["background"],
+            isDark ? "#0b1220" : "#ffffff"
+        ),
+        border: sanitizeCssColorToken(
+            themeColors["border"],
+            isDark ? "#334155" : "#e5e7eb"
+        ),
+        borderLight: sanitizeCssColorToken(
+            themeColors["borderLight"],
+            isDark ? "#475569" : "#f1f5f9"
+        ),
+        primary: sanitizeCssColorToken(themeColors["primary"], "#3b82f6"),
+        primaryShadow: sanitizeCssColorToken(
+            themeColors["primaryShadow"],
+            isDark ? "rgba(59,130,246,0.35)" : "rgba(59,130,246,0.25)"
+        ),
+        shadowLight: sanitizeCssColorToken(
+            themeColors["shadowLight"],
+            isDark ? "rgba(0,0,0,0.35)" : "rgba(15,23,42,0.08)"
+        ),
+        shadowMedium: sanitizeCssColorToken(
+            themeColors["shadowMedium"],
+            isDark ? "rgba(0,0,0,0.45)" : "rgba(15,23,42,0.12)"
+        ),
+        surface: sanitizeCssColorToken(
+            themeColors["surface"],
+            isDark ? "#111827" : "#ffffff"
+        ),
+        text: sanitizeCssColorToken(
+            themeColors["text"],
+            isDark ? "#e5e7eb" : "#0f172a"
+        ),
+        textSecondary: sanitizeCssColorToken(
+            themeColors["textSecondary"],
+            isDark ? "#cbd5e1" : "#475569"
+        ),
+    };
+
+    buildElevationProfilePopup(chartWin, {
+        fitFilesModel,
+        isDark,
+        safeThemeColors,
+    });
 }
 
 function createElevationProfileFileModel(
@@ -270,11 +279,12 @@ function getDisplayFilePath(file: ElevationFitFile, idx: number): string {
 }
 
 function getElevationFitFiles(): ElevationFitFile[] {
-    const { globalData, loadedFitFiles } = getElevationGlobal();
+    const { loadedFitFiles } = getElevationGlobal();
     if (Array.isArray(loadedFitFiles) && loadedFitFiles.length > 0) {
         return loadedFitFiles.filter(isElevationFitFile);
     }
 
+    const globalData = getGlobalData<ElevationFitData | null>();
     if (
         isElevationFitData(globalData) &&
         Array.isArray(globalData.recordMesgs)
@@ -516,7 +526,7 @@ function renderElevationCharts(
     fitFiles: ElevationProfileFileModel[],
     isDark: boolean
 ): void {
-    const Chart = (chartWin).Chart;
+    const Chart = chartWin.Chart;
     if (!isElevationChartConstructor(Chart)) {
         return;
     }
@@ -536,9 +546,7 @@ function renderElevationCharts(
         const canvas = block.querySelector("canvas");
         const CanvasElement = chartWin.HTMLCanvasElement ?? HTMLCanvasElement;
         const ctx =
-            canvas instanceof CanvasElement
-                ? canvas.getContext("2d")
-                : null;
+            canvas instanceof CanvasElement ? canvas.getContext("2d") : null;
         if (!ctx) {
             continue;
         }

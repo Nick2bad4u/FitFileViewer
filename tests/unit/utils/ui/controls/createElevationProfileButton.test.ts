@@ -1,5 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as getThemeColorsModule from "../../../../../electron-app/utils/charts/theming/getThemeColors.js";
+
+const { mockEnsureRendererVendorBundle } = vi.hoisted(() => ({
+    mockEnsureRendererVendorBundle: vi.fn(() => Promise.resolve()),
+}));
+
+vi.mock("../../../../../electron-app/renderer/vendorBundleLoader.js", () => ({
+    ensureRendererVendorBundle: mockEnsureRendererVendorBundle,
+}));
+
 import { createElevationProfileButton } from "../../../../../electron-app/utils/ui/controls/createElevationProfileButton.js";
 
 type ElevationProfilePoint = { x: number; y: number };
@@ -88,6 +97,21 @@ const getPopupNoDataMessages = (mockWin: MockElevationPopupWindow) =>
         (message) => message.textContent
     );
 
+const clickElevationButton = async (
+    button: HTMLButtonElement
+): Promise<void> => {
+    button.click();
+    await vi.waitFor(() => {
+        if (
+            !mockEnsureRendererVendorBundle.mock.calls.some(
+                ([entryName]) => entryName === "chart-data"
+            )
+        ) {
+            throw new Error("Expected chart-data vendor bundle request");
+        }
+    });
+};
+
 describe(createElevationProfileButton, () => {
     let originalWindow: any;
     let getContextSpy: ReturnType<typeof vi.spyOn>;
@@ -118,6 +142,8 @@ describe(createElevationProfileButton, () => {
 
         chartMock = vi.fn<ChartMockImplementation>(function MockChart() {});
         (window as any).Chart = chartMock;
+        mockEnsureRendererVendorBundle.mockReset();
+        mockEnsureRendererVendorBundle.mockResolvedValue(undefined);
 
         // Setup window.open spy
         openSpy = vi.spyOn(window, "open").mockImplementation(() => {
@@ -162,14 +188,17 @@ describe(createElevationProfileButton, () => {
         });
     });
 
-    it("should open a window with no files when clicked and no fit files are loaded", () => {
-        expect.assertions(7);
+    it("should open a window with no files when clicked and no fit files are loaded", async () => {
+        expect.assertions(8);
 
         // Create the button and click it
         const button = createElevationProfileButton();
-        button.click();
+        await clickElevationButton(button);
 
         // Verify window.open was called with correct parameters
+        expect(mockEnsureRendererVendorBundle).toHaveBeenCalledWith(
+            "chart-data"
+        );
         expect(openSpy).toHaveBeenCalledWith(
             "",
             "Elevation Profile",
@@ -190,7 +219,7 @@ describe(createElevationProfileButton, () => {
         expect(chartMock).not.toHaveBeenCalled();
     });
 
-    it("should handle loadedFitFiles when available", () => {
+    it("should handle loadedFitFiles when available", async () => {
         expect.assertions(5);
 
         // Mock window.loadedFitFiles with test data
@@ -208,7 +237,7 @@ describe(createElevationProfileButton, () => {
 
         // Create the button and click it
         const button = createElevationProfileButton();
-        button.click();
+        await clickElevationButton(button);
 
         // Verify window.open was called
         expect(openSpy).toHaveBeenCalledOnce();
@@ -227,7 +256,7 @@ describe(createElevationProfileButton, () => {
         ]);
     });
 
-    it("should handle globalData when no loadedFitFiles available", () => {
+    it("should handle globalData when no loadedFitFiles available", async () => {
         expect.assertions(4);
 
         // Mock window.globalData with test data
@@ -241,7 +270,7 @@ describe(createElevationProfileButton, () => {
 
         // Create the button and click it
         const button = createElevationProfileButton();
-        button.click();
+        await clickElevationButton(button);
 
         // Verify window.open was called
         expect(openSpy).toHaveBeenCalledOnce();
@@ -256,7 +285,7 @@ describe(createElevationProfileButton, () => {
         ]);
     });
 
-    it("should handle globalData without recordMesgs", () => {
+    it("should handle globalData without recordMesgs", async () => {
         expect.assertions(3);
 
         // Mock window.globalData without recordMesgs array
@@ -267,7 +296,7 @@ describe(createElevationProfileButton, () => {
 
         // Create the button and click it
         const button = createElevationProfileButton();
-        button.click();
+        await clickElevationButton(button);
 
         // Verify window.open was called
         expect(openSpy).toHaveBeenCalledOnce();
@@ -281,7 +310,7 @@ describe(createElevationProfileButton, () => {
         expect(getPopupChartContainer(mockWin).children).toHaveLength(0);
     });
 
-    it("should handle popup window being blocked", () => {
+    it("should handle popup window being blocked", async () => {
         expect.assertions(2);
 
         // Make window.open return null to simulate blocked popup
@@ -289,7 +318,7 @@ describe(createElevationProfileButton, () => {
 
         // Create the button and click it
         const button = createElevationProfileButton();
-        button.click();
+        await clickElevationButton(button);
 
         // Verify window.open was called
         expect(openSpy).toHaveBeenCalledOnce();
@@ -298,7 +327,7 @@ describe(createElevationProfileButton, () => {
         // Nothing should happen (function returns early)
     });
 
-    it("should adapt to dark theme", () => {
+    it("should adapt to dark theme", async () => {
         expect.assertions(3);
 
         // Set dark theme
@@ -306,7 +335,7 @@ describe(createElevationProfileButton, () => {
 
         // Create the button and click it
         const button = createElevationProfileButton();
-        button.click();
+        await clickElevationButton(button);
 
         // Verify window.open was called
         expect(openSpy).toHaveBeenCalledOnce();
@@ -322,7 +351,7 @@ describe(createElevationProfileButton, () => {
         ).toContain("text-shadow: 0 0 2px #000");
     });
 
-    it("should handle files without altitude data", () => {
+    it("should handle files without altitude data", async () => {
         expect.assertions(3);
 
         // Mock window.loadedFitFiles with a file that has no altitude data
@@ -337,7 +366,7 @@ describe(createElevationProfileButton, () => {
 
         // Create the button and click it
         const button = createElevationProfileButton();
-        button.click();
+        await clickElevationButton(button);
 
         const mockWin = getPopupWindow();
 
@@ -348,7 +377,7 @@ describe(createElevationProfileButton, () => {
         expect(chartMock).not.toHaveBeenCalled();
     });
 
-    it("should use chartOverlayColorPalette from window.opener when available", () => {
+    it("should use chartOverlayColorPalette from window.opener when available", async () => {
         expect.assertions(2);
 
         // Mock window.loadedFitFiles with test data
@@ -373,7 +402,7 @@ describe(createElevationProfileButton, () => {
 
         // Create the button and click it
         const button = createElevationProfileButton();
-        button.click();
+        await clickElevationButton(button);
 
         // Verify model uses the palette
         const mockWin = getPopupWindow();
@@ -389,7 +418,7 @@ describe(createElevationProfileButton, () => {
         delete (window as any).chartOverlayColorPalette;
     });
 
-    it("should handle a mix of files with and without altitude data", () => {
+    it("should handle a mix of files with and without altitude data", async () => {
         expect.assertions(4);
 
         // Mock window.loadedFitFiles with mix of files with and without altitude data
@@ -426,7 +455,7 @@ describe(createElevationProfileButton, () => {
 
         // Create the button and click it
         const button = createElevationProfileButton();
-        button.click();
+        await clickElevationButton(button);
 
         const mockWin = getPopupWindow();
 
