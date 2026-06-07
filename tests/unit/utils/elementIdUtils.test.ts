@@ -39,10 +39,7 @@ describe("elementIdUtils", () => {
         root.innerHTML = `<span id="chartCanvas"></span>`;
 
         expect(
-            getElementByIdFlexibleList(root, [
-                "missing",
-                "chart-canvas",
-            ])?.id
+            getElementByIdFlexibleList(root, ["missing", "chart-canvas"])?.id
         ).toBe("chartCanvas");
     });
 });

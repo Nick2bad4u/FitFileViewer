@@ -63,7 +63,9 @@ type TestElectronAPI = {
     onUpdateEvent: ReturnType<
         typeof vi.fn<(event: string, handler: IpcHandler) => void>
     >;
-    onSetFontSize: ReturnType<typeof vi.fn<(handler: IpcHandler) => () => void>>;
+    onSetFontSize: ReturnType<
+        typeof vi.fn<(handler: IpcHandler) => () => void>
+    >;
     onSetHighContrast: ReturnType<
         typeof vi.fn<(handler: IpcHandler) => () => void>
     >;

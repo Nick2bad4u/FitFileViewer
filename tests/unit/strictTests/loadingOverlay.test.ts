@@ -58,7 +58,9 @@ describe("loading overlay strict", () => {
             "fitfile-loading-filename"
         );
         expect(
-            overlay.querySelector(".modern-spinner")?.getAttribute("aria-hidden")
+            overlay
+                .querySelector(".modern-spinner")
+                ?.getAttribute("aria-hidden")
         ).toBe("true");
 
         const text = getRequiredElementById("fitfile-loading-text");

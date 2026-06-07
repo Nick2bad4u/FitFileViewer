@@ -57,7 +57,12 @@ const unpackedBuildDirectoryNames = [
 
 /**
  * @typedef {(message: string) => void} Logger
- * @typedef {(executablePath: string, fuseConfig: typeof electronFuseConfig) => Promise<void>} FlipFusesImpl
+ *
+ * @typedef {(
+ *     executablePath: string,
+ *     fuseConfig: typeof electronFuseConfig
+ * ) => Promise<void>} FlipFusesImpl
+ *
  * @typedef {(executablePath: string) => Promise<Record<string, FuseState>>} GetCurrentFuseWireImpl
  */
 
@@ -68,6 +73,7 @@ const unpackedBuildDirectoryNames = [
  *     getCurrentFuseWireImpl?: GetCurrentFuseWireImpl;
  *     logger?: Logger;
  * }} [options]
+ *
  * @returns {Promise<readonly string[]>}
  */
 export async function applyElectronFuses({
@@ -101,6 +107,7 @@ export async function applyElectronFuses({
 
 /**
  * @param {{ productName?: string; releaseDistPath?: string }} [options]
+ *
  * @returns {Promise<string[]>}
  */
 export async function findPackagedElectronExecutablePaths({
@@ -125,6 +132,7 @@ export async function findPackagedElectronExecutablePaths({
 
 /**
  * @param {{ productName?: string; releaseDistPath?: string }} [options]
+ *
  * @returns {string[]}
  */
 export function getPackagedElectronExecutableCandidates({
@@ -159,6 +167,7 @@ export function getPackagedElectronExecutableCandidates({
 /**
  * @param {string} executablePath
  * @param {GetCurrentFuseWireImpl} getCurrentFuseWireImpl
+ *
  * @returns {Promise<void>}
  */
 async function assertElectronFuseState(executablePath, getCurrentFuseWireImpl) {
@@ -182,6 +191,7 @@ async function assertElectronFuseState(executablePath, getCurrentFuseWireImpl) {
 
 /**
  * @param {unknown} parsed
+ *
  * @returns {{ productName: string }}
  */
 function getRootPackageShape(parsed) {
@@ -201,6 +211,7 @@ function getRootPackageShape(parsed) {
 
 /**
  * @param {string} targetPath
+ *
  * @returns {Promise<boolean>}
  */
 async function pathExists(targetPath) {
@@ -226,6 +237,7 @@ async function readRootPackageProductName() {
 
 /**
  * @param {string} message
+ *
  * @returns {void}
  */
 function writeLog(message) {

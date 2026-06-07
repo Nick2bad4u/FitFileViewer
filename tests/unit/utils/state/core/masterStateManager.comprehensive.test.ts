@@ -346,9 +346,7 @@ describe("masterStateManager comprehensive behavior", () => {
 
             expect(() => {
                 manager.initializeFitFileComponents();
-            }).toThrow(
-                "FIT file state manager not available"
-            );
+            }).toThrow("FIT file state manager not available");
         });
     });
 

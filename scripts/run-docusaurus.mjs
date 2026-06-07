@@ -90,15 +90,11 @@ export function runDocusaurus(
         recursive: true,
     });
 
-    const result = commandRunner(
-        process.execPath,
-        buildDocusaurusArgs(argv),
-        {
-            cwd: docusaurusWorkspacePath,
-            env: buildDocusaurusEnvironment(),
-            stdio: "inherit",
-        }
-    );
+    const result = commandRunner(process.execPath, buildDocusaurusArgs(argv), {
+        cwd: docusaurusWorkspacePath,
+        env: buildDocusaurusEnvironment(),
+        stdio: "inherit",
+    });
 
     if (result.error) {
         throw result.error;

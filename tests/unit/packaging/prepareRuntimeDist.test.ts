@@ -189,7 +189,12 @@ describe("prepare-runtime-dist script", () => {
         const { distDir, repositoryDir, staticDir } = makeTemporaryApp();
 
         fs.writeFileSync(
-            path.join(staticDir, rootAlternativeFitViewPath, "assets", "app.js"),
+            path.join(
+                staticDir,
+                rootAlternativeFitViewPath,
+                "assets",
+                "app.js"
+            ),
             'import "./node_modules/leaflet/dist/leaflet.js";'
         );
 

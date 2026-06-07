@@ -99,9 +99,11 @@ describe("fileBrowserTab accessibility", () => {
 
         await renderFileBrowserTab();
 
-        expect(document.querySelector("#fit-browser-current-path")?.textContent)
-            .toBe("C:\\rides");
-        expect(document.querySelector("#fit-browser-status")?.textContent)
-            .toMatch(/^Loaded 2 items from root .* \(1 file, 1 folder\)\.$/u);
+        expect(
+            document.querySelector("#fit-browser-current-path")?.textContent
+        ).toBe("C:\\rides");
+        expect(
+            document.querySelector("#fit-browser-status")?.textContent
+        ).toMatch(/^Loaded 2 items from root .* \(1 file, 1 folder\)\.$/u);
     });
 });

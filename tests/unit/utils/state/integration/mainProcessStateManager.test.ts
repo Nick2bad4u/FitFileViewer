@@ -967,7 +967,10 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
             send.mockClear();
             expect({
-                unlistenResult: unlistenHandler({ sender }, "loadedFitFilePath"),
+                unlistenResult: unlistenHandler(
+                    { sender },
+                    "loadedFitFilePath"
+                ),
             }).toStrictEqual({ unlistenResult: true });
             expect((stateInstance as any).ipcSubscriptions.size).toBe(0);
 

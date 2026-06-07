@@ -216,8 +216,6 @@ describe("print-app-diff script", () => {
 
         const { createUsageText, defaultDiffPath } = await importPrintAppDiff();
 
-        expect(createUsageText()).toContain(
-            `Defaults to ${defaultDiffPath}.`
-        );
+        expect(createUsageText()).toContain(`Defaults to ${defaultDiffPath}.`);
     });
 });

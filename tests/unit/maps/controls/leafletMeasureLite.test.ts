@@ -235,7 +235,9 @@ describe("leafletMeasureLite", () => {
         expect(map.closePopup).toHaveBeenCalledWith(createdPopups[0]);
         expect(map.closePopup).toHaveBeenCalledWith(createdPopups[1]);
         expect(map.removeLayer).toHaveBeenCalledWith(createdPopups[0]);
-        expect(mapContainer.querySelector(".leaflet-measure-resultpopup")).toBeNull();
+        expect(
+            mapContainer.querySelector(".leaflet-measure-resultpopup")
+        ).toBeNull();
     });
 });
 

@@ -122,7 +122,11 @@ describe("preload ipcBridgeCatalog", () => {
             true,
             false,
         ]);
-        expect(sendChannelResults).toStrictEqual([true, false, false]);
+        expect(sendChannelResults).toStrictEqual([
+            true,
+            false,
+            false,
+        ]);
         expect(blockedChannelResults).toStrictEqual({
             fitParseSend: false,
             menuSaveAsSend: false,

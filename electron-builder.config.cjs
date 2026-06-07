@@ -58,9 +58,11 @@ function isEnvironmentFlagEnabled(value) {
         return false;
     }
 
-    return ["1", "true", "yes"].includes(
-        value.toLowerCase()
-    );
+    return [
+        "1",
+        "true",
+        "yes",
+    ].includes(value.toLowerCase());
 }
 
 module.exports = {
@@ -73,7 +75,9 @@ module.exports = {
     appId: appPackage.appid,
     productName: appPackage.productName,
     copyright: appPackage.copyright,
-    forceCodeSigning: isEnvironmentFlagEnabled(process.env.REQUIRE_CODE_SIGNING),
+    forceCodeSigning: isEnvironmentFlagEnabled(
+        process.env.REQUIRE_CODE_SIGNING
+    ),
     artifactName: "Fit-File-Viewer-${platform}-${arch}-${version}.${ext}",
     asar: true,
     publish: [

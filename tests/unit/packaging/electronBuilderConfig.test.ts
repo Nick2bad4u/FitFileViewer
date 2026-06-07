@@ -37,7 +37,8 @@ function toDistPath(exportPath: string): string {
 
 describe("electron-builder config", () => {
     function loadBuilderConfig(): ElectronBuilderConfig {
-        const configPath = require.resolve("../../../electron-builder.config.cjs");
+        const configPath =
+            require.resolve("../../../electron-builder.config.cjs");
         delete require.cache[configPath];
 
         return require("../../../electron-builder.config.cjs") as ElectronBuilderConfig;

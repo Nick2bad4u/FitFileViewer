@@ -471,12 +471,10 @@ describe("main.js strict handlers and events", () => {
         );
         expect(injectCall[0]).toBe("devtools-inject-menu");
         const injectMenu = getRequiredHandler(injectCall);
-        const realPath = await vi.importActual<typeof import("node:path")>(
-            "node:path"
-        );
-        const realUrl = await vi.importActual<typeof import("node:url")>(
-            "node:url"
-        );
+        const realPath =
+            await vi.importActual<typeof import("node:path")>("node:path");
+        const realUrl =
+            await vi.importActual<typeof import("node:url")>("node:url");
         const appPath = realPath.join(process.cwd(), "electron-app");
         const senderFrameUrl = realUrl.pathToFileURL(
             realPath.join(appPath, "index.html")
@@ -623,9 +621,8 @@ describe("main.js strict handlers and events", () => {
     it("menu events and fullscreen, security navigation guards", async () => {
         expect.assertions(18);
 
-        const importedMain: any = await import(
-            "../../../../electron-app/main.js"
-        );
+        const importedMain: any =
+            await import("../../../../electron-app/main.js");
         const mainModule = importedMain.default ?? importedMain;
         const updater = (await import("electron-updater")).autoUpdater as any;
         mockMainWindow.webContents.send.mockClear();
@@ -735,9 +732,7 @@ describe("main.js strict handlers and events", () => {
         ).toStrictEqual({
             action: "deny",
         });
-        expect(
-            windowOpenHandler({ url: "file://index.html" })
-        ).toStrictEqual({
+        expect(windowOpenHandler({ url: "file://index.html" })).toStrictEqual({
             action: "deny",
         });
     });
@@ -745,15 +740,12 @@ describe("main.js strict handlers and events", () => {
     it("requires an approved source path before Save As copies a file", async () => {
         expect.assertions(9);
 
-        const realFs = await vi.importActual<typeof import("node:fs")>(
-            "node:fs"
-        );
-        const realOs = await vi.importActual<typeof import("node:os")>(
-            "node:os"
-        );
-        const realPath = await vi.importActual<typeof import("node:path")>(
-            "node:path"
-        );
+        const realFs =
+            await vi.importActual<typeof import("node:fs")>("node:fs");
+        const realOs =
+            await vi.importActual<typeof import("node:os")>("node:os");
+        const realPath =
+            await vi.importActual<typeof import("node:path")>("node:path");
         const tempDir = realFs.mkdtempSync(
             realPath.join(realOs.tmpdir(), "ffv-save-as-")
         );
@@ -765,9 +757,8 @@ describe("main.js strict handlers and events", () => {
         policy.__resetForTests?.();
 
         try {
-            const importedMain: any = await import(
-                "../../../../electron-app/main.js"
-            );
+            const importedMain: any =
+                await import("../../../../electron-app/main.js");
             const mainModule = importedMain.default ?? importedMain;
             mockMainWindow.webContents.send.mockClear();
 

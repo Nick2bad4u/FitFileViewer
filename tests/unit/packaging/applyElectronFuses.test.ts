@@ -1,8 +1,4 @@
-import {
-    FuseState,
-    FuseV1Options,
-    FuseVersion,
-} from "@electron/fuses";
+import { FuseState, FuseV1Options, FuseVersion } from "@electron/fuses";
 import * as path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
@@ -37,8 +33,7 @@ describe("apply-electron-fuses script", () => {
             [FuseV1Options.EnableNodeCliInspectArguments]: FuseState.DISABLE,
             [FuseV1Options.EnableNodeOptionsEnvironmentVariable]:
                 FuseState.DISABLE,
-            [FuseV1Options.GrantFileProtocolExtraPrivileges]:
-                FuseState.DISABLE,
+            [FuseV1Options.GrantFileProtocolExtraPrivileges]: FuseState.DISABLE,
             [FuseV1Options.LoadBrowserProcessSpecificV8Snapshot]:
                 FuseState.ENABLE,
             [FuseV1Options.OnlyLoadAppFromAsar]: FuseState.ENABLE,
@@ -58,8 +53,16 @@ describe("apply-electron-fuses script", () => {
                 releaseDistPath,
             })
         ).toStrictEqual([
-            path.join(releaseDistPath, "linux-arm64-unpacked", "Fit File Viewer"),
-            path.join(releaseDistPath, "linux-ia32-unpacked", "Fit File Viewer"),
+            path.join(
+                releaseDistPath,
+                "linux-arm64-unpacked",
+                "Fit File Viewer"
+            ),
+            path.join(
+                releaseDistPath,
+                "linux-ia32-unpacked",
+                "Fit File Viewer"
+            ),
             path.join(releaseDistPath, "linux-unpacked", "Fit File Viewer"),
             path.join(
                 releaseDistPath,
@@ -133,9 +136,7 @@ describe("apply-electron-fuses script", () => {
             executablePaths[0],
             electronFuseConfig
         );
-        expect(getCurrentFuseWireImpl).toHaveBeenCalledWith(
-            executablePaths[0]
-        );
+        expect(getCurrentFuseWireImpl).toHaveBeenCalledWith(executablePaths[0]);
         expect(logger).toHaveBeenCalledWith(
             `[apply-electron-fuses] ${executablePaths[0]}`
         );

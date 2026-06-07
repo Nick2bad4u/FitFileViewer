@@ -95,16 +95,12 @@ function createElectronAPIMock() {
 
     return {
         // Menu hooks
-        onDecoderOptionsChanged: registerMenuHandler(
-            "decoder-options-changed"
-        ),
+        onDecoderOptionsChanged: registerMenuHandler("decoder-options-changed"),
         onExportFile: registerMenuHandler("export-file"),
         onMenuAbout: registerMenuHandler("menu-about"),
         onMenuCheckForUpdates: registerMenuHandler("menu-check-for-updates"),
         onMenuExport: registerMenuHandler("menu-export"),
-        onMenuKeyboardShortcuts: registerMenuHandler(
-            "menu-keyboard-shortcuts"
-        ),
+        onMenuKeyboardShortcuts: registerMenuHandler("menu-keyboard-shortcuts"),
         onMenuOpenFile: (cb: IpcHandler) => {
             menuOpenFileCb = cb;
         },

@@ -103,15 +103,15 @@ describe("vs code workspace tasks", () => {
     it("keeps lint app task using the root lint script", () => {
         expect.assertions(1);
 
-        expect(getTaskByLabel(readVsCodeTasks(), "lint app from root")).toMatchObject(
-            {
-                args: ["run", "lint:app"],
-                command: "npm",
-                options: {
-                    cwd: "${workspaceFolder}",
-                },
-            }
-        );
+        expect(
+            getTaskByLabel(readVsCodeTasks(), "lint app from root")
+        ).toMatchObject({
+            args: ["run", "lint:app"],
+            command: "npm",
+            options: {
+                cwd: "${workspaceFolder}",
+            },
+        });
     });
 
     it("keeps editor guidance aligned with root-owned TypeScript entrypoints", () => {

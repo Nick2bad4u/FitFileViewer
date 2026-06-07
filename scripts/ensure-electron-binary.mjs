@@ -33,7 +33,8 @@ export async function ensureElectronBinary() {
 
 async function extractElectronWithTar() {
     const archivePath = await downloadArtifact({
-        arch: electronInstallerEnvironment.ELECTRON_INSTALL_ARCH ?? process.arch,
+        arch:
+            electronInstallerEnvironment.ELECTRON_INSTALL_ARCH ?? process.arch,
         artifactName: "electron",
         cacheRoot: electronInstallerEnvironment.electron_config_cache,
         force: electronInstallerEnvironment.force_no_cache === "true",
@@ -87,9 +88,7 @@ async function isElectronBinaryReady() {
         const configuredPath = await fs.readFile(electronPathFile, "utf8");
         const versionPath = path.join(electronDistPath, "version");
         const versionContent = await fs.readFile(versionPath, "utf8");
-        const installedVersion = versionContent
-            .trim()
-            .replace(/^v/v, "");
+        const installedVersion = versionContent.trim().replace(/^v/v, "");
 
         return (
             configuredPath === platformPath &&
@@ -103,6 +102,7 @@ async function isElectronBinaryReady() {
 
 /**
  * @param {string} content
+ *
  * @returns {Record<string, unknown>}
  */
 function parseJsonObject(content) {
@@ -116,6 +116,7 @@ function parseJsonObject(content) {
 
 /**
  * @param {string} targetPath
+ *
  * @returns {Promise<boolean>}
  */
 async function pathExists(targetPath) {
@@ -130,6 +131,7 @@ async function pathExists(targetPath) {
 
 /**
  * @param {string} packagePath
+ *
  * @returns {Promise<{ version: string }>}
  */
 async function readElectronPackage(packagePath) {
@@ -147,6 +149,7 @@ async function readElectronPackage(packagePath) {
  * @param {string} command
  * @param {readonly string[]} args
  * @param {import("node:child_process").SpawnOptions} [options]
+ *
  * @returns {Promise<void>}
  */
 async function runCommand(command, args, options = {}) {

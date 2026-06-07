@@ -91,7 +91,9 @@ describe("style.css theme variables", () => {
 
         expect(themedButtonFocusRule).not.toContain("outline: none");
         expect(summaryGearFocusRule).not.toContain("outline: none");
-        expect(styleText).toContain("button:focus-visible,\ninput:focus-visible");
+        expect(styleText).toContain(
+            "button:focus-visible,\ninput:focus-visible"
+        );
     });
 
     it("defines base body styles and font size helpers", () => {

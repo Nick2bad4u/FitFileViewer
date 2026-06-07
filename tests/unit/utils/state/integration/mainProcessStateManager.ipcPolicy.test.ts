@@ -173,9 +173,9 @@ describe("mainProcessStateManager IPC sender policy", () => {
             expect(() =>
                 handler(createAllowedIpcEvent(), ...args)
             ).not.toThrow();
-            expect(() =>
-                handler(createMissingUrlIpcEvent(), ...args)
-            ).toThrow(/IPC sender URL unavailable/v);
+            expect(() => handler(createMissingUrlIpcEvent(), ...args)).toThrow(
+                /IPC sender URL unavailable/v
+            );
             expect(() => handler(createHttpsIpcEvent(), ...args)).toThrow(
                 /IPC sender is not allowed/v
             );

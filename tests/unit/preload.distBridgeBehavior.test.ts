@@ -1097,12 +1097,7 @@ describe("preload.js dist bridge behavior", () => {
                     unsubscribe,
                 })
             ).toStrictEqual({
-                callbackCalls: [
-                    [
-                        "payload",
-                        7,
-                    ],
-                ],
+                callbackCalls: [["payload", 7]],
                 cleanup: {
                     removedChannel: channel,
                     removedRegisteredListener: true,

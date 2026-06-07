@@ -279,10 +279,7 @@ describe("setupApplicationEventHandlers permission hardening", () => {
             })
         ).toBe(false);
 
-        requireAppState().setAppState(
-            "permissions.geolocation.allowed",
-            true
-        );
+        requireAppState().setAppState("permissions.geolocation.allowed", true);
         expect(
             checkHandler({}, "geolocation", "about:blank", {
                 requestingUrl: "about:blank",

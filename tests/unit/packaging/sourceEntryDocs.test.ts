@@ -369,11 +369,9 @@ describe("source entrypoint documentation", () => {
                 ])
             )
         );
+        expect(processModelGuide).toContain("./utils/maps/core/renderMap.js");
         expect(processModelGuide).toContain(
-            './utils/maps/core/renderMap.js'
-        );
-        expect(processModelGuide).toContain(
-            './utils/charts/core/renderChartJS.js'
+            "./utils/charts/core/renderChartJS.js"
         );
         expect(
             staleProcessModelReferences.filter((reference) =>
@@ -433,9 +431,7 @@ describe("source entrypoint documentation", () => {
                 architectureGuide.includes(reference)
             )
         ).toStrictEqual([]);
-        expect(architectureGuide).toContain(
-            'charts: "Chart.js rendering"'
-        );
+        expect(architectureGuide).toContain('charts: "Chart.js rendering"');
     });
 
     it("keeps the Docusaurus utility API reference aligned with current utility source", () => {

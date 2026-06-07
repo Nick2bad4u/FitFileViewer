@@ -24,8 +24,16 @@ export const electronBuilderBaseArgs = [
 export { electronBuilderCliPath };
 
 const macosNotarizationCredentialSets = [
-    ["APPLE_ID", "APPLE_APP_SPECIFIC_PASSWORD", "APPLE_TEAM_ID"],
-    ["APPLE_API_KEY", "APPLE_API_KEY_ID", "APPLE_API_ISSUER"],
+    [
+        "APPLE_ID",
+        "APPLE_APP_SPECIFIC_PASSWORD",
+        "APPLE_TEAM_ID",
+    ],
+    [
+        "APPLE_API_KEY",
+        "APPLE_API_KEY_ID",
+        "APPLE_API_ISSUER",
+    ],
     ["APPLE_KEYCHAIN_PROFILE"],
 ];
 
@@ -96,8 +104,8 @@ export function getCodeSigningValidationErrors(
         const missingNotarizationCredentials =
             macosNotarizationCredentialSets.every(
                 (credentialSet) =>
-                    requireEnvironmentNames(environment, credentialSet)
-                        .length > 0
+                    requireEnvironmentNames(environment, credentialSet).length >
+                    0
             );
 
         return [
@@ -122,10 +130,7 @@ export function getElectronBuilderEnvironment(
     environment = process.env,
     platform = process.platform
 ) {
-    const signingErrors = getCodeSigningValidationErrors(
-        environment,
-        platform
-    );
+    const signingErrors = getCodeSigningValidationErrors(environment, platform);
 
     if (signingErrors.length > 0) {
         throw new Error(
@@ -186,11 +191,15 @@ export function runElectronBuilder(
 }
 
 function hasAnySigningEnvironment(environment) {
-    return signingEnvironmentNames.some((name) => hasEnvironmentValue(environment, name));
+    return signingEnvironmentNames.some((name) =>
+        hasEnvironmentValue(environment, name)
+    );
 }
 
 function hasEnvironmentValue(environment, name) {
-    return typeof environment[name] === "string" && environment[name].trim() !== "";
+    return (
+        typeof environment[name] === "string" && environment[name].trim() !== ""
+    );
 }
 
 function requireEnvironmentNames(environment, names) {

@@ -11,8 +11,8 @@ vi.mock(
     import("../../../../electron-app/utils/files/export/exportUtils.js"),
     () => ({
         exportUtils: {
-            copyTextToClipboard: vi.fn<() => Promise<boolean>>(
-                () => Promise.resolve(true)
+            copyTextToClipboard: vi.fn<() => Promise<boolean>>(() =>
+                Promise.resolve(true)
             ),
         },
     })
@@ -43,9 +43,8 @@ describe("about modal", () => {
     });
 
     afterEach(async () => {
-        const { cleanupEventListeners } = await import(
-            "../../../../electron-app/utils/ui/events/eventListenerManager.js"
-        );
+        const { cleanupEventListeners } =
+            await import("../../../../electron-app/utils/ui/events/eventListenerManager.js");
         cleanupEventListeners();
         vi.runOnlyPendingTimers();
         vi.useRealTimers();
@@ -55,9 +54,8 @@ describe("about modal", () => {
     it("re-registers Escape handling when the existing modal is shown again", async () => {
         expect.assertions(6);
 
-        const { modalAnimationDuration, showAboutModal } = await import(
-            "../../../../electron-app/utils/ui/modals/aboutModal.js"
-        );
+        const { modalAnimationDuration, showAboutModal } =
+            await import("../../../../electron-app/utils/ui/modals/aboutModal.js");
 
         showAboutModal("<p>First open</p>");
         const modal = document.querySelector<HTMLElement>("#about-modal");
@@ -81,9 +79,8 @@ describe("about modal", () => {
     it("does not hide a reopened modal when a previous close animation finishes", async () => {
         expect.assertions(3);
 
-        const { modalAnimationDuration, showAboutModal } = await import(
-            "../../../../electron-app/utils/ui/modals/aboutModal.js"
-        );
+        const { modalAnimationDuration, showAboutModal } =
+            await import("../../../../electron-app/utils/ui/modals/aboutModal.js");
 
         showAboutModal("<p>First open</p>");
         const modal = document.querySelector<HTMLElement>("#about-modal");
@@ -102,12 +99,10 @@ describe("about modal", () => {
     it("does not stack copy handlers across repeated opens", async () => {
         expect.assertions(2);
 
-        const { exportUtils } = await import(
-            "../../../../electron-app/utils/files/export/exportUtils.js"
-        );
-        const { showAboutModal } = await import(
-            "../../../../electron-app/utils/ui/modals/aboutModal.js"
-        );
+        const { exportUtils } =
+            await import("../../../../electron-app/utils/files/export/exportUtils.js");
+        const { showAboutModal } =
+            await import("../../../../electron-app/utils/ui/modals/aboutModal.js");
 
         showAboutModal("<p>First open</p>");
         showAboutModal("<p>Second open</p>");

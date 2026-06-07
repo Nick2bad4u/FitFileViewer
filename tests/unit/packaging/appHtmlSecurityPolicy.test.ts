@@ -69,12 +69,8 @@ describe("root app HTML security policy", () => {
 
         expect(policy).toContain("script-src 'self' file:");
         expect(policy).toContain("script-src-attr 'none'");
-        expect(policy).toContain(
-            "frame-src 'self' file: https://zwiftmap.com"
-        );
-        expect(policy).toContain(
-            "child-src 'self' file: https://zwiftmap.com"
-        );
+        expect(policy).toContain("frame-src 'self' file: https://zwiftmap.com");
+        expect(policy).toContain("child-src 'self' file: https://zwiftmap.com");
         expect(policy).toContain("object-src 'none'");
         expect(policy).toContain("base-uri 'none'");
         expect(policy).not.toContain("script-src 'self' file: 'unsafe-inline'");
@@ -152,9 +148,7 @@ describe("root app HTML security policy", () => {
         const html = readRootAppHtml();
         const policy = getContentSecurityPolicy(html);
 
-        expect(policy).toContain(
-            "frame-src 'self' file: https://zwiftmap.com"
-        );
+        expect(policy).toContain("frame-src 'self' file: https://zwiftmap.com");
         expect(html).toContain('id="content_zwift"');
         expect(html).not.toContain('id="zwift_iframe"');
         expect(html).not.toContain('src="http://');

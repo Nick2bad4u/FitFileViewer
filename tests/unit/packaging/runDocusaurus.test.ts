@@ -74,10 +74,11 @@ describe("run-docusaurus wrapper", () => {
         expect(buildDocusaurusNodeOptions("")).toBe(
             `--localstorage-file=${docusaurusLocalStorageFilePath}`
         );
-        expect(buildDocusaurusEnvironment({ NODE_OPTIONS: "--trace-warnings" }))
-            .toMatchObject({
-                NODE_OPTIONS: `--trace-warnings --localstorage-file=${docusaurusLocalStorageFilePath}`,
-            });
+        expect(
+            buildDocusaurusEnvironment({ NODE_OPTIONS: "--trace-warnings" })
+        ).toMatchObject({
+            NODE_OPTIONS: `--trace-warnings --localstorage-file=${docusaurusLocalStorageFilePath}`,
+        });
     });
 
     it("syncs static assets before running build-like commands", () => {
