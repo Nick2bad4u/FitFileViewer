@@ -31,6 +31,10 @@ import {
     isDevelopmentMode,
 } from "./utils/app/initialization/rendererEnvironment.js";
 import { validateRendererDomElements } from "./renderer/domStartupValidation.js";
+import {
+    createRendererPerformanceMonitor,
+    type RendererPerformanceMonitor,
+} from "./renderer/startupPerformanceMonitor.js";
 import { setLoading } from "./utils/app/initialization/rendererUtils.js";
 // Avoid static imports for modules that tests mock; resolve dynamically via ensureCoreModules()
 import { createExportGPXButton } from "./utils/files/export/createExportGPXButton.js";
@@ -61,13 +65,6 @@ type ListenForThemeChange = (
     onThemeChange: (theme: string) => void
 ) => void;
 type LogRendererLevel = "error" | "group" | "groupEnd" | "log" | "warn";
-interface PerformanceMonitorApi {
-    end: (operation: string) => number;
-    getMetrics: () => Record<string, number>;
-    metrics: Map<string, number>;
-    start: (operation: string) => void;
-}
-
 interface RendererCoreModules {
     [exportName: string]: unknown;
     AppActions: Record<string, unknown> | undefined;
@@ -851,73 +848,11 @@ async function handleUnhandledRejection(
 // Performance Monitoring
 // ==========================================
 
-/**
- * Performance monitoring utilities
- *
- * @namespace PerformanceMonitor
- */
-const PerformanceMonitor: PerformanceMonitorApi = {
-    /**
-     * Ends timing an operation and logs the result
-     *
-     * @param {string} operation - Name of the operation that finished
-     *
-     * @returns {number} Duration in milliseconds
-     */
-    end(operation) {
-        const startTime = this.metrics.get(`${operation}_start`);
-        if (startTime === undefined) {
-            logRenderer(
-                "warn",
-                `[Performance] No start time found for operation: ${operation}`
-            );
-            return 0;
-        }
-
-        const duration = performance.now() - startTime;
-        this.metrics.set(operation, duration);
-
-        if (isDevelopmentMode()) {
-            logRenderer(
-                "log",
-                `[Performance] ${operation}: ${duration.toFixed(2)}ms`
-            );
-        }
-
-        return duration;
-    },
-
-    /**
-     * Gets all recorded metrics
-     *
-     * @returns {Record<string, number>} Object containing all metrics
-     */
-    getMetrics() {
-        const result: Record<string, number> = {};
-        for (const [key, value] of this.metrics) {
-            if (!key.endsWith("_start")) {
-                result[key] = value;
-            }
-        }
-        return result;
-    },
-
-    /**
-     * Tracks performance metrics for the application
-     *
-     * @type {Map<string, number>}
-     */
-    metrics: new Map(),
-
-    /**
-     * Starts timing an operation
-     *
-     * @param {string} operation - Name of the operation to time
-     */
-    start(operation) {
-        this.metrics.set(`${operation}_start`, performance.now());
-    },
-};
+const PerformanceMonitor: RendererPerformanceMonitor =
+    createRendererPerformanceMonitor({
+        isDevelopmentMode,
+        logRenderer,
+    });
 
 /**
  * Initializes the application after DOM is ready
