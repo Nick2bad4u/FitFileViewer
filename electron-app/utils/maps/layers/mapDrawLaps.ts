@@ -2,6 +2,7 @@ import { chartOverlayColorPalette } from "../../charts/theming/chartOverlayColor
 import type * as Leaflet from "leaflet";
 import { escapeHtml } from "../../dom/index.js";
 import { getOverlayFileName } from "../../files/import/getOverlayFileName.js";
+import { getGlobalData } from "../../state/core/globalDataStore.js";
 import { setState } from "../../state/core/stateManager.js";
 import {
     createMetricFilter,
@@ -88,7 +89,6 @@ type MapDrawWindowLike = typeof globalThis & {
     _mainPolyline?: LeafletLayerLike | undefined;
     _mainPolylineOriginalBounds?: LeafletBoundsLike | undefined;
     _overlayPolylines?: Record<string, LeafletLayerLike>;
-    globalData?: FitDataLike | null;
     L?: LeafletRuntimeLike;
     loadedFitFiles?: LoadedFitFileLike[];
     mapDataPointFilter?: MapDataPointFilterConfig | null;
@@ -534,23 +534,9 @@ export function mapDrawLaps(
     );
 
     let coords: CoordTuple[];
-    // Replace window global data access comments
-
-    // DEBUG: Log what we're seeing
-    const __w = getWin();
-    console.log("[mapDrawLaps] DEBUG win =", __w);
-    console.log("[mapDrawLaps] DEBUG win.globalData =", __w.globalData);
-    console.log(
-        "[mapDrawLaps] DEBUG win.globalData?.lapMesgs =",
-        __w.globalData?.lapMesgs
-    );
-    console.log(
-        "[mapDrawLaps] DEBUG win.globalData?.recordMesgs =",
-        __w.globalData?.recordMesgs
-    );
-
-    const lapMesgs = asLapMesgs(getWin().globalData?.lapMesgs),
-        recordMesgs = asRecordMesgs(getWin().globalData?.recordMesgs);
+    const currentFitData = getGlobalData<FitDataLike>();
+    const lapMesgs = asLapMesgs(currentFitData?.lapMesgs),
+        recordMesgs = asRecordMesgs(currentFitData?.recordMesgs);
 
     patchLapIndices(lapMesgs, recordMesgs);
 
