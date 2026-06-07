@@ -4,6 +4,7 @@ import { formatHeight } from "../../formatting/formatters/formatHeight.js";
 import { formatManufacturer } from "../../formatting/formatters/formatManufacturer.js";
 import { formatSensorName } from "../../formatting/formatters/formatSensorName.js";
 import { formatWeight } from "../../formatting/formatters/formatWeight.js";
+import { getGlobalData as readGlobalData } from "../../state/core/globalDataStore.js";
 import {
     getThemeConfig,
     type ThemeColorMap,
@@ -62,10 +63,6 @@ type FitGlobalData = {
     readonly deviceInfoMesgs?: DeviceInfo[];
     readonly recordMesgs?: readonly Record<string, unknown>[];
     readonly userProfileMesgs?: UserProfileData[];
-};
-
-type UserDeviceInfoGlobal = typeof globalThis & {
-    globalData?: FitGlobalData;
 };
 
 type InfoBoxThemeColors = {
@@ -160,7 +157,7 @@ function getInfoBoxThemeColors(colors: ThemeColorMap): InfoBoxThemeColors {
 }
 
 function getGlobalData(): FitGlobalData {
-    return (globalThis as UserDeviceInfoGlobal).globalData ?? {};
+    return readGlobalData<FitGlobalData>() ?? {};
 }
 
 function sanitizeInfoBoxHtml(html: string): DocumentFragment {

@@ -7,6 +7,7 @@ import {
     fieldLabels,
     formatChartFields,
 } from "../../formatting/display/formatChartFields.js";
+import { getGlobalData as readGlobalData } from "../../state/core/globalDataStore.js";
 import {
     getChartFieldVisibility,
     getChartSetting,
@@ -44,7 +45,6 @@ type GlobalData = {
 
 type FieldToggleGlobal = typeof globalThis & {
     __chartjs_dev?: { requestRerender?: (reason: string) => void };
-    globalData?: Partial<GlobalData>;
 };
 
 function getFieldToggleGlobal(): FieldToggleGlobal {
@@ -52,7 +52,7 @@ function getFieldToggleGlobal(): FieldToggleGlobal {
 }
 
 function getGlobalData(): GlobalData {
-    const globalData = getFieldToggleGlobal().globalData ?? {};
+    const globalData = readGlobalData<Partial<GlobalData>>() ?? {};
     return {
         eventMesgs: globalData.eventMesgs ?? [],
         recordMesgs: globalData.recordMesgs ?? [],
