@@ -65,6 +65,7 @@ import {
     createRendererLifecycleCleanup,
     type RendererLifecycleAppState,
 } from "./renderer/lifecycleCleanup.js";
+import { createRendererImportTimeBootstrap } from "./renderer/importTimeBootstrap.js";
 import {
     installRendererGlobalApiExposure,
     logRendererStartupInfo,
@@ -254,6 +255,26 @@ let appState: RendererLifecycleAppState | null = null;
  * @type {{ value: boolean }}
  */
 const isOpeningFileRef = { value: false };
+
+const importTimeBootstrap = createRendererImportTimeBootstrap({
+    callUnknownFunction,
+    ensureCoreModules,
+    getOpenFileButton: () =>
+        querySelectorByIdFlexible(document, "#open_file_btn"),
+    initializeStateManager,
+    isOpeningFileRef,
+    resolveExactManualMock,
+    resolveManualMock,
+    setLoading,
+    toModuleRecord,
+});
+const {
+    scheduleAppDomainStateCoverageTouch,
+    scheduleImportTimeListenersSetup,
+    scheduleImportTimeStateInitialization,
+    scheduleImportTimeThemeSetup,
+    touchManualAppStartTime,
+} = importTimeBootstrap;
 
 const testOnlyBootstrapOptions = {
     callUnknownFunction,
@@ -761,154 +782,6 @@ installRendererDevelopmentDebugGlobals({
 // ==========================================
 // Immediate wiring for tests and basic environments
 // ==========================================
-
-/**
- * @returns {Promise<void>}
- */
-async function initializeImportTimeStateManager(): Promise<void> {
-    await initializeStateManager();
-    try {
-        const { getAppDomainState } = await ensureCoreModules();
-        callUnknownFunction(getAppDomainState, ["app.startTime"]);
-    } catch {
-        /* Ignore errors */
-    }
-    await initializeManualMasterStateManager();
-    touchManualAppStartTime();
-}
-
-/**
- * @returns {Promise<void>}
- */
-async function initializeManualMasterStateManager(): Promise<void> {
-    await callRecordMethod(resolveManualMasterStateManager(), "initialize");
-}
-
-/**
- * @returns {unknown}
- */
-function resolveManualAppStateModule(): unknown {
-    return (
-        resolveExactManualMock("../../utils/state/domain/appState.js") ??
-        resolveManualMock("/utils/state/domain/appState.js")
-    );
-}
-
-/**
- * @returns {unknown}
- */
-function resolveManualMasterStateManager(): unknown {
-    const resolved =
-        resolveExactManualMock(
-            "../../utils/state/core/masterStateManager.js"
-        ) ?? resolveManualMock("/utils/state/core/masterStateManager.js");
-    const resolvedRecord = toModuleRecord(resolved);
-
-    return (
-        resolvedRecord["masterStateManager"] ??
-        toModuleRecord(resolvedRecord["default"])["masterStateManager"] ??
-        resolved
-    );
-}
-
-/**
- * @returns {void}
- */
-function scheduleAppDomainStateCoverageTouch(): void {
-    void touchAppDomainStateForCoverage();
-}
-
-/**
- * @returns {void}
- */
-function scheduleImportTimeListenersSetup(): void {
-    void setupImportTimeListeners();
-}
-
-/**
- * @returns {void}
- */
-function scheduleImportTimeStateInitialization(): void {
-    void initializeImportTimeStateManager();
-}
-
-/**
- * @returns {void}
- */
-function scheduleImportTimeThemeSetup(): void {
-    void setupImportTimeTheme();
-}
-
-/**
- * @returns {Promise<void>}
- */
-async function setupImportTimeListeners(): Promise<void> {
-    const {
-        applyTheme: applyThemeFn,
-        handleOpenFile: handleOpenFileFn,
-        listenForThemeChange: listenForThemeChangeFn,
-        setupListeners: setupListenersFn,
-        showAboutModal: showAboutModalFn,
-        showNotification: showNotificationFn,
-        showUpdateNotification: showUpdateNotificationFn,
-    } = await ensureCoreModules();
-    const deps = {
-        applyTheme: applyThemeFn,
-        handleOpenFile: handleOpenFileFn,
-        isOpeningFileRef,
-        listenForThemeChange: listenForThemeChangeFn,
-        openFileBtn: querySelectorByIdFlexible(document, "#open_file_btn"),
-        setLoading,
-        showAboutModal: showAboutModalFn,
-        showNotification: showNotificationFn,
-        showUpdateNotification: showUpdateNotificationFn,
-    };
-
-    callUnknownFunction(setupListenersFn, [deps]);
-}
-
-/**
- * @returns {Promise<void>}
- */
-async function setupImportTimeTheme(): Promise<void> {
-    const {
-        applyTheme: applyThemeFn,
-        listenForThemeChange: listenForThemeChangeFn,
-        setupTheme: setupThemeFn,
-    } = await ensureCoreModules();
-    callUnknownFunction(setupThemeFn, [applyThemeFn, listenForThemeChangeFn]);
-}
-
-/**
- * @returns {Promise<void>}
- */
-async function touchAppDomainStateForCoverage(): Promise<void> {
-    try {
-        const { getAppDomainState, subscribeAppDomain } =
-            await ensureCoreModules();
-        callUnknownFunction(getAppDomainState, ["app.startTime"]);
-        if (typeof subscribeAppDomain === "function") {
-            callUnknownFunction(subscribeAppDomain, [
-                "app.startTime",
-                () => {},
-            ]);
-        }
-    } catch {
-        /* Ignore errors */
-    }
-}
-
-/**
- * @returns {void}
- */
-function touchManualAppStartTime(): void {
-    const domainModule = toModuleRecord(resolveManualAppStateModule());
-    const getStateFn =
-        domainModule["getState"] ??
-        toModuleRecord(domainModule["default"])["getState"];
-
-    callUnknownFunction(getStateFn, ["app.startTime"]);
-}
 
 try {
     // Always attempt to setup theme for coverage tests using dynamically resolved (mockable) modules
