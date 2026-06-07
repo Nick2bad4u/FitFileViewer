@@ -62,6 +62,7 @@ const migratedGlobalDataReaderFiles = [
     "electron-app/utils/charts/rendering/renderLapZoneCharts.ts",
     "electron-app/utils/charts/core/getChartCounts.ts",
     "electron-app/utils/app/initialization/chartSettingsRender.ts",
+    "electron-app/utils/maps/controls/mapLapSelector.ts",
 ] as const;
 
 const importSpecifierPattern =

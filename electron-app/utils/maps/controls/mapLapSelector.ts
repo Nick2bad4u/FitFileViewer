@@ -1,5 +1,6 @@
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { sanitizeCssColorToken } from "../../dom/index.js";
+import { getGlobalData } from "../../state/core/globalDataStore.js";
 import {
     createAppIconElement,
     type AppIconName,
@@ -14,7 +15,6 @@ type GlobalData = {
 
 type MapLapSelectorGlobal = typeof globalThis & {
     __ffvLapSelectorMouseupHandler?: (event: MouseEvent) => void;
-    globalData?: GlobalData;
 };
 
 type HelpTooltipOptions = {
@@ -48,14 +48,11 @@ export function addLapSelector(
     mapDrawLaps: MapDrawLaps
 ): void {
     const windowWithData = getLapSelectorGlobal();
-    if (
-        !windowWithData.globalData ||
-        !Array.isArray(windowWithData.globalData.lapMesgs) ||
-        windowWithData.globalData.lapMesgs.length === 0
-    ) {
+    const lapMesgs = getGlobalData<GlobalData>()?.lapMesgs;
+    if (!Array.isArray(lapMesgs) || lapMesgs.length === 0) {
         return;
     }
-    const { lapMesgs } = windowWithData.globalData;
+    const availableLapMesgs = lapMesgs;
 
     const lapControl = document.createElement("div");
     lapControl.className =
@@ -137,7 +134,7 @@ export function addLapSelector(
     allOption.value = "all";
     allOption.textContent = "All";
     lapSelect.append(allOption);
-    for (let i = 0; i < lapMesgs.length; i += 1) {
+    for (let i = 0; i < availableLapMesgs.length; i += 1) {
         const opt = document.createElement("option");
         opt.value = String(i);
         opt.textContent = `Lap ${i + 1}`;
@@ -287,7 +284,7 @@ export function addLapSelector(
         multiSelectMode = on;
         if (multiSelectMode) {
             lapSelectEl.multiple = true;
-            lapSelectEl.size = Math.min(lapMesgs.length + 1, 6);
+            lapSelectEl.size = Math.min(availableLapMesgs.length + 1, 6);
             multiLapToggleEl?.classList.add("active");
             lapControl.classList.add("multi-select-active");
             if (deselectAllBtnEl) {
