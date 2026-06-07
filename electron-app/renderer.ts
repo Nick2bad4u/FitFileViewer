@@ -30,6 +30,7 @@ import {
     getEnvironment,
     isDevelopmentMode,
 } from "./utils/app/initialization/rendererEnvironment.js";
+import { validateRendererDomElements } from "./renderer/domStartupValidation.js";
 import { setLoading } from "./utils/app/initialization/rendererUtils.js";
 // Avoid static imports for modules that tests mock; resolve dynamically via ensureCoreModules()
 import { createExportGPXButton } from "./utils/files/export/createExportGPXButton.js";
@@ -1294,47 +1295,7 @@ async function initializeStateManager(): Promise<void> {
  * @returns {boolean} True if all required elements are present
  */
 function validateDOMElements(): boolean {
-    // Accept multiple alternative IDs used across app and tests
-    const alternatives = [
-        [
-            // App HTML uses snake_case, while some tests use camelCase.
-            { id: "open_file_btn", name: "Open File button" },
-            { id: "openFileBtn", name: "Open File button" },
-            // Some test harnesses only provide a hidden file input.
-            { id: "file_input", name: "File input" },
-            { id: "fileInput", name: "File input" },
-        ],
-        [
-            { id: "notification", name: "Notification container" },
-            { id: "notification-container", name: "Notification container" },
-        ],
-        [
-            { id: "loading_overlay", name: "Loading overlay" },
-            { id: "loadingOverlay", name: "Loading overlay" },
-            { id: "loading", name: "Loading overlay" },
-        ],
-    ];
-
-    const missingGroups: (string | undefined)[] = [];
-    for (const group of alternatives) {
-        const found = group.some(
-            ({ id }) => document.querySelector(`#${id}`) !== null
-        );
-        if (!found) {
-            missingGroups.push(group[0]?.name ?? "Unknown UI element");
-        }
-    }
-
-    if (missingGroups.length > 0) {
-        // Log a warning but do not fail hard to keep tests and minimal UIs working
-        logRenderer(
-            "warn",
-            "[Renderer] Some UI elements were not found:",
-            missingGroups.join(", ")
-        );
-        // Avoid async imports here to keep function synchronous
-    }
-    return true;
+    return validateRendererDomElements(document, logRenderer);
 }
 
 // ==========================================
