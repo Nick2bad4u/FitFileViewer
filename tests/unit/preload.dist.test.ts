@@ -44,7 +44,7 @@ interface PreloadElectronAPI {
     addRecentFile: (filePath: unknown) => Promise<unknown>;
     approveRecentFile: (filePath: unknown) => Promise<unknown>;
     checkForUpdates: () => void;
-    decodeFitFile: (filePath: unknown) => Promise<unknown>;
+    decodeFitFile: (arrayBuffer: ArrayBuffer) => Promise<unknown>;
     getAppVersion: () => Promise<unknown>;
     getChannelInfo: () => ChannelInfo;
     getChromeVersion: () => Promise<unknown>;
@@ -741,10 +741,11 @@ describe("preload.js - Comprehensive API Testing", () => {
         it("should handle decodeFitFile correctly", async () => {
             expect.assertions(2);
 
-            const result = await electronAPI.decodeFitFile("/path/to/file.fit");
+            const fileBuffer = new ArrayBuffer(8);
+            const result = await electronAPI.decodeFitFile(fileBuffer);
             expect(electronMock.ipcRenderer.invoke).toHaveBeenCalledWith(
                 "fit:decode",
-                "/path/to/file.fit"
+                fileBuffer
             );
             expect(result).toBe("decoded-data");
         });
