@@ -10,6 +10,16 @@ type ActivityUiState = {
     title: string;
 };
 
+type ActivityDataCounts = {
+    recordCount: number;
+    sessionCount: number;
+};
+
+type RendererActivityData = {
+    recordMesgs?: unknown[];
+    sessionMesgs?: unknown[];
+};
+
 type FitFixtureFileState =
     | {
           byteLength: number;
@@ -182,6 +192,33 @@ async function resetRendererNotifications(page: Page): Promise<void> {
     });
 }
 
+async function getRendererActivityDataCounts(
+    page: Page
+): Promise<ActivityDataCounts> {
+    return page.evaluate(async () => {
+        const moduleUrl = new URL(
+            "./utils/state/core/stateManager.js",
+            window.location.href
+        ).href;
+        // eslint-disable-next-line no-unsanitized/method -- Fixed same-origin app module path used to inspect renderer state in Playwright smoke tests.
+        const stateModule = (await import(moduleUrl)) as {
+            getState: (path: string) => unknown;
+        };
+        const activityData = stateModule.getState(
+            "globalData"
+        ) as null | RendererActivityData | undefined;
+
+        return {
+            recordCount: Array.isArray(activityData?.recordMesgs)
+                ? activityData.recordMesgs.length
+                : 0,
+            sessionCount: Array.isArray(activityData?.sessionMesgs)
+                ? activityData.sessionMesgs.length
+                : 0,
+        };
+    });
+}
+
 function isExpectedMissingFitFileError(message: string): boolean {
     return (
         message.includes(path.basename(missingFitPath)) &&
@@ -249,14 +286,14 @@ test.describe("FitFileViewer renderer environment fallbacks", () => {
                                 ?.textContent?.trim() ?? "",
                         rendererNodeEnvironment:
                             rendererGlobal.process?.env?.NODE_ENV ?? null,
-                        routeRecords:
-                            window.globalData?.recordMesgs?.length ?? 0,
-                        sessionCount:
-                            window.globalData?.sessionMesgs?.length ?? 0,
                     };
                 },
                 { bytes: fitBytes, filePath: sampleFitPath }
             );
+            const {
+                recordCount: loadedRecordCount,
+                sessionCount: loadedSessionCount,
+            } = await getRendererActivityDataCounts(noNodeEnvPage);
 
             await expect(noNodeEnvPage.locator("#tab_map")).toHaveClass(
                 /active/u
@@ -341,7 +378,12 @@ test.describe("FitFileViewer renderer environment fallbacks", () => {
             expect(loadedState).toStrictEqual({
                 activeFileName: sampleFitActivityState.activeFileName,
                 rendererNodeEnvironment: null,
-                routeRecords: sampleFitActivityState.recordCount,
+            });
+            expect({
+                recordCount: loadedRecordCount,
+                sessionCount: loadedSessionCount,
+            }).toStrictEqual({
+                recordCount: sampleFitActivityState.recordCount,
                 sessionCount: sampleFitActivityState.sessionCount,
             });
             expectNoCollectedEntries(
@@ -449,15 +491,21 @@ test.describe("FitFileViewer Electron UI", () => {
     }
 
     async function getActivityUiState(): Promise<ActivityUiState> {
-        return page.evaluate(() => ({
-            activeFileName:
-                document
-                    .querySelector("#active_file_name")
-                    ?.textContent?.trim() ?? "",
-            recordCount: window.globalData?.recordMesgs?.length ?? 0,
-            sessionCount: window.globalData?.sessionMesgs?.length ?? 0,
-            title: document.title,
-        }));
+        const [uiState, activityDataCounts] = await Promise.all([
+            page.evaluate(() => ({
+                activeFileName:
+                    document
+                        .querySelector("#active_file_name")
+                        ?.textContent?.trim() ?? "",
+                title: document.title,
+            })),
+            getRendererActivityDataCounts(page),
+        ]);
+
+        return {
+            ...uiState,
+            ...activityDataCounts,
+        };
     }
 
     async function expectMissingFitFileErrorAlert(): Promise<void> {
@@ -631,25 +679,12 @@ test.describe("FitFileViewer Electron UI", () => {
             await expect(page).toHaveTitle(new RegExp(sampleFitFileName, "u"));
             await expect(page.locator("#tab_map")).toHaveClass(/active/u);
 
-            const openedFileState = await page.waitForFunction(() => {
-                const recordCount = window.globalData?.recordMesgs?.length ?? 0;
-                const sessionCount =
-                    window.globalData?.sessionMesgs?.length ?? 0;
-
-                if (recordCount === 0 || sessionCount === 0) {
-                    return null;
-                }
-
-                return {
-                    recordCount,
-                    sessionCount,
-                };
-            });
-
-            expect(await openedFileState.jsonValue()).toStrictEqual({
-                recordCount: sampleFitActivityState.recordCount,
-                sessionCount: sampleFitActivityState.sessionCount,
-            });
+            await expect
+                .poll(() => getRendererActivityDataCounts(page))
+                .toStrictEqual({
+                    recordCount: sampleFitActivityState.recordCount,
+                    sessionCount: sampleFitActivityState.sessionCount,
+                });
 
             return getActivityUiState();
         } finally {
@@ -995,10 +1030,6 @@ test.describe("FitFileViewer Electron UI", () => {
                     activeFileName: document
                         .querySelector("#active_file_name")
                         ?.textContent?.trim(),
-                    globalRecordCount:
-                        window.globalData?.recordMesgs?.length ?? 0,
-                    globalSessionCount:
-                        window.globalData?.sessionMesgs?.length ?? 0,
                     mapTabActive:
                         document
                             .querySelector("#tab_map")
@@ -1008,13 +1039,22 @@ test.describe("FitFileViewer Electron UI", () => {
             },
             { bytes: fitBytes, filePath: sampleFitPath }
         );
+        const {
+            recordCount: loadedRecordCount,
+            sessionCount: loadedSessionCount,
+        } = await getRendererActivityDataCounts(page);
 
         expect(loadResult).toStrictEqual({
             activeFileName: sampleFitActivityState.activeFileName,
-            globalRecordCount: 1285,
-            globalSessionCount: 1,
             mapTabActive: true,
             title: sampleFitActivityState.title,
+        });
+        expect({
+            recordCount: loadedRecordCount,
+            sessionCount: loadedSessionCount,
+        }).toStrictEqual({
+            recordCount: sampleFitActivityState.recordCount,
+            sessionCount: sampleFitActivityState.sessionCount,
         });
         expect(loadResult.activeFileName).not.toBe("");
 
