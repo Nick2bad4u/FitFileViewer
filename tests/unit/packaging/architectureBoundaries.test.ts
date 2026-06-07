@@ -68,6 +68,7 @@ const migratedGlobalDataReaderFiles = [
     "electron-app/utils/maps/controls/mapLapSelector.ts",
     "electron-app/utils/maps/layers/mapDrawLaps.ts",
     "electron-app/utils/maps/core/renderMap.ts",
+    "electron-app/utils/debug/debugSensorInfo.ts",
 ] as const;
 
 const importSpecifierPattern =

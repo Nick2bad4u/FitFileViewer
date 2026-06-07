@@ -9,6 +9,7 @@ import {
 import { formatManufacturer } from "../formatting/formatters/formatManufacturer.js";
 import { formatProduct } from "../formatting/formatters/formatProduct.js";
 import { formatSensorName } from "../formatting/formatters/formatSensorName.js";
+import { getGlobalData } from "../state/core/globalDataStore.js";
 
 type SensorEntry = Record<string, unknown> & {
     readonly device_index?: unknown;
@@ -29,10 +30,6 @@ type SensorEntry = Record<string, unknown> & {
 };
 
 type FitGlobalData = Record<string, unknown>;
-
-type RendererGlobalData = typeof globalThis & {
-    readonly globalData?: unknown;
-};
 
 type SensorIssue = {
     readonly actualManufacturer?: unknown;
@@ -65,9 +62,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
     return Boolean(value) && typeof value === "object";
 }
 
-function getGlobalData(): FitGlobalData | null {
-    const { globalData } = globalThis as RendererGlobalData;
-    return isRecord(globalData) ? globalData : null;
+function getLoadedFitData(): FitGlobalData | null {
+    const data = getGlobalData<unknown>();
+    return isRecord(data) ? data : null;
 }
 
 function getArrayValue(data: FitGlobalData, key: string): unknown[] {
@@ -88,11 +85,11 @@ function withSource(value: unknown, source: string): SensorEntry {
  * @returns Current global FIT data, or null when no parsed data is loaded.
  */
 export function checkDataAvailability(): FitGlobalData | null {
-    const data = getGlobalData();
+    const data = getLoadedFitData();
 
     console.log("🔍 DATA AVAILABILITY CHECK:");
-    console.log(`window.globalData exists: ${Boolean(data)}`);
-    console.log(`window.globalData type: ${typeof data}`);
+    console.log(`Managed globalData exists: ${Boolean(data)}`);
+    console.log(`Managed globalData type: ${typeof data}`);
 
     if (data) {
         console.log(`Keys count: ${Object.keys(data).length}`);
@@ -120,7 +117,7 @@ export function checkDataAvailability(): FitGlobalData | null {
  * @returns Sensor analysis summary, or null if no data is available.
  */
 export function debugSensorInfo(): SensorAnalysis | null {
-    const data = getGlobalData();
+    const data = getLoadedFitData();
     if (!data || Object.keys(data).length === 0) {
         console.warn("❌ No global data available. Load a FIT file first.");
         return null;
@@ -326,7 +323,7 @@ export function debugSensorInfo(): SensorAnalysis | null {
  * Shows all available global data keys for debugging.
  */
 export function showDataKeys(): void {
-    const data = getGlobalData();
+    const data = getLoadedFitData();
     if (!data || Object.keys(data).length === 0) {
         console.warn("❌ No global data available. Load a FIT file first.");
         return;
@@ -345,7 +342,7 @@ export function showDataKeys(): void {
  * Shows only the formatted sensor names from the loaded global data.
  */
 export function showSensorNames(): void {
-    const data = getGlobalData();
+    const data = getLoadedFitData();
     if (!data || Object.keys(data).length === 0) {
         console.warn("❌ No global data available. Load a FIT file first.");
         return;
